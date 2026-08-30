@@ -59,22 +59,33 @@ def read_vertices(data: bytes, offset: int, count: int) -> list[tuple[int, int, 
     return out
 
 
-def element_faces(op: int, words: tuple[int, ...], vertex_count: int) -> list[tuple[int, ...]]:
-    """Vertex indices for one element, or [] if it does not decode cleanly."""
+def element_geometry(
+    op: int, words: tuple[int, ...], vertex_count: int, normal_count: int = 0
+) -> tuple[tuple[int, ...], int | None] | None:
+    """(vertex indices, normal index) for one element, or None if it is junk.
+
+    The element is a run of u16 byte offsets, two per word, **vertices then
+    normals** (module docstring). Reading the normal refs as well as the vertex
+    ones is what gives a face a reliable orientation: winding alone cannot say
+    which side is outward, and measured against the stored normals the winding
+    here is *clockwise* - `cross(v1-v0, v2-v0)` points opposite the stored
+    normal in 97-100% of faces across aya, the humans, an actor and a weapon.
+    """
     # Pre-transformed opcodes index the vertex-keyed shading cache, which holds
     # one word per vertex - so the ref is a word offset and scales by 4.
     stride = 4 if op & 0x01 else VERTEX_SIZE
     nv = 4 if op & 0x40 else 3
+    nn = nv if op & 0x20 else 1
     refs = []
     for w in words:
         refs.append(w & 0xFFFF)
         refs.append(w >> 16)
     if len(refs) < nv:
-        return []
+        return None
     idx = []
     for ref in refs[:nv]:
         if ref % stride or ref // stride >= vertex_count:
-            return []
+            return None
         idx.append(ref // stride)
     if nv == 4:
         # PlayStation quads are Z-ordered - v0 v1 across the top, v2 v3 across
@@ -83,16 +94,32 @@ def element_faces(op: int, words: tuple[int, ...], vertex_count: int) -> list[tu
         # vertices, so it looks plausible, but adjacent faces stop sharing
         # edges. That shows up as an edge count far above V + F - 2.
         idx = [idx[0], idx[1], idx[3], idx[2]]
-    return [tuple(idx)]
+    nrm: int | None = None
+    # The pre-transformed opcodes spend their trailing words on cache indices,
+    # not normal refs, so only the untransformed ones carry a usable normal.
+    if normal_count and not op & 0x01 and len(refs) >= nv + nn:
+        cand = refs[nv]
+        if cand % VERTEX_SIZE == 0 and cand // VERTEX_SIZE < normal_count:
+            nrm = cand // VERTEX_SIZE
+    return tuple(idx), nrm
 
 
-def decode_stream(data: bytes, stream_off: int, vertex_count: int):
-    """(faces, skipped-opcode counter) for one stream."""
+def element_faces(op: int, words: tuple[int, ...], vertex_count: int) -> list[tuple[int, ...]]:
+    """Vertex indices for one element, or [] if it does not decode cleanly."""
+    got = element_geometry(op, words, vertex_count)
+    return [got[0]] if got else []
+
+
+def decode_stream_geometry(
+    data: bytes, stream_off: int, vertex_count: int, normal_count: int = 0
+):
+    """(faces, per-face normal index or None, skipped-opcode counter)."""
     walked = pkg_model.walk_stream(data, stream_off)
     if not walked:
-        return [], Counter()
+        return [], [], Counter()
     packets, _end = walked
     faces: list[tuple[int, ...]] = []
+    normals: list[int | None] = []
     skipped: Counter = Counter()
     for pk in packets:
         op, count, stride = pk["op"], pk["count"], pk["stride"]
@@ -104,11 +131,18 @@ def decode_stream(data: bytes, stream_off: int, vertex_count: int):
             if at + stride * 4 > len(data):
                 break
             words = struct.unpack_from(f"<{stride}I", data, at)
-            got = element_faces(op, words, vertex_count)
+            got = element_geometry(op, words, vertex_count, normal_count)
             if got:
-                faces.extend(got)
+                faces.append(got[0])
+                normals.append(got[1])
             else:
                 skipped[op] += 1
+    return faces, normals, skipped
+
+
+def decode_stream(data: bytes, stream_off: int, vertex_count: int):
+    """(faces, skipped-opcode counter) for one stream."""
+    faces, _normals, skipped = decode_stream_geometry(data, stream_off, vertex_count)
     return faces, skipped
 
 

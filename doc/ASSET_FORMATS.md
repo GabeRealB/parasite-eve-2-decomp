@@ -756,7 +756,8 @@ straight out of the package:
 
 - selecting the **overlay** node gives the usual `.pe2pkg` hex/strings preview;
 - a **model** node draws the mesh in the **Model** tab — drag to rotate, wheel
-  to zoom, right-drag to pan, with solid / wireframe / points shading — and
+  to zoom, right-drag to pan, with solid / wireframe / points shading and
+  backface culling on by default — and
   writes the `TmdSource` arrays, the undecoded opcodes and the Euler
   characteristic `V - E + F` into Txt/hex as a sanity check on the face decode;
 - an **anim** node lists the block's sets and clips.
@@ -769,6 +770,12 @@ The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
 model that looks upright in the viewport looks upright in Blender. Only faces
 are drawn — no textures, no UVs, and no bone transforms — which is enough to
 tell one character from another and not enough to judge a pose.
+
+Faces are oriented by the model's **stored normal array**, not by their
+winding: the winding is clockwise, so deriving orientation from it turns every
+face inside out (see [`TMD_FORMAT.md` §7](TMD_FORMAT.md)). Screen space adds a
+second reflection because its Y grows downward, so the normal is rotated with
+the model rather than recomputed from the projected points.
 
 ---
 

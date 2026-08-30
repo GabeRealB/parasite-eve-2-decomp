@@ -1489,16 +1489,17 @@ class AssetViewer(tk.Tk):
 
     def _show_model(self, ov, emb) -> None:
         try:
-            verts, faces, skipped = pkg_overlay.decode_model(ov, emb)
+            mesh = pkg_overlay.decode_model(ov, emb)
         except Exception as e:
             self.mesh_view.clear(f"Model decode failed: {e}")
             self._clear_text_tabs(str(e))
             return
 
+        verts, faces, skipped = mesh.verts, mesh.faces, mesh.skipped
         note = f"{len(verts)} verts · {len(faces)} faces"
         if skipped:
             note += f" · {sum(skipped.values())} elements skipped"
-        self.mesh_view.show(verts, faces, note)
+        self.mesh_view.show(verts, faces, mesh.normals, note)
         self.preview_nb.select(self.mesh_view)
 
         stream = emb.detail.get("stream") or {}
@@ -1515,6 +1516,8 @@ class AssetViewer(tk.Tk):
                 f"  record   @{src['source_offset']}",
                 f"  vertices @{src['verts_offset']}  ({src['vertex_count']})",
                 f"  normals  @{src['norms_offset']}  ({src['normal_count']})",
+                f"  {mesh.stored_normals} of {len(faces)} faces oriented by a "
+                f"stored normal; the rest fall back to winding",
             ]
         else:
             lines.append("No TmdSource points at this stream — vertex array unknown.")

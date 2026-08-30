@@ -504,6 +504,30 @@ edge count: a closed mesh has `E = V + F - 2`, and the human accessories came
 out at 80 edges against an expected 44 until the winding was fixed, after which
 they are exact closed manifolds (χ = 2).
 
+**The winding is clockwise, so it cannot orient a face on its own.** Measured
+against the stored normal array — `cross(v1-v0, v2-v0)` dotted with the
+element's own normal, in the file's raw coordinates — the two point *opposite*
+in 97-100% of faces (aya 363/368, the named human 263/270, an actor 271/274, a
+weapon 45/45). Anything that derives a face normal from the winding therefore
+gets every face inside out, which makes a solid render look like it is showing
+its interior.
+
+Two consequences worth keeping straight:
+
+* Take the normal from the element's normal ref, not from the winding. The
+  pre-transformed opcodes (`op & 0x01`) spend their trailing words on cache
+  indices rather than normal refs, so those faces have to fall back to the
+  winding — about a quarter of a character.
+* Negating Y to get from the PlayStation's Y-down space to a Y-up viewer is a
+  *reflection*, and a reflection reverses handedness. In Y-up space the
+  winding-derived normal agrees with the (also flipped) stored normal, so the
+  two can be mixed there; in raw space they cannot.
+
+The `ref / 4` divisor for the pre-transformed opcodes is confirmed the same
+way. With `/4` the human body decodes to 398 faces, 0 rejected, every edge
+shared by exactly two faces; with `/8` it is 279 faces, 119 rejected and only
+71% of edges shared — and aya lands on χ = 2 exactly under `/4`.
+
 | Tool | Role |
 |---|---|
 | `tools/peassets/pkg_model.py` | walks and delimits streams, resolves each to its `TmdSource`, carves them to `raw/model/*.tmd` |

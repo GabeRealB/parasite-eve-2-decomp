@@ -39,6 +39,7 @@ class MeshView(ttk.Frame):
         super().__init__(parent)
         self._verts: list[tuple[float, float, float]] = []
         self._faces: list[tuple[int, ...]] = []
+        self._normals: list[tuple[float, float, float]] = []
         self._yaw = 0.55
         self._pitch = 0.25
         self._zoom = 1.0
@@ -60,7 +61,7 @@ class MeshView(ttk.Frame):
         )
         combo.pack(side=tk.LEFT, padx=(4, 10))
         combo.bind("<<ComboboxSelected>>", lambda _e: self._draw())
-        self._cull = tk.BooleanVar(value=False)
+        self._cull = tk.BooleanVar(value=True)
         ttk.Checkbutton(
             bar, text="Backface cull", variable=self._cull, command=self._draw
         ).pack(side=tk.LEFT, padx=(0, 10))
@@ -84,9 +85,17 @@ class MeshView(ttk.Frame):
         self.canvas.bind("<Button-5>", lambda _e: self._scale_zoom(1 / 1.1))
 
     # ------------------------------------------------------------------ data
-    def show(self, verts, faces, note: str = "") -> None:
-        """Load a mesh, normalised into a unit box centred on its bounds."""
-        self._faces = [f for f in faces if len(f) >= 3]
+    def show(self, verts, faces, normals=None, note: str = "") -> None:
+        """Load a mesh, normalised into a unit box centred on its bounds.
+
+        ``normals`` is one outward direction per face, in the same space as
+        ``verts``. It must come from the model's own normal array rather than
+        from the winding - see ``pkg_overlay.Mesh``. Without it every face
+        renders inside out.
+        """
+        keep = [i for i, f in enumerate(faces) if len(f) >= 3]
+        self._faces = [faces[i] for i in keep]
+        self._normals = [normals[i] for i in keep] if normals else []
         if verts:
             xs = [v[0] for v in verts]
             ys = [v[1] for v in verts]
@@ -107,6 +116,7 @@ class MeshView(ttk.Frame):
     def clear(self, msg: str = "") -> None:
         self._verts = []
         self._faces = []
+        self._normals = []
         self._info.configure(text="")
         self.canvas.delete("all")
         if msg:
@@ -199,33 +209,47 @@ class MeshView(ttk.Frame):
         solid = mode in ("Solid", "Solid + wire")
         wire = mode in ("Wireframe", "Solid + wire")
         n = len(pts)
+
+        # Rotate the face normals with the model. Deriving them from the
+        # projected points instead would be wrong twice over: screen y grows
+        # downward, which reflects the frame and flips every cross product,
+        # and the winding is clockwise to begin with.
+        def rot(v):
+            x, y, z = v
+            xr = x * cy_ + z * sy_
+            zr = -x * sy_ + z * cy_
+            yr = y * cp - zr * sp
+            return xr, yr, y * sp + zr * cp
+
         order = []
-        for f in self._faces:
+        for k, f in enumerate(self._faces):
             if any(i >= n for i in f):
                 continue
-            order.append((sum(pts[i][2] for i in f) / len(f), f))
-        # Painter's algorithm: farthest first. +Z is away from the viewer after
-        # the rotation above, so descending depth paints back to front.
-        order.sort(key=lambda t: -t[0])
+            order.append((sum(pts[i][2] for i in f) / len(f), k, f))
+        # Painter's algorithm. +Z is toward the viewer in this frame (x right,
+        # y up, right-handed), so ascending depth paints back to front.
+        order.sort(key=lambda t: t[0])
 
-        for _d, f in order:
+        for _d, k, f in order:
             flat = []
             for i in f:
                 flat.extend(pts[i][:2])
             if solid:
-                ax, ay, az = pts[f[0]]
-                bx, by, bz = pts[f[1]]
-                gx, gy, gz = pts[f[2]]
-                ux, uy, uz = bx - ax, by - ay, bz - az
-                vx, vy, vz = gx - ax, gy - ay, gz - az
-                nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+                nx, ny, nz = rot(self._normals[k]) if k < len(self._normals) else (0.0, 0.0, 1.0)
                 ln = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
                 nx, ny, nz = nx / ln, ny / ln, nz / ln
-                if self._cull.get() and nz > 0:
+                facing = nz > 0.0
+                if self._cull.get() and not facing:
                     continue
-                lam = abs(nx * self._light[0] + ny * self._light[1] + nz * self._light[2])
-                v = int(60 + 175 * max(0.0, min(1.0, lam)))
-                fill = f"#{v:02x}{v:02x}{min(255, v + 12):02x}"
+                lam = nx * self._light[0] + ny * self._light[1] + nz * self._light[2]
+                if facing:
+                    v = int(55 + 190 * max(0.0, min(1.0, lam)))
+                    fill = f"#{v:02x}{v:02x}{min(255, v + 12):02x}"
+                else:
+                    # Interior surfaces stay visible with culling off, but read
+                    # as the inside of the model rather than as more shell.
+                    v = int(30 + 70 * max(0.0, min(1.0, -lam)))
+                    fill = f"#{v + 18:02x}{v:02x}{v:02x}"
                 c.create_polygon(
                     *flat, fill=fill, outline=EDGE if not wire else SOFT, width=1
                 )

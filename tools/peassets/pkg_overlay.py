@@ -168,22 +168,65 @@ def anim_candidates(pkg_dir: Path) -> list[tuple[str, int, int]]:
     return [(n, i, va) for n, vals in tables.items() for i, va in enumerate(vals) if va]
 
 
-def decode_model(overlay: Overlay, emb: Embedded):
-    """(vertices, faces, skipped) for one embedded model stream.
+@dataclass
+class Mesh:
+    """A decoded model stream, in Y-up space.
 
-    Vertices come back Y-negated, the same flip ``tmd_export`` writes into OBJ:
-    the PlayStation is Y-down and every viewer is Y-up, so without it the model
-    is upside down.
+    ``normals`` is parallel to ``faces`` and holds each face's **outward**
+    direction. Getting that right needs the stored normal array, not the
+    winding: measured across aya, the named humans, an actor and a weapon, the
+    winding is clockwise - ``cross(v1-v0, v2-v0)`` points *opposite* the stored
+    normal in 97-100% of faces. Deriving orientation from winding alone
+    therefore turns every face inside out, which is what makes a solid render
+    look like it is showing its back faces.
+
+    Everything here is Y-negated, the same flip ``tmd_export`` writes into OBJ:
+    the PlayStation is Y-down and every viewer is Y-up. Negating one axis is a
+    reflection and so reverses handedness, which flips the cross product too -
+    so in *this* space the winding-derived normal agrees with the stored one,
+    and the two can be mixed freely. Faces from the pre-transformed opcodes
+    carry no normal ref and fall back to the winding.
     """
+
+    verts: list[tuple[float, float, float]] = field(default_factory=list)
+    faces: list[tuple[int, ...]] = field(default_factory=list)
+    normals: list[tuple[float, float, float]] = field(default_factory=list)
+    skipped: dict[int, int] = field(default_factory=dict)
+    stored_normals: int = 0  # faces that got a normal from the file
+
+
+def _winding_normal(verts, face):
+    a, b, c = verts[face[0]], verts[face[1]], verts[face[2]]
+    ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
+    vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
+    return (uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
+
+
+def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
+    """Decode one embedded model stream into a :class:`Mesh`."""
     src = emb.detail.get("source")
     if not src:
-        return [], [], {}
+        return Mesh()
     data = overlay.path.read_bytes()
-    verts_off = int(src["verts_offset"], 16)
     count = int(src["vertex_count"])
-    verts = tmd_export.read_vertices(data, verts_off, count)
-    faces, skipped = tmd_export.decode_stream(data, emb.offset, count)
-    return [(x, -y, z) for x, y, z in verts], faces, dict(skipped)
+    ncount = int(src["normal_count"])
+    raw_v = tmd_export.read_vertices(data, int(src["verts_offset"], 16), count)
+    raw_n = tmd_export.read_vertices(data, int(src["norms_offset"], 16), ncount)
+    faces, nrefs, skipped = tmd_export.decode_stream_geometry(
+        data, emb.offset, count, ncount
+    )
+    verts = [(x, -y, z) for x, y, z in raw_v]
+
+    normals: list[tuple[float, float, float]] = []
+    stored = 0
+    for face, nref in zip(faces, nrefs):
+        if nref is not None and nref < len(raw_n):
+            nx, ny, nz = raw_n[nref]
+            normals.append((float(nx), float(-ny), float(nz)))
+            stored += 1
+        else:
+            normals.append(_winding_normal(verts, face))
+    return Mesh(verts, faces, normals, dict(skipped), stored)
 
 
 def package_id(path: Path) -> int | None:
