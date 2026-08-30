@@ -32089,3 +32089,40 @@ build, not with the score.
 A symbol that keeps its own `lui`/`addiu` inside an arm that already has a base
 register (here `D_..._8017F1C0`, which is also passed to `Gp_SpawnEff`) really is
 a separate object — leave it out of the array.
+
+## A trailing `la` argument outranks a preceding global byte store
+
+The last two statements of a straight-line block —
+
+```c
+D_8007272D = 6;
+Gp_ApplyAreaRecs(&D_..._80189C50);
+```
+
+compile to source order in the target (`lui v1` / `li v0` / `sb`, then
+`lui a0`, `jal`, `addiu a0` in the delay slot) but come out inverted from
+GCC 2.8.1: the whole `la` lifts above the store and the `sb` ends up in the
+delay slot instead.
+
+The reason is dependence-chain length at `-fschedule-insns` (pass 1, before
+register allocation, so this is not a hard-register problem and no pin helps).
+The argument is three insns deep — `high` → `lo_sum` → `move` into the argument
+pseudo → `call` — while the store is only `high`/`li` → `sb` → `call`, and the
+store's link to the call is an anti-dependence. The longer chain wins the ready
+list and the scheduler then follows it to the end, so both `la` halves emit
+before the store. Nothing about the *source* order changes this: writing the
+store into the argument with a comma operator
+(`Gp_ApplyAreaRecs((D_8007272D = 6, &rec))`) scores identically, and marking the
+global `volatile` only stops the delay-slot fill, costing an extra `nop`.
+
+`SOFT_BARRIER()` between the two statements is the fix — it keeps the `la`
+below the store, and being non-volatile it still lets the delay slot take
+`addiu a0`. `SCHED_BARRIER()` and `SOFT_COMPILER_BARRIER()` also match here;
+prefer the softest one that works. `func_dryfield_trailer_coach_801822F4` is
+the example.
+
+Note the shape is sensitive to what follows the call: with nothing after it
+GCC interleaves (`lui hi(G)`, `li`, then the `la`, then `sb`), and only once
+the block continues past the call does the `la` migrate all the way to the
+front. Reproduce a suspected scheduling miss on a five-line test file before
+concluding the C shape is wrong.

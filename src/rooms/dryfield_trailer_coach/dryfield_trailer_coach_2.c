@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -19,6 +20,12 @@ extern s32 D_8007216C;
 /// `Mc_SaveData.field_13` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
 extern s8 D_8007217B;
+/// Cutscene script blob argument of `func_800E8614` / `func_800E8634`.
+extern void func_800E8614(s32 arg0, s32 arg1);
+extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+
+/// Byte at 0x8007272D, written when the trailer-coach scene ends.
+extern s8 D_8007272D;
 
 /// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
 /// `field_0` is the area id forced for the duration of the scene (negative =
@@ -41,7 +48,17 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DryfieldTrailerCoachCapScript, 0x18);
 
 extern TaskDesc       D_dryfield_trailer_coach_80184F7C;
+extern s32            D_dryfield_trailer_coach_80185AFC;
+extern s32            D_dryfield_trailer_coach_80185C4C;
+extern s32            D_dryfield_trailer_coach_80185D54;
+extern s32            D_dryfield_trailer_coach_80186684;
+extern s32            D_dryfield_trailer_coach_8018681C;
+extern s32            D_dryfield_trailer_coach_80186A74;
+extern s32            D_dryfield_trailer_coach_80186BDC;
+extern s32            D_dryfield_trailer_coach_80186D2C;
+extern s32            D_dryfield_trailer_coach_80187074;
 extern GpAreaApplyRec D_dryfield_trailer_coach_80188888[];
+extern GpAreaApplyRec D_dryfield_trailer_coach_80189C50;
 extern Task*          D_dryfield_trailer_coach_80189C94;
 
 void func_dryfield_trailer_coach_80181D88(Task* task)
@@ -254,7 +271,62 @@ void func_dryfield_trailer_coach_80181D88(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_2", func_dryfield_trailer_coach_801822F4);
+void func_dryfield_trailer_coach_801822F4(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            func_800E8614((s32)&D_dryfield_trailer_coach_80185AFC, 1);
+            task->state++;
+            break;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                task->state = 2;
+            }
+            break;
+        case 2:
+            if (Gp_GetCapEventKey() == 0xB) {
+                func_800E8614((s32)&D_dryfield_trailer_coach_80185C4C, 0);
+                task->state++;
+                break;
+            }
+            if (GameFlag_GetNibble(0x28) < 2) {
+                func_800E8634((s32)&D_dryfield_trailer_coach_80185D54, 0,
+                              (s32)&D_dryfield_trailer_coach_80186684);
+                GameFlag_SetNibble(0x28, 2);
+                GameFlag_SetNibble(0x3A, 1);
+                GameFlag_SetNibble(0x4B, 1);
+                func_800E3FAC(0xA2, 0xF);
+                D_8007272D = 6;
+                SOFT_BARRIER();
+                Gp_ApplyAreaRecs(&D_dryfield_trailer_coach_80189C50);
+                task->state++;
+                break;
+            }
+            if (Gp_HasCollectedBit(0x111) == 0 && GameFlag_GetNibble(0x4F) != 0) {
+                if (GameFlag_GetNibble(0xFD) == 0) {
+                    GameFlag_SetNibble(0xFD, 1);
+                    func_800E8614((s32)&D_dryfield_trailer_coach_80186D2C, 0);
+                } else {
+                    func_800E8614((s32)&D_dryfield_trailer_coach_80187074, 0);
+                }
+                task->state++;
+                break;
+            }
+            if (GameFlag_GetNibble(0x28) == 2) {
+                func_800E8634((s32)&D_dryfield_trailer_coach_8018681C, 0,
+                              (s32)&D_dryfield_trailer_coach_80186A74);
+                GameFlag_SetNibble(0x28, 3);
+            } else {
+                func_800E8614((s32)&D_dryfield_trailer_coach_80186BDC, 0);
+            }
+            task->state++;
+            break;
+        case 3:
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_2", func_dryfield_trailer_coach_801824E8);
 
