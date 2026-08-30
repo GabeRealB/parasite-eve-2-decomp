@@ -148,7 +148,6 @@ void Gp_LoadCapFile(s32 arg0);
 void Gp_ApplyCapEvtFlags(void);
 s32  Gp_FindCapEvt(s32 arg0);
 s32  Gp_LookupSlot4(s32 arg0);
-void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void Gp_StepScriptA(Task* task);
 void Gp_StepScriptB(Task* task);
 void Gp_SpawnPadHold(s16 arg0);
