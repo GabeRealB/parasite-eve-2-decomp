@@ -681,7 +681,17 @@ names must be unique within a container — so those extra ids keep their defaul
 - Friendly names for actor suffixes (`300`, `400`, `700`, …) — not yet
   matched to in-game character ids, though `20600` (§5.9) now supplies the
   roster to match them *against*.
-- Who the five named humans (`800101`–`800105`) are. Their overlays hold a
-  300-vertex body shared by four of the five plus one distinguishing mesh each
-  (22, 36, 52 and 78 vertices); `tools/peassets/tmd_export.py humans` writes
-  them out as OBJ.
+- Who the named humans are. There are five file ids `800101`–`800105` but only
+  **four packages**: `800105` loads `human_800103`'s package with the same
+  per-character CLUT and image, differing only in that it has no SPK, so it is
+  that character without a sound bank.
+
+  The four packages are near-duplicates rather than copies. All four carry the
+  *byte-identical* 300-vertex body and the same four small meshes (two 27- and
+  two 23-vertex), and the same 20-bone skeleton. Each adds exactly one mesh of
+  its own — 22, 52, 36 and 78 vertices — and its own animation block, and only
+  `human_800102` contains code. At the byte level `800101`/`800103`/`800104`
+  are ~42% identical at the same offsets, while `800102` shares nothing at a
+  fixed offset because its code shifts everything after it. The distinguishing
+  meshes are small single-part objects that read as held props rather than
+  heads; `tools/peassets/tmd_export.py humans` writes them out as OBJ.
