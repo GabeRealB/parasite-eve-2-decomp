@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/gameflag.h"
+#include "main/task.h"
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018061C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80180650);
@@ -8,7 +12,34 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801807B4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018080C);
+void func_shelter_r47_8018080C(Task* task)
+{
+    s32 nibble;
+
+    switch (task->state) {
+        case 0:
+            Gp_ResetCap();
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x240, 0x100);
+            Gp_RunCapCmd1(8);
+            task->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            Gp_ResetCap();
+            Gp_MsgPlayerWeapon(1);
+            nibble = GameFlag_GetNibble(0x165);
+            if (nibble < 3) {
+                GameFlag_SetNibble(0x165, nibble + 1);
+            }
+        default:
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801808D4);
 
