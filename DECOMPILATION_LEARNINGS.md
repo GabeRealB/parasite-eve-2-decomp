@@ -32011,3 +32011,20 @@ splat symbol (`D_8007217B`). A 99.9% score whose whole `base_N_diff` is
 `%hi(Mc_SaveData)` against `%hi(D_8007217B)` — plus `%hi(.rodata)` against
 `%hi(jtbl_…)` for the compiler-generated switch table — is a match; the
 authority is `./tools/build-and-verify.sh`, not the scratch score.
+
+`overlay_dup_index.py` only walks `asm/<ver>/<family>/nonmatchings/**`, so a
+twin that is **already matched** has left the index and `find` answers
+`same body: 1 copies`. That is the most valuable case and the one the tool
+cannot report, so do not read a lone-copy answer as "no sibling exists". Fall
+back to grepping `src/` for one of the function's rarer callees:
+
+```sh
+grep -rl "Gp_StartCapSlot" src/
+```
+
+For `func_dryfield_trailer_coach_80181D88` the dup index found nothing while
+`src/rooms/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2.c` held
+an instruction-for-instruction identical body — the day and night versions of a
+room are separate packages, and their scripted-cutscene task is the same code
+with different overlay-local data. A `sed` rename of the overlay prefix, the two
+`D_<seg>_<vram>` symbols and the typedef scored 99.971% on the first build.
