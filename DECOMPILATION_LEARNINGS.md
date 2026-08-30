@@ -32580,3 +32580,115 @@ not a match.
 Symptom to recognise: a shared-object family where the lead overlay is `OK` and
 its siblings differ by a handful of bytes, each difference the upper half of an
 address.
+
+## `a && b` recovers `$v0` for a two-constant phi that neither if/else form does
+
+`func_shelter_b3_garbage_incinerator_8018110C` opens by picking one of two
+constants and storing it once:
+
+```
+lbu   v0, 0x132(v1)
+nop
+beqz  v0, L3C40
+ sltiu v0, v0, 2
+beqz  v0, L304C
+ lui  v0, %hi(Display_State)
+lw    v0, %lo(Display_State+8)(v0)
+nop
+andi  v0, v0, 0x2
+beqz  v0, join
+ li   v0, 0x3c40      /* delay slot */
+L304C: j join
+ li   v0, 0x304c
+L3C40: li v0, 0x3c40
+join:  jal Gp_GetViewIndex
+ sh   v0, 0x24(s1)
+```
+
+Two obvious shapes each get half of it right:
+
+- a named temp (`tpage`) plus a nested `if (flags & 2) tpage = A; else tpage = B;`
+  reproduces the branch layout exactly but colors the temp `$v1`. `-fschedule-insns`
+  hoists the else-arm `li` into the `lw`'s load-delay slot, so the temp's live
+  range now covers the pseudos holding the `lw` and the `andi` — both already
+  in `$v0` from local-alloc — and `.greg` prints `83 conflicts: … 2 …`.
+- writing both constants onto the *destination field* (the
+  "if/else on the same field keeps the phi in `$v0`" entry above) does recover
+  `$v0`, but GCC then picks the other arm for the delay slot and adds a `j`/`nop`.
+
+Collapsing the inner test into the outer one with `&&` gives both:
+
+```c
+if (mode != 0) {
+    if (mode < 2 && (Display_State.field_8 & 2) == 0) {
+        ctx->field_24 = 0x3C40;
+    } else {
+        ctx->field_24 = 0x304C;
+    }
+} else {
+    ctx->field_24 = 0x3C40;
+}
+```
+
+Short-circuit `&&` emits the second test as its own block, so the `li` stays
+out of the load-delay slot *and* the store is still a single merged store.
+99.93% → 100%.
+
+## Switch cases that share a body: duplicate or fall through, never both
+
+Two `case` labels whose bodies end with the same calls tempt you to write the
+body out twice. GCC's cross-jumping then merges only the common *tail* — often
+just the last call, reached by a `j` — and you are left with a second full copy
+of the body and an `insert` penalty for exactly its length.
+
+When the target instead shows the earlier case's block running straight into
+the later case's block (no `j` at all), the source had a real fallthrough:
+
+```c
+case 0x0A:
+    Draw(&Verts[0], 0x180, 0x3F6, 0xC0);
+    /* fallthrough */
+case 0x1E:
+case 0x26:
+    /* the shared body */
+    break;
+```
+
+The reverse mistake costs the same: writing the shared body under `case 0x0A`
+*and* leaving the fallthrough makes GCC emit the fallthrough copy with its tail
+expanded plus a second labelled copy. Decide from the target which of the two
+blocks carries the `j` to the shared tail: a case that falls through has no
+terminator of its own.
+
+## A compiler-generated jump table needs to start its object's `.rodata`
+
+`.rodata` ownership cuts alone are not always enough. GCC 2.8.1 emits `.align 3`
+ahead of a jump table, so a table that is not the first thing in its object's
+`.rodata` gets padded to an 8-byte boundary. In
+`shelter_b3_garbage_incinerator` the preceding item was the 4-byte `"CAP"`
+string at offset `0x58`, and the object came out as
+
+```
+0018 43415000 00000000   CAP.....     <- 4 bytes of .align 3 pad
+0020 <jump table>                      <- wanted 0x1C
+```
+
+so everything after the table was 4 bytes late and the overlay failed its
+checksum with no compiler error. `SUBALIGN(4)` in the linker script only
+overrides the *input section's* alignment, not an `.align` inside it.
+
+The fix is the manifest's `units` key paired with the `rodata` cut: cut `.text`
+at the function itself so the table starts a fresh object.
+
+```toml
+units = ["0x3B4C"],
+rodata = [{ start = "0x40", unit = "shelter_b3_garbage_incinerator_2" },
+          { start = "0x5C", unit = "shelter_b3_garbage_incinerator_3" }]
+```
+
+A new `.text` cut renumbers every unit after it (`_3` → `_4`, `_4` → `_5`), so
+delete the overlay's `src/` files and its `asm/USA/<family>/{nonmatchings,matchings,data}/<overlay>`
+trees and re-split, then re-apply any already-matched function to its new file.
+Splat will not rewrite a `src/` file that already exists, and a stale
+`INCLUDE_RODATA` naming the old unit's directory shows up as
+`undefined reference to '.L<overlay>_<addr>'` at link time.

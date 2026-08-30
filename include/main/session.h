@@ -91,7 +91,11 @@ typedef struct _GameSession {
     s8    field_12D; // lb/sb countdown; 0x7F sentinel in Gp_StartAreaBgm
     u8    field_12E; // copied as s8 into D_80114BD8.field_2 (Gp_PlayClockState2)
     u8    field_12F;
-    byte  unknown_130[9];
+    byte  unknown_130[2];
+    u8    field_132;
+    byte  unknown_133[2];
+    u8    field_135;
+    byte  unknown_136[3];
     u8    field_139;
     u8    field_13A; // cleared by Gp_PostDirIfCapIdle when D_80114CDC is 0
     u8    field_13B;
