@@ -2595,6 +2595,29 @@ Splat does not delete the now-stale per-symbol `.s` files under the old unit's
 `nonmatchings/` directory. They are harmless — nothing includes them — and a
 clean `asm/` regeneration clears them.
 
+**An existing `rodata` cut can still name the wrong unit.** The cut records who
+*owns* the block, and nothing checks that against who references it, so a cut
+added for one overlay's earlier work can sit at the right offset with the wrong
+`unit`. `shelter_b1_underground_parking` carried
+`rodata = [{ start = "0x1D4", unit = "shelter_b1_underground_parking_2" }]`
+while every symbol from 0x1D4 on is referenced from unit `_5`
+(`func_shelter_b1_underground_parking_80182154` onwards) — harmless while the
+whole block was `INCLUDE_RODATA`, and wrong the moment a `_5` function is
+decompiled. Re-grep ownership before trusting the cut; here the fix was one
+word, `_2` -> `_5`.
+
+**A `units` `.text` cut is only needed when the table would land mid-object.**
+The `mist_parking` case pairs `rodata` with `units` because its table starts the
+original object's `.rodata`. When the generated tables instead sit at 8-aligned
+*offsets from the cut's base*, GCC's `.align 3` costs nothing and no `.text` cut
+is required: the three tables at `0x264` / `0x324` / `0x344` are `0x90` / `0x150`
+/ `0x170` from the 0x1D4 cut, so moving the cut's `unit` was the whole change.
+After the re-split `migrate_rodata_to_functions` folds each table into its
+function's own `.s`, so replacing that function's `INCLUDE_ASM` with C puts the
+compiler's tables at exactly the offsets the migrated block occupied — the
+`INCLUDE_ASM`/`INCLUDE_RODATA` order in the file already encodes the layout and
+needs no hand-editing.
+
 ### Generated overlay configs: a rodata cut needs a matching `.text` cut
 
 A `rodata` cut alone does not move a *function* into the new unit, and the
