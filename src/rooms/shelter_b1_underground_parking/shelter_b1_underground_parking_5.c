@@ -160,7 +160,29 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801833DC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80183410);
+void func_shelter_b1_underground_parking_80183410(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_RunCapCmd1(task->spawnArg1);
+            goto advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+        advance:
+            task->state += 1;
+            break;
+        case 2:
+            if (Gp_GetCapEventKey() == 0xF) {
+                Gp_MsgPlayerWeapon(1);
+                Task_Kill(task);
+            } else {
+                task->state = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801834D4);
 
