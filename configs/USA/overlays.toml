@@ -238,7 +238,7 @@ dryfield_g_r_kitchen = { room = "G & R kitchen" }
 dryfield_water_tower = { room = "Water tower" }
 dryfield_water_tank = { room = "Water tank" }
 dryfield_breezeway = { room = "Breezeway" }
-dryfield_factory = { room = "Factory" }
+dryfield_factory = { room = "Factory", units = ["0x2658"], rodata = [{ start = "0x84", unit = "dryfield_factory_2" }] }
 dryfield_garage = { room = "Garage" }
 dryfield_driveway = { room = "Driveway" }
 dryfield_junk_yard = { room = "Junk yard" }

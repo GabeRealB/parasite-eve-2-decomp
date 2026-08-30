@@ -32159,3 +32159,33 @@ inc:
 from the extra case-2 `j`) to 100% with this move. Same idea as the loop
 "shared increment block lands early" note: the first source path that reaches
 the label decides where the block is emitted.
+
+
+## Byte-identical `if/else` call arms: barrier at the *end* of the first arm
+
+Room cutscene drivers contain conditionals whose two arms are literally the
+same call, e.g. `func_80181B38(0)` under both `Game_Session->field_7 == 2` and
+its `else`. Written plainly, GCC 2.8.1 does not just cross-jump the tails — it
+removes the branch entirely and then DCEs the compare, so the `lw
+%lo(Game_Session)` / `lbu 7(v0)` / `li 2` / `bne` disappear too and the target's
+duplicated `jal` is one `jal`. `delete` in the penalty mix is large while
+`branch` is small.
+
+The fix is the usual empty-`asm` asymmetry, but placed *after* the calls, not
+before them as in the constant-assignment case above:
+
+```c
+if (Game_Session->field_7 == 2) {
+    func_dryfield_factory_80181B38(0);
+    SOFT_BARRIER();          /* last insn of the arm; breaks the tail match */
+} else {
+    func_dryfield_factory_80181B38(0);
+}
+```
+
+Here the arms end in `jal` + delay slot and the join is reached by `j`, whose
+delay slot is a `nop` in the target anyway, so a barrier sitting between the
+call and the `j` costs nothing — unlike the `ori`/`j` case, where it blocked
+the delay-slot fill. Use `SOFT_BARRIER()`; the volatile form matches here too
+but is not needed. `func_dryfield_factory_8017FC18` has two such arms (one
+per state) and goes 79.6% -> 100% with nothing else changed.
