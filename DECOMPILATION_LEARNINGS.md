@@ -2546,6 +2546,18 @@ hex, and it fails silently in whichever direction hurts:
 Both bugs shipped before this was understood. Every family except main and
 gameplay is affected, which is where nearly all the remaining work is.
 
+**The best-scoring seed is not always the best seed to permute from.** The
+permuter searches from a fixed base, so seed choice is most of the leverage. A
+seed can be cornered: `func_actor_203700_8014A6F0`'s 99.512% seed had
+`reorder=1` and nothing else, and 25 minutes at `-j4` never beat its base score
+of 60, while a 96.585% attempt was the only one of 38 to reach `reorder=0` -
+paying `insert=2 delete=2` for it, i.e. a genuinely different shape rather than
+a worse version of the same one. Prefer a seed that is *clean on the axis the
+best one is stuck on*, even at a lower score. `tools/archive_giveup.py` now
+keeps one such alternate per penalty dimension, and `tools/claude` names them
+when it restores a give-up seed; before that it archived on score alone and the
+other 37 attempts died with the worktree.
+
 Improvements land in `permuter/<fn>/output-<score>-<n>/source.c`, as the whole
 preprocessed file reformatted by pycparser. Diff only the function against the
 same slice of `permuter/<fn>/base.c` (`awk '/^<rettype> <fn>/,0'`) or the

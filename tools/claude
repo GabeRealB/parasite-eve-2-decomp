@@ -271,6 +271,24 @@ print("tools/giveups/%s/%s (%s%%%s)" % (func, seed, score, pinned))
     fi
     echo "Using give-up seed $giveup_note"
     echo "Do not restart from m2c. Compile this first, then dump/unpin/permute."
+    # The score-best seed can be cornered on one penalty dimension. Name the
+    # archived alternates so a retry can start from a different shape instead.
+    if [[ -f "$GIVEUP_META" ]]; then
+        python3 -c '
+import json, sys
+m = json.load(open(sys.argv[1], encoding="utf-8"))
+alts = m.get("alternates") or []
+if alts:
+    func = m.get("func", "?")
+    print("Alternate seeds (better on a penalty the best-scoring seed is stuck on):")
+    for a in alts:
+        pen = a.get("penalties") or {}
+        mix = " ".join("%s=%s" % (k, pen[k]) for k in
+                       ("stack","branch","regs","reorder","insert","delete") if k in pen)
+        print("  tools/giveups/%s/%s (%s%%)%s"
+              % (func, a.get("seed_name"), a.get("score"), "  " + mix if mix else ""))
+' "$GIVEUP_META" 2>/dev/null || true
+    fi
 elif [[ "$BOOTSTRAP" == true ]]; then
     echo "Generating initial C code using m2c..."
     CONTEXT_ARG=()
