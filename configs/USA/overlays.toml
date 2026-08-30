@@ -488,7 +488,7 @@ actor_461800 = { }
 actor_503500 = { units = ["0x44E4"], rodata = [{ start = "0x10C", unit = "actor_503500_2" }] }
 actor_510900 = { units = ["0x9A50", "0x9B68"], rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
 actor_511000 = { }
-actor_521100 = { }
+actor_521100 = { units = ["0x37A8"], rodata = [{ start = "0x2C", unit = "actor_521100_2" }] }
 actor_535700 = { }
 actor_548100 = { }
 actor_560800 = { }
