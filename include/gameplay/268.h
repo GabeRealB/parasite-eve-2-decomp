@@ -364,5 +364,6 @@ s32  Gp_GetModLevel(s32 arg0);
 void Gp_TickBoostPanel(Task* arg0);
 s32  Gp_HasStockedItem(s32 arg0);
 s32  Gp_CanMoveItems(void);
+void Gp_MarkPlayTime(void);
 
 #endif // GAMEPLAY_268_H
