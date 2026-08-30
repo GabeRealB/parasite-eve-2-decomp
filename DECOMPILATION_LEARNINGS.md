@@ -2529,9 +2529,22 @@ already ignores a candidate field containing `.` when the target line carried a
 relocation (`field_matches_any_symbol` in `scorer.py`), so a target's
 `%hi(jtbl_...)` against a compiled `%hi(.rodata+0x18)` costs nothing. The
 normalization in `dist.py` / `normalize_asm.py` / `objdump.py` is for readable
-dumps only. Match the whole symbol (`jtbl_\w+`): overlay tables are named
-`jtbl_actor_203700_80149E34`, and a hex-only pattern stops inside the name —
-`ac` is valid hex — leaving spliced garbage like `.rodatator_203700_80149E34`.
+dumps only.
+
+**Always match a jump table symbol as `jtbl_\w+`, never as hex.** Only
+main and gameplay use the bare `jtbl_80013EB0` form — 89 tables. The other ~450
+are `jtbl_<overlay>_<hex>`: `jtbl_actor_203700_80149E34`,
+`jtbl_dryfield_night_garage_8017D708`. A hex-only pattern stops *inside* the
+overlay name, because `d` of dryfield and `ac` of actor are themselves valid
+hex, and it fails silently in whichever direction hurts:
+
+- matching to normalize a dump splices the remainder onto the replacement,
+  giving `.rodatator_203700_80149E34`;
+- matching to *extract* the name yields `jtbl_d`, which nothing defines, so
+  `tools/claude` found no rodata file and m2c still returned a blank `base.c`.
+
+Both bugs shipped before this was understood. Every family except main and
+gameplay is affected, which is where nearly all the remaining work is.
 
 Improvements land in `permuter/<fn>/output-<score>-<n>/source.c`, as the whole
 preprocessed file reformatted by pycparser. Diff only the function against the

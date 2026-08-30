@@ -305,13 +305,17 @@ elif [[ "$BOOTSTRAP" == true ]]; then
             if grep -qx "dlabel $jtbl" "$ASM_PATH"; then
                 continue
             fi
-            while read -r rodata; do
-                [[ -n "$rodata" ]] || continue
-                if [[ " ${JTBL_ASM[*]-} " != *" $rodata "* ]]; then
-                    JTBL_ASM+=("$rodata")
-                fi
-            done < <(grep -rlx "dlabel $jtbl" "$jtbl_scope" --include='*.s' 2>/dev/null || true)
-        done < <(grep -oE 'jtbl_[0-9A-Fa-f]+' "$ASM_PATH" | sort -u)
+            # One definition is enough, and splat emits some tables twice (the
+            # unit .rodata.s and a per-symbol nonmatchings file); handing m2c
+            # both is a duplicate definition.
+            rodata=$(grep -rlx "dlabel $jtbl" "$jtbl_scope" --include='*.s' 2>/dev/null | head -1)
+            if [[ -n "$rodata" && " ${JTBL_ASM[*]-} " != *" $rodata "* ]]; then
+                JTBL_ASM+=("$rodata")
+            fi
+            # Overlay tables are jtbl_<overlay>_<hex>, not bare hex: a hex-only
+            # pattern stops inside the name ("d" of dryfield, "ac" of actor) and
+            # finds nothing, which is every family except main and gameplay.
+        done < <(grep -oE 'jtbl_\w+' "$ASM_PATH" | sort -u)
     fi
 
     # Only narrow to the one function when extra inputs could widen the output.
