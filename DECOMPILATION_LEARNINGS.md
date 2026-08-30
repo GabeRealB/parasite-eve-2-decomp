@@ -33477,3 +33477,68 @@ name is only a label for a span. Fix it by hand before committing: rename it in
 every sym file the promotion touched and in the new `src/rooms/lib/<unit>.c`,
 and re-sort the sym file — `promote` appends its line, but the files are
 otherwise alphabetical after the header comment.
+
+## Two identical switch arms that both `j` to the same label *are* cross-jumped
+
+The room-load state machine in `func_acropolis_plaza_8017DBFC` has case 3 and
+case 4 both ending in the same three insns:
+
+```
+jal   SetDispMask
+ move a0, zero
+j     advance
+```
+
+The ROM keeps both copies; GCC 2.8.1 does not. Written plainly, cross-jumping
+deletes case 3's copy and redirects its `beqz` into case 4's block
+(`bnez v0, <case4 SetDispMask>`), which costs 5 `branch` + 5 `delete` + 1
+`insert` and stalls at 94.0%. So the earlier note "two byte-identical blocks
+that both `j` to a third label are left alone" is too strong — jump.c walks the
+`LABEL_NEXTREF` chain of a label and compares the insns before *every* jump that
+targets it, not just the ones before the label itself.
+
+A `SOFT_BARRIER()` between the call and the `goto` in either copy is enough:
+
+```c
+if (CdCmd_IsIdle() & 0xFFFF) {
+    SetDispMask(0);
+    SOFT_BARRIER();
+    goto advance;
+}
+```
+
+The backward match then stops at the asm insn after one matched insn (the `j`
+itself), below cross-jumping's two-insn minimum, so both copies survive. The
+barrier emits nothing and does not disturb the delay slots — `move a0, zero`
+still fills the `jal`, and the `j advance` keeps its `nop`. 94.0% → 100%.
+Putting it in the *other* copy works identically; prefer the earlier arm, which
+is the copy cross-jumping would have deleted.
+
+## An odd-entry jump table needs the next unit to own its trailing `.word 0`
+
+The pad note under "Compiler-generated jump tables need yaml `.rodata`
+ownership + pad" applies to the `configs/USA/overlays.toml` manifest too, and it
+is easy to miss because the pad word looks like part of the table in the splat
+output: splat renders a 7-entry table as eight `.word`s inside one
+`dlabel jtbl_*` block, the last of them `0x00000000`.
+
+GCC emits only the seven real entries (`.align 3` then seven `.word`s), so the
+object's `.rodata` is 0x1C bytes where the ROM has 0x20. `SUBALIGN(4)` in the
+generated linker script means nothing pads it, every later `.rodata` and the
+whole `.text` shift 4 bytes early, and the overlay fails its checksum with no
+compiler error — the built file differs from the first table entry onwards.
+
+Cut the *next* unit's `.rodata` at the pad word rather than after it, so the pad
+stays in assembly:
+
+```toml
+acropolis_plaza = { room = "Plaza", units = ["0x63C", "0x7D0"],
+  rodata = [{ start = "0x4",  unit = "acropolis_plaza_2" },   # jtbl only, 7 words
+            { start = "0x20", unit = "acropolis_plaza_3" }] } # 0x20 is the pad, not 0x24
+```
+
+Re-splitting then gives `_3` an `INCLUDE_RODATA` for a fresh
+`D_acropolis_plaza_8017D5E0` (the pad word) ahead of the next table. Tables with
+an even entry count need no such adjustment, which is why the
+`acropolis_helicopter_landing_pad_4` sibling (6 cases) got away with cutting
+immediately after its table.
