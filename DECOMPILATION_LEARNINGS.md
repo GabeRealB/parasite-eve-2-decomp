@@ -33542,3 +33542,17 @@ Re-splitting then gives `_3` an `INCLUDE_RODATA` for a fresh
 an even entry count need no such adjustment, which is why the
 `acropolis_helicopter_landing_pad_4` sibling (6 cases) got away with cutting
 immediately after its table.
+
+## m2c `func(0)` from a jal delay `addu a1, zero, zero` is `func(arg0, 0)`
+
+m2c sees `jal f` / `addu $a1, $zero, $zero` and emits `f(0)`, which zeros `$a0`.
+The delay slot is the *second* argument; `$a0` is still the incoming pointer:
+
+```
+jal   f
+ addu a1, zero, zero   /* f(arg0, 0), not f(0) */
+```
+
+Symptom: ~99.9% with `regs=1`, object dump `move a0, zero` vs target `move a1, zero`.
+`func_actor_800200_80165644` is the example. Sibling calls of the same helper
+(`func_actor_800200_8016599C`) also pass `a1 = 0`.

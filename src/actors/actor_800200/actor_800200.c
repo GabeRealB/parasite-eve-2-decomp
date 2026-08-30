@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_800200.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162088);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_801622B0);
@@ -88,7 +90,30 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165580);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165644);
+void func_actor_800200_80165644(GpActorWork* arg0)
+{
+    u8 temp_v1;
+
+    if (arg0->actor->field_910->field_D0 == 1) {
+        func_actor_800200_801654EC(arg0, 0);
+        return;
+    }
+    temp_v1 = Game_Session->field_6;
+    switch (temp_v1) {
+        case 25:
+            func_actor_800200_8016599C();
+            return;
+        case 23:
+            func_actor_800200_80163044();
+            return;
+        case 22:
+            func_actor_800200_80163180();
+            return;
+        case 20:
+            func_actor_800200_8016337C();
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165708);
 

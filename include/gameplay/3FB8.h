@@ -94,6 +94,7 @@ STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
 /// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88`, and
 /// points `field_88.field_14` at `field_A0`. `func_8010BF7C` writes `field_C4`.
 /// `Gp_SetupAllyWeapon` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
+/// `field_D0` is an `lb`/`sb` flag (`func_actor_800200_80165644` / `_8016599C`).
 typedef struct _GpActorD4 {
     /* 0x00 */ byte         pad_0[0x18];
     /* 0x18 */ byte         field_18[0x50]; // GsCOORDINATE2
@@ -104,7 +105,9 @@ typedef struct _GpActorD4 {
     /* 0xC4 */ s16          field_C4;
     /* 0xC6 */ byte         pad_C6[7];
     /* 0xCD */ u8           field_CD;
-    /* 0xCE */ byte         pad_CE[6];
+    /* 0xCE */ byte         pad_CE[2];
+    /* 0xD0 */ s8           field_D0;
+    /* 0xD1 */ byte         pad_D1[3];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
