@@ -223,7 +223,3 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801846A4);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_8018471C);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184728);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_8017D8F8);

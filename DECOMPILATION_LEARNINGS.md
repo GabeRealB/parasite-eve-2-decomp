@@ -32822,3 +32822,44 @@ The trailing `task->state = 6` gets sunk into the loop-back branch's delay slot
 entirely. The general rule: when a constant appears both in a comparison and in
 an assignment on the same path, keep them as separate plain statements — a
 temporary that carries the value between them defeats both CSE and cross-jumping.
+
+## View dispatcher: shared `Draw01` tail is a goto, not a cached base
+
+A `switch (Gp_GetViewIndex())` whose later case is `p = B; Draw01(B); Draw01(C)`
+and an earlier case does `p = A; Draw01(p)` then the same two draws will
+cross-jump the last two calls. The target keeps the later case's `lui s0, B`
+even though the merged tail rematerialises `B`/`C` with `lui a0`, and the
+earlier case's `j` delay is `nop` (not the tail's first `lui a0`).
+
+Index `&D[n]` for every case that only needs the array base (that is the
+existing "do not cache the base" note). For the two cases that share the
+rematerialised tail, keep a local `p` and write the goto:
+
+```c
+case 18:
+    p = D_A;
+    SOFT_TOUCH_REG(p);
+    Room_Draw01(p, 0x200, 0x444);
+    goto shared;
+case 8:
+    p = D_B;
+    SOFT_TOUCH_REG(p);
+shared:
+    TOUCH_REG(p);
+    Room_Draw01(&D_B[0], 0x200, 0x444);
+    Room_Draw01(&D_C[0], 0x200, 0x444);
+    break;
+```
+
+`SOFT_TOUCH_REG(p)` after `p = D` kills `REG_EQUIV` so the address is
+`lui s0` / `addiu s0, s0` rather than `lui v0` / `addiu s0, v0`.
+`TOUCH_REG(p)` at the join keeps `p` in `$s0` across the first call (so case
+18 is `move a0, s0`) and makes the incoming `j` delay a `nop`.
+`func_mist_parking_80184728` is the example.
+
+The table lives at overlay offset `0x2EC` (4-mod-8). A `rodata` cut naming the
+function's existing unit is enough only when that object's `.rodata` has
+nothing before the table. On trunk `mist_parking_10` already owns `0x2A8` for
+`func_mist_parking_80183EAC`, so a mid-object `.align 3` would pad four bytes
+ahead of `0x2EC`. Pair the `0x2EC` cut with a `units` cut at the function
+(`0x7168`) so the table starts `mist_parking_11`.
