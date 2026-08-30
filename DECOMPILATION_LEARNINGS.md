@@ -33450,3 +33450,18 @@ lets cross-jumping merge onto the shared increment and skip the reload. Leave
 the later cases on `goto advance`. `func_shelter_r49_8017D71C` is the example.
 This is the opposite of "write `state++; return;` out in every switch case"
 above, which applies when duplicate *bodies* must not merge.
+
+## `promote --unit room_scriptNN` derives the wrong shared symbol name
+
+`overlay_dup_index.py promote` builds the shared symbol from the unit name by
+capitalising each underscore-separated word and joining them with nothing:
+`rooms_shared_8017da34` → `RoomsShared8017da34`. That is right for the
+`<family>_shared_<addr>` default it also generates, and wrong for every
+`room_draw/script/snd/util/saveui` unit, which the family names with an
+underscore after `Room` — `Room_Script05`, `Room_Util24`, `Room_Snd01`. So
+`--unit room_script22` writes `RoomScript22` into each carrying overlay's
+`configs/USA/sym/rooms/<name>.txt`, and the build still matches, because the
+name is only a label for a span. Fix it by hand before committing: rename it in
+every sym file the promotion touched and in the new `src/rooms/lib/<unit>.c`,
+and re-sort the sym file — `promote` appends its line, but the files are
+otherwise alphabetical after the header comment.

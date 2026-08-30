@@ -1,5 +1,7 @@
 #include "common.h"
 
-void func_dryfield_general_store_8017E150(void)
-{
-}
+INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store_4", func_dryfield_general_store_8017DF5C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store_4", func_dryfield_general_store_8017DFB4);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store_4", func_dryfield_general_store_8017E064);

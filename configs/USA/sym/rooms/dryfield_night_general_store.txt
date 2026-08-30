@@ -1,3 +1,4 @@
 // Overlay-local symbols for dryfield_night_general_store.
 Room_Draw08 = 0x8017DEE0; // shared body, see src/rooms/lib/
+Room_Script22 = 0x8017DCA8; // shared body, see src/rooms/lib/
 Room_Snd02 = 0x8017DDF0; // shared body, see src/rooms/lib/
