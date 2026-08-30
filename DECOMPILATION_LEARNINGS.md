@@ -33049,3 +33049,44 @@ inverts the outer branch to `beqz` and keeps a `j` after B — the shape that
 target. `func_neo_ark_altar_8017DA40` is the example. An `s32 id` temp for A/B/C
 also pulled `spawnArg1` out of `$v1` into `$a0`; store through `key.data[0]` in
 each arm and let GCC merge onto `$v0`.
+
+## Room task state machines: plain `switch` + `break`, not `goto advance` / `goto kill`
+
+A room/actor `Task` state machine whose cases all end in `task->state++` or
+`Task_Kill(task)` looks like it wants shared labels, and m2c writes it that way.
+Do not keep them. Write the switch naturally — every case gets its own copy of
+the tail and a `break` — and let GCC 2.8.1 cross-jump the copies back together:
+
+```c
+switch (task->state) {
+    case 0:
+        if (Gp_GetCurBit2Flag(3) == 1) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 0, 0);
+            task->state = task->state + 1;      /* duplicated, not `goto` */
+        } else {
+            Task_Kill(task);                    /* duplicated, not `goto` */
+        }
+        break;
+    /* ... */
+}
+```
+
+The merged block survives at the **last** case that uses it, which is what puts
+the `state++` tail between the case-7 and case-8 bodies and the `Task_Kill` tail
+after case 8 in `func_acropolis_cafeteria_8017DD1C`. Hand-written `goto advance`
+/ `goto kill` labels put the tail wherever the label sits in the source and, far
+worse, free cross-jumping to merge something else: there it ate a
+`jal Gp_DispatchMsg` argument tail shared by two cases (97.2%, `branch`/`delete`
+non-zero with no other diff).
+
+Diagnostic for exactly that miss: `reload_cse` runs **after** the post-reload
+jump pass, so a `(set a3 (const_int 0))` arg becomes `move a3,a2` only when a
+register already known to hold 0 is live and no label intervenes. A block the
+cross-jump merged starts at a fresh label, so it keeps `move a3,zero` while its
+unmerged twin two cases later shows `move a3,a2`. Seeing `move a3,zero` where
+the target has `move a3,a2` means the block was merged, not that the argument
+was written differently.
+
+The 8-byte frame these room tasks carry (`addiu sp,sp,-0x28` for three saved
+registers) is the unused-automatic rule from "Empty body with a pure stack
+frame": add `char pad[8];`, nothing else reproduces it.

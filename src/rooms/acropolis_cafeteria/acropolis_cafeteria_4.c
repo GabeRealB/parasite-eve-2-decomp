@@ -1,15 +1,13 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E6B8);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E0DC);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E708);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E154);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E89C);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E22C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017EA90);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E27C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017F390);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E2B0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017F908);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017F948);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E2D0);
