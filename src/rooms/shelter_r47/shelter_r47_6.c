@@ -6,7 +6,29 @@
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018061C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80180650);
+void func_shelter_r47_80180650(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x240, 0x100);
+            Gp_RunCapCmd1(task->spawnArg1);
+            goto advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+        advance:
+            task->state++;
+            break;
+        case 2:
+            Gp_MsgPlayerWeapon(1);
+            Gp_ResetCap();
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80180714);
 
