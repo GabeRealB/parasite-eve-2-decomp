@@ -31880,6 +31880,15 @@ MOVE_ZERO(x);             /* "=r"(x) : "0"(0) → move dst, $zero */
 Do not wrap the macros in `do { } while (0)` or extra braces. Instruction
 `lui`/`lo`/`sll`/`move` and `register T x asm("v0")` pins stay written out.
 
+When two whole-function locals are instruction-identical but swapped
+(`$s0`/`$s1`), `global_alloc` is using `floor_log2(n_refs) * n_refs /
+live_length`. An extra `SOFT_USE_REG(work)` bump on the *later* block that
+already uses `work` can flip the pair without emitting a MIPS insn. Put that
+keep-live in the later block, not next to the prologue assignments: a
+prologue `SOFT_USE_REG` is a schedule fence and moves `li a0, 1` past
+`lui %hi(D_801153F4)` (the target wants `lui` then `li`).
+`func_actor_105100_80132AA0` is the example.
+
 ## `asm("")` instead of a wider temp to keep a `0`/`1` flag branchy
 
 The documented "assign the success constant through a wider temporary that is
