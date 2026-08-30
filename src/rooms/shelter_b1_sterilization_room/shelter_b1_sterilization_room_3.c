@@ -11,11 +11,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterili
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D6A4);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", jtbl_shelter_b1_sterilization_room_8017D6B4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", jtbl_shelter_b1_sterilization_room_8017D6DC);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D700);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", jtbl_shelter_b1_sterilization_room_8017D710);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", jtbl_shelter_b1_sterilization_room_8017D770);

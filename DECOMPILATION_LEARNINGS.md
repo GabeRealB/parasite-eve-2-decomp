@@ -19216,6 +19216,29 @@ case 5:
     ...
 ```
 
+## …but empty / duplicate cases reorder the table on their own — try 0..N first
+
+The rule above is about *distinct* bodies. When several cases share a body,
+GCC 2.8.1's post-reload cross-jumping plus label redirection rearranges the
+layout by itself, and reordering the source to chase it makes things worse.
+
+`func_shelter_b1_sterilization_room_80180188` is a 9-state task whose table
+reads 0, tail, 2-body, 3, 4, 5, tail, 2-body, 8 — bodies apparently emitted as
+0, 3, 4, 5, 2/7, tail, 8. Written in that order it stalled at 94.7%. Written
+in plain `case 0:` … `case 8:` order, with `task->state++` inside each arm, it
+matched: cases 1 and 6 (`state++; break;`) tail-merge into the last identical
+copy and their now-empty blocks are deleted, so their table slots point
+straight at that copy; case 2 merges into the identical case 7; case 4's
+`if (… == 0) state++;` merges into case 7's `bnez` tail.
+
+Symptom that you have over-rotated the source: a `move a3,a2` in the target
+that you emit as `move a3,zero`. Both insns carry `REG_EQUAL (const_int 0)`,
+and `find_cross_jump` will rewrite the `(reg a2)` source back to the constant
+to force a merge with an unrelated arm. Seeing that rewrite in `*.i.jump2`
+(the insn is `(reg a2)` in `*.i.sched2` and `(const_int 0)` in `*.i.jump2`)
+means two arms merged that should not have — fix the case order, not the
+registers.
+
 ## Overlay jtbl: move `.rodata, TU` to the new C table, leave later asm
 
 A gameplay switch whose jump table sits in the middle of an asm rodata
