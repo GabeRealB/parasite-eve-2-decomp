@@ -693,6 +693,31 @@ coordinates and the remaining 21 families are open.
 Streams are carved to `raw/model/*.tmd` and stored raw only, since nothing
 decodes them yet.
 
+### 9.3.1 Animation tracks bind to model parts one-for-one
+
+An animation set's index table has exactly one entry per **model part**
+([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), so what `pkg_anim.py` reports as
+"clips" are per-bone tracks. Measured across every package holding an
+animation block:
+
+| Package | Parts | Tracks per set | Sets |
+|---|---:|---:|---:|
+| `actor_800200`, `actor_800300` | 19 | 19 | 34 |
+| `human_800101`–`human_800104` | 20 | 20 | 34 |
+| every weapon | 1 | 19 | 44 |
+
+Actors and named humans match their own part count exactly, 7 blocks out of 7.
+The weapons look like an exception and are the clearest confirmation: a weapon
+is a single part, its blocks come from `Gp_PlayerAnimBlkTbl`, and 19 is **Aya's**
+part count — the weapon package carries the *player's* animation for that
+weapon, driving Aya's skeleton, not its own geometry.
+
+That fixes the model ↔ animation binding, which is what a posed render needs.
+What it does not supply is a rest pose: `GpPackedPose` holds a translation
+*and* a rotation per bone, so the limb offsets live in the pose data too, and
+neither the model package nor a scan for a `GsCOORDINATE2` array turns up a
+bind pose to fall back on. Any pose is an animation frame.
+
 ### 9.4 What is still open
 
 - **Model opcodes.** Arity and element layout are settled for two of the 23
@@ -701,8 +726,11 @@ decodes them yet.
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream
-  ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)) — but the per-part matrix block that
-  `Tmd_SetupGteMatrices` consumes is still undocumented. `0xC8` turned out
+  ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —
+  but the per-part block that `Tmd_SetupGteMatrices` consumes is a
+  `GsCOORDINATE2` (0x50 bytes, `workm` at `+0x24`) whose parent links
+  (`.sub`) are built at runtime, and how the animation fills its local
+  `coord` is not yet traced. `0xC8` turned out
   to be a vertex transform pass rather than bone data
   ([`TMD_FORMAT.md` §3.0](TMD_FORMAT.md#35-the-transform-pre-pass--0xc0--0xc4--0xc8)), so the count has
   to come from somewhere else — the animation side, or one of the remaining

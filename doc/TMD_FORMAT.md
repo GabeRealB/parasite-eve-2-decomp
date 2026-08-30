@@ -119,11 +119,19 @@ Two consequences:
   the per-model bone count §6 lists as the blocker on decoding the pose banks.
   `aya_10200` is 19, the named-human body 20, `actor_100300` 19. Parts with no
   geometry are joints.
-* **The matrices are not in the package.** `TmdObject.field_8` is runtime pose
-  data supplied by the animation system; a scan of `aya_10200` for a 0x50- or
-  0x20-stride array of plausible rotation matrices finds none. An offline
-  viewer can draw one part correctly but cannot pose the whole model until the
-  pose banks are decoded.
+* **The matrices are not in the package.** `TmdObject.field_8` is a
+  `GsCOORDINATE2` array — 0x50 bytes each, which is why the stride is 0x50, with
+  `workm` at `+0x24` and its translation at `+0x38`/`+0x3C`/`+0x40` exactly as
+  the handler reads them (`Gp_DrawActorTmdFlagged` casts the field, and
+  `Gp_ComposeParentWorld` walks `.sub` up to `Gfx_ViewCoord`). It is built at
+  runtime: scanning the packages for a 0x50-stride array with a rotation at
+  `+0x04` and in-range `super`/`sub` finds none. An offline viewer can draw one
+  part correctly but cannot pose the whole model.
+
+  The animation side is bound to it one-for-one — an animation set carries one
+  track per part (`ASSET_FORMATS.md` §9.3.1) — and `GpPackedPose` holds a
+  translation as well as a rotation per bone, so there is no separate skeleton
+  and no bind pose: any pose is an animation frame.
 
 The **last** part is special: it carries the pre-transformed (`op & 0x01`)
 primitives, whose screen coordinates were written by the earlier parts'
