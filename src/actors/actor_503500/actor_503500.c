@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_503500.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013223C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132430);
@@ -390,7 +392,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013F830);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013F8AC);
+void func_actor_503500_8013F328(void);
+void func_actor_503500_8013F4A4(void);
+void func_actor_503500_8013F948(void);
+void func_actor_503500_8013F984(void);
+
+void func_actor_503500_8013F8AC(Actor503500* arg0)
+{
+    s8 temp_v1;
+
+    temp_v1 = arg0->field_1C->field_F0;
+    switch (temp_v1) {
+        case 0:
+            func_actor_503500_8013F948();
+            return;
+        case 1:
+            func_actor_503500_8013F328();
+            return;
+        case 2:
+            func_actor_503500_8013F4A4();
+            return;
+        case 3:
+            func_actor_503500_8013F984();
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013F948);
 
