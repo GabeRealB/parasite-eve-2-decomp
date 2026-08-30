@@ -32940,3 +32940,55 @@ nothing before the table. On trunk `mist_parking_10` already owns `0x2A8` for
 `func_mist_parking_80183EAC`, so a mid-object `.align 3` would pad four bytes
 ahead of `0x2EC`. Pair the `0x2EC` cut with a `units` cut at the function
 (`0x7168`) so the table starts `mist_parking_11`.
+
+## A jtbl cut in the middle of the leading rodata needs a *later* unit for the tail
+
+`.rodata` contributions are concatenated in the order the linker script lists
+them, and each object appears exactly once, so an ownership cut can only ever
+move ownership *forward*. When the jump table sits in the middle of the leading
+rodata block, the bytes *after* it cannot go back to the unit that owned them —
+they have to be handed to a unit that comes later in that order.
+
+`func_dryfield_night_trailer_coach_80182924` lives in unit 6 and its table is at
+`0x240`, inside the `0x21C` block owned by unit 3; the block continues to `0x8CC`
+with a code-shaped blob at `0x25C`. Three cuts, not one:
+
+```toml
+rodata = [{ start = "0x1BC", unit = "dryfield_night_trailer_coach_2" },
+          { start = "0x21C", unit = "dryfield_night_trailer_coach_3" },
+          { start = "0x240", unit = "dryfield_night_trailer_coach_6" },
+          { start = "0x25C", unit = "dryfield_night_trailer_coach_7" }]
+```
+
+Unit 3 keeps `0x21C..0x240`, unit 6 gets exactly the table, and the tail goes to
+unit 7 because unit 7's `.rodata` is emitted after unit 6's. The shared `lib/`
+units interleaved between them (`room_draw18`, `room_draw05`) are not candidates:
+they are linked into dozens of overlays. No `units` `.text` cut was needed here —
+the table is the only thing in unit 6's `.rodata`, so it starts the object and
+GCC's `.align 3` costs nothing. Check `linkers/USA/<overlay>.ld` for the actual
+`.rodata` order before choosing the tail's owner.
+
+## One pointer local across switch cases forces `la` to split through `$v0`
+
+A `p` reassigned in several switch cases is one pseudo with a whole-function
+live range. `global_alloc` gives it a callee-saved register, and every
+`p = &Global;` site then rematerialises through a short-lived temp:
+
+```
+lui    v0, %hi(D_80189400)
+addiu  s0, v0, %lo(D_80189400)
+```
+
+The target wanted the coalesced form that a *single-site* pseudo emits:
+
+```
+lui    s0, %hi(D_80189400)
+addiu  s0, s0, %lo(D_80189400)
+```
+
+Giving each case its own local (`p` / `q` / `r`) shrank each live range to one
+block, so `local_alloc` handed all three the same `$s0` and folded the `HIGH`
+temp into it — 99.59% → byte match, with no pins. This is the mirror image of
+"Pinned `s0` entry after a clear loop": reuse of the local is what *causes* the
+two-register split, so splitting the local is the first thing to try when a
+`lui`/`addiu` pair disagrees only about the `lui`'s destination register.

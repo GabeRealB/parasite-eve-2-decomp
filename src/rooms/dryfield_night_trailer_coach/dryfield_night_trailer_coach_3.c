@@ -11,7 +11,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trai
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", D_dryfield_night_trailer_coach_8017D7DC);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", jtbl_dryfield_night_trailer_coach_8017D7EC);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", jtbl_dryfield_night_trailer_coach_8017D800);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", func_dryfield_night_trailer_coach_8017D81C);
