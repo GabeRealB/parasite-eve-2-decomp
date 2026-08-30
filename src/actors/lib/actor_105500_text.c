@@ -1,5 +1,20 @@
 #include "common.h"
 
+#include "actors/actor_105500.h"
+
+void Actor05500_Fn0006C(Actor105500* arg0);
+void Actor05500_Fn020D4(Actor105500* arg0);
+void Actor05500_Fn02214(Actor105500* arg0);
+void Actor05500_Fn03674(Actor105500* arg0, Actor105500Obj2C* arg1, s32 arg2);
+void Actor05500_Fn0378C(Actor105500* arg0);
+void Actor05500_Fn03918(Actor105500* arg0);
+void Actor05500_Fn039AC(Actor105500* arg0);
+void Actor05500_Fn03A70(Actor105500* arg0);
+void Actor05500_Fn03AC8(Actor105500* arg0);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+
+extern u8 D_801153F4;
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0006C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L004A8);
@@ -42,7 +57,62 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02C94);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02FFC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03560);
+void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1)
+{
+    GsCOORDINATE2*    coord;
+    Actor105500Obj2C* obj;
+    Actor105500Work*  work;
+    s32               state;
+    s32               one;
+
+    obj   = arg1->field_2C;
+    state = D_801153F4;
+    work  = arg1->field_1C;
+    coord = obj->field_8;
+    one   = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    obj->field_C   = 0;
+    arg0->field_14 = 0;
+    goto default_body;
+case2:
+    obj->field_C   = 0x80;
+    arg0->field_14 = one;
+    return;
+default_body:
+    if (arg0->field_4C != 0) {
+        Actor05500_Fn03674(arg1, obj, one);
+    }
+    Actor05500_Fn0006C(arg1);
+    Actor05500_Fn0378C(arg1);
+    if (work->field_3B0 != 0) {
+        Actor05500_Fn020D4(arg1);
+    }
+    if (work->field_3A6 != 0) {
+        Actor05500_Fn02214(arg1);
+    }
+    Actor05500_Fn03918(arg1);
+    Actor05500_Fn039AC(arg1);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+case1:
+    Actor05500_Fn03A70(arg1);
+    Actor05500_Fn03AC8(arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03674);
 
