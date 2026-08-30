@@ -2595,6 +2595,38 @@ Splat does not delete the now-stale per-symbol `.s` files under the old unit's
 `nonmatchings/` directory. They are harmless — nothing includes them — and a
 clean `asm/` regeneration clears them.
 
+### Generated overlay configs: a rodata cut needs a matching `.text` cut
+
+A `rodata` cut alone does not move a *function* into the new unit, and the
+function is what emits the table. `mist_parking`'s switch table sits at
+`0x8017D77C`, immediately after the `"Telephone"` string with no pad, so the
+original build started a new object there. Decompiling the function while it
+still lived in `mist_parking.c` put the table mid-object: GCC's `.align 3`
+became four real bytes of padding (the linker script's `SUBALIGN(4)` only
+re-aligns an *input section*, i.e. a table that starts an object's `.rodata`),
+which shifted the rest of the rodata by 4 and every `.text` symbol by 8.
+
+The manifest's `units` key adds plain `.text` cuts alongside `shared` ones,
+reusing the same `<name>`, `<name>_2`, ... numbering so a `rodata` cut can name
+the unit it pairs with:
+
+```toml
+mist_parking = { room = "MIST parking", units = ["0x48CC"],
+                 rodata = [{ start = "0x1BC", unit = "mist_parking_2" }] }
+```
+
+**Find both offsets from who references what.** Fold the rodata symbols into
+their referencing functions (splat already does this) and list them in address
+order; the boundary is the one place where every symbol below it is referenced
+by a function below the `.text` cut and every symbol above it by a function
+above. For `mist_parking` that was `0x8017D770` (used by `func_..._80181468`)
+against `jtbl_..._8017D77C` (used by `func_..._80181E8C`) - one cut, both
+sections, no ambiguity.
+
+Then delete **both** `src/` files and re-split, as with any rodata cut. Splat
+re-emits already-matched bodies from `asm/<ver>/<family>/matchings/`, so only
+hand-written C needs saving first.
+
 ## m2c: "the corresponding jump table is not provided"
 
 The scratch bootstrapper only feeds m2c the function's own `.s`, so any function

@@ -86,6 +86,7 @@ def subsegments(
     span: tuple[int, int] | None,
     shared: list[dict],
     rodata: list[dict],
+    units: list[str],
 ) -> str:
     """The package layout as splat subsegment lines.
 
@@ -95,6 +96,14 @@ def subsegments(
     the same `build/.../src/<family>/lib/<unit>` object in each of their linker
     scripts, and one object relocates into all of them. That is the whole
     mechanism - a body that appears in 55 rooms is built and matched once.
+
+    `units` adds plain `.text` cuts on top of that. A package is one object per
+    original translation unit, and the only visible trace of a boundary is which
+    unit owns the rodata ahead of it, so a cut is needed exactly when a `rodata`
+    cut is: a jump table GCC emits mid-object gets an `.align 3` pad, while one
+    that starts an object's `.rodata` is re-aligned by the linker script's
+    `SUBALIGN(4)`. Runs keep the same `<name>`, `<name>_2`, ... numbering the
+    shared cuts produce, so a `rodata` cut names the unit it pairs with.
 
     A data-only package still gets one `data` subsegment covering the file.
     """
@@ -127,21 +136,29 @@ def subsegments(
     # Walk the code region, cutting out each shared body as its own subsegment
     # and giving the runs between them numbered overlay-local units.
     cuts = sorted(shared, key=lambda s: int(str(s["start"]), 16))
+    breaks = sorted(int(str(u), 16) for u in units)
+    for brk in breaks:
+        if not start < brk < end:
+            raise SystemExit(f"{name}: unit cut 0x{brk:X} is outside .text (0x{start:X}..0x{end:X})")
     pos, unit = start, 0
+
+    def emit_run(run_start: int, run_end: int) -> None:
+        nonlocal unit
+        for point in [run_start] + [b for b in breaks if run_start < b < run_end]:
+            unit += 1
+            suffix = "" if unit == 1 else f"_{unit}"
+            lines.append(f"      - [0x{point:X}, c, {name}/{name}{suffix}]")
+
     for cut in cuts:
         cut_start, cut_end = int(str(cut["start"]), 16), int(str(cut["end"]), 16)
         if not (start <= cut_start < cut_end <= end):
             raise SystemExit(f"{name}: shared span {cut['unit']} is outside .text")
         if cut_start > pos:
-            unit += 1
-            suffix = "" if unit == 1 else f"_{unit}"
-            lines.append(f"      - [0x{pos:X}, c, {name}/{name}{suffix}]")
+            emit_run(pos, cut_start)
         lines.append(f"      - [0x{cut_start:X}, c, lib/{cut['unit']}]")
         pos = cut_end
     if pos < end:
-        unit += 1
-        suffix = "" if unit == 1 else f"_{unit}"
-        lines.append(f"      - [0x{pos:X}, c, {name}/{name}{suffix}]")
+        emit_run(pos, end)
 
     if end < len(data):
         # Trailing data: models, animation banks, scripts - not code.
@@ -208,7 +225,12 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             "GLOBAL_VRAM_END": f"0x{spec['global_vram_end']:08X}",
             "IMPORTS": spec["imports"],
             "SUBSEGMENTS": subsegments(
-                name, data, span, entry.get("shared", []), entry.get("rodata", [])
+                name,
+                data,
+                span,
+                entry.get("shared", []),
+                entry.get("rodata", []),
+                entry.get("units", []),
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)

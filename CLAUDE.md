@@ -65,8 +65,12 @@ function in a *later* unit whose jump tables live in that block: a unit's
 so the compiler-generated table lands after everything instead of at its
 address. Cut the block where ownership changes with the manifest's `rodata` key
 (`rooms/mine_cavern` is the worked example), then delete the affected `src/`
-files and re-split so splat places the `INCLUDE_RODATA` lines itself. See
-`DECOMPILATION_LEARNINGS.md`, "Compiler-generated jump tables".
+files and re-split so splat places the `INCLUDE_RODATA` lines itself. A cut
+that has to move the *function* too — the usual case for a compiler-generated
+jump table, which needs to start its object's `.rodata` or GCC's `.align 3`
+pads it — pairs the `rodata` key with `units`, a list of extra `.text` cut
+offsets (`rooms/mist_parking`). See `DECOMPILATION_LEARNINGS.md`,
+"Compiler-generated jump tables".
 
 Two maintenance commands, neither run by the build:
 

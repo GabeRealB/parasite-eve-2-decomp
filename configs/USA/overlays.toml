@@ -214,7 +214,7 @@ acropolis_fire_escape = { room = "Fire escape" }
 acropolis_helicopter_landing_pad = { room = "Helicopter landing pad" }
 acropolis_west_elevator_hall = { room = "West elevator hall" }
 mist_r18 = { note = "cutscene or one-off room; no map names it" }
-mist_parking = { room = "MIST parking" }
+mist_parking = { room = "MIST parking", units = ["0x48CC"], rodata = [{ start = "0x1BC", unit = "mist_parking_2" }] }
 mist_shooting_gallery = { room = "Shooting gallery" }
 mist_r21 = { note = "cutscene or one-off room; no map names it" }
 dryfield_gas_station = { room = "Gas station" }

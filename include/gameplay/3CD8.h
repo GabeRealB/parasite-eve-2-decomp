@@ -403,6 +403,17 @@ s16  Gp_CapTextHeight(u16* arg0);
 s16  Gp_CapTextTopY(u16* arg0);
 s32  func_800E6BB8(u16* arg0);
 s32  Gp_CapBusy(void);
+s32  Gp_AbortCap(void);
+void Gp_ResetCap(void);
+/// Pointer to the loaded `.pe2cap2` blob (folder slot type 3).
+extern s32 Gp_CapFile;
+void       Gp_LoadCapFile(s32 arg0);
+/// Key of the event the running cap script stopped on (`Gp_CapEventKey`).
+s32  Gp_GetCapEventKey(void);
+void Gp_RunCapCmd1(s32 arg0);
+void Gp_MsgAlly3F3(s32 arg0);
+void func_800E6D4C(s16 arg0, s16 arg1);
+void func_800E3FAC(s32 arg0, s32 arg1);
 
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
 /// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
