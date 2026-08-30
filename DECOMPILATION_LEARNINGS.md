@@ -33179,3 +33179,37 @@ Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
 Task_Kill(task);
 SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop */
 ```
+
+## Nest the `if`s so two adjacent `u8` field tests stay two `lbu`s
+
+`&&`-ing equality tests on two consecutive byte fields lets GCC 2.8.1 fold the
+pair into one halfword load and one compare against the packed constant. The
+target for `func_shelter_b4_water_supply_8017DA30` tests `field_2` and
+`field_3` of a `GpMsg13EF*` separately:
+
+```
+lbu   v1, 2(a2)
+li    v0, 0xa
+bne   v1, v0, done
+li    v0, 0x20     /* delay slot feeds the *second* compare */
+lbu   v1, 3(a2)
+nop
+bne   v1, v0, done
+```
+
+`if (m->field_2 == 0xA && m->field_3 == 0x20)` instead emits
+`lhu v1, 2(a2); li v0, 0x200a; bne` (86.5%, `branch`=3 `delete`=5). Writing the
+same condition as nested `if`s blocks the fold and matches:
+
+```c
+if (arg2->field_2 == 0xA) {
+    if (arg2->field_3 == 0x20) {
+        /* body */
+    }
+}
+```
+
+Note this is the opposite of the usual advice — normally `&&` and a nested `if`
+generate the same code and `&&` reads better. It only differs when the two
+operands are adjacent same-size fields of one object, which is exactly when the
+combine pass can widen the load.
