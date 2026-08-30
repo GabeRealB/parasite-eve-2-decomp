@@ -97,7 +97,3 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery",
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017DADC);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017DB04);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DB0C);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DB24);
