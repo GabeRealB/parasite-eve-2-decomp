@@ -33090,3 +33090,38 @@ was written differently.
 The 8-byte frame these room tasks carry (`addiu sp,sp,-0x28` for three saved
 registers) is the unused-automatic rule from "Empty body with a pure stack
 frame": add `char pad[8];`, nothing else reproduces it.
+
+## Promoting a body whose jump table was migrated: match, then index, then cut
+
+`overlay_dup_index.py promote` refuses an unmatched body that references its
+own overlay's data ("cannot be shared while unmatched"), so a switch-statement
+body must be matched in one overlay first. Matching it is what breaks the next
+step: with `migrate_rodata_to_functions`, the matched copy's `.s` gains the
+`dlabel jtbl_… / .word / enddlabel` block ahead of the code and prints its jump
+targets as `.L…:` where an unmatched copy prints `jlabel .L…`. Neither is part
+of the body, but both were part of the canonical text, so the matched copy
+stopped grouping with the copies it was matched to serve and `promote` reported
+"only one copy, nothing to share". The index now canonicalises from `glabel
+<fn>` onward and folds `jlabel .L…` to `.L…:`, for the same reason `.align` is
+already skipped: the marker records where the table ended up, not what the body
+is. Anything similar - a shape splat only emits on one side of a cut - belongs
+in that same list.
+
+The rodata cut that pairs with the promotion names the **shared** unit, not the
+overlay-local one it started in:
+
+```toml
+shelter_r36 = { rodata = [{ start = "0x10", unit = "rooms_shared_8017da34" }], shared = [...] }
+mine_mesa   = { rodata = [{ start = "0x24", unit = "rooms_shared_8017da34" },
+                          { start = "0x3C", unit = "mine_mesa_7" }], shared = [...] }
+```
+
+The generator emits a cut as `lib/<unit>` when its name matches a `shared`
+span, which is what puts the shared object's compiler-generated table at each
+overlay's own jtbl offset - `0x10` in one room and `0x24` in the other for one
+`.c`. Every overlay carrying the body needs its own cut, at its own offset, and
+a *second* cut for the tail whenever the table is not the last leading rodata
+(see "A jtbl cut in the middle of the leading rodata needs a later unit"); the
+tail's new owner must be a unit that does not already own rodata elsewhere.
+Delete every `src/` file whose `INCLUDE_RODATA` lines move and re-split - splat
+never rewrites an existing `.c`, so it will not relocate them for you.

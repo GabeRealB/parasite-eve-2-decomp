@@ -1,3 +1,4 @@
 // Overlay-local symbols for shelter_r36.
 Room_Util02 = 0x8017D8D0; // shared body, see src/rooms/lib/
 Room_Util05 = 0x8017D9CC; // shared body, see src/rooms/lib/
+RoomsShared8017da34 = 0x8017DA34; // shared body, see src/rooms/lib/

@@ -57,6 +57,11 @@ BRANCH = re.compile(r"\.L\w+")
 # matched copy from grouping with the unmatched copies it is meant to serve.
 SKIP = ("glabel", "endlabel", "nonmatching", ".include", ".set", ".section",
         ".align", "/*")
+# A jump target reads `jlabel .L…` while a jump table referencing it is in
+# another file and `.L…:` while the table sits in this one, so the marker says
+# where the table ended up rather than what the body is. Both forms fold to the
+# bare label for the same reason `.align` is skipped.
+LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+):?$")
 
 
 def scan_function(path: Path, unit: str) -> dict | None:
@@ -75,12 +80,16 @@ def scan_function(path: Path, unit: str) -> dict | None:
 
     canon: list[str] = []
     labels: dict[str, str] = {}
-    for line in text.splitlines():
+    # Canonicalise the body alone, for the same reason `vram` and `words` do:
+    # migrating a jump table into the function that owns it prepends a whole
+    # `dlabel` block here, and only in the copy whose rodata has been cut.
+    for line in text[body.start():].splitlines() if body else text.splitlines():
         if line.startswith(SKIP):
             continue
         line = ADDR.sub("", line).rstrip()
         if not line:
             continue
+        line = LABELDEF.sub(r"\1:", line)
         for hit in BRANCH.findall(line):
             labels.setdefault(hit, f".L{len(labels)}")
         line = BRANCH.sub(lambda m: labels[m.group(0)], line)
