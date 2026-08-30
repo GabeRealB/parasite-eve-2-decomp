@@ -49,21 +49,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trai
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_8018138C);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181684);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_801816E0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181750);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181844);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181934);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181A38);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181B1C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181BE4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181CAC);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_80181D74);

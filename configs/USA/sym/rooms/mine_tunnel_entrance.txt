@@ -1,1 +1,3 @@
 // Overlay-local symbols for mine_tunnel_entrance.
+Room_Draw17 = 0x8017D868; // shared body, see src/rooms/lib/
+Room_Util02 = 0x8017D5F0; // shared body, see src/rooms/lib/

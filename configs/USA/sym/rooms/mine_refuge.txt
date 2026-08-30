@@ -1,1 +1,7 @@
 // Overlay-local symbols for mine_refuge.
+Room_Draw17 = 0x80180014; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F020; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F460; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EDCC; // shared body, see src/rooms/lib/
+Room_Util02 = 0x8017FBE8; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017FFAC; // shared body, see src/rooms/lib/

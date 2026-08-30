@@ -1,2 +1,9 @@
 // Overlay-local symbols for neo_ark_bridge.
 Room_DrawBillboard = 0x80181558; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x80180228; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80180ED8; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x80180654; // shared body, see src/rooms/lib/
+Room_Draw16 = 0x8017F0C4; // shared body, see src/rooms/lib/
+Room_Draw27 = 0x8017F8B4; // shared body, see src/rooms/lib/
+Room_Draw28 = 0x8017FCA0; // shared body, see src/rooms/lib/
+Room_Util03 = 0x8017E834; // shared body, see src/rooms/lib/

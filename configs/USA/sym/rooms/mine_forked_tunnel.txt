@@ -1,1 +1,6 @@
 // Overlay-local symbols for mine_forked_tunnel.
+Room_Draw17 = 0x8017E504; // shared body, see src/rooms/lib/
+Room_Util02 = 0x8017E0F0; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017E24C; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017E0E8; // shared body, see src/rooms/lib/
+Room_Util18 = 0x8017DC8C; // shared body, see src/rooms/lib/

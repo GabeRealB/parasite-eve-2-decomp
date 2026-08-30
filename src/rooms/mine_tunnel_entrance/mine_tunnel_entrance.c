@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D5F0);
-
 INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D634);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D63C);
@@ -19,7 +17,5 @@ INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", D
 INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D6BC);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D720);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D868);
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", D_mine_tunnel_entrance_8017D5E8);

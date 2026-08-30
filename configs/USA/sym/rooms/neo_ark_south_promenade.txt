@@ -1,2 +1,6 @@
 // Overlay-local symbols for neo_ark_south_promenade.
 Room_DrawBillboard = 0x8017ECF4; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017D9C4; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017E674; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017DDF0; // shared body, see src/rooms/lib/
+Room_Util03 = 0x8017D5D8; // shared body, see src/rooms/lib/

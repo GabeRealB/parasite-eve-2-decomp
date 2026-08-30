@@ -1,0 +1,3 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_3", func_shelter_b1_control_room_access_tunnel_8017ED3C);

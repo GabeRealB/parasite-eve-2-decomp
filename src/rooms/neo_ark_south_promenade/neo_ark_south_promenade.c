@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D5D8);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D61C);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D624);
@@ -19,13 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade"
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D6D0);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D720);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D9C4);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017DDF0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017E184);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017E674);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017EA6C);

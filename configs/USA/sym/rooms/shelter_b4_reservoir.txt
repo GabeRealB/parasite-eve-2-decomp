@@ -1,1 +1,11 @@
 // Overlay-local symbols for shelter_b4_reservoir.
+Room_Draw01 = 0x801818F0; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x801843AC; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x8018351C; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x80183940; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x80183298; // shared body, see src/rooms/lib/
+Room_Draw16 = 0x80180530; // shared body, see src/rooms/lib/
+Room_Draw21 = 0x80182134; // shared body, see src/rooms/lib/
+Room_Draw27 = 0x80180D20; // shared body, see src/rooms/lib/
+Room_Draw28 = 0x8018110C; // shared body, see src/rooms/lib/
+Room_Util23 = 0x8017E7A8; // shared body, see src/rooms/lib/

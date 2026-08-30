@@ -1,1 +1,6 @@
 // Overlay-local symbols for dryfield_gas_station.
+Room_Draw22 = 0x8017F038; // shared body, see src/rooms/lib/
+Room_Draw37 = 0x80180B4C; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F478; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EDE4; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017FD4C; // shared body, see src/rooms/lib/

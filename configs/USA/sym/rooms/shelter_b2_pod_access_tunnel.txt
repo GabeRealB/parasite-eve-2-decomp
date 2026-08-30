@@ -1,1 +1,6 @@
 // Overlay-local symbols for shelter_b2_pod_access_tunnel.
+Room_Draw02 = 0x80181ED0; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80182B80; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x80180DC0; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017FB98; // shared body, see src/rooms/lib/
+Room_Draw11 = 0x8017DF64; // shared body, see src/rooms/lib/

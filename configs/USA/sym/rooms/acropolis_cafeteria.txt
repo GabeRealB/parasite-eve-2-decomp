@@ -1,2 +1,8 @@
 // Overlay-local symbols for acropolis_cafeteria.
 Room_DrawBillboard = 0x80180F1C; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017FBEC; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8018089C; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x80180018; // shared body, see src/rooms/lib/
+Room_Script03 = 0x8017E658; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017E0D4; // shared body, see src/rooms/lib/
+Room_Util07 = 0x8017E310; // shared body, see src/rooms/lib/

@@ -1,1 +1,9 @@
 // Overlay-local symbols for dryfield_trailer_coach.
+Room_Draw22 = 0x8018190C; // shared body, see src/rooms/lib/
+Room_Draw37 = 0x801829A8; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x80181D4C; // shared body, see src/rooms/lib/
+Room_Script21 = 0x801827D0; // shared body, see src/rooms/lib/
+Room_Util01 = 0x801816B8; // shared body, see src/rooms/lib/
+Room_Util06 = 0x80182578; // shared body, see src/rooms/lib/
+Room_Util11 = 0x80182580; // shared body, see src/rooms/lib/
+Room_Util27 = 0x80182794; // shared body, see src/rooms/lib/

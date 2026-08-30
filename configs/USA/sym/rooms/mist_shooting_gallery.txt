@@ -1,1 +1,4 @@
 // Overlay-local symbols for mist_shooting_gallery.
+Room_Draw01 = 0x80181480; // shared body, see src/rooms/lib/
+Room_Draw31 = 0x80181CC4; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017FEB0; // shared body, see src/rooms/lib/

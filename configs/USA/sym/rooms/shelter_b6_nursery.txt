@@ -1,2 +1,12 @@
 // Overlay-local symbols for shelter_b6_nursery.
 Room_DrawBillboard = 0x801842FC; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x80182FCC; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80183C7C; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x801833F8; // shared body, see src/rooms/lib/
+Room_Draw05 = 0x8018098C; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x80180518; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F06C; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F4AC; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EE18; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017FF8C; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017FDCC; // shared body, see src/rooms/lib/

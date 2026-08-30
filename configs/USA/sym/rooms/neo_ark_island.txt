@@ -1,2 +1,8 @@
 // Overlay-local symbols for neo_ark_island.
 Room_DrawBillboard = 0x80181170; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017FE40; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80180AF0; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8018026C; // shared body, see src/rooms/lib/
+Room_Draw16 = 0x8017ECB4; // shared body, see src/rooms/lib/
+Room_Draw19 = 0x8017F4A4; // shared body, see src/rooms/lib/
+Room_Draw23 = 0x8017F890; // shared body, see src/rooms/lib/

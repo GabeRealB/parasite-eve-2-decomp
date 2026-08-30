@@ -1,91 +1,17 @@
 #include "common.h"
 
-#include "gameplay/3CD8.h"
+INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017F13C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FA20);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017F220);
 
-/// Maps a cap (cutscene) script event key to the stage sound it should play in
-/// the gas station, then enqueues it as a type-6 sound event. Event key 0x83
-/// only plays if a cap script is still reporting an event key. Keys with no
-/// sound are ignored. Always returns 0.
-s32 func_dryfield_gas_station_8017FB94(s32 arg0, s32 arg1, s32 arg2)
-{
-    s32 id;
+INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017F2E8);
 
-    switch (arg2) {
-        case 5:
-            id = 0x52010005;
-            goto play;
-        case 7:
-            id = 0x52010007;
-            goto play;
-        case 0xA:
-            id = 0x5201000A;
-            goto play;
-        case 0xD:
-            id = 0x5201000D;
-            goto play;
-        case 0x11:
-            id = 0x52010011;
-            goto play;
-        case 0x13:
-            id = 0x52010013;
-            goto play;
-        case 0x6D:
-        case 0x82:
-            id = 0x5201000B;
-            goto play;
-        case 0x73:
-            id = 0x5201000E;
-            goto play;
-        case 0x83:
-            if (Gp_GetCapEventKey() == 0) {
-                break;
-            }
-            id = 0x52010012;
-        play:
-            Gp_EnqueueStageSnd6(id, 0, 0);
-            break;
-    }
-    return 0;
-}
+INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017F3B0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FCBC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D6A4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FD4C);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", jtbl_dryfield_gas_station_8017D6B0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FD54);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", jtbl_dryfield_gas_station_8017D6C8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FE20);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FEDC);
-
-void func_dryfield_gas_station_8017FF84(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FF8C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FFE4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_801801E4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_801802C0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_801803C0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_801807E0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80180944);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80180984);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80180A60);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80180B2C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80180B4C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80181058);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_80181A78);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", jtbl_dryfield_gas_station_8017D6DC);

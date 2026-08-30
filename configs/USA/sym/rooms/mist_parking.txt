@@ -1,1 +1,14 @@
 // Overlay-local symbols for mist_parking.
+Room_Draw01 = 0x80185814; // shared body, see src/rooms/lib/
+Room_Draw05 = 0x80184E8C; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x80184A18; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x80181A10; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x80181E50; // shared body, see src/rooms/lib/
+Room_Script13 = 0x8018307C; // shared body, see src/rooms/lib/
+Room_Script21 = 0x80183434; // shared body, see src/rooms/lib/
+Room_Util01 = 0x801817BC; // shared body, see src/rooms/lib/
+Room_Util05 = 0x80182888; // shared body, see src/rooms/lib/
+Room_Util06 = 0x801826B8; // shared body, see src/rooms/lib/
+Room_Util11 = 0x801826C0; // shared body, see src/rooms/lib/
+Room_Util18 = 0x80183AC4; // shared body, see src/rooms/lib/
+Room_Util27 = 0x801833F8; // shared body, see src/rooms/lib/

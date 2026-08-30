@@ -1,1 +1,5 @@
 // Overlay-local symbols for shelter_b3_garbage_incinerator.
+Room_Draw40 = 0x801837F8; // shared body, see src/rooms/lib/
+Room_Draw41 = 0x80183BE4; // shared body, see src/rooms/lib/
+Room_Script16 = 0x80184ECC; // shared body, see src/rooms/lib/
+Room_Util19 = 0x8017E690; // shared body, see src/rooms/lib/

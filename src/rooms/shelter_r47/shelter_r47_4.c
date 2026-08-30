@@ -1,0 +1,3 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_8017F628);

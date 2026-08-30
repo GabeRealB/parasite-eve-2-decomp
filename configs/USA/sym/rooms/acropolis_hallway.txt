@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_hallway.
+Room_Util06 = 0x8017D72C; // shared body, see src/rooms/lib/

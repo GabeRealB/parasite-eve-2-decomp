@@ -1,1 +1,9 @@
 // Overlay-local symbols for shelter_b1_storeroom.
+Room_Draw01 = 0x8017DBC4; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x80181070; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80181D20; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x80183760; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017ED38; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x80183B84; // shared body, see src/rooms/lib/
+Room_Draw13 = 0x8017E408; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x801834DC; // shared body, see src/rooms/lib/

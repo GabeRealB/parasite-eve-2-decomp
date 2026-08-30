@@ -1,1 +1,4 @@
 // Overlay-local symbols for dryfield_dilapidated_house.
+Room_Script16 = 0x80180FB8; // shared body, see src/rooms/lib/
+Room_Util07 = 0x8017EA7C; // shared body, see src/rooms/lib/
+Room_Util23 = 0x8017E8C8; // shared body, see src/rooms/lib/

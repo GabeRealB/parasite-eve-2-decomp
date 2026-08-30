@@ -1,1 +1,6 @@
 // Overlay-local symbols for dryfield_water_tower.
+Room_Util07 = 0x8017F8B0; // shared body, see src/rooms/lib/
+Room_Util08 = 0x8017F77C; // shared body, see src/rooms/lib/
+Room_Util09 = 0x80180134; // shared body, see src/rooms/lib/
+Room_Util10 = 0x80180154; // shared body, see src/rooms/lib/
+Room_Util12 = 0x80180114; // shared body, see src/rooms/lib/

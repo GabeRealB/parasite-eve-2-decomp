@@ -1,2 +1,11 @@
 // Overlay-local symbols for mine_cavern.
 Room_DrawBillboard = 0x80180D70; // shared body, see src/rooms/lib/
+Room_Draw01 = 0x8017E774; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017FBF4; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x801809F8; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017F7D0; // shared body, see src/rooms/lib/
+Room_Draw17 = 0x8017EFB8; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017DC50; // shared body, see src/rooms/lib/
+Room_Util15 = 0x8017E2FC; // shared body, see src/rooms/lib/
+Room_Util35 = 0x8017E150; // shared body, see src/rooms/lib/
+Room_Util37 = 0x8017E180; // shared body, see src/rooms/lib/

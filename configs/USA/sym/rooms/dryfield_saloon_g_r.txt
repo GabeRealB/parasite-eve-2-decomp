@@ -1,1 +1,4 @@
 // Overlay-local symbols for dryfield_saloon_g_r.
+Room_Draw24 = 0x8017E430; // shared body, see src/rooms/lib/
+Room_Draw35 = 0x8017DBB4; // shared body, see src/rooms/lib/
+Room_Script20 = 0x8017D99C; // shared body, see src/rooms/lib/

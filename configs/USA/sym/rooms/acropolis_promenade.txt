@@ -1,1 +1,5 @@
 // Overlay-local symbols for acropolis_promenade.
+Room_Draw21 = 0x8017F434; // shared body, see src/rooms/lib/
+Room_Script07 = 0x8017DFD4; // shared body, see src/rooms/lib/
+Room_Script08 = 0x8017DF74; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D8D8; // shared body, see src/rooms/lib/

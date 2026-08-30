@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_r08.
+Room_Draw31 = 0x8017E7C8; // shared body, see src/rooms/lib/

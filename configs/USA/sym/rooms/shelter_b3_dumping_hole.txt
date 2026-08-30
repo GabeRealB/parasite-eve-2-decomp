@@ -1,1 +1,10 @@
 // Overlay-local symbols for shelter_b3_dumping_hole.
+Room_Draw01 = 0x80184638; // shared body, see src/rooms/lib/
+Room_Draw13 = 0x80184E7C; // shared body, see src/rooms/lib/
+Room_Draw40 = 0x801866CC; // shared body, see src/rooms/lib/
+Room_Draw41 = 0x80186AB8; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017D998; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D868; // shared body, see src/rooms/lib/
+Room_Util08 = 0x80181854; // shared body, see src/rooms/lib/
+Room_Util19 = 0x801817D8; // shared body, see src/rooms/lib/
+Room_Util26 = 0x80183C8C; // shared body, see src/rooms/lib/

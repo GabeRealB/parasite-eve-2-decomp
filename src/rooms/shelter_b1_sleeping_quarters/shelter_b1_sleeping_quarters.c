@@ -24,22 +24,4 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D8E0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017DB50);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017E338);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017E6DC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017EC34);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017EE58);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017F0DC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017F500);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017F894);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017FA40);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017FF6C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", jtbl_shelter_b1_sleeping_quarters_8017D5F4);

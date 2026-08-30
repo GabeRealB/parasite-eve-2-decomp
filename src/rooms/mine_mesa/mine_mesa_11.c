@@ -1,0 +1,11 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_11", func_mine_mesa_801811C4);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_11", func_mine_mesa_80181358);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_11", func_mine_mesa_801817BC);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_11", func_mine_mesa_80181800);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_11", func_mine_mesa_80181848);

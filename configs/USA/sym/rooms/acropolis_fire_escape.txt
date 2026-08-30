@@ -1,1 +1,4 @@
 // Overlay-local symbols for acropolis_fire_escape.
+Room_Draw22 = 0x8017F010; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F450; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EDBC; // shared body, see src/rooms/lib/

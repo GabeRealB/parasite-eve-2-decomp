@@ -10,26 +10,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elev
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F2F8);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F348);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F370);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F378);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F420);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F450);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F478);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5D4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F4E8);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5E0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F55C);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F5B4);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017F77C);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017FAAC);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5E8);

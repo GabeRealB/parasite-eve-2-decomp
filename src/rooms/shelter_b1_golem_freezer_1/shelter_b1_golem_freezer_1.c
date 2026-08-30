@@ -1,27 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D5D8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D61C);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D624);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D66C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D6DC);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", D_shelter_b1_golem_freezer_1_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D6EC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D744);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017D7CC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017DA7C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017DC5C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017DFFC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", func_shelter_b1_golem_freezer_1_8017E254);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", D_shelter_b1_golem_freezer_1_8017D5C4);

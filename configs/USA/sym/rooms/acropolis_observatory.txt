@@ -1,1 +1,4 @@
 // Overlay-local symbols for acropolis_observatory.
+Room_Script07 = 0x8017E134; // shared body, see src/rooms/lib/
+Room_Script08 = 0x8017E0D4; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D7BC; // shared body, see src/rooms/lib/

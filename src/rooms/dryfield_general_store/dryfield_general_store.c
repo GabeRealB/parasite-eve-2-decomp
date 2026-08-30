@@ -14,24 +14,4 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DD58);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DDC0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DDF4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DDFC);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DEAC);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DF4C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DF5C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017DFB4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017E064);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017E130);
-
-void func_dryfield_general_store_8017E150(void)
-{
-}
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", D_dryfield_general_store_8017D5F4);

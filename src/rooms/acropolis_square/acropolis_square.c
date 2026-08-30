@@ -25,21 +25,3 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropol
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180804);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180AFC);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180B58);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180BC8);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180CBC);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180DAC);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180EB0);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80180F94);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_8018105C);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_80181124);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_801811EC);

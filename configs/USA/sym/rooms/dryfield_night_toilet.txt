@@ -1,1 +1,4 @@
 // Overlay-local symbols for dryfield_night_toilet.
+Room_Draw20 = 0x8017D77C; // shared body, see src/rooms/lib/
+Room_Script05 = 0x8017D5D0; // shared body, see src/rooms/lib/
+Room_Snd03 = 0x8017D644; // shared body, see src/rooms/lib/

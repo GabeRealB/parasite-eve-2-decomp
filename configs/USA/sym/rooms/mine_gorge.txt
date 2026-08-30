@@ -1,1 +1,5 @@
 // Overlay-local symbols for mine_gorge.
+Room_Draw17 = 0x8017DB88; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D77C; // shared body, see src/rooms/lib/
+Room_Util28 = 0x8017D8BC; // shared body, see src/rooms/lib/
+Room_Util31 = 0x8017D8C8; // shared body, see src/rooms/lib/

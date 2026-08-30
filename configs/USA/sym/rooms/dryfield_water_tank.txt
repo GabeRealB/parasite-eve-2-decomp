@@ -1,1 +1,4 @@
 // Overlay-local symbols for dryfield_water_tank.
+Room_Util06 = 0x8017D7BC; // shared body, see src/rooms/lib/
+Room_Util08 = 0x8017E0E8; // shared body, see src/rooms/lib/
+Room_Util11 = 0x8017D7C4; // shared body, see src/rooms/lib/

@@ -1,1 +1,5 @@
 // Overlay-local symbols for dryfield_motel_balcony.
+Room_Draw02 = 0x80180580; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80181230; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x8017F470; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017E248; // shared body, see src/rooms/lib/

@@ -17,21 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017E
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017EA78);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017ED70);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017EDCC);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017EE3C);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017EF30);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017F020);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017F124);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017F208);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017F2D0);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017F398);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017F460);

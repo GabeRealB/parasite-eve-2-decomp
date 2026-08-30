@@ -1,1 +1,9 @@
 // Overlay-local symbols for dryfield_night_garage.
+Room_Draw34 = 0x80180D9C; // shared body, see src/rooms/lib/
+Room_Script03 = 0x80180CEC; // shared body, see src/rooms/lib/
+Room_Util05 = 0x801803AC; // shared body, see src/rooms/lib/
+Room_Util09 = 0x80180944; // shared body, see src/rooms/lib/
+Room_Util10 = 0x80180964; // shared body, see src/rooms/lib/
+Room_Util12 = 0x80180924; // shared body, see src/rooms/lib/
+Room_Util13 = 0x80180984; // shared body, see src/rooms/lib/
+Room_Util22 = 0x80180360; // shared body, see src/rooms/lib/

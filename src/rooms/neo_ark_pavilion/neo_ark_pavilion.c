@@ -26,26 +26,6 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017EC4C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017ED98);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017F0CC);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017F588);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017F974);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017FC10);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017FCB0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017FF54);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_80180380);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_80180714);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_80180C04);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_80180FFC);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", jtbl_neo_ark_pavilion_8017D634);
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", jtbl_neo_ark_pavilion_8017D64C);

@@ -1,2 +1,11 @@
 // Overlay-local symbols for shelter_b2_south_maintenance_walkway.
 Room_DrawBillboard = 0x8017FF70; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017EC40; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017F8F0; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017F06C; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x801821C0; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x80181330; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x80181754; // shared body, see src/rooms/lib/
+Room_Draw11 = 0x8017DEC4; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x801810AC; // shared body, see src/rooms/lib/
+Room_Draw25 = 0x8017E640; // shared body, see src/rooms/lib/

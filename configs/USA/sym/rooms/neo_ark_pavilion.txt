@@ -1,2 +1,12 @@
 // Overlay-local symbols for neo_ark_pavilion.
 Room_DrawBillboard = 0x80181284; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017FF54; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80180C04; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x80180380; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x801834D4; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x80182644; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x80182A68; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x801823C0; // shared body, see src/rooms/lib/
+Room_Draw16 = 0x8017ED98; // shared body, see src/rooms/lib/
+Room_Draw19 = 0x8017F588; // shared body, see src/rooms/lib/
+Room_Draw23 = 0x8017F974; // shared body, see src/rooms/lib/

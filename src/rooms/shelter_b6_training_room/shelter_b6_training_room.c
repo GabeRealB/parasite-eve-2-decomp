@@ -1,83 +1,17 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D640);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D684);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D75C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D764);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D7D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D874);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", D_shelter_b6_training_room_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D8E8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", D_shelter_b6_training_room_8017D5C4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D940);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", jtbl_shelter_b6_training_room_8017D5D0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D974);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", jtbl_shelter_b6_training_room_8017D5EC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017D9C8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", jtbl_shelter_b6_training_room_8017D60C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DAC8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DAF8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DB28);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DB70);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DBB0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DBBC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DD98);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017DDE8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017E28C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017EAD0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017EE70);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017F014);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017F540);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017F8B8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8017FC40);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80180530);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80180DB4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_801811AC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80181368);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80181930);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80181A3C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80181BAC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80181FDC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8018245C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_801825C0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_801826E0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80182804);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_8018294C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", func_shelter_b6_training_room_80182A14);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", jtbl_shelter_b6_training_room_8017D624);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", D_shelter_b6_training_room_8017D638);

@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_1f_heliport_s4.
+Room_Util02 = 0x8017D5D8; // shared body, see src/rooms/lib/

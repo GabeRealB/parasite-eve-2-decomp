@@ -1,1 +1,6 @@
 // Overlay-local symbols for dryfield_night_driveway.
+Room_Draw08 = 0x8017DDE4; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017DD7C; // shared body, see src/rooms/lib/
+Room_Util28 = 0x8017DC88; // shared body, see src/rooms/lib/
+Room_Util31 = 0x8017DC6C; // shared body, see src/rooms/lib/
+Room_Util33 = 0x8017DC78; // shared body, see src/rooms/lib/

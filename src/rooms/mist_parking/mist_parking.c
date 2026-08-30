@@ -49,21 +49,3 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181468);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181760);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_801817BC);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8018182C);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181920);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181A10);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181B14);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181BF8);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181CC0);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181D88);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80181E50);

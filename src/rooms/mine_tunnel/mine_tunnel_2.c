@@ -1,0 +1,11 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/mine_tunnel/mine_tunnel_2", func_mine_tunnel_8017D6EC);
+
+void func_mine_tunnel_8017D774(void)
+{
+}
+
+INCLUDE_ASM("rooms/nonmatchings/mine_tunnel/mine_tunnel_2", func_mine_tunnel_8017D77C);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_tunnel/mine_tunnel_2", func_mine_tunnel_8017D7D4);

@@ -1,1 +1,10 @@
 // Overlay-local symbols for shelter_b1_sterilization_room.
+Room_Draw01 = 0x80182B34; // shared body, see src/rooms/lib/
+Room_Draw13 = 0x80183378; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x80183718; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F0D4; // shared body, see src/rooms/lib/
+Room_Draw42 = 0x80181308; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F514; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EE80; // shared body, see src/rooms/lib/
+Room_Util02 = 0x801803EC; // shared body, see src/rooms/lib/
+Room_Util06 = 0x801803E4; // shared body, see src/rooms/lib/

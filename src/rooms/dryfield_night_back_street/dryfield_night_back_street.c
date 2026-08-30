@@ -19,19 +19,3 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_bac
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017D788);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017D7E0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017D920);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017E108);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017E390);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017E634);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017EA60);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017EDF4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017F2E4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", func_dryfield_night_back_street_8017F6DC);

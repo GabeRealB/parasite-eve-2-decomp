@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_fountain.
+Room_Util06 = 0x8017D774; // shared body, see src/rooms/lib/

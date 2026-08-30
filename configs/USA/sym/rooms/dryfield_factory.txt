@@ -1,1 +1,18 @@
 // Overlay-local symbols for dryfield_factory.
+Room_Draw15 = 0x80181C14; // shared body, see src/rooms/lib/
+Room_Draw26 = 0x80180BA4; // shared body, see src/rooms/lib/
+Room_Draw36 = 0x80181538; // shared body, see src/rooms/lib/
+Room_Script10 = 0x80181A24; // shared body, see src/rooms/lib/
+Room_Script12 = 0x80181AB8; // shared body, see src/rooms/lib/
+Room_Script15 = 0x8017DF14; // shared body, see src/rooms/lib/
+Room_Script16 = 0x80180430; // shared body, see src/rooms/lib/
+Room_Script19 = 0x80180920; // shared body, see src/rooms/lib/
+Room_Util04 = 0x80181BB4; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017DDA0; // shared body, see src/rooms/lib/
+Room_Util14 = 0x80181938; // shared body, see src/rooms/lib/
+Room_Util16 = 0x80181620; // shared body, see src/rooms/lib/
+Room_Util17 = 0x80181B38; // shared body, see src/rooms/lib/
+Room_Util20 = 0x80180450; // shared body, see src/rooms/lib/
+Room_Util21 = 0x8018196C; // shared body, see src/rooms/lib/
+Room_Util29 = 0x801804B0; // shared body, see src/rooms/lib/
+Room_Util34 = 0x80181768; // shared body, see src/rooms/lib/

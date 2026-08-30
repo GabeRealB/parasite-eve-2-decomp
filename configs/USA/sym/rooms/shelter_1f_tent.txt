@@ -1,1 +1,11 @@
 // Overlay-local symbols for shelter_1f_tent.
+Room_Draw01 = 0x8017FFAC; // shared body, see src/rooms/lib/
+Room_Draw05 = 0x80181010; // shared body, see src/rooms/lib/
+Room_Draw13 = 0x801807F0; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F008; // shared body, see src/rooms/lib/
+Room_Draw32 = 0x80180B90; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F448; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EDB4; // shared body, see src/rooms/lib/
+Room_Util03 = 0x8017FC5C; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017FDA8; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017FC54; // shared body, see src/rooms/lib/

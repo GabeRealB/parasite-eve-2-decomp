@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", func_dryfield_night_motel_room_3_8017D5FC);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", func_dryfield_night_motel_room_3_8017D684);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", func_dryfield_night_motel_room_3_8017D68C);
@@ -16,8 +14,6 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_mo
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", func_dryfield_night_motel_room_3_8017D6E0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", func_dryfield_night_motel_room_3_8017D738);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", func_dryfield_night_motel_room_3_8017D9B4);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", jtbl_dryfield_night_motel_room_3_8017D5D0);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3", D_dryfield_night_motel_room_3_8017D5F4);

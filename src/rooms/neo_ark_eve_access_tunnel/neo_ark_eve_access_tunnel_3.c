@@ -1,0 +1,11 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017DF24);
+
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017DFC0);
+
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017E038);
+
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017E090);
+
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017E15C);

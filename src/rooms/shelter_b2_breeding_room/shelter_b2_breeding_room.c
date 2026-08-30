@@ -4,44 +4,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D658);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D660);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D6A4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D750);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D758);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D7A8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D7EC);
-
-void func_shelter_b2_breeding_room_8017D838(void)
-{
-}
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", D_shelter_b2_breeding_room_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D840);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", D_shelter_b2_breeding_room_8017D5C4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D898);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", jtbl_shelter_b2_breeding_room_8017D5D0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017DB90);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017E3D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017E774);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017ECCC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017EEF0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017F174);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017F598);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017F92C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017FAD8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_80180004);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", jtbl_shelter_b2_breeding_room_8017D5E4);

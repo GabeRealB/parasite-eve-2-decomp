@@ -9,15 +9,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_80
 INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017DEFC);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017E36C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017E7C8);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017EB68);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017F334);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017F340);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017F3B8);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017F438);

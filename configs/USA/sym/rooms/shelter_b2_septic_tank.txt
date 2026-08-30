@@ -1,2 +1,10 @@
 // Overlay-local symbols for shelter_b2_septic_tank.
 Room_DrawBillboard = 0x801821B4; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x80180E84; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80181B34; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x801812B0; // shared body, see src/rooms/lib/
+Room_Draw12 = 0x80180054; // shared body, see src/rooms/lib/
+Room_Draw16 = 0x8017F194; // shared body, see src/rooms/lib/
+Room_Draw27 = 0x8017F984; // shared body, see src/rooms/lib/
+Room_Draw28 = 0x8017FD70; // shared body, see src/rooms/lib/
+Room_Draw30 = 0x8018083C; // shared body, see src/rooms/lib/

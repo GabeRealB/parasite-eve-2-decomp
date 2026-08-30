@@ -1,1 +1,9 @@
 // Overlay-local symbols for shelter_r47.
+Room_Draw05 = 0x80186260; // shared body, see src/rooms/lib/
+Room_Draw13 = 0x80185A4C; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x80185DEC; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F1AC; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F5EC; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EF58; // shared body, see src/rooms/lib/
+Room_Util02 = 0x801805D8; // shared body, see src/rooms/lib/
+Room_Util06 = 0x801805D0; // shared body, see src/rooms/lib/

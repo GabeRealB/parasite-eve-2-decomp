@@ -1,2 +1,5 @@
 // Overlay-local symbols for neo_ark_savanna_zone.
 Room_DrawBillboard = 0x8017EFE0; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017DCB0; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017E960; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017E0DC; // shared body, see src/rooms/lib/

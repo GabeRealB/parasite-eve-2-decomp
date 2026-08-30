@@ -18,28 +18,4 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017ED6C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017EDC8);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017EE38);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017EF2C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F01C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F120);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F204);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F2CC);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F394);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F45C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F498);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_8017F64C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_80180FD0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", func_dryfield_night_motel_room_6_801811A0);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6", D_dryfield_night_motel_room_6_8017D644);

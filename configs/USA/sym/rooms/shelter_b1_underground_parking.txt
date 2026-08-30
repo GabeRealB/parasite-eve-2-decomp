@@ -1,1 +1,12 @@
 // Overlay-local symbols for shelter_b1_underground_parking.
+Room_Draw05 = 0x80185F08; // shared body, see src/rooms/lib/
+Room_Draw12 = 0x80184C54; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x80185A94; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F390; // shared body, see src/rooms/lib/
+Room_Draw26 = 0x80183958; // shared body, see src/rooms/lib/
+Room_Draw30 = 0x8018543C; // shared body, see src/rooms/lib/
+Room_Draw36 = 0x8018414C; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F7D0; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017F13C; // shared body, see src/rooms/lib/
+Room_Util04 = 0x801848BC; // shared body, see src/rooms/lib/
+Room_Util28 = 0x80183804; // shared body, see src/rooms/lib/

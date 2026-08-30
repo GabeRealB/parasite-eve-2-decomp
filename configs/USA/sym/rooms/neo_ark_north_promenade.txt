@@ -1,1 +1,5 @@
 // Overlay-local symbols for neo_ark_north_promenade.
+Room_Draw02 = 0x80180078; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80180D28; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x8017EF68; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017DD40; // shared body, see src/rooms/lib/

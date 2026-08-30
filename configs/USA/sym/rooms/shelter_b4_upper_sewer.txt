@@ -1,1 +1,11 @@
 // Overlay-local symbols for shelter_b4_upper_sewer.
+Room_Draw01 = 0x8017F8CC; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x801829D8; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80183688; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x801850C8; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x801806A0; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x801854EC; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x80184E44; // shared body, see src/rooms/lib/
+Room_Draw16 = 0x8017EA0C; // shared body, see src/rooms/lib/
+Room_Draw27 = 0x8017F1FC; // shared body, see src/rooms/lib/
+Room_Draw28 = 0x8017F5E8; // shared body, see src/rooms/lib/

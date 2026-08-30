@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D5D8);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D61C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D624);
@@ -17,41 +15,3 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfe
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D678);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D6D0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D830);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017DFAC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017E308);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017E5D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017E898);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017ECBC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017F050);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017F3E8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017F594);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017FAC0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017FE38);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_801807F8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8018092C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_80180BD0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_80180FFC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_80181390);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_80181880);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_80181C78);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_80181F00);

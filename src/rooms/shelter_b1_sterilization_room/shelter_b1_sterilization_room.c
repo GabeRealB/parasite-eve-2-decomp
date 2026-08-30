@@ -17,21 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterili
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EB2C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EE24);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EE80);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EEF0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EFE4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017F0D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017F1D8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017F2BC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017F384);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017F44C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017F514);

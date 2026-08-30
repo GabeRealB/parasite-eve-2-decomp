@@ -1,1 +1,4 @@
 // Overlay-local symbols for neo_ark_eve_access_tunnel.
+Room_Draw01 = 0x8017E244; // shared body, see src/rooms/lib/
+Room_Script18 = 0x8017DED0; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017DC64; // shared body, see src/rooms/lib/

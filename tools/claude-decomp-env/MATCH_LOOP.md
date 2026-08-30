@@ -45,6 +45,24 @@ Vacuum also permutes after you exit if you leave a ≥95% unpinned `base_N.c`. G
 
 If the kept `.s` matches and the `.o` does not, the bug is maspsx (`--expand-div`), not GCC.
 
+## Shared bodies
+
+Overlays in a family share a lot of code — 44% of the room functions are still
+copies of another room's. Before matching one, check:
+
+```
+python3 tools/overlay_dup_index.py find <function>
+```
+
+If it reports copies, the body is worth matching **once**: put it in
+`src/<family>/lib/<unit>.c`, add the span to `configs/USA/overlays.toml` and the
+shared symbol to each sharer's `configs/USA/sym/<family>/<overlay>.txt`, and one
+object is linked into every overlay that uses it. `=` in that listing means the
+copies are byte-identical, `~` means the same body at a different link offset.
+
+This is not hypothetical: of the first 158 room functions matched, only 29 were
+distinct bodies — one two-instruction stub was matched 112 times.
+
 ## Verify
 
 Worktrees copy `build/` binaries that still checksum from `INCLUDE_ASM`. `sha256sum --check` on `build/USA/out/SLUS_010.42` is **not** a match.

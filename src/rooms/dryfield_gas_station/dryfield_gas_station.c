@@ -17,21 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017EA90);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017ED88);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017EDE4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017EE54);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017EF48);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017F038);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017F13C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017F220);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017F2E8);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017F3B0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", func_dryfield_gas_station_8017F478);

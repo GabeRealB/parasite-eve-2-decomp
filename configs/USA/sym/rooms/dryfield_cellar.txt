@@ -1,1 +1,4 @@
 // Overlay-local symbols for dryfield_cellar.
+Room_Draw35 = 0x8017D7DC; // shared body, see src/rooms/lib/
+Room_Script09 = 0x8017D634; // shared body, see src/rooms/lib/
+Room_Script17 = 0x8017D5D0; // shared body, see src/rooms/lib/

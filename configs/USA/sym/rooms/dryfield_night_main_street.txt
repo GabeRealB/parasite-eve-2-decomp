@@ -1,2 +1,10 @@
 // Overlay-local symbols for dryfield_night_main_street.
 Room_DrawBillboard = 0x80181598; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8018041C; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x80181220; // shared body, see src/rooms/lib/
+Room_Draw08 = 0x8017E940; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017FFF8; // shared body, see src/rooms/lib/
+Room_Draw17 = 0x8017F128; // shared body, see src/rooms/lib/
+Room_Draw39 = 0x8017F608; // shared body, see src/rooms/lib/
+Room_Script14 = 0x8017DE78; // shared body, see src/rooms/lib/
+Room_Snd01 = 0x8017DEF0; // shared body, see src/rooms/lib/

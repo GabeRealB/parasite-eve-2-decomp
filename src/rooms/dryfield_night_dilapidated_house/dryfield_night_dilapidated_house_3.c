@@ -1,0 +1,11 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_3", func_dryfield_night_dilapidated_house_8017DAF0);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_3", func_dryfield_night_dilapidated_house_8017DB20);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_3", func_dryfield_night_dilapidated_house_8017DCE0);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_3", func_dryfield_night_dilapidated_house_8017DD30);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_3", func_dryfield_night_dilapidated_house_8017E670);

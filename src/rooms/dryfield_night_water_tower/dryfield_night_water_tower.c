@@ -25,7 +25,3 @@ void func_dryfield_night_water_tower_8017DB20(void)
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DB28);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DB80);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DC70);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017E458);

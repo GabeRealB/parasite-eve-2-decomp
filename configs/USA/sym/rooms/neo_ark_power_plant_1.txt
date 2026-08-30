@@ -1,1 +1,5 @@
 // Overlay-local symbols for neo_ark_power_plant_1.
+Room_Draw13 = 0x8017E184; // shared body, see src/rooms/lib/
+Room_Util03 = 0x8017D7B4; // shared body, see src/rooms/lib/
+Room_Util07 = 0x8017D8D0; // shared body, see src/rooms/lib/
+Room_Util25 = 0x8017D908; // shared body, see src/rooms/lib/

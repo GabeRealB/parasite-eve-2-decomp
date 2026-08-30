@@ -1,2 +1,12 @@
 // Overlay-local symbols for shelter_b1_control_room_access_tunnel.
 Room_DrawBillboard = 0x8017F8AC; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017E57C; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017F22C; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017E9A8; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x80181AFC; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x80180C6C; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x80181090; // shared body, see src/rooms/lib/
+Room_Draw11 = 0x8017D6E4; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x801809E8; // shared body, see src/rooms/lib/
+Room_Draw25 = 0x8017DE60; // shared body, see src/rooms/lib/
+Room_Util02 = 0x8017D5EC; // shared body, see src/rooms/lib/

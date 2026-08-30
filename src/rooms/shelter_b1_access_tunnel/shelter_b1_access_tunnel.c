@@ -25,5 +25,3 @@ void func_shelter_b1_access_tunnel_8017DD00(void)
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", func_shelter_b1_access_tunnel_8017DD08);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", func_shelter_b1_access_tunnel_8017DD60);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", func_shelter_b1_access_tunnel_8017DEC0);

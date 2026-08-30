@@ -1,1 +1,3 @@
 // Overlay-local symbols for dryfield_night_motel_room_3.
+Room_Draw20 = 0x8017D738; // shared body, see src/rooms/lib/
+Room_Script02 = 0x8017D5FC; // shared body, see src/rooms/lib/

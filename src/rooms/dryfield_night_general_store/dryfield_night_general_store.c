@@ -14,20 +14,6 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_gene
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DD88);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DDF0);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", D_dryfield_night_general_store_8017D5F4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DE24);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DE2C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DE34);
-
-void func_dryfield_night_general_store_8017DE80(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DE88);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DEE0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017E6C8);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", jtbl_dryfield_night_general_store_8017D600);

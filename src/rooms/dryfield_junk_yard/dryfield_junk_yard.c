@@ -15,17 +15,3 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", D_dry
 INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D848);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D994);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DA44);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DA4C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DB78);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DC54);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DC60);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DCB4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017DD0C);

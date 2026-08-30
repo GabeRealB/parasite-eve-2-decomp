@@ -1,2 +1,6 @@
 // Overlay-local symbols for neo_ark_forest_zone.
 Room_DrawBillboard = 0x8017F9F4; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017E6C4; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017F374; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017EAF0; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017DBAC; // shared body, see src/rooms/lib/

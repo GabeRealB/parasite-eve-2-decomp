@@ -20,24 +20,6 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_n
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FB1C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FBE0);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", D_neo_ark_observatory_8017D698);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FBE8);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FCA0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FCE0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FD7C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FDDC);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_8017FE34);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_80180124);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_80180534);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_80180A0C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", func_neo_ark_observatory_80180DAC);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", jtbl_neo_ark_observatory_8017D6A4);

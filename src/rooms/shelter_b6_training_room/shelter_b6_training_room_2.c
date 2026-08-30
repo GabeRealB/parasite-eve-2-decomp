@@ -1,0 +1,31 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D764);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D7D4);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D874);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D8E8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D940);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D974);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D9C8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DAC8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DAF8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DB28);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DB70);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DBB0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DBBC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DD98);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DDE8);

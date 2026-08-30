@@ -1,0 +1,7 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_2", func_shelter_b1_pod_access_tunnel_8017DEE8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_2", func_shelter_b1_pod_access_tunnel_8017DF40);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_2", func_shelter_b1_pod_access_tunnel_8017E048);

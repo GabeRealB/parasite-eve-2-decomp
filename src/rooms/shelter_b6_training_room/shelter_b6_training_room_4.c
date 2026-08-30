@@ -1,0 +1,33 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_8017F8B8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_8017FC40);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80180530);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80180DB4);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_801811AC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80181368);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80181930);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80181A3C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80181BAC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80181FDC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_8018245C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_801825C0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_801826E0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80182804);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_8018294C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_4", func_shelter_b6_training_room_80182A14);

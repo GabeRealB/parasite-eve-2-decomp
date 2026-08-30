@@ -1,0 +1,29 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180430);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180464);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_8018049C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180518);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180570);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180828);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180A2C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180BF0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180D74);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180F74);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_8018118C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_801811E0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80181244);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_801812A0);

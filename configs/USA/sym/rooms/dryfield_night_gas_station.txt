@@ -1,2 +1,17 @@
 // Overlay-local symbols for dryfield_night_gas_station.
 Room_DrawBillboard = 0x80183354; // shared body, see src/rooms/lib/
+Room_Draw01 = 0x801812B4; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x80182024; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80182CD4; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x80182450; // shared body, see src/rooms/lib/
+Room_Draw17 = 0x80181AF8; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017EFA0; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F3E0; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017ED4C; // shared body, see src/rooms/lib/
+Room_Util09 = 0x80180740; // shared body, see src/rooms/lib/
+Room_Util10 = 0x80180760; // shared body, see src/rooms/lib/
+Room_Util12 = 0x80180720; // shared body, see src/rooms/lib/
+Room_Util13 = 0x80180780; // shared body, see src/rooms/lib/
+Room_Util15 = 0x80180BEC; // shared body, see src/rooms/lib/
+Room_Util24 = 0x80180920; // shared body, see src/rooms/lib/
+Room_Util28 = 0x8017FB64; // shared body, see src/rooms/lib/

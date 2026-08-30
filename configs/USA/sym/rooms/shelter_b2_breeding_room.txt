@@ -1,1 +1,8 @@
 // Overlay-local symbols for shelter_b2_breeding_room.
+Room_Draw01 = 0x8017DB90; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x80180004; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x8017F174; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x8017F598; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x8017EEF0; // shared body, see src/rooms/lib/
+Room_Draw31 = 0x8017E3D4; // shared body, see src/rooms/lib/
+Room_Util02 = 0x8017D660; // shared body, see src/rooms/lib/

@@ -1,1 +1,8 @@
 // Overlay-local symbols for shelter_b2_laboratory.
+Room_Draw01 = 0x80180AB4; // shared body, see src/rooms/lib/
+Room_Draw05 = 0x8018176C; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F05C; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F49C; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EE08; // shared body, see src/rooms/lib/
+Room_Util05 = 0x80180494; // shared body, see src/rooms/lib/
+Room_Util06 = 0x801800F4; // shared body, see src/rooms/lib/

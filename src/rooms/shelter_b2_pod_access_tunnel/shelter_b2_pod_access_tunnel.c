@@ -28,44 +28,4 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_acce
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DC6C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DF64);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017E6E0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017ED5C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017F1BC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017F608);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017F8D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017FB98);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017FFBC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80180350);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_801806E8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80180894);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80180DC0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80181138);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80181AF8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80181C2C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80181ED0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_801822FC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80182690);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80182B80);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80182F78);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_80183200);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", jtbl_shelter_b2_pod_access_tunnel_8017D610);

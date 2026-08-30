@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017D610);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017D654);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017D65C);
@@ -28,28 +26,6 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017E400);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017E6A0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017EEE4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017F038);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017F36C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017F828);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017FC14);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017FEB0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_80180154);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_80180580);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_80180914);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_80180E04);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_801811FC);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", jtbl_shelter_b4_lower_sewer_8017D5F0);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", D_shelter_b4_lower_sewer_8017D608);

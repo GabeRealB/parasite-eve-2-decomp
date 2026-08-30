@@ -1,0 +1,9 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_2", func_shelter_b1_golem_freezer_1_8017D6EC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_2", func_shelter_b1_golem_freezer_1_8017D744);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_2", func_shelter_b1_golem_freezer_1_8017D7CC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_2", func_shelter_b1_golem_freezer_1_8017DA7C);

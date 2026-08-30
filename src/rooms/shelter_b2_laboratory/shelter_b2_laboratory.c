@@ -17,21 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", fu
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017EAB4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017EDAC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017EE08);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017EE78);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017EF6C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017F05C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017F160);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017F244);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017F30C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017F3D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory", func_shelter_b2_laboratory_8017F49C);

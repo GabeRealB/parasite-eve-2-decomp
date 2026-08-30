@@ -1,1 +1,7 @@
 // Overlay-local symbols for shelter_b2_elevator_hall.
+Room_Draw01 = 0x8017DFB8; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x80181AA0; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80182750; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x80180990; // shared body, see src/rooms/lib/
+Room_Draw09 = 0x8017F768; // shared body, see src/rooms/lib/
+Room_Draw15 = 0x8017E7FC; // shared body, see src/rooms/lib/

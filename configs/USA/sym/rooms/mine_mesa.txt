@@ -1,2 +1,16 @@
 // Overlay-local symbols for mine_mesa.
 Room_DrawBillboard = 0x80180804; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017F4D4; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x80180184; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017F900; // shared body, see src/rooms/lib/
+Room_Draw17 = 0x8017EFA8; // shared body, see src/rooms/lib/
+Room_Script03 = 0x8017DFC4; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D8F0; // shared body, see src/rooms/lib/
+Room_Util09 = 0x8017E5C0; // shared body, see src/rooms/lib/
+Room_Util10 = 0x8017E5E0; // shared body, see src/rooms/lib/
+Room_Util12 = 0x8017E5A0; // shared body, see src/rooms/lib/
+Room_Util13 = 0x8017E600; // shared body, see src/rooms/lib/
+Room_Util15 = 0x8017EA78; // shared body, see src/rooms/lib/
+Room_Util25 = 0x8017EB18; // shared body, see src/rooms/lib/
+Room_Util26 = 0x80181880; // shared body, see src/rooms/lib/
+Room_Util37 = 0x8017E93C; // shared body, see src/rooms/lib/

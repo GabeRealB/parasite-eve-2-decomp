@@ -1,1 +1,4 @@
 // Overlay-local symbols for shelter_b1_armory.
+Room_Draw12 = 0x80180934; // shared body, see src/rooms/lib/
+Room_Draw15 = 0x801814C0; // shared body, see src/rooms/lib/
+Room_Draw30 = 0x8018111C; // shared body, see src/rooms/lib/

@@ -17,21 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017E
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017EC04);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017EEFC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017EF58);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017EFC8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F0BC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F1AC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F2B0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F394);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F45C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F524);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017F5EC);

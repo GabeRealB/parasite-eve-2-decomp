@@ -1,1 +1,2 @@
 // Overlay-local symbols for mist_r21.
+Room_Util05 = 0x8017D760; // shared body, see src/rooms/lib/

@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_west_elevator_hall.
+Room_Util06 = 0x8017F560; // shared body, see src/rooms/lib/

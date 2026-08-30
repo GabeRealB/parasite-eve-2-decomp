@@ -17,21 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017EAE0);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017EDD8);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017EE34);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017EEA4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017EF98);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017F088);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017F18C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017F270);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017F338);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017F400);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", func_dryfield_night_motel_lobby_8017F4C8);

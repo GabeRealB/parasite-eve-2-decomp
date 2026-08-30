@@ -1,1 +1,8 @@
 // Overlay-local symbols for shelter_b3_incinerator_control_room.
+Room_Draw01 = 0x8017FEB4; // shared body, see src/rooms/lib/
+Room_Draw05 = 0x80180B6C; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x801806F8; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x8017F00C; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x8017F44C; // shared body, see src/rooms/lib/
+Room_Util01 = 0x8017EDB8; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017FCA8; // shared body, see src/rooms/lib/

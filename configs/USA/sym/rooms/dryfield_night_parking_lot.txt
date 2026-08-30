@@ -1,1 +1,5 @@
 // Overlay-local symbols for dryfield_night_parking_lot.
+Room_Draw20 = 0x8017DE10; // shared body, see src/rooms/lib/
+Room_Script20 = 0x8017DB0C; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017DB04; // shared body, see src/rooms/lib/
+Room_Util36 = 0x8017DBA4; // shared body, see src/rooms/lib/

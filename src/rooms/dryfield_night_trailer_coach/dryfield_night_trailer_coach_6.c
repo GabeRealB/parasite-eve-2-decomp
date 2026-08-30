@@ -1,0 +1,17 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_801826EC);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182800);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182808);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_8018283C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182864);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182898);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_801828CC);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182924);

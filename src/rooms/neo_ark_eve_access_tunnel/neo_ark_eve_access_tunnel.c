@@ -12,26 +12,4 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tun
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DB18);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DC64);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DC6C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DD70);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DE1C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DE9C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DED0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DF24);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DFC0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E038);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E090);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E15C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E244);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", jtbl_neo_ark_eve_access_tunnel_8017D6C0);

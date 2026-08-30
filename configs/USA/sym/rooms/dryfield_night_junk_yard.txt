@@ -1,2 +1,9 @@
 // Overlay-local symbols for dryfield_night_junk_yard.
 Room_DrawBillboard = 0x8017FB9C; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017E86C; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017F51C; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017EC98; // shared body, see src/rooms/lib/
+Room_Draw20 = 0x8017E34C; // shared body, see src/rooms/lib/
+Room_Draw34 = 0x8017DBD0; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D6A4; // shared body, see src/rooms/lib/
+Room_Util30 = 0x8017D894; // shared body, see src/rooms/lib/

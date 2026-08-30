@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_r31.
+Room_Util03 = 0x8017D8B8; // shared body, see src/rooms/lib/

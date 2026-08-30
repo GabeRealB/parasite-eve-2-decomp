@@ -1,2 +1,8 @@
 // Overlay-local symbols for shelter_1f_parking_garage.
 Room_DrawBillboard = 0x801801E0; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017EEB0; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017FB60; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017F2DC; // shared body, see src/rooms/lib/
+Room_Draw29 = 0x8017E868; // shared body, see src/rooms/lib/
+Room_Draw33 = 0x8017E080; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017DF04; // shared body, see src/rooms/lib/

@@ -1,1 +1,13 @@
 // Overlay-local symbols for dryfield_toilet.
+Room_Draw06 = 0x8017FF2C; // shared body, see src/rooms/lib/
+Room_Draw07 = 0x8017F09C; // shared body, see src/rooms/lib/
+Room_Draw10 = 0x8017F4C0; // shared body, see src/rooms/lib/
+Room_Draw14 = 0x8017EE18; // shared body, see src/rooms/lib/
+Room_Script05 = 0x8017D810; // shared body, see src/rooms/lib/
+Room_Snd03 = 0x8017D884; // shared body, see src/rooms/lib/
+Room_Util05 = 0x8017D9D4; // shared body, see src/rooms/lib/
+Room_Util09 = 0x8017DC70; // shared body, see src/rooms/lib/
+Room_Util10 = 0x8017DC90; // shared body, see src/rooms/lib/
+Room_Util12 = 0x8017DC50; // shared body, see src/rooms/lib/
+Room_Util13 = 0x8017DCB0; // shared body, see src/rooms/lib/
+Room_Util24 = 0x8017DCD0; // shared body, see src/rooms/lib/

@@ -1,1 +1,5 @@
 // Overlay-local symbols for dryfield_night_underpass.
+Room_Draw17 = 0x8017D9B4; // shared body, see src/rooms/lib/
+Room_Script01 = 0x8017D5D0; // shared body, see src/rooms/lib/
+Room_Script06 = 0x8017D788; // shared body, see src/rooms/lib/
+Room_Snd04 = 0x8017D8CC; // shared body, see src/rooms/lib/

@@ -1,1 +1,4 @@
 // Overlay-local symbols for dryfield_junk_yard.
+Room_Effect01 = 0x8017DD0C; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017DA44; // shared body, see src/rooms/lib/
+Room_Util35 = 0x8017DC54; // shared body, see src/rooms/lib/

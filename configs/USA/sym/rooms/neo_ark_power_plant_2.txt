@@ -1,2 +1,10 @@
 // Overlay-local symbols for neo_ark_power_plant_2.
 Room_DrawBillboard = 0x8017F3C8; // shared body, see src/rooms/lib/
+Room_Draw02 = 0x8017E098; // shared body, see src/rooms/lib/
+Room_Draw03 = 0x8017ED48; // shared body, see src/rooms/lib/
+Room_Draw04 = 0x8017E4C4; // shared body, see src/rooms/lib/
+Room_Draw31 = 0x8017DA54; // shared body, see src/rooms/lib/
+Room_Util03 = 0x8017D5D8; // shared body, see src/rooms/lib/
+Room_Util06 = 0x8017D694; // shared body, see src/rooms/lib/
+Room_Util07 = 0x8017D69C; // shared body, see src/rooms/lib/
+Room_Util25 = 0x8017D6D4; // shared body, see src/rooms/lib/

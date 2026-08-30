@@ -1,1 +1,7 @@
 // Overlay-local symbols for dryfield_night_trailer_coach.
+Room_Draw05 = 0x80182F2C; // shared body, see src/rooms/lib/
+Room_Draw18 = 0x80182AB8; // shared body, see src/rooms/lib/
+Room_Draw22 = 0x80181934; // shared body, see src/rooms/lib/
+Room_SaveUi01 = 0x80181D74; // shared body, see src/rooms/lib/
+Room_Util01 = 0x801816E0; // shared body, see src/rooms/lib/
+Room_Util22 = 0x801826A8; // shared body, see src/rooms/lib/
