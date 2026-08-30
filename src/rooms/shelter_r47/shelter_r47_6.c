@@ -73,7 +73,28 @@ void func_shelter_r47_8018080C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801808D4);
+void func_shelter_r47_801808D4(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_ResetCap();
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(2);
+            func_800E6D4C(0x140, 0x100);
+            Gp_RunCapCmd1(7);
+            task->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            Gp_ResetCap();
+            Gp_MsgPlayerWeapon(1);
+        default:
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018097C);
 
