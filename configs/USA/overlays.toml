@@ -436,7 +436,7 @@ actor_113000 = { }
 actor_113100 = { }
 actor_120300 = { }
 actor_120400 = { }
-actor_120500 = { }
+actor_120500 = { rodata_head = "0x4" }
 actor_121300 = { }
 actor_123000 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_123200 = { }
