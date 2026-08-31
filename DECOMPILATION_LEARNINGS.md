@@ -2129,6 +2129,63 @@ p = &base[(s8)arg0];
 `SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->field_0` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
+**Base before index without a second pseudo — assign inside the subscript.**
+The local-pointer form above costs a register: a user pointer variable splits
+the address into two pseudos (`lui $v0, %hi(tbl)` / `addiu $a2, $v0, %lo(tbl)`)
+and its live range steals a hard register from something else. When the value
+being indexed is produced right before the lookup, move that assignment into
+the subscript instead. GCC expands `ARRAY_REF` as `PLUS(ADDR(arr), index)` and
+evaluates the base first, so everything in the index — including the embedded
+assignment — is emitted after the `lui`/`addiu`, and the address stays a single
+compiler temp:
+
+```c
+/* Wrong order: sll/addu/addu (rng), then lui/addiu of the table */
+rng  = seed * 5 + 0x71357911;
+next = Table[((u32)rng >> 16) & 0xF];
+
+/* Right order: lui/addiu of the table, then sll/addu/addu */
+next = Table[((u32)(rng = seed * 5 + 0x71357911) >> 16) & 0xF];
+```
+
+`Actor00700_Fn008B4` needs this at both of its table lookups; the local-pointer
+form got the order right but pushed the `one` constant out of `$a2` into `$t2`.
+
+## Two independent fields in one block: source store order picks the early load
+
+When a basic block touches two unrelated `u16` fields of the same struct — a
+counter that feeds the block's branch and a flag word that does not — the
+scheduler ranks the counter's load first, because its chain (`addiu`, `sh`,
+`sll`, `sra`, `slti`, `bnez`) is far longer than the flag's (`ori`, `sh`).
+Reordering the *statements* does not change that; priority is computed from the
+dependency graph, not from insn order.
+
+What does change it is where the flag's **store** sits. Emit the flag store
+before the counter update and the flag's load wins the first slot, while the
+scheduler still sinks the store itself to the end of the block, where the
+delay-slot pass picks it up:
+
+```c
+/* lhu 0x38C first, ori after addiu */
+flags           = work->field_1FA;
+work->field_384 = 0;
+timer           = work->field_38C + 1;
+work->field_38C = timer;
+work->field_1FA = flags | 0x8000;
+
+/* lhu 0x1FA first, ori before addiu, sh 0x1FA in the branch delay slot */
+flags           = work->field_1FA;
+work->field_384 = 0;
+work->field_1FA = flags | 0x8000;
+timer           = work->field_38C + 1;
+work->field_38C = timer;
+```
+
+`Actor00700_Fn008B4` state 0 is the example — the first form scores 99.6% with
+`reorder=1` and nothing else. Do not reach for `SOFT_BARRIER()` here: it also
+fixes the load order but leaves the `ori`/`addiu` pair swapped, so it is one
+penalty short of the plain reordering.
+
 ## Copy `arg1` to a dest local so `arg0` keeps `$s0`
 
 When both pointer parameters are live across calls, GCC 2.8.1 gives `$s0` to

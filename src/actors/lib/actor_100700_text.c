@@ -6,20 +6,23 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-void  Gp_ArmStateF0(s32 arg0);
-s32   Gp_GetObjPan(void* arg0);
-s32   Gp_GetObjDepth(void* arg0);
-void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void  Gp_UnlinkNode(void* node);
-void  Gp_UnlinkObj(void* node);
-void  Gp_SetLightMode(void* arg0, s32 arg1);
-void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
-void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void  Gp_DestroyEnemy(void* enemy, void* task);
-void  func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void  Gp_AnimTickIndex(void* arg0, s32 arg1);
-void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
-void  Actor00700_Fn01EEC(Actor00700* arg0);
+void       Gp_ArmStateF0(s32 arg0);
+s32        Gp_GetObjPan(void* arg0);
+s32        Gp_GetObjDepth(void* arg0);
+void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void       Gp_UnlinkNode(void* node);
+void       Gp_UnlinkObj(void* node);
+void       Gp_SetLightMode(void* arg0, s32 arg1);
+void       Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void       Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void       Gp_DestroyEnemy(void* enemy, void* task);
+void       func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       Gp_AnimTickIndex(void* arg0, s32 arg1);
+void*      Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
+extern s32 Gp_LcgState;
+
+void Actor00700_Fn01B50(Actor00700* arg0);
+void Actor00700_Fn01EEC(Actor00700* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00060);
 
@@ -77,31 +80,130 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0080C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00864);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn008B4);
+void Actor00700_Fn008B4(Actor00700* arg0)
+{
+    Actor00700Work*  work;
+    Actor00700Obj2C* obj;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s32              one;
+    s32              rng0;
+    s32              rng1;
+    s32              rng2;
+    s32              rng3;
+    s32              rng4;
+    s32              rng5;
+    s32              rng6;
+    s32              timer;
+    s32              next;
+    s32              flags;
+    s32              ang;
+    s32              snd;
+    s32              pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00900);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00910);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L009C8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00A44);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00A4C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00A58);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00A5C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00A80);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00AF0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00B04);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00BA0);
-
-extern s32 Gp_LcgState;
+    one   = 1;
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    state = work->field_37C;
+    coord = obj->field_8;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto tail;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto tail;
+case0:
+    flags           = work->field_1FA;
+    work->field_384 = 0;
+    work->field_1FA = flags | 0x8000;
+    timer           = work->field_38C + 1;
+    work->field_38C = timer;
+    if ((s16)timer < 0x1E) {
+        goto tail;
+    }
+    rng0        = Gp_LcgState * 5 + 0x71357911;
+    Gp_LcgState = rng0;
+    if ((s32)(((u32)rng0 >> 16) & 0xF) <
+        Actor00700_D06DF0[arg0->field_20->field_3C->field_F]) {
+        work->field_37E = 7;
+        next            = Actor00700_D06E00[((u32)(rng1 = rng0 * 5 + 0x71357911) >> 16) & 0xF];
+        Gp_LcgState     = rng1;
+        work->field_37C = one;
+        work->field_38C = next;
+        goto tail;
+    }
+    rng2        = rng0 * 5 + 0x71357911;
+    Gp_LcgState = rng2;
+    if ((s32)(((u32)rng2 >> 16) & 0xF) <
+        Actor00700_D06E20[arg0->field_20->field_3C->field_F]) {
+        work->field_37E = 2;
+        next            = Actor00700_D06E30[((u32)(rng3 = rng2 * 5 + 0x71357911) >> 16) & 0xF];
+        Gp_LcgState     = rng3;
+        work->field_37C = 2;
+        work->field_38C = next;
+        goto tail;
+    }
+    work->field_38C = 0;
+    goto tail;
+case1:
+    work->field_384 = 0x14;
+    work->field_38C = work->field_38C - 1;
+    if ((s16)work->field_38C > 0) {
+        goto tail;
+    }
+    work->field_37E = one;
+    work->field_38C = 0;
+    work->field_37C = 0;
+    goto tail;
+case2:
+    work->field_384 = 0x32;
+    work->field_38C = work->field_38C - 1;
+    if ((s16)work->field_38C > 0) {
+        goto tail;
+    }
+    work->field_37E = one;
+    work->field_38C = 0;
+    work->field_37C = 0;
+tail:
+    work->field_38E = work->field_38E - 1;
+    if ((s16)work->field_38E > 0) {
+        goto post;
+    }
+    work->field_386 = 0x19;
+    rng4            = Gp_LcgState * 5 + 0x71357911;
+    rng5            = rng4 * 5 + 0x71357911;
+    ang             = ((u32)rng5 >> 16) & 0x3FF;
+    Gp_LcgState     = rng4;
+    work->field_38E = ((u32)rng4 >> 16) & 0x1F;
+    Gp_LcgState     = rng5;
+    if ((((u32)rng5 >> 16) & 0x400) == 0) {
+        ang = -ang;
+    }
+    work->field_38A = ((u16)work->field_388 + ang) & 0xFFF;
+post:
+    if (work->field_394 != 0) {
+        work->field_37A = 1;
+        work->field_394 = 0;
+        work->field_37C = 0;
+        work->field_37E = 2;
+        rng6            = Gp_LcgState * 5 + 0x71357911;
+        work->field_38C = (((u32)rng6 >> 16) & 0x1F) + 0x3C;
+        snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070003;
+        Gp_LcgState     = rng6;
+        pan             = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    }
+    Actor00700_Fn01B50(arg0);
+}
 
 void Actor00700_Fn00BC0(Actor00700* arg0)
 {
@@ -556,7 +658,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A7C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A9C);
 
-void Actor00700_Fn008B4(Actor00700* arg0);
 void Actor00700_Fn00F20(Actor00700* arg0);
 void Actor00700_Fn01148(Actor00700* arg0);
 void Actor00700_Fn01C10(Actor00700* arg0);

@@ -21,7 +21,9 @@ typedef struct Actor00700Params {
 
 typedef struct Actor00700Work {
     /* 0x000 */ byte           pad_0[0x1DC];
-    /* 0x1DC */ byte           field_1DC[0x38];
+    /* 0x1DC */ byte           field_1DC[0x1E];
+    /* 0x1FA */ u16            field_1FA;
+    /* 0x1FC */ byte           field_1FC[0x18];
     /* 0x214 */ byte           field_214[0x68];
     /* 0x27C */ byte           field_27C[0x6A];
     /* 0x2E6 */ s16            field_2E6;
@@ -42,7 +44,7 @@ typedef struct Actor00700Work {
     /* 0x388 */ s16            field_388;
     /* 0x38A */ u16            field_38A;
     /* 0x38C */ u16            field_38C;
-    /* 0x38E */ s16            field_38E;
+    /* 0x38E */ u16            field_38E;
     /* 0x390 */ s16            field_390;
     /* 0x392 */ byte           pad_392[2];
     /* 0x394 */ s16            field_394;
@@ -85,9 +87,14 @@ typedef struct Actor00700RotScratch {
 } Actor00700RotScratch;
 STATIC_ASSERT_SIZEOF(Actor00700RotScratch, 0x18);
 
+extern s16 Actor00700_D06DF0[];
+extern u16 Actor00700_D06E00[];
+extern s16 Actor00700_D06E20[];
+extern u16 Actor00700_D06E30[];
 extern s16 Actor00700_D06E50[];
 extern s16 Actor00700_D06E98[];
 
+void Actor00700_Fn008B4(Actor00700* arg0);
 void Actor00700_Fn00BC0(Actor00700* arg0);
 void Actor00700_Fn012E4(Actor00700* arg0);
 void Actor00700_Fn01434(Actor00700Ctx* arg0, Actor00700* arg1);
