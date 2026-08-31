@@ -35481,3 +35481,86 @@ two `mem`/`arg0` argument setups, raises `arg0`'s reference count enough to
 beat `coord` while the head assignments stay in sibling order. Reach for it
 whenever a merged-tail function is stuck at ~99% with a pure `$sN` swap and
 reordering the head only moves the defect around.
+
+## A scoped build deletes its units' `asm/`, so a concurrent reader sees functions vanish
+
+`./tools/build-and-verify.sh --only <scope>` re-splits the units it selects,
+which means removing and regenerating their `asm/` subtree. Any other process
+reading `asm/` during that window sees those functions as missing.
+
+The symptom is a tool whose results move for no visible reason. Two identical
+selections minutes apart rejected 221 then 423 of 8039 rows as "no `.s` in
+`asm/`", and accepted 7 then 0 — same query, same inputs, nothing else changed.
+It also produces spurious "nothing to land" runs, which read as a logic bug and
+are not one.
+
+Anything that reads `asm/` while vacuum sessions run must hold the orchestrator
+merge lock **before it reads**, not just before it writes:
+
+```
+python3 tools/vacuum_orch.py merge-acquire --session S --pid $$ --wait 1800
+```
+
+Holding it only around the mutation is not enough, because selection happens
+earlier and is what the race corrupts. `decomp_overlay.find_function` is the
+usual victim: it globs `asm/**` per call, so it answers differently depending on
+what is being rebuilt at that instant.
+
+## Uncommitted work in the trunk checkout does not survive a port agent
+
+The vacuum's port agents are allowed to `git reset --hard` to undo a change of
+their own that failed verify. A hard reset is repo-wide, so it also discards
+every other uncommitted edit in the checkout, including files the agent has
+nothing to do with.
+
+The reflog shows it plainly:
+
+```
+a36158f8 HEAD@{0}: reset: moving to a36158f8
+a36158f8 HEAD@{1}: commit: matched func_dryfield_parking_lot_8017DB00 1
+```
+
+Edits to `tools/` were lost three times this way, each time looking like a
+patch that had silently failed to apply. `MATCH_LAND_PATHS` in `vacuum.sh` is no
+protection: it scopes what agents *stage*, not what a reset destroys.
+
+Apply and commit in a single locked step, or work in a worktree. Verifying with
+`py_compile` is not enough to notice — a file that lost a function definition
+still compiles; only importing it or exercising the path does.
+
+## m2c contexts: psyq headers first, and one context per overlay
+
+An overlay source includes only `common.h`, which is types and macros with no
+game structs, so m2c cannot type an imported symbol and falls back to raw
+offsets. The difference is the whole value of the seed:
+
+```c
+M2C_FIELD(Game_Session, s8 *, 5) = arg0;   /* common.h alone */
+Game_Session->field_5 = arg0;              /* + main/session.h */
+```
+
+Two things make such a context work. **psyq comes first**: `main/session.h`
+names `VECTOR`, which only `include/psyq/libgte.h` defines, and a context m2c
+cannot parse is rejected whole, silently downgrading every function that uses
+it. **One context per overlay, never per family**: `include/actors/actor_101600.h`
+declares `Gp_StateC08` as its own view while `gameplay/gameplay.h` declares the
+same symbol as a different type, so a context holding all 34 actor headers is a
+hard cc1 conflict. A real source takes exactly one — see
+`src/actors/lib/actor_101600_text.c`.
+
+Validate a candidate header set against cpp, m2c's parser **and** cc1. The first
+two accept the conflicting set; only cc1 rejects it, with "previous declaration
+of `Gp_StateC08'".
+
+## `overlay_dup_index.py promote` is not atomic
+
+`promote` writes each carrier's symbol map and then the manifest. It can fail
+between the two: on `func_actor_143900_80132404` it raised `KeyError: 'lib'`
+after already writing 16 symbol maps, because a carrier whose body already lives
+in `src/<family>/lib/` appears in the copy list as the overlay `lib`, which is
+not a key in the manifest's overlays table.
+
+Checkpoint before calling it and `git checkout -- configs src` on any failure.
+Its output is otherwise per-overlay correct — it writes a distinct address per
+carrier, not one address for all — so a promotion that fails to build is failing
+for some other reason.
