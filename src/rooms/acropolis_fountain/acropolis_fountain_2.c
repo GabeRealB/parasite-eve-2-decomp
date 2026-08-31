@@ -26,7 +26,10 @@ void func_acropolis_fountain_8017DA1C(void)
     D_acropolis_fountain_8017E7A4.field_4A |= 0x40;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DA78);
+void func_acropolis_fountain_8017DA78(void)
+{
+    Task_Spawn(2, 0xE, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DAA4);
 
