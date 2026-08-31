@@ -226,8 +226,29 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     # entries, so a copy in another family is a separate promotion.
     family = hit["overlay"].split("/")[1]
     copies = [f for f in cl[hit["text"]] if f["overlay"].split("/")[1] == family]
-    if len(copies) < 2:
+    # A copy under `<family>/lib` is the shared body itself, already promoted -
+    # not a carrier. It has no manifest entry (`lib` is not an overlay), so
+    # treating it as one raised KeyError('lib') *after* the symbol maps of every
+    # other carrier had been written. Take the unit name from it instead, so a
+    # later promotion of the same body extends the existing shared unit rather
+    # than making a second one with the same code.
+    promoted = [f for f in copies if f["overlay"].split("/")[-1] == "lib"]
+    copies = [f for f in copies if f["overlay"].split("/")[-1] != "lib"]
+    if promoted and unit is None:
+        sym_name = promoted[0]["name"]
+        for c in sorted(Path(f"src/{family}/lib").glob("*.c")):
+            if re.search(rf"\b{re.escape(sym_name)}\s*\(", c.read_text(errors="ignore")):
+                unit = c.stem
+                break
+        else:
+            print(f"{name}: already shared as {sym_name}, but no file in "
+                  f"src/{family}/lib defines it", file=sys.stderr)
+            return 1
+    if len(copies) < 2 and not promoted:
         print(f"{name}: only one copy in {family}, nothing to share")
+        return 1
+    if not copies:
+        print(f"{name}: every copy is already served by the shared body")
         return 1
 
     twice = {u for u, n in collections.Counter(f["overlay"] for f in copies).items() if n > 1}
@@ -265,8 +286,12 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     text = manifest_path.read_text(encoding="utf-8")
     size = hit["words"] * 4
 
+    pending_syms: list[tuple[Path, str]] = []
     for f in sorted(keep, key=lambda f: f["overlay"]):
         room = f["overlay"].split("/")[-1]
+        if room not in overlays:
+            print(f"{room}: not an entry in the manifest; aborting", file=sys.stderr)
+            return 1
         # A relocated slot overrides the family load address, and the span is a
         # file offset: reading the family value for every overlay would put a
         # slot-2 body 0x18000 past the end of its own package.
@@ -291,10 +316,15 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
         sym_path = Path(f"configs/USA/sym/{family}/{room}.txt")
         sym_text = sym_path.read_text(encoding="utf-8")
         if sym not in sym_text:
-            sym_path.write_text(
-                sym_text.rstrip() + f"\n{sym} = 0x{int(f['vram'], 16):08X};"
-                f" // shared body, see src/{family}/lib/\n", encoding="utf-8"
-            )
+            pending_syms.append((sym_path, sym_text.rstrip()
+                                 + f"\n{sym} = 0x{int(f['vram'], 16):08X};"
+                                 f" // shared body, see src/{family}/lib/\n"))
+
+    # Nothing is written until every carrier has validated: this used to write a
+    # symbol map per iteration and then abort on a later one, leaving the config
+    # half-promoted with no record of how far it got.
+    for sym_path, sym_text in pending_syms:
+        sym_path.write_text(sym_text, encoding="utf-8")
     manifest_path.write_text(text, encoding="utf-8")
 
     print(f"{sym}: {len(keep)} of {len(copies)} copies share src/{family}/lib/{unit}.c")
