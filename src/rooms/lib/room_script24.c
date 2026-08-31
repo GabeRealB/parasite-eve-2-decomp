@@ -5,7 +5,7 @@
 
 #include "gameplay/3CD8.h"
 
-void RoomScript24(Task* task)
+void Room_Script24(Task* task)
 {
     switch (task->state) {
         case 0:
