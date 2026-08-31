@@ -1,5 +1,7 @@
 #include "common.h"
 #include "main/task.h"
+extern Task* D_mine_mesa_80189B5C;
+
 extern TaskDesc D_mine_mesa_801842F4;
 extern Task*    D_mine_mesa_80189B54;
 
@@ -23,7 +25,11 @@ void func_mine_mesa_8017E760(void)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E7B0);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E8B0);
+void func_mine_mesa_8017E8B0(s32 arg0)
+{
+    D_mine_mesa_80189B5C = Task_SpawnFromTable(&D_mine_mesa_801842F4, 4, arg0, 0);
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E8FC);
 
