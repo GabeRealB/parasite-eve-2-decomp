@@ -7,6 +7,18 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
+/// Scratch state of the room's cap script, stored at `Task::idMap`.
+typedef struct {
+    /* 0x00 */ u8  pad_0[0x44];
+    /* 0x44 */ s16 step; ///< sub-step selected by the running cap event
+    /* 0x46 */ u8  pad_46[0xB];
+    /* 0x51 */ s8  field_51;
+} ShelterR47State;
+
+s32  func_shelter_r47_8018097C(Task* task);
+void func_shelter_r47_80181914(Task* task, s32 arg1);
+void func_shelter_r47_801832EC(Task* task);
+
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
@@ -138,7 +150,41 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80182E78);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80182F18);
+void func_shelter_r47_80182F18(Task* task)
+{
+    s16 step;
+    s32 flag;
+    s32 value;
+
+    func_shelter_r47_80181914(task, 0);
+    if ((s16)func_shelter_r47_8018097C(task) != 0) {
+        func_shelter_r47_801832EC(task);
+        step = ((ShelterR47State*)task->idMap)->step;
+        switch (step) {
+            case 0:
+                flag  = 0x1C6;
+                value = 2;
+                break;
+            case 1:
+                flag  = 0x1C6;
+                value = 0;
+                break;
+            case 4:
+                flag  = 0x1C4;
+                value = 2;
+                break;
+            case 5:
+                flag  = 0x1C4;
+                value = 0;
+                break;
+            default:
+                task->state = 3;
+                return;
+        }
+        GameFlag_SetNibble(flag, value);
+        task->state = 3;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80182FDC);
 
