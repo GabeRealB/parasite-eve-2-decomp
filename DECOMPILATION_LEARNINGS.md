@@ -34172,6 +34172,45 @@ are real entry points - frameless switch dispatchers like `Actor01900_Fn01A7C`
 heads like `Actor03800_Fn01150`, whose bodies continue into the L-chunks. Those
 parents are exactly what the vacuum should be picking.
 
+## Do not bulk-tag the actor `L<hex>` symbols `// type:label`
+
+Tempting, since it would stop splat carving the fragments out at all, and the
+scorer's exclusion is only papering over them. It does not work, and the reason
+is worth knowing: **those globals are the mechanism, not the accident.**
+
+A shared actor text unit is one `.c` compiled to one `.o` that is linked into
+several overlay variants at different load addresses - `actor_100300` and
+`actor_200300` both name `unit = "actor_100300_text"`, the second with
+`load_addr = 0x80149E20`. Each variant's `sym/*.txt` gives the same interior
+label a different address:
+
+    actor_100300.txt:  Actor00300_L010EC = 0x80132F0C;
+    actor_200300.txt:  Actor00300_L010EC = 0x8014AF0C;
+
+So the interior labels have to be *global* symbols resolved per link. That is
+what lets one object serve every variant, and what lets each overlay's jump
+table - which lives in a **different** object, `actor_200300_header.rodata.s.o` -
+reach them with a plain `.word Actor00300_L010EC`.
+
+`type:label` turns them into segment-mangled locals (`.Lactor_200300_8014B2BC`)
+and both properties break at once:
+
+    actor_200300_header.rodata.s.o:(.rodata+0x14): undefined reference to `Actor00300_L010EC'
+    actor_100300_text.c.o: in function `Actor00300_Fn00E54':
+      undefined reference to `.Lactor_200300_8014B2BC'
+
+The first is the cross-object table losing its target. The second is subtler:
+once the label name embeds the segment, the two variants split *different* `.s`
+content into the same shared directory, so the single shared `.o` can only ever
+be correct for whichever variant split last.
+
+Tagging is therefore only ever correct **as part of decompiling the parent to
+C** (what commit 507766d3 did for `Actor02000_Fn012E0`). Once the function is C,
+the compiler emits the jump table into that TU's own `.rodata` with relocations
+the linker fixes per overlay, no cross-object global is needed, and the
+`// type:label` lines just stop a re-split re-cutting the span. It is not a
+standalone cleanup, and a bulk pass fails the build.
+
 ## Mixed `arg0->state = task->state + 1` swaps `$s0`/`$s1` with a hoisted `1`
 
 A 0/1/2 task-state switch hoists `li $s1, 1` for the `beq` and reuses it for
