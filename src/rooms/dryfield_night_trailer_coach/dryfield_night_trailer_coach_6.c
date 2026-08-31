@@ -13,7 +13,10 @@ s32 func_dryfield_night_trailer_coach_80182800(void)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182808);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_8018283C);
+void func_dryfield_night_trailer_coach_8018283C(void)
+{
+    Gp_StartCapSlot(9, 0, 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182864);
 
