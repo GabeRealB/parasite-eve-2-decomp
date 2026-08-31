@@ -9,7 +9,13 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_8018363C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_801836D8);
+void func_shelter_b1_underground_parking_801836D8(Task* arg0)
+{
+    if (Gp_CapBusy() == 0) {
+        Gp_MsgPlayerWeapon(1);
+        Task_Kill(arg0);
+    }
+}
 
 void func_shelter_b1_underground_parking_80183714(Task* task)
 {
