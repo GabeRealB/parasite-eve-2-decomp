@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "psyq/strings.h"
+extern TaskDesc D_actor_143000_801350C8;
 
 extern s32              D_80070F6C;
 extern s8               D_8007218B;
@@ -349,12 +350,26 @@ void func_actor_143000_80133EE4(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801342F8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801344A8);
+void func_actor_143000_801344A8(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_143000_801350C8, 0, 0, arg0);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801344D8);
+void func_actor_143000_801344D8(void)
+{
+    Gp_CapFile = 0;
+    Gp_LoadCapFile(3);
+    func_800E6D4C(0x180, 0x100);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_8013450C);
+void func_actor_143000_8013450C(void)
+{
+    Gp_ResetCap();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_8013452C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_80134538);
+void func_actor_143000_80134538(void)
+{
+    Gp_SpawnWeaponEff();
+}
