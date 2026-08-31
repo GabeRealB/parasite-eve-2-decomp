@@ -1,4 +1,8 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/1BC.h"
+extern GpObj4A D_acropolis_fountain_8017E7A4;
+extern GpObj4A D_acropolis_fountain_8017FB3C;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D77C);
 
@@ -14,7 +18,13 @@ void func_acropolis_fountain_8017D9BC(void)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D9C4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DA1C);
+void func_acropolis_fountain_8017DA1C(void)
+{
+    Gp_UnlinkObj4A(0, &D_acropolis_fountain_8017FB3C);
+    D_acropolis_fountain_8017E7A4.field_8 = &Gfx_ViewCoord;
+    Gp_LinkObj4A(0, &D_acropolis_fountain_8017E7A4);
+    D_acropolis_fountain_8017E7A4.field_4A |= 0x40;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DA78);
 
