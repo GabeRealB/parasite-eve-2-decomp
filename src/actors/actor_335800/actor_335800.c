@@ -63,7 +63,10 @@ void func_actor_335800_801624B8(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801624DC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162558);
+void func_actor_335800_80162558(void)
+{
+    Task_SpawnFromTable(&D_actor_335800_80164DE0, 3, 0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162588);
 
