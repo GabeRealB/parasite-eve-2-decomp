@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import NamedTuple, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -141,8 +141,13 @@ def renumber(text: str, overlay: str, old: int, new: int) -> str:
                         f'/{overlay}/{unit_component(overlay, new)}"')
 
 
-def cut_unit(host: Path, start: int, end: int) -> tuple[bool, str]:
-    """Remove [start, end) from `host` and give what follows its own unit."""
+def cut_unit(host: Path, start: int, end: int,
+             pending: "list[Pending] | None" = None) -> tuple[bool, str]:
+    """Remove [start, end) from `host` and give what follows its own unit.
+
+    Whatever the tail already had decompiled is appended to `pending`, to be put
+    back once the split has written the new unit's file.
+    """
     overlay = host.parent.name
     text = host.read_text()
     head, tail = text[:start], text[end:]
@@ -155,12 +160,16 @@ def cut_unit(host: Path, start: int, end: int) -> tuple[bool, str]:
     if not ITEM.search(tail) or not ITEM.search(head):
         host.write_text((head + tail).replace("\n\n\n\n", "\n\n"))
         return True, ""
-    if "INCLUDE_RODATA" in tail:
-        return False, (f"{host.name}: the run after the span still owns rodata; "
-                       "that needs a `rodata` cut in the manifest first")
-
     k = unit_index(host, overlay)
     src_dir = host.parent
+    if pending is not None:
+        target = src_dir / f"{unit_component(overlay, k + 1)}.c"
+        for m in re.finditer(r"^[A-Za-z_][\w \*]*\b(\w+)\s*\([^;{]*\)\s*\{",
+                             tail, re.M):
+            span = find_definition(tail, m.group(1))
+            if span:
+                pending.append(Pending(target, m.group(1), tail[span[0]:span[1]],
+                                       includes_of(preamble)))
     sibs = {unit_index(q, overlay): q for q in src_dir.glob("*.c")}
     if k == 0 or 0 in sibs:
         return False, f"{src_dir}: a source file is not named <overlay>[_N].c"
@@ -173,9 +182,42 @@ def cut_unit(host: Path, start: int, end: int) -> tuple[bool, str]:
         if new_path != old_path:
             old_path.unlink()
 
-    (src_dir / f"{unit_component(overlay, k + 1)}.c").write_text(
-        renumber(preamble + tail.lstrip("\n"), overlay, k, k + 1))
+    # The tail file is *not* written here. splat has to author it: rodata a
+    # function owns follows the function, so the block that used to sit in this
+    # unit is re-migrated across the cut, and only splat knows the new
+    # INCLUDE_RODATA lines. Writing the file ourselves left the moved functions
+    # with `undefined reference to D_<overlay>_…`. Leave the slot empty, let the
+    # split fill it, and put the decompiled bodies back afterwards.
     host.write_text(head.rstrip() + "\n")
+    return True, ""
+
+
+class Pending(NamedTuple):
+    """A decompiled body the split is about to hand back as an INCLUDE_ASM."""
+    target: Path
+    func: str
+    body: str
+    includes: list[str]
+
+
+def reinject(pending: "list[Pending]") -> tuple[bool, str]:
+    """Put the decompiled bodies back into the unit files the split just wrote."""
+    for item in pending:
+        if not item.target.is_file():
+            return False, f"the split did not write {item.target}"
+        text = item.target.read_text()
+        stub = L.find_stub(item.target, item.func)
+        if stub is None:
+            return False, f"{item.target.name}: no stub for {item.func} to fill"
+        text = text.replace(stub, item.body)
+        have = includes_of(text)
+        missing = [i for i in item.includes if i not in have]
+        if missing:
+            lines = text.splitlines()
+            at = max((n for n, l in enumerate(lines) if l.startswith("#include")),
+                     default=-1) + 1
+            text = "\n".join(lines[:at] + missing + lines[at:]) + "\n"
+        item.target.write_text(text)
     return True, ""
 
 
@@ -188,6 +230,7 @@ class Promotion:
         self.symbol = ""
         self.unit_path: Optional[Path] = None
         self.sharers: list[str] = []
+        self.pending: list[Pending] = []
 
     # -- helpers
     def _carriers(self) -> list[dict]:
@@ -264,7 +307,7 @@ class Promotion:
         self.unit_path.write_text(content)
 
         # Drop it from its own overlay, re-cutting the unit around the span.
-        ok, why = cut_unit(origin, span[0], span[1])
+        ok, why = cut_unit(origin, span[0], span[1], self.pending)
         if not ok:
             self.note = why
             return False
@@ -283,7 +326,7 @@ class Promotion:
             if not stub:
                 continue
             at = ht.find(stub)
-            ok, why = cut_unit(host, at, at + len(stub) + 1)
+            ok, why = cut_unit(host, at, at + len(stub) + 1, self.pending)
             if not ok:
                 self.note = why
                 return False
@@ -339,7 +382,7 @@ def signal_lines(text: str, n: int = 10) -> str:
     return "\n".join((hits or keep)[-n:])
 
 
-def verify_full(tag: str = "run") -> tuple[bool, str]:
+def run_split(tag: str = "run") -> tuple[bool, str]:
     py = sys.executable
     venv = REPO_ROOT / "venv" / "bin" / "python3"
     if venv.is_file():
@@ -349,6 +392,10 @@ def verify_full(tag: str = "run") -> tuple[bool, str]:
     if proc.returncode != 0:
         return False, f"ninja_config failed ({path}):\n" + signal_lines(
             proc.stdout + "\n" + proc.stderr)
+    return True, ""
+
+
+def verify_full(tag: str = "run") -> tuple[bool, str]:
     proc = sh([str(REPO_ROOT / "tools" / "build-and-verify.sh")])
     path = _log(f"{tag}.build.log", proc)
     out = proc.stdout + proc.stderr
@@ -437,7 +484,11 @@ def main() -> int:
                 revert_all()
                 continue
 
-            ok, tail = verify_full(name)
+            ok, tail = run_split(name)
+            if ok:
+                ok, tail = reinject(p.pending)
+            if ok:
+                ok, tail = verify_full(name)
             if not ok:
                 print(f"  REVERTED {name}:\n    " + tail.replace("\n", "\n    "))
                 revert_all()
