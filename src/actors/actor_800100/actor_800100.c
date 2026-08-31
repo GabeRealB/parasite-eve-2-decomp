@@ -14,7 +14,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80162E90);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_801631C8);
+void func_actor_800100_801631C8(Task* arg0)
+{
+    GpObj* temp_a0;
+    void*  temp_s1;
+
+    temp_a0 = arg0->idMap;
+    temp_s1 = arg0->spawnArg2;
+    if (temp_a0 != NULL) {
+        Gp_UnlinkObj(temp_a0);
+    }
+    Gp_ReleaseState1CMem(temp_s1, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163214);
 
