@@ -21,7 +21,10 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supp
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D7C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D970);
+s32 func_shelter_b4_water_supply_8017D970(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D978);
 
