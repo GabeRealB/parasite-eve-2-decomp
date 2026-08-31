@@ -2931,6 +2931,20 @@ function that lived in the first unit used to carry leading-rodata tables via
 unit's `.rodata` as their own `.s` files. `INCLUDE_RODATA` them there, in
 address order, or that unit's `.rodata` is short and `.text` shifts.
 
+**Deleting the sharers' `.c` and re-splitting does that hand-work for you.**
+splat never *rewrites* an existing `.c`, but it happily writes a missing one, so
+after adding the `shared` (and, below, `rodata`) keys to the manifest, `rm
+src/<family>/<overlay>/*.c` for each sharer and re-run `ninja_config.py`. splat
+then emits both `<name>.c` and `<name>_2.c` with the `INCLUDE_ASM` lines already
+in the right units and the right path strings, and re-migrates the leading
+rodata tables into whichever unit references them - no manual line moving, no
+`INCLUDE_RODATA` ordering to get right. Only the shared unit's own
+`src/<family>/lib/<unit>.c` has to be written by hand. `WeaponsShared8011de24`
+(the first `weapons` promotion) is the worked example: three sharers, each
+needing a rodata cut at the dispatch table its tail function reads
+(`rodata = [{ start = "0x1C", unit = "m4a1_grenade_2" }]`), all of it produced by
+one delete-and-re-split.
+
 The shared C has one name and relocates per overlay. Callees that stay
 overlay-local need generic names in that C, with `absolute:True` aliases in
 each overlay's `configs/USA/sym/<family>/<overlay>.txt` at that overlay's

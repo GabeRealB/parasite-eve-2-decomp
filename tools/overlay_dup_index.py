@@ -187,12 +187,15 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     if hit is None:
         print(f"{name}: not found", file=sys.stderr)
         return 1
-    copies = cl[hit["text"]]
+    # Only the copies in this body's own family can be served: the shared unit
+    # lives in src/<family>/lib/ and the span goes into that family's manifest
+    # entries, so a copy in another family is a separate promotion.
+    family = hit["overlay"].split("/")[1]
+    copies = [f for f in cl[hit["text"]] if f["overlay"].split("/")[1] == family]
     if len(copies) < 2:
-        print(f"{name}: only one copy, nothing to share")
+        print(f"{name}: only one copy in {family}, nothing to share")
         return 1
 
-    family = hit["overlay"].split("/")[1]
     twice = {u for u, n in collections.Counter(f["overlay"] for f in copies).items() if n > 1}
     keep = [f for f in copies if f["overlay"] not in twice]
     if len(keep) < 2:
