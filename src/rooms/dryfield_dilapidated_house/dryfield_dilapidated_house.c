@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/task.h"
+extern s32 D_dryfield_dilapidated_house_80189B6C;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
 
@@ -32,7 +34,32 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E6DC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E780);
+void func_dryfield_dilapidated_house_8017E780(Task* arg0)
+{
+    s32 temp_v0;
+    s32 temp_v1;
+    s32 var_a0;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) { /* irregular */
+        case 0:
+            D_dryfield_dilapidated_house_80189B6C = arg0->spawnArg1;
+            arg0->state                          += 1;
+            return;
+        case 1:
+            var_a0 = (s32)(D_dryfield_dilapidated_house_80189B6C * 3) / (s32)arg0->spawnArg1;
+            if (D_dryfield_dilapidated_house_80189B6C & 1) {
+                var_a0 = -var_a0;
+            }
+            Display_ClampField126((s8)var_a0);
+            temp_v0                               = D_dryfield_dilapidated_house_80189B6C - 1;
+            D_dryfield_dilapidated_house_80189B6C = temp_v0;
+            if (temp_v0 == 0) {
+                Task_Kill(arg0);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E858);
 
