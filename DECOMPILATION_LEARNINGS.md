@@ -34911,6 +34911,36 @@ than its role: `func_<addr>` becomes `func_<overlay>_<addr>`, `jtbl_<addr>`
 becomes `jtbl_<overlay>_<addr>`, and a pattern written against main's names
 will quietly match nothing in an overlay.
 
+## u16 field + `(s16)` reload gives `lh` / `lhu` / `lh` of the same halfword
+
+A signed compare, an unsigned store into a sibling `s16`, and a signed table
+index can all hit the same offset:
+
+```
+lh   v1, 0x348(s1)     /* compare */
+lh   v0, 0x34A(s1)
+lhu  a0, 0x348(s1)     /* store, hoisted before the beq */
+beq  v1, v0, equal
+...
+lh   v0, 0x348(s1)     /* table index */
+sh   a0, 0x34A(s1)
+```
+
+Type the field `u16` and cast at the signed uses. GCC then emits three
+separate loads instead of CSEing the compare into the index:
+
+```c
+if ((s16)work->field_348 != work->field_34A) {
+    work->field_34A = work->field_348;              /* lhu + sh */
+    val = table[(s16)work->field_348];              /* lh */
+}
+```
+
+Keeping the field as `s16` reuses the compare's `lh` for the `sllv` scale and
+drops the extra `lhu`. `Actor03800_Fn02998` is the example. The vacuum L-label
+`Actor03800_L02A1C` is one of its interior blocks — match the parent `Fn`
+(see "A vacuum `L`-label is a basic block, not a function").
+
 ## An in-place accumulator must be `s32`, not `s16`, to keep its init `move`
 
 Two arms that add and subtract the same value around a common start often

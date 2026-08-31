@@ -2,18 +2,32 @@
 
 #include "actors/actor_103800.h"
 #include "gameplay/3CD8.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
 
 void Actor03800_Fn00974(Actor103800* arg0);
 void Actor03800_Fn00A98(Actor103800* arg0);
 void Actor03800_Fn026F8(Actor103800* arg0);
 void Actor03800_Fn02848(Actor103800* arg0);
+void Actor03800_Fn02E50(Actor103800* arg0);
 void Actor03800_Fn03594(Actor103800* arg0);
 void Actor03800_Fn03628(Actor103800* arg0);
 void Actor03800_Fn036EC(Actor103800* arg0);
 void Actor03800_Fn03744(Actor103800* arg0);
+void Actor03800_Fn037E0(Actor103800* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void Gp_UnlinkNode(void* node);
+void Gp_UnlinkObj(void* node);
+void Gp_SetLightMode(void* arg0, s32 arg1);
+void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void Gp_DestroyEnemy(void* enemy, void* task);
+s32  Gp_GetObjPan(void* arg0);
+s32  Gp_GetObjDepth(void* arg0);
+s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
+void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void Gp_AnimTickIndex(void* arg0, s32 arg1);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -486,59 +500,179 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L028E0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L028E8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02998);
+void Actor03800_Fn02998(Actor103800Ctx* arg0, Actor103800* arg1)
+{
+    Actor103800Work*  work;
+    Actor103800Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    Actor103800Work*  work2;
+    GsCOORDINATE2*    c;
+    VECTOR            vec;
+    s32               state;
+    s32               i;
+    s16               st;
+    s16               phase;
+    s16               anim;
+    s16               val;
+    s32               snd;
+    s32               pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L029F8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02A1C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02A24);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02A4C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02A68);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02A8C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02A94);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02B38);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02B78);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02BA4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02BB8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02BD0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02C5C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02C88);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02CAC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02CCC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02D0C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02D38);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02D4C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02D64);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02D90);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02DAC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02DC0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02E00);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02E04);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02E2C);
+    obj   = arg1->field_2C;
+    work  = arg1->field_1C;
+    state = D_801153F4;
+    coord = work->field_344;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state < 2) {
+        goto default_body;
+    }
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case1:
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    return;
+case2:
+    obj->field_C = 0x80;
+    return;
+default_body:
+    st = work->field_354;
+    if (st == 1) {
+        goto dying;
+    }
+    if (st >= 2) {
+        goto ge2;
+    }
+    if (st == 0) {
+        goto death;
+    }
+    return;
+ge2:
+    if (st == 2) {
+        goto destroy;
+    }
+    if (st == 3) {
+        goto case3;
+    }
+    return;
+death:
+    if (work->field_378 == 0) {
+        anim = 1;
+        if (work->field_36E != 0) {
+            anim = 5;
+        }
+        work->field_348 = anim;
+    }
+    work->field_356 = 0;
+    work->field_35A = 0x1000;
+    work->field_2CC = coord->coord;
+    arg0->field_54  = 0;
+    Gp_UnlinkNode(&arg0->node);
+    Gp_UnlinkObj(work->field_1A4);
+    Gp_UnlinkObj(work->field_20C);
+    Gp_UnlinkObj(work->field_28C);
+    Gp_SetLightMode(arg0, 1);
+    Gp_ReleaseStateF0Add(arg1, 0x26);
+    work->field_354 = 1;
+    if (work->field_368 != 0) {
+        obj->field_C    = 0x80;
+        work->field_354 = 3;
+    }
+    work2 = arg1->field_1C;
+    i     = 1;
+    if ((s16)work2->field_348 != work2->field_34A) {
+        work2->field_34A = work2->field_348;
+        work2->field_34C = 0;
+        val              = Actor03800_D05F90[(s16)work2->field_348];
+        do {
+            func_800B4114(work2, i, (s16)work2->field_348, 0, val);
+            i++;
+        } while (i < 6);
+    } else {
+        TOUCH_REG(i);
+        work2->field_34C += i;
+        do {
+            Gp_AnimTickIndex(work2, i);
+            i++;
+        } while (i < 6);
+    }
+    c      = arg1->field_1C->field_344;
+    vec.vx = c->workm.t[0];
+    vec.vy = c->workm.t[1];
+    vec.vz = c->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    snd = ((arg0->field_8 >> 12) << 8) | 0x40260004;
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    return;
+dying:
+    Actor03800_Fn037E0(arg1);
+    phase           = work->field_356 + 1;
+    work->field_356 = phase;
+    if (phase == 10) {
+        obj->field_C = 2;
+    }
+    if (work->field_356 == 15) {
+        Gp_SpawnEff(0x600A5, coord, 2, NULL);
+    }
+    if (work->field_356 >= 0x3C) {
+        work->field_354 = 2;
+        obj->field_C    = 0x80;
+    }
+    work2 = arg1->field_1C;
+    i     = 1;
+    if ((s16)work2->field_348 != work2->field_34A) {
+        work2->field_34A = work2->field_348;
+        work2->field_34C = 0;
+        val              = Actor03800_D05F90[(s16)work2->field_348];
+        do {
+            func_800B4114(work2, i, (s16)work2->field_348, 0, val);
+            i++;
+        } while (i < 6);
+    } else {
+        TOUCH_REG(i);
+        work2->field_34C += i;
+        do {
+            Gp_AnimTickIndex(work2, i);
+            i++;
+        } while (i < 6);
+    }
+    c      = arg1->field_1C->field_344;
+    vec.vx = c->workm.t[0];
+    vec.vy = c->workm.t[1];
+    vec.vz = c->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    return;
+destroy:
+    Gp_DestroyEnemy(arg0, arg1);
+    return;
+case3:
+    if (work->field_368 == 0) {
+        goto timer;
+    }
+    if (work->field_368 < 2) {
+        goto inc368;
+    }
+    work->field_368 = 0;
+    Tmd_FreeBuffers((TmdObject*)obj);
+    obj->field_C |= 4;
+    Actor03800_Fn02E50(arg1);
+    goto timer;
+inc368:
+    work->field_368++;
+timer:
+    phase           = work->field_356 + 1;
+    work->field_356 = phase;
+    if (phase < 0x3C) {
+        return;
+    }
+    work->field_354 = 2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02E50);
 
@@ -598,11 +732,11 @@ ge2:
     goto default_body;
 case0:
     arg1->field_2C->field_C = 0;
-    arg0->field_14          = 0;
+    arg0->node.field_4      = 0;
     goto default_body;
 case2:
     arg1->field_2C->field_C = 0x80;
-    arg0->field_14          = one;
+    arg0->node.field_4      = one;
     return;
 default_body:
     if (arg0->field_4C != 0) {
