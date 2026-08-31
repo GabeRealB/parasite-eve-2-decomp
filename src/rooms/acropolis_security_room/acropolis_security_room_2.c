@@ -132,7 +132,12 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FF84);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FFD0);
+void func_acropolis_security_room_8017FFD0(Task* arg0)
+{
+    Gp_MsgPlayer3F3(1);
+    Gp_MsgPlayer3F3(0);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180010);
 
