@@ -6,6 +6,8 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+extern TaskDesc D_mist_parking_80190824;
+
 extern TaskDesc D_mist_parking_8018FC24;
 
 /// Scratch state of the parking-lot cap script driven by
@@ -221,7 +223,10 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801845D0);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184624);
+void func_mist_parking_80184624(s32 arg0)
+{
+    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_80190824, 2U), arg0, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184668);
 
