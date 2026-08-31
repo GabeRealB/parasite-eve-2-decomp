@@ -1,4 +1,7 @@
 #include "common.h"
+#include "main/fs.h"
+extern RECT D_acropolis_cafeteria_80184168;
+extern RECT D_acropolis_cafeteria_80184170;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E0DC);
 
@@ -13,4 +16,8 @@ void func_acropolis_cafeteria_8017E2B0(void)
     Gp_PulseState1C80();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E2D0);
+void func_acropolis_cafeteria_8017E2D0(void)
+{
+    MoveImage(&D_acropolis_cafeteria_80184168, 0x180, 0x100);
+    MoveImage(&D_acropolis_cafeteria_80184170, 0, 0xF7);
+}
