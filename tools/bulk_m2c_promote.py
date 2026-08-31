@@ -208,7 +208,10 @@ class Promotion:
 
 # --- driver ------------------------------------------------------------------
 
-LOGDIR = REPO_ROOT / "build" / "promote-logs"
+# Not under build/: `build-and-verify.sh` clears that tree, and any other
+# session running a build clears it too, so a log written there is gone
+# before it can be read.
+LOGDIR = Path(os.environ.get("PROMOTE_LOG_DIR", REPO_ROOT / ".promote-logs"))
 
 # splat prints an "Error: Unable to determine a segment for the following
 # user-declared symbols" block, at warn level, for every hardware address in a
@@ -219,8 +222,16 @@ LOGDIR = REPO_ROOT / "build" / "promote-logs"
 NOISE = re.compile(
     r"Unable to determine a segment|Suspected segments:|"
     r"Try specifying the segment|globally visible and take priority|"
-    r"user attribute instead|not part of any segment|it/s\]|^\s*$"
+    r"user attribute instead|not part of any segment|it/s\]|"
+    r"Adding user-declared symbol|address of the symbol is outside|"
+    r"accepted for now, but may become|^\s*$"
 )
+
+# What a real failure looks like, as opposed to splat talking about symbol maps.
+FAIL = re.compile(
+    r"\berror\b|FAILED|Traceback|undefined reference|multiple definition|"
+    r"No rule to make|Assertion|does not match|MISMATCH|ninja: build stopped|"
+    r"KeyError|Exception", re.I)
 
 
 def _log(name: str, proc) -> Path:
@@ -231,10 +242,17 @@ def _log(name: str, proc) -> Path:
     return path
 
 
-def signal_lines(text: str, n: int = 6) -> str:
-    """The last few lines that are not splat's per-symbol noise or progress."""
+def signal_lines(text: str, n: int = 10) -> str:
+    """The lines that describe the failure, not splat's per-symbol noise.
+
+    Quoting the tail is what hid the real error: splat ends a split whose symbol
+    map holds hardware addresses with a warn-level block about them, so the tail
+    of stderr was that block whatever went wrong. Prefer lines that look like a
+    failure, and fall back to the tail only when none do.
+    """
     keep = [l for l in text.splitlines() if l.strip() and not NOISE.search(l)]
-    return "\n".join(keep[-n:])
+    hits = [l for l in keep if FAIL.search(l)]
+    return "\n".join((hits or keep)[-n:])
 
 
 def verify_full(tag: str = "run") -> tuple[bool, str]:
