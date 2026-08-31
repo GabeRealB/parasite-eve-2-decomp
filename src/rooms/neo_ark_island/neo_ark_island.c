@@ -17,7 +17,10 @@ s32 func_neo_ark_island_8017E960(void)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E968);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017EA24);
+s32 func_neo_ark_island_8017EA24(void)
+{
+    return 0;
+}
 
 s32 func_neo_ark_island_8017EA2C(void)
 {
