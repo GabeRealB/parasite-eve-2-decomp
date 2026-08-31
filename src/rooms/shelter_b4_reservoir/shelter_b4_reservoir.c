@@ -1,4 +1,9 @@
 #include "common.h"
+extern u8  D_shelter_b4_reservoir_80184F78;
+extern u8  D_shelter_b4_reservoir_80184F79;
+extern u8  D_shelter_b4_reservoir_80184F7A;
+extern s16 D_shelter_b4_reservoir_80184F7C;
+extern s32 D_shelter_b4_reservoir_80187510;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017D650);
 
@@ -8,7 +13,10 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", D
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017DE8C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E068);
+void func_shelter_b4_reservoir_8017E068(void)
+{
+    D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << 0x18) | (D_shelter_b4_reservoir_80184F7A << 0xC) | (D_shelter_b4_reservoir_80184F79 << 0x10) | D_shelter_b4_reservoir_80184F7C;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E0AC);
 
