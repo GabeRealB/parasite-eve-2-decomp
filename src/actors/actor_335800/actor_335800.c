@@ -120,4 +120,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80163FB8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80164098);
+s32 func_actor_335800_80164098(void)
+{
+    return 0;
+}
