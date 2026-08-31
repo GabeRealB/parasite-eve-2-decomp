@@ -5,7 +5,10 @@ s32 func_shelter_r49_8017D638(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r49/shelter_r49", func_shelter_r49_8017D640);
+s32 func_shelter_r49_8017D640(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r49/shelter_r49", func_shelter_r49_8017D648);
 
