@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_341700.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80162070);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_801624F8);
@@ -296,7 +298,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016CC9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016CE28);
+s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
+{
+    TmdObject* obj = arg0->field_2C;
+
+    switch (arg2) {
+        case 0:
+            obj->field_C = 0x80;
+            Tmd_AllocBuffers(obj);
+            break;
+        case 1:
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+            break;
+        case 2:
+            obj->field_C |= 4;
+            break;
+        case 3:
+            obj->field_C = 4;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016CEB4);
 
