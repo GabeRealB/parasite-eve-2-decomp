@@ -39,7 +39,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_80162680);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_8016268C);
+void func_actor_341300_8016268C(void)
+{
+    D_actor_341300_80165AA4 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_80162698);
 
