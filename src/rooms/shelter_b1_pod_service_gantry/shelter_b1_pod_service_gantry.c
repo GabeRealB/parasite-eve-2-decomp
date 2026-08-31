@@ -6,7 +6,10 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", func_shelter_b1_pod_service_gantry_8017D628);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", func_shelter_b1_pod_service_gantry_8017D7C0);
+s32 func_shelter_b1_pod_service_gantry_8017D7C0(void)
+{
+    return 0;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", jtbl_shelter_b1_pod_service_gantry_8017D5F0);
 
