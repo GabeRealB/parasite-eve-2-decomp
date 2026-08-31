@@ -14612,6 +14612,19 @@ insert `sll`/`sra` sign-extend. Same pattern for case-4 `CdCmd_Enqueue(0x21, …
 arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.field_23E`).
 `Title_DemoStreamTask` is the pure example.
 
+The trigger is a basic-block split, not the call itself. The identical
+`slot = Stream_FindSlot(key.data, 0, 0); slotParam[0] = slot;
+CdCmd_Enqueue(0x61, 0, slotParam);` sequence matches with no pins when the
+preceding `key.data[0] = 0x64;` is unconditional, because the whole case body
+is one block and `sched2` sinks the `sb` past the arg setup. Add an `if/else`
+ahead of it - `key.data[0] = task->spawnArg1 != 0 ? 0x65 : 0x64` written as two
+arms - and the join label starts a new, shorter block, `sched2` leaves the `sb`
+in source order, and reorg fills the `jal` delay with `addiu a2, sp, N`
+instead. Score 98.8% with `reorder=2` and everything else zero. The pin block
+above is the fix; the permuter has nothing to permute.
+`func_actor_560800_801321A0` is that case, `func_actor_120500_80131E58` the
+unconditional twin that needs nothing.
+
 ## `s32` temps for preserved `s8` loads (`lb`, not `lbu`)
 
 When a function loads two `s8` struct fields early, keeps them in saved regs

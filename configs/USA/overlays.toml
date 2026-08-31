@@ -491,7 +491,7 @@ actor_511000 = { }
 actor_521100 = { units = ["0x37A8"], rodata = [{ start = "0x2C", unit = "actor_521100_2" }] }
 actor_535700 = { }
 actor_548100 = { }
-actor_560800 = { }
+actor_560800 = { rodata_head = "0x4" }
 actor_640400 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_200300 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x78", end = "0x54B4", unit = "actor_100300_text" }] }
 actor_200400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x1AC", end = "0xAB0C", unit = "actor_100400_text" }] }
