@@ -3176,6 +3176,34 @@ L_keyDefault:
     break;
 ```
 
+## Two-arm dispatch that falls through to a shared tail is `switch`, not `if/else if`
+
+When the target tests a small masked value with `beqz CASE0` / `li v0,1` /
+`beq CASE1` / `j TAIL` and only *then* lays out the two bodies, an
+`if (m == 0) {...} else if (m == 1) {...}` will not reproduce it: GCC 2.8.1
+inlines the first body between the two tests and inverts the leading branch to
+`bnez`. A `switch` with the same two cases and no `default` emits the compare
+chain first, both bodies after it, and lets the fall-out land on the shared
+tail:
+
+```c
+mode = arg0->spawnArg1 & 0xF;
+switch (mode) {          /* beqz v1 / li v0,1 / beq v1,v0 / j tail */
+    case 0:
+        ...
+        break;
+    case 1:
+        ...
+        break;
+}
+Gfx_RotMatrixZ(&coord->coord, coord->angle, 1);
+```
+
+`func_tonfa_baton_8011DA74` is the minimal example: identical C bodies, 89% as
+an else-if chain (`branch=2 insert=2 delete=4`) and 100% as the switch. This is
+the regular-index counterpart of the goto form above — reach for the goto shape
+only when the case labels are not a contiguous run from 0.
+
 ## Two literal `1`s across calls CSE into `$s0`
 
 `if (cmd == 1)` then later `if (GameFlag_GetNibble(...) != 1)` shares CONST_INT
