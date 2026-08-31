@@ -12,7 +12,43 @@
 void WeaponsShared8011db78(Task* task);
 void func_hypervelocity_8011EC1C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
 
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity_2", func_hypervelocity_8011F168);
+void func_hypervelocity_8011F168(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s16            val;
+    u8             rgb[3];
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag < 4) {
+            return;
+        }
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+
+    Gp_UpdateCoord(coord);
+    mem->field_22++;
+    if (arg0->state == 0) {
+        mem->field_24 = 0xF0;
+        mem->field_26 = 0x100;
+        arg0->state   = 1;
+    }
+    rgb[0] = mem->field_24 >> 1;
+    rgb[1] = mem->field_24 >> 1;
+    rgb[2] = mem->field_24;
+    Gp_DrawBand(coord, mem->field_26, rgb);
+    mem->field_26 += 0x40;
+    val            = mem->field_24 - 0x10;
+    mem->field_24  = val;
+    if (val < 0x10) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 void func_hypervelocity_8011F270(Task* arg0)
 {
