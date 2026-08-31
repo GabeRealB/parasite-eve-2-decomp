@@ -1,5 +1,7 @@
 #include "common.h"
+#include "main/task.h"
 #include "gameplay/1BC.h"
+extern TaskDesc D_actor_503500_8014B964;
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013223C);
 
@@ -39,7 +41,10 @@ void func_actor_503500_80132BF8(void)
     Task_Spawn(0, 0x11, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132C40);
+void func_actor_503500_80132C40(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_503500_8014B964, 0, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132C70);
 
