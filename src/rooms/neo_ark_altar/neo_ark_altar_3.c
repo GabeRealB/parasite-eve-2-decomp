@@ -8,7 +8,10 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017D908);
+s32 func_neo_ark_altar_8017D908(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017D910);
 
