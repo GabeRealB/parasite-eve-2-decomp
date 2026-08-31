@@ -1,3 +1,9 @@
 #include "common.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util29", Room_Util29);
+void Room_Util29(Task* arg0)
+{
+    if (arg0 != NULL) {
+        Gp_DispatchMsg(arg0, 0x13F3, 0, 0);
+    }
+}
