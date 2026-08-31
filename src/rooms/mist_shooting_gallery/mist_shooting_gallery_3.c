@@ -1,5 +1,11 @@
 #include "common.h"
 
+#include "main/pad.h"
+#include "main/stage.h"
+#include "main/task.h"
+
+extern void func_8014B0D4(void);
+
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80182064);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80182294);
@@ -46,6 +52,31 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184BB8);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184C0C);
+void func_mist_shooting_gallery_80184C0C(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            arg0->state         = 1;
+            arg0->killCountdown = 0x10;
+        case 1:
+            if (arg0->killCountdown != 0) {
+                arg0->killCountdown--;
+                goto call_func;
+            }
+        pad_check:
+            asm volatile("" : : "i"(&&pad_check));
+            if (Pad_CheckButtons(0, 1, arg0->spawnArg1) != 0) {
+                arg0->state = arg0->state + 1;
+                return;
+            }
+        call_func:
+            func_8014B0D4();
+            return;
+        case 2:
+            Task_Kill(arg0);
+            Stage_SetEndingFlag();
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184CD0);

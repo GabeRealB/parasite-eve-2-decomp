@@ -34064,3 +34064,47 @@ function sits in the file keeps the `.rodata` order. `INCLUDE_RODATA` plus an
 `extern` reference also matches, but loses the readable string.
 
 `func_acropolis_security_room_8017D834` is the example.
+
+## Extra `&&label` use blocks jump.c's then/else swap
+
+`if (x != 0) { x--; goto shared; }` followed by the zero-path and a shared
+tail is the RTL for
+
+```
+beqz  else
+addiu x, -1
+j     shared
+ sh   x
+else:
+ ...
+shared:
+ jal  helper
+```
+
+GCC 2.8.1's second jump pass ("if (foo) bar; else break") swaps those two
+ranges when the else label has `LABEL_NUSES == 1`. The result is `bnez` to the
+decrement, the else as fall-through, and the store after the else (`branch` /
+`insert` / `delete` leftovers). Duplicating the helper call in both arms keeps
+`beqz` but places the `jal` in the then-block (pad-fail jumps backward).
+
+A named else label plus a no-op asm that references it raises nuses without
+emitting instructions:
+
+```c
+if (task->killCountdown != 0) {
+    task->killCountdown--;
+    goto shared;
+}
+pad:
+asm volatile("" : : "i"(&&pad));
+if (Pad_CheckButtons(0, 1, task->spawnArg1) != 0) {
+    task->state = task->state + 1;
+    return;
+}
+shared:
+helper();
+```
+
+A `static void *keep = &&pad` also works but adds a `.data` word. `fs.c`
+already uses `"i"(&&label)` operands. `func_mist_shooting_gallery_80184C0C`
+is the example.
