@@ -8,7 +8,11 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_3", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_3", func_acropolis_bridge_8017DB08);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_3", func_acropolis_bridge_8017DB60);
+void func_acropolis_bridge_8017DB60(Task* arg0)
+{
+    Gp_StartCapSlot(7, 1, 1);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_3", func_acropolis_bridge_8017DBA0);
 
