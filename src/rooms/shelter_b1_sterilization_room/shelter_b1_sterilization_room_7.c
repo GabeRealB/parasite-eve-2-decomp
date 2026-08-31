@@ -6,6 +6,8 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+extern TaskDesc D_shelter_b1_sterilization_room_80188504;
+extern s32      D_shelter_b1_sterilization_room_8018C340;
 
 extern s32 D_shelter_b1_sterilization_room_80188C94;
 extern s32 D_shelter_b1_sterilization_room_80188E14;
@@ -65,7 +67,13 @@ void func_shelter_b1_sterilization_room_80181588(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801815EC);
+void func_shelter_b1_sterilization_room_801815EC(void)
+{
+    if (!(D_shelter_b1_sterilization_room_8018C340 & 0x20)) {
+        D_shelter_b1_sterilization_room_8018C340 |= 0x20;
+        Task_SpawnFromTable(&D_shelter_b1_sterilization_room_80188504, 5, 0, 0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_80181634);
 
