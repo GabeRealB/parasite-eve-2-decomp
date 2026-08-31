@@ -1,6 +1,16 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131E3C);
+void func_actor_443500_80131E3C(s32 arg0)
+{
+    if (arg0 != 0) {
+        Gp_CapFile = 0;
+        Gp_LoadCapFile(1);
+        func_800E6D4C(0x240, 0x100);
+        return;
+    }
+    Gp_ResetCap();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131E84);
 
