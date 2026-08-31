@@ -53,7 +53,17 @@ void func_shelter_b1_sterilization_room_801814B0(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801814FC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_80181588);
+void func_shelter_b1_sterilization_room_80181588(Task* arg0)
+{
+    if (arg0->state == 0) {
+        Gp_MsgPlayerWeapon(0);
+        Gp_RunCapCmd1(9);
+        arg0->state += 1;
+        return;
+    }
+    Gp_MsgPlayerWeapon(1);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801815EC);
 
