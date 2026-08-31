@@ -124,8 +124,11 @@ def load_candidates(
         stub = find_stub(host, r["func"])
         if stub is None:
             continue
-        out.append(Candidate(r["func"], name, B.family_of(loc), r["grade"],
-                             body, host, stub))
+        cand = Candidate(r["func"], name, B.family_of(loc), r["grade"],
+                         body, host, stub)
+        if r["grade"] == "dirty" and not rewrite_task_fields(cand, STRICT_TYPES):
+            continue
+        out.append(cand)
     return out
 
 
@@ -135,6 +138,78 @@ def find_stub(host: Path, func: str) -> Optional[str]:
         if m and m.group(2) == func:
             return line
     return None
+
+
+# --- Task-typed dirty seeds --------------------------------------------------
+# A dirty seed is a proven match whose accesses m2c could not type, so it writes
+# M2C_FIELD(arg0, s32 *, 0x30) where the source said arg0->state. For most of
+# them the type is not undescribed at all -- it is `Task`, which
+# include/main/task.h already defines with every hot offset named (0x1C idMap,
+# 0x30 state, 0x2C extra). Those need no new type and no judgement: retype the
+# parameter and substitute the field, and let the build adjudicate exactly as it
+# does for a clean seed.
+#
+# The limit of that adjudication is worth stating: the checksum proves the
+# codegen, not that the field NAME is the right reading of the offset. A
+# same-sized field with the wrong name would land silently, which is why this
+# only ever uses names the header already commits to.
+TASK_FIELD_RE = re.compile(r"/\*\s*(0x[0-9A-Fa-f]+)\s*\*/\s*([\w \*]+?)\s*(\w+)\s*;")
+M2C_ARG0_RE = re.compile(
+    r"M2C_FIELD\(\s*arg0\s*,\s*([^,]+?)\s*,\s*(0x[0-9A-Fa-f]+|\d+)\s*\)")
+ANY_M2C_RE = re.compile(r"\bM2C_[A-Z]")
+TASK_SIZE = 0x48
+
+
+def task_fields() -> dict[int, tuple[str, str]]:
+    """offset -> (field name, declared type), read from the Task definition."""
+    header = REPO_ROOT / "include" / "main" / "task.h"
+    if not header.is_file():
+        return {}
+    text = header.read_text(errors="ignore")
+    start = text.find("typedef struct _Task")
+    end = text.find("} Task;", start)
+    if start < 0 or end < 0:
+        return {}
+    return {int(off, 16): (name, ctype.strip())
+            for off, ctype, name in TASK_FIELD_RE.findall(text[start:end])}
+
+
+TASK_FIELDS = task_fields()
+
+
+def rewrite_task_fields(cand: Candidate, strict: bool = False) -> bool:
+    """Turn a Task-shaped dirty body into typed field access.
+
+    False leaves the candidate for an agent: an access outside Task, through
+    something other than arg0, or any macro left over. A half-rewritten body is
+    worse than an untouched one.
+
+    `strict` additionally requires m2c's cast type to match the field's declared
+    type. Without it a `TaskIdMap*` field can land assigned to an `s16*` local -
+    same codegen, looser C.
+    """
+    body = cand.body
+    if "M2C_FIELD" not in body or not TASK_FIELDS:
+        return False
+    hits = M2C_ARG0_RE.findall(body)
+    if not hits:
+        return False
+    offs = [int(o, 0) for _t, o in hits]
+    if any(o >= TASK_SIZE or o not in TASK_FIELDS for o in offs):
+        return False
+    if strict:
+        norm = lambda s: re.sub(r"\s+|\*", "", s)
+        if any(norm(ct) != norm(TASK_FIELDS[int(o, 0)][1]) for ct, o in hits):
+            return False
+
+    new = M2C_ARG0_RE.sub(lambda m: f"arg0->{TASK_FIELDS[int(m.group(2), 0)][0]}", body)
+    if ANY_M2C_RE.search(new):
+        return False
+    retyped = re.sub(r"\bvoid\s*\*\s*arg0\b", "Task *arg0", new)
+    if "Task *arg0" not in retyped:
+        return False
+    cand.body = retyped
+    return True
 
 
 COMMENT_RE = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
@@ -450,6 +525,7 @@ def commit_one(cand: Candidate) -> bool:
 # --- main --------------------------------------------------------------------
 
 HEADERS: dict[str, list[str]] = {}
+STRICT_TYPES = False
 
 
 def main() -> int:
@@ -466,6 +542,9 @@ def main() -> int:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would land without editing anything")
+    ap.add_argument("--strict-types", action="store_true",
+                    help="only rewrite a dirty seed when m2c's cast type "
+                         "matches the field's declared type")
     ap.add_argument("--lock-wait", type=int, default=3600,
                     help="seconds to wait for the orchestrator merge lock")
     ap.add_argument("--commit", action="store_true",
@@ -473,6 +552,8 @@ def main() -> int:
     args = ap.parse_args()
 
     os.chdir(REPO_ROOT)
+    global STRICT_TYPES
+    STRICT_TYPES = args.strict_types
     staged = args.staged or args.results.parent / "staged"
     ctx = args.contexts or args.results.parent / "contexts.json"
     global HEADERS
