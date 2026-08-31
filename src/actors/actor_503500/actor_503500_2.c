@@ -16,6 +16,9 @@ void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
 void func_actor_503500_801374BC(Actor503500* arg0);
 void func_actor_503500_80137678(Actor503500* arg0);
 void func_actor_503500_80138454(Actor503500* arg0);
+void func_actor_503500_8013B460(Actor503500* arg0);
+void func_actor_503500_8013B8D0(Actor503500* arg0);
+void func_actor_503500_8013BE0C(Actor503500* arg0);
 
 void func_actor_503500_80136304(Actor503500* arg0)
 {
@@ -221,7 +224,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BD0C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BD88);
+void func_actor_503500_8013BD88(Actor503500* arg0)
+{
+    switch (arg0->field_1C->field_ED) {
+        case 0:
+            func_actor_503500_8013BE0C(arg0);
+            break;
+        case 1:
+            func_actor_503500_8013B460(arg0);
+            break;
+        case 2:
+            func_actor_503500_8013B8D0(arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BE0C);
 

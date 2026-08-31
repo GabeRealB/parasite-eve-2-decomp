@@ -6,7 +6,9 @@
 #include "gameplay/3A34.h"
 
 typedef struct Actor503500Work {
-    /* 0x000 */ byte pad_0[0xF0];
+    /* 0x000 */ byte pad_0[0xED];
+    /* 0x0ED */ s8   field_ED;
+    /* 0x0EE */ byte pad_EE[0x2];
     /* 0x0F0 */ s8   field_F0;
     /* 0x0F1 */ byte pad_F1[0x6B];
     /* 0x15C */ s8   field_15C;
