@@ -6,7 +6,10 @@ INCLUDE_RODATA("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", D_m
 
 INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D60C);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D7C4);
+s32 func_mine_secret_passage_8017D7C4(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D7CC);
 
