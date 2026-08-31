@@ -67,7 +67,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132D60);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132D7C);
+void func_actor_503500_80132D7C(void)
+{
+    Game_Session->field_52 = 1;
+}
 
 void func_actor_503500_80132D90(s32 arg0)
 {
