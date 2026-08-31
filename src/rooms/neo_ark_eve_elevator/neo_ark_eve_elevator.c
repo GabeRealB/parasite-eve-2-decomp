@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", func_neo_ark_eve_elevator_8017D5D8);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", func_neo_ark_eve_elevator_8017D668);
+s32 func_neo_ark_eve_elevator_8017D668(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", func_neo_ark_eve_elevator_8017D670);
 
