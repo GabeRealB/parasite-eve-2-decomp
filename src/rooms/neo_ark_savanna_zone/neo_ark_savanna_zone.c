@@ -10,7 +10,10 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017D77C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017D8F0);
+s32 func_neo_ark_savanna_zone_8017D8F0(void)
+{
+    return 0;
+}
 
 s32 func_neo_ark_savanna_zone_8017D8F8(void)
 {
