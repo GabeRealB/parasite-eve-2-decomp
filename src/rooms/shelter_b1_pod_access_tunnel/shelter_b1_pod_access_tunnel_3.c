@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/task.h"
+extern TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E41C);
 
@@ -14,6 +16,9 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_acce
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E704);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E734);
+void func_shelter_b1_pod_access_tunnel_8017E734(s32 arg0)
+{
+    Display_InitModeObj(Task_GetDescAt(&D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, 0x100);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E778);
