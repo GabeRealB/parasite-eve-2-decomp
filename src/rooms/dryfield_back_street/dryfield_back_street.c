@@ -8,7 +8,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D8A4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D8AC);
+s32 func_dryfield_back_street_8017D8AC(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D8B4);
 
