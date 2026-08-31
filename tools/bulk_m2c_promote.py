@@ -208,18 +208,50 @@ class Promotion:
 
 # --- driver ------------------------------------------------------------------
 
-def verify_full() -> tuple[bool, str]:
-    proc = sh([sys.executable, str(NINJA)])
+LOGDIR = REPO_ROOT / "build" / "promote-logs"
+
+# splat prints an "Error: Unable to determine a segment for the following
+# user-declared symbols" block, at warn level, for every hardware address in a
+# symbol map (scratchpad, I/O registers). `log.error` under it is commented out
+# in splat 0.50, so it is noise, and it is the *last* thing on stderr. Reporting
+# only the stderr tail therefore reported that block for every failure, whatever
+# the failure was. Keep the whole log and quote the line that actually failed.
+NOISE = re.compile(
+    r"Unable to determine a segment|Suspected segments:|"
+    r"Try specifying the segment|globally visible and take priority|"
+    r"user attribute instead|not part of any segment|it/s\]|^\s*$"
+)
+
+
+def _log(name: str, proc) -> Path:
+    LOGDIR.mkdir(parents=True, exist_ok=True)
+    path = LOGDIR / name
+    path.write_text(f"$ rc={proc.returncode}\n--- stdout ---\n{proc.stdout}"
+                    f"\n--- stderr ---\n{proc.stderr}")
+    return path
+
+
+def signal_lines(text: str, n: int = 6) -> str:
+    """The last few lines that are not splat's per-symbol noise or progress."""
+    keep = [l for l in text.splitlines() if l.strip() and not NOISE.search(l)]
+    return "\n".join(keep[-n:])
+
+
+def verify_full(tag: str = "run") -> tuple[bool, str]:
+    py = sys.executable
+    venv = REPO_ROOT / "venv" / "bin" / "python3"
+    if venv.is_file():
+        py = str(venv)
+    proc = sh([py, str(NINJA)])
+    path = _log(f"{tag}.ninja.log", proc)
     if proc.returncode != 0:
-        venv = REPO_ROOT / "venv" / "bin" / "python3"
-        if venv.is_file():
-            proc = sh([str(venv), str(NINJA)])
-        if proc.returncode != 0:
-            return False, "ninja_config failed: " + proc.stderr.strip()[-200:]
+        return False, f"ninja_config failed ({path}):\n" + signal_lines(
+            proc.stdout + "\n" + proc.stderr)
     proc = sh([str(REPO_ROOT / "tools" / "build-and-verify.sh")])
+    path = _log(f"{tag}.build.log", proc)
     out = proc.stdout + proc.stderr
     ok = proc.returncode == 0 and "BUILD SUCCEEDED" in out
-    return ok, "\n".join(out.strip().splitlines()[-3:])
+    return ok, (signal_lines(out) if not ok else "") + (f"\n({path})" if not ok else "")
 
 
 def revert_all() -> None:
@@ -294,9 +326,9 @@ def main() -> int:
                 revert_all()
                 continue
 
-            ok, tail = verify_full()
+            ok, tail = verify_full(name)
             if not ok:
-                print(f"  REVERTED {name}: {tail.splitlines()[-1][:140]}")
+                print(f"  REVERTED {name}:\n    " + tail.replace("\n", "\n    "))
                 revert_all()
                 continue
             git("add", "-A", "--", "src", "configs")
