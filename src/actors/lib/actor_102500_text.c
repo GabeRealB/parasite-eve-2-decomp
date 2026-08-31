@@ -3,6 +3,9 @@
 #include "actors/actor_102500.h"
 #include "main/tmd.h"
 
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00078);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L000D8);
@@ -181,25 +184,74 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L016BC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L016C0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn016FC);
+void Actor02500_Fn016FC(Actor02500* arg0)
+{
+    Actor02500Work*       work;
+    GsCOORDINATE2*        coord;
+    Actor02500RotScratch* sc;
+    s32                   ang;
+    u16                   want;
+    s16                   diff;
+    s32                   adiff;
+    s32                   step;
+    s32                   cur;
+    s32                   next;
+    s32                   wrapStep;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01768);
+    sc    = (Actor02500RotScratch*)(SCRATCH_SP -= 0x18);
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_32A;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01790);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L017A0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L017A8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L017CC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L017DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L017E8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L017FC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01800);
+    work->field_32C = ang;
+    if (adiff < 0x800) {
+        step = work->field_328;
+        if (step >= adiff) {
+            work->field_32C = want;
+        } else {
+            next = work->field_32C;
+            if (diff <= 0) {
+                next -= step;
+            } else {
+                next += step;
+            }
+            work->field_32C = next;
+        }
+    } else {
+        step = work->field_328;
+        if (diff > 0) {
+            if (step >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (step >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_32C = work->field_32A;
+        goto done;
+    turn:
+        wrapStep = work->field_328;
+        cur      = work->field_32C;
+        if (diff > 0) {
+            work->field_32C = cur - wrapStep;
+        } else {
+            work->field_32C = cur + wrapStep;
+        }
+    }
+done:
+    sc->rot.vx = 0;
+    sc->rot.vy = work->field_32C;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    SCRATCH_SP += 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn0184C);
 
@@ -355,7 +407,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01E04);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor02500_Fn00494(Actor02500* arg0);
 void Actor02500_Fn016FC(Actor02500* arg0);
-void Actor02500_Fn01F8C(Actor02500* arg0);
 void Actor02500_Fn02008(Actor02500* arg0);
 void Actor02500_Fn02288(Actor02500* arg0);
 void Actor02500_Fn02318(Actor02500* arg0);

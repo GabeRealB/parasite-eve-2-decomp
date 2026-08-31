@@ -26,7 +26,8 @@ typedef struct Actor02500Work {
     /* 0x324 */ s16    field_324;
     /* 0x326 */ byte   pad_326[2];
     /* 0x328 */ s16    field_328;
-    /* 0x32A */ byte   pad_32A[4];
+    /* 0x32A */ u16    field_32A;
+    /* 0x32C */ s16    field_32C;
     /* 0x32E */ s16    field_32E;
     /* 0x330 */ byte   pad_330[2];
     /* 0x332 */ s16    field_332;
@@ -61,6 +62,14 @@ typedef struct Actor02500Ctx {
     /* 0x54 */ s32            field_54;
 } Actor02500Ctx;
 STATIC_ASSERT_SIZEOF(Actor02500Ctx, 0x58);
+
+/// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
+/// `SVECTOR` at +0x10 is used by `Actor02500_Fn016FC`.
+typedef struct Actor02500RotScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR rot;
+} Actor02500RotScratch;
+STATIC_ASSERT_SIZEOF(Actor02500RotScratch, 0x18);
 
 extern s16 Actor02500_D05B88[];
 

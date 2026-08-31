@@ -32494,6 +32494,43 @@ back to grepping `src/` for one of the function's rarer callees:
 grep -rl "Gp_StartCapSlot" src/
 ```
 
+### The twin may be the same routine on a *different* struct
+
+`overlay_dup_index.py` compares instruction shape, so it also misses a sibling
+that is the same routine written against another actor's work struct: every
+field offset differs, and often a constant does too. `Actor02500_Fn016FC`
+(0x16FC-0x184C, ten splat labels) is `Actor03800_Fn026F8` with `0x360/0x362/
+0x364` renumbered to `0x328/0x32C/0x32A` and a 0x18-byte scratchpad frame
+instead of 0x8 — no rebuild of the index would ever report it, and the port is a
+field-offset rewrite rather than the `sed` symbol rename above.
+
+When the function calls nothing distinctive (here only `ratan2` and
+`RotMatrix`), grep `src/` for a rare **constant** instead of a callee — a
+hard-coded address is the strongest fingerprint an actor routine has:
+
+```sh
+grep -rn "1F8003FC" src/ include/
+```
+
+That found the matched twin, and dropping its body in with the offsets renumbered
+scored 100% on the first attempt against a fragment the vacuum had picked as a
+two-instruction "easy" function.
+
+A scratch frame the callee only partly uses is a struct, not a shifted pointer.
+The target keeps the raw base in `$s0`/`$s1` and folds `+0x10` into every store
+(`sh $zero, 0x10($s1)`) while computing `addiu $a0, $s1, 0x10` separately for the
+call; writing `rot = (SVECTOR*)(SCRATCH_SP -= 0x18) + 2` instead materialises the
+shifted pointer once and stores at offset 0. Declare the frame and reach through
+it:
+
+```c
+typedef struct { byte pad_0[0x10]; SVECTOR rot; } Actor02500RotScratch; /* 0x18 */
+
+sc = (Actor02500RotScratch*)(SCRATCH_SP -= 0x18);
+sc->rot.vx = 0;
+RotMatrix(&sc->rot, &coord->coord);
+```
+
 For `func_dryfield_trailer_coach_80181D88` the dup index found nothing while
 `src/rooms/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2.c` held
 an instruction-for-instruction identical body — the day and night versions of a
