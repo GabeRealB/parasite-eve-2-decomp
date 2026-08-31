@@ -58,7 +58,25 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterili
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801816E0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801817EC);
+void func_shelter_b1_sterilization_room_801817EC(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_ResetCap();
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x2C0, 0x100);
+            Gp_RunCapCmd1(task->spawnArg1);
+            task->state = task->state + 1;
+            /* fallthrough */
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                Gp_ResetCap();
+                Task_Kill(task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_8018188C);
 
