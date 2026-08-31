@@ -8,7 +8,10 @@ void func_dryfield_motel_room_6_80181910(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_6/dryfield_motel_room_6_6", func_dryfield_motel_room_6_80181918);
+s32 func_dryfield_motel_room_6_80181918(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_6/dryfield_motel_room_6_6", func_dryfield_motel_room_6_80181920);
 
