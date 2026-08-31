@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 extern u8 D_actor_548100_80135884;
 extern u8 D_actor_548100_80135885;
 extern u8 D_actor_548100_80135886;
@@ -100,6 +101,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80134FEC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80135124);
+void func_actor_548100_80135124(Task* arg0)
+{
+    if (Gp_CapBusy() == 0) {
+        arg0->state = 2;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80135154);
