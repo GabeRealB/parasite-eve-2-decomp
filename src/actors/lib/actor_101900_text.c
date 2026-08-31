@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "actors/actor_101900.h"
+#include "gameplay/1BC.h"
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn00260);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L002E8);
@@ -1252,13 +1255,27 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A6B8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A6BC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A6CC);
+void Actor01900_Fn0A6CC(Task* task)
+{
+    Actor01900Work* work;
+    GpEnemy*        enemy;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A70C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A724);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A744);
+    work  = (Actor01900Work*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work != NULL) {
+        if (work->field_C38 != NULL) {
+            Task_Kill(work->field_C38);
+        }
+        if (work->field_C3C != NULL) {
+            Task_Kill(work->field_C3C);
+        }
+        Gp_UnlinkObj(&work->field_B48);
+        Gp_UnlinkObj(&work->field_8C8);
+        Gp_UnlinkObj(&work->field_A08);
+        enemy->field_54 = 0;
+    }
+    Gp_DestroyEnemy(enemy, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A764);
 

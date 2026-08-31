@@ -57,7 +57,8 @@ typedef struct _GpEnemy {
     /* 0x4E */ u8             field_4E;
     /* 0x4F */ u8             field_4F;
     /* 0x50 */ GpPairSrcE*    field_50;
-    /* 0x54 */ byte           pad_54[0xC];
+    /* 0x54 */ s32            field_54;
+    /* 0x58 */ byte           pad_58[8];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 

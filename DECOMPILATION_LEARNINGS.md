@@ -34416,6 +34416,14 @@ cat tools/claude-decomp-env/prelude.inc include/macro.inc full.s > target.s
 mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -Iinclude -o target.o target.s
 ```
 
+Keep the parent's `glabel` line: `1,3d` strips it along with the `nonmatching`
+header and the blank line, and the resulting `target.o` has no `T` symbol, so
+`build.sh` aborts with "Compiled object has no text symbols" before it ever
+scores. Use `1,2d` for the **first** block and `1,3d` for the interior ones —
+`mips-linux-gnu-nm target.o` should show the `Fn` symbol as `T` and each
+interior label as `t`. `Actor01900_Fn0A6CC` (0xA6CC..0xA764, three interior
+labels) is the small worked example.
+
 ## `%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction
 
 Splat names `Gp_StateF0.field_4` as the standalone import `D_801153F4`, so a
