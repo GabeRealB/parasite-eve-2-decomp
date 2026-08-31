@@ -54,7 +54,16 @@ void func_actor_215100_8014AEB4(s16 arg0)
     Game_Session->field_52 = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AEC4);
+void func_actor_215100_8014AEC4(s32 arg0)
+{
+    if (arg0 != 0) {
+        Gp_CapFile = 0;
+        Gp_LoadCapFile(1);
+        func_800E6D4C(0x300, 0);
+        return;
+    }
+    Gp_ResetCap();
+}
 
 void func_actor_215100_8014AF0C(void)
 {
