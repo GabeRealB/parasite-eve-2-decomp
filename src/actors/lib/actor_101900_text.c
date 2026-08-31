@@ -1241,7 +1241,10 @@ void Actor01900_L0A494(void)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A49C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A59C);
+s32 Actor01900_Fn0A59C(void)
+{
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A5A4);
 
