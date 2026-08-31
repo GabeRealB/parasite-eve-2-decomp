@@ -4,7 +4,10 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunne
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", func_neo_ark_submarine_tunnel_8017F318);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", func_neo_ark_submarine_tunnel_8017F398);
+void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
+{
+    GameFlag_SetNibble(0xBC, arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", func_neo_ark_submarine_tunnel_8017F3BC);
 
