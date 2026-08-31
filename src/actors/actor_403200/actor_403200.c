@@ -1,4 +1,5 @@
 #include "common.h"
+extern s16 D_actor_403200_80141C5A;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801321C4);
 
@@ -138,7 +139,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801410F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_80141108);
+void func_actor_403200_80141108(s16 arg0)
+{
+    D_actor_403200_80141C5A = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_80141114);
 
