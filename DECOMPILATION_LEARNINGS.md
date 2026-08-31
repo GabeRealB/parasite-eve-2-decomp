@@ -34792,3 +34792,73 @@ Casting at the widening site (`t[0] += (s16)work->field_118;`) emits the same
 `lh` and is a valid fallback, but prefer fixing the declared type: check the
 other users first, since a widening use of the *same* field elsewhere would
 contradict it.
+
+## A fully shared `.text` takes a `rodata` cut, not `rodata_head`
+
+`rodata_head` is rejected outright when a generated overlay's whole `.text` is
+one `shared` span — `gen_overlay_configs.py` takes the `text_all_shared` path,
+where there is no overlay-local `c` unit for a head cut to pair with. Use a
+`rodata` cut naming the shared unit instead; the generator emits it as
+`lib/<unit>` so GCC's table lands at that offset in every overlay carrying the
+body.
+
+```toml
+actor_101600 = { rodata = [{ start = "0x84", unit = "actor_101600_text" }],
+                 shared = [{ start = "0x1F4", end = "0x7114", unit = "actor_101600_text" }] }
+```
+
+```yaml
+- [0x0,    rodata,  actor_101600_header]   # package id + still-asm tables
+- [0x84,   .rodata, lib/actor_101600_text] # jtbl from the shared C object
+- [0x1F4,  c,       lib/actor_101600_text]
+```
+
+Word 0 of such a header is the package id and genuinely differs between the
+slot copies, which is why the cut has to start after it and the head stays an
+overlay-local assembly object. Everything from 0x4 on was symbolic in all three
+`101600`/`201600`/`301600` copies, so handing 0x84..0x1F4 to the shared object
+is safe: the tables still owned by assembly functions are folded back into
+those functions' `.s` files by `migrate_rodata_to_functions`, in address order,
+and need no `INCLUDE_RODATA` edit.
+
+## The cross-jump merge label says how much of the tail lives in each case
+
+When several `switch` cases end in the same call sequence, GCC 2.8.1's
+post-reload cross-jumping merges the longest common *suffix* and leaves the
+rest duplicated. Read that boundary backwards: whatever is still duplicated in
+every arm was written inside the case body in the source, and the merged block
+is what came after the `switch`.
+
+`Actor01600_Fn01420` picks one of three sound ids and plays it:
+
+```
+L01730: lui v1,0x4010 ; lw v0,0x20(s0) ; j L0175C ; ori v1,v1,0x6
+L01740: lui v1,0x4010 ; lw v0,0x20(s0) ; j L0175C ; ori v1,v1,0x7
+L01750: lui v1,0x4010 ; lw v0,0x20(s0) ;            ori v1,v1,0x8
+L0175C: lhu v0,8(v0) ; ... ; jal Gp_GetObjPan ; or s2,v0,v1
+```
+
+The merge starts at `lhu`, so `lw v0,0x20(s0)` — but not the `lhu` that
+consumes it — is per-arm. Only one source shape produces that: the whole
+statement, call included, inside each case.
+
+```c
+case 0:
+    id = ((arg0->field_20->field_8 >> 12) << 8) | 0x40100006;
+    SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+    break;
+```
+
+Cross-jumping walks back from the end of each block and stops at the first
+difference — the `ori` of the constant's low half. Everything after it
+(`lhu`, the shifts, the `or`, the calls) merges; the `lui`/`lw` ahead of it
+does not, and `sched1` had already put the `lw` between the `lui` and the
+`ori` to cover the load delay.
+
+Hoisting the statement out of the `switch` and leaving only `id = 0x4010000N;`
+per case is the natural-looking rewrite and it is wrong twice over. The `lw`
+stops being duplicated, and the constant stops being its own pseudo: it merges
+with the result, so `or s2,v0,v1` becomes `or s2,s2,v0`, the id has to hold a
+call-saved register from the arms onward, and the frame loses `$s3`
+(0x28 → 0x20). Score topped out at 96.8% until the statement moved back inside
+the cases; the duplicated form is 100%.

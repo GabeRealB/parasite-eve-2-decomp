@@ -163,33 +163,46 @@ s32  Gp_GetObjDepth(void* arg0);
 
 extern s32 Gp_LcgState;
 
+/// Per-frame tick for the actor's cornered/pursuit cycle, dispatched on
+/// `field_4FE`. States 0 and 1 hand the frame to `Actor01600_Fn017BC` /
+/// `Actor01600_Fn020F8` and then run the shared post-step
+/// `Actor01600_Fn06744`. State 2 advances `field_504`, nudges `field_50E` back
+/// by 0x3C while the animation is still 0xE and under 0x11 frames in, arms the
+/// 0x16 animation at frame 0x28 and, past frame 0x5B, resets to animation 0x19
+/// with the 0x8000 bit set in `field_2BA`. State 3 plays animation 0x13 until
+/// `Gp_TickObjFlag2` fires. State 4 only selects animation 0x11. State 5 rolls
+/// the 0x4CC swerve offset once per approach (animation 0xE, past frame 0x2C,
+/// `field_522` still clear and bit 1 of `field_50A` set) and, on animation
+/// 0x16 past frame 0x32, ends the cycle the same way state 2 does.
+///
+/// Whatever the state, animations 1/9/0x10/0x13/0x15/0x16/0x1B..0x1E are
+/// silent; the rest count `field_542` down and, on expiry, play one of three
+/// growls (`0x4010_0006..8`) picked by a `Gp_LcgState` draw modulo 5 - two of
+/// the five outcomes stay quiet - panned and attenuated for the actor's
+/// coordinate, then rearm the counter at 0x14.
 void Actor01600_Fn01420(Actor01600* arg0)
 {
-    Actor01600Work*  work;
-    Actor01600Obj20* spawn;
-    GsCOORDINATE2*   coords;
-    s32              one;
-    s32              anim;
-    u16              timer;
-    u32              rnd;
-    s32              bits;
-    s32              id;
-    s32              pan;
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    s32             id;
+    s32             state;
+    s32             one;
+    u16             sel;
+    s16             count;
 
-    work   = arg0->field_1C;
-    coords = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+
     switch (work->field_4FE) {
         case 0:
             Actor01600_Fn017BC(arg0);
-            Actor01600_Fn06744(arg0);
-            break;
+            goto tick;
         case 1:
             Actor01600_Fn020F8(arg0);
-            Actor01600_Fn06744(arg0);
-            break;
+            goto tick;
         case 2:
             Actor01600_Fn06F10(arg0);
-            work->field_504++;
+            work->field_504 = work->field_504 + 1;
             if (work->field_506 == 0xE && work->field_50A < 0x11) {
                 work->field_50E = -0x3C;
                 Actor01600_Fn06744(arg0);
@@ -206,9 +219,7 @@ void Actor01600_Fn01420(Actor01600* arg0)
                 work->field_504  = 0;
                 work->field_2BA |= 0x8000;
             }
-            work->field_50E = 0;
-            Actor01600_Fn06744(arg0);
-            break;
+            goto clear;
         case 3:
             Actor01600_Fn06F10(arg0);
             work->field_506 = 0x13;
@@ -217,19 +228,18 @@ void Actor01600_Fn01420(Actor01600* arg0)
                 work->field_506  = 0x19;
                 work->field_2BA |= 0x8000;
             }
-            work->field_50E = 0;
-            Actor01600_Fn06744(arg0);
-            break;
+            goto clear;
         case 4:
             work->field_506 = 0x11;
             break;
         case 5:
             Actor01600_Fn06F10(arg0);
             if (work->field_506 == 0xE) {
-                if (work->field_50A >= 0x2C && work->field_522 == 0 && (work->field_50A & 2)) {
+                if (work->field_50A >= 0x2C && work->field_522 == 0 &&
+                    ((u16)work->field_50A & 2)) {
                     work->field_522 = 1;
-                    rnd = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    work->field_4CC   = ((rnd >> 11) & 0x60) + 0x20;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_4CC = (((u32)Gp_LcgState >> 11) & 0x60) + 0x20;
                 }
             } else if (work->field_506 == 0x16) {
                 if (work->field_50A >= 0x32) {
@@ -241,100 +251,43 @@ void Actor01600_Fn01420(Actor01600* arg0)
             if (Gp_TickObjFlag2(arg0->field_20) != 0) {
                 work->field_506 = 0x16;
             }
-            work->field_50E = 0;
-            Actor01600_Fn06744(arg0);
-            break;
+            goto clear;
     }
+    goto tail;
 
-    one  = 1;
-    anim = work->field_506;
-    if (anim == one) {
-        return;
-    }
-    if (anim == 0x16) {
-        return;
-    }
-    if (anim == 0x15) {
-        return;
-    }
-    if (anim == 0x10) {
-        return;
-    }
-    if (anim == 0x13) {
-        return;
-    }
-    if (anim == 0x1C) {
-        return;
-    }
-    if (anim == 0x1D) {
-        return;
-    }
-    if (anim == 0x1E) {
-        return;
-    }
-    if (anim == 0x1B) {
-        return;
-    }
-    if (anim == 9) {
-        return;
-    }
+clear:
+    work->field_50E = 0;
+tick:
+    Actor01600_Fn06744(arg0);
 
-    timer           = work->field_542 - 1;
-    work->field_542 = timer;
-    if ((timer << 16) != 0) {
+tail:
+    state = work->field_506;
+    one   = 1;
+    if (state == one || state == 0x16 || state == 0x15 || state == 0x10 ||
+        state == 0x13 || state == 0x1C || state == 0x1D || state == 0x1E ||
+        state == 0x1B || state == 9) {
         return;
     }
-
+    count           = work->field_542 - 1;
+    work->field_542 = count;
+    if (count != 0) {
+        return;
+    }
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    rnd         = (u32)Gp_LcgState >> 16;
-    rnd         = rnd % 5;
-    rnd         = (u16)rnd;
-    TOUCH_REG(id);
-    if (rnd != one) {
-        if ((s32)rnd < 2) {
-            if (rnd == 0) {
-                goto snd0;
-            }
-            work->field_542 = 0x14;
-            return;
-        }
-        if (rnd == 2) {
-            goto snd2;
-        }
-        work->field_542 = 0x14;
-        return;
-    }
-    goto snd1;
-snd0:
-    bits = 0x40100000;
-    TOUCH_REG(bits);
-    spawn = arg0->field_20;
-    SOFT_USE_REG(arg0);
-    bits |= 6;
-    goto sndjoin;
-snd1:
-    bits = 0x40100000;
-    TOUCH_REG(bits);
-    spawn = arg0->field_20;
-    SOFT_USE_REG(arg0);
-    bits |= 7;
-    goto sndjoin;
-snd2:
-    bits = 0x40100000;
-    TOUCH_REG(bits);
-    spawn = arg0->field_20;
-    SOFT_USE_REG(arg0);
-    bits |= 8;
-sndjoin:
-    id  = ((spawn->field_8 >> 12) << 8) | bits;
-    pan = (s8)Gp_GetObjPan(coords);
-    {
-        s32 depth = Gp_GetObjDepth(coords);
-        s32 a0id  = id;
-        s32 a1pan = pan;
-        TOUCH_REG(a0id);
-        TOUCH_REG(a1pan);
-        SndEvt_EnqueueType6(a0id, a1pan, (s8)depth);
+    sel         = ((u32)Gp_LcgState >> 16) % 5;
+    switch (sel) {
+        case 0:
+            id = ((arg0->field_20->field_8 >> 12) << 8) | 0x40100006;
+            SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+            break;
+        case 1:
+            id = ((arg0->field_20->field_8 >> 12) << 8) | 0x40100007;
+            SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+            break;
+        case 2:
+            id = ((arg0->field_20->field_8 >> 12) << 8) | 0x40100008;
+            SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+            break;
     }
     work->field_542 = 0x14;
 }

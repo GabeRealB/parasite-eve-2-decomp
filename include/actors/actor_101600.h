@@ -16,20 +16,14 @@ typedef struct Actor01600Node {
 STATIC_ASSERT_SIZEOF(Actor01600Node, 0x8);
 
 typedef struct Actor01600Ctx {
-    /* 0x00 */ byte           pad_0[0x10];
+    /* 0x00 */ byte           pad_0[0x8];
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ byte           pad_A[0x6];
     /* 0x10 */ Actor01600Node node;
     /* 0x18 */ byte           pad_18[0x3C];
     /* 0x54 */ s32            field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
-
-/// Overlay-local view of the object at `Actor01600.field_20`. `field_8` is
-/// the u16 id nibble `Actor01600_Fn01420` shifts into a `SndEvt_EnqueueType6`
-/// request; the same pointer is passed to `Gp_TickObjFlag2`.
-typedef struct Actor01600Obj20 {
-    /* 0x0 */ byte pad_0[8];
-    /* 0x8 */ u16  field_8;
-} Actor01600Obj20;
 
 /// `field_8` is the actor's `GsCOORDINATE2` array: entry 0 is the actor's own
 /// coordinate, entry 1 the attachment point whose `workm.t` feeds
@@ -91,7 +85,7 @@ STATIC_ASSERT_SIZEOF(Actor01600Work, 0x554);
 typedef struct Actor01600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor01600Work*  field_1C;
-    /* 0x20 */ Actor01600Obj20* field_20;
+    /* 0x20 */ Actor01600Ctx*   field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor01600Obj2C* field_2C;
 } Actor01600;
