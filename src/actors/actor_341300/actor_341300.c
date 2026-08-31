@@ -62,6 +62,12 @@ void func_actor_341300_8016398C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_801639CC);
+void func_actor_341300_801639CC(s32 arg0)
+{
+    if (((arg0 << 0x10) == 0) && (D_actor_341300_80165A2C != NULL)) {
+        Task_Kill(D_actor_341300_80165A2C);
+        D_actor_341300_80165A2C = NULL;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_80163A10);
