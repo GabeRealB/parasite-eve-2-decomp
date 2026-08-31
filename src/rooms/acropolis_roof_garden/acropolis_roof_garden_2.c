@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+extern s32 D_acropolis_roof_garden_80183C0C;
 
 extern u8 D_801153F4;
 
@@ -33,7 +34,23 @@ s32 func_acropolis_roof_garden_8017D8AC(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017D970);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DA48);
+void func_acropolis_roof_garden_8017DA48(Task* arg0)
+{
+    s32 temp_v1;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) { /* irregular */
+        case 0x4C:
+            SndEvt_EnqueueType6(0x510D000F, 0, 0);
+            break;
+        case 0x64:
+            SndEvt_EnqueueType6(0x510D0010, 0, 0);
+            D_acropolis_roof_garden_80183C0C = 0;
+            Task_Kill(arg0);
+            break;
+    }
+    arg0->state += 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DAD4);
 
