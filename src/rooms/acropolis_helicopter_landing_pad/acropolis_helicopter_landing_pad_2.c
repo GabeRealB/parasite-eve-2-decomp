@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/task.h"
+extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E4A4);
 
@@ -14,6 +16,9 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E67C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E6C0);
+void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
+{
+    Task_SpawnFromTable(&D_acropolis_helicopter_landing_pad_80184DA0, 6, arg0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E6F0);
