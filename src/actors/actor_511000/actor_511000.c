@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80131E78);
 
@@ -58,7 +59,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133498);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_801334B8);
+s32 func_actor_511000_801334B8(Task* arg0)
+{
+    arg0->killCountdown = 0;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_801334C4);
 
