@@ -1,7 +1,10 @@
 #include "common.h"
+#include "main/task.h"
 #include "main/display.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/1BC.h"
+extern Task* D_acropolis_fountain_80183BB4;
+
 extern GpObj4A D_acropolis_fountain_8017E7A4;
 extern GpObj4A D_acropolis_fountain_8017FB3C;
 
@@ -63,4 +66,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_a
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E3D4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E72C);
+void func_acropolis_fountain_8017E72C(Task* arg0)
+{
+    Task_Kill(D_acropolis_fountain_80183BB4);
+    Task_Kill(arg0);
+}
