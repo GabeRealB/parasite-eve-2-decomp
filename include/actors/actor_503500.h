@@ -8,7 +8,9 @@
 typedef struct Actor503500Work {
     /* 0x000 */ byte pad_0[0xF0];
     /* 0x0F0 */ s8   field_F0;
-    /* 0x0F1 */ byte pad_F1[0x130];
+    /* 0x0F1 */ byte pad_F1[0x6B];
+    /* 0x15C */ s8   field_15C;
+    /* 0x15D */ byte pad_15D[0xC4];
     /* 0x221 */ s8   field_221;
     /* 0x222 */ byte pad_222[0x58E];
     /* 0x7B0 */ s16  field_7B0;
