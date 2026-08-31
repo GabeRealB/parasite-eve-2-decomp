@@ -10,7 +10,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_g_r_kitchen/dryfield_night_g_r_ki
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", func_dryfield_night_g_r_kitchen_8017D8C4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", func_dryfield_night_g_r_kitchen_8017D948);
+s32 func_dryfield_night_g_r_kitchen_8017D948(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", func_dryfield_night_g_r_kitchen_8017D950);
 
