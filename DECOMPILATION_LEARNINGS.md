@@ -34221,3 +34221,50 @@ A vacuum `jlabel` inside a `jr $v0` switch is not a standalone function.
 Match the parent (`Actor02100_Fn032E4` here): case 1 falls through into
 case 0 (`GameFlag_GetNibble(0xD2)`), and an empty `case 4:` is required
 so the range check stays `sltiu …, 5`.
+
+## Where the cross-jump lands tells you how much of the tail the C shared
+
+`Room_Script25` (shared by `shelter_b1_control_room` and
+`shelter_b6_training_room`) is a `task->state` dispatcher whose cases mostly end
+with a shared `advance:` block:
+
+```
+.Ladvance:
+lw    v0, 0x30(s0)     <- merge label is *after* this in the target
+.Ljoin:
+nop
+addiu v0, v0, 1
+j     .Lret
+ sw   v0, 0x30(s0)
+```
+
+One case also clears a second field, and the target reaches the tail at
+`.Ljoin`, one instruction *past* the `lw`, carrying its own copy of it:
+
+```
+jal  SetDispMask
+ move a0, zero
+lw   v0, 0x30(s0)
+j    .Ljoin
+ sw  zero, 0x34(s0)
+```
+
+Writing that arm as `task->spawnArg1 = 0; goto advance;` scores 99.1% with
+`branch=8 delete=1` — every branch offset shifts by one word because the arm
+jumps to `.Ladvance` and the duplicated `lw` never appears. Cross-jumping
+merges a *common suffix*; here the suffix is only `addiu` / `sw`, because the
+arm's own `lw` has to happen before the `sw` to `0x34`. Spell that ordering out
+instead of sharing the tail:
+
+```c
+state           = task->state;   /* lw before the intervening store */
+task->spawnArg1 = 0;
+task->state     = state + 1;
+return;
+```
+
+The delay-slot filler then sinks `sw zero, 0x34(s0)` into the `j`'s slot, which
+is what leaves the `lw` stranded above it. 99.1% -> 100%. Generally: a tail-call
+target label that sits one or two insns *inside* a shared block means one arm
+kept part of that block locally — reproduce it by hand rather than `goto`-ing
+the whole thing.
