@@ -370,7 +370,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139E68);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139F4C);
+void func_actor_400600_80139F4C(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
+{
+    MATRIX         local;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* coords;
+
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord  = &coords[arg1];
+    Gp_UpdateCoord(coord);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
+    arg2->x    = local.t[0];
+    arg2->y    = local.t[1];
+    arg2->z    = coords[0].coord.t[2];
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139FE0);
 
