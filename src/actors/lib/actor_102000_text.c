@@ -1,6 +1,13 @@
 #include "common.h"
 
 #include "actors/actor_102000.h"
+#include "main/mem.h"
+
+void Gp_ArmStateF0(s32 arg0);
+void Actor02000_Fn00CD0(Actor02000* arg0);
+
+extern s8  D_80115419;
+extern s16 Actor02000_D03784[];
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00078);
 
@@ -112,29 +119,93 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00A10);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00A9C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00AEC);
+/// Per-frame tick for the actor's approach cycle, sharing the `field_6A8`
+/// state with `Actor02000_Fn03268`. State 0 drains the `field_6DA` budget by
+/// `field_69C` (0 while `field_698` is still under the per-animation entry of
+/// `Actor02000_D03784`, 0x14 once it is past it) and runs
+/// `Actor02000_Fn00CD0` every frame; when the budget runs out it switches to
+/// animation 4 and state 1. State 1 waits for `field_698` to reach 0x60, then
+/// either falls back to animation 2 (budget left) or starts the lunge:
+/// animation 3, state 2, a fresh budget of 1000 per unit of the spawn record's
+/// byte 1, and `field_6A2` / `field_6A4` set to the actor's current yaw and its
+/// opposite. State 2 holds `field_69E` at 0x3B until `field_698` reaches 0x23,
+/// then returns to animation 2 and state 0. As in `Actor02000_Fn03268`, a set
+/// `field_6B2` or `D_80115419` overrides everything with animation 2 and the
+/// shared state-F0 slot.
+void Actor02000_Fn00AEC(Actor02000* arg0)
+{
+    Actor02000Work*  work;
+    Actor02000Spawn* spawn;
+    GsCOORDINATE2*   self;
+    u8*              head;
+    s16              state;
+    s16              delta;
+    s32              ang;
+    s32              param;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00B44);
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x10;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00B54);
+    self  = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    spawn = arg0->field_20;
+    state = work->field_6A8;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00B84);
+    switch (state) {
+        case 0:
+            delta = 0;
+            if (work->field_698 >= Actor02000_D03784[work->field_694]) {
+                delta = 0x14;
+            }
+            work->field_69C  = delta;
+            work->field_69E  = 0;
+            work->field_6DA -= work->field_69C;
+            if (work->field_6DA <= 0) {
+                work->field_694 = 4;
+                work->field_6AE = 0;
+                work->field_6A8 = 1;
+                work->field_69C = 0;
+            }
+            Actor02000_Fn00CD0(arg0);
+            break;
+        case 1:
+            work->field_69C = 0;
+            work->field_69E = 0;
+            if (work->field_698 >= 0x60) {
+                if (work->field_6DA <= 0) {
+                    param           = spawn->field_3C->field_1;
+                    work->field_694 = 3;
+                    work->field_6A8 = 2;
+                    work->field_6DA = param * 1000;
+                    ang             = ratan2(self->coord.m[0][2], self->coord.m[2][2]) & 0xFFF;
+                    work->field_6A2 = ang;
+                    work->field_6A4 = (ang + 0x800) & 0xFFF;
+                } else {
+                    work->field_694 = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+        case 2:
+            work->field_69C = 0;
+            work->field_69E = 0x3B;
+            if (work->field_698 >= 0x23) {
+                work->field_694 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00BB8);
+    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+        work->field_6A6 = 2;
+        work->field_6A8 = 0;
+        work->field_694 = 2;
+        work->field_6AE = 0;
+        Gp_ArmStateF0(1);
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00BC8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00C48);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00C50);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00C68);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00C6C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00C90);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00CAC);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00CD0);
 
@@ -489,11 +560,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0321C);
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0322C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03230);
-
-void Gp_ArmStateF0(s32 arg0);
-void Actor02000_Fn00CD0(Actor02000* arg0);
-
-extern s8 D_80115419;
 
 /// Per-frame tick, entry 0 of `Actor02000_D16064`. State 0 counts `field_6AE`
 /// up to 0x5B frames and then hands over to state 1 with animation 4, running
