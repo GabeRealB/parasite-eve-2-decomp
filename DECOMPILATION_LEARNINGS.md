@@ -34300,3 +34300,17 @@ else                                { Gp_RunCapCmd1(4); }
 96.1% -> 100%. The asymmetry is not a source-level asymmetry to be avoided: when
 one arm of a cross-jumped group falls into the tail, its polarity is chosen
 independently of its siblings, so match each case against its own branch.
+
+## `rodata_head` is enough when only still-asm tables follow the generated one
+
+`rodata_head` is documented as enough when the generated table is the last
+thing in leading rodata, and not enough when another GCC `.align 3` table
+follows. A still-asm jump table after it does not have that pad, so a
+forward `rodata` + `units` cut is unnecessary.
+
+`func_actor_800200_80165708`'s 24-entry table sits at overlay `0x1F4`,
+4-mod-8, with `jtbl_…_80162074` (still `INCLUDE_ASM`) immediately after at
+`0x254`. `rodata_head = "0x1F4"` puts `0x0..0x1F4` in `actor_800200_hdr`
+and lets unit 1's `.rodata` start at the generated table; the later
+`INCLUDE_ASM` table concatenates at `0x254` with no extra pad. Delete the
+`INCLUDE_RODATA` lines that moved into the hdr before re-splitting.

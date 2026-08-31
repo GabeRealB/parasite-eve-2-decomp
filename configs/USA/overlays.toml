@@ -585,7 +585,7 @@ actor_350700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_356100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_800100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
-actor_800200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
+actor_800200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata_head = "0x1F4" }
 actor_800300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 
 # Parasite Energy effects, at the map-picture address, so the two are mutually

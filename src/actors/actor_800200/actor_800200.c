@@ -10,8 +10,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_801626A0);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200", D_actor_800200_80161E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_801626EC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162750);
@@ -19,8 +17,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162990);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162BFC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200", D_actor_800200_80161E34);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162E0C);
 
@@ -59,14 +55,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80164C54);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80164EBC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200", D_actor_800200_80161E5C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200", D_actor_800200_80161E8C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200", D_actor_800200_80161EB8);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200", D_actor_800200_80161EC8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165104);
 
@@ -138,7 +126,45 @@ void func_actor_800200_80165644(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165708);
+void func_actor_800200_80165708(GpActorWork* arg0)
+{
+    u8 temp_v0;
+
+    if (arg0->actor->field_910->field_D0 == 1) {
+        func_actor_800200_801654EC(arg0, 0);
+        return;
+    }
+    temp_v0 = Game_Session->field_6;
+    switch (temp_v0) {
+        case 1:
+            func_actor_800200_80163A54();
+            return;
+        case 2:
+            func_actor_800200_801637B4();
+            return;
+        case 3:
+            func_actor_800200_801659CC();
+            return;
+        case 4:
+            func_actor_800200_80163584();
+            return;
+        case 5:
+            func_actor_800200_8016390C();
+            return;
+        case 15:
+            func_actor_800200_80163E14();
+            return;
+        case 19:
+            func_actor_800200_80163CCC();
+            return;
+        case 20:
+            func_actor_800200_80163B90();
+            return;
+        case 24:
+            func_actor_800200_80165ACC();
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165814);
 
