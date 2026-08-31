@@ -34,6 +34,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import collections
 import contextlib
 import json
 import os
@@ -97,37 +98,64 @@ def sh(cmd: list[str], cwd: Path = REPO_ROOT, timeout: int = 3600):
 # --- selecting and preparing -------------------------------------------------
 
 def load_candidates(
-    results: Path, staged: Path, grades: set[str], overlay: Optional[str]
+    results: Path, staged: Path, grades: set[str], overlay: Optional[str],
+    audit: Optional[list] = None,
 ) -> list[Candidate]:
+    """Candidates to land, recording why every other row was left out.
+
+    Selection depends on the tree, which vacuum sessions change underneath us,
+    so two runs minutes apart legitimately differ. Without a per-row reason the
+    only visible symptom is a count that moved, which is not enough to tell a
+    session landing a function from a bug in here.
+    """
     rows = [json.loads(l) for l in results.read_text().splitlines() if l.strip()]
     hosts = B.include_asm_index()
     out: list[Candidate] = []
+
+    def note(func, why, **extra):
+        if audit is not None:
+            audit.append({"func": func, "decision": "reject", "reason": why, **extra})
+
     for r in rows:
-        if r.get("status") != "matched" or r.get("grade") not in grades:
+        func = r["func"]
+        if r.get("status") != "matched":
+            note(func, f"status {r.get('status')}")
             continue
-        src = staged / r["grade"] / f"{r['func']}.c"
+        if r.get("grade") not in grades:
+            note(func, f"grade {r.get('grade')} not requested")
+            continue
+        src = staged / r["grade"] / f"{func}.c"
         if not src.is_file():
+            note(func, "no staged file")
             continue
-        loc = ovl.find_function(r["func"])
+        loc = ovl.find_function(func)
         if loc is None:
+            note(func, "no .s in asm/ (tree not split?)")
             continue
         name = B.overlay_of(loc)
         if overlay and name != overlay and B.family_of(loc) != overlay:
+            note(func, f"overlay {name} filtered out")
             continue
-        host = hosts.get(r["func"]) or B._fallback_host(loc)
+        host = hosts.get(func) or B._fallback_host(loc)
         if host is None or not host.is_file():
+            note(func, "already landed (no INCLUDE_ASM anywhere)")
             continue
-        text = src.read_text()
         body = "\n".join(
-            l for l in text.splitlines() if not l.startswith("#include")
+            l for l in src.read_text().splitlines() if not l.startswith("#include")
         ).strip()
-        stub = find_stub(host, r["func"])
+        stub = find_stub(host, func)
         if stub is None:
+            note(func, "stub gone from its host", host=str(host))
             continue
-        cand = Candidate(r["func"], name, B.family_of(loc), r["grade"],
-                         body, host, stub)
-        if r["grade"] == "dirty" and not rewrite_task_fields(cand, STRICT_TYPES):
-            continue
+        cand = Candidate(func, name, B.family_of(loc), r["grade"], body, host, stub)
+        if r["grade"] == "dirty":
+            why = rewrite_task_fields(cand, STRICT_TYPES)
+            if why:
+                note(func, why)
+                continue
+        if audit is not None:
+            audit.append({"func": func, "decision": "accept", "reason": "",
+                          "overlay": name})
         out.append(cand)
     return out
 
@@ -177,39 +205,42 @@ def task_fields() -> dict[int, tuple[str, str]]:
 TASK_FIELDS = task_fields()
 
 
-def rewrite_task_fields(cand: Candidate, strict: bool = False) -> bool:
+def rewrite_task_fields(cand: Candidate, strict: bool = False) -> str:
     """Turn a Task-shaped dirty body into typed field access.
 
-    False leaves the candidate for an agent: an access outside Task, through
-    something other than arg0, or any macro left over. A half-rewritten body is
-    worse than an untouched one.
-
-    `strict` additionally requires m2c's cast type to match the field's declared
-    type. Without it a `TaskIdMap*` field can land assigned to an `s16*` local -
-    same codegen, looser C.
+    Returns "" on success, else the reason it declined -- the reason is the
+    point: a run that selects a different number of candidates than the last one
+    has to be explainable without re-deriving it by hand.
     """
     body = cand.body
-    if "M2C_FIELD" not in body or not TASK_FIELDS:
-        return False
+    if not TASK_FIELDS:
+        return "task.h not parsed"
+    if "M2C_FIELD" not in body:
+        return "no M2C_FIELD (goto / stack slot / unnamed data)"
     hits = M2C_ARG0_RE.findall(body)
     if not hits:
-        return False
-    offs = [int(o, 0) for _t, o in hits]
-    if any(o >= TASK_SIZE or o not in TASK_FIELDS for o in offs):
-        return False
+        return "no access through arg0"
+    offs = [int(o, 0) for _ty, o in hits]
+    outside = [o for o in offs if o >= TASK_SIZE or o not in TASK_FIELDS]
+    if outside:
+        return f"offset 0x{outside[0]:X} is not a named Task field"
     if strict:
         norm = lambda s: re.sub(r"\s+|\*", "", s)
-        if any(norm(ct) != norm(TASK_FIELDS[int(o, 0)][1]) for ct, o in hits):
-            return False
+        bad = [(ct, o) for ct, o in hits
+               if norm(ct) != norm(TASK_FIELDS[int(o, 0)][1])]
+        if bad:
+            ct, o = bad[0]
+            return (f"cast {ct.strip()} != field type "
+                    f"{TASK_FIELDS[int(o, 0)][1]} at 0x{int(o, 0):X}")
 
     new = M2C_ARG0_RE.sub(lambda m: f"arg0->{TASK_FIELDS[int(m.group(2), 0)][0]}", body)
     if ANY_M2C_RE.search(new):
-        return False
+        return "M2C_ macro left after rewrite (access not through arg0)"
     retyped = re.sub(r"\bvoid\s*\*\s*arg0\b", "Task *arg0", new)
     if "Task *arg0" not in retyped:
-        return False
+        return "first parameter is not void *arg0"
     cand.body = retyped
-    return True
+    return ""
 
 
 COMMENT_RE = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
@@ -542,6 +573,9 @@ def main() -> int:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would land without editing anything")
+    ap.add_argument("--audit", type=Path,
+                    help="where to write the per-row selection record "
+                         "(default: <results dir>/selection.jsonl)")
     ap.add_argument("--strict-types", action="store_true",
                     help="only rewrite a dirty seed when m2c's cast type "
                          "matches the field's declared type")
@@ -561,7 +595,18 @@ def main() -> int:
         HEADERS = json.loads(ctx.read_text())
 
     grades = {g.strip() for g in args.grade.split(",") if g.strip()}
-    cands = load_candidates(args.results, staged, grades, args.overlay)
+    audit: list = []
+    cands = load_candidates(args.results, staged, grades, args.overlay, audit)
+
+    audit_path = args.audit or args.results.parent / "selection.jsonl"
+    audit_path.write_text("".join(json.dumps(a) + "\n" for a in audit))
+    rejected = collections.Counter(a["reason"] for a in audit
+                                   if a["decision"] == "reject")
+    print(f"selection written to {audit_path}")
+    print(f"  accepted {sum(1 for a in audit if a['decision'] == 'accept')} "
+          f"of {len(audit)} rows")
+    for why, n in rejected.most_common(10):
+        print(f"    {n:>5}  {why}")
 
     claimed = B.claimed_functions()
     if claimed:
