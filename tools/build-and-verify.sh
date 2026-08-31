@@ -120,7 +120,24 @@ else
     SUCCESS="✅ SCOPED BUILD SUCCEEDED (${SCOPE_LABEL}). Only these units were split, built and checksummed - run without --only before treating the project as matching."
 fi
 
-"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" 1>/dev/null \
-    && ninja 1>/dev/null \
-    && (echo "$SUCCESS") \
-    || (echo "BUILD HAS FAILED. Claude, you should treat this as a build failure. Adding new warnings or accepting a non-matching checksum count as failures." && false)
+# ninja reports a failed command - the compiler diagnostic, the linker's
+# "cannot find …", a checksum mismatch - on *stdout*. Sending that to /dev/null
+# left "BUILD HAS FAILED" as the only thing said about any failure, with the
+# real cause discarded and whatever splat had last written to stderr looking
+# like the error. Keep it, and print it when the build fails.
+NINJA_LOG="$(mktemp -t pe2-ninja-XXXXXX.log)"
+ninja_failed=0
+"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
+if [[ $ninja_failed -eq 0 ]]; then
+    ninja >"$NINJA_LOG" 2>&1 || ninja_failed=1
+fi
+
+if [[ $ninja_failed -eq 0 ]]; then
+    rm -f "$NINJA_LOG"
+    echo "$SUCCESS"
+else
+    grep -E "^(FAILED|ninja:)|error:|Error:|undefined reference|multiple definition|cannot find|does not match" "$NINJA_LOG" | head -40
+    echo "(full ninja output: $NINJA_LOG)"
+    echo "BUILD HAS FAILED. Claude, you should treat this as a build failure. Adding new warnings or accepting a non-matching checksum count as failures."
+    exit 1
+fi
