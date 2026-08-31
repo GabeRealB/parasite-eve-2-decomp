@@ -35,7 +35,10 @@ s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017DDD8);
+s32 func_shelter_b1_pod_access_tunnel_8017DDD8(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017DDE0);
 
