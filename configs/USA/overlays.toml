@@ -435,7 +435,7 @@ actor_111800 = { }
 actor_113000 = { }
 actor_113100 = { }
 actor_120300 = { }
-actor_120400 = { }
+actor_120400 = { shared = [{ start = "0x994", end = "0x9B4", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x1C", unit = "actor_120400_2" }] }
 actor_120500 = { rodata_head = "0x4" }
 actor_121300 = { }
 actor_123000 = { note = "empty actor slot; the id resolves, the package has no code" }
@@ -443,11 +443,11 @@ actor_123200 = { }
 actor_123400 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_135000 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_135400 = { }
-actor_135600 = { }
+actor_135600 = { shared = [{ start = "0xF9C", end = "0xFBC", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x28", unit = "actor_135600_2" }] }
 actor_136100 = { }
 actor_136300 = { }
 actor_140400 = { note = "empty actor slot; the id resolves, the package has no code" }
-actor_141000 = { }
+actor_141000 = { shared = [{ start = "0x1B9C", end = "0x1BBC", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x38", unit = "actor_141000_2" }] }
 actor_142600 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_142900 = { }
 actor_143000 = { }
@@ -477,7 +477,7 @@ actor_405800 = { }
 actor_407500 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_420700 = { }
 actor_421600 = { }
-actor_443500 = { }
+actor_443500 = { shared = [{ start = "0x984", end = "0x9A4", unit = "actors_shared_801327b4" }] }
 actor_444000 = { }
 actor_450200 = { }
 actor_450800 = { }
@@ -485,7 +485,7 @@ actor_450900 = { rodata_head = "0x4" }
 actor_451100 = { }
 actor_460200 = { }
 actor_461800 = { }
-actor_503500 = { units = ["0x44E4"], rodata = [{ start = "0x10C", unit = "actor_503500_2" }] }
+actor_503500 = { units = ["0x44E4"], rodata = [{ start = "0x10C", unit = "actor_503500_2" }], shared = [{ start = "0x146C8", end = "0x146E8", unit = "actors_shared_801327b4" }] }
 actor_510900 = { units = ["0x9A50", "0x9B68"], rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
 actor_511000 = { }
 actor_521100 = { units = ["0x37A8"], rodata = [{ start = "0x2C", unit = "actor_521100_2" }] }
@@ -526,9 +526,9 @@ actor_206100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_207000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there" }
 actor_207200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_210600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
-actor_210700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
+actor_210700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x3C8", end = "0x3E8", unit = "actors_shared_801327b4" }] }
 actor_213000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
-actor_213100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
+actor_213100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x3FC", end = "0x41C", unit = "actors_shared_801327b4" }] }
 actor_215100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_223600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_260400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata_head = "0x4" }
@@ -568,7 +568,7 @@ actor_310600 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_311500 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_311900 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_312200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
-actor_317000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
+actor_317000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x904", end = "0x924", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x10", unit = "actor_317000_2" }] }
 actor_323000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_323300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_323400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
@@ -580,7 +580,7 @@ actor_342000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_342100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_342200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x220", end = "0x8E14", unit = "actor_104400_text" }], relocs = "configs/USA/rel.actor_104400.txt" }
 actor_342400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
-actor_350500 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
+actor_350500 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x63C", end = "0x65C", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x10", unit = "actor_350500_2" }] }
 actor_350700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_356100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
