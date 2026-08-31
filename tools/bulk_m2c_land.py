@@ -206,27 +206,26 @@ TASK_FIELDS = task_fields()
 
 
 def types_compatible(cast: str, field: str) -> bool:
-    """Is m2c's cast type close enough to the field's declared type to land?
+    """Is m2c's cast close enough to the field's declared type to land?
 
-    Pointer against pointer is the case that matters. m2c writes
-    `M2C_FIELD(arg0, void **, 0x1C)` meaning "load a pointer from 0x1C" and the
-    field is `TaskIdMap*`; assigning one to the other is ordinary C and the same
-    four-byte load, so demanding the spellings match rejects 185 sound
-    candidates for a difference that does not exist.
+    M2C_FIELD(expr, type_ptr, off) expands to *(type_ptr)((s8 *)expr + off), so
+    the cast is always a pointer to the field's type. One level of indirection
+    is therefore part of the idiom, not a difference: `s32 *` against a field
+    declared `s32` is an exact match, and `void **` against `TaskIdMap*` is a
+    pointer read of a pointer field - ordinary C and the same four-byte load.
 
-    What is still refused is a width change - `s16` where the field is `s32` -
-    because that does alter the load and would show up as a failed checksum
-    rather than as tidy code.
+    What stays refused is a width change, `s16 *` against `s32`, because that
+    alters the load itself and would surface as a failed checksum rather than as
+    untidy code.
     """
     strip = lambda s: re.sub(r"\s+", "", s)
     c, f = strip(cast), strip(field)
+    if not c.endswith("*"):
+        return c == f
+    c = c[:-1]                      # undo M2C_FIELD's own indirection
     if c == f:
         return True
-    if "*" in c and "*" in f:
-        # A pointer read through one more level of indirection than the field
-        # declares is still a pointer read: void** vs TaskIdMap*.
-        return True
-    return False
+    return c.endswith("*") and f.endswith("*")
 
 
 def rewrite_task_fields(cand: Candidate, strict: bool = False) -> str:
