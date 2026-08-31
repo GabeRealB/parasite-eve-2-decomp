@@ -1,3 +1,8 @@
 #include "common.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_script21", Room_Script21);
+void Room_Script21(Task* arg0)
+{
+    Task_Kill(arg0);
+    Stage_SetEndingFlag();
+}
