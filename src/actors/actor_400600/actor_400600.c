@@ -474,7 +474,22 @@ void func_actor_400600_8013A820(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013A864);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013A908);
+void func_actor_400600_8013A908(Task* arg0)
+{
+    Actor400600Work* work;
+    TmdObject*       model;
+
+    model           = (TmdObject*)arg0->extra;
+    work            = (Actor400600Work*)arg0->idMap;
+    model->field_C &= 0xFF7F;
+    Gp_SetLightMode(arg0->spawnArg2, 0);
+    func_actor_400600_80139DB0(arg0, 9, 0x10, 2);
+    work->field_722 = 0;
+    work->field_724 = 0;
+    work->field_73E = work->field_92;
+    func_actor_400600_80139CAC(arg0);
+    work->field_71C = work->field_71C + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013A990);
 
