@@ -1,3 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util24", Room_Util24);
+void Room_Util24(s32 arg0)
+{
+    Gp_ArmStateF0(arg0);
+}
