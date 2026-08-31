@@ -200,17 +200,30 @@ def analyze_function_content(
     # Stack allocation pattern (addiu $sp, $sp, -0xNN)
     stack_pattern = r"addiu\s+\$sp,\s*\$sp,\s*-0x([0-9A-Fa-f]+)"
 
-    # Jump table pattern (e.g., jtbl_8009E1D8_9EDD8)
-    jumptable_pattern = r"^jtbl_[0-9A-Fa-f_]+$"
+    # Jump table / data patterns. `symbol_name_format` prefixes an overlay's
+    # symbols with the segment, so the name is not hex-only:
+    # jtbl_neo_ark_bridge_8017D620, D_actor_301500_80161E20. A [0-9A-Fa-f_]
+    # class matches neither (`t`, `o`, `r`, `k`, `1` aside), which silently
+    # turned both filters off for every generated overlay.
+    jumptable_pattern = r"^jtbl_\w*[0-9A-Fa-f]{6,}$"
 
-    # Data pattern (e.g., D_8009E48C_9F08C)
-    data_pattern = r"^D_[0-9A-Fa-f_]+$"
+    data_pattern = r"^D_\w*[0-9A-Fa-f]{6,}$"
+
+    # Interior labels of the shared actor text units (Actor01900_L0A354). The
+    # naming there is authoritative, not a guess: `Fn<hex>` symbols are `jal`
+    # targets (589 call sites) and are what the header `.word` table names,
+    # while `L<hex>` symbols are the target of no call anywhere in the tree and
+    # appear only inside the `Jt<hex>` jump tables. They are switch arms and
+    # shared epilogues, so there is no standalone C function to write - match
+    # the enclosing `Fn*` and the whole span comes with it.
+    fragment_pattern = r"^Actor\d+_L[0-9A-F]+$"
 
     # Skip non-code sections (data, bss, rodata, header)
     # These typically have .data, .bss, .rodata suffixes or are named "header"
     if (
         re.match(jumptable_pattern, func_name)
         or re.match(data_pattern, func_name)
+        or re.match(fragment_pattern, func_name)
         or func_name.endswith(".data")
         or func_name.endswith(".bss")
         or func_name.endswith(".rodata")
@@ -261,7 +274,6 @@ def analyze_function_content(
             stack_match = re.search(stack_pattern, line)
             if stack_match:
                 score.stack_size = int(stack_match.group(1), 16)
-
     return score
 
 
@@ -294,17 +306,30 @@ def analyze_function(file_path: str) -> FunctionScore:
     filename = os.path.basename(file_path)
     func_name = filename.replace(".s", "")
 
-    # Jump table pattern (e.g., jtbl_8009E1D8_9EDD8)
-    jumptable_pattern = r"^jtbl_[0-9A-Fa-f_]+$"
+    # Jump table / data patterns. `symbol_name_format` prefixes an overlay's
+    # symbols with the segment, so the name is not hex-only:
+    # jtbl_neo_ark_bridge_8017D620, D_actor_301500_80161E20. A [0-9A-Fa-f_]
+    # class matches neither (`t`, `o`, `r`, `k`, `1` aside), which silently
+    # turned both filters off for every generated overlay.
+    jumptable_pattern = r"^jtbl_\w*[0-9A-Fa-f]{6,}$"
 
-    # Data pattern (e.g., D_8009E48C_9F08C)
-    data_pattern = r"^D_[0-9A-Fa-f_]+$"
+    data_pattern = r"^D_\w*[0-9A-Fa-f]{6,}$"
+
+    # Interior labels of the shared actor text units (Actor01900_L0A354). The
+    # naming there is authoritative, not a guess: `Fn<hex>` symbols are `jal`
+    # targets (589 call sites) and are what the header `.word` table names,
+    # while `L<hex>` symbols are the target of no call anywhere in the tree and
+    # appear only inside the `Jt<hex>` jump tables. They are switch arms and
+    # shared epilogues, so there is no standalone C function to write - match
+    # the enclosing `Fn*` and the whole span comes with it.
+    fragment_pattern = r"^Actor\d+_L[0-9A-F]+$"
 
     # Skip non-code sections (data, bss, rodata, header)
     # These typically have .data, .bss, .rodata suffixes or are named "header"
     if (
         re.match(jumptable_pattern, func_name)
         or re.match(data_pattern, func_name)
+        or re.match(fragment_pattern, func_name)
         or func_name.endswith(".data")
         or func_name.endswith(".bss")
         or func_name.endswith(".rodata")
@@ -521,6 +546,15 @@ Examples:
                 f"Error: Function '{args.score_func}' not found in {paths_display}",
                 file=sys.stderr,
             )
+            if re.match(r"^Actor\d+_L[0-9A-F]+$", args.score_func):
+                print(
+                    f"Hint: '{args.score_func}' is an interior label, not a function - "
+                    "it is a switch arm or shared epilogue of the Fn* symbol above it "
+                    "in the unit. Score and decompile that parent instead; see "
+                    'DECOMPILATION_LEARNINGS.md, "Splat L-labels with no prologue are '
+                    'the parent function".',
+                    file=sys.stderr,
+                )
             sys.exit(1)
 
         if len(matching_scores) > 1:

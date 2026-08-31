@@ -34156,6 +34156,22 @@ mips-linux-gnu-as -EL -I include -I build -I include/psyq -I include/decomp \
 second attempt this way, against a fragment that cannot be expressed in C at
 all.
 
+`score_functions.py` no longer offers these. `Actor<digits>_L<hex>` is excluded
+by name, which is safe because the naming is authoritative rather than a guess:
+`Fn<hex>` symbols are `jal` targets (589 call sites) and are what the header
+`.word` table names, while no `L<hex>` symbol is the target of a call anywhere
+in the tree - they appear only inside the `Jt<hex>` jump tables. That drops 2823
+of 11773 ranked entries, and it was the whole head of the queue: all of the top
+100 and 492 of the top 500 were fragments, 317 of them a single instruction
+(`Actor03800_L01910` is a bare `lui` whose `ori` is the next chunk).
+
+Do not filter these structurally instead ("no stack frame and no `jr $ra`").
+That rule reads well and is wrong: it also drops 34 `Fn` symbols, 32 of which
+are real entry points - frameless switch dispatchers like `Actor01900_Fn01A7C`
+(`lw $v0, 0x0($v1)` / `jr $v0` off `Actor01900_Jt00004`) and three-way branch
+heads like `Actor03800_Fn01150`, whose bodies continue into the L-chunks. Those
+parents are exactly what the vacuum should be picking.
+
 ## Mixed `arg0->state = task->state + 1` swaps `$s0`/`$s1` with a hoisted `1`
 
 A 0/1/2 task-state switch hoists `li $s1, 1` for the `beq` and reuses it for
