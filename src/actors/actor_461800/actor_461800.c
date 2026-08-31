@@ -1,4 +1,7 @@
 #include "common.h"
+#include "main/task.h"
+extern Task*    D_actor_461800_80133EB4;
+extern TaskDesc D_actor_461800_80133EBC;
 
 INCLUDE_RODATA("actors/nonmatchings/actor_461800/actor_461800", D_actor_461800_80131E20);
 
@@ -6,7 +9,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132048);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801321DC);
+void func_actor_461800_801321DC(s32 arg0)
+{
+    if (arg0 < 0) {
+        if (D_actor_461800_80133EB4 == NULL) {
+            D_actor_461800_80133EB4 = Task_SpawnFromTable(&D_actor_461800_80133EBC, 0, 0, 0);
+        }
+    } else {
+        D_actor_461800_80133EB4->state = arg0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8013223C);
 
