@@ -6,31 +6,141 @@
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00078);
+extern s32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L000D8);
+void* Mem_Calloc(s32 size, s32 arg1);
+void  Gp_DestroyEnemy(Actor02500Ctx* ctx, Actor02500* actor);
+void  Gp_LinkNode(Actor02500Node* node);
+void  func_800B3F84(Actor02500Work* arg0, void* arg1, Actor02500Obj2C* arg2, void* arg3,
+                    Actor02500AnimSlots* arg4);
+void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
+void  Gp_IncStateF0Ref(s32 arg0);
+void  Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
+void  Gp_LinkObj(s32 arg0, Actor02500Obj* arg1);
+void  Gp_InitRec18Table(Actor02500Rec18* arg0, s32 arg1, s32 arg2);
+s32   Gp_PackPair(void* arg0, s32 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00174);
+void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
+{
+    Actor02500Work*  work;
+    Actor02500Obj2C* obj;
+    GsCOORDINATE2*   coord;
+    s32              i;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L001C8);
+    obj   = actor->field_2C;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x348, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(ctx, actor);
+        return;
+    }
+    actor->field_1C = work;
+    obj->field_C    = 0;
+    coord->flg      = 0;
+    obj->field_1C   = work->field_14C;
+    obj->field_20   = work->field_12C;
+    ctx->field_4    = &coord->coord;
+    ctx->field_48   = 0;
+    Gp_LinkNode(&ctx->node);
+    ctx->field_20     = -0x96;
+    ctx->field_18     = coord;
+    ctx->node.field_4 = 0;
+    ctx->field_1C     = 0;
+    ctx->field_24     = 0;
+    ctx->field_50     = Actor02500_D05B38;
+    ctx->field_40     = Actor02500_D05B38->field_4;
+    work->field_2E0   = 0x200;
+    work->field_2DC   = coord;
+    work->field_2E2   = 1;
+    func_800B3F84(work, &Actor02500_D05BA0, obj, work->field_DC, &work->field_14);
+    work->field_31C = 1;
+    work->field_31E = 1;
+    for (i = 1; i < 5; i++) {
+        Gp_AnimResetSlot(work, i, work->field_31C);
+    }
+    Gp_IncStateF0Ref(0);
+    switch (ctx->field_3C->field_2) {
+        case 0:
+            work->field_322 = 0;
+            work->field_324 = 0;
+            ctx->field_54   = work->field_1C4;
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_32E = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x1E;
+            break;
+        case 1:
+            work->field_322 = 5;
+            work->field_324 = 0;
+            ctx->field_54   = NULL;
+            Gp_SetLightMode(ctx, 2);
+            break;
+        case 2:
+            work->field_322 = 5;
+            work->field_324 = 1;
+            ctx->field_54   = NULL;
+            Gp_SetLightMode(ctx, 2);
+            break;
+    }
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->field_338 = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x1E;
+    work->field_314 = coord->coord.t[0];
+    work->field_316 = coord->coord.t[1];
+    work->field_318 = coord->coord.t[2];
+    work->field_32A = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L001D8);
+    work->field_16C.field_8  = coord;
+    work->field_16C.field_C  = work->field_18C;
+    work->field_16C.field_10 = 0;
+    work->field_16C.field_12 = -0x190;
+    work->field_16C.field_14 = 0x258;
+    work->field_16C.field_18 = 0;
+    work->field_16C.field_1C = 0x258;
+    work->field_16C.flags    = 1;
+    Gp_LinkObj(3, &work->field_16C);
+    Gp_InitRec18Table(work->field_18C, 1, 0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L0021C);
+    work->field_1A4.field_8  = coord;
+    work->field_1A4.field_C  = work->field_1C4;
+    work->field_1A4.field_10 = 0;
+    work->field_1A4.field_12 = -0x12C;
+    work->field_1A4.field_14 = 0;
+    work->field_1A4.field_18 = 0x30019;
+    work->field_1A4.field_1C = 0x12C;
+    work->field_1A4.flags    = 1;
+    work->field_16C.flags   |= 0x8000;
+    Gp_LinkObj(2, &work->field_1A4);
+    Gp_InitRec18Table(work->field_1C4, 3, 0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00234);
+    if (ctx->field_3C->field_2 == 0) {
+        work->field_1A4.flags |= 0x8000;
+    } else {
+        work->field_1A4.flags &= 0x7FFF;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00248);
+    work->field_20C.field_8  = coord;
+    work->field_20C.field_C  = work->field_22C;
+    work->field_20C.field_10 = 0;
+    work->field_20C.field_12 = -0x12C;
+    work->field_20C.field_14 = 0;
+    work->field_20C.field_18 = 0x30019;
+    work->field_20C.field_1C = 0x12C;
+    work->field_20C.flags    = 1;
+    Gp_LinkObj(2, &work->field_20C);
+    Gp_InitRec18Table(work->field_22C, 5, 0);
+    work->field_20C.flags |= 0x4200;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00250);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00258);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00384);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00390);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L00470);
+    work->field_2A4.field_8  = actor->field_2C->field_8 + 4;
+    work->field_2A4.field_C  = work->field_2C4;
+    work->field_2A4.field_10 = 0;
+    work->field_2A4.field_12 = -0x3B6;
+    work->field_2A4.field_14 = 0x1CC;
+    work->field_2A4.field_18 = Gp_PackPair(&Actor02500_D05B30, 0);
+    work->field_2A4.field_1C = 0x12C;
+    work->field_2A4.flags    = 1;
+    Gp_LinkObj(3, &work->field_2A4);
+    Gp_InitRec18Table(work->field_2C4, 1, 0);
+    work->field_2A4.flags &= 0x7FFF;
+    actor->field_30        = 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00494);
 
@@ -263,10 +373,8 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01AB0);
 
 void  Gp_UnlinkNode(void* node);
 void  Gp_UnlinkObj(void* node);
-void  Gp_SetLightMode(void* arg0, s32 arg1);
 void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void  Gp_DestroyEnemy(void* enemy, void* task);
 void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
 void* Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void* parent);
 void  Actor02500_Fn0184C(Actor02500* arg0);
@@ -335,12 +443,12 @@ death:
     work->field_32E = 0;
     work->field_332 = 0x1000;
     work->field_2E4 = coord->coord;
-    arg0->field_54  = 0;
+    arg0->field_54  = NULL;
     Gp_UnlinkNode(&arg0->node);
-    Gp_UnlinkObj(work->field_16C);
-    Gp_UnlinkObj(work->field_1A4);
-    Gp_UnlinkObj(work->field_20C);
-    Gp_UnlinkObj(work->field_2A4);
+    Gp_UnlinkObj(&work->field_16C);
+    Gp_UnlinkObj(&work->field_1A4);
+    Gp_UnlinkObj(&work->field_20C);
+    Gp_UnlinkObj(&work->field_2A4);
     Gp_SetLightMode(arg0, 1);
     Gp_ReleaseStateF0Add(arg1, 0x19);
     c      = arg1->field_2C->field_8;

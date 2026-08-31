@@ -35137,3 +35137,25 @@ source has a case value you have not written down, usually an empty one. The
 same reading applies to a jump table: `sltiu v0, v1, 0xA` with entry 0 pointing
 at the switch's end label is `case 0: break;`, not a nine-case switch biased by
 one — GCC subtracts the low bound when there is no `case 0`.
+
+## Restore `%hi`/`%lo` when hand-building a parent's `target.o` from fragments
+
+Rebuilding `target.o` for a multi-label parent (see "A vacuum `L`-label is a
+basic block, not a function") concatenates splat's per-fragment `.s` files, and
+splat can only pair a `lui`/`lw` when both halves sit in the **same** fragment.
+`Actor02500_Fn00078` hoists the `lui` for `Gp_LcgState` into two `j` delay slots
+and one join block, so three fragments carry the raw form:
+
+```
+/* 1C4 */  lui  $a2, (0x80070000 >> 16)   # end of Actor02500_L001C8.s
+/* 258 */  lw   $v0, 0xF60($a2)           # start of Actor02500_L00258.s
+```
+
+The compiler emits `lui $a2, %hi(Gp_LcgState)` / `lw $v0, %lo(Gp_LcgState)($a2)`
+with real HI16/LO16 relocations, so the normalized diff reports three or four
+differences that vanish at link time. Rewrite the raw halves in the hand-built
+`target.s` to `%hi(sym)` / `%lo(sym)($reg)` before the first score; otherwise a
+100% match reads as ~98% and you chase register noise that is not there.
+
+`Gp_LcgState` was the giveaway: the address is `0x80070F60`, and every unpaired
+`lui` in the span held exactly its high half.
