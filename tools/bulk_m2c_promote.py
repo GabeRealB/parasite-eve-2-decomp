@@ -103,6 +103,82 @@ def includes_of(text: str) -> list[str]:
     return [l for l in text.splitlines() if l.startswith("#include")]
 
 
+# --- unit re-partitioning ----------------------------------------------------
+#
+# A shared span cuts the overlay's `.text` in three: the run before it, the
+# shared object, and the run after it. gen_overlay_configs numbers those runs
+# `<overlay>`, `<overlay>_2`, ... in address order, so inserting a span pushes
+# the tail of the unit that held the body into a *new* unit, and renumbers every
+# unit after it. splat never rewrites an existing `.c`, so without doing that
+# ourselves the old file keeps INCLUDE_ASM lines naming a directory splat no
+# longer writes, and the assembler fails with
+#
+#   Error: can't open asm/USA/<family>/nonmatchings/<ov>/<ov>/func_….s
+#
+# which the link then reports only as a missing `.o`. Deleting just the promoted
+# body's own line is not enough.
+
+# An item is anything that occupies address space in the unit: a stub or a body.
+ITEM = re.compile(
+    r"^(?:INCLUDE_ASM|INCLUDE_RODATA)\(|^[A-Za-z_][\w \*]*\b\w+\s*\([^;{]*\)\s*\{",
+    re.M)
+
+
+def unit_component(overlay: str, index: int) -> str:
+    """The unit's name in an INCLUDE_ASM path; unit 1 carries no suffix."""
+    return overlay if index == 1 else f"{overlay}_{index}"
+
+
+def unit_index(path: Path, overlay: str) -> int:
+    if path.stem == overlay:
+        return 1
+    m = re.fullmatch(rf"{re.escape(overlay)}_(\d+)", path.stem)
+    return int(m.group(1)) if m else 0
+
+
+def renumber(text: str, overlay: str, old: int, new: int) -> str:
+    return text.replace(f'/{overlay}/{unit_component(overlay, old)}"',
+                        f'/{overlay}/{unit_component(overlay, new)}"')
+
+
+def cut_unit(host: Path, start: int, end: int) -> tuple[bool, str]:
+    """Remove [start, end) from `host` and give what follows its own unit."""
+    overlay = host.parent.name
+    text = host.read_text()
+    head, tail = text[:start], text[end:]
+    first = ITEM.search(text)
+    preamble = text[: first.start()] if first else text
+
+    # Nothing after the span stays in this overlay's own code, or nothing
+    # before it does: either way the span does not split a run in two, so the
+    # numbering is unchanged and the body just goes away.
+    if not ITEM.search(tail) or not ITEM.search(head):
+        host.write_text((head + tail).replace("\n\n\n\n", "\n\n"))
+        return True, ""
+    if "INCLUDE_RODATA" in tail:
+        return False, (f"{host.name}: the run after the span still owns rodata; "
+                       "that needs a `rodata` cut in the manifest first")
+
+    k = unit_index(host, overlay)
+    src_dir = host.parent
+    sibs = {unit_index(q, overlay): q for q in src_dir.glob("*.c")}
+    if k == 0 or 0 in sibs:
+        return False, f"{src_dir}: a source file is not named <overlay>[_N].c"
+
+    # Highest first, so a rename never lands on a file still to be moved.
+    for i in sorted((i for i in sibs if i > k), reverse=True):
+        old_path = sibs[i]
+        new_path = src_dir / f"{unit_component(overlay, i + 1)}.c"
+        new_path.write_text(renumber(old_path.read_text(), overlay, i, i + 1))
+        if new_path != old_path:
+            old_path.unlink()
+
+    (src_dir / f"{unit_component(overlay, k + 1)}.c").write_text(
+        renumber(preamble + tail.lstrip("\n"), overlay, k, k + 1))
+    host.write_text(head.rstrip() + "\n")
+    return True, ""
+
+
 # --- one promotion -----------------------------------------------------------
 
 class Promotion:
@@ -187,8 +263,11 @@ class Promotion:
         self.unit_path.parent.mkdir(parents=True, exist_ok=True)
         self.unit_path.write_text(content)
 
-        # Drop it from its own overlay, leaving the file otherwise intact.
-        origin.write_text((text[:span[0]] + text[span[1]:]).replace("\n\n\n\n", "\n\n"))
+        # Drop it from its own overlay, re-cutting the unit around the span.
+        ok, why = cut_unit(origin, span[0], span[1])
+        if not ok:
+            self.note = why
+            return False
 
         # And drop every other carrier's INCLUDE_ASM, which the span now covers.
         by_overlay = {c["overlay"].split("/")[-1]: c["name"] for c in self._carriers()}
@@ -201,8 +280,13 @@ class Promotion:
                 continue
             ht = host.read_text()
             stub = L.find_stub(host, name)
-            if stub:
-                host.write_text(ht.replace(stub + "\n", "").replace(stub, ""))
+            if not stub:
+                continue
+            at = ht.find(stub)
+            ok, why = cut_unit(host, at, at + len(stub) + 1)
+            if not ok:
+                self.note = why
+                return False
         return True
 
 
