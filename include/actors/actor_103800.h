@@ -12,12 +12,20 @@ typedef struct Actor103800Obj2C {
 } Actor103800Obj2C;
 
 typedef struct Actor103800Work {
-    /* 0x000 */ byte           pad_0[0x344];
+    /* 0x000 */ byte           pad_0[0x21E];
+    /* 0x21E */ s16            field_21E;
+    /* 0x220 */ byte           pad_220[8];
+    /* 0x228 */ s16            field_228;
+    /* 0x22A */ byte           pad_22A[0x11A];
     /* 0x344 */ GsCOORDINATE2* field_344;
-    /* 0x348 */ byte           pad_348[0x18];
+    /* 0x348 */ byte           pad_348[0xA];
+    /* 0x352 */ s16            field_352;
+    /* 0x354 */ byte           pad_354[0xC];
     /* 0x360 */ s16            field_360;
     /* 0x362 */ byte           pad_362[8];
     /* 0x36A */ s16            field_36A;
+    /* 0x36C */ byte           pad_36C[2];
+    /* 0x36E */ s16            field_36E;
 } Actor103800Work;
 
 typedef struct Actor103800 {
@@ -35,5 +43,6 @@ typedef struct Actor103800Ctx {
 } Actor103800Ctx;
 
 void Actor03800_Fn031B8(Actor103800Ctx* arg0, Actor103800* arg1);
+void Actor03800_Fn032D8(Actor103800* arg0);
 
 #endif
