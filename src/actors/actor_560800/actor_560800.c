@@ -202,7 +202,12 @@ void func_actor_560800_80136A20(void)
     func_800E6D4C(0x180, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80136A54);
+void func_actor_560800_80136A54(void)
+{
+    Gp_CapFile = 0;
+    Gp_LoadCapFile(2);
+    func_800E6D4C(0x180, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80136A88);
 
