@@ -22,7 +22,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131F88);
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_8013201C);
+void func_actor_443500_8013201C(s16 arg0)
+{
+    Gp_StartCapSlot(5, 1, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80132048);
 
