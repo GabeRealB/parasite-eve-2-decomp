@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/1BC.h"
 
 #include "gameplay/3CD8.h"
 
@@ -42,7 +43,13 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801814B0);
+void func_shelter_b1_sterilization_room_801814B0(void)
+{
+    Mc_SaveData.field_6 = 0x27;
+    Mc_SaveData.field_8 = 3;
+    Mc_SaveData.field_5 = 1;
+    Task_Spawn(0, 0x11, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801814FC);
 
