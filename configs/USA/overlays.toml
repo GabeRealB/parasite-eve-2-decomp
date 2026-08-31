@@ -350,7 +350,7 @@ shelter_1f_bulwark = { room = "Bulwark", floor = "1F", units = ["0x6B8"], rodata
 shelter_1f_heliport = { room = "Heliport", floor = "1F", shared = [{ start = "0x2FD4", end = "0x3098", unit = "room_script23" }] }
 shelter_1f_airlock = { room = "Airlock", floor = "1F", shared = [{ start = "0x18", end = "0x5C", unit = "room_util03" }, { start = "0xB30", end = "0xED4", unit = "room_draw29" }] }
 shelter_1f_guardroom = { room = "Guardroom", floor = "1F", shared = [{ start = "0x184", end = "0x1C8", unit = "room_util03" }] }
-neo_ark_observatory = { room = "Observatory", shared = [{ start = "0x2620", end = "0x2628", unit = "room_util06" }, { start = "0x344C", end = "0x37EC", unit = "room_draw13" }] }
+neo_ark_observatory = { room = "Observatory", rodata = [{ start = "0xE4", unit = "neo_ark_observatory_2" }], shared = [{ start = "0x2620", end = "0x2628", unit = "room_util06" }, { start = "0x344C", end = "0x37EC", unit = "room_draw13" }] }
 neo_ark_eve_access_tunnel = { room = "EVE access tunnel", shared = [{ start = "0x6A4", end = "0x6AC", unit = "room_util06" }, { start = "0x910", end = "0x964", unit = "room_script18" }, { start = "0xC84", end = "0x14C8", unit = "room_draw01" }] }
 neo_ark_eve_elevator = { room = "EVE elevator" }
 neo_ark_north_promenade = { room = "North promenade", shared = [{ start = "0x780", end = "0xBA4", unit = "room_draw09" }, { start = "0x19A8", end = "0x1D20", unit = "room_draw06" }, { start = "0x2AB8", end = "0x2EE4", unit = "room_draw02" }, { start = "0x3768", end = "0x3B60", unit = "room_draw03" }] }
