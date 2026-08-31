@@ -34542,3 +34542,55 @@ local is describing exactly that mix in C — write the plain assignments as
 `Room_Script01` is the example: a `GpSaveLoc` src/dst pair (the `0x13EE`
 message payload, see `Gp_WarpLoc`) built on the stack. Unlike the `volatile`
 recipes above, no qualifier is needed — the pointer local alone is the barrier.
+
+## `default: goto done` so `lui` fills the last-case `beq` delay
+
+A two-case irregular switch that shares one call after the cases
+(`cmd = …; break;` / `Gp_RunCapCmd1(cmd); return 0`) looks like it wants
+`default: return 0`. That hoists `move v0, zero` into the last case's
+`beq` delay, and the case then re-emits its `lui %hi(global)`:
+
+```
+beq  a2, v0, case3
+ move v0, zero          /* from default: return 0 */
+j    epilogue
+```
+
+The target delay-fills from the case body instead (`lui` is dead on the
+default path, live on the taken path):
+
+```
+beq  a2, v0, case3
+ lui  v0, %hi(Gp_StateF0)
+j    epilogue
+ nop
+```
+
+`default: goto done` makes the fall-through a naked `j` (not a dbr
+candidate), so the slot takes the case's `lui`. One `return 0` after the
+call is the shared epilogue (`lw ra; move v0, zero; jr`):
+
+```c
+switch (arg2) {
+case 2:
+    cmd = …;
+    break;
+case 3:
+    cmd = 7;
+    if (flag != 2) {
+        cmd = GameFlag_GetNibble(…) != 0 ? 6 : 3;
+    }
+    break;
+default:
+    goto done;
+}
+Gp_RunCapCmd1(cmd);
+done:
+return 0;
+```
+
+The command must still be assigned *after* `GameFlag_GetNibble` (if/else
+or a ternary) so it is not live across that `jal` — otherwise GCC saves
+it in `$s0` and the prologue no longer matches. See "A call argument
+chosen by an `if` must be a ternary, not a pre-set local".
+`func_neo_ark_power_plant_2_8017D61C` is the example.
