@@ -164,7 +164,7 @@ case0:
 dist:
     dist = SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz);
     if (dist < 0x2BC) {
-        raw   = work->field_38A - work->field_388;
+        raw   = work->field_38A - (u16)work->field_388;
         diff  = raw;
         adiff = diff >= 0 ? diff : -diff;
         if (adiff < 0x800) {
@@ -266,25 +266,74 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01284);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L012CC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn012E4);
+void Actor00700_Fn012E4(Actor00700* arg0)
+{
+    Actor00700Work*       work;
+    GsCOORDINATE2*        coord;
+    Actor00700RotScratch* sc;
+    s32                   ang;
+    u16                   want;
+    s16                   diff;
+    s32                   adiff;
+    s32                   step;
+    s32                   cur;
+    s32                   next;
+    s32                   wrapStep;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01350);
+    sc    = (Actor00700RotScratch*)(SCRATCH_SP -= 0x18);
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_38A;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01378);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01388);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01390);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L013B4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L013C4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L013D0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L013E4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L013E8);
+    work->field_388 = ang;
+    if (adiff < 0x800) {
+        step = work->field_386;
+        if (step >= adiff) {
+            work->field_388 = want;
+        } else {
+            next = work->field_388;
+            if (diff <= 0) {
+                next -= step;
+            } else {
+                next += step;
+            }
+            work->field_388 = next;
+        }
+    } else {
+        step = work->field_386;
+        if (diff > 0) {
+            if (step >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (step >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_388 = work->field_38A;
+        goto done;
+    turn:
+        wrapStep = work->field_386;
+        cur      = work->field_388;
+        if (diff > 0) {
+            work->field_388 = cur - wrapStep;
+        } else {
+            work->field_388 = cur + wrapStep;
+        }
+    }
+done:
+    sc->rot.vx = 0;
+    sc->rot.vy = work->field_388;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    SCRATCH_SP += 0x18;
+}
 
 extern u8 D_801153F4;
 
@@ -431,7 +480,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01830);
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor00700_Fn00334(Actor00700* arg0);
-void Actor00700_Fn012E4(Actor00700* arg0);
 void Actor00700_Fn01AB8(Actor00700* arg0);
 void Actor00700_Fn01988(Actor00700* arg0, Actor00700Obj2C* arg1, s32 arg2);
 void Actor00700_Fn01CF0(Actor00700* arg0);

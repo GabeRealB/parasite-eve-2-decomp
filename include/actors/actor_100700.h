@@ -39,7 +39,7 @@ typedef struct Actor00700Work {
     /* 0x382 */ u16            field_382;
     /* 0x384 */ s16            field_384;
     /* 0x386 */ s16            field_386;
-    /* 0x388 */ u16            field_388;
+    /* 0x388 */ s16            field_388;
     /* 0x38A */ u16            field_38A;
     /* 0x38C */ u16            field_38C;
     /* 0x38E */ s16            field_38E;
@@ -77,10 +77,19 @@ typedef struct Actor00700 {
     /* 0x2C */ Actor00700Obj2C* field_2C;
 } Actor00700;
 
+/// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
+/// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`.
+typedef struct Actor00700RotScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR rot;
+} Actor00700RotScratch;
+STATIC_ASSERT_SIZEOF(Actor00700RotScratch, 0x18);
+
 extern s16 Actor00700_D06E50[];
 extern s16 Actor00700_D06E98[];
 
 void Actor00700_Fn00BC0(Actor00700* arg0);
+void Actor00700_Fn012E4(Actor00700* arg0);
 void Actor00700_Fn01434(Actor00700Ctx* arg0, Actor00700* arg1);
 void Actor00700_Fn0188C(Actor00700Ctx* arg0, Actor00700* arg1);
 void Actor00700_Fn01AB8(Actor00700* arg0);

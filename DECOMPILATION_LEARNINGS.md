@@ -35020,6 +35020,15 @@ alone. The same asymmetry runs the other way for the *non*-in-place form
 when one turn block folds and its twin does not, look at the local's width
 before touching the control flow.
 
+The current-angle **field** must also be `s16`. `Actor00700_Fn012E4` is the
+same body as `Actor02500_Fn016FC` / `Actor03800_Fn026F8`, but `field_388` had
+been declared `u16` because a sibling (`Fn00BC0`) loads it with `lhu`. Assigning
+`ang` through a `u16` field stores immediately (`sh` before the `andi`/`subu`)
+and the later `next = field` reloads with `lhu`, so GCC never keeps `ang` in
+`$a1` for the delay-slot `sh a1,field` or the `move v0, a1` CSE. Declare the
+field `s16` like the other copies; keep the unsigned load in the sibling with a
+`(u16)` cast (`raw = want - (u16)work->field_388`).
+
 ## A `jlabel` fragment is a mid-function jump-table arm, not a function
 
 `asm/.../<Overlay>_L<off>.s` files that start with `jlabel` and hold two or
