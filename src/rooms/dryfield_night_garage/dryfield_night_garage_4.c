@@ -2,6 +2,7 @@
 
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -9,11 +10,26 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include "gameplay/D4.h"
+
+extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
+extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
+
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_4", func_dryfield_night_garage_801809A4);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_4", func_dryfield_night_garage_80180A64);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_4", func_dryfield_night_garage_80180AB0);
+void func_dryfield_night_garage_80180AB0(void)
+{
+    Gp_ApplyAreaRecs(D_dryfield_night_garage_801875D8);
+    GameFlag_SetNibble(0x59, 0);
+    GameFlag_SetNibble(0x5A, 0);
+    GameFlag_SetNibble(0x4B, 5);
+    GameFlag_SetNibble(0x35, 1);
+    if (GameFlag_GetNibble(0xCE) != 0) {
+        Gp_ApplyAreaRecs(D_dryfield_night_garage_80187620);
+    }
+}
 
 void func_dryfield_night_garage_80180B20(Task* arg0)
 {
