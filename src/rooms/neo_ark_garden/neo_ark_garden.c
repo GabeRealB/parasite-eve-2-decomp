@@ -38,7 +38,10 @@ s32 func_neo_ark_garden_8017E8DC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E9AC);
+s32 func_neo_ark_garden_8017E9AC(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E9B4);
 
