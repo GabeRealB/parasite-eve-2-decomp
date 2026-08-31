@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900", func_actor_143900_80131E24);
 
@@ -10,7 +11,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900", func_actor_143900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900", func_actor_143900_80132380);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900", func_actor_143900_80132404);
+void func_actor_143900_80132404(Task* arg0)
+{
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900", func_actor_143900_8013242C);
 
