@@ -35437,3 +35437,47 @@ own overlay's `D_<ovl>_XXXXXXXX`, whose four words name that overlay's own
 state functions, and those symbols exist only in that overlay's symbol map. The
 five weapons copies have five distinct byte images for that reason, and
 `overlay_dup_index.py promote` refuses them. Match it per overlay.
+
+## Duplicate the tail call instead of an `else` when statement order can only fix one of scheduling and allocation
+
+`func_hypervelocity_8011F270` reads three things at the top — `mem =
+arg0->spawnArg2`, `flag = Gp_State1C->field_4`, `coord =
+((GameActorExt*)arg0->extra)->field_8` — and ends with one shared
+`Gp_ReleaseState1CMem(mem, arg0)` reached both from the early
+`flag`-dispatch arm and from the fall-through of the body. Written with the
+natural `if (flag != 0) { … } else { body }`, the head assignments trade the
+two remaining defects against each other and neither order wins:
+
+- `mem, flag, coord` (the order every matched `Gp_EffSprTask*` sibling uses)
+  schedules the loads exactly like the target, but `coord`'s short live range
+  outranks `arg0` in `allocno_compare`, so `arg0` lands in `$s2` and `coord` in
+  `$s1` — the swap of every `$s1`/`$s2` reference in the function.
+- `coord, mem, flag` lengthens `coord`'s live range enough to flip the
+  priority and gets the registers right, but now `lw v1, 0x2c(s1)` is the
+  first load instead of `lw s0, 0x20(s1)`.
+
+What resolves both at once is the *shape*, not the order: give the dispatch
+arm its own copy of the call and return, keep the body unnested, and let
+`jump2` cross-jump the two calls into one tail.
+
+```c
+if (flag != 0) {
+    if (flag < 4) {
+        return;
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+    return;
+}
+
+Gp_UpdateCoord(coord);
+/* … body … */
+if (val < 6) {
+    Gp_ReleaseState1CMem(mem, arg0);
+}
+```
+
+This emits the target's `j` into the shared `jal` and, because the RTL now has
+two `mem`/`arg0` argument setups, raises `arg0`'s reference count enough to
+beat `coord` while the head assignments stay in sibling order. Reach for it
+whenever a merged-tail function is stuck at ~99% with a pure `$sN` swap and
+reordering the head only moves the defect around.
