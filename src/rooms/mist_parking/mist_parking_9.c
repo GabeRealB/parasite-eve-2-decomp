@@ -7,6 +7,8 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+extern s32 D_mist_parking_80195320;
+
 extern TaskDesc D_mist_parking_8018D75C;
 extern Task*    D_mist_parking_80195324;
 
@@ -39,7 +41,11 @@ void func_mist_parking_80183780(s32 arg0)
     GameFlag_SetNibble(0xF1, arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_801837A4);
+void func_mist_parking_801837A4(void)
+{
+    D_mist_parking_80195320 = 0;
+    D_mist_parking_80195324 = 0;
+}
 
 extern void Stage_RequestMidiFromMap(s32 arg0);
 
