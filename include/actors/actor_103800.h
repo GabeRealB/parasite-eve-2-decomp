@@ -7,8 +7,9 @@
 #include <psyq/libgs.h>
 
 typedef struct Actor103800Obj2C {
-    /* 0x00 */ byte pad_0[0xC];
-    /* 0x0C */ s16  field_C;
+    /* 0x00 */ byte           pad_0[0x8];
+    /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ s16            field_C;
 } Actor103800Obj2C;
 
 typedef struct Actor103800Work {

@@ -34910,3 +34910,45 @@ The same caution applies to anything else keyed on a symbol's *shape* rather
 than its role: `func_<addr>` becomes `func_<overlay>_<addr>`, `jtbl_<addr>`
 becomes `jtbl_<overlay>_<addr>`, and a pattern written against main's names
 will quietly match nothing in an overlay.
+
+## An in-place accumulator must be `s32`, not `s16`, to keep its init `move`
+
+Two arms that add and subtract the same value around a common start often
+compile to a copy plus in-place arithmetic, which is what lets cross-jumping
+merge their stores:
+
+```
+bgtz  a0, L0279C
+ move v0, a1          /* v0 = ang, common to both arms */
+j     L027F8
+ subu v0, v0, v1
+L0279C:
+j     L027F8
+ addu v0, v0, v1
+```
+
+The C is a local seeded from the field and modified in place:
+
+```c
+next = work->field_362;              /* CSE folds the load to `ang` */
+if (diff <= 0) { next -= step; } else { next += step; }
+work->field_362 = next;
+```
+
+That only holds when `next` is `s32`. Declared `s16` — the width of the field it
+came from, so the tempting choice — the copy becomes a HImode `subreg` move,
+copy propagation reaches into both arms, and combine folds it away:
+
+```
+bgtz  a0, L
+ addu v0, a1, v1      /* one arm in the delay slot, no `move`, two insns short */
+```
+
+The knock-on is bigger than the missing `move`: with the value folded, each arm
+gets its own store, the two `sh v0,0x362(s0)` tails no longer cross-jump onto
+one label, and the sibling block that reaches the same store keeps its own copy.
+Score went 94.8% → 100% on `Actor03800_Fn026F8` from `s16 cur` → `s32 next`
+alone. The same asymmetry runs the other way for the *non*-in-place form
+(`work->field_362 = cur - step;`), which wants a plain `s32` load anyway — so
+when one turn block folds and its twin does not, look at the local's width
+before touching the control flow.
