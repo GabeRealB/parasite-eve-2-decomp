@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/task.h"
+extern TaskDesc D_actor_341900_80164190;
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161E58);
 
@@ -44,7 +46,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_801634D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80163534);
+void func_actor_341900_80163534(void)
+{
+    Task_SpawnFromTable(&D_actor_341900_80164190, 1, 9, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80163564);
 
