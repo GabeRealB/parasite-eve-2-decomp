@@ -38,6 +38,7 @@ typedef struct Actor00700Ctx {
 } Actor00700Ctx;
 
 void Actor00700_Fn0188C(Actor00700Ctx* arg0, Actor00700* arg1);
+void Actor00700_Fn01AB8(Actor00700* arg0);
 void Actor00700_Fn02290(Actor00700Ctx* arg0, Actor00700* arg1);
 
 #endif

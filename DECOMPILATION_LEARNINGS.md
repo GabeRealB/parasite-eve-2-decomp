@@ -34270,6 +34270,13 @@ name a shared unit; the table still starts the shared object's `.rodata`, so
 GCC's `.align 3` costs nothing and `SUBALIGN(4)` places it at the 4-mod-8
 offset.
 
+The `jlabel` cases of `Actor00700_Fn01AB8` (`L01AF8`..`L01B40`) are not
+standalone functions; they match as one `switch` on
+`arg0->field_1C->field_37A` with empty `case 5: break` so the table is 6
+entries and the last call falls through to the epilogue. Do not name
+`L02D20+8` as a shared-object reloc to absorb `D00054`: that word is this
+slot's own address and belongs in the overlay-local `header_2` tail.
+
 ### Scoring a `jr $v0` switch in the scratch env
 
 The vacuum bootstraps `target.o` from one `jlabel`'s `.s`, which is four
