@@ -1,4 +1,5 @@
 #include "common.h"
+extern u16 D_neo_ark_forest_zone_80182D62;
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801803B4);
 
@@ -20,7 +21,11 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_80181430);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_80181494);
+s32 func_neo_ark_forest_zone_80181494(void)
+{
+    D_neo_ark_forest_zone_80182D62 += 0x5A;
+    return 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801814B0);
 
