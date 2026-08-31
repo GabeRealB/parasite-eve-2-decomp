@@ -34424,3 +34424,43 @@ scratch-env diff of `lbu $v1, %lo(Gp_StateF0+4)($v0)` against `lbu $v1,
 `absolute:True`, so the linker folds them to the same halfword. Confirm with
 `cmp build/USA/out/<overlay> assets/USA/pe2pkg/<overlay>.pe2pkg` rather than
 chasing the name in `dist.py`'s score.
+
+## Constant non-zero index into a `T* volatile[]` global splits the address
+
+`Gp_ActorSlots` is declared `GpActorWork* volatile Gp_ActorSlots[2]`. Index 0
+folds into one addressing mode, but a constant non-zero index does not: GCC
+2.8.1 materializes the base and then adds the element offset as a *separate*
+address computation, and `-fschedule-insns` is free to hoist the now-independent
+`lui` into an earlier load-delay slot.
+
+```
+lui    v0, %hi(Gp_ActorSlots)   /* hoisted into the lw delay slot */
+lw     s1, 0x910(s0)
+addiu  v0, v0, %lo(Gp_ActorSlots)
+sw     zero, 4(v0)
+```
+
+Cast the volatility away at the point of use so the store is a plain
+`%lo(sym+off)` reference again, which keeps the `lui` welded to its `sw`:
+
+```c
+((GpActorWork**)Gp_ActorSlots)[1] = NULL;
+```
+
+```
+nop                             /* delay slot no longer fillable */
+lw     s1, 0x910(s0)
+lui    v0, %hi(Gp_ActorSlots)
+sw     zero, %lo(Gp_ActorSlots+4)(v0)
+```
+
+`src/gameplay/3A34.c` already uses the same `((GpActorWork**)Gp_ActorSlots)[1]`
+cast for the *load* side. Splat names that address `D_80115764`, so the scratch
+diff still shows a name mismatch against `%lo(Gp_ActorSlots+4)` — see
+"`%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction"; the bytes are
+identical and the full build verifies.
+
+`func_actor_800100_80163C04` is the example. Unlike its `Gp_TeardownSlot0`
+sibling above it needs **no** `volatile GameActor*` for the field loads: with no
+non-volatile sibling store competing for the `lui` delay slot, the plain pointer
+already keeps the loads in source order.

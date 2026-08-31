@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_800100.h"
+
 INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100", D_actor_800100_80161E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80161F20);
@@ -22,7 +24,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163BF8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163C04);
+void func_actor_800100_80163C04(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpActorD4* d4;
+    Task*      task;
+
+    actor                             = arg0->actor;
+    d4                                = actor->field_910;
+    ((GpActorWork**)Gp_ActorSlots)[1] = NULL;
+    task                              = actor->field_914;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = actor->field_918;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = actor->field_91C;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = actor->field_920;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = actor->field_924;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    Gp_UnlinkObj((GpObj*)actor->field_AC);
+    Gp_UnlinkObj((GpObj*)actor->field_CC);
+    Gp_UnlinkObj((GpObj*)actor->field_EC);
+    Gp_UnlinkObj((GpObj*)actor->field_10C);
+    Gp_UnlinkObj((GpObj*)d4->field_68);
+    Task_Kill((Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163CF0);
 
