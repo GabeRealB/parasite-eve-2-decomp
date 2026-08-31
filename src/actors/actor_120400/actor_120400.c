@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80131E5C);
 
@@ -18,7 +19,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132748);
 
-INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_801327B4);
+void func_actor_120400_801327B4(Task* arg0)
+{
+    Gp_EnemyTaskExit(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_801327D4);
 
