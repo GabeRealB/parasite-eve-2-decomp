@@ -16,7 +16,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corrido
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017E0FC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017E1CC);
+s32 func_shelter_b2_main_corridor_8017E1CC(void)
+{
+    return 0;
+}
 
 s32 func_shelter_b2_main_corridor_8017E1D4(void)
 {
