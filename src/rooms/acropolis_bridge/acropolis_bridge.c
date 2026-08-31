@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D6F4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D7F0);
+s32 func_acropolis_bridge_8017D7F0(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D7F8);
 
