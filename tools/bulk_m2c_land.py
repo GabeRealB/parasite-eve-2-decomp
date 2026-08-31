@@ -496,8 +496,13 @@ def land_overlay(cands: list[Candidate], dry_run: bool,
             revert({c.host})
             c.landed = False
             c.note = tail.splitlines()[-1][:160] if tail else "scoped build failed"
-            for k in kept:          # revert() dropped this file's good ones too
-                apply_edit(k)
+            # Only re-apply siblings that are not committed yet. Once
+            # commit_one has run, the body is in HEAD, so `git checkout --`
+            # restores it rather than losing it -- and re-applying then fails,
+            # because the stub it looks for has already been replaced.
+            if not do_commit:
+                for k in kept:
+                    apply_edit(k)
             continue
         if not do_commit or commit_one(c):
             kept.append(c)
