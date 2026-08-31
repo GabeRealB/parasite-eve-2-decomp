@@ -8,4 +8,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid", func_neo_ark_p
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid", func_neo_ark_pyramid_8017D7F4);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid", func_neo_ark_pyramid_8017D9F0);
+s32 func_neo_ark_pyramid_8017D9F0(void)
+{
+    return 0;
+}
