@@ -9,4 +9,8 @@ void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_10", func_dryfield_night_motel_lobby_801811E0);
+void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
+{
+    Gp_RunCapCmd1(8);
+    arg0->state = (s32)(arg0->state + 1);
+}
