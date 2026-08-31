@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_102000.h"
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00078);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00124);
@@ -488,19 +490,50 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0322C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03230);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03268);
+void Gp_ArmStateF0(s32 arg0);
+void Actor02000_Fn00CD0(Actor02000* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0329C);
+extern s8 D_80115419;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L032D0);
+/// Per-frame tick, entry 0 of `Actor02000_D16064`. State 0 counts `field_6AE`
+/// up to 0x5B frames and then hands over to state 1 with animation 4, running
+/// `Actor02000_Fn00CD0` every frame meanwhile; state 1 waits for `field_698`
+/// to reach 0x5E and drops back to state 0 with animation 1. Either way, once
+/// `field_6B2` or the global `D_80115419` is set the actor switches to
+/// animation 2 and arms the shared state-F0 slot.
+void Actor02000_Fn03268(Actor02000* arg0)
+{
+    Actor02000Work* work;
+    s16             state;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L032E0);
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            work->field_6AE++;
+            if (work->field_6AE >= 0x5B) {
+                work->field_694 = 4;
+                work->field_6AE = 0;
+                work->field_6A8 = 1;
+            }
+            Actor02000_Fn00CD0(arg0);
+            break;
+        case 1:
+            if (work->field_698 >= 0x5E) {
+                work->field_694 = 1;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L032FC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03320);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03338);
+    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+        work->field_6A6 = 2;
+        work->field_6A8 = 0;
+        work->field_694 = 2;
+        work->field_6AE = 0;
+        Gp_ArmStateF0(1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03348);
 
