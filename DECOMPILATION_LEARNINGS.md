@@ -35086,6 +35086,16 @@ and the later `next = field` reloads with `lhu`, so GCC never keeps `ang` in
 field `s16` like the other copies; keep the unsigned load in the sibling with a
 `(u16)` cast (`raw = want - (u16)work->field_388`).
 
+`Actor02000_Fn0150C` is the same helper with an extra `field_694 == 3` arm
+that always subtracts. Vacuum still picks the two-instruction `j L01648` /
+`addu v0, v0, a0` splat cut (`Actor02000_L015C8`) as "easy"; match the whole
+`Fn0150C`…`L0164C` span. The extra compare needs a second, unsigned step load
+(`ustep = (u16)work->field_69E` next to the signed `step`, so GCC emits `lh a0`
+/ `lhu a3` in the short-path block) and a **separate** wrap-path step local
+(`wstep`). Reusing one `step` across both arms conflicts with the 32-bit
+`want - ang` copy, so that copy loses `$a0` and combine writes `subu a0` /
+`sll v0, a0` instead of the target's `subu v0` / `move a0, v0` / `sll v0, v0`.
+
 ## A `jlabel` fragment is a mid-function jump-table arm, not a function
 
 `asm/.../<Overlay>_L<off>.s` files that start with `jlabel` and hold two or
