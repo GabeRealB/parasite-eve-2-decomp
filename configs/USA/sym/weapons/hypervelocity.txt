@@ -1,2 +1,3 @@
 // Overlay-local symbols for Hypervelocity (file 10322).
 WeaponsShared8011db78 = 0x8011F6A0; // shared body, see src/weapons/lib/
+WeaponsShared8011e4ac = 0x8011F11C; // shared body, see src/weapons/lib/

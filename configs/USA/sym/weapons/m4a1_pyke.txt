@@ -1,1 +1,2 @@
 // Overlay-local symbols for M4A1 Pyke (file 10328).
+WeaponsShared8011e4ac = 0x8011E4AC; // shared body, see src/weapons/lib/
