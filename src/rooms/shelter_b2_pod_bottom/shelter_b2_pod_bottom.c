@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", func_shelter_b2_pod_bottom_8017D638);
+s32 func_shelter_b2_pod_bottom_8017D638(void)
+{
+    return 0;
+}
 
 s32 func_shelter_b2_pod_bottom_8017D640(void)
 {
