@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+extern TaskDesc D_actor_560800_801718F0;
 
 void func_actor_560800_801321A0(Task* arg0)
 {
@@ -144,7 +145,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80136280);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801362B0);
+void func_actor_560800_801362B0(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_560800_801718F0, 3, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801362E0);
 
