@@ -13,7 +13,10 @@ s32 func_acropolis_fire_escape_8017FE40(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FE48);
+s32 func_acropolis_fire_escape_8017FE48(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FE50);
 
