@@ -34594,3 +34594,45 @@ or a ternary) so it is not live across that `jal` — otherwise GCC saves
 it in `$s0` and the prologue no longer matches. See "A call argument
 chosen by an `if` must be a ternary, not a pre-set local".
 `func_neo_ark_power_plant_2_8017D61C` is the example.
+
+## A named `Jt` table mid-header still moves with one `rodata` cut
+
+`Actor02500_L02050` is a four-instruction `jlabel` arm of `Actor02500_Fn02008`'s
+`jr $v0` switch, so the parent is what gets matched (see "A vacuum `L`-label is
+a basic block, not a function"). What is new here is where the table sat:
+`Actor02500_Jt0005C` is the *fifth* symbol in `actor_102500_header.rodata.s`,
+with `Actor02500_D00050` before it and the `.text` right after, and the same
+header exists three times because this actor ships in three RAM slots.
+
+That needs no pad and no absolute copy. The table is the last thing in the
+header, so one manifest cut per slot moves it:
+
+```toml
+actor_102500 = { rodata = [{ start = "0x5C", unit = "actor_102500_text" }],
+                 shared = [{ start = "0x78", end = "0x2914", unit = "actor_102500_text" }] }
+```
+
+Splat regenerates the header truncated at `0x5C`, the C object's `.rodata`
+lands in the hole, and `SUBALIGN(4)` in the linker script absorbs GCC's
+`.align 3` because the table starts that object's `.rodata` — `0x5C` is only
+4-aligned and still matches. Drop `Actor02500_Jt0005C` from each slot's
+`configs/USA/sym/actors/actor_?02500.txt` and mark the nine interior labels
+`// type:label`.
+
+The body is the plain switch; case 0 and case 1 both end
+`Actor02500_Fn01144(arg0)`, and cross-jumping produces the target's
+`j Actor02500_L02068` out of case 0 with no goto in the C:
+
+```c
+switch (arg0->field_1C->field_322) {
+case 0:
+    Actor02500_Fn00B18(arg0);
+    Actor02500_Fn01144(arg0);
+    break;
+case 1:
+    Actor02500_Fn00DD8(arg0);
+    Actor02500_Fn01144(arg0);
+    break;
+/* … */
+}
+```

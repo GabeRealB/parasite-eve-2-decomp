@@ -331,25 +331,42 @@ void Actor02500_L02000(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02008);
+void Actor02500_Fn00B18(Actor02500* arg0);
+void Actor02500_Fn00DD8(Actor02500* arg0);
+void Actor02500_Fn01144(Actor02500* arg0);
+void Actor02500_Fn012F0(Actor02500* arg0);
+void Actor02500_Fn020D0(Actor02500* arg0);
+void Actor02500_Fn02178(Actor02500* arg0);
+void Actor02500_Fn021F8(Actor02500* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02050);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02060);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02068);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02078);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02088);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02098);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L020A8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L020B8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L020C0);
+void Actor02500_Fn02008(Actor02500* arg0)
+{
+    switch (arg0->field_1C->field_322) {
+        case 0:
+            Actor02500_Fn00B18(arg0);
+            Actor02500_Fn01144(arg0);
+            break;
+        case 1:
+            Actor02500_Fn00DD8(arg0);
+            Actor02500_Fn01144(arg0);
+            break;
+        case 2:
+            Actor02500_Fn020D0(arg0);
+            break;
+        case 3:
+            Actor02500_Fn02178(arg0);
+            break;
+        case 4:
+            Actor02500_Fn021F8(arg0);
+            break;
+        case 5:
+            Actor02500_Fn012F0(arg0);
+            break;
+        case 6:
+            arg0->field_30 = 2;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn020D0);
 
