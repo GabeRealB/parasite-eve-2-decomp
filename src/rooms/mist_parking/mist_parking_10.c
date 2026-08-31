@@ -228,7 +228,17 @@ void func_mist_parking_80184624(s32 arg0)
     Display_InitModeObj(Task_GetDescAt(&D_mist_parking_80190824, 2U), arg0, 0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184668);
+void func_mist_parking_80184668(Task* arg0)
+{
+    s32 temp_v0;
+
+    temp_v0         = arg0->spawnArg1 - 1;
+    arg0->spawnArg1 = temp_v0;
+    if (temp_v0 < 0) {
+        Task_Kill(arg0);
+        Stage_SetEndingFlag();
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801846A4);
 
