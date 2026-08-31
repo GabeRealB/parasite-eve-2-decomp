@@ -34982,3 +34982,121 @@ alone. The same asymmetry runs the other way for the *non*-in-place form
 (`work->field_362 = cur - step;`), which wants a plain `s32` load anyway — so
 when one turn block folds and its twin does not, look at the local's width
 before touching the control flow.
+
+## A `jlabel` fragment is a mid-function jump-table arm, not a function
+
+`asm/.../<Overlay>_L<off>.s` files that start with `jlabel` and hold two or
+three instructions ending in `j <next label>` are switch arms that splat cut out
+of an enclosing function because the overlay's jump table names them. There is
+no C that compiles to one of them on its own: the vacuum's scorer sees two
+instructions and picks them as "easy", but the unit of work is the whole
+enclosing `Fn<off>` plus every `L<off>` up to the one that falls into the shared
+tail.
+
+Mark each absorbed label `// type:label` in **every** sym file that carries the
+body (`configs/USA/sym/<family>/<overlay>.txt` — twins such as `actor_100400`
+and `actor_200400` both need it), delete the corresponding `INCLUDE_ASM` lines,
+and re-split: splat then emits one `Fn<off>.s` spanning the whole switch, with
+the arms as local labels. `Actor00400_L01D24` was one arm of a ten-way switch in
+`Actor00400_Fn01B90`; matching it meant matching all 370 instructions.
+
+### The overlay's jump table has to move into the C object
+
+Once the switch is C, GCC emits its own table and the extracted
+`<Overlay>_Jt<off>` in the leading rodata must stop being emitted, or the table
+is defined twice. For a generated overlay whose whole `.text` is shared, cut the
+leading rodata around the table with the manifest's `rodata` key — one cut for
+the table (naming the shared unit, so it becomes `.rodata`), one for the bytes
+after it (naming a new overlay-local asm unit, because those words are this
+slot's own addresses):
+
+```toml
+actor_100400 = { shared = [{ start = "0x1AC", end = "0xAB0C", unit = "actor_100400_text" }],
+                 rodata = [{ start = "0x4",  unit = "actor_100400_text" },
+                           { start = "0x2C", unit = "actor_100400_header_2" }] }
+```
+
+giving `[0x0, rodata, actor_100400_header]` / `[0x4, .rodata,
+lib/actor_100400_text]` / `[0x2C, rodata, actor_100400_header_2]`. The tail unit
+must be named per overlay (`actor_200400_header_2` for the twin) or the two
+overlays write the same `asm/<ver>/<family>/data/<unit>.rodata.s`. `subalign: 4`
+in the template already overrides the `.align 3` GCC gives the table, so a table
+at a 4-mod-8 offset still lands correctly.
+
+While the split is half-done the build fails with `undefined reference to
+<Overlay>_Jt<off>` — that is the expected state between marking the labels and
+writing the C, not a mistake.
+
+## A short local keeps the copy that an `s32` local coalesces away
+
+The mirror image of "an in-place accumulator must be `s32`". When the target
+holds a call result in one callee-saved register and a second, longer-lived
+value in another —
+
+```
+move s0, v0           /* raw = Gp_ComputeDamage(...) */
+...
+move s4, s0           /* amount = raw */
+...
+beqz v0, L
+ sll  v0, s0, 16      /* reads the *first* register */
+srl  s4, v0, 14
+```
+
+— a plain `s32 amount = raw;` will not reproduce it: both are SImode, cse folds
+the copy, the call result lands straight in `$s4` and the shift reads `$s4`.
+Declaring the destination `s16` makes the assignment a HImode `subreg` move that
+cse cannot merge with the SImode shift, so both registers survive. Every later
+use of the short then re-extends on its own, which is exactly the target's
+`sll`/`sra` pairs around the `func_800E2C78` / `func_800DA6E8` arguments.
+
+Doubling that short wants `amount += amount;` (or `<<= 1`), one `sll s4,s4,1`.
+`amount * 2` on a `short` compiles to `sll 16` / `srl 15` instead, because GCC
+normalises the HImode result of a multiply but not of an add or a shift.
+
+## Reuse a scratch local to keep a switch index copy
+
+`switch (kind)` on a plain `s32` local compares the variable's own register
+(`beq s6, v0, ...`). When the target copies it first —
+
+```
+move v1, s6
+li   v0, 1
+beq  v1, v0, ...
+```
+
+— the index is a *separate* local. A fresh one is coalesced straight back
+(`s32 sel = kind; switch (sel)` changes nothing); reusing a scratch local that
+already has other definitions elsewhere in the function keeps the copy, and puts
+it in the register that scratch already uses. Pick the reused local by which
+register the target wants: in `Actor00400_Fn01B90` the `$v1` scratch holds the
+`Gp_TickObjFlag4` result, the `func_800E0C10` switch index *and* the switch
+index copy, while a second scratch in `$a1` holds only the sign-extended tick
+count — using the wrong one of the two moved four `lh` loads to `$a1`.
+
+The same trick fixes `lhu` where the target has `lh`: `w->field += d.vx.h.hi;`
+loads both halves unsigned, because the sum is stored back as a halfword and the
+sign extension is dead. Assigning through an `s32` scratch first —
+`t = d.vx.h.hi; w->field += t;` — forces `lh` and puts the stack load ahead of
+the field load, matching the target.
+
+## `case 0: break;` is visible in the decision tree
+
+A switch on `{1, 2}` emits `beq`, `beq`, `j default` — GCC omits the range check
+when skipping it avoids only one right child. Adding an empty `case 0:` makes it
+three nodes, and the check comes back:
+
+```
+beq  v1, v0, case1
+slt  v0, v1, 2
+bne  v0, zero, default
+li   v0, 2
+beq  v1, v0, case2
+j    default
+```
+
+So a stray `slt`/`slti` bound test ahead of the equality compares means the
+source has a case value you have not written down, usually an empty one. The
+same reading applies to a jump table: `sltiu v0, v1, 0xA` with entry 0 pointing
+at the switch's end label is `case 0: break;`, not a nine-case switch biased by
+one — GCC subtracts the low bound when there is no `case 0`.

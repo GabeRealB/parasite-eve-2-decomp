@@ -1,5 +1,28 @@
 #include "common.h"
 
+#include "actors/actor_100400.h"
+
+/* This overlay calls the gameplay helpers through its own (wider) prototypes:
+   the extra trailing arguments are set up at every call site but ignored by
+   the definitions in src/gameplay/3A34.c. */
+
+void       Gp_SetObjFlag1(Actor100400Obj* arg0);
+void       Gp_SetObjFlag2(Actor100400Obj* arg0, s32 arg1, s32 arg2);
+void       Gp_SetObjFlag4(Actor100400Obj* arg0, s32 arg1, s32 arg2);
+s32        Gp_TickObjFlag4(Actor100400Obj* arg0);
+s32        Gp_ObjFlag4Expired(Actor100400Obj* arg0);
+u32        Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
+s32        Gp_RollEnemyChance(Actor100400Obj* arg0, u32 arg1, s32 arg2);
+s32        Gp_GetIdParam0(s32 arg0);
+s32        Gp_GetIdParam1(s32 arg0);
+s32        Gp_GetIdParam2(s32 arg0);
+GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+void       func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void       func_800E2C78(Actor100400Obj* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
+s32        func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+void       Gp_ClearRec18Occupied(GpRec18* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn005DC);
@@ -20,27 +43,188 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn016A4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn019B4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn01B90);
+/* Damage / knock-back tick: walks the six contact records, applies the hit
+   the first one carries, then folds the accumulated push-back into the work
+   position and the actor's coordinate. */
+void Actor00400_Fn01B90(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Obj*  obj;
+    GsCOORDINATE2*   coord;
+    GpDeltaScratch   delta;
+    s32              kind;
+    s16              amount;
+    s32              dmg;
+    s32              tmp;
+    s32              tick;
+    s32              i;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01CDC);
+    kind            = 0;
+    coord           = arg0->field_2C->field_8;
+    work            = arg0->field_1C;
+    obj             = arg0->field_20;
+    work->field_642 = 0;
+    for (i = 0; i < 6; i++) {
+        if ((work->field_39C[i].field_4 & 0xFFFF0000) == 0x20000) {
+            if (work->field_61C == 0) {
+                work->field_642 = 1;
+                work->field_65D = 1;
+                dmg             = Gp_ComputeDamage(work->field_39C[i].field_4, work->field_640, 0, 0);
+                amount          = dmg;
+                work->field_61C = Gp_GetIdParam2(work->field_39C[i].field_4);
+                if (Gp_RollEnemyChance(obj, work->field_39C[i].field_4, work->field_610) != 0) {
+                    amount = ((u32)dmg << 16) >> 14;
+                    kind   = 1;
+                }
+                func_800FDB18(Gp_GetIdParam1(work->field_39C[i].field_4) & 0xFFFF,
+                              &arg0->field_2C->field_8[work->field_664], 0, &work->field_5DC);
+                work->field_644 = (amount < 0x3C) ? 5 : 2;
+                switch (Gp_GetIdParam0(work->field_39C[i].field_4) & 0xFFFF) {
+                    case 0:
+                        break;
+                    case 1:
+                        Gp_SetObjFlag1(obj);
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2(obj, work->field_39C[i].field_4, 0);
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4(obj, work->field_39C[i].field_4, 0);
+                        break;
+                    case 4:
+                        work->field_644 = 4;
+                        break;
+                    case 5:
+                        work->field_644 = 2;
+                        break;
+                    case 6:
+                        work->field_644 = 4;
+                        break;
+                    case 7:
+                        kind            = 2;
+                        work->field_644 = 2;
+                        amount         += amount;
+                        break;
+                    case 8:
+                        work->field_644 = 0;
+                        work->field_642 = 0;
+                        break;
+                    case 9:
+                        work->field_644 = 1;
+                        break;
+                }
+                if ((work->field_39C[i].field_4 & 0x7F) == 0x1C && (work->field_39C[i].field_4 & 0x8000) == 0) {
+                    obj->field_4C  &= 0xFE;
+                    work->field_644 = 5;
+                }
+                tmp = kind;
+                switch (tmp) {
+                    case 1:
+                        Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[work->field_664], 0, 0);
+                        break;
+                    case 2:
+                        Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[work->field_664], 2, 0);
+                        break;
+                }
+                func_800E2C78(obj, work->field_39C[i].field_4, amount, 0);
+                func_800DA6E8(&obj->field_10, amount, 0);
+                obj->field_40 -= amount;
+                if ((s16)obj->field_40 < 0) {
+                    obj->field_40 = 0;
+                }
+            } else if ((Gp_GetIdParam1(work->field_39C[i].field_4) & 0xFFFF) == 0xD) {
+                func_800FDB18(0xD, &arg0->field_2C->field_8[1], 0, &work->field_5DC);
+            }
+        }
+        if (work->field_642 != 0) {
+            break;
+        }
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01CEC);
+    if (obj->field_4C & 1) {
+        obj->field_4C  &= 0xFE;
+        work->field_644 = 2;
+    }
+    if (obj->field_4C & 2) {
+        obj->field_4C  &= 0xFD;
+        work->field_644 = 3;
+    }
+    if (obj->field_4C & 0xC) {
+        tmp  = Gp_TickObjFlag4(obj);
+        tick = (s16)tmp;
+        if (tick != 0) {
+            obj->field_40 -= tmp;
+            if ((s16)obj->field_40 < 0) {
+                obj->field_40 = 0;
+            }
+            func_800DA6E8(&obj->field_10, tick, 0);
+            if ((s16)obj->field_40 < 0) {
+                obj->field_40 = 0;
+            }
+            work->field_642 = 1;
+            work->field_644 = 0;
+        }
+        if (Gp_ObjFlag4Expired(obj) != 0) {
+            obj->field_4C &= 0xF3;
+        }
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D04);
+    switch (func_800E0C10(work->field_44C, &delta, 6, 0)) {
+        case 0:
+            break;
+        case 1:
+            tmp              = delta.vx.h.hi;
+            work->field_564 += tmp;
+            tmp              = delta.vz.h.hi;
+            work->field_568 += tmp;
+            if ((delta.vx.w & 0xFFFF) != 0) {
+                if (delta.vx.w > 0) {
+                    work->field_564++;
+                } else {
+                    work->field_564--;
+                }
+            }
+            if ((delta.vz.w & 0xFFFF) != 0) {
+                if (delta.vz.w > 0) {
+                    work->field_568++;
+                } else {
+                    work->field_568--;
+                }
+            }
+            tmp                = delta.vx.h.hi;
+            coord->coord.t[0] += tmp;
+            tmp                = delta.vz.h.hi;
+            coord->coord.t[2] += tmp;
+            if ((delta.vx.w & 0xFFFF) != 0) {
+                if (delta.vx.w > 0) {
+                    coord->coord.t[0]++;
+                } else {
+                    coord->coord.t[0]--;
+                }
+            }
+            if ((delta.vz.w & 0xFFFF) != 0) {
+                if (delta.vz.w > 0) {
+                    coord->coord.t[2]++;
+                } else {
+                    coord->coord.t[2]--;
+                }
+            }
+            coord->flg = 0;
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_54C;
+            coord->coord.t[2] = work->field_550;
+            break;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D1C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D24);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D2C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D34);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D44);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D50);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_L01D58);
+    Gp_ClearRec18Occupied(work->field_39C);
+    Gp_ClearRec18Occupied(work->field_44C);
+    if (work->field_61C > 0) {
+        work->field_61C--;
+    } else {
+        work->field_61C = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02154);
 
