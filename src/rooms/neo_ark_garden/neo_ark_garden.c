@@ -13,7 +13,10 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_gar
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E2A0);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E840);
+s32 func_neo_ark_garden_8017E840(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E848);
 
