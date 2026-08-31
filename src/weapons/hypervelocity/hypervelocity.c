@@ -25,9 +25,3 @@ INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hyperveloci
 INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F570);
 
 INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F694);
-
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F6A0);
-
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F6C0);
-
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F724);

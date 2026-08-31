@@ -10,10 +10,4 @@ INCLUDE_ASM("weapons/nonmatchings/tonfa_baton/tonfa_baton", func_tonfa_baton_801
 
 INCLUDE_ASM("weapons/nonmatchings/tonfa_baton/tonfa_baton", func_tonfa_baton_8011DB6C);
 
-INCLUDE_ASM("weapons/nonmatchings/tonfa_baton/tonfa_baton", func_tonfa_baton_8011DB78);
-
 INCLUDE_RODATA("weapons/nonmatchings/tonfa_baton/tonfa_baton", D_tonfa_baton_8011D1C0);
-
-INCLUDE_ASM("weapons/nonmatchings/tonfa_baton/tonfa_baton", func_tonfa_baton_8011DB98);
-
-INCLUDE_ASM("weapons/nonmatchings/tonfa_baton/tonfa_baton", func_tonfa_baton_8011DBFC);

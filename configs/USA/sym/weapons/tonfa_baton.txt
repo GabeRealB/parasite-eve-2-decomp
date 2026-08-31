@@ -1,1 +1,2 @@
 // Overlay-local symbols for Tonfa Baton (file 10319).
+WeaponsShared8011db78 = 0x8011DB78; // shared body, see src/weapons/lib/

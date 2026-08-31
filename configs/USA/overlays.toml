@@ -54,7 +54,7 @@ imports = "configs/USA/sym/weapons.imports.txt"
 as12 = { item = 0x8E, weapon = "AS12" }
 grenade_pistol = { item = 0x8A, weapon = "Grenade Pistol", rodata = [{ start = "0x4", unit = "grenade_pistol_2" }], shared = [{ start = "0x9CC", end = "0xA10", unit = "weapons_shared_8011de24" }] }
 gunblade = { item = 0x96, weapon = "Gunblade" }
-hypervelocity = { item = 0x95, weapon = "Hypervelocity" }
+hypervelocity = { item = 0x95, weapon = "Hypervelocity", rodata = [{ start = "0x18", unit = "hypervelocity_2" }], shared = [{ start = "0x24E0", end = "0x2500", unit = "weapons_shared_8011db78" }] }
 m249 = { item = 0x90, weapon = "M249" }
 m4a1 = { item = 0x8F, weapon = "M4A1 Rifle" }
 m4a1_bayonet = { item = 0x99, weapon = "M4A1 Bayonet" }
@@ -76,7 +76,7 @@ p08_snail = { item = 0x80, weapon = "P08(S. Magazine)" }
 p229 = { item = 0x84, weapon = "P229" }
 pa3 = { item = 0x8C, weapon = "PA3" }
 sp12 = { item = 0x8D, weapon = "SP12" }
-tonfa_baton = { item = 0x92, weapon = "Tonfa Baton" }
+tonfa_baton = { item = 0x92, weapon = "Tonfa Baton", rodata = [{ start = "0x4", unit = "tonfa_baton_2" }], shared = [{ start = "0x9B8", end = "0x9D8", unit = "weapons_shared_8011db78" }] }
 unused_85 = { item = 0x85, weapon = "", note = "unused weapon slot 0x85" }
 unused_86 = { item = 0x86, weapon = "", note = "unused weapon slot 0x86" }
 unused_87 = { item = 0x87, weapon = "", note = "unused weapon slot 0x87" }
