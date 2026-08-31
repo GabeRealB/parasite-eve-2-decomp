@@ -34,6 +34,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -353,7 +354,8 @@ def verify(scope: Optional[str]) -> tuple[bool, str]:
     return ok, tail
 
 
-def land_overlay(cands: list[Candidate], dry_run: bool) -> list[Candidate]:
+def land_overlay(cands: list[Candidate], dry_run: bool,
+                 do_commit: bool = False) -> list[Candidate]:
     """Land one overlay's candidates, bisecting out any that break it."""
     overlay = cands[0].overlay
     scope = cands[0].scope
@@ -374,60 +376,75 @@ def land_overlay(cands: list[Candidate], dry_run: bool) -> list[Candidate]:
     if dry_run:
         return []
 
-    touched = {c.host for c in cands}
-    for c in cands:
-        apply_edit(c)
-
-    ok, tail = verify(scope)
-    if ok:
-        return cands
-
-    # One bad body must not cost the batch. Re-land one at a time; the ones that
-    # verify stay, the ones that do not are reverted and reported.
-    print(f"    {overlay}: batch failed, bisecting {len(cands)}", file=sys.stderr)
-    revert(touched)
+    # One function at a time, verified and committed individually. Landing a
+    # whole overlay and committing afterwards produced one commit per *file*:
+    # `git add <host>` stages every change in it, so the first commit swallowed
+    # its siblings. fit_difficulty_model.py mines `^matched (\S+) (\d+)$` off the
+    # subject and joins it to that commit's diff, so bundled functions are
+    # invisible to it and one name is credited with several functions' code.
     kept: list[Candidate] = []
     for c in cands:
-        c.landed = False
         apply_edit(c)
         ok, tail = verify(scope)
-        if ok:
+        if not ok:
+            revert({c.host})
+            c.landed = False
+            c.note = tail.splitlines()[-1][:160] if tail else "scoped build failed"
+            for k in kept:          # revert() dropped this file's good ones too
+                apply_edit(k)
+            continue
+        if not do_commit or commit_one(c):
             kept.append(c)
         else:
             revert({c.host})
             c.landed = False
-            c.note = tail.splitlines()[-1][:160] if tail else "scoped build failed"
-            for k in kept:            # revert() dropped the good ones too
-                k.landed = False
-                apply_edit(k)
+            c.note = "commit failed"
     return kept
 
 
 # --- committing --------------------------------------------------------------
 
-def merge_lock(session: str, acquire: bool) -> bool:
+@contextlib.contextmanager
+def held_merge_lock(session: str, wait: int):
+    """Hold the orchestrator merge lock across the whole verify-and-commit run.
+
+    Taking it only around `git commit` leaves a window in which a vacuum session
+    can land on trunk between the build and the commit, so the tree that was
+    verified and the tree the commit sits on are not the same.
+    """
+    if not merge_lock(session, True, wait):
+        raise RuntimeError("could not take the orchestrator merge lock")
+    try:
+        yield
+    finally:
+        merge_lock(session, False, wait)
+
+
+def refresh_to_trunk() -> tuple[bool, str]:
+    """Fast-forward onto trunk before landing, so candidates a session matched
+    meanwhile have lost their INCLUDE_ASM line and get dropped."""
+    before = sh(["git", "rev-parse", "--short", "HEAD"]).stdout.strip()
+    proc = sh(["git", "merge", "--ff-only", "main"])
+    if proc.returncode != 0:
+        return False, proc.stderr.strip()[:200]
+    after = sh(["git", "rev-parse", "--short", "HEAD"]).stdout.strip()
+    return True, ("already current" if before == after else f"{before} -> {after}")
+
+
+def merge_lock(session: str, acquire: bool, wait: int = 3600) -> bool:
     cmd = [sys.executable, str(ORCH),
            "merge-acquire" if acquire else "merge-release", "--session", session]
     if acquire:
-        cmd += ["--pid", str(os.getpid()), "--wait", "3600"]
-    proc = sh(cmd)
-    return proc.returncode == 0
+        cmd += ["--pid", str(os.getpid()), "--wait", str(wait)]
+    return sh(cmd).returncode == 0
 
 
-def commit(cands: list[Candidate]) -> int:
-    n = 0
-    for c in cands:
-        if not c.landed:
-            continue
-        add = sh(["git", "add", str(c.host)])
-        if add.returncode != 0:
-            continue
-        # Same message shape the vacuum uses, so `fit_difficulty_model.py`
-        # keeps mining these as observations.
-        res = sh(["git", "commit", "-m", f"matched {c.func} 1"])
-        if res.returncode == 0:
-            n += 1
-    return n
+def commit_one(cand: Candidate) -> bool:
+    """Commit exactly this function, in the vacuum's message shape so
+    fit_difficulty_model.py keeps mining it as an observation."""
+    if sh(["git", "add", str(cand.host)]).returncode != 0:
+        return False
+    return sh(["git", "commit", "-m", f"matched {cand.func} 1"]).returncode == 0
 
 
 # --- main --------------------------------------------------------------------
@@ -478,12 +495,6 @@ def main() -> int:
         print("nothing to land")
         return 0
 
-    dirty = sh(["git", "status", "--porcelain", "--", "src"]).stdout.strip()
-    if dirty and not args.dry_run:
-        print("src/ has uncommitted changes; commit or stash them first:\n"
-              + dirty[:400], file=sys.stderr)
-        return 1
-
     by_overlay: dict[str, list[Candidate]] = {}
     for c in cands:
         by_overlay.setdefault(c.overlay, []).append(c)
@@ -514,6 +525,15 @@ def main() -> int:
             return 1
         print(f"trunk: {how}")
 
+        # Only meaningful inside the lock: outside it a vacuum session is
+        # entitled to have an edit in flight, so checking beforehand just races
+        # that session and refuses to start for no reason.
+        dirty = sh(["git", "status", "--porcelain", "--", "src"]).stdout.strip()
+        if dirty:
+            print("src/ is dirty while we hold the merge lock; refusing to "
+                  "touch it:\n" + dirty[:400], file=sys.stderr)
+            return 1
+
         # Re-read after the refresh: a session may have matched one of these
         # while we queued for the lock, in which case its INCLUDE_ASM line is
         # gone and the candidate is no longer ours to land.
@@ -530,7 +550,7 @@ def main() -> int:
 
         landed: list[Candidate] = []
         for overlay, group in sorted(by_overlay.items()):
-            kept = land_overlay(group, False)
+            kept = land_overlay(group, False, args.commit)
             landed += kept
             print(f"  {overlay:<28} {len(kept)}/{len(group)} verified")
             for c in group:
@@ -552,8 +572,7 @@ def main() -> int:
         print("✅ BUILD SUCCEEDED")
 
         if args.commit:
-            n = commit(landed)
-            print(f"committed {n} function(s)")
+            print(f"committed {len(landed)} function(s), one commit each")
         else:
             print("not committing (pass --commit); changes are in the working "
                   "tree, and the merge lock is about to be released -- commit "
