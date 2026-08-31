@@ -1,5 +1,8 @@
 #include "common.h"
 #include "main/task.h"
+extern Task*    D_actor_341300_80165A2C;
+extern TaskDesc D_actor_341300_80165A68;
+
 extern TaskDesc D_actor_341300_80165208;
 extern Task*    D_actor_341300_80165AA4;
 
@@ -52,7 +55,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_801631D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_8016398C);
+void func_actor_341300_8016398C(s32 arg0)
+{
+    if ((arg0 << 0x10) == 0) {
+        D_actor_341300_80165A2C = Task_SpawnFromTable(&D_actor_341300_80165A68, 0, 0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_801639CC);
 
