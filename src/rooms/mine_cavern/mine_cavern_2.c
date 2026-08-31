@@ -34,7 +34,10 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_801
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DFAC);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017E088);
+void func_mine_cavern_8017E088(s16 arg0)
+{
+    Gp_StartCapSlot(arg0, 1, 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017E0B4);
 
