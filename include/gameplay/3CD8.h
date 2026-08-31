@@ -417,6 +417,9 @@ void       Gp_LoadCapFile(s32 arg0);
 s32  Gp_GetCapEventKey(void);
 void Gp_RunCapCmd1(s32 arg0);
 void Gp_MsgAlly3F3(s32 arg0);
+/// Dispatches 0x7D0 to the slot-4 task to resolve a chained task for the
+/// current stage/room, then forwards 0x7D5 with `arg1` to it.
+void Gp_MsgSlot4Chain(s32 arg0, s32 arg1);
 void func_800E6D4C(s16 arg0, s16 arg1);
 void func_800E3FAC(s32 arg0, s32 arg1);
 void func_800E8614(s32 arg0, s32 arg1);

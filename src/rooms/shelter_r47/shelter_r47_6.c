@@ -19,6 +19,10 @@ s32  func_shelter_r47_8018097C(Task* task);
 void func_shelter_r47_80181914(Task* task, s32 arg1);
 void func_shelter_r47_801832EC(Task* task);
 
+/// Task spawned by the room's cap script; polled and cleared by
+/// `func_shelter_r47_80180714`.
+extern Task* D_shelter_r47_8018A690;
+
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
@@ -52,7 +56,24 @@ void func_shelter_r47_80180650(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80180714);
+void func_shelter_r47_80180714(Task* task)
+{
+    s32 out;
+
+    if (Task_PollKill(D_shelter_r47_8018A690, &out) != 0) {
+        Gp_MsgPlayer3F3(1);
+        Gp_MsgPlayerWeapon(1);
+        if (Game_Session->field_9 == 1) {
+            Gp_MsgSlot4Chain(0, 1);
+        }
+        if (Game_GetPtrSlot(0xA) != NULL) {
+            Gp_MsgAlly3F3(1);
+            Gp_MsgAllyWeapon(1);
+        }
+        D_shelter_r47_8018A690 = NULL;
+        Task_Kill(task);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801807B4);
 
