@@ -38,7 +38,15 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_801
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017E0B4);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017E0F4);
+void func_mine_cavern_8017E0F4(s32 arg0)
+{
+    if (arg0 != 0) {
+        Game_Session->field_69 &= 0xFD;
+        return;
+    }
+    Game_Session->field_69 |= 2;
+    Game_Session->field_69 |= 8;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_2", jtbl_mine_cavern_8017D630);
 
