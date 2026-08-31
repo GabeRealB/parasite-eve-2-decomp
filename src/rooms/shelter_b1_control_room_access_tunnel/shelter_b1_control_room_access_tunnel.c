@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", func_shelter_b1_control_room_access_tunnel_8017D630);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", func_shelter_b1_control_room_access_tunnel_8017D638);
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", func_shelter_b1_control_room_access_tunnel_8017D640);
 
