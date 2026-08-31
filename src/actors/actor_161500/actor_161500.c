@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 
@@ -51,7 +52,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132110);
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132150);
+void func_actor_161500_80132150(void)
+{
+    if (GameFlag_GetNibble(0x112) != 0) {
+        func_800D4D2C((GameFlag_GetNibble(0xEA) != 2) ? 0x31 : 0x33);
+    } else {
+        func_800D4D2C((GameFlag_GetNibble(0xEA) == 2) ? 0x32 : 0x30);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801321B4);
 

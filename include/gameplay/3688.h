@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 #include "main/ui.h"
 
@@ -156,5 +158,6 @@ void Gp_SetHolderItemText(s32 arg0);
 void Gp_DrawUsePrompt(DialogPrompt* arg0, UiObject* arg1);
 void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 u8   Gp_GetMapRoomId(void);
+s32  func_800D4D2C(s32 arg0);
 
 #endif // GAMEPLAY_3688_H
