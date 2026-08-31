@@ -35481,3 +35481,52 @@ two `mem`/`arg0` argument setups, raises `arg0`'s reference count enough to
 beat `coord` while the head assignments stay in sibling order. Reach for it
 whenever a merged-tail function is stuck at ~99% with a pure `$sN` swap and
 reordering the head only moves the defect around.
+
+## Struct-typing a body changes GCC 2.8.1's aliasing: a fixed scalar global does not alias a struct
+
+Retyping an m2c seed is not codegen-neutral. Replacing
+
+```c
+temp_s0 = M2C_FIELD(arg0, void**, 0x1C);   /* *(void**)((s8*)arg0 + 0x1C) */
+D_80115417 = 1;                            /* extern s8 */
+temp_a0 = M2C_FIELD(temp_s0, Task**, 0x704);
+```
+
+with the equivalent struct access
+
+```c
+Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+D_80115417 = 1;
+child = work->field_704;
+```
+
+drops two instructions: GCC sinks the `sb` into the following `beqz`'s delay
+slot, so both branch delay slots that the target leaves as `nop` get filled.
+The C is identical; only the *types* changed.
+
+The cause is `fixed_scalar_and_varying_struct_p` in GCC 2.8.1's `alias.c`. A
+`COMPONENT_REF` (`work->field_704`) sets `MEM_IN_STRUCT_P` on the RTL `MEM`; a
+plain indirection through a cast pointer does not. When one reference is an
+in-struct MEM with a *varying* (register-based) address and the other is a
+scalar MEM at a *fixed* address (a bare `extern` global), `true_dependence`
+declares they cannot alias — so the scheduler is free to move the global store
+across the struct loads. With `M2C_FIELD` neither MEM is in-struct, the
+dependence stands, and the store stays put.
+
+The fix is to make the global side aggregate too, so the heuristic stops
+firing. A one-element array is enough and needs no header change:
+
+```c
+extern s8    D_80115417[1];     /* not: extern s8 D_80115417; */
+extern void* D_800678F0[1];
+...
+D_80115417[0] = 1;
+```
+
+`volatile` does *not* work here — it changes other decisions and lands two
+instructions off.
+
+Watch for this in any function that writes a bare `extern` global next to
+pointer-based struct traffic. In the `actor_400600` typing pass it hit exactly
+the 2 of 30 functions that touched such a global, and both matched again once
+the global was declared as an aggregate.
