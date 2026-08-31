@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_102500.h"
+#include "main/tmd.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00078);
 
@@ -208,41 +209,146 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L019EC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01AB0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01AC8);
+void  Gp_UnlinkNode(void* node);
+void  Gp_UnlinkObj(void* node);
+void  Gp_SetLightMode(void* arg0, s32 arg1);
+void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void  Gp_DestroyEnemy(void* enemy, void* task);
+void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
+void* Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void* parent);
+void  Actor02500_Fn0184C(Actor02500* arg0);
+void  Actor02500_Fn02480(Actor02500* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01B28);
+extern u8 D_801153F4;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01B4C);
+void Actor02500_Fn01AC8(Actor02500Ctx* arg0, Actor02500* arg1)
+{
+    Actor02500Work*  work;
+    Actor02500Obj2C* obj;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   c;
+    VECTOR           vec;
+    s32              mode;
+    s32              one;
+    s16              st;
+    s16              phase;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01B54);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01B7C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01B98);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01C84);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01C90);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01CBC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01CF8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01D18);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01D44);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01D60);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01D74);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01DB4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01DB8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01DDC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01DE0);
+    obj   = arg1->field_2C;
+    work  = arg1->field_1C;
+    mode  = D_801153F4;
+    coord = obj->field_8;
+    if (mode == 1) {
+        goto case1;
+    }
+    if (mode < 2) {
+        goto common;
+    }
+    if (mode == 2) {
+        goto case2;
+    }
+    goto common;
+case1:
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    return;
+case2:
+    obj->field_C = 0x80;
+    return;
+common:
+    one = 1;
+    st  = work->field_324;
+    if (st == one) {
+        goto dying;
+    }
+    if (st >= 2) {
+        goto ge2;
+    }
+    if (st == 0) {
+        goto death;
+    }
+    return;
+ge2:
+    if (st == 2) {
+        goto destroy;
+    }
+    if (st == 3) {
+        goto case3;
+    }
+    return;
+death:
+    work->field_31C = 8;
+    work->field_32E = 0;
+    work->field_332 = 0x1000;
+    work->field_2E4 = coord->coord;
+    arg0->field_54  = 0;
+    Gp_UnlinkNode(&arg0->node);
+    Gp_UnlinkObj(work->field_16C);
+    Gp_UnlinkObj(work->field_1A4);
+    Gp_UnlinkObj(work->field_20C);
+    Gp_UnlinkObj(work->field_2A4);
+    Gp_SetLightMode(arg0, 1);
+    Gp_ReleaseStateF0Add(arg1, 0x19);
+    c      = arg1->field_2C->field_8;
+    vec.vx = c->workm.t[0];
+    vec.vy = c->workm.t[1];
+    vec.vz = c->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    if (work->field_33C == 0) {
+        work->field_324 = one;
+        return;
+    }
+    obj->field_C    = 0x80;
+    work->field_324 = 3;
+    return;
+dying:
+    Actor02500_Fn02480(arg1);
+    phase           = work->field_32E + 1;
+    work->field_32E = phase;
+    if (phase == 10) {
+        obj->field_C = 2;
+    }
+    if (work->field_32E == 15) {
+        Gp_SpawnEff(0x600A5, coord, 2, NULL);
+        Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
+    }
+    if (work->field_32E >= 0x3C) {
+        obj->field_C    = 0x80;
+        work->field_324 = 2;
+    }
+    c      = arg1->field_2C->field_8;
+    vec.vx = c->workm.t[0];
+    vec.vy = c->workm.t[1];
+    vec.vz = c->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    return;
+destroy:
+    Gp_DestroyEnemy(arg0, arg1);
+    return;
+case3:
+    if (work->field_33C == 0) {
+        goto timer;
+    }
+    if (work->field_33C < 2) {
+        goto inc;
+    }
+    work->field_33C = 0;
+    Tmd_FreeBuffers((TmdObject*)obj);
+    obj->field_C |= 4;
+    Actor02500_Fn0184C(arg1);
+    goto timer;
+inc:
+    work->field_33C++;
+timer:
+    phase           = work->field_32E + 1;
+    work->field_32E = phase;
+    if (phase < 0x3C) {
+        return;
+    }
+    work->field_324 = 2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01E04);
 
@@ -255,8 +361,6 @@ void Actor02500_Fn02288(Actor02500* arg0);
 void Actor02500_Fn02318(Actor02500* arg0);
 void Actor02500_Fn023D8(Actor02500* arg0);
 void Actor02500_Fn02430(Actor02500* arg0);
-
-extern u8 D_801153F4;
 
 void Actor02500_Fn01E60(Actor02500Ctx* arg0, Actor02500* arg1)
 {
@@ -287,8 +391,8 @@ ge2:
     }
     goto default_body;
 case0:
-    temp_a1->field_C = 0;
-    arg0->field_14   = 0;
+    temp_a1->field_C   = 0;
+    arg0->node.field_4 = 0;
     goto default_body;
 case1:
     if (work->field_322 == 5) {
@@ -297,8 +401,8 @@ case1:
     Actor02500_Fn023D8(arg1);
     goto tail;
 case2:
-    temp_a1->field_C = 0x80;
-    arg0->field_14   = one;
+    temp_a1->field_C   = 0x80;
+    arg0->node.field_4 = one;
     return;
 default_body:
     if (arg0->field_4C != 0) {
