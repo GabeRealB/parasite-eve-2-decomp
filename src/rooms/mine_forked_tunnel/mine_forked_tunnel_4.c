@@ -12,7 +12,10 @@ void func_mine_forked_tunnel_8017E48C(s32 arg0);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_4", func_mine_forked_tunnel_8017E25C);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_4", func_mine_forked_tunnel_8017E2B4);
+void func_mine_forked_tunnel_8017E2B4(void)
+{
+    SndEvt_EnqueueTypeA(0x54070005, 0, 0);
+}
 
 void func_mine_forked_tunnel_8017E2E0(Task* arg0)
 {
