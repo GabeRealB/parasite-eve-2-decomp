@@ -12,7 +12,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D90C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D97C);
+void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
+{
+    GameFlag_SetNibble(0xEB, arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D9A0);
 
