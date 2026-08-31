@@ -32741,6 +32741,15 @@ in every case, and end each case with `break`. GCC re-merges them itself, in
 its own direction. `func_shelter_1f_airlock_8017D6D0` is the minimal example
 (two arms of 8 and 14 `SVECTOR` emitter calls sharing one last call).
 
+A post-switch shared `Task_Kill(arg0)` after `break` is **not** the same rewrite.
+That shape scores ~95% with `insert=1 delete=1`: GCC sinks `move a0,s1` into
+the `jal Task_Kill` delay slot, so the earlier if/else join becomes
+`j jal; nop` instead of the ROM's extra stub `j jal; move a0,s1` (and default
+then has a `nop` load delay instead of the same `move a0`). Write `Task_Kill`
+in the case that owns the if/else *and* in `default` (each followed by
+`return`). Cross-jumping then emits that join stub. `func_shelter_b1_sterilization_room_801813A0`
+went 91% (m2c backward goto) → 95% (post-switch tail) → 100% (duplicated call).
+
 ## Two elements of a global array: derive a second base pointer, don't index
 
 Touching two fixed elements of an extern array with the field at a small
