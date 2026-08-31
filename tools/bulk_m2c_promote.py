@@ -141,6 +141,32 @@ def renumber(text: str, overlay: str, old: int, new: int) -> str:
                         f'/{overlay}/{unit_component(overlay, new)}"')
 
 
+def renumber_manifest(overlay: str, after: int) -> None:
+    """Shift the overlay's `rodata` cuts to match the units that just moved.
+
+    A rodata cut names the `c` unit that owns the block, so inserting a shared
+    span ahead of that unit renames it and the cut has to follow. Without this
+    the renamed unit's INCLUDE_RODATA lines point at a directory the split does
+    not write, and the assembler reports a missing `D_<overlay>_….s`.
+    """
+    path = REPO_ROOT / "configs" / "USA" / "overlays.toml"
+    text = path.read_text(encoding="utf-8")
+    m = re.search(rf"^{re.escape(overlay)} = \{{(.*)\}}$", text, re.M)
+    if not m:
+        return
+
+    def bump(hit: re.Match) -> str:
+        i = int(hit.group(1))
+        return (f'unit = "{unit_component(overlay, i + 1)}"' if i > after
+                else hit.group(0))
+
+    body = re.sub(rf'unit = "{re.escape(overlay)}_(\d+)"', bump, m.group(1))
+    if body == m.group(1):
+        return
+    path.write_text(text[: m.start()] + f"{overlay} = {{ {body} }}"
+                    + text[m.end():], encoding="utf-8")
+
+
 class UnitCut(NamedTuple):
     """A run of a unit that a shared span pushed into a new unit."""
     family: str
@@ -203,6 +229,7 @@ def cut_unit(host: Path, start: int, end: int,
     if k == 0 or 0 in sibs:
         return False, f"{src_dir}: a source file is not named <overlay>[_N].c"
 
+    renumber_manifest(overlay, k)
     # Highest first, so a rename never lands on a file still to be moved.
     for i in sorted((i for i in sibs if i > k), reverse=True):
         old_path = sibs[i]
