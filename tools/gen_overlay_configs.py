@@ -151,18 +151,26 @@ def subsegments(
                 if cut_start <= prev:
                     raise SystemExit(f"{name}: rodata cuts must be strictly increasing")
                 unit = str(cut["unit"])
-                if unit.startswith("lib/"):
-                    path = unit
-                elif unit in shared_units:
-                    path = f"lib/{unit}"
-                else:
-                    raise SystemExit(
-                        f"{name}: rodata cut {unit} must name a shared unit "
-                        f"when the whole text is shared"
-                    )
                 if prev == 0:
                     lines.append(f"      - [0x0, rodata, {name}_header]")
-                lines.append(f"      - [0x{cut_start:X}, .rodata, {path}]")
+                if unit.startswith("lib/"):
+                    lines.append(f"      - [0x{cut_start:X}, .rodata, {unit}]")
+                elif unit in shared_units:
+                    lines.append(f"      - [0x{cut_start:X}, .rodata, lib/{unit}]")
+                elif prev == 0:
+                    raise SystemExit(
+                        f"{name}: the first rodata cut ({unit}) must name a shared "
+                        f"unit when the whole text is shared"
+                    )
+                else:
+                    # Tail after a jump table that sits *inside* the header.
+                    # `.rodata` contributions are concatenated in subsegment
+                    # order and each object appears once, so the bytes after the
+                    # table cannot go back to `<name>_header` - they need an
+                    # overlay-local asm unit emitted later. It must stay
+                    # overlay-local: those words are this slot's own addresses,
+                    # which is exactly what the shared object may not carry.
+                    lines.append(f"      - [0x{cut_start:X}, rodata, {unit}]")
                 prev = cut_start
         else:
             lines.append(f"      - [0x0, rodata, {name}_header]")

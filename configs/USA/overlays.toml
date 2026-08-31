@@ -394,7 +394,7 @@ imports = "configs/USA/sym/actors.imports.txt"
 actor_100300 = { shared = [{ start = "0x78", end = "0x54B4", unit = "actor_100300_text" }] }
 actor_100400 = { shared = [{ start = "0x1AC", end = "0xAB0C", unit = "actor_100400_text" }] }
 actor_100500 = { note = "empty actor slot; the id resolves, the package has no code" }
-actor_100700 = { shared = [{ start = "0x60", end = "0x3670", unit = "actor_100700_text" }] }
+actor_100700 = { rodata = [{ start = "0x3C", unit = "actor_100700_text" }, { start = "0x54", unit = "actor_100700_header_2" }], shared = [{ start = "0x60", end = "0x3670", unit = "actor_100700_text" }] }
 actor_101000 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_101100 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_101200 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
@@ -495,7 +495,7 @@ actor_560800 = { rodata_head = "0x4" }
 actor_640400 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_200300 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x78", end = "0x54B4", unit = "actor_100300_text" }] }
 actor_200400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x1AC", end = "0xAB0C", unit = "actor_100400_text" }] }
-actor_200700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x60", end = "0x3670", unit = "actor_100700_text" }] }
+actor_200700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata = [{ start = "0x3C", unit = "actor_100700_text" }, { start = "0x54", unit = "actor_200700_header_2" }], shared = [{ start = "0x60", end = "0x3670", unit = "actor_100700_text" }] }
 actor_201000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_201100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_201200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }

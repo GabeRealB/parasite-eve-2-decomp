@@ -34245,6 +34245,40 @@ Match the parent (`Actor02100_Fn032E4` here): case 1 falls through into
 case 0 (`GameFlag_GetNibble(0xD2)`), and an empty `case 4:` is required
 so the range check stays `sltiu …, 5`.
 
+### A table *inside* the shared header needs an overlay-local rodata tail
+
+`actor_102100`'s table ended the header, so one cut sufficed. When the table
+sits mid-header - `Actor00700_Jt0003C` at `0x3C`, with a three-word pointer
+block at `0x54` - the bytes after it cannot return to `<name>_header`: each
+object appears once in the linker script and `.rodata` is concatenated in
+subsegment order, so ownership only moves forward. They also must not join the
+shared object, because the last word is this slot's own address
+(`0x80134B48` in slot 1, `0x8014CB48` in slot 2). Give the tail its own
+overlay-local asm unit, named per slot:
+
+```toml
+actor_100700 = { rodata = [{ start = "0x3C", unit = "actor_100700_text" },
+                           { start = "0x54", unit = "actor_100700_header_2" }], shared = [...] }
+actor_200700 = { …, rodata = [{ start = "0x3C", unit = "actor_100700_text" },
+                              { start = "0x54", unit = "actor_200700_header_2" }], shared = [...] }
+```
+
+`gen_overlay_configs.py` emits the first cut as `[.., .rodata, lib/<unit>]` and
+any later non-shared cut as a plain `[.., rodata, <unit>]`, giving
+`header / lib .rodata / header_2` in that order. Only the *first* cut has to
+name a shared unit; the table still starts the shared object's `.rodata`, so
+GCC's `.align 3` costs nothing and `SUBALIGN(4)` places it at the 4-mod-8
+offset.
+
+### Scoring a `jr $v0` switch in the scratch env
+
+The vacuum bootstraps `target.o` from one `jlabel`'s `.s`, which is four
+instructions. Concatenate the parent `Fn…​.s` and every `jlabel` piece up to the
+epilogue into one `target.s`, fold `jlabel X` to `X:` (see "Functions with jump
+tables still need a manual `target.o`"), drop the intermediate `endlabel`s and
+reassemble. The residual diff is the cosmetic
+`%hi(Actor00700_Jt0003C)` vs `%hi(.rodata)` pair - 99.7%, which is a match.
+
 ## Where the cross-jump lands tells you how much of the tail the C shared
 
 `Room_Script25` (shared by `shelter_b1_control_room` and

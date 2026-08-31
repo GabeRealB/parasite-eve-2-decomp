@@ -15,7 +15,9 @@ typedef struct Actor00700Obj2C {
 typedef struct Actor00700Work {
     /* 0x000 */ byte pad_0[0x2E6];
     /* 0x2E6 */ s16  field_2E6;
-    /* 0x2E8 */ byte pad_2E8[0x9E];
+    /* 0x2E8 */ byte pad_2E8[0x92];
+    /* 0x37A */ s16  field_37A;
+    /* 0x37C */ byte pad_37C[0xA];
     /* 0x386 */ s16  field_386;
 } Actor00700Work;
 
