@@ -1,5 +1,12 @@
 #include "common.h"
 
+#include <psyq/stdio.h>
+
+#include "gameplay/3CD8.h"
+#include "main/task.h"
+
+extern Task* D_acropolis_security_room_801855A8;
+
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D6DC);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D708);
@@ -10,7 +17,29 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_ro
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D5C4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D77C);
+void func_acropolis_security_room_8017D77C(Task* arg0)
+{
+    s32 sp10;
+    s32 temp_v1;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            printf("monitor\n");
+            D_acropolis_security_room_801855A8 = Task_Spawn(2, 9, 0, 0);
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgPlayer3F3(0);
+            arg0->state = arg0->state + 1;
+            return;
+        case 1:
+            if (Task_PollKill(D_acropolis_security_room_801855A8, &sp10) != 0) {
+                Gp_MsgPlayerWeapon(1);
+                Gp_MsgPlayer3F3(1);
+                Task_Kill(arg0);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D834);
 
