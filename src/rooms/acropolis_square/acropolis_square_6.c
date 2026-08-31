@@ -1,10 +1,23 @@
 #include "common.h"
+#include "main/task.h"
+extern TaskDesc D_acropolis_square_80183808;
+extern Task*    D_acropolis_square_8018889C;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182110);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182148);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182200);
+void func_acropolis_square_80182200(s32 arg0)
+{
+    switch (arg0) { /* irregular */
+        case 0:
+            D_acropolis_square_8018889C = Task_SpawnFromTable(&D_acropolis_square_80183808, 2, 0, 0);
+            return;
+        case 1:
+            Task_Kill(D_acropolis_square_8018889C);
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182260);
 
