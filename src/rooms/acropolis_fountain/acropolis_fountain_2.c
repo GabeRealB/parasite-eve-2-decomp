@@ -37,7 +37,12 @@ void func_acropolis_fountain_8017DA78(void)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DAA4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DB00);
+void func_acropolis_fountain_8017DB00(Task* arg0)
+{
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+        arg0->state = (s32)(arg0->state + 1);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DB54);
 
