@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "actors/actor_101600.h"
+#include "main/mem.h"
+#include "main/session.h"
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L00258);
@@ -572,55 +576,202 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04020);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04044);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn04054);
+void  Gp_UnlinkNode(void* node);
+void  Gp_UnlinkObj(void* node);
+void  Gp_SetLightMode(void* arg0, s32 arg1);
+void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void  Gp_PulseState1C(void);
+void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
+void  Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L040C0);
+void Actor01600_Fn03D48(Actor01600* arg0);
+s32  Actor01600_Fn045A8(Actor01600* arg0, SVECTOR* arg1);
+void Actor01600_Fn06880(Actor01600* arg0);
+void Actor01600_Fn06EA4(Actor01600* arg0);
+void Actor01600_Fn06F10(Actor01600* arg0);
+u8   Actor01600_Fn06F78(Actor01600* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L040E8);
+extern u8 D_80071075;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04104);
+/// Takes a 0x10-byte `VECTOR` from `G_SCRATCH_HEAD`, fills it with `attach`'s
+/// world position and hands it to `Gp_UpdateActorColor`. Inlined so the
+/// scratch-head address is rematerialised on every access.
+static __inline__ void update_actor_color(Actor01600Ctx* ctx, GsCOORDINATE2* attach)
+{
+    u8*     head;
+    VECTOR* block;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04150);
+    head  = *(u8**)G_SCRATCH_HEAD;
+    block = (VECTOR*)(head - 0x10);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04160);
+    *(VECTOR**)G_SCRATCH_HEAD = block;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04164);
+    block->vx = attach->workm.t[0];
+    block->vy = attach->workm.t[1];
+    block->vz = attach->workm.t[2];
+    Gp_UpdateActorColor(ctx, block, 0, 0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04168);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L041BC);
+void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
+{
+    Actor01600Work*     work;
+    Actor01600Obj2C*    obj;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      attach;
+    GsCOORDINATE2*      body;
+    Actor01600Work*     w;
+    Actor01600StateF0*  state;
+    Actor01600StateC08* pad;
+    SVECTOR             aim;
+    s32                 dist;
+    s32                 anim;
+    s16                 phase;
+    s16                 timer;
+    s16                 count;
+    s32                 mode;
+    /* Both calls below take the task; pinning it to the argument register
+       emits the one shared `move $a0, $s2` the branch delay slot uses. */
+    register Actor01600* task asm("a0");
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04238);
+    obj    = arg1->field_2C;
+    work   = arg1->field_1C;
+    coords = obj->field_8;
+    mode   = Gp_StateF0.field_4;
+    if (mode == 1) {
+        return;
+    }
+    if (mode > 1) {
+        if (mode == 2) {
+            obj->field_C      |= 0x80;
+            arg0->node.field_4 = 1;
+            return;
+        }
+    }
+    switch (work->field_502) {
+        case 0:
+            Actor01600_Fn06F10(arg1);
+            if (work->field_540 != 2) {
+                anim            = work->field_4FE;
+                work->field_4FA = 0;
+                work->field_538 = 0x14;
+                if (anim != 2 && anim != 5) {
+                    dist = Actor01600_Fn045A8(arg1, &aim);
+                    if (dist < 0) {
+                        dist = -dist;
+                    }
+                    work->field_506 = (dist < 0x400) ? 0xE : 0xB;
+                }
+                work->field_504 = 0;
+                work->field_518 = 0x1000;
+                work->field_49C = coords[0].coord;
+                Gp_SetLightMode(arg0, 1);
+            }
+            arg0->node.field_4 = 1;
+            arg0->field_54     = 0;
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(work->field_40C);
+            Gp_UnlinkObj(work->field_29C);
+            Gp_UnlinkObj(work->field_2EC);
+            Gp_UnlinkObj(work->field_3CC);
+            state = &Gp_StateF0;
+            task  = arg1;
+            if (state->field_1C >= 3) {
+                if (Actor01600_Fn06F78(task) == 1) {
+                    state->field_1C = state->field_1C + 1;
+                }
+            } else {
+                Gp_ReleaseStateF0Add(task, 0x10);
+            }
+            work->field_502 = 1;
+            break;
+        case 1:
+            Actor01600_Fn06880(arg1);
+            phase           = work->field_504 + 1;
+            work->field_504 = phase;
+            if (work->field_540 != 2) {
+                if (phase == 0xA) {
+                    obj->field_C = 2;
+                }
+                if (work->field_504 == 0xF) {
+                    Gp_SpawnEff(0x600A5, coords, 1, NULL);
+                }
+                if (work->field_504 < 0x10) {
+                    body = arg1->field_2C->field_8;
+                    w    = arg1->field_1C;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04240);
+                    w->field_4BC = body->coord.t[0];
+                    w->field_4C0 = body->coord.t[1];
+                    w->field_4C4 = body->coord.t[2];
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04244);
+                    body->coord.t[0] += (body->coord.m[0][2] * w->field_50E) >> 12;
+                    body->coord.t[2] += (body->coord.m[2][2] * w->field_50E) >> 12;
+                    if (w->field_530 == 0) {
+                        if (w->field_528 != 0) {
+                            body->coord.t[1] += w->field_51E;
+                        } else {
+                            body->coord.t[1] += 0x80;
+                        }
+                    }
+                }
+            }
+            if (work->field_504 >= 0x3C) {
+                work->field_502 = 2;
+            }
+            break;
+        case 2:
+            if (Gp_StateF0.field_1C >= 3) {
+                if (Actor01600_D12874 == 1) {
+                    pad = &Gp_StateC08;
+                    if (pad->field_A == 1) {
+                        break;
+                    }
+                    if (D_80071075 != 0) {
+                        break;
+                    }
+                    pad->field_6 |= 1;
+                    Gp_PulseState1C();
+                    Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, arg1, 0);
+                    work->field_502          = 0xFF;
+                    arg1->field_2C->field_C |= 0x80;
+                    arg1->field_2C->field_C |= 4;
+                    break;
+                }
+                Gp_ReleaseStateF0Add(arg1, 0x10);
+            }
+            work->field_54E          = 0x3C;
+            arg1->field_2C->field_C |= 0x80;
+            Actor01600_D12874--;
+            arg1->field_2C->field_C |= 4;
+            work->field_502          = 3;
+            break;
+        case 3:
+            timer           = work->field_54E - 1;
+            work->field_54E = timer;
+            if (timer == 0) {
+                Actor01600_Fn06EA4(arg1);
+            }
+            return;
+        default:
+            return;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L0424C);
+    Actor01600_Fn03D48(arg1);
+    coords->flg = 0;
+    Gp_UpdateCoord(coords);
+    count           = work->field_550 + 1;
+    work->field_550 = count;
+    if (count < 5 && Game_Session->field_52 != 1) {
+        return;
+    }
+    work->field_550 = 0;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04288);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L042AC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L0436C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04378);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L0437C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04398);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04458);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04464);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L044A8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L044D4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04524);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L04588);
+    attach = &arg1->field_2C->field_8[1];
+    update_actor_color(arg0, attach);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn045A8);
 

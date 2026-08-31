@@ -34314,3 +34314,104 @@ forward `rodata` + `units` cut is unnecessary.
 and lets unit 1's `.rodata` start at the generated table; the later
 `INCLUDE_ASM` table concatenates at `0x254` with no extra pad. Delete the
 `INCLUDE_RODATA` lines that moved into the hdr before re-splitting.
+
+## `static __inline__` keeps a constant scratch address out of a register
+
+`G_SCRATCH_HEAD` is the integer constant `0x1F8003FC`, and the MIPS expander
+cannot use it as an address directly: it emits one `(set (reg) (const_int
+0x1F8003FC))` per access. With a single access, `combine` folds the register
+back in and the access prints as the `lw $v0,0x1F8003FC` / `sw $v0,0x1F8003FC`
+macro that gas expands to `lui`+`lw` (dest as temp) and `lui $at`+`sw`. With
+**two or more accesses in one basic block**, `cse` merges those sets into one
+pseudo and the block starts with `lui/ori` into a callee-saved register — a
+shape the target usually does not have.
+
+Moving the whole alloc/use/free sequence into a `static __inline__` helper
+restores the per-access macro form, because the inliner re-expands the body and
+each constant ends up with a single use again. `Actor01600_Fn04054` went from
+96.8% to 99.4% on this change alone:
+
+```c
+static __inline__ void update_actor_color(Actor01600Ctx* ctx, GsCOORDINATE2* attach)
+{
+    u8*     head  = *(u8**)G_SCRATCH_HEAD;
+    VECTOR* block = (VECTOR*)(head - 0x10);
+
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vx = attach->workm.t[0];
+    /* … */
+    Gp_UpdateActorColor(ctx, block, 0, 0);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
+```
+
+`coordToRoot` / `project_slot` in `src/gameplay/` are the same trick; their
+`register … asm(…)` pins fix the registers, but the inlining is what
+rematerialises the address. Neither `volatile` on the pointed-to type nor a
+`COMPILER_BARRIER()` between the accesses stops the `cse` merge.
+
+## One `move $a0, $s2` shared by both arms of an if/else
+
+When both arms of an `if`/`else` call a function with the same first argument,
+GCC emits a separate argument copy in each arm. `fill_simple_delay_slots` then
+puts the fall-through arm's copy into that arm's `jal` delay slot, and the
+branch's own delay slot gets the other arm's copy — two `move $a0, $s2` where
+the target has one, with a `nop` in the `jal` slot:
+
+```
+bnez  $v0, else        bnez  $v0, else
+ move $a0, $s2          move $a0, $s2
+jal   Fn06F78          jal   Fn06F78
+ move $a0, $s2          nop            <- target
+```
+
+Pinning the shared argument to `a0` and assigning it *before* the branch emits
+that copy once, ahead of the test, so the branch delay slot takes it and both
+calls find `$a0` already loaded:
+
+```c
+register Actor01600* task asm("a0");
+
+task = arg1;
+if (state->field_1C >= 3) {
+    if (Actor01600_Fn06F78(task) == 1) { … }
+} else {
+    Gp_ReleaseStateF0Add(task, 0x10);
+}
+```
+
+This is the one case where an `a0` pin is safe even though the function makes
+many other calls: the pinned variable is dead everywhere else, so GCC still
+uses `a0` normally for the rest.
+
+## A vacuum `L`-label is a basic block, not a function
+
+`Actor01600_L041BC` is 0x7C bytes with no prologue, saved registers set up by
+somebody else, and a `j` to a sibling label as its last instruction. Splat named
+it because it is a branch target, not because it is callable. Match the enclosing
+`Fn` symbol instead — here `Actor01600_Fn04054`, 0x4054..0x45A8, 341 instructions
+split across 25 labels — then mark every interior label `// type:label` in each
+sharer's `configs/USA/sym/<family>/<overlay>.txt` and delete the whole run of
+`INCLUDE_ASM` lines. `Actor02100_L03334` is the earlier worked example.
+
+To score the parent in a vacuum scratch env, rebuild `target.o` from the
+concatenated blocks:
+
+```sh
+for f in Fn04054 L040C0 … L04588; do
+    [ "$f" != Fn04054 ] && echo "Actor01600_$f:"
+    sed -e '1,3d' -e '/^endlabel/d' -e '/^  alabel/d' \
+        asm/USA/actors/nonmatchings/lib/actor_101600_text/Actor01600_$f.s
+done > full.s
+cat tools/claude-decomp-env/prelude.inc include/macro.inc full.s > target.s
+mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -Iinclude -o target.o target.s
+```
+
+## `%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction
+
+Splat names `Gp_StateF0.field_4` as the standalone import `D_801153F4`, so a
+scratch-env diff of `lbu $v1, %lo(Gp_StateF0+4)($v0)` against `lbu $v1,
+%lo(D_801153F4)($v0)` reports a difference that does not exist: both symbols are
+`absolute:True`, so the linker folds them to the same halfword. Confirm with
+`cmp build/USA/out/<overlay> assets/USA/pe2pkg/<overlay>.pe2pkg` rather than
+chasing the name in `dist.py`'s score.
