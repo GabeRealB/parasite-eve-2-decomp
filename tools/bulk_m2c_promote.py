@@ -141,6 +141,12 @@ def renumber(text: str, overlay: str, old: int, new: int) -> str:
                         f'/{overlay}/{unit_component(overlay, new)}"')
 
 
+def manifest_entry(overlay: str) -> str | None:
+    text = (REPO_ROOT / "configs" / "USA" / "overlays.toml").read_text(encoding="utf-8")
+    m = re.search(rf"^{re.escape(overlay)} = \{{(.*)\}}$", text, re.M)
+    return m.group(1) if m else None
+
+
 def renumber_manifest(overlay: str, after: int) -> None:
     """Shift the overlay's `rodata` cuts to match the units that just moved.
 
@@ -228,6 +234,16 @@ def cut_unit(host: Path, start: int, end: int,
     sibs = {unit_index(q, overlay): q for q in src_dir.glob("*.c")}
     if k == 0 or 0 in sibs:
         return False, f"{src_dir}: a source file is not named <overlay>[_N].c"
+
+    # An overlay whose manifest already carries `rodata` or `units` cuts has a
+    # hand-placed layout: those cuts were chosen for the boundaries the original
+    # translation units had, and a shared span dropped into the middle of one
+    # re-cuts it in a way only a person can re-derive. Refuse rather than guess
+    # - a wrong guess links, and quietly puts a jump table at the wrong address.
+    entry = manifest_entry(overlay)
+    if entry and re.search(r"\b(rodata|units) = \[", entry):
+        return False, (f"{overlay}: already has hand-placed rodata/units cuts; "
+                       "splitting a unit there needs them re-derived by hand")
 
     renumber_manifest(overlay, k)
     # Highest first, so a rename never lands on a file still to be moved.
