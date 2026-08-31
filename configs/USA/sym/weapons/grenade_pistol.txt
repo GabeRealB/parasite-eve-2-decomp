@@ -1,2 +1,3 @@
 // Overlay-local symbols for Grenade Pistol (file 10311).
 WeaponsShared8011de24 = 0x8011DB8C; // shared body, see src/weapons/lib/
+WeaponsShared8011ddf8 = 0x8011DB60; // shared body, see src/weapons/lib/

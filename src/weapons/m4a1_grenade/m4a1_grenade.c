@@ -7,5 +7,3 @@ INCLUDE_ASM("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", func_m4a1_grenade_
 INCLUDE_ASM("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", func_m4a1_grenade_8011D654);
 
 INCLUDE_ASM("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", func_m4a1_grenade_8011D994);
-
-INCLUDE_ASM("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", func_m4a1_grenade_8011DDF8);
