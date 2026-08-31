@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_103800.h"
+#include "main/wipsys.h"
 
 void Actor03800_Fn00974(Actor103800* arg0);
 void Actor03800_Fn00A98(Actor103800* arg0);
@@ -12,7 +13,8 @@ void Actor03800_Fn036EC(Actor103800* arg0);
 void Actor03800_Fn03744(Actor103800* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
-extern u8 D_801153F4;
+extern u8  D_801153F4;
+extern s32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn000B8);
 
@@ -200,19 +202,51 @@ void Actor03800_L01518(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn01520);
+void Actor03800_Fn01520(Actor103800* arg0)
+{
+    Actor103800Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR           vec;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01560);
+    work  = arg0->field_1C;
+    coord = work->field_344;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01570);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L015D0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L015D8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01630);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01658);
+    switch (work->field_354) {
+        case 0:
+            work->field_360 = 0;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            vec.vx          = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec.vy          = 0;
+            vec.vz          = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            work->field_364 = ratan2((s16)vec.vx, (s16)vec.vz) & 0xFFF;
+            work->field_348 = 9;
+            if (work->field_36A == 0) {
+                work->field_36A = 1;
+            }
+            work->field_354 = 1;
+            break;
+        case 1:
+            work->field_360 = 0x28;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            if (work->field_362 == work->field_364) {
+                work->field_354 = 2;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_356 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x78;
+            }
+            break;
+        case 2:
+            work->field_360 = 0;
+            work->field_35E = 2;
+            work->field_356--;
+            if (work->field_356 <= 0) {
+                work->field_352 = 1;
+                work->field_354 = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn0166C);
 
@@ -539,7 +573,6 @@ case1:
 
 void Actor03800_Fn01150(Actor103800* arg0);
 void Actor03800_Fn012B4(Actor103800* arg0);
-void Actor03800_Fn01520(Actor103800* arg0);
 void Actor03800_Fn0166C(Actor103800* arg0);
 void Actor03800_Fn03420(Actor103800* arg0);
 void Actor03800_Fn01948(Actor103800* arg0);
