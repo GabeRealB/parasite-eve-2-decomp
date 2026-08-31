@@ -96,7 +96,10 @@ L_case6:
     Task_Kill(task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DC78);
+s32 func_shelter_b3_elevator_hall_8017DC78(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DC80);
 
