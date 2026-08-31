@@ -35323,3 +35323,50 @@ the temp whose live range really is one block belongs at block scope; a value
 the target keeps in the same saved register across every arm (`snd` here) has
 to stay function-scope. `Actor02000_Fn012E0` went 96.8% → 98.5% → 100% over
 those two moves, with the whole diff being which saved register each name got.
+
+## The overlay state dispatcher: a *local* function-pointer table
+
+A body of the shape
+
+```
+addiu   $sp, $sp, -0x28
+lui     $v0, %hi(D_ovl_8011D1DC)
+sw      $ra, 0x20($sp)
+addiu   $a3, $v0, %lo(D_ovl_8011D1DC)
+lw      $v1, 0x0($a3)      # ... 0x4, 0x8, 0xC
+sw      $v1, 0x10($sp)     # ... 0x14, 0x18, 0x1C
+lw      $v0, 0x30($a0)
+sll     $v0, $v0, 2
+addu    $v0, $sp, $v0
+lw      $v0, 0x10($v0)
+jalr    $v0
+```
+
+is the per-frame entry point every weapon / room / actor overlay has, and it
+matches from a plain local array — the copy loop is GCC materialising the
+initializer, not a memcpy in the source:
+
+```c
+StateFn states[4] = { fn0, fn1, SharedA, SharedB };
+states[task->state](task);
+```
+
+The tells that it is a *local* and not a `static const`: the four words are
+copied to the frame at `sp+0x10` (just above the 16-byte argument save area)
+and the index is added to `$sp`, not to the `%lo` address. Writing the table
+`static` instead indexes the rodata directly and loses the whole copy block.
+`$a0` is never touched before the `jalr`, so the callee does take the task
+pointer; the argument is free because it is already in place.
+
+The compiler's anonymous table has to land at the address the target's `%lo`
+names, so if the dispatcher lives in a later unit while the rodata block is
+owned by the first one, the manifest needs a `rodata` cut at that offset before
+the body will match — `m4a1_grenade` cuts at `0x1C` so `m4a1_grenade_2` owns
+`0x8011D1DC`.
+
+`overlay_dup_index.py find` reports ~27 copies of this body across families,
+but they are *not* shareable into `src/<family>/lib/`: each copy references its
+own overlay's `D_<ovl>_XXXXXXXX`, whose four words name that overlay's own
+state functions, and those symbols exist only in that overlay's symbol map. The
+five weapons copies have five distinct byte images for that reason, and
+`overlay_dup_index.py promote` refuses them. Match it per overlay.
