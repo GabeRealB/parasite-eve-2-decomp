@@ -54,4 +54,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80134850);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80134870);
+void func_actor_160900_80134870(void)
+{
+    CdCmd_CancelReplaceAndActivate();
+    Gp_RestoreStreamRng();
+}
