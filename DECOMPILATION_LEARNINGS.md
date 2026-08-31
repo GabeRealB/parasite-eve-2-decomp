@@ -33910,3 +33910,34 @@ goto case1; goto epilogue;` is the `beqz` / `beq` / `j` dispatch; do not write
 Replace every INCLUDE_ASM in the span, and mark the interior symbols
 `// type:label` in each overlay's `sym/*.txt` so a re-split does not cut the
 parent again. The header `.word` table only names the `Fn*` entry.
+
+## Mixed `arg0->state = task->state + 1` swaps `$s0`/`$s1` with a hoisted `1`
+
+A 0/1/2 task-state switch hoists `li $s1, 1` for the `beq` and reuses it for
+`Game_Session->field_1 = 1`. That constant is 3 refs / ~26 insns and crosses
+one call, so global-alloc colors it `$s0` and the `Task*` `$s1`. The target
+wants the opposite (`$s0 = arg0`, `$s1 = 1`).
+
+Copy `arg0` to a local and keep **one** mixed increment so both names stay
+live; using the copy for every access leaves the swap:
+
+```c
+Task* task;
+
+task = arg0;
+switch (task->state) {
+    case 0:
+        /* ... */
+        arg0->state = task->state + 1; /* both names */
+        return;
+    case 1:
+        /* ... */
+        task->state = task->state + 1;
+        return;
+}
+Task_Kill(task);
+```
+
+`func_dryfield_water_tank_8017D618` is the example. The sibling
+`func_dryfield_water_tower_8017D948` does not need this: `field_1 = 1` sits
+after more calls, so the hoisted `1` is already the lower-priority allocno.
