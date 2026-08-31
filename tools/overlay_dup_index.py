@@ -42,6 +42,12 @@ from pathlib import Path
 
 ASM_ROOT = Path("asm/USA")
 CACHE = Path("build/USA/dup_index.json")
+# Families that are one link output, not a set of them. Their asm tree is still
+# cut into unit directories, but two identical bodies in two of those units are
+# two separate functions - the segment links once, so neither can be served by
+# the other. Treating the whole family as one overlay is what keeps `solved`
+# and `siblings` from offering to share them.
+SINGLE_LINK = frozenset({"main", "gameplay", "title"})
 WORD = re.compile(r"^\s*/\* [0-9A-F]+ ([0-9A-F]{8}) ([0-9A-F]{8}) \*/", re.M)
 REF = re.compile(r"%(?:hi|lo)\(([A-Za-z_]\w*)\)|\b(?:jal|j)\s+([A-Za-z_]\w*)")
 
@@ -64,17 +70,42 @@ SKIP = ("glabel", "endlabel", "nonmatching", ".include", ".set", ".section",
 LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+):?$")
 
 
+def declaration(path: Path, text: str) -> re.Match | None:
+    """Where this file's body starts, or None if the file is not code.
+
+    Splat gives a unit three shapes and only the name says which is which:
+
+    * ``glabel`` - a function, whatever it is called. Requiring a ``func_``
+      prefix here used to drop 3,035 ``Actor…_L…`` and 626 ``Actor…_Fn…``
+      bodies, which is most of what the actor overlays still have left.
+    * ``jlabel`` - a basic block a jump table branches into. Real code, matched
+      like any other unit, and duplicated across overlays for the same reasons.
+    * ``dlabel`` - data. Except when a `.text` span comes up short and splat
+      files code into `.rodata` as ``.word``; that only happens to functions,
+      which carry the ``func_`` name, so data tables with names of their own
+      (``Display_TaskStates``, ``Boot_BuildStamp``) stay out.
+    """
+    kinds = "glabel|jlabel|dlabel" if path.stem.startswith("func_") else "glabel|jlabel"
+    return re.search(rf"^(?:{kinds}) {re.escape(path.stem)}\b", text, re.M)
+
+
 def scan_function(path: Path, unit: str) -> dict | None:
     text = path.read_text(encoding="utf-8", errors="replace")
     found = WORD.findall(text)
     if not found:
         return None
+    body = declaration(path, text)
+    if body is None:
+        return None
     # splat prepends the `.rodata` a function owns - its jump table - ahead of
     # the code, so the first word in the file is not the function's. `vram` and
     # `words` describe the body alone, because promotion turns them into a
     # `.text` span and a jump table is not part of it.
-    body = re.search(rf"^glabel {re.escape(path.stem)}\b", text, re.M)
-    code = WORD.findall(text[body.start():]) if body else found
+    # From `body.end()`, so the declaration line itself never reaches the hash:
+    # it carries the unit's own name (`jlabel Actor03800_L01EA8`), which differs
+    # in every copy. `glabel` used to be dropped by SKIP instead; doing it here
+    # covers all three kinds and leaves the existing hashes unchanged.
+    code = WORD.findall(text[body.end():])
     # splat writes the encoding big-endian in the comment; the target is little.
     words = [struct.unpack("<I", struct.pack(">I", int(w, 16)))[0] for _v, w in found]
 
@@ -83,7 +114,7 @@ def scan_function(path: Path, unit: str) -> dict | None:
     # Canonicalise the body alone, for the same reason `vram` and `words` do:
     # migrating a jump table into the function that owns it prepends a whole
     # `dlabel` block here, and only in the copy whose rodata has been cut.
-    for line in text[body.start():].splitlines() if body else text.splitlines():
+    for line in text[body.end():].splitlines():
         if line.startswith(SKIP):
             continue
         line = ADDR.sub("", line).rstrip()
@@ -117,14 +148,17 @@ def build(families: list[str] | None) -> dict:
             continue
         for marker in ("nonmatchings", "matchings"):
           for path in sorted(root.rglob(f"{marker}/**/*.s")):
-            if not path.name.startswith("func_"):
+            # `scan_function` decides what is code; skip splat's data units by
+            # name first so 1,300 tables are not read to find that out.
+            if path.name.startswith(("D_", "jtbl_")):
                 continue
             # asm/<ver>/<family>/nonmatchings/<overlay>/<unit…>/<fn>.s - the
             # overlay is the component after the marker, not before it: asm_path
             # is the family root so several overlays share one asm tree.
             parts = path.parts
             at = parts.index(marker)
-            overlay = parts[at + 1]
+            family = parts[at - 1]
+            overlay = family if family in SINGLE_LINK else parts[at + 1]
             rec = scan_function(path, overlay)
             if rec:
                 rec["overlay"] = f"{'/'.join(parts[1:at])}/{overlay}"
@@ -314,14 +348,19 @@ def cmd_stats(data: dict) -> int:
     fns = [f for f in data["functions"] if f.get("state") != "matched"]
     by_family = collections.Counter(f["overlay"].split("/")[0] for f in fns)
     print(f"{len(fns)} functions across {len(by_family)} family/families")
+    # Class over the same set `fns` counts, not over everything: mixing an
+    # unmatched population with classes that include the matched ones makes
+    # "redundant copies" a difference between two different totals, and it goes
+    # negative as soon as more bodies are matched than are duplicated.
+    todo = {"functions": fns}
     for key, label in (("text", "same body"), ("raw", "same bytes")):
-        cl = classes(data, key)
+        cl = classes(todo, key)
         red = len(fns) - len(cl)
         wt = sum(f["words"] for f in fns)
         wu = sum(v[0]["words"] for v in cl.values())
         print(f"  {label:12}: {len(cl):5} distinct, {red:5} redundant copies "
               f"({100*red//len(fns)}% of functions, {100*(wt-wu)//wt}% of instructions)")
-    cl = classes(data, "text")
+    cl = classes(todo, "text")
     hist = collections.Counter(len(v) for v in cl.values())
     multi = sum(c for n, c in hist.items() if n > 1)
     print(f"\n  bodies appearing more than once: {multi}")
