@@ -7,6 +7,8 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+extern TaskDesc D_mist_parking_8018D75C;
+extern Task*    D_mist_parking_80195324;
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_8018345C);
 
@@ -16,7 +18,10 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_8018357C);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183600);
+void func_mist_parking_80183600(void)
+{
+    D_mist_parking_80195324 = Task_SpawnFromTable(&D_mist_parking_8018D75C, 4, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183634);
 
