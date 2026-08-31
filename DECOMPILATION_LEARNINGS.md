@@ -34485,3 +34485,46 @@ Writing `Game_Session->field_4 == 4` re-emits the load in `.text` and shifts the
 overlay. An uninitialized `GameSession *session` plus `(u8)session->field_4`
 keeps `$v0` and matches the splat-cut body. `func_actor_450800_80131E34` /
 `actor_460200` are examples.
+
+## Read a local struct field through a pointer local to defeat store forwarding
+
+CSE forwards a constant store to a stack slot into the very next load of that
+slot, so
+
+```c
+loc.field_5 = 0;
+if (loc.field_5 == 0) { ... }
+```
+
+folds away entirely: no `lbu`, no branch. The target may still contain
+
+```
+sh    v0, 0x10(sp)
+sb    zero, 0x15(sp)
+lbu   v0, 0x15(sp)
+nop
+bnez  v0, ...
+```
+
+Swapping the two stores does not help — `sh` at a disjoint offset does not
+invalidate the byte entry. Assign the local's address to a pointer local and
+read through it. The two `MEM` rtxes then differ, so CSE never forwards, and
+combine folds the known `sp + K` back into the load's address, leaving the
+frame-relative `lbu` the target wants:
+
+```c
+s = &loc;
+*(u16*)&loc = 0x26;
+loc.field_5 = 0;
+if (s->field_5 == 0) { ... }
+```
+
+The mirror image is useful too: *writes* through such a pointer keep an
+`addiu $sN, $sp, K` base and print as `sb v0, 3(sN)`, while direct member
+writes print as `sb v0, 0x1b(sp)`. A target that mixes both forms for one
+local is describing exactly that mix in C — write the plain assignments as
+`d->field_3 = …` and the read-modify-write as `dst.field_3 = dst.field_3 + 2`.
+
+`Room_Script01` is the example: a `GpSaveLoc` src/dst pair (the `0x13EE`
+message payload, see `Gp_WarpLoc`) built on the stack. Unlike the `volatile`
+recipes above, no qualifier is needed — the pointer local alone is the barrier.
