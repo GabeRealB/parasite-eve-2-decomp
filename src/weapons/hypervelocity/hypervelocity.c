@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "main/task.h"
+
 INCLUDE_RODATA("weapons/nonmatchings/hypervelocity/hypervelocity", D_hypervelocity_8011D1C0);
 
 INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011D1E8);
@@ -24,4 +26,7 @@ INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hyperveloci
 
 INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F570);
 
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011F694);
+void func_hypervelocity_8011F694(Task* arg0)
+{
+    arg0->state = 3;
+}
