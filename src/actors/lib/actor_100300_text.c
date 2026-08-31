@@ -1,5 +1,19 @@
 #include "common.h"
 
+#include "actors/actor_100300.h"
+
+void Actor00300_Fn00E54(Actor100300* arg0);
+void Actor00300_Fn032BC(Actor100300* arg0);
+void Actor00300_Fn0340C(Actor100300* arg0);
+void Actor00300_Fn03A1C(Actor100300* arg0);
+void Actor00300_Fn04A2C(Actor100300* arg0);
+void Actor00300_Fn04C20(Actor100300* arg0);
+void Actor00300_Fn04E30(Actor100300* arg0);
+void Actor00300_Fn04ED4(Actor100300* arg0);
+void Actor00300_Fn04FB0(Actor100300* arg0);
+void Actor00300_Fn05008(Actor100300* arg0);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00078);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn005D0);
@@ -62,7 +76,34 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn047CC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn048D4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04958);
+void Actor00300_Fn04958(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    GsCOORDINATE2*   coord;
+    Actor100300Work* work;
+
+    work  = arg1->field_1C;
+    coord = arg1->field_2C->field_8;
+    if (work->field_648 != 0) {
+        if (arg0->field_4C != 0) {
+            Actor00300_Fn04A2C(arg1);
+        }
+        Actor00300_Fn00E54(arg1);
+        Actor00300_Fn04C20(arg1);
+        if (work->field_67C != 0) {
+            Actor00300_Fn032BC(arg1);
+        }
+        Actor00300_Fn04E30(arg1);
+        Actor00300_Fn04ED4(arg1);
+        if (work->field_664 != 0) {
+            Actor00300_Fn0340C(arg1);
+        }
+        Actor00300_Fn03A1C(arg1);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        Actor00300_Fn04FB0(arg1);
+        Actor00300_Fn05008(arg1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04A2C);
 
