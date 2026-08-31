@@ -18,4 +18,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elev
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017FFE4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_80180274);
+s32 func_acropolis_west_elevator_hall_80180274(void)
+{
+    Gp_SpawnEff(0x60033, NULL, 0, NULL);
+    return 0;
+}
