@@ -70,9 +70,3 @@ void func_actor_121300_80134364(void)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134384);
-
-void func_actor_121300_801343A4(void)
-{
-    Gp_RestoreStreamRng();
-    CdCmd_CancelReplaceAndActivate();
-}
