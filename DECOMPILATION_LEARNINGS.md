@@ -34337,6 +34337,30 @@ tables still need a manual `target.o`"), drop the intermediate `endlabel`s and
 reassemble. The residual diff is the cosmetic
 `%hi(Actor00700_Jt0003C)` vs `%hi(.rodata)` pair - 99.7%, which is a match.
 
+Drop the `nonmatching` lines too, not just the `endlabel`s. That macro emits
+`.type <label>.NON_MATCHING, @object` with the fragment's size, so objdump
+renders each `jlabel` arm as a data blob
+(`44: 0c000000 00000000 08000000 ...`) instead of instructions and
+`objdump.py` dies on the relocation that follows with
+`Exception: failed to parse relocated line: nop`. For the same reason keep
+exactly one `glabel` (the parent) and one closing `endlabel`: every extra
+`glabel` adds an `.ent`/`.end` pair, and the resulting `.pdr` section carries
+an `R_MIPS_32` on a zero word, which trips that parser as well. A one-liner
+that works from the project root:
+
+```sh
+for f in Fn04C20 L04C64 … L04CDC; do
+    grep -v '^nonmatching \|^endlabel \|^glabel \|^jlabel ' "$A/Actor00300_$f.s" |
+        sed "1i $f:"
+done
+```
+
+then rename the first label back to `glabel <parent>`, append one `endlabel`,
+assemble, and `mips-linux-gnu-objcopy --remove-section=.pdr target.o` if any
+`.ent` survived. `Actor00300_L04CB4` (arm of `Actor00300_Fn04C20`) is the
+example; scoring it this way gives 99.848% with the `%hi(Actor00300_Jt00054)`
+vs `%hi(.rodata)` pair as the only diff.
+
 ## Where the cross-jump lands tells you how much of the tail the C shared
 
 `Room_Script25` (shared by `shelter_b1_control_room` and
@@ -34862,3 +34886,27 @@ with the result, so `or s2,v0,v1` becomes `or s2,s2,v0`, the id has to hold a
 call-saved register from the arms onward, and the frame loses `$s3`
 (0x28 → 0x20). Score topped out at 96.8% until the statement moved back inside
 the cases; the duplicated form is 100%.
+
+## `symbol_name_format` renames local labels too, so `.L<hex>` regexes miss overlays
+
+Any tool that recognises a splat local label by `\.L[0-9A-Fa-f_]+:` reads zero
+labels in every generated overlay. Overlays in a family all load at the same
+address, so their configs prefix generated names with the segment — and that
+applies to branch targets as well as functions:
+
+```
+main / gameplay:   .L80059400:
+rooms / actors:    .Lshelter_b6_nursery_8018008C:   .Lactor_301500_801637F0:
+```
+
+`shelter`, `actor`, `nursery` are not hex, so the pattern fails silently — no
+error, just a count of 0. That is how `score_functions.py` came to call
+`func_mine_cavern_801825C8` (457 instructions, 114 calls) the easiest unmatched
+function in the project: one of its four features was structurally absent in
+12,381 overlay functions, and the model's negative jump coefficient did the
+rest. Match the label as `\.L\w+:`.
+
+The same caution applies to anything else keyed on a symbol's *shape* rather
+than its role: `func_<addr>` becomes `func_<overlay>_<addr>`, `jtbl_<addr>`
+becomes `jtbl_<overlay>_<addr>`, and a pattern written against main's names
+will quietly match nothing in an overlay.

@@ -16,8 +16,12 @@ typedef struct Actor100300Work {
     /* 0x648 */ s32  field_648;
     /* 0x64C */ byte pad_64C[0x18];
     /* 0x664 */ s16  field_664;
-    /* 0x666 */ byte pad_666[0x16];
+    /* 0x666 */ byte pad_666[0x10];
+    /* 0x676 */ s16  field_676;
+    /* 0x678 */ byte pad_678[0x4];
     /* 0x67C */ s16  field_67C;
+    /* 0x67E */ byte pad_67E[0x6];
+    /* 0x684 */ s16  field_684;
 } Actor100300Work;
 
 typedef struct Actor100300 {
