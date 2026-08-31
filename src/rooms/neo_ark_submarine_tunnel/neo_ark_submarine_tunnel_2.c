@@ -11,7 +11,10 @@ void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", func_neo_ark_submarine_tunnel_8017F3BC);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", func_neo_ark_submarine_tunnel_8017F414);
+void func_neo_ark_submarine_tunnel_8017F414(void)
+{
+    Game_GetPtrSlot(3);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", func_neo_ark_submarine_tunnel_8017F434);
 
