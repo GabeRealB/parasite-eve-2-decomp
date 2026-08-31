@@ -2372,6 +2372,57 @@ The remaining diff will then be a single cosmetic pair — target references
 `jtbl_XXXXXXXX` where your build references its own `.rodata`. That is expected
 in the scratch environment; see the next section for the real build.
 
+## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
+
+A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /
+`slti a0,2` is the switch expander's 0/1/2 tree with a HImode index. Two C
+shapes each get only half of that:
+
+```c
+switch ((u16)rnd);   /* slti stays; andi copies to $v1 */
+rnd = (u16)rnd;
+switch (rnd);        /* andi in place; slti becomes a linear chain */
+```
+
+Assign the truncate, then write the tree with gotos so the `== 1` path is a
+taken `beq` (fall through is the `slti` side) and each case is a forward
+`beqz`/`beq` target:
+
+```c
+rnd = rnd % 5;
+rnd = (u16)rnd;
+if (rnd != one) {          /* beq a0, a2, case1; slti delay */
+    if ((s32)rnd < 2) {
+        if (rnd == 0) {
+            goto case0;    /* beqz a0, case0; li 0x14 delay */
+        }
+        field = 0x14;
+        return;            /* j; sh delay */
+    }
+    if (rnd == 2) {
+        goto case2;
+    }
+    field = 0x14;
+    return;
+}
+goto case1;
+```
+
+`Actor01600_Fn01420` is the example. `TOUCH_REG(bits)` after
+`bits = 0x40100000` keeps `lui 0x4010` above an independent `lw` of the
+spawn pointer; without it the scheduler emits `lw` then `lui`. After the
+following `jal`, copy the first two `SndEvt_EnqueueType6` args into temps
+and `TOUCH_REG` each so `move a0` / `move a1` precede `sll v0,24` of the
+third arg's `(s8)`:
+
+```c
+a0id  = id;
+a1pan = pan;
+TOUCH_REG(a0id);
+TOUCH_REG(a1pan);
+SndEvt_EnqueueType6(a0id, a1pan, (s8)depth);
+```
+
 **`maspsx` hangs unless stdin is closed (fixed).** `maspsx.py` prints
 `Warning, no input from stdin, will try to read from a file` and then blocks
 forever waiting on stdin if stdin is still open — so `build.sh` appears to hang

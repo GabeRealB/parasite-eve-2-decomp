@@ -3,6 +3,7 @@
 #include "actors/actor_101600.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
 
@@ -152,47 +153,191 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L013B8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L013C8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn01420);
+void Actor01600_Fn017BC(Actor01600* arg0);
+void Actor01600_Fn020F8(Actor01600* arg0);
+void Actor01600_Fn06744(Actor01600* arg0);
+void Actor01600_Fn06F10(Actor01600* arg0);
+s32  Gp_TickObjFlag2(void* arg0);
+s32  Gp_GetObjPan(void* arg0);
+s32  Gp_GetObjDepth(void* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01474);
+extern s32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01484);
+void Actor01600_Fn01420(Actor01600* arg0)
+{
+    Actor01600Work*  work;
+    Actor01600Obj20* spawn;
+    GsCOORDINATE2*   coords;
+    s32              one;
+    s32              anim;
+    u16              timer;
+    u32              rnd;
+    s32              bits;
+    s32              id;
+    s32              pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01494);
+    work   = arg0->field_1C;
+    coords = arg0->field_2C->field_8;
+    switch (work->field_4FE) {
+        case 0:
+            Actor01600_Fn017BC(arg0);
+            Actor01600_Fn06744(arg0);
+            break;
+        case 1:
+            Actor01600_Fn020F8(arg0);
+            Actor01600_Fn06744(arg0);
+            break;
+        case 2:
+            Actor01600_Fn06F10(arg0);
+            work->field_504++;
+            if (work->field_506 == 0xE && work->field_50A < 0x11) {
+                work->field_50E = -0x3C;
+                Actor01600_Fn06744(arg0);
+            } else {
+                work->field_50E = 0;
+            }
+            if (work->field_504 == 0x28) {
+                work->field_538 = 0x10;
+                work->field_506 = 0x16;
+            }
+            if (work->field_504 >= 0x5B) {
+                work->field_506  = 0x19;
+                work->field_4FE  = 0;
+                work->field_504  = 0;
+                work->field_2BA |= 0x8000;
+            }
+            work->field_50E = 0;
+            Actor01600_Fn06744(arg0);
+            break;
+        case 3:
+            Actor01600_Fn06F10(arg0);
+            work->field_506 = 0x13;
+            if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+                work->field_4FE  = 0;
+                work->field_506  = 0x19;
+                work->field_2BA |= 0x8000;
+            }
+            work->field_50E = 0;
+            Actor01600_Fn06744(arg0);
+            break;
+        case 4:
+            work->field_506 = 0x11;
+            break;
+        case 5:
+            Actor01600_Fn06F10(arg0);
+            if (work->field_506 == 0xE) {
+                if (work->field_50A >= 0x2C && work->field_522 == 0 && (work->field_50A & 2)) {
+                    work->field_522 = 1;
+                    rnd = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    work->field_4CC   = ((rnd >> 11) & 0x60) + 0x20;
+                }
+            } else if (work->field_506 == 0x16) {
+                if (work->field_50A >= 0x32) {
+                    work->field_4FE  = 0;
+                    work->field_506  = 0x19;
+                    work->field_2BA |= 0x8000;
+                }
+            }
+            if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+                work->field_506 = 0x16;
+            }
+            work->field_50E = 0;
+            Actor01600_Fn06744(arg0);
+            break;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L014E0);
+    one  = 1;
+    anim = work->field_506;
+    if (anim == one) {
+        return;
+    }
+    if (anim == 0x16) {
+        return;
+    }
+    if (anim == 0x15) {
+        return;
+    }
+    if (anim == 0x10) {
+        return;
+    }
+    if (anim == 0x13) {
+        return;
+    }
+    if (anim == 0x1C) {
+        return;
+    }
+    if (anim == 0x1D) {
+        return;
+    }
+    if (anim == 0x1E) {
+        return;
+    }
+    if (anim == 0x1B) {
+        return;
+    }
+    if (anim == 9) {
+        return;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L014E4);
+    timer           = work->field_542 - 1;
+    work->field_542 = timer;
+    if ((timer << 16) != 0) {
+        return;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01500);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01530);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L0156C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01578);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L015F4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01624);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L0163C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01640);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01648);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01720);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01730);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01740);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L01750);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L0175C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L017A0);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    rnd         = (u32)Gp_LcgState >> 16;
+    rnd         = rnd % 5;
+    rnd         = (u16)rnd;
+    TOUCH_REG(id);
+    if (rnd != one) {
+        if ((s32)rnd < 2) {
+            if (rnd == 0) {
+                goto snd0;
+            }
+            work->field_542 = 0x14;
+            return;
+        }
+        if (rnd == 2) {
+            goto snd2;
+        }
+        work->field_542 = 0x14;
+        return;
+    }
+    goto snd1;
+snd0:
+    bits = 0x40100000;
+    TOUCH_REG(bits);
+    spawn = arg0->field_20;
+    SOFT_USE_REG(arg0);
+    bits |= 6;
+    goto sndjoin;
+snd1:
+    bits = 0x40100000;
+    TOUCH_REG(bits);
+    spawn = arg0->field_20;
+    SOFT_USE_REG(arg0);
+    bits |= 7;
+    goto sndjoin;
+snd2:
+    bits = 0x40100000;
+    TOUCH_REG(bits);
+    spawn = arg0->field_20;
+    SOFT_USE_REG(arg0);
+    bits |= 8;
+sndjoin:
+    id  = ((spawn->field_8 >> 12) << 8) | bits;
+    pan = (s8)Gp_GetObjPan(coords);
+    {
+        s32 depth = Gp_GetObjDepth(coords);
+        s32 a0id  = id;
+        s32 a1pan = pan;
+        TOUCH_REG(a0id);
+        TOUCH_REG(a1pan);
+        SndEvt_EnqueueType6(a0id, a1pan, (s8)depth);
+    }
+    work->field_542 = 0x14;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn017BC);
 
