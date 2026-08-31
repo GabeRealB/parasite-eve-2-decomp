@@ -14,16 +14,16 @@
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
- * of gameplay flags at 0x80115408..0x8011541B.
- *
- * Both are declared as the scalars they are. Storing to a bare `extern` global
- * next to pointer-based struct traffic lets GCC 2.8.1's
- * `fixed_scalar_and_varying_struct_p` conclude the two cannot alias, and the
- * scheduler then sinks the store past the `Actor400600Work` loads that follow.
- * `SOFT_BARRIER()` after each such store restores the ordering without
- * claiming anything about the globals' shape. */
-extern void* D_800678F0;
-extern s8    D_80115417;
+ * of gameplay flags at 0x80115408..0x8011541B. Neither object's real aggregate
+ * shape is known here, and both are deliberately declared as one-element arrays
+ * rather than as a bare `void*` / `s8`: GCC 2.8.1's
+ * `fixed_scalar_and_varying_struct_p` alias heuristic assumes a fixed-address
+ * *scalar* never aliases a pointer-based *struct* reference, so with the scalar
+ * form it sinks the store to this global past the `Actor400600Work` loads that
+ * follow it and the instruction schedule stops matching. Referencing them
+ * through an aggregate restores the dependence. */
+extern void* D_800678F0[1];
+extern s8    D_80115417[1];
 
 extern s32 Gp_LcgState;
 
@@ -160,9 +160,8 @@ void func_actor_400600_80137240(Task* arg0)
     TmdObject* src3;
     TmdObject* src4;
 
-    D_800678F0 = D_actor_400600_8014220C;
-    SOFT_BARRIER();
-    eff = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[4], 0x200, NULL);
+    D_800678F0[0] = D_actor_400600_8014220C;
+    eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[4], 0x200, NULL);
     if (eff != NULL) {
         src           = (TmdObject*)arg0->extra;
         dst           = (TmdObject*)eff->field_0->extra;
@@ -173,9 +172,8 @@ void func_actor_400600_80137240(Task* arg0)
             Tmd_ProcessStream(dst);
         }
     }
-    D_800678F0 = D_actor_400600_80143604;
-    SOFT_BARRIER();
-    eff2 = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[2], 0x200, NULL);
+    D_800678F0[0] = D_actor_400600_80143604;
+    eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[2], 0x200, NULL);
     if (eff2 != NULL) {
         src2           = (TmdObject*)arg0->extra;
         dst2           = (TmdObject*)eff2->field_0->extra;
@@ -186,9 +184,8 @@ void func_actor_400600_80137240(Task* arg0)
             Tmd_ProcessStream(dst2);
         }
     }
-    D_800678F0 = D_actor_400600_80143B24;
-    SOFT_BARRIER();
-    eff3 = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[16], 0x200, NULL);
+    D_800678F0[0] = D_actor_400600_80143B24;
+    eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3           = (TmdObject*)arg0->extra;
         dst3           = (TmdObject*)eff3->field_0->extra;
@@ -199,9 +196,8 @@ void func_actor_400600_80137240(Task* arg0)
             Tmd_ProcessStream(dst3);
         }
     }
-    D_800678F0 = D_actor_400600_80144994;
-    SOFT_BARRIER();
-    eff4 = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[10], 0x200, NULL);
+    D_800678F0[0] = D_actor_400600_80144994;
+    eff4          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4           = (TmdObject*)arg0->extra;
         dst4           = (TmdObject*)eff4->field_0->extra;
@@ -505,10 +501,9 @@ void func_actor_400600_8013AAD8(Task* arg0)
     Task*            child;
     Task*            child2;
 
-    work       = (Actor400600Work*)arg0->idMap;
-    D_80115417 = 1;
-    SOFT_BARRIER();
-    child = work->field_704;
+    work          = (Actor400600Work*)arg0->idMap;
+    D_80115417[0] = 1;
+    child         = work->field_704;
     if (child != NULL) {
         Task_Kill(child);
     }
