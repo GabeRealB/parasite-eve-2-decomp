@@ -15,7 +15,10 @@ s32 func_shelter_1f_vehicular_airlock_8017D988(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", func_shelter_1f_vehicular_airlock_8017D990);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", func_shelter_1f_vehicular_airlock_8017D9F4);
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", func_shelter_1f_vehicular_airlock_8017D9FC);
 
