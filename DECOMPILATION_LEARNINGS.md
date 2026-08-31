@@ -2903,6 +2903,23 @@ actor_202600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20,
                  shared = [{ start = "0x3784", end = "0x385C", unit = "actors_shared_801355a4" }] }
 ```
 
+**A second `shared` span in an overlay renumbers the tail units.** When the
+overlay already carries one shared body, promoting a second one *below* it adds
+a cut, so the old `<name>_2` becomes `<name>_3` and a fresh `<name>_2` holds
+only the functions between the two spans. Rename the file and retarget every
+`INCLUDE_ASM` path string in it, in every sharer, before rebuilding - splat
+writes the missing `<name>_3.c` but leaves the stale `<name>_2.c` naming the
+wrong asm dir.
+
+**Delete the promoted body's own `INCLUDE_ASM` from the sharers, not just the
+tail lines.** The sharer whose C you edited loses it naturally (you replaced it
+with the body, then moved the body to `lib/`), but the other overlays still
+list it. The link succeeds and the checksum fails: the first unit's `.text` is
+the body's length too long, so everything after the span is shifted by exactly
+that many bytes and every `jal` past the cut lands one body early. Reading the
+`.elf.map` - `.text 0x... 0x2534 .../<overlay>.c.o` where `0x2534` should have
+been `0x23F0` - names the offending unit immediately.
+
 The `shared` cut already breaks `.text` at the body, so a `units` entry at the
 same offset that a pre-promotion single-overlay landing needed is redundant and
 should go. Splitting the body out also splits the overlay's `.c`: everything
