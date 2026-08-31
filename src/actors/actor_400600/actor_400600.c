@@ -728,7 +728,22 @@ void func_actor_400600_8013C038(Task* arg0)
     work->field_71E = work->field_71E + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013C074);
+void func_actor_400600_8013C074(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    u32              rnd;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (((func_actor_400600_801370F4() << 0x10) == 0) && ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0)) {
+        rnd                     = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState             = rnd;
+        work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
+        work2                   = (Actor400600Work*)arg0->idMap;
+        work2->field_71C        = 2;
+        work2->field_71E        = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013C104);
 
