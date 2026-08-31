@@ -205,6 +205,30 @@ def task_fields() -> dict[int, tuple[str, str]]:
 TASK_FIELDS = task_fields()
 
 
+def types_compatible(cast: str, field: str) -> bool:
+    """Is m2c's cast type close enough to the field's declared type to land?
+
+    Pointer against pointer is the case that matters. m2c writes
+    `M2C_FIELD(arg0, void **, 0x1C)` meaning "load a pointer from 0x1C" and the
+    field is `TaskIdMap*`; assigning one to the other is ordinary C and the same
+    four-byte load, so demanding the spellings match rejects 185 sound
+    candidates for a difference that does not exist.
+
+    What is still refused is a width change - `s16` where the field is `s32` -
+    because that does alter the load and would show up as a failed checksum
+    rather than as tidy code.
+    """
+    strip = lambda s: re.sub(r"\s+", "", s)
+    c, f = strip(cast), strip(field)
+    if c == f:
+        return True
+    if "*" in c and "*" in f:
+        # A pointer read through one more level of indirection than the field
+        # declares is still a pointer read: void** vs TaskIdMap*.
+        return True
+    return False
+
+
 def rewrite_task_fields(cand: Candidate, strict: bool = False) -> str:
     """Turn a Task-shaped dirty body into typed field access.
 
@@ -225,9 +249,8 @@ def rewrite_task_fields(cand: Candidate, strict: bool = False) -> str:
     if outside:
         return f"offset 0x{outside[0]:X} is not a named Task field"
     if strict:
-        norm = lambda s: re.sub(r"\s+|\*", "", s)
         bad = [(ct, o) for ct, o in hits
-               if norm(ct) != norm(TASK_FIELDS[int(o, 0)][1])]
+               if not types_compatible(ct, TASK_FIELDS[int(o, 0)][1])]
         if bad:
             ct, o = bad[0]
             return (f"cast {ct.strip()} != field type "
