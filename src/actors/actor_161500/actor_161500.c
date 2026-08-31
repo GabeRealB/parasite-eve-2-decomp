@@ -48,7 +48,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801320B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801320F0);
+void func_actor_161500_801320F0(s32 arg0)
+{
+    Gp_RunCapCmd(arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132110);
 
