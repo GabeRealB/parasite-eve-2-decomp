@@ -3,6 +3,7 @@
 #include "aya/replay_bonus.h"
 #include "main/mem.h"
 #include "psyq/libpress.h"
+extern UiObjectDesc D_replay_bonus_80119154;
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801158C0);
 
@@ -59,7 +60,14 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117848);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801178C0);
+void func_replay_bonus_801178C0(Task* arg0)
+{
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        Text_LoadClutImages();
+        arg0->spawnArg2 = Ui_SpawnFromDesc(&D_replay_bonus_80119154, 0, 1, 1, NULL);
+        arg0->state     = (s32)(arg0->state + 1);
+    }
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117924);
 
