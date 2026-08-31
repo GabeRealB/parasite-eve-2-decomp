@@ -141,8 +141,32 @@ def renumber(text: str, overlay: str, old: int, new: int) -> str:
                         f'/{overlay}/{unit_component(overlay, new)}"')
 
 
+class UnitCut(NamedTuple):
+    """A run of a unit that a shared span pushed into a new unit."""
+    family: str
+    overlay: str
+    index: int          # the new unit's number
+    head: list[str]     # functions that stayed
+    tail: list[str]     # functions that moved
+
+
+def functions_in(text: str) -> list[str]:
+    """Every function the fragment occupies address space for, in order."""
+    out = []
+    for line in text.splitlines():
+        m = ovl.INCLUDE_ASM_RE.search(line)
+        if m:
+            out.append(m.group(2))
+            continue
+        m = re.match(r"^[A-Za-z_][\w \*]*\b(\w+)\s*\([^;{]*\)\s*\{", line)
+        if m:
+            out.append(m.group(1))
+    return out
+
+
 def cut_unit(host: Path, start: int, end: int,
-             pending: "list[Pending] | None" = None) -> tuple[bool, str]:
+             pending: "list[Pending] | None" = None,
+             cuts: "list[UnitCut] | None" = None) -> tuple[bool, str]:
     """Remove [start, end) from `host` and give what follows its own unit.
 
     Whatever the tail already had decompiled is appended to `pending`, to be put
@@ -189,6 +213,9 @@ def cut_unit(host: Path, start: int, end: int,
     # with `undefined reference to D_<overlay>_…`. Leave the slot empty, let the
     # split fill it, and put the decompiled bodies back afterwards.
     host.write_text(head.rstrip() + "\n")
+    if cuts is not None:
+        cuts.append(UnitCut(src_dir.parent.name, overlay, k + 1,
+                            functions_in(head), functions_in(tail)))
     return True, ""
 
 
@@ -250,6 +277,91 @@ def reinject(pending: "list[Pending]") -> tuple[bool, str]:
     return True, ""
 
 
+# --- leading-rodata ownership ------------------------------------------------
+#
+# The leading rodata is one subsegment owned by the overlay's first code unit.
+# Cutting a unit in two leaves the functions that moved referencing symbols
+# that still belong to the unit they left, and the link says
+# `undefined reference to D_<overlay>_…`. The manifest's `rodata` key cuts the
+# block where ownership changes; the cut point is the lowest leading-rodata
+# address the moved functions reach, and it is only sound when everything the
+# functions that stayed reach sits below it.
+
+RODATA_REF = re.compile(r"%(?:hi|lo)\((?:D|jtbl)_(\w+?)_([0-9A-F]{8})\)")
+
+
+def overlay_geometry(overlay: str) -> tuple[int, int] | None:
+    """(load vram, offset of the first code byte) from the generated config."""
+    path = REPO_ROOT / "configs" / "USA" / "generated" / f"{overlay}.yaml"
+    if not path.is_file():
+        return None
+    text = path.read_text()
+    vram = re.search(r"^\s*vram:\s*(0x[0-9A-Fa-f]+)", text, re.M)
+    code = re.search(r"^\s*- \[(0x[0-9A-Fa-f]+), c, ", text, re.M)
+    if not vram or not code:
+        return None
+    return int(vram.group(1), 16), int(code.group(1), 16)
+
+
+def rodata_offsets(cut: UnitCut, funcs: list[str], load: int, limit: int) -> set[int]:
+    """Leading-rodata offsets these functions reference, from their asm."""
+    out: set[int] = set()
+    root = REPO_ROOT / "asm" / "USA" / cut.family
+    for func in funcs:
+        for marker in ("nonmatchings", "matchings"):
+            for path in (root / marker / cut.overlay).rglob(f"{func}.s"):
+                for _name, vram in RODATA_REF.findall(path.read_text(errors="ignore")):
+                    off = int(vram, 16) - load
+                    if 0 <= off < limit:
+                        out.add(off)
+    return out
+
+
+def plan_rodata(cuts: list[UnitCut]) -> tuple[dict[str, tuple[int, str]], str]:
+    """The `rodata` cut each overlay needs, or a reason it cannot have one."""
+    plan: dict[str, tuple[int, str]] = {}
+    for cut in cuts:
+        geom = overlay_geometry(cut.overlay)
+        if geom is None:
+            return {}, f"{cut.overlay}: no generated config to read the layout from"
+        load, text_start = geom
+        if text_start == 0:
+            continue  # no leading rodata at all
+        tail = rodata_offsets(cut, cut.tail, load, text_start)
+        if not tail:
+            continue
+        head = rodata_offsets(cut, cut.head, load, text_start)
+        at = min(tail)
+        if head and max(head) >= at:
+            return {}, (f"{cut.overlay}: leading rodata is interleaved across the "
+                        f"cut (stays reaches 0x{max(head):X}, moves reaches "
+                        f"0x{at:X}); it needs a hand-placed rodata/units cut")
+        plan[cut.overlay] = (at, f"{cut.overlay}_{cut.index}")
+    return plan, ""
+
+
+def write_rodata_cuts(plan: dict[str, tuple[int, str]]) -> tuple[bool, str]:
+    path = REPO_ROOT / "configs" / "USA" / "overlays.toml"
+    text = path.read_text(encoding="utf-8")
+    for overlay, (at, unit) in plan.items():
+        m = re.search(rf"^{re.escape(overlay)} = \{{(.*)\}}$", text, re.M)
+        if not m:
+            return False, f"{overlay}: no manifest entry to add a rodata cut to"
+        body = m.group(1).strip()
+        entry = f'{{ start = "0x{at:X}", unit = "{unit}" }}'
+        existing = re.search(r"rodata = \[(.*?)\]", body)
+        if existing:
+            items = existing.group(1).strip()
+            body = body.replace(existing.group(0),
+                                f"rodata = [{items}, {entry}]" if items
+                                else f"rodata = [{entry}]")
+        else:
+            body = f"{body}, rodata = [{entry}]" if body else f"rodata = [{entry}]"
+        text = text[: m.start()] + f"{overlay} = {{ {body} }}" + text[m.end():]
+    path.write_text(text, encoding="utf-8")
+    return True, ""
+
+
 # --- one promotion -----------------------------------------------------------
 
 class Promotion:
@@ -260,6 +372,7 @@ class Promotion:
         self.unit_path: Optional[Path] = None
         self.sharers: list[str] = []
         self.pending: list[Pending] = []
+        self.cuts: list[UnitCut] = []
 
     # -- helpers
     def _carriers(self) -> list[dict]:
@@ -336,7 +449,7 @@ class Promotion:
         self.unit_path.write_text(content)
 
         # Drop it from its own overlay, re-cutting the unit around the span.
-        ok, why = cut_unit(origin, span[0], span[1], self.pending)
+        ok, why = cut_unit(origin, span[0], span[1], self.pending, self.cuts)
         if not ok:
             self.note = why
             return False
@@ -355,7 +468,7 @@ class Promotion:
             if not stub:
                 continue
             at = ht.find(stub)
-            ok, why = cut_unit(host, at, at + len(stub) + 1, self.pending)
+            ok, why = cut_unit(host, at, at + len(stub) + 1, self.pending, self.cuts)
             if not ok:
                 self.note = why
                 return False
@@ -513,7 +626,12 @@ def main() -> int:
                 revert_all()
                 continue
 
-            ok, tail = run_split(name)
+            plan, why = plan_rodata(p.cuts)
+            ok, tail = (True, "") if not why else (False, why)
+            if ok and plan:
+                ok, tail = write_rodata_cuts(plan)
+            if ok:
+                ok, tail = run_split(name)
             if ok:
                 ok, tail = reinject(p.pending)
             if ok:
