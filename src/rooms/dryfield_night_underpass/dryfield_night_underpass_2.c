@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_underpass/dryfield_night_underpass_2", func_dryfield_night_underpass_8017D900);
+s32 func_dryfield_night_underpass_8017D900(void)
+{
+    return 0;
+}
 
 s32 func_dryfield_night_underpass_8017D908(void)
 {
