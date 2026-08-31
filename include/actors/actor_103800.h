@@ -20,7 +20,8 @@ typedef struct Actor103800Work {
     /* 0x22A */ byte           pad_22A[0x11A];
     /* 0x344 */ GsCOORDINATE2* field_344;
     /* 0x348 */ s16            field_348;
-    /* 0x34A */ byte           pad_34A[8];
+    /* 0x34A */ byte           pad_34A[6];
+    /* 0x350 */ s16            field_350;
     /* 0x352 */ s16            field_352;
     /* 0x354 */ s16            field_354;
     /* 0x356 */ s16            field_356;
@@ -34,6 +35,8 @@ typedef struct Actor103800Work {
     /* 0x36A */ s16            field_36A;
     /* 0x36C */ byte           pad_36C[2];
     /* 0x36E */ s16            field_36E;
+    /* 0x370 */ byte           pad_370[2];
+    /* 0x372 */ s16            field_372;
 } Actor103800Work;
 
 typedef struct Actor103800 {

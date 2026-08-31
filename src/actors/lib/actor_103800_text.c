@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_103800.h"
+#include "gameplay/3CD8.h"
 #include "main/wipsys.h"
 
 void Actor03800_Fn00974(Actor103800* arg0);
@@ -12,6 +13,7 @@ void Actor03800_Fn03628(Actor103800* arg0);
 void Actor03800_Fn036EC(Actor103800* arg0);
 void Actor03800_Fn03744(Actor103800* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -737,13 +739,27 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L036D4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn036EC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn03744);
+void Actor03800_Fn03744(Actor103800* arg0)
+{
+    Actor103800Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR3          vec;
+    s16              hit;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L03794);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L037C8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L037D0);
+    work  = arg0->field_1C;
+    coord = work->field_344;
+    if (work->field_350 == 0) {
+        vec.vx = coord->workm.t[0];
+        vec.vy = coord->workm.t[1];
+        vec.vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(&vec, 0x1F4, work->field_372);
+        return;
+    }
+    hit = func_800EA1A8((VECTOR3*)coord->workm.t, &vec);
+    if (hit != 0) {
+        Gp_DrawEffGroundQuad(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn037E0);
 
