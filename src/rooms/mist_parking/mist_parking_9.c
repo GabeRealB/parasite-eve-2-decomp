@@ -34,7 +34,10 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183708);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183780);
+void func_mist_parking_80183780(s32 arg0)
+{
+    GameFlag_SetNibble(0xF1, arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_801837A4);
 
