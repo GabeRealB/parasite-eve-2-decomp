@@ -1,10 +1,19 @@
 #include "common.h"
 
+#include "main/mem.h"
+#include "psyq/libpress.h"
+
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801158C0);
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801159A0);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80115C68);
+u16* func_replay_bonus_80115C68(void)
+{
+    u16* table = Mem_Malloc(0x11000, 1);
+
+    DecDCTvlcBuild(table);
+    return table;
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80115CA4);
 
