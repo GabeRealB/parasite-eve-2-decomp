@@ -34,7 +34,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801623D8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162408);
+void func_actor_335800_80162408(void)
+{
+    SetDispMask(1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162428);
 
