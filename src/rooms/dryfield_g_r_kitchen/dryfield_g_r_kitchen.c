@@ -13,7 +13,10 @@ s32 func_dryfield_g_r_kitchen_8017D8BC(void)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen", func_dryfield_g_r_kitchen_8017D8C4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen", func_dryfield_g_r_kitchen_8017D948);
+s32 func_dryfield_g_r_kitchen_8017D948(void)
+{
+    return 0;
+}
 
 s32 func_dryfield_g_r_kitchen_8017D950(void)
 {
