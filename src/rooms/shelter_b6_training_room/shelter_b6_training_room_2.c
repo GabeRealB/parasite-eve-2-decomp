@@ -1,4 +1,6 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D764);
 
@@ -20,6 +22,11 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DB28);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DB70);
+void func_shelter_b6_training_room_8017DB70(void)
+{
+    Gp_StateC08.field_6 |= 1;
+    Gp_PulseState1C();
+    SndEvt_EnqueueType7(0x80000000, 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DBB0);
