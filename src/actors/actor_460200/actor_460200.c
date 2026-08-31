@@ -18,7 +18,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132090);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801320E0);
+void func_actor_460200_801320E0(s32 arg0)
+{
+    if (arg0 != 0) {
+        Gp_CapFile = 0;
+        Gp_LoadCapFile(arg0);
+        func_800E6D4C(0x340, 0);
+        return;
+    }
+    Gp_ResetCap();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132124);
 
