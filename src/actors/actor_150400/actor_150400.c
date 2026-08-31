@@ -32,7 +32,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80132774);
 
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_801327EC);
+s32 func_actor_150400_801327EC(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_801327F4);
 
