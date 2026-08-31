@@ -515,7 +515,18 @@ void func_actor_400600_8013AAD8(Task* arg0)
     work->field_71C = work->field_71C + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013AB44);
+void func_actor_400600_8013AB44(Task* arg0)
+{
+    Actor400600Work* work;
+    u16              frame;
+
+    work            = (Actor400600Work*)arg0->idMap;
+    frame           = work->field_718 + 1;
+    work->field_718 = frame;
+    if ((s16)frame >= 0x97) {
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013AB98);
 
