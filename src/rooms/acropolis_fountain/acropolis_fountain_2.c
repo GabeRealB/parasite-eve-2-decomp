@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/display.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/1BC.h"
 extern GpObj4A D_acropolis_fountain_8017E7A4;
@@ -41,7 +42,16 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_a
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DC00);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DC6C);
+void func_acropolis_fountain_8017DC6C(Task* arg0)
+{
+    Task* temp_v0;
+
+    temp_v0 = Game_GetPtrSlot(3);
+    if (Gp_DispatchMsg(temp_v0, 0x3F0, 0, 0) == 0) {
+        Gp_DispatchMsg(temp_v0, 0x3F1, 0, 0);
+        Task_Kill(arg0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DCD4);
 
