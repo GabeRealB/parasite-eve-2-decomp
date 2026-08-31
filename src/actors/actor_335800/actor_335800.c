@@ -1,4 +1,6 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/task.h"
 extern TaskDesc D_actor_335800_80164DE0;
 
@@ -48,7 +50,11 @@ void func_actor_335800_80162460(void)
     func_800E3FAC(0xA2, 0x18);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162484);
+void func_actor_335800_80162484(void)
+{
+    Gp_StateC08.field_6 |= 1;
+    Gp_PulseState1C();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801624B8);
 
