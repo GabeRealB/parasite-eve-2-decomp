@@ -595,47 +595,6 @@ def main() -> int:
         HEADERS = json.loads(ctx.read_text())
 
     grades = {g.strip() for g in args.grade.split(",") if g.strip()}
-    audit: list = []
-    cands = load_candidates(args.results, staged, grades, args.overlay, audit)
-
-    audit_path = args.audit or args.results.parent / "selection.jsonl"
-    audit_path.write_text("".join(json.dumps(a) + "\n" for a in audit))
-    rejected = collections.Counter(a["reason"] for a in audit
-                                   if a["decision"] == "reject")
-    print(f"selection written to {audit_path}")
-    print(f"  accepted {sum(1 for a in audit if a['decision'] == 'accept')} "
-          f"of {len(audit)} rows")
-    for why, n in rejected.most_common(10):
-        print(f"    {n:>5}  {why}")
-
-    claimed = B.claimed_functions()
-    if claimed:
-        before = len(cands)
-        cands = [c for c in cands if c.func not in claimed]
-        if before != len(cands):
-            print(f"skipping {before - len(cands)} claimed by a vacuum session",
-                  file=sys.stderr)
-    if args.limit:
-        cands = cands[: args.limit]
-    if not cands:
-        print("nothing to land")
-        return 0
-
-    by_overlay: dict[str, list[Candidate]] = {}
-    for c in cands:
-        by_overlay.setdefault(c.overlay, []).append(c)
-
-    print(f"{len(cands)} candidates across {len(by_overlay)} overlays")
-
-    if args.dry_run:
-        for overlay, group in sorted(by_overlay.items()):
-            land_overlay(group, True)
-            for c in group:
-                heads = ", ".join(c.headers) or "no new includes"
-                mark = " " if not c.note else "!"
-                print(f"  [dry]{mark}{overlay:<26} {c.func}  ({heads})")
-        print("\ndry run: nothing written")
-        return 0
 
     session = f"bulk-m2c-land-{os.getpid()}"
     try:
@@ -659,6 +618,50 @@ def main() -> int:
             print("src/ is dirty while we hold the merge lock; refusing to "
                   "touch it:\n" + dirty[:400], file=sys.stderr)
             return 1
+
+        audit: list = []
+        cands = load_candidates(args.results, staged, grades, args.overlay, audit)
+
+        audit_path = args.audit or args.results.parent / "selection.jsonl"
+        audit_path.write_text("".join(json.dumps(a) + "\n" for a in audit))
+        rejected = collections.Counter(a["reason"] for a in audit
+                                       if a["decision"] == "reject")
+        print(f"selection written to {audit_path}")
+        print(f"  accepted {sum(1 for a in audit if a['decision'] == 'accept')} "
+              f"of {len(audit)} rows")
+        for why, n in rejected.most_common(10):
+            print(f"    {n:>5}  {why}")
+
+        claimed = B.claimed_functions()
+        if claimed:
+            before = len(cands)
+            cands = [c for c in cands if c.func not in claimed]
+            if before != len(cands):
+                print(f"skipping {before - len(cands)} claimed by a vacuum session",
+                      file=sys.stderr)
+        if args.limit:
+            cands = cands[: args.limit]
+        if not cands:
+            print("nothing to land")
+            return 0
+
+        by_overlay: dict[str, list[Candidate]] = {}
+        for c in cands:
+            by_overlay.setdefault(c.overlay, []).append(c)
+        print(f"{len(cands)} candidates across {len(by_overlay)} overlays")
+
+        # Dry run reports from inside the lock too. An audit taken while a
+        # session is mid-split describes a tree that no longer exists, which is
+        # exactly the failure this ordering is meant to remove.
+        if args.dry_run:
+            for overlay, group in sorted(by_overlay.items()):
+                land_overlay(group, True)
+                for c in group:
+                    heads = ", ".join(c.headers) or "no new includes"
+                    mark = " " if not c.note else "!"
+                    print(f"  [dry]{mark}{overlay:<26} {c.func}  ({heads})")
+            print("\ndry run: nothing written")
+            return 0
 
         # Re-read after the refresh: a session may have matched one of these
         # while we queued for the lock, in which case its INCLUDE_ASM line is
