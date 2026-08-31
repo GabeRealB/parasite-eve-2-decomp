@@ -34464,3 +34464,16 @@ identical and the full build verifies.
 sibling above it needs **no** `volatile GameActor*` for the field loads: with no
 non-volatile sibling store competing for the `lui` delay slot, the plain pointer
 already keeps the loads in source order.
+
+## Splat cuts the first function after a hoisted `Game_Session` load
+
+GCC 2.8.1 can emit `lui $v0, %hi(Game_Session)` / `lw $v0, %lo(Game_Session)($v0)`
+*before* `addiu $sp`. Splat's function finder starts at the prologue, so those
+two insns land in the overlay's leading rodata (often glued onto a nearby 8-byte
+data blob). The first real insn is then `lbu $v1, 0x4($v0)` with `$v0` already
+holding the session.
+
+Writing `Game_Session->field_4 == 4` re-emits the load in `.text` and shifts the
+overlay. An uninitialized `GameSession *session` plus `(u8)session->field_4`
+keeps `$v0` and matches the splat-cut body. `func_actor_450800_80131E34` /
+`actor_460200` are examples.
