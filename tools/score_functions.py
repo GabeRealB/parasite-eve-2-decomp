@@ -8,7 +8,7 @@ Usage:
     python3 tools/score_functions.py asm/USA/main/nonmatchings asm/USA/title/nonmatchings
     python3 tools/score_functions.py --exhaustive asm/USA/main/nonmatchings
     python3 tools/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/main/nonmatchings
-    python3 tools/score_functions.py --min-score 100 --max-score 200 asm/USA/main/nonmatchings
+    python3 tools/score_functions.py --min-score 0.4 --max-score 0.8 asm/USA/main/nonmatchings
 """
 
 import sys
@@ -21,43 +21,66 @@ from dataclasses import dataclass
 from typing import List, Sequence
 
 
+# --- fitted model (tools/fit_difficulty_model.py) ---
+# Logistic regression on 1980 observations mined from this repo:
+# every `matched <fn> <attempts>` commit plus every give-up in
+# tools/difficult_functions, joined to that function's assembly metrics.
+# Target: P(the function does not match on the first attempt); a give-up is a
+# positive whatever its attempt count. 5-fold CV AUC 0.774. Adding stack
+# size, jump-table, float/GTE, callee or memory-op counts moves that by less
+# than the fold noise: the difficulty a static count cannot see is the
+# difficulty that is left.
+#
+# Counts are log1p'd. Calls genuinely predict *easier* (glue code), so `jumps`
+# fits negative, and on raw counts that extrapolates to nonsense - a
+# 214-instruction, 46-call room function scored below a 2-instruction leaf
+# stub. The log holds the effect down: raw counts leave 58 functions of >=100
+# instructions ranked easier than that stub, log1p leaves none, for ~0.01 AUC.
+LOG_FEATURES = True
+MEANS = np.array(
+    [
+        np.float64(3.9218325996327468),
+        np.float64(1.3759320095809051),
+        np.float64(1.3575412473882016),
+        np.float64(1.3751432420111622),
+    ]
+)
+STDS = np.array(
+    [
+        np.float64(1.0888815743018432),
+        np.float64(1.013443437091216),
+        np.float64(1.0858708965957478),
+        np.float64(0.9960265517236578),
+    ]
+)
+COEFFICIENTS = np.array(
+    [
+        np.float64(1.0146368439695734),
+        np.float64(-0.1513536285729376),
+        np.float64(-0.7147786128762945),
+        np.float64(0.7836282711027525),
+    ]
+)
+INTERCEPT = 0.049479124193788436
+# --- end fitted model ---
+
+
+def difficulty_logit(instructions, branches, jumps, labels):
+    """Raw log-odds behind the 0..1 difficulty score.
+
+    Rank on this, not on the score: the sigmoid saturates, and once a few
+    hundred functions all read 1.000 the score can no longer order the ones
+    that are left.
+    """
+    features = np.array([instructions, branches, jumps, labels], dtype=np.float64)
+    if LOG_FEATURES:
+        features = np.log1p(features)
+    return float(np.dot((features - MEANS) / STDS, COEFFICIENTS) + INTERCEPT)
+
+
 def decompilation_difficulty_score(instructions, branches, jumps, labels):
-    # Standardization parameters (from training)
-    means = np.array(
-        [
-            np.float64(34.27065527065527),
-            np.float64(1.6666666666666667),
-            np.float64(3.1880341880341883),
-            np.float64(1.98005698005698),
-        ]
-    )
-    stds = np.array(
-        [
-            np.float64(24.763225638334454),
-            np.float64(2.047860394102145),
-            np.float64(3.200600790997309),
-            np.float64(2.3803926026229827),
-        ]
-    )
-
-    # Model coefficients
-    coefficients = np.array(
-        [
-            np.float64(2.499706543629367),
-            np.float64(-0.46648920346754463),
-            np.float64(-1.61606926820365),
-            np.float64(0.4911494991317799),
-        ]
-    )
-    intercept = -0.5155412977000488
-
-    # Calculate score
-    features = np.array([instructions, branches, jumps, labels])
-    features_scaled = (features - means) / stds
-    logit = np.dot(features_scaled, coefficients) + intercept
-    difficulty = 1 / (1 + np.exp(-logit))
-
-    return difficulty
+    """Probability the function will not match on the first attempt (0=easy)."""
+    return 1 / (1 + np.exp(-difficulty_logit(instructions, branches, jumps, labels)))
 
 
 @dataclass
@@ -76,6 +99,13 @@ class FunctionScore:
     def total_score(self) -> float:
         """Calculate decompilation difficulty score using ML model (0=easy, 1=hard)."""
         return decompilation_difficulty_score(
+            self.instruction_count, self.branch_count, self.jump_count, self.label_count
+        )
+
+    @property
+    def difficulty(self) -> float:
+        """Same ordering as `total_score`, without the sigmoid's saturation."""
+        return difficulty_logit(
             self.instruction_count, self.branch_count, self.jump_count, self.label_count
         )
 
@@ -159,8 +189,10 @@ def analyze_function_content(
         r"\bj\b",  # Unconditional jumps (not jr - that's return)
     ]
 
-    # Local label pattern (e.g., .L800095A8_A1A8:)
-    label_pattern = r"^\s*\.L[0-9A-Fa-f_]+:"
+    # Local label pattern. `symbol_name_format` prefixes an overlay's labels
+    # with the segment (.Lactor_301500_801637F0:, .Lshelter_b6_nursery_8018008C:),
+    # so a hex-only pattern counts zero labels in every generated overlay.
+    label_pattern = r"^\s*\.L\w+:"
 
     # Instruction pattern (lines with actual assembly)
     instruction_pattern = r"/\*\s*[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s*\*/"
@@ -247,8 +279,10 @@ def analyze_function(file_path: str) -> FunctionScore:
         r"\bj\b",  # Unconditional jumps (not jr - that's return)
     ]
 
-    # Local label pattern (e.g., .L800095A8_A1A8:)
-    label_pattern = r"^\s*\.L[0-9A-Fa-f_]+:"
+    # Local label pattern. `symbol_name_format` prefixes an overlay's labels
+    # with the segment (.Lactor_301500_801637F0:, .Lshelter_b6_nursery_8018008C:),
+    # so a hex-only pattern counts zero labels in every generated overlay.
+    label_pattern = r"^\s*\.L\w+:"
 
     # Instruction pattern (lines with actual assembly)
     instruction_pattern = r"/\*\s*[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+\*/"
@@ -382,8 +416,10 @@ def score_folders(
         print(f"Error: No .s files found in {paths}", file=sys.stderr)
         sys.exit(1)
 
-    # Sort by complexity (lowest first)
-    scores.sort(key=lambda s: s.total_score)
+    # Sort by complexity (lowest first). Rank on the logit: past ~0.999 the
+    # score rounds to 1.000 for hundreds of functions at once and stops
+    # ordering them, which is exactly the pool the vacuum has left to pick from.
+    scores.sort(key=lambda s: s.difficulty)
 
     return scores
 
@@ -418,8 +454,8 @@ Examples:
   python3 tools/score_functions.py asm/USA/main/nonmatchings asm/USA/title/nonmatchings
   python3 tools/score_functions.py --exhaustive asm/USA/main/nonmatchings
   python3 tools/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/main/nonmatchings
-  python3 tools/score_functions.py --min-score 100 --max-score 200 asm/USA/main/nonmatchings
-  python3 tools/score_functions.py --exhaustive --min-score 50 asm/USA/main/nonmatchings
+  python3 tools/score_functions.py --min-score 0.4 --max-score 0.8 asm/USA/main/nonmatchings
+  python3 tools/score_functions.py --exhaustive --min-score 0.5 asm/USA/main/nonmatchings
         """,
     )
     parser.add_argument(
@@ -441,13 +477,13 @@ Examples:
         "--min-score",
         type=float,
         metavar="MIN",
-        help="Only show functions with complexity score >= MIN",
+        help="Only show functions with difficulty score >= MIN (0..1)",
     )
     parser.add_argument(
         "--max-score",
         type=float,
         metavar="MAX",
-        help="Only show functions with complexity score <= MAX",
+        help="Only show functions with difficulty score <= MAX (0..1)",
     )
     parser.add_argument(
         "--ranked",
