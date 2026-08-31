@@ -34125,3 +34125,84 @@ helper();
 A `static void *keep = &&pad` also works but adds a `.data` word. `fs.c`
 already uses `"i"(&&label)` operands. `func_mist_shooting_gallery_80184C0C`
 is the example.
+
+## Scratch-head `*(u8**)G_SCRATCH_HEAD`: one use per block, or CSE takes a register
+
+`memory_address()` leaves a large `CONST_INT` address inside the `MEM`, so a
+*single* access compiles to the absolute form the assembler expands
+(`lui $s4, 0x1F80` / `lw $s4, 0x3FC($s4)` for a load, `lui $at, 0x1F80` /
+`sw $s0, 0x3FC($at)` for a store). A load **and** a store of the same address in
+one basic block is two occurrences, and CSE materialises the constant instead:
+
+```
+li   $3, 0x1f800000
+ori  $3, $3, 0x03fc
+lw   $20, 0($3)
+sw   $18, 0($3)
+```
+
+`Gp_WorldToLocal` and `Gp_DrawMapCursor` want that register form and write
+`scratch = (void**)G_SCRATCH_HEAD; head = *scratch; ... *scratch = blk;`. When
+the target keeps both absolute, hide the load's address from CSE the way
+`Gp_AimYawToLock` does, and leave the store as the plain macro:
+
+```c
+register u8* h;
+
+__asm__ volatile("lui %0, 0x1F80" : "=r"(h));
+h   = *(u8**)(h + 0x3FC);
+blk = (T*)(h - 0x34);
+*(T**)G_SCRATCH_HEAD = blk;
+```
+
+Reusing one variable for the `lui` result and the loaded pointer is what makes
+`lui $s4` / `lw $s4, 0x3FC($s4)` land on the same register.
+
+## Goto-loop keeps the shape but loses LICM: hoist the address temps by hand
+
+An unrotated top-tested loop (`lw`/`beqz` at the top, `j` on the back edge)
+needs the goto form — `while`, `for (;;)` and `do {} while (1)` all rotate, and
+the rotation also drags the exit block in front of the loop. The goto form gets
+no loop-invariant motion, so every `&local` an `asm` operand needs is
+rematerialised inside the loop instead of sitting in the preheader. Assign them
+to locals before the label:
+
+```c
+svp = &sv; vecp = &vec; fp = &flag0; view0 = &Gfx_ViewCoord;
+out = &work->field_8A8;
+loop0:
+    if (p->sub == NULL) { goto done0; }
+    if (p == view0) { out->vx = sv.vx; ...; goto done0; }
+    gte_SetTransMatrix(&p->coord);
+    ...
+    p = p->sub;
+    goto loop0;
+done0:
+```
+
+`Actor00100_Fn04270` walks two `GsCOORDINATE2` chains this way; the hand-hoisted
+temps reproduce the target's `$t2` / `$t1` / `$t0` / `$a3` preheader exactly.
+
+## Overlapping `register asm` pins are legal — order the source around them
+
+`register T x asm("s2")` is honoured by *global* allocation, but `local_alloc`
+still hands the same hard register to a block-local pseudo once the pinned
+variable is dead. That is how one function can pin `arg0`, a branch-local
+`sy` and the other branch's `head` all to `$s2` and still match. The cost is
+that GCC no longer sequences the reads for you: a later `arg0->field_2C` read
+placed after the pinned store reads the *new* value. Load through a plain local
+first:
+
+```c
+} else {
+    register u8*     h2 asm("s2");   /* same register as the pinned arg0 */
+    Actor00100Obj2C* o2;
+
+    o2 = arg0->field_2C;             /* arg0 dies here, before $s2 is rewritten */
+    __asm__ volatile("lui %0, 0x1F80" : "=r"(h2));
+    h2     = *(u8**)(h2 + 0x3FC);
+    coords = o2->field_8;
+```
+
+That reordering is also what the target schedules (`lw $v0, 0x2C($s2)` ahead of
+the scratch load), so it is not just a safety measure.
