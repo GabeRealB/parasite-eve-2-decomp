@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 #include "gameplay/3CD8.h"
 
 void func_actor_443500_80131E3C(s32 arg0)
@@ -31,7 +32,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131F58);
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131F88);
+void func_actor_443500_80131F88(Task* arg0)
+{
+    s16 temp_v0;
+    s32 temp_a0;
+
+    temp_a0 = (((0x1E - arg0->killCountdown) * 0xFF) / 30) & 0xFF;
+    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, 2);
+    temp_v0             = (u16)arg0->killCountdown + 1;
+    arg0->killCountdown = temp_v0;
+    if (temp_v0 >= 0x1E) {
+        Task_Kill(arg0);
+    }
+}
 
 void func_actor_443500_8013201C(s16 arg0)
 {
