@@ -2968,6 +2968,19 @@ A matched switch that also exists in another overlay of the family should be
 promoted, not landed twice. `overlay_dup_index.py promote` refuses the body
 while it is still `INCLUDE_ASM` if the copies are not byte-identical or if they
 jal overlay-local functions; match first, or write the `shared` span by hand.
+
+**"Same body" is not "same object" when the body loads its own overlay's
+table.** The dup index treats an overlay-local reference as a wildcard, so every
+weapon's per-frame state dispatcher hashes alike and the vacuum's port brief
+offers to promote it. It cannot be: each copy does
+`lui/addiu %hi/%lo(D_<overlay>_...)` against a *different* table holding
+*different* function pointers, so one shared object cannot serve two sharers —
+`raw` differs for every copy and each `refs` entry names its own overlay. Check
+`refs` before promoting; if each copy names its own `D_`, land it in the
+overlay's own `.c` like the rest of the family
+(`func_tonfa_baton_8011DB98` and its `grenade_pistol` / `mm1` / `m4a1_grenade`
+siblings). Promotion works when the shared body references only *imports* or
+nothing at all, which is the `WeaponsShared8011db78` case one level down.
 The text span is file offset of the first instruction through the byte after
 `jr $ra`'s delay slot (`0x5D58`..`0x5E88` for `func_actor_403900_80137B78`);
 the dup index derives it from the `glabel` onwards, so the migrated jump table
@@ -5022,6 +5035,32 @@ sp.funcs[((volatile Task*)task)->state](task);
 `func_800AC0F0` is the example (`D_801153F4` + `GameFlow_DispatchTable` shape).
 Do not flip the global to `volatile` just for this — other writers of the same
 byte already match with a plain store.
+
+**When the table is the dispatcher's own rodata, use a local array initializer
+instead of an extern.** The `sp = SomeTable;` form above needs a named global,
+which then needs a symbol-map entry and an `INCLUDE_RODATA` to keep it out of
+the C. If the table belongs to the function being matched, initialising a local
+array emits the identical multi-load/multi-store and lets GCC place the table
+itself:
+
+```c
+void func_tonfa_baton_8011DB98(Task* arg0)
+{
+    TaskFunc states[4] = {
+        func_tonfa_baton_8011DA48, func_tonfa_baton_8011DA74,
+        func_tonfa_baton_8011DB6C, WeaponsShared8011db78,
+    };
+
+    states[arg0->state](arg0);
+}
+```
+
+The anonymous table has to start the TU's `.rodata`, so pair it with a manifest
+`rodata` cut naming that unit (`tonfa_baton = { rodata = [{ start = "0x4", unit
+= "tonfa_baton_2" }] }`). No `D_*` entry is needed in
+`configs/USA/sym/<family>/<overlay>.txt` — compare `mm1.txt`, which lists only
+its shared bodies. Cast the entries when the overlay types its states as
+something other than `TaskFunc` (`mm1_2.c`).
 
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
