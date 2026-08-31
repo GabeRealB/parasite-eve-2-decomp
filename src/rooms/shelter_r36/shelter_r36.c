@@ -53,7 +53,22 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D7B4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D870);
+void func_shelter_r36_8017D870(s32 arg0)
+{
+    s16 var_a0;
+
+    if (arg0 != 0) {
+        Gp_CapFile = 0;
+        Gp_LoadCapFile(arg0);
+        var_a0 = 0x2C0;
+        if (arg0 == 1) {
+            var_a0 = 0x280;
+        }
+        func_800E6D4C(var_a0, 0x100);
+        return;
+    }
+    Gp_ResetCap();
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D8C8);
 
