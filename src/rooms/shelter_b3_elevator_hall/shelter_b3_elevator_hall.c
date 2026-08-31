@@ -100,7 +100,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hal
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DC80);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DD88);
+s32 func_shelter_b3_elevator_hall_8017DD88(void)
+{
+    return 0;
+}
 
 s32 func_shelter_b3_elevator_hall_8017DD90(void)
 {
