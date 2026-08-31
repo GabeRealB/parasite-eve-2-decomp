@@ -34721,3 +34721,23 @@ pseudos as soon as the copy's source dies at the copy. `Actor02100_Fn00DCC`
 went from 99.5% to 100% on this reorder alone — the extra `move` shifted every
 later branch offset, so the leftover read as `branch=10` rather than as the
 single missing instruction it was.
+
+## Retyping a `u16` field to `s16` cannot break a matched halfword copy
+
+A 16-bit-to-16-bit assignment is `movhi_internal2` — `lhu` then `sh` — no
+matter how either side is declared, because only the low half is ever needed.
+`u16 dst = u16 src`, `u16 dst = s16 src` and `s16 dst = s16 src` all emit the
+same two instructions. Signedness is only observable where the value is
+*widened*: an add into an `s32`, a comparison, or an argument passed in a
+register, where `s16` gives `lh` and `u16` gives `lhu`.
+
+That makes the type of such a field decidable, and the change safe to make.
+`Actor02100Work.field_118` was `u16` because the already-matched
+`Actor02100_Fn00DCC` copies it to `field_120` with `lhu`; `Actor02100_Fn031C4`
+adds it into `GsCOORDINATE2.coord.t[0]` with `lh`. The widening site is the
+evidence, so the field is `s16` — and flipping it left `Fn00DCC` matching.
+
+Casting at the widening site (`t[0] += (s16)work->field_118;`) emits the same
+`lh` and is a valid fallback, but prefer fixing the declared type: check the
+other users first, since a widening use of the *same* field elsewhere would
+contradict it.

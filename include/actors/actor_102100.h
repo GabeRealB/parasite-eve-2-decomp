@@ -42,13 +42,13 @@ typedef struct Actor02100Work {
     /* 0x040 */ byte  field_40[0x38];
     /* 0x078 */ byte  field_78[0x50];
     /* 0x0C8 */ byte  field_C8[0x50];
-    /* 0x118 */ u16   field_118;
-    /* 0x11A */ u16   field_11A;
-    /* 0x11C */ u16   field_11C;
+    /* 0x118 */ s16   field_118;
+    /* 0x11A */ s16   field_11A;
+    /* 0x11C */ s16   field_11C;
     /* 0x11E */ byte  pad_11E[2];
-    /* 0x120 */ u16   field_120;
-    /* 0x122 */ u16   field_122;
-    /* 0x124 */ u16   field_124;
+    /* 0x120 */ s16   field_120;
+    /* 0x122 */ s16   field_122;
+    /* 0x124 */ s16   field_124;
     /* 0x126 */ byte  pad_126[0x1A];
     /* 0x140 */ void* field_140;
     /* 0x144 */ byte  pad_144[0x20];
@@ -76,19 +76,30 @@ typedef struct Actor02100 {
     /* 0x20 */ Actor02100Spawn* field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor02100Obj2C* field_2C;
+    /* 0x30 */ s32              field_30;
 } Actor02100;
-STATIC_ASSERT_SIZEOF(Actor02100, 0x30);
+STATIC_ASSERT_SIZEOF(Actor02100, 0x34);
+
+/// `Gp_UnlinkNode` list entry at +0x10 of `Actor02100Ctx`. `field_4` is the
+/// flag byte the per-state handlers write (`Actor02100_Fn031C4`).
+typedef struct Actor02100Node {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ u8   field_4;
+    /* 0x5 */ byte pad_5[3];
+} Actor02100Node;
+STATIC_ASSERT_SIZEOF(Actor02100Node, 0x8);
 
 typedef struct Actor02100Ctx {
-    /* 0x00 */ byte pad_0[0x10];
-    /* 0x10 */ byte node[8];
-    /* 0x18 */ byte pad_18[0x3C];
-    /* 0x54 */ s32  field_54;
+    /* 0x00 */ byte           pad_0[0x10];
+    /* 0x10 */ Actor02100Node node;
+    /* 0x18 */ byte           pad_18[0x3C];
+    /* 0x54 */ s32            field_54;
 } Actor02100Ctx;
 STATIC_ASSERT_SIZEOF(Actor02100Ctx, 0x58);
 
 extern s16 Actor02100_D03E00[];
 
+void Actor02100_Fn031C4(Actor02100Ctx* arg0, Actor02100* arg1);
 void Actor02100_Fn032E4(Actor02100* arg0);
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1);
 

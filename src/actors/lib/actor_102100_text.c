@@ -341,19 +341,73 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03120);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn03168);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn031C4);
+void Actor02100_Fn004C4(Actor02100* arg0);
+void Actor02100_Fn03488(Actor02100* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03214);
+extern u8 D_801153F4;
+extern s8 D_80115416;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03224);
+/// Per-frame tick, entry 1 of `Actor02100_D00004`. `D_801153F4` is the global
+/// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
+/// actor (`field_C` 0x80, node flag 1) and returns, and mode 0 re-shows it
+/// (`field_C` 0, node flag 8) before falling into the normal body. The body
+/// drains the pending translation delta at `field_118` into the actor's
+/// coordinate, runs the state machine, and switches to state 4 - handing the
+/// task over to `Actor02100_Fn035D4` - once `D_80115416` reports the kill.
+void Actor02100_Fn031C4(Actor02100Ctx* arg0, Actor02100* arg1)
+{
+    Actor02100Obj2C* obj;
+    Actor02100Work*  work;
+    GsCOORDINATE2*   coord;
+    s32              mode;
+    s32              one;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03230);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03240);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0324C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L032CC);
+    obj   = arg1->field_2C;
+    mode  = D_801153F4;
+    work  = arg1->field_1C;
+    coord = obj->field_8;
+    one   = 1;
+    if (mode == one) {
+        goto case1;
+    }
+    if (mode >= 2) {
+        goto ge2;
+    }
+    if (mode == 0) {
+        goto case0;
+    }
+    goto body;
+ge2:
+    if (mode == 2) {
+        goto case2;
+    }
+    goto body;
+case0:
+    obj->field_C       = 0;
+    arg0->node.field_4 = 8;
+    goto body;
+case1:
+    Actor02100_Fn03488(arg1);
+    return;
+case2:
+    obj->field_C       = 0x80;
+    arg0->node.field_4 = one;
+    return;
+body:
+    Actor02100_Fn004C4(arg1);
+    coord->coord.t[0] += work->field_118;
+    coord->coord.t[1] += work->field_11A;
+    coord->coord.t[2] += work->field_11C;
+    coord->flg         = 0;
+    Gp_UpdateCoord(coord);
+    Actor02100_Fn032E4(arg1);
+    Actor02100_Fn03488(arg1);
+    if (D_80115416 == 1) {
+        work->field_172 = 4;
+        work->field_174 = 0;
+        arg1->field_30  = 2;
+    }
+}
 
 void Actor02100_Fn00ADC(Actor02100* arg0);
 void Actor02100_Fn016EC(Actor02100* arg0);
@@ -421,7 +475,7 @@ void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1)
     goto epilogue;
 case0:
     arg1->field_2C->field_C = 0x80;
-    Gp_UnlinkNode(arg0->node);
+    Gp_UnlinkNode(&arg0->node);
     Gp_UnlinkObj(work->field_40);
     Gp_UnlinkObj(work->field_78);
     Gp_UnlinkObj(work->field_C8);
