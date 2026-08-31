@@ -18,7 +18,10 @@ void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1)
     Task_SpawnFromTable(&D_acropolis_helicopter_landing_pad_80184DA0, 2, 0, arg0 | (arg1 << 8));
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E64C);
+void func_acropolis_helicopter_landing_pad_8017E64C(void)
+{
+    Task_SpawnFromTable(&D_acropolis_helicopter_landing_pad_80184DA0, 5, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E67C);
 
