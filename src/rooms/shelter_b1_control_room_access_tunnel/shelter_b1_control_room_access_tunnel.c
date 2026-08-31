@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", func_shelter_b1_control_room_access_tunnel_8017D630);
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(void)
+{
+    return 0;
+}
 
 s32 func_shelter_b1_control_room_access_tunnel_8017D638(void)
 {
