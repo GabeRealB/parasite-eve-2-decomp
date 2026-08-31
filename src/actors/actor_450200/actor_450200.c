@@ -4,6 +4,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+extern TaskDesc D_actor_450200_8013FB40;
 
 extern void func_8017FA98(s32);
 
@@ -67,7 +68,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_80132538);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_80132848);
+void func_actor_450200_80132848(s32 arg0)
+{
+    if (arg0 == 1) {
+        Task_SpawnFromTable(&D_actor_450200_8013FB40, 0, 0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_80132880);
 
