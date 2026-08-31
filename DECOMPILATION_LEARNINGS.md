@@ -870,6 +870,36 @@ if (mode == 0 || mode == 2) {
 `register ... asm("v1")` on the table pointer also works but is
 unnecessary. `Gp_GrantLocationItems` is the example.
 
+The same rule covers a *call* whose only differing argument is the
+address: duplicate the whole call in both arms and let cross-jumping
+merge the tail. A merged pointer local makes the `%hi` a separate temp
+(`lui v0` / `addiu a0,v0,%lo`), while the target reuses one register:
+
+```
+bne   v0, v1, else
+ lui  a0, %hi(D_8013A84C)
+j     join
+ addiu a0, a0, %lo(D_8013A84C)
+else:
+lui   a0, %hi(D_8013A8DC)
+addiu a0, a0, %lo(D_8013A8DC)
+join:
+jal   func_800E8614
+ li   a1, 1
+```
+
+```c
+if (GameFlag_GetNibble(0xC7) == 1) {
+    func_800E8614((s32)&D_8013A84C, 1);
+} else {
+    func_800E8614((s32)&D_8013A8DC, 1);
+}
+```
+
+Jump2 merges `li a1,1` / `jal` / the rest of the function, leaving only
+the `la` in each arm, and the arm-local temp is free to be `$a0`. One
+`jal` still comes out. `func_shelter_b6_nursery_8017FEC4` is the example.
+
 ## if/else on the same field keeps the phi in `$v0`; a ternary steals `$t0`
 
 Both arms writing the same field (`p->clut = 0x3C09` / `0x3C01`) let GCC emit

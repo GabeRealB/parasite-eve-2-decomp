@@ -422,6 +422,7 @@ void func_800E3FAC(s32 arg0, s32 arg1);
 void func_800E8614(s32 arg0, s32 arg1);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void Gp_AllyAnimId(s32* arg0);
+void Gp_FillAllyHp(void);
 void Gp_FillPlayerHpMp(void);
 
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
