@@ -242,11 +242,17 @@ def insert_declarations(text: str, decls: list[str]) -> str:
 
 def _compiles_with(cand: Candidate, headers: list[str], workdir: Path,
                    original: str) -> bool:
+    """Would the host compile with this include set? Checked on a copy in the
+    scratch dir, so `src/` is untouched until the candidate is actually landed."""
     cand.headers = list(headers)
-    apply_edit(cand)
-    ok, err = host_compiles(cand.host, workdir)
-    cand.host.write_text(original)
-    cand.landed = False
+    try:
+        text = edited_text(cand, original)
+    except RuntimeError as exc:
+        cand.note = str(exc)[:160]
+        return False
+    probe = workdir / f"probe_{cand.func}.c"
+    probe.write_text(text)
+    ok, err = host_compiles(probe, workdir)
     if not ok:
         cand.note = err[:160]
     return ok
@@ -260,29 +266,24 @@ def resolve_includes(cand: Candidate, available: list[str], workdir: Path) -> bo
     the broad search plus minimisation.
     """
     original = cand.host.read_text()
-    try:
-        if _compiles_with(cand, [], workdir, original):
-            return True
+    if _compiles_with(cand, [], workdir, original):
+        return True
 
-        symbols = body_symbols(cand.body)
-        owning: list[str] = []
-        for sym in sorted(symbols):
-            header = next((h for h in available if defines(h, sym)), None)
-            if header and header not in owning:
-                owning.append(header)
-        if owning and _compiles_with(cand, owning, workdir, original):
-            return minimise(cand, owning, workdir, original)
+    symbols = body_symbols(cand.body)
+    owning: list[str] = []
+    for sym in sorted(symbols):
+        header = next((h for h in available if defines(h, sym)), None)
+        if header and header not in owning:
+            owning.append(header)
+    if owning and _compiles_with(cand, owning, workdir, original):
+        return minimise(cand, owning, workdir, original)
 
-        broad = [h for h in available
-                 if any(declares(h, s) for s in symbols)]
-        if broad and _compiles_with(cand, broad, workdir, original):
-            return minimise(cand, broad, workdir, original)
+    broad = [h for h in available if any(declares(h, s) for s in symbols)]
+    if broad and _compiles_with(cand, broad, workdir, original):
+        return minimise(cand, broad, workdir, original)
 
-        cand.headers = []
-        return False
-    finally:
-        cand.host.write_text(original)
-        cand.landed = False
+    cand.headers = []
+    return False
 
 
 def minimise(cand: Candidate, headers: list[str], workdir: Path,
@@ -299,8 +300,15 @@ def minimise(cand: Candidate, headers: list[str], workdir: Path,
     return True
 
 
-def apply_edit(cand: Candidate) -> None:
-    text = cand.host.read_text()
+def edited_text(cand: Candidate, text: str) -> str:
+    """The host source with this candidate's body in place of its INCLUDE_ASM.
+
+    Pure: it takes the file's current contents and returns the new contents. The
+    include-resolution loop compiles the result many times per candidate, and
+    doing that by writing the real file and restoring it would leave `src/`
+    briefly half-edited -- which a vacuum session's `git add -A -- src` could
+    stage out from under us.
+    """
     if cand.stub not in text:
         raise RuntimeError(f"stub for {cand.func} no longer present in {cand.host}")
 
@@ -318,10 +326,13 @@ def apply_edit(cand: Candidate) -> None:
 
     # A declaration the file already carries wins: it came from a sibling
     # function that saw more of the symbol's real type than this one did.
-    text = insert_declarations(
+    return insert_declarations(
         text, [e for e in externs
                if not declared_in(text, EXTERN_RE.match(e).group(1))])
-    cand.host.write_text(text)
+
+
+def apply_edit(cand: Candidate) -> None:
+    cand.host.write_text(edited_text(cand, cand.host.read_text()))
     cand.landed = True
 
 
@@ -438,6 +449,8 @@ def main() -> int:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would land without editing anything")
+    ap.add_argument("--lock-wait", type=int, default=3600,
+                    help="seconds to wait for the orchestrator merge lock")
     ap.add_argument("--commit", action="store_true",
                     help="commit each landed function (takes the merge lock)")
     args = ap.parse_args()
@@ -476,51 +489,75 @@ def main() -> int:
         by_overlay.setdefault(c.overlay, []).append(c)
 
     print(f"{len(cands)} candidates across {len(by_overlay)} overlays")
-    landed: list[Candidate] = []
-    for overlay, group in sorted(by_overlay.items()):
-        kept = land_overlay(group, args.dry_run)
-        landed += kept
-        if args.dry_run:
+
+    if args.dry_run:
+        for overlay, group in sorted(by_overlay.items()):
+            land_overlay(group, True)
             for c in group:
                 heads = ", ".join(c.headers) or "no new includes"
                 mark = " " if not c.note else "!"
                 print(f"  [dry]{mark}{overlay:<26} {c.func}  ({heads})")
-        else:
+        print("\ndry run: nothing written")
+        return 0
+
+    session = f"bulk-m2c-land-{os.getpid()}"
+    try:
+        lock = held_merge_lock(session, args.lock_wait)
+    except RuntimeError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+    with lock:
+        ok, how = refresh_to_trunk()
+        if not ok:
+            print(f"could not fast-forward onto trunk: {how}", file=sys.stderr)
+            return 1
+        print(f"trunk: {how}")
+
+        # Re-read after the refresh: a session may have matched one of these
+        # while we queued for the lock, in which case its INCLUDE_ASM line is
+        # gone and the candidate is no longer ours to land.
+        fresh = {c.func for c in load_candidates(
+            args.results, staged, grades, args.overlay)}
+        stale = [c.func for c in cands if c.func not in fresh]
+        if stale:
+            print(f"dropping {len(stale)} matched on trunk while we waited: "
+                  + ", ".join(stale[:4]) + (" ..." if len(stale) > 4 else ""))
+            by_overlay = {
+                k: [c for c in v if c.func in fresh] for k, v in by_overlay.items()
+            }
+            by_overlay = {k: v for k, v in by_overlay.items() if v}
+
+        landed: list[Candidate] = []
+        for overlay, group in sorted(by_overlay.items()):
+            kept = land_overlay(group, False)
+            landed += kept
             print(f"  {overlay:<28} {len(kept)}/{len(group)} verified")
             for c in group:
                 if not c.landed:
                     print(f"      reverted {c.func}: {c.note}")
 
-    if args.dry_run:
-        print("\ndry run: nothing written")
-        return 0
-
-    if not landed:
-        print("\nnothing verified; tree unchanged")
-        return 1
-
-    print(f"\n{len(landed)} landed. Running the unscoped build "
-          "(the only one that counts)...")
-    ok, tail = verify(None)
-    if not ok:
-        print("\n❌ UNSCOPED BUILD FAILED - reverting every landed file.\n" + tail)
-        revert({c.host for c in landed})
-        return 1
-    print("✅ BUILD SUCCEEDED")
-
-    if args.commit:
-        session = f"bulk-m2c-land-{os.getpid()}"
-        if not merge_lock(session, True):
-            print("could not take the merge lock; leaving the changes uncommitted "
-                  "in the working tree", file=sys.stderr)
+        if not landed:
+            print("\nnothing verified; tree unchanged")
             return 1
-        try:
+
+        print(f"\n{len(landed)} landed. Running the unscoped build "
+              "(the only one that counts)...")
+        ok, tail = verify(None)
+        if not ok:
+            print("\n❌ UNSCOPED BUILD FAILED - reverting every landed file.\n"
+                  + tail)
+            revert({c.host for c in landed})
+            return 1
+        print("✅ BUILD SUCCEEDED")
+
+        if args.commit:
             n = commit(landed)
             print(f"committed {n} function(s)")
-        finally:
-            merge_lock(session, False)
-    else:
-        print("not committing (pass --commit); changes are in the working tree")
+        else:
+            print("not committing (pass --commit); changes are in the working "
+                  "tree, and the merge lock is about to be released -- commit "
+                  "or revert them before a vacuum session lands anything else")
 
     shared = [c.func for c in landed if is_shared(c.func)]
     if shared:
