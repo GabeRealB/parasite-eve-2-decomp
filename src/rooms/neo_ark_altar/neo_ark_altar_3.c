@@ -148,7 +148,14 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_alt
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EF00);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EF34);
+void func_neo_ark_altar_8017EF34(Task* arg0)
+{
+    SetDispMask(1);
+    Gp_MsgPlayer3F3(1);
+    Gp_MsgPlayerWeapon(1);
+    Game_Session->field_68 = 0;
+    arg0->state            = 2;
+}
 
 void func_neo_ark_altar_8017EF84(void)
 {
