@@ -135,7 +135,12 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_alt
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EDBC);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EDF8);
+void func_neo_ark_altar_8017EDF8(Task* arg0)
+{
+    Gp_MsgPlayerWeapon(0);
+    arg0->killCountdown = 0;
+    arg0->state         = (s32)(arg0->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EE30);
 
