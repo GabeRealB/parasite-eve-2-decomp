@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_100700.h"
+#include "gameplay/3A34.h"
+#include "main/sound.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00060);
 
@@ -353,21 +355,78 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02104);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02268);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02290);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Actor00700_Fn02414(Actor00700* arg0);
+void Actor00700_Fn0268C(Actor00700* arg0);
+void Actor00700_Fn02820(Actor00700* arg0);
+void Actor00700_Fn02A28(Actor00700* arg0);
+void Actor00700_Fn03518(Actor00700* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L022E8);
+extern u8  D_801153F4;
+extern s8  D_80115408;
+extern s32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L022F8);
+void Actor00700_Fn02290(Actor00700Ctx* arg0, Actor00700* arg1)
+{
+    Actor00700Obj2C* obj;
+    Actor00700Work*  work;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s32              one;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02304);
+    work  = arg1->field_1C;
+    obj   = arg1->field_2C;
+    state = D_801153F4;
+    coord = obj->field_8;
+    one   = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    obj->field_C   = 0;
+    arg0->field_14 = 0;
+    goto default_body;
+case1:
+    Actor00700_Fn03518(arg1);
+    return;
+case2:
+    obj->field_C   = 0x80;
+    arg0->field_14 = one;
+    return;
+default_body:
+    Actor00700_Fn02414(arg1);
+    Actor00700_Fn0268C(arg1);
+    if (work->field_2E6 == 0 && D_80115408 != 0) {
+        work->field_2E6 = 1;
+        Gp_ArmStateF0(1);
+    }
+    Actor00700_Fn02820(arg1);
+    Actor00700_Fn02A28(arg1);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    Actor00700_Fn03518(arg1);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if (((u32)Gp_LcgState >> 16 & 0x7F) == 0) {
+        s32 temp;
+        s32 id;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02314);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02320);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0235C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L023F8);
+        id   = ((arg0->field_8 >> 12) << 8) | 0x40070008;
+        temp = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
+        SndEvt_EnqueueType6(id, temp, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02414);
 
