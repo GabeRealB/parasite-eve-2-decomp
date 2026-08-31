@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+extern TaskDesc D_neo_ark_altar_8017EFC0;
 
 s32 func_neo_ark_altar_8017D908(void)
 {
@@ -144,7 +145,16 @@ void func_neo_ark_altar_8017EDF8(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EE30);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EE90);
+void func_neo_ark_altar_8017EE90(Task* arg0)
+{
+    Task** temp_s1;
+
+    temp_s1 = arg0->idMap;
+    Gp_MsgPlayer3F3(0);
+    Game_Session->field_68 = 1;
+    *temp_s1               = Task_SpawnFromTable(&D_neo_ark_altar_8017EFC0, 0, 2, 0);
+    arg0->state            = (s32)(arg0->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_3", func_neo_ark_altar_8017EF00);
 
