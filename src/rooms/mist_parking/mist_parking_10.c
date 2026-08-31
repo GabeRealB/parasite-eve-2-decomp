@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+extern TaskDesc D_mist_parking_8018FC24;
 
 /// Scratch state of the parking-lot cap script driven by
 /// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
@@ -204,7 +205,11 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184408);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184428);
+void func_mist_parking_80184428(s32 arg0)
+{
+    Task_SpawnFromTable(&D_mist_parking_8018FC24, 0, arg0, 0);
+    Game_Session->field_64 = 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184468);
 
