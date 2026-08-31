@@ -10,7 +10,10 @@ extern TaskDesc D_neo_ark_pyramid_8017FC0C;
 
 void func_neo_ark_pyramid_8017DAC0(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_2", func_neo_ark_pyramid_8017DA3C);
+s32 func_neo_ark_pyramid_8017DA3C(void)
+{
+    return 0;
+}
 
 s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
