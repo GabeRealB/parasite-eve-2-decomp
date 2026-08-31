@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/task.h"
+extern TaskDesc D_actor_335800_80164DE0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80161E88);
 
@@ -13,7 +15,10 @@ void func_actor_335800_801620A0(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801620C0);
+void func_actor_335800_801620C0(void)
+{
+    Task_SpawnFromTable(&D_actor_335800_80164DE0, 0, 0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801620F0);
 
