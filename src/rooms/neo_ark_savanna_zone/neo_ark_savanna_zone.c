@@ -20,7 +20,10 @@ s32 func_neo_ark_savanna_zone_8017D8F8(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017D900);
+s32 func_neo_ark_savanna_zone_8017D900(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017D908);
 
