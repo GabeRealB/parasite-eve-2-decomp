@@ -192,8 +192,13 @@ def cut_unit(host: Path, start: int, end: int,
                              tail, re.M):
             span = find_definition(tail, m.group(1))
             if span:
-                pending.append(Pending(target, m.group(1), tail[span[0]:span[1]],
-                                       includes_of(preamble)))
+                body = tail[span[0]:span[1]]
+                # The file-scope declarations too, not just the #includes: a
+                # body that names `extern D_<overlay>_…` stops compiling the
+                # moment it moves to a file whose preamble does not declare it.
+                pending.append(Pending(target, m.group(1), body,
+                                       includes_of(preamble)
+                                       + externs_used(text, body)))
     sibs = {unit_index(q, overlay): q for q in src_dir.glob("*.c")}
     if k == 0 or 0 in sibs:
         return False, f"{src_dir}: a source file is not named <overlay>[_N].c"
@@ -224,7 +229,7 @@ class Pending(NamedTuple):
     target: Path
     func: str
     body: str
-    includes: list[str]
+    preamble: list[str]   # #includes and the file-scope decls the body names
 
 
 def stub_of(text: str, func: str) -> Optional[re.Match]:
@@ -266,8 +271,11 @@ def reinject(pending: "list[Pending]") -> tuple[bool, str]:
                 text = text.rstrip() + "\n\n" + item.body + "\n"
             else:
                 text = text[:anchor] + item.body + "\n\n" + text[anchor:]
-        have = includes_of(text)
-        missing = [i for i in items[0].includes if i not in have]
+        missing = []
+        for item in items:
+            for line in item.preamble:
+                if line not in text and line not in missing:
+                    missing.append(line)
         if missing:
             lines = text.splitlines()
             at = max((n for n, l in enumerate(lines) if l.startswith("#include")),
