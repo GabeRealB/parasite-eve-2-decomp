@@ -8,6 +8,9 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E27C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E2B0);
+void func_acropolis_cafeteria_8017E2B0(void)
+{
+    Gp_PulseState1C80();
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E2D0);
