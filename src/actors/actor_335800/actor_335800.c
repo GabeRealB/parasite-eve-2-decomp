@@ -56,7 +56,10 @@ void func_actor_335800_80162484(void)
     Gp_PulseState1C();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801624B8);
+void func_actor_335800_801624B8(s32 arg0)
+{
+    GameFlag_SetNibble(0x108, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801624DC);
 
