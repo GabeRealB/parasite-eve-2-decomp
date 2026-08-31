@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_2", func_dryfield_night_main_street_8017E054);
+s32 func_dryfield_night_main_street_8017E054(void)
+{
+    return 0;
+}
 
 s32 func_dryfield_night_main_street_8017E05C(void)
 {
