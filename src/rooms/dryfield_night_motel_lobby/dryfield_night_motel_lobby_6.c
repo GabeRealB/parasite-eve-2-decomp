@@ -5,6 +5,7 @@
 
 #include "main/gameflag.h"
 #include "main/task.h"
+extern s32 D_dryfield_night_motel_lobby_801844D4;
 
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
 
@@ -30,7 +31,16 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_8017FD9C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_8017FDE8);
+void func_dryfield_night_motel_lobby_8017FDE8(void)
+{
+    s32 temp_v0;
+
+    temp_v0 = Gp_HasCollectedBit(0x113);
+    if ((temp_v0 != 0) && (D_dryfield_night_motel_lobby_801844D4 == 0)) {
+        func_800E3FAC(0xA2, 0x14);
+    }
+    D_dryfield_night_motel_lobby_801844D4 = temp_v0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_8017FE38);
 
