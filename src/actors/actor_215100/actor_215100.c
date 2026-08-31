@@ -2,6 +2,8 @@
 
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+extern TaskDesc D_actor_215100_8014E13C;
+extern Task*    D_actor_215100_8015E64C;
 
 extern s32 D_actor_215100_80153ED4;
 extern s32 D_actor_215100_80153FDC;
@@ -33,7 +35,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AE08);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AE2C);
+void func_actor_215100_8014AE2C(s32 arg0)
+{
+    if (arg0 != 0) {
+        D_actor_215100_8015E64C = Task_SpawnFromTable(&D_actor_215100_8014E13C, 2, 0, 0);
+        return;
+    }
+    if (D_actor_215100_8015E64C != NULL) {
+        Task_Kill(D_actor_215100_8015E64C);
+        D_actor_215100_8015E64C = NULL;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AE90);
 
