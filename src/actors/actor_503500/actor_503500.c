@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/1BC.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013223C);
 
@@ -30,7 +31,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132BD8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132BF8);
+void func_actor_503500_80132BF8(void)
+{
+    Mc_SaveData.field_6 = 0x16;
+    Mc_SaveData.field_8 = 1;
+    Mc_SaveData.field_5 = 1;
+    Task_Spawn(0, 0x11, 0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132C40);
 
