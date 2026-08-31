@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "aya/replay_bonus.h"
 #include "main/mem.h"
 #include "psyq/libpress.h"
 
@@ -43,7 +44,12 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117598);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801175D0);
+s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
+{
+    s16* p = ctx->itemList->itemIds + index;
+
+    return *p;
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801175F0);
 
