@@ -545,7 +545,39 @@ void func_actor_400600_8013AD3C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013ADA4);
+void func_actor_400600_8013ADA4(Task* arg0)
+{
+    Actor400600Work* work;
+    GsCOORDINATE2*   coord;
+    s32              x;
+    s32              y;
+    u16              frame;
+    u16              step;
+    u16              accum;
+
+    work            = (Actor400600Work*)arg0->idMap;
+    coord           = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    frame           = work->field_718 + 1;
+    work->field_718 = frame;
+    if ((s16)frame >= 5) {
+        x                 = coord->coord.t[0];
+        coord->coord.t[0] = x + ((0x40B5 - x) >> 3);
+        coord->coord.t[2] = coord->coord.t[2] + 0x78;
+        step              = (u16)work->field_722 + 2;
+        accum             = (u16)work->field_724 + step;
+        work->field_724   = accum;
+        work->field_722   = step;
+        y                 = coord->coord.t[1] + (s16)accum;
+        coord->coord.t[1] = y;
+        if (y >= 0) {
+            Gp_SpawnPadLerp(0x10, 0x80, 0x20);
+            work->field_718 = 0;
+            func_actor_400600_80139D98(arg0, 0x19, 0x10);
+            coord->coord.t[1] = 0;
+            work->field_71C   = work->field_71C + 1;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013AE88);
 
