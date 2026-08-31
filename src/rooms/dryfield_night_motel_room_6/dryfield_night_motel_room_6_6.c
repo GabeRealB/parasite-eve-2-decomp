@@ -113,4 +113,7 @@ s32 func_dryfield_night_motel_room_6_80181A9C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_6/dryfield_night_motel_room_6_6", func_dryfield_night_motel_room_6_80181B74);
+s32 func_dryfield_night_motel_room_6_80181B74(void)
+{
+    return 0;
+}
