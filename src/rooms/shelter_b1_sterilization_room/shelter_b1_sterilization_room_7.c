@@ -81,7 +81,11 @@ void func_shelter_b1_sterilization_room_80181634(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_80181658);
+void func_shelter_b1_sterilization_room_80181658(void)
+{
+    SndEvt_EnqueueTypeA(0x54100006, 0, 0x24);
+    SndEvt_EnqueueTypeA(0x54100007, 0, 0x24);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_80181698);
 
