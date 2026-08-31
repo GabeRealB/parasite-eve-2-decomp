@@ -33971,6 +33971,23 @@ Replace every INCLUDE_ASM in the span, and mark the interior symbols
 `// type:label` in each overlay's `sym/*.txt` so a re-split does not cut the
 parent again. The header `.word` table only names the `Fn*` entry.
 
+The scratch env bootstraps `target.o` from the **fragment**, so it scores the
+wrong thing. Rebuild both target files from the whole span before the first
+attempt: keep the `.s` prelude up to and including its `.endif`, emit one
+`glabel <parent Fn>`, then concatenate the `/* ... */` instruction lines of the
+parent and every following L-label, turning each interior symbol into a local
+label (`.L_<name>:`) and rewriting branch operands to it. Assemble with the
+`AS_FLAGS` build.sh uses:
+
+```
+mips-linux-gnu-as -EL -I include -I build -I include/psyq -I include/decomp \
+    -O2 -march=r3000 -mtune=r3000 -no-pad-sections -G0 -o target.o target.s
+```
+
+`Actor02500_Fn01E60` (0x1E60-0x1F8C, nine L-labels) matched at 100% on the
+second attempt this way, against a fragment that cannot be expressed in C at
+all.
+
 ## Mixed `arg0->state = task->state + 1` swaps `$s0`/`$s1` with a hoisted `1`
 
 A 0/1/2 task-state switch hoists `li $s1, 1` for the `beq` and reuses it for

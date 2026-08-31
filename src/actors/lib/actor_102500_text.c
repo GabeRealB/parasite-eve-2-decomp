@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_102500.h"
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00078);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L000D8);
@@ -244,25 +246,80 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01DE0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01E04);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01E60);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Actor02500_Fn00494(Actor02500* arg0);
+void Actor02500_Fn016FC(Actor02500* arg0);
+void Actor02500_Fn01F8C(Actor02500* arg0);
+void Actor02500_Fn02008(Actor02500* arg0);
+void Actor02500_Fn02288(Actor02500* arg0);
+void Actor02500_Fn02318(Actor02500* arg0);
+void Actor02500_Fn023D8(Actor02500* arg0);
+void Actor02500_Fn02430(Actor02500* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01EB0);
+extern u8 D_801153F4;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01EC0);
+void Actor02500_Fn01E60(Actor02500Ctx* arg0, Actor02500* arg1)
+{
+    Actor02500Work*  work;
+    Actor02500Obj2C* temp_a1;
+    GsCOORDINATE2*   temp_s2;
+    s32              state;
+    s32              one;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01ECC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01EEC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01EF8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01F10);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01F38);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01F6C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L01F74);
+    temp_a1 = arg1->field_2C;
+    state   = D_801153F4;
+    work    = arg1->field_1C;
+    temp_s2 = temp_a1->field_8;
+    one     = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    temp_a1->field_C = 0;
+    arg0->field_14   = 0;
+    goto default_body;
+case1:
+    if (work->field_322 == 5) {
+        return;
+    }
+    Actor02500_Fn023D8(arg1);
+    goto tail;
+case2:
+    temp_a1->field_C = 0x80;
+    arg0->field_14   = one;
+    return;
+default_body:
+    if (arg0->field_4C != 0) {
+        Actor02500_Fn01F8C(arg1);
+    }
+    Actor02500_Fn00494(arg1);
+    Actor02500_Fn02008(arg1);
+    if (work->field_328 != 0) {
+        Actor02500_Fn016FC(arg1);
+    }
+    Actor02500_Fn02288(arg1);
+    Actor02500_Fn02318(arg1);
+    temp_s2->flg = 0;
+    Gp_UpdateCoord(temp_s2);
+    Actor02500_Fn023D8(arg1);
+    if (work->field_322 == 5) {
+        return;
+    }
+tail:
+    Actor02500_Fn02430(arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01F8C);
 
