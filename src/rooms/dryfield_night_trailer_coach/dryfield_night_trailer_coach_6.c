@@ -6,7 +6,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_801826EC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182800);
+s32 func_dryfield_night_trailer_coach_80182800(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_80182808);
 
