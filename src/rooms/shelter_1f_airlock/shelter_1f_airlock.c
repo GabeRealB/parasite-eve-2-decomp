@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_airlock/shelter_1f_airlock", func_shelter_1f_airlock_8017D61C);
+s32 func_shelter_1f_airlock_8017D61C(void)
+{
+    return 0;
+}
 
 s32 func_shelter_1f_airlock_8017D624(void)
 {
