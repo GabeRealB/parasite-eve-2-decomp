@@ -2,7 +2,10 @@
 
 #include "actors/actor_100700.h"
 #include "gameplay/3A34.h"
+#include "main/session.h"
 #include "main/sound.h"
+
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00060);
 
@@ -84,41 +87,132 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00B04);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00BA0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00BC0);
+extern s32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00C30);
+void Actor00700_Fn00BC0(Actor00700* arg0)
+{
+    VECTOR*          vec;
+    Actor00700Work*  work;
+    Actor00700Obj2C* obj;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   target;
+    s32              state;
+    s32              one;
+    s32              dist;
+    s32              raw;
+    s16              diff;
+    s32              adiff;
+    s32              ang;
+    s32              vel;
+    s32              pan;
+    s32              snd;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00C40);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00C74);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00CEC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00D44);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00D60);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00D64);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00D90);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00D98);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00DA0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00DC0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00DF4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00E0C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00EC8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00EE0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00EE4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00EE8);
+    one   = 1;
+    vec   = (VECTOR*)(SCRATCH_SP -= 0x10);
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    state = work->field_37C;
+    coord = obj->field_8;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto pop;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto pop;
+case0:
+    Gp_ArmStateF0(1);
+    if (work->field_33C == 0) {
+        work->field_33C = ((Actor00700*)Game_GetPtrSlot(3))->field_2C->field_8;
+    }
+    target          = work->field_33C;
+    vec->vx         = target->coord.t[0] - coord->coord.t[0];
+    vec->vy         = 0;
+    vec->vz         = target->coord.t[2] - coord->coord.t[2];
+    work->field_38A = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
+    work->field_386 = 0x19;
+    work->field_38C = work->field_38C - 1;
+    if ((s16)work->field_38C > 0) {
+        goto dist;
+    }
+    work->field_37A = 0;
+    work->field_37C = 0;
+    work->field_37E = one;
+    work->field_38C = 0;
+dist:
+    dist = SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz);
+    if (dist < 0x2BC) {
+        raw   = work->field_38A - work->field_388;
+        diff  = raw;
+        adiff = diff >= 0 ? diff : -diff;
+        if (adiff < 0x800) {
+            ang = adiff;
+            goto wrap_done;
+        }
+        if (diff > 0) {
+            ang = 0x1000 - raw;
+            goto wrap_done;
+        }
+        ang = raw + 0x1000;
+    wrap_done:
+        if ((s16)ang < 0x32) {
+            work->field_37E = 4;
+            work->field_384 = 0;
+            work->field_386 = 0;
+            work->field_37C = 1;
+            goto pop;
+        }
+        work->field_384 = 0;
+        goto pop;
+    }
+    work->field_384 = 0x32;
+    goto pop;
+case1:
+    if (work->field_382 == 0x14) {
+        work->field_31A |= 0x8000;
+    }
+    if (work->field_382 < 0x20) {
+        goto pop;
+    }
+    work->field_37E  = 3;
+    work->field_37C  = 2;
+    work->field_31A &= 0x7FFF;
+    goto pop;
+case2:
+    vel = 0;
+    if (work->field_382 < 0xB) {
+        vel = -0x78;
+    }
+    work->field_384 = vel;
+    if (work->field_382 < 0x1F) {
+        goto pop;
+    }
+    snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070004;
+    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < Actor00700_D06E50[arg0->field_20->field_3C->field_F]) {
+        work->field_37C = 0;
+        work->field_37E = state;
+        goto pop;
+    }
+    work->field_37A = 0;
+    work->field_37C = 0;
+    work->field_37E = one;
+    work->field_38C = 0;
+    work->field_38E = 0;
+    work->field_394 = 0;
+pop:
+    SCRATCH_SP += 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00F20);
 
@@ -302,7 +396,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A7C);
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A9C);
 
 void Actor00700_Fn008B4(Actor00700* arg0);
-void Actor00700_Fn00BC0(Actor00700* arg0);
 void Actor00700_Fn00F20(Actor00700* arg0);
 void Actor00700_Fn01148(Actor00700* arg0);
 void Actor00700_Fn01C10(Actor00700* arg0);
