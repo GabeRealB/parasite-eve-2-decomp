@@ -10,12 +10,37 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
 extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
 extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
+extern s32            D_dryfield_night_garage_80182DE0;
+extern s32            D_dryfield_night_garage_80182DE4;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_4", func_dryfield_night_garage_801809A4);
+Task* func_dryfield_night_garage_80180A64(s32 arg0);
+
+void func_dryfield_night_garage_801809A4(Task* arg0)
+{
+    s32 temp_v1;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE0, 0);
+            arg0->state = arg0->state + 1;
+            return;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                Gp_MsgPlayerWeapon(1);
+                Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
+                break;
+            }
+            return;
+    }
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_4", func_dryfield_night_garage_80180A64);
 
