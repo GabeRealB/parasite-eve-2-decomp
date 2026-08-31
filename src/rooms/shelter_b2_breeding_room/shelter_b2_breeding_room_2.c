@@ -38,7 +38,14 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D758);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D7A8);
+void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
+{
+    if (Gp_CapBusy() == 0) {
+        Gp_ResetCap();
+        Gp_MsgPlayerWeapon(1);
+        Task_Kill(arg0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D7EC);
 
