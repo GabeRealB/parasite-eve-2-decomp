@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main/task.h"
 #include "gameplay/1BC.h"
+extern u16 D_actor_503500_80176D24;
+
 extern Task* D_actor_503500_80176558;
 
 extern TaskDesc D_actor_503500_8014B964;
@@ -144,7 +146,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80136048);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013608C);
+s32 func_actor_503500_8013608C(void)
+{
+    return (u32)(D_actor_503500_80176D24 - 2) < 3U;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_801360A4);
 
