@@ -25,7 +25,10 @@ void func_mist_parking_80183600(void)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183634);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183688);
+void func_mist_parking_80183688(s32 arg0)
+{
+    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_8018D75C, 5U), arg0, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_801836CC);
 
