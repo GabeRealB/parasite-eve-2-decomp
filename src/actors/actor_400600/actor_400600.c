@@ -267,7 +267,16 @@ void func_actor_400600_80138AB8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138AF0);
+void func_actor_400600_80138AF0(Task* arg0, s32 arg1)
+{
+    u32 rnd1;
+    u32 rnd2;
+
+    rnd1                                       = ((u32)Gp_LcgState * 5) + 0x71357911;
+    rnd2                                       = (rnd1 * 5) + 0x71357911;
+    Gp_LcgState                                = rnd2;
+    ((Actor400600Work*)arg0->idMap)->field_732 = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138B40);
 
