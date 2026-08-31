@@ -34677,3 +34677,47 @@ case 1:
 /* … */
 }
 ```
+
+## Store the scratch pointer before deriving the block pointer to keep the `move`
+
+The `G_SCRATCH_HEAD` alloc idiom has two shapes that differ by exactly one
+instruction, and which one the target has depends only on statement order.
+Deriving the block pointer first,
+
+```c
+head                  = *(u8**)G_SCRATCH_HEAD;
+blk                   = (Actor02100Sight*)(head - 0x20);
+*(u8**)G_SCRATCH_HEAD = (u8*)blk;
+```
+
+makes `blk` the destination of the `addsi3` itself, so `blk`'s callee-saved
+register is written directly and the store reuses it:
+
+```
+addiu $s0, $v0, -0x20
+sw    $s0, 0($v1)
+```
+
+Storing first and deriving `blk` from the *same expression* afterwards gives
+CSE a temporary to forward, and the assignment to `blk` survives as a real
+copy insn because the temporary is still live at the store:
+
+```c
+head                  = *(u8**)G_SCRATCH_HEAD;
+*(u8**)G_SCRATCH_HEAD = head - 0x20;
+blk                   = (Actor02100Sight*)(head - 0x20);
+```
+
+```
+addiu $v0, $v0, -0x20
+move  $s0, $v0
+sw    $v0, 0($v1)
+```
+
+Nothing else reproduces the second form: `head -= 0x20;`, splitting `head` and
+`blk` into separate variables, and casting through a third local all collapse
+back to the one-instruction version, because copy propagation merges the two
+pseudos as soon as the copy's source dies at the copy. `Actor02100_Fn00DCC`
+went from 99.5% to 100% on this reorder alone — the extra `move` shifted every
+later branch offset, so the leftover read as `branch=10` rather than as the
+single missing instruction it was.

@@ -2,6 +2,9 @@
 
 #include "actors/actor_102100.h"
 #include "main/gameflag.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
 
@@ -61,29 +64,128 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00D78);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00DA8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00DCC);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Gp_ArmStateF0(s32 arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00E18);
+s32  Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
+void Actor02100_Fn011C4(Actor02100* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00E30);
+/// Line-of-sight scan. Takes a 0x20-byte block from `G_SCRATCH_HEAD`, builds
+/// the world-space delta from this actor's coordinate to the player's (entry 0
+/// of the player's coordinate array in mode 4, entry 3 otherwise) and, when the
+/// player is in front of the actor, checks the distance against the sight range
+/// in `Actor02100_D03E00` and asks `Actor02100_Fn0337C` whether the segment is
+/// clear. A hit latches the player onto `field_140` and switches the state
+/// machine to 2 (or 3 in mode 4). `field_186` throttles the scan to one run
+/// every 5 frames while the session is in state 1.
+void Actor02100_Fn00DCC(Actor02100* arg0)
+{
+    Actor02100Work*  work;
+    Actor02100Sight* blk;
+    GsCOORDINATE2*   self;
+    GsCOORDINATE2*   target;
+    u8*              head;
+    u32              dist;
+    s32              mode;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00E84);
+    self = arg0->field_2C->field_8;
+    work = arg0->field_1C;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00EA4);
+    if (Game_Session->field_4D == 1) {
+        work->field_186 = 5;
+    }
+    if (work->field_186 != 0) {
+        work->field_186--;
+        return;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L01010);
+    work->field_140 = NULL;
+    work->field_164 = 0;
+    work->field_180 = 0;
+    self->flg       = 0;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L01020);
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x20;
+    blk                   = (Actor02100Sight*)(head - 0x20);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0110C);
+    if (work->field_178 == 4) {
+        target = &((Actor02100*)Game_GetPtrSlot(3))->field_2C->field_8[0];
+    } else {
+        target = &((Actor02100*)Game_GetPtrSlot(3))->field_2C->field_8[3];
+    }
+    target->flg = 0;
+    Gp_UpdateCoord(target);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L01138);
+    if (work->field_17E == 0) {
+        blk->delta.vx = target->workm.t[0] - self->workm.t[0];
+        blk->delta.vy = target->workm.t[1] - self->workm.t[1];
+        blk->delta.vz = target->workm.t[2] - self->workm.t[2];
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L01188);
+        if (((blk->delta.vx * self->workm.m[0][2]) + (blk->delta.vy * self->workm.m[1][2]) +
+             (blk->delta.vz * self->workm.m[2][2])) > 0) {
+            dist = SquareRoot0((blk->delta.vx * blk->delta.vx) + (blk->delta.vy * blk->delta.vy) +
+                               (blk->delta.vz * blk->delta.vz));
+            if (dist < Actor02100_D03E00[arg0->field_20->field_3C->field_F & 7]) {
+                blk->from.vx = target->workm.t[0];
+                blk->from.vy = target->workm.t[1];
+                blk->from.vz = target->workm.t[2];
+                blk->to.vx   = self->workm.t[0];
+                blk->to.vy   = self->workm.t[1];
+                blk->to.vz   = self->workm.t[2];
+                if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
+                    work->field_140 = Game_GetPtrSlot(3);
+                    work->field_164 = dist;
+                    work->field_180 = 1;
+                }
+            }
+        }
+        Actor02100_Fn011C4(arg0);
+    } else {
+        blk->delta.vx = target->workm.t[0] - self->workm.t[0];
+        blk->delta.vy = target->workm.t[1] - self->workm.t[1];
+        blk->delta.vz = target->workm.t[2] - self->workm.t[2];
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0118C);
+        if (((blk->delta.vx * self->workm.m[0][2]) + (blk->delta.vy * self->workm.m[1][2]) +
+             (blk->delta.vz * self->workm.m[2][2])) > 0) {
+            blk->from.vx = target->workm.t[0];
+            blk->from.vy = target->workm.t[1];
+            blk->from.vz = target->workm.t[2];
+            blk->to.vx   = self->workm.t[0];
+            blk->to.vy   = self->workm.t[1];
+            blk->to.vz   = self->workm.t[2];
+            if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
+                work->field_140 = Game_GetPtrSlot(3);
+                work->field_164 = 1;
+                work->field_180 = 1;
+            }
+        }
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L011A0);
+    if (work->field_180 != 0) {
+        Gp_ArmStateF0(1);
+        if (work->field_178 == 4) {
+            mode = 3;
+        } else {
+            mode = 2;
+        }
+        work->field_120 = work->field_118;
+        work->field_122 = work->field_11A;
+        work->field_124 = work->field_11C;
+        work->field_172 = mode;
+        work->field_174 = 0;
+        work->field_17A = 0;
+        work->field_17C = 0;
+        work->field_118 = 0;
+        work->field_11A = 0;
+        work->field_11C = 0;
+        if (work->field_188 == 1) {
+            SndEvt_EnqueueType7(work->field_168, 1);
+            work->field_188 = 0;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x20;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn011C4);
 
@@ -254,7 +356,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0324C);
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L032CC);
 
 void Actor02100_Fn00ADC(Actor02100* arg0);
-void Actor02100_Fn00DCC(Actor02100* arg0);
 void Actor02100_Fn016EC(Actor02100* arg0);
 void Actor02100_Fn01FF0(Actor02100* arg0);
 
@@ -301,7 +402,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0351C);
 void Gp_UnlinkNode(void* node);
 void Gp_UnlinkObj(void* node);
 void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
-void SndEvt_EnqueueType7(s32 arg0, s32 arg1);
 void Gp_DestroyEnemy(void* enemy, void* task);
 
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1)
