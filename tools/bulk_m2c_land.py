@@ -97,6 +97,39 @@ def sh(cmd: list[str], cwd: Path = REPO_ROOT, timeout: int = 3600):
 
 # --- selecting and preparing -------------------------------------------------
 
+def refusals_path(results: Path) -> Path:
+    return results.parent / "refusals.txt"
+
+
+def load_refusals(results: Path) -> dict[str, str]:
+    """Candidates a previous run landed and had to revert.
+
+    Without this the same body is re-selected, re-landed, re-built and
+    re-reverted on every run: func_actor_403000_8013D98C cost three batches
+    that way. Same idea as tools/difficult_functions, which records give-ups so
+    the vacuum does not re-pick them.
+    """
+    path = refusals_path(results)
+    if not path.is_file():
+        return {}
+    out = {}
+    for line in path.read_text().splitlines():
+        name, _, why = line.partition(" ")
+        if name:
+            out[name] = why
+    return out
+
+
+def record_refusal(results: Path, func: str, why: str) -> None:
+    path = refusals_path(results)
+    known = load_refusals(results)
+    if func in known:
+        return
+    why = " ".join(why.split())[:120]
+    with path.open("a") as fh:
+        fh.write(f"{func} {why}\n")
+
+
 def load_candidates(
     results: Path, staged: Path, grades: set[str], overlay: Optional[str],
     audit: Optional[list] = None,
@@ -146,6 +179,9 @@ def load_candidates(
         stub = find_stub(host, func)
         if stub is None:
             note(func, "stub gone from its host", host=str(host))
+            continue
+        if func in REFUSED:
+            note(func, f"refused by an earlier run: {REFUSED[func]}")
             continue
         cand = Candidate(func, name, B.family_of(loc), r["grade"], body, host, stub)
         if r["grade"] == "dirty":
@@ -518,6 +554,8 @@ def land_overlay(cands: list[Candidate], dry_run: bool,
             revert({c.host})
             c.landed = False
             c.note = tail.splitlines()[-1][:160] if tail else "scoped build failed"
+            if RESULTS_PATH is not None:
+                record_refusal(RESULTS_PATH, c.func, c.note)
             # Only re-apply siblings that are not committed yet. Once
             # commit_one has run, the body is in HEAD, so `git checkout --`
             # restores it rather than losing it -- and re-applying then fails,
@@ -584,6 +622,8 @@ def commit_one(cand: Candidate) -> bool:
 
 HEADERS: dict[str, list[str]] = {}
 STRICT_TYPES = False
+REFUSED: dict[str, str] = {}
+RESULTS_PATH: Optional[Path] = None
 
 
 def main() -> int:
@@ -600,6 +640,8 @@ def main() -> int:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would land without editing anything")
+    ap.add_argument("--retry-refused", action="store_true",
+                    help="ignore refusals.txt and try those bodies again")
     ap.add_argument("--audit", type=Path,
                     help="where to write the per-row selection record "
                          "(default: <results dir>/selection.jsonl)")
@@ -615,6 +657,9 @@ def main() -> int:
     os.chdir(REPO_ROOT)
     global STRICT_TYPES
     STRICT_TYPES = args.strict_types
+    global REFUSED, RESULTS_PATH
+    RESULTS_PATH = args.results
+    REFUSED = {} if args.retry_refused else load_refusals(args.results)
     staged = args.staged or args.results.parent / "staged"
     ctx = args.contexts or args.results.parent / "contexts.json"
     global HEADERS
