@@ -4,6 +4,7 @@
 #include "main/mem.h"
 #include "psyq/libpress.h"
 extern UiObjectDesc D_replay_bonus_80119154;
+extern u8           D_replay_bonus_801192AC;
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801158C0);
 
@@ -75,7 +76,12 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117A08);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117DE0);
+void func_replay_bonus_80117DE0(u8 arg0)
+{
+    char pad[0x10];
+
+    D_replay_bonus_801192AC = 0x7F - (arg0 >> 1);
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117E04);
 
