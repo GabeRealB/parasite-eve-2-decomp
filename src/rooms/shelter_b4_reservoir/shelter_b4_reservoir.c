@@ -1,4 +1,8 @@
 #include "common.h"
+#include "main/task.h"
+extern s32 D_shelter_b4_reservoir_8018492C;
+extern s16 D_shelter_b4_reservoir_80184F80;
+
 extern u8  D_shelter_b4_reservoir_80184F78;
 extern u8  D_shelter_b4_reservoir_80184F79;
 extern u8  D_shelter_b4_reservoir_80184F7A;
@@ -36,7 +40,20 @@ s32 func_shelter_b4_reservoir_8017E3C4(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E3CC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E400);
+void func_shelter_b4_reservoir_8017E400(Task* arg0)
+{
+    s16 temp_v1;
+    s32 temp_v0;
+
+    temp_v0                         = (s32)(arg0->killCountdown * 0x5DC) / (s32)arg0->spawnArg1;
+    temp_v1                         = (u16)arg0->killCountdown + 1;
+    arg0->killCountdown             = temp_v1;
+    D_shelter_b4_reservoir_80184F80 = temp_v0 - 0x7D0;
+    if (arg0->spawnArg1 < temp_v1) {
+        Task_Kill(arg0);
+        D_shelter_b4_reservoir_8018492C = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E4B0);
 
