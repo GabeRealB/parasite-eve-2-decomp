@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_801818DC);
 
@@ -6,7 +7,11 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181E30);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181E3C);
+void func_acropolis_cafeteria_80181E3C(Task* arg0)
+{
+    Gp_UnlinkObj(arg0->idMap);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181E70);
 
