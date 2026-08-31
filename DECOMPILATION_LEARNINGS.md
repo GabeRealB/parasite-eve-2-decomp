@@ -33954,3 +33954,32 @@ Task_Kill(task);
 `func_dryfield_water_tank_8017D618` is the example. The sibling
 `func_dryfield_water_tower_8017D948` does not need this: `field_1 = 1` sits
 after more calls, so the hoisted `1` is already the lower-priority allocno.
+
+## Shared call tail: duplicate the call, don't hoist its args into locals
+
+When several arms of a `switch`/`if` end in the *same* call with different
+constant arguments, m2c writes one call site fed by `table`/`idx` locals plus a
+`goto`. That costs a register every time: the argument becomes a pseudo, so
+`%hi` of an address argument is computed into a scratch register and only the
+`%lo` lands in the arg register.
+
+```
+lui   v0, %hi(D_x)          /* ours: table is a pseudo → %hi in a scratch */
+addiu a0, v0, %lo(D_x)
+```
+
+```
+lui   a0, %hi(D_x)          /* target: a0 is the hard arg reg from the start */
+addiu a0, a0, %lo(D_x)
+```
+
+Write the call out at every site instead. `local_alloc` then sees the hard
+argument register as the destination of the address computation and keeps
+`%hi`/`%lo` in it, and GCC 2.8.1's cross-jumping still merges the identical
+part of the tail (the constant `a2`/`a3` setup plus the `jal`) into one block,
+reproducing the target's `j` into a shared spawn label. It also lets the
+`%hi` of a two-arm `if` hoist into the branch's delay slot.
+
+`func_mist_parking_801823F8` is the example: four `Task_SpawnFromTable(&D_…,
+n, 0, 0)` sites, one merged tail, 99.46% → 99.75% purely from dropping the
+locals.
