@@ -33892,3 +33892,21 @@ case 3:
 93.3% as a full goto chain, 100% this way. Declaring the constant as an explicit
 `s32 one = 1;` local changes nothing either way — CSE produces the shared
 constant register on its own.
+
+## Splat L-labels with no prologue are the parent function
+
+Splat emits a `glabel` at every internal branch target, so a switch/case body
+(`Actor02100_L03618`) and the shared epilogue (`Actor02100_L036A4`) become
+their own INCLUDE_ASM units. Those fragments start on live `$s0`/`$s1`/`$s2`
+and `jal` without saving `$ra` — GCC 2.8.1 cannot emit that as a standalone C
+function (it always writes a prologue for the calls).
+
+m2c on the L-label `.s` alone fails (`base.c` blank). Concatenate the parent
+`Fn*` plus every following L-label up to the `jr $ra` that restores the same
+frame, and match **one** C function. `if (state == 0) goto case0; if (state == 1)
+goto case1; goto epilogue;` is the `beqz` / `beq` / `j` dispatch; do not write
+`if/else if` (that is `bnez` fall-through into case 0).
+
+Replace every INCLUDE_ASM in the span, and mark the interior symbols
+`// type:label` in each overlay's `sym/*.txt` so a re-split does not cut the
+parent again. The header `.word` table only names the `Fn*` entry.

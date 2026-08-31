@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_102100.h"
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L00114);
@@ -278,10 +280,49 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn034E0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0351C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn035D4);
+void Gp_UnlinkNode(void* node);
+void Gp_UnlinkObj(void* node);
+void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void SndEvt_EnqueueType7(s32 arg0, s32 arg1);
+void Gp_DestroyEnemy(void* enemy, void* task);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03618);
+void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1)
+{
+    Actor02100Work* work;
+    s16             state;
+    u16             timer;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03680);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L036A4);
+    work  = arg1->field_1C;
+    state = work->field_174;
+    if (state == 0) {
+        goto case0;
+    }
+    if (state == 1) {
+        goto case1;
+    }
+    goto epilogue;
+case0:
+    arg1->field_2C->field_C = 0x80;
+    Gp_UnlinkNode(arg0->node);
+    Gp_UnlinkObj(work->field_40);
+    Gp_UnlinkObj(work->field_78);
+    Gp_UnlinkObj(work->field_C8);
+    arg0->field_54 = 0;
+    Gp_ReleaseStateF0Add(arg1, 0x15);
+    work->field_174 = 1;
+    work->field_17A = 0x3C;
+    if (work->field_188 != 0) {
+        SndEvt_EnqueueType7(work->field_168, 1);
+    }
+    goto epilogue;
+case1:
+    timer = work->field_17A;
+    timer--;
+    work->field_17A = timer;
+    if ((s16)timer > 0) {
+        goto epilogue;
+    }
+    Gp_DestroyEnemy(arg0, arg1);
+epilogue:
+    return;
+}
