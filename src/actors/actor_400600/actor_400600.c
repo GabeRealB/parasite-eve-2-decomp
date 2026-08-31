@@ -716,7 +716,17 @@ void func_actor_400600_8013BF80(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013BFD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013C038);
+void func_actor_400600_8013C038(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+
+    work->field_720 = 4;
+    work->field_726 = 0x10;
+    work->field_746 = 0x15;
+    work->field_742 = 1;
+    work->field_718 = 0;
+    work->field_71E = work->field_71E + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013C074);
 
