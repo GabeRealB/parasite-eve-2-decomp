@@ -21,7 +21,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_801320D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_8013215C);
+void func_actor_450200_8013215C(void)
+{
+    Gp_PulseState1C();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_8013217C);
 
