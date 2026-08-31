@@ -532,7 +532,7 @@ actor_213100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_215100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_223600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_260400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata_head = "0x4" }
-actor_260500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
+actor_260500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, units = ["0x9C", "0x190"], rodata = [{ start = "0x4", unit = "actor_260500_2" }] }
 actor_300300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_300400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_300700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
