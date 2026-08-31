@@ -87,7 +87,15 @@ void func_shelter_b1_sterilization_room_80181658(void)
     SndEvt_EnqueueTypeA(0x54100007, 0, 0x24);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_80181698);
+void func_shelter_b1_sterilization_room_80181698(s32 arg0)
+{
+    Gp_ResetCap();
+    if (arg0 == 1) {
+        Gp_CapFile = 0;
+        Gp_LoadCapFile(1);
+        func_800E6D4C(0x2C0, 0x100);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801816E0);
 
