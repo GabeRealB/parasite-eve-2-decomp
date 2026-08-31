@@ -223,6 +223,11 @@ def reinject(pending: "list[Pending]") -> tuple[bool, str]:
             return False, f"the split did not write {target}"
         text = target.read_text()
         for i, item in enumerate(items):
+            # The split can carry a matched body over into the file it writes,
+            # already formatted. Re-injecting it then defines the function
+            # twice, which GCC reports as `redefinition of …` far from here.
+            if find_definition(text, item.func):
+                continue
             here = stub_of(text, item.func)
             if here is not None:
                 text = text[: here.start()] + item.body + text[here.end():]
