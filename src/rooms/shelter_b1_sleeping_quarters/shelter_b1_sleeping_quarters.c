@@ -11,7 +11,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D6FC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D770);
+s32 func_shelter_b1_sleeping_quarters_8017D770(void)
+{
+    return 0;
+}
 
 void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
 {
