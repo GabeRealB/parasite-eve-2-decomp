@@ -8,6 +8,7 @@
 #include "main/task.h"
 
 extern s32 D_actor_146300_80137AAC;
+extern s32 D_actor_146300_80137B10;
 extern s32 D_actor_146300_80137B38;
 extern s32 D_actor_146300_80137B60;
 extern s32 D_actor_146300_80137C10;
@@ -160,7 +161,21 @@ void func_actor_146300_8013224C(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_801323E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_80132418);
+void func_actor_146300_80132418(s32 arg0)
+{
+    switch (arg0) {
+        case 0:
+            if (Gp_GetCapEventKey() == 1) {
+                Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137B10, 0);
+            }
+            break;
+        case 1:
+            if (Gp_GetCapEventKey() == 2) {
+                Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_146300_80137AAC, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_801324AC);
 
