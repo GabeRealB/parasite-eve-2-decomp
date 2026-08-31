@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_saloon_g_r/dryfield_saloon_g_r_2", func_dryfield_saloon_g_r_8017D9C4);
+s32 func_dryfield_saloon_g_r_8017D9C4(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_saloon_g_r/dryfield_saloon_g_r_2", func_dryfield_saloon_g_r_8017D9CC);
 
