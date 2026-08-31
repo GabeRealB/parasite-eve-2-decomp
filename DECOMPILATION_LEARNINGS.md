@@ -35235,3 +35235,36 @@ differences that vanish at link time. Rewrite the raw halves in the hand-built
 
 `Gp_LcgState` was the giveaway: the address is `0x80070F60`, and every unpaired
 `lui` in the span held exactly its high half.
+
+## Split a per-call-block temp so `local-alloc` takes `$s0` and the pointers slide up
+
+A body that repeats the same "build id, read pan, enqueue" block two or three
+times wants one temp per block, not one temp shared by all of them:
+
+```c
+if (work->field_698 == 0x14) {
+    s32 pan;                       /* block-scoped: one allocno per arm */
+
+    snd = Table[work->field_6D6 + 0xC] | ((ctx->field_8 >> 12) << 8);
+    pan = (s8)Gp_GetObjPan(self);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+}
+```
+
+`pan` written this way is used in exactly one basic block per arm, so
+`local-alloc` runs first, hands every copy `$s0`, and folds the sign extension
+into it two-address (`sll s0,v0,0x18` / `sra s0,s0,0x18`). Everything that is
+still a global allocno then slides one register up — the work pointer to `$s1`,
+the sound id to `$s2`, the coordinate to `$s3` — which is what the target does.
+Declaring a single function-scope `pan` instead makes it a global allocno that
+takes `$s1` from the work pointer, pushes the work pointer to `$s0`, and forces
+the extension through `$v0`; it also costs two reordering penalties, because the
+scheduler can no longer put `sra s0,s0,0x18` in the `jal Gp_GetObjDepth` delay
+slot.
+
+The split is not all-or-nothing: hoist *both* temps into the arms and the sound
+id becomes local too, taking `$s1` and leaving the work pointer in `$s2`. Only
+the temp whose live range really is one block belongs at block scope; a value
+the target keeps in the same saved register across every arm (`snd` here) has
+to stay function-scope. `Actor02000_Fn012E0` went 96.8% → 98.5% → 100% over
+those two moves, with the whole diff being which saved register each name got.

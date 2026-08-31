@@ -7,7 +7,14 @@
 #include <psyq/libgs.h>
 
 typedef struct Actor02000Work {
-    /* 0x000 */ byte pad_0[0x694];
+    /* 0x000 */ byte pad_0[0x4E0];
+    /* 0x4E0 */ s16  field_4E0;
+    /* 0x4E2 */ byte pad_4E2[6];
+    /* 0x4E8 */ s16  field_4E8;
+    /* 0x4EA */ u16  field_4EA;
+    /* 0x4EC */ byte pad_4EC[0x96];
+    /* 0x582 */ u16  field_582;
+    /* 0x584 */ byte pad_584[0x110];
     /* 0x694 */ s16  field_694;
     /* 0x696 */ byte pad_696[2];
     /* 0x698 */ s16  field_698;
@@ -19,12 +26,20 @@ typedef struct Actor02000Work {
     /* 0x6A4 */ s16  field_6A4;
     /* 0x6A6 */ s16  field_6A6;
     /* 0x6A8 */ s16  field_6A8;
-    /* 0x6AA */ byte pad_6AA[4];
+    /* 0x6AA */ s16  field_6AA;
+    /* 0x6AC */ byte pad_6AC[2];
     /* 0x6AE */ s16  field_6AE;
     /* 0x6B0 */ byte pad_6B0[2];
     /* 0x6B2 */ s16  field_6B2;
-    /* 0x6B4 */ byte pad_6B4[0x26];
+    /* 0x6B4 */ byte pad_6B4[4];
+    /* 0x6B8 */ s16  field_6B8;
+    /* 0x6BA */ byte pad_6BA[0x1A];
+    /* 0x6D4 */ s16  field_6D4;
+    /* 0x6D6 */ s16  field_6D6;
+    /* 0x6D8 */ byte pad_6D8[2];
     /* 0x6DA */ s16  field_6DA;
+    /* 0x6DC */ byte pad_6DC[2];
+    /* 0x6DE */ s16  field_6DE;
 } Actor02000Work;
 
 /// `field_8` is the actor's `GsCOORDINATE2` array; entry 0 is the actor's own
@@ -43,8 +58,12 @@ typedef struct Actor02000Params {
 } Actor02000Params;
 
 typedef struct Actor02000Spawn {
-    /* 0x00 */ byte              pad_0[0x3C];
+    /* 0x00 */ byte              pad_0[8];
+    /* 0x08 */ u16               field_8;
+    /* 0x0A */ byte              pad_A[0x32];
     /* 0x3C */ Actor02000Params* field_3C;
+    /* 0x40 */ byte              pad_40[0xC];
+    /* 0x4C */ u8                field_4C;
 } Actor02000Spawn;
 
 typedef struct Actor02000 {
@@ -53,6 +72,7 @@ typedef struct Actor02000 {
     /* 0x20 */ Actor02000Spawn* field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor02000Obj2C* field_2C;
+    /* 0x30 */ s32              field_30;
 } Actor02000;
 
 #endif

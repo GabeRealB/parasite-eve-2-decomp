@@ -5,12 +5,16 @@
 
 void Gp_ArmStateF0(s32 arg0);
 void Actor02000_Fn00CD0(Actor02000* arg0);
+s32  Gp_GetObjPan(void* arg0);
+s32  Gp_GetObjDepth(void* arg0);
+s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s8  D_80115419;
 extern s16 Actor02000_D03784[];
+extern s32 Actor02000_D15DEC[];
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00078);
 
@@ -274,27 +278,79 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01284);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L012A8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn012E0);
+void Actor02000_Fn012E0(Actor02000* arg0)
+{
+    Actor02000Work* work;
+    GsCOORDINATE2*  self;
+    s32             snd;
+    s16             state;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01328);
+    work  = arg0->field_1C;
+    self  = arg0->field_2C->field_8;
+    state = work->field_6A8;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01358);
+    switch (state) {
+        case 0:
+            if (work->field_6AA == 0) {
+                work->field_694 = 0x16;
+                work->field_6A8 = 1;
+                work->field_6B8 = 1;
+                work->field_6AE = 0x42;
+                work->field_4E0 = -0xA7;
+            } else {
+                work->field_694 = 0x1A;
+                work->field_6A8 = 1;
+                work->field_6B8 = 2;
+                work->field_6AE = 0x31;
+                work->field_4E0 = 0x109;
+            }
+            work->field_4E8          = 0x15E;
+            work->field_69C          = 0;
+            work->field_69E          = 0;
+            work->field_6DE          = 1;
+            work->field_4EA         |= 0x4000;
+            work->field_582         &= 0xBFFF;
+            arg0->field_20->field_4C = 0;
+            work->field_6D4          = 1;
+            break;
+        case 1:
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+            }
+            if (work->field_6B8 == 1) {
+                if (work->field_698 == 0x14) {
+                    s32 pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0137C);
+                    snd = Actor02000_D15DEC[work->field_6D6 + 0xC] | ((arg0->field_20->field_8 >> 12) << 8);
+                    pan = (s8)Gp_GetObjPan(self);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L013C4);
+                    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+                }
+                if (work->field_698 == 0x2C) {
+                    s32 pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L013D8);
+                    snd = Actor02000_D15DEC[work->field_6D6 + 8] | ((arg0->field_20->field_8 >> 12) << 8);
+                    pan = (s8)Gp_GetObjPan(self);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01454);
+                    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+                }
+            } else if (work->field_698 == 0x19) {
+                s32 pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0145C);
+                snd = Actor02000_D15DEC[work->field_6D6 + 8] | ((arg0->field_20->field_8 >> 12) << 8);
+                pan = (s8)Gp_GetObjPan(self);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01460);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L014C4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L014EC);
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+            }
+            work->field_6AE--;
+            if (work->field_6AE <= 0) {
+                arg0->field_30  = 2;
+                work->field_6A8 = 0;
+                work->field_6D4 = 0;
+            }
+            break;
+    }
+}
 
 void Actor02000_Fn0150C(Actor02000* arg0)
 {
