@@ -4,7 +4,10 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elev
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F420);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F450);
+void func_acropolis_east_elevator_hall_8017F450(void)
+{
+    Gp_StartCapSlot(0x10, 1, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F478);
 
