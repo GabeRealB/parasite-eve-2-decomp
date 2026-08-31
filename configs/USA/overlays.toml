@@ -460,7 +460,7 @@ actor_151000 = { }
 actor_160600 = { }
 actor_160700 = { }
 actor_160900 = { }
-actor_161500 = { }
+actor_161500 = { rodata_head = "0x4" }
 actor_400100 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_400500 = { }
 actor_400600 = { }
