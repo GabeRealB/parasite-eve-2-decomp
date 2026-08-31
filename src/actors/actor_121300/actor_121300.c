@@ -1,4 +1,8 @@
 #include "common.h"
+#include "main/task.h"
+extern Task* D_actor_121300_8013D418;
+
+extern TaskDesc D_actor_121300_8013D390;
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80131EB0);
 
@@ -28,7 +32,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013400C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_801340F0);
+void func_actor_121300_801340F0(void)
+{
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013411C);
 
@@ -42,14 +49,30 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013427C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_801342D4);
+void func_actor_121300_801342D4(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_121300_8013D390, 1, arg0, 0);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134304);
+void func_actor_121300_80134304(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_121300_8013D390, 2, arg0, 0);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134334);
+void func_actor_121300_80134334(s32 arg0)
+{
+    Gp_DispatchMsg(D_actor_121300_8013D418, 0x7D5, arg0, 0);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134364);
+void func_actor_121300_80134364(void)
+{
+    CdCmd_EnqueueReplaceOverlay82();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134384);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_801343A4);
+void func_actor_121300_801343A4(void)
+{
+    Gp_RestoreStreamRng();
+    CdCmd_CancelReplaceAndActivate();
+}
