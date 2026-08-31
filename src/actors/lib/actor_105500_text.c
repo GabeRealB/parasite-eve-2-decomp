@@ -3,10 +3,19 @@
 #include "actors/actor_105500.h"
 
 void Actor05500_Fn0006C(Actor105500* arg0);
+void Actor05500_Fn00754(Actor105500* arg0);
+void Actor05500_Fn00914(Actor105500* arg0);
+void Actor05500_Fn00A94(Actor105500* arg0);
+void Actor05500_Fn00FA0(Actor105500* arg0);
+void Actor05500_Fn012E8(Actor105500* arg0);
+void Actor05500_Fn0143C(Actor105500* arg0);
+void Actor05500_Fn01A0C(Actor105500* arg0);
+void Actor05500_Fn01B30(Actor105500* arg0);
 void Actor05500_Fn020D4(Actor105500* arg0);
 void Actor05500_Fn02214(Actor105500* arg0);
 void Actor05500_Fn03674(Actor105500* arg0, Actor105500Obj2C* arg1, s32 arg2);
 void Actor05500_Fn0378C(Actor105500* arg0);
+void Actor05500_Fn03864(Actor105500* arg0);
 void Actor05500_Fn03918(Actor105500* arg0);
 void Actor05500_Fn039AC(Actor105500* arg0);
 void Actor05500_Fn03A70(Actor105500* arg0);
@@ -116,27 +125,43 @@ case1:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03674);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0378C);
+void Actor05500_Fn0378C(Actor105500* arg0)
+{
+    s16 state;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L037CC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L037DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L037EC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L037FC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L0380C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L0381C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L0382C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L0383C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L0384C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L03854);
+    state = arg0->field_1C->field_39A;
+    switch (state) {
+        case 0:
+            Actor05500_Fn00754(arg0);
+            break;
+        case 1:
+            Actor05500_Fn00914(arg0);
+            break;
+        case 2:
+            Actor05500_Fn00A94(arg0);
+            break;
+        case 3:
+            Actor05500_Fn00FA0(arg0);
+            break;
+        case 4:
+            Actor05500_Fn012E8(arg0);
+            break;
+        case 5:
+            Actor05500_Fn0143C(arg0);
+            break;
+        case 6:
+            Actor05500_Fn01A0C(arg0);
+            break;
+        case 7:
+            Actor05500_Fn03864(arg0);
+            break;
+        case 8:
+            Actor05500_Fn01B30(arg0);
+            break;
+        case 9:
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03864);
 

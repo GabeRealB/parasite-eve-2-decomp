@@ -419,7 +419,7 @@ actor_104900 = { note = "not shared with its other slots: an unpaired %hi/%lo th
 actor_105100 = { }
 actor_105300 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_shared_80133468" }] }
 actor_105400 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_shared_80133468" }] }
-actor_105500 = { shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
+actor_105500 = { rodata = [{ start = "0x44", unit = "actor_105500_text" }], shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
 actor_105600 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_105700 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_107000 = { note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there" }
@@ -519,7 +519,7 @@ actor_204400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "e
 actor_204600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_204900 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_205200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
-actor_205500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
+actor_205500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata = [{ start = "0x44", unit = "actor_105500_text" }], shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
 actor_205600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_205700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_206100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
