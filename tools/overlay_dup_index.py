@@ -260,18 +260,23 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     # writes it, so that file is only well-defined when the copies are
     # byte-identical and reference nothing overlay-local. A matched body has no
     # such limit: the compiler regenerates it for each link address.
+    # An overlay-local reference is fatal whatever the state. Being matched only
+    # buys the *code*: the compiler regenerates it per link address. A name like
+    # `D_actor_110300_8013A0A8` is defined in one overlay and nowhere else, so
+    # the shared object fails to link into every other carrier - and the link is
+    # where it surfaces, long after the promotion has touched twenty files.
+    localref = [f for f in keep
+                if any(r.startswith((f"func_{f['unit']}_", f"D_{f['unit']}_",
+                                     f"jtbl_{f['unit']}_")) for r in f["refs"])]
+    if localref:
+        print(f"{name}: cannot be shared - the body references its own overlay's "
+              f"code or data ({', '.join(sorted({f['overlay'] for f in localref}))}).")
+        return 1
     if hit.get("state") != "matched":
         images = len({f["raw"] for f in keep})
-        localref = [f for f in keep
-                    if any(r.startswith((f"func_{f['unit']}_", f"D_{f['unit']}_",
-                                         f"jtbl_{f['unit']}_")) for r in f["refs"])]
-        if images > 1 or localref:
-            why = []
-            if images > 1:
-                why.append(f"{images} different byte images")
-            if localref:
-                why.append("references its own overlay's code or data")
-            print(f"{name}: cannot be shared while unmatched - " + " and ".join(why) + ".")
+        if images > 1:
+            print(f"{name}: cannot be shared while unmatched - "
+                  f"{images} different byte images.")
             print("  Match it first, then promote: the compiler regenerates the body")
             print("  per link address, which is what makes the differing copies one source.")
             return 1

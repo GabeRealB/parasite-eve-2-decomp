@@ -35530,3 +35530,57 @@ Watch for this in any function that writes a bare `extern` global next to
 pointer-based struct traffic. In the `actor_400600` typing pass it hit exactly
 the 2 of 30 functions that touched such a global, and both matched again once
 the global was declared as an aggregate.
+
+## Promoting a matched body into a family's shared library
+
+Moving a repeated body into `src/<family>/lib/` is not just "delete the
+INCLUDE_ASM and add a span". A shared span cuts the overlay's `.text` in three -
+the run before it, the shared object, the run after it - and
+`gen_overlay_configs` numbers those runs `<overlay>`, `<overlay>_2`, … in
+address order. So the tail of the unit that held the body becomes a **new
+unit**, and every unit after it is renumbered. Five things have to move with it:
+
+1. the tail of the host `.c`, which splat will not rewrite for you - cut the
+   host down to its head and let the split author the new unit's file, because
+   rodata a function owns follows the function and only splat knows the new
+   `INCLUDE_RODATA` lines;
+2. the decompiled bodies that were in that tail, re-injected over the stubs the
+   split wrote - and a body the split already carried over must not be injected
+   again, or GCC reports `redefinition of …`;
+3. the file-scope `extern` declarations those bodies name, not just the
+   `#include`s;
+4. `<overlay>_N.c` → `<overlay>_{N+1}.c` for every later unit, rewriting the
+   unit component of their `INCLUDE_ASM` / `INCLUDE_RODATA` paths;
+5. the manifest's `rodata` cuts, whose `unit` names those same units.
+
+The leading rodata then needs its own cut: it is one subsegment owned by the
+first code unit, so the functions that moved keep referencing symbols that
+stayed and the link says `undefined reference to D_<overlay>_…`. Cut it at the
+lowest leading-rodata offset the moved functions reach, and only when everything
+the functions that stayed reach sits below that point.
+
+Two cases cannot be promoted mechanically at all:
+
+* an overlay whose manifest already carries `rodata` or `units` cuts - that
+  layout was hand-placed for the original translation-unit boundaries, and a
+  wrong re-cut still links, it just puts a jump table at the wrong address;
+* a body that references its own overlay's code or data (`D_<overlay>_…`,
+  `jtbl_<overlay>_…`). Being matched only buys the *code*: the compiler
+  regenerates that per link address. The data symbol is defined in one overlay
+  and nowhere else.
+
+## `build-and-verify.sh` used to hide every build error
+
+ninja reports a failed command on **stdout** - the compiler diagnostic, the
+linker's `cannot find`, a checksum mismatch. The script piped that to
+`/dev/null`, so `BUILD HAS FAILED` was the only thing said about any failure.
+Anything reading the script's output then saw splat's stderr instead, whose last
+words are always the warn-level block
+
+    Error: Unable to determine a segment for the following user-declared symbols.
+        Actor00300_D-60931A54 (Vram: 0x1F8003CC). Suspected segments: None
+
+That block is **noise**: symbol maps name hardware addresses (scratchpad
+`0x1F8xxxxx`, I/O `0x2010xxxx`) and splat 0.50 has the `log.error` under it
+commented out. It appears on a clean tree and fails nothing. If you see it
+quoted as the cause of a failure, the real error was discarded somewhere.
