@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_2", func_neo_ark_woodland_path_8017E8D4);
+s32 func_neo_ark_woodland_path_8017E8D4(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_2", func_neo_ark_woodland_path_8017E8DC);
 
