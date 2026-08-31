@@ -1,3 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util06", Room_Util06);
+s32 Room_Util06(void)
+{
+    return 0;
+}
