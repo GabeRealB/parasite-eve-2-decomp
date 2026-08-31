@@ -32,7 +32,10 @@ s32 func_shelter_b2_operating_room_8017DCA4(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD0C);
+s32 func_shelter_b2_operating_room_8017DD0C(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD14);
 
