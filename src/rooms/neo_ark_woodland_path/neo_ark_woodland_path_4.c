@@ -12,7 +12,10 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", 
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_80180DDC);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_80181474);
+s32 func_neo_ark_woodland_path_80181474(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_8018147C);
 
