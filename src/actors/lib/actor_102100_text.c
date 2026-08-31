@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_102100.h"
+#include "main/gameflag.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
 
@@ -252,17 +253,34 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0324C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L032CC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn032E4);
+void Actor02100_Fn00ADC(Actor02100* arg0);
+void Actor02100_Fn00DCC(Actor02100* arg0);
+void Actor02100_Fn016EC(Actor02100* arg0);
+void Actor02100_Fn01FF0(Actor02100* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0332C);
+void Actor02100_Fn032E4(Actor02100* arg0)
+{
+    s16 state;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03334);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03354);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L03364);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_L0336C);
+    state = arg0->field_1C->field_172;
+    switch (state) {
+        case 1:
+            Actor02100_Fn00ADC(arg0);
+        case 0:
+            if (GameFlag_GetNibble(0xD2) == 0) {
+                Actor02100_Fn00DCC(arg0);
+            }
+            break;
+        case 2:
+            Actor02100_Fn016EC(arg0);
+            break;
+        case 3:
+            Actor02100_Fn01FF0(arg0);
+            break;
+        case 4:
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn0337C);
 

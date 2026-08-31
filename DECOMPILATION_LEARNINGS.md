@@ -34206,3 +34206,18 @@ first:
 
 That reordering is also what the target schedules (`lw $v0, 0x2C($s2)` ahead of
 the scratch load), so it is not just a safety measure.
+
+## Fully-shared actor twins can still cut a compiler-generated jump table
+
+`gen_overlay_configs.py` used to reject `rodata` cuts when one shared span
+covers the whole `.text` (relocated actor slot copies). The overlay-local
+header (package id, dispatch pointers) still must not join the shared
+object, but a table at the *end* of that header can: keep
+`[0x0, rodata, <name>_header]` up to the cut and emit
+`[0x34, .rodata, lib/<shared-unit>]` so GCC's table relocates into every
+slot. `actor_102100` / `Actor02100_Fn032E4` is the example.
+
+A vacuum `jlabel` inside a `jr $v0` switch is not a standalone function.
+Match the parent (`Actor02100_Fn032E4` here): case 1 falls through into
+case 0 (`GameFlag_GetNibble(0xD2)`), and an empty `case 4:` is required
+so the range check stays `sltiu …, 5`.

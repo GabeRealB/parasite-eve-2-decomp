@@ -128,11 +128,44 @@ def subsegments(
     text_all_shared = bool(cuts_pre) and int(str(cuts_pre[0]["start"]), 16) == start \
         and int(str(cuts_pre[0]["end"]), 16) == end
     if start and text_all_shared:
-        if rodata or rodata_head:
-            raise SystemExit(f"{name}: rodata cuts make no sense when the whole text is shared")
+        if rodata_head:
+            raise SystemExit(
+                f"{name}: rodata_head makes no sense when the whole text is shared"
+            )
         # `rodata`, not `data`: section_order puts .rodata before .text and
         # .data after it, so a `data` header would link after the code.
-        lines.append(f"      - [0x0, rodata, {name}_header]")
+        # A compiler-generated jump table still needs a `.rodata` cut so
+        # GCC's table lands at the overlay offset; the overlay-local header
+        # (package id, dispatch pointers, other asm tables) stays ahead of
+        # the first cut and must not join the shared object.
+        if rodata:
+            shared_units = {s["unit"] for s in shared}
+            prev = 0
+            for cut in sorted(rodata, key=lambda r: int(str(r["start"]), 16)):
+                cut_start = int(str(cut["start"]), 16)
+                if not 0 < cut_start < start:
+                    raise SystemExit(
+                        f"{name}: rodata cut {cut['unit']} at 0x{cut_start:X} is "
+                        f"outside the leading rodata (0x0..0x{start:X})"
+                    )
+                if cut_start <= prev:
+                    raise SystemExit(f"{name}: rodata cuts must be strictly increasing")
+                unit = str(cut["unit"])
+                if unit.startswith("lib/"):
+                    path = unit
+                elif unit in shared_units:
+                    path = f"lib/{unit}"
+                else:
+                    raise SystemExit(
+                        f"{name}: rodata cut {unit} must name a shared unit "
+                        f"when the whole text is shared"
+                    )
+                if prev == 0:
+                    lines.append(f"      - [0x0, rodata, {name}_header]")
+                lines.append(f"      - [0x{cut_start:X}, .rodata, {path}]")
+                prev = cut_start
+        else:
+            lines.append(f"      - [0x0, rodata, {name}_header]")
     elif start:
         # Leading rodata: the package header that sits ahead of the first
         # function. One subsegment per owning unit, named to match its `c`

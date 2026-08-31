@@ -14,7 +14,8 @@ typedef struct Actor02100Work {
     /* 0x078 */ byte field_78[0x50];
     /* 0x0C8 */ byte field_C8[0xA0];
     /* 0x168 */ s32  field_168;
-    /* 0x16C */ byte pad_16C[8];
+    /* 0x16C */ byte pad_16C[6];
+    /* 0x172 */ s16  field_172;
     /* 0x174 */ s16  field_174;
     /* 0x176 */ byte pad_176[4];
     /* 0x17A */ s16  field_17A;
@@ -40,6 +41,7 @@ typedef struct Actor02100Ctx {
 } Actor02100Ctx;
 STATIC_ASSERT_SIZEOF(Actor02100Ctx, 0x58);
 
+void Actor02100_Fn032E4(Actor02100* arg0);
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1);
 
 #endif
