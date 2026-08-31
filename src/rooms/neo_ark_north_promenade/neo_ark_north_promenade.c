@@ -15,7 +15,10 @@ s32 func_neo_ark_north_promenade_8017D66C(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade", func_neo_ark_north_promenade_8017D674);
+s32 func_neo_ark_north_promenade_8017D674(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade", func_neo_ark_north_promenade_8017D67C);
 
