@@ -33983,3 +33983,37 @@ reproducing the target's `j` into a shared spawn label. It also lets the
 `func_mist_parking_801823F8` is the example: four `Task_SpawnFromTable(&D_…,
 n, 0, 0)` sites, one merged tail, 99.46% → 99.75% purely from dropping the
 locals.
+
+## Non-zero .rodata padding after a string: size the array to the whole block
+
+splat renders a `printf` string as `.asciz` only when the bytes after the
+terminating NUL are zero. When the original object left junk in the alignment
+pad, splat falls back to `.word`s and the string is not obvious:
+
+```
+dlabel D_acropolis_security_room_8017D5DC
+    /* 1C */ .word 0x65776F70   /* "powe" */
+    ...
+    /* 28 */ .word 0x1140000A   /* "\n\0" + 0x40 0x11 pad */
+```
+
+A plain `printf("power supply\n")` is then 99.84% in the scratch env (the only
+diff is `%hi(.rodata)` vs `%hi(D_…)`, an artifact of the local literal) but the
+overlay checksum fails on exactly those two pad bytes.
+
+Declare the constant with the block's full size and spell the pad bytes into
+the initializer. A char array whose initializer is exactly its length drops the
+terminating NUL, so the object emits the block byte for byte:
+
+```c
+static const char PowerSupplyMsg[16] = "power supply\n\0@\021";
+...
+printf(PowerSupplyMsg);
+```
+
+GCC 2.8.1 emits a file-scope `static const` at its declaration point, after the
+preceding function's own literal pool, so placing the declaration where the
+function sits in the file keeps the `.rodata` order. `INCLUDE_RODATA` plus an
+`extern` reference also matches, but loses the readable string.
+
+`func_acropolis_security_room_8017D834` is the example.

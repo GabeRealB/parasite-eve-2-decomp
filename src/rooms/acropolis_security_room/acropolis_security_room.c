@@ -3,9 +3,12 @@
 #include <psyq/stdio.h>
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "main/session.h"
 #include "main/task.h"
 
 extern Task* D_acropolis_security_room_801855A8;
+extern Task* D_acropolis_security_room_801855AC;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D6DC);
 
@@ -41,7 +44,36 @@ void func_acropolis_security_room_8017D77C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D834);
+/* "power supply\n" plus the two bytes of alignment padding the original
+ * object left in .rodata, so the block stays 16 bytes of the same content. */
+static const char PowerSupplyMsg[16] = "power supply\n\0@\021";
+
+void func_acropolis_security_room_8017D834(Task* arg0)
+{
+    s32 sp10;
+    s32 temp_v1;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            printf(PowerSupplyMsg);
+            D_acropolis_security_room_801855AC = Task_Spawn(2, 0xA, 0, 0);
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgPlayer3F3(2);
+            arg0->state = arg0->state + 1;
+            return;
+        case 1:
+            if (Task_PollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
+                Gp_MsgPlayerWeapon(1);
+                Gp_MsgPlayer3F3(1);
+                D_acropolis_security_room_801855AC = NULL;
+                Task_Kill(arg0);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D930);
 
