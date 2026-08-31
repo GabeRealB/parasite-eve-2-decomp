@@ -1,6 +1,12 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_160600/actor_160600", func_actor_160600_80131E24);
+void func_actor_160600_80131E24(void)
+{
+    if (Game_GetPtrSlot(0xA) != NULL) {
+        Task_CallExit(Game_GetPtrSlot(0xA));
+        Game_SetPtrSlot(NULL, 0xA);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_160600/actor_160600", func_actor_160600_80131E68);
 
