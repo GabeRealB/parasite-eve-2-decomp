@@ -34268,3 +34268,35 @@ is what leaves the `lw` stranded above it. 99.1% -> 100%. Generally: a tail-call
 target label that sits one or two insns *inside* a shared block means one arm
 kept part of that block locally — reproduce it by hand rather than `goto`-ing
 the whole thing.
+
+## Invert the `if`/`else` in the switch case that falls into the cross-jumped tail
+
+`func_shelter_b6_corridor_8017DF48` is `switch (arg2)` over cases 2/3/4, each
+doing `GameFlag_GetNibble(...)` and then one of three `Gp_RunCapCmd1(N)` calls.
+Writing it with a `cmd` local and one call after the switch puts `cmd` in `$s0`
+(live across the `jal`) and fills the final `jal`'s delay slot — the ROM instead
+has `li a0, N` scattered into branch delay slots and a bare `nop` after
+`jal Gp_RunCapCmd1`, the signature of cross-jumping merging three separate call
+sites. Duplicating the call in every arm got 96.1%.
+
+The last 4 instructions came from the *last* case only. In cases 2 and 3 both
+arms end in a `j` to the merged tail, so
+
+```c
+} else if (Gp_StateF0.field_0 == 1) { Gp_RunCapCmd1(3); }
+else                                { Gp_RunCapCmd1(9); }
+```
+
+emits `beq ... / li a0,3` with the `9` arm as the jumping block. In case 4 the
+final arm *falls into* the tail instead of jumping to it, and GCC 2.8.1 picks
+the opposite fall-through, so that case has to be written with the condition
+negated and the arms swapped to produce the same `beq`:
+
+```c
+} else if (Gp_StateF0.field_0 != 1) { Gp_RunCapCmd1(0xA); }
+else                                { Gp_RunCapCmd1(4); }
+```
+
+96.1% -> 100%. The asymmetry is not a source-level asymmetry to be avoided: when
+one arm of a cross-jumped group falls into the tail, its polarity is chosen
+independently of its siblings, so match each case against its own branch.
