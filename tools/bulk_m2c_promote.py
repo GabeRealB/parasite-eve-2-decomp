@@ -282,6 +282,9 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--commit", action="store_true")
     ap.add_argument("--lock-wait", type=int, default=3600)
+    ap.add_argument("--session", help="orchestrator session that already holds "
+                    "the merge lock; with it, this run neither takes nor "
+                    "releases the lock")
     args = ap.parse_args()
 
     os.chdir(REPO_ROOT)
@@ -295,12 +298,18 @@ def main() -> int:
         names = names[: args.limit]
     print(f"{len(names)} body/bodies to promote")
 
-    session = f"bulk-m2c-promote-{os.getpid()}"
-    try:
-        lock = L.held_merge_lock(session, args.lock_wait)
-    except RuntimeError as exc:
-        print(exc, file=sys.stderr)
-        return 1
+    if args.session:
+        # The caller holds the lock for a longer span than this run; taking it
+        # again here would be fine (the orchestrator reuses a same-session
+        # acquire) but the release on the way out would drop the caller's hold.
+        lock = contextlib.nullcontext()
+    else:
+        session = f"bulk-m2c-promote-{os.getpid()}"
+        try:
+            lock = L.held_merge_lock(session, args.lock_wait)
+        except RuntimeError as exc:
+            print(exc, file=sys.stderr)
+            return 1
 
     done = 0
     with lock:
