@@ -33830,3 +33830,65 @@ an input object once, so the second slot would go unfilled). Confirm with
 `overlay_dup_index.py find <fn> --rebuild` — a stale split shows the same
 overlay listed twice, one entry marked `matched` — then
 `rm -rf asm/USA/<family>/nonmatchings/<overlay>/<unit>` and rebuild the index.
+
+## `slti`-tree dispatch already *is* a plain `switch` — do not rewrite it as a goto chain
+
+m2c prints `switch (x) { /* irregular */ }` with `goto`s whenever two arms share
+a tail, which invites rewriting the whole dispatch as an if/goto chain. When the
+target dispatch is the **binary tree** GCC 2.8.1 emits for consecutive cases —
+
+```
+beq  v1, s1, case1      # s1 holds the CSE'd constant 1
+slti v0, v1, 2
+beqz v0, ge2
+nop
+beqz v1, case0
+...
+ge2:
+li   v0, 2
+beq  v1, v0, case2
+li   v0, 3
+beq  v1, v0, case3
+```
+
+— that shape is exactly what a plain `switch (task->state)` produces, so the
+goto chain is a downgrade. It gets control flow right (`branch`=`insert`=
+`delete`=0) but stalls around 93% with two symptoms that look like separate
+problems and are really one:
+
+- **`$s0`/`$s1` swapped** between the incoming pointer and the constant `1`.
+  Global alloc orders allocnos by
+  `floor_log2(n_refs) * n_refs / live_length` (`allocno_compare` in
+  `global.c`), and the hand-written chain shortens the constant's live range
+  (`.lreg`: `4 times across 34 insns` against the pointer's `5 times across
+  92`), so the constant wins `$s0`. There is no source-level way to buy the
+  ~74-insn live range that would flip it back.
+- **the `sb` losing the `jal` delay slot.** RTL order becomes
+  `high; sb; li a0; jal` instead of `li a0; move a1; high; sb; jal`, so `dbr`
+  fills the branch slot with the `lui` and the call slot with `move a1, zero`
+  rather than the store.
+
+Write the `switch` and put the shared tail's label **inside the case body that
+owns it**, jumping into it from the earlier arm:
+
+```c
+case 2:
+    if (Gp_GetCapEventKey() != 0xB) {
+        goto kill;
+    }
+    ...
+    break;
+case 3:
+    if (Game_Session->field_1 == 0) {
+    kill:
+        Gp_MsgPlayerWeapon(1);
+        D_801153F4 = 0;
+        Task_Kill(task);
+    }
+    break;
+```
+
+`func_actor_450900_8013223C` is the example: 75% as m2c's switch-with-`goto`s,
+93.3% as a full goto chain, 100% this way. Declaring the constant as an explicit
+`s32 one = 1;` local changes nothing either way — CSE produces the shared
+constant register on its own.

@@ -9,13 +9,47 @@
 #include "main/unknown_syms.h"
 
 extern s16 D_80071076;
+extern u8  D_801153F4;
+extern s32 D_actor_450900_80136B00;
 extern s32 D_actor_450900_80136BD8;
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80131E38);
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_8013207C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_8013223C);
+void func_actor_450900_8013223C(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_RunCapCmd(1, 0);
+            task->state = task->state + 1;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                task->state = task->state + 1;
+            }
+            break;
+        case 2:
+            if (Gp_GetCapEventKey() != 0xB) {
+                goto kill;
+            }
+            GameFlag_SetNibble(0xD8, 1);
+            D_801153F4 = 1;
+            Gp_RunCapCmd(2, 0);
+            func_800E8614((s32)&D_actor_450900_80136B00, 0);
+            task->state = task->state + 1;
+            break;
+        case 3:
+            if (Game_Session->field_1 == 0) {
+            kill:
+                Gp_MsgPlayerWeapon(1);
+                D_801153F4 = 0;
+                Task_Kill(task);
+            }
+            break;
+    }
+}
 
 void func_actor_450900_8013235C(Task* task)
 {
