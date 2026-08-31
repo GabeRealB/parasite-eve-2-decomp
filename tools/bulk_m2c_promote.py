@@ -200,24 +200,48 @@ class Pending(NamedTuple):
     includes: list[str]
 
 
+def stub_of(text: str, func: str) -> Optional[re.Match]:
+    return re.search(rf"^INCLUDE_ASM\([^\n]*?\b{re.escape(func)}\s*\);[ \t]*$",
+                     text, re.M)
+
+
 def reinject(pending: "list[Pending]") -> tuple[bool, str]:
-    """Put the decompiled bodies back into the unit files the split just wrote."""
+    """Put the decompiled bodies back into the unit files the split just wrote.
+
+    A body already matched has no INCLUDE_ASM to replace: splat writes a stub
+    only for what is still in `nonmatchings`, so the file it just authored has a
+    hole exactly where such a body belongs. Its place is still known - the order
+    the bodies had in the unit they came from - so anchor it on the next body
+    that *does* have a stub, and fall back to the end of the file.
+    """
+    by_target: dict[Path, list[Pending]] = {}
     for item in pending:
-        if not item.target.is_file():
-            return False, f"the split did not write {item.target}"
-        text = item.target.read_text()
-        stub = L.find_stub(item.target, item.func)
-        if stub is None:
-            return False, f"{item.target.name}: no stub for {item.func} to fill"
-        text = text.replace(stub, item.body)
+        by_target.setdefault(item.target, []).append(item)
+
+    for target, items in by_target.items():
+        if not target.is_file():
+            return False, f"the split did not write {target}"
+        text = target.read_text()
+        for i, item in enumerate(items):
+            here = stub_of(text, item.func)
+            if here is not None:
+                text = text[: here.start()] + item.body + text[here.end():]
+                continue
+            anchor = next(
+                (m.start() for later in items[i + 1:]
+                 for m in [stub_of(text, later.func)] if m), None)
+            if anchor is None:
+                text = text.rstrip() + "\n\n" + item.body + "\n"
+            else:
+                text = text[:anchor] + item.body + "\n\n" + text[anchor:]
         have = includes_of(text)
-        missing = [i for i in item.includes if i not in have]
+        missing = [i for i in items[0].includes if i not in have]
         if missing:
             lines = text.splitlines()
             at = max((n for n, l in enumerate(lines) if l.startswith("#include")),
                      default=-1) + 1
             text = "\n".join(lines[:at] + missing + lines[at:]) + "\n"
-        item.target.write_text(text)
+        target.write_text(text)
     return True, ""
 
 
