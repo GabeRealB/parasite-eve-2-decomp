@@ -8,7 +8,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162080);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801620A0);
+void func_actor_335800_801620A0(void)
+{
+    CdCmd_CancelReplaceAndActivate();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_801620C0);
 
