@@ -10,7 +10,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_parking_lot/dryfield_parking_lot", func
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_parking_lot/dryfield_parking_lot", func_dryfield_parking_lot_8017DAA0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_parking_lot/dryfield_parking_lot", func_dryfield_parking_lot_8017DAF0);
+s32 func_dryfield_parking_lot_8017DAF0(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_parking_lot/dryfield_parking_lot", func_dryfield_parking_lot_8017DAF8);
 
