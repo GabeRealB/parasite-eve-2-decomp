@@ -8,7 +8,10 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D868);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D870);
+s32 func_acropolis_bridge_8017D870(void)
+{
+    return 0;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D5C0);
 
