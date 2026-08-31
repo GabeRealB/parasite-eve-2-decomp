@@ -25,7 +25,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D978);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DA28);
+s32 func_shelter_b4_water_supply_8017DA28(void)
+{
+    return 0;
+}
 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b4_water_supply_801825F0`:
 /// the directed action on the water-supply valve (`field_2` 0xA / `field_3`
