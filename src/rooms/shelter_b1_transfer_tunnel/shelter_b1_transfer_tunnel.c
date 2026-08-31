@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D61C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D624);
+s32 func_shelter_b1_transfer_tunnel_8017D624(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", func_shelter_b1_transfer_tunnel_8017D62C);
 
