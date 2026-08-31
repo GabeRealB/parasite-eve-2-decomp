@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/task.h"
+extern s32 D_actor_403100_80155808;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132064);
 
@@ -230,7 +232,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D770);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D88C);
+void func_actor_403100_8013D88C(Task* arg0)
+{
+    Gp_UnlinkObj(D_actor_403100_80155808 + 0x47C);
+    Gp_UnlinkObj(D_actor_403100_80155808 + 0x414);
+    Gp_UnlinkObj(D_actor_403100_80155808 + 0x55C);
+    Gp_UnlinkObj(D_actor_403100_80155808 + 0x594);
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D8F4);
 
