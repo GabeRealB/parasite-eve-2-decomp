@@ -18,7 +18,10 @@ s32 func_mine_secret_passage_8017D888(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D890);
+s32 func_mine_secret_passage_8017D890(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D898);
 
