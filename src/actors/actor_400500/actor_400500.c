@@ -501,7 +501,14 @@ void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DC4C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DCBC);
+void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
+{
+    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+
+    work->field_9F8 = arg2;
+    work->field_9FE = arg1;
+    work->field_9FA = 2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DCD4);
 
