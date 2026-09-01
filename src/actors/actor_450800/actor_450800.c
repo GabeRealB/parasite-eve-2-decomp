@@ -3,10 +3,13 @@
 #include "actors/actor_450800.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 
 extern s32  D_actor_450800_8013930C;
+extern s32  D_actor_450800_801397A4;
+extern s32  D_actor_450800_801398EC;
 extern s32  D_actor_450800_8013A564;
 extern s32  D_actor_450800_8013A684;
 extern s32  D_actor_450800_8013A774;
@@ -66,7 +69,11 @@ void func_actor_450800_80132000(void)
     func_800E8614((s32)&D_actor_450800_8013A564, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132028);
+void func_actor_450800_80132028(void)
+{
+    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_actor_450800_801397A4, 0);
+    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_actor_450800_801398EC, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132080);
 
