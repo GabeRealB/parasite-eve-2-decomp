@@ -176,7 +176,12 @@ void func_actor_503500_80132F28(void)
     Game_Session->field_13B = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132F58);
+/// Drops the reference to the slot-1 task spawned by
+/// `func_actor_503500_80132C70`; the task itself is not killed here.
+void func_actor_503500_80132F58(void)
+{
+    D_actor_503500_80176558 = NULL;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132F64);
 
