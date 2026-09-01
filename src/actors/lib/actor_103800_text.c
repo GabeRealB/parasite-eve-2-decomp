@@ -397,20 +397,63 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01EA8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01ED4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn01EEC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01F14);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01F94);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01FEC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01FF0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02014);
-
-void Actor03800_L02060(void)
+/// Second copy of the idle "look around" tick; identical body to
+/// `Actor03800_Fn02068`, which the overlay carries twice.
+void Actor03800_Fn01EEC(Actor103800* arg0)
 {
+    Actor103800Work* work;
+    s32              rand;
+    s32              delta;
+
+    work = arg0->field_1C;
+
+    switch (work->field_354) {
+        case 0:
+            work->field_360 = 0;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            work->field_356--;
+            if (work->field_356 > 0) {
+                break;
+            }
+
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_354 = 1;
+            rand            = (u32)Gp_LcgState >> 16;
+            delta           = rand & 0x3FF;
+            if (!(rand & 0x400)) {
+                delta = -delta;
+            }
+
+            work->field_348 = 2;
+            work->field_36A = 1;
+            work->field_364 = (work->field_362 + delta) & 0xFFF;
+            break;
+
+        case 1:
+            work->field_360 = 0x1E;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            if (work->field_362 == work->field_364) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_354 = 0;
+                work->field_348 = 1;
+                work->field_36A = 0;
+                work->field_356 = ((u32)Gp_LcgState >> 16 & 0xFF) + 0x5A;
+            }
+            break;
+    }
+
+    if ((D_801153F2 & 5) || work->field_36C != 0) {
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_352 = 0xA;
+        work->field_354 = 0;
+        work->field_37A = 1;
+        work->field_360 = 0;
+        work->field_35C = 0;
+        work->field_35E = 0;
+        work->field_356 = ((u32)Gp_LcgState >> 16 & 0xF) + 0xF;
+    }
 }
 
 /// Idle "look around" tick. State 0 counts `field_356` down and, on expiry,
@@ -862,7 +905,6 @@ void Actor03800_Fn03420(Actor103800* arg0);
 void Actor03800_Fn01948(Actor103800* arg0);
 void Actor03800_Fn01AD0(Actor103800* arg0);
 void Actor03800_Fn01C50(Actor103800* arg0);
-void Actor03800_Fn01EEC(Actor103800* arg0);
 void Actor03800_Fn021E4(Actor103800* arg0);
 void Actor03800_Fn034B0(Actor103800* arg0);
 void Actor03800_Fn02584(Actor103800* arg0);

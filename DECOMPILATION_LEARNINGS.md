@@ -36023,3 +36023,40 @@ Related: writing the `if` as `if (c) y = x + K; else y = x;` does not help. The
 `else` arm becomes its own block, so GCC emits a `j` around it instead of
 folding `move y,x` into the branch delay slot, which is what the `y = x;` before
 the `if` gives you.
+
+## Prove a twin byte-for-byte against the raw `.pe2pkg`
+
+`Actor03800_Fn01EEC` (0x1EEC) and the already-matched `Actor03800_Fn02068`
+(0x2068) are the *same* routine emitted twice, back to back, in one overlay.
+`overlay_dup_index.py find` answered `same body: 1 copies` twice over: the twin
+is matched (so it left the index) *and* the vacuum's brief describes only the
+10-instruction fragment splat carved out at the `Fn01EEC` symbol, not the
+0x17C-byte span the function really covers.
+
+A package's `.text` is stored **unrelocated**, and its file offset equals the
+first column of the `.s` listing, so the two spans can just be compared:
+
+```python
+d = open('assets/USA/pe2pkg/actor_103800.pe2pkg','rb').read()
+a, b = d[0x1EEC:0x2068], d[0x2068:0x21E4]
+[(hex(0x1EEC+k), a[k:k+4].hex(), b[k:k+4].hex())
+ for k in range(0, len(a), 4) if a[k:k+4] != b[k:k+4]]
+```
+
+Two words differ, both `j` instructions — absolute targets pointing into each
+copy's own body. Everything else is identical, which is proof the twin's C
+compiles to the second copy, so the match is a paste plus the label merge below.
+(The `j` target field is *not* the linked address: the file is pre-relocation, so
+`0408cf84` decodes to `0x80233E10` rather than the `0x80133E10` splat prints.
+Only use it to tell one copy's jump from the other's.)
+
+### Merging the L-labels the fragment was carved from
+
+The 0x1EEC span is listed in `configs/USA/sym/actors/actor_{1,2}03800.txt` as
+seven symbols — `Fn01EEC` plus `L01F14`, `L01F94`, `L01FEC`, `L01FF0`, `L02014`,
+`L02060` — and splat makes a function of each. Append `// type:label` to the six
+interior ones in **every** overlay sharing the unit, delete their `INCLUDE_ASM`
+lines, and write the one function. Watch for a trailing label that was matched as
+an empty stub: `Actor03800_L02060` was `void Actor03800_L02060(void) {}`, the
+`jr $ra; nop` at the tail of the very function being merged, and it has to be
+deleted along with the `INCLUDE_ASM` block or the epilogue is emitted twice.
