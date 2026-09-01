@@ -1,10 +1,15 @@
 #include "common.h"
 
+extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
+
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D810);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D848);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D8A0);
+void func_acropolis_sanctuary_8017D8A0(u32 arg0)
+{
+    func_acropolis_sanctuary_8017DF88((arg0 >> 8) & 0xFF, arg0 & 0xFF);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D8CC);
 
