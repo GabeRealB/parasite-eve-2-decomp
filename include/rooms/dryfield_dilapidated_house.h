@@ -9,19 +9,6 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// One entry of a room's message-handler table -- the object the room task
-/// parks in `Task::field_24` right before `Game_SetPtrSlot(task, 7)` publishes
-/// itself. `id` is a message id in the 0x13EE..0x13F2 range and `0x7FFFFFFF`
-/// terminates the table (one zero word follows it). The same shape appears in
-/// every room overlay checked (`acropolis_patio`, `neo_ark_bridge`, ...); hoist
-/// it into a shared rooms header when one exists. A few tables hold `s32 (*)(void)`
-/// stubs rather than real `TaskFunc`s.
-typedef struct RoomMsgHandler {
-    /* 0x0 */ s32      id;
-    /* 0x4 */ TaskFunc handler;
-} RoomMsgHandler;
-STATIC_ASSERT_SIZEOF(RoomMsgHandler, 0x8);
-
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
 /// `Mem_Malloc(0x6C, 0)` and parks it in the `Task::idMap` slot (0x1C) -- that

@@ -1,15 +1,16 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/dryfield_dilapidated_house.h"
 
-extern RoomMsgHandler D_dryfield_dilapidated_house_80183E8C[];
-extern TaskDesc       D_dryfield_dilapidated_house_80183EB4;
-extern Task*          D_dryfield_dilapidated_house_80189B78;
-extern Task*          D_dryfield_dilapidated_house_80189B7C;
-extern s16            D_dryfield_dilapidated_house_80189C98;
+extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
+extern TaskDesc   D_dryfield_dilapidated_house_80183EB4;
+extern Task*      D_dryfield_dilapidated_house_80189B78;
+extern Task*      D_dryfield_dilapidated_house_80189B7C;
+extern s16        D_dryfield_dilapidated_house_80189C98;
 
 void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
