@@ -35912,3 +35912,53 @@ of "`lhu` does not mean the field is `u16`": there the *field*'s signedness had
 to move, here only the temporary's. Whichever end you change, the rule is that
 GCC picks `andi` for a zero-extended compare and `sll` for a sign-extended one,
 and only one of them is in the target.
+
+## An unreferenced aggregate local still gets its stack slot
+
+The frame was 8 bytes short: the target reserved `sp+0x10 .. sp+0x20` for
+locals (saved `$s0`/`$ra` at `0x20`/`0x24`, `addiu $sp,$sp,-0x28`) while a
+single `SVECTOR` local only filled `0x10 .. 0x18`, giving `-0x20`. Nothing in
+the function reads the second half — the only stack traffic is the `SVECTOR`
+written by `Gfx_MatrixCol2` and read back at `+0x0` / `+0x4`.
+
+GCC 2.8.1 drops an unused *scalar* local, but keeps the slot for an unused
+*aggregate* one, so a second declaration is enough to restore the frame:
+
+```c
+SVECTOR dir;
+SVECTOR unused;                 /* never read; owns sp+0x18..sp+0x20 */
+...
+Gfx_MatrixCol2(&coord->coord, &dir);
+```
+
+Declaration order matters: the first aggregate declared lands at the lowest
+local address, so the live one has to come first. `Actor01600_Fn06C94` is the
+example. Reach for this only once the rest of the body already matches and
+`stack` is the sole leftover — a missing local and a spilled temporary look the
+same in the frame size but not in the instruction stream.
+
+## `res = half` in one arm forces a join copy; two arms give two `move`s
+
+Reusing the input variable as the phi result,
+
+```c
+ang = ABS(work->field_4E0);
+if (0x1000 - ang < ang) { work->field_516 = 3; ang = 0x1000 - ang; }
+else                    { work->field_516 = 2; }
+```
+
+coalesces `ang` with the else arm's register, so the then arm writes that
+register (`move $v1,$a0`) and both paths fall into a single join copy
+(`move $v0,$v1`). The target instead has a `move` in *each* arm, with the else
+arm's copy jumped over. Give the result its own variable and assign it in both
+arms:
+
+```c
+ang  = ABS(work->field_4E0);
+half = 0x1000 - ang;
+if (half < ang) { work->field_516 = 3; res = half; }
+else            { work->field_516 = 2; res = ang;  }
+```
+
+The tell is a `j` whose target is one instruction earlier than the target's,
+plus a swapped destination register in its delay slot.

@@ -1,9 +1,11 @@
 #include "common.h"
 
 #include "actors/actor_101600.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include <psyq/abs.h>
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
 
@@ -1237,21 +1239,41 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06C1C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06C84);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06C94);
+/// Column 2 of the attachment matrix goes to `dir`; the trailing `SVECTOR`
+/// is never read but owns the second half of the stack local block.
+s32 Actor01600_Fn06C94(Actor01600* arg0, s32 arg1)
+{
+    SVECTOR         dir;
+    SVECTOR         unused;
+    Actor01600Work* work;
+    s32             ang;
+    s32             half;
+    s32             res;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06CA4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06CFC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06D1C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06D28);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06D34);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06D54);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06D64);
+    work = arg0->field_1C;
+    if (ABS(arg1) < 0x301) {
+        return 0;
+    }
+    work->field_4E0 = arg1;
+    Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, &dir);
+    ratan2(dir.vx, dir.vz);
+    ang  = ABS(work->field_4E0);
+    half = 0x1000 - ang;
+    if (half < ang) {
+        work->field_516 = 3;
+        res             = half;
+    } else {
+        work->field_516 = 2;
+        res             = ang;
+    }
+    work->field_4F0 = res / 16;
+    if (work->field_4F0 < 0x20) {
+        work->field_4F0 = 0x20;
+    }
+    work->field_50A = 0;
+    work->field_510 = 5;
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06D74);
 

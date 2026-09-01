@@ -48,7 +48,11 @@ typedef struct Actor01600Work {
     /* 0x4C4 */ s32    field_4C4;
     /* 0x4C8 */ byte   pad_4C8[4];
     /* 0x4CC */ s16    field_4CC;
-    /* 0x4CE */ byte   pad_4CE[0x2C];
+    /* 0x4CE */ byte   pad_4CE[0x12];
+    /* 0x4E0 */ s32    field_4E0;
+    /* 0x4E4 */ byte   pad_4E4[0xC];
+    /* 0x4F0 */ s16    field_4F0;
+    /* 0x4F2 */ byte   pad_4F2[0x8];
     /* 0x4FA */ s16    field_4FA;
     /* 0x4FC */ byte   pad_4FC[2];
     /* 0x4FE */ s16    field_4FE;
@@ -60,7 +64,9 @@ typedef struct Actor01600Work {
     /* 0x50A */ s16    field_50A;
     /* 0x50C */ byte   pad_50C[2];
     /* 0x50E */ s16    field_50E;
-    /* 0x510 */ byte   pad_510[8];
+    /* 0x510 */ s16    field_510;
+    /* 0x512 */ byte   pad_512[4];
+    /* 0x516 */ s16    field_516;
     /* 0x518 */ s16    field_518;
     /* 0x51A */ byte   pad_51A[4];
     /* 0x51E */ s16    field_51E;
