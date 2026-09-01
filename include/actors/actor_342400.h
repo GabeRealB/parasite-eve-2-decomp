@@ -13,9 +13,12 @@
 ///
 /// The layout mirrors the sibling `actor_341700` overlay, whose work block is
 /// the same size and drives the same state machine: `field_420` / `field_422`
-/// are the state and sub-state indices the handler table walks.
+/// are the state and sub-state indices the handler table walks; `field_412`
+/// is the per-state frame counter.
 typedef struct Actor342400Work {
-    /* 0x000 */ byte pad_0[0x420];
+    /* 0x000 */ byte pad_0[0x412];
+    /* 0x412 */ u16  field_412; // per-state frame counter
+    /* 0x414 */ byte pad_414[0xC];
     /* 0x420 */ u16  field_420; // state index
     /* 0x422 */ u16  field_422; // sub-state index
     /* 0x424 */ byte pad_424[0x30];
