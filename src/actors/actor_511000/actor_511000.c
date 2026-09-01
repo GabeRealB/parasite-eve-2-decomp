@@ -47,7 +47,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_801330F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133220);
+void func_actor_511000_80133220(Task* task)
+{
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133240);
 
