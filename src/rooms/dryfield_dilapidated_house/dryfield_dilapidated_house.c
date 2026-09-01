@@ -1,6 +1,13 @@
 #include "common.h"
+
+#include "gameplay/3CD8.h"
+#include "main/session.h"
 #include "main/task.h"
-extern s32 D_dryfield_dilapidated_house_80189B6C;
+
+extern s32   D_dryfield_dilapidated_house_80189B6C;
+extern Task* D_dryfield_dilapidated_house_80189B78;
+
+extern void func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
 
@@ -32,7 +39,27 @@ s32 func_dryfield_dilapidated_house_8017E684(void)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E68C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E6DC);
+void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
+{
+    Task* temp_s1;
+    s32   temp_a1;
+    s32   temp_v1;
+
+    temp_s1 = Game_GetPtrSlot(3);
+    temp_a1 = Gp_LookupSlot4(1);
+    temp_v1 = arg0->state;
+    switch (temp_v1) { /* irregular */
+        case 0:
+            arg0->spawnArg1 = 0;
+            arg0->state    += 1;
+            return;
+        case 2:
+            func_800B0928(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
+            /* fallthrough */
+        case 1:
+            return;
+    }
+}
 
 void func_dryfield_dilapidated_house_8017E780(Task* arg0)
 {
