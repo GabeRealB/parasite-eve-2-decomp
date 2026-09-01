@@ -1,3 +1,8 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_script16", Room_Script16);
+#include "main/task.h"
+
+void Room_Script16(Task* task)
+{
+    Task_Kill(task);
+}
