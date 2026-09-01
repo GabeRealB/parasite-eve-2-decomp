@@ -244,7 +244,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80137DE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80137E64);
+void func_actor_405800_80137E64(Task* task)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    s16              count;
+
+    work = (Actor405800Work*)task->idMap;
+    func_actor_405800_80137948(task);
+    if ((s16)func_actor_405800_80136A1C(task) == 0) {
+        count           = work->field_87C - 1;
+        work->field_87C = count;
+        if (count == 0) {
+            work2            = (Actor405800Work*)task->idMap;
+            work2->field_846 = 0xB;
+            work2->field_848 = 0;
+            return;
+        }
+        func_actor_405800_801383CC(task, &work->field_A8, 0x18);
+        func_actor_405800_80135E28(task);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80137EF0);
 
