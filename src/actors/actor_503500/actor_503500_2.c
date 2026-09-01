@@ -559,7 +559,72 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013FA74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013FF0C);
+void func_actor_503500_80140BE8(Actor503500* arg0);
+void func_actor_503500_80141248(Actor503500* arg0);
+void func_actor_503500_80141448(Actor503500* arg0);
+void func_actor_503500_80141B94(Actor503500* arg0);
+void func_actor_503500_80141D7C(Actor503500* arg0);
+void func_actor_503500_801420C4(Actor503500* arg0);
+void func_actor_503500_801421A8(Actor503500* arg0);
+
+void func_actor_503500_8013FF0C(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    s8               countdown;
+    s32              slot;
+
+    work      = arg0->field_1C;
+    enemy     = arg0->field_20;
+    countdown = work->field_3D7;
+    tmd       = (TmdObject*)arg0->extra;
+    if (countdown >= 0) {
+        if (countdown == 0) {
+            Tmd_FreeBuffers(tmd);
+        }
+        work->field_3D7 = (s8)((u8)work->field_3D7 - 1);
+    }
+    if (Game_Session->field_1 != 0) {
+        slot = 0xB;
+        if (arg0->spawnArg1 < 0xF) {
+            slot = 0xA;
+        }
+        if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
+            tmd->field_C |= 4;
+        } else {
+            goto tick;
+        }
+    } else {
+    tick:
+        func_actor_503500_80135828(arg0, &work->field_3D7);
+    }
+
+    switch (D_801153F4) {
+        case 1:
+            if (!(tmd->field_C & 0x80)) {
+                func_actor_503500_801421A8(arg0);
+            }
+            break;
+        case 2:
+            tmd->field_C        |= 0x80;
+            enemy->node.field_4 |= 1;
+            break;
+        default:
+            if (enemy->field_4C != 0) {
+                func_actor_503500_80140BE8(arg0);
+            }
+            func_actor_503500_801420C4(arg0);
+            func_actor_503500_80141D7C(arg0);
+            if (work->field_3D6 == 0) {
+                func_actor_503500_80141248(arg0);
+                func_actor_503500_80141448(arg0);
+            }
+            func_actor_503500_801421A8(arg0);
+            func_actor_503500_80141B94(arg0);
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80132108);
 
