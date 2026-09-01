@@ -1,5 +1,7 @@
 #include "common.h"
+
 #include "gameplay/3CD8.h"
+#include "main/gameflag.h"
 
 void func_actor_260500_80149E38(s32 arg0)
 {

@@ -36671,3 +36671,39 @@ and writing literal `1` in the compare and in each store was 100% — the two
 
 Rule: a `regs` diff paired with a small `delete` and a rematerialized constant
 in the target means *unshare* the local, before touching allocation.
+
+## Promotion: `rodata` unit names renumber too, and re-split instead of hand-editing
+
+Three things that bite when `overlay_dup_index.py promote` adds a `shared` span
+to overlays that already have `units` / `rodata` cuts.
+
+**The manifest's `rodata` key names a unit, so it renumbers with the code.**
+`actor_503500` carried `rodata = [{ start = "0x34", unit = "actor_503500_3" },
+{ start = "0x10C", unit = "actor_503500_4" }]`. A shared cut at 0x6A4 - ahead of
+both - pushed every tail unit up one, so those cuts had to become `_4` and `_5`
+by hand; `promote` only rewrites `shared`. Left alone the build still links and
+the rodata lands under a unit whose code moved, which is the silent
+"jump table in the wrong object" failure. After promoting, re-read the generated
+yaml and check each `.rodata` subsegment still names the code unit it belongs to.
+
+**Do not hand-edit the sharers' `.c` files - stash, delete, re-split, re-insert.**
+Renaming `<name>_2.c` to `<name>_3.c` and retargeting its `INCLUDE_ASM` path
+strings is error-prone once more than a couple of overlays are involved (this
+promotion touched sixteen). Instead: parse each overlay's `.c` into
+`symbol -> C body` plus its preamble, `rm` the files, run `ninja_config.py` so
+splat writes freshly named files with correct asm paths, then replace each
+`INCLUDE_ASM(..., sym);` whose `sym` you stashed with its body. Two details:
+splat emits a trivial `jr $ra` function as an empty C body itself, so those
+never appear as an `INCLUDE_ASM` site - and it writes them `(void)`, which
+clashes with a typed forward declaration you kept in the preamble. Re-apply the
+stashed signature. Prune the preamble per file (keep an `extern`/declaration
+block only when one of its `func_`/`D_`/`jtbl_` names still occurs in that file)
+or every fragment gets copied into both halves.
+
+**`promote` may refuse with "already shared as X, but no file in src/<family>/lib
+defines it"** when a copy of the body already lives *inside* a large shared unit
+(`Actor00100_Fn0B3B4` sits in `actor_400100_text`, 0xBB94 bytes of `.text`).
+Letting it reuse that unit would be wrong: a `shared` span is a whole object's
+`.text`, so the span must equal the object's size. Pass `--unit` to make a
+dedicated one - `promote <fn> --unit actors_shared_<vram>` - and leave the big
+unit's own copy alone; the two objects never link into the same overlay.

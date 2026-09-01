@@ -1,5 +1,7 @@
 #include "common.h"
+
 #include "main/task.h"
+
 extern Task* D_actor_461800_80133EB8;
 
 extern Task*    D_actor_461800_80133EB4;
@@ -72,25 +74,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133554);
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801335B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133634);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8013365C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133724);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133770);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8013380C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133898);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133928);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133970);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801339EC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133A3C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133B98);

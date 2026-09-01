@@ -4,13 +4,12 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 
-extern s32 D_actor_450800_8013930C;
-extern s32 D_actor_450800_8013A684;
-extern s32 D_actor_450800_8013A774;
-extern s32 D_actor_450800_8013A984;
-extern s32 D_actor_450800_8013AB7C;
-extern s32 D_actor_450800_8013ACFC;
-
+extern s32  D_actor_450800_8013930C;
+extern s32  D_actor_450800_8013A684;
+extern s32  D_actor_450800_8013A774;
+extern s32  D_actor_450800_8013A984;
+extern s32  D_actor_450800_8013AB7C;
+extern s32  D_actor_450800_8013ACFC;
 extern void func_80180038(s32);
 
 void func_actor_450800_80131E34(void)
@@ -107,28 +106,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133264);
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801332B8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8013333C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133364);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133400);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8013344C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801334C4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133528);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133594);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801335F8);
-
-s32 func_actor_450800_80133670(void)
-{
-    return 0;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133678);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133740);

@@ -2,13 +2,24 @@
 
 #include "actors/actor_521100.h"
 
-void func_actor_521100_80132958(void);
-void func_actor_521100_80132DE8(void);
-void func_actor_521100_801339B0(void);
-void func_actor_521100_8013570C(void);
-void func_actor_521100_80134658(void);
-void func_actor_521100_801357F0(void);
-void func_actor_521100_80134774(void);
+void      Gp_UpdateCoord(Actor521100Coord* arg0);
+void      func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
+void      func_actor_521100_80134C38(Actor521100* arg0);
+void      func_actor_521100_80134D88(Actor521100* arg0);
+void      func_actor_521100_80134EDC(Actor521100* arg0);
+void      func_actor_521100_80135024(Actor521100* arg0);
+void      func_actor_521100_801358D4(Actor521100* arg0);
+void      func_actor_521100_80135964(Actor521100* arg0);
+void      func_actor_521100_80135A34(Actor521100* arg0);
+void      func_actor_521100_80135A90(Actor521100* arg0);
+extern u8 D_801153F4;
+void      func_actor_521100_80132958(void);
+void      func_actor_521100_80132DE8(void);
+void      func_actor_521100_801339B0(void);
+void      func_actor_521100_8013570C(void);
+void      func_actor_521100_80134658(void);
+void      func_actor_521100_801357F0(void);
+void      func_actor_521100_80134774(void);
 
 void func_actor_521100_801355C8(Actor521100* arg0)
 {
@@ -92,22 +103,4 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136680);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_801366FC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136724);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_8013677C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136820);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_801368B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_801369B8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136A1C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136A64);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136AE0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80136BE8);
+INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100_2", jtbl_actor_521100_80131E78);
