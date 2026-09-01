@@ -655,13 +655,34 @@ void Actor02500_L021F0(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn021F8);
+s32 Gp_TickObjFlag2(Actor02500Ctx* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02230);
+void Actor02500_Fn021F8(Actor02500* arg0)
+{
+    Actor02500Work* work;
+    s32             state;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02254);
+    work  = arg0->field_1C;
+    state = work->field_324;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02274);
+    switch (state) {
+        case 0:
+            work->field_31C = 0xB;
+            work->field_33E = 1;
+            work->field_344 = 0;
+            work->field_326 = 0;
+            work->field_328 = 0;
+            work->field_324 = 1;
+            break;
+        case 1:
+            if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+                work->field_322 = state;
+                work->field_324 = 0;
+                work->field_33E = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02288);
 

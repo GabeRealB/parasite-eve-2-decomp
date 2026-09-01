@@ -36583,3 +36583,64 @@ allocation falls out — 100%. This is the same lever as "Name a load in a local
 to hoist it above a run of constant stores", used in the opposite direction:
 naming a load can pin a *different* load in place as easily as it can move the
 named one.
+
+## A switch scrutinee stored back into a field wants an `s32` local, not `s16`
+
+`Actor02500_Fn021F8` switches on `work->field_324` (an `s16`) and, in the
+`case 1` arm, writes that same value into `work->field_322`. Holding it in an
+`s16` local made GCC 2.8.1 emit *two* loads of the field — `lh` for the
+comparison and a separate `lhu` for the value that gets stored — and the second
+one filled the load-delay `nop` the target has:
+
+```
+lh     v1, 0x324(s0)      # target: lh s1, 0x324(s0)
+lhu    s1, 0x324(s0)      #         nop
+```
+
+An `s16` local is narrower than a register, so GCC keeps the truncated value in
+memory and reloads it (unsigned, since only the low half reaches the `sh`)
+rather than reusing the sign-extended copy. Widening the local to `s32` makes
+the sign-extended `lh` result the single live value, which both the `beqz` /
+`beq` chain and the `sh` then use:
+
+```c
+s32 state = work->field_324;
+switch (state) {
+/* … */
+case 1:
+    if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+        work->field_322 = state;   /* sh $s1 — no reload */
+    }
+}
+```
+
+Rule of thumb: a local that only ever holds a value read from a `s16`/`u16`
+field should be `s32` unless the assembly actually shows a second load.
+
+## Rebuilding a vacuum scratch `target.o` from the `L`-label pieces
+
+Matching an `Fn` whose body continues into `L` labels means the C compiles to
+more code than the scratch's `target.s`, which holds only the `Fn` fragment
+(see "A vacuum `L`-label is a basic block, not a function"). Rebuild the target
+from the whole function before the first score:
+
+```sh
+sed -n '1,71p' target.s > /tmp/macros.inc          # the macro prelude only
+{ cat /tmp/macros.inc
+  echo 'nonmatching Actor02500_Fn021F8, 0x8C'      # combined size
+  grep -hv -e '^nonmatching' -e '^endlabel' $ASM/Actor02500_Fn021F8.s
+  for f in Actor02500_L02230 Actor02500_L02254 Actor02500_L02274; do
+      grep -hv -e '^nonmatching' -e '^endlabel' $ASM/$f.s | sed "s/^glabel $f/$f:/"
+  done
+  echo 'endlabel Actor02500_Fn021F8'
+} > target.s
+mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -no-pad-sections -I include -o target.o target.s
+```
+
+The one thing to get right is the interior labels: leave them `glabel` (or
+`jlabel`, which is also `.global`) and `as` emits *relocations* for the
+branches instead of resolving them, so the target's branch-offset bytes are
+zero and a byte-for-byte `cmp` against a correct object fails at the first
+branch. Emit them as plain local `label:` lines. `dist.py` scores 100% either
+way, but only the local form lets you confirm with
+`objcopy -O binary --only-section=.text`.
