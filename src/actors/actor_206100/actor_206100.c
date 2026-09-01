@@ -153,7 +153,20 @@ void func_actor_206100_8014F69C(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014F6F8);
+void func_actor_206100_8014F6F8(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* anim;
+
+    work            = (Actor206100Work*)task->idMap;
+    work->field_51E = 0;
+    anim            = (Actor206100Work*)task->idMap;
+    anim->field_524 = 8;
+    anim->field_51A = 8;
+    anim->field_510 = 7;
+    anim->field_50C = 1;
+    work->field_522 = work->field_522 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014F738);
 
