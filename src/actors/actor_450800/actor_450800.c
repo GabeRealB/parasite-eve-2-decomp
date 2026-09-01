@@ -5,6 +5,7 @@
 #include "main/session.h"
 
 extern s32  D_actor_450800_8013930C;
+extern s32  D_actor_450800_8013A564;
 extern s32  D_actor_450800_8013A684;
 extern s32  D_actor_450800_8013A774;
 extern s32  D_actor_450800_8013A984;
@@ -58,7 +59,10 @@ void func_actor_450800_80131F70(u32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80131F98);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132000);
+void func_actor_450800_80132000(void)
+{
+    func_800E8614((s32)&D_actor_450800_8013A564, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132028);
 
