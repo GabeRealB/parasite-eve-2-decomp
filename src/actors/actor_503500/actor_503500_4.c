@@ -290,7 +290,10 @@ s32 func_actor_503500_8013608C(void)
     return (u32)(D_actor_503500_80176D24 - 2) < 3U;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_801360A4);
+void func_actor_503500_801360A4(s32 arg0, s16 arg1)
+{
+    D_actor_503500_80176D64[arg0] = arg1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_801360BC);
 
