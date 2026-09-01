@@ -2,6 +2,8 @@
 #include "main/task.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "main/session.h"
 extern s8 D_actor_503500_80176D5A;
 
 extern u16 D_actor_503500_80176D24;
@@ -104,7 +106,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132EE8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132EF4);
+/// Player-facing flag byte in the main executable; no module header owns it yet.
+extern u8 D_80073BA9;
+
+void func_actor_503500_80132EF4(void)
+{
+    func_80106350(Game_GetPtrSlot(3), D_80073BA9, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132F28);
 
