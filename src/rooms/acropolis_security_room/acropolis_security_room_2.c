@@ -188,7 +188,15 @@ void func_acropolis_security_room_8017FFD0(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180010);
+void func_acropolis_security_room_80180010(Task* task)
+{
+    D_8007216C = 3;
+    /* Without the barrier GCC hoists the `lw` of `task->state` above the byte
+     * store, dropping the load-delay `nop` and making the body one instruction
+     * short. */
+    SOFT_BARRIER();
+    task->state = task->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180030);
 
