@@ -422,7 +422,7 @@ actor_105400 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_sh
 actor_105500 = { rodata = [{ start = "0x44", unit = "actor_105500_text" }], shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
 actor_105600 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_105700 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
-actor_107000 = { note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x2CAC", end = "0x2D10", unit = "actors_shared_8014ca28" }, { start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }, { start = "0x68F0", end = "0x6924", unit = "actors_shared_801511c8" }] }
+actor_107000 = { note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x2CAC", end = "0x2D10", unit = "actors_shared_8014ca28" }, { start = "0x6750", end = "0x67B4", unit = "actors_shared_80138570" }, { start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }, { start = "0x68F0", end = "0x6924", unit = "actors_shared_801511c8" }] }
 actor_107200 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_107500 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_107600 = { }
@@ -523,7 +523,7 @@ actor_205500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata = 
 actor_205600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_205700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_206100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x5670", end = "0x5698", unit = "actors_shared_801366fc" }] }
-actor_207000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x2CAC", end = "0x2D10", unit = "actors_shared_8014ca28" }, { start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }, { start = "0x68F0", end = "0x6924", unit = "actors_shared_801511c8" }] }
+actor_207000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x2CAC", end = "0x2D10", unit = "actors_shared_8014ca28" }, { start = "0x6750", end = "0x67B4", unit = "actors_shared_80138570" }, { start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }, { start = "0x68F0", end = "0x6924", unit = "actors_shared_801511c8" }] }
 actor_207200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x13FC", end = "0x1458", unit = "actors_shared_8014df20" }] }
 actor_210600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_210700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x3C8", end = "0x3E8", unit = "actors_shared_801327b4" }] }
