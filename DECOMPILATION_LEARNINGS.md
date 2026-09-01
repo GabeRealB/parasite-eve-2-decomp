@@ -36757,3 +36757,32 @@ Letting it reuse that unit would be wrong: a `shared` span is a whole object's
 `.text`, so the span must equal the object's size. Pass `--unit` to make a
 dedicated one - `promote <fn> --unit actors_shared_<vram>` - and leave the big
 unit's own copy alone; the two objects never link into the same overlay.
+
+## Increment a comparison result in its own statement to keep `slti`/`xori`
+
+`f((x >= K) + 1)` does **not** give the store-flag sequence. GCC 2.8.1 folds
+the `+ 1` into the comparison and if-converts the whole thing into a branch
+over two `li`s:
+
+```
+bnez  v0, .L
+li    a2, 1
+li    a2, 2
+```
+
+Assigning the comparison and incrementing it as a *separate statement* keeps
+it a value, so the flag is materialized arithmetically and the `+ 1` stays a
+plain `addiu` in the call's delay slot:
+
+```c
+s32 cond;
+
+cond = GameFlag_GetNibble(0x28) >= 2;
+cond += 1;                 /* slti; xori 1; addiu a2,v0,1 */
+Gp_StartCapSlot(3, 0, cond);
+```
+
+`cond = (... >= 2) + 1;` in one statement is still folded — the split has to
+be into two statements, not just into a local. `!(x < K) + 1` and
+`(x > K-1) + 1` fold the same way. `func_dryfield_trailer_coach_80182850` is
+the example.
