@@ -178,6 +178,19 @@ typedef struct Actor503500 {
 } Actor503500;
 STATIC_ASSERT_SIZEOF(Actor503500, 0x48);
 
+/// Overlay-local view of the gameplay `Gp_StateC08` block (`GpStateC08` in
+/// `include/gameplay/gameplay.h`). Only the byte this overlay touches is
+/// named: `field_6` is the HUD/attach flags byte, and
+/// `func_actor_503500_80132D60` sets its bit 0.
+typedef struct Actor503500StateC08 {
+    /* 0x00 */ byte pad_0[6];
+    /* 0x06 */ u8   field_6;
+    /* 0x07 */ byte pad_7[0x11];
+} Actor503500StateC08;
+STATIC_ASSERT_SIZEOF(Actor503500StateC08, 0x18);
+
+extern Actor503500StateC08 Gp_StateC08;
+
 void func_actor_503500_8013F8AC(Actor503500* arg0);
 void func_actor_503500_801440F0(Actor503500* arg0);
 

@@ -114,7 +114,10 @@ void func_actor_503500_80132D20(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80132D60);
+void func_actor_503500_80132D60(void)
+{
+    Gp_StateC08.field_6 |= 1;
+}
 
 void func_actor_503500_80132D7C(void)
 {
