@@ -274,7 +274,12 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135D00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135E04);
+/// Reports whether slot `arg1` of the boss work block's `enemies` array is
+/// empty. `arg0` is loaded by every caller but the body ignores it.
+s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
+{
+    return D_actor_503500_80176574.enemies[arg1] == NULL;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135E20);
 
