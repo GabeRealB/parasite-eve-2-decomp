@@ -586,7 +586,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016A810);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016A890);
+void func_actor_341700_8016A890(Task* arg0)
+{
+    Actor341700Work* work2;
+    Actor341700Work* work;
+
+    work                                  = (Actor341700Work*)arg0->idMap;
+    ((GpEnemy*)arg0->spawnArg2)->field_54 = 0;
+    work2                                 = (Actor341700Work*)arg0->idMap;
+    Gp_UnlinkObj(&work2->obj_2AC);
+    Gp_UnlinkObj(&work2->obj_2CC);
+    Gp_UnlinkObj(&work2->obj_3AC);
+    work->field_412 = 0;
+    work->field_420 = work->field_420 + 1;
+}
 
 void func_actor_341700_8016A8EC(void)
 {
