@@ -81,10 +81,9 @@ STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
 /// `func_actor_503500_8013BD88` reads `field_ED` out of a 0xF0 block,
 /// `func_actor_503500_8013EB60` reads `field_EC` out of another 0xF0 block).
 typedef struct Actor503500Work {
-    /* 0x000 */ byte     pad_0[0x1E];
-    /* 0x01E */ u16      field_1E; // flag halfword; bit 0x8000 set on release
+    /* 0x000 */ GpObj    obj;      // the display node Gp_UnlinkObj takes
     /* 0x020 */ byte     pad_20[0x5E];
-    /* 0x07E */ u16      field_7E; // same flag halfword, 0x224 block
+    /* 0x07E */ u16      field_7E; // GpObj::flags of obj[3] in the 0x224 block
     /* 0x080 */ byte     pad_80[0x6A];
     /* 0x0EA */ s16      field_EA;
     /* 0x0EC */ s8       field_EC;  // sub-state index
