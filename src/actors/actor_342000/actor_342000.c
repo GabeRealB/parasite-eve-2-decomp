@@ -73,7 +73,20 @@ void func_actor_342000_801641B4(void)
     work->field_50 = NULL;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801641FC);
+void func_actor_342000_801641FC(void)
+{
+    Actor342000EventWork* work;
+
+    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    if (work->field_5C != NULL) {
+        Task_Kill(work->field_5C);
+    }
+    if (work->field_60 != NULL) {
+        Task_Kill(work->field_60);
+    }
+    work->field_5C = NULL;
+    work->field_60 = NULL;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80164260);
 
