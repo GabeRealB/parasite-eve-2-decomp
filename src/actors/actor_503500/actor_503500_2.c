@@ -10,6 +10,9 @@
 
 s32  func_actor_503500_80133684(Actor503500* arg0);
 void func_actor_503500_801372AC(s32 arg0);
+/// Reports whether slot `arg1` of the boss work block's `enemies` array is
+/// empty. `arg0` is loaded by every caller but the body ignores it.
+s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
 void func_actor_503500_801338E8(Actor503500* arg0);
 void func_actor_503500_80134408(Actor503500* arg0);
 void func_actor_503500_801345F4(Actor503500* arg0);
@@ -366,7 +369,33 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DBF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DC4C);
+void func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1);
+
+void func_actor_503500_8013DC4C(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s32              kind;
+    s32              slotA;
+    s32              slotB;
+
+    kind = 3;
+    if (arg0->spawnArg1 == 7) {
+        kind  = 2;
+        slotA = 0xD;
+        slotB = 0xE;
+    } else {
+        slotA = 0xF;
+        slotB = 0x10;
+    }
+    if ((func_actor_503500_80135E04(arg0->parent, kind) != 0) &&
+        (func_actor_503500_80135E04(arg0->parent, slotA) != 0) &&
+        (func_actor_503500_80135E04(arg0->parent, slotB) != 0)) {
+        func_actor_503500_8013DBA8(arg0, 1);
+        work             = arg0->field_1C;
+        work->obj.flags |= 0x8000;
+        Gp_LinkNode(&arg0->field_20->node);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DD10);
 
