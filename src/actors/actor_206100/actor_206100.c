@@ -198,7 +198,21 @@ void func_actor_206100_8014F770(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014F7B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014F878);
+void func_actor_206100_8014F878(Task* task)
+{
+    u16              timer;
+    Actor206100Work* work;
+    Actor206100Work* next;
+
+    work            = (Actor206100Work*)task->idMap;
+    timer           = work->field_51E + 1;
+    work->field_51E = timer;
+    if ((s16)timer >= 0x3D) {
+        next            = (Actor206100Work*)task->idMap;
+        next->field_520 = 1;
+        next->field_522 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014F8BC);
 
