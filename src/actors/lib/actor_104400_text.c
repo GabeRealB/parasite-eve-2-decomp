@@ -249,7 +249,14 @@ void Actor04400_L078CC(void)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn078D4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07968);
+void Actor04400_Fn07968(Task* arg0)
+{
+    Actor104400Work* work;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    work->field_412 = 0;
+    work->field_420 = work->field_420 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07984);
 
