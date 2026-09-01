@@ -1,15 +1,18 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/gameflag.h"
+#include "main/task.h"
 
 extern s32 D_actor_161500_80135668;
 extern s32 D_actor_161500_801357E8;
 extern s32 D_actor_161500_80135968;
 extern s32 D_actor_161500_80135AE8;
 extern s32 D_actor_161500_80135C68;
+extern s32 D_actor_161500_80137AB8;
 
 void func_actor_161500_80131E38(void)
 {
@@ -65,7 +68,14 @@ void func_actor_161500_80132150(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801321B4);
+void func_actor_161500_801321B4(Task* arg0)
+{
+    D_80115768 = 1;
+    Gp_SetItemSeenBit(0x124, 1);
+    GameFlag_SetNibble(0xE4, 2);
+    func_800E8614((s32)&D_actor_161500_80137AB8, 0);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132210);
 
