@@ -55,7 +55,14 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801813DC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_8018142C);
+void func_dryfield_dilapidated_house_8018142C(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord      = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord->sub = &Gfx_ViewCoord;
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_8018145C);
 
