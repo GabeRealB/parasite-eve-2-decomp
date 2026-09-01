@@ -1227,19 +1227,34 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A370);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A374);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A38C);
+s32 Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2)
+{
+    TmdObject*      obj  = arg0->field_2C;
+    Actor01900Work* work = arg0->field_1C;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A3C4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A3DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A3F0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A408);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A420);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L0A438);
+    switch (arg2) {
+        case 0:
+            obj->field_C = 0x80;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0;
+            break;
+        case 1:
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0x18;
+            break;
+        case 2:
+            obj->field_C |= 4;
+            work->field_0 = 0;
+            break;
+        case 3:
+            obj->field_C  = 0;
+            work->field_0 = 0;
+            obj->field_C |= 4;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A44C);
 

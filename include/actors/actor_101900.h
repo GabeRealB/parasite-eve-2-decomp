@@ -5,6 +5,7 @@
 
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Private work block of the actor 01900 task, hanging off `Task::idMap`.
 ///
@@ -14,7 +15,8 @@
 /// masks `field_A08.flags` and `field_B48.flags`, which is what fixes those
 /// two offsets as `GpObj` rather than opaque padding.
 typedef struct Actor01900Work {
-    /* 0x000 */ byte  pad_0[0x8C8];
+    /* 0x000 */ s16   field_0;
+    /* 0x002 */ byte  pad_2[0x8C6];
     /* 0x8C8 */ GpObj field_8C8;
     /* 0x8E8 */ byte  pad_8E8[0x120];
     /* 0xA08 */ GpObj field_A08;
@@ -24,6 +26,16 @@ typedef struct Actor01900Work {
     /* 0xC38 */ Task* field_C38;
     /* 0xC3C */ Task* field_C3C;
 } Actor01900Work;
+
+/// Per-task actor context handed to the overlay's callbacks: `field_1C` is the
+/// work block above (the same pointer `Task::idMap` holds) and `field_2C` is
+/// the actor's `TmdObject`. Same shape as the other actor overlays' contexts.
+typedef struct Actor01900 {
+    /* 0x00 */ byte            pad_0[0x1C];
+    /* 0x1C */ Actor01900Work* field_1C;
+    /* 0x20 */ byte            pad_20[0xC];
+    /* 0x2C */ TmdObject*      field_2C;
+} Actor01900;
 
 /// Per-room clamp applied to the accumulated height offset of the actor's
 /// motion scratch. `field_0` / `field_2` are matched against
@@ -53,5 +65,6 @@ STATIC_ASSERT_SIZEOF(Actor01900Delta, 0x20);
 extern Actor01900HeightClamp Actor01900_D172CC[];
 
 void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta);
+s32  Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2);
 
 #endif
