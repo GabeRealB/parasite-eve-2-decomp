@@ -454,7 +454,26 @@ void func_actor_403100_8013E6A0(Task* arg0)
     func_actor_403100_8013E6F0(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E6F0);
+void func_actor_403100_8013E6F0(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u16            countdown;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (D_801153F4 == 0) {
+        coord->flg = 0;
+        if (!(arg0->killCountdown & 7)) {
+            Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
+        }
+        countdown           = arg0->killCountdown - 1;
+        arg0->killCountdown = countdown;
+        if ((countdown << 0x10) <= 0) {
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            Task_Kill(arg0);
+        }
+    }
+}
 
 void func_actor_403100_8013E784(Task* arg0)
 {
