@@ -7,6 +7,9 @@
 
 extern s16 D_800691CA;
 
+extern s32 D_shelter_b6_corridor_8017F354;
+extern s32 D_shelter_b6_corridor_8017F684;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017D5D0);
 
 s32 func_shelter_b6_corridor_8017DEA8(void)
@@ -55,7 +58,12 @@ s32 func_shelter_b6_corridor_8017E020(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E028);
+s32 func_shelter_b6_corridor_8017E028(void)
+{
+    func_800E8634((s32)&D_shelter_b6_corridor_8017F354, 0, (s32)&D_shelter_b6_corridor_8017F684);
+    func_800E3FAC(0xA2, 0x2F);
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E064);
 
