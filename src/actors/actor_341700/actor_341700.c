@@ -350,7 +350,29 @@ void func_actor_341700_80169218(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80169254);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80169380);
+void func_actor_341700_80169380(Task* arg0)
+{
+    GpEnemy*         enemy;
+    Actor341700Work* work;
+    TmdObject*       model;
+    Actor341700Work* work2;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    model = (TmdObject*)arg0->extra;
+    work  = (Actor341700Work*)arg0->idMap;
+    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
+    func_actor_341700_801681C4(arg0, 0);
+    Gp_UnlinkNode(&enemy->node);
+    if (work->field_448 == 4) {
+        work->field_412  = 0;
+        model->field_C   = model->field_C | 0x80;
+        work2            = (Actor341700Work*)arg0->idMap;
+        work2->field_420 = 7;
+        work2->field_422 = 0;
+        return;
+    }
+    work->field_420 = work->field_420 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80169440);
 
