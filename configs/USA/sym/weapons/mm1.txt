@@ -1,3 +1,6 @@
 // Overlay-local symbols for MM1 (file 10312).
 WeaponsShared8011de24 = 0x8011DB94; // shared body, see src/weapons/lib/
 WeaponsShared8011ddf8 = 0x8011DB68; // shared body, see src/weapons/lib/
+WeaponsShared8011d3a0 = 0x8011D3A8; // shared body, see src/weapons/lib/
+WeaponsShared8011d3a0Vecs = 0x8012D2C0; // shared body data, see src/weapons/lib/
+WeaponsShared8011d3a0Speeds = 0x8012D2D8; // shared body data, see src/weapons/lib/

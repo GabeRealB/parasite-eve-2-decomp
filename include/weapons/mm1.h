@@ -12,7 +12,6 @@ typedef struct Mm1Task {
 
 typedef void (*Mm1StateFn)(Mm1Task* task);
 
-void func_mm1_8011D3A8(Mm1Task* arg0);
 void func_mm1_8011D704(Mm1Task* arg0);
 void func_mm1_8011DBD8(Mm1Task* arg0);
 

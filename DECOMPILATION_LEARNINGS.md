@@ -34167,12 +34167,16 @@ colouring problem and is not one.
 
 ## A shared body may reference overlay-local data — give the datum one name in every sym map
 
-`overlay_dup_index.py promote` refuses an **unmatched** body that references its
-own overlay's code or data, because the shared unit would then be one
-disassembly file baking in one overlay's addresses. A **matched** body has no
-such limit, and the guard says so, but the plumbing it does not do is the data
-side: `promote` only writes the shared *function* symbol into each carrying
-overlay's `configs/USA/sym/<family>/<name>.txt`.
+`overlay_dup_index.py promote` refuses a body that references `D_<unit>_` /
+`func_<unit>_` / `jtbl_<unit>_`, **matched or not**. The unmatched reason is
+real — a shared disassembly file would bake in one overlay's addresses — but
+the `localref` check is not gated on match state, so a matched grenade-pistol /
+MM1 spawn that only differs in the `%hi/%lo` of two identical data tables still
+prints "cannot be shared". Write the `shared` span by hand (file offset of the
+first instruction through the byte after `jr $ra`'s delay slot) and do the
+data-side plumbing `promote` would have skipped: the shared *function* symbol
+**and** a shared name for every overlay-local datum, each at that overlay's
+address in `configs/USA/sym/<family>/<name>.txt`.
 
 `func_dryfield_main_street_8017DFC8` passes a `TaskDesc` to
 `Task_SpawnFromTable`, and the two copies point at their own room's table —
