@@ -432,7 +432,21 @@ void func_actor_341700_801697B8(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_801697D4);
+void func_actor_341700_801697D4(Task* arg0)
+{
+    Actor341700Work* work;
+    u16              ticks;
+
+    work            = (Actor341700Work*)arg0->idMap;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 0x24) {
+        if ((Game_Session->field_7 == 4) && ((u32)(Game_Session->field_6 - 0x27) < 2U) && (Game_Session->field_9 == 1)) {
+            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 1, 0);
+        }
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80169888);
 
