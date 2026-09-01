@@ -35268,22 +35268,43 @@ that always subtracts. Vacuum still picks the two-instruction `j L01648` /
 `want - ang` copy, so that copy loses `$a0` and combine writes `subu a0` /
 `sll v0, a0` instead of the target's `subu v0` / `move a0, v0` / `sll v0, v0`.
 
-## A `jlabel` fragment is a mid-function jump-table arm, not a function
+## An `<Overlay>_L<off>.s` split is a symbol-map artefact, not a function
 
-`asm/.../<Overlay>_L<off>.s` files that start with `jlabel` and hold two or
-three instructions ending in `j <next label>` are switch arms that splat cut out
-of an enclosing function because the overlay's jump table names them. There is
-no C that compiles to one of them on its own: the vacuum's scorer sees two
-instructions and picks them as "easy", but the unit of work is the whole
-enclosing `Fn<off>` plus every `L<off>` up to the one that falls into the shared
-tail.
+`asm/.../<Overlay>_L<off>.s` files holding a few instructions and ending in
+`j <next label>` are mid-function branch targets that splat cut out of their
+enclosing function. There is no C that compiles to one on its own, and the
+vacuum's scorer picks them as "easy" because they are two instructions long.
 
-Mark each absorbed label `// type:label` in **every** sym file that carries the
-body (`configs/USA/sym/<family>/<overlay>.txt` — twins such as `actor_100400`
-and `actor_200400` both need it), delete the corresponding `INCLUDE_ASM` lines,
-and re-split: splat then emits one `Fn<off>.s` spanning the whole switch, with
-the arms as local labels. `Actor00400_L01D24` was one arm of a ten-way switch in
-`Actor00400_Fn01B90`; matching it meant matching all 370 instructions.
+**They are cut out because the symbol maps declare them as globals**, not
+because a jump table names them. A real jump table references dot-prefixed
+`.L<overlay>_<addr>` labels, which splat keeps inside the enclosing function's
+`.s`; of the 2808 such files in the tree, *none* appeared in any `.word` table.
+Nor are they mostly `jlabel`: 2585 of the 2808 begin with `glabel`, so grepping
+for `jlabel` finds under a tenth of them.
+
+The fix is an annotation, not a matching job. Mark each absorbed label
+`// type:label` in **every** sym file that carries the body
+(`configs/USA/sym/<family>/<overlay>.txt` — twins such as `actor_100400` and
+`actor_200400` both need it, and some bodies are carried by three overlays),
+delete the corresponding `INCLUDE_ASM` lines, and re-split: splat then emits one
+`Fn<off>.s` spanning the whole range with the arms as local labels. Deleting the
+stubs is mandatory, not tidiness — splat never rewrites an existing `.c`, so a
+leftover declaration for an absorbed label fails the link.
+
+Three classes must stay global, each of which shows up as a build failure rather
+than silently:
+
+* labels already decompiled as C functions — annotating one makes splat emit a
+  local label that collides with the C definition (`symbol already defined`);
+* labels branched to from a *different* function (`undefined reference`);
+* labels referenced from decompiled C, which is the whole of
+  `actor_102000_text`.
+
+Applied across the tree in commit 6a4e3490 this absorbed 2570 of the 2808 and
+removed 2523 `INCLUDE_ASM` stubs, with every overlay still checksumming — they
+were never functions, so no generated code changed. Apply it per unit and let
+the build arbitrate; a blanket pass hits all three exclusions at once and is
+hard to untangle.
 
 ### The overlay's jump table has to move into the C object
 
