@@ -3,6 +3,7 @@
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 extern TaskDesc D_actor_335800_80164DE0;
+extern s8       D_8007272D;
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80161E88);
 
@@ -41,7 +42,10 @@ void func_actor_335800_80162408(void)
     SetDispMask(1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162428);
+void func_actor_335800_80162428(s8 arg0)
+{
+    D_8007272D = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800", func_actor_335800_80162434);
 
