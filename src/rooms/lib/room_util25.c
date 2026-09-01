@@ -1,3 +1,8 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util25", Room_Util25);
+#include "gameplay/3CD8.h"
+
+void Room_Util25(void)
+{
+    Gp_HaltPadScripts();
+}

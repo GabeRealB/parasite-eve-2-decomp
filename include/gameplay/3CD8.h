@@ -381,6 +381,9 @@ extern u16 Gp_QuadClutX[];
 /// High nibble is the `Gp_DrawFadeQuad` blend; low three nibbles are R, G, B.
 extern u16 Gp_FadeQuadColors[];
 
+/// Suspends pad-driven scripting: raises the script, hold and lerp halt
+/// flags, clears `GameSession::field_13B` and flushes the pad event queue.
+void  Gp_HaltPadScripts(void);
 Task* Gp_SpawnScript18(s32 arg0, s32 arg1);
 s32   Gp_LookupSlot4(s32 arg0);
 void  Gp_RunCapCmd(s32 arg0, s16 arg1);

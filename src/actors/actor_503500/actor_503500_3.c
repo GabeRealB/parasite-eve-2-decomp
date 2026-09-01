@@ -42,9 +42,6 @@ extern Actor503500MsgPos D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
 
-/// `src/gameplay/3CD8.c`; no gameplay header declares it yet.
-extern void Gp_HaltPadScripts(void);
-
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
 /// `D_80114C12` the cutscene/among-us mode flag.
