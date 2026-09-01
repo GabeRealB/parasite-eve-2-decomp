@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "main/task.h"
 #include "main/gameflag.h"
 
 extern s32 D_actor_160700_80135664;
@@ -42,7 +43,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_160700/actor_160700", func_actor_160700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_160700/actor_160700", func_actor_160700_80132390);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160700/actor_160700", func_actor_160700_80132414);
+void func_actor_160700_80132414(Task* arg0)
+{
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_160700/actor_160700", func_actor_160700_8013243C);
 
