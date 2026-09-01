@@ -35812,3 +35812,34 @@ Note the load stays `lhu` even though `killCountdown` is declared `s16`:
 assigning it into a `u16` local means only the low half is live, so GCC drops
 the sign-extending load and re-extends at the comparison instead. Reading the
 field into an `s16` local flips it back to `lh`. `func_replay_bonus_80117924`.
+
+## Don't hoist m2c's `temp_` for a repeated array element - let GCC CSE it
+
+m2c names the address of a repeated array element and reuses it:
+
+```c
+temp_v0 = (D_actor_215100_8015E662 * 0xC) + D_actor_215100_8015E658;
+func_..._8014B3C8(M2C_FIELD(temp_v0, s32*, 8), 0x80, 1,
+                  M2C_FIELD(temp_v0, u8*, 0) | ((M2C_FIELD(temp_v0, u8*, 1) & 0x10) * 0x10));
+```
+
+Typing that literally - a local `Actor215100Caption* line = &tab[idx];` - stalls at
+99.27% with `regs=8`. The target computes the element address as
+`addu v0, <idx*0xC>, <base>`; the hoisted local produces
+`addu v1, <base>, <idx*0xC>`, so the sum lands in the other register and every
+subsequent `lbu`/`lw` reads off it.
+
+Writing the array expression out at each field instead matches exactly:
+
+```c
+func_..._8014B3C8(tab[idx].field_8, 0x80, 1,
+                  tab[idx].field_0 | ((tab[idx].field_1 & 0x10) * 0x10));
+```
+
+GCC 2.8.1 common-subexpression-eliminates the three copies into one address
+computation - the *same* one the original source produced - while an explicit
+local forces `pointer + offset` operand order onto the `addu`. So when m2c's
+`temp_` only ever feeds field reads inside one basic block, delete it and repeat
+the indexed expression; the CSE pass is what the original compiler ran too. (The
+mirror of "Don't over-simplify m2c": a `temp_` that crosses a *call* is
+load-bearing, one that does not is noise.)
