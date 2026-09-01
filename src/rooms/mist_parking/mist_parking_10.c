@@ -6,6 +6,8 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+extern Task* D_mist_parking_8019532C;
+
 extern TaskDesc D_mist_parking_80190824;
 
 extern TaskDesc D_mist_parking_8018FC24;
@@ -242,4 +244,7 @@ void func_mist_parking_80184668(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801846A4);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_8018471C);
+void func_mist_parking_8018471C(void)
+{
+    D_mist_parking_8019532C = NULL;
+}
