@@ -32,6 +32,7 @@ void Gp_AnimTickIndex(void* arg0, s32 arg1);
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
+extern u8  D_801153F2;
 extern u8  D_801153F4;
 extern s32 Gp_LcgState;
 
@@ -361,22 +362,66 @@ void Actor03800_L02060(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02068);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02090);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L020F0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02110);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02168);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L0216C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02190);
-
-void Actor03800_L021DC(void)
+/// Idle "look around" tick. State 0 counts `field_356` down and, on expiry,
+/// picks a new facing `field_364` within +/-0x3FF of the current one; state 1
+/// waits for the turn to finish and re-arms the countdown. Either way, an
+/// active `D_801153F2` bit (1 or 4) or a non-zero `field_36C` aborts
+/// back to state 0 with a short delay.
+void Actor03800_Fn02068(Actor103800* arg0)
 {
+    Actor103800Work* work;
+    s32              rand;
+    s32              delta;
+
+    work = arg0->field_1C;
+
+    switch (work->field_354) {
+        case 0:
+            work->field_360 = 0;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            work->field_356--;
+            if (work->field_356 > 0) {
+                break;
+            }
+
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_354 = 1;
+            rand            = (u32)Gp_LcgState >> 16;
+            delta           = rand & 0x3FF;
+            if (!(rand & 0x400)) {
+                delta = -delta;
+            }
+
+            work->field_348 = 2;
+            work->field_36A = 1;
+            work->field_364 = (work->field_362 + delta) & 0xFFF;
+            break;
+
+        case 1:
+            work->field_360 = 0x1E;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            if (work->field_362 == work->field_364) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_354 = 0;
+                work->field_348 = 1;
+                work->field_36A = 0;
+                work->field_356 = ((u32)Gp_LcgState >> 16 & 0xFF) + 0x5A;
+            }
+            break;
+    }
+
+    if ((D_801153F2 & 5) || work->field_36C != 0) {
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_352 = 0xA;
+        work->field_354 = 0;
+        work->field_37A = 1;
+        work->field_360 = 0;
+        work->field_35C = 0;
+        work->field_35E = 0;
+        work->field_356 = ((u32)Gp_LcgState >> 16 & 0xF) + 0xF;
+    }
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn021E4);
@@ -767,7 +812,6 @@ void Actor03800_Fn01948(Actor103800* arg0);
 void Actor03800_Fn01AD0(Actor103800* arg0);
 void Actor03800_Fn01C50(Actor103800* arg0);
 void Actor03800_Fn01EEC(Actor103800* arg0);
-void Actor03800_Fn02068(Actor103800* arg0);
 void Actor03800_Fn021E4(Actor103800* arg0);
 void Actor03800_Fn034B0(Actor103800* arg0);
 void Actor03800_Fn02584(Actor103800* arg0);

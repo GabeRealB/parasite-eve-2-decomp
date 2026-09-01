@@ -35962,3 +35962,30 @@ else            { work->field_516 = 2; res = ang;  }
 
 The tell is a `j` whose target is one instruction earlier than the target's,
 plus a swapped destination register in its delay slot.
+
+## A shared actor text unit's own prototypes outrank the gameplay header
+
+Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
+which is `Gp_StateF0.field_2` in `include/gameplay/3A34.h`. Adding that include
+to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
+own hand-written prototypes for `Gp_UnlinkNode`, `Gp_UnlinkObj`,
+`Gp_SetLightMode`, `Gp_ReleaseStateF0Add`, `Gp_UpdateActorColor`,
+`Gp_GetObjPan` and `Gp_GetObjDepth`, and several of them disagree with the
+header in *arity*, not just in pointer type (`Gp_UpdateActorColor` is declared
+with four arguments locally and two in the header). cc1 stops with
+`conflicting types for ...`, and rewriting the local block to the header's
+signatures would silently retype the arguments of every already-matched
+function in the unit.
+
+Use the flat extern the unit already uses for its neighbours instead:
+
+```c
+extern u8  D_801153F2;
+extern u8  D_801153F4;
+```
+
+`D_801153F2` is in `configs/USA/sym/actors.imports.txt` as `absolute:True`, so
+`lui %hi(D_801153F2)` / `lbu %lo(D_801153F2)` assembles to the same
+`lui $v0,0x8011` / `lbu $v0,0x53F2($v0)` the target has. Reconciling a shared
+text unit with the gameplay headers is its own naming pass, not part of a
+match.

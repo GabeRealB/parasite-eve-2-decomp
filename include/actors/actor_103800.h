@@ -51,12 +51,13 @@ typedef struct Actor103800Work {
     /* 0x366 */ byte           pad_366[2];
     /* 0x368 */ s16            field_368;
     /* 0x36A */ s16            field_36A;
-    /* 0x36C */ byte           pad_36C[2];
+    /* 0x36C */ s16            field_36C;
     /* 0x36E */ s16            field_36E;
     /* 0x370 */ byte           pad_370[2];
     /* 0x372 */ s16            field_372;
     /* 0x374 */ byte           pad_374[4];
     /* 0x378 */ s16            field_378;
+    /* 0x37A */ s16            field_37A;
 } Actor103800Work;
 STATIC_ASSERT_SIZEOF(Actor103800Work, 0x37C);
 
