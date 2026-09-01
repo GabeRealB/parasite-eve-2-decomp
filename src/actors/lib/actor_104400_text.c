@@ -2,6 +2,8 @@
 #include "actors/actor_104400.h"
 #include "main/task.h"
 
+s16 Actor04400_Fn06618(Task* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L00668);
@@ -802,13 +804,24 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L06D6C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L06D7C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06D90);
+void Actor04400_Fn06D90(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L06DD8);
+    if (Actor04400_Fn06618(arg0)) {
+        if (work->field_44F == 1) {
+            Actor104400Work* w = (Actor104400Work*)arg0->idMap;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L06DDC);
+            w->field_420 = 3;
+            w->field_422 = 0;
+        } else {
+            Actor104400Work* w = (Actor104400Work*)arg0->idMap;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L06DE8);
+            w->field_420 = 5;
+            w->field_422 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06DFC);
 

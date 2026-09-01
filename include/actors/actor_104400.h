@@ -19,7 +19,9 @@ typedef struct Actor104400Work {
     /* 0x000 */ byte pad_0[0x420];
     /* 0x420 */ u16  field_420; // state index
     /* 0x422 */ u16  field_422; // sub-state index
-    /* 0x424 */ byte pad_424[0x30];
+    /* 0x424 */ byte pad_424[0x2B];
+    /* 0x44F */ u8   field_44F;
+    /* 0x450 */ byte pad_450[0x4];
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
