@@ -87,7 +87,14 @@ void func_actor_503500_80132D90(s32 arg0)
     GameFlag_SetNibble(0x100, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132DB4);
+/// Overlay import at a fixed address (`configs/USA/sym/actors.imports.txt`);
+/// whatever room overlay is resident owns the body.
+extern void func_8017E27C(s32 arg0);
+
+void func_actor_503500_80132DB4(s32 arg0)
+{
+    func_8017E27C(arg0 & 0xFF);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132DD4);
 
