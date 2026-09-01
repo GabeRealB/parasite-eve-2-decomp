@@ -36261,3 +36261,65 @@ Gp_UpdateCoord(coord);
 ```
 
 `func_m4a1_hammer_8011DD08` is the example; it was the only diff at 99.3%.
+
+## Which room work block a helper belongs to: follow the caller, not the offsets
+
+The `TaskFuncTable` recipe ("A room overlay is several task families, each with
+its own `Task::idMap` block") settles the *dispatched* states, but a room's
+`.text` is mostly helpers that appear in no state table at all, and two families
+in one room routinely use the same low offsets. `shelter_r47` has two:
+`D_shelter_r47_8017D6C8` (state 0 `func_shelter_r47_8018138C`, `Mem_Calloc(0x54)`)
+and `D_shelter_r47_8017D7DC` (state 0 `func_shelter_r47_8018431C`,
+`Mem_Calloc(0x30)`). Both read `idMap` fields `0x18` and `0x1C` as `s16`, so the
+access pattern alone cannot tell them apart, and picking the wrong struct still
+scores 100% because the two spellings emit the same `lh`.
+
+Resolve it by `grep`ping for the `jal`:
+
+```
+grep -rn 'jal *func_shelter_r47_8018337C' asm/USA/rooms/nonmatchings/shelter_r47/
+# -> func_shelter_r47_80182E78, which D_shelter_r47_8017D6C8 lists  => family A
+```
+
+A helper is reached only from its own family's dispatcher chain, so one caller
+is enough. (A third allocator, `Mem_Calloc(0xC4)` in `func_shelter_r47_8017EA50`,
+belongs to a `Ui_SpawnFromDesc` task and is a different `Task` entirely — count
+allocators per *family*, not per overlay.)
+
+Read each family's state-0 entry end to end before writing the struct: it is
+the only place most of the fields are ever written, and it names them. In
+`shelter_r47` it gave the two exit scripts' saved area byte (`Mc_SaveData.field_4`
+low byte parked at `0x4E` / `0x29` and restored on the way out), which is what
+justifies `u8` there rather than the `s8` m2c guessed elsewhere in the file.
+
+### The `>=` sibling of the halfword-compare idiom
+
+Alongside `sll 16 + bgez` (bit test) and `sll 16 + beqz` (zero test), the
+*ordered* compare is `sll 16; sra 16; slti`:
+
+```
+lhu   v0, 0x36(s1)
+addiu v0, v0, 0x10
+sh    v0, 0x36(s1)
+sll   v0, v0, 16
+sra   v0, v0, 16
+slti  v0, v0, 0x100
+```
+
+That is a `u16` local (the value is never sign-extended on load) compared as
+signed, i.e. exactly what m2c prints:
+
+```c
+u16 fade;
+fade        = state->fade + 0x10;   /* u16 field */
+state->fade = fade;
+if ((s16)fade >= 0x100) { ... }
+```
+
+Unlike the `== 0` case, the local's signedness does *not* matter here: `s16 fade`
+with a bare `if (fade >= 0x100)` was measured to emit the identical
+`sll/sra/slti`, because the `u16` field already forces the truncate-then-extend
+either way. Only the *field* has to be `u16` — an `s16` field would load with
+`lh` and lose the `sll/sra`. (Which also makes this a cheap reminder that a
+100% checksum does not pick between two spellings; keep m2c's `u16` local, since
+that is the one the `lhu` argues for.)
