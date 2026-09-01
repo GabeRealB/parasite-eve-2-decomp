@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_450800.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -85,7 +87,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801327E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132868);
+void func_actor_450800_80132868(Task* task)
+{
+    Actor450800Work* work = (Actor450800Work*)task->idMap;
+
+    Gp_DestroyEnemy(task->spawnArg2, task);
+    Task_Kill(work->field_4F0);
+    Task_Kill(work->field_4F4);
+    Task_Kill(work->field_4F8);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801328BC);
 
