@@ -54,7 +54,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FF14);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FFF4);
+void func_shelter_b3_dumping_hole_8017FFF4(void)
+{
+    CdCmd_EnqueueReplaceOverlay82();
+}
 
 void func_shelter_b3_dumping_hole_80180014(void)
 {
