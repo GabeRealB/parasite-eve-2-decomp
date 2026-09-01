@@ -2,6 +2,7 @@
 
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "main/gameflag.h"
 
 extern s32 D_actor_161500_80135668;
@@ -68,7 +69,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132210);
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132294);
+void func_actor_161500_80132294(u8 arg0)
+{
+    D_80115768 = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801322A0);
 
