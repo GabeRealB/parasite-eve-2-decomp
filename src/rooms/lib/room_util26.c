@@ -1,3 +1,7 @@
 #include "common.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util26", Room_Util26);
+void Room_Util26(Task* arg0)
+{
+    arg0->state = arg0->state + 1;
+}
