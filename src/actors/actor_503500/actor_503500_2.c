@@ -538,7 +538,17 @@ void func_actor_503500_801440F0(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014418C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801441E8);
+void func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
+
+void func_actor_503500_801441E8(Actor503500* arg0)
+{
+    Actor503500Work* work;
+
+    work            = arg0->field_1C;
+    work->field_7E |= 0x8000;
+    Gp_LinkNode(&arg0->field_20->node);
+    func_actor_503500_80144238(arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144238);
 
