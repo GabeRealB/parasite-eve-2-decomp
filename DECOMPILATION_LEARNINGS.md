@@ -36855,3 +36855,29 @@ and let the compiler merge them. Splat names the merge point as a label
 (`Actor02000_L012A8`), which makes it look like control flow the C has to
 express; it is not. `Actor02000_Fn011E8` in `actor_102000_text` matched on the
 first attempt written this way.
+
+## An `sra` with no matching `sll` is `packed >> 16`, not an `(s16)` cast
+
+An `s16` argument built from an `s32` normally costs a `sll 16` / `sra 16`
+pair. A lone `sra $a0, $a0, 16` on the *unshifted* incoming value is a
+different expression: `(s16)(x >> 16)` folds to a single arithmetic shift,
+because the sign bits `sra` drags in are exactly the bits the cast would
+re-create. So this
+
+```asm
+sll   a2, a0, 0x10      /* a2 first: the sra below clobbers a0 */
+sra   a0, a0, 0x10      /* no sll -> this is x >> 16, not (s16)x */
+jal   Gp_StartCapSlot
+ sra  a2, a2, 0x10      /* (s16)x */
+```
+
+is one packed `s32` split into its halves, not the same value passed twice:
+
+```c
+Gp_StartCapSlot(arg0 >> 16, 0, arg0);   /* arg0 is s32 */
+```
+
+Passing an `s16` (or `(s16)arg0`) twice instead CSEs into `sll`/`sra` once
+plus a `move`, which is the 81% shape. `func_mist_parking_80183100` is the
+example; the give-away is that the two extends read the same register but
+only one of them has an `sll`.

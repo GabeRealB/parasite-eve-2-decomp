@@ -1,4 +1,6 @@
 #include "common.h"
+
+#include "gameplay/3CD8.h"
 #include "main/task.h"
 extern Task* D_mist_parking_80195320;
 
@@ -6,7 +8,10 @@ void func_mist_parking_801830F8(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_80183100);
+void func_mist_parking_80183100(s32 arg0)
+{
+    Gp_StartCapSlot(arg0 >> 16, 0, arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_8018312C);
 
