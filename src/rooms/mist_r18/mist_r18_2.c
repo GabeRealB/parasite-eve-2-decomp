@@ -51,4 +51,17 @@ void func_mist_r18_8017E8B8(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E92C);
+/// Fade the room back out; see `func_mist_r18_8017E8B8` for the level field.
+void func_mist_r18_8017E92C(Task* task)
+{
+    u16 fade;
+
+    fade                = (u16)task->killCountdown - 8;
+    task->killCountdown = fade;
+    if ((s16)fade <= 0) {
+        task->killCountdown = 0;
+        task->state++;
+    }
+    func_mist_r18_8017E144(task->killCountdown);
+    func_mist_r18_8017DF80(0x80 - task->killCountdown);
+}
