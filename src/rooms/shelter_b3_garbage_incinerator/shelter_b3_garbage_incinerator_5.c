@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern void func_shelter_b3_garbage_incinerator_80185220(void);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_5", func_shelter_b3_garbage_incinerator_80184EEC);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_5", func_shelter_b3_garbage_incinerator_8018507C);
@@ -8,4 +10,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_5", func_shelter_b3_garbage_incinerator_801853C4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_5", func_shelter_b3_garbage_incinerator_80185574);
+void func_shelter_b3_garbage_incinerator_80185574(void)
+{
+    func_shelter_b3_garbage_incinerator_80185220();
+}
