@@ -12,6 +12,8 @@ extern Task* D_actor_341300_80165AA4;
 
 extern s8 D_8007272D;
 
+void func_actor_341300_8016398C(s32 arg0);
+
 void func_actor_341300_8016241C(void)
 {
     D_actor_341300_80165AA4 = Task_SpawnFromTable(&D_actor_341300_80165208, 0, 0, 0);
@@ -26,7 +28,10 @@ void func_actor_341300_80162530(void)
     D_actor_341300_80165AA4 = Task_SpawnFromTable(&D_actor_341300_80165208, 1, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162564);
+void func_actor_341300_80162564(s16 arg0)
+{
+    func_actor_341300_8016398C(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162588);
 
