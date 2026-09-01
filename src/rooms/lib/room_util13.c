@@ -1,3 +1,7 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util13", Room_Util13);
+/// Room script callback: clear the queued CD command and restart the CD queue.
+void Room_Util13(void)
+{
+    CdCmd_CancelReplaceAndActivate();
+}
