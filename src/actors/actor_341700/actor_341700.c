@@ -548,7 +548,24 @@ void func_actor_341700_8016A568(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016A630);
+void func_actor_341700_8016A630(Task* arg0)
+{
+    Actor341700Work* work;
+    TmdObject*       model;
+    u16              ticks;
+
+    work            = (Actor341700Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks == 3) {
+        Tmd_FreeBuffers(model);
+        model->field_C |= 4;
+    }
+    if ((s16)work->field_412 >= 0x24) {
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016A6C0);
 
