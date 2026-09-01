@@ -35738,3 +35738,48 @@ So for a field that is read both ways: signed declaration, `(u16)` at the reads
 m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
 to `s32` before storing it to a `u16` field" is the remedy when the field really
 is unsigned; while you are still choosing the type, prefer flipping the type.
+
+## An overlay can allocate more than one `Task::idMap` work block
+
+`actor_341700` calls `Mem_Calloc` three times: `0x454` in
+`func_actor_341700_80162974` and `func_actor_341700_80162B8C`, and `0x80` in
+`func_actor_341700_8016D130`. All three store the result straight into
+`Task::idMap`, because the overlay runs two different task families out of one
+`.text` - the enemy itself and a smaller companion task. Sizing a single struct
+from the first `Mem_Calloc` you find would have put a `0x454`-byte block under
+`func_actor_341700_8016D2E8`'s `lh 0x4(idMap)`, which belongs to the `0x80` one.
+
+So grep the whole overlay for `jal Mem_Calloc` and read `$a0` at every site
+before naming a work struct, then decide per function which block its
+`arg0->idMap` points at. Address order is the cheap tell: the functions around
+the `0x80` allocator use the `0x80` block.
+
+## Prove a struct-typing pass with `bulk_m2c`'s own scorer, before taking the lock
+
+Retyping an m2c seed is not codegen-neutral (see "Struct-typing a body changes
+GCC 2.8.1's aliasing"), so every rewritten body has to be re-proved - but
+`build-and-verify.sh --only` re-splits the overlay, which needs the vacuum
+orchestrator's merge lock, and a 25-function pass would hold it for a whole
+session. `tools/bulk_m2c.py` exports exactly the three pieces needed:
+
+```python
+import bulk_m2c as B
+B.CPP_FLAGS = ["-I", str(SCRATCH / "inc")] + B.CPP_FLAGS  # the edited header wins
+target = B.build_target(loc, wd)        # loc.asm_file may be a *copy* of the .s
+cand   = B.compile_candidate(c_path, wd)
+pct, penalties = B.score(target, cand)  # 100.00% and all-zero penalties or bust
+```
+
+`loc` only has to carry an `asm_file` attribute, so a two-line stub class is
+enough. Put the edited header at `<scratch>/inc/<dir>/<name>.h` and prepend that
+`-I`; give each function a standalone `.c` of the host's include block plus the
+one body. Copy the overlay's `asm/<ver>/.../nonmatchings/*.s` out under the lock
+once and point `build_target` at the copies, so a concurrent `--only` re-split
+cannot delete them mid-run.
+
+That scored 25 retyped `actor_341700` bodies in about a minute with no lock
+held; the tree was then touched once, to land bodies already known to be 100%,
+and every scoped verify passed first try. It is the per-function complement to
+"A previously built overlay is a lock-free matching oracle" - cheaper to set up,
+but it says nothing about code you did not edit, so still diff the whole object
+when a *shared* declaration changed.
