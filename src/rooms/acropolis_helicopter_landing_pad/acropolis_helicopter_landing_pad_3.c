@@ -1,6 +1,12 @@
 #include "common.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E75C);
+extern Task* D_acropolis_helicopter_landing_pad_80187F80;
+
+void func_acropolis_helicopter_landing_pad_8017E75C(s32 arg0)
+{
+    D_acropolis_helicopter_landing_pad_80187F80->state = arg0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E76C);
 
