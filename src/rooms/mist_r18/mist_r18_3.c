@@ -62,7 +62,17 @@ void func_mist_r18_8017EA98(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_3", func_mist_r18_8017EB48);
+void func_mist_r18_8017EB48(void)
+{
+    Gp_InitStarterInv();
+    Mc_SaveData.field_7 = 1;
+    Mc_SaveData.field_6 = 0x13;
+    Mc_SaveData.field_8 = 3;
+    Mc_SaveData.field_5 = 3;
+    D_80071076          = 1;
+    SndEvt_EnqueueType7(0x80000000, 0);
+    Task_Spawn(0, 0x11, 0, 0);
+}
 
 void func_mist_r18_8017EBB8(void)
 {
