@@ -1440,4 +1440,11 @@ s32  Gp_GetIdParam2(s32 arg0);
 void Gp_EvtCapTask(Task* arg0);
 void Gp_UpdatePlayerMove(void);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+s32 Gp_ApplyItemUse(GpItemRec* arg0);
+
 #endif // GAMEPLAY_3A34_H

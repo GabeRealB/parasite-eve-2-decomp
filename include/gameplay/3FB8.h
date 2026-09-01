@@ -962,4 +962,80 @@ s32   func_8010C30C(GpActorWork* arg0);
 Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+s32   func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_80106238(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  Gp_AnimResetChildSlots(GpActorWork* arg0, s32 arg1);
+void  func_80106550(GpActorWork* arg0);
+void  Gp_AnimTickChildSlots(GpActorWork* arg0);
+s32   func_80106264(s32 arg0);
+void  Gp_ResetActorMove(GpActorWork* arg0, s16 arg1);
+void  func_801066DC(GpActorWork* arg0, s16 arg1);
+s16   func_80103E7C(s16 arg0, s16 arg1);
+void  Gp_StepPlayerMove(GpActorWork* arg0);
+s32   Gp_KillPlayerEffs(void);
+void  Gp_TurnPlayer(GpActorWork* arg0);
+s32   func_801060E0(GpActorWork* arg0);
+s32   func_80103D8C(s32 arg0, s32 arg1);
+void  Gp_AnimPlayChildSlots(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  Gp_TickActorAnimState(GpActorWork* arg0);
+void  Gp_TrackLockTarget(GpActorWork* arg0);
+void  Gp_ResetActorAnimState(GpActorWork* arg0, s32 arg1);
+void  Gp_StopPlayerAnim(GpActorWork* arg0, s32 arg1);
+void  func_8010BF7C(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  func_80109374(GpActorWork* arg0);
+s32   Gp_ApplyHpDamage(s32 arg0);
+void  func_80109BB4(GpActorWork* arg0, GpRec18* arg1);
+void  func_8010BFCC(GpActorWork* arg0);
+Task* func_80104490(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_80106518(s32 arg0);
+void  func_8010B9A4(GpActorWork* arg0);
+void  Gp_TrackAllyLockTarget(GpActorWork* arg0, s32 arg1);
+void  func_8010615C(GpActorWork* arg0);
+void  func_801095BC(s32* arg0);
+void  Gp_PlayerStepSfx(GpActorWork* arg0);
+void  Gp_UpdateLockTarget(GpActorWork* arg0);
+void  Gp_EndPlayerActorTask(GpActorWork* arg0);
+Task* func_80104364(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32   func_801041B4(GpActorWork* arg0);
+s32   func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_80108684(GpActorWork* arg0);
+void  func_8010AAB4(GpActorWork* arg0);
+void  Gp_AimYawToLock(GpActorWork* arg0, s32 arg1);
+void  Gp_AimPitchToLock(GpActorWork* arg0);
+void  Gp_PlayerMode2State4(GpActorWork* arg0);
+s32   Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  func_8010A9D0(GpActorWork* arg0);
+s32   Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  func_8010B2A0(s32 arg0, s32 arg1);
+s32   func_8010C058(void);
+void  func_8010C180(GpActorWork* arg0);
+void  func_801061F0(void);
+void  func_80105B0C(GpActorWork* arg0);
+void  Gp_TickPlayerActor(GpActorWork* arg0);
+void  func_8010AC54(GpActorWork* arg0);
+void  func_80109A1C(GpActorWork* arg0);
+void  func_8010AD64(GpActorWork* arg0);
+void  func_80109844(GpActorWork* arg0);
+s32   func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2);
+void  func_8010B2D4(GpActorWork* arg0, GpIdRec* arg1, s32 arg2);
+void  func_8010B348(GpActorWork* arg0, GpIdRec* arg1, s32 arg2);
+s32   func_801062DC(GpActorWork* arg0, s32 arg1);
+void  Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  func_80104A4C(GpActorWork* arg0);
+void  func_80109720(GpActorWork* arg0);
+s32   func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  Gp_AimPitchToLockAlt(GpActorWork* arg0);
+void  func_8010A670(GpActorWork* arg0);
+void  func_80109250(GpActorWork* arg0);
+void  func_80109210(GpActorWork* arg0);
+void  func_80109FC4(GpActorWork* arg0);
+void  func_801065A8(GpActorWork* arg0);
+void  func_80108620(GpActorWork* arg0);
+s32   Gp_HpBand(void);
+
 #endif // GAMEPLAY_3FB8_H

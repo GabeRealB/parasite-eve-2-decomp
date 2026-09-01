@@ -487,4 +487,25 @@ void func_800EC9C8(void);
 void Gp_SetState1CPe(s32 arg0);
 void func_800ECA54(void);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+void  Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
+void  Gp_SetNibbleIf(s32 arg0, s32 arg1);
+s32   Gp_PackStageSndId(s32 arg0);
+void  Gp_EnqueueStageSnd7(s32 arg0, s32 arg1);
+void  Gp_PlayerWeaponId(s32* arg0);
+Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2);
+s32   Gp_FindCapEvt(s32 arg0);
+void  Gp_StepScriptA(Task* task);
+void  Gp_StepScriptB(Task* task);
+void  func_800E704C(void);
+void  Gp_CapExit(Task* arg0);
+void  Gp_ApplyCapEvtFlags(void);
+void  Gp_ClearPadHalt(void);
+void  Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
+void  Gp_SpawnPadHold(s16 arg0);
+
 #endif // GAMEPLAY_3CD8_H

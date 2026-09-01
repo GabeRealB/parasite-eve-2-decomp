@@ -395,4 +395,26 @@ typedef struct _GpSndParam {
 } GpSndParam;
 STATIC_ASSERT_SIZEOF(GpSndParam, 4);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+void func_8009EA50(s32 arg0);
+s32  Gp_SpendMp(s32 arg0);
+void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind);
+s32  Gp_IsStateF0Active(void);
+void func_800A63B4(s32 arg0, s32 arg1, s32 arg2);
+void func_800A7F24(void);
+void func_800A7E4C(void);
+s32  func_800A7550(void);
+void Gp_DrawItemPrompt(s32 arg0, s32 arg1);
+void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2);
+void Gp_DrawHudSprites(GpIdMapC* arg0);
+void Gp_UseItemTask(GpIdMapC* arg0);
+void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
+void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A4904(s32 arg0);
+
 #endif // GAMEPLAY_GAMEPLAY_H

@@ -366,4 +366,18 @@ s32  Gp_HasStockedItem(s32 arg0);
 s32  Gp_CanMoveItems(void);
 void Gp_MarkPlayTime(void);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+s32  Gp_GetRelatedQty(s32 arg0, s32 arg1);
+void Gp_SetCollectedBit(s32 arg0);
+s32  Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+void Gp_FillHpMp(void);
+void func_800BC4BC(void);
+void func_800BC4E4(void);
+void Gp_ResetScanDefault(void);
+void Gp_AgeFlag119Void(void);
+
 #endif // GAMEPLAY_268_H

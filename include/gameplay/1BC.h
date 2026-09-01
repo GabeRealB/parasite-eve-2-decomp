@@ -569,4 +569,14 @@ s32  Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 /// row's max qty. Returns the stored count, 0 if `arg3 == 0`, or -1.
 s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+Task* func_800B2968(void);
+void  Gp_SetStreamBuf(void* arg0);
+void  func_800B1EFC(Task* arg0);
+
 #endif // GAMEPLAY_1BC_H

@@ -422,4 +422,20 @@ extern s8 Gp_AreaIdCounts[];
 /// `field_1` bit 2 is set and `Gp_GetAreaFlag2` returns 0.
 void Gp_RebuildAreaIdBits(void);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+void Gp_FinishLoadWait(Task* task);
+void func_800A99B4(void);
+void Gp_EnqueueHeldWeaponCd(void);
+void func_800ABFF8(void);
+void func_800AC000(void);
+void Gp_EnqueueConfigCd(s32 arg0);
+void Gp_LoadViewAndCd(s32 arg0);
+void Gp_LoadViewImages(void);
+void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1);
+void Gp_EnqueueStageCd(void);
+
 #endif // GAMEPLAY_D4_H

@@ -307,4 +307,13 @@ void      Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
 void      Ui_ClipAndCallback(UiPanel* arg0, void* arg1);
 void      Ui_WaitCdThenOverlay(Task* arg0);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2);
+void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2);
+
 #endif // UI_H

@@ -160,4 +160,54 @@ void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 u8   Gp_GetMapRoomId(void);
 s32  func_800D4D2C(s32 arg0);
 
+// Functions defined in this module but not previously declared anywhere.
+// Without a prototype m2c cannot type a call to them and the decompiled
+// seed fails to compile ('invalid use of void expression') - the single
+// largest cause of unusable seeds in the bulk m2c pass.
+
+void      Gp_ClearPreviewItems(void);
+void      Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void      func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void      Gp_DrawPromptLines(UiObject* arg0, Task* arg1);
+void      func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void      func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32       func_800D4EC0(void);
+s32       func_800D4E78(s32 arg0, s32 arg1, s32 arg2);
+void      Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
+void      func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6);
+void      func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+s32       Gp_GetPreviewItem(void);
+void      Gp_CheckItemInfoButton(UiObject* arg0);
+void      Gp_NoticePanelTask(Task* arg0);
+void      Gp_DrawMapCursor(Task* arg0);
+void      Gp_DrawMapMarks(Task* arg0);
+void      func_800D1F90(Task* arg0);
+void      Gp_EquipHeld(s32 arg0);
+void      Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
+void      Gp_DrawCastCostLines(UiObject* arg0, s32 arg1);
+UiObject* func_800CD89C(UiObject* arg0);
+void      Gp_EnqueueMapRoomCd(void);
+void      Gp_CountAmmoRows(UiList* arg0, s32 arg1);
+void      Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void      Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
+void      Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
+void      func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
+s32       Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2);
+void      Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32       func_800D50D4(s32 arg0, s32 arg1);
+void      Gp_DrawSortCmd(DialogPrompt* arg0, UiObject* arg1);
+void      Gp_AmmoListTask(Task* arg0);
+void      Gp_CountEquippableRows(UiList* arg0, UiObject* arg1);
+void      Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
+void      func_800CF148(UiObject* arg0, Task* arg1);
+void      func_800CF090(UiList* arg0, UiObject* arg1);
+void      Gp_ItemListTask(Task* arg0);
+void      Gp_BuildAttachList(UiList* arg0, s32 arg1);
+void      Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1);
+void      func_800CF6E8(UiObject* arg0, s32 arg1);
+void      Gp_AttachListTask(Task* arg0);
+s32       Gp_IsEquippedItem(s32 arg0);
+UiObject* func_800CD814(UiObject* arg0);
+void      Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1);
+
 #endif // GAMEPLAY_3688_H
