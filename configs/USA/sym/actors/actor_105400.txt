@@ -5,3 +5,5 @@ ActorsShared80133468_Fn3222C = 0x8013222C; // type:func absolute:True
 ActorsShared80133468_Fn33530 = 0x80133530; // type:func absolute:True
 ActorsShared80133468_Fn335B8 = 0x801335B8; // type:func absolute:True
 ActorsShared80133468_Fn33610 = 0x80133610; // type:func absolute:True
+
+Actor05400_Fn01B70 = 0x80133990; // type:func
