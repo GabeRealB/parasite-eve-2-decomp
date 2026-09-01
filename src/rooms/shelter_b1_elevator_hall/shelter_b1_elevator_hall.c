@@ -10,7 +10,10 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D99C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB54);
+s32 func_shelter_b1_elevator_hall_8017DB54(void)
+{
+    return 0;
+}
 
 s32 func_shelter_b1_elevator_hall_8017DB5C(void)
 {
