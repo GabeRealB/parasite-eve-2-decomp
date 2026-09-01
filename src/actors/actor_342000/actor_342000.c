@@ -88,7 +88,16 @@ void func_actor_342000_801641FC(void)
     work->field_60 = NULL;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80164260);
+void func_actor_342000_80164260(void)
+{
+    Actor342000EventWork* work;
+
+    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    if (work->field_7A == 0) {
+        SndEvt_EnqueueType6(0x54280005, 0, 0);
+        work->field_7A = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801642B4);
 
