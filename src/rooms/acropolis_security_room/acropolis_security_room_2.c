@@ -223,7 +223,15 @@ void func_acropolis_security_room_8018014C(Task* task)
     st->frames = st->frames + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_801801C4);
+void func_acropolis_security_room_801801C4(Task* task)
+{
+    s32 killArg;
+
+    if (Task_PollKill(((AcropolisSecurityRoomState*)task->idMap)->child, &killArg) != 0) {
+        Gp_MsgPlayer3F3(1);
+        task->state = task->state + 1;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180218);
 
