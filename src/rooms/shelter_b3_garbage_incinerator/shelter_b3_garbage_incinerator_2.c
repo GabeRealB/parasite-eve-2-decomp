@@ -7,7 +7,13 @@ typedef struct {
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017E70C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017E7A4);
+extern void func_shelter_b3_garbage_incinerator_80185220(void);
+
+void func_shelter_b3_garbage_incinerator_8017E7A4(GarbageIncineratorState* arg0)
+{
+    func_shelter_b3_garbage_incinerator_80185220();
+    arg0->field_30 = 5;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017E7D0);
 
