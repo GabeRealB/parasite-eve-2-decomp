@@ -680,7 +680,18 @@ void func_actor_403100_8013F12C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F18C);
+void func_actor_403100_8013F18C(void)
+{
+    D_actor_403100_80155808->field_5FC = 4;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 1;
+    D_actor_403100_80155808->field_5DA = 1;
+    D_actor_403100_80155808->field_62C = 0x20;
+    D_actor_403100_80155808->field_5F6 = 0;
+    D_actor_403100_80155808->field_61C = 0;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F1D8);
 
