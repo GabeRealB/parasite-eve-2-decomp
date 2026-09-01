@@ -22,7 +22,10 @@ extern Actor503500Work D_actor_503500_80176574;
 extern TaskDesc        D_actor_503500_8014B964;
 extern s8              D_actor_503500_80176D5A;
 extern s16             D_actor_503500_80176D2E;
-extern u16             D_actor_503500_80176D24;
+/// 18-entry table of per-slot s16 counters, indexed by slot in
+/// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
+extern s16 D_actor_503500_80176D64[];
+extern u16 D_actor_503500_80176D24;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
@@ -291,7 +294,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_801360BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_8013611C);
+void func_actor_503500_8013611C(s32 arg0)
+{
+    D_actor_503500_80176D64[arg0] = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80136134);
 
