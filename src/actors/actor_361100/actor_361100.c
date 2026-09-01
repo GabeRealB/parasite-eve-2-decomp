@@ -1,4 +1,7 @@
 #include "common.h"
+#include "main/task.h"
+
+extern Task* D_actor_361100_80171BE0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100", func_actor_361100_80161E3C);
 
@@ -24,7 +27,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100", func_actor_361100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100", func_actor_361100_80162AEC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100", func_actor_361100_80162B0C);
+void func_actor_361100_80162B0C(void)
+{
+    D_actor_361100_80171BE0 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100", func_actor_361100_80162B18);
 
