@@ -4,6 +4,8 @@ extern s32 D_actor_403200_80141C54;
 
 extern s16 D_actor_403200_80141C5A;
 
+extern Task* D_actor_403200_8015F8F0;
+
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801321C4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801324D0);
@@ -140,7 +142,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_80141018);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801410F0);
+void func_actor_403200_801410F0(s8 arg0)
+{
+    ((Actor403200Work*)D_actor_403200_8015F8F0->idMap)->field_EAC = arg0;
+}
 
 void func_actor_403200_80141108(s16 arg0)
 {
