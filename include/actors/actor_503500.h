@@ -95,7 +95,7 @@ typedef struct Actor503500Work {
     /* 0x0F2 */ byte     pad_F2[0x6A];
     /* 0x15C */ s8       field_15C; // sub-state index
     /* 0x15D */ byte     pad_15D[0x21];
-    /* 0x17E */ u16      field_17E; // flag halfword; bit 0x8000 set on release
+    /* 0x17E */ u16      field_17E; // GpObj::flags of obj[11] in the 0x3D8 block
     /* 0x180 */ byte     pad_180[0xA1];
     /* 0x221 */ s8       field_221; // sub-state index
     /* 0x222 */ byte     pad_222[0xC8];
@@ -126,6 +126,23 @@ typedef struct Actor503500Work {
     /* 0x7E3 */ byte     pad_7E3[0x5];
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
+
+/// Work block shape of the `actor_503500` effect tasks -- the ones whose
+/// state-0 init `Mem_Calloc`s the block instead of pointing `Task::idMap` at a
+/// static global: `func_actor_503500_80144300` (0xC0),
+/// `func_actor_503500_801448E8` (0xB4), `func_actor_503500_80144E8C` (0xD0),
+/// `func_actor_503500_801455A4` (0x44), `func_actor_503500_80145A2C` (0xAC)
+/// and `func_actor_503500_8014642C` (0x4CC). Each starts with the `GpObj`
+/// display node their exit callback hands to `Gp_UnlinkObj`, and the ones that
+/// place geometry follow it with the `GpRec18` collision record
+/// (`func_actor_503500_801448E8` derives its `GpRec18` base as `block + 0x20`).
+/// Only that head is shared; the payload after it differs per task, which is
+/// why this type stops at 0x38.
+typedef struct Actor503500ObjWork {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec;
+} Actor503500ObjWork;
+STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
 
 /// `Task` as this overlay's enemies use it. The layout is `Task`'s
 /// (`include/main/task.h`); only two slots are retyped: `idMap` holds the

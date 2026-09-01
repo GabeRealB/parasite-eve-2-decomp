@@ -1,8 +1,15 @@
 #include "common.h"
 
+#include "main/mem.h"
+#include "main/sound.h"
+#include "main/tmd.h"
+
+#include "gameplay/3CD8.h"
+
 #include "actors/actor_503500.h"
 
 s32  func_actor_503500_80133684(Actor503500* arg0);
+void func_actor_503500_801372AC(s32 arg0);
 void func_actor_503500_801338E8(Actor503500* arg0);
 void func_actor_503500_80134408(Actor503500* arg0);
 void func_actor_503500_801345F4(Actor503500* arg0);
@@ -560,7 +567,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801446E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014473C);
+void func_actor_503500_8014473C(Task* arg0)
+{
+    func_actor_503500_801372AC(1);
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144778);
 
