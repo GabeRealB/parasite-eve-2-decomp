@@ -86,7 +86,14 @@ void func_actor_215100_8014A9A0(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AA54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AB6C);
+void func_actor_215100_8014AB6C(void)
+{
+    if (D_actor_215100_8014D038 != 0) {
+        func_80184954();
+        return;
+    }
+    Gp_SpawnIfCapIdle(0x11, 1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014ABAC);
 
