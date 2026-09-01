@@ -35857,3 +35857,58 @@ local forces `pointer + offset` operand order onto the `addu`. So when m2c's
 the indexed expression; the CSE pass is what the original compiler ran too. (The
 mirror of "Don't over-simplify m2c": a `temp_` that crosses a *call* is
 load-bearing, one that does not is noise.)
+
+## m2c's no-argument call is usually still a call *with* an argument
+
+m2c prints `func_actor_405800_80137948();` and an unprototyped
+`M2C_UNK func_actor_405800_80137948();` whenever the `jal`'s delay slot is a
+`nop`, because nothing visibly loads `$a0`. That reads as "the callee takes no
+arguments", and typing it that way is impossible anyway once the callee is
+decompiled in the same translation unit - a prototyped function cannot be
+called with too few arguments.
+
+It is not what the code means. GCC 2.8.1 knows `$a0` and the callee-saved copy
+it made of it hold the same value and deletes the redundant `move`, so the
+first call in a function that has not yet clobbered `$a0` gets an empty delay
+slot while every later call reloads it:
+
+```
+    move  $17,$4                  # arg0 kept in $s1
+    jal   func_actor_405800_80137948
+     nop                          # $a0 is still arg0 - move deleted
+    jal   func_actor_405800_80136A1C
+     move $4,$17                  # $a0 clobbered by the first call
+```
+
+So write the call with its real argument (`f(task);`) and check the delay slot
+in the diff; the `nop` comes back on its own. Confirm by reading the callee -
+`lw $v0, 0x1C($a0)` in its first instruction settles it.
+
+## A halfword down-counter compared to zero: keep the *local* signed
+
+m2c renders `lhu; addiu -1; sh; sll 16; bnez` as
+
+```c
+temp_v0 = M2C_FIELD(work, u16*, 0x87C) - 1;
+M2C_FIELD(work, u16*, 0x87C) = temp_v0;
+if ((temp_v0 << 0x10) == 0) { ... }
+```
+
+Typing the field `u16` and the local `u16`, the natural `if ((s16)count == 0)`
+compiles to `andi $v0,$v0,0xffff` (GCC's `zero_extendhisi2`), one instruction
+that is not the target's `sll $v0,$v0,16` - 94% with insert=1 delete=1.
+
+Declaring the *local* `s16` and dropping the cast restores the `sll`:
+
+```c
+s16 count;                      /* u16 field_87C; */
+count           = work->field_87C - 1;
+work->field_87C = count;
+if (count == 0) { ... }
+```
+
+The field stays `u16` (the overlay only ever `lhu`s it), so this is the mirror
+of "`lhu` does not mean the field is `u16`": there the *field*'s signedness had
+to move, here only the temporary's. Whichever end you change, the rule is that
+GCC picks `andi` for a zero-extended compare and `sll` for a sign-extended one,
+and only one of them is in the target.
