@@ -196,7 +196,14 @@ void func_actor_800100_80165748(GpActorWork* arg0)
     func_actor_800100_80163D54(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_801657D8);
+void func_actor_800100_801657D8(GpActorWork* arg0)
+{
+    if (Gp_StateF0.field_0 != 1) {
+        func_actor_800100_80166E14(arg0);
+        return;
+    }
+    func_actor_800100_801659EC(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80165818);
 
