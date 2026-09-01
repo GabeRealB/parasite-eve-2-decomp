@@ -60,8 +60,10 @@ typedef struct Actor103800Work {
     /* 0x374 */ byte           pad_374[4];
     /* 0x378 */ s16            field_378;
     /* 0x37A */ s16            field_37A;
+    /* 0x37C */ byte           pad_37C[2];
+    /* 0x37E */ s16            field_37E;
 } Actor103800Work;
-STATIC_ASSERT_SIZEOF(Actor103800Work, 0x37C);
+STATIC_ASSERT_SIZEOF(Actor103800Work, 0x380);
 
 typedef struct Actor103800Ctx {
     /* 0x00 */ byte            pad_0[8];

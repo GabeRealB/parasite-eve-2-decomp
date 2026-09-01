@@ -382,25 +382,65 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01914);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01918);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn01948);
+void Actor03800_Fn01948(Actor103800* arg0)
+{
+    Actor103800Work* work = arg0->field_1C;
+    GsCOORDINATE2*   coord;
+    s16              state;
+    s32              snd;
+    s32              pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01980);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L019B4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L019C4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L019D4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01A40);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01A8C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01A98);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01AB0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01ABC);
+    state = work->field_354;
+    coord = work->field_344;
+    switch (state) {
+        case 0:
+            if (work->field_350 == 0) {
+                if (work->field_36E == 0) {
+                    work->field_348 = 0xB;
+                    work->field_356 = 0xC;
+                } else {
+                    work->field_348 = 6;
+                    work->field_356 = 0x13;
+                }
+            } else {
+                work->field_348 = 7;
+                work->field_356 = 0;
+                work->field_352 = 0xA;
+            }
+            work->field_354 = 1;
+            work->field_34A = 1;
+            work->field_36A = 0;
+            work->field_35C = 0;
+            work->field_35E = 0;
+            work->field_360 = 0;
+            snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260003;
+            pan             = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+            break;
+        case 1:
+            work->field_356 -= 1;
+            if (work->field_356 > 0) {
+                break;
+            }
+            if (work->field_36E == 0) {
+                if (work->field_37E == 0) {
+                    work->field_352 = 2;
+                    work->field_354 = 0;
+                } else {
+                    work->field_352 = 6;
+                    work->field_354 = 0;
+                    work->field_356 = 0;
+                }
+                if (work->field_36A == 0) {
+                    work->field_36A = 1;
+                }
+            } else {
+                work->field_352 = 3;
+                work->field_354 = 2;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn01AD0);
 
@@ -977,7 +1017,6 @@ void Actor03800_Fn01150(Actor103800* arg0);
 void Actor03800_Fn012B4(Actor103800* arg0);
 void Actor03800_Fn0166C(Actor103800* arg0);
 void Actor03800_Fn03420(Actor103800* arg0);
-void Actor03800_Fn01948(Actor103800* arg0);
 void Actor03800_Fn01AD0(Actor103800* arg0);
 void Actor03800_Fn01C50(Actor103800* arg0);
 void Actor03800_Fn021E4(Actor103800* arg0);
