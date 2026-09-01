@@ -3,7 +3,15 @@
 extern TaskDesc D_shelter_b6_nursery_80185000;
 extern s32      D_shelter_b6_nursery_8018797C;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_7", func_shelter_b6_nursery_8017FF9C);
+extern TaskFuncTable3 D_shelter_b6_nursery_8017D6A4;
+
+void func_shelter_b6_nursery_8017FF9C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b6_nursery_8017D6A4;
+    sp.funcs[task->state](task);
+}
 
 void func_shelter_b6_nursery_8017FFF4(void)
 {
