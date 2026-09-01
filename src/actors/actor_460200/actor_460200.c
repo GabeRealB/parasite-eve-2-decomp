@@ -3,6 +3,8 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 
+extern s8 D_8007272D;
+
 extern s32 D_actor_460200_80137AA0;
 extern s32 D_actor_460200_80137BA8;
 extern s32 D_actor_460200_80137CB0;
@@ -31,7 +33,10 @@ void func_actor_460200_801320E0(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132124);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132204);
+void func_actor_460200_80132204(s8 arg0)
+{
+    D_8007272D = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132210);
 
