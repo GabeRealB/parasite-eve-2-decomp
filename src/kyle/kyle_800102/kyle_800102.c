@@ -6,7 +6,16 @@ INCLUDE_ASM("kyle/nonmatchings/kyle_800102/kyle_800102", func_kyle_800102_80167A
 
 INCLUDE_ASM("kyle/nonmatchings/kyle_800102/kyle_800102", func_kyle_800102_80167DE0);
 
-INCLUDE_ASM("kyle/nonmatchings/kyle_800102/kyle_800102", func_kyle_800102_80168244);
+void func_kyle_800102_80168244(Kyle800102Task* arg0)
+{
+    Kyle800102Work* work  = arg0->field_1C;
+    s32             timer = work->timer - 1;
+
+    work->timer = timer;
+    if (timer <= 0) {
+        arg0->state = 3;
+    }
+}
 
 void Gp_UnlinkObj(Kyle800102Obj* node);
 void Task_Kill(Kyle800102Task* task);
