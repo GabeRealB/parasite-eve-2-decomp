@@ -8,6 +8,8 @@
 
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
+void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
+void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80180FD8);
 
@@ -69,7 +71,13 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801814B4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181584);
+void func_dryfield_dilapidated_house_80181584(Task* task)
+{
+    SVECTOR verts[32];
+
+    func_dryfield_dilapidated_house_80180738(task, verts);
+    func_dryfield_dilapidated_house_801803A4(task, verts);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801815B8);
 
