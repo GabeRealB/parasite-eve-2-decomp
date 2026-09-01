@@ -74,7 +74,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134B2C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134B98);
+void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1)
+{
+    Actor107600Work* work = arg0->field_1C;
+
+    work->field_158 = arg1;
+    work->field_15A = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134BAC);
 
