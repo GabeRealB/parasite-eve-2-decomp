@@ -36060,3 +36060,22 @@ lines, and write the one function. Watch for a trailing label that was matched a
 an empty stub: `Actor03800_L02060` was `void Actor03800_L02060(void) {}`, the
 `jr $ra; nop` at the tail of the very function being merged, and it has to be
 deleted along with the `INCLUDE_ASM` block or the epilogue is emitted twice.
+
+## An already-matched `void X(void) {}` stub can be the tail of the function you are absorbing
+
+`Actor01900_Fn03C04` is four instructions with no `jr $ra`: it is the head of a
+function whose body splat cut into `L03C14` / `L03C70` / `L03C78`, and whose
+shared epilogue is `L03C90` — `jr $ra; nop`, already committed as
+`void Actor01900_L03C90(void) {}`. The empty-function "match" is real in the
+sense that it assembles to the right two words, but it is not a function: it is
+the fall-through return of the enclosing body, reached both by
+`beqz $v0, L03C90` and by the loop's exit edge. Absorbing the parent means
+deleting that existing definition too, not only the `INCLUDE_ASM` run.
+
+So when the enclosing `Fn` ends by falling into a label that `src/` already
+defines as an empty (or `return 1`-style) stub, extend the span through that
+stub, remove its C definition, and mark it `// type:label` alongside the other
+interior labels in every sharer's sym file. Scoring in the scratch env needs the
+same treatment: rebuild `target.o` over the whole range, appending the stub's
+`jr $ra; nop` by hand since there is no `nonmatchings/*.s` for an
+already-matched label.

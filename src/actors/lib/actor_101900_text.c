@@ -467,16 +467,26 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L03AA0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L03BE8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03C04);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L03C14);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L03C70);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_L03C78);
-
-void Actor01900_L03C90(void)
+void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta)
 {
+    Actor01900HeightClamp* row;
+    s32                    offset;
+    s32                    lo;
+    s16                    i;
+
+    for (i = 0; i < 2; i++) {
+        row = &Actor01900_D172CC[i];
+        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+            lo     = row->lo;
+            offset = delta->field_1C;
+            if (offset < lo) {
+                delta->field_1C = lo;
+            } else if (row->hi < offset) {
+                delta->field_1C = row->hi;
+            }
+            return;
+        }
+    }
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03C98);

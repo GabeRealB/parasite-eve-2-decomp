@@ -25,4 +25,33 @@ typedef struct Actor01900Work {
     /* 0xC3C */ Task* field_C3C;
 } Actor01900Work;
 
+/// Per-room clamp applied to the accumulated height offset of the actor's
+/// motion scratch. `field_0` / `field_2` are matched against
+/// `GameSession.field_7` / `field_6`, and when a row matches the offset is
+/// clamped to [`lo`, `hi`]. `Actor01900_D172CC` holds two live rows plus a
+/// zero terminator row that the two-iteration scan never reaches.
+typedef struct Actor01900HeightClamp {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  lo;
+    /* 0x6 */ s16  hi;
+    /* 0x8 */ byte pad_8[8];
+} Actor01900HeightClamp;
+STATIC_ASSERT_SIZEOF(Actor01900HeightClamp, 0x10);
+
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn03C98`.
+/// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0C10`;
+/// `field_1C` is the running height offset that `Actor01900_Fn03C04` clamps
+/// against the current room's `Actor01900_D172CC` row.
+typedef struct Actor01900Delta {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ byte           pad_10[0xC];
+    /* 0x1C */ s32            field_1C;
+} Actor01900Delta;
+STATIC_ASSERT_SIZEOF(Actor01900Delta, 0x20);
+
+extern Actor01900HeightClamp Actor01900_D172CC[];
+
+void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta);
+
 #endif
