@@ -35600,3 +35600,50 @@ That block is **noise**: symbol maps name hardware addresses (scratchpad
 `0x1F8xxxxx`, I/O `0x2010xxxx`) and splat 0.50 has the `log.error` under it
 commented out. It appears on a clean tree and fails nothing. If you see it
 quoted as the cause of a failure, the real error was discarded somewhere.
+
+## A return accumulator only stays in `$a1` while it is dead across every call
+
+m2c will hand you a body whose result variable is written twice on the same
+path - once before a call, once again at a shared label after it:
+
+```c
+    var_a1 = 1;
+    if (D_80071075 == 0) {
+        Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+        f |= 8;
+        goto block_27;
+    }
+} else {
+block_27:
+    var_a1 = 1;
+}
+```
+
+The duplicate looks redundant - both arms end with the same value, so
+`ret = 1;` hoisted above the `if` is exactly equivalent - and rewriting it that
+way costs a whole register class. Hoisted, `ret` is live across
+`Gp_DispatchMsg`, GCC 2.8.1 gives it a **callee-saved** register and adds
+`sw $s1, 0x14($sp)` / `lw $s1, …` plus a bigger frame; the target had it in
+`$a1`, set from `addiu $a1, $zero, 1` sitting in branch delay slots, and
+returned with `addu $v0, $a1, $zero`. Every instruction in the body then shifts
+by one and the whole function reads as mismatched when only the allocation
+changed.
+
+So when the target keeps a value in an argument register across what looks like
+a call, check whether it is re-initialised on every path *after* the last call.
+If it is, keep m2c's duplicated assignment - including the `goto` into the
+`else` arm that produces it. This is the mirror image of the usual advice to
+tidy m2c gotos away: a goto that exists to shorten a live range is load-bearing.
+
+## `Task::extra` is a `TmdObject`, and `GsCOORDINATE2::sub` is at 0x4C
+
+Two type facts worth not re-deriving. `GameActorExt` (`include/main/session.h`)
+and `TmdObject` (`include/main/tmd.h`) describe the same object: `field_8` is
+the `GsCOORDINATE2*`, `field_C` the u16 flag halfword `Task_Kill` ORs 0x80 into,
+`field_18` the buffer `Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. An actor body
+that calls `Tmd_FreeBuffers(task->extra)` is not confused; cast and move on.
+
+And in `GsCOORDINATE2`, `flg` is 4 bytes followed by two 0x20-byte `MATRIX`es
+and `param`, so `super` lands at 0x48 and `sub` at 0x4C. The idiom
+`M2C_FIELD(ext->field_8, GsCOORDINATE2**, 0x4C) = &Gfx_ViewCoord` is
+`coord->sub = &Gfx_ViewCoord`, not `->super`.
