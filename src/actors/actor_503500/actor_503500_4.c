@@ -881,7 +881,10 @@ void func_actor_503500_80145950(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_801459B0);
+void func_actor_503500_801459B0(Task* arg0)
+{
+    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->idMap)->rec);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_801459D4);
 
