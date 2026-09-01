@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "rooms/dryfield_souvenir_shop.h"
+
 INCLUDE_ASM("rooms/nonmatchings/dryfield_souvenir_shop/dryfield_souvenir_shop", func_dryfield_souvenir_shop_8017D610);
 
 void func_dryfield_souvenir_shop_8017D654(void)
@@ -12,4 +14,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_souvenir_shop/dryfield_souvenir_shop", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_souvenir_shop/dryfield_souvenir_shop", func_dryfield_souvenir_shop_8017D6B4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_souvenir_shop/dryfield_souvenir_shop", func_dryfield_souvenir_shop_8017DFD4);
+void func_dryfield_souvenir_shop_8017DFD4(Task* task)
+{
+    DssShopObject* object = ((DssWork*)task->extra)->object;
+
+    func_dryfield_souvenir_shop_8017D6B4(object, 0);
+    func_dryfield_souvenir_shop_8017D6B4(object, 8);
+}
