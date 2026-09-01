@@ -31,6 +31,9 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", 
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_80181568);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_801815C0);
+void func_neo_ark_woodland_path_801815C0(Task* arg0)
+{
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_801815D4);
