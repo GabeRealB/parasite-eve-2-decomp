@@ -169,7 +169,25 @@ void func_actor_503500_801382F4(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801382FC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138378);
+void func_actor_503500_80138378(Actor503500* arg0)
+{
+    GpObj5D* obj;
+    u8       flags;
+    u8       flags2;
+
+    obj   = arg0->field_20;
+    flags = obj->field_4C;
+    if (flags & 1) {
+        obj->field_4C = flags & 0xFE;
+    }
+    if (obj->field_4C & 2) {
+        obj->field_4C = obj->field_4C & 0xFD;
+    }
+    flags2 = obj->field_4C;
+    if (flags2 & 0xC) {
+        obj->field_4C = flags2 & 0xF3;
+    }
+}
 
 void func_actor_503500_801383D0(Actor503500* arg0)
 {
