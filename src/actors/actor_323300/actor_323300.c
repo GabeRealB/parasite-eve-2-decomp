@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_323300.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161E78);
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161FE8);
@@ -14,7 +16,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162630);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8016269C);
+void func_actor_323300_8016269C(Task* arg0)
+{
+    Gp_UnlinkObj(&((Actor323300Work*)arg0->idMap)->obj);
+    Gp_EnemyTaskExit(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801626D0);
 
