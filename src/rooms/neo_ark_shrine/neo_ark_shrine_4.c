@@ -108,7 +108,21 @@ void func_neo_ark_shrine_8017F178(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F21C);
+void func_neo_ark_shrine_8017F21C(Task* task)
+{
+    NeoArkShrineScript* st;
+    u16                 timer;
+
+    st        = (NeoArkShrineScript*)task->idMap;
+    timer     = st->timer + 1;
+    st->timer = timer;
+    if (timer == 0x1E) {
+        D_80115410 = 1;
+    }
+    if (st->timer >= 0x3CU) {
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F274);
 
