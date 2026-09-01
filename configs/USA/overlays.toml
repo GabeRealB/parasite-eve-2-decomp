@@ -451,7 +451,7 @@ actor_141000 = { rodata = [{ start = "0x2C", unit = "actor_141000_2" }, { start 
 actor_142600 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_142900 = { }
 actor_143000 = { }
-actor_143400 = { }
+actor_143400 = { shared = [{ start = "0x4C", end = "0x70", unit = "actors_shared_80132048" }] }
 actor_143900 = { }
 actor_146000 = { }
 actor_146300 = { rodata_head = "0x4" }
@@ -477,7 +477,7 @@ actor_405800 = { }
 actor_407500 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_420700 = { }
 actor_421600 = { }
-actor_443500 = { shared = [{ start = "0x984", end = "0x9A4", unit = "actors_shared_801327b4" }] }
+actor_443500 = { shared = [{ start = "0x228", end = "0x24C", unit = "actors_shared_80132048" }, { start = "0x984", end = "0x9A4", unit = "actors_shared_801327b4" }] }
 actor_444000 = { }
 actor_450200 = { shared = [{ start = "0x33C", end = "0x35C", unit = "actors_shared_80132ca4" }] }
 actor_450800 = { }
