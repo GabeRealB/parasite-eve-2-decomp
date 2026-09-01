@@ -254,7 +254,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135B74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135CE8);
+/// Clears slot `arg1` of the boss work block's `enemies` array. `arg0` is
+/// loaded by every caller but the body ignores it, the same way
+/// `func_actor_503500_80135E04` does.
+void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
+{
+    D_actor_503500_80176574.enemies[arg1] = NULL;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135D00);
 
