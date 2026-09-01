@@ -1,4 +1,7 @@
 #include "common.h"
+#include "main/task.h"
+
+extern Task* D_dryfield_main_street_80185630;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_3", func_dryfield_main_street_8017E168);
 
@@ -16,7 +19,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_3", fu
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_3", func_dryfield_main_street_8017E3A8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_3", func_dryfield_main_street_8017E4A4);
+void func_dryfield_main_street_8017E4A4(void)
+{
+    D_dryfield_main_street_80185630 = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_3", func_dryfield_main_street_8017E4B0);
 
