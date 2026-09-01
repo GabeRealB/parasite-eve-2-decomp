@@ -114,7 +114,14 @@ void func_actor_503500_80132EF4(void)
     func_80106350(Game_GetPtrSlot(3), D_80073BA9, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132F28);
+/// `src/gameplay/3CD8.c`; no gameplay header declares it yet.
+extern void Gp_HaltPadScripts(void);
+
+void func_actor_503500_80132F28(void)
+{
+    Gp_HaltPadScripts();
+    Game_Session->field_13B = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132F58);
 
