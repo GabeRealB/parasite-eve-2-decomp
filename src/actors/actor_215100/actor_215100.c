@@ -209,7 +209,27 @@ void func_actor_215100_8014C46C(Task* task)
     func_actor_215100_8014B0D4();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C4A8);
+void func_actor_215100_8014C4A8(Task* task)
+{
+    s32 remaining;
+    s32 state;
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            task->state = 1;
+            break;
+        case 1:
+            remaining       = task->spawnArg1 - 1;
+            task->spawnArg1 = remaining;
+            if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
+                Task_Kill(task);
+                Stage_SetEndingFlag();
+            }
+            break;
+    }
+    func_actor_215100_8014B0D4();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C538);
 
