@@ -325,7 +325,15 @@ void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D06C);
+void func_actor_403100_8013D06C(void)
+{
+    if (D_actor_403100_80155808->field_B4 >= 0x11) {
+        D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 - 8;
+    }
+    if (D_actor_403100_80155808->field_B4 < -0x10) {
+        D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 + 8;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D0B8);
 
