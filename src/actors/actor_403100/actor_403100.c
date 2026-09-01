@@ -410,7 +410,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013DFBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E02C);
+void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
+{
+    D_actor_403100_80155808->field_5FC = arg2;
+    D_actor_403100_80155808->field_5E2 = arg1;
+    D_actor_403100_80155808->field_5DE = arg0;
+    D_actor_403100_80155808->field_5DA = 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E04C);
 
