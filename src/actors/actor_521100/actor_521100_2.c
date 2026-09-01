@@ -20,6 +20,7 @@ void      func_actor_521100_8013570C(void);
 void      func_actor_521100_80134658(void);
 void      func_actor_521100_801357F0(void);
 void      func_actor_521100_80134774(void);
+void      Gp_IncStateF0Ref(s32 arg0);
 
 void func_actor_521100_801355C8(Actor521100* arg0)
 {
@@ -82,7 +83,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80135D58);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80135D9C);
+s32 func_actor_521100_80135D9C(Actor521100* arg0)
+{
+    arg0->field_1C->field_6B0 = 1;
+    Gp_IncStateF0Ref(0);
+    return 0;
+}
 
 s16 func_actor_521100_80135DC8(Actor521100* arg0)
 {
