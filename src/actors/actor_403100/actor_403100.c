@@ -606,7 +606,12 @@ void func_actor_403100_8013EF2C(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013EF34);
+void func_actor_403100_8013EF34(void)
+{
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5EE = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
 
 void func_actor_403100_8013EF58(void)
 {
