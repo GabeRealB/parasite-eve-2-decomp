@@ -368,7 +368,17 @@ void func_shelter_r47_801832E4(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801832EC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018337C);
+void func_shelter_r47_8018337C(Task* task)
+{
+    ShelterR47State* state;
+
+    state = (ShelterR47State*)task->idMap;
+    GameFlag_SetNibble(0xAC, state->field_18);
+    GameFlag_SetNibble(0xD5, state->field_1A);
+    GameFlag_SetNibble(0xAE, state->field_1C);
+    GameFlag_SetNibble(0xD6, state->field_1E);
+    GameFlag_SetNibble(0xD2, state->field_20);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801833DC);
 
