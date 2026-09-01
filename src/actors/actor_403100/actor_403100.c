@@ -579,7 +579,16 @@ void func_actor_403100_8013ED50(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013EDDC);
+void func_actor_403100_8013EDDC(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x1E) {
+        func_8017E128(1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013EE28);
 
