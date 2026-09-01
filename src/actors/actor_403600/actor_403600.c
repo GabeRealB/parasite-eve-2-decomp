@@ -2,6 +2,7 @@
 
 #include "actors/actor_403600.h"
 #include "main/sound.h"
+#include "gameplay/3CD8.h"
 
 extern u8 D_80071075;
 extern u8 D_801153F4;
@@ -233,7 +234,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141A34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141B24);
+void func_actor_403600_80141B24(Actor403600* arg0)
+{
+    Actor403600Work* work = arg0->field_1C;
+
+    Gp_HaltPadScripts();
+    SndEvt_EnqueueType7(0x54160001, 1);
+    work->field_708 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141B60);
 
