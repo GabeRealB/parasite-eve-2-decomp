@@ -26,16 +26,6 @@ extern u8 D_801153F4;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0006C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L004A8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L004C0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L004D8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L004F0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_L0052C);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn00754);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn00914);

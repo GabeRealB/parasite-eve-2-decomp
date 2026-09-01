@@ -27,59 +27,7 @@ void Actor00700_Fn01EEC(Actor00700* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00060);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L000C0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00164);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00310);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00334);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L003D8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00410);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0042C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00434);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00460);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00464);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00468);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0049C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00580);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L005DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L005F4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0063C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00654);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0066C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00678);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L006AC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L006C8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00740);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0077C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00780);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L007D8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0080C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L00864);
 
 void Actor00700_Fn008B4(Actor00700* arg0)
 {
@@ -419,22 +367,6 @@ pop:;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01148);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01190);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L011AC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L011CC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01200);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01210);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01258);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01284);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L012CC);
-
 void Actor00700_Fn012E4(Actor00700* arg0)
 {
     Actor00700Work*       work;
@@ -715,16 +647,6 @@ case1:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01988);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L019D0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A0C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A74);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A7C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01A9C);
-
 void Actor00700_Fn00F20(Actor00700* arg0);
 void Actor00700_Fn01148(Actor00700* arg0);
 void Actor00700_Fn01C10(Actor00700* arg0);
@@ -753,8 +675,6 @@ void Actor00700_Fn01AB8(Actor00700* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01B50);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01BFC);
 
 void Actor00700_Fn01C10(Actor00700* arg0)
 {
@@ -801,29 +721,13 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01CF0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01D80);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01DD4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01E00);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01E14);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01E2C);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01E44);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01E9C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01EEC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01F3C);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01FE0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02044);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02104);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02268);
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor00700_Fn02414(Actor00700* arg0);
@@ -900,138 +804,16 @@ default_body:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02414);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02498);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L024D0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L024EC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L024F4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02524);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02540);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L025F8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0264C);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn0268C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02714);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02734);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02764);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0276C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02774);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02778);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02820);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02878);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L028B8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02924);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02938);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02954);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02958);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0296C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02970);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02974);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L029AC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L029CC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L029D4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L029D8);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02A28);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02A70);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02AA4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02AE8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02AF8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02B30);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02B74);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02B84);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02BBC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02C00);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02C04);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02C18);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02CEC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02CF4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02D08);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02D20);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02D94);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02DD0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02DE0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02E74);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02F04);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02FA0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02FAC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L02FF4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L0301C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L03020);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L03024);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L03034);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn0305C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L03158);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L031A4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L031BC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L031D4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L03220);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L034A0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn034BC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn03518);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn03570);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L035C0);

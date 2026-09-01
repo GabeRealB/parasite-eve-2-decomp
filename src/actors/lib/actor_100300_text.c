@@ -30,18 +30,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00970);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00E54);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_L01094);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_L010AC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_L010C4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_L010DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_L010E4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_L010EC);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01678);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn019C0);
