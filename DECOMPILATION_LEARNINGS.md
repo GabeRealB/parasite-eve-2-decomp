@@ -3016,6 +3016,26 @@ The text span is file offset of the first instruction through the byte after
 the dup index derives it from the `glabel` onwards, so the migrated jump table
 printed ahead of the code does not inflate it.
 
+**A carrier that holds the body *twice* cannot be served, and if every carrier
+does, the promotion is impossible.** ld includes an input object once, so the
+second slot in that overlay would stay unfilled; `promote` drops such an overlay
+from the candidate set and then reports "every overlay carrying it contains it
+twice; cannot share". The vacuum's port brief counts *copies*, not overlays, so
+it still lists the body as shared and asks for a promotion —
+`func_actor_451100_80132CAC` reads as "7 other overlays" but is really three
+overlays holding it two or three times each, plus the already-promoted
+`ActorsShared801366fc`. Run `promote` before believing the brief; when it
+refuses, land the body in the overlay's own `.c`.
+
+**`promote` picks the shared unit name from whichever already-promoted copy
+sorts first, and only finds the file by looking for a *call-shaped* occurrence
+of that symbol.** A copy under `<family>/lib` that is still `INCLUDE_ASM`
+(`Actor00100_Fn0B3B4` in `src/actors/lib/actor_400100_text.c`) has no `Sym(`
+anywhere, so the search fails with "already shared as X, but no file in
+src/<family>/lib defines it" even though a different, genuinely matched copy of
+the same body does have one. Pass `--unit <existing_shared_unit>` to point it at
+the real file.
+
 **Matching the body is what lets the index group it, so the canonical form must
 ignore `.align`.** splat emits an `.align 3` ahead of a jump table that starts a
 cut `.rodata` subsegment and nothing ahead of the same table mid-block, so the
