@@ -14,6 +14,13 @@ extern Task* D_actor_503500_80176558;
 
 extern TaskDesc D_actor_503500_8014B964;
 
+/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
+extern GpMsgEntry D_actor_503500_80146888[];
+
+void func_actor_503500_801324C4(Task* arg0);
+void func_actor_503500_801324EC(Task* arg0);
+
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
@@ -21,7 +28,26 @@ extern u8 D_actor_503500_8014D098[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013223C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132430);
+void func_actor_503500_80132430(Task* arg0)
+{
+    GameActorExt*        ext;
+    Actor503500ColorMtx* work;
+
+    ext  = arg0->extra;
+    work = Mem_Calloc(sizeof(Actor503500ColorMtx), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+
+    arg0->idMap    = (TaskIdMap*)work;
+    ext->field_C  |= 0x84;
+    work->field_44 = 0;
+    func_actor_503500_801324EC(arg0);
+    arg0->field_24     = D_actor_503500_80146888;
+    arg0->exitCallback = func_actor_503500_801324C4;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_801324C4);
 
