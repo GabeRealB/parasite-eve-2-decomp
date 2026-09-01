@@ -104,7 +104,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132548);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132678);
+void func_actor_450900_80132678(u8 arg0)
+{
+    D_801153F4 = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132684);
 
