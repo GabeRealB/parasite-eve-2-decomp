@@ -731,26 +731,47 @@ void Actor02000_L033CC(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn033D4);
-
-void Actor02000_L033FC(void)
+/// Per-frame tick. State 0 picks the animation from `field_6AA`: 1 selects
+/// animation 0x12 and hands over to state 1, anything else selects 0x13 and
+/// hands over to state 2; either way the pair of counters at `field_69C` is
+/// cleared. State 1 waits for `field_698` to reach 0x50 and state 2 waits for
+/// it to reach 0x3B, both dropping back to state 0 with animation 2.
+void Actor02000_Fn033D4(Actor02000* arg0)
 {
-}
+    Actor02000Work* work;
+    s32             state;
+    s32             next;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03404);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03418);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03438);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03444);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03450);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03474);
-
-void Actor02000_L03494(void)
-{
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            next = work->field_6AA;
+            if (next == 1) {
+                work->field_694 = 0x12;
+                work->field_6A8 = next;
+            } else {
+                work->field_694 = 0x13;
+                work->field_6A8 = 2;
+            }
+            work->field_69C = 0;
+            work->field_69E = 0;
+            break;
+        case 1:
+            if (work->field_698 >= 0x50) {
+                work->field_694 = 2;
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+        case 2:
+            if (work->field_698 >= 0x3B) {
+                work->field_694 = state;
+                work->field_6A6 = state;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
 }
 
 /// Per-frame tick. State 0 waits for `Gp_TickObjFlag2` on the spawn block to
