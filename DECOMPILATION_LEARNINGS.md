@@ -37039,3 +37039,62 @@ same three-statement body over blocks whose matrices sit at 0x440/0x460 and
 0x00/0x20, so their `addiu` immediates differ and they stay in their own `.c`.
 The dup index already tells you this — it only grouped the six that are
 `identical bytes`.
+
+## A function's own rodata lives in its `.s`; a jump table elsewhere blocks the decomp
+
+splat emits the rodata a function *owns* — its string literals and its
+compiler-generated jump table — at the head of that function's
+`nonmatchings/<fn>.s`, before `.section .text`:
+
+```
+.section .rodata
+dlabel D_shelter_b6_nursery_8017D624
+    .asciz "Weapon Data"
+...
+.section .text
+glabel func_shelter_b6_nursery_8017E910
+```
+
+So replacing that `INCLUDE_ASM` with C is safe: writing the same string
+literals back into the C body puts them at the same offset in the unit's
+`.rodata`, because GCC emits a function's constant pool right where the
+`__asm__` blocks for the neighbouring `INCLUDE_ASM`s are emitted. Ordering
+falls out for free.
+
+The opposite case is the blocker. When splat instead lists a jump table as its
+own `INCLUDE_RODATA` line in a *different* unit's `.c`, the table's address is
+pinned inside that unit's `.rodata` span, and the compiler-generated table for
+your decompiled function lands at the end of *its* unit instead. The build
+fails with `undefined reference to '.Lshelter_b6_nursery_8017FC74'` — the old
+`.s` still references the labels your C deleted. Fixing it needs a manifest
+`rodata` (and usually `units`) cut, so triage first:
+
+```sh
+grep -l 'jtbl_<overlay>' asm/USA/<family>/nonmatchings/<overlay>/*/func_*.s   # owned: fine
+grep -n 'INCLUDE_RODATA.*jtbl_' src/<family>/<overlay>/*.c                    # foreign: needs a cut
+```
+
+In `rooms/shelter_b6_nursery` four of thirty functions were foreign-table
+cases; `func_shelter_b6_nursery_8017FBC0` matched at 100% in scratch and still
+could not land.
+
+## Delay-slot filling steals a register insn from the branch target, never a load
+
+`fill_slots_from_thread` will move the *first* insn of a branch target into the
+delay slot and retarget the branch past it — but only when `may_trap_p` is
+false, so a `move`/`li` qualifies and a `lw` does not. That shows up as a
+target like
+
+```
+beqz   $v1, .L88          # delay: addu $a1, $zero, $zero
+...
+.L84:  addu $a1, $zero, $zero
+.L88:  lw   $a0, 0x20($s0)
+```
+
+against your `beqz $v1, .L84 / nop` with the block in the order
+`lw $a0 …; move $a1, zero`. The fix is never a barrier or a pin: reorder the C
+so the block *starts* with the register op. `func_shelter_b6_nursery_8017FD3C`
+is the unsolved example — `SndEvt_EnqueueType6(task->spawnArg2, 0, 0)` always
+expands a0 first, so the block begins with the load and the slot stays a `nop`
+(92.75%).
