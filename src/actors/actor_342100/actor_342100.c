@@ -1,6 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_342100.h"
+#include "main/session.h"
+
+/// Main-executable global with no module header yet: the remaining-enemy count.
+extern s16 D_80073BA0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
 
@@ -33,4 +37,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80163454);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80163518);
+void func_actor_342100_80163518(void)
+{
+    D_80073BA0              = 0;
+    Game_Session->field_128 = 3;
+}

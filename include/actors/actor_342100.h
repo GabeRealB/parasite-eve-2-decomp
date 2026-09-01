@@ -9,5 +9,6 @@ typedef struct Actor342100 {
 } Actor342100;
 
 void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2);
+void func_actor_342100_80163518(void);
 
 #endif
