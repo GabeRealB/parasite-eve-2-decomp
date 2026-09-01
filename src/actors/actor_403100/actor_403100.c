@@ -246,7 +246,41 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013CBE0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013CDC0);
+void func_actor_403100_8013CDC0(void)
+{
+    s16 next;
+    s16 next2;
+    u8  state;
+
+    state = D_actor_403100_80155808->field_664.b.field_666;
+    switch (state) { /* irregular */
+        case 0:
+            D_actor_403100_80155808->field_5EA =
+                (u16)D_actor_403100_80155808->field_5EA +
+                ((s32) - (D_actor_403100_80155808->field_5EA * 0x10) >> 7);
+            return;
+        case 1:
+            D_actor_403100_80155808->field_664.b.field_666 = 2;
+            return;
+        case 2:
+            next = (u16)D_actor_403100_80155808->field_5EA +
+                   ((s32)(0x1E00 - (D_actor_403100_80155808->field_5EA * 0x10)) >> 7);
+            D_actor_403100_80155808->field_5EA = next;
+            if (next >= 0x1C0) {
+                D_actor_403100_80155808->field_664.b.field_666 =
+                    D_actor_403100_80155808->field_664.b.field_666 + 1;
+                return;
+            }
+            return;
+        case 3:
+            next2                              = (u16)D_actor_403100_80155808->field_5EA - 0xC;
+            D_actor_403100_80155808->field_5EA = next2;
+            if ((next2 << 0x10) <= 0) {
+                D_actor_403100_80155808->field_664.b.field_666 = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013CEAC);
 
