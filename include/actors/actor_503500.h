@@ -150,6 +150,37 @@ typedef struct Actor503500ObjWork {
 } Actor503500ObjWork;
 STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
 
+/// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
+/// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::idMap` slot -- that
+/// slot is not a `TaskIdMap` here. Unlike the tasks covered by
+/// `Actor503500ObjWork` this one exits through `ActorsShared801327b4`, which
+/// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
+/// `func_actor_503500_80146508` republishes the two matrices onto
+/// `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
+/// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
+///
+/// The size is the allocation, and the fields below are the ones the init
+/// seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at 0x4C8 are set to
+/// -1, and the three words at 0x4A0..0x4A8 are cleared. This is the same
+/// layout as `Actor317000Work` and its siblings in the other actor overlays.
+typedef struct Actor503500Effect4CC {
+    /* 0x000 */ byte   pad_0[0x43D];
+    /* 0x43D */ s8     field_43D;
+    /* 0x43E */ s8     field_43E;
+    /* 0x43F */ byte   pad_43F[0x1];
+    /* 0x440 */ MATRIX light;
+    /* 0x460 */ MATRIX color;
+    /* 0x480 */ byte   pad_480[0x20];
+    /* 0x4A0 */ s32    field_4A0;
+    /* 0x4A4 */ s32    field_4A4;
+    /* 0x4A8 */ s32    field_4A8;
+    /* 0x4AC */ byte   pad_4AC[0x1C];
+    /* 0x4C8 */ s16    field_4C8;
+    /* 0x4CA */ byte   pad_4CA[0x2];
+} Actor503500Effect4CC;
+STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
+
 /// `Task` as this overlay's enemies use it. The layout is `Task`'s
 /// (`include/main/task.h`); only two slots are retyped: `idMap` holds the
 /// actor's own work block rather than a `TaskIdMap`, and `spawnArg2` is the
@@ -191,6 +222,7 @@ STATIC_ASSERT_SIZEOF(Actor503500StateC08, 0x18);
 
 extern Actor503500StateC08 Gp_StateC08;
 
+void func_actor_503500_80146508(Task* arg0);
 void func_actor_503500_8013F8AC(Actor503500* arg0);
 void func_actor_503500_801440F0(Actor503500* arg0);
 
