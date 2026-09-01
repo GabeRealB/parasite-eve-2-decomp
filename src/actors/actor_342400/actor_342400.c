@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162084);
 
@@ -46,7 +47,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162F1C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162FFC);
+void func_actor_342400_80162FFC(Task* arg0)
+{
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80163010);
 
