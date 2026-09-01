@@ -4,6 +4,8 @@
 
 extern s16 D_actor_444000_80144A72;
 
+extern Actor444000* D_actor_444000_80161878;
+
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132054);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801321FC);
@@ -146,7 +148,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801433B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80143490);
+void func_actor_444000_80143490(s8 arg0)
+{
+    D_actor_444000_80161878->field_1C->field_EAC = arg0;
+}
 
 void func_actor_444000_801434A8(s16 arg0)
 {
