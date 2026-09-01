@@ -197,7 +197,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C418);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C46C);
+void func_actor_215100_8014C46C(Task* task)
+{
+    s32 remaining;
+
+    remaining       = task->spawnArg1 - 1;
+    task->spawnArg1 = remaining;
+    if (remaining <= 0) {
+        Task_Kill(task);
+    }
+    func_actor_215100_8014B0D4();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C4A8);
 
