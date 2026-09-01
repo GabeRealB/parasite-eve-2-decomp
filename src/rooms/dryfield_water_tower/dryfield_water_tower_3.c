@@ -6,6 +6,7 @@
 typedef struct {
     /* 0x00 */ u8  pad_0[0x6C];
     /* 0x6C */ s16 field_6C;
+    /* 0x6E */ s16 field_6E;
 } DryfieldWaterTowerState;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017F8E8);
@@ -23,7 +24,10 @@ void func_dryfield_water_tower_8017FBC8(Task* task)
     ((DryfieldWaterTowerState*)task->idMap)->field_6C = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017FBD8);
+void func_dryfield_water_tower_8017FBD8(Task* task)
+{
+    ((DryfieldWaterTowerState*)task->idMap)->field_6E = 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017FBE8);
 
