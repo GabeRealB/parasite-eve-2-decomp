@@ -177,7 +177,24 @@ void func_actor_800100_80165720(GpActorWork* arg0)
     actor->field_942 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80165748);
+void func_actor_800100_80165748(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    if (Gp_StateF0.field_0 == 1) {
+        actor                      = arg0->actor;
+        actor->field_956           = 3;
+        actor->field_954           = 0;
+        actor->field_95C           = 0;
+        actor->field_95E           = 0;
+        actor->field_910->field_CC = 0;
+        actor->field_97E           = 2;
+        actor->field_90C           = Gp_FindLockNode(arg0);
+        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+        return;
+    }
+    func_actor_800100_80163D54(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_801657D8);
 
