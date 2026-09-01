@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_1/dryfield_night_motel_room_1", func_dryfield_night_motel_room_1_8017D680);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_1/dryfield_night_motel_room_1", func_dryfield_night_motel_room_1_8017D688);
+s32 func_dryfield_night_motel_room_1_8017D688(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_1/dryfield_night_motel_room_1", func_dryfield_night_motel_room_1_8017D690);
 
