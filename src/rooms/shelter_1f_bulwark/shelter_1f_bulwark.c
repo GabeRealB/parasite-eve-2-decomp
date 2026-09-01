@@ -10,7 +10,10 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", D_she
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017DA60);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017DBBC);
+s32 func_shelter_1f_bulwark_8017DBBC(void)
+{
+    return 0;
+}
 
 s32 func_shelter_1f_bulwark_8017DBC4(void)
 {
