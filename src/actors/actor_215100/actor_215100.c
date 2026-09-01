@@ -163,7 +163,19 @@ void func_actor_215100_8014AF0C(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AFAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B0D4);
+void func_actor_215100_8014B0D4(void)
+{
+    if ((D_actor_215100_8015E658 != NULL) &&
+        (D_actor_215100_8015E658[D_actor_215100_8015E662].field_8 != -1) &&
+        (Gp_CapBusy() == 0)) {
+        func_actor_215100_8014B3C8(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8, 0x80, 1,
+                                   D_actor_215100_8015E658[D_actor_215100_8015E662].field_0 |
+                                       ((D_actor_215100_8015E658[D_actor_215100_8015E662].field_1 & 0x10) * 0x10));
+        if (!(D_actor_215100_8015E658[D_actor_215100_8015E662].field_4 & 1)) {
+            func_actor_215100_8014BEE8();
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B1B0);
 
