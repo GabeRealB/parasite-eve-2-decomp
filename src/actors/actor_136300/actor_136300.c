@@ -2,6 +2,7 @@
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 extern TaskDesc D_actor_136300_8013B134;
+extern s8       D_8007272D;
 
 extern s32 D_actor_136300_8013B208;
 extern s32 D_actor_136300_8013B230;
@@ -14,7 +15,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_80132854);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_801328D4);
+void func_actor_136300_801328D4(s8 arg0)
+{
+    D_8007272D = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_801328E0);
 
