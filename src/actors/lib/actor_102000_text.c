@@ -803,24 +803,43 @@ void Actor02000_Fn0349C(Actor02000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03528);
-
-void Actor02000_L03550(void)
+/// Per-frame tick. State 0 picks the animation from `field_6B8`: 1 selects
+/// animation 0x17 and hands over to state 1, anything else selects 0x1B and
+/// hands over to state 2. State 1 waits for `field_698` to reach 0x10 and
+/// state 2 waits for it to reach 0x16; both park the actor by writing its
+/// dwell code to `field_30` and drop back to state 0.
+void Actor02000_Fn03528(Actor02000* arg0)
 {
-}
+    Actor02000Work* work;
+    s16             state;
+    s32             next;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03558);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0356C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0358C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0359C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L035BC);
-
-void Actor02000_L035D8(void)
-{
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            next = work->field_6B8;
+            if (next == 1) {
+                work->field_694 = 0x17;
+                work->field_6A8 = next;
+            } else {
+                work->field_694 = 0x1B;
+                work->field_6A8 = 2;
+            }
+            break;
+        case 1:
+            if (work->field_698 >= 0x10) {
+                arg0->field_30  = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+        case 2:
+            if (work->field_698 >= 0x16) {
+                arg0->field_30  = state;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
 }
 
 void Actor02000_Fn035E0(void)

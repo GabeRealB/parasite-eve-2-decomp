@@ -36786,3 +36786,45 @@ Gp_StartCapSlot(3, 0, cond);
 be into two statements, not just into a local. `!(x < K) + 1` and
 `(x > K-1) + 1` fold the same way. `func_dryfield_trailer_coach_80182850` is
 the example.
+
+## `s16` local read by a compare *and* a store loads the field twice
+
+A state-machine arm that latches an `s16` field into a local, tests it, and
+writes it back to another `s16` field:
+
+```c
+s16 next;                 /* BAD */
+next = work->field_6B8;
+if (next == 1) { work->field_694 = 0x17; work->field_6A8 = next; }
+else           { work->field_694 = 0x1B; work->field_6A8 = 2; }
+```
+
+The compare wants a sign-extended value and the store only wants the low half,
+so GCC 2.8.1 keeps the local in *two* pseudos and emits both loads:
+
+```
+lh    v0, 0x6b8(v1)   /* for the compare  */
+lhu   a0, 0x6b8(v1)   /* for the sh       */
+bne   v0, a2, ...
+```
+
+The target has a single `lh a0, 0x6b8(v1); nop; bne a0, a2, ...`. Declaring
+the local `s32` gives the value one width, so one `lh` feeds both the compare
+and the `sh`. Same rule as the `Fn033D4` sibling in `actor_102000_text`:
+latching locals for these switch arms are `s32` even though every field they
+touch is `s16`. Symptom is a 95% score whose only leftovers are one `insert`,
+one `delete` and two `regs`.
+
+## Interior `jr $ra; nop` tails are not empty functions
+
+When splat splits a function at its internal labels (see "A function splat
+split at internal labels needs a rebuilt `target.o`"), some fragments are just
+the shared epilogue — `jr $ra; nop` — and a `void Actor02000_L03550(void) {}`
+stub reproduces those eight bytes exactly, so it builds, checksums and looks
+matched. It is still a fragment of the enclosing function, and the enclosing
+`Fn…` cannot be matched until it absorbs the stub. When picking up a function
+whose fragments were partly "matched" this way, delete the empty stubs along
+with the label `INCLUDE_ASM`s and write the whole body as one C function.
+`Actor02000_Fn03528` spanned `Fn03528` plus `L03550`, `L03558`, `L0356C`,
+`L0358C`, `L0359C`, `L035BC` and `L035D8` — two of which were already in the
+file as empty stubs.
