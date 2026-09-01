@@ -49,7 +49,7 @@ void func_actor_503500_80136304(Actor503500* arg0)
                 func_actor_503500_80135FB4(arg0, 6, 0x10);
                 work->field_7B2 = 3;
             }
-            if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+            if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
                 func_actor_503500_80136EFC(arg0, 0);
                 work->field_7CA = 0x3C;
             }
@@ -171,7 +171,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 void func_actor_503500_80138378(Actor503500* arg0)
 {
-    GpObj5D* obj;
+    GpEnemy* obj;
     u8       flags;
     u8       flags2;
 

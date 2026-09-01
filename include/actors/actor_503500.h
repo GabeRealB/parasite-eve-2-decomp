@@ -129,8 +129,9 @@ STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
 /// `Task` as this overlay's enemies use it. The layout is `Task`'s
 /// (`include/main/task.h`); only two slots are retyped: `idMap` holds the
-/// actor's own work block rather than a `TaskIdMap`, and `spawnArg2` the
-/// `GpObj5D` view of the `GpEnemy` that `Gp_AllocEnemy` parked there.
+/// actor's own work block rather than a `TaskIdMap`, and `spawnArg2` is the
+/// `GpEnemy` that `Gp_AllocEnemy` parked there (the same object the gameplay
+/// code also reaches through its sparse `GpObj5D` view).
 typedef struct Actor503500 {
     /* 0x00 */ TaskNode         node;
     /* 0x08 */ Task*            parent;
@@ -139,7 +140,7 @@ typedef struct Actor503500 {
     /* 0x14 */ TaskFunc         callback;
     /* 0x18 */ TaskFunc         exitCallback;
     /* 0x1C */ Actor503500Work* field_1C;
-    /* 0x20 */ GpObj5D*         field_20;
+    /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ void*            field_24;
     /* 0x28 */ u8               spawnType;
     /* 0x29 */ u8               priority;
