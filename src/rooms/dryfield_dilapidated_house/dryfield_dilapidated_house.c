@@ -90,7 +90,12 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E858);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E8A8);
+void func_dryfield_dilapidated_house_8017E8A8(s32 arg0)
+{
+    if (D_dryfield_dilapidated_house_80189B78 != NULL) {
+        D_dryfield_dilapidated_house_80189B78->state = arg0;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D61C);
 
