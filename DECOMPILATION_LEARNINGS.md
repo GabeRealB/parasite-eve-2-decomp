@@ -35647,3 +35647,94 @@ And in `GsCOORDINATE2`, `flg` is 4 bytes followed by two 0x20-byte `MATRIX`es
 and `param`, so `super` lands at 0x48 and `sub` at 0x4C. The idiom
 `M2C_FIELD(ext->field_8, GsCOORDINATE2**, 0x4C) = &Gfx_ViewCoord` is
 `coord->sub = &Gfx_ViewCoord`, not `->super`.
+
+## Diff the whole object, not your functions: a retyped global rescales old code
+
+A typing pass on `actor_403100` gave the overlay's work-block global its real
+type - `extern s32 D_actor_403100_80155808;` became
+`extern Actor403100Work* D_actor_403100_80155808;` - and all 25 newly typed
+bodies matched instruction for instruction. The scoped build still failed the
+checksum, on the *first* function landed.
+
+The culprit was a function nobody touched. `func_actor_403100_8013D88C` had
+been landed earlier as
+
+```c
+Gp_UnlinkObj(D_actor_403100_80155808 + 0x47C);   /* s32 + byte offset */
+```
+
+which is integer arithmetic while the global is an `s32`, and *pointer*
+arithmetic the moment it is a `Actor403100Work*`: `+ 0x47C` started scaling by
+`sizeof(Actor403100Work)` (0x678), so GCC emitted `lui`/`ori`/`addu` for
+0x1D0220 where the target has `addiu a0,a0,1148`. The function grew by 0x20 and
+the overlay stopped matching, while every function the pass actually edited was
+byte-perfect.
+
+Two lessons. First, retyping a file-scope symbol is a change to *every* use of
+it in the translation unit, so grep the whole unit for the symbol before
+changing its declaration - that call site was also exactly the pointer
+arithmetic `CLAUDE.md` forbids, and the fix was to model the four 0x20-byte
+`GpObj` nodes as struct fields and pass `&work->field_47C`. Second, and more
+generally, verify a typing pass by comparing the *entire* compiled object
+against the pre-change one, not just the functions you rewrote:
+
+```sh
+# same cpp/cc1/maspsx line the build uses, once per source version
+objdump -dr -j .text pris.o | sed 's/^ *[0-9a-f]*:\t[0-9a-f ]*\t//' >a
+objdump -dr -j .text work.o | sed 's/^ *[0-9a-f]*:\t[0-9a-f ]*\t//' >b
+diff a b            # must be empty; also compare .text/.rodata bytes and relocs
+```
+
+A pass whose `.text` and `.rodata` bytes and relocation triples are identical to
+the version that last checksummed OK cannot fail the build, and the check costs
+about five seconds.
+
+## A previously built overlay is a lock-free matching oracle
+
+`build/USA/out/<overlay>` and `<overlay>.elf` still hold the *original* bytes of
+every function that is still `INCLUDE_ASM`, because the checksum passed the last
+time the project built. Copy them aside once and you can diff against the target
+without touching `asm/` - which matters when several sessions share the tree,
+because `build-and-verify.sh --only` deletes and re-splits its units under a
+concurrent reader, and the orchestrator merge lock can be held for an hour.
+
+Compile the host `.c` to a `.o` with the build's own cpp/cc1/maspsx line and
+disassemble both sides. Two details:
+
+* the overlay's code is in a section named after the overlay
+  (`objdump -j .actor_403100`), not `.text`; the `.o` side is still `.text`;
+* the `.o` is unlinked, so `%hi` / `%lo` / `jal` operands read as `0`.
+  Disassemble it with `-dr` and, wherever an instruction carries `R_MIPS_HI16` /
+  `R_MIPS_LO16` / `R_MIPS_26`, rewrite the *target* side's operand the same way
+  before comparing. Branch targets normalise by keeping only the `<fn+0xNN>`
+  suffix objdump prints on both sides.
+
+Watch two artifacts: `--disassemble=<fn>` on the linked ELF stops at the next
+symbol, and the debug `LM` labels split some functions, so a "target=4 mine=34"
+result is a truncation, not a mismatch; and the per-function view says nothing
+about `.rodata` or about code you did not edit - hence the whole-object diff
+above.
+
+## `lhu` does not mean the field is `u16` - check the constant stores too
+
+m2c writes `M2C_FIELD(x, u16*, off)` for every `lhu`, which tempts a typing pass
+into declaring the field `u16`. If the same field is anywhere assigned a
+negative constant, that is wrong. GCC 2.8.1 folds `w->field = -0x6B0;` on a
+`u16` field to 63824 and emits `ori v0,zero,0xf950`; the target has
+`addiu v0,zero,-1712`.
+
+Declaring the field `s16` fixes the store *and* keeps the `lhu` loads, because
+GCC 2.8.1 emits `lhu` for a `(unsigned short)` conversion of a `short` lvalue
+and collapses `(s16)(u16)x` back to a plain `lh`:
+
+```c
+/* s16 field_82; */
+facingU     = w->field_82;      /* u16 lvalue -> lhu */
+facing      = (s16)w->field_82; /*            -> lh  */
+w->field_82 = -0x6B0;           /* -> addiu v0,zero,-1712 */
+```
+
+So for a field that is read both ways: signed declaration, `(u16)` at the reads
+m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
+to `s32` before storing it to a `u16` field" is the remedy when the field really
+is unsigned; while you are still choosing the type, prefer flipping the type.
