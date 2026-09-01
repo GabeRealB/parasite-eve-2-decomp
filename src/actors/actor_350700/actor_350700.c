@@ -1,6 +1,9 @@
 #include "common.h"
 
+#include "actors/actor_350700.h"
+
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "gameplay/1BC.h"
 
@@ -21,7 +24,16 @@ void func_actor_350700_80162494(Task* arg0)
     Gp_EnemyTaskExit(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_801624B4);
+void func_actor_350700_801624B4(Task* arg0)
+{
+    TmdObject*       ext;
+    Actor350700Work* work;
+
+    ext           = arg0->extra;
+    work          = (Actor350700Work*)arg0->idMap;
+    ext->field_1C = &work->light;
+    ext->field_20 = &work->color;
+}
 
 void func_actor_350700_801624D0(void)
 {
