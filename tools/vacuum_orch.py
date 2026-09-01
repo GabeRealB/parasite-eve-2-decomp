@@ -480,6 +480,33 @@ def cmd_claim_overlay(
         error="every overlay with work has a function claimed by another session")
 
 
+def cmd_adopt_overlay(
+    store: Store, *, session: str, pid: int, lease_minutes: int,
+) -> tuple[int, dict]:
+    """Re-bind a lease to the process that is actually doing the work.
+
+    claim-overlay has to write an expiry because the tool taking the lease exits
+    before the matcher exists. Once a real long-lived process owns the work -
+    vacuum.sh spawning a CLI, say - binding the lease to *its* pid is stricter
+    and better: the lease then lasts exactly as long as the work, and is
+    reclaimed the moment that process dies rather than sitting out its expiry.
+
+    The expiry is refreshed rather than dropped, because an agent session has no
+    stable pid to adopt with (each of its shell commands is a separate
+    short-lived process), so for that case the clock stays the only guard.
+    """
+    mine = [f for f, c in store.data["claims"].items() if c.get("session") == session]
+    if not mine:
+        return EXIT_CONFLICT, result(False, error="session holds no claims",
+                                     code="conflict")
+    expires = (datetime.now(timezone.utc)
+               + timedelta(minutes=lease_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for f in mine:
+        store.data["claims"][f]["pid"] = int(pid)
+        store.data["claims"][f]["expires"] = expires
+    return EXIT_OK, result(True, adopted=len(mine), pid=int(pid), expires=expires)
+
+
 def cmd_finish_overlay(
     store: Store, *, session: str, matched: list[str], difficult: list[str],
 ) -> tuple[int, dict]:
@@ -610,6 +637,10 @@ def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dic
         return cmd_claim_overlay(
             store, session=args.session, pid=args.pid, cli=args.cli,
             overlay=getattr(args, "overlay", None) or None, root=Path(args.root),
+            lease_minutes=int(getattr(args, "lease_minutes", 240)))
+    if cmd == "adopt-overlay":
+        return cmd_adopt_overlay(
+            store, session=args.session, pid=args.pid,
             lease_minutes=int(getattr(args, "lease_minutes", 240)))
     if cmd == "finish-overlay":
         split = lambda s: [x for x in (s or "").split(",") if x]
@@ -798,6 +829,13 @@ def build_parser() -> argparse.ArgumentParser:
                         help="how long the lease outlives the claiming process")
     p_covl.add_argument("--overlay", default="",
                         help="specific overlay; omit to take the largest free one")
+    p_aovl = sub.add_parser("adopt-overlay",
+                            help="Re-bind a lease to the live process doing the work")
+    add_session(p_aovl)
+    p_aovl.add_argument("--lease-minutes", type=int, default=240,
+                        help="expiry refresh, the fallback guard for agents "
+                             "that have no stable pid")
+
     p_fovl = sub.add_parser("finish-overlay",
                             help="Release a whole-overlay lease with outcomes")
     add_session(p_fovl, pid=False)
