@@ -32,7 +32,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 void func_actor_503500_80132430(Task* arg0)
 {
-    GameActorExt*        ext;
+    TmdObject*           ext;
     Actor503500ColorMtx* work;
 
     ext  = arg0->extra;
@@ -55,7 +55,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 void func_actor_503500_801324EC(Task* arg0)
 {
-    GameActorExt*        ext;
+    TmdObject*           ext;
     Actor503500ColorMtx* work;
 
     ext           = arg0->extra;

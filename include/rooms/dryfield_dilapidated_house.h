@@ -8,6 +8,7 @@
 
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
@@ -36,6 +37,6 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task);
 void func_dryfield_dilapidated_house_8017EE58(Task* task);
 s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 void func_dryfield_dilapidated_house_80181028(Task* task);
-void func_dryfield_dilapidated_house_801810F8(GameActorExt* dst, GameActorExt* src);
+void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);
 
 #endif // ROOMS_DRYFIELD_DILAPIDATED_HOUSE_H

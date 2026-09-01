@@ -168,7 +168,7 @@ void Gp_ItemActionListTask(Task* arg0);
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1);
-/// Task callback. `extra` is a `GameActorExt`; `spawnArg2` is a `GpItemObj8`.
+/// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
 /// Tilts `field_8[2]` (a `GsCOORDINATE2`) while playing a location-specific
 /// type-6 sound, then signals `extraState` (`GpItemObj2.field_2 = 1`) when
 /// the motion returns to 0.

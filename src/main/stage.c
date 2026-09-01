@@ -159,7 +159,7 @@ Task* Display_SpawnFromMode(void)
     u32               mode;
     Task*             slot;
     GameActor*        obj;
-    s32*              ptr;
+    GsCOORDINATE2*    ptr;
     GameSessionFrom4* ed;
     s32               flag;
 
@@ -185,12 +185,12 @@ Task* Display_SpawnFromMode(void)
         slot                = Game_GetPtrSlot(3);
         obj                 = (GameActor*)slot->idMap;
         flag                = obj->field_984 & 1;
-        ptr                 = ((GameActorExt*)slot->extra)->field_8;
+        ptr                 = ((TmdObject*)slot->extra)->field_8;
         if (flag) {
-            func_801011D0((GsCOORDINATE2*)ptr, obj->field_90, 6, &obj->field_930);
+            func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
         }
         Gp_ClearRec18Occupied(&obj->field_17C);
-        *ptr = 0;
+        ptr->flg = 0;
     block_case13:
         Stage_Ctx->field_15 = 1;
         if (Stage_Ctx->field_C == 3) {
@@ -218,12 +218,12 @@ block_default:
     slot                    = Game_GetPtrSlot(3);
     obj                     = (GameActor*)slot->idMap;
     flag                    = obj->field_984 & 1;
-    ptr                     = ((GameActorExt*)slot->extra)->field_8;
+    ptr                     = ((TmdObject*)slot->extra)->field_8;
     if (flag) {
-        func_801011D0((GsCOORDINATE2*)ptr, obj->field_90, 6, &obj->field_930);
+        func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
     }
     Gp_ClearRec18Occupied(&obj->field_17C);
-    *ptr = 0;
+    ptr->flg = 0;
 
 block_end:
     return ret;

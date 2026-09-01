@@ -25,7 +25,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     register void**           scratch asm("a2");
     register u8*              head asm("a3");
     register GpEffFt4Scratch* block asm("t1");
-    GameActorExt*             extra;
+    TmdObject*                extra;
     register GsCOORDINATE2*   coord asm("a1");
     register GpEffWork*       mem asm("a0");
     POLY_FT4*                 prim;
@@ -188,7 +188,7 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
 void Gp_EffSprTask81(Task* arg0)
 {
     GpEffWork*     mem;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* parent;
     MATRIX*        m;

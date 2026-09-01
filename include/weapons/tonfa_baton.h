@@ -5,7 +5,7 @@
 
 #include "main/gfx.h"
 
-/// The tonfa's coordinate node, reached through `GameActorExt.field_8`. It is
+/// The tonfa's coordinate node, reached through `TmdObject.field_8`. It is
 /// the game's `GsCOORDINATE2` variant: `field_44` is the reparent flag and
 /// `sub` (0x4C) the parent link, the same convention as `GpCoordExt` in
 /// gameplay. This overlay additionally keeps the baton's swing angle in the

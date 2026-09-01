@@ -36323,3 +36323,56 @@ either way. Only the *field* has to be `u16` — an `s16` field would load with
 `lh` and lose the `sll/sra`. (Which also makes this a cheap reminder that a
 100% checksum does not pick between two spellings; keep m2c's `u16` local, since
 that is the one the `lhu` argues for.)
+
+## Two structs for one object: check the allocator, not the field list
+
+`GameActorExt` (0x24, in `session.h`) and `TmdObject` (0x34, in `tmd.h`) were two
+independently-derived models of the *same* allocation, and both compiled fine
+for months because every access was through explicit casts. The tie-breaker is
+never "which field list looks more complete" — it is the one allocation site:
+
+```
+Tmd_Create:  Mem_Calloc(partCount * 0x50 + 0x34, 0)
+             sw (obj + 0x34), 0x8(obj)      # field_8 = the trailing array
+             sh 0x80, 0xC(obj) / sw partCount, 0x30(obj)
+```
+
+That single `Mem_Calloc` says the object is 0x34 bytes followed by
+`partCount` × `GsCOORDINATE2` (0x50), and that `field_8` points at its own tail.
+`Gp_AttachTmd` stores that pointer into `Task::extra` and sets
+`Task::spawnType = 1`, and `Task_Kill`'s type-1 branch pokes `field_C` on the
+same pointer — so "`Task::extra`" and "TMD model node" were never two things.
+The 0x24 model was simply truncated: `func_actor_400600_80137240` reading
+`field_24` / `field_25` was reading one and two bytes past its end.
+
+Corollaries worth reusing:
+
+- A `field_8` typed `s32*` "so `*ptr = 0` clears flg" is a smell. The real type
+  was `GsCOORDINATE2*`; `ptr->flg = 0` emits the same `sw`.
+- GCC 2.8.1 with `-w` silently accepts assigning between unrelated pointer
+  types, so a wrong pointer type in a struct never fails the build. Only a
+  *struct* assignment (`*extra->field_8 = 0` once `field_8` is a struct pointer)
+  errors, which is what finally surfaced this one.
+- Widening a field's type from `void*` / `s32*` to the real pointer type changes
+  codegen anywhere the raw field is used in pointer arithmetic. Grep
+  `field_N +`, `field_N[` and `&field_N[` before changing it.
+
+### Deleting a redundant local can cost you the match
+
+Two spots resisted the tidy-up, both because the original C kept a value alive in
+one register:
+
+```c
+raw             = extra->field_8;   // keep the temp: dropping it let GCC
+params->field_4 = 0xC0;             // sink the load past the store (+3 insns)
+coords          = &raw[3];
+```
+
+```c
+extra = (TmdObject*)extra->field_8; // self-assignment keeps v0; splitting it
+...                                 // into a second variable reloads from a0
+Gp_PlaceCoordOffset((GsCOORDINATE2*)extra + 4, coord, rot);
+```
+
+Both look like noise and both are load-bearing. When a type change forces you to
+touch a line like this, change the *type* and leave the shape alone.

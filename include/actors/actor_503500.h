@@ -9,6 +9,7 @@
 
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -16,7 +17,7 @@
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`Mem_Calloc(0x48)`) and parked in that task's `Task::idMap` slot.
 /// `func_actor_503500_801324EC` republishes the two matrices onto
-/// `GameActorExt::field_1C` / `field_20` -- the colour/light matrix pair
+/// `TmdObject::field_1C` / `field_20` -- the colour/light matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
 /// -- so the allocation is exactly two `MATRIX`es plus a small tail.
 typedef struct Actor503500ColorMtx {
@@ -30,7 +31,7 @@ STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 
 /// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
 /// fills it from the player actor: the three words are the translation of the
-/// `GsCOORDINATE2` at `GameActorExt::field_8` (`MATRIX.t`), the three
+/// `GsCOORDINATE2` at `TmdObject::field_8` (`MATRIX.t`), the three
 /// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `idMap`
 /// block. `func_actor_503500_80132DD4` clears the position;
 /// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
@@ -161,7 +162,7 @@ typedef struct Actor503500 {
     /* 0x28 */ u8               spawnType;
     /* 0x29 */ u8               priority;
     /* 0x2A */ s16              killCountdown;
-    /* 0x2C */ GameActorExt*    extra;
+    /* 0x2C */ TmdObject*       extra;
     /* 0x30 */ s32              state;
     /* 0x34 */ s32              spawnArg1;
     /* 0x38 */ u8               flags;

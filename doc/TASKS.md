@@ -321,7 +321,7 @@ slots (see [`STRUCT_FIELDS.md`](../STRUCT_FIELDS.md)):
 
 | Slot | Typical payload |
 |------|-----------------|
-| `extra` | `GameActorExt*` / TMD object (type 1) or Disp2d (type 2) |
+| `extra` | `TmdObject*` / TMD object (type 1) or Disp2d (type 2) |
 | `spawnArg2` | `GpEnemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
 | `idMap` | Real `TaskIdMap*`, or abused as `TitleWork*` / script work / pad-lerp state |
 | `field_24` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |

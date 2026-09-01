@@ -45,7 +45,7 @@ void Gp_EffCtlTask2B(Task* arg0)
     s32            count;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     base  = Gp_RoomCoords;
     slot  = (GpCoordTail*)&base->coord;
     if (Gp_State1C->field_4 < 2) {
@@ -157,7 +157,7 @@ void Gp_EffCtlTask6A(Task* arg0)
 
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     slot  = (GpCoordTail*)&base->coord;
     if (Gp_State1C->field_4 < 2) {
         mem->field_22++;
@@ -232,7 +232,7 @@ void Gp_EffCtlTask6B(Task* arg0)
     base  = Gp_RoomCoords;
     slot  = (GpCoordTail*)&base->coord;
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     st    = Gp_State1C;
     if (st->field_4 < 2) {
         mem->field_22++;
@@ -310,7 +310,7 @@ void Gp_EffCtlTask6C(Task* arg0)
     s32            i;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     base  = Gp_RoomCoords;
     slot  = (GpCoordTail*)&base->coord;
     if (Gp_State1C->field_4 < 2) {
@@ -412,7 +412,7 @@ void Gp_EffSprTask34(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (mem->field_22 == 0) {
@@ -497,7 +497,7 @@ void Gp_EffSprTask72(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
@@ -583,7 +583,7 @@ void Gp_EffLineTaskA3(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
@@ -749,7 +749,7 @@ void Gp_EffSprTask35(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -860,7 +860,7 @@ void Gp_EffSprTask6F(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -959,7 +959,7 @@ void Gp_EffModelTask(Task* arg0)
     SVECTOR        pos;
     VECTOR         vec;
     VECTOR         tmp;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     SVECTOR*       vel;
@@ -971,7 +971,7 @@ void Gp_EffModelTask(Task* arg0)
     u16            tz;
     s32            dz;
 
-    extra = (GameActorExt*)arg0->extra;
+    extra = (TmdObject*)arg0->extra;
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)extra->field_8;
@@ -1285,7 +1285,7 @@ void Gp_EffCtlTask6E(Task* arg0)
     GsCOORDINATE2* coord;
     s32            rng;
 
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     mem   = arg0->spawnArg2;
     if (arg0->state == 0) {
         if (arg0->spawnArg1 & 0xF0000) {
@@ -1331,7 +1331,7 @@ void Gp_EffCtlTask6D(Task* arg0)
 
     i                    = 0;
     one                  = ONE;
-    coord                = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord                = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     mem                  = arg0->spawnArg2;
     m                    = &coord->coord;
     *(s32*)&coord->coord = one;
@@ -1357,7 +1357,7 @@ void Gp_EffTileTaskA4(Task* arg0)
     TILE*             prim;
     s16               c;
 
-    coord                  = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord                  = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     *(u8**)G_SCRATCH_HEAD -= 0x14;
     block                  = (GpEffTileScratch*)*(u8**)G_SCRATCH_HEAD;
     mem                    = arg0->spawnArg2;
@@ -1439,7 +1439,7 @@ void Gp_EffCtlTask3B(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
@@ -1555,7 +1555,7 @@ void Gp_EffSprTask5C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1701,7 +1701,7 @@ void Gp_EffSprTask76(Task* arg0)
     s16                        scale;
     s32                        rng;
 
-    coord    = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord    = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     vecp     = (GpEffBeamScratch*)(head - 0x1C);
@@ -1793,7 +1793,7 @@ void Gp_EffSprTask7C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     param = 0x80;
     if (flag >= 2) {
         if (flag >= 4) {
@@ -1929,7 +1929,7 @@ void Gp_EffLineTask92(Task* arg0)
     s16               val;
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x20;
-    coord                   = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     block                   = (GpEffLineScratch*)*(void**)G_SCRATCH_HEAD;
     mem                     = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
@@ -2025,7 +2025,7 @@ void Gp_EffPolyTask9C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 4) {
         if (flag < 2) {
             if (arg0->state == 0) {
@@ -2183,7 +2183,7 @@ void Gp_EffSprTask9E(Task* arg0)
     u8                      col;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (arg0->state == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
@@ -2286,7 +2286,7 @@ void Gp_EffSprTask54(Task* arg0)
     POLY_FT4*         prim;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (Gp_State1C->field_4 >= 2) {
         if (Gp_State1C->field_4 >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -2554,16 +2554,16 @@ void Gp_EffSprTask53(Task* arg0)
     GsCOORDINATE2* parent;
 
     slot  = Game_GetPtrSlot(3);
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (slot != NULL) {
         if (arg0->state == 0) {
-            parent     = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+            parent     = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8;
             coord->flg = 0;
             coord->sub = parent + 1;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
         } else if (Gp_State1C->field_8 >= 0) {
-            if (!(((GameActorExt*)slot->extra)->field_C & 0x80)) {
+            if (!(((TmdObject*)slot->extra)->field_C & 0x80)) {
                 Gp_UpdateCoord(coord);
                 if ((s16)func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
                     Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->field_8);
@@ -2580,7 +2580,7 @@ void Gp_EffAttachTask37(Task* arg0)
     SVECTOR        pos;
     VECTOR         scale2;
     VECTOR         scale;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* player;
@@ -2595,10 +2595,10 @@ void Gp_EffAttachTask37(Task* arg0)
     u16            tz;
     s32            dz;
 
-    extra  = (GameActorExt*)arg0->extra;
+    extra  = (TmdObject*)arg0->extra;
     mem    = arg0->spawnArg2;
     coord  = (GsCOORDINATE2*)extra->field_8;
-    player = (GsCOORDINATE2*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    player = (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
     flag   = Gp_State1C->field_4;
     if (flag != 0) {
         if (flag < 4) {

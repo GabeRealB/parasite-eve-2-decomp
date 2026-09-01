@@ -127,7 +127,7 @@ typedef struct _GpEnemyPlace {
 } GpEnemyPlace;
 STATIC_ASSERT_SIZEOF(GpEnemyPlace, 0x10);
 
-/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8` used by `Gp_SpawnAtPlace`.
+/// Overlay of `GsCOORDINATE2` at `TmdObject.field_8` used by `Gp_SpawnAtPlace`.
 /// `coord` is `GsCOORDINATE2.coord` (`Gfx_RotMatrixY` / `t[0..2]`); `field_46`
 /// is the yaw halfword next to `param`.
 typedef struct _GpCoordPlace {
@@ -138,7 +138,7 @@ typedef struct _GpCoordPlace {
 } GpCoordPlace;
 STATIC_ASSERT_SIZEOF(GpCoordPlace, 0x48);
 
-/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8` used by `Gp_SavePlayerPos`.
+/// Overlay of `GsCOORDINATE2` at `TmdObject.field_8` used by `Gp_SavePlayerPos`.
 /// field_8 / field_14 are `coord.m[0][2]` / `coord.m[2][2]` (`lh` into
 /// `ratan2`); field_18 / field_1C / field_20 are the low 16 bits of
 /// `coord.t[0..2]` (`lhu`).

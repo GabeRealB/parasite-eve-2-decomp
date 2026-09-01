@@ -5,6 +5,7 @@
 
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include <psyq/libgte.h>
 
@@ -12,14 +13,14 @@ struct _GsCOORDINATE2;
 
 /// Work object whose `actor` pointer sits at 0x1C (same slot as `Task::idMap`).
 typedef struct _GpActorWork {
-    /* 0x00 */ byte          pad_0[0x18];
-    /* 0x18 */ void*         field_18; // Task::exitCallback; cleared before self-kill
-    /* 0x1C */ GameActor*    actor;
-    /* 0x20 */ byte          pad_20[4];
-    /* 0x24 */ void*         field_24; // Task::field_24; GpMsgEntry table
-    /* 0x28 */ byte          pad_28[4];
-    /* 0x2C */ GameActorExt* extra;    // Task::extra
-    /* 0x30 */ s32           state;    // Task::state
+    /* 0x00 */ byte       pad_0[0x18];
+    /* 0x18 */ void*      field_18; // Task::exitCallback; cleared before self-kill
+    /* 0x1C */ GameActor* actor;
+    /* 0x20 */ byte       pad_20[4];
+    /* 0x24 */ void*      field_24; // Task::field_24; GpMsgEntry table
+    /* 0x28 */ byte       pad_28[4];
+    /* 0x2C */ TmdObject* extra;    // Task::extra
+    /* 0x30 */ s32        state;    // Task::state
 } GpActorWork;
 
 typedef void (*GpActorFunc)(GpActorWork* arg0);
@@ -112,18 +113,18 @@ typedef struct _GpActorD4 {
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
-/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8`. `flg` is the same
-/// word cleared by `*field_8 = 0`. Offset 0x44 (`param` in libgs) is an s16
+/// Overlay of `GsCOORDINATE2` at `TmdObject.field_8`. `flg` is the same
+/// word cleared by `field_8->flg = 0`. Offset 0x44 (`param` in libgs) is an s16
 /// flag (`lh`/`sh`) in `func_8010B590` / `func_80104364`. `sub` is the parent
 /// coordinate pointer (`GsCOORDINATE2.sub` at 0x4C).
 typedef struct _GpCoordExt {
-    /* 0x00 */ s32  flg;
-    /* 0x04 */ byte pad_4[0x40];
-    /* 0x44 */ s16  field_44;
-    /* 0x46 */ s16  field_46;
-    /* 0x48 */ s16  field_48;
-    /* 0x4A */ byte pad_4A[2];
-    /* 0x4C */ s32* sub;
+    /* 0x00 */ s32            flg;
+    /* 0x04 */ byte           pad_4[0x40];
+    /* 0x44 */ s16            field_44;
+    /* 0x46 */ s16            field_46;
+    /* 0x48 */ s16            field_48;
+    /* 0x4A */ byte           pad_4A[2];
+    /* 0x4C */ GsCOORDINATE2* sub;
 } GpCoordExt;
 STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
 
@@ -303,7 +304,7 @@ extern s32 D_80112A50[];
 extern s32 D_80112B94[];
 
 /// `GsCOORDINATE2` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
-/// it onto `GameActorExt.field_8` when `field_3 == 1`.
+/// it onto `TmdObject.field_8` when `field_3 == 1`.
 extern u16 D_80112B28[];
 
 /// 4 packed RGB-nibble colors. `Gp_EffCtlTaskC1` indexes with

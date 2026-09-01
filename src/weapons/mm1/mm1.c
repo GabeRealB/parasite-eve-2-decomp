@@ -10,6 +10,7 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/wipsys.h"
+#include "main/tmd.h"
 
 void func_mm1_8011D1D4(GpActorWork* arg0)
 {
@@ -44,7 +45,7 @@ void func_mm1_8011D1D4(GpActorWork* arg0)
             Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
                           ((Wip_SysConfig.field_22 - 0xA) << 24) | 0x200C0004, 1);
             Gp_SpawnEff(0x6006C,
-                        (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8, 0xC,
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 0xC,
                         NULL);
             Gp_ConsumeSlotQty(0x8B, 1);
             func_80104490(arg0, 0, 2, Wip_SysConfig.field_22 | 0x10C00);

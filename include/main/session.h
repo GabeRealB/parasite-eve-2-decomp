@@ -65,7 +65,7 @@ typedef struct _GameSession {
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
     u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
-    u8    field_65; // 1: Gp_UpdateActorColor skips color-matrix rebuild unless GameActorExt.field_18 is set
+    u8    field_65; // 1: Gp_UpdateActorColor skips color-matrix rebuild unless TmdObject.field_18 is set
     u8    field_66; // 1: Gp_ItemMenuInit uses D_8010EB94 + Ui_Scale15(2)
     byte  unknown_67;
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
@@ -305,25 +305,9 @@ typedef struct _GameActor {
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 
-/// Object pointed to by Task::extra; field_8 is a GsCOORDINATE2* (stored as
-/// s32* so Display_SpawnFromMode can clear flg via *ptr = 0) after optional
-/// func_801011D0 / Gp_ClearRec18Occupied setup. field_C flag bits are OR'd with 0x80
-/// in Task_Kill (type-1 deferred kill). `Gp_WaitItemFlag2` writes 8 on first run
-/// and clears bit 0x8 before Task_CallExit. A non-NULL `field_18` lets
-/// `Gp_UpdateActorColor` rebuild the color matrix even when
-/// `Game_Session->field_65 == 1` (unless bit 0x80 of `field_C` is set).
-/// field_1C / field_20 are MATRIX* defaults (`Gp_DefaultMtx` / `Gp_DefaultMtx2`)
-/// written by `Gp_BindDefaultMtx`.
-typedef struct _GameActorExt {
-    /* 0x00 */ byte  pad_0[0x8];
-    /* 0x08 */ s32*  field_8;
-    /* 0x0C */ u16   field_C;
-    /* 0x0E */ byte  pad_E[0xA];
-    /* 0x18 */ void* field_18;
-    /* 0x1C */ void* field_1C;
-    /* 0x20 */ void* field_20;
-} GameActorExt;
-STATIC_ASSERT_SIZEOF(GameActorExt, 0x24);
+/// The object at `Task::extra` for spawnType-1 tasks is a `TmdObject`
+/// (`include/main/tmd.h`); it was previously modelled here as a truncated
+/// `GameActorExt`.
 
 // =============================================================================
 // Globals

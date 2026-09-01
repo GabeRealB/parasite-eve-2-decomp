@@ -152,11 +152,11 @@ void Task_Kill(Task* arg0)
         goto def_case;
 
     case1:
-        ((GameActorExt*)arg0->extra)->field_C |= 0x80;
-        arg0->killCountdown                    = 2;
-        arg0->callback                         = Task_CountdownCallback;
-        arg0->state                            = 0;
-        arg0->exitCallback                     = (TaskFunc)func_8002DEC4;
+        ((TmdObject*)arg0->extra)->field_C |= 0x80;
+        arg0->killCountdown                 = 2;
+        arg0->callback                      = Task_CountdownCallback;
+        arg0->state                         = 0;
+        arg0->exitCallback                  = (TaskFunc)func_8002DEC4;
         return;
 
     case2:

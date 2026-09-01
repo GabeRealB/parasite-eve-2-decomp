@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8`. `field_18` /
+/// Overlay of `GsCOORDINATE2` at `TmdObject.field_8`. `field_18` /
 /// `field_20` are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z).
 typedef struct _GpCoordXZ {
     /* 0x00 */ byte pad_0[0x18];

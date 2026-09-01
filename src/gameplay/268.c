@@ -2760,7 +2760,7 @@ s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
 
 void func_800BB7B4(Task* arg0)
 {
-    ((GameActorExt*)arg0->extra)->field_C = 0;
+    ((TmdObject*)arg0->extra)->field_C = 0;
 }
 
 void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
@@ -2897,7 +2897,7 @@ void Gp_SavePlayerPos(void)
     WipSysConfig* cfg;
     McSaveData*   save;
 
-    coord      = (GpCoordYaw*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord      = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
     temp       = coord->field_18;
     p          = &Wip_SysConfig.field_10;
     p->field_0 = temp;
@@ -2920,14 +2920,14 @@ GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
 {
     GpEnemy*      enemy;
     Task*         task;
-    GameActorExt* extra;
+    TmdObject*    extra;
     GpCoordPlace* coord;
 
     enemy = Gp_SpawnEnemyFromTable(&arg0->field_4, 0, arg0->field_0, NULL);
     if (enemy != NULL) {
         task = enemy->task;
         if (task->spawnType != 0) {
-            extra             = (GameActorExt*)task->extra;
+            extra             = (TmdObject*)task->extra;
             coord             = (GpCoordPlace*)extra->field_8;
             enemy->field_8    = arg1->field_0 | (arg1->field_4 << 8);
             enemy->field_A    = arg1->field_2;
@@ -2948,7 +2948,7 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBB54);
 
 void Gp_WaitItemFlag2(Task* arg0)
 {
-    GameActorExt* extra;
+    TmdObject* extra;
 
     extra = arg0->extra;
     if (arg0->state == 0) {

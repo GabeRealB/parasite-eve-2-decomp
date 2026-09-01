@@ -4,6 +4,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "rooms/dryfield_dilapidated_house.h"
+#include "main/tmd.h"
 
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
@@ -12,7 +13,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181028);
 
-void func_dryfield_dilapidated_house_801810F8(GameActorExt* dst, GameActorExt* src)
+void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
 {
     if (!(src->field_C & 0x80)) {
         dst->field_C &= ~0x80;
@@ -40,14 +41,14 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
     GsCOORDINATE2* coord;
     void*          work;
 
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     work  = Mem_Malloc(4, false);
     if (work == NULL) {
         Task_Kill(arg0);
         return;
     }
     arg0->idMap = work;
-    coord->sub  = (GsCOORDINATE2*)((GameActorExt*)((Task*)arg0->spawnArg2)->extra)->field_8;
+    coord->sub  = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8;
     Task_Reparent((Task*)arg0->spawnArg2, arg0);
     arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
     arg0->state       += 1;
@@ -59,7 +60,7 @@ void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord      = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     coord->sub = &Gfx_ViewCoord;
     Task_Kill(arg0);
 }
@@ -94,7 +95,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     s32            mask;
 
     mask  = 1 << (u8)Game_Session->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (mask & 0x84A9C) {
         func_dryfield_dilapidated_house_801815E8(coord, 0);
     }

@@ -5,6 +5,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/dryfield_dilapidated_house.h"
+#include "main/tmd.h"
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern TaskDesc   D_dryfield_dilapidated_house_80183EB4;
@@ -55,8 +56,8 @@ void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
     s32           temp_v0;
 
     work = (DdhCoordWork*)arg0->idMap;
-    func_dryfield_dilapidated_house_801810F8((GameActorExt*)arg0->extra,
-                                             (GameActorExt*)((Task*)arg0->spawnArg2)->extra);
+    func_dryfield_dilapidated_house_801810F8((TmdObject*)arg0->extra,
+                                             (TmdObject*)((Task*)arg0->spawnArg2)->extra);
     func_dryfield_dilapidated_house_80181028(arg0);
     temp_v0       = func_dryfield_dilapidated_house_80180FD8(arg0);
     work->field_0 = temp_v0;

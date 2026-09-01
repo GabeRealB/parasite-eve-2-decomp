@@ -789,7 +789,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 void Gp_ItemPickupTilt(Task* arg0)
 {
     GameSession*   session;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GpItemObj8*    obj;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* rot;
@@ -836,7 +836,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             vec             = D_80093DB0;
             extra->field_1C = mem;
             extra->field_20 = mem + 1;
-            Gp_UpdateCoord((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+            Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8);
             func_800D7A9C(extra, &vec, 0, 3);
             arg0->idMap = (TaskIdMap*)mem;
         }
@@ -851,50 +851,50 @@ void Gp_ItemPickupTilt(Task* arg0)
                 switch (mapId) {
                     case 0x1060000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x51060009, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x10C0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x510C0005, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     }
                     case 0x21B0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x521B000B, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x31B0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x531B000B, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x4100000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x54100012, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x41F0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x541F0015, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x4270000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x54270008, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                         break;
                     }
                 }
@@ -914,46 +914,46 @@ void Gp_ItemPickupTilt(Task* arg0)
             switch (mapId) {
                 case 0x1060000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x5106000A, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x10C0000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x510C0006, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x21B0000:
                     break;
                 case 0x31B0000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x531B000C, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x4100000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x54100013, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x41F0000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x541F0016, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x4270000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x54270009, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
                     break;
                 }
             }
@@ -976,7 +976,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     }
     vec2 = D_80093DB0;
-    Gp_UpdateCoord((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+    Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8);
     func_800D7A9C(extra, &vec2, 0, 3);
     USE_REG(item);
 }

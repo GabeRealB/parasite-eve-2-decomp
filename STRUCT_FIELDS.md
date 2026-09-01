@@ -29,7 +29,7 @@ Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
 | 0x28 | `spawnType` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
 | 0x29 | `priority` | List priority (lower runs earlier) |
 | 0x2A | `killCountdown` | Deferred-kill countdown / state |
-| 0x2C | `extra` | Spawn extra (`GameActorExt*`, overlay object, …) |
+| 0x2C | `extra` | Spawn extra (`TmdObject*`, overlay object, …) |
 | 0x30 | `state` | Generic state word (handlers / kill path) |
 | 0x34 | `spawnArg1` | Spawn arg1 — menu/ctx pointer, mode, …; `func_800E73E8` writes 1 here on `D_801156B8` instead of `Task_Kill` |
 | 0x38 | `flags` | Small flag byte |
@@ -564,7 +564,7 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 | 0x5E | `field_5E` | u8; set to 1 by `Gp_InitPlayClock` before allocating the play-clock idMap |
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x64 | `field_64` | u8 flag; nonzero makes `func_800AD5B8` / `func_800AD50C` skip their state dispatch |
-| 0x65 | `field_65` | u8; 1 makes `Gp_UpdateActorColor` skip the color-matrix rebuild unless `GameActorExt.field_18` is set (and `field_C` bit 0x80 is clear) |
+| 0x65 | `field_65` | u8; 1 makes `Gp_UpdateActorColor` skip the color-matrix rebuild unless `TmdObject.field_18` is set (and `field_C` bit 0x80 is clear) |
 | 0x66 | `field_66` | u8; 1 makes `Gp_ItemMenuInit` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
 | 0x69 | `field_69` | u8 flags; bit 0x1 skips the bank-load spawn in `Gp_EndingTask` (sets `D_80062734 = 0xFF` instead); bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released; bit 0x4 selects spawn arg 3 vs 2 from `D_80062774` |
@@ -586,12 +586,12 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 | 0x13A | `field_13A` | u8; cleared by `Gp_PostDirIfCapIdle` when `D_80114CDC` is 0 |
 | 0x13B | `field_13B` | u8 flags; cleared by `Gp_HaltPadScripts` with `Pad_ClearEvents(0)`. Bit 0 is set by `Gp_PadHoldTask` while its `spawnArg1` countdown runs and cleared when that task kills itself. Bit 0x80 lets `Gp_PadHoldTask` proceed when `D_801153F4` is set. |
 
-### `GameActor` / `GameActorExt`
+### `GameActor` / `TmdObject`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
 `field_930` is an s32 (`sw`); `Gp_MsgPlayerDirFacing` writes a lookup byte from `D_801149FC`
 (or `(Gp_DirByte & 0x70) >> 4`) here. `Display_SpawnFromMode` still takes its address
 for `func_801011D0`.
-`GameActorExt.field_C` bit 0x8 is written by `Gp_WaitItemFlag2` on first run and
+`TmdObject.field_C` bit 0x8 is written by `Gp_WaitItemFlag2` on first run and
 cleared before `Task_CallExit` when the 2-bit bank value is 2.
 `field_17C` is an 18-entry `GpRec18` table (`Gp_ClearRec18Occupied` walks it from
 `&field_17C` until `field_0` bit 0x2; `func_801041B4` returns 1 if any
@@ -654,18 +654,18 @@ pointer.
 as `GpAnimSlot.field_10` on the `pad_438` overlay).
 `func_801058BC` clamps `arg2` to 1..0x7F, writes it through the slid-actor overlay
 at `field_441` for `i = 1 .. field_938-1`, then stores the same byte at `field_985`.
-`GameActorExt.field_18` is a pointer; a non-NULL value lets `Gp_UpdateActorColor` rebuild the
+`TmdObject.field_18` is a pointer; a non-NULL value lets `Gp_UpdateActorColor` rebuild the
 color matrix even when `Game_Session->field_65 == 1`, unless `field_C` bit 0x80 is set.
-`GameActorExt.field_1C` / `field_20` are `MATRIX*` defaults (`Gp_DefaultMtx` / `Gp_DefaultMtx2`)
+`TmdObject.field_1C` / `field_20` are `MATRIX*` defaults (`Gp_DefaultMtx` / `Gp_DefaultMtx2`)
 written by `Gp_BindDefaultMtx` onto the slot-3 extra and onto `field_920`/`field_924` extras.
-`GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
+`TmdObject.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
 and `Gp_ReparentCoord`; `sub` is the parent link, same convention as `Gfx_InitCoordinateTrees`).
 Offset 0x18 / 0x20 are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z);
 `Gp_YawToPosXZ` loads them as `u16` (`GpCoordXZ`).
 Offset 0x44 (`param` in libgs) is loaded as an s16 flag by `func_8010B590` (`GpCoordExt`).
 Offset 0x46 is a signed yaw halfword written by `Gp_SpawnAtPlace` (`GpCoordPlace`);
 a non-zero value is passed to `Gfx_RotMatrixY` on `&coord`.
-Offset 0x4C (`sub` in libgs) is the parent `GameActorExt.field_8` pointer written by
+Offset 0x4C (`sub` in libgs) is the parent `TmdObject.field_8` pointer written by
 `func_80104364` (with `field_44 = 1`) and `func_80104258` (with `field_44 = 0`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `Gp_UnlinkObj` during actor teardown (`Gp_TeardownSlot0`).
@@ -695,7 +695,7 @@ timer is `<= 0`; bit 4 also ticks `field_98D` and reloads it from `field_958`
 skipped when `Gp_StateC08.field_A` is 2 or 3.
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);
 `field_10` / `field_14` / `field_18` are s32s (`lw`/`sw`); `func_8010C30C` copies
-`GsCOORDINATE2.coord.t[0..2]` from `GameActorExt.field_8` here after folding
+`GsCOORDINATE2.coord.t[0..2]` from `TmdObject.field_8` here after folding
 `coord[1].coord.t` X/Z through `ApplyMatrixLV`.
 `field_20` / `field_24` / `field_28` are s32s (`lw`/`sw`); `Gp_SetActorDest` copies
 `GpVecArg.field_0` / `field_4` / `field_8` here. Optional `GpOverrideArg` (NULL zeros
@@ -751,7 +751,7 @@ vs `Gp_ResetActorAnimState` in `func_80106550`;
 0xD4-byte block at `GameActor.field_910`, allocated and `Mem_Set(..., 0xD4)` by `Gp_SpawnAlly`.
 | Off | Member | Role |
 |-----|--------|------|
-| 0x18 | `field_18` | `GsCOORDINATE2`; `Gp_BindActorD4` copies `GameActorExt.field_8` here and points the `GpObj` at 0x68 at it |
+| 0x18 | `field_18` | `GsCOORDINATE2`; `Gp_BindActorD4` copies `TmdObject.field_8` here and points the `GpObj` at 0x68 at it |
 | 0x68 | `field_68` | 0x20-byte `GpObj`; `Gp_BindActorD4` links it via `Gp_LinkObj(1, …)` and ORs `flags` with 0xC800 |
 | 0x88 | `field_88` | `GpActorD4Rec`; pose / id payload plus `field_14` → `field_A0` |
 | 0xA0 | `field_A0` | `GpRec18` table wiped by `Gp_InitRec18Table(..., 1, 0)` |
@@ -813,7 +813,7 @@ it when current exceeds the new max.
 
 ### `GpActorWork` — `3FB8.h`
 Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
-0x2C (`GameActorExt*`). `Gp_PlayerStepSfx` passes `extra->field_8` to
+0x2C (`TmdObject*`). `Gp_PlayerStepSfx` passes `extra->field_8` to
 `Gp_GetObjPan` / `Gp_GetObjDepth` as a `GpObj38*`.
 
 ### `GpEffWork` (0x2C) — `3FB8.h`
@@ -1153,7 +1153,7 @@ alignment pad).
 | 0x20 | `field_20` | u16 cell size; divisor for world-to-grid (`lhu`) |
 
 ### `GpObj38` (0x44) — `3A34.h`
-Sparse overlay. When `GameActorExt.field_8` is passed in, this is a
+Sparse overlay. When `TmdObject.field_8` is passed in, this is a
 `GsCOORDINATE2` and `field_24` is `workm`. Light helpers treat
 `field_24.t` as a `VECTOR*`.
 

@@ -121,7 +121,7 @@ void Gp_EffSprTask55(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -274,7 +274,7 @@ void Gp_EffSprTask42(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -413,7 +413,7 @@ void Gp_EffCtlTask9B(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 4) {
         if (arg0->state == 0) {
             coord->sub        = mem->field_8;
@@ -474,7 +474,7 @@ void Gp_EffSprTask30(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -688,7 +688,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     u8*               head;
     GpEffBeamScratch* block;
     GpEffWork*        mem;
-    GameActorExt*     extra;
+    TmdObject*        extra;
     GsCOORDINATE2*    coord;
     POLY_FT4*         prim;
     u16               abr;
@@ -702,7 +702,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     u16               angle;
     u16               vz;
 
-    extra                                      = (GameActorExt*)arg0->extra;
+    extra                                      = (TmdObject*)arg0->extra;
     mem                                        = arg0->spawnArg2;
     scratch                                    = (void**)G_SCRATCH_HEAD;
     abr                                        = 1;
@@ -901,7 +901,7 @@ void Gp_EffTask07State1(Task* arg0)
         if (spawnId == 0) {
             return;
         }
-        Gp_SpawnEff(spawnId, (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8,
+        Gp_SpawnEff(spawnId, (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8,
                     Gp_StateC08.field_2, 0);
     } else if (kind == 1) {
         idx = ((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
@@ -912,7 +912,7 @@ void Gp_EffTask07State1(Task* arg0)
             return;
         }
         Gp_SpawnEff(spawnId,
-                    (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + D_80112B28[idx], 0,
+                    (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8 + D_80112B28[idx], 0,
                     0);
     }
 }
@@ -935,7 +935,7 @@ void Gp_EffCtlTask32(Task* arg0)
     s32            newState;
 
     mem           = arg0->spawnArg2;
-    coord         = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord         = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     step          = mem->field_22 + 1;
     mem->field_22 = step;
     state         = arg0->state;
@@ -954,7 +954,7 @@ void Gp_EffCtlTask32(Task* arg0)
             mem->field_10 = (rcos(temp) * mem->field_2A) >> 0xC;
             mem->field_12 = ((rsin(mem->field_14) * mem->field_2A) >> 0xC) - 0x400;
             parent =
-                (GsCOORDINATE2*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
             one                  = ONE;
             *(s32*)&coord->coord = one;
             coord->sub           = parent;
@@ -1059,12 +1059,12 @@ void Gp_EffCtlTaskAE(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     state = arg0->state;
     switch (state) {
         case 0:
             parent =
-                (GsCOORDINATE2*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
             one                  = ONE;
             *(s32*)&coord->coord = one;
             coord->sub           = parent + 12;
@@ -1198,7 +1198,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_E;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1242,9 +1242,9 @@ void Gp_EffCtlTaskF3(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (Gp_State1C->field_E != 0 ||
-        (((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
+        (((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
         if (Gp_State1C->field_E < 4) {
             return;
         }
@@ -1258,7 +1258,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
 
         Gp_State1C->field_12 |= 0x400;
         slot                  = Game_GetPtrSlot(3);
-        parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        parent                = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8;
         coord->coord.t[0]     = 0;
         coord->coord.t[1]     = 0;
         coord->coord.t[2]     = 0;
@@ -1305,7 +1305,7 @@ lcg:
     slot        = Game_GetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gp_SpawnEff(0x600F4,
-                (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8 +
                     ((((u32)Gp_LcgState >> 16) & 1) * 3 + 15),
                 mem->field_2A | 0x8000, 0);
 }
@@ -1391,13 +1391,13 @@ void Gp_EffCtlTaskF4(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_E;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
             goto kill;
         }
         slot = Game_GetPtrSlot(3);
-        if (((GameActorExt*)slot->extra)->field_C & 0x80) {
+        if (((TmdObject*)slot->extra)->field_C & 0x80) {
             return;
         }
         Gp_UpdateCoord(coord);
@@ -1454,9 +1454,9 @@ void Gp_EffCtlTaskAC(Task* arg0)
     s32            temp;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (Gp_State1C->field_E != 0 ||
-        (((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
+        (((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
         if (Gp_State1C->field_E < 4) {
             return;
         }
@@ -1469,7 +1469,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
 
         Gp_State1C->field_12 |= 0x200;
         slot                  = Game_GetPtrSlot(3);
-        parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        parent                = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8;
         coord->coord.t[0]     = 0;
         coord->coord.t[1]     = 0;
         coord->coord.t[2]     = 0;
@@ -1531,7 +1531,7 @@ continue_fx:
             slot        = Game_GetPtrSlot(3);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x600E0,
-                        (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                        (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8 +
                             ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
                         0x10080, 0);
         }
@@ -1549,7 +1549,7 @@ continue_fx:
     slot        = Game_GetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gp_SpawnEff(0x600E0,
-                (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8 +
                     ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
                 0x10200, 0);
 }
@@ -1567,7 +1567,7 @@ void Gp_EffCtlTask0E(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1579,7 +1579,7 @@ void Gp_EffCtlTask0E(Task* arg0)
     if (arg0->state == 0) {
         Gp_State1C->field_12 |= 0x800;
         slot                  = Game_GetPtrSlot(3);
-        parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        parent                = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8;
         one                   = ONE;
         *(s32*)&coord->coord  = one;
         coord->sub            = parent + 8;
@@ -1642,7 +1642,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
             SndEvt_EnqueueType7(0xFF0D, 1);
@@ -1708,7 +1708,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 4) {
         switch (arg0->state) {
             case 0:
@@ -1799,7 +1799,7 @@ void Gp_EffSprTaskA7(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1941,7 +1941,7 @@ void Gp_EffCtlTask7F(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -2029,7 +2029,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -2079,7 +2079,7 @@ void Gp_EffSprTask80(Task* arg0)
     u8*                     head;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (Gp_State1C->field_4 < 4) {
         head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x18;
         *(void**)G_SCRATCH_HEAD = head;
@@ -2199,7 +2199,7 @@ void Gp_EffSprTask8D(Task* arg0)
     s32                       c;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (Gp_State1C->field_4 < 4) {
         Gp_UpdateCoord(coord);
         scratch                                   = (void**)G_SCRATCH_HEAD;
@@ -2313,7 +2313,7 @@ void Gp_EffSprTask3F(Task* arg0)
     s32               temp;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (Gp_State1C->field_4 < 4) {
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
@@ -2441,7 +2441,7 @@ void Gp_EffSprTaskE0(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                    = (void**)G_SCRATCH_HEAD;
@@ -2544,7 +2544,7 @@ void Gp_EffSprTaskE1(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -2641,7 +2641,7 @@ void Gp_EffSprTaskE2(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag < 2) {
         if (arg0->state == 0) {
             if (arg0->spawnArg1 < 0) {
@@ -2749,7 +2749,7 @@ void Gp_DrawEffSpriteE2(GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3)
 void Gp_InitPlayerWork(GpActorWork* arg0)
 {
     GameActor*     actor;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GsCOORDINATE2* coord;
     GpObj*         obj;
     GpRec18*       recs;
@@ -2956,7 +2956,7 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
     if (task != NULL) {
         tmp                               = p;
         extra                             = task->extra;
-        src                               = (GsCOORDINATE2*)((GameActorExt*)extra)->field_8;
+        src                               = (GsCOORDINATE2*)((TmdObject*)extra)->field_8;
         *(GsCOORDINATE2*)actor->field_3D4 = *src;
         Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);
         obj->field_8                     = actor->field_3D4;
@@ -3136,7 +3136,7 @@ void Gp_UpdatePlayerMove(void)
     GpActorWork*            work;
     GameActor*              actor;
     GameActor*              p;
-    register GameActorExt*  extra asm("v0");
+    register TmdObject*     extra asm("v0");
     register GsCOORDINATE2* coord asm("s1");
     u16                     buttons;
     u16                     prev;
@@ -3220,7 +3220,7 @@ void Gp_UpdatePlayerMove(void)
     ((SVECTOR*)actor->field_A0)->vz = vec->vz;
     if (task != NULL) {
         *(GsCOORDINATE2*)actor->field_3D4 =
-            *(GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+            *(GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
         mat = &((GsCOORDINATE2*)actor->field_3D4)->workm;
         if (Wip_SysConfig.field_21 != 0x17) {
             Gfx_RotMatrixX(mat, -0x400, 0);
@@ -3318,7 +3318,7 @@ void Gp_StepPlayerMove(GpActorWork* arg0)
     register GameActor*     actor asm("s3");
     register GsCOORDINATE2* coord asm("s5");
     register GpMoveScratch* s asm("s4");
-    GameActorExt*           extra;
+    TmdObject*              extra;
     u16                     mode;
     SVECTOR*                vec;
     MATRIX*                 mat;
@@ -3437,7 +3437,7 @@ void Gp_StepPlayerMove(GpActorWork* arg0)
 
 void Gp_TurnPlayer(GpActorWork* arg0)
 {
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GameActor*     actor;
     GsCOORDINATE2* coord;
     s32            flag;
@@ -3620,7 +3620,7 @@ void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
         block = (GpYawScratch*)tmp;
         TOUCH_REG(block);
         rec           = &D_801131B4[Wip_SysConfig.field_21];
-        src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+        src           = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
         block->rot.vz = rec->vz;
@@ -3796,9 +3796,9 @@ void Gp_AimPitchToLock(GpActorWork* arg0)
         TOUCH_REG_USE(item, slot);
         item = (item << 3) + (s32)tbl;
         {
-            register GameActorExt* extra asm("a0");
-            u16                    vx;
-            extra = (GameActorExt*)slot->extra;
+            register TmdObject* extra asm("a0");
+            u16                 vx;
+            extra = (TmdObject*)slot->extra;
             TOUCH_REG(extra);
             vx            = ((GpAimRot*)item)->vx;
             src           = (GsCOORDINATE2*)extra->field_8;
@@ -3907,9 +3907,9 @@ void Gp_AimPitchToLockAlt(GpActorWork* arg0)
         TOUCH_REG_USE(item, slot);
         item = (item << 3) + (s32)tbl;
         {
-            register GameActorExt* extra asm("a0");
-            u16                    vx;
-            extra = (GameActorExt*)slot->extra;
+            register TmdObject* extra asm("a0");
+            u16                 vx;
+            extra = (TmdObject*)slot->extra;
             TOUCH_REG(extra);
             vx            = ((GpAimRot*)item)->vx;
             src           = (GsCOORDINATE2*)extra->field_8;
@@ -3981,7 +3981,7 @@ void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2)
         block = (GpPitchScratch*)tmp;
         TOUCH_REG(block);
         rec           = &D_801131B4[arg1];
-        src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+        src           = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
         block->rot.vz = rec->vz;
@@ -4043,7 +4043,7 @@ void Gp_AimPitchDirect(GpActorWork* arg0)
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
         TOUCH_REG(block);
-        src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+        src           = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
         block->rot.vx = 0;
         block->rot.vy = 0;
         block->rot.vz = 0;
@@ -4148,18 +4148,18 @@ void func_801030CC(GpActorWork* arg0)
 
 inline static Task* spawn_tmd_attach(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Task*         task;
-    GameActor*    actor;
-    GameActorExt* extra;
-    GpCoordExt*   coord;
-    TmdObject*    obj;
-    s32*          saved;
-    u8*           table;
-    s32           type;
+    Task*          task;
+    GameActor*     actor;
+    TmdObject*     extra;
+    GpCoordExt*    coord;
+    TmdObject*     obj;
+    GsCOORDINATE2* saved;
+    u8*            table;
+    s32            type;
 
     extra = arg0->extra;
     actor = arg0->actor;
-    saved = (s32*)&((GsCOORDINATE2*)extra->field_8)[D_80112E04[arg2][arg1]];
+    saved = &extra->field_8[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
     type  = Wip_SysConfig.field_26 - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
@@ -4167,7 +4167,7 @@ inline static Task* spawn_tmd_attach(GpActorWork* arg0, s32 arg1, s32 arg2, s32 
         return NULL;
     }
     task->parent    = (Task*)arg0;
-    coord           = (GpCoordExt*)((GameActorExt*)task->extra)->field_8;
+    coord           = (GpCoordExt*)((TmdObject*)task->extra)->field_8;
     coord->sub      = saved;
     coord->field_44 = 0;
     obj             = (TmdObject*)task->extra;
@@ -4201,13 +4201,13 @@ Task* func_80103294(GpActorWork* arg0, s32 arg1, s32 arg2)
 
 inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
 {
-    s32*          saved;
-    Task*         task;
-    GameActorExt* extra;
-    GpCoordExt*   coord;
-    s32           type;
+    GsCOORDINATE2* saved;
+    Task*          task;
+    TmdObject*     extra;
+    GpCoordExt*    coord;
+    s32            type;
 
-    saved = ((GameActorExt*)parent->extra)->field_8;
+    saved = ((TmdObject*)parent->extra)->field_8;
     if (item == 0) {
         return NULL;
     }
@@ -4216,7 +4216,7 @@ inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
     if (task == NULL) {
         return NULL;
     }
-    extra           = (GameActorExt*)task->extra;
+    extra           = (TmdObject*)task->extra;
     task->parent    = parent;
     coord           = (GpCoordExt*)extra->field_8;
     coord->sub      = saved;
@@ -4234,7 +4234,7 @@ s32 Gp_SpawnWeaponEff(void)
     s32           kind;
     s32           id;
     s32           arg2;
-    GameActorExt* extra;
+    TmdObject*    extra;
     GpCoordExt*   coord;
     GpEffWork*    eff;
     GameActor*    inner;
@@ -4265,7 +4265,7 @@ s32 Gp_SpawnWeaponEff(void)
     }
 
     kind  = 0x16;
-    extra = (GameActorExt*)actor->field_91C->extra;
+    extra = (TmdObject*)actor->field_91C->extra;
     id    = cfg->field_21;
     coord = (GpCoordExt*)extra->field_8;
     if (id != kind) {
@@ -4343,7 +4343,7 @@ have_actor:
     Mem_Set(actor, 0, 0x998);
     actor->field_93C  = arg3->field_0;
     actor->field_52   = arg0->field_0;
-    coord             = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+    coord             = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     coord->coord.t[0] = arg0->field_4;
     coord->coord.t[1] = arg0->field_8;
     coord->coord.t[2] = arg0->field_C;
@@ -4658,7 +4658,7 @@ GsCOORDINATE2* func_8010403C(s32 arg0)
 
     slot = Game_GetPtrSlot(3);
     idx  = D_80112E2C[Mc_SaveData.field_22 - 1][arg0];
-    return &((GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8)[idx];
+    return &((GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8)[idx];
 }
 
 void Gp_PlaceCoordOffset(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
@@ -4714,18 +4714,18 @@ void func_801041FC(GpActorWork* arg0, s32 arg1)
 
 Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Task*         task;
-    GameActor*    actor;
-    GameActorExt* extra;
-    GpCoordExt*   coord;
-    TmdObject*    obj;
-    s32*          saved;
-    u8*           table;
-    s32           type;
+    Task*          task;
+    GameActor*     actor;
+    TmdObject*     extra;
+    GpCoordExt*    coord;
+    TmdObject*     obj;
+    GsCOORDINATE2* saved;
+    u8*            table;
+    s32            type;
 
     extra = arg0->extra;
     actor = arg0->actor;
-    saved = (s32*)&((GsCOORDINATE2*)extra->field_8)[D_80112E04[arg2][arg1]];
+    saved = &extra->field_8[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
     type  = Wip_SysConfig.field_26 - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
@@ -4733,7 +4733,7 @@ Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
         return NULL;
     }
     task->parent    = (Task*)arg0;
-    coord           = (GpCoordExt*)((GameActorExt*)task->extra)->field_8;
+    coord           = (GpCoordExt*)((TmdObject*)task->extra)->field_8;
     coord->sub      = saved;
     coord->field_44 = 0;
     obj             = (TmdObject*)task->extra;
@@ -4751,11 +4751,11 @@ Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 Task* func_80104364(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Task*         task;
-    s32*          saved;
-    GameActorExt* extra;
-    GpCoordExt*   coord;
-    s32           type;
+    Task*          task;
+    GsCOORDINATE2* saved;
+    TmdObject*     extra;
+    GpCoordExt*    coord;
+    s32            type;
 
     saved = arg0->extra->field_8;
     if (arg2 == 0) {
@@ -4766,7 +4766,7 @@ Task* func_80104364(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    extra           = (GameActorExt*)task->extra;
+    extra           = (TmdObject*)task->extra;
     task->parent    = (Task*)arg0;
     coord           = (GpCoordExt*)extra->field_8;
     coord->sub      = saved;
@@ -4812,16 +4812,16 @@ Task* func_80104490(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*          task;
     GsCOORDINATE2* saved;
-    GameActorExt*  extra;
+    TmdObject*     extra;
 
-    saved  = (GsCOORDINATE2*)((GameActorExt*)arg0->actor->field_91C->extra)->field_8;
+    saved  = (GsCOORDINATE2*)((TmdObject*)arg0->actor->field_91C->extra)->field_8;
     arg2 <<= 2;
     arg1  += 0x60;
     task   = Task_Spawn(7, arg2 + arg1, arg3, 0);
     if (task == NULL) {
         return NULL;
     }
-    extra                                 = (GameActorExt*)task->extra;
+    extra                                 = (TmdObject*)task->extra;
     task->parent                          = (Task*)arg0;
     ((GsCOORDINATE2*)extra->field_8)->sub = saved;
     return task;
@@ -4961,7 +4961,7 @@ s32 func_80104684(GpActorWork* arg0, s32 arg1, s32 arg2)
 
 s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GameActor*     actor;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* next;
@@ -5142,12 +5142,12 @@ s32 func_80104CAC(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 
 s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GameActor*     actor;
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    extra             = (GameActorExt*)arg0->extra;
+    extra             = (TmdObject*)arg0->extra;
     actor             = (GameActor*)arg0->idMap;
     coord             = (GsCOORDINATE2*)extra->field_8;
     coord->coord.t[0] = arg2->field_0;
@@ -5644,7 +5644,7 @@ s32 Gp_ApplyPlayerDamage(GpActorWork* arg0, s32 arg1, s32 arg2)
 
 s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2)
 {
-    Gp_ReparentCoord((GsCOORDINATE2*)arg2, (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+    Gp_ReparentCoord((GsCOORDINATE2*)arg2, (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8);
     return 0;
 }
 
@@ -6281,7 +6281,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
 
     actor            = arg0->actor;
     done             = 0;
-    coord            = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+    coord            = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
     base             = Wip_SysConfig.field_21 << 16;
     actor->field_973 = 0;
     func_801095BC(&variant);
@@ -6861,7 +6861,7 @@ void Gp_PlayerMode2State4(GpActorWork* arg0)
     register s32       dx asm("v0");
     void**             scratch;
     u8*                head;
-    GameActorExt*      extra;
+    TmdObject*         extra;
     GpApproachScratch* block;
     GsCOORDINATE2*     coord;
     GameActor*         actor;
@@ -8434,12 +8434,12 @@ void func_8010A670(GpActorWork* arg0)
 
 s32 Gp_ApplyHpDamage(s32 arg0)
 {
-    register s32  amount asm("s1");
-    s32           ret;
-    register s32  tmp asm("v0");
-    WipSysConfig* p;
-    Task*         slot;
-    s32*          coords;
+    register s32   amount asm("s1");
+    s32            ret;
+    register s32   tmp asm("v0");
+    WipSysConfig*  p;
+    Task*          slot;
+    GsCOORDINATE2* coords;
 
     amount = arg0;
     ret    = 0;
@@ -8457,9 +8457,9 @@ s32 Gp_ApplyHpDamage(s32 arg0)
         p = &Wip_SysConfig;
         if (p->field_18 >= 5 && (s16)amount >= p->field_18) {
             slot        = Game_GetPtrSlot(3);
-            coords      = ((GameActorExt*)slot->extra)->field_8;
+            coords      = ((TmdObject*)slot->extra)->field_8;
             p->field_18 = 1;
-            Gp_SpawnEff(0x6009C, (GsCOORDINATE2*)coords + 1, 5, 0);
+            Gp_SpawnEff(0x6009C, coords + 1, 5, 0);
             return 0;
         }
     }
@@ -8918,7 +8918,7 @@ void func_8010B3F8(Task* arg0)
                 }
                 coords          = (GsCOORDINATE2*)slot->extra;
                 count           = arg0->killCountdown;
-                coords          = (GsCOORDINATE2*)((GameActorExt*)coords)->field_8;
+                coords          = (GsCOORDINATE2*)((TmdObject*)coords)->field_8;
                 params->field_4 = (idx * 0x60) + 0xC0;
                 params->field_6 = idx + 1;
                 coords          = &coords[((count & 0xF00) >> 8) + 1];
@@ -8933,9 +8933,9 @@ void func_8010B3F8(Task* arg0)
 
 void func_8010B520(Task* arg0)
 {
-    s32*           raw;
+    GsCOORDINATE2* raw;
     Task*          slot;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GpEffArg*      params;
     GsCOORDINATE2* coords;
 
@@ -8944,7 +8944,7 @@ void func_8010B520(Task* arg0)
     extra           = slot->extra;
     raw             = extra->field_8;
     params->field_4 = 0xC0;
-    coords          = &((GsCOORDINATE2*)raw)[3];
+    coords          = &raw[3];
     params->field_0 = coords;
     params->field_6 = (u16)arg0->spawnArg1 + 1;
     func_800FDB18(2, coords, 0, params);
@@ -8953,10 +8953,10 @@ void func_8010B520(Task* arg0)
 
 void func_8010B590(Task* arg0)
 {
-    GameActorExt* extra;
-    GpCoordExt*   coord;
+    TmdObject*  extra;
+    GpCoordExt* coord;
 
-    extra = (GameActorExt*)arg0->extra;
+    extra = (TmdObject*)arg0->extra;
     coord = (GpCoordExt*)extra->field_8;
     arg0->state++;
     coord->flg = 0;
@@ -8967,13 +8967,13 @@ void func_8010B590(Task* arg0)
 
 void func_8010B5C0(Task* arg0)
 {
-    Task*         parent;
-    GameActorExt* extra;
+    Task*      parent;
+    TmdObject* extra;
 
-    parent          = arg0->parent;
-    extra           = (GameActorExt*)arg0->extra;
-    extra->field_C  = ((GameActorExt*)parent->extra)->field_C;
-    *extra->field_8 = 0;
+    parent              = arg0->parent;
+    extra               = (TmdObject*)arg0->extra;
+    extra->field_C      = ((TmdObject*)parent->extra)->field_C;
+    extra->field_8->flg = 0;
 }
 
 void func_8010B5E4(Task* arg0)
@@ -9068,7 +9068,7 @@ s32 Gp_SetupAllyWeapon(void)
             block->field_CD   = D_80167230[save->field_5C7];
             if ((u8)save->field_5C7 == 4 && actor->field_914 == NULL) {
                 eff = Gp_SpawnEff(
-                    0x80060180, (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8, val1, 0);
+                    0x80060180, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, val1, 0);
                 if (eff != NULL) {
                     actor->field_914 = eff->field_0;
                     func_80106350(work, val1, 0);
@@ -9178,7 +9178,7 @@ have_actor:
     Gp_PumpTmdStream(task);
     actor->field_93C  = *arg3;
     actor->field_52   = arg0->field_0;
-    coord             = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+    coord             = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     coord->coord.t[0] = arg0->field_4;
     coord->coord.t[1] = arg0->field_8;
     coord->coord.t[2] = arg0->field_C;
@@ -9209,13 +9209,13 @@ void Gp_ResetActorMove(GpActorWork* arg0, s16 arg1)
 
 s32 func_8010BC70(GsCOORDINATE2* arg0)
 {
-    void**        scratch;
-    u8*           head;
-    VECTOR3*      vec;
-    GameActorExt* extra;
-    s32           ret;
+    void**     scratch;
+    u8*        head;
+    VECTOR3*   vec;
+    TmdObject* extra;
+    s32        ret;
 
-    extra    = (GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra;
+    extra    = (TmdObject*)((Task*)Game_GetPtrSlot(3))->extra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     vec      = (VECTOR3*)(head - 0x10);
@@ -9231,11 +9231,11 @@ s16 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     void**              scratch;
     u8*                 head;
     VECTOR3*            vec;
-    GameActorExt*       extra;
+    TmdObject*          extra;
     register GameActor* actor asm("s2");
     s16                 ret;
 
-    extra    = (GameActorExt*)arg0->extra;
+    extra    = (TmdObject*)arg0->extra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     vec      = (VECTOR3*)(head - 0x10);
@@ -9252,7 +9252,7 @@ void func_8010BD88(GpActorWork* arg0, VECTOR3* arg1)
     void**         scratch;
     u8*            head;
     GpTurnScratch* vec;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GameActor*     actor;
     s32            val;
 
@@ -9281,7 +9281,7 @@ void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1)
     GpAimScratch*  block;
     GsCOORDINATE2* coord;
     SVECTOR*       rot;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GameActor*     actor;
     s32            val;
 
@@ -9291,7 +9291,8 @@ void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1)
     actor   = arg0->actor;
     coord   = (GsCOORDINATE2*)(head - 0x50);
     rot     = (SVECTOR*)(head - 0x58);
-    extra   = (GameActorExt*)extra->field_8;
+    /* The coord array replaces the object in the same register (v0). */
+    extra = (TmdObject*)extra->field_8;
     block = *scratch = (GpAimScratch*)(head - 0x68);
     block->rot.vx    = 0;
     block->rot.vy    = 0;
@@ -9433,7 +9434,7 @@ void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
 
 s32 func_8010C30C(GpActorWork* arg0)
 {
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* next;
     GameActor*     actor;

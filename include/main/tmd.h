@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 // Types — TMD model lists (src/main/tmd.c; stage fade/MDEC lives in stage.c)
 
@@ -36,27 +37,55 @@ typedef struct _TmdSource {
     /* 0x20 */ u32*  field_20;  // [id, handler_slot, dims, data…] stream
 } TmdSource;
 
-/// Node in the Tmd_List linked list (tmd.c TMD/model objects).
+struct _TmdListHead;
+
+/// Node in the Tmd_List linked list (tmd.c TMD/model objects), and the object a
+/// spawnType-1 `Task` carries in `Task::extra`: `Gp_AttachTmd` /
+/// `Gp_AttachTmdFlags` store the `Tmd_Create` result straight into
+/// `Task::extra` and set `Task::spawnType = 1`, `Task_Kill`'s type-1 path ORs
+/// 0x80 into `field_C` of that same pointer, and `Gp_FreeTmd` releases it. The
+/// spawnType-2 alternative (`Gp_AttachDisp2d`) is a different object,
+/// `GpDisp2d`, sharing only the `next` / `prev` / `field_8` / `field_C` prefix.
+/// This type was also modelled separately as `GameActorExt` (0x24, `field_8` as
+/// `s32*`, 0x0E..0x17 padded over); that duplicate is gone.
+///
+/// `Tmd_Create` allocates the header and the per-part coordinate array as one
+/// `Mem_Calloc(partCount * 0x50 + 0x34, 0)` block, then points `field_8` at
+/// `(u8*)this + 0x34`, so `field_8` is this object's own trailing
+/// `GsCOORDINATE2[field_30]`. The init loop writes each element's `coord`
+/// (+0x04, 0x20 bytes copied from the matching `TmdBone`), clears `flg` (+0x00)
+/// and links `sub` (+0x4C) to the parent part or `Gfx_ViewCoord`, which is why
+/// every caller walks `field_8` with a 0x50 stride and why `Display_SpawnFromMode`
+/// can clear the root `flg` through it.
+///
+/// `field_C` starts at 0x80 and gains bit 0x4 when `Tmd_Create`'s `flags & 1`.
+/// `Task_Kill` ORs 0x80 (type-1 deferred kill); `Gp_WaitItemFlag2` writes 8 on
+/// first run and clears bit 0x8 before `Task_CallExit`. A non-NULL `field_18`
+/// lets `Gp_UpdateActorColor` rebuild the color matrix even when
+/// `Game_Session->field_65 == 1` (unless bit 0x80 of `field_C` is set).
+/// `field_1C` / `field_20` are the light and color matrices `Tmd_SetupDraw`
+/// loads (`GsLIGHTWSMATRIX` / `D_80074080` by default, `Gp_DefaultMtx` /
+/// `Gp_DefaultMtx2` after `Gp_BindDefaultMtx`).
 typedef struct _TmdObject {
-    /* 0x00 */ struct _TmdObject* next;
-    /* 0x04 */ byte               unknown_4[0x4];
-    /* 0x08 */ void*              field_8;
-    /* 0x0C */ u16                field_C;
-    /* 0x0E */ s8                 field_E;
-    /* 0x0F */ byte               unknown_F;
-    /* 0x10 */ TmdSource*         field_10; // source / model data
-    /* 0x14 */ u16                field_14; // cleared when buffers alloc
-    /* 0x16 */ u16                field_16;
-    /* 0x18 */ void*              field_18; // aux buffer (Tmd_AllocBuffers)
-    /* 0x1C */ void*              field_1C;
-    /* 0x20 */ void*              field_20;
-    /* 0x24 */ u8                 field_24;
-    /* 0x25 */ u8                 field_25;
-    /* 0x26 */ u8                 field_26;
-    /* 0x27 */ u8                 field_27;
-    /* 0x28 */ byte               unknown_28[0x4];
-    /* 0x2C */ s32                field_2C; // lighting intensity (>> 5 into RGB)
-    /* 0x30 */ s32                field_30;
+    /* 0x00 */ struct _TmdObject*   next;
+    /* 0x04 */ struct _TmdListHead* prev;    // Tmd_List / Tmd_ListAlt back link
+    /* 0x08 */ GsCOORDINATE2*       field_8; // trailing per-part coord array, `this + 0x34`
+    /* 0x0C */ u16                  field_C;
+    /* 0x0E */ s8                   field_E;
+    /* 0x0F */ byte                 unknown_F;
+    /* 0x10 */ TmdSource*           field_10; // source / model data
+    /* 0x14 */ u16                  field_14; // cleared when buffers alloc
+    /* 0x16 */ u16                  field_16;
+    /* 0x18 */ void*                field_18; // aux buffer (Tmd_AllocBuffers)
+    /* 0x1C */ MATRIX*              field_1C; // light matrix
+    /* 0x20 */ MATRIX*              field_20; // color matrix
+    /* 0x24 */ u8                   field_24; // texture page, Tmd_ProcessStream ws.field_70
+    /* 0x25 */ u8                   field_25; // CLUT row, ws.field_72 = field_25 << 6
+    /* 0x26 */ u8                   field_26;
+    /* 0x27 */ u8                   field_27;
+    /* 0x28 */ byte                 unknown_28[0x4];
+    /* 0x2C */ s32                  field_2C; // lighting intensity (>> 5 into RGB)
+    /* 0x30 */ s32                  field_30; // part count, copied from TmdSource.partCount
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 

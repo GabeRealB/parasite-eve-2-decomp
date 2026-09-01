@@ -379,7 +379,7 @@ STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 /// Object whose pointers at 0x1C / 0x20 are `MATRIX*`s. `Gp_SetObjTrans`
 /// writes translation `t[0]/t[1]/t[2]` through `field_20`. `Gp_BindDefaultMtx`
 /// installs the default matrices `Gp_DefaultMtx` / `Gp_DefaultMtx2` here (same
-/// overlay as `GameActorExt`).
+/// overlay as `TmdObject`).
 typedef struct _GpObj20 {
     /* 0x00 */ byte    pad_0[0x1C];
     /* 0x1C */ MATRIX* field_1C;
@@ -1057,14 +1057,14 @@ extern GpRoomParamRec*** Gp_RoomParamTables[];
 /// pointer returned by `Gp_GetRoomBound` when a table lookup fails.
 extern GBytes8 Gp_RoomBoundDefault;
 
-/// Default `MATRIX` installed at `GameActorExt.field_1C` by `Gp_BindDefaultMtx`.
+/// Default `MATRIX` installed at `TmdObject.field_1C` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx;
 
-/// Default `MATRIX` installed at `GameActorExt.field_20` by `Gp_BindDefaultMtx`.
+/// Default `MATRIX` installed at `TmdObject.field_20` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx2;
 
 /// Light/color `MATRIX` pair `Gp_DebugPanTask` installs at
-/// `GameActorExt.field_1C` / `field_20` for the `Gp_ActorSlots[1]` actor and
+/// `TmdObject.field_1C` / `field_20` for the `Gp_ActorSlots[1]` actor and
 /// its `field_918` / `field_920` child tasks (the second actor uses its own
 /// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
 extern MATRIX D_80114ED8;
@@ -1262,7 +1262,7 @@ s32  Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
 s32  Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
 s32  Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
 void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 /// Resolves the strongest room light for the world position `arg0` and writes
 /// its direction into `arg1` (`GpLightCapture.field_24` at the call site in
 /// `Gp_DebugPanTask`). No-ops when `Gp_GetRoomCoordSet` returns 0.
@@ -1279,7 +1279,7 @@ void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
-/// when `Game_Session->field_65 == 1` unless `GameActorExt.field_C` bit
+/// when `Game_Session->field_65 == 1` unless `TmdObject.field_C` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1);
 void            Gp_LightFalloff(GpObj44* arg0);

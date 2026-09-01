@@ -44,7 +44,7 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
             Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
                           ((Wip_SysConfig.field_22 - 0xA) << 24) | 0x200B0004, 1);
             Gp_SpawnEff(0x6006C,
-                        (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8, 0xB,
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 0xB,
                         NULL);
             Gp_ConsumeSlotQty(0x8A, 1);
             func_80104490(arg0, 0, 1, Wip_SysConfig.field_22 | 0xB00);

@@ -44,7 +44,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag < 4) {
             return;

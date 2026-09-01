@@ -16,10 +16,10 @@ INCLUDE_ASM("weapons/nonmatchings/tonfa_baton/tonfa_baton", func_tonfa_baton_801
 
 void func_tonfa_baton_8011DA48(Task* arg0)
 {
-    GameActorExt* extra;
-    s32*          ptr;
+    TmdObject* extra;
+    s32*       ptr;
 
-    extra              = (GameActorExt*)arg0->extra;
+    extra              = (TmdObject*)arg0->extra;
     ptr                = extra->field_8;
     arg0->state        = arg0->state + 1;
     arg0->exitCallback = WeaponsShared8011db78;
@@ -29,16 +29,16 @@ void func_tonfa_baton_8011DA48(Task* arg0)
 
 void func_tonfa_baton_8011DA74(Task* arg0)
 {
-    GameActorExt* extra;
-    TonfaCoord*   coord;
-    GameActor*    actor;
-    s32           mode;
+    TmdObject*  extra;
+    TonfaCoord* coord;
+    GameActor*  actor;
+    s32         mode;
 
-    extra          = (GameActorExt*)arg0->extra;
+    extra          = (TmdObject*)arg0->extra;
     coord          = (TonfaCoord*)extra->field_8;
     actor          = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
     coord->flg     = 0;
-    extra->field_C = ((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_C;
+    extra->field_C = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_C;
 
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0x60;

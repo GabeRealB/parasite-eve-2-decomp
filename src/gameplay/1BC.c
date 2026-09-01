@@ -545,7 +545,7 @@ void Gp_EnemyTaskExit(Task* task)
 
 Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
 {
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GsCOORDINATE2* dest;
     GsCOORDINATE2* world;
 
@@ -555,7 +555,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
     world                   = &Gfx_ViewCoord;
-    extra                   = (GameActorExt*)arg0->extra;
+    extra                   = (TmdObject*)arg0->extra;
     dest                    = (GsCOORDINATE2*)extra->field_8;
     if (arg1->sub == world) {
         dest->coord = arg1->coord;
@@ -2210,7 +2210,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
 {
     McPosRec*         rec;
     GameSessionFrom4* loc;
-    GameActorExt*     extra;
+    TmdObject*        extra;
     GsCOORDINATE2*    coord;
     register SVECTOR* euler asm("s1");
     u16               id;
@@ -2218,7 +2218,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
 
     rec   = Mc_SaveData.field_28;
     loc   = (GameSessionFrom4*)&Mc_SaveData.field_4;
-    extra = (GameActorExt*)arg0->task->extra;
+    extra = (TmdObject*)arg0->task->extra;
     coord = (GsCOORDINATE2*)extra->field_8;
     if (arg0->field_4B == 0) {
         arg0->field_4B = 1;
@@ -3118,7 +3118,7 @@ void Gp_SpawnPlaceById(u16 arg0)
     GpEnemyDesc*         desc;
     GpEnemy*             enemy;
     Task*                task;
-    GameActorExt*        extra;
+    TmdObject*           extra;
     GpCoordPlace*        coord;
     u16                  term;
     s32                  id;
@@ -3171,7 +3171,7 @@ void Gp_SpawnPlaceById(u16 arg0)
                         if (enemy != NULL) {
                             task = enemy->task;
                             if (task->spawnType != 0) {
-                                extra             = (GameActorExt*)task->extra;
+                                extra             = (TmdObject*)task->extra;
                                 coord             = (GpCoordPlace*)extra->field_8;
                                 enemy->field_8    = place->field_0 | (place->field_4 << 8);
                                 enemy->field_A    = place->field_2;
@@ -3205,7 +3205,7 @@ void Gp_SpawnPlaces(GameSessionFrom4* arg0)
     GpEnemyDesc*  desc;
     GpEnemy*      enemy;
     Task*         task;
-    GameActorExt* extra;
+    TmdObject*    extra;
     GpCoordPlace* coord;
     u16           term;
     u16           id;
@@ -3232,7 +3232,7 @@ void Gp_SpawnPlaces(GameSessionFrom4* arg0)
                     if (enemy != NULL) {
                         task = enemy->task;
                         if (task->spawnType != 0) {
-                            extra             = (GameActorExt*)task->extra;
+                            extra             = (TmdObject*)task->extra;
                             coord             = (GpCoordPlace*)extra->field_8;
                             enemy->field_8    = place->field_0 | (place->field_4 << 8);
                             enemy->field_A    = place->field_2;

@@ -10,6 +10,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "weapons/m4a1_hammer.h"
+#include "main/tmd.h"
 
 extern u32 Gp_LcgState;
 
@@ -24,7 +25,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     GsCOORDINATE2* parent;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     mem->field_22++;
     switch (arg0->state) {
         case 0:

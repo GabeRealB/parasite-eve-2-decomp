@@ -1083,7 +1083,7 @@ void Gp_DebugPanTask(Task* arg0)
     GpActorWork*   slot;
     GpActorWork*   work;
     WipSysConfig*  cfg;
-    GameActorExt*  extra;
+    TmdObject*     extra;
     GsCOORDINATE2* coord;
     GameActor*     actor;
     GameActor*     actor2;
@@ -1215,7 +1215,7 @@ void Gp_DebugPanTask(Task* arg0)
             /* The target loads the extra into $v0 and copies it into the saved
                register; the non-volatile asm keeps that copy without acting as
                a scheduling barrier. */
-            register GameActorExt* e asm("v0");
+            register TmdObject* e asm("v0");
             e      = work->extra;
             actor2 = work->actor;
             SOFT_TOUCH_REG(e);
@@ -1331,7 +1331,7 @@ def:
 
 void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
 {
-    GameActorExt*   extra;
+    TmdObject*      extra;
     MATRIX*         colorMtx;
     s32             mode;
     u8*             head;
@@ -1344,7 +1344,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
     s32             w0;
     s32             w1;
 
-    extra    = (GameActorExt*)arg0->task->extra;
+    extra    = (TmdObject*)arg0->task->extra;
     colorMtx = extra->field_20;
     mode     = arg0->field_4E & 3;
     if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (Game_Session->field_65 != 1)) {
@@ -1852,7 +1852,7 @@ void Gp_CopyDefaultBound(GBytes8* arg0)
 void Gp_BindDefaultMtx(Task* arg0)
 {
     GpActorWork*     slot;
-    GameActorExt*    extra;
+    TmdObject*       extra;
     GameActor*       actor;
     register s32     result asm("v1");
     s32              i;

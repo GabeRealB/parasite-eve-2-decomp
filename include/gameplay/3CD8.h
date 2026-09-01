@@ -450,7 +450,7 @@ void Gp_InitRoomCoords(void);
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
 /// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
 /// `GpState1C::field_0`. `arg1` is the parent coordinate (`NULL` = world):
-/// the task's own `GameActorExt::field_8` coordinate is seeded from it and
+/// the task's own `TmdObject::field_8` coordinate is seeded from it and
 /// re-parented to `Gfx_ViewCoord`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
 /// optional offset vector (`NULL` = zero) rotated into the parent's space and
 /// kept in `GpEffWork::field_C`. Returns the work object, or `NULL`.

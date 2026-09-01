@@ -6642,7 +6642,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         head     = *scratch;
         newhead  = head - 0x60;
         sc       = (GpCircleScratch*)newhead;
-        coord    = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        coord    = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8;
         sc->rx   = arg1;
         sc->ry   = arg2;
         base     = Display_State.field_8 << 4;
@@ -6650,7 +6650,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     if (arg3 & 4) {
-        other      = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + 4;
+        other      = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8 + 4;
         sc->vec.vx = 0;
         sc->vec.vy = 0x12C;
         sc->vec.vz = 0;
@@ -7305,17 +7305,17 @@ void Gp_UpdateLinkXforms(void)
 
     node = (GpLinkXform*)Gp_LinkList;
     {
-        register Task*         slot asm("v1");
-        register GameActorExt* extra asm("v1");
-        register void**        scratch asm("v0");
-        register u8*           newhead asm("v1");
+        register Task*      slot asm("v1");
+        register TmdObject* extra asm("v1");
+        register void**     scratch asm("v0");
+        register u8*        newhead asm("v1");
 
         slot = Game_GetPtrSlot(3);
         if (slot == NULL) {
             return;
         }
         scratch = (void**)G_SCRATCH_HEAD;
-        extra   = (GameActorExt*)slot->extra;
+        extra   = (TmdObject*)slot->extra;
         head    = *scratch;
         player  = (GsCOORDINATE2*)extra->field_8;
         newhead = head - 0x48;

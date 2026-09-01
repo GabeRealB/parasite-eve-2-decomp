@@ -849,7 +849,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_3", func_actor_503500
 
 void func_actor_503500_80145480(Task* arg0)
 {
-    GameActorExt* ext;
+    TmdObject* ext;
 
     func_actor_503500_801372AC(6);
     SndEvt_EnqueueType7(0x4023000B, 1);
@@ -871,7 +871,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_3", func_actor_503500
 
 void func_actor_503500_80145950(Task* arg0)
 {
-    GameActorExt* ext;
+    TmdObject* ext;
 
     SndEvt_EnqueueType7(0x4023000C, 1);
     func_actor_503500_801372AC(6);
@@ -893,7 +893,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_3", func_actor_503500
 
 void func_actor_503500_80145E98(Task* arg0)
 {
-    GameActorExt* ext;
+    TmdObject* ext;
 
     func_actor_503500_801372AC(8);
     SndEvt_EnqueueType7(0x4023000E, 1);
