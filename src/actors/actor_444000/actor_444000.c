@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_444000.h"
+
 extern s16 D_actor_444000_80144A72;
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132054);
@@ -186,6 +188,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80143E68);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80143F38);
+s32 func_actor_444000_80143F38(Actor444000* arg0)
+{
+    arg0->field_1C->field_0 = 0;
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80143F4C);
