@@ -9,6 +9,7 @@
 #include "gameplay/D4.h"
 
 #include "actors/actor_342000.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80161EA4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8016201C);
