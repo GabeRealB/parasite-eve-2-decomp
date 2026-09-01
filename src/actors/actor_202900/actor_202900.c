@@ -1,4 +1,7 @@
 #include "common.h"
+#include "main/task.h"
+
+extern Task* D_actor_202900_80156E5C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900", func_actor_202900_80149E24);
 
@@ -8,7 +11,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900", func_actor_202900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900", func_actor_202900_8014A0B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900", func_actor_202900_8014A158);
+void func_actor_202900_8014A158(Task* arg0)
+{
+    Task_Kill(D_actor_202900_80156E5C);
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900", func_actor_202900_8014A194);
 
