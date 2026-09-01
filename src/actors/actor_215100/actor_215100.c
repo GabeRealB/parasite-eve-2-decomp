@@ -231,7 +231,11 @@ void func_actor_215100_8014C4A8(Task* task)
     func_actor_215100_8014B0D4();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C538);
+void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
+{
+    func_actor_215100_8014B2B8(arg0, arg1, 0xD0);
+    Task_SpawnFromTable(&D_actor_215100_801544FC, 0, arg2, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C58C);
 
