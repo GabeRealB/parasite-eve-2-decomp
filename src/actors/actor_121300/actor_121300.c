@@ -45,7 +45,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_801341A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134224);
+void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
+{
+    Task_SpawnFromTable(&D_actor_121300_8013D390, 0xA, arg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134250);
 
