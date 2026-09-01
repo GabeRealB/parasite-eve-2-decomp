@@ -5,6 +5,7 @@
 
 void Gp_ArmStateF0(s32 arg0);
 void Actor02000_Fn00CD0(Actor02000* arg0);
+s32  Gp_TickObjFlag2(void* arg0);
 s32  Gp_GetObjPan(void* arg0);
 s32  Gp_GetObjDepth(void* arg0);
 s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
@@ -752,13 +753,34 @@ void Actor02000_L03494(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn0349C);
+/// Per-frame tick. State 0 waits for `Gp_TickObjFlag2` on the spawn block to
+/// fire, then selects animation 0x13, clears `field_6E0` and advances to state
+/// 1. State 1 waits for `field_698` to reach 0x3B and drops back to state 0
+/// with animation 2.
+void Actor02000_Fn0349C(Actor02000* arg0)
+{
+    Actor02000Work* work;
+    s16             state;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L034D0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L034F8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03518);
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+                work->field_694 = 0x13;
+                work->field_6A8 = 1;
+                work->field_6E0 = 0;
+            }
+            break;
+        case 1:
+            if (work->field_698 >= 0x3B) {
+                work->field_694 = 2;
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03528);
 

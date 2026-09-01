@@ -40,6 +40,7 @@ typedef struct Actor02000Work {
     /* 0x6DA */ s16  field_6DA;
     /* 0x6DC */ byte pad_6DC[2];
     /* 0x6DE */ s16  field_6DE;
+    /* 0x6E0 */ s16  field_6E0;
 } Actor02000Work;
 
 /// `field_8` is the actor's `GsCOORDINATE2` array; entry 0 is the actor's own
