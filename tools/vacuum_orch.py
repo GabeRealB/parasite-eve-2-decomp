@@ -340,12 +340,23 @@ def cmd_finish(
 
 
 def overlay_of_asm(rel: str) -> Optional[str]:
-    """asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<fn>.s -> <overlay>."""
+    """asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<fn>.s -> <overlay>.
+
+    `lib` is not an overlay. A family's shared bodies live under
+    <family>/nonmatchings/lib/, they are linked into many overlays at once, and
+    `build-and-verify.sh --only lib` is not a valid scope - the landing tooling
+    had to learn the same thing. Leasing it as if it were one overlay would take
+    818 functions hostage across a whole family, so it is excluded here and left
+    to per-function claims.
+    """
     parts = rel.split("/")
     if "nonmatchings" not in parts:
         return None
     i = parts.index("nonmatchings")
-    return parts[i + 1] if i + 1 < len(parts) - 1 else None
+    if i + 1 >= len(parts) - 1:
+        return None
+    name = parts[i + 1]
+    return None if name == "lib" else name
 
 
 def overlay_functions(root: Path, overlay: str) -> list[str]:
