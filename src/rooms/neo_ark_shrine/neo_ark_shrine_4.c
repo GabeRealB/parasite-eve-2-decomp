@@ -65,7 +65,25 @@ void func_neo_ark_shrine_8017F094(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F0F0);
+void func_neo_ark_shrine_8017F0F0(Task* task)
+{
+    NeoArkShrineScript* st;
+    u16                 timer;
+
+    st = (NeoArkShrineScript*)task->idMap;
+    func_neo_ark_shrine_8017EAC0();
+    timer     = st->timer + 1;
+    st->timer = timer;
+    if (timer >= 0x1EU) {
+        Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 1, 0, 0);
+        D_8007216C = 0xE;
+        /* Without this the scheduler hoists the `task->state` reload above the
+           `D_8007216C` byte store to fill its load-delay slot. */
+        SOFT_BARRIER();
+        st->timer = 0;
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F178);
 
