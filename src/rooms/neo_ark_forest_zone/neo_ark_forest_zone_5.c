@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 extern u16 D_neo_ark_forest_zone_80182D62;
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801803B4);
@@ -32,6 +33,9 @@ s32 func_neo_ark_forest_zone_80181494(void)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801814B0);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_80181508);
+void func_neo_ark_forest_zone_80181508(Task* arg0)
+{
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_8018151C);
