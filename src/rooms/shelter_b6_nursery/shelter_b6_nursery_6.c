@@ -1,18 +1,33 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+extern void func_80131E2C(void);
+extern void func_80132000(void);
+
+extern s32 D_8013AF8C;
+extern s32 D_8013BA84;
 extern s32 D_80139964;
 extern s32 D_8013A33C;
 extern s32 D_8013A84C;
 extern s32 D_8013A8DC;
 extern s32 D_shelter_b6_nursery_8018500C;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_6", func_shelter_b6_nursery_8017FDD4);
+s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179B14(src, dst);
+    if (src->field_5 == 0) {
+        Gp_RunCapCmd1(0xC);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_6", func_shelter_b6_nursery_8017FE3C);
 
