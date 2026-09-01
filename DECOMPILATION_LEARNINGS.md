@@ -3116,6 +3116,15 @@ needing a rodata cut at the dispatch table its tail function reads
 (`rodata = [{ start = "0x1C", unit = "m4a1_grenade_2" }]`), all of it produced by
 one delete-and-re-split.
 
+**Save the sharer's already-matched C before you delete its `.c`.** splat
+regenerates a missing unit from `asm/`, so every function that was already
+decompiled in that file comes back as `INCLUDE_ASM` and the overlay silently
+loses work that still checksums. `actor_207200` had `func_actor_207200_8014DB4C`
+matched at the end of its single unit; promoting `ActorsShared8014df20` from the
+middle of that unit cut the file in two and the re-split reverted that body.
+Copy the file aside first, then paste the matched functions (and the externs
+they need) back into whichever new unit now owns their address.
+
 The shared C has one name and relocates per overlay. Callees that stay
 overlay-local need generic names in that C, with `absolute:True` aliases in
 each overlay's `configs/USA/sym/<family>/<overlay>.txt` at that overlay's
