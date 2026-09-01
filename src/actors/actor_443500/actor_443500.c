@@ -2,6 +2,8 @@
 #include "main/task.h"
 #include "gameplay/3CD8.h"
 
+extern s8 D_8007272D;
+
 void func_actor_443500_80131E3C(s32 arg0)
 {
     if (arg0 != 0) {
@@ -53,7 +55,10 @@ void func_actor_443500_8013201C(s16 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80132048);
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_8013206C);
+void func_actor_443500_8013206C(s8 arg0)
+{
+    D_8007272D = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80132078);
 
