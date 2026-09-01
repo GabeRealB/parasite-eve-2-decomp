@@ -1,5 +1,10 @@
 #include "common.h"
 
+typedef struct {
+    /* 0x00 */ byte pad_0[0x30];
+    /* 0x30 */ s32  field_30;
+} GarbageIncineratorState;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017E70C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017E7A4);
@@ -16,7 +21,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017F6D8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017F8A4);
+void func_shelter_b3_garbage_incinerator_8017F8A4(GarbageIncineratorState* arg0, s32 arg1, s32 arg2)
+{
+    arg0->field_30 = arg2;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", func_shelter_b3_garbage_incinerator_8017F8AC);
 
