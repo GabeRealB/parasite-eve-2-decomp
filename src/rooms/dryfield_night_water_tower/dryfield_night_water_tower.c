@@ -10,7 +10,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DA4C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DA9C);
+s32 func_dryfield_night_water_tower_8017DA9C(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DAA4);
 
