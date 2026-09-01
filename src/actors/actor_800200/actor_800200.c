@@ -6,7 +6,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_801622B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162694);
+void func_actor_800200_80162694(Task* arg0)
+{
+    arg0->state = 3;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_801626A0);
 
