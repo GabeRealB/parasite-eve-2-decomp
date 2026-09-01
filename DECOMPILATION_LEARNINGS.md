@@ -36988,3 +36988,20 @@ the same `-0x24`, so the *linked words are identical* and only the scratch
 normalizer's symbol names differ (99.95%, `regs=2`). Prefer the struct-member
 form and confirm with `./tools/build-and-verify.sh`; do not introduce
 `(u8*)&Gfx_ViewWorldMtx - 0x24` just to make the scratch score read 100%.
+
+## Reading the high halfword of an `s32` field: cast to unsigned for `lhu`
+
+`Task::spawnArg1` is one `s32` at 0x34, and code that packs two values into it
+reads the low half as `(u16)arg0->spawnArg1` (`lhu 0x34`) and the high half as
+a shift. cc1's combine pass folds the shift into a halfword load of the *upper*
+address, so the signedness of the shift picks the opcode:
+
+```c
+idx = (arg0->spawnArg1 >> 16) & 0xF;        /* lh  0x36 — signed field */
+idx = ((u32)arg0->spawnArg1 >> 16) & 0xF;   /* lhu 0x36 — what the target has */
+```
+
+The `& 0xF` does not rescue it: the `andi` is emitted either way and the
+`lh`/`lhu` difference survives to the object. Prefer that cast over reading the
+field through `((u16*)&field)[1]`, which assembles the same but reintroduces
+manual-offset punning (`WeaponsShared8011d3a0`).

@@ -40,7 +40,7 @@ void WeaponsShared8011d3a0(Task* arg0)
     blk      = (SVECTOR*)(head - 8);
     *scratch = blk;
     extra    = arg0->extra;
-    idx      = ((u16*)&arg0->spawnArg1)[1] & 0xF;
+    idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord    = extra->field_8;
     muzzle   = coord->sub;
     work     = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
