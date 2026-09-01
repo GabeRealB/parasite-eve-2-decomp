@@ -85,7 +85,28 @@ void func_neo_ark_shrine_8017F0F0(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F178);
+void func_neo_ark_shrine_8017F178(Task* task)
+{
+    NeoArkShrineScript* st;
+    u16                 timer;
+    s32                 next;
+
+    st        = (NeoArkShrineScript*)task->idMap;
+    timer     = st->timer + 1;
+    st->timer = timer;
+    if (timer >= 0x5AU) {
+        st->timer = 0;
+        if (GameFlag_GetNibble(0xE9) == 0) {
+            Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 2, 0, 0);
+            D_8007216C = 0xD;
+            GameFlag_SetNibble(0xE9, 1);
+            next = task->state + 1;
+        } else {
+            next = task->state + 2;
+        }
+        task->state = next;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F21C);
 
