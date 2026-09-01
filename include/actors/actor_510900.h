@@ -20,7 +20,10 @@ typedef struct Actor510900Obj2C {
 } Actor510900Obj2C;
 
 typedef struct Actor510900Work {
-    /* 0x000 */ byte  pad_0[0x2BC];
+    /* 0x000 */ GpObj obj0;
+    /* 0x020 */ byte  pad_20[0x18];
+    /* 0x038 */ GpObj obj38;
+    /* 0x058 */ byte  pad_58[0x264];
     /* 0x2BC */ GpObj obj2BC;
     /* 0x2DC */ byte  pad_2DC[0x18];
     /* 0x2F4 */ GpObj obj2F4;
@@ -59,5 +62,6 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B870(Actor510900* arg0);
 s16  func_actor_510900_8013BE84(Actor510900* arg0);
 void func_actor_510900_8013C380(Actor510900* arg0);
+void func_actor_510900_8013C430(Actor510900* arg0);
 
 #endif
