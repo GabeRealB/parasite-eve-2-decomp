@@ -1332,7 +1332,7 @@ void            Gp_ArmStateF0(s32 arg0);
 void            Gp_SetStateF0Bit(s32 arg0);
 void            Gp_SetStateF0Byte3(s32 arg0);
 void            Gp_IncStateF0Ref(void);
-void            Gp_ReleaseStateF0Add(GpObj20E* arg0);
+void            Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1);
 void            Gp_ReleaseStateF0Clear(void);
 void            Gp_ReleaseStateF0(void);
 void            Gp_TickWorldCollision(void);

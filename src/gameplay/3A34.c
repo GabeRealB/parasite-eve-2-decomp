@@ -2908,7 +2908,9 @@ void Gp_IncStateF0Ref(void)
     Gp_StateF0.field_6++;
 }
 
-void Gp_ReleaseStateF0Add(GpObj20E* arg0)
+/// `arg1` is a per-caller release id that every overlay caller passes (0x07,
+/// 0x10, 0x15, 0x19, 0x1B, 0x23, 0x26, ...); this build ignores it.
+void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1)
 {
     GpStateF0*  p;
     GpStateF0*  q;

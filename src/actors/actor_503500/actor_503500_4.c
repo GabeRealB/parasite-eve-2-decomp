@@ -96,8 +96,15 @@ void      func_actor_503500_80142980(Actor503500* arg0);
 void      func_actor_503500_8014418C(Actor503500* arg0);
 void      func_actor_503500_801441E8(Actor503500* arg0);
 void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
+/// Player-facing mode byte in the main executable, also written by the
+/// acropolis helicopter landing pad room.
+extern s8 D_801153F1;
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80132CC4);
+void func_actor_503500_80132CC4(s8 arg0)
+{
+    Gp_ReleaseStateF0Add((GpObj20E*)Gp_LookupSlot4(0), 0x23);
+    D_801153F1 = arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80132D00);
 
