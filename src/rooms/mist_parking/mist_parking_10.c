@@ -207,7 +207,10 @@ void func_mist_parking_80183EAC(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801842DC);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184408);
+void func_mist_parking_80184408(s32 arg0)
+{
+    Gp_RunCapCmd(arg0, 0);
+}
 
 void func_mist_parking_80184428(s32 arg0)
 {
