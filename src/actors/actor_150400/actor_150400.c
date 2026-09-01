@@ -10,7 +10,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80131F6C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80131F9C);
+void func_actor_150400_80131F9C(s32 arg0)
+{
+    D_actor_150400_8013C924->state = arg0;
+    D_actor_150400_8013C928->state = arg0;
+}
 
 void func_actor_150400_80131FB8(void)
 {
