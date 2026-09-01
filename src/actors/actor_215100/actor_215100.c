@@ -104,7 +104,12 @@ void func_actor_215100_8014ADD8(void)
     Task_SpawnFromTable(&D_80185384, 0, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AE08);
+void func_actor_215100_8014AE08(s32 arg0)
+{
+    if (arg0 != 0) {
+        func_801848B4();
+    }
+}
 
 void func_actor_215100_8014AE2C(s32 arg0)
 {
