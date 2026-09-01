@@ -13,7 +13,10 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_80180D24);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801813BC);
+s32 func_neo_ark_forest_zone_801813BC(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801813C4);
 
