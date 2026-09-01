@@ -400,25 +400,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F830);
 
-void func_actor_503500_8013F328(void);
-void func_actor_503500_8013F4A4(void);
-void func_actor_503500_8013F948(void);
-void func_actor_503500_8013F984(void);
+void func_actor_503500_8013F328(Actor503500* arg0);
+void func_actor_503500_8013F4A4(Actor503500* arg0);
+void func_actor_503500_8013F948(Actor503500* arg0);
+void func_actor_503500_8013F984(Actor503500* arg0);
 
 void func_actor_503500_8013F8AC(Actor503500* arg0)
 {
     switch (arg0->field_1C->field_F0) {
         case 0:
-            func_actor_503500_8013F948();
+            func_actor_503500_8013F948(arg0);
             break;
         case 1:
-            func_actor_503500_8013F328();
+            func_actor_503500_8013F328(arg0);
             break;
         case 2:
-            func_actor_503500_8013F4A4();
+            func_actor_503500_8013F4A4(arg0);
             break;
         case 3:
-            func_actor_503500_8013F984();
+            func_actor_503500_8013F984(arg0);
             break;
     }
 }
@@ -505,25 +505,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144098);
 
-void func_actor_503500_8014271C(void);
-void func_actor_503500_80142980(void);
-void func_actor_503500_8014418C(void);
-void func_actor_503500_801441E8(void);
+void func_actor_503500_8014271C(Actor503500* arg0);
+void func_actor_503500_80142980(Actor503500* arg0);
+void func_actor_503500_8014418C(Actor503500* arg0);
+void func_actor_503500_801441E8(Actor503500* arg0);
 
 void func_actor_503500_801440F0(Actor503500* arg0)
 {
     switch (arg0->field_1C->field_221) {
         case 0:
-            func_actor_503500_8014418C();
+            func_actor_503500_8014418C(arg0);
             break;
         case 1:
-            func_actor_503500_8014271C();
+            func_actor_503500_8014271C(arg0);
             break;
         case 2:
-            func_actor_503500_80142980();
+            func_actor_503500_80142980(arg0);
             break;
         case 3:
-            func_actor_503500_801441E8();
+            func_actor_503500_801441E8(arg0);
             break;
     }
 }
