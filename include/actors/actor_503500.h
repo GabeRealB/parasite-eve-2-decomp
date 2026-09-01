@@ -5,6 +5,21 @@
 
 #include "gameplay/3A34.h"
 
+/// Work block allocated by `func_actor_503500_80132430`
+/// (`Mem_Calloc(0x48)`) and parked in that task's `Task::idMap` slot.
+/// `func_actor_503500_801324EC` republishes the two matrices onto
+/// `GameActorExt::field_1C` / `field_20` -- the colour/light matrix pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
+/// -- so the allocation is exactly two `MATRIX`es plus a small tail.
+typedef struct Actor503500ColorMtx {
+    /* 0x00 */ MATRIX light;
+    /* 0x20 */ MATRIX color;
+    /* 0x40 */ byte   pad_40[0x4];
+    /* 0x44 */ s8     field_44;
+    /* 0x45 */ byte   pad_45[0x3];
+} Actor503500ColorMtx;
+STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
+
 /// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
 /// fills it from the player actor: the three words are the translation of the
 /// `GsCOORDINATE2` at `GameActorExt::field_8` (`MATRIX.t`), the three

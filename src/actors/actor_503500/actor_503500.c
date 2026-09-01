@@ -25,7 +25,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_801324C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_801324EC);
+void func_actor_503500_801324EC(Task* arg0)
+{
+    GameActorExt*        ext;
+    Actor503500ColorMtx* work;
+
+    ext           = arg0->extra;
+    work          = (Actor503500ColorMtx*)arg0->idMap;
+    ext->field_1C = &work->light;
+    ext->field_20 = &work->color;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132508);
 
