@@ -124,7 +124,21 @@ void func_neo_ark_shrine_8017F21C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F274);
+void func_neo_ark_shrine_8017F274(Task* task)
+{
+    D_80115410             = 2;
+    Mc_SaveData.field_5    = 6;
+    Game_Session->field_5  = 6;
+    Game_Session->field_76 = 1;
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
+    Display_ReleaseRef();
+    Game_Session->field_1  = 0;
+    Game_Session->field_68 = 0;
+    Game_Session->field_66 = 0;
+    Mc_SaveData.field_4    = 0xA;
+    Task_RequestKill(task, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F320);
 
