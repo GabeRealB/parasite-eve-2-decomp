@@ -1,4 +1,14 @@
 #include "common.h"
+
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+
+#include "gameplay/3A34.h"
+#include "gameplay/D4.h"
+
+#include "actors/actor_342000.h"
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80161EA4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8016201C);
@@ -19,7 +29,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80163EAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80163F88);
+void func_actor_342000_80163F88(Task* task)
+{
+    Actor342000Work* work;
+    GsCOORDINATE2*   coord;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    work  = (Actor342000Work*)task->idMap;
+
+    coord->sub = work->field_2A4;
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80163FB8);
 
