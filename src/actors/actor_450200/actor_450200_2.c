@@ -6,6 +6,8 @@
 #include "main/task.h"
 extern TaskDesc D_actor_450200_8013FB40;
 
+extern u8 D_8007216D;
+
 extern void func_8017FA98(s32);
 extern void func_80180DAC(s32);
 
@@ -70,4 +72,8 @@ void func_actor_450200_80132880(s32 arg0)
     func_80180DAC(arg0 & 0xFFFF);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_801328A0);
+void func_actor_450200_801328A0(u8 arg0)
+{
+    Game_Session->field_5 = arg0;
+    D_8007216D            = arg0;
+}
