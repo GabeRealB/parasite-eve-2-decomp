@@ -314,7 +314,10 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
             f'{{ start = "0x{a:X}", end = "0x{b:X}", unit = "{u}" }}' for a, b, u in spans
         )
         m = re.search(rf"^{re.escape(room)} = \{{(.*)\}}$", text, re.M)
-        body = re.sub(r",?\s*shared = \[.*?\](?=,|$)", "", m.group(1).strip()).strip().rstrip(",")
+        # Strip a comma on *either* side of the removed clause: a `shared`
+        # that led the entry leaves the comma that separated it from the
+        # next key, which is invalid TOML (`{ , rodata = ... }`).
+        body = re.sub(r",?\s*shared = \[.*?\](?=,|$)", "", m.group(1).strip()).strip(" ,")
         body = f"{body}, shared = [{items}]" if body else f"shared = [{items}]"
         text = text[: m.start()] + f"{room} = {{ {body} }}" + text[m.end() :]
 

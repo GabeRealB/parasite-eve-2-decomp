@@ -36191,3 +36191,39 @@ order *and* leaves the address computation free to move -- 100%.
 
 Read a barrier that moves the score up but not to 100 as "right diagnosis,
 wrong remedy", not as "close, permute it".
+
+## Promoting a shared body re-cuts the overlay's units, and the `rodata` key does not follow
+
+`overlay_dup_index.py promote` writes a `shared` span into every carrying
+overlay's manifest entry. That span splits the overlay's `.text` in two, so the
+tail after the span becomes a **new unit** with the next free number: what was
+`actor_141000_2` is now `actor_141000_3`, and a fresh `actor_141000_2` is
+carved out of the unit the span landed in. Two things follow that the promote
+step does not do for you.
+
+* splat only ever *creates* a `.c` file, never rewrites one. It writes the new
+  `<overlay>_3.c` (carrying over any already-decompiled bodies), but the
+  functions that moved are still listed in the old `<overlay>_2.c`, so they are
+  defined twice and their `asm/` paths no longer exist. Trim the old file by
+  hand, using `asm/USA/<family>/{non,}matchings/<overlay>/<unit>/` as the
+  ground truth for which function belongs to which unit.
+* A `rodata = [{ start, unit }]` cut names a unit, and the renumbering silently
+  points it at the wrong one. This matters because splat emits an unowned
+  rodata block by *prepending it to the `.s` of the function that references
+  it*, and it only pairs the two within one unit. Point the cut at the unit the
+  referencing functions ended up in, adding a second cut if the block now
+  serves two units:
+
+  ```toml
+  # was: rodata = [{ start = "0x38", unit = "actor_141000_2" }]
+  rodata = [{ start = "0x2C", unit = "actor_141000_2" },
+            { start = "0x38", unit = "actor_141000_3" }]
+  ```
+
+  The symptom of getting this wrong is a link error naming the rodata symbol
+  (`undefined reference to 'jtbl_actor_141000_80131E7C'`), because the block is
+  assigned to a unit no `.s` in that unit references, so nothing emits it. Find
+  the right unit with
+  `grep -l <symbol> asm/USA/<family>/nonmatchings/<overlay>/*/*.s`.
+  An explicit `INCLUDE_RODATA` line in the old unit's `.c` has to move with the
+  cut for the same reason.
