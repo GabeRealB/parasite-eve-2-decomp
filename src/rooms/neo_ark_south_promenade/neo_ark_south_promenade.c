@@ -6,7 +6,10 @@ extern s32 D_80115758;
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D61C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D624);
+s32 func_neo_ark_south_promenade_8017D624(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D62C);
 
