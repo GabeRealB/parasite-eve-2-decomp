@@ -117,7 +117,24 @@ void func_actor_342000_801642D4(s16 arg0)
     work->field_72 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801642F4);
+extern s8 D_8007272D;
+
+void func_actor_342000_801642F4(void)
+{
+    Actor342000EventWork* work;
+
+    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    if (work->field_7C == 0) {
+        Gp_StateF0.field_6      = 0;
+        Gp_StateF0.field_1      = 0xF;
+        Gp_StateF0.field_0      = 0;
+        Gp_StateF0.field_2      = 0;
+        Gp_StateF0.field_3      = 0;
+        Game_Session->field_69 |= 0x80;
+        D_8007272D              = 0xD;
+        work->field_7C          = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80164364);
 
