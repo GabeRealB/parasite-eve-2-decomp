@@ -5,6 +5,8 @@
 
 #include "gameplay/3CD8.h"
 
+extern u8 D_801153F4;
+
 INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_2", func_acropolis_patio_8017DD4C);
 
 void func_acropolis_patio_8017DD80(Task* task)
@@ -35,4 +37,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_2", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_2", func_acropolis_patio_8017DF48);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_2", func_acropolis_patio_8017DF70);
+void func_acropolis_patio_8017DF70(u8 arg0)
+{
+    D_801153F4 = arg0;
+}
