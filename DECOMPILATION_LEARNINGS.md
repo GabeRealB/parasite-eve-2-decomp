@@ -35989,3 +35989,37 @@ extern u8  D_801153F4;
 `lui $v0,0x8011` / `lbu $v0,0x53F2($v0)` the target has. Reconciling a shared
 text unit with the gameplay headers is its own naming pass, not part of a
 match.
+
+## A dead store keeps `x` (not `y`) the cse-canonical name of `y = x`
+
+For `y = x; if (c) y = x + K;` GCC 2.8.1 usually emits `addiu y,y,K` because
+cse1 rewrites the `x` inside the `if` to `y`. Its rule (`make_regs_eqv` in
+`cse.c`) is that when `y = x` makes the two registers equivalent, the *longer
+lived* one becomes the canonical name for the pair, and "longer lived" is
+`REGNO_LAST_UID` - the last insn the pseudo appears in, in pre-scheduling RTL
+order. `y` is normally used after `x` dies, so `y` wins and every later `x`
+becomes `y`.
+
+If the target has `addiu y,x,K` instead, `x` must still be named somewhere
+after `y`'s last use. A dead store does it, because `REGNO_LAST_UID` is set by
+`reg_scan` *before* cse and the store itself is removed by `flow` afterwards:
+
+```c
+delta = turn;
+if (work->field_370 != 0) {
+    delta = turn + 0x800;      /* addiu a1,a0,0x800, not addiu a1,a1,0x800 */
+    work->field_370 = 0;
+}
+work->field_364 = (work->field_362 + delta) & 0xFFF;   /* delta's last use */
+turn            = 0;                                   /* dead store */
+```
+
+`SOFT_USE_REG(turn)` in the same place also fixes the canonicalisation, but it
+is a real use, so `turn`'s hard register stays busy and the next load cannot
+reuse it - in `Actor03800_Fn012B4` that cost the `lw $a0, %lo(Gp_LcgState)($t0)`
+its register and added a `nop` (99.7% vs 100%). Prefer the dead store.
+
+Related: writing the `if` as `if (c) y = x + K; else y = x;` does not help. The
+`else` arm becomes its own block, so GCC emits a `j` around it instead of
+folding `move y,x` into the branch delay slot, which is what the `y = x;` before
+the `if` gives you.

@@ -196,30 +196,81 @@ void Actor03800_L012AC(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn012B4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L012DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L0131C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01334);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01398);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01410);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01424);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L0148C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L01498);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L014F8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L014FC);
-
-void Actor03800_L01518(void)
+void Actor03800_Fn012B4(Actor103800* arg0)
 {
+    Actor103800Work* work;
+    s32              turn;
+    s32              delta;
+    s32              turn2;
+
+    work = arg0->field_1C;
+
+    switch (work->field_354) {
+        case 0:
+            work->field_360 = 0;
+            work->field_35E = 2;
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            turn            = ((u32)Gp_LcgState >> 16) & 0x1FF;
+            if ((((u32)Gp_LcgState >> 16) & 0x400) == 0) {
+                turn = -turn;
+            }
+            delta = turn;
+            if (work->field_370 != 0) {
+                delta           = turn + 0x800;
+                work->field_370 = 0;
+            }
+            work->field_348 = 2;
+            work->field_354 = 1;
+            work->field_364 = (work->field_362 + delta) & 0xFFF;
+            turn            = 0; /* dead store: keeps `turn` cse-canonical over `delta` */
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_356 = (((u32)Gp_LcgState >> 16) & 0xF) + 0x19;
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_358 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x1E;
+            break;
+        case 1:
+            work->field_360 = 0x1E;
+            work->field_35E = 2;
+            work->field_356--;
+            if (work->field_356 <= 0) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_356 = (((u32)Gp_LcgState >> 16) & 0xF) + 0x19;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                turn2           = ((u32)Gp_LcgState >> 16) & 0x1FF;
+                if ((((u32)Gp_LcgState >> 16) & 0x400) == 0) {
+                    turn2 = -turn2;
+                }
+                work->field_364 = (work->field_362 + turn2) & 0xFFF;
+            }
+            if (work->field_370 != 0) {
+                if (work->field_35C < 0x1E) {
+                    work->field_352 = 0;
+                    work->field_354 = 0;
+                    work->field_348 = 1;
+                    work->field_36A = 0;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_356 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                } else {
+                    work->field_352 = 0xC;
+                    work->field_354 = 0;
+                }
+            }
+            work->field_358--;
+            if (work->field_358 <= 0) {
+                work->field_352 = 0;
+                work->field_354 = 0;
+                work->field_348 = 1;
+                work->field_36A = 0;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_356 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x1E;
+            }
+            break;
+    }
+
+    if (D_801153F2 & 5) {
+        work->field_352 = 2;
+        work->field_354 = 0;
+    }
 }
 
 void Actor03800_Fn01520(Actor103800* arg0)

@@ -41,7 +41,7 @@ typedef struct Actor103800Work {
     /* 0x352 */ s16            field_352;
     /* 0x354 */ s16            field_354;
     /* 0x356 */ s16            field_356;
-    /* 0x358 */ byte           pad_358[2];
+    /* 0x358 */ s16            field_358;
     /* 0x35A */ s16            field_35A;
     /* 0x35C */ s16            field_35C;
     /* 0x35E */ s16            field_35E;
@@ -53,7 +53,7 @@ typedef struct Actor103800Work {
     /* 0x36A */ s16            field_36A;
     /* 0x36C */ s16            field_36C;
     /* 0x36E */ s16            field_36E;
-    /* 0x370 */ byte           pad_370[2];
+    /* 0x370 */ s16            field_370;
     /* 0x372 */ s16            field_372;
     /* 0x374 */ byte           pad_374[4];
     /* 0x378 */ s16            field_378;
