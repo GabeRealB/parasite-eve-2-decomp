@@ -1,3 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util10", Room_Util10);
+void Room_Util10(void)
+{
+    Gp_RestoreStreamRng();
+}
