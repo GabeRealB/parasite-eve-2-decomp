@@ -8,6 +8,8 @@
 #include "actors/actor_503500.h"
 extern s8 D_actor_503500_80176D5A;
 
+extern s16 D_actor_503500_80176D2E;
+
 extern u16 D_actor_503500_80176D24;
 
 extern Task* D_actor_503500_80176558;
@@ -321,7 +323,10 @@ s8 func_actor_503500_80136208(void)
     return D_actor_503500_80176D5A;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80136218);
+s16 func_actor_503500_80136218(void)
+{
+    return D_actor_503500_80176D2E;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80136228);
 
