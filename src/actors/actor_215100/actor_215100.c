@@ -1,13 +1,46 @@
 #include "common.h"
 
+#include "actors/actor_215100.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/gameflag.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
+
+/// Imports from the 0x80180000 overlay; no header names them yet.
+void            func_80180390(s32 arg0);
+void            func_801811C0(s16 arg0);
+void            func_801848B4(void);
+void            func_80184954(void);
+extern TaskDesc D_80185384;
+
+extern s8 D_8007216C;
+
+extern TaskDesc D_actor_215100_8014CF6C;
 extern TaskDesc D_actor_215100_8014E13C;
+extern TaskDesc D_actor_215100_801544FC;
+extern TaskDesc D_actor_215100_80154508;
 extern Task*    D_actor_215100_8015E64C;
 
+extern s32 D_actor_215100_8014D038;
+extern s32 D_actor_215100_8014D03C;
 extern s32 D_actor_215100_80153ED4;
 extern s32 D_actor_215100_80153FDC;
 extern s32 D_actor_215100_801543E4;
+
+/// Caption script currently being played back, and the entry it is up to.
+extern Actor215100Caption* D_actor_215100_8015E658;
+extern s16                 D_actor_215100_8015E662;
+extern s32                 D_actor_215100_8015E670;
+
+void func_actor_215100_8014B0D4(void);
+void func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+void func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_actor_215100_8014BEE8(void);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_215100/actor_215100", D_actor_215100_80149E20);
 
@@ -19,7 +52,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A7C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A908);
+void func_actor_215100_8014A908(void)
+{
+    D_actor_215100_8014D038 = 0;
+    if (D_actor_215100_8015E670 < 3) {
+        D_8007216C = 8;
+        func_801811C0(0);
+    } else {
+        func_80180390(1);
+        D_actor_215100_8014D03C = 1;
+    }
+    if (D_actor_215100_8015E670 < 4) {
+        Gp_StateC08.field_6 &= 0xFD;
+    }
+    SndEvt_EnqueueType2(0, 0x1E);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A9A0);
 
