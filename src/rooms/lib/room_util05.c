@@ -1,3 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util05", Room_Util05);
+void Room_Util05(void)
+{
+    char pad[0x10];
+}
