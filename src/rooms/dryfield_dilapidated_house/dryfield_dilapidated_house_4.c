@@ -35,7 +35,23 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801812E8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181340);
+void func_dryfield_dilapidated_house_80181340(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    void*          work;
+
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    work  = Mem_Malloc(4, false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->idMap = work;
+    coord->sub  = (GsCOORDINATE2*)((GameActorExt*)((Task*)arg0->spawnArg2)->extra)->field_8;
+    Task_Reparent((Task*)arg0->spawnArg2, arg0);
+    arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801813DC);
 
