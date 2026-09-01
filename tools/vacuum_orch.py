@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Optional
@@ -37,6 +37,18 @@ EXIT_EMPTY = 3
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _unexpired(claim: dict, now: float) -> bool:
+    """True while a lease's own expiry still protects it from the pid rule."""
+    raw = claim.get("expires")
+    if not raw:
+        return False
+    try:
+        return datetime.strptime(raw, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc).timestamp() > now
+    except (TypeError, ValueError):
+        return False
 
 
 def pid_alive(pid: Any) -> bool:
@@ -118,10 +130,22 @@ class Store:
         self._fh = None
 
     def sweep(self) -> None:
+        # A claim is normally guarded by its holder's pid: the vacuum holds one
+        # while it works, and if it dies the claim must not outlive it.
+        #
+        # A whole-overlay lease cannot work that way. The tool that takes it
+        # prepares a worktree and a brief and then *exits*, handing the work to
+        # an agent that does not exist yet, so there is no live pid to guard it
+        # and the entire lease was swept the instant the preparer returned.
+        # Such a claim carries `expires` instead and survives a dead pid until
+        # that time passes, which also bounds the damage if it is never
+        # released. Claims without `expires` - every claim an existing session
+        # writes - keep the pid rule exactly.
+        now = time.time()
         dead = [
             name
             for name, claim in self.data["claims"].items()
-            if not pid_alive(claim.get("pid"))
+            if not pid_alive(claim.get("pid")) and not _unexpired(claim, now)
         ]
         for name in dead:
             del self.data["claims"][name]
@@ -399,7 +423,7 @@ def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
 
 def cmd_claim_overlay(
     store: Store, *, session: str, pid: int, cli: str,
-    overlay: Optional[str], root: Path,
+    overlay: Optional[str], root: Path, lease_minutes: int = 240,
 ) -> tuple[int, dict]:
     """Lease every unmatched function in one overlay at once.
 
@@ -440,12 +464,16 @@ def cmd_claim_overlay(
                           f"({len(held)} of {len(funcs)} claimed)")
             continue         # ranked pick: try the next overlay
         now = _now()
+        expires = (datetime.now(timezone.utc)
+                   + timedelta(minutes=lease_minutes)
+                   ).strftime("%Y-%m-%dT%H:%M:%SZ")
         for f in funcs:
             store.data["claims"][f] = {
                 "session": session, "pid": int(pid), "cli": cli,
-                "since": now, "overlay": name,
+                "since": now, "overlay": name, "expires": expires,
             }
-        return EXIT_OK, result(True, overlay=name, count=len(funcs), functions=funcs)
+        return EXIT_OK, result(True, overlay=name, count=len(funcs),
+                               functions=funcs, expires=expires)
 
     return EXIT_EMPTY, result(
         False, code="empty",
@@ -581,7 +609,8 @@ def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dic
     if cmd == "claim-overlay":
         return cmd_claim_overlay(
             store, session=args.session, pid=args.pid, cli=args.cli,
-            overlay=getattr(args, "overlay", None) or None, root=Path(args.root))
+            overlay=getattr(args, "overlay", None) or None, root=Path(args.root),
+            lease_minutes=int(getattr(args, "lease_minutes", 240)))
     if cmd == "finish-overlay":
         split = lambda s: [x for x in (s or "").split(",") if x]
         return cmd_finish_overlay(store, session=args.session,
@@ -765,6 +794,8 @@ def build_parser() -> argparse.ArgumentParser:
                             help="Lease every unmatched function in one overlay")
     add_session(p_covl)
     p_covl.add_argument("--cli", default="unknown")
+    p_covl.add_argument("--lease-minutes", type=int, default=240,
+                        help="how long the lease outlives the claiming process")
     p_covl.add_argument("--overlay", default="",
                         help="specific overlay; omit to take the largest free one")
     p_fovl = sub.add_parser("finish-overlay",
