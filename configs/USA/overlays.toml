@@ -396,7 +396,7 @@ actor_100400 = { shared = [{ start = "0x1AC", end = "0xAB0C", unit = "actor_1004
 actor_100500 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_100700 = { rodata = [{ start = "0x3C", unit = "actor_100700_text" }, { start = "0x54", unit = "actor_100700_header_2" }], shared = [{ start = "0x60", end = "0x3670", unit = "actor_100700_text" }] }
 actor_101000 = { note = "empty actor slot; the id resolves, the package has no code" }
-actor_101100 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }] }
+actor_101100 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }, { start = "0x73A8", end = "0x73DC", unit = "actors_shared_801511c8" }] }
 actor_101200 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_101300 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_101500 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", rodata = [{ start = "0x6C", unit = "actors_shared_801344f8" }], shared = [{ start = "0x2484", end = "0x25C8", unit = "actors_shared_801342a4" }, { start = "0x26D8", end = "0x27B0", unit = "actors_shared_801344f8" }] }
@@ -415,14 +415,14 @@ actor_104100 = { note = "empty actor slot; the id resolves, the package has no c
 actor_104400 = { shared = [{ start = "0x220", end = "0x8E14", unit = "actor_104400_text" }], relocs = "configs/USA/rel.actor_104400.txt" }
 actor_104500 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_104600 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
-actor_104900 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }] }
+actor_104900 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }, { start = "0x73A8", end = "0x73DC", unit = "actors_shared_801511c8" }] }
 actor_105100 = { }
 actor_105300 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_shared_80133468" }] }
 actor_105400 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_shared_80133468" }] }
 actor_105500 = { rodata = [{ start = "0x44", unit = "actor_105500_text" }], shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
 actor_105600 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_105700 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
-actor_107000 = { note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }] }
+actor_107000 = { note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }, { start = "0x68F0", end = "0x6924", unit = "actors_shared_801511c8" }] }
 actor_107200 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_107500 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_107600 = { }
@@ -497,7 +497,7 @@ actor_200300 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata = 
 actor_200400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x1AC", end = "0xAB0C", unit = "actor_100400_text" }], rodata = [{ start = "0x4", unit = "actor_100400_text" }, { start = "0x2C", unit = "actor_200400_header_2" }] }
 actor_200700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata = [{ start = "0x3C", unit = "actor_100700_text" }, { start = "0x54", unit = "actor_200700_header_2" }], shared = [{ start = "0x60", end = "0x3670", unit = "actor_100700_text" }] }
 actor_201000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "empty actor slot; the id resolves, the package has no code" }
-actor_201100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }] }
+actor_201100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }, { start = "0x73A8", end = "0x73DC", unit = "actors_shared_801511c8" }] }
 actor_201200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_201300 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_201500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", rodata = [{ start = "0x6C", unit = "actors_shared_801344f8" }], shared = [{ start = "0x2484", end = "0x25C8", unit = "actors_shared_801342a4" }, { start = "0x26D8", end = "0x27B0", unit = "actors_shared_801344f8" }] }
@@ -517,13 +517,13 @@ actor_204000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "n
 actor_204100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_204400 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_204600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
-actor_204900 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }] }
+actor_204900 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }, { start = "0x73A8", end = "0x73DC", unit = "actors_shared_801511c8" }] }
 actor_205200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_205500 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, rodata = [{ start = "0x44", unit = "actor_105500_text" }], shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
 actor_205600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_205700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_206100 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
-actor_207000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }] }
+actor_207000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there", shared = [{ start = "0x68B4", end = "0x68F0", unit = "actors_shared_8013918c" }, { start = "0x68F0", end = "0x6924", unit = "actors_shared_801511c8" }] }
 actor_207200 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_210600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20 }
 actor_210700 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, shared = [{ start = "0x3C8", end = "0x3E8", unit = "actors_shared_801327b4" }] }
@@ -537,7 +537,7 @@ actor_300300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "e
 actor_300400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_300700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_301000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "empty actor slot; the id resolves, the package has no code" }
-actor_301100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }] }
+actor_301100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", shared = [{ start = "0x736C", end = "0x73A8", unit = "actors_shared_8013918c" }, { start = "0x73A8", end = "0x73DC", unit = "actors_shared_801511c8" }] }
 actor_301200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_301300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "empty actor slot; the id resolves, the package has no code" }
 actor_301500 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", rodata = [{ start = "0x6C", unit = "actors_shared_801344f8" }], shared = [{ start = "0x2484", end = "0x25C8", unit = "actors_shared_801342a4" }, { start = "0x26D8", end = "0x27B0", unit = "actors_shared_801344f8" }] }
