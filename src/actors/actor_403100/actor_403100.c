@@ -644,7 +644,25 @@ void func_actor_403100_8013EFC8(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F034);
+void func_actor_403100_8013F034(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord->coord.t[0] = -0xAF0;
+    coord->coord.t[1] = 0x300;
+    coord->coord.t[2] = -0xE74;
+
+    D_actor_403100_80155808->field_82  = 0x800;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 0x18;
+    D_actor_403100_80155808->field_5DA = 2;
+    D_actor_403100_80155808->field_618 = 0x1400;
+    D_actor_403100_80155808->field_600 = 0;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5EE = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F0A8);
 
