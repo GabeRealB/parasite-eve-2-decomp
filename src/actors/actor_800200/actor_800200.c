@@ -2,6 +2,8 @@
 
 #include "actors/actor_800200.h"
 
+extern void func_8010ABD4();
+
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80162088);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_801622B0);
@@ -189,7 +191,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165E90);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165F28);
+void func_actor_800200_80165F28(void)
+{
+    func_8010ABD4();
+}
 
 void func_actor_800200_80165F48(void)
 {
