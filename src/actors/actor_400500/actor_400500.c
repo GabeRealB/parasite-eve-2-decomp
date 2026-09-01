@@ -486,7 +486,18 @@ s32 func_actor_400500_8013DB78(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DBCC);
+void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
+{
+    MATRIX         local;
+    GsCOORDINATE2* coord;
+
+    coord = &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[arg1];
+    Gp_UpdateCoord(coord);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
+    arg2->x    = local.t[0];
+    arg2->z    = local.t[2];
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DC4C);
 
