@@ -1,7 +1,9 @@
 #include "common.h"
 
 #include "aya/replay_bonus.h"
+#include "main/display.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "psyq/libpress.h"
 extern UiObjectDesc D_replay_bonus_80119154;
 extern u8           D_replay_bonus_801192AC;
@@ -70,7 +72,18 @@ void func_replay_bonus_801178C0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117924);
+void func_replay_bonus_80117924(Task* arg0)
+{
+    u16 remaining = arg0->killCountdown - 1;
+
+    arg0->killCountdown = remaining;
+    if ((s16)remaining < 0) {
+        Display_State.field_11e = 0;
+        Game_Session->field_2   = 0;
+        Task_CallExit(arg0);
+        Display_State.field_11e = 1;
+    }
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011797C);
 

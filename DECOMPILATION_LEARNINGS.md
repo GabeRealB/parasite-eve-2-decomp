@@ -35783,3 +35783,32 @@ and every scoped verify passed first try. It is the per-function complement to
 "A previously built overlay is a lock-free matching oracle" - cheaper to set up,
 but it says nothing about code you did not edit, so still diff the whole object
 when a *shared* declaration changed.
+
+## `lhu` + `sll 16` + `bgez`: a `u16` countdown tested as signed
+
+A counter stored as an unsigned halfword and then checked for underflow reads
+
+```
+lhu   v0, 0x2a(a0)
+addiu v0, v0, -1
+sh    v0, 0x2a(a0)
+sll   v0, v0, 16
+bgez  v0, .Lskip
+```
+
+m2c renders the `sll`/`bgez` pair as the bit test `if (temp & 0x8000)`, which
+compiles to `andi v0,v0,0x8000` + `beqz` — same meaning, two wrong
+instructions (`insert=2 delete=2`, 82%). GCC only emits the `sll 16` + `bgez`
+sign-extension when the value is *compared* as signed:
+
+```c
+u16 remaining = arg0->killCountdown - 1;
+
+arg0->killCountdown = remaining;
+if ((s16)remaining < 0) { ... }
+```
+
+Note the load stays `lhu` even though `killCountdown` is declared `s16`:
+assigning it into a `u16` local means only the low half is live, so GCC drops
+the sign-extending load and re-extends at the comparison instead. Reading the
+field into an `s16` local flips it back to `lh`. `func_replay_bonus_80117924`.
