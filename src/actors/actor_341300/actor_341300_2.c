@@ -12,8 +12,6 @@ extern Task* D_actor_341300_80165AA4;
 
 extern s8 D_8007272D;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_801623FC);
-
 void func_actor_341300_8016241C(void)
 {
     D_actor_341300_80165AA4 = Task_SpawnFromTable(&D_actor_341300_80165208, 0, 0, 0);

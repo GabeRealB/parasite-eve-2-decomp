@@ -4,8 +4,6 @@
 
 extern Task* D_actor_361100_80171BE0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_8016297C);
-
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_8016299C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_801629D0);

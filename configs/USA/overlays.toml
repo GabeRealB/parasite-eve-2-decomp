@@ -485,7 +485,7 @@ actor_450900 = { rodata_head = "0x4" }
 actor_451100 = { }
 actor_460200 = { }
 actor_461800 = { }
-actor_503500 = { units = ["0x44E4"], rodata = [{ start = "0x34", unit = "actor_503500_3" }, { start = "0x10C", unit = "actor_503500_4" }], shared = [{ start = "0xD58", end = "0xD78", unit = "actors_shared_8016447c" }, { start = "0xD78", end = "0xD98", unit = "actors_shared_8016449c" }, { start = "0xD98", end = "0xDB8", unit = "actors_shared_80162080" }, { start = "0xE84", end = "0xEA4", unit = "actors_shared_80132ca4" }, { start = "0x146C8", end = "0x146E8", unit = "actors_shared_801327b4" }] }
+actor_503500 = { units = ["0x44E4"], rodata = [{ start = "0x34", unit = "actor_503500_3" }, { start = "0x10C", unit = "actor_503500_4" }], shared = [{ start = "0xD58", end = "0xD78", unit = "actors_shared_8016447c" }, { start = "0xD78", end = "0xD98", unit = "actors_shared_8016449c" }, { start = "0xD98", end = "0xDB8", unit = "actors_shared_80162080" }, { start = "0xDB8", end = "0xDD8", unit = "actors_shared_80132bd8" }, { start = "0xE84", end = "0xEA4", unit = "actors_shared_80132ca4" }, { start = "0x146C8", end = "0x146E8", unit = "actors_shared_801327b4" }] }
 actor_510900 = { units = ["0x9A50", "0x9B68"], rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
 actor_511000 = { }
 actor_521100 = { units = ["0x37A8"], rodata = [{ start = "0x2C", unit = "actor_521100_2" }] }
@@ -572,8 +572,8 @@ actor_317000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = 
 actor_323000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_323300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_323400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
-actor_335800 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x4", unit = "actor_335800_2" }], shared = [{ start = "0x220", end = "0x240", unit = "actors_shared_8016447c" }, { start = "0x240", end = "0x260", unit = "actors_shared_8016449c" }, { start = "0x260", end = "0x280", unit = "actors_shared_80162080" }] }
-actor_341300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x44", unit = "actor_341300_2" }], shared = [{ start = "0x57C", end = "0x59C", unit = "actors_shared_8016447c" }, { start = "0x59C", end = "0x5BC", unit = "actors_shared_8016449c" }, { start = "0x5BC", end = "0x5DC", unit = "actors_shared_80162080" }] }
+actor_335800 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x4", unit = "actor_335800_2" }], shared = [{ start = "0x220", end = "0x240", unit = "actors_shared_8016447c" }, { start = "0x240", end = "0x260", unit = "actors_shared_8016449c" }, { start = "0x260", end = "0x280", unit = "actors_shared_80162080" }, { start = "0x280", end = "0x2A0", unit = "actors_shared_80132bd8" }] }
+actor_341300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x44", unit = "actor_341300_2" }], shared = [{ start = "0x57C", end = "0x59C", unit = "actors_shared_8016447c" }, { start = "0x59C", end = "0x5BC", unit = "actors_shared_8016449c" }, { start = "0x5BC", end = "0x5DC", unit = "actors_shared_80162080" }, { start = "0x5DC", end = "0x5FC", unit = "actors_shared_80132bd8" }] }
 actor_341700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_341900 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x1818", end = "0x1838", unit = "actors_shared_8016447c" }, { start = "0x1838", end = "0x1858", unit = "actors_shared_8016449c" }, { start = "0x1858", end = "0x1880", unit = "actors_shared_801343a4" }] }
 actor_342000 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x265C", end = "0x267C", unit = "actors_shared_8016447c" }, { start = "0x267C", end = "0x269C", unit = "actors_shared_8016449c" }, { start = "0x269C", end = "0x26C4", unit = "actors_shared_801343a4" }] }
@@ -583,7 +583,7 @@ actor_342400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_350500 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x63C", end = "0x65C", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x10", unit = "actor_350500_2" }] }
 actor_350700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_356100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
-actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x4", unit = "actor_361100_2" }], shared = [{ start = "0xAFC", end = "0xB1C", unit = "actors_shared_8016447c" }, { start = "0xB1C", end = "0xB3C", unit = "actors_shared_8016449c" }, { start = "0xB3C", end = "0xB5C", unit = "actors_shared_80162080" }] }
+actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x4", unit = "actor_361100_2" }], shared = [{ start = "0xAFC", end = "0xB1C", unit = "actors_shared_8016447c" }, { start = "0xB1C", end = "0xB3C", unit = "actors_shared_8016449c" }, { start = "0xB3C", end = "0xB5C", unit = "actors_shared_80162080" }, { start = "0xB5C", end = "0xB7C", unit = "actors_shared_80132bd8" }] }
 actor_800100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_800200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata_head = "0x1F4" }
 actor_800300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }

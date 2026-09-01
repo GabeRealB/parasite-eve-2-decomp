@@ -10,11 +10,6 @@ extern TaskDesc D_actor_335800_80164DE0;
 
 extern s8 D_8007272D;
 
-void func_actor_335800_801620A0(void)
-{
-    CdCmd_CancelReplaceAndActivate();
-}
-
 void func_actor_335800_801620C0(void)
 {
     Task_SpawnFromTable(&D_actor_335800_80164DE0, 0, 0, 0);
