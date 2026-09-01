@@ -70,7 +70,10 @@ void func_shelter_r36_8017D870(s32 arg0)
     Gp_ResetCap();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D8C8);
+s32 func_shelter_r36_8017D8C8(void)
+{
+    return 0;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r36/shelter_r36", D_shelter_r36_8017D5C0);
 
