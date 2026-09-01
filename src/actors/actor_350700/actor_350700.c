@@ -16,7 +16,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162404);
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162494);
+void func_actor_350700_80162494(Task* arg0)
+{
+    Gp_EnemyTaskExit(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_801624B4);
 
