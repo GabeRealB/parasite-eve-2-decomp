@@ -645,7 +645,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145E1C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145E98);
+void func_actor_503500_80145E98(Task* arg0)
+{
+    GameActorExt* ext;
+
+    func_actor_503500_801372AC(8);
+    SndEvt_EnqueueType7(0x4023000E, 1);
+    SndEvt_EnqueueType7(0x40230013, 1);
+    SndEvt_EnqueueType7(0x4023000F, 1);
+    ext                                 = arg0->extra;
+    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145F18);
 
