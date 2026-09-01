@@ -352,7 +352,34 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013D420);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013D4F0);
+void func_actor_400500_8013D4F0(Task* arg0)
+{
+    GpEnemy*         enemy;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor400500Work*)arg0->idMap;
+    if (enemy->field_40 > 0) {
+        if (Gp_TickObjFlag2((GpObj5D*)enemy) != 0) {
+            if (!(work->field_A1E & 2)) {
+                work2            = (Actor400500Work*)arg0->idMap;
+                work2->field_9F8 = 0x10;
+                work2->field_9FE = 0x10;
+                work2->field_9FA = 2;
+            } else {
+                work3            = (Actor400500Work*)arg0->idMap;
+                work3->field_9F8 = 0x10;
+                work3->field_9FE = 0x12;
+                work3->field_9FA = 2;
+            }
+            work->field_A08 = 2;
+        }
+    } else {
+        work->field_A42 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013D59C);
 
