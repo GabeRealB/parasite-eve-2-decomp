@@ -17,7 +17,10 @@ s32 func_shelter_1f_bulwark_8017DBC4(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017DBCC);
+s32 func_shelter_1f_bulwark_8017DBCC(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017DBD4);
 
