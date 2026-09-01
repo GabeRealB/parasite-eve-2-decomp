@@ -1,5 +1,13 @@
 #include "common.h"
+
+#include "gameplay/3CD8.h"
+
 #include "main/task.h"
+
+void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+
+extern s8 D_801153F1;
+
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E4A4);
@@ -30,4 +38,8 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
     Task_SpawnFromTable(&D_acropolis_helicopter_landing_pad_80184DA0, 6, arg0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E6F0);
+void func_acropolis_helicopter_landing_pad_8017E6F0(void)
+{
+    Gp_ReleaseStateF0Add((void*)Gp_LookupSlot4(0), 0x1B);
+    D_801153F1 = 3;
+}
