@@ -34,7 +34,10 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D750);
+s32 func_shelter_b2_breeding_room_8017D750(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D758);
 
