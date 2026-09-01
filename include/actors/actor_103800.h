@@ -29,7 +29,9 @@ typedef struct Actor103800Work {
     /* 0x220 */ byte           pad_220[8];
     /* 0x228 */ s16            field_228;
     /* 0x22A */ byte           pad_22A[0x62];
-    /* 0x28C */ byte           field_28C[0x40];
+    /* 0x28C */ byte           field_28C[0x1E];
+    /* 0x2AA */ u16            field_2AA;
+    /* 0x2AC */ byte           pad_2AC[0x20];
     /* 0x2CC */ MATRIX         field_2CC;
     /* 0x2EC */ byte           pad_2EC[0x58];
     /* 0x344 */ GsCOORDINATE2* field_344;

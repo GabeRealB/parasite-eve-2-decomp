@@ -575,29 +575,67 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L0254C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02550);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02584);
+/// State 12 of `Actor03800_Fn032D8`: pick and hold a turn direction while the
+/// actor is aiming at the player. State 0 chooses the side to turn towards -
+/// clockwise (1) when the player is in front of the actor's local +Z axis,
+/// anticlockwise (2) otherwise - and a pending `field_370` request forces the
+/// clockwise side. States 1 and 2 drive `field_35C` by -/+0x7D while the yaw
+/// error `field_34C` is inside 8..0x10 and hand over to state 3 once it grows
+/// past 0x10; state 3 finishes the move and hands back to `field_352` 1.
+void Actor03800_Fn02584(Actor103800* arg0)
+{
+    Actor103800Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR           vec;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L025B8);
+    work  = arg0->field_1C;
+    coord = work->field_344;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L025D4);
+    switch (work->field_354) {
+        case 0:
+            vec.vx          = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec.vy          = 0;
+            vec.vz          = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            work->field_348 = 0xA;
+            if (work->field_370 != 0) {
+                work->field_370 = 0;
+                work->field_354 = 1;
+            } else {
+                work->field_354 =
+                    ((vec.vx * coord->coord.m[0][2]) + (vec.vz * coord->coord.m[2][2]) > 0) ? 1 : 2;
+            }
+            work->field_2AA &= 0x7FFF;
+            break;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L0261C);
+        case 1:
+            if (work->field_34C >= 8 && work->field_34C <= 0x10) {
+                work->field_35C = -0x7D;
+                break;
+            }
+            goto turn_done;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02654);
+        case 2:
+            if (work->field_34C >= 8 && work->field_34C <= 0x10) {
+                work->field_35C = 0x7D;
+                break;
+            }
+        turn_done:
+            work->field_35C = 0;
+            if ((s16)work->field_34C >= 0x11) {
+                work->field_354 = 3;
+            }
+            break;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02658);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02664);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L02684);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L026A4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L026C4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L026EC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L026F0);
+        case 3:
+            if ((s16)work->field_34C >= 0x14) {
+                work->field_352  = 1;
+                work->field_354  = 0;
+                work->field_372  = 0x80;
+                work->field_2AA |= 0x8000;
+            }
+            break;
+    }
+}
 
 void Actor03800_Fn026F8(Actor103800* arg0)
 {
@@ -944,7 +982,6 @@ void Actor03800_Fn01AD0(Actor103800* arg0);
 void Actor03800_Fn01C50(Actor103800* arg0);
 void Actor03800_Fn021E4(Actor103800* arg0);
 void Actor03800_Fn034B0(Actor103800* arg0);
-void Actor03800_Fn02584(Actor103800* arg0);
 
 void Actor03800_Fn032D8(Actor103800* arg0)
 {

@@ -36376,3 +36376,30 @@ Gp_PlaceCoordOffset((GsCOORDINATE2*)extra + 4, coord, rot);
 
 Both look like noise and both are load-bearing. When a type change forces you to
 touch a line like this, change the *type* and leave the shape alone.
+
+## One `u16` field read as both `lhu` and `lh` in the same function
+
+`Actor03800_Fn02584` touches `field_34C` four times and splat shows two
+different loads:
+
+```
+lhu   $v0, 0x34C($a1)      # addiu -8 / sltiu 9   -> unsigned range check
+lh    $v0, 0x34C($a1)      # slti 0x11            -> signed compare
+```
+
+That is one field, not two. `sltiu` after `addiu -8` is GCC's rewrite of
+`x >= 8 && x <= 0x10`, and it only loads `lhu` when `x` is *unsigned* — a
+signed `x` would keep the `lh`. So the `lhu` fixes the declared type as `u16`.
+The `slti` is then a genuinely signed comparison, and the way to ask for it on
+a `u16` field is an explicit cast:
+
+```c
+if (work->field_34C >= 8 && work->field_34C <= 0x10) { ... }   /* lhu */
+if ((s16)work->field_34C >= 0x11)                   { ... }   /* lh  */
+```
+
+`combine` folds the `lhu` + `sll 16` + `sra 16` of the cast back into a single
+`lh`, so the cast costs nothing. Read the load width and signedness per *use*
+before deciding a field's type: a mixed pair is normal C, not a struct
+mistake, and picking `s16` to satisfy the `slti` breaks the range check
+instead.
