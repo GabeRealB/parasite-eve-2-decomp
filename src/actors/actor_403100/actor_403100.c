@@ -486,7 +486,32 @@ void func_actor_403100_8013E784(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E7C8);
+void func_actor_403100_8013E7C8(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* coord2;
+    u16            countdown;
+
+    coord2              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    arg0->killCountdown = 0x5A;
+    coord2->sub         = &Gfx_ViewCoord;
+    coord2->flg         = 0;
+    arg0->state        += 1;
+    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (D_801153F4 == 0) {
+        coord->flg = 0;
+        if (!(arg0->killCountdown & 7)) {
+            Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
+        }
+        countdown           = arg0->killCountdown - 1;
+        arg0->killCountdown = countdown;
+        if ((countdown << 0x10) <= 0) {
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            Task_Kill(arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E88C);
 
