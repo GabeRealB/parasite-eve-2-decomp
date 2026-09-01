@@ -69,7 +69,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801348A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134904);
+void func_actor_107600_80134904(Task* arg0)
+{
+    TmdObject* obj = arg0->extra;
+
+    obj->field_C |= 0x80;
+}
 
 void func_actor_107600_80134920(Task* arg0)
 {
