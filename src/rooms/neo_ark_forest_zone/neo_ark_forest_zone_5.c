@@ -21,7 +21,10 @@ s32 func_neo_ark_forest_zone_801813BC(void)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_801813C4);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_8018141C);
+void func_neo_ark_forest_zone_8018141C(Task* arg0)
+{
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_5", func_neo_ark_forest_zone_80181430);
 
