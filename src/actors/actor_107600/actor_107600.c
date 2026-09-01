@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_107600.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E20);
@@ -80,7 +82,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D10);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D30);
+void func_actor_107600_80134D30(Actor107600* arg0)
+{
+    func_actor_107600_80134B98(arg0, 1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D50);
 
