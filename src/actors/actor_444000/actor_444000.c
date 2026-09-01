@@ -151,7 +151,10 @@ void func_actor_444000_801434A8(s16 arg0)
     D_actor_444000_80144A72 = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801434B4);
+s16 func_actor_444000_801434B4(void)
+{
+    return D_actor_444000_80144A72;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801434C4);
 
