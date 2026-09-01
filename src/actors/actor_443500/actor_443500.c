@@ -2,6 +2,8 @@
 #include "main/task.h"
 #include "gameplay/3CD8.h"
 
+extern TaskDesc D_80187618;
+
 void func_actor_443500_80131E3C(s32 arg0)
 {
     if (arg0 != 0) {
@@ -28,7 +30,12 @@ void func_actor_443500_80131E84(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131EE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131F18);
+void func_actor_443500_80131F18(void)
+{
+    Task_SpawnFromTable(&D_80187618, 0, 1, 0);
+    Gp_MsgPlayer3F3(0);
+    Gp_MsgPlayerWeapon(0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131F58);
 
