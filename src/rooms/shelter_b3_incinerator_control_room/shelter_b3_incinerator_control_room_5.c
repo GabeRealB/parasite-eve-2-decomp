@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017F9F4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017FA84);
+s32 func_shelter_b3_incinerator_control_room_8017FA84(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017FA8C);
 
