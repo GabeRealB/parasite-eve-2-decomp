@@ -284,7 +284,46 @@ void func_actor_403100_8013CDC0(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013CEAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013CF60);
+void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    s16 facing;
+    s16 target;
+    u16 yaw;
+    u16 targetU;
+    u16 facingU;
+
+    yaw = (u16)arg0->vy;
+    if ((u32)((yaw + 0x27F) & 0xFFFF) < 0x4FFU) {
+        target  = D_actor_403100_80155808->field_B2;
+        targetU = (u16)D_actor_403100_80155808->field_B2;
+        if ((u32)(((s16)yaw - target) + 0x20) >= 0x41U) {
+            if (target < (s16)yaw) {
+                D_actor_403100_80155808->field_B2 = targetU + arg1;
+                D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 + arg2;
+                return;
+            }
+            D_actor_403100_80155808->field_B2 = targetU - arg1;
+            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 - arg2;
+            return;
+        }
+        facing  = (s16)D_actor_403100_80155808->field_82;
+        facingU = D_actor_403100_80155808->field_82;
+        if (facing < target) {
+            D_actor_403100_80155808->field_82 = facingU + arg3;
+            return;
+        }
+        if (target < facing) {
+            D_actor_403100_80155808->field_82 = facingU - arg3;
+        }
+    } else {
+        if ((s16)yaw >= 0x281) {
+            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 + arg4;
+        }
+        if (arg0->vy < -0x280) {
+            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 - arg4;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D06C);
 
