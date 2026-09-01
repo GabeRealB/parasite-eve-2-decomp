@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import functools
 import hashlib
 import json
 import multiprocessing
@@ -379,6 +380,25 @@ def build_overlay_context(overlay: str, probe_asm: Path, workdir: Path) -> list[
 _ctx_cache: dict[str, Optional[str]] = {}
 
 
+@functools.lru_cache(maxsize=None)
+def _file_sig(path: str) -> str:
+    try:
+        st = Path(path).stat()
+        return f"{path}:{st.st_mtime_ns}:{st.st_size}"
+    except OSError:
+        return f"{path}:missing"
+
+
+def _header_fingerprint(headers: list[str], c_file: Optional[Path]) -> str:
+    """mtime+size of every header a context is built from, so editing one
+    invalidates the cached preprocessing rather than being silently ignored."""
+    parts = [_file_sig(str(REPO_ROOT / "include" / h)) for h in headers]
+    parts.append(_file_sig(str(REPO_ROOT / "include" / "decomp" / "common.h")))
+    if c_file is not None:
+        parts.append(_file_sig(str(c_file)))
+    return "|".join(parts)
+
+
 def context_for(
     c_file: Optional[Path], headers: list[str], workdir: Path
 ) -> Optional[Path]:
@@ -393,7 +413,12 @@ def context_for(
     if c_file is not None and c_file.is_file():
         body += f'#include "{c_file}"\n'
 
-    key = hashlib.sha1(body.encode()).hexdigest()
+    # The key must cover the header *contents*, not just the include lines.
+    # Keyed on the directives alone, editing a header leaves the key unchanged,
+    # the stale preprocessed context is reused, and the edit silently never
+    # reaches m2c. That invalidated three separate attempts to measure whether
+    # adding declarations improved seed quality; each looked like a real result.
+    key = hashlib.sha1((body + _header_fingerprint(headers, c_file)).encode()).hexdigest()
     if key in _ctx_cache:
         text = _ctx_cache[key]
     else:
