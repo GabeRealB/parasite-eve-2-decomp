@@ -3,17 +3,39 @@
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
 /// Scratch state of the security-room cap script, stored at `Task::idMap`.
+///
+/// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
+/// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
+/// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::idMap` slot,
+/// so the size below is the allocation and not a guess; the same function
+/// parks the family's `GpMsgEntry[]` in `Task::field_24`. The overlay's other
+/// two allocators (`Mem_Calloc(0xA)` in `func_acropolis_security_room_8017D9DC`
+/// and `Mem_Calloc(4)` in `func_acropolis_security_room_80180368`) belong to
+/// other task families and to a different block.
 typedef struct {
-    /* 0x0 */ s32 field_0; // sub-step picked by the previous cap event
+    /* 0x0 */ s32   field_0; // sub-step picked by the previous cap event
+    /* 0x4 */ Task* child;   // task this state spawned, polled by Task_PollKill
+    /* 0x8 */ u16   frames;  // frames the current state has been running
+    /* 0xA */ byte  pad_A[0x6];
 } AcropolisSecurityRoomState;
+STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
 
 void func_acropolis_security_room_8017FD64(s32 arg0);
+
+/// The two `TaskDesc`s this room's script spawns from: index 0 is
+/// `func_acropolis_security_room_80180368`, index 1 is
+/// `func_acropolis_security_room_801804CC`.
+extern TaskDesc D_acropolis_security_room_80182700[];
+
+extern s8  D_8007216C;
+extern s16 D_80114D08;
 
 /// 0xFF-terminated area-record lists applied as the script ends.
 extern GpAreaApplyRec D_acropolis_security_room_80184F50[];
@@ -118,7 +140,18 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FBA4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FC30);
+void func_acropolis_security_room_8017FC30(Task* task)
+{
+    D_80114D08 = 0xA;
+    Gp_MsgPlayer3F3(1);
+    Game_Session->field_1  = 0;
+    Game_Session->field_68 = 0;
+    Game_Session->field_66 = 0;
+    D_8007216C             = 3;
+    Display_ReleaseRef();
+    Task_Kill((Task*)task->spawnArg2);
+    Task_RequestKill(task, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FCB0);
 
