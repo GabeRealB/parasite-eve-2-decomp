@@ -161,7 +161,16 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FE6C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FF0C);
+void func_acropolis_security_room_8017FF0C(Task* task)
+{
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+
+    if (st->frames == 1) {
+        st->child   = Task_SpawnFromTable(D_acropolis_security_room_80182700, 0, 0, 0);
+        task->state = task->state + 1;
+    }
+    st->frames = st->frames + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FF84);
 
