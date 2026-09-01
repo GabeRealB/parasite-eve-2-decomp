@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_335800.h"
+
 #include "gameplay/3CD8.h"
 
 #include "gameplay/gameplay.h"
@@ -133,7 +135,16 @@ void func_actor_335800_80163B34(Task* arg0)
     Gp_EnemyTaskExit(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80163B54);
+void func_actor_335800_80163B54(Task* arg0)
+{
+    TmdObject*       ext;
+    Actor335800Work* work;
+
+    ext           = arg0->extra;
+    work          = (Actor335800Work*)arg0->idMap;
+    ext->field_1C = &work->light;
+    ext->field_20 = &work->color;
+}
 
 void func_actor_335800_80163B70(void)
 {
