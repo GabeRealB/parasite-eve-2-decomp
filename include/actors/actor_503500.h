@@ -107,23 +107,29 @@ typedef struct Actor503500Work {
     /* 0x3D6 */ s8       field_3D6;
     /* 0x3D7 */ s8       field_3D7; // TMD buffer countdown, 0x3D8 block
     /* 0x3D8 */ byte     pad_3D8[0x314];
-    /* 0x6EC */ GpEnemy* enemies[0x22];
-    /* 0x774 */ u32      field_774; // one "already asked to die" bit per slot
-    /* 0x778 */ byte     pad_778[0x38];
-    /* 0x7B0 */ s16      field_7B0; // boss state index
-    /* 0x7B2 */ u16      field_7B2;
-    /* 0x7B4 */ byte     pad_7B4[0x16];
-    /* 0x7CA */ s16      field_7CA;
-    /* 0x7CC */ s16      field_7CC;
-    /* 0x7CE */ byte     pad_7CE[0x4];
-    /* 0x7D2 */ s16      field_7D2;
-    /* 0x7D4 */ byte     pad_7D4[0x6];
-    /* 0x7DA */ u8       field_7DA; // per-state step counter
-    /* 0x7DB */ byte     pad_7DB[0x5];
-    /* 0x7E0 */ s8       field_7E0;
-    /* 0x7E1 */ byte     pad_7E1[0x1];
-    /* 0x7E2 */ s8       field_7E2;
-    /* 0x7E3 */ byte     pad_7E3[0x5];
+    /* 0x6EC */ GpEnemy* enemies[0x11];
+    /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
+    /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
+    /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on
+    /// `field_730`.
+    /* 0x730 */ s16  field_730[0x11];
+    /* 0x752 */ s16  field_752[0x11];
+    /* 0x774 */ u32  field_774; // one "already asked to die" bit per slot
+    /* 0x778 */ byte pad_778[0x38];
+    /* 0x7B0 */ s16  field_7B0; // boss state index
+    /* 0x7B2 */ u16  field_7B2;
+    /* 0x7B4 */ byte pad_7B4[0x16];
+    /* 0x7CA */ s16  field_7CA;
+    /* 0x7CC */ s16  field_7CC;
+    /* 0x7CE */ byte pad_7CE[0x4];
+    /* 0x7D2 */ s16  field_7D2;
+    /* 0x7D4 */ byte pad_7D4[0x6];
+    /* 0x7DA */ u8   field_7DA; // per-state step counter
+    /* 0x7DB */ byte pad_7DB[0x5];
+    /* 0x7E0 */ s8   field_7E0;
+    /* 0x7E1 */ byte pad_7E1[0x1];
+    /* 0x7E2 */ s8   field_7E2;
+    /* 0x7E3 */ byte pad_7E3[0x5];
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 

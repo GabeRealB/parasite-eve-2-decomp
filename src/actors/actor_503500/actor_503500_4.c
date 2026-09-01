@@ -17,10 +17,12 @@
 extern GpMsgEntry D_actor_503500_80146888[];
 void              func_actor_503500_801324EC(Task* arg0);
 extern Task*      D_actor_503500_80176558;
-extern TaskDesc   D_actor_503500_8014B964;
-extern s8         D_actor_503500_80176D5A;
-extern s16        D_actor_503500_80176D2E;
-extern u16        D_actor_503500_80176D24;
+/// The boss work block, cleared by `func_actor_503500_80132F64`.
+extern Actor503500Work D_actor_503500_80176574;
+extern TaskDesc        D_actor_503500_8014B964;
+extern s8              D_actor_503500_80176D5A;
+extern s16             D_actor_503500_80176D2E;
+extern u16             D_actor_503500_80176D24;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
@@ -260,7 +262,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135F9C);
+/// Records the per-slot halfword for slot `arg1` of the boss work block.
+/// `arg0` is loaded by every caller but the body ignores it, the same way
+/// `func_actor_503500_80135E04` does.
+void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
+{
+    D_actor_503500_80176574.field_730[arg1] = arg2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80135FB4);
 
