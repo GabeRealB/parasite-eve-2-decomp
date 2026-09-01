@@ -222,7 +222,79 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013852C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138898);
+/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
+/// actor, 2 hides it, anything else runs the normal per-frame chain.
+extern u8 D_801153F4;
+
+void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
+void func_actor_503500_801398D0(Actor503500* arg0);
+void func_actor_503500_80139EFC(Actor503500* arg0);
+void func_actor_503500_8013A0D0(Actor503500* arg0);
+void func_actor_503500_8013A96C(Actor503500* arg0);
+void func_actor_503500_8013AA44(Actor503500* arg0);
+void func_actor_503500_8013AAC0(Actor503500* arg0);
+void func_actor_503500_8013AB38(Actor503500* arg0);
+
+void func_actor_503500_80138898(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    s8               countdown;
+    s32              slot;
+
+    work      = arg0->field_1C;
+    enemy     = arg0->field_20;
+    countdown = work->field_2EB;
+    /* `Task::extra` is a `TmdObject`: the model instance and the actor-ext
+     * record documented in `main/session.h` are the same object. */
+    tmd = (TmdObject*)arg0->extra;
+    if (countdown >= 0) {
+        if (countdown == 0) {
+            Tmd_FreeBuffers(tmd);
+        }
+        work->field_2EB = (s8)((u8)work->field_2EB - 1);
+    }
+    if (Game_Session->field_1 != 0) {
+        slot = 0xB;
+        if (arg0->spawnArg1 < 3) {
+            slot = 0xA;
+        }
+        if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
+            tmd->field_C |= 4;
+        } else {
+            goto tick;
+        }
+    } else {
+    tick:
+        func_actor_503500_80135828(arg0, &work->field_2EB);
+    }
+
+    switch (D_801153F4) {
+        case 1:
+            if (!(tmd->field_C & 0x80)) {
+                func_actor_503500_8013AAC0(arg0);
+            }
+            break;
+        case 2:
+            tmd->field_C        |= 0x80;
+            enemy->node.field_4 |= 1;
+            break;
+        default:
+            if (enemy->field_4C != 0) {
+                func_actor_503500_801398D0(arg0);
+            }
+            func_actor_503500_8013AA44(arg0);
+            func_actor_503500_8013A96C(arg0);
+            if (work->field_2EA == 0) {
+                func_actor_503500_80139EFC(arg0);
+                func_actor_503500_8013A0D0(arg0);
+            }
+            func_actor_503500_8013AAC0(arg0);
+            func_actor_503500_8013AB38(arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138A30);
 
