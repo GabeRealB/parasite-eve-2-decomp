@@ -718,7 +718,18 @@ void func_actor_403100_8013F270(void)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F2D8);
+void func_actor_403100_8013F2D8(void)
+{
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        D_actor_403100_80155808->field_668 = 0;
+        D_actor_403100_80155808->field_669 = 0;
+        D_actor_403100_80155808->field_61C = 4;
+        D_actor_403100_80155808->field_5F6 = 4;
+        D_actor_403100_80155808->field_604 = 0;
+        D_actor_403100_80155808->field_608 = 0;
+        D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F344);
 
