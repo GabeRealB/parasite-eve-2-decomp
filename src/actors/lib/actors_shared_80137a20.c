@@ -4,7 +4,7 @@
 #include "actors/actors_shared_80137b78.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void func_8009EA50(s16 arg0);
+void func_8009EA50(s32 arg0); /* defined (s32) in src/gameplay/gameplay.c */
 
 void ActorsShared80137a20_Fn31F54(ActorShared80137a20* arg0, ActorShared80137a20Obj2C* arg1, s32 arg2);
 void ActorsShared80137a20_Fn34968(ActorShared80137a20* arg0);

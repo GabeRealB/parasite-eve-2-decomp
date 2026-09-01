@@ -50,15 +50,19 @@ typedef struct _GpEnemy {
     /* 0x38 */ byte           pad_38[4];
     /* 0x3C */ void*          field_3C;
     /* 0x40 */ s16            field_40;
-    /* 0x42 */ byte           pad_42[9];
-    /* 0x4B */ u8             field_4B;
-    /* 0x4C */ u8             field_4C;
-    /* 0x4D */ byte           pad_4D;
-    /* 0x4E */ u8             field_4E;
-    /* 0x4F */ u8             field_4F;
-    /* 0x50 */ GpPairSrcE*    field_50;
-    /* 0x54 */ s32            field_54;
-    /* 0x58 */ byte           pad_58[8];
+    /// Max HP: `func_actor_405800_8013340C` compares `field_40` against
+    /// `field_42`/4, `field_42`*3/8, `field_42`/8 and `field_42`/16 to pick a
+    /// damage reaction, so this is the ceiling `field_40` is measured against.
+    /* 0x42 */ u16         field_42;
+    /* 0x44 */ byte        pad_44[7];
+    /* 0x4B */ u8          field_4B;
+    /* 0x4C */ u8          field_4C;
+    /* 0x4D */ byte        pad_4D;
+    /* 0x4E */ u8          field_4E;
+    /* 0x4F */ u8          field_4F;
+    /* 0x50 */ GpPairSrcE* field_50;
+    /* 0x54 */ s32         field_54;
+    /* 0x58 */ byte        pad_58[8];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
