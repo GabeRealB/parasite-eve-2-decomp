@@ -62,7 +62,16 @@ void func_actor_342000_80164154(void)
     Gp_ApplyAreaRecs(D_8018FB6C);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801641B4);
+void func_actor_342000_801641B4(void)
+{
+    Actor342000EventWork* work;
+
+    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    if (work->field_50 != NULL) {
+        Task_CallExit(work->field_50);
+    }
+    work->field_50 = NULL;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801641FC);
 
