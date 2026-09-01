@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main/task.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 extern s8 D_actor_503500_80176D5A;
 
 extern u16 D_actor_503500_80176D24;
@@ -8,6 +9,11 @@ extern u16 D_actor_503500_80176D24;
 extern Task* D_actor_503500_80176558;
 
 extern TaskDesc D_actor_503500_8014B964;
+
+/// Opaque script/table blobs in the overlay's `.data`, handed to
+/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
+extern u8 D_actor_503500_8014CD98[];
+extern u8 D_actor_503500_8014D098[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013223C);
 
@@ -63,7 +69,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132D00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132D20);
+void func_actor_503500_80132D20(Task* arg0)
+{
+    func_800E8634((s32)D_actor_503500_8014CD98, 0, (s32)D_actor_503500_8014D098);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132D60);
 
