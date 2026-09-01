@@ -35648,6 +35648,20 @@ and `param`, so `super` lands at 0x48 and `sub` at 0x4C. The idiom
 `M2C_FIELD(ext->field_8, GsCOORDINATE2**, 0x4C) = &Gfx_ViewCoord` is
 `coord->sub = &Gfx_ViewCoord`, not `->super`.
 
+That also fixes `sizeof(GsCOORDINATE2)` at **0x50**, which is what turns the
+other common m2c shape into an index. `TmdObject::field_8` is an *array* of
+coordinate nodes, so a raw byte offset onto it divides by 0x50:
+
+```c
+/* m2c */ Gp_SpawnEff(0x20010, M2C_FIELD(M2C_FIELD(arg0, void**, 0x2C), s32*, 8) + 0xF0, ...)
+/* C   */ Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[3], ...)
+```
+
+and a scaled one is already an index - `+ (arg1 * 0x50)` is `[arg1]`. Inside a
+node, `0x18`/`0x1C`/`0x20` are `coord.t[0..2]` (`coord` starts at 4 and
+`MATRIX::t` at 0x14), `0x24` is `&workm`, and `sw $zero, 0($node)` is
+`node->flg = 0`.
+
 ## Diff the whole object, not your functions: a retyped global rescales old code
 
 A typing pass on `actor_403100` gave the overlay's work-block global its real
