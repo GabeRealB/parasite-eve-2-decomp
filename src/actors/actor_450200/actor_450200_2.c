@@ -7,6 +7,7 @@
 extern TaskDesc D_actor_450200_8013FB40;
 
 extern void func_8017FA98(s32);
+extern void func_80180DAC(s32);
 
 extern s32      D_actor_450200_80138870;
 extern s32      D_actor_450200_80138A68;
@@ -64,6 +65,9 @@ void func_actor_450200_80132848(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_80132880);
+void func_actor_450200_80132880(s32 arg0)
+{
+    func_80180DAC(arg0 & 0xFFFF);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_801328A0);
