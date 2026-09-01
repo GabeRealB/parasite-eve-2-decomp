@@ -6,7 +6,10 @@ s32 func_mine_tunnel_entrance_8017D634(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D63C);
+s32 func_mine_tunnel_entrance_8017D63C(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance", func_mine_tunnel_entrance_8017D644);
 
