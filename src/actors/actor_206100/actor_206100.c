@@ -1,5 +1,13 @@
 #include "common.h"
 
+#include "main/task.h"
+
+#include "gameplay/3CD8.h"
+
+#include "actors/actor_206100.h"
+
+void func_actor_206100_8014DEAC(Task* task);
+
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_80149ED0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014A70C);
@@ -64,7 +72,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EA8C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EB48);
+void func_actor_206100_8014EB48(Task* task, s16 arg1)
+{
+    Actor206100Work* work = (Actor206100Work*)task->idMap;
+
+    work->field_556 = 1;
+    work->field_554 = 1;
+    work->field_544 = arg1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EB60);
 
