@@ -117,7 +117,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B524);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B608);
+void func_actor_510900_8013B608(Actor510900* arg0)
+{
+    Actor510900Work* work = arg0->field_1C;
+
+    Gp_UnlinkObj(&work->obj47C);
+    Gp_UnlinkObj(&work->obj4E4);
+    Gp_UnlinkObj(&work->obj504);
+    Gp_DestroyEnemy(arg0->field_20, (Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B658);
 
