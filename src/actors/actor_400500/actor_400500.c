@@ -449,7 +449,18 @@ void func_actor_400500_8013DA24(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DA68);
+void func_actor_400500_8013DA68(Task* arg0)
+{
+    TmdObject*       model;
+    Actor400500Work* work;
+
+    model = (TmdObject*)arg0->extra;
+    work  = (Actor400500Work*)arg0->idMap;
+    Tmd_FreeBuffers(model);
+    model->field_C |= 4;
+    func_actor_400500_80134B88(arg0);
+    work->field_A06 = work->field_A06 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013DACC);
 
