@@ -1,6 +1,28 @@
 #include "common.h"
+
+#include "main/sound.h"
 #include "main/task.h"
-extern s32 D_actor_403100_80155808;
+#include "main/tmd.h"
+
+#include "gameplay/3CD8.h"
+
+#include "actors/actor_403100.h"
+
+/// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `field_8` is
+/// this actor's `GsCOORDINATE2`.
+extern Actor403100Work* D_actor_403100_80155808;
+
+extern u8 D_801153F4;
+
+/* Resolved through `configs/USA/sym/actors.imports.txt`. */
+void func_8017E128(s32 arg0);
+
+/* Still `INCLUDE_ASM` in this unit. */
+void func_actor_403100_801327CC(void);
+s32  func_actor_403100_80133928(void);
+void func_actor_403100_801345E0(Task* arg0, Task* arg1);
+
+void func_actor_403100_8013E6F0(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132064);
 
@@ -30,7 +52,35 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133C94);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133D88);
+void func_actor_403100_80133D88(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u16            frame;
+
+    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame >= 0xA0) {
+        coord->coord.t[1] += 0xA;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC >= 0x82) {
+        func_actor_403100_801345E0(arg0, arg0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x12C) {
+        D_actor_403100_80155808->field_5D8 = 0x1600;
+        coord->coord.t[0]                  = -0xA28;
+        D_actor_403100_80155808->field_5E2 = 0x10;
+        D_actor_403100_80155808->field_5DE = 0xC;
+        D_actor_403100_80155808->field_5DA = 2;
+        coord->coord.t[1]                  = 0x1390;
+        coord->coord.t[2]                  = 0x1130;
+        D_actor_403100_80155808->field_82  = -0x6B0;
+        D_actor_403100_80155808->field_604 = -0x140;
+        D_actor_403100_80155808->field_608 = -0x100;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5F8 = D_actor_403100_80155808->field_5F8 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133E88);
 
@@ -234,10 +284,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 void func_actor_403100_8013D88C(Task* arg0)
 {
-    Gp_UnlinkObj(D_actor_403100_80155808 + 0x47C);
-    Gp_UnlinkObj(D_actor_403100_80155808 + 0x414);
-    Gp_UnlinkObj(D_actor_403100_80155808 + 0x55C);
-    Gp_UnlinkObj(D_actor_403100_80155808 + 0x594);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_47C);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_414);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_55C);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_594);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 

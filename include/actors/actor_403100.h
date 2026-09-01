@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "gameplay/3A34.h"
+
 /// The word at `Actor403100Work::field_664`, which the overlay reads both as a
 /// whole word and as four separate bytes: `func_actor_403100_8013D2A0` gates a
 /// new request on `word & 0xFFFF00` (the two bytes at 0x665 / 0x666) being
@@ -29,11 +31,19 @@ STATIC_ASSERT_SIZEOF(Actor403100Req, 0x4);
 /// reaches it through the global rather than through the task.
 typedef struct Actor403100Work {
     /* 0x000 */ byte           pad_0[0x82];
-    /* 0x082 */ s16            field_82; // facing angle, stepped towards field_B2
+    /* 0x082 */ s16            field_82;  // facing angle, stepped towards field_B2
     /* 0x084 */ byte           pad_84[0x2E];
-    /* 0x0B2 */ s16            field_B2; // target angle
-    /* 0x0B4 */ s16            field_B4; // angle offset, decayed towards 0
-    /* 0x0B6 */ byte           pad_B6[0x522];
+    /* 0x0B2 */ s16            field_B2;  // target angle
+    /* 0x0B4 */ s16            field_B4;  // angle offset, decayed towards 0
+    /* 0x0B6 */ byte           pad_B6[0x35E];
+    /* 0x414 */ GpObj          field_414; // display nodes unlinked on death
+    /* 0x434 */ byte           pad_434[0x48];
+    /* 0x47C */ GpObj          field_47C;
+    /* 0x49C */ byte           pad_49C[0xC0];
+    /* 0x55C */ GpObj          field_55C;
+    /* 0x57C */ byte           pad_57C[0x18];
+    /* 0x594 */ GpObj          field_594;
+    /* 0x5B4 */ byte           pad_5B4[0x24];
     /* 0x5D8 */ s16            field_5D8;
     /* 0x5DA */ s16            field_5DA; // animation request kind
     /* 0x5DC */ byte           pad_5DC[0x2];
