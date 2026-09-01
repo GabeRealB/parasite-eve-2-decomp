@@ -36469,3 +36469,46 @@ then scored 100%.
 
 Integrating the match means replacing **every** fragment's `INCLUDE_ASM` line
 with the one function, not just the `Fn…` one.
+
+## Widen an `s16` switch subject to `s32` when the same value is also stored
+
+`Actor03800_Fn03420` loads its state once and reuses that register three ways:
+
+```
+lh    a1, 0x354(a0)     /* state */
+beqz  a1, case0
+ li   v0, 1
+beq   a1, v0, case1
+...
+sh    a1, 0x36A(a0)     /* the same register stored back */
+```
+
+Holding it in an `s16` local (`s16 state = work->field_354;`) does **not**
+produce that. GCC 2.8.1 keeps an HImode local in HImode, so the `switch` gets
+the sign-extending `lh` it needs for the comparison while the later `sh` of
+`state` takes a second, zero-extending load of the same field:
+
+```
+lh    v1, 0x354(a0)     /* for beqz/beq */
+lhu   a1, 0x354(a0)     /* for the store — a duplicate load */
+```
+
+Declaring the local `s32` collapses both into the single `lh`: the widening
+load happens once, the compare uses the SImode register directly, and the store
+truncates it for free. The rule is the same one behind "type the first
+parameter as `u16` and widen into an `s32` local" — put the halfword field in
+an SImode local as soon as more than one use needs it, and let the `sh` narrow
+it again.
+
+```c
+s32 state = work->field_354;   /* one lh, reused by beqz/beq and sh */
+
+switch (state) {
+case 0:
+    ...
+case 1:
+    ...
+    work->field_36A = state;
+    ...
+}
+```

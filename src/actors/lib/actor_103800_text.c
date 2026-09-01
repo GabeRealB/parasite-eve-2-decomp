@@ -1042,19 +1042,32 @@ void Actor03800_Fn032D8(Actor103800* arg0)
     work->field_228 = mag;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn03420);
-
-void Actor03800_L03440(void)
+void Actor03800_Fn03420(Actor103800* arg0)
 {
+    Actor103800Work* work = arg0->field_1C;
+    s32              state;
+
+    state = work->field_354;
+    switch (state) {
+        case 0:
+            work->field_348 = 4;
+            work->field_354 = 1;
+            break;
+        case 1:
+            if ((s16)work->field_34C == 0x1E) {
+                work->field_36E = 0;
+            }
+            if ((s16)work->field_34C >= 0x3A) {
+                work->field_352 = 2;
+                work->field_354 = 0;
+                if (work->field_36A == 0) {
+                    work->field_36A = state;
+                }
+                work->field_2AA |= 0x8000;
+            }
+            break;
+    }
 }
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L03448);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L0345C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L03470);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_L03498);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn034B0);
 
