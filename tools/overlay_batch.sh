@@ -196,6 +196,22 @@ lives, so acquire, work and release in the same process):
    succeeds even when the build failed, which committed a broken tree once.
 5. One commit per function, `matched <func> 1`, with an explicit pathspec.
 
+## Holding the lease
+
+The lease was taken by a tool that has already exited, so it is guarded by a
+clock rather than a process. If a long-lived process owns this work, bind the
+lease to it on startup so it lasts exactly as long as the work does and is
+released the moment that process dies:
+
+```
+python3 tools/vacuum_orch.py adopt-overlay --session __SESSION__ --pid $$
+```
+
+An agent session has no stable pid to adopt with - each of its shell commands
+is a separate short-lived process - so re-run the same command periodically
+instead; it refreshes the expiry. Without either, the lease lapses after
+`--lease-minutes` (default 240) and another session may take these functions.
+
 Then release the lease, recording outcomes:
 
 ```
