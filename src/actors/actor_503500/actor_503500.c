@@ -157,7 +157,10 @@ void func_actor_503500_80132E7C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132EE8);
+void func_actor_503500_80132EE8(u8 arg0)
+{
+    D_80115768 = arg0;
+}
 
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
