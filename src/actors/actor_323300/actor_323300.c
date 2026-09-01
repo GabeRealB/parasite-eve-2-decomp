@@ -22,7 +22,16 @@ void func_actor_323300_8016269C(Task* arg0)
     Gp_EnemyTaskExit(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801626D0);
+void func_actor_323300_801626D0(Task* arg0)
+{
+    TmdObject*       ext;
+    Actor323300Work* work;
+
+    ext           = arg0->extra;
+    work          = (Actor323300Work*)arg0->idMap;
+    ext->field_1C = &work->light;
+    ext->field_20 = &work->color;
+}
 
 void func_actor_323300_801626EC(void)
 {
