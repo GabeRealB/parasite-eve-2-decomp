@@ -1,6 +1,9 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
+#include "main/task.h"
+
+extern Task* D_shelter_b6_training_room_80185C5C;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D764);
 
@@ -29,4 +32,7 @@ void func_shelter_b6_training_room_8017DB70(void)
     SndEvt_EnqueueType7(0x80000000, 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017DBB0);
+void func_shelter_b6_training_room_8017DBB0(void)
+{
+    D_shelter_b6_training_room_80185C5C = NULL;
+}
