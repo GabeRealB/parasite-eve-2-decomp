@@ -5,6 +5,8 @@
 
 #include "main/gameflag.h"
 
+extern s16 D_800691CA;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017D5D0);
 
 s32 func_shelter_b6_corridor_8017DEA8(void)
@@ -57,7 +59,12 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_s
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E064);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E12C);
+void func_shelter_b6_corridor_8017E12C(void)
+{
+    char pad[0x10];
+
+    D_800691CA = 2;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", D_shelter_b6_corridor_8017D5C0);
 
