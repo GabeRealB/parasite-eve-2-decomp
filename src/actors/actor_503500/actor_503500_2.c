@@ -400,7 +400,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F830);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F8AC);
+void func_actor_503500_8013F328(void);
+void func_actor_503500_8013F4A4(void);
+void func_actor_503500_8013F948(void);
+void func_actor_503500_8013F984(void);
+
+void func_actor_503500_8013F8AC(Actor503500* arg0)
+{
+    switch (arg0->field_1C->field_F0) {
+        case 0:
+            func_actor_503500_8013F948();
+            break;
+        case 1:
+            func_actor_503500_8013F328();
+            break;
+        case 2:
+            func_actor_503500_8013F4A4();
+            break;
+        case 3:
+            func_actor_503500_8013F984();
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F948);
 
