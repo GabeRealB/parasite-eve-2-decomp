@@ -6,10 +6,8 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
-extern Task* D_mist_parking_8019532C;
 
-extern TaskDesc D_mist_parking_80190824;
-
+extern Task*    D_mist_parking_8019532C;
 extern TaskDesc D_mist_parking_8018FC24;
 
 /// Scratch state of the parking-lot cap script driven by
@@ -219,35 +217,3 @@ void func_mist_parking_80184428(s32 arg0)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_80184468);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801844EC);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_8018451C);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_8018459C);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801845D0);
-
-void func_mist_parking_80184624(s32 arg0)
-{
-    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_80190824, 2U), arg0, 0, 0);
-}
-
-void func_mist_parking_80184668(Task* arg0)
-{
-    s32 temp_v0;
-
-    temp_v0         = arg0->spawnArg1 - 1;
-    arg0->spawnArg1 = temp_v0;
-    if (temp_v0 < 0) {
-        Task_Kill(arg0);
-        Stage_SetEndingFlag();
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801846A4);
-
-void func_mist_parking_8018471C(void)
-{
-    D_mist_parking_8019532C = NULL;
-}

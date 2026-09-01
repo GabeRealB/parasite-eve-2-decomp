@@ -15,7 +15,7 @@ extern s32      D_mist_parking_80186EFC;
 extern TaskDesc D_mist_parking_8018D75C;
 extern s32      D_mist_parking_8018F0A4;
 extern s32      D_mist_parking_8018F194;
-extern TaskDesc D_mist_parking_80190824;
+extern TaskDesc RoomsShared8017daf0Desc;
 
 typedef struct _MistParkingSpawnRec {
     /* 0x00 */ u8  field_0;
@@ -56,7 +56,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
                 }
             } else if (GameFlag_GetNibble(0xED) == 1) {
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(&D_mist_parking_80190824, 4, 0, 0);
+                Task_SpawnFromTable(&RoomsShared8017daf0Desc, 4, 0, 0);
             }
             break;
         case 8:
@@ -76,7 +76,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
         case 18:
             Gp_MsgPlayerWeapon(0);
             if (Game_Session->field_9 == 1) {
-                Task_SpawnFromTable(&D_mist_parking_80190824, 3, 0, 0);
+                Task_SpawnFromTable(&RoomsShared8017daf0Desc, 3, 0, 0);
             } else {
                 Task_SpawnFromTable(&D_mist_parking_8018D75C, 7, 0, 0);
             }

@@ -1,3 +1,5 @@
 // Overlay-local symbols for acropolis_patio.
 Room_Util05 = 0x8017DF7C; // shared body, see src/rooms/lib/
 Room_Util06 = 0x8017DD44; // shared body, see src/rooms/lib/
+RoomsShared8017daf0 = 0x8017E024; // shared body, see src/rooms/lib/
+RoomsShared8017daf0Desc = 0x80182800; // shared body data, see src/rooms/lib/

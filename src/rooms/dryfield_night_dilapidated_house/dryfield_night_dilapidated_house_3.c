@@ -9,8 +9,6 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_3", func_dryfield_night_dilapidated_house_8017DAF0);
-
 void func_dryfield_night_dilapidated_house_8017DB20(Task* arg0)
 {
     u8          slotParam[4];
