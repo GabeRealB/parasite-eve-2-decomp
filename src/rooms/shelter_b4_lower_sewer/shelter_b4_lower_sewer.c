@@ -2,7 +2,10 @@
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017D654);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017D65C);
+s32 func_shelter_b4_lower_sewer_8017D65C(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017D664);
 
