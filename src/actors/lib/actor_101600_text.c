@@ -1273,11 +1273,28 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06F10);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06F68);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06F78);
+/// Walks the sibling ring of task slot 4's children and reports whether any of
+/// them has already been flagged `0x80` in its `field_2C` object. Returns 0xFF
+/// when the slot has no children at all, 1 on the first flagged sibling and 0
+/// when the whole ring is clean. The task argument is unused.
+u8 Actor01600_Fn06F78(Actor01600* arg0)
+{
+    Actor01600* head;
+    Actor01600* iter;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06FA0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L06FCC);
+    head = ((Actor01600*)Game_GetPtrSlot(4))->field_C;
+    if (head == NULL) {
+        return 0xFF;
+    }
+    iter = head;
+    do {
+        if (iter->field_2C->field_C & 0x80) {
+            return 1;
+        }
+        iter = iter->field_10;
+    } while (iter != head);
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06FDC);
 

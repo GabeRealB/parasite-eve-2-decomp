@@ -83,11 +83,14 @@ typedef struct Actor01600Work {
 STATIC_ASSERT_SIZEOF(Actor01600Work, 0x554);
 
 typedef struct Actor01600 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor01600Work*  field_1C;
-    /* 0x20 */ Actor01600Ctx*   field_20;
-    /* 0x24 */ byte             pad_24[8];
-    /* 0x2C */ Actor01600Obj2C* field_2C;
+    /* 0x00 */ byte               pad_0[0xC];
+    /* 0x0C */ struct Actor01600* field_C;
+    /* 0x10 */ struct Actor01600* field_10;
+    /* 0x14 */ byte               pad_14[8];
+    /* 0x1C */ Actor01600Work*    field_1C;
+    /* 0x20 */ Actor01600Ctx*     field_20;
+    /* 0x24 */ byte               pad_24[8];
+    /* 0x2C */ Actor01600Obj2C*   field_2C;
 } Actor01600;
 STATIC_ASSERT_SIZEOF(Actor01600, 0x30);
 
