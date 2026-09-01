@@ -99,7 +99,14 @@ void func_actor_342000_80164260(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801642B4);
+void func_actor_342000_801642B4(s16 arg0)
+{
+    Actor342000EventWork* work;
+
+    work           = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work->field_68 = arg0;
+    work->field_6A = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801642D4);
 
