@@ -36125,3 +36125,69 @@ interior labels in every sharer's sym file. Scoring in the scratch env needs the
 same treatment: rebuild `target.o` over the whole range, appending the stub's
 `jr $ra; nop` by hand since there is no `nonmatchings/*.s` for an
 already-matched label.
+
+## A room overlay is several task families, each with its own `Task::idMap` block
+
+The actor playbook -- one `Mem_Calloc` literal sizes one work struct, the block
+lives at `Task::idMap`, and most of the overlay reaches it from there -- only
+half transfers to rooms, and the half that does not is the half a typing pass
+would anchor on.
+
+What is the same: when a room allocates, it parks the block in `Task::idMap`
+(154 of 170 allocation sites across the 168 room overlays), and the size is
+always a literal `addiu $a0, $zero, imm` in the delay window before the call.
+
+What is different:
+
+* 80 of 168 room overlays allocate nothing at all, and 42 of those never write
+  an overlay-local global either. Their whole state is `Task::state` /
+  `Task::spawnArg1` plus the shared `Room_*` bodies.
+* A room that does allocate usually runs several *independent* task families
+  out of one `.text`. `rooms/dryfield_dilapidated_house` has four allocators --
+  `0x6C`, `0x40`, `0x24`, `0x4` -- and each is the state-0 entry of its own
+  `TaskFuncTable3` in the overlay's `.rodata`. 33 of the 88 allocating rooms
+  have more than one site, and rooms reach for `Mem_Malloc` as well as
+  `Mem_Calloc` (11 rooms vs 81), so grep for both.
+* Sizes are tiny (0x4, 0x8, 0xC, 0x14, 0x24, 0xC4) beside an actor's 0x454 /
+  0x678, so a room work struct is two or three fields and padding.
+
+The structure that *is* universal, and the better anchor:
+
+* `Task::field_24` holds a `GpMsgEntry[]` -- `{s32 id; GpMsgHandler handler;}`,
+  already defined in `include/gameplay/D4.h` -- terminated by `0x7FFFFFFF` with
+  one zero word after it. `Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13EE, ...)` in
+  `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
+  are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
+  first did.
+* `Game_SetPtrSlot(task, 7)` immediately after, publishing the room task
+  (162/168).
+* `Task::extra` is a `GameActorExt` and `GameActorExt::field_8` is a
+  `GsCOORDINATE2` (0x50 bytes). Parenting a child to the room is
+  `child->extra->field_8->sub = parent->extra->field_8` (`sub` is +0x4C) and
+  unparenting is `... = &Gfx_ViewCoord`. 126/168 rooms do this.
+
+So read a room's `.rodata` state tables first: each `TaskFuncTable*` names one
+family, its state-0 entry is that family's allocator, and that allocator's
+literal sizes *that family's* block and no other.
+
+## The fixed-scalar aliasing fix: `SOFT_BARRIER()` can restore the order and still lose the `%hi` hoist
+
+"Struct-typing a body changes GCC 2.8.1's aliasing" says to try `SOFT_BARRIER()`
+before the aggregate declaration. Measured in
+`func_dryfield_dilapidated_house_8017E970` -- a `Task*` store beside a bare
+`extern s16` -- the barrier is a partial fix and reads as one:
+
+```c
+D_x_80189B7C->state = 0;   /* struct store */
+D_x_80189B82        = 1;   /* bare extern s16: GCC hoists this above the store */
+```
+
+With `SOFT_BARRIER()` between them the two stores come back in the target's
+order, but the score only reaches 88.5%: the barrier also pins the
+`lui %hi(D_x_80189B82)` that the target schedules into the load-delay slot of
+the preceding `lw`, so a `nop` appears instead. Declaring the global
+`extern s16 D_x_80189B82[1];` and writing `D_x_80189B82[0] = 1;` fixes the
+order *and* leaves the address computation free to move -- 100%.
+
+Read a barrier that moves the score up but not to 100 as "right diagnosis,
+wrong remedy", not as "close, permute it".
