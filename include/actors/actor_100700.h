@@ -33,7 +33,9 @@ typedef struct Actor00700Work {
     /* 0x31C */ byte           pad_31C[0x20];
     /* 0x33C */ GsCOORDINATE2* field_33C;
     /* 0x340 */ MATRIX         field_340;
-    /* 0x360 */ byte           pad_360[0x1A];
+    /* 0x360 */ byte           pad_360[0x10];
+    /* 0x370 */ SVECTOR        field_370;
+    /* 0x378 */ byte           pad_378[2];
     /* 0x37A */ s16            field_37A;
     /* 0x37C */ s16            field_37C;
     /* 0x37E */ u16            field_37E;
@@ -48,6 +50,7 @@ typedef struct Actor00700Work {
     /* 0x390 */ s16            field_390;
     /* 0x392 */ byte           pad_392[2];
     /* 0x394 */ s16            field_394;
+    /* 0x396 */ s16            field_396;
 } Actor00700Work;
 
 /// `Gp_UnlinkNode` list entry at +0x10 of `Actor00700Ctx`. `field_4` is the

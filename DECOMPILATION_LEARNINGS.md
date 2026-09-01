@@ -36512,3 +36512,44 @@ case 1:
     ...
 }
 ```
+
+## An `$a0`/`$a1` swap at 98% is a local-alloc tie, and a named load can break it
+
+`Actor00700_Fn00F20` sat at 98.1% (`regs=28 reorder=2`, everything else zero)
+with a diff that was nothing but two registers traded and one `%hi/lw` pair
+scheduled two instructions early:
+
+```
+  andi  v0,v0,0x1f            andi  v0,v0,0x1f
+  addiu v0,v0,0xf             lui   v1,%hi(D_80073B8C)   <- hoisted
+  sh    v0,0x38c(a3)          lw    a1,%lo(D_80073B8C)(v1)
+  lui   v0,%hi(D_80073B8C)    addiu v0,v0,0xf
+  lw    a0,%lo(D_80073B8C)(v0) sh   v0,0x38c(a3)
+```
+
+The two are one bug. `-fschedule-insns` runs *before* local-alloc, so hoisting
+the pointer load lengthened its live range, which changed the block's qty
+priority order, which handed `$a0` to the wrong quantity — and that in turn
+pushed the function-wide `one = 1` pseudo off `$a1` onto `$t1`, producing all
+28 register penalties. Chasing the register names directly (or pinning) is
+chasing the symptom.
+
+`SOFT_BARRIER()` before the load restored the instruction order and dropped
+`reorder`/`stack` to zero, but cost the `sw` that the target schedules into the
+following load-delay slot (`branch=7 insert=2 delete=1`) — the "right
+diagnosis, wrong remedy" shape described above for the aliasing barrier.
+
+The fix was to bind the *other* operand of the first subtraction to a local:
+
+```c
+posX   = coord->coord.t[0];
+vec.vx = D_80073B8C->t[0] - posX;   /* was D_80073B8C->t[0] - coord->coord.t[0] */
+vec.vy = D_80073B8C->t[1] - coord->coord.t[1];
+```
+
+That gives the scheduler an independent load to issue in the slot it was
+filling with the `%hi`, the pointer load stays where the target has it, and the
+allocation falls out — 100%. This is the same lever as "Name a load in a local
+to hoist it above a run of constant stores", used in the opposite direction:
+naming a load can pin a *different* load in place as easily as it can move the
+named one.
