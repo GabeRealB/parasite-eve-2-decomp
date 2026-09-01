@@ -22,7 +22,10 @@ void func_mist_r18_8017ECC0(s8 arg0)
     D_80071090 = arg0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_4", func_mist_r18_8017ECCC);
+void func_mist_r18_8017ECCC(void)
+{
+    func_80179FC8(0, D_mist_r18_80186EA0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_4", func_mist_r18_8017ECF4);
 
