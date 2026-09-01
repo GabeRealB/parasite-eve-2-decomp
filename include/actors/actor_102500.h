@@ -104,6 +104,25 @@ typedef struct Actor02500 {
     /* 0x30 */ s32                   field_30;
 } Actor02500;
 
+/// The effect handle `Gp_SpawnEff` returns (`Gp_SpawnEff`'s work block, seen
+/// here only through its owning task pointer).
+typedef struct Actor02500Eff {
+    /* 0x0 */ Actor02500* task;
+} Actor02500Eff;
+
+/// Work block of the small helper task `Actor02500_L02634` spawns, also parked
+/// at `Actor02500.field_1C`. It opens with a list node and its one-entry
+/// `Actor02500Rec18` table, then the spawned effect and the countdown/state
+/// pair `Actor02500_Fn02874` runs on.
+typedef struct Actor02500EffWork {
+    /* 0x00 */ Actor02500Obj   obj;
+    /* 0x20 */ Actor02500Rec18 rec18[1];
+    /* 0x38 */ Actor02500Eff*  field_38;
+    /* 0x3C */ s16             field_3C;
+    /* 0x3E */ s16             field_3E;
+} Actor02500EffWork;
+STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
+
 /// `Gp_UnlinkNode` list entry at +0x10 of `Actor02500Ctx`. `field_4` is the
 /// flag byte `Actor02500_Fn01E60` writes (`sb` at 0x14).
 typedef struct Actor02500Node {

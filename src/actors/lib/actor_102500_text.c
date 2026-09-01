@@ -701,12 +701,24 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L0283C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L0284C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02874);
+void Actor02500_Fn02874(Actor02500Ctx* ctx, Actor02500* task)
+{
+    Actor02500EffWork* work = (Actor02500EffWork*)task->field_1C;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L028A8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L028CC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L028E0);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_L02904);
+    switch (work->field_3E) {
+        case 0:
+            Gp_UnlinkObj(&work->obj);
+            if (work->field_38 != NULL) {
+                work->field_38->task->field_30 = 3;
+            }
+            work->field_3C = 0x1E;
+            work->field_3E = 1;
+            break;
+        case 1:
+            if (--work->field_3C > 0) {
+                break;
+            }
+            Gp_DestroyEnemy(ctx, task);
+            break;
+    }
+}

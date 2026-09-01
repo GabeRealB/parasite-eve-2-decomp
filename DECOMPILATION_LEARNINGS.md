@@ -36446,3 +36446,26 @@ Two things worth carrying forward:
 * The delay-slot `nop` is part of the match. A body that reads as "GCC just
   scheduled it better" is still a mismatch, and the remedy is the barrier, not
   a rewrite of the statements.
+
+## A function split across several `L…` fragments needs a merged `target.o`
+
+Splat exports a branch target inside a function as its own symbol when it has
+no better name, so one C function can appear as a run of `INCLUDE_ASM` lines:
+`Actor02500_Fn02874` was really `Fn02874` plus `L028A8`, `L028CC`, `L028E0` and
+`L02904` (the shared epilogue). The tell is that the `Fn…` fragment ends on a
+branch/`j` into the next names, and the last fragment is the `lw $ra` / `jr $ra`
+teardown.
+
+`tools/claude` bootstraps `target.s` from the **named** function only, so the
+scratch `target.o` holds just the first fragment. Scoring correct C against it
+reports nonsense — the first attempt here scored 29.8% with `insert=28` purely
+because the target was 13 instructions and the compiled body was 40. Rebuild
+`target.s` from all the fragments in address order before the first score:
+keep the leading `glabel` for the `Fn…` name, turn each later `glabel X` into a
+plain `X:` label, drop the intermediate `endlabel`s, and set the `nonmatching`
+size to the sum of the fragment sizes. Then reassemble with the command in
+"Functions with jump tables still need a manual `target.o`" above. The same C
+then scored 100%.
+
+Integrating the match means replacing **every** fragment's `INCLUDE_ASM` line
+with the one function, not just the `Fn…` one.
