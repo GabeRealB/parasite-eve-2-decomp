@@ -11,6 +11,8 @@ extern s32 D_actor_450800_8013A984;
 extern s32 D_actor_450800_8013AB7C;
 extern s32 D_actor_450800_8013ACFC;
 
+extern void func_80180038(s32);
+
 void func_actor_450800_80131E34(void)
 {
     GameSession* session;
@@ -59,7 +61,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132080);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801320E8);
+void func_actor_450800_801320E8(s32 arg0)
+{
+    func_80180038(arg0 & 0xFF);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_450800/actor_450800", D_actor_450800_80131E20);
 
