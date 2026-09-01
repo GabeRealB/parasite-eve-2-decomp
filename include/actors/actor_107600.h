@@ -12,11 +12,14 @@
 /// +0x60 is the one the exit callback `func_actor_107600_80134920` hands back
 /// to `Gp_UnlinkObj`. The state pair at +0x158/+0x15A is what
 /// `func_actor_107600_80134B98` writes: the new state in `field_158` and its
-/// sub-state counter cleared.
+/// sub-state counter cleared. `field_13E` is a free-running counter that
+/// `func_actor_107600_80132CB8` bumps by one.
 typedef struct Actor107600Work {
     /* 0x000 */ byte  pad_0[0x60];
     /* 0x060 */ GpObj obj;
-    /* 0x080 */ byte  pad_80[0xD8];
+    /* 0x080 */ byte  pad_80[0xBE];
+    /* 0x13E */ u16   field_13E;
+    /* 0x140 */ byte  pad_140[0x18];
     /* 0x158 */ s16   field_158;
     /* 0x15A */ s16   field_15A;
     /* 0x15C */ byte  pad_15C[0xF];
@@ -28,6 +31,7 @@ typedef struct Actor107600 {
     /* 0x1C */ Actor107600Work* field_1C;
 } Actor107600;
 
+void func_actor_107600_80132CB8(Actor107600* arg0);
 void func_actor_107600_80134920(Task* arg0);
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
 void func_actor_107600_80134D10(Actor107600* arg0);
