@@ -35,6 +35,20 @@ INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E824);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E854);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E8B8);
+/// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
+void func_mist_r18_8017E8B8(Task* task)
+{
+    u16 fade;
+
+    fade                = (u16)task->killCountdown + 8;
+    task->killCountdown = fade;
+    if ((s16)fade >= 0x40) {
+        task->killCountdown = 0x40;
+    }
+    if ((Game_Session->field_4D != 0) || ((u8)Game_Session->field_4 != 2)) {
+        task->killCountdown = 0x80;
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E92C);
