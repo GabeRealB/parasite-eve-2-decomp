@@ -103,7 +103,8 @@ typedef struct _GpActorD4 {
     /* 0xA0 */ GpRec18      field_A0;
     /* 0xB8 */ byte         pad_B8[0xC];
     /* 0xC4 */ s16          field_C4;
-    /* 0xC6 */ byte         pad_C6[7];
+    /* 0xC6 */ byte         pad_C6[6];
+    /* 0xCC */ u8           field_CC;
     /* 0xCD */ u8           field_CD;
     /* 0xCE */ byte         pad_CE[2];
     /* 0xD0 */ s8           field_D0;
