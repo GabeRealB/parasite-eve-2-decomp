@@ -178,7 +178,13 @@ void func_neo_ark_shrine_8017F578(Task* task)
     func_neo_ark_shrine_8017F86C(task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F640);
+void func_neo_ark_shrine_8017F640(Task* task)
+{
+    func_neo_ark_shrine_8017F86C(task);
+    if (D_neo_ark_shrine_8018686A == 0) {
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F688);
 
