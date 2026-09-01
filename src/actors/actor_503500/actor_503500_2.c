@@ -515,7 +515,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141E64);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141F48);
+void func_actor_503500_80142310(Actor503500* arg0, s32 arg1);
+
+void func_actor_503500_80141F48(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    u16              level;
+
+    work            = arg0->field_1C;
+    level           = work->field_3B2 + 0x10;
+    work->field_3B2 = level;
+    if ((s16)level >= 0x1001) {
+        Gp_LinkNode(&arg0->field_20->node);
+        work->field_3B2  = 0x1000;
+        work->field_17E |= 0x8000;
+        func_actor_503500_80142310(arg0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141FC8);
 
