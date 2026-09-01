@@ -29,7 +29,19 @@ s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, GpSaveLoc* src, GpSa
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_6", func_shelter_b6_nursery_8017FE3C);
+s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+{
+    if (msg->field_2 == 1) {
+        func_80131E2C();
+    }
+    if (msg->field_2 == 2) {
+        func_80132000();
+    }
+    if (msg->field_2 == 3 && GameFlag_GetNibble(0xC8) != 0) {
+        func_800E8634((s32)&D_8013AF8C, 0, (s32)&D_8013BA84);
+    }
+    return 0;
+}
 
 void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 {
