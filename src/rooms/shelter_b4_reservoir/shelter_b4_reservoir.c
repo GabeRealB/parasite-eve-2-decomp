@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main/task.h"
+#include "rooms/shelter_b4_reservoir.h"
 extern s16 D_shelter_b4_reservoir_80184F82;
 
 extern s32 D_shelter_b4_reservoir_8018492C;
@@ -11,8 +12,6 @@ extern u8    D_shelter_b4_reservoir_80184F7A;
 extern s16   D_shelter_b4_reservoir_80184F7C;
 extern s32   D_shelter_b4_reservoir_80187510;
 extern Task* D_shelter_b4_reservoir_80184930;
-
-extern void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017D650);
 
