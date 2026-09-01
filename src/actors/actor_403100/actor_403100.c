@@ -695,7 +695,17 @@ void func_actor_403100_8013F18C(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F1D8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F230);
+void func_actor_403100_8013F230(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC;
+    D_actor_403100_80155808->field_5EC = frame + 1;
+    if ((s16)frame >= 0xD) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F270);
 
