@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "main/task.h"
+
+#include "gameplay/1BC.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80131EB4);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E20);
@@ -46,7 +50,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80132B60);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80132C90);
+void func_actor_135400_80132C90(Task* arg0)
+{
+    Gp_EnemyTaskExit(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80132CB0);
 
