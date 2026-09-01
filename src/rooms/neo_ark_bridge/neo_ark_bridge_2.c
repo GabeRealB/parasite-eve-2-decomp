@@ -1,6 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge_2", func_neo_ark_bridge_8017E878);
+s32 func_neo_ark_bridge_8017E878(void)
+{
+    return 0;
+}
 
 s32 func_neo_ark_bridge_8017E880(void)
 {
