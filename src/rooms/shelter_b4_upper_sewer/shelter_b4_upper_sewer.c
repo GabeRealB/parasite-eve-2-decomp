@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u8 D_8007216C;
+extern u8 D_shelter_b4_upper_sewer_80188D2C;
+
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", D_shelter_b4_upper_sewer_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", D_shelter_b4_upper_sewer_8017D5C4);
@@ -24,7 +27,10 @@ s32 func_shelter_b4_upper_sewer_8017DB50(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017DB58);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017DB94);
+void func_shelter_b4_upper_sewer_8017DB94(void)
+{
+    D_8007216C = D_shelter_b4_upper_sewer_80188D2C;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017DBA8);
 
