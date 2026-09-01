@@ -346,7 +346,15 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07F44);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07F88);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07FEC);
+void Actor00400_Fn07FEC(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    arg0->field_30  = 5;
+    work->field_638 = 0;
+    work->field_63A = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08004);
 
