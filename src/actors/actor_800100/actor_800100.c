@@ -33,7 +33,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163A58);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163BF8);
+void func_actor_800100_80163BF8(Task* arg0)
+{
+    arg0->state = 3;
+}
 
 void func_actor_800100_80163C04(GpActorWork* arg0)
 {
