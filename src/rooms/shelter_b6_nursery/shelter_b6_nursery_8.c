@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "rooms/shelter_b6_nursery.h"
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80181314);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80181820);
@@ -12,6 +14,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_s
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_801829E4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80182D14);
+void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
+{
+    D_shelter_b6_nursery_801879F0.field_0 = arg0;
+    D_shelter_b6_nursery_801879F0.field_2 = arg1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80182D28);
