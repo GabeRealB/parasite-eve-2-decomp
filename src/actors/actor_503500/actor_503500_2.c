@@ -311,7 +311,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CA34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CA74);
+void func_actor_503500_8013CA74(Actor503500* arg0, s8 arg1)
+{
+    Actor503500Work* work;
+
+    work           = arg0->field_1C;
+    work->field_F0 = arg1;
+    work->field_F1 = 0;
+    work->field_EA = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CA8C);
 
