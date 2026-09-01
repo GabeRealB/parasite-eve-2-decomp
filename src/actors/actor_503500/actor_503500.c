@@ -3,6 +3,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "main/session.h"
 #include "actors/actor_503500.h"
 extern s8 D_actor_503500_80176D5A;
@@ -110,7 +111,16 @@ void func_actor_503500_80132DD4(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132DEC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132E7C);
+void func_actor_503500_80132E7C(void)
+{
+    Task* slot3;
+
+    slot3 = Game_GetPtrSlot(3);
+    if ((D_actor_503500_8017655C.x != 0) || (D_actor_503500_8017655C.y != 0) ||
+        (D_actor_503500_8017655C.z != 0)) {
+        Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132EE8);
 
