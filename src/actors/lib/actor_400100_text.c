@@ -4,6 +4,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/task.h"
 #include <psyq/inline_c.h>
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn001FC);
@@ -42,6 +43,7 @@ void  Gp_UnlinkObj(Actor00100Obj* node);
 void  Gp_SetLightMode(Actor00100Ctx* arg0, s32 arg1);
 void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 s32   Gp_DispatchMsg(void* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  Gp_DestroyEnemy(void* enemy, Task* task);
 
 void Actor00100_Fn04270(Actor00100* argx)
 {
@@ -338,7 +340,10 @@ void Actor00100_L0B2AC(void)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B2B4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B3B4);
+void Actor00100_Fn0B3B4(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B3DC);
 
