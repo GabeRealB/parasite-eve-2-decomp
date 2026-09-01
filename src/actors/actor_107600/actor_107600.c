@@ -107,7 +107,11 @@ void func_actor_107600_80134D50(Actor107600* arg0)
     func_actor_107600_80134B98(arg0, 1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D70);
+void func_actor_107600_80134D70(Actor107600* arg0)
+{
+    arg0->field_1C->field_16B = 3;
+    func_actor_107600_80134B98(arg0, 7);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D9C);
 
