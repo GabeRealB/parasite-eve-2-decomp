@@ -13,6 +13,7 @@ s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
+extern s32 Gp_LcgState;
 extern s8  D_80115419;
 extern s16 Actor02000_D03784[];
 extern s32 Actor02000_D15DEC[];
@@ -261,23 +262,51 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01190);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L011C8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn011E8);
-
-void Actor02000_L01210(void)
+/// Per-frame tick. State 0 picks the animation from `field_6B8`: 1 selects
+/// animation 0x17 and hands over to state 1, anything else selects 0x1B and
+/// hands over to state 2. State 1 waits for `field_698` to reach 0x10 and
+/// state 2 waits for it to reach 0x16; both then play the matching idle
+/// (0x19 / 0x1D), park `field_6A6` at 0xB, move to state 3 and roll a fresh
+/// 6-bit dwell into `field_6AE`.
+void Actor02000_Fn011E8(Actor02000* arg0)
 {
+    Actor02000Work* work;
+    s16             state;
+    s32             next;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            next = work->field_6B8;
+            if (next == 1) {
+                work->field_694 = 0x17;
+                work->field_6A8 = next;
+            } else {
+                work->field_694 = 0x1B;
+                work->field_6A8 = 2;
+            }
+            break;
+        case 1:
+            if (work->field_698 >= 0x10) {
+                work->field_694 = 0x19;
+                work->field_6A6 = 0xB;
+                work->field_6A8 = 3;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+        case 2:
+            if (work->field_698 >= 0x16) {
+                work->field_694 = 0x1D;
+                work->field_6A6 = 0xB;
+                work->field_6A8 = 3;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+    }
 }
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01218);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0122C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0124C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0125C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L01284);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L012A8);
 
 void Actor02000_Fn012E0(Actor02000* arg0)
 {

@@ -36828,3 +36828,30 @@ with the label `INCLUDE_ASM`s and write the whole body as one C function.
 `Actor02000_Fn03528` spanned `Fn03528` plus `L03550`, `L03558`, `L0356C`,
 `L0358C`, `L0359C`, `L035BC` and `L035D8` — two of which were already in the
 file as empty stubs.
+
+## Cross-jumping merges identical switch-arm tails; write them out twice
+
+Two `switch` arms whose bodies differ only in one constant compile to a single
+shared tail in GCC 2.8.1: jump optimization merges the identical instructions
+backwards, leaving only the differing `li` in the delay slot of the `j` that
+enters the merged block.
+
+```asm
+Actor02000_L0125C:              /* case 1 */
+    ...
+    j     Actor02000_L012A8
+     li   $v0, 0x19             /* only this differs */
+Actor02000_L01284:              /* case 2 */
+    ...
+    li    $v0, 0x1D
+Actor02000_L012A8:              /* merged tail, entered by both */
+    sh    $v0, 0x694($a2)
+    ...
+```
+
+Do **not** hand-build that shape with a `goto` into the middle of the other
+arm — just write both arms out in full, duplicated statement for statement,
+and let the compiler merge them. Splat names the merge point as a label
+(`Actor02000_L012A8`), which makes it look like control flow the C has to
+express; it is not. `Actor02000_Fn011E8` in `actor_102000_text` matched on the
+first attempt written this way.
