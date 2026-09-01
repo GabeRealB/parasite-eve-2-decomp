@@ -380,7 +380,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_801695A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8016966C);
+void func_actor_341700_8016966C(Task* arg0)
+{
+    u16              ticks;
+    Actor341700Work* work;
+    TmdObject*       model;
+
+    work            = (Actor341700Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 0x18) {
+        model->field_C  = model->field_C | 2;
+        work->field_412 = 0U;
+        work->field_451 = 1;
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_801696C8);
 
