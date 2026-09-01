@@ -82,4 +82,16 @@ void func_shelter_b6_nursery_8017E910(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", func_shelter_b6_nursery_8017EAC4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", func_shelter_b6_nursery_8017EDBC);
+void func_shelter_b6_nursery_8017EDBC(Task* task)
+{
+    UiObject* obj;
+
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    if (task->state == 0) {
+        Wip_UiHolder       = (WipUiHolder*)obj;
+        task->exitCallback = Room_SaveUi01;
+        task->state       += 1;
+    }
+    Gp_DrawPromptLines(obj, task);
+}
