@@ -20,7 +20,9 @@ typedef struct Actor510900Work {
     /* 0x584 */ s16  field_584;
     /* 0x586 */ byte pad_586[8];
     /* 0x58E */ s16  field_58E;
-    /* 0x590 */ byte pad_590[0x14];
+    /* 0x590 */ byte pad_590[2];
+    /* 0x592 */ s16  field_592;
+    /* 0x594 */ byte pad_594[0x10];
     /* 0x5A4 */ s16  field_5A4;
 } Actor510900Work;
 
@@ -40,5 +42,6 @@ typedef struct Actor510900Ctx {
 
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B870(Actor510900* arg0);
+s16  func_actor_510900_8013BE84(Actor510900* arg0);
 
 #endif

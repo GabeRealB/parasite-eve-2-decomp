@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor_510900.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013B988);
 
@@ -20,7 +21,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013BE64);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013BE84);
+s16 func_actor_510900_8013BE84(Actor510900* arg0)
+{
+    return arg0->field_1C->field_592;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013BE98);
 
