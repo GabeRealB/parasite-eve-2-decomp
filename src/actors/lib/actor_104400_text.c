@@ -1097,10 +1097,23 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L08D84);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08DA4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08DBC);
+s32 Actor04400_Fn08DBC(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L08DF8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L08E04);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_L08E0C);
+    if (work->field_41E == 1) {
+        switch (work->field_448) {
+            case 3:
+                work->field_420 = 8;
+                work->field_422 = 0;
+                break;
+            case 5:
+                work->field_420 = 9;
+                work->field_422 = 0;
+                break;
+        }
+        work->field_448 = 0;
+        return 1;
+    }
+    return 0;
+}

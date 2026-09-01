@@ -16,10 +16,13 @@
 /// `field_420` / `field_422` are the state and sub-state indices the handler
 /// table walks.
 typedef struct Actor104400Work {
-    /* 0x000 */ byte pad_0[0x420];
+    /* 0x000 */ byte pad_0[0x41E];
+    /* 0x41E */ s16  field_41E;
     /* 0x420 */ u16  field_420; // state index
     /* 0x422 */ u16  field_422; // sub-state index
-    /* 0x424 */ byte pad_424[0x2B];
+    /* 0x424 */ byte pad_424[0x24];
+    /* 0x448 */ s16  field_448;
+    /* 0x44A */ byte pad_44A[0x5];
     /* 0x44F */ u8   field_44F;
     /* 0x450 */ byte pad_450[0x4];
 } Actor104400Work;

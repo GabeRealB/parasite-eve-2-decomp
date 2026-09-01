@@ -2429,6 +2429,36 @@ The remaining diff will then be a single cosmetic pair — target references
 `jtbl_XXXXXXXX` where your build references its own `.rodata`. That is expected
 in the scratch environment; see the next section for the real build.
 
+**A function splat split at internal labels needs a rebuilt `target.o`.** When
+the symbol map names a branch target inside a function (`Actor04400_L08DF8`,
+`…_L08E04`, `…_L08E0C`), splat emits one `.s` per label and the host C file
+gets one `INCLUDE_ASM` per label. The scratch `target.o` then covers only the
+*first* fragment, so a correct C body scores in the 50-80% range forever and
+the diff shows your extra blocks as pure `insert`. Concatenate the fragments
+back into one symbol before scoring:
+
+```sh
+# collect the encoded words from every fragment, in address order
+grep -ho '/\* [0-9A-F]* [0-9A-F]* \([0-9A-F]\{8\}\) \*/' <fn>.s <label>.s ... 
+# assemble them under the function's own name
+cat > full_target.s <<'EOF'
+.section .text
+.global <fn>
+.type <fn>, @function
+<fn>:
+.incbin "full_target.bin"
+.size <fn>, . - <fn>
+EOF
+mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -o target.o full_target.s
+```
+
+Patch any intra-function `j` word to a section-relative target first
+(`0x0805AB09` → `0x08000012`), otherwise the absolute jump encoded by splat
+diffs against the relocatable `j` your build emits. A leftover
+`j 48` vs `j .text+48` in the final diff is only the relocation, not a
+mismatch. On the match, delete **all** of that function's `INCLUDE_ASM` lines
+— the label ones included.
+
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
 A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /
