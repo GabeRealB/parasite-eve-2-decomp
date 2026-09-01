@@ -756,13 +756,46 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01B50);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01BFC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01C10);
+void Actor00700_Fn01C10(Actor00700* arg0)
+{
+    Actor00700Work*  work;
+    Actor00700Obj2C* obj;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s32              snd;
+    s32              pan;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01C48);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01CB4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_L01CDC);
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    state = work->field_37C;
+    coord = obj->field_8;
+    if (state == 0) {
+        goto case0;
+    }
+    if (state == 1) {
+        goto case1;
+    }
+    return;
+case0:
+    work->field_37E = 5;
+    work->field_380 = 1;
+    work->field_384 = 0;
+    work->field_386 = 0;
+    work->field_37C = 1;
+    snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070002;
+    pan             = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    return;
+case1:
+    if ((s16)work->field_382 < 0x18) {
+        return;
+    }
+    work->field_37A = 0;
+    work->field_37C = 0;
+    work->field_37E = state;
+    work->field_38C = 0;
+    work->field_394 = state;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01CF0);
 

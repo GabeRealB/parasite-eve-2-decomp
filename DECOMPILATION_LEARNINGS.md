@@ -36644,3 +36644,30 @@ zero and a byte-for-byte `cmp` against a correct object fails at the first
 branch. Emit them as plain local `label:` lines. `dist.py` scores 100% either
 way, but only the local form lets you confirm with
 `objcopy -O binary --only-section=.text`.
+
+## A sibling's `one = 1` local does not port: check for a second `li v0,1`
+
+`one = 1` before a dispatch chain shares CONST_INT 1 between the compare and
+later `field = one` stores (see "Force source order of bodies with gotos"), but
+whether the target actually shares it is per function. Copying the shape from a
+matched sibling in the same TU is the trap: `Actor00700_Fn00F20` shares one
+constant, `Actor00700_Fn01C10` — same struct, same switch shape — does not.
+
+The tell is in the diff, not the penalty mix: the target has `li v0,1` in the
+dispatch delay slot **and** a second `li v0,1` inside the case body, while the
+attempt has one `li` in a caller-saved register that survives the branch:
+
+```
+-li    v0,1          li    a2,1
+-beq   v1,v0,a4      beq   v1,a2,a0
+-li    v0,1          (gone)
+-sh    v0,0x380(a1)  sh    a2,0x380(a1)
+```
+
+Scored `regs=4 delete=1` at 97.8%; the `delete` is the missing second `li`, and
+the register churn is downstream of keeping the local live. Dropping the local
+and writing literal `1` in the compare and in each store was 100% — the two
+`1`s inside the case body still CSE with each other, just not across the branch.
+
+Rule: a `regs` diff paired with a small `delete` and a rematerialized constant
+in the target means *unshare* the local, before touching allocation.
