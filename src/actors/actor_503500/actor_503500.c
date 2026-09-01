@@ -184,7 +184,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_801334CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80133684);
+/// Main-executable globals with no module header yet: `D_80071075` gates the
+/// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
+/// `D_80114C12` the cutscene/among-us mode flag.
+extern u8  D_80071075;
+extern s16 D_80073BA0;
+extern s8  D_80114C12;
+
+s32 func_actor_503500_80133684(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy**        slots;
+    GpEnemy*         slot1;
+    s32              ret;
+
+    ret   = 0;
+    work  = arg0->field_1C;
+    slots = work->enemies;
+
+    if (work->field_7B0 != 2) {
+        if (!(work->field_774 & 1) && (slots[4] == NULL)) {
+            slots[10]->task->killCountdown = 8;
+            ret                            = 1;
+            work->field_774               |= 1;
+        }
+        if (!((work->field_774 >> 1) & 1) && (slots[5] == NULL)) {
+            slots[11]->task->killCountdown = 8;
+            ret                            = 1;
+            work->field_774               |= 2;
+        }
+        if (!((work->field_774 >> 2) & 1) && (slots[1] == NULL)) {
+            if (slots[12] != NULL) {
+                slots[12]->task->killCountdown = 8;
+                ret                            = 1;
+                work->field_774               |= 4;
+            }
+        }
+    }
+
+    if (!((work->field_774 >> 3) & 1) &&
+        ((((slot1 = slots[1], slot1 == NULL)) && (slots[12] == NULL)) ||
+         (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
+         (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
+         ((slots[4]->field_40 == 0) && (slots[5]->field_40 == 0)))) {
+        if ((((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 != 2) &&
+            (D_80073BA0 > 0) && (D_80114C12 != 1)) {
+            ret = 1;
+            if (D_80071075 == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                work->field_774 |= 8;
+                /* `ret` has to be dead across the call for GCC to keep it in
+                 * $a1: it is re-set on the way out of both arms. */
+                goto done;
+            }
+        } else {
+        done:
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_801338E8);
 

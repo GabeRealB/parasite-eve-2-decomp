@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
@@ -42,24 +43,82 @@ typedef struct Actor503500MsgPos {
 } Actor503500MsgPos;
 STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
 
+/// Shared field view of an `actor_503500` enemy work block.
+///
+/// The overlay hosts a dozen separate enemies. Each parks its own work block in
+/// the `Task::idMap` slot -- that slot is *not* a `TaskIdMap` here -- and each
+/// block is zeroed by its state-0 init, so every size below is anchored by the
+/// clearing call rather than inferred from the access spread:
+///
+/// | state-0 init                  | block                                     | anchor              |
+/// |-------------------------------|-------------------------------------------|---------------------|
+/// | `func_actor_503500_80132F64`  | `D_actor_503500_80176574` (the boss)      | `Mem_Set(_, 0x7E8)` |
+/// | `func_actor_503500_801372C8`  | `D_actor_503500_80176D88`                 | `Mem_Set(_, 0x160)` |
+/// | `func_actor_503500_8013852C`  | `D_actor_503500_80176EE8[spawnArg1 - 2]`  | `Mem_Set(_, 0x2EC)` |
+/// | `func_actor_503500_8013AD64`  | `D_actor_503500_801774C0[spawnArg1 - 4]`  | `Mem_Set(_, 0xF0)`  |
+/// | `func_actor_503500_8013BEE4`  | `D_actor_503500_801776A0`                 | `Mem_Set(_, 0xF4)`  |
+/// | `func_actor_503500_8013CAE4`  | `D_actor_503500_801770E8`                 | `Mem_Set(_, 0xF4)`  |
+/// | `func_actor_503500_8013DD10`  | `D_actor_503500_8017797C`                 | `Mem_Set(_, 0xF0)`  |
+/// | `func_actor_503500_8013ECBC`  | `D_actor_503500_80177A6C`                 | `Mem_Set(_, 0xF4)`  |
+/// | `func_actor_503500_8013FA74`  | `D_actor_503500_80177B60`                 | `Mem_Set(_, 0x3D8)` |
+/// | `func_actor_503500_801423C8`  | `D_actor_503500_80178AC0`                 | `Mem_Set(_, 0x224)` |
+/// | `func_actor_503500_80143AC0`  | `D_actor_503500_80178F10`                 | `Mem_Set(_, 0x38)`  |
+///
+/// One C type is shared across all of them, the way the first decompiled
+/// dispatchers here already assumed, and the observed offsets do not collide --
+/// the small blocks simply stop early. The size asserted below is therefore the
+/// *largest* instance (the boss); a 0xF0 block typed through this pointer is
+/// only valid up to its own end. Splitting this into one type per enemy is a
+/// follow-up that would have to retype the already-landed dispatchers
+/// (`func_actor_503500_801383D0` reads `field_15C` out of the 0x160 block,
+/// `func_actor_503500_8013BD88` reads `field_ED` out of a 0xF0 block,
+/// `func_actor_503500_8013EB60` reads `field_EC` out of another 0xF0 block).
 typedef struct Actor503500Work {
-    /* 0x000 */ byte pad_0[0xEC];
-    /* 0x0EC */ s8   field_EC;
-    /* 0x0ED */ s8   field_ED;
-    /* 0x0EE */ byte pad_EE[0x2];
-    /* 0x0F0 */ s8   field_F0;
-    /* 0x0F1 */ byte pad_F1[0x6B];
-    /* 0x15C */ s8   field_15C;
-    /* 0x15D */ byte pad_15D[0xC4];
-    /* 0x221 */ s8   field_221;
-    /* 0x222 */ byte pad_222[0x58E];
-    /* 0x7B0 */ s16  field_7B0;
-    /* 0x7B2 */ u16  field_7B2;
-    /* 0x7B4 */ byte pad_7B4[0x16];
-    /* 0x7CA */ s16  field_7CA;
-    /* 0x7CC */ byte pad_7CC[0x14];
-    /* 0x7E0 */ s8   field_7E0;
+    /* 0x000 */ byte     pad_0[0x1E];
+    /* 0x01E */ u16      field_1E; // flag halfword; bit 0x8000 set on release
+    /* 0x020 */ byte     pad_20[0x5E];
+    /* 0x07E */ u16      field_7E; // same flag halfword, 0x224 block
+    /* 0x080 */ byte     pad_80[0x6A];
+    /* 0x0EA */ s16      field_EA;
+    /* 0x0EC */ s8       field_EC;  // sub-state index
+    /* 0x0ED */ s8       field_ED;  // sub-state index
+    /* 0x0EE */ byte     pad_EE[0x2];
+    /* 0x0F0 */ s8       field_F0;  // sub-state index
+    /* 0x0F1 */ s8       field_F1;  // sub-state phase, cleared with field_F0
+    /* 0x0F2 */ byte     pad_F2[0x6A];
+    /* 0x15C */ s8       field_15C; // sub-state index
+    /* 0x15D */ byte     pad_15D[0x21];
+    /* 0x17E */ u16      field_17E; // flag halfword; bit 0x8000 set on release
+    /* 0x180 */ byte     pad_180[0xA1];
+    /* 0x221 */ s8       field_221; // sub-state index
+    /* 0x222 */ byte     pad_222[0xC8];
+    /* 0x2EA */ s8       field_2EA;
+    /* 0x2EB */ s8       field_2EB; // TMD buffer countdown, 0x2EC block
+    /* 0x2EC */ byte     pad_2EC[0xC6];
+    /* 0x3B2 */ u16      field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ byte     pad_3B4[0x22];
+    /* 0x3D6 */ s8       field_3D6;
+    /* 0x3D7 */ s8       field_3D7; // TMD buffer countdown, 0x3D8 block
+    /* 0x3D8 */ byte     pad_3D8[0x314];
+    /* 0x6EC */ GpEnemy* enemies[0x22];
+    /* 0x774 */ u32      field_774; // one "already asked to die" bit per slot
+    /* 0x778 */ byte     pad_778[0x38];
+    /* 0x7B0 */ s16      field_7B0; // boss state index
+    /* 0x7B2 */ u16      field_7B2;
+    /* 0x7B4 */ byte     pad_7B4[0x16];
+    /* 0x7CA */ s16      field_7CA;
+    /* 0x7CC */ s16      field_7CC;
+    /* 0x7CE */ byte     pad_7CE[0x4];
+    /* 0x7D2 */ s16      field_7D2;
+    /* 0x7D4 */ byte     pad_7D4[0x6];
+    /* 0x7DA */ u8       field_7DA; // per-state step counter
+    /* 0x7DB */ byte     pad_7DB[0x5];
+    /* 0x7E0 */ s8       field_7E0;
+    /* 0x7E1 */ byte     pad_7E1[0x1];
+    /* 0x7E2 */ s8       field_7E2;
+    /* 0x7E3 */ byte     pad_7E3[0x5];
 } Actor503500Work;
+STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
 typedef struct Actor503500 {
     /* 0x00 */ byte             pad_0[0x1C];
