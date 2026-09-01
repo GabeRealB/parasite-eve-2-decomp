@@ -585,8 +585,8 @@ actor_350700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_356100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x4", unit = "actor_361100_2" }], shared = [{ start = "0xAFC", end = "0xB1C", unit = "actors_shared_8016447c" }, { start = "0xB1C", end = "0xB3C", unit = "actors_shared_8016449c" }, { start = "0xB3C", end = "0xB5C", unit = "actors_shared_80162080" }, { start = "0xB5C", end = "0xB7C", unit = "actors_shared_80132bd8" }] }
 actor_800100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
-actor_800200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata_head = "0x1F4" }
-actor_800300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
+actor_800200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata_head = "0x1F4", shared = [{ start = "0x880", end = "0x8CC", unit = "actors_shared_801625a8" }] }
+actor_800300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x788", end = "0x7D4", unit = "actors_shared_801625a8" }] }
 
 # Parasite Energy effects, at the map-picture address, so the two are mutually
 # exclusive - you are not looking at the map while casting.

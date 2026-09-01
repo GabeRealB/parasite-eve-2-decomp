@@ -3102,6 +3102,29 @@ function that lived in the first unit used to carry leading-rodata tables via
 unit's `.rodata` as their own `.s` files. `INCLUDE_RODATA` them there, in
 address order, or that unit's `.rodata` is short and `.text` shifts.
 
+**But `INCLUDE_RODATA` them in the unit that *references* them, not always the
+first one.** A table splat had migrated into a function's `.s` is a jump table
+whose entries are `.L<overlay>_<addr>` labels defined inside that function's
+assembly. Once the function moves to `<name>_2`, the labels only exist in that
+translation unit, so an `INCLUDE_RODATA` in `<name>.c` fails to link with
+`undefined reference to .L...`. Put the line in `<name>_2.c` instead: the linker
+script emits `<name>.c.o(.rodata)`, then the shared object's, then
+`<name>_2.c.o(.rodata)`, so with the first unit contributing nothing the second
+unit's tables still start at the leading-rodata address. Within `<name>_2.c` the
+`INCLUDE_RODATA` lines must sit in address order relative to each other *and* to
+any jump table GCC emits for an already-decompiled function in the same file -
+file order is section order.
+
+**A `rodata` cut cannot always express this.** `gen_overlay_configs.py` requires
+`rodata_head < cut < text_start`, so ownership cannot be handed to the second
+unit when the C-owned rodata begins at offset 0 (no `rodata_head`) or exactly at
+`rodata_head`. `actor_800200` is the second case: `rodata_head = "0x1F4"` and
+both of its tables belong to functions that the `ActorsShared801625a8` cut moved
+into `actor_800200_2`. The empty-first-unit trick above is the fallback, and it
+is worth using in the sibling overlay too rather than mixing the two mechanisms
+across sharers of the same body - `actor_800300` could have taken a cut at
+`0x4`, and deliberately does not.
+
 **Deleting the sharers' `.c` and re-splitting does that hand-work for you.**
 splat never *rewrites* an existing `.c`, but it happily writes a missing one, so
 after adding the `shared` (and, below, `rodata`) keys to the manifest, `rm
