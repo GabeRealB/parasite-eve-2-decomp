@@ -35513,9 +35513,10 @@ declares they cannot alias — so the scheduler is free to move the global store
 across the struct loads. With `M2C_FIELD` neither MEM is in-struct, the
 dependence stands, and the store stays put.
 
-The fix is `SOFT_BARRIER()` after the store, which is what
-`include/decomp/common.h` provides for exactly this — stopping the scheduler
-from moving an instruction it believes is independent:
+Two remedies work, and which one a given store needs is a measurement rather
+than a preference. Try `SOFT_BARRIER()` after the store first -- it is what
+`include/decomp/common.h` provides for exactly this, and it claims only that
+the store may not move:
 
 ```c
 extern s8 D_80115417;           /* the scalar it actually is */
@@ -35524,15 +35525,22 @@ D_80115417 = 1;
 SOFT_BARRIER();
 ```
 
-Measured on `actor_400600`: the scalar declaration alone fails, scalar plus
-`SOFT_BARRIER()` matches, and `SCHED_BARRIER()` matches too — the lighter
-non-volatile form is enough. `volatile` does *not* work; it changes other
-decisions and lands two instructions off.
+Declaring the global as a one-element array also works, because an aggregate
+stops the heuristic firing:
 
-Declaring the global as a one-element array (`extern s8 D_80115417[1];`) also
-matches, because an aggregate stops the heuristic firing. Prefer the barrier:
-the array bound is a claim about the object's shape that nothing supports,
-whereas the barrier says only what is true — that this store may not move.
+```c
+extern void* D_800678F0[1];     /* not: extern void* D_800678F0; */
+```
+
+Measured on `actor_400600`, on two globals in the same file: the byte store to
+`D_80115417` matches with the barrier and needs no array, while the pointer
+store to `D_800678F0` checksums wrong with the barrier and matches only as an
+aggregate. `SCHED_BARRIER()` behaves like `SOFT_BARRIER()` wherever the barrier
+works at all; `volatile` works for neither and lands two instructions off.
+
+Prefer the barrier where it reproduces the match, because an array bound is a
+claim about the object's shape that nothing supports. Fall back to the
+aggregate where it does not, and record in a comment that it was measured.
 
 Watch for this in any function that writes a bare `extern` global next to
 pointer-based struct traffic. In the `actor_400600` typing pass it hit exactly

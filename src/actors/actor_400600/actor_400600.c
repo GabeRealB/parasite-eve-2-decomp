@@ -14,16 +14,18 @@
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
- * of gameplay flags at 0x80115408..0x8011541B. Neither object's real aggregate
- * shape is known here, and both are deliberately declared as one-element arrays
- * rather than as a bare `void*` / `s8`: GCC 2.8.1's
- * `fixed_scalar_and_varying_struct_p` alias heuristic assumes a fixed-address
- * *scalar* never aliases a pointer-based *struct* reference, so with the scalar
- * form it sinks the store to this global past the `Actor400600Work` loads that
- * follow it and the instruction schedule stops matching. Referencing them
- * through an aggregate restores the dependence. */
+ * of gameplay flags at 0x80115408..0x8011541B.
+ *
+ * Storing to a bare `extern` global next to pointer-based struct traffic lets
+ * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
+ * alias, so the scheduler sinks the store past the `Actor400600Work` loads
+ * that follow. Two remedies work and which one is needed was measured, not
+ * chosen: the byte store to `D_80115417` matches with `SOFT_BARRIER()` after
+ * it, so that one is declared as the scalar it is; the pointer store to
+ * `D_800678F0` checksums wrong with the barrier and matches only as an
+ * aggregate, so its one-element array stays and is doing real work. */
 extern void* D_800678F0[1];
-extern s8    D_80115417[1];
+extern s8    D_80115417;
 
 extern s32 Gp_LcgState;
 
@@ -501,9 +503,10 @@ void func_actor_400600_8013AAD8(Task* arg0)
     Task*            child;
     Task*            child2;
 
-    work          = (Actor400600Work*)arg0->idMap;
-    D_80115417[0] = 1;
-    child         = work->field_704;
+    work       = (Actor400600Work*)arg0->idMap;
+    D_80115417 = 1;
+    SOFT_BARRIER();
+    child = work->field_704;
     if (child != NULL) {
         Task_Kill(child);
     }
