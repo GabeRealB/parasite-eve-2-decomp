@@ -170,6 +170,7 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn03EEC);
 
 void  Gp_UnlinkNode(void* node);
 void  Gp_UnlinkObj(void* node);
+void  Gp_EnemyTaskExit(Actor01600* arg0);
 void  Gp_SetLightMode(void* arg0, s32 arg1);
 void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void  Gp_PulseState1C(void);
@@ -445,7 +446,26 @@ s32 Actor01600_Fn06C94(Actor01600* arg0, s32 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06D74);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06EA4);
+/// Tears the actor down: flags its context node dead (`field_4` = 1), clears
+/// `field_54`, unlinks the node from its list and releases the four display
+/// objects held in the work block, then hands the task to `Gp_EnemyTaskExit`.
+void Actor01600_Fn06EA4(Actor01600* arg0)
+{
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+
+    ctx  = arg0->field_20;
+    work = arg0->field_1C;
+
+    ctx->node.field_4 = 1;
+    ctx->field_54     = 0;
+    Gp_UnlinkNode(&ctx->node);
+    Gp_UnlinkObj(work->field_40C);
+    Gp_UnlinkObj(work->field_29C);
+    Gp_UnlinkObj(work->field_2EC);
+    Gp_UnlinkObj(work->field_3CC);
+    Gp_EnemyTaskExit(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06F10);
 
