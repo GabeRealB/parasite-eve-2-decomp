@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u8 D_shelter_b1_underground_parking_8018D788;
+extern u8 D_shelter_b1_underground_parking_8018D789;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_80184234);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_80184284);
@@ -20,4 +23,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_801847D0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_801848A4);
+void func_shelter_b1_underground_parking_801848A4(void)
+{
+    D_shelter_b1_underground_parking_8018D788 = 0xFF;
+    D_shelter_b1_underground_parking_8018D789 = 0;
+}
