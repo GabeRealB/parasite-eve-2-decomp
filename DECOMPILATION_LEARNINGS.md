@@ -36938,3 +36938,49 @@ symbols, so a hand-named overlay table diffs as
 `lui v0,%hi(Actor01900_Jt0024C)` vs `lui v0,%hi(.rodata)` and caps the score at
 99.6%. If that relocation pair is the *only* difference, the function already
 matches — verify with `./tools/build-and-verify.sh`, not with the scratch score.
+
+## An extra scratch-pointer copy taken *before* the alloc failure test
+
+A scratchpad allocation whose block is later handed to a GTE `asm` operand can
+need **two** live pointers, not one. `func_m4a1_grenade_8011D654` carves 0x28
+bytes off `G_SCRATCH_HEAD` and passes the block to `gte_ldv0`; the target keeps
+`$s0` for the head store and the `vy`/`vz` writes and a *second* callee-saved
+`$s7` for the `lwc2` pair, with `move s7, s0` sitting in the `bnez` delay slot
+of the `Mem_Calloc == NULL` test. Writing the obvious single variable gives one
+pseudo, one fewer saved register (frame 0x30 instead of 0x38) and `move a0, s2`
+in that delay slot.
+
+Recomputing the address at the `asm` site (`gte_ldv0((SVECTOR*)(head - 0x28))`)
+does not help — CSE propagates it back to the same pseudo. Placing the copy
+after the failure test does not help either: it survives as a copy but sinks to
+just before its use and lands in a caller-saved register. The copy has to be
+made *between the call and the test*, so its live range already spans the
+branch:
+
+```c
+work = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
+vec  = blk;
+if (work == NULL) {
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    Task_Kill(arg0);
+    return;
+}
+```
+
+That took the function from 97.5% to 100%: the copy is the only insn in the
+block preceding the branch that the delay-slot filler can steal, and the live
+range now crosses every later call, so the allocator gives it `$s7` and the
+remaining values shift up one register each (`extra` ends in `$fp`).
+
+## `Gfx_ViewWorldMtx` versus `Gfx_ViewCoord.workm` is a relocation-name diff only
+
+`Gfx_ViewWorldMtx` (0x80070F34) *is* `Gfx_ViewCoord.workm` (0x80070F10 + 0x24).
+When a function passes that matrix to `Gp_WorldToLocal` and then parents a
+coordinate to world, the target derives the second address from the first
+(`lui/addiu %hi/%lo(Gfx_ViewWorldMtx)`, then `addiu s0, s0, -0x24`). The clean
+C — `Gp_WorldToLocal(&Gfx_ViewCoord.workm, ...)` plus `coord->sub =
+&Gfx_ViewCoord` — emits `%hi(Gfx_ViewCoord)` / `%lo(Gfx_ViewCoord+0x24)` and
+the same `-0x24`, so the *linked words are identical* and only the scratch
+normalizer's symbol names differ (99.95%, `regs=2`). Prefer the struct-member
+form and confirm with `./tools/build-and-verify.sh`; do not introduce
+`(u8*)&Gfx_ViewWorldMtx - 0x24` just to make the scratch score read 100%.
