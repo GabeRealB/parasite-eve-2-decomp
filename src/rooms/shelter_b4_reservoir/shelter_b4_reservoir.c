@@ -12,6 +12,8 @@ extern s16   D_shelter_b4_reservoir_80184F7C;
 extern s32   D_shelter_b4_reservoir_80187510;
 extern Task* D_shelter_b4_reservoir_80184930;
 
+extern void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017D650);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", D_shelter_b4_reservoir_8017D5C0);
@@ -84,7 +86,10 @@ void func_shelter_b4_reservoir_8017E770(s32 arg0)
     D_shelter_b4_reservoir_80184930->state = arg0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E780);
+void func_shelter_b4_reservoir_8017E780(s32 arg0)
+{
+    func_shelter_b4_reservoir_80182B04(10, arg0, 0x140);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", jtbl_shelter_b4_reservoir_8017D604);
 
