@@ -172,7 +172,14 @@ void func_acropolis_security_room_8017FF0C(Task* task)
     st->frames = st->frames + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FF84);
+void func_acropolis_security_room_8017FF84(Task* task)
+{
+    s32 killArg;
+
+    if (Task_PollKill(((AcropolisSecurityRoomState*)task->idMap)->child, &killArg) != 0) {
+        task->state = task->state + 1;
+    }
+}
 
 void func_acropolis_security_room_8017FFD0(Task* arg0)
 {
