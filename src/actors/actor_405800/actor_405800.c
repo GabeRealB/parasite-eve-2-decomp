@@ -304,7 +304,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138854);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801388C4);
+void func_actor_405800_801388C4(Task* task)
+{
+    ((Actor405800Work*)task->idMap)->field_88B = 1;
+}
 
 void func_actor_405800_801388D4(void)
 {
