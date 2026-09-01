@@ -35,7 +35,17 @@ void func_shelter_b6_nursery_8017F170(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", func_shelter_b6_nursery_8017F254);
+void func_shelter_b6_nursery_8017F254(DialogPrompt* prompt, UiObject* obj)
+{
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CC4, prompt->field_1C, 1, 0);
+    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        SndEvt_EnqueueType6(0x16, 0, 0);
+        Ui_SpawnFromDesc(&D_shelter_b6_nursery_80184F70, 0, 1, 1, obj);
+        obj->field_2E     = 6;
+        obj->status       = 0;
+        obj->owner->state = 2;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", func_shelter_b6_nursery_8017F31C);
 
