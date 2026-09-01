@@ -355,7 +355,15 @@ void func_actor_405800_80138B50(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138BD4);
+void func_actor_405800_80138BD4(Task* task)
+{
+    Actor405800Work* work;
+
+    work            = (Actor405800Work*)task->idMap;
+    task->state     = 3;
+    work->field_846 = 0;
+    work->field_848 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138BEC);
 
