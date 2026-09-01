@@ -35599,6 +35599,28 @@ have to be renamed with it: a cut reading `unit = "<overlay>_2"` still names the
 object that carried those functions *before* the promotion, which is now
 `<overlay>_3`. Left alone it silently hands the block to a different object.
 
+Renumbering also runs *downwards*, and the second promotion of two adjacent
+bodies is where it bites. Promoting `func_actor_342000_8016447C` cut a one-
+function unit out of the middle of several actors; promoting its neighbour
+`func_actor_342000_8016449C` made the two shared spans adjacent, so that middle
+unit had nothing left in it and the generated yaml stopped emitting it. Every
+later unit then shifts *down* one - `actor_303600_3` became `actor_303600_2` -
+and the `.c` that splat wrote for the vanished unit stays behind holding only
+its `#include`, which links as a duplicate-free but stale object and leaves the
+manifest's `rodata` cut pointing at a unit name that no longer exists. So after
+a promotion, diff the `c` subsegment list in `configs/USA/generated/<overlay>.yaml`
+against `src/<family>/<overlay>/*.c`: delete the `.c` files with no subsegment,
+rename the ones whose number moved (and the `INCLUDE_ASM` unit paths inside
+them), and re-point any `rodata` cut naming a renamed unit.
+
+Where the shared span lands in the *middle* of a unit that was previously
+whole, the opposite happens: splat writes a brand-new `<overlay>_2.c` containing
+`INCLUDE_ASM` for every function past the cut, while the original `.c` still
+defines them - the link fails with `multiple definition`. splat never rewrites
+an existing `.c`, so truncate the original by hand at the cut and move any
+already-matched C bodies (and the `extern` declarations they need) into the new
+file.
+
 Two cases cannot be promoted mechanically at all:
 
 * an overlay whose manifest already carries `rodata` or `units` cuts - that
