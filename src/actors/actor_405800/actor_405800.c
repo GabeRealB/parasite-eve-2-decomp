@@ -334,7 +334,26 @@ void func_actor_405800_80138A18(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138A70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138B50);
+void func_actor_405800_80138B50(Task* task)
+{
+    Actor405800Work* work;
+    TmdObject*       ext;
+    u16              count;
+
+    work            = (Actor405800Work*)task->idMap;
+    ext             = (TmdObject*)task->extra;
+    count           = work->field_842 + 1;
+    work->field_842 = count;
+    if ((s16)count >= 0x18) {
+        work->field_832 = 0;
+        work->field_834 = 0x1000;
+        work->field_866 = 0xFF;
+        func_8009EA50(work->field_832);
+        ext->field_2C   = work->field_834;
+        work->field_842 = 0;
+        work->field_846 = work->field_846 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138BD4);
 
