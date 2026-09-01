@@ -1,5 +1,14 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
+#include "main/session.h"
+#include "main/task.h"
+
+void func_neo_ark_shrine_8017F448(void);
+
+/// Message table installed at `Task::field_24` by the room task's state 0.
+extern GpMsgEntry D_neo_ark_shrine_80181E34[];
+
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D6AC);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D740);
@@ -8,7 +17,13 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shr
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D84C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D8F4);
+void func_neo_ark_shrine_8017D8F4(Task* task)
+{
+    task->field_24 = D_neo_ark_shrine_80181E34;
+    Game_SetPtrSlot(task, 7);
+    func_neo_ark_shrine_8017F448();
+    task->state++;
+}
 
 void func_neo_ark_shrine_8017D940(void)
 {
