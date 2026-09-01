@@ -11,6 +11,7 @@ extern s32  D_actor_450800_8013A984;
 extern s32  D_actor_450800_8013AB7C;
 extern s32  D_actor_450800_8013ACFC;
 extern void func_80180038(s32);
+extern void func_80182D14(s32, s32);
 
 void func_actor_450800_80131E34(void)
 {
@@ -50,7 +51,10 @@ void func_actor_450800_80131E34(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80131F28);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80131F70);
+void func_actor_450800_80131F70(u32 arg0)
+{
+    func_80182D14(arg0 >> 16, arg0 & 0xFFFF);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80131F98);
 
