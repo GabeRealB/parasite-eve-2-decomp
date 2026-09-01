@@ -346,7 +346,15 @@ void func_shelter_r47_80183170(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801831C8);
+void func_shelter_r47_801831C8(Task* task)
+{
+    ShelterR47State* state;
+
+    state = (ShelterR47State*)task->idMap;
+    func_shelter_r47_80181914(task, 0);
+    state->fade = 0;
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80183210);
 
