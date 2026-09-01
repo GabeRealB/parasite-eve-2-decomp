@@ -37005,3 +37005,37 @@ The `& 0xF` does not rescue it: the `andi` is emitted either way and the
 `lh`/`lhu` difference survives to the object. Prefer that cast over reading the
 field through `((u16*)&field)[1]`, which assembles the same but reintroduces
 manual-offset punning (`WeaponsShared8011d3a0`).
+
+## A `shared` span butted against an existing one costs nothing but a deleted line
+
+The unit renumbering that makes promotion expensive only happens when a span
+lands in the *middle* of a unit. `gen_overlay_configs.py` walks the cuts with
+`if cut_start > pos: emit_run(...)`, so two adjacent spans emit no run between
+them: the tail unit keeps its number, its `.c` file keeps its name and its
+`INCLUDE_ASM` path strings, and no `rodata` cut moves.
+
+This is the common case for the small `Task` callbacks, because a family's
+actors tend to carry them as a contiguous run. Promoting
+`func_actor_113100_80132F24` (republishes the work block's light/colour matrix
+pair onto `TmdObject::field_1C`/`field_20`) into `actors_shared_80132f24`
+covered six overlays, and in three of them it sat immediately after the already
+promoted `actors_shared_801327b4`:
+
+```toml
+# actor_120400: 0x9B4 is exactly where the 801327b4 span ends
+shared = [{ start = "0x994", end = "0x9B4", unit = "actors_shared_801327b4" },
+          { start = "0x9B4", end = "0x9D0", unit = "actors_shared_80132f24" }]
+```
+
+The whole source edit for those three was deleting the one `INCLUDE_ASM` line,
+which was the first entry in `<overlay>_2.c` / `_3.c`. Only the three overlays
+where the span split a live unit needed the new `_2.c` and its `rodata` cut.
+So check the neighbouring spans before budgeting a promotion: `end` of an
+existing span equal to your `start` means the cheap path.
+
+**The span is the object, so copies at a different work-block offset cannot
+join.** `func_actor_213100_8014A23C` and `func_actor_503500_801324EC` are the
+same three-statement body over blocks whose matrices sit at 0x440/0x460 and
+0x00/0x20, so their `addiu` immediates differ and they stay in their own `.c`.
+The dup index already tells you this — it only grouped the six that are
+`identical bytes`.

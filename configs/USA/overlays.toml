@@ -433,17 +433,17 @@ actor_110700 = { }
 actor_110800 = { }
 actor_111800 = { }
 actor_113000 = { }
-actor_113100 = { }
+actor_113100 = { shared = [{ start = "0x1104", end = "0x1120", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x28", unit = "actor_113100_2" }] }
 actor_120300 = { shared = [{ start = "0x1FB4", end = "0x1FD4", unit = "actors_shared_8016449c" }, { start = "0x1FD4", end = "0x1FF4", unit = "actors_shared_80162080" }] }
-actor_120400 = { shared = [{ start = "0x994", end = "0x9B4", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x1C", unit = "actor_120400_2" }] }
+actor_120400 = { shared = [{ start = "0x994", end = "0x9B4", unit = "actors_shared_801327b4" }, { start = "0x9B4", end = "0x9D0", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x1C", unit = "actor_120400_2" }] }
 actor_120500 = { rodata_head = "0x4" }
 actor_121300 = { shared = [{ start = "0x2544", end = "0x2564", unit = "actors_shared_8016447c" }, { start = "0x2564", end = "0x2584", unit = "actors_shared_8016449c" }, { start = "0x2584", end = "0x25AC", unit = "actors_shared_801343a4" }] }
 actor_123000 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_123200 = { }
 actor_123400 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_135000 = { note = "empty actor slot; the id resolves, the package has no code" }
-actor_135400 = { }
-actor_135600 = { shared = [{ start = "0xF9C", end = "0xFBC", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x28", unit = "actor_135600_2" }] }
+actor_135400 = { shared = [{ start = "0x814", end = "0x830", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x5C", unit = "actor_135400_2" }] }
+actor_135600 = { shared = [{ start = "0xF9C", end = "0xFBC", unit = "actors_shared_801327b4" }, { start = "0xFBC", end = "0xFD8", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x28", unit = "actor_135600_2" }] }
 actor_136100 = { }
 actor_136300 = { }
 actor_140400 = { note = "empty actor slot; the id resolves, the package has no code" }
@@ -477,7 +477,7 @@ actor_405800 = { }
 actor_407500 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_420700 = { }
 actor_421600 = { }
-actor_443500 = { shared = [{ start = "0x228", end = "0x24C", unit = "actors_shared_80132048" }, { start = "0x984", end = "0x9A4", unit = "actors_shared_801327b4" }] }
+actor_443500 = { shared = [{ start = "0x228", end = "0x24C", unit = "actors_shared_80132048" }, { start = "0x984", end = "0x9A4", unit = "actors_shared_801327b4" }, { start = "0x9A4", end = "0x9C0", unit = "actors_shared_80132f24" }] }
 actor_444000 = { }
 actor_450200 = { shared = [{ start = "0x33C", end = "0x35C", unit = "actors_shared_80132ca4" }] }
 actor_450800 = { shared = [{ start = "0x151C", end = "0x1544", unit = "actors_shared_801366fc" }] }
@@ -581,7 +581,7 @@ actor_342100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_342200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x220", end = "0x8E14", unit = "actor_104400_text" }], relocs = "configs/USA/rel.actor_104400.txt" }
 actor_342400 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_350500 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x63C", end = "0x65C", unit = "actors_shared_801327b4" }], rodata = [{ start = "0x10", unit = "actor_350500_2" }] }
-actor_350700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
+actor_350700 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, shared = [{ start = "0x15BC", end = "0x15D8", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x48", unit = "actor_350700_2" }] }
 actor_356100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20, rodata = [{ start = "0x4", unit = "actor_361100_2" }], shared = [{ start = "0xAFC", end = "0xB1C", unit = "actors_shared_8016447c" }, { start = "0xB1C", end = "0xB3C", unit = "actors_shared_8016449c" }, { start = "0xB3C", end = "0xB5C", unit = "actors_shared_80162080" }, { start = "0xB5C", end = "0xB7C", unit = "actors_shared_80132bd8" }] }
 actor_800100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
