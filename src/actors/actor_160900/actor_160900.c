@@ -1,5 +1,4 @@
 #include "common.h"
-
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80131EB0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801326EC);
@@ -49,13 +48,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801347D0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801347F0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80134830);
-
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80134850);
-
-void func_actor_160900_80134870(void)
-{
-    CdCmd_CancelReplaceAndActivate();
-    Gp_RestoreStreamRng();
-}

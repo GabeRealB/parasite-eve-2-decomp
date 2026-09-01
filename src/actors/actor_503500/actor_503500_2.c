@@ -1,864 +1,316 @@
 #include "common.h"
 
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/tmd.h"
+#include "main/task.h"
+
+#include "gameplay/1BC.h"
 
 #include "gameplay/3CD8.h"
 
+#include "gameplay/3FB8.h"
+
+#include "gameplay/D4.h"
+
+#include "main/session.h"
+
 #include "actors/actor_503500.h"
 
-s32  func_actor_503500_80133684(Actor503500* arg0);
-void func_actor_503500_801372AC(s32 arg0);
+extern s8 D_actor_503500_80176D5A;
+
+extern s16 D_actor_503500_80176D2E;
+
+extern u16 D_actor_503500_80176D24;
+
+extern Task* D_actor_503500_80176558;
+
+extern TaskDesc D_actor_503500_8014B964;
+
+/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
+extern GpMsgEntry D_actor_503500_80146888[];
+
+/// Opaque script/table blobs in the overlay's `.data`, handed to
+/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
+extern u8 D_actor_503500_8014CD98[];
+
+extern u8 D_actor_503500_8014D098[];
+
+/// whatever room overlay is resident owns the body.
+extern void func_8017E27C(s32 arg0);
+
+extern Actor503500MsgPos D_actor_503500_8017655C;
+
+/// Player-facing flag byte in the main executable; no module header owns it yet.
+extern u8 D_80073BA9;
+
+/// `src/gameplay/3CD8.c`; no gameplay header declares it yet.
+extern void Gp_HaltPadScripts(void);
+
+/// Main-executable globals with no module header yet: `D_80071075` gates the
+/// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
+/// `D_80114C12` the cutscene/among-us mode flag.
+extern u8 D_80071075;
+
+extern s16 D_80073BA0;
+
+extern s8 D_80114C12;
+
+#include "main/mem.h"
+
+#include "main/sound.h"
+
+#include "main/tmd.h"
+
+s32 func_actor_503500_80133684(Actor503500* arg0);
+
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
 /// empty. `arg0` is loaded by every caller but the body ignores it.
-s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
+s32 func_actor_503500_80135E04(Task* arg0, s32 arg1);
+
 void func_actor_503500_801338E8(Actor503500* arg0);
+
 void func_actor_503500_80134408(Actor503500* arg0);
+
 void func_actor_503500_801345F4(Actor503500* arg0);
+
 void func_actor_503500_80134A24(Actor503500* arg0);
+
 void func_actor_503500_80134C68(Actor503500* arg0);
+
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
-s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
+
+s32 func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
+
 void func_actor_503500_8013611C(s32 arg0);
-void func_actor_503500_80136450(Actor503500* arg0);
-void func_actor_503500_801369E4(Actor503500* arg0);
-void func_actor_503500_80136A80(Actor503500* arg0);
-void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
-void func_actor_503500_801374BC(Actor503500* arg0);
-void func_actor_503500_80137678(Actor503500* arg0);
-void func_actor_503500_80138454(Actor503500* arg0);
-void func_actor_503500_8013B460(Actor503500* arg0);
-void func_actor_503500_8013B8D0(Actor503500* arg0);
-void func_actor_503500_8013BE0C(Actor503500* arg0);
-void func_actor_503500_8013E384(Actor503500* arg0);
-void func_actor_503500_8013E740(Actor503500* arg0);
-void func_actor_503500_8013EBE4(Actor503500* arg0);
-
-void func_actor_503500_80136304(Actor503500* arg0)
-{
-    Actor503500Work* work = arg0->field_1C;
-    u16              timer;
-
-    switch (work->field_7B0) {
-        case 0:
-            if (func_actor_503500_80133684(arg0) == 0) {
-                func_actor_503500_80136450(arg0);
-            }
-            break;
-        case 1:
-            func_actor_503500_801338E8(arg0);
-            break;
-        case 2:
-            func_actor_503500_801369E4(arg0);
-            break;
-        case 3:
-            timer           = work->field_7B2 - 1;
-            work->field_7B2 = timer;
-            if ((s16)timer < 0) {
-                func_actor_503500_80135FB4(arg0, 6, 0x10);
-                work->field_7B2 = 3;
-            }
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
-                func_actor_503500_80136EFC(arg0, 0);
-                work->field_7CA = 0x3C;
-            }
-            break;
-        case 4:
-            func_actor_503500_80134408(arg0);
-            break;
-        case 5:
-            func_actor_503500_80136A80(arg0);
-            break;
-        case 6:
-            func_actor_503500_801345F4(arg0);
-            break;
-        case 7:
-            func_actor_503500_80134A24(arg0);
-            break;
-    }
-    if (work->field_7E0 != 0) {
-        func_actor_503500_80134C68(arg0);
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136450);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801364D0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013656C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013667C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136770);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013680C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136948);
-
-void func_actor_503500_801369E4(Actor503500* arg0)
-{
-    Actor503500Work* work;
-
-    work = arg0->field_1C;
-    switch ((s8)work->field_7DA) {
-        case 0:
-            func_actor_503500_80135FB4(arg0, 0xE, 0x10);
-            func_actor_503500_8013611C(arg0->spawnArg1);
-            work->field_7DA = work->field_7DA + 1;
-            break;
-        case 1:
-            if (func_actor_503500_80136014(arg0, 0xE) != 0) {
-                work->field_7D2 = 0;
-                func_actor_503500_80136EFC(arg0, 0);
-            }
-            break;
-    }
-}
-
-void func_actor_503500_80136A80(Actor503500* arg0)
-{
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136A88);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136AEC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136B64);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136D30);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136DDC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136EFC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136F40);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136FA8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136FDC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137048);
-
-void func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2)
-{
-    Actor503500Work* work;
-
-    work            = arg0->field_1C;
-    work->field_7E2 = arg1;
-    work->field_7CC = arg2;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137088);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137158);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137238);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137290);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801372AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801372C8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801374BC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131F4C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137678);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80137C90);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013815C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138288);
-
-void func_actor_503500_801382F4(void)
-{
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801382FC);
-
-void func_actor_503500_80138378(Actor503500* arg0)
-{
-    GpEnemy* obj;
-    u8       flags;
-    u8       flags2;
-
-    obj   = arg0->field_20;
-    flags = obj->field_4C;
-    if (flags & 1) {
-        obj->field_4C = flags & 0xFE;
-    }
-    if (obj->field_4C & 2) {
-        obj->field_4C = obj->field_4C & 0xFD;
-    }
-    flags2 = obj->field_4C;
-    if (flags2 & 0xC) {
-        obj->field_4C = flags2 & 0xF3;
-    }
-}
-
-void func_actor_503500_801383D0(Actor503500* arg0)
-{
-    switch (arg0->field_1C->field_15C) {
-        case 0:
-            func_actor_503500_80138454(arg0);
-            break;
-        case 1:
-            func_actor_503500_801374BC(arg0);
-            break;
-        case 2:
-            func_actor_503500_80137678(arg0);
-            break;
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138454);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138490);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801384D4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013852C);
-
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
 
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
-void func_actor_503500_801398D0(Actor503500* arg0);
-void func_actor_503500_80139EFC(Actor503500* arg0);
-void func_actor_503500_8013A0D0(Actor503500* arg0);
-void func_actor_503500_8013A96C(Actor503500* arg0);
-void func_actor_503500_8013AA44(Actor503500* arg0);
-void func_actor_503500_8013AAC0(Actor503500* arg0);
-void func_actor_503500_8013AB38(Actor503500* arg0);
 
-void func_actor_503500_80138898(Actor503500* arg0)
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132B98);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132BB8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132BD8);
+
+void func_actor_503500_80132BF8(void)
+{
+    Mc_SaveData.field_6 = 0x16;
+    Mc_SaveData.field_8 = 1;
+    Mc_SaveData.field_5 = 1;
+    Task_Spawn(0, 0x11, 0, 0);
+}
+
+void func_actor_503500_80132C40(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_503500_8014B964, 0, arg0, 0);
+}
+
+void func_actor_503500_80132C70(s32 arg0)
+{
+    D_actor_503500_80176558 = Task_SpawnFromTable(&D_actor_503500_8014B964, 1, arg0, 0);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132CA4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132CC4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132D00);
+
+void func_actor_503500_80132D20(Task* arg0)
+{
+    func_800E8634((s32)D_actor_503500_8014CD98, 0, (s32)D_actor_503500_8014D098);
+    Task_Kill(arg0);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132D60);
+
+void func_actor_503500_80132D7C(void)
+{
+    Game_Session->field_52 = 1;
+}
+
+void func_actor_503500_80132D90(s32 arg0)
+{
+    GameFlag_SetNibble(0x100, arg0);
+}
+
+void func_actor_503500_80132DB4(s32 arg0)
+{
+    func_8017E27C(arg0 & 0xFF);
+}
+
+void func_actor_503500_80132DD4(void)
+{
+    D_actor_503500_8017655C.x = 0;
+    D_actor_503500_8017655C.y = 0;
+    D_actor_503500_8017655C.z = 0;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132DEC);
+
+void func_actor_503500_80132E7C(void)
+{
+    Task* slot3;
+
+    slot3 = Game_GetPtrSlot(3);
+    if ((D_actor_503500_8017655C.x != 0) || (D_actor_503500_8017655C.y != 0) ||
+        (D_actor_503500_8017655C.z != 0)) {
+        Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
+    }
+}
+
+void func_actor_503500_80132EE8(u8 arg0)
+{
+    D_80115768 = arg0;
+}
+
+void func_actor_503500_80132EF4(void)
+{
+    func_80106350(Game_GetPtrSlot(3), D_80073BA9, 0);
+}
+
+void func_actor_503500_80132F28(void)
+{
+    Gp_HaltPadScripts();
+    Game_Session->field_13B = 0;
+}
+
+/// Drops the reference to the slot-1 task spawned by
+/// `func_actor_503500_80132C70`; the task itself is not killed here.
+void func_actor_503500_80132F58(void)
+{
+    D_actor_503500_80176558 = NULL;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132F64);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80133270);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801334CC);
+
+s32 func_actor_503500_80133684(Actor503500* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
-    TmdObject*       tmd;
-    s8               countdown;
-    s32              slot;
+    GpEnemy**        slots;
+    GpEnemy*         slot1;
+    s32              ret;
 
-    work      = arg0->field_1C;
-    enemy     = arg0->field_20;
-    countdown = work->field_2EB;
-    /* `Task::extra` is a `TmdObject`: the model instance and the actor-ext
-     * record documented in `main/session.h` are the same object. */
-    tmd = (TmdObject*)arg0->extra;
-    if (countdown >= 0) {
-        if (countdown == 0) {
-            Tmd_FreeBuffers(tmd);
+    ret   = 0;
+    work  = arg0->field_1C;
+    slots = work->enemies;
+
+    if (work->field_7B0 != 2) {
+        if (!(work->field_774 & 1) && (slots[4] == NULL)) {
+            slots[10]->task->killCountdown = 8;
+            ret                            = 1;
+            work->field_774               |= 1;
         }
-        work->field_2EB = (s8)((u8)work->field_2EB - 1);
+        if (!((work->field_774 >> 1) & 1) && (slots[5] == NULL)) {
+            slots[11]->task->killCountdown = 8;
+            ret                            = 1;
+            work->field_774               |= 2;
+        }
+        if (!((work->field_774 >> 2) & 1) && (slots[1] == NULL)) {
+            if (slots[12] != NULL) {
+                slots[12]->task->killCountdown = 8;
+                ret                            = 1;
+                work->field_774               |= 4;
+            }
+        }
     }
-    if (Game_Session->field_1 != 0) {
-        slot = 0xB;
-        if (arg0->spawnArg1 < 3) {
-            slot = 0xA;
-        }
-        if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
-            tmd->field_C |= 4;
+
+    if (!((work->field_774 >> 3) & 1) &&
+        ((((slot1 = slots[1], slot1 == NULL)) && (slots[12] == NULL)) ||
+         (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
+         (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
+         ((slots[4]->field_40 == 0) && (slots[5]->field_40 == 0)))) {
+        if ((((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 != 2) &&
+            (D_80073BA0 > 0) && (D_80114C12 != 1)) {
+            ret = 1;
+            if (D_80071075 == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                work->field_774 |= 8;
+                /* `ret` has to be dead across the call for GCC to keep it in
+                 * $a1: it is re-set on the way out of both arms. */
+                goto done;
+            }
         } else {
-            goto tick;
+        done:
+            ret = 1;
         }
-    } else {
-    tick:
-        func_actor_503500_80135828(arg0, &work->field_2EB);
     }
-
-    switch (D_801153F4) {
-        case 1:
-            if (!(tmd->field_C & 0x80)) {
-                func_actor_503500_8013AAC0(arg0);
-            }
-            break;
-        case 2:
-            tmd->field_C        |= 0x80;
-            enemy->node.field_4 |= 1;
-            break;
-        default:
-            if (enemy->field_4C != 0) {
-                func_actor_503500_801398D0(arg0);
-            }
-            func_actor_503500_8013AA44(arg0);
-            func_actor_503500_8013A96C(arg0);
-            if (work->field_2EA == 0) {
-                func_actor_503500_80139EFC(arg0);
-                func_actor_503500_8013A0D0(arg0);
-            }
-            func_actor_503500_8013AAC0(arg0);
-            func_actor_503500_8013AB38(arg0);
-            break;
-    }
+    return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138A30);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801338E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80138C08);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80133BF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80139014);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80133D40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801395BC);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80133FD8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801398D0);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80134284);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131F9C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80134408);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80139A20);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801345F4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80139EFC);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80134A24);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013A0D0);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80134C68);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013A470);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80134EAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013A7B0);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135178);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013A900);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801353F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013A96C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135644);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AA44);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135828);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AAC0);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135950);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AB38);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135B74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AC6C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135CE8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013ACC4);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135D00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AD0C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135E04);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AD64);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135E20);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131FF0);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135F9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013AF60);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80135FB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013B460);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136014);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013B60C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136048);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013B8D0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BBCC);
-
-void func_actor_503500_8013BC54(Actor503500* arg0)
+s32 func_actor_503500_8013608C(void)
 {
-    GpEnemy* enemy;
-
-    enemy                                       = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&arg0->field_1C->obj);
-    enemy->field_54 = 0;
-    arg0->field_1C  = NULL;
-    Gp_DestroyEnemy(enemy, (Task*)arg0);
+    return (u32)(D_actor_503500_80176D24 - 2) < 3U;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BCB4);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801360A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BD0C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801360BC);
 
-void func_actor_503500_8013BD88(Actor503500* arg0)
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013611C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136134);
+
+s8 func_actor_503500_80136208(void)
 {
-    switch (arg0->field_1C->field_ED) {
-        case 0:
-            func_actor_503500_8013BE0C(arg0);
-            break;
-        case 1:
-            func_actor_503500_8013B460(arg0);
-            break;
-        case 2:
-            func_actor_503500_8013B8D0(arg0);
-            break;
-    }
+    return D_actor_503500_80176D5A;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BE0C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BE48);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BE8C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013BEE4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80132028);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013C088);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013C558);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013C878);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013C900);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013C960);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013C9DC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CA34);
-
-void func_actor_503500_8013CA74(Actor503500* arg0, s8 arg1)
+s16 func_actor_503500_80136218(void)
 {
-    Actor503500Work* work;
-
-    work           = arg0->field_1C;
-    work->field_F0 = arg1;
-    work->field_F1 = 0;
-    work->field_EA = 0;
+    return D_actor_503500_80176D2E;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CA8C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136228);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CAE4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80132060);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013CCBC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D1CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D558);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D7D4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D85C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D8BC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D914);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013D990);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DA2C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DBA8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DBF4);
-
-void func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1);
-
-void func_actor_503500_8013DC4C(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    s32              kind;
-    s32              slotA;
-    s32              slotB;
-
-    kind = 3;
-    if (arg0->spawnArg1 == 7) {
-        kind  = 2;
-        slotA = 0xD;
-        slotB = 0xE;
-    } else {
-        slotA = 0xF;
-        slotB = 0x10;
-    }
-    if ((func_actor_503500_80135E04(arg0->parent, kind) != 0) &&
-        (func_actor_503500_80135E04(arg0->parent, slotA) != 0) &&
-        (func_actor_503500_80135E04(arg0->parent, slotB) != 0)) {
-        func_actor_503500_8013DBA8(arg0, 1);
-        work             = arg0->field_1C;
-        work->obj.flags |= 0x8000;
-        Gp_LinkNode(&arg0->field_20->node);
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DD10);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80132098);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013DEB4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013E384);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013E740);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013E9A4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EA2C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EA8C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EAE4);
-
-void func_actor_503500_8013EB60(Actor503500* arg0)
-{
-    switch (arg0->field_1C->field_EC) {
-        case 0:
-            func_actor_503500_8013EBE4(arg0);
-            break;
-        case 1:
-            func_actor_503500_8013E384(arg0);
-            break;
-        case 2:
-            func_actor_503500_8013E740(arg0);
-            break;
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EBE4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EC20);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EC64);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013ECBC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_801320D0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013EE5C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F328);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F4A4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F6F0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F778);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F7D8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F830);
-
-void func_actor_503500_8013F328(Actor503500* arg0);
-void func_actor_503500_8013F4A4(Actor503500* arg0);
-void func_actor_503500_8013F948(Actor503500* arg0);
-void func_actor_503500_8013F984(Actor503500* arg0);
-
-void func_actor_503500_8013F8AC(Actor503500* arg0)
-{
-    switch (arg0->field_1C->field_F0) {
-        case 0:
-            func_actor_503500_8013F948(arg0);
-            break;
-        case 1:
-            func_actor_503500_8013F328(arg0);
-            break;
-        case 2:
-            func_actor_503500_8013F4A4(arg0);
-            break;
-        case 3:
-            func_actor_503500_8013F984(arg0);
-            break;
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F948);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F984);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013F9D4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013FA1C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013FA74);
-
-void func_actor_503500_80140BE8(Actor503500* arg0);
-void func_actor_503500_80141248(Actor503500* arg0);
-void func_actor_503500_80141448(Actor503500* arg0);
-void func_actor_503500_80141B94(Actor503500* arg0);
-void func_actor_503500_80141D7C(Actor503500* arg0);
-void func_actor_503500_801420C4(Actor503500* arg0);
-void func_actor_503500_801421A8(Actor503500* arg0);
-
-void func_actor_503500_8013FF0C(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GpEnemy*         enemy;
-    TmdObject*       tmd;
-    s8               countdown;
-    s32              slot;
-
-    work      = arg0->field_1C;
-    enemy     = arg0->field_20;
-    countdown = work->field_3D7;
-    tmd       = (TmdObject*)arg0->extra;
-    if (countdown >= 0) {
-        if (countdown == 0) {
-            Tmd_FreeBuffers(tmd);
-        }
-        work->field_3D7 = (s8)((u8)work->field_3D7 - 1);
-    }
-    if (Game_Session->field_1 != 0) {
-        slot = 0xB;
-        if (arg0->spawnArg1 < 0xF) {
-            slot = 0xA;
-        }
-        if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
-            tmd->field_C |= 4;
-        } else {
-            goto tick;
-        }
-    } else {
-    tick:
-        func_actor_503500_80135828(arg0, &work->field_3D7);
-    }
-
-    switch (D_801153F4) {
-        case 1:
-            if (!(tmd->field_C & 0x80)) {
-                func_actor_503500_801421A8(arg0);
-            }
-            break;
-        case 2:
-            tmd->field_C        |= 0x80;
-            enemy->node.field_4 |= 1;
-            break;
-        default:
-            if (enemy->field_4C != 0) {
-                func_actor_503500_80140BE8(arg0);
-            }
-            func_actor_503500_801420C4(arg0);
-            func_actor_503500_80141D7C(arg0);
-            if (work->field_3D6 == 0) {
-                func_actor_503500_80141248(arg0);
-                func_actor_503500_80141448(arg0);
-            }
-            func_actor_503500_801421A8(arg0);
-            func_actor_503500_80141B94(arg0);
-            break;
-    }
-}
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80132108);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801400A4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80140654);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80140BE8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80140D38);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141248);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141448);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014176C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141A44);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141B94);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141D04);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141D7C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141E64);
-
-void func_actor_503500_80142310(Actor503500* arg0, s32 arg1);
-
-void func_actor_503500_80141F48(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    u16              level;
-
-    work            = arg0->field_1C;
-    level           = work->field_3B2 + 0x10;
-    work->field_3B2 = level;
-    if ((s16)level >= 0x1001) {
-        Gp_LinkNode(&arg0->field_20->node);
-        work->field_3B2  = 0x1000;
-        work->field_17E |= 0x8000;
-        func_actor_503500_80142310(arg0, 0);
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80141FC8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801420C4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014215C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801421A8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80142220);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801422B8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80142310);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80142370);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801423C8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014271C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80132178);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80142980);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801431EC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801437D0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80143AC0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80143EB4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80143F78);
-
-void func_actor_503500_80143FFC(void)
-{
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144004);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144098);
-
-void func_actor_503500_8014271C(Actor503500* arg0);
-void func_actor_503500_80142980(Actor503500* arg0);
-void func_actor_503500_8014418C(Actor503500* arg0);
-void func_actor_503500_801441E8(Actor503500* arg0);
-
-void func_actor_503500_801440F0(Actor503500* arg0)
-{
-    switch (arg0->field_1C->field_221) {
-        case 0:
-            func_actor_503500_8014418C(arg0);
-            break;
-        case 1:
-            func_actor_503500_8014271C(arg0);
-            break;
-        case 2:
-            func_actor_503500_80142980(arg0);
-            break;
-        case 3:
-            func_actor_503500_801441E8(arg0);
-            break;
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014418C);
-
-void func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
-
-void func_actor_503500_801441E8(Actor503500* arg0)
-{
-    Actor503500Work* work;
-
-    work            = arg0->field_1C;
-    work->field_7E |= 0x8000;
-    Gp_LinkNode(&arg0->field_20->node);
-    func_actor_503500_80144238(arg0, 0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144238);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801442A8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144300);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144520);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801446E4);
-
-void func_actor_503500_8014473C(Task* arg0)
-{
-    func_actor_503500_801372AC(1);
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
-    Task_Kill(arg0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144778);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144890);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801448E8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144B40);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144D50);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144DA8);
-
-void func_actor_503500_80144E10(Task* arg0)
-{
-    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->idMap)->rec);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144E34);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144E8C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_801321F4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801450A0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145428);
-
-void func_actor_503500_80145480(Task* arg0)
-{
-    GameActorExt* ext;
-
-    func_actor_503500_801372AC(6);
-    SndEvt_EnqueueType7(0x4023000B, 1);
-    ext                                 = arg0->extra;
-    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
-    Task_Kill(arg0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801454E0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014554C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801455A4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145754);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801458F8);
-
-void func_actor_503500_80145950(Task* arg0)
-{
-    GameActorExt* ext;
-
-    SndEvt_EnqueueType7(0x4023000C, 1);
-    func_actor_503500_801372AC(6);
-    ext                                 = arg0->extra;
-    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
-    Task_Kill(arg0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801459B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801459D4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145A2C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145C50);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145E1C);
-
-void func_actor_503500_80145E98(Task* arg0)
-{
-    GameActorExt* ext;
-
-    func_actor_503500_801372AC(8);
-    SndEvt_EnqueueType7(0x4023000E, 1);
-    SndEvt_EnqueueType7(0x40230013, 1);
-    SndEvt_EnqueueType7(0x4023000F, 1);
-    ext                                 = arg0->extra;
-    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
-    Task_Kill(arg0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145F18);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145F84);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80145FDC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014618C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801463C0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8014642C);
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136280);

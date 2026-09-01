@@ -1,5 +1,7 @@
 #include "common.h"
+
 #include "main/task.h"
+
 extern TaskDesc D_actor_341900_80164190;
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161E58);
@@ -56,7 +58,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_8
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80163584);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_801635A4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80163638);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80163658);

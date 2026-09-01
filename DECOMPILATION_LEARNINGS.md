@@ -35575,6 +35575,30 @@ stayed and the link says `undefined reference to D_<overlay>_…`. Cut it at the
 lowest leading-rodata offset the moved functions reach, and only when everything
 the functions that stayed reach sits below that point.
 
+The signal that a cut is missing is mechanical: after the re-split, an
+`asm/USA/<family>/nonmatchings/<overlay>/<unit>/{D_,jtbl_}*.s` exists that no
+`.c` includes. splat migrates a rodata block into the function that references
+it only when both are in the same unit; once the function moves to a later unit
+it emits the block standalone instead, and nothing pulls it into the link. So
+enumerate the `.s` files under every unit and diff them against the
+`INCLUDE_ASM` / `INCLUDE_RODATA` names in `src/`, per overlay - zero orphans is
+the check.
+
+Adding an `INCLUDE_RODATA` for the orphan in whichever unit currently *owns*
+that rodata range looks like the cheap fix, and it does link a plain data block.
+It cannot work for a jump table: `jtbl_<overlay>_…` is a list of
+`.Lactor_<overlay>_<vram>` labels, which are assembler-local, so the table has
+to be assembled in the same object as the function holding those labels or the
+link says `undefined reference to .Lactor_…`. Give the range to the unit whose
+functions reference it - which restores splat's migration and makes the manual
+`INCLUDE_RODATA` unnecessary - rather than to the unit that happens to hold the
+lower addresses.
+
+And when the renumbering shifts a unit, the manifest's existing `rodata` cuts
+have to be renamed with it: a cut reading `unit = "<overlay>_2"` still names the
+object that carried those functions *before* the promotion, which is now
+`<overlay>_3`. Left alone it silently hands the block to a different object.
+
 Two cases cannot be promoted mechanically at all:
 
 * an overlay whose manifest already carries `rodata` or `units` cuts - that
