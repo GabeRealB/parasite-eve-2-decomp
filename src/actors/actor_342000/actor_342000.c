@@ -49,7 +49,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80164110);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80164154);
+extern s8             D_8007216D;
+extern GpAreaApplyRec D_8018FB6C[];
+
+void func_actor_342000_80164154(void)
+{
+    Game_Session->field_5        = 7;
+    D_8007216D                   = 7;
+    Game_Session->unknown_133[1] = 6;
+    Game_Session->unknown_133[0] = 1;
+    Game_Session->field_76       = 1;
+    Gp_ApplyAreaRecs(D_8018FB6C);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801641B4);
 
