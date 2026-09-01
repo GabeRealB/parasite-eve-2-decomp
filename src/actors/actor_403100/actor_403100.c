@@ -442,7 +442,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E624);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E6A0);
+void func_actor_403100_8013E6A0(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    arg0->killCountdown = 0x5A;
+    coord->sub          = &Gfx_ViewCoord;
+    coord->flg          = 0;
+    arg0->state         = arg0->state + 1;
+    func_actor_403100_8013E6F0(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E6F0);
 
