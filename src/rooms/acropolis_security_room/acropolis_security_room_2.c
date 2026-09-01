@@ -233,7 +233,17 @@ void func_acropolis_security_room_801801C4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180218);
+void func_acropolis_security_room_80180218(Task* task)
+{
+    D_80114D08 = 0xA;
+    D_8007216C = 3;
+    Display_ReleaseRef();
+    func_800E9BDC(0, 0xF9FF);
+    Task_RequestKill(task, 0);
+    Game_Session->field_68 = 0;
+    Game_Session->field_66 = 0;
+    Game_Session->field_1  = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180294);
 

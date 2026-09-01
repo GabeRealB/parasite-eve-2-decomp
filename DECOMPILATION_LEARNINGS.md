@@ -36403,3 +36403,46 @@ if ((s16)work->field_34C >= 0x11)                   { ... }   /* lh  */
 before deciding a field's type: a mixed pair is normal C, not a struct
 mistake, and picking `s16` to satisfy the `slti` breaks the range check
 instead.
+
+## Struct-typing can *shorten* a body: the hoisted load that eats a load-delay `nop`
+
+The aliasing entries above are about stores swapping places. The same change of
+alias information has a second, easier-to-miss symptom: the function comes out
+**one instruction shorter** than the target, and every later function in the
+overlay -- plus every `%lo` of its `.data` -- shifts by 4.
+
+`func_acropolis_security_room_80180010` is two statements:
+
+```c
+D_8007216C  = 3;            /* bare extern s8 */
+task->state = task->state + 1;
+```
+
+m2c's `*(s32 *)((s8 *)arg0 + 0x30)` spelling matched. Retyping `arg0` as `Task*`
+let GCC hoist the `lw` above the byte store to fill its own load delay:
+
+```
+lui   a1,%hi(D_8007216C)      target:  lui   v1,%hi(D_8007216C)
+lw    v0,0x30(a0)                      addiu v0,zero,3
+addiu v1,zero,3                        sb    v0,%lo(D_8007216C)(v1)
+sb    v1,%lo(D_8007216C)(a1)           lw    v0,0x30(a0)
+addiu v0,v0,1                          nop            <-- gone in ours
+jr    ra                               addiu v0,v0,1
+sw    v0,0x30(a0)                      jr    ra
+                                       sw    v0,0x30(a0)
+```
+
+`SOFT_BARRIER()` between the two statements restores the order and the `nop`,
+and is a full fix here (100%, not the partial fix the fixed-scalar entry warns
+about).
+
+Two things worth carrying forward:
+
+* A whole-overlay checksum failure where *every* function after some point is
+  wrong is almost always one body that is 4 bytes short, not a dozen broken
+  ones. Compare the built overlay against the `.s` word column by file offset
+  and find the first function whose relocations moved -- the culprit is the
+  function just before it.
+* The delay-slot `nop` is part of the match. A body that reads as "GCC just
+  scheduled it better" is still a mismatch, and the remedy is the barrier, not
+  a rewrite of the statements.
