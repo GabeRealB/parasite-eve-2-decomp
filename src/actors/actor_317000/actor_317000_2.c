@@ -1,6 +1,20 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_2", func_actor_317000_80162744);
+#include "actors/actor_317000.h"
+
+#include "main/task.h"
+#include "main/tmd.h"
+
+void func_actor_317000_80162744(Task* arg0)
+{
+    TmdObject*       ext;
+    Actor317000Work* work;
+
+    ext           = arg0->extra;
+    work          = (Actor317000Work*)arg0->idMap;
+    ext->field_1C = &work->light;
+    ext->field_20 = &work->color;
+}
 
 void func_actor_317000_80162760(void)
 {
