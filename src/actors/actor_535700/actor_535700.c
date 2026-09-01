@@ -18,7 +18,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_801324D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132558);
+void func_actor_535700_80132558(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132580);
 
