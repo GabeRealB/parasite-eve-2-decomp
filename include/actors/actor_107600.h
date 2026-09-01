@@ -20,5 +20,6 @@ typedef struct Actor107600 {
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
 void func_actor_107600_80134D10(Actor107600* arg0);
 void func_actor_107600_80134D30(Actor107600* arg0);
+void func_actor_107600_80134D50(Actor107600* arg0);
 
 #endif
