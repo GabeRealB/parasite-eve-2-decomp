@@ -1,3 +1,7 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util23", Room_Util23);
+void Room_Util23(void)
+{
+    Gp_PulseState1C();
+}
