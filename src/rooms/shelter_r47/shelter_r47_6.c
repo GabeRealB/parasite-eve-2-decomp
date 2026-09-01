@@ -473,7 +473,23 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80185450);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80185510);
+void func_shelter_r47_80185510(Task* task)
+{
+    ShelterR47State2* state;
+
+    state      = (ShelterR47State2*)task->idMap;
+    D_80114D08 = 0xA;
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
+    SndEvt_EnqueueType7(0x542F0005, 1);
+    Display_ReleaseRef();
+    D_8007216C             = state->field_29;
+    Game_Session->field_1  = 0;
+    Game_Session->field_68 = 0;
+    Game_Session->field_66 = 0;
+    Task_Kill((Task*)task->spawnArg2);
+    Task_RequestKill(task, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801855B8);
 
