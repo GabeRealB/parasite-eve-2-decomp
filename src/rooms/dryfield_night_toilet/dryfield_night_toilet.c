@@ -5,7 +5,10 @@ s32 func_dryfield_night_toilet_8017D678(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", func_dryfield_night_toilet_8017D680);
+s32 func_dryfield_night_toilet_8017D680(void)
+{
+    return 0;
+}
 
 s32 func_dryfield_night_toilet_8017D688(void)
 {
