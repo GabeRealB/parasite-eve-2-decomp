@@ -2,7 +2,7 @@
 #define ACTOR_342000_H
 
 #include "common.h"
-#include "libgte.h"
+#include <psyq/libgs.h>
 #include "main/task.h"
 
 /// Per-instance work block for the overlay's model actor.
