@@ -1,6 +1,5 @@
 #include "common.h"
 
-#include "actors/actor_461800.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -46,40 +45,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801329B0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132A0C);
-
-void func_actor_461800_80132A90(Task* task)
-{
-    Actor461800Work* work = (Actor461800Work*)task->idMap;
-
-    Gp_DestroyEnemy(task->spawnArg2, task);
-    Task_Kill(work->field_4F0);
-    Task_Kill(work->field_4F4);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132AD8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132B74);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132C28);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132C74);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132D04);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132D84);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132E14);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132EA4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132F20);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132F44);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8013307C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801331E4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80133554);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801335B0);
