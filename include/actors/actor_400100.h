@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/tmd.h"
 
 /// 0x98-byte object embedded four times in `Actor00100Work` at 0x908. The
 /// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;
@@ -17,7 +18,8 @@ typedef struct Actor00100Obj {
 STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
 
 typedef struct Actor00100Work {
-    /* 0x000 */ byte          pad_0[4];
+    /* 0x000 */ s16           field_0;
+    /* 0x002 */ byte          pad_2[2];
     /* 0x004 */ s16           field_4;
     /* 0x006 */ s16           field_6;
     /* 0x008 */ byte          pad_8[0x8A0];
@@ -38,22 +40,13 @@ typedef struct Actor00100Ctx {
     /* 0x54 */ s32  field_54;
 } Actor00100Ctx;
 
-/// `field_8` is the actor's `GsCOORDINATE2` array: entry 0 is the actor's own
-/// coordinate, entries 2 and 9 are the effect attachment points walked up the
-/// `sub` chain to `Gfx_ViewCoord`.
-typedef struct Actor00100Obj2C {
-    /* 0x0 */ byte           pad_0[8];
-    /* 0x8 */ GsCOORDINATE2* field_8;
-    /* 0xC */ s16            field_C;
-} Actor00100Obj2C;
-
 typedef struct Actor00100 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor00100Work*  field_1C;
-    /* 0x20 */ Actor00100Ctx*   field_20;
-    /* 0x24 */ byte             pad_24[8];
-    /* 0x2C */ Actor00100Obj2C* field_2C;
-    /* 0x30 */ s32              field_30;
+    /* 0x00 */ byte            pad_0[0x1C];
+    /* 0x1C */ Actor00100Work* field_1C;
+    /* 0x20 */ Actor00100Ctx*  field_20;
+    /* 0x24 */ byte            pad_24[8];
+    /* 0x2C */ TmdObject*      field_2C;
+    /* 0x30 */ s32             field_30;
 } Actor00100;
 
 /// 0x34-byte block taken from `G_SCRATCH_HEAD`: a `MATRIX` plus the `VECTOR`
@@ -67,5 +60,6 @@ typedef struct Actor00100MtxScratch {
 STATIC_ASSERT_SIZEOF(Actor00100MtxScratch, 0x34);
 
 void Actor00100_Fn04270(Actor00100* argx);
+s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
 
 #endif

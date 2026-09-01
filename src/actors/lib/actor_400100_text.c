@@ -563,7 +563,7 @@ void Actor00100_Fn04270(Actor00100* argx)
 {
     register Actor00100*    arg0 asm("s2");
     Actor00100Work*         work;
-    Actor00100Obj2C*        obj;
+    TmdObject*              obj;
     Actor00100Ctx*          ctx;
     Actor00100MtxScratch*   blk;
     GsCOORDINATE2*          coords;
@@ -712,10 +712,10 @@ void Actor00100_Fn04270(Actor00100* argx)
     d = st - 0xA;
     v = d * 107;
     if (v < 0x1000) {
-        register u8*     h asm("s4");
-        register s32     sy asm("s2");
-        register s32     k1000 asm("s3");
-        Actor00100Obj2C* o;
+        register u8* h asm("s4");
+        register s32 sy asm("s2");
+        register s32 k1000 asm("s3");
+        TmdObject*   o;
 
         o     = arg0->field_2C;
         k1000 = 0x1000;
@@ -736,8 +736,8 @@ void Actor00100_Fn04270(Actor00100* argx)
         ScaleMatrix(&blk->m, &blk->scale);
         coords[0].coord.m[0][0] = *(u16*)&((Actor00100MtxScratch*)(h - 0x34))->m.m[0][0];
     } else {
-        register u8*     h2 asm("s2");
-        Actor00100Obj2C* o2;
+        register u8* h2 asm("s2");
+        TmdObject*   o2;
 
         o2 = arg0->field_2C;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(h2));
@@ -1593,19 +1593,34 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B184);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B19C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B1A4);
+s32 Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2)
+{
+    TmdObject*      obj  = arg0->field_2C;
+    Actor00100Work* work = arg0->field_1C;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B1DC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B1F4);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B208);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B220);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B238);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_L0B250);
+    switch (arg2) {
+        case 0:
+            obj->field_C = 0x80;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0;
+            break;
+        case 1:
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0x18;
+            break;
+        case 2:
+            obj->field_C |= 4;
+            work->field_0 = 0;
+            break;
+        case 3:
+            obj->field_C  = 0;
+            work->field_0 = 0;
+            obj->field_C |= 4;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B264);
 
