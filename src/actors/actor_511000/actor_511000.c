@@ -63,7 +63,10 @@ void func_actor_511000_801333A4(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_801333C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133498);
+void func_actor_511000_80133498(Task* task)
+{
+    Task_Kill(task);
+}
 
 s32 func_actor_511000_801334B8(Task* arg0)
 {
