@@ -48,7 +48,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8013315C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8013340C);
+void func_actor_405800_8013340C(Task* arg0)
+{
+    GpEnemy*         enemy;
+    Actor405800Work* work;
+    s16              hp;
+    s32              maxHp;
+    s32              quarter;
+
+    enemy   = (GpEnemy*)arg0->spawnArg2;
+    hp      = enemy->field_40;
+    work    = (Actor405800Work*)arg0->idMap;
+    maxHp   = enemy->field_42 << 0x10;
+    quarter = maxHp >> 0x12;
+    if ((quarter + (maxHp >> 0x11)) < hp) {
+        work->field_836 = 0x10;
+        work->field_838 = 0;
+        return;
+    }
+    if (quarter < hp) {
+        work->field_836 = 0x20;
+        work->field_838 = 0x40;
+        return;
+    }
+    if ((maxHp >> 0x13) < hp) {
+        work->field_836 = 0x30;
+        work->field_838 = 0x80;
+        return;
+    }
+    if ((maxHp >> 0x14) < hp) {
+        work->field_836 = 0x40;
+        work->field_838 = 0xC0;
+        return;
+    }
+    work->field_836 = 0x50;
+    work->field_838 = 0x100;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801334B8);
 
