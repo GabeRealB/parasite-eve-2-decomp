@@ -2,6 +2,8 @@
 
 #include "main/task.h"
 
+#include "gameplay/1BC.h"
+
 extern Task* D_actor_361100_80171BE0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_8016299C);
@@ -43,7 +45,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_80163410);
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_80163494);
+void func_actor_361100_80163494(Task* arg0)
+{
+    Gp_EnemyTaskExit(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_801634B4);
 
