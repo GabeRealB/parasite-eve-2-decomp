@@ -1,3 +1,7 @@
 #include "common.h"
+#include "main/fs.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util09", Room_Util09);
+void Room_Util09(void)
+{
+    CdCmd_EnqueueOverlay81();
+}

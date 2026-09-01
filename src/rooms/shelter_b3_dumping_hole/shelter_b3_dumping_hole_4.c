@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/fs.h"
 #include "main/task.h"
 
 extern void func_shelter_b3_dumping_hole_8017FE10(void);
@@ -14,7 +15,10 @@ void func_shelter_b3_dumping_hole_801819B0(void)
     CdCmd_EnqueueReplaceOverlay82();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_4", func_shelter_b3_dumping_hole_801819D0);
+void func_shelter_b3_dumping_hole_801819D0(void)
+{
+    CdCmd_EnqueueOverlay81();
+}
 
 void func_shelter_b3_dumping_hole_801819F0(void)
 {
