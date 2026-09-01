@@ -343,7 +343,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D24C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D2A0);
+void func_actor_403100_8013D2A0(s16 arg0)
+{
+    if (!(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
+        if (arg0 == 1) {
+            D_actor_403100_80155808->field_66F = 2;
+        }
+        D_actor_403100_80155808->field_664.b.field_665 = 1;
+        D_actor_403100_80155808->field_664.b.field_666 = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D2F4);
 
