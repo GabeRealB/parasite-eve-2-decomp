@@ -4,7 +4,10 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", fu
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", func_dryfield_night_toilet_8017D680);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", func_dryfield_night_toilet_8017D688);
+s32 func_dryfield_night_toilet_8017D688(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", func_dryfield_night_toilet_8017D690);
 
