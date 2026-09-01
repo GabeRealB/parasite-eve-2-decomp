@@ -188,4 +188,34 @@ void func_neo_ark_shrine_8017F640(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F688);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_4", func_neo_ark_shrine_8017F738);
+void func_neo_ark_shrine_8017F738(Task* task)
+{
+    NeoArkShrineFall* st;
+    GsCOORDINATE2*    coord;
+    u16               ticks;
+    u16               speed;
+    u16               delta;
+    s32               y;
+
+    st        = (NeoArkShrineFall*)task->idMap;
+    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    ticks     = st->ticks + 1;
+    st->ticks = ticks;
+    if ((s16)ticks == 2) {
+        SndEvt_EnqueueType6(0x5515000B, 0, 0);
+    }
+    if ((s16)st->ticks == 0x12) {
+        Gp_SpawnPadLerp(0xA, 0xA0, 0xFF);
+    }
+    speed             = st->speed + 2;
+    delta             = st->delta + speed;
+    st->delta         = delta;
+    st->speed         = speed;
+    y                 = coord->coord.t[1] + (s16)delta;
+    coord->coord.t[1] = y;
+    if (y > 0) {
+        coord->coord.t[1] = 0;
+        task->state++;
+    }
+    func_neo_ark_shrine_8017F86C(task);
+}
