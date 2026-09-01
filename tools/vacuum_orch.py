@@ -339,6 +339,137 @@ def cmd_finish(
     return EXIT_OK, result(True, func=func, status=status)
 
 
+def overlay_of_asm(rel: str) -> Optional[str]:
+    """asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<fn>.s -> <overlay>."""
+    parts = rel.split("/")
+    if "nonmatchings" not in parts:
+        return None
+    i = parts.index("nonmatchings")
+    return parts[i + 1] if i + 1 < len(parts) - 1 else None
+
+
+def overlay_functions(root: Path, overlay: str) -> list[str]:
+    """Every unmatched function splat emits for this overlay."""
+    out: list[str] = []
+    for d in list_nonmatching_dirs(root):
+        base = Path(d)
+        for p in base.rglob("*.s"):
+            if p.name.startswith(("D_", "jtbl_")):
+                continue
+            rel = str(p.relative_to(root)) if p.is_absolute() else str(p)
+            if overlay_of_asm(rel) == overlay:
+                out.append(p.stem)
+    return sorted(set(out))
+
+
+def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
+    """Overlays by unmatched-function count, most first.
+
+    Most first because a whole-overlay session pays its cost once - working out
+    that overlay's work struct - and then spends it across every function in the
+    overlay. Measured on this repo: overlays holding 20+ functions carry 60% of
+    the remaining work and their functions are the *shortest* (median 31
+    instructions against 118 in one- and two-function overlays); they resist the
+    mechanical path not because they are complex but because they share one
+    untyped state struct, which is exactly what a whole-overlay pass resolves.
+    """
+    blocked = blocked_names(state)
+    counts: dict[str, int] = {}
+    for d in list_nonmatching_dirs(root):
+        for p in Path(d).rglob("*.s"):
+            if p.name.startswith(("D_", "jtbl_")) or p.stem in blocked:
+                continue
+            rel = str(p)
+            ov = overlay_of_asm(rel)
+            if ov:
+                counts[ov] = counts.get(ov, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+def cmd_claim_overlay(
+    store: Store, *, session: str, pid: int, cli: str,
+    overlay: Optional[str], root: Path,
+) -> tuple[int, dict]:
+    """Lease every unmatched function in one overlay at once.
+
+    Implemented as a bulk per-function claim on purpose. Sessions already
+    running were started from an older copy of these scripts and know nothing
+    about overlays, but they do skip anything in `claims` when picking work, so
+    writing one claim per function is what makes them respect the lease. Do not
+    replace this with a separate `overlays` key: an older session would walk
+    straight into it.
+    """
+    if store.session_claim(session):
+        return EXIT_CONFLICT, result(
+            False, error="session already holds a single-function claim; "
+                         "the two modes must not interleave", code="conflict")
+
+    if overlay:
+        candidates = [(overlay, 0)]
+    else:
+        candidates = rank_overlays(root, store.data)
+        if not candidates:
+            return EXIT_EMPTY, result(False, error="no overlay has unmatched work",
+                                      code="empty")
+
+    blocked = set(store.data.get("matched") or []) | set(store.data.get("difficult") or [])
+    for name, _n in candidates:
+        funcs = [f for f in overlay_functions(root, name) if f not in blocked]
+        if not funcs:
+            continue
+        held = {f: store.data["claims"][f].get("session")
+                for f in funcs if f in store.data["claims"]}
+        if held:
+            if overlay:      # explicit request: say what blocked it
+                first = next(iter(held))
+                return EXIT_CONFLICT, result(
+                    False, code="conflict", overlay=name, blocked_by=held[first],
+                    func=first,
+                    error=f"{name}: {first} is held by {held[first]} "
+                          f"({len(held)} of {len(funcs)} claimed)")
+            continue         # ranked pick: try the next overlay
+        now = _now()
+        for f in funcs:
+            store.data["claims"][f] = {
+                "session": session, "pid": int(pid), "cli": cli,
+                "since": now, "overlay": name,
+            }
+        return EXIT_OK, result(True, overlay=name, count=len(funcs), functions=funcs)
+
+    return EXIT_EMPTY, result(
+        False, code="empty",
+        error="every overlay with work has a function claimed by another session")
+
+
+def cmd_finish_overlay(
+    store: Store, *, session: str, matched: list[str], difficult: list[str],
+) -> tuple[int, dict]:
+    """Release a whole-overlay lease, recording per-function outcomes."""
+    mine = [f for f, c in store.data["claims"].items() if c.get("session") == session]
+    if not mine:
+        return EXIT_CONFLICT, result(False, error="session holds no claims",
+                                     code="conflict")
+    done = store.data.setdefault("matched", [])
+    hard = store.data.setdefault("difficult", [])
+    for f in matched:
+        if f not in done:
+            done.append(f)
+    for f in difficult:
+        if f not in hard:
+            hard.append(f)
+    for f in mine:
+        store.data["claims"].pop(f, None)
+    return EXIT_OK, result(True, released=len(mine),
+                           matched=len(matched), difficult=len(difficult))
+
+
+def cmd_relinquish_overlay(store: Store, *, session: str) -> tuple[int, dict]:
+    mine = [f for f, c in store.data["claims"].items() if c.get("session") == session]
+    for f in mine:
+        store.data["claims"].pop(f, None)
+    return EXIT_OK, result(True, released=len(mine))
+
+
 def cmd_merge_acquire(
     store: Store, *, session: str, pid: int
 ) -> tuple[int, dict]:
@@ -436,6 +567,17 @@ def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dic
         return cmd_finish(
             store, session=args.session, func=args.func, status=args.status
         )
+    if cmd == "claim-overlay":
+        return cmd_claim_overlay(
+            store, session=args.session, pid=args.pid, cli=args.cli,
+            overlay=getattr(args, "overlay", None) or None, root=Path(args.root))
+    if cmd == "finish-overlay":
+        split = lambda s: [x for x in (s or "").split(",") if x]
+        return cmd_finish_overlay(store, session=args.session,
+                                  matched=split(getattr(args, "matched", "")),
+                                  difficult=split(getattr(args, "difficult", "")))
+    if cmd == "relinquish-overlay":
+        return cmd_relinquish_overlay(store, session=args.session)
     if cmd == "merge-acquire":
         return cmd_merge_acquire(store, session=args.session, pid=args.pid)
     if cmd == "merge-release":
@@ -607,6 +749,20 @@ def build_parser() -> argparse.ArgumentParser:
     add_session(p_fin, pid=False)
     p_fin.add_argument("--func", required=True)
     p_fin.add_argument("--status", choices=("matched", "difficult"), required=True)
+
+    p_covl = sub.add_parser("claim-overlay",
+                            help="Lease every unmatched function in one overlay")
+    add_session(p_covl)
+    p_covl.add_argument("--cli", default="unknown")
+    p_covl.add_argument("--overlay", default="",
+                        help="specific overlay; omit to take the largest free one")
+    p_fovl = sub.add_parser("finish-overlay",
+                            help="Release a whole-overlay lease with outcomes")
+    add_session(p_fovl, pid=False)
+    p_fovl.add_argument("--matched", default="", help="comma-separated function names")
+    p_fovl.add_argument("--difficult", default="", help="comma-separated function names")
+    p_rovl = sub.add_parser("relinquish-overlay", help="Drop a whole-overlay lease")
+    add_session(p_rovl, pid=False)
 
     p_acq = sub.add_parser("merge-acquire", help="Take the main-tree merge lock")
     add_session(p_acq)
