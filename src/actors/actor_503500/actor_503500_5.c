@@ -20,7 +20,10 @@ extern Task*      D_actor_503500_80176558;
 extern TaskDesc   D_actor_503500_8014B964;
 extern s8         D_actor_503500_80176D5A;
 extern s16        D_actor_503500_80176D2E;
-extern u16        D_actor_503500_80176D24;
+/// 18-entry table of per-slot u16 counters; slot 0x11 is the shared counter
+/// bumped by `func_actor_503500_80137290` and drained by `_801372AC`.
+extern u16 D_actor_503500_80176D64[];
+extern u16 D_actor_503500_80176D24;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
@@ -214,7 +217,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80137290);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801372AC);
+void func_actor_503500_801372AC(s32 arg0)
+{
+    D_actor_503500_80176D64[0x11] -= arg0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801372C8);
 

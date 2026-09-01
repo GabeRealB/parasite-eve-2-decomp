@@ -22,9 +22,9 @@ extern Actor503500Work D_actor_503500_80176574;
 extern TaskDesc        D_actor_503500_8014B964;
 extern s8              D_actor_503500_80176D5A;
 extern s16             D_actor_503500_80176D2E;
-/// 18-entry table of per-slot s16 counters, indexed by slot in
+/// 18-entry table of per-slot u16 counters, indexed by slot in
 /// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
-extern s16 D_actor_503500_80176D64[];
+extern u16 D_actor_503500_80176D64[];
 extern u16 D_actor_503500_80176D24;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
