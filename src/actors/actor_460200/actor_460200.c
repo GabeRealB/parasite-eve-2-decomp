@@ -1,7 +1,9 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/task.h"
 
 extern s8 D_8007272D;
 
@@ -90,7 +92,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132808);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132950);
+void func_actor_460200_80132950(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132978);
 
