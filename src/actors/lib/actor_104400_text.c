@@ -347,7 +347,15 @@ void Actor04400_L08C5C(void)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08C64);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08DA4);
+void Actor04400_Fn08DA4(Task* arg0)
+{
+    Actor104400Work* work;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    arg0->state     = 5;
+    work->field_420 = 0;
+    work->field_422 = 0;
+}
 
 s32 Actor04400_Fn08DBC(Task* arg0)
 {
