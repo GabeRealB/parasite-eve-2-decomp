@@ -2,6 +2,7 @@
 #include "main/task.h"
 extern TaskDesc D_acropolis_square_80183808;
 extern Task*    D_acropolis_square_8018889C;
+extern s32      D_acropolis_square_80183B98;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182110);
 
@@ -31,7 +32,11 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801825DC);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_8018344C);
+s32 func_acropolis_square_8018344C(s32 arg0, s32 arg1, s32 arg2)
+{
+    D_acropolis_square_80183B98 = arg2;
+    return 0;
+}
 
 void func_acropolis_square_8018345C(void)
 {
