@@ -586,7 +586,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144DA8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144E10);
+void func_actor_503500_80144E10(Task* arg0)
+{
+    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->idMap)->rec);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80144E34);
 
