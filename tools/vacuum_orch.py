@@ -509,8 +509,19 @@ def cmd_adopt_overlay(
 
 def cmd_finish_overlay(
     store: Store, *, session: str, matched: list[str], difficult: list[str],
+    unattempted: Optional[list[str]] = None,
 ) -> tuple[int, dict]:
-    """Release a whole-overlay lease, recording per-function outcomes."""
+    """Release a whole-overlay lease, recording per-function outcomes.
+
+    `difficult` and `unattempted` are deliberately separate. A whole-overlay
+    session almost always runs out of time before it runs out of functions, and
+    with only one bucket everything it never looked at gets filed alongside the
+    ones it genuinely fought and lost - which parks tractable work permanently.
+    The first real run of this workflow ended with three ordinary functions
+    marked difficult purely because the clock ran out, one of them a near-clone
+    of a function that had already been matched. Unattempted names are simply
+    released back to the pool.
+    """
     mine = [f for f, c in store.data["claims"].items() if c.get("session") == session]
     if not mine:
         return EXIT_CONFLICT, result(False, error="session holds no claims",
@@ -523,10 +534,14 @@ def cmd_finish_overlay(
     for f in difficult:
         if f not in hard:
             hard.append(f)
+    for f in (unattempted or []):
+        if f in hard:
+            hard.remove(f)
     for f in mine:
         store.data["claims"].pop(f, None)
-    return EXIT_OK, result(True, released=len(mine),
-                           matched=len(matched), difficult=len(difficult))
+    return EXIT_OK, result(True, released=len(mine), matched=len(matched),
+                           difficult=len(difficult),
+                           unattempted=len(unattempted or []))
 
 
 def cmd_relinquish_overlay(store: Store, *, session: str) -> tuple[int, dict]:
@@ -646,7 +661,8 @@ def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dic
         split = lambda s: [x for x in (s or "").split(",") if x]
         return cmd_finish_overlay(store, session=args.session,
                                   matched=split(getattr(args, "matched", "")),
-                                  difficult=split(getattr(args, "difficult", "")))
+                                  difficult=split(getattr(args, "difficult", "")),
+                                  unattempted=split(getattr(args, "unattempted", "")))
     if cmd == "relinquish-overlay":
         return cmd_relinquish_overlay(store, session=args.session)
     if cmd == "merge-acquire":
@@ -840,7 +856,10 @@ def build_parser() -> argparse.ArgumentParser:
                             help="Release a whole-overlay lease with outcomes")
     add_session(p_fovl, pid=False)
     p_fovl.add_argument("--matched", default="", help="comma-separated function names")
-    p_fovl.add_argument("--difficult", default="", help="comma-separated function names")
+    p_fovl.add_argument("--difficult", default="",
+                        help="comma-separated; genuinely fought and lost")
+    p_fovl.add_argument("--unattempted", default="",
+                        help="comma-separated; never looked at, released to the pool")
     p_rovl = sub.add_parser("relinquish-overlay", help="Drop a whole-overlay lease")
     add_session(p_rovl, pid=False)
 
