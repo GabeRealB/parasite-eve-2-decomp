@@ -6,6 +6,8 @@ extern TaskDesc D_actor_341300_80165A68;
 extern TaskDesc D_actor_341300_80165208;
 extern Task*    D_actor_341300_80165AA4;
 
+extern s8 D_8007272D;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_341300/actor_341300", D_actor_341300_80161E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_80161E84);
@@ -40,7 +42,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_801625AC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300", func_actor_341300_80162680);
+void func_actor_341300_80162680(s8 arg0)
+{
+    D_8007272D = arg0;
+}
 
 void func_actor_341300_8016268C(void)
 {
