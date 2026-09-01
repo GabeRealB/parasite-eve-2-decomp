@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/session.h"
+#include "actors/actor_503500.h"
 extern s8 D_actor_503500_80176D5A;
 
 extern u16 D_actor_503500_80176D24;
@@ -98,7 +99,14 @@ void func_actor_503500_80132DB4(s32 arg0)
     func_8017E27C(arg0 & 0xFF);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132DD4);
+extern Actor503500MsgPos D_actor_503500_8017655C;
+
+void func_actor_503500_80132DD4(void)
+{
+    D_actor_503500_8017655C.x = 0;
+    D_actor_503500_8017655C.y = 0;
+    D_actor_503500_8017655C.z = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_80132DEC);
 

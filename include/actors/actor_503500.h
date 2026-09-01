@@ -5,6 +5,28 @@
 
 #include "gameplay/3A34.h"
 
+/// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
+/// fills it from the player actor: the three words are the translation of the
+/// `GsCOORDINATE2` at `GameActorExt::field_8` (`MATRIX.t`), the three
+/// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `idMap`
+/// block. `func_actor_503500_80132DD4` clears the position;
+/// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
+/// message 0x3E9 while any position word is non-zero.
+///
+/// Size is bounded by the next `.bss` symbol in the overlay
+/// (`D_actor_503500_80176574`, 0x18 bytes later).
+typedef struct Actor503500MsgPos {
+    /* 0x00 */ s32  x;
+    /* 0x04 */ s32  y;
+    /* 0x08 */ s32  z;
+    /* 0x0C */ byte pad_C[0x4];
+    /* 0x10 */ s16  rx;
+    /* 0x12 */ s16  ry;
+    /* 0x14 */ s16  rz;
+    /* 0x16 */ byte pad_16[0x2];
+} Actor503500MsgPos;
+STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
+
 typedef struct Actor503500Work {
     /* 0x000 */ byte pad_0[0xEC];
     /* 0x0EC */ s8   field_EC;
