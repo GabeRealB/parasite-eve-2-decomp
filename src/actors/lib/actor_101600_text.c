@@ -1326,4 +1326,8 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn070AC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_L070F0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn07100);
+s32 Actor01600_Fn07100(Actor01600* arg0)
+{
+    arg0->field_1C->field_554 = 6;
+    return 0;
+}
