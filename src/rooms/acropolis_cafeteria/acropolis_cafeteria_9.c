@@ -5,7 +5,10 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181A3C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181E30);
+void func_acropolis_cafeteria_80181E30(Task* arg0)
+{
+    arg0->state = 3;
+}
 
 void func_acropolis_cafeteria_80181E3C(Task* arg0)
 {
