@@ -1,10 +1,25 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/mem.h"
+#include "main/task.h"
+#include "rooms/dryfield_dilapidated_house.h"
+
+void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
+void func_dryfield_dilapidated_house_8018142C(Task* task);
+
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80180FD8);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181028);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801810F8);
+void func_dryfield_dilapidated_house_801810F8(GameActorExt* dst, GameActorExt* src)
+{
+    if (!(src->field_C & 0x80)) {
+        dst->field_C &= ~0x80;
+        return;
+    }
+    dst->field_C |= 0x80;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181134);
 
