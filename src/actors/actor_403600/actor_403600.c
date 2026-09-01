@@ -6,7 +6,6 @@
 extern u8 D_80071075;
 extern u8 D_801153F4;
 
-void Gp_SetObjTrans(Actor403600Obj2C* arg0, s16 arg1, s16 arg2, s16 arg3);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_403600_8013955C(Actor403600* arg0);
 void func_actor_403600_801396F8(Actor403600* arg0);
@@ -62,7 +61,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138C34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138C68);
+void func_actor_403600_80138C68(Task* arg0)
+{
+    Gp_UnlinkObj(&((Actor403600Work*)arg0->idMap)->obj);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138C9C);
 
