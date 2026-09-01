@@ -731,7 +731,17 @@ void func_actor_403100_8013F2D8(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F344);
+void func_actor_403100_8013F344(void)
+{
+    if (((func_actor_403100_80133928() << 0x10) == 0) &&
+        (D_actor_403100_80155808->field_5F6 == 5)) {
+        D_actor_403100_80155808->field_5E2 = 0x10;
+        D_actor_403100_80155808->field_5DE = 4;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013F3AC);
 
