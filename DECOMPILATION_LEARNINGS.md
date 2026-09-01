@@ -36227,3 +36227,37 @@ step does not do for you.
   `grep -l <symbol> asm/USA/<family>/nonmatchings/<overlay>/*/*.s`.
   An explicit `INCLUDE_RODATA` line in the old unit's `.c` has to move with the
   cut for the same reason.
+
+## Name a load in a local to hoist it above a run of constant stores
+
+A block that zeroes several fields and then stores a value loaded from a
+different object emits the load where the statement sits, so the load lands
+*after* the zero stores:
+
+```
+sw    zero,0x18(s1)
+sw    zero,0x1c(s1)
+sw    zero,0x20(s1)
+sw    zero,0(s1)
+lw    v0,8(s0)
+jal   Gp_UpdateCoord
+sw    v0,0x4c(s1)
+```
+
+The target issues `lw v0,8(s0)` first and only then the four zeroes.
+`-fschedule-insns` will not lift a load across stores through an unrelated
+pointer here, but binding it to a named local at the top of the block moves
+the load itself, while the dependent store stays put (and still fills the
+`jal` delay slot):
+
+```c
+parent            = mem->field_8;   /* lw v0,8(s0) — now first */
+coord->coord.t[0] = 0;
+coord->coord.t[1] = 0;
+coord->coord.t[2] = 0;
+coord->flg        = 0;
+coord->sub        = parent;         /* sw v0,0x4c(s1) — still in the delay slot */
+Gp_UpdateCoord(coord);
+```
+
+`func_m4a1_hammer_8011DD08` is the example; it was the only diff at 99.3%.
