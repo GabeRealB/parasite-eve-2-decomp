@@ -10,8 +10,6 @@ extern TaskDesc D_actor_335800_80164DE0;
 
 extern s8 D_8007272D;
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162080);
-
 void func_actor_335800_801620A0(void)
 {
     CdCmd_CancelReplaceAndActivate();

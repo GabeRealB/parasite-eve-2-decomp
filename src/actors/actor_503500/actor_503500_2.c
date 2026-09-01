@@ -84,8 +84,6 @@ void func_actor_503500_8013611C(s32 arg0);
 
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132BB8);
-
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132BD8);
 
 void func_actor_503500_80132BF8(void)
