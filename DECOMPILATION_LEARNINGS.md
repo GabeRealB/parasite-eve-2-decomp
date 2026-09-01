@@ -36904,3 +36904,37 @@ Passing an `s16` (or `(s16)arg0`) twice instead CSEs into `sll`/`sra` once
 plus a `move`, which is the 81% shape. `func_mist_parking_80183100` is the
 example; the give-away is that the two extends read the same register but
 only one of them has an `sll`.
+
+## Relocated actor twins need the `rodata` cut in both manifest entries
+
+`actor_101900` and `actor_301900` are the same package linked at two addresses,
+so `tools/gen_overlay_configs.py` takes the `text_all_shared` path and the whole
+code region is one shared `lib/actor_101900_text` object. Decompiling a switch in
+that object still needs the table's range handed to C, and the manifest key goes
+on **every** twin — the generator reads each entry independently, so a cut on
+only one of them leaves the other still defining `Actor01900_Jt0024C` in
+assembly while the shared C object emits its own table:
+
+```toml
+actor_101900 = { shared = [{ start = "0x260", end = "0xAC4C", unit = "actor_101900_text" }],
+                 rodata = [{ start = "0x24C", unit = "actor_101900_text" }], relocs = "..." }
+actor_301900 = { load_addr = 0x80161E20, ..., rodata = [{ start = "0x24C", unit = "actor_101900_text" }], ... }
+```
+
+The cut names the shared unit, so it is emitted as `[0x24C, .rodata,
+lib/actor_101900_text]` and GCC's table lands at overlay offset 0x24C in both
+slots. The table sat at the very end of the leading rodata (0x24C..0x260, the
+text start), which is the easy case: it starts the object's `.rodata`, so the
+linker script's `SUBALIGN(4)` overrides GCC's `.align 3` and no `units` cut is
+needed.
+
+Delete the now-generated table's entry from **each** twin's
+`configs/USA/sym/<family>/<name>.txt` (`Actor01900_Jt0024C = 0x8013206C;` /
+`0x8016206C;`). The build tolerates the stale line, but it names an address
+splat no longer owns.
+
+Scoring artefact: the scratch `build.sh` normalizer only rewrites `jtbl_\w+`
+symbols, so a hand-named overlay table diffs as
+`lui v0,%hi(Actor01900_Jt0024C)` vs `lui v0,%hi(.rodata)` and caps the score at
+99.6%. If that relocation pair is the *only* difference, the function already
+matches — verify with `./tools/build-and-verify.sh`, not with the scratch score.
