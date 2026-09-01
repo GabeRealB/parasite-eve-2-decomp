@@ -172,7 +172,10 @@ void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
     coord->flg         = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80168444);
+s32 func_actor_341700_80168444(Task* arg0, s16 arg1)
+{
+    return (s32)((((Actor341700Work*)arg0->idMap)->field_41C * arg1) << 0xC) >> 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80168468);
 
