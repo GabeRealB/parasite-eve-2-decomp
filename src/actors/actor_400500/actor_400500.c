@@ -393,7 +393,26 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013D8CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013D958);
+void func_actor_400500_8013D958(Task* arg0)
+{
+    Actor400500Work* work;
+    TmdObject*       model;
+    u16              frame;
+
+    work            = (Actor400500Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    frame           = work->field_A04 + 1;
+    work->field_A04 = frame;
+    if ((s16)frame >= 0x18) {
+        work->field_A20 = 0;
+        work->field_A24 = 0x1000;
+        work->field_A28 = 0xFF;
+        func_8009EA50(work->field_A20);
+        model->field_2C = work->field_A24;
+        work->field_A04 = 0;
+        work->field_A06 = work->field_A06 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013D9DC);
 
