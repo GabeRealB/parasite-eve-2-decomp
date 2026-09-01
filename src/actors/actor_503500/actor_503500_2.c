@@ -9,6 +9,8 @@ void func_actor_503500_801345F4(Actor503500* arg0);
 void func_actor_503500_80134A24(Actor503500* arg0);
 void func_actor_503500_80134C68(Actor503500* arg0);
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
+s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
+void func_actor_503500_8013611C(s32 arg0);
 void func_actor_503500_80136450(Actor503500* arg0);
 void func_actor_503500_801369E4(Actor503500* arg0);
 void func_actor_503500_80136A80(Actor503500* arg0);
@@ -84,7 +86,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80136948);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_801369E4);
+void func_actor_503500_801369E4(Actor503500* arg0)
+{
+    Actor503500Work* work;
+
+    work = arg0->field_1C;
+    switch ((s8)work->field_7DA) {
+        case 0:
+            func_actor_503500_80135FB4(arg0, 0xE, 0x10);
+            func_actor_503500_8013611C(arg0->spawnArg1);
+            work->field_7DA = work->field_7DA + 1;
+            break;
+        case 1:
+            if (func_actor_503500_80136014(arg0, 0xE) != 0) {
+                work->field_7D2 = 0;
+                func_actor_503500_80136EFC(arg0, 0);
+            }
+            break;
+    }
+}
 
 void func_actor_503500_80136A80(Actor503500* arg0)
 {
