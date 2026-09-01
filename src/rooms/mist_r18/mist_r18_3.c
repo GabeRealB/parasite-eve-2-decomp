@@ -81,4 +81,9 @@ void func_mist_r18_8017EBB8(void)
     CdCmd_EnqueueReplaceOverlay82();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_3", func_mist_r18_8017EBF8);
+void func_mist_r18_8017EBF8(void)
+{
+    if (Task_SpawnFromTable(&D_mist_r18_80184F04, 7, 0, 0) != NULL) {
+        D_801156F9 = 1;
+    }
+}
