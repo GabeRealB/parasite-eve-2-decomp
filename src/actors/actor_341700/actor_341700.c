@@ -226,7 +226,24 @@ void func_actor_341700_80168A14(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80168A48);
+void func_actor_341700_80168A48(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+
+    if ((func_actor_341700_80168468() << 0x10) != 0) {
+        work            = (Actor341700Work*)arg0->idMap;
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = 0xB;
+        work->field_414 = 1;
+    }
+    if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+        work2            = (Actor341700Work*)arg0->idMap;
+        work2->field_420 = 3;
+        work2->field_422 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80168AC0);
 
