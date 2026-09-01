@@ -420,7 +420,38 @@ void func_shelter_r47_80185028(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80185098);
+void func_shelter_r47_80185098(Task* task)
+{
+    ShelterR47State2* state;
+    u16               fade;
+    u8                level;
+
+    state = (ShelterR47State2*)task->idMap;
+    func_shelter_r47_80183B84(task);
+    func_shelter_r47_80183E24();
+    func_shelter_r47_80183F0C();
+    func_shelter_r47_80183FF4(task, state->field_1C);
+    func_shelter_r47_80184124(task, state->field_1C);
+    fade        = state->fade + 0x10;
+    state->fade = fade;
+    if ((s16)fade >= 0x100) {
+        state->fade = 0xFF;
+        if (task->spawnArg1 != 1) {
+            Gp_MsgPlayerWeapon(1);
+        }
+        Gp_MsgPlayer3F3(1);
+        Display_ReleaseRef();
+        if (state->field_2A != 1) {
+            Game_Session->field_1 = 0;
+        }
+        Game_Session->field_66 = 0;
+        Task_Kill((Task*)task->spawnArg2);
+        Task_RequestKill(task, 0);
+    }
+    SndEvt_EnqueueType7(0x542F0005, 1);
+    level = (u8)state->fade;
+    Fade_DrawOverlay(level, level, level, 2);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801851B8);
 
