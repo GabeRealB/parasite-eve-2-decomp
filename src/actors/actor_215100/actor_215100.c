@@ -68,7 +68,21 @@ void func_actor_215100_8014A908(void)
     SndEvt_EnqueueType2(0, 0x1E);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A9A0);
+void func_actor_215100_8014A9A0(void)
+{
+    if (D_actor_215100_8015E670 == 5) {
+        D_actor_215100_8014D038 = 0;
+        func_80180390(1);
+        D_actor_215100_8014D03C = 1;
+        Game_Session->field_126 = 1;
+        SndEvt_EnqueueType2(0, 0x1E);
+        Game_Session->field_69 |= 0x80;
+    }
+    if (D_actor_215100_8015E670 < 3) {
+        Gp_RunCapCmd(0x1D, 3);
+        Task_SpawnFromTable(&D_actor_215100_8014CF6C, 1, 0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AA54);
 
