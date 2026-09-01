@@ -401,7 +401,18 @@ void func_actor_405800_80138EF0(Task* task)
     work->field_846 = work->field_846 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138F54);
+void func_actor_405800_80138F54(Task* task)
+{
+    Actor405800Work* work;
+    u16              count;
+
+    work            = (Actor405800Work*)task->idMap;
+    count           = work->field_842 + 1;
+    work->field_842 = count;
+    if ((s16)count >= 0x12D) {
+        Gp_DestroyEnemy((GpEnemy*)task->spawnArg2, task);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80138FA8);
 
