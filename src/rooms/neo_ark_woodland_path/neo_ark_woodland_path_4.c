@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main/task.h"
+extern u16 D_neo_ark_woodland_path_8018498E;
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_8018046C);
 
@@ -27,7 +28,11 @@ void func_neo_ark_woodland_path_801814D4(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_801814E8);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_8018154C);
+s32 func_neo_ark_woodland_path_8018154C(void)
+{
+    D_neo_ark_woodland_path_8018498E += 0x5A;
+    return 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_80181568);
 
