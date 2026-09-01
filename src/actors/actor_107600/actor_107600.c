@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
+
 #include "actors/actor_107600.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
@@ -64,7 +66,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134904);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134920);
+void func_actor_107600_80134920(Task* arg0)
+{
+    Gp_UnlinkObj(&((Actor107600Work*)arg0->idMap)->obj);
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134958);
 
