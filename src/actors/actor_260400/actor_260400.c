@@ -1,8 +1,12 @@
 #include "common.h"
 
+#include "actors/actor_260400.h"
+
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/task.h"
 
 extern s32 D_actor_260400_8014C788;
 extern s32 D_actor_260400_8014CF38;
@@ -62,7 +66,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A5AC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A630);
+void func_actor_260400_8014A630(Task* task)
+{
+    Actor260400Work* work = (Actor260400Work*)task->idMap;
+
+    Gp_DestroyEnemy(task->spawnArg2, task);
+    Task_Kill(work->field_4F0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A66C);
 
