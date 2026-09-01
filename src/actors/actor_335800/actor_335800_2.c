@@ -4,7 +4,11 @@
 
 #include "gameplay/gameplay.h"
 
+#include "main/sound.h"
+
 #include "main/task.h"
+
+#include "main/unknown_syms.h"
 
 extern TaskDesc D_actor_335800_80164DE0;
 
@@ -39,7 +43,10 @@ void func_actor_335800_80162428(s8 arg0)
     D_8007272D = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162434);
+void func_actor_335800_80162434(s32 arg0)
+{
+    SndEvt_EnqueueType2(D_80062735, arg0 & 0xFFFF);
+}
 
 void func_actor_335800_80162460(void)
 {
