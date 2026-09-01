@@ -13,6 +13,7 @@ extern TaskDesc D_actor_143000_801350C8;
 
 extern s32              D_80070F6C;
 extern s8               D_8007218B;
+extern u8               D_801153F4;
 extern GpAreaApplyRec   D_80186488;
 extern GpAreaApplyRec   D_8018649C;
 extern char             D_actor_143000_80131EB0[];
@@ -367,7 +368,10 @@ void func_actor_143000_8013450C(void)
     Gp_ResetCap();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_8013452C);
+void func_actor_143000_8013452C(u8 arg0)
+{
+    D_801153F4 = arg0;
+}
 
 void func_actor_143000_80134538(void)
 {
