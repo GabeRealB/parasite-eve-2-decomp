@@ -28,19 +28,3 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropol
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D8D0);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D614);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", jtbl_acropolis_bridge_8017D63C);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", jtbl_acropolis_bridge_8017D66C);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", jtbl_acropolis_bridge_8017D68C);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D6A8);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D6AC);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", jtbl_acropolis_bridge_8017D6B4);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D6CC);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D6E8);

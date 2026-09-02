@@ -72,5 +72,3 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E270);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E3F0);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", jtbl_acropolis_helicopter_landing_pad_8017D618);

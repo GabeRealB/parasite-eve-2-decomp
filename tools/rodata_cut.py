@@ -126,126 +126,189 @@ def read_bodies(text: str):
     return headers, bodies
 
 
-def apply(overlay: str, cuts: list[tuple[int, str]]) -> int:
-    src_dirs = [p for p in ROOT.glob(f"src/**/{overlay}") if p.is_dir()]
-    if len(src_dirs) != 1:
-        print(f"expected one src dir for {overlay}, found {len(src_dirs)}", file=sys.stderr)
-        return 1
-    src = src_dirs[0]
+def src_dir(overlay: str) -> Path | None:
+    dirs = [p for p in ROOT.glob(f"src/**/{overlay}") if p.is_dir()]
+    return dirs[0] if len(dirs) == 1 else None
 
+
+def write_manifest(overlay: str, cuts: list[tuple[int, str]]) -> bool:
     manifest = ROOT / "configs/USA/overlays.toml"
     text = manifest.read_text()
     m = re.search(rf"^{re.escape(overlay)} = \{{.*$", text, re.M)
     if not m:
-        print(f"no manifest entry for {overlay}", file=sys.stderr)
-        return 1
+        return False
     line = m.group(0)
-    new_line = (re.sub(r'rodata = \[[^\]]*\]', toml_value(cuts), line)
+    new_line = (re.sub(r"rodata = \[[^\]]*\]", toml_value(cuts), line)
                 if "rodata = [" in line
                 else line.replace("{ ", "{ " + toml_value(cuts) + ", ", 1))
     manifest.write_text(text.replace(line, new_line, 1))
+    return True
 
-    stash = Path(tempfile.mkdtemp(prefix=f"rodata-cut-{overlay}-"))
-    originals = {p.name: p.read_text() for p in src.glob("*.c")}
-    for name, body in originals.items():
-        (stash / name).write_text(body)
-    for p in src.glob("*.c"):
-        p.unlink()
 
+def split() -> bool:
     r = subprocess.run([str(ROOT / "venv/bin/python3"), "ninja_config.py"],
                        cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
-        print(r.stdout[-3000:] + r.stderr[-3000:], file=sys.stderr)
-        print("split failed; originals kept in " + str(stash), file=sys.stderr)
-        return 1
+        print((r.stdout[-2000:] + r.stderr[-2000:]), file=sys.stderr)
+    return r.returncode == 0
 
+
+RODATA_LINE = re.compile(r'INCLUDE_RODATA\("[^"]+",\s*(\w+)\)')
+ASM_LINE = re.compile(r'INCLUDE_ASM\("[^"]+",\s*(\w+)\)')
+
+
+def rodata_anchors(fresh: str) -> list[tuple[str | None, str]]:
+    """splat's INCLUDE_RODATA lines, each tagged with the function it follows."""
+    out, last = [], None
+    for l in fresh.splitlines(keepends=True):
+        m = ASM_LINE.search(l)
+        if m:
+            last = m.group(1)
+            continue
+        fm = FUNC_START.match(l)
+        if fm and not l.lstrip().startswith(("INCLUDE_", "extern")):
+            last = fm.group(1)
+            continue
+        if RODATA_LINE.search(l):
+            out.append((last, l))
+    return out
+
+
+def reposition(original: str, anchors: list[tuple[str | None, str]]) -> str:
+    """Rewrite `original`'s INCLUDE_RODATA lines to splat's new set and order.
+
+    Only rodata ownership changed, so everything else in the file - decompiled
+    bodies, multi-line statics, includes, comments - is left exactly as it was.
+    An earlier version rebuilt the file from splat's regenerated one and copied
+    declarations across line by line, which truncated multi-line statics and
+    produced `parse error before 'extern'`.
+    """
+    lines = [l for l in original.splitlines(keepends=True) if not RODATA_LINE.search(l)]
+
+    # where each function ends, so a rodata line can follow it
+    ends: dict[str, int] = {}
+    i = 0
+    while i < len(lines):
+        m = ASM_LINE.search(lines[i])
+        if m:
+            ends[m.group(1)] = i
+            i += 1
+            continue
+        fm = FUNC_START.match(lines[i])
+        if fm and not lines[i].lstrip().startswith(("INCLUDE_", "extern")):
+            j = i
+            while j < len(lines) and lines[j].rstrip() != "}":
+                j += 1
+            ends[fm.group(1)] = min(j, len(lines) - 1)
+            i = j + 1
+            continue
+        i += 1
+
+    top = max((k for k, l in enumerate(lines) if l.startswith("#include")), default=0)
+    for anchor, line in reversed(anchors):
+        at = ends.get(anchor, top) if anchor else top
+        lines[at + 1:at + 1] = ["\n", line]
+    return "".join(lines)
+
+
+def restore(overlay: str, originals: dict[str, str], stash: Path) -> list[str]:
+    """Put the decompiled sources back, with rodata lines moved to the new owner."""
+    src = src_dir(overlay)
+    problems = []
     for name, original in originals.items():
         fp = src / name
-        if not fp.is_file():
-            fp.write_text(original)          # splat no longer emits it; keep ours
-            continue
-        headers, bodies = read_bodies(original)
-        fresh_text = fp.read_text()
-        _, already = read_bodies(fresh_text)
-        out, used = [], set()
-        for l in fresh_text.splitlines(keepends=True):
-            mm = re.search(r'INCLUDE_ASM\("[^"]+",\s*(\w+)\)', l)
-            if mm and mm.group(1) in bodies and mm.group(1) not in used:
-                used.add(mm.group(1)); out.append(bodies[mm.group(1)])
-            else:
-                out.append(l)
-        missing = set(bodies) - used - set(already)
-        if missing:
-            print(f"{name}: could not re-apply {sorted(missing)}; "
-                  f"originals in {stash}", file=sys.stderr)
-            return 1
-        if headers:
-            for i, l in enumerate(out):
-                if l.startswith('#include "common.h"'):
-                    out[i+1:i+1] = headers
-                    break
-        fp.write_text("".join(out))
+        anchors = rodata_anchors(fp.read_text()) if fp.is_file() else []
+        fp.write_text(reposition(original, anchors))
 
-    # The guard that matters: reverting a function to INCLUDE_ASM still matches,
-    # so a green build proves nothing here. Compare against what we started with.
-    bad = []
+    # A function reverted to INCLUDE_ASM still matches, so the build cannot tell
+    # us this went wrong. Compare against what we started with.
     for name, original in originals.items():
-        before = original.count("INCLUDE_ASM")
-        after = (src / name).read_text().count("INCLUDE_ASM")
-        if after > before:
-            bad.append(f"{name}: INCLUDE_ASM {before} -> {after}")
-    if bad:
-        print("decompiled work was lost:", file=sys.stderr)
-        for b in bad:
-            print("  " + b, file=sys.stderr)
-        print(f"originals kept in {stash}", file=sys.stderr)
+        before, after = original.count("INCLUDE_ASM"), (src / name).read_text().count("INCLUDE_ASM")
+        if after != before:
+            problems.append(f"{overlay}/{name}: INCLUDE_ASM {before} -> {after}")
+    if problems:
+        problems.append(f"originals kept in {stash}")
+    return problems
+
+
+def wipe_asm(overlay: str) -> None:
+    for kind in ("nonmatchings", "matchings", "data"):
+        for d in ROOT.glob(f"asm/*/**/{kind}/{overlay}"):
+            shutil.rmtree(d, ignore_errors=True)
+
+
+def apply_many(jobs: list[tuple[str, list[tuple[int, str]]]]) -> int:
+    """Apply cuts for several overlays, sharing the two full splits."""
+    stashes: dict[str, tuple[Path, dict[str, str]]] = {}
+    for overlay, cuts in jobs:
+        src = src_dir(overlay)
+        if src is None:
+            print(f"{overlay}: no single src dir, skipping", file=sys.stderr)
+            continue
+        if not write_manifest(overlay, cuts):
+            print(f"{overlay}: no manifest entry, skipping", file=sys.stderr)
+            continue
+        stash = Path(tempfile.mkdtemp(prefix=f"rodata-cut-{overlay}-"))
+        originals = {p.name: p.read_text() for p in src.glob("*.c")}
+        for name, body in originals.items():
+            (stash / name).write_text(body)
+        for p in src.glob("*.c"):
+            p.unlink()
+        stashes[overlay] = (stash, originals)
+
+    if not stashes:
+        return 1
+    print(f"splitting with {len(stashes)} overlay(s) emptied ...")
+    if not split():
         return 1
 
-    # The first split ran with every .c deleted, so splat wrote a nonmatchings
-    # .s for all of them and never removed the ones that are matched again now.
-    # Stale entries there are not harmless: the vacuum and score_functions pick
-    # work from that directory and would re-match functions already done. Wipe
-    # the overlay's asm and split once more, against the restored sources.
-    for d in list(ROOT.glob(f"asm/*/**/nonmatchings/{overlay}")) + \
-             list(ROOT.glob(f"asm/*/**/matchings/{overlay}")) + \
-             list(ROOT.glob(f"asm/*/**/data/{overlay}")):
-        shutil.rmtree(d, ignore_errors=True)
-    r = subprocess.run([str(ROOT / "venv/bin/python3"), "ninja_config.py"],
-                       cwd=ROOT, capture_output=True, text=True)
-    if r.returncode != 0:
-        print(r.stdout[-2000:] + r.stderr[-2000:], file=sys.stderr)
+    problems = []
+    for overlay, (stash, originals) in stashes.items():
+        problems += restore(overlay, originals, stash)
+    if problems:
+        for p in problems:
+            print("  " + p, file=sys.stderr)
         return 1
 
-    stale = len(list((ROOT / f"asm/USA/rooms/nonmatchings/{overlay}").rglob("func_*.s"))) \
-        if (ROOT / f"asm/USA/rooms/nonmatchings/{overlay}").is_dir() else 0
-    inc = sum((src / n).read_text().count("INCLUDE_ASM") for n in originals)
-    if stale and inc and stale != inc:
-        print(f"warning: {stale} nonmatching .s against {inc} INCLUDE_ASM", file=sys.stderr)
+    # The first split saw every .c deleted, so splat wrote a nonmatchings .s for
+    # all of them and left the ones matched again behind. The vacuum picks work
+    # from that directory, so stale entries there mean re-matching done work.
+    for overlay in stashes:
+        wipe_asm(overlay)
+    print("re-splitting against the restored sources ...")
+    if not split():
+        return 1
 
-    shutil.rmtree(stash, ignore_errors=True)
-    print(f"applied {len(cuts)} cut(s) to {overlay}; "
-          f"now run: ./tools/build-and-verify.sh --only {overlay}")
+    for overlay, (stash, _) in stashes.items():
+        shutil.rmtree(stash, ignore_errors=True)
+    print(f"applied cuts to {len(stashes)} overlay(s)")
     return 0
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("overlay")
+    ap.add_argument("overlay", nargs="+")
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
-    cuts, notes = plan(args.overlay)
-    for n in notes:
-        print(f"note: {n}")
-    if not cuts:
-        print("no cuts needed")
+    jobs = []
+    for overlay in args.overlay:
+        cuts, notes = plan(overlay)
+        for n in notes:
+            print(f"note: {overlay}: {n}")
+        if any("manual work" in n for n in notes):
+            print(f"{overlay}: skipping, needs manual work", file=sys.stderr)
+            continue
+        if not cuts:
+            print(f"{overlay}: no cuts needed")
+            continue
+        print(f"{overlay}:\n  {toml_value(cuts)}")
+        jobs.append((overlay, cuts))
+
+    if not args.apply or not jobs:
         return 0
-    print(f"proposed for {args.overlay}:\n  {toml_value(cuts)}")
-    if any("manual work" in n for n in notes):
-        print("refusing to apply", file=sys.stderr)
-        return 1
-    return apply(args.overlay, cuts) if args.apply else 0
+    return apply_many(jobs)
 
 
 if __name__ == "__main__":

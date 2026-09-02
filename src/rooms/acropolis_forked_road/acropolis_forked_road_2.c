@@ -36,3 +36,5 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_2", 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_2", func_acropolis_forked_road_8017DA24);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_2", func_acropolis_forked_road_8017DD60);
+
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_2", D_acropolis_forked_road_8017D5E8);

@@ -120,7 +120,3 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EE44);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D63C);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", jtbl_acropolis_security_room_8017D67C);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D6AC);

@@ -26,3 +26,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017F908);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017F948);
+
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", D_acropolis_cafeteria_8017D69C);
+
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", D_acropolis_cafeteria_8017D6AC);

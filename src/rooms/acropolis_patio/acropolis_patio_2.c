@@ -45,3 +45,5 @@ void func_acropolis_patio_8017DF70(u8 arg0)
 {
     D_801153F4 = arg0;
 }
+
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio_2", D_acropolis_patio_8017D5E8);

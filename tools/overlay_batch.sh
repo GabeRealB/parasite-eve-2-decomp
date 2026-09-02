@@ -224,13 +224,14 @@ BRIEF="$WT/OVERLAY_BRIEF.md"
 
     if [[ -n "$BLOCKED" ]]; then
         echo
-        echo "## Do NOT match these - blocked on a split change"
+        echo "## These need a split change first - make it, then match them"
         echo
         echo "Each carries a compiler-generated jump table that splat has placed in a"
         echo "*different* unit's \`.rodata\`. A unit's \`.rodata\` appears once in the linker"
         echo "script, at the offset its subsegment names, so decompiling the function emits"
         echo "the table at the wrong address and the overlay stops matching. No amount of"
-        echo "work on the C body changes that."
+        echo "work on the C body changes it - one of these reached 100.00% with all-zero"
+        echo "penalties in an earlier run and still could not land."
         echo
         echo '| function | its unit | table | table owned by |'
         echo '|---|---|---|---|'
@@ -238,13 +239,26 @@ BRIEF="$WT/OVERLAY_BRIEF.md"
             [[ -n "$fn" ]] && echo "| \`$fn\` | $unit | \`$tbl\` | $unit -> **$owner** |"
         done <<<"$BLOCKED"
         echo
-        echo "This is a finished-match trap: one of these reached 100.00% with all-zero"
-        echo "penalties in the first run of this workflow and still could not land."
-        echo "Report them with \`--unattempted\`, never \`--difficult\` - they are not hard,"
-        echo "they are parked. Fixing one needs a \`rodata\` cut (usually paired with"
-        echo "\`units\`) in \`configs/USA/overlays.toml\`, the affected \`src/\` files deleted"
-        echo "and a re-split; see CLAUDE.md, \"Compiler-generated jump tables\". Do that"
-        echo "deliberately as its own task, not in the middle of a matching run."
+        echo "Fix it **before matching anything**, with:"
+        echo
+        echo '```'
+        echo "python3 tools/rodata_cut.py $OVERLAY --apply"
+        echo "./tools/build-and-verify.sh --only $OVERLAY"
+        echo '```'
+        echo
+        echo "Ownership is not a judgement call - a generated table must live in the"
+        echo "\`.rodata\` of the object whose function uses it - so the tool derives the"
+        echo "cuts and rewrites \`configs/USA/overlays.toml\` itself. **Do not do this by"
+        echo "hand.** The procedure deletes and re-splits the overlay's \`src/\`, and a"
+        echo "function reverted to \`INCLUDE_ASM\` still matches, so lost work leaves the"
+        echo "build green and tells you nothing. Done by hand once, it silently reverted"
+        echo "two units the change did not even touch. The tool re-applies every"
+        echo "decompiled body, refuses to finish if any file's \`INCLUDE_ASM\` count rose,"
+        echo "and keeps the originals when it bails."
+        echo
+        echo "It runs a full split twice, so give it a few minutes. Afterwards these are"
+        echo "ordinary work: re-run \`python3 tools/rodata_triage.py $OVERLAY\` to confirm"
+        echo "and add them to your list. The manifest edit lands with the match commits."
     fi
     cat <<'BODY'
 
