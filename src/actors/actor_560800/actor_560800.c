@@ -2,6 +2,8 @@
 
 #include "gameplay/3CD8.h"
 
+#include "gameplay/gameplay.h"
+
 #include "main/display.h"
 
 #include "main/fs.h"
@@ -15,6 +17,9 @@
 #include "main/stream.h"
 
 #include "main/task.h"
+
+extern s8       D_8007106B;
+extern TaskDesc D_actor_560800_8016EA28;
 
 void func_actor_560800_801321A0(Task* arg0)
 {
@@ -140,7 +145,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135D54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135F50);
+void func_actor_560800_80135F50(Task* arg0)
+{
+    Display_SpawnWithOt(&D_actor_560800_8016EA28, 1, arg0->spawnArg1, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135FA0);
 
