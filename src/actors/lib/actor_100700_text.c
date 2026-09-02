@@ -719,7 +719,31 @@ case1:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01CF0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01D80);
+void Actor00700_Fn01D80(Actor00700* arg0)
+{
+    Actor00700Work* work2;
+    s32             i;
+    s32             val;
+
+    work2 = arg0->field_1C;
+    i     = 1;
+    if ((s16)work2->field_37E != work2->field_380) {
+        work2->field_380 = work2->field_37E;
+        work2->field_382 = 0;
+        val              = Actor00700_D06E98[(s16)work2->field_37E];
+        do {
+            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            i++;
+        } while (i < 7);
+    } else {
+        TOUCH_REG(i);
+        work2->field_382 += i;
+        do {
+            Gp_AnimTickIndex(work2, i);
+            i++;
+        } while (i < 7);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01E44);
 
