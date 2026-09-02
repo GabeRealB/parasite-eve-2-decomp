@@ -37298,3 +37298,47 @@ The difference from a data alias is that a **function** alias renames a real
 carrier's `INCLUDE_ASM(..., func_<overlay>_<vram>);` has to be retargeted by
 hand or the assembler fails on a missing include. Do that rename and a scoped
 build *before* landing the body, so the two edits fail separately.
+
+## Name the global as a local pointer to keep `%hi` above a call
+
+A global whose first *use* is after a call gets its address rebuilt after the
+call, in a call-clobbered register:
+
+```
+jal    callee
+ nop
+lui    v0,%hi(D_80114D28)
+addiu  v0,v0,%lo(D_80114D28)
+lh     a0,8(v0)
+```
+
+The target instead materialises the address in the prologue and carries it
+across the call in a callee-saved register, splitting `lui`/`addiu` around the
+other setup and dropping `addiu` into the `jal` delay slot:
+
+```
+lui    s0,%hi(D_80114D28)
+lw     s1,0x1c(s2)
+jal    callee
+ addiu s0,s0,%lo(D_80114D28)
+lh     a0,8(s0)
+```
+
+Direct `D_80114D28.field` references never do this - the address pseudo is
+born at the first reference, so its live range starts after the call. Bind it
+to a local pointer declared *before* the call and the pseudo is live across
+the call, so regalloc must give it a saved register:
+
+```c
+SbupActionPrompt* prompt = &D_80114D28;
+SbupExamineWork*  work   = (SbupExamineWork*)task->idMap;
+
+func_shelter_b1_underground_parking_80183B9C();
+prompt->mode = 0;
+```
+
+Declaration order also picks the registers: the first local named takes `$s0`,
+so listing the global's pointer ahead of the work pointer gives `s0` = global,
+`s1` = work, `s2` = the saved argument.
+`func_shelter_b1_underground_parking_80184594` is the example; inlined it
+scored 76.4% with `regs=18`, the local pointer matched.

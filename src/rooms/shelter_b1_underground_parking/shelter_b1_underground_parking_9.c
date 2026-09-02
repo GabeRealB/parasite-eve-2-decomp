@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "gameplay/3688.h"
+#include "rooms/shelter_b1_underground_parking.h"
+
 extern u8 D_shelter_b1_underground_parking_8018D788;
 extern u8 D_shelter_b1_underground_parking_8018D789;
 
@@ -13,7 +16,17 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_80184468);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_80184594);
+void func_shelter_b1_underground_parking_80184594(Task* task)
+{
+    SbupActionPrompt* prompt = &D_80114D28;
+    SbupExamineWork*  work   = (SbupExamineWork*)task->idMap;
+
+    func_shelter_b1_underground_parking_80183B9C();
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_800D4E78(prompt->screenX, prompt->screenY, work->promptKind);
+    task->state = 4;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_801845F8);
 
