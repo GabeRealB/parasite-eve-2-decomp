@@ -11,6 +11,7 @@
 #include "main/ui.h"
 
 extern u8           D_mist_parking_80186464[];
+extern UiList       D_mist_parking_8018656C;
 extern UiObjectDesc D_mist_parking_80186590;
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017DF68);
@@ -60,7 +61,46 @@ void func_mist_parking_8017FDB8(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017FE74);
+void func_mist_parking_8017FE74(Task* task)
+{
+    UiObject* obj;
+    UiList*   list;
+    Task*     child;
+    UiObject* childObj;
+    s16       code;
+
+    list          = &D_mist_parking_8018656C;
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    if (task->state == 0) {
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        Ui_SetListScrollFlag(list, 1);
+        task->state += 1;
+    }
+    Ui_UpdateListNoAnim(list, obj);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 6;
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            obj->field_2E = -1;
+        }
+    }
+
+    child = task->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        code     = childObj->field_2E;
+        if (code != -1) {
+            if (code == 6) {
+                Ui_TeardownTree(childObj, childObj->owner);
+                obj->status = 1;
+            }
+        } else {
+            obj->field_2E = -1;
+        }
+    }
+}
 
 void func_mist_parking_8017FF9C(Task* task)
 {

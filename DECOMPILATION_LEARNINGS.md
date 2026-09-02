@@ -39447,3 +39447,39 @@ SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
 needed - `register s32 z asm("a1")` alone still scores 92.75%, because the pin
 does not move the statement; only the `asm` does. This is the unpinned form of
 the `Mem_Set` arg-order trick above.
+
+## A first arm laid out *after* the second is an inverted `if/else`, not `else if`
+
+GCC 2.8.1 emits an `if (a) X else if (b) Y` chain in source order: test `a`,
+body `X`, `j end`, test `b`, body `Y`. When the target instead branches *to* the
+first-tested arm and places its body last, the source tested the negation and
+nested the other arm in the `then`:
+
+```
+target                                   if (code == -1) { X } else if (code == 6) { Y }
+  beq   v1, v0, .Lstore   /* == -1 */      li    s0, 6           /* X inline, first */
+  li    v0, 6                              ...
+  bne   v1, v0, .Lend                      j     .Lend
+  ...  Y ...                               ...   Y ...
+  j     .Lend
+ .Lstore:
+  sh    v1, 0x2e(s0)      /* X last */
+```
+
+```c
+if (code != -1) {
+    if (code == 6) {          /* Y */
+        Ui_TeardownTree(childObj, childObj->owner);
+        obj->status = 1;
+    }
+} else {
+    obj->field_2E = -1;       /* X, laid out last */
+}
+```
+
+The store of `-1` reuses the compare's `$v1` because GCC knows the register
+already holds `-1` on that edge — do **not** "help" it by storing the loaded
+local (`obj->field_2E = code`), which makes the short-to-short move a second
+memory read and emits `lh` for the compare plus `lhu` for the store off the same
+address. `func_mist_parking_8017FE74` is the example (92.8% as the plain chain,
+`insert=2 delete=2 reorder=2`; 100% inverted).
