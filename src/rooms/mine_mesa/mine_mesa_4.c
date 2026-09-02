@@ -5,7 +5,10 @@ extern Task* D_mine_mesa_80189B5C;
 extern TaskDesc RoomsShared8017daf0Desc;
 extern Task*    D_mine_mesa_80189B54;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E650);
+void func_mine_mesa_8017E650(void)
+{
+    D_mine_mesa_80189B54 = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 1, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E684);
 
