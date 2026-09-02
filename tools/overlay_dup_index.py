@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Index functions that appear in more than one overlay.
 
-Overlays in a family are separate link outputs that share a lot of code: 56% of
-the room functions are copies of another room's, and 60% of the instructions.
+Overlays in a family are separate link outputs that share a lot of code: 36% of
+indexed functions are copies of another overlay's body, and 33% of the
+instructions.
 Matching each copy separately would be the same work done up to 265 times, so
 the first thing needed is to know what is shared.
 
@@ -11,7 +12,8 @@ words. Comparing words is tempting and wrong: clearing the link-dependent
 fields to let two copies at different addresses compare equal also clears every
 other I-type immediate, so `lw $v0, 0x4($t0)` and `lw $v0, 0xC($t0)` - a
 different struct field, a different function - come out identical. That
-overstated room duplication as 56% of functions when the real figure is 17%.
+overstated duplication badly - it was the source of the old 56% claim. Run
+`stats` for the current measured figure rather than quoting one from here.
 
 The text is already symbolic where it needs to be, so the canonical form only
 has to drop what names a copy's own position:
