@@ -219,6 +219,24 @@ orch finish-overlay --session "$SESSION" \
     ${diff_csv:+--difficult "$diff_csv"} \
     ${unattempted:+--unattempted "$unattempted"} >>"$LOG_FILE" 2>&1 || true
 
+# tools/giveups/ is gitignored, so nothing in the landing path moves it and the
+# worktree is about to be deleted. It holds the best compiling C for every
+# function that stalled - mist_parking's 8017F764 reached 98.846% over 21
+# attempts - and its whole purpose is to stop a later retry restarting from m2c.
+# Copy any archive trunk does not already have.
+if [[ -d "$WT/tools/giveups" ]]; then
+    carried=0
+    for d in "$WT"/tools/giveups/*/; do
+        [[ -d "$d" ]] || continue
+        name=$(basename "$d")
+        if [[ ! -d "$ROOT/tools/giveups/$name" ]]; then
+            mkdir -p "$ROOT/tools/giveups"
+            cp -r "$d" "$ROOT/tools/giveups/$name" && carried=$((carried+1))
+        fi
+    done
+    [[ $carried -gt 0 ]] && log "carried $carried give-up archive(s) to trunk"
+fi
+
 log "landed ${#MATCHED[@]}; difficult $(grep -c . <<<"$DIFFICULT" || echo 0); unattempted $(tr ',' '\n' <<<"$unattempted" | grep -c . || echo 0)"
 
 if [[ "$KEEP" == false ]]; then

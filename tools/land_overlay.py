@@ -168,7 +168,18 @@ def main() -> int:
     for e in extras:
         src, dst = wt / e, ROOT / e
         dst.parent.mkdir(parents=True, exist_ok=True)
-        if dst.is_file() and e.endswith(".md"):
+        if dst.is_file() and e.endswith("difficult_functions"):
+            # Line-based and append-only, like the learnings file: two overlay
+            # worktrees cut from the same commit both add entries, and copying
+            # the second one's file over trunk drops the first one's give-ups.
+            # Keyed by function name so a re-run's better score replaces an
+            # older line rather than duplicating it.
+            have = {l.split()[0]: l for l in dst.read_text().splitlines() if l.strip()}
+            for l in src.read_text().splitlines():
+                if l.strip():
+                    have[l.split()[0]] = l
+            dst.write_text("\n".join(have[k] for k in sorted(have)) + "\n")
+        elif dst.is_file() and e.endswith(".md"):
             # Append-only docs must be merged, not copied. Every overlay
             # worktree is cut from the same trunk commit, so two sessions both
             # append to DECOMPILATION_LEARNINGS.md and the second landing
