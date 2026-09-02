@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
@@ -13,11 +14,23 @@ extern u8 D_8007216D;
 extern u8 D_80072170;
 
 extern s32 D_mist_parking_80186BB8;
+extern s32 D_mist_parking_80186C5C;
+extern s32 D_mist_parking_80186DC4;
 extern s32 D_mist_parking_8018DF34;
 extern s32 D_mist_parking_8018EDBC;
 extern s32 D_mist_parking_8018EFE4;
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_5", func_mist_parking_801826E8);
+s32 func_mist_parking_801826E8(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    if (arg2->field_2 == 1) {
+        func_800E8614((s32)&D_mist_parking_80186C5C, 1);
+    }
+    if (arg2->field_2 == 2) {
+        func_800E8614((s32)&D_mist_parking_80186DC4, 1);
+        GameFlag_SetNibble(0xED, 1);
+    }
+    return 1;
+}
 
 void func_mist_parking_80182750(s32 arg0)
 {
