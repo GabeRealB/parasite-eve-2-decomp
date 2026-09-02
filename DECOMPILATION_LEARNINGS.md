@@ -37837,3 +37837,34 @@ The right-hand assignment stores first, but the left-hand lvalue's address is
 expanded first, so `%hi(Game_Session)` is the earlier pseudo. When a 96%
 `regs`-only leftover is a pure rotation of address registers between two
 symbols assigned the same value, try chaining before touching the dumps.
+
+## m2c's `argN` names carry the register slot even when it drops leading params
+
+m2c emits a signature containing only the parameters the body reads, but it
+keeps each one's *positional* name. A function whose first two arguments are
+unused comes out as
+
+```c
+void func_acropolis_patio_8017DBAC(void *arg2) { ... }
+```
+
+That single `arg2` is not the first argument — the name says it lives in `$a2`.
+Compiling the m2c signature verbatim gives a near-perfect score with a single
+`regs` penalty on the prologue:
+
+```
+-move    s0,a2      # target
++move    s0,a0      # ours
+```
+
+The fix is to restore the dropped leading parameters rather than to chase the
+register through pins or the permuter:
+
+```c
+void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8 *arg2)
+```
+
+Whenever the *only* diff is the argument register a parameter is moved out of,
+count the gap in m2c's `argN` names first — the matched siblings in the same TU
+usually show the real arity (here `func_acropolis_patio_8017DCE4(s32, s32, s32)`
+and the four-argument message handlers).

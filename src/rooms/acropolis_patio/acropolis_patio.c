@@ -17,12 +17,19 @@ typedef struct {
     /* 0x6 */ u16 field_6;
 } AcropolisPatioMsg8;
 
+extern s8       D_8007272D;
 extern s16      D_80071076;
 extern TaskDesc D_acropolis_patio_801802BC;
 extern s32      D_acropolis_patio_80180DEC;
 extern s32      D_acropolis_patio_80180EDC;
 extern u8       D_acropolis_patio_80187064;
 extern u8       D_acropolis_patio_80187065;
+extern s32      D_acropolis_patio_80180484;
+extern s32      D_acropolis_patio_801806AC;
+extern s32      D_acropolis_patio_8018082C;
+extern s32      D_acropolis_patio_80180C64;
+extern s32      D_acropolis_patio_8018280C;
+extern s32      D_acropolis_patio_80182BE4;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio", func_acropolis_patio_8017D5EC);
 
@@ -144,8 +151,27 @@ void func_acropolis_patio_8017DA5C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio", func_acropolis_patio_8017DBAC);
+void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
+{
+    u8 state;
 
+    if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
+        GameFlag_SetNibble(0x21, 3);
+        func_800E8634((s32)&D_acropolis_patio_80180484, 0, (s32)&D_acropolis_patio_801806AC);
+        D_8007272D             = 3;
+        Game_Session->field_69 = 0xC1;
+    }
+    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
+        (Gp_DispatchMsg((Task*)Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
+        GameFlag_SetNibble(0x21, 4);
+        func_800E8634((s32)&D_acropolis_patio_8018082C, 0, (s32)&D_acropolis_patio_80180C64);
+    }
+    state = arg2->field_2;
+    if ((state == 2) && (GameFlag_GetNibble(0x26) == 0) && (GameFlag_GetNibble(0) == state)) {
+        GameFlag_SetNibble(0x26, 1);
+        func_800E8634((s32)&D_acropolis_patio_8018280C, 0, (s32)&D_acropolis_patio_80182BE4);
+    }
+}
 s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)
 {
     s32 var_v0;
