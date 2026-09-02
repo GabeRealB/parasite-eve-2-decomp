@@ -76,7 +76,36 @@ void func_mist_r18_8017E448(MistR18Sprite* sprite)
     AddPrim(Gpu_CurrentOt + 5, tile);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E534);
+/// Emit the sprite's screen rectangle as a textured `SPRT` into OT slot 4,
+/// with the CLUT taken from the framebuffer position `clutX`/`clutY`.
+void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
+{
+    SPRT* p;
+    u8    v;
+
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    SetSprt(p);
+    if (sprite->semiTrans == 0) {
+        SetShadeTex(p, 1);
+        SetSemiTrans(p, 0);
+    } else {
+        SetShadeTex(p, 0);
+        SetSemiTrans(p, 1);
+    }
+    p->r0   = sprite->r;
+    p->g0   = sprite->g;
+    p->b0   = sprite->b;
+    p->x0   = sprite->x;
+    p->y0   = sprite->y;
+    p->u0   = sprite->u;
+    v       = sprite->v;
+    p->clut = getClut(clutX, clutY);
+    p->v0   = v;
+    p->w    = sprite->w - 1;
+    p->h    = sprite->h - 1;
+    AddPrim(Gpu_CurrentOt + 4, p);
+}
 
 /// Append a `DR_TPAGE` for the given tpage to OT slot `otIdx`.
 void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
