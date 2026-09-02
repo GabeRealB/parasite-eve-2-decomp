@@ -1,8 +1,14 @@
 #include "common.h"
 
-extern s8 D_8007217B;
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E948);
+extern s8       D_8007217B;
+extern TaskDesc RoomsShared8017daf0Desc;
+
+void func_mine_mesa_8017E948(void)
+{
+    Task_SpawnFromTable(&RoomsShared8017daf0Desc, 5, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E978);
 
