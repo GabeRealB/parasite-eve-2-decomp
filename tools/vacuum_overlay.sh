@@ -105,6 +105,29 @@ trap 'kill $LEASE_REFRESHER 2>/dev/null || true; release_all' EXIT
 # --- match, one function at a time -------------------------------------------
 # vacuum.sh picks the easiest remaining function in the overlay each iteration
 # (tools/score_functions.py), so the ordering by difficulty is already its job.
+# How many of the claimed functions the sweep will actually attempt. Not the
+# claimed count: a body already matched in another overlay is skipped rather
+# than re-matched, and that is a large share of the tail - mist_r18 stopped with
+# 4 of 17 untouched, mist_parking is heading for 12 of 58. Counting them in the
+# denominator would make every sweep look like it stalled short of the end.
+VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" <<'PYEOF' 2>/dev/null || echo ""
+import re, subprocess, sys, pathlib
+wt, ov = sys.argv[1], sys.argv[2]
+inc = []
+for c in pathlib.Path(wt, "src").rglob(f"{ov}/*.c"):
+    inc += re.findall(r'INCLUDE_ASM\("[^"]+",\s*(\w+)\)', c.read_text(errors="replace"))
+try:
+    solved = set(subprocess.run(
+        ["python3", "tools/overlay_dup_index.py", "solved"],
+        cwd=wt, capture_output=True, text=True, timeout=900).stdout.split())
+except Exception:
+    solved = set()
+print(len([f for f in inc if f not in solved]))
+PYEOF
+)
+export VACUUM_TOTAL
+log "${VACUUM_TOTAL:-?} function(s) to attempt (of $CLAIMED_N claimed; the rest are duplicates already matched elsewhere)"
+
 inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$OVERLAY")
 [[ -n "$TIMES" ]] && inner+=(--times "$TIMES")
 [[ "$DRY_RUN" == true ]] && inner+=(--dry-run)

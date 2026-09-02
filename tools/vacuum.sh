@@ -299,6 +299,19 @@ pick_simplest_func() {
   rm -f "$solved"
 }
 
+# "function 7 of 46" when the caller knows the population size. A whole-overlay
+# sweep does: tools/vacuum_overlay.sh passes VACUUM_TOTAL so the log says where
+# it is rather than only what it is doing, which over an 8-hour run is the
+# difference between reading progress and guessing at it.
+progress_tag() {
+  local n=$(( ${1:-0} + 1 ))
+  if [[ -n "${VACUUM_TOTAL:-}" ]]; then
+    echo "[$n of $VACUUM_TOTAL] "
+  else
+    echo "[$n] "
+  fi
+}
+
 note_skip() {
   local func=$1
   [[ -n "$SKIP_FILE" ]] || return 0
@@ -1154,7 +1167,7 @@ vacuum_orch_loop() {
     fi
     ORCH_FUNC=$func
     note_skip "$func"
-    echo -e "\n[$(date '+%H:%M:%S')] [$CLI] [orch] Decompiling $func...\n" | tee -a "$LOG_FILE"
+    echo -e "\n[$(date '+%H:%M:%S')] [$CLI] [orch] $(progress_tag "$count")Decompiling $func...\n" | tee -a "$LOG_FILE"
     if [[ "$func" != "$port_try_func" ]]; then
       port_tries=0
       port_try_func=$func
@@ -1481,7 +1494,7 @@ while true; do
   rm -f "$_pick_err"
 
   note_skip "$simplest_func"
-  echo -e "\n[$(date '+%H:%M:%S')] [$CLI] Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
+  echo -e "\n[$(date '+%H:%M:%S')] [$CLI] $(progress_tag "$count")Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
 
   rm -rf "nonmatchings/${simplest_func}" "nonmatchings/${simplest_func}-"*
   bootstrap_out=$(./tools/claude --bootstrap-only --cli "$CLI" --id vacuum "$simplest_func" 2>&1 | tee -a "$LOG_FILE")
