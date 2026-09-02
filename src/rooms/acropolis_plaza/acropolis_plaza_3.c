@@ -1,4 +1,10 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/task.h"
+
+extern s8       D_8007106B;
+extern TaskDesc D_acropolis_plaza_80183824;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017DD90);
 
@@ -28,7 +34,13 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_80180054);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_80180270);
+void func_acropolis_plaza_80180270(Task* arg0)
+{
+    Display_SpawnWithOt(&D_acropolis_plaza_80183824, 0xA, 0, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_801802C0);
 
