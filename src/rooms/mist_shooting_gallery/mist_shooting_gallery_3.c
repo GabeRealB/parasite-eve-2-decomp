@@ -157,7 +157,26 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_8018458C);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801846F4);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801847D4);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801848B4);
+void func_mist_shooting_gallery_801848B4(void)
+{
+    GpEnemy*     enemy;
+    TmdObject*   obj;
+    GpCoordPose* coord;
+
+    enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, 0x200D, NULL);
+    if (enemy != NULL) {
+        obj           = (TmdObject*)enemy->task->extra;
+        obj->field_24 = 0;
+        obj->field_25 = 2;
+        Tmd_ProcessStream(obj);
+        Tmd_ProcessStream(obj);
+        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->field_8;
+        coord->coord.t[0] = 0x1770;
+        coord->coord.t[2] = 0xBB8;
+        coord->coord.t[1] = 0;
+        enemy->field_A    = 0x900;
+    }
+}
 void func_mist_shooting_gallery_80184954(void)
 {
     MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap;
