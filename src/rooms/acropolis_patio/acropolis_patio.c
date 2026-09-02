@@ -146,8 +146,23 @@ void func_acropolis_patio_8017DA5C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio", func_acropolis_patio_8017DBAC);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio", func_acropolis_patio_8017DCE4);
+s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)
+{
+    s32 var_v0;
 
+    if (arg2 == 1) {
+        Gp_SpawnIfCapIdle(1, 0);
+    }
+    var_v0 = 2;
+    if (arg2 == 2) {
+        var_v0 = GameFlag_GetNibble(0) < 2;
+        if (var_v0 != 0) {
+            Gp_SpawnIfCapIdle(2, 0);
+            var_v0 = 0;
+        }
+    }
+    return var_v0;
+}
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", D_acropolis_patio_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", D_acropolis_patio_8017D5C4);
