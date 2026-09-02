@@ -80,7 +80,13 @@ void Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018061C);
+s32 func_shelter_r47_8018061C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0x63) {
+        SndEvt_EnqueueType6(0x542F0011, 0, 0);
+    }
+    return 0;
+}
 
 void func_shelter_r47_80180650(Task* task)
 {
