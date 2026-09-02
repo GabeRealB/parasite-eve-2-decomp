@@ -12,5 +12,3 @@ s32 func_neo_ark_bridge_8017E82C(void)
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge", D_neo_ark_bridge_8017D614);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge", jtbl_neo_ark_bridge_8017D620);

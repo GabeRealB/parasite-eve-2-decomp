@@ -117,5 +117,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017F128);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017F700);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", jtbl_dryfield_water_tower_8017D658);

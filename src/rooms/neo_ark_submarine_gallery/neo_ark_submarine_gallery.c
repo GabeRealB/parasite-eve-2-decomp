@@ -57,5 +57,3 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gall
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EFEC);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017F288);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", jtbl_neo_ark_submarine_gallery_8017D660);

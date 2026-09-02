@@ -5,9 +5,9 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
-extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
-
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_garden_8017D5C0);
+
+extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017D64C);
 
@@ -46,7 +46,3 @@ s32 func_neo_ark_garden_8017E9AC(void)
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E9B4);
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_garden_8017D614);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", jtbl_neo_ark_garden_8017D620);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", jtbl_neo_ark_garden_8017D638);

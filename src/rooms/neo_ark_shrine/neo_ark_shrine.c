@@ -42,9 +42,3 @@ INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shr
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D610);
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D620);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", jtbl_neo_ark_shrine_8017D630);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", jtbl_neo_ark_shrine_8017D660);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D6A4);

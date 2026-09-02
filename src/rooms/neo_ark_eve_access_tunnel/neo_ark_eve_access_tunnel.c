@@ -11,5 +11,3 @@ INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D980);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DB18);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", jtbl_neo_ark_eve_access_tunnel_8017D6C0);

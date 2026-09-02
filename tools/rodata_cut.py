@@ -95,6 +95,28 @@ def rodata_head(overlay: str) -> int:
     return int(h.group(1), 16) if h else 0
 
 
+def existing_cuts(overlay: str) -> list[tuple[int, str]]:
+    """The cuts already in the manifest.
+
+    These must never be dropped just because this tool cannot re-derive them.
+    mine_mesa had a cut giving a table to `rooms_shared_8017da34`, a shared lib
+    unit that referencing_unit does not look in; recomputing from scratch lost
+    it, and the table then sat in a different object from the .L labels its
+    entries point at ("undefined reference to `.Lmine_mesa_8017DE7C'").
+    """
+    text = (ROOT / "configs/USA/overlays.toml").read_text()
+    m = re.search(rf"^{re.escape(overlay)} = \{{.*$", text, re.M)
+    if not m:
+        return []
+    block = re.search(r"rodata = \[([^\]]*)\]", m.group(0))
+    if not block:
+        return []
+    out = []
+    for cm in re.finditer(r'start = "(0x[0-9A-Fa-f]+)", unit = "([^"]+)"', block.group(1)):
+        out.append((int(cm.group(1), 16), cm.group(2)))
+    return sorted(out)
+
+
 def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
     syms = rodata_symbols(overlay)
     if not syms:
@@ -102,26 +124,41 @@ def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
     base = syms[0][0]
     head = rodata_head(overlay)
     first_unit = min(unit_dirs(overlay), key=lambda p: p.name).name
-    cuts, notes, current = [], [], first_unit
+    cuts = existing_cuts(overlay)          # start from what is already there
+    notes = []
+
+    def owner_at(off: int) -> str:
+        best, unit = -1, first_unit
+        for o, u in cuts:
+            if o <= off and o > best:
+                best, unit = o, u
+        return unit
+
     for addr, sym, _ in syms:
         if not sym.startswith("jtbl_"):
             continue                      # data blobs stay where they fall
         owner = referencing_unit(sym, overlay)
         if owner is None:
-            notes.append(f"{sym}: no single referencing function, left alone")
+            # Could be a shared lib unit, which we do not search. Whatever the
+            # manifest already says about it stands.
             continue
-        if owner != current:
-            off = head + (addr - base)
-            if off <= head:
-                # The leading rodata always belongs to the overlay's first unit
-                # (gen_overlay_configs emits it as `<name>/<name>`), so "the very
-                # first table belongs to a later unit" is not expressible as a cut.
-                notes.append(f"{sym} would need the block start itself, needs manual work")
-                continue
-            cuts.append((off, owner))
-            current = owner
-    seen = [u for _, u in cuts]
-    if len(seen) != len(set(seen)):
+        off = head + (addr - base)
+        if owner == owner_at(off):
+            continue
+        if off <= head:
+            # The leading rodata always belongs to the overlay's first unit
+            # (gen_overlay_configs emits it as `<name>/<name>`), so "the very
+            # first table belongs to a later unit" is not expressible as a cut.
+            notes.append(f"{sym} would need the block start itself, needs manual work")
+            continue
+        if any(o == off for o, _ in cuts):
+            notes.append(f"{sym}: a cut already exists at 0x{off:X}, needs manual work")
+            continue
+        cuts.append((off, owner))
+        cuts.sort()
+
+    units = [u for _, u in cuts]
+    if len(units) != len(set(units)):
         notes.append("a unit would own two separate blocks; needs manual work")
     return cuts, notes
 
@@ -325,8 +362,8 @@ def main() -> int:
         if any("manual work" in n for n in notes):
             print(f"{overlay}: skipping, needs manual work", file=sys.stderr)
             continue
-        if not cuts:
-            print(f"{overlay}: no cuts needed")
+        if not cuts or cuts == existing_cuts(overlay):
+            print(f"{overlay}: no change needed")
             continue
         print(f"{overlay}:\n  {toml_value(cuts)}")
         jobs.append((overlay, cuts))

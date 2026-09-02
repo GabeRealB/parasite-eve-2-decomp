@@ -7,3 +7,5 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_5", func_neo_ark_s
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_5", func_neo_ark_shrine_8017FC14);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_5", func_neo_ark_shrine_8017FEA0);
+
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_5", D_neo_ark_shrine_8017D6A4);

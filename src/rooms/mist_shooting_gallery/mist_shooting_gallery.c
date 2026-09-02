@@ -1,8 +1,8 @@
 #include "common.h"
 #include "main/task.h"
-extern TaskDesc D_mist_shooting_gallery_80184F8C;
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D5C0);
+extern TaskDesc D_mist_shooting_gallery_80184F8C;
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017DCAC);
 

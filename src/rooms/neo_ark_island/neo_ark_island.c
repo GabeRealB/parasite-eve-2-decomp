@@ -38,5 +38,3 @@ void func_neo_ark_island_8017EB08(void)
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017EB10);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017EB68);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", jtbl_neo_ark_island_8017D638);
