@@ -29,7 +29,10 @@ void func_actor_443500_80131E84(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131EE4);
+void func_actor_443500_80131EE4(void)
+{
+    Gp_RunCapCmd(GameFlag_GetNibble(0xDF) == 0 ? 6 : 9, 0);
+}
 
 void func_actor_443500_80131F18(void)
 {
