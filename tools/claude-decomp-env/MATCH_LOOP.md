@@ -9,8 +9,8 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
    sections, where a raw grep returns hundreds of context-free lines ("delay slot"
    appears in 286 sections but only 16 titles). `--show N` prints the top N in full.
    Never read `DECOMPILATION_LEARNINGS.md` end-to-end; it is 1.3 MB.
-   If `CODEGEN_MODEL.md` is present, read it first — it is the general model the
-   corpus entries are instances of, and it is short.
+   Read `CODEGEN_MODEL.md` first — it is the short general model the corpus
+   entries are instances of, and it settles most mismatches on its own.
 
 `build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`). At ≥90% it runs `./dump.sh` and prints a **NEXT:** line naming dump files. The printed summary is not enough — **open those files** (`base_N.i.lreg`, …) before the next C edit. You can also run `./dump.sh base_N.c` by hand.
 
