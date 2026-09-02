@@ -3759,7 +3759,37 @@ void func_800DDC2C(GpObj* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DDDF8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE150);
+void func_800DE150(GpObj* arg0)
+{
+    s32            i;
+    u8*            head;
+    GpEdgeScratch* block;
+    SVECTOR*       src;
+    GsCOORDINATE2* coord;
+    MATRIX*        mat;
+
+    coord                   = (GsCOORDINATE2*)arg0->field_8;
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = head - 0x50;
+    block                   = (GpEdgeScratch*)(head - 0x50);
+    mat                     = (MATRIX*)(head - 0x20);
+    src                     = (SVECTOR*)arg0->field_C;
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
+    gte_SetRotMatrix(mat);
+    for (i = 0; i < 2; i++) {
+        block->src[i].vx = (u16)src[i].vx + (u16)arg0->field_10;
+        block->src[i].vy = 0;
+        block->src[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
+        gte_ldv0(&block->src[i]);
+        gte_rtv0_real();
+        gte_stlvnl(&block->pos[i]);
+        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
+        block->pos[i].vy = 0;
+        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
+    }
+    func_800DE2C0(block->pos, 1);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE2C0);
 

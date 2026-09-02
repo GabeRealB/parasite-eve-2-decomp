@@ -39087,3 +39087,71 @@ unsigned — `((u32)(arg2 & 3) >> 1)` — since `u16`/`s16` both promote to `int
 `func_mist_shooting_gallery_801826C4`, whose neighbouring `s16 arg3` (used as
 `arg3 * 23`) *does* need the narrow type for its `sll`/`sra`, so the two
 parameters of one call end up with different widths.
+
+## Index the scratch arrays by the loop counter to get the sibling's pinned shape without pins
+
+`func_800DE150` is `func_800DDC2C` with the two source `SVECTOR`s read from
+`obj->field_C` instead of computed. The matched sibling reaches the target's
+loop with eight `register … asm("")` pins, a `TOUCH_REG` and a hand-written
+`lw %lo(Gp_GridParams)` asm. None of that is needed: the loop matches unpinned
+if every scratch access is written as an *indexed* element of the block,
+
+```c
+for (i = 0; i < 2; i++) {
+    block->src[i].vx = (u16)src[i].vx + (u16)arg0->field_10;
+    block->src[i].vy = 0;
+    block->src[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
+    gte_ldv0(&block->src[i]);
+    gte_rtv0_real();
+    gte_stlvnl(&block->pos[i]);
+    block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
+    block->pos[i].vy = 0;
+    block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
+}
+```
+
+Strength reduction then produces exactly the target's register set: the
+`sh` stores get a walking copy of `block` with the `0x20/0x22/0x24` field
+offsets folded into the displacement (`move a3, s2` … `sh zero, 0x22(a3)`),
+the `gte_ldv0` operand gets a separate `i * 8 + 0x20` giv added to `block` at
+each use (`li t0, 0x20` … `addu v0, s2, t0`), and `block->pos[i]` is one giv
+shared by the `swc2` operand and the `lw/sw` stores. Walking pointers
+(`dst++`, `out++`) instead split *each field* into its own induction register
+(`sh zero, -0x2(s1)` / `sh v0, 0(s0)` / `sw zero, -0x4(a2)`), which was the
+76% baseline. The `vy = 0` store sits *between* the vx and vz statements so
+the scheduler can drop it into the `lhu` load-delay slot.
+
+## A pseudo set twice loses the scheduler's live-range boost — split `head -= N` into a new local
+
+With the loop already matched, the only diff was the prologue order:
+
+```
+lw    a1, 8(s3)          /* target: coord first   */   lw    s0, 0(v1)
+lw    s0, 0(v1)                                        lw    a1, 8(s3)
+addiu a1, a1, 0x24                                     addiu v0, s0, -0x50
+addiu v0, s0, -0x50                                    addiu s0, s0, -0x20
+move  s2, v0                                           addiu a1, a1, 0x24
+addiu s0, s0, -0x20                                    move  s2, v0
+```
+
+Moving the `coord = obj->field_8` read around in the source changed nothing:
+`-fschedule-insns` schedules the block *backwards* and orders the ready list
+by priority, and the `.sched` dump shows some insns carrying a `7f000001`
+boost (single-set pseudos whose value is consumed by the insn just scheduled)
+that beats source order. `head -= 0x20` sets the `head` pseudo a second time,
+so neither of its setters gets the boost and the ties fall the wrong way.
+Giving the second value its own local,
+
+```c
+head  = *(void**)G_SCRATCH_HEAD;
+*(void**)G_SCRATCH_HEAD = head - 0x50;
+block = (GpEdgeScratch*)(head - 0x50);
+mat   = (MATRIX*)(head - 0x20);      /* not `head -= 0x20` */
+Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
+gte_SetRotMatrix(mat);
+```
+
+restored the boost and matched 100% with identical instructions and the same
+`addiu s0, s0, -0x20` (the two pseudos still share `$s0`). When a `reorder`
+leftover survives every statement permutation, look for a local assigned twice
+and split it; the diff is in the tie-break, not in the source order.
