@@ -8,6 +8,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", D_shelter_b4_water_supply_8017D5C0);
+
 /// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
 /// valve script has run.
 extern TaskDesc D_shelter_b4_water_supply_80182620[];
@@ -16,8 +18,6 @@ extern GpMsgEntry D_shelter_b4_water_supply_801825F0[];
 extern TaskDesc   D_shelter_b4_water_supply_8018263C[];
 
 void func_shelter_b4_water_supply_8017DB18(void);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", D_shelter_b4_water_supply_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D650);
 
@@ -97,7 +97,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply"
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017EE54);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017F24C);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", jtbl_shelter_b4_water_supply_8017D624);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", jtbl_shelter_b4_water_supply_8017D63C);

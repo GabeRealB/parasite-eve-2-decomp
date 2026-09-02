@@ -33,5 +33,3 @@ void func_shelter_b2_pod_access_tunnel_8017DC0C(void)
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DC14);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DC6C);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", jtbl_shelter_b2_pod_access_tunnel_8017D610);

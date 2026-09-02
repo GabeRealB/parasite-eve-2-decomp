@@ -15,7 +15,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", fu
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", D_shelter_b2_pod_bottom_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", D_shelter_b2_pod_bottom_8017D5C4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", jtbl_shelter_b2_pod_bottom_8017D5D0);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", D_shelter_b2_pod_bottom_8017D5EC);

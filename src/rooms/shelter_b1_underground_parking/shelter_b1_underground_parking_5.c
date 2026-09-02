@@ -161,7 +161,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801833DC);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", D_shelter_b1_underground_parking_8017D9A4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", jtbl_shelter_b1_underground_parking_8017D9C4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", jtbl_shelter_b1_underground_parking_8017D9F4);

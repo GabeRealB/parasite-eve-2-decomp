@@ -27,7 +27,3 @@ s32 func_shelter_b2_main_corridor_8017E1D4(void)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017E1DC);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", jtbl_shelter_b2_main_corridor_8017D67C);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", jtbl_shelter_b2_main_corridor_8017D6A4);

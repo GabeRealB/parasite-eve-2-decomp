@@ -31,7 +31,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017E37C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", func_shelter_b4_lower_sewer_8017E400);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", jtbl_shelter_b4_lower_sewer_8017D5F0);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", D_shelter_b4_lower_sewer_8017D608);

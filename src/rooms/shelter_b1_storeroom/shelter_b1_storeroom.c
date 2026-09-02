@@ -37,7 +37,3 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_storeroom/shelter_b1_storeroom", D
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_storeroom/shelter_b1_storeroom", func_shelter_b1_storeroom_8017D794);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_storeroom/shelter_b1_storeroom", func_shelter_b1_storeroom_8017D7EC);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_storeroom/shelter_b1_storeroom", jtbl_shelter_b1_storeroom_8017D5E8);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_storeroom/shelter_b1_storeroom", D_shelter_b1_storeroom_8017D5FC);

@@ -89,9 +89,3 @@ void func_shelter_b4_reservoir_8017E780(s32 arg0)
 {
     func_shelter_b4_reservoir_80182B04(10, arg0, 0x140);
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", jtbl_shelter_b4_reservoir_8017D604);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", jtbl_shelter_b4_reservoir_8017D624);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", jtbl_shelter_b4_reservoir_8017D63C);
