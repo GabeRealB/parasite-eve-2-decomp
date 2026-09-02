@@ -133,7 +133,64 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
     Gp_FillHpMp();
     Gp_ApplyItemMap();
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017DE7C);
+void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
+{
+    s32         item;
+    s32         i;
+    s32         skip;
+    s32         status;
+    s32         selected;
+    s32         ammo;
+    GpItemQty*  row;
+    s8*         weaponIdx;
+    GpItemScan* scan;
+
+    item = 0;
+    skip = arg0->field_8;
+    i    = 0;
+    do {
+        if (func_800B7420(D_mist_shooting_gallery_80184F34[i]) != 0) {
+            skip--;
+            if (skip < 0) {
+                item = D_mist_shooting_gallery_80184F34[i];
+                break;
+            }
+        }
+        i++;
+    } while (i < 10);
+
+    Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+    status = arg1->status;
+    if (((status >> 16) == 1) || (status == 1)) {
+        if (arg0->field_10 == arg0->field_8) {
+            Gp_SetPreviewItem(item, 0);
+        }
+    }
+    selected = arg0->field_C;
+    if (selected == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            scan       = &D_80072724;
+            weaponIdx  = &D_80073BA9;
+            row        = &Gp_QtyById0[item];
+            ammo       = row->field_1;
+            *weaponIdx = item - 0x7F;
+            Gp_ResetScanDefault();
+            Gp_ClearScanItems(scan);
+            Gp_GiveItem(scan, item, 1);
+            Gp_GiveItem(scan, 0x6C, 1);
+            Gp_EquipMod(0x6C);
+            Gp_GiveItem(scan, ammo, 0x3E7)->field_1 = selected;
+            Gp_EquipRelatedItem(scan, item, ammo, -1);
+            Gp_FillHpMp();
+            arg1->field_2E = 6;
+            SndEvt_EnqueueType6(0x16, 0, 0);
+        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            arg1->status = 0;
+        }
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017E090);
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D65C);
 
