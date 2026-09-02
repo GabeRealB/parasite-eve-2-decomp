@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -68,7 +69,22 @@ void func_mist_parking_80184668(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_12", func_mist_parking_801846A4);
+void func_mist_parking_801846A4(s32 arg0)
+{
+    Gp_ResetCap();
+    switch (arg0) {
+        case 1:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x140, 0x100);
+            break;
+        case 2:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(2);
+            func_800E6D4C(0x2C0, 0);
+            break;
+    }
+}
 
 void func_mist_parking_8018471C(void)
 {
