@@ -37237,3 +37237,37 @@ Two traps follow from doing that *before* running `promote`:
 The order that works: alias the data, scoped-build, land the body in its own
 overlay and scoped-build again so it reads as matched, `promote --rebuild`, add
 the body symbol by hand, then move the body to `src/<family>/lib/`.
+
+## A shared body may call an overlay-local *function*, not just read local data
+
+The alias trick that gets a `Desc`/`Task` global past `promote`'s
+overlay-local-reference refusal works just as well when the reference is a
+`jal` to a sibling function that is still `INCLUDE_ASM`. `func_shelter_b3_dumping_hole_801830F0`
+is two lines and both of them are local:
+
+```c
+RoomsShared801830f0Sub(arg0, arg1, 0xD0);
+Task_SpawnFromTable(&RoomsShared801830f0Desc, 0, arg2, 0);
+```
+
+The callee does not have to be promoted - it only has to stop being *named*
+after one overlay. Give each carrier's copy the same name at its own address in
+`configs/USA/sym/<family>/<overlay>.txt` (`0x80181E70` in the dumping hole,
+`0x8017FD64` in the garbage incinerator) and each link resolves it against its
+own overlay's body:
+
+```
+RoomsShared801830f0Sub = 0x80181E70; // shared body's overlay-local callee, see src/rooms/lib/
+```
+
+Name it after the shared unit that calls it, the way `…Desc` and `…Task` are
+named, rather than after its own vram - `RoomsShared<addr>` on its own means
+"this body lives in `src/<family>/lib/rooms_shared_<addr>.c`", which a merely
+aliased callee does not.
+
+The difference from a data alias is that a **function** alias renames a real
+`INCLUDE_ASM` site. Re-splitting writes `RoomsShared801830f0Sub.s` and deletes
+`func_<overlay>_<vram>.s`, but splat never rewrites an existing `.c`, so every
+carrier's `INCLUDE_ASM(..., func_<overlay>_<vram>);` has to be retargeted by
+hand or the assembler fails on a missing include. Do that rename and a scoped
+build *before* landing the body, so the two edits fail separately.
