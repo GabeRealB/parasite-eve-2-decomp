@@ -1,12 +1,17 @@
 #include "common.h"
 #include <psyq/libgte.h>
+#include "main/display.h"
+#include "main/gamemain.h"
 #include "main/pad.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 
-extern u8 D_mist_parking_80186464[];
+extern u8           D_mist_parking_80186464[];
+extern UiObjectDesc D_mist_parking_80186590;
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017DF68);
 
@@ -57,7 +62,42 @@ void func_mist_parking_8017FDB8(DialogPrompt* prompt, UiObject* obj)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017FE74);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017FF9C);
+void func_mist_parking_8017FF9C(Task* task)
+{
+    UiObject* obj;
+
+    if (task->state == 0) {
+        Display_InitPrimBufOnce();
+        obj = Ui_SpawnFromDesc(&D_mist_parking_80186590, task->spawnArg1, 1, 1, NULL);
+        if (obj == NULL) {
+            return;
+        }
+        GameMain_SetFrameTiming(0);
+        Game_Session->field_2 = 1;
+        task->spawnArg2       = obj;
+        task->state++;
+    }
+
+    if (task->state == 1) {
+        obj = task->spawnArg2;
+        if (obj->field_2E == -1 || obj->field_2E == 6) {
+            Ui_TeardownTree(obj, obj->owner);
+            task->killCountdown = 10;
+            task->state         = 2;
+        }
+    }
+
+    if (task->state == 2) {
+        task->killCountdown--;
+        if (task->killCountdown <= 0) {
+            GameMain_SetFrameTiming(1);
+            Game_Session->field_2 = 0;
+            Task_Kill(task);
+            Stage_ReleasePrimBuf();
+            Stage_SetEndingFlag();
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_801800D0);
 
