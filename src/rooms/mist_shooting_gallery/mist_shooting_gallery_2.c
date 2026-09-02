@@ -178,7 +178,47 @@ void func_mist_shooting_gallery_801801E4(s32 arg0)
         dst->targets[i].z += ofs.z;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180390);
+void func_mist_shooting_gallery_80180390(s32 arg0)
+{
+    MistShootingGalleryLayout* dst    = &D_mist_shooting_gallery_80189968;
+    MistShootingGalleryLayout* src    = &D_mist_shooting_gallery_801851F8;
+    MistShootingGalleryLink*   dlinks = &D_mist_shooting_gallery_80189968.links[3];
+    MistShootingGalleryLink*   slinks = D_mist_shooting_gallery_801851F8.links;
+    MistShootingGalleryPos     ofs;
+    s32                        i;
+    s32                        j;
+
+    for (i = 0; i < 1; i++) {
+        dst->positions[i + 3].x = src->positions[i].x;
+        dst->positions[i + 3].y = src->positions[i].y;
+        dst->positions[i + 3].z = src->positions[i].z;
+        for (j = 0; j < 4; j++) {
+            dlinks->field_00[j] = slinks->field_00[j] + 8;
+        }
+        dlinks->field_08 = slinks->field_08 + 3;
+        dlinks->field_0A = slinks->field_0A;
+        dlinks++;
+        slinks++;
+    }
+    for (i = 0; i < 4; i++) {
+        dst->targets[i + 8].x = src->targets[i].x;
+        dst->targets[i + 8].y = src->targets[i].y;
+        dst->targets[i + 8].z = src->targets[i].z;
+    }
+    if (arg0 == 0) {
+        ofs.x = 0;
+        ofs.y = 0;
+    } else {
+        ofs.x = 0;
+        ofs.y = 0xFA0;
+    }
+    ofs.z = 0;
+    for (i = 0; i < 8; i++) {
+        dst->targets[i + 8].x += ofs.x;
+        dst->targets[i + 8].y += ofs.y;
+        dst->targets[i + 8].z += ofs.z;
+    }
+}
 void func_mist_shooting_gallery_8018055C(DialogPrompt* prompt, UiObject* obj)
 {
     MistShootingGalleryCourseMenu menu;
