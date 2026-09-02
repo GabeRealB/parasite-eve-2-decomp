@@ -2,7 +2,6 @@
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
-extern TaskDesc D_actor_120300_80141B6C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_80131EE0);
 

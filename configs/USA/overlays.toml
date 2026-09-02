@@ -434,7 +434,7 @@ actor_110800 = { }
 actor_111800 = { }
 actor_113000 = { }
 actor_113100 = { shared = [{ start = "0x1104", end = "0x1120", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x28", unit = "actor_113100_2" }] }
-actor_120300 = { shared = [{ start = "0x1FB4", end = "0x1FD4", unit = "actors_shared_8016449c" }, { start = "0x1FD4", end = "0x1FF4", unit = "actors_shared_80162080" }] }
+actor_120300 = { shared = [{ start = "0x1FB4", end = "0x1FD4", unit = "actors_shared_8016449c" }, { start = "0x1FD4", end = "0x1FF4", unit = "actors_shared_80162080" }, { start = "0x20C4", end = "0x20F4", unit = "actors_shared_80134898" }] }
 actor_120400 = { shared = [{ start = "0x994", end = "0x9B4", unit = "actors_shared_801327b4" }, { start = "0x9B4", end = "0x9D0", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x1C", unit = "actor_120400_2" }] }
 actor_120500 = { rodata_head = "0x4" }
 actor_121300 = { shared = [{ start = "0x2544", end = "0x2564", unit = "actors_shared_8016447c" }, { start = "0x2564", end = "0x2584", unit = "actors_shared_8016449c" }, { start = "0x2584", end = "0x25AC", unit = "actors_shared_801343a4" }] }
@@ -444,7 +444,7 @@ actor_123400 = { note = "empty actor slot; the id resolves, the package has no c
 actor_135000 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_135400 = { shared = [{ start = "0x814", end = "0x830", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x5C", unit = "actor_135400_2" }] }
 actor_135600 = { shared = [{ start = "0xF9C", end = "0xFBC", unit = "actors_shared_801327b4" }, { start = "0xFBC", end = "0xFD8", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x28", unit = "actor_135600_2" }] }
-actor_136100 = { }
+actor_136100 = { shared = [{ start = "0x2A78", end = "0x2AA8", unit = "actors_shared_80134898" }] }
 actor_136300 = { }
 actor_140400 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_141000 = { rodata = [{ start = "0x2C", unit = "actor_141000_2" }, { start = "0x38", unit = "actor_141000_3" }], shared = [{ start = "0xFE4", end = "0x1004", unit = "actors_shared_80162850" }, { start = "0x1B9C", end = "0x1BBC", unit = "actors_shared_801327b4" }] }
