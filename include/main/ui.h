@@ -254,7 +254,7 @@ typedef struct _SelectMenuCtx {
 } SelectMenuCtx;
 
 // --- APIs (from unknown_syms) ---
-UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0);
+UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4);
 void      Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3);
 void      Ui_SizeFromTextPlain(UiPanel* arg0, u8* arg1);

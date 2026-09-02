@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/task.h"
+#include "main/ui.h"
 
 #include <psyq/libgte.h>
 
@@ -36,10 +37,24 @@ typedef struct RoomPlacement {
     /* 0x10 */ SVECTOR rot;
 } RoomPlacement;
 
+/// 0x20 work block a room's "show a two-line message" task allocates and parks
+/// in `Task::idMap`: a `TextBlockDesc` handed to `Ui_SpawnTextBlock` followed by
+/// the two `TextLineNode`s the descriptor's list points at, so one allocation
+/// carries both. The room picks which pair of strings to publish from
+/// `Task::spawnArg1`.
+typedef struct RoomTextBlock {
+    /* 0x00 */ TextBlockDesc desc;
+    /* 0x0C */ u8            field_C;
+    /* 0x0D */ byte          pad_D[3];
+    /* 0x10 */ TextLineNode  lines[2];
+} RoomTextBlock;
+STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
+
 // =============================================================================
 // Functions — shared room library (src/rooms/lib)
 // =============================================================================
 
-s32 Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+void Room_Script21(Task* task);
 
 #endif // ROOMS_ROOM_COMMON_H

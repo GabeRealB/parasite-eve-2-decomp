@@ -39523,3 +39523,58 @@ already-matched siblings use (`x`, `y`, `otIndex`, `field_8`, `glyphTable`,
 its own (97.2% vs 95.0%) but does so by dragging the `sw` of the colour into
 the load-delay slot; with the live ranges fixed the sibling order is the one
 that reaches 100%.
+
+## A hoisted invariant lands last in the preheader, so an *early* `li reg, k` is a source-level local
+
+`func_mist_parking_80183304` fills two `TextLineNode`s, picking each line's
+string from one of two halves of a four-pointer table depending on
+`task->spawnArg1 == 1`. Two preheader details decided the last 2%.
+
+**Where the compare constant appears tells you whether it is a variable.**
+GCC 2.8.1's `move_movables` appends every hoisted loop invariant at the *end*
+of the preheader, right before the loop. So `if (task->spawnArg1 == 1)` inside
+the loop always produces its `li reg, 1` after every setup statement:
+
+```
+move  a3, zero        ; i = 0
+lui   v0, %hi(table)
+addiu a1, v0, %lo(table)
+li    a2, 8           ; off = 8
+li    t0, 1           ; <- hoisted, always last
+```
+
+The target had the `li` *second*, before the table address was even formed —
+which no amount of statement reordering can produce, because the hoist happens
+after the source order is fixed. That ordering only exists if the constant was
+already a pseudo in the preheader, i.e. the original source compared against a
+local:
+
+```c
+mode = 1;
+...
+if (arg0->spawnArg1 == mode) { ... }
+```
+
+Nothing is hoisted, the `li` stays where the assignment is, and both the order
+and the resulting `$t0`/`$t1` split fall out. 98.0% -> 99.8%.
+
+**`addu base, off` instead of a walking pointer means the base is an integer.**
+Any pointer-typed base makes the whole address one induction variable: for
+`p[i + 2]`, `p + off` with `u8* p`, or a second index biv `p[j]`, loop.c folds
+the invariant base into the giv's `add_val` and emits one register that walks
+by 4 with the `+8` as the load displacement (`move a2,a1` / `lw v0,8(a2)`).
+Two registers plus an explicit `addu` only survive when the base is a *plain
+integer* and the offset is in bytes:
+
+```c
+table = (s32)Room_StringTable;   /* invariant, $t0 */
+off   = 8;                       /* biv, $a2, += 4  */
+...
+node->text = *(u8**)(off + table);
+```
+
+The operand order of that `addu` is the operand order of the `+`: written
+`table + off` GCC emits `addu v0, t0, a2` and written `off + table` it emits
+`addu v0, a2, t0`. Casting the base to `u8*` and swapping the operands does
+*not* flip it — the base has to be integer-typed for the addition to stay a
+plain two-register add. 99.8% -> 100%.

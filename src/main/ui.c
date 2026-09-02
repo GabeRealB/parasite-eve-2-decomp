@@ -1278,7 +1278,7 @@ void Ui_DrawText(UiPanel* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_)
+UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
 {
     union {
         TaskDesc desc;

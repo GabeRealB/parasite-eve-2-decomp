@@ -3,11 +3,16 @@
 #include "gameplay/3CD8.h"
 #include "main/fs.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/ui.h"
+
+#include "rooms/room_common.h"
 
 extern s16      D_80071076;
+extern u8*      D_mist_parking_8018DF24[4];
 extern Task*    D_mist_parking_80195320;
 extern TaskDesc RoomsShared8018397cDesc;
 extern TaskDesc D_mist_parking_8018D75C;
@@ -75,4 +80,48 @@ void func_mist_parking_8018326C(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_801832AC);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_80183304);
+void func_mist_parking_80183304(Task* arg0)
+{
+    RoomTextBlock* block;
+    TextLineNode*  node;
+    u8**           line;
+    s32            table;
+    s32            off;
+    s32            mode;
+    s32            i;
+
+    block = Mem_Calloc(sizeof(RoomTextBlock), 0);
+    node  = block->lines;
+    if (block == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+
+    i                  = 0;
+    mode               = 1;
+    line               = D_mist_parking_8018DF24;
+    table              = (s32)D_mist_parking_8018DF24;
+    off                = 8;
+    arg0->idMap        = (TaskIdMap*)block;
+    arg0->exitCallback = Room_Script21;
+
+    for (; i < 2; i++) {
+        if (arg0->spawnArg1 == mode) {
+            node->text = *(u8**)(off + table);
+        } else {
+            node->text = *line;
+        }
+        node->next = node + 1;
+        node++;
+        line++;
+        off += 4;
+    }
+    node[-1].next = NULL;
+
+    block->desc.count   = 2;
+    block->desc.lines   = block->lines;
+    block->desc.field_8 = 0;
+    block->field_C      = 0;
+    Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
+    arg0->state++;
+}
