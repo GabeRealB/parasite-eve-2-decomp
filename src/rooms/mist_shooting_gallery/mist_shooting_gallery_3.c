@@ -182,7 +182,15 @@ void func_mist_shooting_gallery_80184A80(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184AE0);
+u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
+{
+    u16 temp = work->field_02;
+
+    if ((temp != 0) && (D_801153F4 == 0)) {
+        work->field_02 = temp - 1;
+    }
+    return work->field_02;
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184B10);
 void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
