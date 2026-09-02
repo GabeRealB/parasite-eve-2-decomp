@@ -96,7 +96,26 @@ s32 func_mist_shooting_gallery_80180000(s32 arg0, s32 arg1, s32 arg2)
     }
     return 0;
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018008C);
+s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    if ((arg2->field_2 == 1) && (D_8014D038 == 0)) {
+        Gp_MsgPlayerWeapon(0);
+        Task_SpawnFromTable(&D_8014E13C, 1, 1, 0);
+        D_80114D08 = 0xA;
+    }
+    if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xED) == 0)) {
+        func_8014AF0C();
+    }
+    if (arg2->field_2 == 3) {
+        func_8014AB6C();
+    }
+    if ((arg2->field_2 == 4) && (GameFlag_GetNibble(0x106) == 0)) {
+        func_800E3FAC(0xA2, 0x3B);
+        GameFlag_SetNibble(0x106, 1);
+        func_800E8634((s32)&D_80153274, 0, (s32)&D_80153D6C);
+    }
+    return 0;
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018018C);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_801801E4);
