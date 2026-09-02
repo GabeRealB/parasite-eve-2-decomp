@@ -92,7 +92,65 @@ void        func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
 /// While `Gp_State1C` is fading (`field_4 != 0`) the effect only redraws; once
 /// the fade is over it seeds a random endpoint around the coordinate's world
 /// position, then fades out by 8 per frame and releases its pool block.
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80182064);
+void func_mist_shooting_gallery_80182064(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    u8             rgb[3];
+    u32            rand0;
+    u32            rand1;
+    u32            rand2;
+
+    work  = (GpEffWork*)task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+
+    if (Gp_State1C->field_4 != 0) {
+        func_mist_shooting_gallery_80182294(coord, work->field_20, 0x600, work->field_26);
+        func_mist_shooting_gallery_801826C4(coord, (SVECTOR*)&work->field_18, work->field_20, 0x600);
+        rgb[0] = (u16)work->field_24 >> 1;
+        rgb[1] = (u16)work->field_24 >> 1;
+        rgb[2] = work->field_24;
+        Gp_DrawFadeQuad(rgb, 1);
+        return;
+    }
+
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            coord->sub        = work->field_8;
+            coord->coord.t[0] = 0;
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = 0;
+            coord->flg        = 0;
+            task->state       = 1;
+
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rand0          = Gp_LcgState;
+            work->field_18 = *(u16*)&coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rand1          = Gp_LcgState;
+            work->field_1A = coord->workm.t[1] - 0x800;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rand2          = Gp_LcgState;
+            work->field_1C = *(u16*)&coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
+            work->field_24 = 0x80;
+            work->field_26 = rand2 >> 16 & 0xFFF;
+        case 1:
+            if (work->field_22 & 1) {
+                func_mist_shooting_gallery_80182294(coord, ++work->field_20, 0x400, work->field_26);
+                func_mist_shooting_gallery_801826C4(coord, (SVECTOR*)&work->field_18, work->field_20, 0x400);
+            }
+            rgb[0] = (u16)work->field_24 >> 1;
+            rgb[1] = (u16)work->field_24 >> 1;
+            rgb[2] = work->field_24;
+            Gp_DrawFadeQuad(rgb, 1);
+            work->field_24 -= 8;
+            if (work->field_24 < 8) {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            return;
+    }
+}
 /// Draws one frame of the gallery's muzzle flash: a semi-transparent
 /// `POLY_FT4` centred on the effect coordinate's world position, projected by
 /// a single `RTPS`. Its half-size is `arg2 * 39 / otz`, and the four corners
