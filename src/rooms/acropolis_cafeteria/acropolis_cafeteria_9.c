@@ -192,5 +192,24 @@ void func_acropolis_cafeteria_8018286C(Task* task)
         Tmd_AllocBuffers(tmd);
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182954);
+void func_acropolis_cafeteria_80182954(Task* task)
+{
+    TmdObject* tmd;
+
+    tmd = (TmdObject*)task->extra;
+    if ((Gp_GetViewIndex() & 0xFF) != 9) {
+        tmd->field_C = 0x80;
+        return;
+    }
+    tmd->field_1C = &D_acropolis_cafeteria_8018D640;
+    tmd->field_20 = &D_acropolis_cafeteria_8018D620;
+    if (Gp_GetCurBit2Flag(0xA) == 2) {
+        tmd->field_C |= 0x80;
+    } else {
+        tmd->field_C = 8;
+        tmd->field_E = 0;
+        Tmd_AllocBuffers(tmd);
+    }
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, 0x400, 1);
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182A08);
