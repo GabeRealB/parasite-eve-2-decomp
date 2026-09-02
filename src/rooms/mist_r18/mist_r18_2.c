@@ -3,9 +3,12 @@
 #include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/mist_r18.h"
 
 void func_mist_r18_8017DF80(s32 arg0);
 void func_mist_r18_8017E144(s16 arg0);
+void func_mist_r18_8017E448(MistR18Sprite* sprite);
+void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
 
 /// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
 extern s32      D_mist_r18_80184EE4;
@@ -19,7 +22,33 @@ void func_mist_r18_8017E39C(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E3A4);
+/// Redraw the room's sprite rectangle each frame until the spawn countdown in
+/// `Task::spawnArg1` runs out, then kill the task.
+void func_mist_r18_8017E3A4(Task* task)
+{
+    MistR18Sprite       sprite;
+    MistR18SpriteSpawn* spawn;
+
+    spawn = task->spawnArg2;
+
+    if (task->state == 0) {
+        sprite.x         = spawn->x;
+        sprite.y         = spawn->y;
+        sprite.w         = spawn->w;
+        sprite.h         = spawn->h;
+        sprite.b         = 0;
+        sprite.g         = 0;
+        sprite.r         = 0;
+        sprite.semiTrans = 1;
+        func_mist_r18_8017E448(&sprite);
+        func_mist_r18_8017E654(0, 0, 0, 5);
+
+        if (--task->spawnArg1 > 0) {
+            return;
+        }
+    }
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E448);
 
