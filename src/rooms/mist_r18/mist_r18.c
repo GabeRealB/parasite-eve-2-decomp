@@ -7,7 +7,6 @@
 #include "main/session.h"
 
 s32  func_8017A038(void);
-void Room_Draw42(s32 tpage, s16 arg1);
 void func_mist_r18_8017DBB8(s32 shade, s16 arg1);
 
 extern u8 D_80071075;
@@ -150,52 +149,9 @@ void func_mist_r18_8017DD7C(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DF80);
-
-/// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
-/// slot 8, tinting both with `shade`, then append each half's tpage.
-void func_mist_r18_8017E144(s16 shade)
-{
-    SPRT* p;
-
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
-    setSprt(p);
-    setSemiTrans(p, 1);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = 0;
-    p->v0   = 0;
-    p->x0   = -0xA0;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0xC0;
-    p->h    = 0xF0;
-    addPrim(Gpu_CurrentOt + 8, p);
-    Room_Draw42(0x340, 0);
-
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
-    setSprt(p);
-    setSemiTrans(p, 1);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = 0;
-    p->v0   = 0;
-    p->x0   = 0x20;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0x80;
-    p->h    = 0xF0;
-    addPrim(Gpu_CurrentOt + 8, p);
-    Room_Draw42(0x280, 0x100);
-}
-
 INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017E2C8);
+INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5C4);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5D0);
 

@@ -37910,3 +37910,67 @@ sb    s7, 0x7(a3)        # s7 = 0x66
 
 A lone `sb` of a fused primitive code is therefore the signature of
 `setXxx(p); setSemiTrans(p, 1);`, not of a hand-written literal.
+
+## A parameter's declared width decides whether it gets caller-saved in `$t0`
+
+`func_mist_r18_8017DF80` fills two `SPRT`s from one colour argument, and the
+target keeps it in a caller-saved register with an explicit spill around the
+first `jal`:
+
+```
+move  t0, a0
+...
+jal   Room_Draw42
+ sw   t0, 0x10(sp)       # caller-save
+lw    t0, 0x10(sp)       # restore
+sb    t0, 0x4(a3)
+```
+
+Declared `s16` (matching the sibling emitter in the same TU) the value instead
+won `$fp`, a callee-saved register, the frame shrank by 8, and the `-0x78`
+`y0` constant lost its register and got rematerialised at both uses — 57 `regs`
+penalties from one wrong keyword. Declaring the parameter `s32` produced the
+target's allocation exactly, 86.7% → 99.5%.
+
+The mechanism is `CALLER_SAVE_PROFITABLE(refs, calls) = 4 * calls < refs` in
+GCC 2.8.1's `find_reg`: when it holds, the allocno takes a call-clobbered
+register and `caller-save` brackets the call, freeing a callee-saved register
+for the next candidate. A narrower parameter type changes the pseudo's
+reference count and flips that test. So when the frame is 8 bytes larger than
+yours and the extra slot is written once before a call and read once after,
+suspect the *width* of an argument, not the body — and prefer the wider type
+even when a neighbouring function in the same TU uses the narrow one.
+
+## Two copies of one primitive fill can need different field-store orders
+
+The same function stores `x0`/`u0`/`v0` in a different source order in its two
+halves. Half one is `r,g,b, u0,v0, x0,y0`; half two is `r,g,b, x0, u0,v0, y0`.
+This is not cosmetic: the halves schedule differently because half two's `r,g,b`
+stores wait on the caller-save reload, and moving `x0` across `u0`/`v0` also
+shortens the `-0x78` live range enough to permute which callee-saved register
+each hoisted constant gets. With the halves written identically the score
+stalls at 99.5% (`reorder=1`); the asymmetric order is 100%. When only a store
+or two is out of place and everything else matches, sweep the per-half store
+orders rather than reaching for pins.
+
+## Promoting a shared body mid-unit renumbers the overlay's units
+
+`overlay_dup_index.py promote` writes the `shared` span and the per-overlay
+symbol, but a span carved out of the *middle* of a code unit splits that unit in
+two and shifts every later unit's number up by one. Two follow-ups are needed
+and neither is automatic:
+
+- Renumber `src/<family>/<overlay>/<overlay>_N.c` from the highest down, fixing
+  the unit name inside each file's `INCLUDE_ASM` strings. Delete the `.c` on
+  each side of the new cut and re-split so splat writes the two halves itself,
+  then paste the decompiled bodies back.
+- Re-point any `rodata` entry in `configs/USA/overlays.toml` whose `unit` names
+  a shifted unit. Missing this is quiet: the jump tables migrate to whichever
+  unit now carries that number, splat emits `INCLUDE_RODATA` lines for them in
+  the wrong `.c`, and the functions that actually use them lose their tables.
+  `grep -rl jtbl_<overlay>_<addr> asm/…` names the unit the block belongs to.
+
+Splat invoked directly (rather than through `ninja_config.py`) writes
+`INCLUDE_ASM("asm/USA/<family>/nonmatchings/…")`; the tree's convention is
+`INCLUDE_ASM("<family>/nonmatchings/…")`, so strip the prefix after a manual
+re-split.
