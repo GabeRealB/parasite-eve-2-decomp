@@ -98,7 +98,57 @@ void func_mist_r18_8017DA8C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DBB8);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DD7C);
+/// Blit the room's backdrop out of the off-screen VRAM staging area into the
+/// two framebuffer halves, bracketing both `MoveImage`s with STP writes so the
+/// copied pixels keep their mask bit. The source row depends on which display
+/// buffer is live, then the task advances a state.
+void func_mist_r18_8017DD7C(Task* task)
+{
+    RECT     rect;
+    DR_STP*  stp;
+    DR_MOVE* mv;
+    s16      x;
+    s16      y;
+
+    if (Display_State.field_1f == 0) {
+        x = 0;
+        y = 0;
+    } else {
+        x = 0;
+        y = 0x110;
+    }
+
+    stp            = (DR_STP*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 0);
+    addPrim(Gpu_CurrentOt + 8, stp);
+
+    mv             = (DR_MOVE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+    rect.x         = x;
+    rect.y         = y;
+    rect.w         = 0xC0;
+    rect.h         = 0xF0;
+    SetDrawMove(mv, &rect, 0x340, 0);
+    addPrim(Gpu_CurrentOt + 8, mv);
+
+    mv             = (DR_MOVE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+    rect.x         = x + 0xC0;
+    rect.y         = y;
+    rect.w         = 0x80;
+    rect.h         = 0xF0;
+    SetDrawMove(mv, &rect, 0x280, 0x100);
+    addPrim(Gpu_CurrentOt + 8, mv);
+
+    stp            = (DR_STP*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 1);
+    addPrim(Gpu_CurrentOt + 8, stp);
+
+    task->killCountdown = 0;
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DF80);
 
