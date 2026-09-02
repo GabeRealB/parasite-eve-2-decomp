@@ -587,6 +587,7 @@ void Actor00700_Fn01CF0(Actor00700* arg0);
 void Actor00700_Fn01D80(Actor00700* arg0);
 void Actor00700_Fn01E44(Actor00700* arg0);
 void Actor00700_Fn01E9C(Actor00700* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern u8 D_801153F4;
 
@@ -747,7 +748,17 @@ void Actor00700_Fn01D80(Actor00700* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01E44);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01E9C);
+void Actor00700_Fn01E9C(Actor00700* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR3        vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x1C0, 0x80);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01EEC);
 
