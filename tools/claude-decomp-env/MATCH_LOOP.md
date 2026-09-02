@@ -5,7 +5,12 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 1. First `./build.sh base.c` is a **baseline**. Minimal edits so it compiles. Do not rewrite m2c or a give-up seed from the asm before that score.
 2. Prefer already-matched siblings in the same TU (BRIEF.md) over m2c gotos. Write each attempt as `base_N.c`.
 3. Plan the next edit from the **penalty mix + dumps**, not from the object-dump / asm-differ alone.
-4. Grep `DECOMPILATION_LEARNINGS.md` for the mismatch. Do not read that file end-to-end.
+4. Search the learnings corpus with `python3 tools/learn.py <terms>` — it ranks whole
+   sections, where a raw grep returns hundreds of context-free lines ("delay slot"
+   appears in 286 sections but only 16 titles). `--show N` prints the top N in full.
+   Never read `DECOMPILATION_LEARNINGS.md` end-to-end; it is 1.3 MB.
+   If `CODEGEN_MODEL.md` is present, read it first — it is the general model the
+   corpus entries are instances of, and it is short.
 
 `build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`). At ≥90% it runs `./dump.sh` and prints a **NEXT:** line naming dump files. The printed summary is not enough — **open those files** (`base_N.i.lreg`, …) before the next C edit. You can also run `./dump.sh base_N.c` by hand.
 

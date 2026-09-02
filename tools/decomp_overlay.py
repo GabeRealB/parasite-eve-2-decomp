@@ -484,7 +484,12 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "## STRUCT_FIELDS.md hits",
         fields or "(none)",
         "",
-        "Grep `DECOMPILATION_LEARNINGS.md` for the mismatch pattern.",
+        "Search learnings with `python3 tools/learn.py <terms>` (ranks whole sections; "
+        "a raw grep returns context-free lines). `CODEGEN_MODEL.md`, if present, is "
+        "the short general model — read it before the corpus.",
+        "If a match reaches 100.00% with all-zero penalties and still fails the scoped "
+        "build, it is rodata placement, not codegen: run `python3 tools/rodata_triage.py "
+        "<overlay>`. A generated jump table must own *and start* its unit's .rodata.",
         "Do not read that file end-to-end.",
         "New types for this overlay live under its own `include/`, not `include/main/unknown_syms.h`.",
     ]

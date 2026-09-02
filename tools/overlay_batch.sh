@@ -160,6 +160,9 @@ fi
 # a failure with no error message attached to it.
 ln -sfn "$ROOT/assets" "$WT/assets"
 ln -sfn "$ROOT/venv" "$WT/venv"
+# local/ is gitignored, so a fresh worktree lacks it; the scratch envs created
+# inside this worktree link CODEGEN_MODEL.md from here.
+[[ -d "$ROOT/local" ]] && ln -sfn "$ROOT/local" "$WT/local" || true
 for d in m2c maspsx asm-differ decomp-permuter; do
     # `[[ ... ]] && continue` returns 1 when the test is false, which fires the
     # ERR trap and silently released the lease while the script carried on

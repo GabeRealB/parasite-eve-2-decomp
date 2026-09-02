@@ -475,6 +475,11 @@ rm -f "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"
 cp "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"
 ln -sfn "${CLAUDE_CONFIG}" "$created_dir/"
 ln -sfn "$ROOT/DECOMPILATION_LEARNINGS.md" "$created_dir/"
+# The distilled model lives in the gitignored local/ tree, so a fresh worktree
+# does not have it. Link it when it exists; MATCH_LOOP.md tells the agent to
+# read it before the corpus, and says "if present" so its absence is harmless.
+[[ -f "$ROOT/local/CODEGEN_MODEL.md" ]] && \
+    ln -sfn "$ROOT/local/CODEGEN_MODEL.md" "$created_dir/" || true
 
 # Carrying the host includes across makes the seed's types resolve, but it also
 # puts m2c's guessed prototypes next to the real ones. Let the compiler say
