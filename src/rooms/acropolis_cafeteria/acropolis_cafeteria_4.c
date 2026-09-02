@@ -25,7 +25,24 @@ s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 /// Handler for slot-7 msg `0x13EF`: the directed action selected by `field_2`.
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E154);
+s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+{
+    if (arg2->field_2 == 0) {
+        if (D_acropolis_cafeteria_80184164 >= 2 || GameFlag_GetNibble(0) >= 2) {
+            Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 1, 0, 0);
+            return 0;
+        }
+    }
+    if (arg2->field_2 == 2) {
+        Gp_RunCapCmd1(9);
+    } else if (arg2->field_2 == 3) {
+        if (D_acropolis_cafeteria_80184164 == 0 && GameFlag_GetNibble(0) == 1) {
+            D_acropolis_cafeteria_80184164 = 1;
+            Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 0, 0, 0);
+        }
+    }
+    return 0;
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E22C);
 void func_acropolis_cafeteria_8017E27C(s32 arg0)
 {
