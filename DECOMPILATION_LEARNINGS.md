@@ -37195,3 +37195,45 @@ scratch `base_N.c` that only has `common.h` must include `libgte.h` first:
 ```
 
 Once the function is ported into the host `.c`, the sorted order is fine again.
+
+## Alias a shared body's overlay-local data before `promote`, and re-check the body symbol
+
+`overlay_dup_index.py promote` refuses a body that references its own overlay's
+data, and that refusal covers *every* local symbol the body touches - the task
+descriptor it spawns from **and** the global it stores the spawned `Task*` into.
+`func_dryfield_main_street_8017E320` is three lines and still tripped it twice:
+
+```c
+RoomsShared8017e320Task = Task_SpawnFromTable(&RoomsShared8017e320Desc, 1, 0, 0);
+```
+
+The way through is to give each carrier's copy of those symbols the *same* name
+in `configs/USA/sym/<family>/<overlay>.txt`, at that overlay's own address, then
+re-split so the disassembly stops naming them `D_<overlay>_<vram>`:
+
+```
+RoomsShared8017e320Desc = 0x8018156C; // shared body data, see src/rooms/lib/
+RoomsShared8017e320Task = 0x80185630; // shared body data, see src/rooms/lib/
+```
+
+Do the same rename in any already-matched `.c` that used the old name - a sibling
+function zeroing the same global - or the link fails on the stale symbol.
+
+Two traps follow from doing that *before* running `promote`:
+
+- **`promote` skips writing the body symbol when a `…Desc` alias already exists.**
+  It guards with `if sym not in sym_text`, a substring test, and
+  `RoomsShared8017e320Desc` contains `RoomsShared8017e320`. The configs then look
+  complete, the build re-splits, and the *data* section still emits
+  `func_dryfield_main_street_8017E320` for the descriptor's callback word:
+  `undefined reference to 'func_…'` out of `<overlay>_data.data.s.o`. Add
+  `RoomsShared<addr> = 0x<vram>; // shared body, see src/<family>/lib/` to each
+  carrier by hand.
+- **A stale `nonmatchings/*.s` makes the body look like two copies in one
+  overlay** ("every overlay carrying it contains it twice; cannot share"), because
+  matching it in its own overlay writes `matchings/` without removing the old
+  file. `rm` it and re-run `promote --rebuild`.
+
+The order that works: alias the data, scoped-build, land the body in its own
+overlay and scoped-build again so it reads as matched, `promote --rebuild`, add
+the body symbol by hand, then move the body to `src/<family>/lib/`.

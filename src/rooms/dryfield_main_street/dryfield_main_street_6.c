@@ -1,3 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_6", func_dryfield_main_street_80180234);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_6", func_dryfield_main_street_8017F94C);
