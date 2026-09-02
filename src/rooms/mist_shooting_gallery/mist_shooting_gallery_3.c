@@ -110,7 +110,43 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 /// texture page: bit 0 picks the left or right half and bit 1 the upper or
 /// lower row. Nothing is drawn if either endpoint projects off-screen.
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801826C4);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80182B1C);
+void func_mist_shooting_gallery_80182B1C(Task* arg0)
+{
+    GpActorWork*             slot;
+    GameActor*               actor;
+    MistShootingGalleryWork* work;
+
+    slot  = (GpActorWork*)Game_GetPtrSlot(3);
+    actor = slot->actor;
+
+    work        = (MistShootingGalleryWork*)Mem_Calloc(0x24, 0);
+    arg0->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+
+    D_mist_shooting_gallery_8018E0C4 = arg0;
+    arg0->exitCallback               = func_mist_shooting_gallery_80184A80;
+    arg0->state++;
+    work->difficulty = arg0->spawnArg1 & 0xF;
+    work->field_0C   = -0xDC;
+
+    ((GpActorD4Rec*)actor->field_14C)->field_4 =
+        (((GpActorD4Rec*)actor->field_14C)->field_C + D_80112F60[D_80073BA9]) << 1;
+    func_801066DC(slot, 1);
+
+    if (work->difficulty < 3) {
+        Gp_StateC08.field_6 |= 2;
+        if (work->difficulty < 2) {
+            actor->field_97B = 1;
+            Display_AcquireRef();
+        }
+    }
+    Gp_StateF0.field_0      = 0;
+    Game_Session->field_126 = 0;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+}
 /// Per-frame update for the gallery's bonus course. START (`0x100`) aborts the
 /// whole mini-game; otherwise the seventeen states run the banner countdown
 /// (`field_20` steps the sprite, `D_80072310` picks which variant), seed the
