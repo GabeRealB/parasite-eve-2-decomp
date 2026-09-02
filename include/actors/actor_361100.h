@@ -8,9 +8,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_361100_80163410` (`Mem_Calloc(0x4A4)`)
+/// Work block allocated by `func_actor_361100_80162D28` and
+/// `func_actor_361100_80163410` (`Mem_Calloc(0x4A4)`)
 /// and parked in that task's `Task::idMap` slot -- that slot is not a
-/// `TaskIdMap` here. `func_actor_361100_801634B4` republishes the two matrices
+/// `TaskIdMap` here. `func_actor_361100_80162E04` and
+/// `func_actor_361100_801634B4` republish the two matrices
 /// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
@@ -34,6 +36,7 @@ typedef struct Actor361100Work {
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
+void func_actor_361100_80162E04(Task* arg0);
 void func_actor_361100_801634B4(Task* arg0);
 
 #endif
