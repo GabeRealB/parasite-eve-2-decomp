@@ -484,7 +484,28 @@ void func_mist_shooting_gallery_8017F98C(DialogPrompt* arg0, UiObject* arg1)
         D_80072177 = (u8)arg0->field_8;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FA38);
+s32 func_mist_shooting_gallery_8017FA38(s32 score)
+{
+    s32 value;
+
+    switch (D_80072177) {
+        case 3:
+            return 0;
+        case 2:
+            value = score / 100;
+            break;
+        case 1:
+            value = score / 20;
+            break;
+        default:
+            value = score / 10;
+            break;
+    }
+    if (value > 999999) {
+        value = 999999;
+    }
+    return value;
+}
 void func_mist_shooting_gallery_8017FAE8(Task* task)
 {
     UiObject*                    obj   = task->spawnArg2;
