@@ -1,4 +1,12 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+
+extern u8 D_mist_parking_80186464[];
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017DF68);
 
@@ -28,7 +36,24 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017F938);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017FDB8);
+void func_mist_parking_8017FDB8(DialogPrompt* prompt, UiObject* obj)
+{
+    TextDrawReq req;
+
+    req.x          = obj->baseX + (u16)prompt->field_18;
+    req.y          = obj->baseY + (u16)prompt->field_1A;
+    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.field_8    = prompt->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_mist_parking_80186464);
+
+    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        SndEvt_EnqueueType6(0x16, 0, 0);
+        obj->field_2E = 6;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017FE74);
 
