@@ -50,6 +50,17 @@ typedef struct RoomTextBlock {
 } RoomTextBlock;
 STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
 
+/// Per-item shop stock row (`D_8010E138`, the tail of `Gp_QtyById0` covering
+/// item ids 0xA0-0xBF). `perBuy` is how many units one purchase adds and
+/// `maxHeld` the ceiling the shop will stock the player up to, so the row
+/// handler offers at most `(maxHeld - held + perBuy - 1) / perBuy` purchases.
+typedef struct RoomShopStock {
+    /* 0x00 */ u8   perBuy;
+    /* 0x01 */ byte pad_1[1];
+    /* 0x02 */ u16  maxHeld;
+} RoomShopStock;
+STATIC_ASSERT_SIZEOF(RoomShopStock, 0x4);
+
 /// View of the task that owns a shop / vending-machine panel, used by the row
 /// handlers in the parking and shelter rooms. `Task` declares offset 0x34 as a
 /// single `s32 spawnArg1`, but the shop tasks keep a mode in its upper halfword
@@ -71,11 +82,54 @@ typedef struct RoomShopList {
 } RoomShopList;
 STATIC_ASSERT_SIZEOF(RoomShopList, 0xA4);
 
+/// 0xC4 work block the "Play Data" item-usage panel allocates and parks in
+/// `Task::idMap`. The builder walks item ids 0x80-0x9F, keeps the ones the save
+/// has a non-zero use count for, and fills three parallel arrays indexed by the
+/// row the list is drawing: the item id, the share of all recorded uses in
+/// hundredths of a percent (0-10000, printed as `NN.NN%`), and the width of the
+/// row's gauge as a 12-bit fraction of the panel's inner width. The tail of the
+/// allocation is unused.
+typedef struct RoomItemUsage {
+    /* 0x00 */ s16  itemIds[0x20];
+    /* 0x40 */ s16  percents[0x20];
+    /* 0x80 */ s16  barWidths[0x20];
+    /* 0xC0 */ byte pad_C0[0x4];
+} RoomItemUsage;
+STATIC_ASSERT_SIZEOF(RoomItemUsage, 0xC4);
+
+/// 0xC4 work block the "Play Data" PE-usage panel allocates and parks in
+/// `Task::idMap`, laid out exactly like `RoomItemUsage`. The builder walks the
+/// twelve Parasite Energy slots, keeps the ones the save has a non-zero use
+/// count for, and fills three parallel arrays indexed by the row the list is
+/// drawing: the id of the slot's known level, that slot's share of all recorded
+/// uses in hundredths of a percent (0-10000, printed as `NN.NN%`), and the
+/// width of the row's gauge as a 12-bit fraction of the panel's inner width.
+/// The tail of the allocation is unused.
+typedef struct RoomPeUsage {
+    /* 0x00 */ s16  peIds[0x20];
+    /* 0x40 */ s16  percents[0x20];
+    /* 0x80 */ s16  barWidths[0x20];
+    /* 0xC0 */ byte pad_C0[0x4];
+} RoomPeUsage;
+STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
+
 // =============================================================================
 // Functions — shared room library (src/rooms/lib)
 // =============================================================================
 
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_Script21(Task* task);
+
+/// Fills the "Play Data" item-usage panel's `RoomItemUsage` block from the
+/// save's per-item use counters, then seeds `list` with the row count.
+void RoomsShared80180c98(UiList* list, UiObject* obj);
+
+/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the save's
+/// per-slot Parasite Energy use counters, then seeds `list` with the row count.
+void RoomsShared80180f94(UiList* list, UiObject* obj);
+
+/// Appends `item` to the shop list the panel's task owns, keeping one entry per
+/// item kind (a higher level of the same kind replaces the entry it finds).
+void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item);
 
 #endif // ROOMS_ROOM_COMMON_H

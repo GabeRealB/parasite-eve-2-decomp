@@ -177,7 +177,9 @@ typedef struct _McSaveData {
     /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (Gp_GetModLevel)
     /* 0x928 */ byte       unknown_928[0x1];
     /* 0x929 */ s8         field_929;
-    /* 0x92A */ byte       unknown_92A[0x12];
+    /* 0x92A */ byte       unknown_92A[0xA];
+    /* 0x934 */ s32        field_934; // parking-lot shop: bitmask of the 13 price tiers whose stock is offered
+    /* 0x938 */ u32        field_938; // parking-lot shop: 12 two-bit per-slot stock levels
     /* 0x93C */ u16        field_93C;
     /* 0x93E */ byte       unknown_93E[0x2];
     /* 0x940 */ u16        field_940;

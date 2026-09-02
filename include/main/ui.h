@@ -209,7 +209,9 @@ extern UiPanelFuncTable6 Ui_ObjectStates;
 /// field_1C is data passed through to Text_DrawPrompt; field_20/field_22 are
 /// state halfwords set on confirm (field_22 also on the alternate confirm path).
 typedef struct _DialogPrompt {
-    /* 0x00 */ byte unknown_0[0x8];
+    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x04 */ u8   field_4; // row count (last row is field_4 - 1)
+    /* 0x05 */ byte unknown_5[0x3];
     /* 0x08 */ s8   field_8;
     /* 0x09 */ byte unknown_9[0x2];
     /* 0x0B */ s8   field_B;
