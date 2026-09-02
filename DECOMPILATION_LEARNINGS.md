@@ -37116,3 +37116,62 @@ so the block *starts* with the register op. `func_shelter_b6_nursery_8017FD3C`
 is the unsolved example — `SndEvt_EnqueueType6(task->spawnArg2, 0, 0)` always
 expands a0 first, so the block begins with the load and the slot stays a `nop`
 (92.75%).
+
+## `&local` passed to two back-to-back calls: CSE costs a callee-saved register
+
+Two consecutive calls on the same stack local
+
+```c
+Gp_SyncAreaKeyIndex(&key);
+rec = Gp_GetNestedAreaRec(&key);
+```
+
+expand to `(set p (plus fp N))` / `(set a0 p)` per call; CSE merges the two
+`p`s, and because the survivor is live across the first `jal` it takes a
+callee-saved register. That shows up as an extra `sw sN` in the prologue, a
+frame 8 bytes larger, `move a0, sN` in both arg slots, and every other
+callee-saved register shifted up one. The ROM instead rematerializes
+`addiu a0, sp, key` for each call.
+
+Force it with a non-volatile barrier plus a `+r` touch on the pointer, and
+split the *last* store into the local so that store — not the touch — is the
+insn immediately before the `jal` (otherwise `dbr` cannot pull it into the
+delay slot and fills it from after the second call):
+
+```c
+key.field_1 = src->field_1;
+b0          = src->field_0;   /* load split out */
+SOFT_BARRIER();               /* keeps the addiu next to the call */
+kp = &key;
+TOUCH_REG(kp);                /* invalidates the CSE entry for &key */
+key.field_0 = b0;             /* fills the jal delay slot */
+Gp_SyncAreaKeyIndex(kp);
+rec = Gp_GetNestedAreaRec(&key);   /* fresh addiu */
+```
+
+Each piece is load-bearing: `SOFT_TOUCH_REG` (non-volatile) leaves the pointer
+in `$v0` plus a `move a0, v0`; `SCHED_BARRIER` in place of `SOFT_BARRIER`
+works too, but a volatile touch *after* the last store blocks the delay slot;
+and without the barrier the `addiu` floats up into an earlier load delay and
+the function comes out one insn short. `Actor02000_Fn0251C` is the example
+(99.19% / 99.62% / 99.82% for the three near misses).
+
+## One `GsCOORDINATE2*` base local per `Gp_LinkObj` block
+
+Repeated `obj.field_8 = &actor->field_2C->field_8[N]` blocks want the two loads
+hoisted to the top of the block and the `+N*0x50` left next to the store
+(`lw v1, 8(v0)` … `addiu v1, v1, 0x140` / `sw v1`). Writing the expression
+inline emits all three at the end; a single reused base local emits the add
+into a *third* register (`addiu a2, v1, 0x140`). Give each block its own base
+local so the pseudo dies at the add and ties to the loaded register:
+
+```c
+partsA                  = actor->field_2C->field_8;
+work->field_47C.field_C = &work->field_49C;
+/* … */
+work->field_47C.field_8 = &partsA[4];
+Gp_LinkObj(3, &work->field_47C);
+```
+
+`Actor02000_Fn0251C` links four objects this way; sharing one local across all
+four cost 20 register penalties.

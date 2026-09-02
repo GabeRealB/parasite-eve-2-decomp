@@ -1,7 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_102000.h"
+#include "main/fs.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/tmd.h"
 
 void Gp_ArmStateF0(s32 arg0);
 void Actor02000_Fn00CD0(Actor02000* arg0);
@@ -143,14 +146,14 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L00A9C);
 /// shared state-F0 slot.
 void Actor02000_Fn00AEC(Actor02000* arg0)
 {
-    Actor02000Work*  work;
-    Actor02000Spawn* spawn;
-    GsCOORDINATE2*   self;
-    u8*              head;
-    s16              state;
-    s16              delta;
-    s32              ang;
-    s32              param;
+    Actor02000Work* work;
+    Actor02000Ctx*  spawn;
+    GsCOORDINATE2*  self;
+    u8*             head;
+    s16             state;
+    s16             delta;
+    s32             ang;
+    s32             param;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
     *(u8**)G_SCRATCH_HEAD = head - 0x10;
@@ -322,24 +325,24 @@ void Actor02000_Fn012E0(Actor02000* arg0)
     switch (state) {
         case 0:
             if (work->field_6AA == 0) {
-                work->field_694 = 0x16;
-                work->field_6A8 = 1;
-                work->field_6B8 = 1;
-                work->field_6AE = 0x42;
-                work->field_4E0 = -0xA7;
+                work->field_694          = 0x16;
+                work->field_6A8          = 1;
+                work->field_6B8          = 1;
+                work->field_6AE          = 0x42;
+                work->field_4CC.field_14 = -0xA7;
             } else {
-                work->field_694 = 0x1A;
-                work->field_6A8 = 1;
-                work->field_6B8 = 2;
-                work->field_6AE = 0x31;
-                work->field_4E0 = 0x109;
+                work->field_694          = 0x1A;
+                work->field_6A8          = 1;
+                work->field_6B8          = 2;
+                work->field_6AE          = 0x31;
+                work->field_4CC.field_14 = 0x109;
             }
-            work->field_4E8          = 0x15E;
+            work->field_4CC.field_1C = 0x15E;
             work->field_69C          = 0;
             work->field_69E          = 0;
             work->field_6DE          = 1;
-            work->field_4EA         |= 0x4000;
-            work->field_582         &= 0xBFFF;
+            work->field_4CC.flags   |= 0x4000;
+            work->field_564.flags   &= 0xBFFF;
             arg0->field_20->field_4C = 0;
             work->field_6D4          = 1;
             break;
@@ -588,31 +591,239 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L024E8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L024EC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn0251C);
+void                 Gp_DestroyEnemy(Actor02000Ctx* ctx, Actor02000* actor);
+void                 Gp_LinkNode(Actor02000Node* node);
+void                 func_800B3F84(Actor02000Work* arg0, void* arg1, TmdObject* arg2, void* arg3,
+                                   Actor02000AnimSlots* arg4);
+void                 Gp_AnimResetSlot(Actor02000Work* arg0, s32 arg1, s32 arg2);
+void                 Gp_IncStateF0Ref(s32 arg0);
+void                 Gp_LinkObj(s32 arg0, Actor02000Obj* arg1);
+void                 Gp_InitRec18Table(Actor02000Rec18* arg0, s32 arg1, s32 arg2);
+Actor02000Eff*       Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void* parent);
+void                 Gp_SyncAreaKeyIndex(Actor02000AreaKey* arg0);
+Actor02000AreaTable* Gp_GetNestedAreaRec(Actor02000AreaKey* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L02580);
+extern void           Actor02000_D15FE8;
+extern s16            Actor02000_D15FD0[];
+extern u16*           Actor02000_D15FB8[];
+extern Actor02000Desc Actor02000_D15D10[];
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L025F0);
+/// Enemy init. Allocates the 0x6E4-byte work block, points the model object at
+/// the light / color matrices inside it, runs the animation context over its
+/// nineteen slots, and spawns the companion enemy from `Actor02000_D15FD0`,
+/// copying that model's texture page and CLUT row out of the current area
+/// record. `Actor02000Ctx.field_4B` then selects the variant: 0 builds the
+/// full object set (list node, the four `Gp_LinkObj` nodes and their
+/// `Actor02000Rec18` tables, and the optional CD prefetch of `field_6D6`),
+/// while 1 and 2 only prime the animation state and hand the task to state 2.
+void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
+{
+    Actor02000Work*      work;
+    TmdObject*           obj;
+    TmdObject*           model;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       parts;
+    GsCOORDINATE2*       partsA;
+    GsCOORDINATE2*       partsB;
+    GsCOORDINATE2*       partsC;
+    GsCOORDINATE2*       effParts;
+    Actor02000AreaKey*   sessionKey;
+    Actor02000AreaKey*   keyPtr;
+    u8                   areaByte0;
+    Actor02000AreaTable* rec;
+    Actor02000AreaRec*   entry;
+    Actor02000Eff*       eff;
+    u16*                 tbl;
+    u8                   param1[8];
+    u8                   param2[8];
+    Actor02000AreaKey    key;
+    s32                  i;
+    s32                  one;
+    s32                  kind;
+    s32                  idx;
+    s32                  param;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L026B0);
+    obj   = actor->field_2C;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x6E4, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(ctx, actor);
+        return;
+    }
+    actor->field_1C = work;
+    obj->field_C    = 0;
+    coord->flg      = 0;
+    obj->field_1C   = &work->field_45C;
+    obj->field_20   = &work->field_43C;
+    work->field_6CA = 0x14;
+    work->field_66C = Actor02000_D15FD0;
+    work->field_670 = &actor->field_2C->field_8[3];
+    work->field_674 = 0x500;
+    work->field_676 = 2;
+    func_800B3F84(work, &Actor02000_D15FE8, obj, work->field_30C, &work->field_14);
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimResetSlot(work, i, 1);
+    }
+    eff         = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
+    sessionKey  = (Actor02000AreaKey*)&Game_Session->field_4;
+    model       = eff->task->field_2C;
+    idx         = ctx->field_8 >> 12;
+    key.field_3 = sessionKey->field_3;
+    key.field_2 = sessionKey->field_2;
+    key.field_1 = sessionKey->field_1;
+    areaByte0   = sessionKey->field_0;
+    /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
+       pseudo that is live across the first call, costing a callee-saved
+       register; the ROM rematerializes `addiu a0, sp, key` for each call. The
+       barrier keeps the address materialization next to the call and the
+       `+r` touch makes the second one a fresh computation. */
+    SOFT_BARRIER();
+    keyPtr = &key;
+    TOUCH_REG(keyPtr);
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(keyPtr);
+    rec = Gp_GetNestedAreaRec(&key);
+    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
+       onto the table (`addu s0, s0, v0`). */
+    entry           = (Actor02000AreaRec*)((idx << 4) + (s32)rec->field_0);
+    model->field_24 = entry->field_D;
+    model->field_25 = entry->field_E;
+    if (model->field_18 != NULL) {
+        Tmd_ProcessStream(model);
+        Tmd_ProcessStream(model);
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L026D8);
+    one  = 1;
+    kind = ctx->field_4B;
+    if (kind == one) {
+        goto case1;
+    }
+    if (kind >= 2) {
+        goto ge2;
+    }
+    if (kind == 0) {
+        goto case0;
+    }
+    return;
+ge2:
+    if (kind == 2) {
+        goto case2;
+    }
+    return;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L026EC);
+case0:
+    ctx->field_4  = &coord->coord;
+    ctx->field_48 = 0;
+    Gp_LinkNode(&ctx->node);
+    parts         = actor->field_2C->field_8;
+    ctx->field_1C = 0;
+    ctx->field_20 = 0;
+    ctx->field_24 = 0;
+    ctx->field_50 = Actor02000_D15D10;
+    ctx->field_54 = work->field_4EC;
+    ctx->field_18 = &parts[3];
+    ctx->field_40 = Actor02000_D15D10->field_4;
+    Gp_IncStateF0Ref(0);
+    work->field_6AC = ctx->field_3C->field_2 & 1;
+    if (work->field_6AC == 0) {
+        work->field_694 = one;
+        work->field_6A6 = 0;
+    } else {
+        work->field_694 = 2;
+        work->field_6A6 = one;
+        param           = ctx->field_3C->field_1;
+        work->field_6DA = param * 1000;
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L02764);
+    tbl = Actor02000_D15FB8[Game_Session->field_7];
+    if (tbl != NULL) {
+        work->field_6D6 = tbl[Game_Session->field_6];
+    }
+    if (work->field_6D6 != 0) {
+        param1[3] = 0;
+        param1[2] = 0xA;
+        param1[0] = work->field_6D6;
+        param2[0] = 0x14;
+        param2[3] = 0;
+        param2[2] = 0;
+        param2[1] = 0;
+        CdCmd_Enqueue(0x21, param1, param2);
+    }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L02798);
+    work->field_49C.field_4  = 0x1F40;
+    work->field_49C.field_10 = 0x3E8;
+    work->field_49C.field_0  = 0;
+    work->field_49C.field_2  = 0;
+    work->field_49C.field_8  = 0;
+    work->field_49C.field_A  = 0;
+    work->field_49C.field_C  = 0;
+    work->field_49C.field_12 = 0x5DC;
+    work->field_49C.field_14 = work->field_4B4;
+    partsA                   = actor->field_2C->field_8;
+    work->field_47C.field_C  = &work->field_49C;
+    work->field_47C.field_10 = 0;
+    work->field_47C.field_12 = 0;
+    work->field_47C.field_14 = 0;
+    work->field_47C.field_18 = 0;
+    work->field_47C.field_1C = 0;
+    work->field_47C.flags    = 3;
+    work->field_47C.field_8  = &partsA[4];
+    Gp_LinkObj(3, &work->field_47C);
+    Gp_InitRec18Table(work->field_4B4, 1, 0);
+    work->field_47C.flags |= 0xCC00;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L027E0);
+    partsB                   = actor->field_2C->field_8;
+    work->field_4CC.field_C  = work->field_4EC;
+    work->field_4CC.field_10 = 0;
+    work->field_4CC.field_12 = 0;
+    work->field_4CC.field_14 = 0;
+    work->field_4CC.field_18 = 0x30014;
+    work->field_4CC.field_1C = 0x190;
+    work->field_4CC.flags    = 1;
+    work->field_4CC.field_8  = &partsB[3];
+    Gp_LinkObj(2, &work->field_4CC);
+    Gp_InitRec18Table(work->field_4EC, 5, 0);
+    work->field_4CC.flags |= 0x8000;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L02824);
+    partsC                   = actor->field_2C->field_8;
+    work->field_564.field_12 = -0x226;
+    work->field_564.field_C  = work->field_584;
+    work->field_564.field_10 = 0;
+    work->field_564.field_14 = 0;
+    work->field_564.field_18 = 0;
+    work->field_564.field_1C = 0x226;
+    work->field_564.flags    = 1;
+    work->field_564.field_8  = partsC;
+    Gp_LinkObj(2, &work->field_564);
+    Gp_InitRec18Table(work->field_584, 4, 0);
+    work->field_564.flags |= 0x4200;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L029E4);
+    effParts                 = eff->task->field_2C->field_8;
+    work->field_5E4.field_C  = work->field_604;
+    work->field_5E4.field_10 = 0;
+    work->field_5E4.field_12 = 0x1F4;
+    work->field_5E4.field_14 = 0;
+    work->field_5E4.field_18 = 0;
+    work->field_5E4.field_1C = 0x1F4;
+    work->field_5E4.flags    = 1;
+    work->field_5E4.field_8  = effParts;
+    Gp_LinkObj(3, &work->field_5E4);
+    Gp_InitRec18Table(work->field_604, 1, 0);
+    work->field_5E4.flags &= 0x7FFF;
+    actor->field_30        = 1;
+    return;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L02A00);
+case1:
+    work->field_694 = 0x19;
+    work->field_6A8 = 2;
+    actor->field_30 = 2;
+    return;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L02A0C);
+case2:
+    work->field_694 = 0x1D;
+    work->field_6A8 = kind;
+    actor->field_30 = kind;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn02A34);
 
