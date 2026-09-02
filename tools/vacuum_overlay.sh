@@ -91,6 +91,7 @@ inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$OVERLAY")
 
 log "running: ${inner[*]}  (in $WT)"
 BASE=$(git -C "$WT" rev-parse HEAD)
+BRANCH_NAME=$(git -C "$WT" rev-parse --abbrev-ref HEAD)
 # No `| tee` here: the inner vacuum appends to this same file itself (via
 # VACUUM_LOG_FILE), so the log stays live during a match instead of filling in
 # one burst when the function finishes. Piping as well would duplicate it.
@@ -132,6 +133,72 @@ mapfile -t EXTRAS < <(git -C "$WT" diff --name-only "$BASE"..HEAD \
                       | grep -v "^src/.*/$OVERLAY/" || true)
 log "extra paths: ${EXTRAS[*]:-none}"
 
+# --- has trunk moved under us? ----------------------------------------------
+# Same rule tools/vacuum.sh uses to decide between a fast port and a port agent:
+# copying files is only safe when trunk has not touched them since this worktree
+# was cut. Copying blindly is what reverted mist_r18's promotion span - the
+# gallery's worktree predated it, and its overlays.toml went over the top.
+#
+# Three shared files are excepted because every parallel sweep touches them and
+# a deterministic merge exists: the learnings file merges by section, the
+# difficult list by function name, the manifest by overlay entry. Anything else
+# that drifted needs judgement, so it gets an agent rather than a heuristic.
+MERGEABLE="DECOMPILATION_LEARNINGS.md tools/difficult_functions configs/USA/overlays.toml"
+DRIFTED=""
+while read -r f; do
+    [[ -n "$f" ]] || continue
+    case " $MERGEABLE " in *" $f "*) continue ;; esac
+    if ! git diff --quiet "$BASE" -- "$f" 2>/dev/null; then
+        DRIFTED="$DRIFTED $f"
+    fi
+done < <(git -C "$WT" diff --name-only --diff-filter=ACDMR "$BASE")
+
+if [[ -n "$DRIFTED" ]]; then
+    log "trunk diverged in:$DRIFTED"
+    log "handing the landing to an agent"
+    port_prompt="Land a finished overlay sweep onto the trunk checkout at $ROOT.
+
+The work is committed on branch \`$BRANCH_NAME\` in the worktree \`$WT\`, as one
+\`matched <function> <attempts>\` commit per function. It is verified there.
+
+**Trunk has changed since that worktree was cut** ($BASE), in exactly these files:
+$DRIFTED
+
+That is why this is not a file copy. Reconcile them - take trunk's changes and the
+worktree's, do not discard either side. Landing by overwriting is what reverted
+another overlay's manifest span earlier today and broke the build.
+
+Also carry across, merging rather than replacing:
+  - DECOMPILATION_LEARNINGS.md   (append the worktree's new '## ' sections)
+  - tools/difficult_functions    (union by function name)
+  - configs/USA/overlays.toml    (only the entries the worktree changed)
+
+Then:
+  1. If configs/USA/overlays.toml changed, re-split: venv/bin/python3 ninja_config.py
+  2. ./tools/build-and-verify.sh  - require the '✅ BUILD SUCCEEDED' line, and check
+     the exit status explicitly. Never pipe it into tail or head under set -e.
+  3. Preserve one commit per function with its original attempt count from the
+     branch; that number is training data for fit_difficulty_model.py.
+  4. If you cannot land it safely, change nothing on trunk and say so.
+
+Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
+
+    if command -v claude >/dev/null 2>&1; then
+        claude -p --verbose --output-format stream-json --dangerously-skip-permissions \
+            "$port_prompt" >>"$LOG_FILE" 2>&1
+        rc=$?
+        log "port agent finished (rc=$rc)"
+        if ./tools/build-and-verify.sh >>"$LOG_FILE" 2>&1; then
+            log "trunk verified after agent landing"
+            trap - EXIT; release_all; exit 0
+        fi
+        log "TRUNK BUILD FAILED after the agent landing - inspect $LOG_FILE"
+        exit 1
+    fi
+    log "no claude CLI available; leaving the worktree at $WT for a manual landing"
+    exit 1
+fi
+
 log "acquiring merge lock"
 if ! orch merge-acquire --session "$SESSION" --pid $$ --wait "${VACUUM_MERGE_WAIT:-3600}" \
      >>"$LOG_FILE" 2>&1; then
@@ -157,7 +224,6 @@ release_all() {
 # It is only safe when trunk has not moved underneath: the base must still be an
 # ancestor, and no path the branch touched may have changed on trunk since. Fall
 # back to the file rewrite otherwise, which is what handles a drifted trunk.
-BRANCH_NAME=$(git -C "$WT" rev-parse --abbrev-ref HEAD)
 CAN_REPLAY=false
 if git merge-base --is-ancestor "$BASE" HEAD 2>/dev/null; then
     touched=$(git -C "$WT" diff --name-only "$BASE"..HEAD)
