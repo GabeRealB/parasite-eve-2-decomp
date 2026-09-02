@@ -121,8 +121,8 @@ overlay.
   is what produced the older 56% claim. `find <fn>` lists every overlay carrying
   the same body, marking which are byte-identical; `solved` lists bodies already
   matched elsewhere, which the vacuum skips rather than matching again (677 are
-  parked that way today, waiting on a promotion pass). `--family` is currently
-  accepted but does not filter.
+  parked that way today, waiting on a promotion pass). `--family rooms` (or
+  `USA/rooms`) restricts every subcommand: rooms are 43% copies, actors 32%.
 - `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
   family's model streams to Wavefront OBJ (vertices and faces only). Useful for
   identifying an overlay whose name is still a placeholder.

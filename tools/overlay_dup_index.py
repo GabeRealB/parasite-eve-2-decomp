@@ -171,13 +171,43 @@ def build(families: list[str] | None) -> dict:
     return {"functions": out}
 
 
+def family_keys(families: list[str] | None) -> set[str]:
+    """`rooms`, `USA/rooms` and `asm/USA/rooms` all name the same family."""
+    return {f.strip("/").split("/")[-1] for f in families} if families else set()
+
+
+def filter_families(data: dict, families: list[str] | None) -> dict:
+    keys = family_keys(families)
+    if not keys:
+        return data
+    fns = [f for f in data["functions"] if f["overlay"].split("/")[1] in keys]
+    return {**data, "functions": fns}
+
+
 def load(rebuild: bool, families: list[str] | None) -> dict:
+    """The index, restricted to `families`.
+
+    The filter has to be applied to whatever comes back, not only to a fresh
+    build: the cached index was returned verbatim, so --family was accepted and
+    silently ignored on every run that did not also pass --rebuild, and
+    `stats --family rooms` reported the whole tree.
+
+    The cache also records which families produced it. Without that, one
+    `--rebuild --family rooms` leaves a rooms-only cache that every later
+    unfiltered run reads as though it were the whole tree - the same bug
+    inverted, and quieter.
+    """
+    keys = family_keys(families)
     if not rebuild and CACHE.is_file():
-        return json.loads(CACHE.read_text())
+        cached = json.loads(CACHE.read_text())
+        covered = set(cached.get("families") or [])
+        if not covered or (keys and keys <= covered):
+            return filter_families(cached, families)
     data = build(families)
+    data["families"] = sorted(keys)
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     CACHE.write_text(json.dumps(data))
-    return data
+    return filter_families(data, families)
 
 
 def classes(data: dict, key: str) -> dict[str, list[dict]]:
@@ -386,7 +416,7 @@ def cmd_solved(data: dict, min_words: int) -> int:
 
 def cmd_stats(data: dict) -> int:
     fns = [f for f in data["functions"] if f.get("state") != "matched"]
-    by_family = collections.Counter(f["overlay"].split("/")[0] for f in fns)
+    by_family = collections.Counter(f["overlay"].split("/")[1] for f in fns)
     print(f"{len(fns)} functions across {len(by_family)} family/families")
     # Class over the same set `fns` counts, not over everything: mixing an
     # unmatched population with classes that include the matched ones makes
