@@ -58,6 +58,9 @@ void func_actor_503500_801372AC(s32 arg0);
 void func_actor_503500_80136450(Actor503500* arg0);
 void func_actor_503500_801369E4(Actor503500* arg0);
 void func_actor_503500_80136A80(Actor503500* arg0);
+/// Republishes the boss's four cached matrices (`arg1`) and/or re-seeds its
+/// display state (`arg2`); lives in `actor_503500_5`.
+void func_actor_503500_80136B64(Actor503500* arg0, s32 arg1, s32 arg2);
 void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
 void func_actor_503500_801374BC(Actor503500* arg0);
 void func_actor_503500_80137678(Actor503500* arg0);
@@ -329,6 +332,18 @@ s16 func_actor_503500_80136218(void)
     return D_actor_503500_80176D2E;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80136228);
+/// Exit callback of the boss task: tears down the second body part's display
+/// node, clears the enemy's `field_54` back-pointer slot and destroys it.
+void func_actor_503500_80136228(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy = arg0->field_20;
+    func_actor_503500_80136B64(arg0, 0, 1);
+    Gp_UnlinkObj(&arg0->field_1C->field_5D4);
+    enemy->field_54 = 0;
+    arg0->field_1C  = NULL;
+    Gp_DestroyEnemy(enemy, (Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_4", func_actor_503500_80136280);

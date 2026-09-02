@@ -82,31 +82,38 @@ STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
 /// `func_actor_503500_8013BD88` reads `field_ED` out of a 0xF0 block,
 /// `func_actor_503500_8013EB60` reads `field_EC` out of another 0xF0 block).
 typedef struct Actor503500Work {
-    /* 0x000 */ GpObj    obj;      // the display node Gp_UnlinkObj takes
-    /* 0x020 */ byte     pad_20[0x5E];
-    /* 0x07E */ u16      field_7E; // GpObj::flags of obj[3] in the 0x224 block
-    /* 0x080 */ byte     pad_80[0x6A];
-    /* 0x0EA */ s16      field_EA;
-    /* 0x0EC */ s8       field_EC;  // sub-state index
-    /* 0x0ED */ s8       field_ED;  // sub-state index
-    /* 0x0EE */ byte     pad_EE[0x2];
-    /* 0x0F0 */ s8       field_F0;  // sub-state index
-    /* 0x0F1 */ s8       field_F1;  // sub-state phase, cleared with field_F0
-    /* 0x0F2 */ byte     pad_F2[0x6A];
-    /* 0x15C */ s8       field_15C; // sub-state index
-    /* 0x15D */ byte     pad_15D[0x21];
-    /* 0x17E */ u16      field_17E; // GpObj::flags of obj[11] in the 0x3D8 block
-    /* 0x180 */ byte     pad_180[0xA1];
-    /* 0x221 */ s8       field_221; // sub-state index
-    /* 0x222 */ byte     pad_222[0xC8];
-    /* 0x2EA */ s8       field_2EA;
-    /* 0x2EB */ s8       field_2EB; // TMD buffer countdown, 0x2EC block
-    /* 0x2EC */ byte     pad_2EC[0xC6];
-    /* 0x3B2 */ u16      field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ byte     pad_3B4[0x22];
-    /* 0x3D6 */ s8       field_3D6;
-    /* 0x3D7 */ s8       field_3D7; // TMD buffer countdown, 0x3D8 block
-    /* 0x3D8 */ byte     pad_3D8[0x314];
+    /* 0x000 */ GpObj obj;      // the display node Gp_UnlinkObj takes
+    /* 0x020 */ byte  pad_20[0x5E];
+    /* 0x07E */ u16   field_7E; // GpObj::flags of obj[3] in the 0x224 block
+    /* 0x080 */ byte  pad_80[0x6A];
+    /* 0x0EA */ s16   field_EA;
+    /* 0x0EC */ s8    field_EC;  // sub-state index
+    /* 0x0ED */ s8    field_ED;  // sub-state index
+    /* 0x0EE */ byte  pad_EE[0x2];
+    /* 0x0F0 */ s8    field_F0;  // sub-state index
+    /* 0x0F1 */ s8    field_F1;  // sub-state phase, cleared with field_F0
+    /* 0x0F2 */ byte  pad_F2[0x6A];
+    /* 0x15C */ s8    field_15C; // sub-state index
+    /* 0x15D */ byte  pad_15D[0x21];
+    /* 0x17E */ u16   field_17E; // GpObj::flags of obj[11] in the 0x3D8 block
+    /* 0x180 */ byte  pad_180[0xA1];
+    /* 0x221 */ s8    field_221; // sub-state index
+    /* 0x222 */ byte  pad_222[0xC8];
+    /* 0x2EA */ s8    field_2EA;
+    /* 0x2EB */ s8    field_2EB; // TMD buffer countdown, 0x2EC block
+    /* 0x2EC */ byte  pad_2EC[0xC6];
+    /* 0x3B2 */ u16   field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ byte  pad_3B4[0x22];
+    /* 0x3D6 */ s8    field_3D6;
+    /* 0x3D7 */ s8    field_3D7; // TMD buffer countdown, 0x3D8 block
+    /* 0x3D8 */ byte  pad_3D8[0x1FC];
+    /// Display node + collision record of the boss's second body part:
+    /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
+    /// `func_actor_503500_80136A88` re-places the pair and
+    /// `func_actor_503500_80136228` hands `field_5D4` back to
+    /// `Gp_UnlinkObj` on teardown.
+    /* 0x5D4 */ GpObj    field_5D4;
+    /* 0x5F4 */ byte     pad_5F4[0xF8];
     /* 0x6EC */ GpEnemy* enemies[0x11];
     /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
     /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
