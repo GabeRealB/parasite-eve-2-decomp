@@ -179,7 +179,7 @@ fi
 
 funcs_file=$(mktemp)
 printf '%s\n' "${MATCHED[@]}" >"$funcs_file"
-land_args=("$WT" "$OVERLAY" --functions-file "$funcs_file")
+land_args=("$WT" "$OVERLAY" --functions-file "$funcs_file" --base "$BASE")
 if [[ ${#EXTRAS[@]} -gt 0 ]]; then
     land_args+=(--extra "$(IFS=,; echo "${EXTRAS[*]}")")
 fi

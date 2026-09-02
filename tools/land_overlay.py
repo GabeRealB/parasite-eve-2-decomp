@@ -123,6 +123,9 @@ def main() -> int:
     ap.add_argument("--attempts", type=int,
                     help="override the attempt count; by default it is read "
                          "from the worktree's own `matched <fn> <n>` commit")
+    ap.add_argument("--base", default="",
+                    help="commit the worktree was cut from; needed to merge "
+                         "configs/USA/overlays.toml by entry instead of wholesale")
     ap.add_argument("--extra", default="",
                     help="comma-separated extra paths to land (headers, docs)")
     args = ap.parse_args()
@@ -164,6 +167,7 @@ def main() -> int:
         wt_c = wt / rel / trunk_c.name
         mine = {f for f in funcs if file_of[f] == trunk_c}
         trunk_c.write_text(scaffold(trunk_c.read_text(), wt_c.read_text(), mine))
+    base_rev = args.base
     extras = [e.strip() for e in args.extra.split(",") if e.strip()]
     for e in extras:
         src, dst = wt / e, ROOT / e
@@ -179,6 +183,27 @@ def main() -> int:
                 if l.strip():
                     have[l.split()[0]] = l
             dst.write_text("\n".join(have[k] for k in sorted(have)) + "\n")
+        elif dst.is_file() and e.endswith("overlays.toml"):
+            # One line per overlay, so merge by key and take only the entries the
+            # worktree actually changed relative to the commit it was cut from.
+            # Copying it wholesale reverts every entry another session landed in
+            # the meantime: mist_shooting_gallery's landing silently dropped
+            # mist_r18's promotion span and shelter_b1_sterilization_room's,
+            # because its worktree predated them. The build caught it only
+            # because a missing shared unit breaks the link - a lost `rodata`
+            # cut would have gone through green.
+            import re as _re
+            base_txt = git("show", f"{base_rev}:{e}") if base_rev else ""
+            def _entries(text):
+                return {m.group(1): m.group(0)
+                        for m in _re.finditer(r"^(\w+) = \{.*$", text, _re.M)}
+            base_e, wt_e, cur = _entries(base_txt), _entries(src.read_text()), dst.read_text()
+            changed = [k for k, v in wt_e.items() if base_e.get(k) != v]
+            for k in changed:
+                m = _re.search(rf"^{k} = \{{.*$", cur, _re.M)
+                cur = cur[:m.start()] + wt_e[k] + cur[m.end():] if m else cur + wt_e[k] + "\n"
+            dst.write_text(cur)
+            print(f"  merged {len(changed)} manifest entr(y/ies): {', '.join(changed) or 'none'}")
         elif dst.is_file() and e.endswith(".md"):
             # Append-only docs must be merged, not copied. Every overlay
             # worktree is cut from the same trunk commit, so two sessions both
