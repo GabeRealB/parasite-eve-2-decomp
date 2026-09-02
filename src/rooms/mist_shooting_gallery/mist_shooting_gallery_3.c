@@ -215,7 +215,30 @@ void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
     dr->code[0] = 0xE1000215;
     addPrim(Gpu_CurrentOt, dr);
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801847D4);
+void func_mist_shooting_gallery_801847D4(u8 arg0)
+{
+    TILE*     p;
+    DR_TPAGE* dr;
+
+    p              = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p->x0          = -0xA8;
+    p->y0          = -0x7C;
+    p->w           = 0x180;
+    p->h           = 0x100;
+    setlen(p, 3);
+    p->r0 = arg0;
+    p->g0 = 0;
+    p->b0 = 0;
+    setcode(p, 0x62);
+    addPrim(Gpu_CurrentOt, p);
+
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000235;
+    addPrim(Gpu_CurrentOt, dr);
+}
 void func_mist_shooting_gallery_801848B4(void)
 {
     GpEnemy*     enemy;
