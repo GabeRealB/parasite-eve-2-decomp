@@ -917,7 +917,48 @@ void Gp_EffTask07State1(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAA14);
+void func_800FAA14(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s32            pan;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (arg0->state == 0) {
+        arg0->spawnArg1 = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
+                                     ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
+                                     ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
+    }
+    Gp_UpdateCoord(coord);
+    if (Gp_State1C->field_E >= 4) {
+        goto kill;
+    }
+    if (Gp_StateC08.field_2 == 0) {
+        goto kill;
+    }
+    if (Gp_StateC08.field_3 == 2) {
+        goto kill;
+    }
+    if (Gp_State1C->field_16 != 1 && (u16)(Gp_StateC08.field_0 / 10U) != 0x20) {
+    kill:
+        if (arg0->spawnArg1 != 0) {
+            SndEvt_EnqueueType7(arg0->spawnArg1, 1);
+        }
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    if (Gp_StateC08.field_2 >= 9) {
+        if (mem->field_24 < 0x20) {
+            if (mem->field_24 == 0) {
+                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            Gp_SpawnEff(0x60032, coord, 0, 0);
+            mem->field_24++;
+        }
+    }
+}
 
 void Gp_EffCtlTask32(Task* arg0)
 {
