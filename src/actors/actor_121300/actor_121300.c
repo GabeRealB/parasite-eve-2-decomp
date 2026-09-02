@@ -1,10 +1,13 @@
 #include "common.h"
 
+#include "actors/actor_121300.h"
+#include "main/fs.h"
 #include "main/task.h"
 
-extern s16 D_800691CA;
-
 extern TaskDesc ActorsShared80136280Desc;
+
+extern Task* D_actor_121300_8013D418;
+extern s16   D_actor_121300_8013D41C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80131EB0);
 
@@ -52,7 +55,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 void func_actor_121300_80134270(void)
 {
-    D_800691CA = 0;
+    CdCmd_Queue.field_22A = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013427C);
+void func_actor_121300_8013427C(void)
+{
+    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->idMap;
+
+    D_actor_121300_8013D41C = 0;
+    work->field_480         = 2;
+    CdCmd_Queue.field_22A   = 0;
+    Gp_DispatchMsg(work->field_488, 0x3F3, 1, 0);
+    CdCmd_CancelReplaceAndActivate();
+}

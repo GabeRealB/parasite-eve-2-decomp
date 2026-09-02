@@ -35672,6 +35672,33 @@ pointer-based struct traffic. In the `actor_400600` typing pass it hit exactly
 the 2 of 30 functions that touched such a global, and both matched again once
 the global was declared as an aggregate.
 
+There is a third remedy, and it is the one to look for first: the "bare global"
+is often not a global at all, but a **field of a struct that main already
+declares**. Overlay sources import unfiled main addresses as
+`extern s16 D_800691CA;`, which hides that the address is interior to a symbol
+with a known type. Check `configs/USA/sym.main.txt` for the nearest preceding
+entry carrying a `size:` annotation and see whether the address falls inside it:
+
+```
+CdCmd_Queue = 0x80068FA0; // type:CdCmdQueue size:0x254
+```
+
+`0x800691CA` is `CdCmd_Queue + 0x22A`, i.e. the already-named
+`CdCmdQueue::field_22A`, so `func_actor_121300_8013427C` matched by writing
+
+```c
+CdCmd_Queue.field_22A = 0;      /* not: extern s16 D_800691CA; D_800691CA = 0; */
+```
+
+which sets `MEM_IN_STRUCT_P` for the real reason. The scalar form scored
+75.9% with the store scheduled six instructions too early; the member form is
+100%. The `%hi`/`%lo` pair the assembler emits for `CdCmd_Queue` /
+`CdCmd_Queue+0x22a` relocates to the same two words as `%hi`/`%lo` of
+`D_800691CA`, so nothing else has to change - the overlay's imports file
+already carries `CdCmd_Queue`. Prefer this over the array bound and over the
+barrier whenever the address resolves, because it is the only one of the three
+that is also a true statement about the program.
+
 ## Promoting a matched body into a family's shared library
 
 Moving a repeated body into `src/<family>/lib/` is not just "delete the
