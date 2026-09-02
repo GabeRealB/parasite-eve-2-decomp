@@ -128,7 +128,13 @@ void func_acropolis_fire_escape_8017FECC(void)
         D_acropolis_fire_escape_801826A8.field_4A &= 0xBF;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FF24);
+void func_acropolis_fire_escape_8017FF24(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_fire_escape_8017D6A4;
+    sp.funcs[task->state](task);
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FF7C);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_80180154);
 
