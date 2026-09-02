@@ -326,6 +326,18 @@ difficult_listed() {
 
 forget_difficult_entry() {
   local func=$1
+  # Also clear the real list when a retry pass was aimed at a subset via
+  # VACUUM_DIFFICULT_FILE. Otherwise a match removes the name from the override
+  # file and leaves it in tools/difficult_functions, where it keeps advertising
+  # a give-up for a function that is now matched - func_800E06AC and
+  # func_800DE150 both landed from a near-miss pass and stayed listed at 99.167%
+  # and 99.565%.
+  if [[ "$DIFFICULT_FUNCTIONS" != "tools/difficult_functions" ]] \
+     && [[ -f tools/difficult_functions ]]; then
+    awk -v f="$func" 'NF && $1 == f { next } { print }' tools/difficult_functions \
+      >tools/difficult_functions.tmp \
+      && mv tools/difficult_functions.tmp tools/difficult_functions
+  fi
   [[ -f "$DIFFICULT_FUNCTIONS" ]] || return 0
   difficult_listed "$func" || return 0
   awk -v f="$func" 'NF && $1 == f { next } { print }' "$DIFFICULT_FUNCTIONS" \
