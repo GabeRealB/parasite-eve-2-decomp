@@ -3,6 +3,7 @@
 #include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/mist_r18.h"
 
 void func_mist_r18_8017DF80(s32 arg0);
@@ -65,7 +66,33 @@ void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
     AddPrim(Gpu_CurrentOt + otIdx, dr);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E6D8);
+/// Spawn prop task `idx` (0 or 1) into its slot if it is not already running,
+/// and clear bit 7 of its model's flags. Other indices do nothing.
+void func_mist_r18_8017E6D8(s32 idx)
+{
+    Task** slot;
+    Task*  task;
+
+    switch (idx) {
+        case 0:
+            slot = &D_mist_r18_80186E90;
+            break;
+        case 1:
+            slot = &D_mist_r18_80186E94;
+            break;
+        default:
+            slot = NULL;
+            break;
+    }
+
+    if ((slot != NULL) && (*slot == NULL)) {
+        task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, (s32)Game_GetPtrSlot(3));
+        *slot = task;
+        if (task != NULL) {
+            ((TmdObject*)task->extra)->field_C &= 0xFF7F;
+        }
+    }
+}
 
 /// Kill and clear prop task `idx` (0 or 1); other indices do nothing.
 void func_mist_r18_8017E784(s32 idx)
