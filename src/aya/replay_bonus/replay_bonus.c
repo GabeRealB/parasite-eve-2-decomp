@@ -61,7 +61,18 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801177A0);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117848);
+void func_replay_bonus_80117848(Task* arg0)
+{
+    u16 timer = arg0->killCountdown + 1;
+
+    arg0->killCountdown = timer;
+    if ((s16)timer >= 0x78) {
+        Game_Session->field_2 = 1;
+        GameMain_SetFrameTiming(0);
+        CdCmd_EnqueueLoadFile(1, 0x3E, 3);
+        arg0->state = arg0->state + 1;
+    }
+}
 
 void func_replay_bonus_801178C0(Task* arg0)
 {
