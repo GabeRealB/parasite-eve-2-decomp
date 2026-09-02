@@ -9,6 +9,7 @@ extern u8 D_80071075;
 extern u8 D_801153F4;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
 void func_actor_403600_8013955C(Actor403600* arg0);
 void func_actor_403600_801396F8(Actor403600* arg0);
 void func_actor_403600_8013D15C(Actor403600* arg0);
@@ -61,7 +62,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801386EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138C34);
+void func_actor_403600_80138C34(Task* arg0)
+{
+    Task* parent;
+
+    parent = arg0->parent;
+    func_actor_403600_80132E40(parent, (Actor403600Work*)parent->parent->idMap, (Actor403600Work*)parent->idMap);
+}
 
 void func_actor_403600_80138C68(Task* arg0)
 {
