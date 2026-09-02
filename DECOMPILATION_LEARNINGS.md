@@ -38066,3 +38066,1002 @@ loop instead lets loop-invariant motion materialise its own pseudo for the base
 *and* for the `0xFF` compare constant, giving `move v1, a0` / `move a0, v0` —
 the same effect as "An extra preheader `move` means the guard reloads the list
 head", but with the array base and its sentinel hoisted as a pair.
+
+## Nest a two-sided bound to keep both `slti`s
+
+GCC 2.8.1 folds a signed two-sided range written as one condition into an
+unsigned range check, even when both halves are plain signed compares:
+
+```c
+/* addiu v0, s0, -0x21 ; sltiu v0, v0, 2 ; beqz */
+if ((arg2 < 0x23) && (arg2 >= 0x21)) { ... }
+```
+
+The target kept the two compares (`slti 0x23` / `beqz`, then `slti 0x21` /
+`bnez`), so the bounds have to be separate statements. Nesting stops the fold;
+`&&` does not, and neither does swapping the operand order:
+
+```c
+if (arg2 < 0x23) {
+    if (arg2 >= 0x21) { ... }
+}
+```
+
+Same shape as the `if (x != 0)` nesting above, but the trigger is the pair of
+bounds itself rather than a redundant zero test.
+`func_mist_shooting_gallery_80180000` is the example.
+
+## A result flag pre-set before a call lands in a callee-saved register
+
+`sent = 0;` *before* the call it guards makes the flag live across that call, so
+local-alloc gives it a callee-saved register and the scheduler hoists the
+`li sN,1` above the call as well. The flag also crowds out the call's own
+argument (`move a0,s0` instead of `move a0,zero` when the flag happens to hold
+0). Assign it in both arms *after* the call instead and the whole live range
+stays inside the join block, so it gets `$v1` and `move v1,zero` fills the
+branch delay slot:
+
+```c
+/* $s0, li s0,1 hoisted above the jal */      /* $v1, move v1,zero in the
+sent = 0;                                        delay slot */
+if (Midi_IsBusy(0) == 0) {                    if (Midi_IsBusy(0) == 0) {
+    ...                                           ...
+    sent = 1;                                     sent = 1;
+}                                             } else {
+                                                  sent = 0;
+                                              }
+if (sent == 1) { ... }                        if (sent == 1) { ... }
+```
+
+The join block also resets CSE's table, so the later `sent == 1` gets a fresh
+`li v0,1` rather than reusing a register cse knows holds 1 — which is the other
+half of the diff. `func_mist_shooting_gallery_80180728` needed this twice, once
+per flag.
+
+## Store a `u8` field in both if/else arms to keep a later `lbu` reload
+
+A `u8` field written and then read back is normally CSE'd away, even when the
+stored value is an `s32`:
+
+```c
+count = 3;
+if (Gp_IsDebugAttachRoom() == 0) { count = 4; }
+list->field_4 = count;
+if (list->field_4 >= 0xB) { ... }   /* sltiu on the count register, no load */
+```
+
+Putting the store inside both arms leaves the read in a join block, where cse's
+table has been reset, so the target's `sb v0,4(s0)` / `lbu v1,4(s0)` / `nop`
+survives — and the constant lands in `$v0` instead of a callee-saved register
+because its live range no longer starts before the call:
+
+```c
+if (Gp_IsDebugAttachRoom() == 0) { list->field_4 = 4; } else { list->field_4 = 3; }
+if (list->field_4 >= 0xB) { list->field_5 = 0xA; } else { list->field_5 = list->field_4; }
+```
+
+`func_mist_shooting_gallery_80180728` is the example; the neighbouring
+`func_mist_shooting_gallery_8017E090` is the *other* form, where the clamp
+compares `(u8)count` and no reload is emitted.
+
+## A tail block two switch cases share belongs to the *later* case
+
+m2c hoists a block that several arms branch into up to the first arm that uses
+it, and reaches it from the others with a backward `goto`. GCC 2.8.1 lays it
+out the other way: the block stays where it is *fallen into*, and the earlier
+arm jumps forward to it. In `func_mist_shooting_gallery_8017FDD0` (task state
+machine, `state++` shared by cases 0 and 1), m2c's shape
+
+```c
+case 0:
+    Gp_RunCapCmd(arg0->spawnArg1, 0);
+block_11:
+    arg0->state += 1;
+    return;
+case 1:
+    if (Gp_CapBusy() == 0) { goto block_11; }
+    return;
+```
+
+scored 88% with `branch=1 insert=2 delete=2 reorder=4`: the increment was
+emitted inline after case 0 and case 1 branched *back* into it. Moving the
+label to the end of case 1 and jumping forward from case 0 is a 100% match —
+the target's `j` out of case 0 lands past `jal Gp_CapBusy`, and case 1's
+`bnez` returns while its fall-through is the increment.
+
+```c
+case 0:
+    Gp_RunCapCmd(arg0->spawnArg1, 0);
+    goto block_inc;
+case 1:
+    if (Gp_CapBusy() != 0) { return; }
+block_inc:
+    arg0->state += 1;
+    return;
+```
+
+Read the target for which case *falls through* into the shared block; that is
+the case the label goes in, and every other user of it becomes a forward goto.
+
+## Do not cache an interior sub-struct pointer in a local
+
+A byte array inside a struct is often really a nested record, and the natural C
+is to name it once:
+
+```c
+GpActorD4Rec* rec = (GpActorD4Rec*)actor->field_14C; /* field_14C is byte[0x18] */
+rec->field_4 = (rec->field_C + D_80112F60[D_80073BA9]) << 1;
+```
+
+That scores 98% with `regs`/`branch` leftovers, because the local forces GCC to
+compute the interior address into its own register:
+
+```
+addiu a2,s3,0x14c      /* extra */
+lhu   v1,0xc(a2)       /* target: lhu v1,0x158(s3) */
+sh    v1,4(a2)         /* target: sh  v1,0x150(s3) */
+```
+
+The base register is already live, so the target just folds `0x14C + field` into
+each load/store displacement. Repeat the cast expression at every use instead —
+GCC CSEs the constant offset into the addressing mode and never materializes the
+interior pointer:
+
+```c
+((GpActorD4Rec*)actor->field_14C)->field_4 =
+    (((GpActorD4Rec*)actor->field_14C)->field_C + D_80112F60[D_80073BA9]) << 1;
+```
+
+This is the opposite of "Hold a global's address in a local pointer": a global
+needs the local because its address costs a `lui`/`addiu` pair, while a struct
+interior costs nothing on top of a base register that is already there.
+`func_mist_shooting_gallery_80182B1C` is the worked example.
+
+## Duplicate the stores in each if/else arm when the target keeps a `j` per arm
+
+An if/else-if chain that picks one of three constants and then stores it twice:
+
+```
+bnez  $v0, .L1
+ slti $v0, $v0, 2
+j     .Lcont
+ li   $v0, 2
+.L1:
+bnez  $v0, .Lcont
+ li   $v0, 3
+li    $v0, 4
+.Lcont:
+sb    $v0, 0x4($s2)
+sb    $v0, 0x5($s2)
+```
+
+does **not** come from a shared local:
+
+```c
+if (x == 0)     rows = 2;
+else if (x < 2) rows = 3;
+else            rows = 4;
+list->field_4 = rows;
+list->field_5 = rows;
+```
+
+With one `rows` pseudo, `jump_optimize` folds the first arm into the branch
+itself — it reverses `bnez` to `beqz .Lcont`, drops the `j`, and lets the delay
+slot carry `li 2` (harmless, since the other path overwrites `rows`). The result
+is one instruction *shorter* than the target and stalls around 94-95% with
+`insert`/`delete` = 2. Every rewrite of the condition (ternary, `>= 2` vs `< 2`,
+inverted test, cached load, `goto`, a doubled `rows = 2;`) only permutes which
+arm lands last; none restores the `j`.
+
+Writing the stores inside each arm gets it exactly:
+
+```c
+if (x == 0) {
+    list->field_4 = 2;
+    list->field_5 = 2;
+} else if (x < 2) {
+    list->field_4 = 3;
+    list->field_5 = 3;
+} else {
+    list->field_4 = 4;
+    list->field_5 = 4;
+}
+```
+
+Now each arm ends in its own `sb`/`sb` tail, so `jump_optimize` has nothing to
+fold into the branch, and post-reload cross-jumping merges the three identical
+tails into the single `.Lcont` block instead. The constant also lands in `$v0`
+— the register the loaded value and the `slti` already use — because each `li`
+now lives in its own short block rather than being hoisted above the `slti`.
+`func_mist_shooting_gallery_8017EAE0` went 95.1% → 100% on this change alone.
+
+Rule of thumb: if the target spends a `j` to reach a common tail, the arms in
+the source own that tail. Sharing a local is what removes the `j`.
+
+## A pointer load parked inside a run of stack stores fixes the source order
+
+`-fschedule-insns` reorders stack stores freely against each other, but it
+never moves a stack store across a load made through a pointer argument: GCC
+2.8.1 cannot prove the two do not alias. So in a block that fills a stack
+struct from fields of a `Foo*`, the position of each `lh`/`lb` through that
+pointer *inside* the run of `sw`/`sh`/`sb` is not a scheduling artifact — it
+says which source statement the load belongs to, and everything between two
+such loads was written between the same two statements.
+
+`func_mist_shooting_gallery_8017F128` fills eight `TextDrawReq` blocks. The
+target reads `lh 0x14(s0)` (the `otIndex` source) and `lb 0xf(s4)` before the
+`sw 0xc0` / `sb 0xc4` / `sb 0xc5` / `sb 0xc6` run, so both statements precede
+the `field_8` assignment:
+
+```c
+/* 82.9% - loads land after the four stores */
+label0.field_8    = 0x606060;
+label0.glyphTable = 5;
+label0.centerMode = 0;
+label0.field_E    = 1;
+rating            = &missionLevels.entries[Mc_SaveData.field_F];
+label0.otIndex    = (s16)obj->drawOrder + 1;
+
+/* 100% - struct declaration order, with the pointer read in between */
+label0.otIndex    = (s16)obj->drawOrder + 1;
+rating            = &missionLevels.entries[Mc_SaveData.field_F];
+label0.field_8    = 0x606060;
+label0.glyphTable = 5;
+label0.centerMode = 0;
+label0.field_E    = 1;
+```
+
+The store of `otIndex` itself still sinks to the jal's delay slot, which is why
+the write order in the object dump (`x`, `y`, `field_8`, …, `otIndex`) hides
+the real statement order; only the loads show it. Reordering statements while
+they stay on the same side of the loads changes nothing — three permutations of
+the block above all scored exactly 82.944%. Assigning the fields in **struct
+declaration order** is the form that works, so try that before hunting.
+
+## Mixed extern-copy and local-initializer tables in one function
+
+The rule above (local array initializer only when the pool may move to the end
+of the TU's `.rodata`) applies per table, not per function. A function that
+stack-copies several rodata tables usually has only the *first* one folded into
+its `.s` by `migrate_rodata_to_functions` — the run stops at the first symbol no
+function references, such as the string literals the table points at. Replacing
+that function's `INCLUDE_ASM` therefore deletes exactly one table and leaves the
+rest as `INCLUDE_RODATA`.
+
+Write only the migrated table as a local initializer over the still-external
+string symbols, and keep the others as struct copies from their globals:
+
+```c
+extern u8 D_mist_shooting_gallery_8017D718[]; /* "EASY", still INCLUDE_RODATA */
+
+MistShootingGalleryRatings missionLevels = { {
+    { 2, D_mist_shooting_gallery_8017D718 }, ...
+} };            /* 8017D73C: was migrated into the function's .s */
+MistShootingGalleryRatings conditions;
+
+conditions = D_mist_shooting_gallery_8017D778;   /* still INCLUDE_RODATA */
+```
+
+The pool GCC emits for the local lands between the `INCLUDE_RODATA` blocks that
+precede the function in the C file and those that follow it — which is exactly
+where the migrated block was. Both forms compile to the same `lw`/`sw` run, so
+the choice is purely about who owns the bytes.
+
+## A `4 x 3` clear loop: keep the row offset a plain biv and pin its per-row copy
+
+`func_mist_shooting_gallery_8017DCAC` zeroes `Gp_DebugAttachLevels` with a
+nested loop whose target shape has three loop registers — a count-up row
+counter, an offset that steps by 3, and a *copy* of that offset made once per
+row:
+
+```
+move  a3, zero          /* row = 0            */
+move  a2, a3            /* i   = row          */
+loop: move v1, zero     /* col = 0            */
+      move a1, a2       /* k   = i            */
+      addu v0, v1, a1   /* col + k, then + levels */
+```
+
+Two independent traps:
+
+- **`col + row * 3` compiles the wrong way round.** GCC 2.8.1 puts the
+  multiplied operand of a commutative `+` first no matter how the source is
+  written (`col + row * 3` and `row * 3 + col` produce the same
+  `plus(giv, col)` at expand), so the store becomes `addu v0, a1, v1`. Only a
+  plain variable on both sides keeps source order: write the offset as its own
+  induction variable `i += 3` and index `col + i`.
+- **A second biv makes GCC reverse the row counter.** With `i` a plain biv and
+  `row` used only by the exit test, `check_dbra_loop` rewrites `row` into a
+  countdown (`li a1, 3` / `addiu a1, a1, -1` / `bgez`). Anything that stops
+  `row` from being a bare counter blocks it: an unsigned `row < 4U` bound does
+  (but then the test is `sltiu`), and so does `row * 3` — which reintroduces the
+  first trap.
+
+`TOUCH_REG` on a per-row copy solves both at once. The copy is what the target
+has anyway, and the `"+r"` keeps copy-propagation from folding it back into `i`,
+which in turn leaves `row` un-reversed:
+
+```c
+row = 0;
+i   = row;
+for (; row < 4; row++, i += 3) {
+    col = 0;
+    k   = i;
+    TOUCH_REG(k);
+    do {
+        *(u8*)((col + k) + (s32)levels) = 0;
+        col++;
+    } while (col < 3);
+}
+```
+
+`SOFT_TOUCH_REG` is not enough — without `volatile` the copy is propagated away
+and the countdown comes back. Writing `col = 0;` and `k = i;` as statements
+ahead of a `do`/`while` (rather than a `for` whose init runs after the copy)
+puts `move v1, zero` before `move a1, a2`, and moving `row = 0;` ahead of
+`levels = …` in the prologue schedules `move a3, zero` before the
+`lui`/`addiu` pair. The cast-sum store, not `levels[col + k]`, is what gives
+`addu v0, v0, t0` instead of `addu v0, t0, v0`; `Gp_ResetInventory` in
+`src/gameplay/268.c` writes the same loop the same way.
+
+## A jump table a few bytes into the leading rodata needs `rodata_head`
+
+GCC emits a compiler-generated jump table with `.align 3`. The linker script's
+`SUBALIGN(4)` overrides that only for the *placement of the section* — if
+anything else in the same object contributes `.rodata` first, the `.align 3` is
+an in-object pad and everything after it shifts.
+
+`mist_shooting_gallery` is the minimal case: a single 4-byte word at overlay
+offset `0x0` (`INCLUDE_RODATA`'d at the top of the unit's `.c`) sits ahead of
+`jtbl_mist_shooting_gallery_8017D5C4` at `0x4`, so decompiling the function that
+owns the table padded the table to `0x8` and shifted the whole overlay by four
+bytes. The build fails the checksum, but the `.s` looks right — check the
+`.rdata` / `.align 3` block in `build/USA/src/<unit>.c.s` before suspecting the
+C.
+
+The fix is the `rodata_head` key, which hands the bytes ahead of the table to a
+plain assembly `rodata` subsegment so the C unit's `.rodata` *starts* with the
+table:
+
+```toml
+mist_shooting_gallery = { room = "Shooting gallery", rodata_head = "0x4",
+                          rodata = [ ... ] }
+```
+
+generating `- [0x0, rodata, mist_shooting_gallery_hdr]` ahead of
+`- [0x4, .rodata, mist_shooting_gallery/mist_shooting_gallery]`. Delete the
+`INCLUDE_RODATA` line for the header word by hand — splat never rewrites an
+existing `.c`, and those bytes are now assembled from
+`asm/USA/<family>/data/<name>_hdr.rodata.s` as their own object.
+
+## A local pointer to a global moves only the `lui %hi`, not the store
+
+Not every "name the global as a local pointer" is about a call. Inside one
+basic block the block scheduler breaks priority ties by RTL order, newest
+first, so an insn's position is decided by where its *pseudo* was born. A
+direct store to a global expands as three adjacent insns - `high`, the value,
+then the `sb` - so the `%hi` can never sort earlier than the address arithmetic
+of a statement written above it:
+
+```
+beqz  v0, .Lelse
+ sll  v1, s5, 2                # first insn of the block, stolen by dbr
+lui   v0, %hi(Gp_QtyById0)
+addiu v0, v0, %lo(Gp_QtyById0)
+addu  v1, v1, v0
+lui   a0, %hi(D_80073BA9)      # target wants this first
+```
+
+Binding the global to a local pointer *before* the other statements splits the
+pair: the `high` insn is born early, combine folds the `lo_sum` back into the
+store's address, and the store keeps its late position. The `%hi` then sorts to
+the head of the block and delay-slot filling takes it:
+
+```c
+scan       = &D_80072724;
+weaponIdx  = &D_80073BA9;      /* only the lui moves up */
+row        = &Gp_QtyById0[item];
+ammo       = row->field_1;
+*weaponIdx = item - 0x7F;
+```
+
+```
+beqz  v0, .Lelse
+ lui  a0, %hi(D_80073BA9)
+sll   v1, s5, 2
+...
+jal   Gp_ResetScanDefault
+ sb   v0, %lo(D_80073BA9)(a0)
+```
+
+Writing `D_80073BA9 = item - 0x7F;` earlier instead does *not* work - it drags
+the `sb` up with the `lui` and costs more than it gains.
+
+The same function needed the second half of the trick: `arr[i].field` forms the
+symbol address before the index (`lui`, `addiu`, `sll`, `addu`), while the
+target wants `sll` first. Splitting the row out as its own statement -
+`row = &Gp_QtyById0[item]; ammo = row->field_1;` - reverses those two.
+Together they took `func_mist_shooting_gallery_8017DE7C` from 97.9% to 100%.
+
+## A dead `if` still splits the block for `sched1`
+
+`func_mist_shooting_gallery_8018458C` prints a timer as five digits, each
+`q = frames / K; if (q != 0) frames %= K;` followed by a call. The last digit
+divides by 30 and `frames` is dead afterwards, so the obvious C drops the
+`if`:
+
+```c
+digit3 = frames / 30;
+func_..._801846F4(work->field_0C + 0x30, 0x46, digit3);
+```
+
+That scored 95.6% with `reorder`/`regs` leftovers. The target computes the
+whole division before touching the call arguments, exactly like the first three
+digits:
+
+```
+mult  s0, v0
+sra   v1, s0, 0x1f
+mfhi  a3
+addu  v0, a3, s0
+sra   v0, v0, 0x4
+subu  a2, v0, v1
+lh    a0, 0xc(s1)
+```
+
+Without the `if` the block is one long basic block, so `sched1` fills the
+`mult` latency with the argument setup (`li a1`, `lh a0`, `addiu a0`) and the
+quotient chain lands in `$a2` early instead of in `$v0`/`$v1`. Restoring the
+copy-pasted `if (digit3 != 0) frames %= 30;` matched: `sched1` runs
+per-basic-block, so the branch keeps the division and the argument setup apart,
+and the *later* passes delete the whole thing — flow drops the dead `%=` store,
+and jump2 removes the now-empty conditional branch. Nothing survives in the
+output, but the schedule it forced does.
+
+So a modulo (or any store) that is dead at the end of a function is not
+automatically wrong in the C: if the assembly's schedule looks like a block
+boundary that the output does not contain, write the redundant statement the
+original programmer copy-pasted and let GCC delete it.
+
+## `s16` parameters re-truncate at the call site
+
+The same function passes `work->field_0C + 0xC` to a helper whose definition is
+`void func_..._801846F4(s16 arg0, s16 arg1, s32 arg2)`. With that prototype in
+scope, every call emitted `lhu`/`addiu`/`sll 16`/`sra 16`; the target has a
+plain `lh` + `addiu` and no recast, which cost 17 points.
+
+A callee that only stores its argument into an `s16` field (`p->x0 = arg0;`)
+compiles identically whether the parameter is declared `s16` or `s32` - the
+truncation an `s16` parameter implies is emitted in the **caller**, not in the
+callee. So when a call site adds to a halfword and the target does not
+re-truncate, widen the parameter to `s32` in both the prototype and the
+definition and re-verify the callee; it stays matched.
+
+## A counter bumped *after* a call shares that call's constant register
+
+`addu $s1, $s1, $a1` in a `jal`'s delay slot, with `li $a1, 1` hoisted into the
+delay slot of the branch that skips the block, is not a scheduling accident: the
+increment and the call argument are the same constant, and GCC only shares it
+when the call is written **first**.
+
+```c
+/* Target: li a1,1 / lh a0,0(s0) / jal Gp_SetItemSeenBit / addu s1,s1,a1 */
+if (func_800B7420(*weapon) != 0) {
+    Gp_SetItemSeenBit(*weapon, 1);
+    count += 1;
+}
+
+/* Mismatch: addiu s1,s1,1 as its own insn, then li a1,1 in the jal slot */
+if (func_800B7420(*weapon) != 0) {
+    count += 1;
+    Gp_SetItemSeenBit(*weapon, 1);
+}
+```
+
+`count += 1` on its own folds the constant into an `addiu`. Emitting the call
+first puts `1` in a pseudo before the add, so the add becomes a register add and
+the delay-slot filler then pulls it past the `jal` - where `$a1` still holds 1.
+Introducing a `one = 1;` local instead does not work; GCC 2.8.1 propagates it
+straight back into the `addiu`.
+
+## Declare a `u8` counter `s32` and cast it at the compare
+
+A count that is stored to a `u8` field and range-tested as a byte
+(`andi $v0, $s1, 0xFF` then `sltiu`) looks like a `u8` local, but declaring it
+`u8` makes GCC narrow it everywhere, and an initialiser copy such as
+`count = 0; i = count;` collapses to two independent `move reg,zero`. The target
+keeps the copy:
+
+```
+move  s1,zero
+move  s2,s1
+```
+
+Declare the counter `s32` and write the truncation only where the assembly shows
+it, and the copy survives:
+
+```c
+s32 count;
+
+count = 0;
+i     = count;      /* move s1,zero / move s2,s1 */
+...
+list->field_4 = count;          /* sb, no mask needed */
+if ((u8)count >= 0xB) { ... }   /* andi 0xff / sltiu */
+```
+
+## When both addends are `short` fields, put the bias on the *other* one
+
+The `(s16)(obj->baseY - K) + y` recipe above assumes the second addend is an
+`s32` local. When both addends are narrow struct fields the whole expression
+is shortened to HImode, and every spelling that biases `baseY` fails:
+
+```c
+req.y = (obj->baseY - 3) + (u16)p->field_1A;       /* li a1,0xfffd — u16 narrowing */
+req.y = (s16)(obj->baseY - 3) + (u16)p->field_1A;  /* li a1,0xfffd — same          */
+req.y = (s16)obj->baseY - 3 + (u16)p->field_1A;    /* addiu -3, but on field_1A    */
+```
+
+GCC narrows the add, then binds the constant to whichever operand it evaluates
+first, which is *not* the one it was written on. So write the subtraction on
+the field the assembly does *not* bias, and the constant lands on the other:
+
+```c
+req.y = (p->field_1A - 3) + obj->baseY;
+/* lhu v0,0x22(obj) ; lhu v1,0x1a(p) ; addiu v0,v0,-3 ; addu v1,v1,v0 */
+```
+
+Signedness still has to work out — here `field_1A` is `s16` and `baseY` `u16`,
+so the mix keeps the narrowed type signed and `-3` fits the `addiu`.
+`func_mist_shooting_gallery_8018055C` is the example.
+
+## A stack block that is both a draw request and a copied table is a union
+
+A frame whose whole local area is one `movstrsi` copy from `.rodata`
+(unrolled `lw`/`sw` loop, 16 bytes per iteration plus a straight-line tail),
+and whose first 0x10 bytes are then overwritten with `TextDrawReq` fields
+while a later word of the *same* block is loaded as a pointer, is one object,
+not two: GCC 2.8.1 never shares stack slots between distinct locals, so two
+locals would grow the frame.
+
+```c
+typedef union {
+    Entry*      lists[10];   /* initialiser lives in .rodata, copied on entry */
+    TextDrawReq req;         /* overlays lists[0..3]                          */
+} Menu;
+
+Menu menu = D_8017DADC;      /* the block copy                                */
+row = &menu.lists[idx][n];   /* lw at base + idx*4, offset folded to 0        */
+menu.req.x = ...;            /* clobbers lists[0..3], already read past       */
+```
+
+The table read must come *before* the request stores in source order: they
+alias, so GCC will not hoist the `lw` past them. `GpHudBarScratch` in
+`include/gameplay/gameplay.h` is the same idea for a `UiObject`-sized block.
+
+## `ori K; slt v0,v0,a0` is `x > K`, not `x >= K + 1`
+
+For threshold compares GCC 2.8.1 canonicalises `x > K` into `x >= K + 1` and
+emits `slti rd,rs,K+1` — but only while `K + 1` fits the signed 16-bit
+immediate. Past that the two forms diverge, and the asm says which one the
+source used:
+
+```
+slti $v0, $a0, 0x2710      /* x >= 0x2710  (immediate fits)          */
+
+ori  $v0, $zero, 0xC34F    /* x > 0xC34F: constant in a register,    */
+slt  $v0, $v0, $a0         /* and the compare is K < x, operands     */
+                           /* in that order                          */
+```
+
+`slt $v0, $v0, $a0` (constant first) is `K < x`; writing `x >= K + 1` instead
+gives `slt $v0, $a0, $v0` plus an inverted branch. So a chain of thresholds
+that crosses 0x8000 has to switch from `>=` to `>` mid-chain, keeping the
+exact constant from the `ori`. `func_mist_shooting_gallery_80184470` is the
+worked example: its five score tiers use `>=` for the two low difficulties and
+`>` for the three high ones.
+
+## Don't pun `MATRIX.t` through `u16` when you subtract from it
+
+The `*(u16*)&t[i]` pun above is for a plain `s32 → s16` *copy*. When the long
+is an operand of arithmetic whose result is stored to a `s16` field, GCC 2.8.1
+narrows the load on its own — combine sees only the low half is live and turns
+the `lw` into `lhu` — so the pun is redundant, and it is not harmless: it
+changes the RTL enough to move the store one slot in the schedule.
+
+```c
+work->field_18 = *(u16*)&coord->workm.t[0] - ((rand >> 16 & 0x3FF) - 0x200);
+work->field_1A = coord->workm.t[1] - 0x800;   /* no pun: still lhu 0x3c */
+```
+
+Both lines emit `lhu` / `addiu` / `sh`. In `func_mist_shooting_gallery_80182064`
+the punned form of the middle line was the last diff at 99.1%: it emitted
+`sh field_18` and the next `lhu` four instructions early. Where a line has no
+random operand to keep the value 32-bit wide, write the bare field access.
+
+## Signed test then `(u16)` decrement: the compare must be mentioned first
+
+A `s16` countdown that is tested signed but decremented as `u16` emits **two**
+loads of the same field and no extension insn:
+
+```
+lh    v0, 0xa(s0)
+lhu   v1, 0xa(s0)
+bgtz  v0, store
+ addiu v0, v1, -0x1
+```
+
+CSE folds them into one load plus a fix-up (`sll 16` for the signed view,
+`andi 0xffff` for the unsigned one) unless the *signed* mention comes first in
+the source. Computing the decrement into a temp up front loses it:
+
+```c
+/* BAD — lhu wins, the compare becomes sll 16 + bgtz, 2 insns over */
+timer = (u16)work->field_0A - 1;
+if (work->field_0A > 0) { work->field_0A = timer; }
+
+/* GOOD — lh for the compare, lhu for the arithmetic, both loads kept */
+if (work->field_0A <= 0) {
+    /* timeout body */
+} else {
+    work->field_0A = (u16)work->field_0A - 1;
+}
+```
+
+The `<= 0` / `else` polarity is the second half of the trick: it places the
+one-instruction decrement block *after* the timeout body, which is what lets
+cross-jumping merge the identical decrement tails of two neighbouring switch
+cases into a single out-of-line block both `bgtz` into. Written as
+`if (field > 0) { dec; break; } timeout;` the decrement is inline in each case
+and the merged block lands too early. `func_mist_shooting_gallery_80183E78`
+states 1 and 2 are the worked example (84% → 98% on those two edits).
+
+## Permute the order of independent struct stores to place a shared `li`
+
+GCC 2.8.1 reorders stores to distinct constant offsets of one struct — it
+proves they cannot alias — so the store order in the target says nothing about
+the source order. What the source order *does* fix is where a constant shared
+by two stores gets materialised. In the tail of
+`func_mist_shooting_gallery_80183E78` the value 1 is stored to both a struct
+byte and a global byte, and the target loads it immediately after the first
+constant of the block:
+
+```c
+/* li v0,8 / li v1,1 / sh 4 / li v0,3 / sh 0xa / li v0,0x11 / sb 0x20 / sb 0x1e */
+work->field_04 = 8;
+work->field_1E = 1;      /* second in source, fourth in the emitted stores */
+work->field_0A = 3;
+work->field_20 = 0x11;
+D_80115768     = 1;
+```
+
+Writing the five assignments in emitted-store order leaves `li v1,1` two slots
+late and is the last diff at 99.2%. When a block ends with a run of constant
+stores and only the `li` placement is off, permuting the statements is a cheap
+sweep — eight orderings were enough here — and does not need a pin.
+
+## `if (guard) { …; break; }` vs `if (!guard) { … } else { … }` decides where the shared tail lands
+
+A switch whose cases all end in the same one-instruction store (here
+`sh $v0, 0xA($s1)` for a countdown field) gets that store cross-jumped into a
+single block. **Where** GCC puts that block is decided by the C shape of the
+*last* case that contributes to it, and that in turn decides whether the other
+cases merge into it at all.
+
+Written as an early-exit guard:
+
+```c
+case 9:
+    if (work->field_0A > 0) {
+        work->field_0A--;
+        break;          /* then-block emitted inline, before the rest */
+    }
+    if (D_801153F4 == 0) { ... }
+    break;
+```
+
+the decrement is emitted *before* the case body, so the shared block sits in
+the middle of the function, needs its own `j epilogue`, the branch flips to
+`blez`, and the other cases' copies stop merging into it (95.6%, `branch=29`).
+
+Written as an if/else with the decrement in the `else`:
+
+```c
+case 9:
+    if (work->field_0A <= 0) {
+        if (D_801153F4 == 0) { ... }
+    } else {
+        work->field_0A--;
+    }
+    break;
+```
+
+the else-block is emitted *after* the body, i.e. last in the switch and
+adjacent to the epilogue, so it falls through instead of jumping, the branch is
+`bgtz`, and every earlier case cross-jumps into it (99.2%, `branch=0`).
+
+Symptom to watch for: a shared store block that carries an extra `j` back to
+the epilogue plus an inverted branch at one site. Convert the guard-with-`break`
+into if/else at the *last* contributing case — flipping the earlier ones alone
+does nothing.
+
+## Two locals for one field read at two sites in the same function
+
+`func_mist_shooting_gallery_801838FC` reads `work->field_20` both in `case 9`
+and in the trailing abort check. Reusing one `u8 step` local for both cost
+`$a0`/`$v1` swaps at both sites *and* reordered the two loads in the epilogue.
+Giving each read its own local (`step`, `hold`) was the last edit from 99.2% to
+100%. Same rule as splitting a reused temp for register pressure, but the
+symptom here was `reorder`, not `regs`.
+
+## A global read at two widths belongs in a union, not a second `extern`
+
+`Gp_StatRows` is declared once in `include/gameplay/268.h`, but the two TUs that
+read its head field disagree about the width: gameplay's `Gp_RecalcMaxHp` does
+`lhu v0, 0(v0)` (the value goes straight into a `u16` config field), while the
+Mist shooting gallery's STATUS panel does `lw s2, 0(v0)` and compares it with
+`slti … 0x64`. Declaring the array a second time with a word-wide row type is
+not an option — both headers are included by the same overlay `.c`, so the two
+`extern`s collide.
+
+Give the slot a named union in the shared header and let each caller pick the
+member it needs:
+
+```c
+typedef union _GpStatBase {
+    /* 0x0 */ u16 half;   /* Gp_RecalcMaxHp: lhu */
+    /* 0x0 */ s32 word;   /* shooting gallery STATUS: lw */
+} GpStatBase;
+
+typedef struct _GpStatRow {
+    /* 0x00 */ GpStatBase base;
+    /* 0x04 */ s32        field_4;
+} GpStatRow;
+```
+
+A cast does not work: `(u16)row.word` is `lw` + `andi`, and widening the field
+to `s32` turns the gameplay side's `lhu` into `lw`. Re-verify every TU that
+touches the struct with an unscoped `build-and-verify.sh` after the change.
+
+## Clamped switch result: a short-lived quotient plus one long-lived destination
+
+`func_mist_shooting_gallery_8017EC58` draws four stat rows and clamps two of
+them to 999999. The obvious C keeps one variable:
+
+```c
+switch (Mc_SaveData.field_F) {
+case 3:  exp = 0;            break;
+case 2:  exp = raw / 100;    break;
+case 1:  exp = raw / 20;     break;
+default: exp = raw / 10;     break;
+}
+if (exp > 999999) { exp = 999999; }
+```
+
+That stalls at 97% (`delete=4`): GCC coalesces everything into the saved
+register, so the target's `move s2, a1` copies and its `lui a1 / ori a1 /
+move s2, a1` constant load never appear. The target wants **two** locals — a
+quotient with a live range confined to the clamp (it lands in `$a1`) and a
+destination that survives the following `jal`s (a saved register):
+
+```c
+default:
+    q = raw / 10;
+clamp:
+    if (q > 999999) { q = 999999; }
+    val = q;
+    break;
+```
+
+Two further points made this a 100%:
+
+- **`val` must be one variable reused by every row.** Separate `hp` / `mp` /
+  `exp` / `bp` locals let GCC coalesce `q` into whichever one the arm feeds;
+  a single `val` with several defs spanning the whole function has a live range
+  the quotient cannot merge into, and it also fixes the `$s1` / `$s2` swap
+  between the object pointer and the value.
+- **The zero case assigns `val`, not `q`, and skips the clamp.** With
+  `case 3: q = 0;` GCC still runs the compare (`j` into the clamp); with
+  `case 3: val = 0; break;` and the other arms `goto`-ing into the tail that
+  lives in `default:`, case 3 becomes `move s2, zero` + a `j` past the whole
+  block, exactly like the target.
+
+## Declare a fixed-address global as an array to stop a load hoisting over it
+
+The complement of "A fixed-address global load hoists over `addPrim`'s tag
+store" above. GCC 2.8.1's `true_dependence` exempts a *fixed-address scalar*
+from a *varying-address struct* reference in **both** directions, so
+
+```c
+extern s8 D_80071068;
+...
+D_80071068          = 1;
+arg0->killCountdown = 0;
+arg0->state++;              /* lw 0x30(s0) */
+```
+
+lets `-fschedule-insns` lift the `lw` above the `sb`, and the state pseudo can
+no longer reuse the `$v0` that held the stored constant:
+
+```
+lui  a0,%hi(D_80071068)
+lw   v1,0x30(s0)      <- hoisted, forces v1 and blocks cross-jumping
+li   v0,1
+sb   v0,%lo(D_80071068)(a0)
+```
+
+Declaring the global as an array and indexing it makes the store an
+`ARRAY_REF`, so `MEM_IN_STRUCT_P` is set on it, the fixed-scalar exemption no
+longer applies, and the load stays put:
+
+```c
+extern s8 D_80071068[];
+D_80071068[0] = 1;
+```
+
+```
+lui  v1,%hi(D_80071068)
+li   v0,1
+sb   v0,%lo(D_80071068)(v1)
+lw   v0,0x30(s0)      <- $v0 reused; the tail now cross-jumps into the
+j    .L_advance        shared `state++` block
+ sh  zero,0x2a(s0)
+```
+
+A neighbouring symbol (`D_8007106B` here) is the usual hint that the address is
+inside a small flag block rather than a standalone scalar, so the array form is
+an honest declaration and not just a codegen trick. Reach for it whenever a
+global scalar store and a following struct load are in the wrong order, and try
+it on the `Gpu_PrimCursor` hoist in `func_800D15D0` — there the fixed-address
+scalar is on the *load* side, but the same exemption is what moves it.
+
+## Declare a case's scratch pointers inside the case, not at function scope
+
+Two `switch` arms that each build the same primitive (`TILE* tile; DR_TPAGE*
+dr;`) will share one pseudo per variable if the variables are declared at
+function scope. One pseudo that is live in two far-apart blocks "dies in 2
+places", goes to `global-alloc` instead of `local_alloc`, and is coloured after
+every block-local quantity — so the two prim pointers end up in `$t2`/`$t3`
+while the addPrim mask constants take `$a1`-`$t1`:
+
+```
+Register 81 used 28 times across 69 insns; dies in 2 places   <- .lreg
+```
+
+Giving each arm its own scope makes them distinct `VAR_DECL`s, hence distinct
+block-local pseudos, which `local_alloc` colours first and hands `$a0`/`$a1`:
+
+```c
+case 2: {
+    TILE*     p;
+    DR_TPAGE* dr;
+    u8        color;
+    ...
+}
+```
+
+This took `func_mist_shooting_gallery_80180B64` from 94.7% (regs=96, every
+other penalty zero) to 100% with no other change. Check the `.lreg` header for
+"dies in N places" before assuming a register diff needs a pin: a pseudo that
+spans blocks is a scoping problem in the C, not a colouring problem.
+
+## `p++` when the target *wants* the mid-struct induction variable
+
+The inverse of "Reassign `ptr = base + i` instead of `ptr++` to avoid mid-struct
+IV": sometimes the target has the extra IV and indexed C cannot produce it.
+
+`func_mist_shooting_gallery_80180390` copies one `MistShootingGalleryLink`
+(`u16 field_00[4]; u16 field_08; u16 field_0A;`) per outer iteration — an inner
+loop over `field_00`, then `field_08` and `field_0A`. The target carries four
+outer IVs per iteration: a pointer at each struct base (copied into the inner
+loop's walking pointer) *and* a pointer at `base + 0xA`, with `field_08` read as
+`-0x2(t2)` and `field_0A` as `0(t2)`.
+
+Written as `dlinks[i].field_08 = slinks[i].field_08 + 3;` GCC 2.8.1 combines all
+of the givs into the single const-0 IV the inner loop already materialises, and
+addresses the tail fields as `8(t1)` / `0xa(t1)` — 94.2%, `regs` only.
+Incrementing the pointers instead:
+
+```c
+for (j = 0; j < 4; j++) {
+    dlinks->field_00[j] = slinks->field_00[j] + 8;
+}
+dlinks->field_08 = slinks->field_08 + 3;
+dlinks->field_0A = slinks->field_0A;
+dlinks++;
+slinks++;
+```
+
+makes each pointer an explicit biv, so the two tail accesses become DEST_ADDR
+givs that combine only with *each other* (`0xA` kept, `8` expressed as `-2`) and
+get their own register. 100%, and the whole register assignment downstream falls
+into place. So: an extra `addiu <reg>, <reg>, stride` in the target loop tail,
+paired with small negative offsets, is the signature to switch from `p[i].f` to
+`p->f` plus `p++`; the reverse signature is in the entry named above.
+
+## The fixed-scalar exemption on the *load* side reshapes cross-jumping too
+
+"Bare `extern` global next to struct traffic" (the
+`fixed_scalar_and_varying_struct_p` entry above) is usually met as a *store*
+that drifts. It bites just as hard when the fixed-address scalar is the
+**load** of a global table pointer, and there the damage is not a stray
+instruction but which tail GCC cross-jumps.
+
+`func_mist_shooting_gallery_80182C58` has two `switch` arms that advance the
+state and then spawn a record:
+
+```c
+work->field_04++;                                  /* mem/s store, varying base */
+spawn = &D_mist_shooting_gallery_80186900[work->field_08];
+func_mist_shooting_gallery_80184CD0(arg0, spawn);
+work->field_08++;
+```
+
+With `extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900;` the
+`lw %lo(...)` is a fixed-address scalar MEM, so `true_dependence` clears every
+edge between it and the `work->` traffic. The address chain (`lh`, two `sll`,
+two `addu`, the `lw`) then has the longest path to the `jal` and sched1 hoists
+it, leaving `lhu 4 / addiu / sh 4` next to the call. That is not just three
+misplaced instructions: because both arms then schedule *identically* apart
+from the leading `sh 0xa`, post-reload cross-jumping merges from `lh 8` instead
+of from `addiu`, so the second arm loses its own `lhu`/`addiu` copy and the
+whole function comes out one instruction short (96.5%, `regs`/`insert`/`delete`
+all non-zero).
+
+Declaring the global as the array it is restores the dependence and the source
+order, and 100% follows with no other change:
+
+```c
+extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
+spawn = &D_mist_shooting_gallery_80186900[0][work->field_08];
+```
+
+Two things this measurement adds to the store-side entry:
+
+* **The barrier is not an alternative here.** `SOFT_BARRIER()` / `SCHED_BARRIER()`
+  after `work->field_04++` also puts the field_04 chain first (97.9%), but an
+  `asm` with no output is implicitly volatile and splits the block, so the call's
+  `move a0, s2` can no longer be hoisted out of the second region and the branch
+  delay slot takes `li 0x3c` instead. An `asm` *with* an output and a `"memory"`
+  clobber is not volatile and has no scheduling effect at all — it scored exactly
+  the same as no barrier. When the fix has to keep a later instruction free to
+  move above the store, only the aggregate declaration works.
+* **Consecutive same-typed globals are the hint.** `0x80186900`, `0x80186904`,
+  `0x80186908`, `0x8018690C`, `0x80186910` are five course wave-script pointers;
+  neighbours at exactly `sizeof(T)` apart mean the array bound is a true
+  statement, not a codegen trick. Sibling functions may already reference the
+  later elements by their own addresses — that keeps linking, so the array form
+  can be introduced for one element at a time.
+
+The register-allocation half of the same function is the mirror of "Early
+`return ret;` inflates `ret`'s ref count": `work` (105 refs / 330 insns) beat
+`spawn` for `$s0` and the target wanted the reverse. Writing `spawn = &tbl[i];
+f(arg0, spawn);` in *every* arm that spawns — rather than passing `&tbl[i]`
+inline in some of them — raised `spawn`'s `floor_log2(n_refs) * n_refs /
+live_length` above `work`'s, and the whole `$s0`/`$s1` assignment fell into
+place (`regs` 107 -> 7) with identical instructions. Reusing one local across
+several arms is a register-allocation lever, not just style.
+
+## A masked-only `s16` parameter emits a hoisted `move` — declare it `s32`
+
+A parameter whose only uses are bit masks (`arg & 1`, `(arg & 3) >> 1`) needs
+no widening at all, so its declared width is invisible in the body — except
+that GCC 2.8.1 will not always coalesce the entry copy of a narrow parameter
+with its incoming argument register. Declared `s16`, `arg2` produced
+
+```
+move  a0, a2          /* hoisted into the prologue */
+...
+andi  a0, a0, 0x1
+```
+
+one `insert` ahead of the target's plain `andi a0, a2, 0x1`, and the shifted
+branch offsets alone dropped a 100% body to 99.14%. Declaring the same
+parameter `s32` reads the argument register in place and matched.
+
+The sign of the parameter still matters for the *shift*: `(arg2 & 3) >> 1` on
+a signed value is `sra`, and the target's `srl` needs the operand made
+unsigned — `((u32)(arg2 & 3) >> 1)` — since `u16`/`s16` both promote to `int`.
+`func_mist_shooting_gallery_801826C4`, whose neighbouring `s16 arg3` (used as
+`arg3 * 23`) *does* need the narrow type for its `sll`/`sra`, so the two
+parameters of one call end up with different widths.

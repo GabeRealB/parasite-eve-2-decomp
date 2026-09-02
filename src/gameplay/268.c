@@ -333,7 +333,7 @@ void Gp_EquipMod(s32 arg0)
                     p           = &Wip_SysConfig;
                     table       = Gp_StatRows;
                     save        = &Mc_SaveData;
-                    val         = table[save->field_F].field_0;
+                    val         = table[save->field_F].base.half;
                     p->field_1a = val;
                     val        += save->field_26;
                     p->field_1a = val;
@@ -393,7 +393,7 @@ void Gp_EquipMod(s32 arg0)
 
         table         = Gp_StatRows;
         save          = &Mc_SaveData;
-        val           = table[save->field_F].field_0;
+        val           = table[save->field_F].base.half;
         cfg->field_1a = val;
         val          += save->field_26;
         cfg->field_1a = val;
@@ -1667,7 +1667,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         if (save->field_26 < 0xFA) {
             save->field_26 = save->field_26 + 5;
         }
-        val           = Gp_StatRows[save->field_F].field_0;
+        val           = Gp_StatRows[save->field_F].base.half;
         cfg->field_1a = val;
         val          += save->field_26;
         cfg->field_1a = val;
@@ -1928,7 +1928,7 @@ void Gp_ClearInventory(void)
                     SCHED_BARRIER();
                     cfg->field_23   = id - 0x5F;
                     hpCfg           = &Wip_SysConfig;
-                    hpVal           = rows[save2->field_F].field_0;
+                    hpVal           = rows[save2->field_F].base.half;
                     hpCfg->field_1a = hpVal;
                     hpVal          += save2->field_26;
                     hpCfg->field_1a = hpVal;
@@ -3169,7 +3169,7 @@ void Gp_RecalcMaxHp(void)
     cfg           = &Wip_SysConfig;
     table         = Gp_StatRows;
     save          = &Mc_SaveData;
-    val           = table[save->field_F].field_0;
+    val           = table[save->field_F].base.half;
     cfg->field_1a = val;
     val          += save->field_26;
     cfg->field_1a = val;

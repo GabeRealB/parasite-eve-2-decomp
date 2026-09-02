@@ -186,14 +186,22 @@ typedef struct _GpItemA0 {
 } GpItemA0;
 STATIC_ASSERT_SIZEOF(GpItemA0, 0x4);
 
+/// The starting max HP at the head of a `Gp_StatRow`. `Gp_RecalcMaxHp` reads it
+/// as the unsigned halfword it writes straight into `Wip_SysConfig.field_1a`,
+/// while the Mist shooting gallery's STATUS panel reads the same slot as a full
+/// word, so the slot is declared both ways.
+typedef union _GpStatBase {
+    /* 0x0 */ u16 half;
+    /* 0x0 */ s32 word;
+} GpStatBase;
+STATIC_ASSERT_SIZEOF(GpStatBase, 0x4);
+
 /// 8-byte row in `Gp_StatRows` (4 entries), indexed by `Mc_SaveData.field_F`.
-/// field_0 is the unsigned base written into `Wip_SysConfig.field_1a`
-/// (`Gp_RecalcMaxHp`). field_4 is the word added into `Wip_SysConfig.field_1e`
-/// (`Gp_RecalcMaxMp`).
+/// base is the starting max HP (see `GpStatBase`). field_4 is the word added
+/// into `Wip_SysConfig.field_1e` (`Gp_RecalcMaxMp`).
 typedef struct _GpStatRow {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2[2];
-    /* 0x04 */ s32  field_4;
+    /* 0x00 */ GpStatBase base;
+    /* 0x04 */ s32        field_4;
 } GpStatRow;
 STATIC_ASSERT_SIZEOF(GpStatRow, 0x8);
 
