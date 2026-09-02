@@ -51,7 +51,30 @@ void func_mist_r18_8017E3A4(Task* task)
     Task_Kill(task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E448);
+/// Emit the sprite's screen rectangle as a flat-shaded `TILE` into OT slot 5.
+void func_mist_r18_8017E448(MistR18Sprite* sprite)
+{
+    TILE* tile;
+
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    setTile(tile);
+    if (sprite->semiTrans == 0) {
+        SetShadeTex(tile, 1);
+        SetSemiTrans(tile, 0);
+    } else {
+        SetShadeTex(tile, 0);
+        SetSemiTrans(tile, 1);
+    }
+    tile->r0 = sprite->r;
+    tile->g0 = sprite->g;
+    tile->b0 = sprite->b;
+    tile->x0 = sprite->x;
+    tile->y0 = sprite->y;
+    tile->w  = sprite->w - 1;
+    tile->h  = sprite->h - 1;
+    AddPrim(Gpu_CurrentOt + 5, tile);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E534);
 
