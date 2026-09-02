@@ -39380,3 +39380,45 @@ kill:
 the `&&` form scored 52%. Six other room/actor overlays carry the same body, but
 each references its own overlay's task pointer, so it cannot be promoted to a
 shared unit.
+
+## A branch cannot steal a *load* from its target, so set the zero arg first
+
+`fill_simple_delay_slots` fills a conditional branch's delay slot with the first
+instruction of its target block and redirects the branch one instruction past
+it. That instruction then runs on the fall-through path too, so GCC only takes
+it if it cannot trap - a `move aN, zero` qualifies, a `lw` does not.
+
+The symptom is a stuck ~92% with `branch`/`insert`/`delete` all at 1: the target
+has the branch's delay slot filled and an extra copy of the same `move` at the
+other case's label, and our output has a `nop` there instead.
+
+```
+target                                  ours
+  beqz  v1, .L674                         beqz  v1, .L670
+   move  a1, zero      /* stolen */        nop
+  ...                                     ...
+ .L670:                                  .L670:
+  move  a1, zero                           lw    a0, 0x20(s0)
+ .L674:                                    move  a1, zero
+  lw    a0, 0x20(s0)                       jal   Callee
+  jal   Callee                              move  a2, a1
+   move  a2, a1
+```
+
+`expand_call` loads register arguments in parameter order, so a call whose first
+argument is a memory load always puts the `lw` first and there is no plain C
+rewrite that reorders them. Assign the zero argument to a local and `TOUCH_REG`
+it before the call: the empty `asm` stops CSE folding it back to `$zero` and
+pins the statement ahead of the argument setup, which makes `move a1, zero` the
+block's first instruction and thus stealable.
+
+```c
+zero = 0;
+TOUCH_REG(zero);
+SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
+```
+
+`func_mist_parking_80182628` is the example (92.75% -> 100%). No register pin is
+needed - `register s32 z asm("a1")` alone still scores 92.75%, because the pin
+does not move the statement; only the `asm` does. This is the unpinned form of
+the `Mem_Set` arg-order trick above.
