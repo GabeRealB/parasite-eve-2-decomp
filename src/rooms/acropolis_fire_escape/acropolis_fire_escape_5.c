@@ -135,7 +135,51 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
     sp = D_acropolis_fire_escape_8017D6A4;
     sp.funcs[task->state](task);
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FF7C);
+void func_acropolis_fire_escape_8017FF7C(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    switch (task->state) {
+        case 0:
+            work->field_10.vx = 0xB58;
+            work->field_10.vy = -0x822;
+            work->field_10.vz = -0xE5;
+            Gp_SpawnEff(0x6008C, coord, 0x42000, &work->field_10);
+            task->state = task->state + 1;
+            break;
+        case 1:
+            if (Gp_State1C->field_4 < 4) {
+                if ((u8)Game_Session->field_4 == 3) {
+                    work->field_10.vx = 0x48F;
+                    work->field_10.vy = -0x391;
+                    work->field_10.vz = 0x686;
+                    Gp_SpawnEff(0x6004F, coord, 0x60E, &work->field_10);
+                }
+                if ((u8)Game_Session->field_4 == 8) {
+                    work->field_10.vx = 0x48F;
+                    work->field_10.vy = -0x391;
+                    work->field_10.vz = 0x686;
+                    Gp_SpawnEff(0x6004F, coord, 0x8000030E, &work->field_10);
+                }
+                if ((u8)Game_Session->field_4 == 6) {
+                    work->field_10.vx = -0xC1F;
+                    work->field_10.vy = -0xD10;
+                    work->field_10.vz = 0x8E0;
+                    Gp_SpawnEff(0x6004F, coord, 0x10408, &work->field_10);
+                }
+                if ((u8)Game_Session->field_4 == 9) {
+                    work->field_10.vx = -0xC1F;
+                    work->field_10.vy = -0xD10;
+                    work->field_10.vz = 0x8E0;
+                    Gp_SpawnEff(0x6004F, coord, 0x80010208, &work->field_10);
+                }
+            }
+            break;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_80180154);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_80180B20);
