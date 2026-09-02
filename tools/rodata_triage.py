@@ -90,7 +90,15 @@ def triage(overlay: str) -> dict:
         src = next((p for p in ROOT.glob(f"asm/*/**/nonmatchings/{overlay}/{unit}/{func}.s")), None)
         if src is None:
             continue
-        tables = sorted(set(JTBL.findall(src.read_text(errors="replace"))))
+        body = src.read_text(errors="replace")
+        tables = sorted(set(JTBL.findall(body)))
+        if not tables:
+            free.append(func)
+            continue
+        # A table splat has inlined into this function's own .s is already owned
+        # by the right unit - that is exactly what a correct cut produces, and
+        # there is no INCLUDE_RODATA for it anywhere to infer ownership from.
+        tables = [t for t in tables if f"dlabel {t}" not in body]
         if not tables:
             free.append(func)
             continue

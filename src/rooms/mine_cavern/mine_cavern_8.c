@@ -1,5 +1,4 @@
 #include "common.h"
-
 extern void func_mine_cavern_80182454(void);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80181730);
@@ -13,6 +12,8 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182184);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182454);
+
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_8", D_mine_cavern_8017D65C);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801825C8);
 
@@ -42,3 +43,5 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183AD4);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183C10);
+
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_8", jtbl_mine_cavern_8017D818);

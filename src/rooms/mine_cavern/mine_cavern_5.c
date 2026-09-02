@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main/fs.h"
 #include "gameplay/3A34.h"
-
 extern s32 D_mine_cavern_8018EB54;
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_5", func_mine_cavern_8017E330);

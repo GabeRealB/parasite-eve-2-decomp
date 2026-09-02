@@ -7,5 +7,3 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_8017D
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D5C4);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D5D0);
