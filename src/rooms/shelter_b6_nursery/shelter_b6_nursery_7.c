@@ -1,8 +1,7 @@
 #include "common.h"
 #include "main/task.h"
-extern TaskDesc D_shelter_b6_nursery_80185000;
-extern s32      D_shelter_b6_nursery_8018797C;
-
+extern TaskDesc       D_shelter_b6_nursery_80185000;
+extern s32            D_shelter_b6_nursery_8018797C;
 extern TaskFuncTable3 D_shelter_b6_nursery_8017D6A4;
 
 void func_shelter_b6_nursery_8017FF9C(Task* task)

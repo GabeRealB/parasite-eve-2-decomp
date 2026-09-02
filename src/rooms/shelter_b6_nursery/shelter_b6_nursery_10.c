@@ -1,14 +1,11 @@
 #include "common.h"
-
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/shelter_b6_nursery.h"
-
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
 extern s32  Gp_LcgState;
 extern void Room_Draw02(GsCOORDINATE2* coord, s32 arg1, s32 arg2, u8* rgb);
 

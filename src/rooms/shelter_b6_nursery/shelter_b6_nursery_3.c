@@ -1,14 +1,11 @@
 #include "common.h"
-
 #include <psyq/libgte.h>
-
 #include "main/fs.h"
 #include "main/pad.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
-
 extern u8           D_shelter_b6_nursery_80184CBC[];
 extern u8           D_shelter_b6_nursery_80184CC4[];
 extern u8           D_shelter_b6_nursery_80184CD0[];
@@ -70,11 +67,3 @@ void func_shelter_b6_nursery_8017F3E4(DialogPrompt* prompt, UiObject* obj)
         obj->owner->state = 2;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", D_shelter_b6_nursery_8017D6A4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", jtbl_shelter_b6_nursery_8017D6B4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", jtbl_shelter_b6_nursery_8017D6CC);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", jtbl_shelter_b6_nursery_8017D70C);

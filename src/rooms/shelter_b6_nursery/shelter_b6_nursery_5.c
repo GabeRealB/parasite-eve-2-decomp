@@ -1,5 +1,4 @@
 #include "common.h"
-
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -9,19 +8,16 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/shelter_b6_nursery.h"
-
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
-
 extern TaskDesc      D_shelter_b6_nursery_80184FDC;
 extern s8            D_shelter_b6_nursery_80185034[];
 extern s32           D_shelter_b6_nursery_8018797C;
 extern GsCOORDINATE2 D_shelter_b6_nursery_801879A0;
 extern u8            D_8007216C;
-
-extern void func_80132028(void);
-extern void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1);
+extern void          func_80132028(void);
+extern void          func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1);
 
 s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {

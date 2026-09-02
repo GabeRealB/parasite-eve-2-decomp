@@ -1,11 +1,8 @@
 #include "common.h"
-
 #include <psyq/libgte.h>
-
 #include "main/pad.h"
 #include "main/task.h"
 #include "main/ui.h"
-
 extern char         D_shelter_b6_nursery_8017D610[];
 extern UiList       D_shelter_b6_nursery_80184F08;
 extern UiObjectDesc D_shelter_b6_nursery_80184F54;
@@ -34,5 +31,3 @@ void func_shelter_b6_nursery_8017EF7C(Task* task)
         obj->field_2E = 6;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_2", jtbl_shelter_b6_nursery_8017D644);

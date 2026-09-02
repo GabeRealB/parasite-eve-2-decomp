@@ -1,20 +1,13 @@
 #include "common.h"
-
 #include "gameplay/3688.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/task.h"
 #include "main/ui.h"
-
 #include <psyq/libgte.h>
-
-extern void Room_SaveUi01(Task* task);
-
+extern void         Room_SaveUi01(Task* task);
 extern UiList       D_shelter_b6_nursery_80184F30;
 extern UiObjectDesc D_shelter_b6_nursery_80184F54;
-
-void func_shelter_b6_nursery_8017E2F4(UiList* list, UiObject* obj);
-void func_shelter_b6_nursery_8017E5F0(UiList* list, UiObject* obj);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", D_shelter_b6_nursery_8017D5C0);
 
