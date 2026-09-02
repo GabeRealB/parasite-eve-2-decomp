@@ -437,7 +437,7 @@ actor_113100 = { shared = [{ start = "0x1104", end = "0x1120", unit = "actors_sh
 actor_120300 = { shared = [{ start = "0x1FB4", end = "0x1FD4", unit = "actors_shared_8016449c" }, { start = "0x1FD4", end = "0x1FF4", unit = "actors_shared_80162080" }, { start = "0x20C4", end = "0x20F4", unit = "actors_shared_80134898" }] }
 actor_120400 = { shared = [{ start = "0x994", end = "0x9B4", unit = "actors_shared_801327b4" }, { start = "0x9B4", end = "0x9D0", unit = "actors_shared_80132f24" }], rodata = [{ start = "0x1C", unit = "actor_120400_2" }] }
 actor_120500 = { rodata_head = "0x4" }
-actor_121300 = { shared = [{ start = "0x24E4", end = "0x2514", unit = "actors_shared_80136280" }, { start = "0x2544", end = "0x2564", unit = "actors_shared_8016447c" }, { start = "0x2564", end = "0x2584", unit = "actors_shared_8016449c" }, { start = "0x2584", end = "0x25AC", unit = "actors_shared_801343a4" }] }
+actor_121300 = { shared = [{ start = "0x24B4", end = "0x24E4", unit = "actors_shared_801346b0" }, { start = "0x24E4", end = "0x2514", unit = "actors_shared_80136280" }, { start = "0x2544", end = "0x2564", unit = "actors_shared_8016447c" }, { start = "0x2564", end = "0x2584", unit = "actors_shared_8016449c" }, { start = "0x2584", end = "0x25AC", unit = "actors_shared_801343a4" }] }
 actor_123000 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_123200 = { }
 actor_123400 = { note = "empty actor slot; the id resolves, the package has no code" }
@@ -459,7 +459,7 @@ actor_150400 = { shared = [{ start = "0x698", end = "0x6C0", unit = "actors_shar
 actor_151000 = { shared = [{ start = "0x6B4", end = "0x6DC", unit = "actors_shared_801366fc" }] }
 actor_160600 = { shared = [{ start = "0x530", end = "0x558", unit = "actors_shared_801366fc" }] }
 actor_160700 = { shared = [{ start = "0x5F4", end = "0x61C", unit = "actors_shared_801366fc" }] }
-actor_160900 = { shared = [{ start = "0x28C0", end = "0x28F0", unit = "actors_shared_80136280" }, { start = "0x2A10", end = "0x2A30", unit = "actors_shared_8016447c" }, { start = "0x2A30", end = "0x2A50", unit = "actors_shared_8016449c" }] }
+actor_160900 = { shared = [{ start = "0x2890", end = "0x28C0", unit = "actors_shared_801346b0" }, { start = "0x28C0", end = "0x28F0", unit = "actors_shared_80136280" }, { start = "0x2A10", end = "0x2A30", unit = "actors_shared_8016447c" }, { start = "0x2A30", end = "0x2A50", unit = "actors_shared_8016449c" }] }
 actor_161500 = { rodata_head = "0x4", shared = [{ start = "0xA2C", end = "0xA54", unit = "actors_shared_801366fc" }, { start = "0xD68", end = "0xD80", unit = "actors_shared_80132b88" }] }
 actor_400100 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_400500 = { }

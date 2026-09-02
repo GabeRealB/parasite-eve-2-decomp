@@ -56,8 +56,3 @@ void func_actor_121300_80134270(void)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013427C);
-
-void func_actor_121300_801342D4(s32 arg0)
-{
-    Task_SpawnFromTable(&ActorsShared80136280Desc, 1, arg0, 0);
-}
