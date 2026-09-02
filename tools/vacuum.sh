@@ -304,7 +304,14 @@ MAIN_LOG_FILE="$ROOT/tools/vacuum.log"
 SESSION="vacuum-${CLI}-$$"
 WORKTREE_PARENT="${VACUUM_WORKTREE_PARENT:-$(dirname "$ROOT")}"
 LOG_FLUSH_POS=0
-if [[ $ORCH -eq 1 ]]; then
+# VACUUM_LOG_FILE lets a caller point this run's log somewhere else. A driver
+# that runs the vacuum inside a worktree - tools/vacuum_overlay.sh - otherwise
+# has to capture the whole run through a pipe and only sees it when the pipe
+# closes, so the per-function agent output lands in one block at the end. With
+# the override the vacuum's own `tee -a` streams into the caller's log live.
+if [[ -n "${VACUUM_LOG_FILE:-}" ]]; then
+  LOG_FILE="$VACUUM_LOG_FILE"
+elif [[ $ORCH -eq 1 ]]; then
   LOG_FILE="$ROOT/tools/vacuum-${CLI}-$$.log"
 else
   LOG_FILE="$MAIN_LOG_FILE"

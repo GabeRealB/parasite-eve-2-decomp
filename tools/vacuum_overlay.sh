@@ -91,7 +91,10 @@ inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$OVERLAY")
 
 log "running: ${inner[*]}  (in $WT)"
 BASE=$(git -C "$WT" rev-parse HEAD)
-(cd "$WT" && "${inner[@]}") 2>&1 | tee -a "$LOG_FILE"
+# No `| tee` here: the inner vacuum appends to this same file itself (via
+# VACUUM_LOG_FILE), so the log stays live during a match instead of filling in
+# one burst when the function finishes. Piping as well would duplicate it.
+(cd "$WT" && VACUUM_LOG_FILE="$LOG_FILE" "${inner[@]}") 2>&1
 log "inner vacuum finished"
 
 # --- collect what it actually matched -----------------------------------------
