@@ -2934,6 +2934,31 @@ build/USA/src/rooms/.../dryfield_night_motel_room_6_3.c.o:(.rodata+0x10):
 The `.L*` names are the *new* function's local labels, but the object named is
 the *old* unit — read the object, not the labels, to find the line to delete.
 
+**A `units` cut is also needed when the table's function *is* first in the unit
+but a later function in it is already C.** The "every earlier function is still
+`INCLUDE_ASM`" rule has a mirror image: `INCLUDE_ASM` functions emit no rodata,
+but decompiled ones do, and the ones that come *after* still share the object.
+`func_mist_parking_80183B40` is the first function of `mist_parking_11` and its
+12-byte anonymous table (a `TaskFunc states[3] = {...}` local array initializer)
+correctly starts that object's `.rodata` at `0x29C` — but
+`func_mist_parking_80183EAC`, later in the same unit, was already decompiled and
+emits a switch jump table, which GCC precedes with `.align 3`. Twelve bytes is
+`4 mod 8`, so the pad became real and every rodata symbol from `0x2A8` on shifted
+by 4. Cutting `.text` right after the dispatcher (`units = [..., "0x65EC", ...]`)
+plus `rodata = [..., { start = "0x29C", unit = "mist_parking_11" }, { start =
+"0x2A8", unit = "mist_parking_12" }]` gives the dispatcher its own object, where
+its table is the only `.rodata` and the jump table is back at an 8-aligned base.
+`rodata_head` is not an alternative here — it only rehomes the block ahead of the
+overlay's *first* unit.
+
+**Read object boundaries out of the target's rodata padding.** A zero word
+between two jump tables is GCC's `.align 3` *inside* one object, so those two
+tables' functions are in the same TU; a table sitting at a `4 mod 8` address with
+no pad ahead of it has to start an object. `mist_parking` shows both: the zero
+word at `0x2D4` between the tables at `0x2A8` and `0x2D8` keeps those in one
+object, while the table at `0x29C` (`4 mod 8`, butted against the previous unit's
+jump table) can only be the first thing in an object of its own.
+
 ### Generated overlay configs: a rodata cut needs a matching `.text` cut
 
 A `rodata` cut alone does not move a *function* into the new unit, and the

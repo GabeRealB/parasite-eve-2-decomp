@@ -231,5 +231,3 @@ L_case5:
     Task_Kill(task);
     Display_ResetHeapWrapper();
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_9", D_mist_parking_8017D85C);
