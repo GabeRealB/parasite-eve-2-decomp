@@ -146,7 +146,38 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
 }
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018018C);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_801801E4);
+void func_mist_shooting_gallery_801801E4(s32 arg0)
+{
+    MistShootingGalleryLayout* dst = &D_mist_shooting_gallery_80189968;
+    MistShootingGalleryLayout* src = &D_mist_shooting_gallery_80185198;
+    MistShootingGalleryPos     ofs;
+    s32                        i;
+
+    for (i = 0; i < 3; i++) {
+        dst->positions[i].x = src->positions[i].x;
+        dst->positions[i].y = src->positions[i].y;
+        dst->positions[i].z = src->positions[i].z;
+        dst->links[i]       = src->links[i];
+    }
+    for (i = 0; i < 8; i++) {
+        dst->targets[i].x = src->targets[i].x;
+        dst->targets[i].y = src->targets[i].y;
+        dst->targets[i].z = src->targets[i].z;
+    }
+    if (arg0 == 0) {
+        ofs.x = 0;
+        ofs.y = 0;
+    } else {
+        ofs.x = 0;
+        ofs.y = 0xBB8;
+    }
+    ofs.z = 0;
+    for (i = 0; i < 8; i++) {
+        dst->targets[i].x += ofs.x;
+        dst->targets[i].y += ofs.y;
+        dst->targets[i].z += ofs.z;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180390);
 void func_mist_shooting_gallery_8018055C(DialogPrompt* prompt, UiObject* obj)
 {
