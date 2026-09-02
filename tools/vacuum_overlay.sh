@@ -143,7 +143,37 @@ log "extra paths: ${EXTRAS[*]:-none}"
 # a deterministic merge exists: the learnings file merges by section, the
 # difficult list by function name, the manifest by overlay entry. Anything else
 # that drifted needs judgement, so it gets an agent rather than a heuristic.
-MERGEABLE="DECOMPILATION_LEARNINGS.md tools/difficult_functions configs/USA/overlays.toml"
+# The learnings file and the difficult list merge unconditionally: appending
+# sections and unioning lines cannot lose either side's work. The manifest is
+# different - entry-wise merging is only correct when each entry has at most one
+# modifier - so it is exempt only when the two sides changed *disjoint* overlay
+# entries. Both editing the same entry is a real case (a promotion rewrites the
+# entry of every overlay carrying the body), and there it goes to the agent.
+MERGEABLE="DECOMPILATION_LEARNINGS.md tools/difficult_functions"
+manifest_is_mergeable() {
+    local f=configs/USA/overlays.toml
+    git -C "$WT" diff --quiet "$BASE" -- "$f" 2>/dev/null && return 0   # we did not touch it
+    MANIFEST_CONFLICT=$(python3 - "$WT" "$BASE" "$ROOT" <<'PYEOF' 2>/dev/null
+import re, subprocess, sys
+wt, base, root = sys.argv[1], sys.argv[2], sys.argv[3]
+f = "configs/USA/overlays.toml"
+def show(repo, rev):
+    return subprocess.run(["git","-C",repo,"show",f"{rev}:{f}"],
+                          capture_output=True, text=True).stdout
+E = lambda t: {m.group(1): m.group(0) for m in re.finditer(r"^(\w+) = \{.*$", t, re.M)}
+b = E(show(root, base))
+mine = {k for k, v in E(open(f"{wt}/{f}").read()).items() if b.get(k) != v}
+theirs = {k for k, v in E(open(f"{root}/{f}").read()).items() if b.get(k) != v}
+print(" ".join(sorted(mine & theirs)))
+PYEOF
+)
+    [[ -z "$MANIFEST_CONFLICT" ]]
+}
+if manifest_is_mergeable; then
+    MERGEABLE="$MERGEABLE configs/USA/overlays.toml"
+else
+    log "manifest: both sides changed ${MANIFEST_CONFLICT} - not auto-mergeable"
+fi
 DRIFTED=""
 while read -r f; do
     [[ -n "$f" ]] || continue

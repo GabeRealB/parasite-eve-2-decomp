@@ -198,12 +198,28 @@ def main() -> int:
                 return {m.group(1): m.group(0)
                         for m in _re.finditer(r"^(\w+) = \{.*$", text, _re.M)}
             base_e, wt_e, cur = _entries(base_txt), _entries(src.read_text()), dst.read_text()
-            changed = [k for k, v in wt_e.items() if base_e.get(k) != v]
-            for k in changed:
+            cur_e = _entries(cur)
+            mine = {k for k, v in wt_e.items() if base_e.get(k) != v}
+            theirs = {k for k, v in cur_e.items() if base_e.get(k) != v}
+            # Merging entry-wise is only *provably* correct when each entry has
+            # at most one modifier. If both sides changed the same overlay's
+            # entry, taking ours silently discards theirs - the clobber bug
+            # narrowed to one line rather than fixed. That is a real case, not a
+            # hypothetical: a promotion rewrites the entry of every overlay
+            # carrying the body, so two sweeps promoting different bodies can
+            # both edit the same third overlay. Refuse and let a human or an
+            # agent reconcile.
+            conflict = sorted(mine & theirs)
+            if conflict:
+                raise SystemExit(
+                    f"{e}: both this worktree and trunk changed "
+                    f"{', '.join(conflict)} since {base_rev[:8]}; refusing to "
+                    f"merge automatically - reconcile these entries by hand")
+            for k in sorted(mine):
                 m = _re.search(rf"^{k} = \{{.*$", cur, _re.M)
                 cur = cur[:m.start()] + wt_e[k] + cur[m.end():] if m else cur + wt_e[k] + "\n"
             dst.write_text(cur)
-            print(f"  merged {len(changed)} manifest entr(y/ies): {', '.join(changed) or 'none'}")
+            print(f"  merged {len(mine)} manifest entr(y/ies): {', '.join(sorted(mine)) or 'none'}")
         elif dst.is_file() and e.endswith(".md"):
             # Append-only docs must be merged, not copied. Every overlay
             # worktree is cut from the same trunk commit, so two sessions both
