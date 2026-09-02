@@ -1,5 +1,13 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
+
+#include "main/session.h"
+#include "main/task.h"
+
+extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
+extern TaskDesc   D_shelter_b2_septic_tank_801832C0[];
+
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", D_shelter_b2_septic_tank_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D614);
@@ -25,7 +33,13 @@ void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D9A0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017DA18);
+void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
+{
+    arg0->field_24 = D_shelter_b2_septic_tank_80182F4C;
+    Game_SetPtrSlot(arg0, 7);
+    Task_SpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017DA74);
 

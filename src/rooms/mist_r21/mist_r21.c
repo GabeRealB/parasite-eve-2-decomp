@@ -1,7 +1,20 @@
 #include "common.h"
 #include "gameplay/1BC.h"
+#include "gameplay/D4.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r21/mist_r21", func_mist_r21_8017D61C);
+#include "main/session.h"
+#include "main/task.h"
+
+extern GpMsgEntry D_mist_r21_8017D770[];
+extern TaskDesc   D_mist_r21_8017D798[];
+
+void func_mist_r21_8017D61C(Task* arg0)
+{
+    arg0->field_24 = D_mist_r21_8017D770;
+    Game_SetPtrSlot(arg0, 7);
+    Task_SpawnFromTable(D_mist_r21_8017D798, 0, 0, 0);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_mist_r21_8017D678(Task* arg0)
 {

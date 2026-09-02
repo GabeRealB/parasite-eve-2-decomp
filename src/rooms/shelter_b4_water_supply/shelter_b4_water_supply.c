@@ -5,11 +5,15 @@
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 
 /// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
 /// valve script has run.
 extern TaskDesc D_shelter_b4_water_supply_80182620[];
+
+extern GpMsgEntry D_shelter_b4_water_supply_801825F0[];
+extern TaskDesc   D_shelter_b4_water_supply_8018263C[];
 
 void func_shelter_b4_water_supply_8017DB18(void);
 
@@ -64,7 +68,13 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DC28);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DD40);
+void func_shelter_b4_water_supply_8017DD40(Task* arg0)
+{
+    arg0->field_24 = D_shelter_b4_water_supply_801825F0;
+    Game_SetPtrSlot(arg0, 7);
+    Task_SpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_shelter_b4_water_supply_8017DD9C(void)
 {

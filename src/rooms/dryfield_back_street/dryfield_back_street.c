@@ -1,5 +1,13 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+
+#include "main/session.h"
+#include "main/task.h"
+
+extern GpMsgEntry D_dryfield_back_street_8017F964[];
+extern TaskDesc   D_dryfield_back_street_8017F98C[];
+
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
@@ -23,7 +31,13 @@ s32 func_dryfield_back_street_8017D8AC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D8B4);
+void func_dryfield_back_street_8017D8B4(Task* arg0)
+{
+    arg0->field_24 = D_dryfield_back_street_8017F964;
+    Game_SetPtrSlot(arg0, 7);
+    Task_SpawnFromTable(D_dryfield_back_street_8017F98C, 0, 0, 0);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_dryfield_back_street_8017D910(void)
 {
