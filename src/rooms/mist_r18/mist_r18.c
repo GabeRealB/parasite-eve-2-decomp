@@ -8,6 +8,7 @@
 
 s32  func_8017A038(void);
 void Room_Draw42(s32 tpage, s16 arg1);
+void func_mist_r18_8017DBB8(s32 shade, s16 arg1);
 
 extern u8 D_80071075;
 extern s8 D_80114C12;
@@ -53,7 +54,47 @@ void func_mist_r18_8017D960(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DA8C);
+/// Fade task for the room's backdrop tint: state 0 arms the fade, states 1/3
+/// ramp `killCountdown` up to 0x80 and back down to 0, state 2 holds until the
+/// hold counter runs out (or the session's skip gate is set). Every state but
+/// the last redraws through `func_mist_r18_8017DBB8`.
+void func_mist_r18_8017DA8C(Task* task)
+{
+    s32 shade;
+
+    shade = 1;
+    switch (task->state) {
+        case 0:
+            task->killCountdown = 0;
+            func_mist_r18_8017DBB8(1, 0);
+            task->state++;
+            break;
+        case 1:
+            task->killCountdown += 0x15;
+            if (task->killCountdown >= 0x81) {
+                shade = 0;
+                task->state++;
+            }
+            break;
+        case 2:
+            shade = 0;
+            task->spawnArg1--;
+            if ((task->spawnArg1 <= 0) || (Game_Session->field_5F != 0)) {
+                task->state++;
+            }
+            break;
+        case 3:
+            task->killCountdown -= 0x15;
+            if (task->killCountdown < 0x16) {
+                task->state++;
+            }
+            break;
+        default:
+            Task_Kill(task);
+            return;
+    }
+    func_mist_r18_8017DBB8(shade, task->killCountdown);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DBB8);
 
