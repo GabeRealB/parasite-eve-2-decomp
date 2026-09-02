@@ -8,6 +8,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
 
@@ -53,7 +54,17 @@ void func_mist_parking_80183688(s32 arg0)
     Display_InitModeObj(Task_GetDescAt(&D_mist_parking_8018D75C, 5U), arg0, 0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_801836CC);
+void func_mist_parking_801836CC(Task* arg0)
+{
+    s32 temp_v0;
+
+    temp_v0         = arg0->spawnArg1 - 1;
+    arg0->spawnArg1 = temp_v0;
+    if (temp_v0 < 0) {
+        Task_Kill(arg0);
+        Stage_SetEndingFlag();
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183708);
 
