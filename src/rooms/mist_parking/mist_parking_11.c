@@ -2,11 +2,15 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
+extern s16      D_80071076;
 extern Task*    D_mist_parking_8019532C;
 extern TaskDesc RoomsShared8018397cDesc;
 
@@ -216,4 +220,16 @@ void func_mist_parking_80184428(s32 arg0)
     Game_Session->field_64 = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_11", func_mist_parking_80184468);
+void func_mist_parking_80184468(s32 arg0)
+{
+    Mc_SaveData.field_7 = 1;
+    Mc_SaveData.field_8 = 1;
+    Mc_SaveData.field_5 = 1;
+    Mc_SaveData.field_6 = arg0;
+    D_80071076          = 1;
+    SndEvt_EnqueueType7(0x80000000, 0);
+    Task_Spawn(0, 0x11, 0, 0);
+    if (arg0 == 5) {
+        Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+    }
+}
