@@ -236,6 +236,34 @@ solved_elsewhere_file() {
 # the caller can both count it and paste it into a prompt. Empty is the normal
 # case; a non-empty list means the match must be promoted into the shared
 # library rather than left as one overlay's copy.
+# Overlays carrying this body that some *other* session currently holds. Step 4b
+# tells the agent to promote a shared body, which rewrites those overlays'
+# manifest spans and moves their copy into src/<family>/lib. Fine when nothing
+# else is working them, a collision when something is: mist_r18's sweep promoted
+# a body it shared with shelter_b1_sterilization_room, and had that overlay been
+# leased at the time, the other session's landing would have found its files
+# rewritten underneath it.
+siblings_claimed_elsewhere() {
+  local siblings=$1
+  [[ -s "$siblings" ]] || return 1
+  python3 - "$siblings" "$SESSION" <<'PYEOF' 2>/dev/null
+import json, subprocess, sys
+sib, mine = sys.argv[1], sys.argv[2]
+overlays = {l.split("\t")[0].split("/")[-1] for l in open(sib) if l.strip()}
+try:
+    gc = subprocess.run(["git", "rev-parse", "--git-common-dir"],
+                        capture_output=True, text=True).stdout.strip()
+    claims = json.load(open(f"{gc}/vacuum-orch.json")).get("claims", {})
+except Exception:
+    sys.exit(1)
+busy = {c.get("overlay") for c in claims.values()
+        if c.get("session") != mine and c.get("overlay")}
+hit = sorted(overlays & busy)
+print(" ".join(hit))
+sys.exit(0 if hit else 1)
+PYEOF
+}
+
 shared_siblings_file() {
   local func=$1
   local out
@@ -421,6 +449,16 @@ dump_loop_instructions() {
 }
 
 build_prompt() {
+
+  # 4b promotes a shared body, rewriting every carrier overlay. Only let that
+  # happen when no other session holds one of them.
+  local promote_guard="" _sibs _busy
+  _sibs=$(shared_siblings_file "$1")
+  if _busy=$(siblings_claimed_elsewhere "$_sibs"); then
+    promote_guard="4b-OVERRIDE. This body is shared, but ${_busy} is leased by another session right now. **Do not promote it** - promotion rewrites that overlay's manifest span and moves its copy while that session is mid-match. Land it in this overlay only, skip step 4b below, and name the siblings in your report.
+"
+  fi
+  rm -f "$_sibs"
   local func=$1
   local scratch=$2
   local brief_file=$3
@@ -437,7 +475,7 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the repo root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
 4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then verify twice — \`./tools/build-and-verify.sh${scope:+ --only $scope}\` for a fast check of this overlay, then the bare \`./tools/build-and-verify.sh\` before you commit, since a scoped pass says nothing about the overlays it skipped. Commit \`matched $func <attempts>\`.
-4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/<family>/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
+${promote_guard}4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/<family>/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
 6. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
 
