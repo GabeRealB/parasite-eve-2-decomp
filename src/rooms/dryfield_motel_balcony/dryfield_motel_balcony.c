@@ -108,7 +108,12 @@ s32 func_dryfield_motel_balcony_8017DB7C(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", func_dryfield_motel_balcony_8017DB84);
+void func_dryfield_motel_balcony_8017DB84(Task* arg0)
+{
+    arg0->field_24 = D_dryfield_motel_balcony_8018227C;
+    Game_SetPtrSlot(arg0, 7);
+    arg0->state = (s32)(arg0->state + 1);
+}
 void func_dryfield_motel_balcony_8017DBC8(void)
 {
 }
