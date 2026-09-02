@@ -14,6 +14,8 @@
 
 extern TaskDesc D_actor_335800_80164DE0;
 
+extern TaskDesc D_80182834;
+
 extern s8 D_8007272D;
 
 void func_actor_335800_801620C0(void)
@@ -33,7 +35,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162364);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801623D8);
+void func_actor_335800_801623D8(void)
+{
+    Task_SpawnFromTable(&D_80182834, 0, 0, 0);
+}
 
 void func_actor_335800_80162408(void)
 {
