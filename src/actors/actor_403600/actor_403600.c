@@ -2,6 +2,7 @@
 
 #include "actors/actor_403600.h"
 #include "main/sound.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 
 extern u8 D_80071075;
@@ -152,7 +153,7 @@ default_body:
     func_actor_403600_801412D0(arg0, arg1);
     temp_a1 = work->field_77A;
     if (temp_a1 != 0) {
-        Gp_SetObjTrans(arg1->field_2C, temp_a1, temp_a1, temp_a1);
+        Gp_SetObjTrans((GpObj20*)arg1->field_2C, temp_a1, temp_a1, temp_a1);
     }
     func_actor_403600_801414FC(arg1);
     func_actor_403600_8013F0C0(arg1);
@@ -257,6 +258,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141E78);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141F28);
+void func_actor_403600_80141F28(Actor403600* arg0)
+{
+    arg0->field_2C->field_8->sub = &Gfx_ViewCoord;
+    Gp_EnemyTaskExit((Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141F58);

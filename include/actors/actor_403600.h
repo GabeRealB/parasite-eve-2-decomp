@@ -33,7 +33,7 @@ typedef struct Actor403600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor403600Work* field_1C;
     /* 0x20 */ byte             pad_20[0xC];
-    /* 0x2C */ GpObj20*         field_2C;
+    /* 0x2C */ TmdObject*       field_2C;
 } Actor403600;
 
 typedef struct Actor403600Ctx {
