@@ -2958,6 +2958,33 @@ Then delete **both** `src/` files and re-split, as with any rodata cut. Splat
 re-emits already-matched bodies from `asm/<ver>/<family>/matchings/`, so only
 hand-written C needs saving first.
 
+**The failed link already tells you the cut offset.** When a promotion splits a
+unit and the tail's tables stay behind, splat emits them as standalone
+`asm/.../<overlay>/<overlay>/{D,jtbl}_*.s` with no `INCLUDE_RODATA` line
+anywhere - it will not rewrite an existing `.c` - so the link fails with
+`undefined reference to 'jtbl_<overlay>_<addr>'` from `<overlay>_2.i`. Rather
+than walking the reference graph, read the boundary straight off the object the
+failing build did produce:
+
+```
+mips-linux-gnu-objdump -h build/USA/src/<family>/<ov>/<ov>.c.o | grep rodata
+```
+
+Splat migrated every table unit 1 still owns into unit 1's function `.s` files,
+so that `.rodata` size *is* the ownership boundary - `0x220` for
+`actor_341700`, matching `jtbl_actor_341700_80162040` exactly. It goes straight
+into the manifest:
+
+```toml
+actor_341700 = { ..., shared = [{ start = "0x651C", end = "0x6550", unit = "actors_shared_8016833c" }],
+                 rodata = [{ start = "0x220", unit = "actor_341700_2" }] }
+```
+
+A sharer whose tail references only *standalone* rodata that unit 1 already
+`INCLUDE_RODATA`s needs no cut at all: `dlabel` defaults to `global`, so unit 2
+links against unit 1's definition and the layout is unchanged. `actor_342400`
+split the same way and needed nothing.
+
 When the table is immediately followed by `INCLUDE_RODATA` that belongs to a
 *later* function, add a second pair so the table is the only thing in its
 object's `.rodata`. `func_dryfield_night_trailer_coach_80181DB0` is a 0x60-byte

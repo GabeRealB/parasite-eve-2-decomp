@@ -1,6 +1,7 @@
 #include "common.h"
 #include "actors/actor_104400.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 s16 Actor04400_Fn06618(Task* arg0);
 
@@ -108,7 +109,16 @@ void Actor04400_L064E4(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn064EC);
+void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
+{
+    GsCOORDINATE2* coord;
+
+    coord             = ((TmdObject*)task->extra)->field_8;
+    coord->coord.t[0] = pos->vx;
+    coord->coord.t[1] = pos->vy;
+    coord->coord.t[2] = pos->vz;
+    coord->flg        = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06520);
 
