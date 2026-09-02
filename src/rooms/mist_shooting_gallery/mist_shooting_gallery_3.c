@@ -313,7 +313,174 @@ void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// `D_801153F4` holds, state 9 spawns the start jingle and state 10 is the
 /// wave loop over `D_mist_shooting_gallery_80186908`. `D_80072310` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_8018341C);
+void func_mist_shooting_gallery_8018341C(Task* arg0)
+{
+    MistShootingGalleryWork*  work;
+    MistShootingGallerySpawn* spawn;
+    s32                       bonus;
+    s32                       stocked;
+    u16                       key;
+    u16                       wave;
+    u16                       ready;
+    u8                        step;
+
+    work  = (MistShootingGalleryWork*)arg0->idMap;
+    bonus = D_80072310;
+
+    switch (work->field_04) {
+        case 0:
+            work->field_02 = 0x1518;
+            work->field_0A = 0x1E;
+            D_80115768     = 1;
+            work->field_04++;
+        case 1:
+            if (work->field_0A <= 0) {
+                if (D_80071075 == 0) {
+                    func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
+                    step = work->field_20;
+                    if (step == 3) {
+                        work->field_0A = 0xF;
+                        D_80115768     = 0;
+                        work->field_04++;
+                    } else {
+                        work->field_20 = step + 1;
+                    }
+                }
+            } else {
+                work->field_0A--;
+            }
+            break;
+        case 2:
+            if ((u8)Game_Session->field_4 == 0x12) {
+                if (work->field_0A <= 0) {
+                    if (D_80071075 == 0) {
+                        work->field_0A = 1;
+                        work->field_04++;
+                        func_mist_shooting_gallery_80184BB8(0x13, bonus + 4, 0x8E0);
+                    }
+                } else {
+                    work->field_0A--;
+                }
+            }
+            break;
+        case 3:
+            if (D_80071075 == 0) {
+                work->field_1F = 0;
+                work->field_20 = 8;
+                work->field_04++;
+                func_mist_shooting_gallery_80184BB8(0x13, 7, 0x8E0);
+            }
+            break;
+        case 4:
+            if (work->field_1F != 0) {
+                stocked = Gp_HasStockedItem(0x40);
+                if (stocked != 1) {
+                    func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
+                    if (work->field_20 == 9) {
+                        work->field_1F = 0;
+                        work->field_04++;
+                    }
+                    work->field_20++;
+                } else {
+                    work->field_04 = 6;
+                    work->field_0A = 1;
+                    work->field_20 = 0xA;
+                }
+            }
+            break;
+        case 5:
+            if (Gp_HasStockedItem(0x40) == 1) {
+                work->field_0A = 0xF;
+                work->field_04++;
+            } else if (work->field_1F != 0) {
+                func_mist_shooting_gallery_80184BB8(0x13, 9, 0x8E0);
+                work->field_1F = 0;
+            }
+            break;
+        case 6:
+            if (work->field_0A <= 0) {
+                if (D_801153F4 == 0) {
+                    func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
+                    if (work->field_20 == 0xB) {
+                        work->field_0A = 0xF;
+                        work->field_04++;
+                        Gp_ArmStateF0(1);
+                    }
+                    work->field_20++;
+                }
+            } else {
+                work->field_0A--;
+            }
+            break;
+        case 7:
+            work->field_0A--;
+            if ((s32)(work->field_0A << 16) <= 0) {
+                func_mist_shooting_gallery_80184CD0(arg0, &D_mist_shooting_gallery_80186908[work->field_08]);
+                work->field_08++;
+                if (work->field_08 == 3) {
+                    work->field_0A = 0x3C;
+                    work->field_04++;
+                } else {
+                    work->field_0A = 0xF;
+                }
+            }
+            break;
+        case 8:
+            if (work->field_0A <= 0) {
+                if (D_801153F4 == 0) {
+                    func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
+                    if (work->field_20 == 0x13) {
+                        work->field_0A = 0xF;
+                        work->field_04++;
+                    }
+                    work->field_20++;
+                }
+            } else {
+                work->field_0A--;
+            }
+            break;
+        case 9:
+            ready          = work->field_0A;
+            work->field_0A = ready - 1;
+            if ((s32)(ready << 16) <= 0) {
+                work->field_0A = 0xA;
+                work->field_04++;
+                Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+            }
+            break;
+        case 10:
+            spawn = &D_mist_shooting_gallery_80186908[work->field_08];
+            key   = spawn->field_00;
+            if (key != 0xFFFF) {
+                if (key != 0xFFF1) {
+                    if (work->field_00 == key) {
+                        do {
+                            func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                            spawn++;
+                            work->field_08++;
+                        } while (work->field_00 == spawn->field_00);
+                    }
+                    wave = work->field_00;
+                    if (wave <= 0xFFEF) {
+                        work->field_00 = wave + 1;
+                    }
+                } else if (work->field_0E == 0) {
+                    work->field_08++;
+                    if (work->field_08 >= 0x49) {
+                        work->field_08 = 0xE;
+                        work->field_00 = 0xF0;
+                    }
+                }
+            }
+            func_mist_shooting_gallery_8018458C(work);
+            if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+                work->field_04 = 0;
+                arg0->state++;
+            }
+            break;
+    }
+}
 /// Per-frame update for the gallery's first bonus course. States 0-3 run the
 /// "ready" banner and the hand-off wait on `Game_Session::field_4`, state 4
 /// seeds the first two records of `D_mist_shooting_gallery_8018690C`, states
