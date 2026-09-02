@@ -12,9 +12,14 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
+#include "gameplay/4CC.h"
 
+extern UiObject*    D_80067634;
 extern u8           D_mist_parking_8017D6D8[];
 extern u8           D_mist_parking_80186464[];
+extern UiList       D_mist_parking_80186540;
+extern UiObjectDesc D_mist_parking_801865C8;
 extern UiList       D_mist_parking_8018656C;
 extern UiObjectDesc D_mist_parking_80186590;
 
@@ -32,7 +37,57 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_80
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6D8);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017ED7C);
+void func_mist_parking_8017ED7C(Task* task)
+{
+    UiObject* obj;
+    UiList*   list;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       code;
+
+    obj           = task->spawnArg2;
+    list          = &D_mist_parking_80186540;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, "List");
+    if (task->state == 0) {
+        Gp_ClearPreviewItems();
+        D_80067634 = NULL;
+        Ui_SpawnFromDesc(&D_mist_parking_801865C8, task->spawnArg1, 0, 1, obj);
+        Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
+        list->field_4 = 5;
+        list->field_5 = 5;
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        list->field_A = 1;
+        Ui_SetListScrollFlag(list, 1);
+        task->state += 1;
+    }
+    Ui_UpdateListNoAnim(list, obj);
+    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        obj->field_2E = -1;
+    }
+
+    head = task->firstChild;
+    if (head != NULL) {
+        child = head;
+        do {
+            childObj = child->spawnArg2;
+            code     = childObj->field_2E;
+            next     = child->nextSibling;
+            if (code != -1) {
+                if (code == 6) {
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status = 1;
+                }
+            } else {
+                Wip_UiHolder  = NULL;
+                obj->field_2E = code;
+            }
+            child = next;
+        } while (child != task->firstChild);
+    }
+}
 
 void func_mist_parking_8017EF24(Task* task)
 {

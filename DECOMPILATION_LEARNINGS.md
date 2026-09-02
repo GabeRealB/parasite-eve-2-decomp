@@ -39578,3 +39578,55 @@ The operand order of that `addu` is the operand order of the `+`: written
 `addu v0, a2, t0`. Casting the base to `u8*` and swapping the operands does
 *not* flip it — the base has to be integer-typed for the addition to stay a
 plain two-register add. 99.8% -> 100%.
+
+## An `s16` local that is both compared and stored back emits `lh` *and* `lhu`
+
+When a halfword field is read into a local, compared against constants, and
+then written into another halfword field, GCC 2.8.1 keeps the local in HImode
+and issues the load twice — once sign-extended for the compares and once
+zero-extended for the store:
+
+```c
+s16 code;
+code = childObj->field_2E;      /* lh  v0, 0x2e(a0) */
+if (code != -1) { ... }         /*  ↑ used by beq/bne          */
+else obj->field_2E = code;      /* lhu v1, 0x2e(a0) ; sh v1, … */
+```
+
+The target has one `lh` feeding both the branches and the `sh`. Widening the
+local to `s32` gets it: the value is loaded sign-extended once, and the `sh`
+truncates the SImode register.
+
+```c
+s32 code;
+code = childObj->field_2E;      /* lh v1, 0x2e(a0) — the only load */
+```
+
+`func_mist_parking_8017ED7C` is the example (94.6% -> 98.8% on this change
+alone). The same shape in reverse is documented above under "Force the split
+with a separate s16 temporary": prefer the narrow local only when the target
+actually wants a *second* HImode value.
+
+## A `while (p != head)` walk over a circular child list needs three locals
+
+`task->firstChild` walked as a circular list wants the null test, the cursor
+and the lookahead to be *separate* locals, or the copies GCC emits do not line
+up. Merging the cursor and the lookahead (`child = child->nextSibling` at the
+top) reorders `lw next` above `lh field`; merging the null test and the cursor
+drops the `move a1, v0` the target has after `beqz`:
+
+```c
+head = task->firstChild;
+if (head != NULL) {
+    child = head;                    /* move a1, v0 */
+    do {
+        childObj = child->spawnArg2;
+        code     = childObj->field_2E;
+        next     = child->nextSibling;   /* lw s0, 0x10(a1) after the lh */
+        ...
+        child = next;                    /* move a1, s0 */
+    } while (child != task->firstChild);
+}
+```
+
+98.8% -> 99.9% -> 100% across the two splits. `func_mist_parking_8017ED7C`.
