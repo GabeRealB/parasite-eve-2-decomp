@@ -191,7 +191,30 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801842D0);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184470);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_8018458C);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801846F4);
+void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
+{
+    SPRT*     p;
+    DR_TPAGE* dr;
+
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p->w           = 0xF;
+    p->h           = 0x13;
+    p->clut        = 0x4140;
+    setlen(p, 4);
+    p->y0 = arg1;
+    p->u0 = arg2 * 16;
+    p->v0 = 0;
+    setcode(p, 0x65);
+    p->x0 = arg0;
+    addPrim(Gpu_CurrentOt, p);
+
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000215;
+    addPrim(Gpu_CurrentOt, dr);
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801847D4);
 void func_mist_shooting_gallery_801848B4(void)
 {
