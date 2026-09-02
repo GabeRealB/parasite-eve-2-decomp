@@ -571,7 +571,11 @@ Examples:
     scores = score_folders(folder_paths, exhaustive=args.exhaustive)
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    difficult_file = os.path.join(script_dir, "difficult_functions")
+    # VACUUM_DIFFICULT_FILE lets a retry pass be aimed at a subset of the
+    # give-up list - the >=99% near-misses, say - without editing the real file.
+    # vacuum.sh reads the same variable so both sides agree on the population.
+    difficult_file = os.environ.get(
+        "VACUUM_DIFFICULT_FILE", os.path.join(script_dir, "difficult_functions"))
     listed = set()
     extra_skip = set()
     for extra in args.exclude_file:

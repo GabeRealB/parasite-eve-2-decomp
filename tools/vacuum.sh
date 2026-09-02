@@ -22,7 +22,10 @@ STOP_REQUESTED=0
 DRY_RUN=0
 KEEP_SCRATCH=0
 PERMUTER=1
-DIFFICULT_FUNCTIONS="tools/difficult_functions"
+# Overridable so a retry pass can be aimed at a subset - the >=99% near-misses,
+# say - without editing the real list. score_functions.py --only-difficult reads
+# the same path via VACUUM_DIFFICULT_FILE.
+DIFFICULT_FUNCTIONS="${VACUUM_DIFFICULT_FILE:-tools/difficult_functions}"
 # Paths a match is allowed to land. Jump-table / splat edits live in configs/.
 # Do not add tools/ or ninja_config.py; agents sometimes stage those by accident.
 MATCH_LAND_PATHS=(
