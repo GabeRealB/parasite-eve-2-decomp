@@ -155,5 +155,36 @@ void func_dryfield_motel_balcony_8017F7E8(GsCOORDINATE2* arg0, s16 arg1, u8* arg
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony_3", func_dryfield_motel_balcony_801801A8);
+void func_dryfield_motel_balcony_801801A8(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s16            ang;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag < 4) {
+            return;
+        }
+        goto kill;
+    } else {
+        Gp_UpdateCoord(coord);
+        mem->field_22++;
+        if (mem->field_22 >= 0x15) {
+        kill:
+            Gp_ReleaseState1CMem(mem, arg0);
+            return;
+        }
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        ang           = mem->field_24 + ((((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200);
+        mem->field_24 = ang;
+        mem->field_10 = (u32)(rcos(ang) * 3) >> 4;
+        mem->field_12 = -mem->field_22 * 128;
+        mem->field_14 = (u32)(rsin(mem->field_24) * 3) >> 4;
+        Gp_SpawnEff(D_80115728, coord, 0x30080201, (SVECTOR*)&mem->field_10);
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony_3", func_dryfield_motel_balcony_801802DC);
