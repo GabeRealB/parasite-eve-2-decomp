@@ -78,7 +78,35 @@ extern SVECTOR      D_mist_shooting_gallery_801856B0[];
 void Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw31(SVECTOR* v, s32 arg1, s32 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8017FEB8);
+s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    if (*(u16*)src == 0x13 && src->field_5 == 0) {
+        if (GameFlag_GetNibble(0x7A) != 0) {
+            dst->field_3 += 2;
+        }
+    }
+    if (*(u16*)src == 0x14) {
+        if (dst->field_2 == 5 && func_8014AA54(src) == 2) {
+            return 2;
+        }
+        if (src->field_5 == 0) {
+            if (dst->field_2 == 6) {
+                D_8007272D             = 2;
+                D_80073BAE             = 4;
+                Game_Session->field_68 = 1;
+                Gp_ResetInventory();
+            }
+            if (dst->field_2 == 5) {
+                D_8007272D             = 1;
+                D_80073BAE             = 3;
+                Game_Session->field_68 = 1;
+                Gp_ClearInventory();
+            }
+        }
+    }
+    return 1;
+}
 s32 func_mist_shooting_gallery_80180000(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 >= 5) {
