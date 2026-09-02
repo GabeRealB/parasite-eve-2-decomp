@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gameflag.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 #include "gameplay/3CD8.h"
@@ -9,8 +10,13 @@ extern u8    D_8007216D;
 extern u8    D_801153F4;
 extern Task* D_acropolis_patio_80187060;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_2", func_acropolis_patio_8017DD4C);
-
+s32 func_acropolis_patio_8017DD4C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 3) {
+        SndEvt_EnqueueType6(0x51030000 | 3, 0, 0);
+    }
+    return 0;
+}
 void func_acropolis_patio_8017DD80(Task* task)
 {
     s32 state;
