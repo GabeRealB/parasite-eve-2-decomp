@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "main/fs.h"
@@ -34,9 +35,51 @@ extern s32                 D_mist_parking_80191304;
 extern s32                 D_mist_parking_801913C4;
 extern MistParkingCapState D_mist_parking_80195334;
 
+extern u8  D_801156F9;
+extern s32 D_mist_parking_80190874;
+extern s8  D_mist_parking_801908C8[];
+
+extern void func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_12", func_mist_parking_80183BAC);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_12", func_mist_parking_80183D58);
+void func_mist_parking_80183D58(Task* task)
+{
+    GameActor* actor;
+    GpWorkObj* work;
+    s32        idx;
+    s32        flag;
+    u16        tick;
+
+    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    if (D_801156F9 == 0) {
+        idx = actor->field_438[1].field_4 - 0x2F;
+        if ((idx > 0) && (idx < D_mist_parking_80190874)) {
+            flag = D_mist_parking_801908C8[idx];
+        } else {
+            flag = 0;
+        }
+        if (task->state == 0) {
+            if ((flag != 0) || (task->spawnArg1 != 0)) {
+                tick                = task->killCountdown + 0x100;
+                task->killCountdown = tick;
+                if ((s16)tick >= 0x1001) {
+                    task->killCountdown = 0x1000;
+                }
+            } else {
+                tick                = task->killCountdown - 0x100;
+                task->killCountdown = tick;
+                if ((s16)tick < 0) {
+                    task->killCountdown = 0;
+                }
+            }
+            work = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
+            func_800B0928(Game_GetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
+        } else {
+            Task_Kill(task);
+        }
+    }
+}
 
 void func_mist_parking_80183EAC(Task* task)
 {

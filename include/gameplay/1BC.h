@@ -352,7 +352,8 @@ typedef struct _GpAreaKey {
 /// children). `field_3C` is a byte pointer compared with `GpAreaTmdRec.field_0`
 /// by `Gp_ApplyAreaTmdFlags` on spawnType-1 children of slot 4. Full size unknown.
 typedef struct _GpWorkObj {
-    /* 0x00 */ byte pad_0[8];
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[4];
     /* 0x08 */ union {
         u16 as_u16;
         u8  as_u8;

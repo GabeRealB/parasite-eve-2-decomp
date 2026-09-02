@@ -33,7 +33,7 @@ void func_mm1_8011D1D4(GpActorWork* arg0)
             actor->field_958 = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1) !=
+            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1) !=
                 NULL) {
                 actor->field_95E++;
             }

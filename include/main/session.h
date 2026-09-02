@@ -147,14 +147,22 @@ typedef struct _GpRec18 {
 } GpRec18;
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 
-/// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
-/// (bits 0/1: `Gp_TickActorAnimState` case 8; bit 0x100: `func_8010583C`;
-/// bits 0x102: `func_80105894`). Count is
-/// `GameActor.field_938` (init 0x13). Slid-actor overlay: `func_801058BC`
-/// stores a clamped 1..0x7F byte at `GameActor.field_441`.
+/// 0x28-byte record in `GameActor.field_438`, the actor's own `GpAnimSlot`
+/// array (`gameplay/1BC.h`); `GameActor.field_424` is the `GpAnimCtx` whose
+/// `field_C` points here. Count is `GameActor.field_938` (init 0x13).
+/// Restated main-side so `session.h` does not depend on a gameplay header:
+/// `field_4` is `GpAnimSlot::field_4`, `field_9` the clamped 1..0x7F
+/// slid-actor byte written by `func_801058BC`, and `field_10` the flag
+/// halfword (bits 0/1: `Gp_TickActorAnimState` case 8; bit 0x100:
+/// `func_8010583C`; bits 0x102: `func_80105894`).
 typedef struct _GameActorSlot {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2[0x26];
+    /* 0x00 */ byte pad_0[4];
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[3];
+    /* 0x09 */ u8   field_9;
+    /* 0x0A */ byte pad_A[6];
+    /* 0x10 */ u16  field_10;
+    /* 0x12 */ byte pad_12[0x16];
 } GameActorSlot;
 STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);
 
@@ -221,10 +229,8 @@ typedef struct _GameActor {
     /* 0x3BC */ byte                pad_3BC[0x18];
     /* 0x3D4 */ byte                field_3D4[0x50]; // GsCOORDINATE2; Gp_AttachActorObj
     /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
-    /* 0x438 */ byte                pad_438[9];      // GpAnimSlot array base; func_80105B0C
-    /* 0x441 */ u8                  field_441;       // slid-actor overlay; see GameActorSlot
-    /* 0x442 */ byte                pad_442[6];
-    /* 0x448 */ GameActorSlot       field_448[19];
+    /* 0x438 */ GameActorSlot       field_438[19];   // GpAnimSlot array; func_80105B0C
+    /* 0x730 */ byte                pad_730[0x10];
     /* 0x740 */ byte                pad_740[0x68];
     /* 0x7A8 */ byte                field_7A8; // addr taken as func_800B3F84 arg3
     /* 0x7A9 */ byte                pad_7A9[0x163];

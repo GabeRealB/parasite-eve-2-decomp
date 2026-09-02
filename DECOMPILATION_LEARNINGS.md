@@ -39630,3 +39630,22 @@ if (head != NULL) {
 ```
 
 98.8% -> 99.9% -> 100% across the two splits. `func_mist_parking_8017ED7C`.
+
+## `lb` vs `lbu` on an `s8` table: widen the destination local
+
+Reading `s8 tbl[]` into a **byte-wide** local emits `lbu` even though the array
+is `signed char`: the sign extension is dead if the value is only tested, so
+GCC 2.8.1 picks the plain QImode load.
+
+```c
+s8 flag;                        /* lbu v1,0(v0)  */
+s32 flag;                       /* lb  v1,0(v0)  */
+...
+flag = D_tbl[idx];
+if (flag != 0) { ... }
+```
+
+The target's `lb` says the original stored the byte in a **word** local, so the
+extension had to happen at the load. Widen the local to `s32` (or `s16`); do not
+add a cast, which folds away again. `func_mist_parking_80183D58`, the last
+instruction of the function.
