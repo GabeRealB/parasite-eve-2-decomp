@@ -2,6 +2,7 @@
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 extern TaskDesc D_actor_136300_8013B134;
+extern TaskDesc D_80183380;
 extern s8       D_8007272D;
 
 extern s32 D_actor_136300_8013B208;
@@ -20,7 +21,10 @@ void func_actor_136300_801328D4(s8 arg0)
     D_8007272D = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_801328E0);
+void func_actor_136300_801328E0(s32 arg0)
+{
+    Task_SpawnFromTable(&D_80183380, 0, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_80132910);
 
