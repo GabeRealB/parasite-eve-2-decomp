@@ -43,7 +43,18 @@ s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, GpMsg13EF* arg2, s3
     }
     return 0;
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_4", func_acropolis_cafeteria_8017E22C);
+s32 func_acropolis_cafeteria_8017E22C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 0xA:
+            SndEvt_EnqueueType6(0x5104000A, 0, 0);
+            break;
+        case 0xB:
+            SndEvt_EnqueueType6(0x5104000B, 0, 0);
+            break;
+    }
+    return 0;
+}
 void func_acropolis_cafeteria_8017E27C(s32 arg0)
 {
     ((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_930 = arg0;
