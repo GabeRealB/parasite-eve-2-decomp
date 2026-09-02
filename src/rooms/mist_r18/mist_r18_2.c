@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -20,7 +21,16 @@ INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E448);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E534);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E654);
+/// Append a `DR_TPAGE` for the given tpage to OT slot `otIdx`.
+void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
+{
+    DR_TPAGE* dr;
+
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    SetDrawTPage(dr, 1, 0, GetTPage(0, abr, x, y));
+    AddPrim(Gpu_CurrentOt + otIdx, dr);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E6D8);
 
