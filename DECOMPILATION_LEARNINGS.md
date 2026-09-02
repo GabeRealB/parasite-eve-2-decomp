@@ -37654,3 +37654,155 @@ coord.coord.t[0] = vec->vx;
 Same idiom as `lui`+`addiu %lo` followed by `lh %lo(sym)(v0)` / `lh 2(v1)` for
 a directly named symbol, which is why the two spellings look identical in the
 disassembly of a *different* element of the same array.
+
+## A constant divisor only stays a `div` when it goes through a variable
+
+GCC 2.8.1 turns `x / 326` into the reciprocal-multiply sequence
+(`lui/ori` magic, `mult`, `mfhi`, `sra`) because `expand_divmod` sees a
+`CONST_INT`. The target instead had
+
+```
+li   s0,0x146
+div  zero,v0,s0
+```
+
+`divsi3` takes two register operands, so a plain `div` means the divisor was a
+*pseudo* at expand time - i.e. the source assigned the constant to a local
+first. GCC 2.8.1 has no tree-level copy propagation, so this survives:
+
+```c
+cnt = 326;
+pct = (total * 10000) / cnt;   /* div, not multiply-high */
+```
+
+Same trick works in reverse: if the target multiplies by a magic constant and
+you emitted `div`, inline the literal.
+
+## Which register that divisor lands in is decided by whether it crosses a call
+
+A short-lived pseudo gets the first free register in `REG_ALLOC_ORDER`, which
+on MIPS is call-clobbered first (`$5` before `$16`). `global_alloc` only skips
+the call-clobbered set when `calls_crossed > 0`. So a local that is *only*
+live between its assignment and one use gets `a1`; the same local assigned
+before a `jal` and read after it gets `s0`. Moving `cnt = 326;` from just
+before the `if` to just before the two `jal`s that precede it was the whole
+difference between `div zero,v0,a1` and `div zero,v0,s0`
+(`func_acropolis_fire_escape_8017D6D0`, case 5).
+
+## `reg/v` blocks the scheduler, so a named local changes the delay slot
+
+Identical RTL apart from `(set (reg:SI 321) (reg:SI 2 v0))` versus
+`(set (reg/v:SI 298) (reg:SI 2 v0))` schedules differently: GCC 2.8.1's
+`sched` will hoist an independent `li $4,arg` *past* a copy of a call's return
+value into a compiler temp, but not past the same copy into a user variable.
+The visible effect is which insn ends up in the next `jal`'s delay slot:
+
+```
+    li   a0,0x168          temp:  hoisted, so the copy is nearest the call
+    jal  GameFlag_GetNibble
+     move s0,v0            <- delay slot
+```
+```
+    move s0,v0             reg/v: not hoisted, so the arg setup is nearest
+    jal  GameFlag_GetNibble
+     li   a0,0x168         <- delay slot
+```
+
+So `total += f(a) + f(b);` (result in a temp) and `n = f(a); n += f(b);
+total += n;` (result in a named local) are not interchangeable. Pick the one
+whose delay slot matches before blaming dbr.
+
+## `pct = 0; if (c) pct = ...` and `if (!c) pct = 0; else pct = ...` differ
+
+Beyond the obvious block layout, the if/else form stops cse from reusing the
+load that the condition tested:
+
+```c
+if (Mc_SaveData.field_6CC == 0) { pct = 0; }
+else { pct = Mc_SaveData.field_6CC * 10000 / (...); }   /* reloads 0x6cc */
+```
+
+The `pct = 0;` form CSEs the second read into `move v1,v0`. Read the target:
+a re-`lhu` of a field the branch just tested is the if/else form.
+
+## `rodata_head` when the compiler's jump table lands 4 bytes early
+
+GCC aligns a jump table with `.align 3`, and gas resolves that against the
+**section** start, not against where the compiler's own output begins. If
+splat gave the overlay's first code unit a leading rodata word that the
+original built as a separate object, every compiler-generated table in that
+unit is off by 4:
+
+```
+D_..._8017D5C0  .word 0x12B     <- referenced by nothing
+D_..._8017D5C4  the local array's initializer (0x24)
+jtbl_..._8017D5EC                <- 4-aligned, so .align 3 cannot have seen 0x5C0
+```
+
+`0x5EC` is `4 mod 8`, so the section it is aligned within must start at
+`0x5C4`. Add `rodata_head = "0x4"` to the overlay's `configs/USA/overlays.toml`
+entry: the header word becomes its own `<name>_hdr` object and the first code
+unit's `.rodata` starts where its tables need it. The scratch env cannot see
+this - it links only the one object, where the constant is at offset 0 either
+way - so it shows as a scoped-build checksum failure after a 100% scratch
+score.
+
+## Switch case bodies come out in source order, and the compare chain does not
+
+For a sparse `switch`, GCC 2.8.1 emits the *comparison chain* ordered by case
+value but the *case bodies* in the order they appear in the source. So a target
+that tests `-1` first and then falls into the `6` body means
+
+```c
+switch (sel) {
+case 6:  /* this body is emitted first */
+case -1: /* this one after it */
+}
+```
+
+Reading the body order off the target and matching it in the source turned
+`func_acropolis_fire_escape_8017EA68` from 84% to 96%. The same function's
+`switch (task->state)` at the top is what produces `beqz`/`beq 1`/`j end`;
+writing it as an `if` chain gives a visibly different shape.
+
+## Twin `if/else` blocks: get the polarity from the *other* copy
+
+When two switch cases end in the same `if (c) a = X; else a = Y;`, jump.c
+cross-jumps them, and the branch polarity you see is not simply "invert the
+condition". `func_acropolis_fire_escape_8017EA68` needed
+
+```c
+case 6:  if (ready != 0) { state = 2; } else { state = 3; }   /* beqz */
+case -1: if (ready == 0) { state = 3; } else { state = 2; }   /* bnez */
+```
+
+i.e. the two textually identical-looking blocks are written with *opposite*
+polarity, and flipping only one of them made the score worse than flipping
+neither. Flip both, or flip neither, before concluding the shape is wrong.
+
+## A string literal can own the bytes that follow it
+
+`.rodata` after a string is not always alignment padding. `acropolis_fire_escape`
+has `"Telephone\0"` followed by `01 00`, which no code references and which the
+compiler will not emit as padding (it pads with zeros). Those two bytes belong
+to the literal:
+
+```c
+Ui_DrawText((UiPanel*)obj, "Telephone\000\001");
+```
+
+`Ui_DrawText` stops at the first NUL, so the trailing byte is inert at runtime,
+but the object has to contain it. Symptom: a 100% scratch score and a scoped
+build whose checksum fails with a `*fill* 0x…  0x2 00000000` line in the map
+exactly where the target has data.
+
+## An unused local still costs frame space
+
+A target frame that is larger than yours by a round number, with the saved
+registers pushed up to the top of it and no spills to explain the gap, is a
+declared-but-unused local. GCC 2.8.1 calls `assign_stack_local` for every
+declared aggregate whether or not it survives optimisation, so
+`func_acropolis_fire_escape_8017E594`'s `addiu sp,sp,-0x20` against our
+`-0x8` is 0x18 = 24 bytes of local the source declares and never reads.
+Adding one moved that function from 96.7% to 96.8% with the whole prologue and
+epilogue matching.

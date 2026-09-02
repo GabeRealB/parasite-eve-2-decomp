@@ -121,6 +121,7 @@ u8*  Text_ItoaSignedPlus(u8* arg0, s32 arg1);
 u8*  Text_ItoaUnsigned(u8* arg0, u32 arg1);
 u8*  func_8002F44C(u8* arg0, s32 arg1, s32 arg2);
 u8*  Text_Strcat(u8* dest, u8* src);
+u8*  Text_FormatTime(u8* arg0, s32 arg1);
 
 // Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
 // 0: 0x8005EFB0, 224 glyphs. 1: 0x8005FA30, 224. 2: 0x800604B0, 91 (space..z).
