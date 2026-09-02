@@ -37868,3 +37868,45 @@ Whenever the *only* diff is the argument register a parameter is moved out of,
 count the gap in m2c's `argN` names first — the matched siblings in the same TU
 usually show the real arity (here `func_acropolis_patio_8017DCE4(s32, s32, s32)`
 and the four-argument message handlers).
+
+## m2c invents callee arguments from registers a previous inlined macro left live
+
+The mirror image of the "m2c drops leading params" entry above: when the
+instructions before a `jal` happen to leave values in `$a2`/`$a3`, m2c types the
+callee as taking them. In `func_mist_r18_8017E144` the inlined `addPrim` leaves
+the OT pointer in `$a2` and the primitive in `$a3`, so m2c emitted
+
+```c
+M2C_UNK Room_Draw42(M2C_UNK, M2C_UNK, void *, void *);   /* extern */
+...
+Room_Draw42(0x340, 0, Gpu_CurrentOt, temp_a3);
+```
+
+`Room_Draw42`'s own assembly reads only `$a0` and `$a1` and re-loads
+`Gpu_CurrentOt` itself, so the real prototype is `void Room_Draw42(s32 tpage,
+s16 arg1)` and the two extra arguments are noise. Before trusting an m2c
+signature for a function that is still `INCLUDE_ASM`, open the callee's `.s` and
+count the argument registers it actually reads — passing the phantom arguments
+costs two instructions the target does not have.
+
+## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
+
+`include/psyq/libgpu.h` carries both spellings: lowercase `setSprt` / `setTile`
+/ `setSemiTrans` / `addPrim` are macros that expand to stores, while the
+uppercase `SetSprt` / `SetSemiTrans` / `AddPrim` are real Psy-Q functions
+reached by `jal`. Which one the original source used is visible in the target:
+a primitive emitter with no `jal` but a run of `sb`/`sw` to a cursor is the
+macro form, one with `jal SetSprt` is the function form. Two emitters in the
+same TU can disagree — `func_mist_r18_8017E534` calls the functions while
+`func_mist_r18_8017E144` uses the macros.
+
+With the macro form, a constant `setSemiTrans(p, 1)` after `setSprt(p)` does
+*not* produce a load-modify-store. GCC forwards the just-stored `0x64`, folds
+`0x64 | 0x02`, and kills the dead first store, so the whole pair is one
+
+```
+sb    s7, 0x7(a3)        # s7 = 0x66
+```
+
+A lone `sb` of a fused primitive code is therefore the signature of
+`setXxx(p); setSemiTrans(p, 1);`, not of a hand-written literal.
