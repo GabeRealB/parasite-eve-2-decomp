@@ -122,7 +122,19 @@ s32 func_mist_shooting_gallery_8017F95C(void)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017F98C);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FA38);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FAE8);
+void func_mist_shooting_gallery_8017FAE8(Task* task)
+{
+    UiObject*                    obj   = task->spawnArg2;
+    MistShootingGalleryModeTexts texts = D_mist_shooting_gallery_8017D708;
+
+    obj->field_2E = 0;
+    if (task->state == 0) {
+        Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(3) + 1);
+        obj->field_E = 0x68 - obj->field_12;
+        task->state  = task->state + 1;
+    }
+    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, texts.text[D_80072177], 0x606060, 1, 0);
+}
 void func_mist_shooting_gallery_8017FBD8(void)
 {
     if ((D_80072176 > 0) && (Game_Session->field_8 == 7)) {
