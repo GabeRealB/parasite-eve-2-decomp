@@ -746,18 +746,39 @@ void Actor02000_Fn03268(Actor02000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03348);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L03370);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L0338C);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L033BC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_L033C4);
-
-void Actor02000_L033CC(void)
+/// Per-frame tick. State 0 selects animation 0x11, hands over to state 1 and
+/// clears the pair of counters at `field_69C`. State 1 waits for `field_698`
+/// to reach 0x37, then parks at animation 2 / `field_6A6` 2 when `field_6E0`
+/// is clear, or animation 0x14 / `field_6A6` 0xA otherwise, and drops back
+/// to state 0.
+void Actor02000_Fn03348(Actor02000* arg0)
 {
+    Actor02000Work* work;
+    s16             state;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            work->field_694 = 0x11;
+            work->field_6A8 = 1;
+            work->field_69C = 0;
+            work->field_69E = 0;
+            break;
+        case 1:
+            if (work->field_698 >= 0x37) {
+                if (work->field_6E0 == 0) {
+                    work->field_694 = 2;
+                    work->field_6A6 = 2;
+                    work->field_6A8 = 0;
+                } else {
+                    work->field_694 = 0x14;
+                    work->field_6A6 = 0xA;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+    }
 }
 
 /// Per-frame tick. State 0 picks the animation from `field_6AA`: 1 selects
