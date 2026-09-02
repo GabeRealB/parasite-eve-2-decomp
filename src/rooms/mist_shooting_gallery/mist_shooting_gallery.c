@@ -140,7 +140,128 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery",
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D730);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017F128);
+void func_mist_shooting_gallery_8017F128(Task* task)
+{
+    UiObject*                  obj           = task->spawnArg2;
+    MistShootingGalleryRatings missionLevels = { {
+        { 2, D_mist_shooting_gallery_8017D718 },
+        { 3, D_mist_shooting_gallery_8017D720 },
+        { 4, D_mist_shooting_gallery_8017D728 },
+        { 5, D_mist_shooting_gallery_8017D730 },
+    } };
+    MistShootingGalleryRatings conditions;
+    MistShootingGalleryRatings enemyLevels;
+    MistShootingGalleryRatings supplyLevels;
+    MistShootingGalleryGauges  gauges;
+    TextDrawReq                label0;
+    TextDrawReq                value0;
+    TextDrawReq                label1;
+    TextDrawReq                value1;
+    TextDrawReq                label2;
+    TextDrawReq                value2;
+    TextDrawReq                label3;
+    TextDrawReq                value3;
+    MistShootingGalleryRating* rating;
+    s32                        col;
+    s32                        row;
+    s32                        x;
+    s32                        y;
+
+    conditions   = D_mist_shooting_gallery_8017D778;
+    enemyLevels  = D_mist_shooting_gallery_8017D7AC;
+    supplyLevels = D_mist_shooting_gallery_8017D7E8;
+    gauges       = D_mist_shooting_gallery_8017D808;
+    Ui_DrawTitle((UiPanel*)obj, D_mist_shooting_gallery_8017D820);
+
+    col               = obj->field_1C;
+    obj->field_2E     = 0;
+    x                 = col + 0xB;
+    row               = (s16)obj->field_18;
+    label0.x          = obj->baseX + x;
+    y                 = row + 0xB;
+    label0.y          = (s16)(obj->baseY - 6) + y;
+    label0.otIndex    = (s16)obj->drawOrder + 1;
+    rating            = &missionLevels.entries[Mc_SaveData.field_F];
+    label0.field_8    = 0x606060;
+    label0.glyphTable = 5;
+    label0.centerMode = 0;
+    label0.field_E    = 1;
+    func_8002E53C(&label0, D_mist_shooting_gallery_8017D828);
+
+    value0.x          = obj->baseX + 0x41;
+    value0.y          = (s16)(obj->baseY - 3) + y;
+    value0.otIndex    = (s16)obj->drawOrder + 1;
+    value0.field_8    = 0x606060;
+    value0.glyphTable = 0;
+    value0.centerMode = 2;
+    value0.field_E    = 3;
+    func_8002E53C(&value0, rating->label);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
+    Ui_DrawHBar((UiPanel*)obj, col + 6, -x + 5, row + 0xD);
+
+    y                 = row + 0x1E;
+    label1.x          = obj->baseX + x;
+    label1.y          = (s16)(obj->baseY - 6) + y;
+    label1.otIndex    = (s16)obj->drawOrder + 1;
+    rating            = &conditions.entries[Mc_SaveData.field_F];
+    label1.field_8    = 0x606060;
+    label1.glyphTable = 5;
+    label1.centerMode = 0;
+    label1.field_E    = 1;
+    func_8002E53C(&label1, D_mist_shooting_gallery_8017D838);
+
+    value1.x          = obj->baseX + 0x41;
+    value1.y          = (s16)(obj->baseY - 3) + y;
+    value1.otIndex    = (s16)obj->drawOrder + 1;
+    value1.field_8    = 0x606060;
+    value1.glyphTable = 0;
+    value1.centerMode = 2;
+    value1.field_E    = 3;
+    func_8002E53C(&value1, rating->label);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
+
+    y                 = row + 0x2D;
+    label2.x          = obj->baseX + x;
+    label2.y          = (s16)(obj->baseY - 6) + y;
+    label2.otIndex    = (s16)obj->drawOrder + 1;
+    rating            = &enemyLevels.entries[Mc_SaveData.field_F];
+    label2.field_8    = 0x606060;
+    label2.glyphTable = 5;
+    label2.centerMode = 0;
+    label2.field_E    = 1;
+    func_8002E53C(&label2, D_mist_shooting_gallery_8017D844);
+
+    value2.x          = obj->baseX + 0x41;
+    value2.y          = (s16)(obj->baseY - 3) + y;
+    value2.otIndex    = (s16)obj->drawOrder + 1;
+    value2.field_8    = 0x606060;
+    value2.glyphTable = 0;
+    value2.centerMode = 2;
+    value2.field_E    = 3;
+    func_8002E53C(&value2, rating->label);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
+
+    y                 = row + 0x3C;
+    label3.x          = obj->baseX + x;
+    label3.y          = (s16)(obj->baseY - 6) + y;
+    label3.otIndex    = (s16)obj->drawOrder + 1;
+    rating            = &supplyLevels.entries[Mc_SaveData.field_F];
+    label3.field_8    = 0x606060;
+    label3.glyphTable = 5;
+    label3.centerMode = 0;
+    label3.field_E    = 1;
+    func_8002E53C(&label3, D_mist_shooting_gallery_8017D850);
+
+    value3.x          = obj->baseX + 0x41;
+    value3.y          = (s16)(obj->baseY - 3) + y;
+    value3.otIndex    = (s16)obj->drawOrder + 1;
+    value3.field_8    = 0x606060;
+    value3.glyphTable = 0;
+    value3.centerMode = 2;
+    value3.field_E    = 3;
+    func_8002E53C(&value3, rating->label);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
+}
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
 /// panel and stashes the player's `Wip_SysConfig` BP (`field_8`) and experience
 /// (`field_C`) totals in `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
