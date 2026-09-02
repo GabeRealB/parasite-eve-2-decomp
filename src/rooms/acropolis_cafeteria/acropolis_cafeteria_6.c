@@ -78,7 +78,17 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017F390);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017F908);
+s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    GsCOORDINATE2* coord;
+
+    coord                          = ((TmdObject*)task->extra)->field_8;
+    D_acropolis_cafeteria_80184CFC = arg2;
+    if (arg2 != 0) {
+        Gp_SpawnEff(0x6009D, coord, 0, NULL);
+    }
+    return 0;
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017F948);
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", D_acropolis_cafeteria_8017D69C);
 
