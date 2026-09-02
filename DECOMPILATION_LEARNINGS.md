@@ -37388,67 +37388,204 @@ so listing the global's pointer ahead of the work pointer gives `s0` = global,
 `func_shelter_b1_underground_parking_80184594` is the example; inlined it
 scored 76.4% with `regs=18`, the local pointer matched.
 
-## A `GpFixed16` high half: `.h.hi` gives `lhu`, `.w >> 16` gives `lh`
+## A same-unit `.rodata` block disappears when you decompile the function that owns it
 
-`func_acropolis_cafeteria_80181ED4` copies the three 16.16 deltas
-`func_800E0C10` leaves in the scratch block into an `SVECTOR`. Writing the
-obvious union field
+splat migrates a `.rodata` symbol into the `.s` of the function that references
+it, so the block only exists while that function is `INCLUDE_ASM`. Decompile
+the function and the assembler fails with
 
-```c
-D_8018D6AC.vx = s->delta.vx.h.hi;
+```
+Error: can't open asm/.../D_<overlay>_<addr>.s for reading: No such file
 ```
 
-is a plain HImode memory-to-memory move, and GCC 2.8.1 loads it with `lhu`.
-The target loads with `lh`. Adding a cast does not help - the fix is to take
-the high half arithmetically, so the load carries a `sign_extend` that combine
-folds back into a `lh` of the `+2` half:
+because there is no standalone `.s` for it and splat will not create one on a
+re-split - it still considers the data migrated. (Cross-unit references are
+different: those *do* get a standalone `.s`, which is why
+`shelter_b6_nursery_4.c` can `INCLUDE_RODATA` a table used from unit 7.)
+
+The fix is to write the block in C and place the definition so the emitted
+`.rodata` stays in address order. GCC emits file-scope data where it is
+defined, and an `INCLUDE_RODATA` asm block where it appears, so a table that
+is *last* in the unit's `.rodata` goes at the end of the file:
 
 ```c
-D_8018D6AC.vx = s->delta.vx.w >> 16;   /* lh -0x12(head) */
+extern const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC;
+
+void func_dryfield_motel_balcony_8017DBD0(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_motel_balcony_8017D5DC;
+    sp.funcs[task->state](task);
+}
+
+/* ... rest of the unit ... */
+
+const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
+    func_dryfield_motel_balcony_8017DB84,
+    (TaskFunc)func_dryfield_motel_balcony_8017DBC8,
+    Task_Kill,
+};
 ```
 
-The same expression *added into* an `s32` (`coord->coord.t[0] += ...h.hi`)
-already emits `lh`, because the add needs the sign extension; only the
-halfword-to-halfword store shows the difference. Symptom: an otherwise perfect
-function with three `lhu`/`lh` mismatches in a row.
+`const` matters - a non-const initialised array lands in `.data`, not
+`.rodata`.
 
-## A constant store scheduled too early: move the assignment last
+## A compiler-generated jump table is `.align 3`, so it cannot follow other rodata in the same object
 
-Filling a `GsCOORDINATE2` before `Gp_UpdateCoord` as
+GCC 2.8.1 emits `.rdata / .align 3` before a switch jump table. If the unit's
+`.rodata` already holds something ahead of it, the table is padded to the next
+8-byte boundary and every later address shifts.
+`func_dryfield_motel_balcony_8017D74C` is the worked example: its table belongs
+at `0x8017D5C4`, four bytes after `D_dryfield_motel_balcony_8017D5C0`, and
+`.align 3` pushes it to `0x8017D5C8`. The function itself matches
+instruction-for-instruction; only the placement is wrong.
+
+This is the `rodata` + `units` manifest cut described in CLAUDE.md
+(`rooms/mist_parking`): the table has to *start* its object's `.rodata`, which
+means splitting the `.text` so the switch's function begins a new unit. A
+worktree that lands by rewriting `src/` files cannot carry that config change,
+so leave such a function as `INCLUDE_ASM` until the manifest is edited.
+
+## `signed char` into `s16` gives `lbu` + `sll`/`sra`; go through an `s32` local for `lb`
+
+Assigning an `s8` struct field straight into an `s16` field expands as a QImode
+move plus a widening pair:
 
 ```c
-coord.flg        = 0;
-coord.sub        = work->field_8;
-coord.coord.t[0] = vec->vx;   /* ... t[1], t[2] */
+mem->field_2A = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+```
+```
+lbu  v0,0x37(s2)      # movqi_internal2
+sll  v0,v0,0x18
+sra  v0,v0,0x18
+sh   v0,0x2a(s0)
 ```
 
-emits the stores in source order, but the scheduler hoists `sw zero, flg`
-above the loads that feed the other three, because it is the only store with
-no input dependency. The target has it *after* the loads. Writing `flg = 0`
-**last** in the source still emits the store first (the stores are to distinct
-stack offsets, so they get reordered freely) but changes its scheduling
-priority, and the loads move up instead. This took
-`func_acropolis_cafeteria_801803AC` from 99.32% to 100%; the only diff was one
-`sw zero, 0x10(sp)` five instructions early, twice.
-
-## `&arr[1]` as a pointer, not an index
-
-Two consecutive `SVECTOR`s in overlay data read as
+Routing the value through an `s32` local turns it into a single
+`extendqisi2_insn`, which is what the target uses:
 
 ```c
-coord.coord.t[0] = D_80184E80[1].vx;   /* lh 8(s0), lh 0xa(s0), lh 0xc(s0) */
+life          = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+mem->field_2A = life;
+```
+```
+lb   v0,0x37(s2)      # extendqisi2_insn
+sh   v0,0x2a(s0)
 ```
 
-fold every offset onto the array base. GCC materialises `&arr[1]` in its own
-register when the source names the element through a pointer, matching the
-target's `addiu v0, s0, 8` / `lh 8(s0)` / `lh 2(v0)` / `lh 4(v0)` - the first
-field still folds onto the old base, the rest go through the new one:
+The same trick works for `s16` fields that need `lh` rather than `lhu`
+(`func_dryfield_motel_balcony_8017EA00`, `GpEffSpawnArg::field_2`).
+
+Do **not** build a pointer to the byte block first
+(`RoomSpawnBytes* p = (RoomSpawnBytes*)&task->spawnArg1;`): that materialises
+`addiu a3,s2,0x34` and switches every access to `n(a3)`, where the target uses
+`0x36(s2)` / `0x37(s2)` off the task pointer. Write the cast inline at each
+use and GCC folds the constant offset.
+
+## A state `switch` that falls through to the epilogue needs an explicit `default:`
+
+Without one, GCC hoists the *next* comparison constant into the dispatch
+branch's delay slot, and the function comes out one instruction short:
+
+```
+beqz  v0,8c
+li    v0,2        <- ours: constant for the `case 2` test, hoisted
+```
+```
+beqz  v0,8c
+nop               <- target
+...
+8c: li v0,2
+```
+
+Adding `default: return;` (or `default: break;`) to the same switch restores
+the `nop` and matched `func_dryfield_motel_balcony_80181628` exactly. The
+`default` arm emits nothing extra - it only changes what the delay-slot filler
+is allowed to reach.
+
+## Cross-jumping merges two identical call tails; `SOFT_BARRIER()` keeps both
+
+Two arms of a switch that end in the same call and the same `goto` get merged
+into one copy by `jump.c`'s cross-jumping, even when the argument comes from a
+different place:
 
 ```c
-vec = &D_80184E80[1];
-coord.coord.t[0] = vec->vx;
+case 0: if (rec.field_8 != 0) { SndEvt_EnqueueType6(rec.field_8, 0, 0); goto advance; } ...
+case 3: if (rec.field_C != 0) { SndEvt_EnqueueType6(rec.field_C, 0, 0); goto advance; } ...
 ```
 
-Same idiom as `lui`+`addiu %lo` followed by `lh %lo(sym)(v0)` / `lh 2(v1)` for
-a directly named symbol, which is why the two spellings look identical in the
-disassembly of a *different* element of the same array.
+The target keeps both copies. A `SOFT_BARRIER()` between the call and the
+`goto` in *either* arm makes the tails differ at RTL level, so both survive,
+and it emits nothing:
+
+```c
+SndEvt_EnqueueType6(rec.field_8, 0, 0);
+SOFT_BARRIER();
+goto advance;
+```
+
+That took `func_dryfield_motel_balcony_8017D74C` from 92.1% to 98.6% (the rest
+was store ordering).
+
+## A pointless `move` between two registers means two source variables
+
+`move v0,a0` followed later by `move a0,v0` - a value copied out and straight
+back - is not scheduling noise, it is one variable copied into another. GCC's
+CSE then folds the copy away unless the destination is *redefined* later, so a
+plain `idx = flag;` is not enough:
+
+```c
+neg = flag < 0;
+got = (s16)flag;                      /* got is reassigned by both calls */
+if (neg) {
+    flag = -flag;
+    got  = GameFlag_GetNibble(flag) == 0;
+} else {
+    got = GameFlag_GetNibble(got);
+}
+```
+
+The `(s16)` cast is what stops CSE replacing the `if` arm's use of `flag` with
+`got`; without it the negate reads the copy and the load lands in the wrong
+register. `func_dryfield_motel_balcony_8017D5E8`, 97.5% -> 100%.
+
+The same shape shows up for fields: `mem->field_24 += mem->field_2A;
+mem->field_26 += mem->field_2A;` (two reads) produces the `move` pair, while
+hoisting `step = mem->field_2A;` produces one register and does not match
+(`func_dryfield_motel_balcony_801802DC`).
+
+## Loop temporaries: one variable per loop, and keep the IV copy alive
+
+Two things bite in a `do { ... } while (ang < N)` that walks an angle:
+
+- A temp shared between two loops in the same function is one pseudo with one
+  live range, and the allocator then orders it differently from the target.
+  Give each loop its own local even when the bodies look identical
+  (`func_dryfield_motel_balcony_8017F7E8`: loop 1 needs `t`/`t2`, loop 2 needs
+  its own `u`).
+- `ang = t2;` at the end of a loop whose body no longer uses `ang` is coalesced
+  into `addiu ang,ang,0x200`. The target keeps `addiu t2,ang,0x200` plus a
+  separate `move ang,t2`, which needs `t2` live past the copy:
+
+```c
+        ang = t2;
+        addPrim(...);
+        Gp_AddTpageShift(...);
+        SOFT_USE_REG(t2);      /* emits nothing; blocks the coalesce */
+    } while (ang < 0x1000);
+```
+
+`TOUCH_REG` also blocks the coalesce but pins the copy's position, which put
+`move` in the wrong delay slot - `USE_REG` / `SOFT_USE_REG` at the *end* of the
+body is the one that matched (`func_dryfield_motel_balcony_8017E66C`).
+
+## Use the parameter, not a copy of it, when a register pin is otherwise needed
+
+`Room_DrawBillboard`-shaped draw helpers keep the caller's `u8* rgb` in `s6`
+for the whole function. Writing `register u8* rgb asm("s6"); rgb = arg2;`
+gets the register right but schedules `lui/ori` of the scratch pointer above
+the `sw s6` / `move s6,a2` prologue pair; a barrier after the assignment sinks
+them too far instead. Dropping the local entirely and indexing `arg2[0..2]`
+directly lets GCC choose `s6` itself and lands the prologue exactly
+(`func_dryfield_motel_balcony_8017F7E8`, 99.8% -> 100%).
