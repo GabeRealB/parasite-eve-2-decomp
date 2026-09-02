@@ -312,6 +312,56 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", fu
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017E594);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017E8B4);
+void func_acropolis_fire_escape_8017E8B4(Task* task)
+{
+    UiObject* obj;
+    UiList*   list;
+    Task*     child;
+    Task*     next;
+    UiObject* childObj;
+    void*     work;
+
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    list          = &D_acropolis_fire_escape_80181C6C;
+    if (task->spawnArg1 == 0) {
+        Ui_DrawText((UiPanel*)obj, "Weapon Data");
+    } else {
+        Ui_DrawText((UiPanel*)obj, "PE Data");
+    }
+    if (task->state == 0) {
+        work = Mem_Calloc(0xC4, 0);
+        if (work == NULL) {
+            return;
+        }
+        task->idMap = work;
+        Ui_SpawnFromDesc(&D_acropolis_fire_escape_80181C90, 0, 0, 1, obj);
+        if (task->spawnArg1 == 0) {
+            func_acropolis_fire_escape_8017E298(list, obj);
+        } else {
+            func_acropolis_fire_escape_8017E594(list, obj);
+        }
+        Ui_InitList(list, (UiMiniObj*)obj);
+        list->field_A = 1;
+        Ui_SetListScrollFlag(list, 1);
+        task->state += 1;
+    }
+    Ui_UpdateListNoAnim(list, obj);
+    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        obj->field_2E = 6;
+    }
+    if (task->firstChild != NULL) {
+        child = task->firstChild;
+        do {
+            childObj = child->spawnArg2;
+            next     = child->nextSibling;
+            if (childObj->field_2E == -1 || childObj->field_2E == 6) {
+                Ui_TeardownTree(childObj, childObj->owner);
+                obj->status = 1;
+            }
+            child = next;
+        } while (child != task->firstChild);
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017EA68);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017ED60);
