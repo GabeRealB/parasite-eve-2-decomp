@@ -82,7 +82,89 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery",
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017E234);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017E854);
+void func_mist_shooting_gallery_8017E854(Task* task)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    UiObject*     obj;
+    s32           score;
+    s32           bonus;
+    s32           total;
+    s32           xOff;
+    s32           top;
+    s32           y;
+    s32           color;
+    WipSysConfig* cfg;
+
+    obj   = task->spawnArg2;
+    score = task->spawnArg1;
+
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, "BONUS");
+    if (task->state == 0) {
+        bonus = func_mist_shooting_gallery_80184470(score);
+        cfg   = &Wip_SysConfig;
+        if (bonus > 0) {
+            total        = cfg->field_C + bonus;
+            cfg->field_C = total;
+            if (total > 999999) {
+                cfg->field_C = 999999;
+            }
+        }
+        task->state = task->state + 1;
+    }
+
+    color = 0x606060;
+    xOff  = (s16)obj->field_1C + 2;
+    top   = (s16)obj->field_18;
+    y     = top + 0xB;
+
+    req1.x          = obj->baseX + xOff;
+    req1.y          = (s16)(obj->baseY - 2) + y;
+    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.field_8    = color;
+    req1.glyphTable = 5;
+    req1.centerMode = 0;
+    req1.field_E    = 1;
+    func_8002E53C(&req1, D_mist_shooting_gallery_8017D65C);
+
+    req2.x          = obj->baseX - xOff;
+    req2.y          = obj->baseY + y;
+    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.field_8    = color;
+    req2.glyphTable = 0;
+    req2.centerMode = 2;
+    req2.field_E    = 3;
+    func_8002E53C(&req2, Text_ItoaSigned(buf, score));
+
+    Ui_DrawHBar((UiPanel*)obj, xOff, -xOff, top + 0x1B);
+
+    y               = top + 0x25;
+    req3.x          = obj->baseX + xOff;
+    req3.y          = (s16)(obj->baseY - 2) + y;
+    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.field_8    = color;
+    req3.glyphTable = 5;
+    req3.centerMode = 0;
+    req3.field_E    = 1;
+    func_8002E53C(&req3, "BONUS BP");
+
+    req4.x          = obj->baseX - xOff;
+    req4.y          = obj->baseY + y;
+    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.field_8    = 0x37A78;
+    req4.glyphTable = 0;
+    req4.centerMode = 2;
+    req4.field_E    = 3;
+    func_8002E53C(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
+
+    if ((obj->status == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        obj->field_2E = 6;
+    }
+}
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6A0);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6AC);
