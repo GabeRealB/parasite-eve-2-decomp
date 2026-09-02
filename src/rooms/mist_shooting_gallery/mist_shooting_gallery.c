@@ -130,7 +130,20 @@ void func_mist_shooting_gallery_8017FBD8(void)
     }
 }
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FC2C);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FD40);
+void func_mist_shooting_gallery_8017FD40(void)
+{
+    u8 temp_v1;
+
+    if ((Game_Session->field_9 == 1) && (Game_Session->field_1 == 0)) {
+        temp_v1 = Game_Session->field_4;
+        if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
+            Gp_MsgSlot4Chain(1, 0);
+        } else if (GameFlag_GetNibble(0xED) == 0) {
+            Gp_MsgSlot4Chain(1, 1);
+        }
+    }
+    func_8014A398();
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FDD0);
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D75C);
 
