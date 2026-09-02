@@ -29557,6 +29557,31 @@ codegen changes — but re-verify the callers' TU after the change. Rule of thum
 an unexplained `sll/sra 16` (or `andi 0xFFFF`) on an incoming argument register is
 a statement about the *declared parameter type*, not about the expression using it.
 
+## An extra callee-saved copy of an argument means the parameter is `s32`, not `u8`
+
+The complement of the `sll/sra 0x10` entry above: here the widening is *invisible*,
+and the tell is register pressure. `func_mist_parking_80182750` conditionally adds
+2 to its argument and then stores it with `sb`, so `u8` looked like the obvious
+parameter type. GCC 2.8.1 then keeps the incoming SImode argument and the QImode
+result as two pseudos that never coalesce, costing a second callee-saved register
+and 8 bytes of frame:
+
+```
+addiu sp,sp,-0x20
+sw    s1,0x14(sp)
+move  s1,a0          <- incoming SImode argument
+move  s0,s1          <- QImode copy, fallthrough arm
+addiu s0,s1,2        <- QImode copy, taken arm
+```
+
+The target modifies the argument in one register (`move s0,a0` / `addiu s0,s0,2`,
+frame `0x18`). Declaring the parameter `s32` and incrementing it in place is the
+whole fix — the `sb` narrows at the store, so no `andi 0xff` appears either.
+Introducing a separate local does **not** help; the width of the *parameter* is
+what forces the split. Rule of thumb: an argument that gains an extra `move` plus
+a saved register with no visible sign/zero-extension is a narrow parameter type
+that should be `s32`.
+
 ## Give sibling prim blocks the same field-store order to fix hoisted-constant registers
 
 When a function builds several primitives in one basic block, GCC 2.8.1 hoists the
