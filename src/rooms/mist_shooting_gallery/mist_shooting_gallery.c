@@ -75,7 +75,64 @@ extern UiObjectDesc D_mist_shooting_gallery_8018507C[];
 extern GpMsgEntry   D_mist_shooting_gallery_801850E8[];
 extern TaskDesc     D_mist_shooting_gallery_801856B8;
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017DCAC);
+void func_mist_shooting_gallery_8017DCAC(s32 mode)
+{
+    GpItemScan* scan;
+    u8*         levels;
+    s32         row;
+    s32         col;
+    s32         i;
+    s32         k;
+
+    scan   = &D_80072724;
+    row    = 0;
+    levels = Gp_DebugAttachLevels;
+    i      = row;
+    for (; row < 4; row++, i += 3) {
+        col = 0;
+        k   = i;
+        TOUCH_REG(k);
+        do {
+            *(u8*)((col + k) + (s32)levels) = 0;
+            col++;
+        } while (col < 3);
+    }
+    Gp_DebugAttachLevels[0] = 1;
+
+    switch (mode) {
+        case 1:
+        case 2:
+            break;
+        case 3:
+            Gp_SetItemSeenBit(0x40, 1);
+            Gp_GiveItem(scan, 0x40, 1);
+            break;
+        case 4:
+            Gp_SetItemSeenBit(0x40, 1);
+            Gp_SetItemSeenBit(5, 1);
+            Gp_GiveItem(scan, 0x40, 1)->field_1 = 2;
+            Gp_GiveItem(scan, 5, 1)->field_1    = 3;
+            Gp_GiveItem(scan, 5, 1)->field_1    = 4;
+            Gp_DebugAttachLevels[0xA]           = 1;
+            Gp_DebugAttachLevels[1]             = 1;
+            break;
+        case 5:
+            Gp_SetItemSeenBit(0x40, 1);
+            Gp_SetItemSeenBit(1, 1);
+            Gp_SetItemSeenBit(6, 1);
+            Gp_GiveItem(scan, 0x40, 1);
+            Gp_GiveItem(scan, 1, 1);
+            Gp_GiveItem(scan, 1, 1);
+            Gp_GiveItem(scan, 1, 1);
+            Gp_GiveItem(scan, 6, 1);
+            Gp_GiveItem(scan, 6, 1);
+            Gp_DebugAttachLevels[0xA] = 1;
+            Gp_DebugAttachLevels[1]   = 1;
+            break;
+    }
+    Gp_FillHpMp();
+    Gp_ApplyItemMap();
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017DE7C);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017E090);
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D65C);
