@@ -2,7 +2,10 @@
 #include "main/task.h"
 extern TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E41C);
+void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
+{
+    Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_80182D2C, 0, arg0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E44C);
 
