@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main/task.h"
+#include "rooms/dryfield_water_tank.h"
 extern TaskDesc D_dryfield_water_tank_80184DF4;
+extern Task*    D_dryfield_water_tank_80188D50;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017E174);
 
@@ -18,7 +20,13 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017E9F8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017EB80);
+void func_dryfield_water_tank_8017EB80(s16 arg0)
+{
+    DwtWork* work = (DwtWork*)D_dryfield_water_tank_80188D50->idMap;
+
+    work->field_4 = arg0;
+    work->field_6 = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017EBA0);
 
