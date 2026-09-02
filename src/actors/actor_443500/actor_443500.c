@@ -3,6 +3,7 @@
 #include "gameplay/3CD8.h"
 
 extern TaskDesc D_80187618;
+extern TaskDesc D_actor_443500_80140E38;
 
 void func_actor_443500_80131E3C(s32 arg0)
 {
@@ -37,7 +38,10 @@ void func_actor_443500_80131F18(void)
     Gp_MsgPlayerWeapon(0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_443500/actor_443500", func_actor_443500_80131F58);
+void func_actor_443500_80131F58(void)
+{
+    Task_SpawnFromTable(&D_actor_443500_80140E38, 0, 0, 0);
+}
 
 void func_actor_443500_80131F88(Task* arg0)
 {
