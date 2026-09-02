@@ -8,4 +8,6 @@ Room_SaveUi01 = 0x8017F514; // shared body, see src/rooms/lib/
 Room_Util01 = 0x8017EE80; // shared body, see src/rooms/lib/
 Room_Util02 = 0x801803EC; // shared body, see src/rooms/lib/
 Room_Util06 = 0x801803E4; // shared body, see src/rooms/lib/
+Room_Util38 = 0x8017EEF0; // shared body, see src/rooms/lib/
+Room_Util38Percent = 0x80184594; // shared body data, see src/rooms/lib/
 RoomsShared8017df80 = 0x80180A2C; // shared body, see src/rooms/lib/

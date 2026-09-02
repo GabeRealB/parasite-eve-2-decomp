@@ -42,7 +42,7 @@ extern u8 D_acropolis_fire_escape_80181A58[];
 extern u8 D_acropolis_fire_escape_80181A60[];
 extern u8 D_acropolis_fire_escape_80181A68[];
 extern u8 D_acropolis_fire_escape_80181A70[];
-extern u8 D_acropolis_fire_escape_80181A78[];
+extern u8 Room_Util38Percent[];
 extern u8 D_acropolis_fire_escape_80181A7C[];
 extern u8 D_acropolis_fire_escape_80181AA8[];
 extern u8 D_acropolis_fire_escape_80181ACC[];
@@ -193,7 +193,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
                 q--;
             }
             q[1] = 0x2E;
-            Text_Strcat(p, D_acropolis_fire_escape_80181A78);
+            Text_Strcat(p, Room_Util38Percent);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -246,7 +246,7 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
                 q--;
             }
             q[1] = 0x2E;
-            Text_Strcat(p, D_acropolis_fire_escape_80181A78);
+            Text_Strcat(p, Room_Util38Percent);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             Ui_DrawHBar((UiPanel*)arg1, arg1->field_1C, (s16)arg1->field_1E, arg0->field_1A + 3);
             arg0->field_1A = (u16)arg0->field_1A + 5;

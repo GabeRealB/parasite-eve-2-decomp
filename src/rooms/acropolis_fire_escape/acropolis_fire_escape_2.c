@@ -10,8 +10,6 @@ extern char         D_acropolis_fire_escape_8017D610[];
 extern UiList       D_acropolis_fire_escape_80181C44;
 extern UiObjectDesc D_acropolis_fire_escape_80181C90;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_2", func_acropolis_fire_escape_8017EE2C);
-
 void func_acropolis_fire_escape_8017EF20(Task* task)
 {
     UiObject* obj;

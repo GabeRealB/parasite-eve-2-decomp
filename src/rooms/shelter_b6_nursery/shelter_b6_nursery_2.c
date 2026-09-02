@@ -7,8 +7,6 @@ extern char         D_shelter_b6_nursery_8017D610[];
 extern UiList       D_shelter_b6_nursery_80184F08;
 extern UiObjectDesc D_shelter_b6_nursery_80184F54;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_2", func_shelter_b6_nursery_8017EE88);
-
 void func_shelter_b6_nursery_8017EF7C(Task* task)
 {
     UiObject* obj;

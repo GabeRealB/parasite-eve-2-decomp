@@ -9,3 +9,5 @@ Room_Util01 = 0x8017EDB4; // shared body, see src/rooms/lib/
 Room_Util03 = 0x8017FC5C; // shared body, see src/rooms/lib/
 Room_Util05 = 0x8017FDA8; // shared body, see src/rooms/lib/
 Room_Util06 = 0x8017FC54; // shared body, see src/rooms/lib/
+Room_Util38 = 0x8017EE24; // shared body, see src/rooms/lib/
+Room_Util38Percent = 0x80181A18; // shared body data, see src/rooms/lib/

@@ -4,3 +4,5 @@ Room_Draw37 = 0x80180B4C; // shared body, see src/rooms/lib/
 Room_SaveUi01 = 0x8017F478; // shared body, see src/rooms/lib/
 Room_Util01 = 0x8017EDE4; // shared body, see src/rooms/lib/
 Room_Util06 = 0x8017FD4C; // shared body, see src/rooms/lib/
+Room_Util38 = 0x8017EE54; // shared body, see src/rooms/lib/
+Room_Util38Percent = 0x80181B78; // shared body data, see src/rooms/lib/
