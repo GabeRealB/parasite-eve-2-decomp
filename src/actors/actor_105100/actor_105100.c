@@ -161,7 +161,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013667C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801366D8);
+void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1)
+{
+    Actor105100Work* work;
+
+    work = (Actor105100Work*)arg1->idMap;
+    Gp_UnlinkObj(&work->obj0);
+    Gp_UnlinkObj(&work->obj38);
+    Gp_DestroyEnemy(arg0, arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013672C);
 

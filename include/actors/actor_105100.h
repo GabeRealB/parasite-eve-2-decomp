@@ -6,6 +6,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/3A34.h"
+
 typedef struct Actor105100Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
@@ -13,16 +15,19 @@ typedef struct Actor105100Obj2C {
 } Actor105100Obj2C;
 
 typedef struct Actor105100Work {
-    /* 0x000 */ byte pad_0[0x560];
-    /* 0x560 */ s32  field_560;
-    /* 0x564 */ byte pad_564[0x30];
-    /* 0x594 */ s16  field_594;
-    /* 0x596 */ byte pad_596[0xC];
-    /* 0x5A2 */ s16  field_5A2;
-    /* 0x5A4 */ byte pad_5A4[4];
-    /* 0x5A8 */ s16  field_5A8;
-    /* 0x5AA */ byte pad_5AA[0x12];
-    /* 0x5BC */ s16  field_5BC;
+    /* 0x000 */ GpObj obj0;
+    /* 0x020 */ byte  pad_20[0x18];
+    /* 0x038 */ GpObj obj38;
+    /* 0x058 */ byte  pad_58[0x508];
+    /* 0x560 */ s32   field_560;
+    /* 0x564 */ byte  pad_564[0x30];
+    /* 0x594 */ s16   field_594;
+    /* 0x596 */ byte  pad_596[0xC];
+    /* 0x5A2 */ s16   field_5A2;
+    /* 0x5A4 */ byte  pad_5A4[4];
+    /* 0x5A8 */ s16   field_5A8;
+    /* 0x5AA */ byte  pad_5AA[0x12];
+    /* 0x5BC */ s16   field_5BC;
 } Actor105100Work;
 
 typedef struct Actor105100 {
