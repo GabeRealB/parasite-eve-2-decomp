@@ -1392,11 +1392,21 @@ while true; do
     break
   fi
 
-  simplest_func=$(pick_simplest_func "${NONMATCHING_DIRS[@]}" 2>&1)
-  if [[ -z "$simplest_func" ]] || echo "$simplest_func" | grep -qF "Error:"; then
+  # Capture stdout only. pick_simplest_func writes progress notes to stderr -
+  # "Skipping N function(s) already matched in another overlay." - and folding
+  # those into the capture made them part of the function name, so the very next
+  # step failed with "failed to bootstrap scratch env for Skipping 677 ...".
+  # Errors are still detected, from whichever stream they arrive on.
+  _pick_err=$(mktemp "${TMPDIR:-/tmp}/vacuum-pick.XXXXXX")
+  simplest_func=$(pick_simplest_func "${NONMATCHING_DIRS[@]}" 2>"$_pick_err")
+  [[ -s "$_pick_err" ]] && tee -a "$LOG_FILE" <"$_pick_err"
+  if [[ -z "$simplest_func" ]] || grep -qF "Error:" "$_pick_err" \
+     || echo "$simplest_func" | grep -qF "Error:"; then
     echo "$simplest_func"
+    rm -f "$_pick_err"
     break
   fi
+  rm -f "$_pick_err"
 
   note_skip "$simplest_func"
   echo -e "\n[$(date '+%H:%M:%S')] [$CLI] Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
