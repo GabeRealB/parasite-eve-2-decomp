@@ -565,6 +565,20 @@ record_difficult_if_needed() {
   if difficult_listed "$func"; then
     return 0
   fi
+  # A give-up is only evidence about the function if something was actually
+  # compiled. Without match_log.txt nothing was: count_attempts falls back to
+  # base_*.c + 1 and best_score returns 0.000, so an agent that never ran -
+  # a CLI out of quota, a crashed session, a scratch env that would not build -
+  # gets recorded as "1 attempt, 0.000" and the function is parked for good.
+  # That is how 523 functions were parked in a single day while one CLI was out
+  # of weekly tokens; 85 of them match a plain seed outright. Leave the function
+  # in the pool instead and let the next session pick it up.
+  if [[ ! -f "$scratch/match_log.txt" ]] && \
+     ! compgen -G "$scratch/base_*.c" >/dev/null 2>&1; then
+    echo "Not recording a give-up for $func: no candidate was ever compiled" \
+      | tee -a "$LOG_FILE"
+    return 0
+  fi
   local attempts score
   attempts=$(count_attempts "$scratch")
   score=$(best_score "$func" "$scratch")
