@@ -39649,3 +39649,40 @@ The target's `lb` says the original stored the byte in a **word** local, so the
 extension had to happen at the load. Widen the local to `s32` (or `s16`); do not
 add a cast, which folds away again. `func_mist_parking_80183D58`, the last
 instruction of the function.
+
+## Keep an allocation's null test on `$v0` so `move sN,v0` fills the delay slot
+
+An allocation whose result must survive calls needs `move s0,v0`, and the
+question is only which side of the branch it lands on:
+
+```
+# target                     # plain `p = alloc(); if (p != NULL)`
+jal   Mem_Calloc             jal   Mem_Calloc
+ move a1,zero                 move a1,zero
+beqz  v0,skip                move  s0,v0
+ move s0,v0                  beqz  s0,skip
+```
+
+The delayed-branch pass can only steal the copy when the branch does not read
+its destination, so the test has to be on the *call result*, a pseudo that dies
+at the copy and therefore gets `$v0`. Writing two locals is not enough — GCC
+2.8.1 coalesces them straight back (`beqz s0` again), and a `SOFT_TOUCH_REG`
+between the copy and the `if` keeps them apart but then sits in the delay slot's
+way, leaving `reorder=1`. Put the soft asm on the *survivor*, as the first
+statement **inside** the taken block: nothing separates the copy from the branch
+any more, and the two pseudos still cannot merge.
+
+```c
+void*         mem;
+RoomShopList* shop;
+
+mem  = Mem_Calloc(sizeof(RoomShopList), 0);
+shop = mem;
+if (mem != NULL) {
+    SOFT_TOUCH_REG(shop);
+    ...
+}
+```
+
+`func_mist_parking_8017E90C`; the same shape should apply to any
+`Mem_Calloc` whose pointer is live across the calls that follow.

@@ -60,6 +60,17 @@ typedef struct RoomShopTask {
     /* 0x36 */ s16  mode;
 } RoomShopTask;
 
+/// 0xA4 work block a shop / vending-machine panel task allocates and parks in
+/// `Task::idMap`: the `UiList` the panel is drawn from, followed by the ids of
+/// the items the room currently offers. The overlay's list builder fills
+/// `items` while counting them into `list.field_4`, then sorts that prefix in
+/// place, so one allocation carries both the list state and its contents.
+typedef struct RoomShopList {
+    /* 0x00 */ UiList list;
+    /* 0x24 */ u16    items[0x40];
+} RoomShopList;
+STATIC_ASSERT_SIZEOF(RoomShopList, 0xA4);
+
 // =============================================================================
 // Functions — shared room library (src/rooms/lib)
 // =============================================================================
