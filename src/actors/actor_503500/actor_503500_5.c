@@ -532,7 +532,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013E9A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013EA2C);
+void func_actor_503500_8013EA2C(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy                                       = arg0->field_20;
+    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    Gp_UnlinkObj(&arg0->field_1C->obj);
+    enemy->field_54 = 0;
+    arg0->field_1C  = NULL;
+    Gp_DestroyEnemy(enemy, (Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013EA8C);
 
