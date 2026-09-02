@@ -227,7 +227,30 @@ u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
     }
     return work->field_02;
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184B10);
+void func_mist_shooting_gallery_80184B10(Task* arg0)
+{
+    s16 count;
+
+    switch (arg0->state) {
+        case 0:
+            arg0->state         = 1;
+            arg0->killCountdown = 0x28;
+            arg0->spawnArg1     = 0xFF;
+        case 1:
+            count = --arg0->killCountdown;
+            if (count <= 0) {
+                Task_Kill(arg0);
+                return;
+            }
+            if (count < 0x1F) {
+                if (arg0->spawnArg1 >= 9) {
+                    arg0->spawnArg1 -= 8;
+                }
+                func_mist_shooting_gallery_801847D4((u8)arg0->spawnArg1);
+            }
+            return;
+    }
+}
 void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
     func_8014B2B8(arg0, arg1, 0xD0);
