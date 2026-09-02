@@ -165,6 +165,32 @@ void func_acropolis_cafeteria_801827C4(Task* task)
             break;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_8018286C);
+void func_acropolis_cafeteria_8018286C(Task* task)
+{
+    GpItemObj8* obj;
+    TmdObject*  tmd;
+    s32         flag;
+
+    obj  = (GpItemObj8*)task->spawnArg2;
+    tmd  = (TmdObject*)task->extra;
+    flag = Gp_GetCurBit2Flag(obj->field_8);
+    if ((Gp_GetViewIndex() & 0xFF) != 9) {
+        tmd->field_C = 0x80;
+        return;
+    }
+    if (obj->field_8 == 0xA) {
+        Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, 0x400, 1);
+    }
+    tmd->field_1C = &D_acropolis_cafeteria_8018D600;
+    tmd->field_20 = &D_acropolis_cafeteria_8018D5E0;
+    if (flag == 2) {
+        tmd->field_C &= 0xFFF7;
+        Task_CallExit(task);
+    } else {
+        tmd->field_C = 8;
+        tmd->field_E = 0;
+        Tmd_AllocBuffers(tmd);
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182954);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182A08);
