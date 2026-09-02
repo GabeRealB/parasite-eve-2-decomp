@@ -37589,3 +37589,68 @@ the `sw s6` / `move s6,a2` prologue pair; a barrier after the assignment sinks
 them too far instead. Dropping the local entirely and indexing `arg2[0..2]`
 directly lets GCC choose `s6` itself and lands the prologue exactly
 (`func_dryfield_motel_balcony_8017F7E8`, 99.8% -> 100%).
+
+## A `GpFixed16` high half: `.h.hi` gives `lhu`, `.w >> 16` gives `lh`
+
+`func_acropolis_cafeteria_80181ED4` copies the three 16.16 deltas
+`func_800E0C10` leaves in the scratch block into an `SVECTOR`. Writing the
+obvious union field
+
+```c
+D_8018D6AC.vx = s->delta.vx.h.hi;
+```
+
+is a plain HImode memory-to-memory move, and GCC 2.8.1 loads it with `lhu`.
+The target loads with `lh`. Adding a cast does not help - the fix is to take
+the high half arithmetically, so the load carries a `sign_extend` that combine
+folds back into a `lh` of the `+2` half:
+
+```c
+D_8018D6AC.vx = s->delta.vx.w >> 16;   /* lh -0x12(head) */
+```
+
+The same expression *added into* an `s32` (`coord->coord.t[0] += ...h.hi`)
+already emits `lh`, because the add needs the sign extension; only the
+halfword-to-halfword store shows the difference. Symptom: an otherwise perfect
+function with three `lhu`/`lh` mismatches in a row.
+
+## A constant store scheduled too early: move the assignment last
+
+Filling a `GsCOORDINATE2` before `Gp_UpdateCoord` as
+
+```c
+coord.flg        = 0;
+coord.sub        = work->field_8;
+coord.coord.t[0] = vec->vx;   /* ... t[1], t[2] */
+```
+
+emits the stores in source order, but the scheduler hoists `sw zero, flg`
+above the loads that feed the other three, because it is the only store with
+no input dependency. The target has it *after* the loads. Writing `flg = 0`
+**last** in the source still emits the store first (the stores are to distinct
+stack offsets, so they get reordered freely) but changes its scheduling
+priority, and the loads move up instead. This took
+`func_acropolis_cafeteria_801803AC` from 99.32% to 100%; the only diff was one
+`sw zero, 0x10(sp)` five instructions early, twice.
+
+## `&arr[1]` as a pointer, not an index
+
+Two consecutive `SVECTOR`s in overlay data read as
+
+```c
+coord.coord.t[0] = D_80184E80[1].vx;   /* lh 8(s0), lh 0xa(s0), lh 0xc(s0) */
+```
+
+fold every offset onto the array base. GCC materialises `&arr[1]` in its own
+register when the source names the element through a pointer, matching the
+target's `addiu v0, s0, 8` / `lh 8(s0)` / `lh 2(v0)` / `lh 4(v0)` - the first
+field still folds onto the old base, the rest go through the new one:
+
+```c
+vec = &D_80184E80[1];
+coord.coord.t[0] = vec->vx;
+```
+
+Same idiom as `lui`+`addiu %lo` followed by `lh %lo(sym)(v0)` / `lh 2(v1)` for
+a directly named symbol, which is why the two spellings look identical in the
+disassembly of a *different* element of the same array.

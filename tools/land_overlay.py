@@ -62,6 +62,30 @@ def scaffold(trunk_text: str, wt_text: str, funcs: set[str]) -> str:
     return out
 
 
+def sections(text: str) -> dict[str, str]:
+    parts, title, buf = {}, None, []
+    for line in text.splitlines(keepends=True):
+        if line.startswith("## "):
+            if title is not None:
+                parts[title] = "".join(buf)
+            title, buf = line.strip(), [line]
+        elif title is not None:
+            buf.append(line)
+    if title is not None:
+        parts[title] = "".join(buf)
+    return parts
+
+
+def merge_sections(current: str, incoming: str) -> str:
+    """Append incoming `##` sections the current file does not already have."""
+    have, new = sections(current), sections(incoming)
+    missing = [t for t in new if t not in have]
+    if not missing:
+        return current
+    add = "".join(new[t].rstrip() + "\n\n" for t in missing)
+    return current.rstrip() + "\n\n" + add.rstrip() + "\n"
+
+
 def git(*args: str) -> str:
     r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
@@ -122,7 +146,15 @@ def main() -> int:
     for e in extras:
         src, dst = wt / e, ROOT / e
         dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.write_text(src.read_text())
+        if dst.is_file() and e.endswith(".md"):
+            # Append-only docs must be merged, not copied. Every overlay
+            # worktree is cut from the same trunk commit, so two sessions both
+            # append to DECOMPILATION_LEARNINGS.md and the second landing
+            # silently erases the first one's entries - which is exactly what
+            # happened landing dryfield_motel_balcony after acropolis_cafeteria.
+            dst.write_text(merge_sections(dst.read_text(), src.read_text()))
+        else:
+            dst.write_text(src.read_text())
 
     # Stage 2: one function, one commit.
     for fn in funcs:
