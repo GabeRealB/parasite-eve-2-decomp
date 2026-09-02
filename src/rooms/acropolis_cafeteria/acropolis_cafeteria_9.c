@@ -139,7 +139,32 @@ s32 func_acropolis_cafeteria_80181ED4(GsCOORDINATE2* coord, GpRec18* rec, s16 ar
 }
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182078);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_801827C4);
+void func_acropolis_cafeteria_801827C4(Task* task)
+{
+    GpItemObj8* obj;
+    TmdObject*  tmd;
+
+    obj = (GpItemObj8*)task->spawnArg2;
+    tmd = (TmdObject*)task->extra;
+    if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
+        tmd->field_1C = &D_acropolis_cafeteria_8018D5C0;
+        tmd->field_20 = &D_acropolis_cafeteria_8018D5A0;
+        tmd->field_C  = 0;
+    } else {
+        tmd->field_C |= 0x80;
+    }
+    switch (Gp_GetViewIndex() & 0xFF) {
+        case 0xC:
+            tmd->field_E = 7;
+            break;
+        case 0x18:
+            tmd->field_E = 4;
+            break;
+        default:
+            tmd->field_E = -2;
+            break;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_8018286C);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182954);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182A08);
