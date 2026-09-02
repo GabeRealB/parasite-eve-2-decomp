@@ -21,6 +21,7 @@
 # Usage:
 #   tools/overlay_batch.sh [--overlay NAME] [--session S] [--keep]
 #   tools/overlay_batch.sh --release --session S
+#   tools/overlay_batch.sh --cleanup --overlay NAME [--session S]
 #
 set -euo pipefail
 
@@ -31,6 +32,7 @@ OVERLAY=""
 SESSION=""
 RELEASE=false
 KEEP=false
+CLEANUP=false
 
 usage() {
     sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
@@ -42,6 +44,7 @@ while [[ $# -gt 0 ]]; do
         --overlay) OVERLAY="$2"; shift 2 ;;
         --session) SESSION="$2"; shift 2 ;;
         --release) RELEASE=true; shift ;;
+        --cleanup) CLEANUP=true; shift ;;
         --keep)    KEEP=true; shift ;;
         -h|--help) usage ;;
         *) echo "unknown argument: $1" >&2; usage ;;
@@ -54,6 +57,50 @@ if [[ "$RELEASE" == true ]]; then
     [[ -n "$SESSION" ]] || { echo "--release needs --session" >&2; exit 1; }
     orch relinquish-overlay --session "$SESSION"
     exit $?
+fi
+
+# --- cleanup -----------------------------------------------------------------
+# Landing rewrites trunk's files instead of merging this branch, so afterwards
+# the branch still points at the commit it was cut from and every decompiled
+# file still reads as modified in the worktree. That is indistinguishable from
+# unlanded work, and re-applying it would land the same functions twice. Delete
+# the worktree once its functions are demonstrably on main.
+if [[ "$CLEANUP" == true ]]; then
+    [[ -n "$OVERLAY" ]] || { echo "--cleanup needs --overlay" >&2; exit 1; }
+    WT="$ROOT/../pe2-ov-$OVERLAY"
+    BRANCH="overlay/$OVERLAY"
+
+    if [[ ! -d "$WT" ]]; then
+        echo "no worktree at $WT; nothing to clean"
+    else
+        # Refuse to discard anything trunk does not already have. Every function
+        # the worktree decompiled must have a body on main and no INCLUDE_ASM.
+        unlanded=()
+        while read -r fn; do
+            [[ -n "$fn" ]] || continue
+            if grep -rq "INCLUDE_ASM(.*\b${fn})" "$ROOT/src" 2>/dev/null \
+               || ! grep -rqE "[ *]${fn}\(" "$ROOT/src" 2>/dev/null; then
+                unlanded+=("$fn")
+            fi
+        done < <(git -C "$WT" diff -- src \
+                 | sed -nE 's/^-.*INCLUDE_ASM\([^,]*, *([A-Za-z0-9_]+)\).*/\1/p' | sort -u)
+
+        if [[ ${#unlanded[@]} -gt 0 ]]; then
+            echo "refusing to delete $WT: these are not on main yet:" >&2
+            printf '  %s\n' "${unlanded[@]}" >&2
+            echo "land them first, or pass --keep to leave the worktree alone" >&2
+            exit 1
+        fi
+
+        git worktree remove --force "$WT"
+        echo "removed worktree $WT"
+    fi
+
+    git branch -D "$BRANCH" >/dev/null 2>&1 && echo "deleted branch $BRANCH" || true
+    if [[ -n "$SESSION" ]]; then
+        orch relinquish-overlay --session "$SESSION" >/dev/null 2>&1 || true
+    fi
+    exit 0
 fi
 
 SESSION="${SESSION:-overlay-batch-$$}"
@@ -212,26 +259,46 @@ is a separate short-lived process - so re-run the same command periodically
 instead; it refreshes the expiry. Without either, the lease lapses after
 `--lease-minutes` (default 240) and another session may take these functions.
 
-Then release the lease, recording outcomes:
+Then release the lease, recording outcomes in **three** buckets:
 
 ```
 python3 tools/vacuum_orch.py finish-overlay --session __SESSION__ \
-    --matched a,b,c --difficult d,e
+    --matched a,b,c --difficult d,e --unattempted f,g
 ```
 
-Anything you could not match goes in `--difficult` so it is not re-picked.
+`--difficult` is only for functions you actually fought and lost, and it parks
+them. Everything you simply ran out of time for goes in `--unattempted`, which
+releases it back to the pool untouched. The distinction is the whole point: a
+session runs out of clock long before it runs out of functions, and the first
+run of this workflow parked three ordinary functions as difficult purely
+because time expired - one of them a near-clone of a function already matched.
+Every leased name should appear in exactly one of the three.
+
+## After landing, delete the worktree
+
+```
+tools/overlay_batch.sh --cleanup --session __SESSION__ --overlay __OVERLAY__
+```
+
+Landing rewrites trunk's files rather than merging this branch, so once the
+commits are on main the branch still sits at the commit it was cut from and
+`git -C <worktree> status` still lists every decompiled file as modified. That
+looks exactly like unlanded work. The first run left its worktree behind and the
+13 functions it had already landed on main read as 13 uncommitted matches - the
+obvious recovery move would have applied all of them a second time. Delete it.
 BODY
     echo
     echo "_Release without landing:_ \`tools/overlay_batch.sh --release --session $SESSION\`"
 } > "$BRIEF"
 
-sed -i "s|__SESSION__|$SESSION|g" "$BRIEF"
+sed -i "s|__SESSION__|$SESSION|g; s|__OVERLAY__|$OVERLAY|g" "$BRIEF"
 
 echo
 echo "brief: $BRIEF"
 echo
 echo "next:  hand $BRIEF to an agent, or work it yourself in $WT"
-echo "done:  python3 tools/vacuum_orch.py finish-overlay --session $SESSION --matched ... --difficult ..."
+echo "done:  python3 tools/vacuum_orch.py finish-overlay --session $SESSION --matched ... --difficult ... --unattempted ..."
+echo "clean: tools/overlay_batch.sh --cleanup --session $SESSION --overlay $OVERLAY"
 echo "abort: tools/overlay_batch.sh --release --session $SESSION"
 
 trap - ERR
