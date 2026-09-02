@@ -104,8 +104,24 @@ log "matched ${#MATCHED[@]} function(s)"
 printf '  %s\n' "${MATCHED[@]}" | tee -a "$LOG_FILE"
 
 if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#MATCHED[@]} -eq 0 ]]; then
-    log "not landing (dry-run, --no-land, or nothing matched); worktree kept at $WT"
+    if [[ "$DRY_RUN" == true || "$NO_LAND" == true ]]; then
+        log "not landing (dry-run or --no-land); worktree kept at $WT"
+        trap - EXIT
+        exit 0
+    fi
+    # Nothing matched. That is a legitimate outcome - mist_r21's only function
+    # is a 22-instruction body with 238 copies that is already matched
+    # elsewhere, so the vacuum correctly refuses to match it again and wants it
+    # promoted instead. But the run is over either way, so hold nothing: an
+    # abandoned lease keeps those functions unclaimable until it expires, and
+    # `trap - EXIT` here used to skip the release entirely.
+    log "nothing matched; releasing the lease"
+    if [[ "$KEEP" == false ]]; then
+        "$ROOT/tools/overlay_batch.sh" --cleanup --overlay "$OVERLAY" --session "$SESSION" \
+            >>"$LOG_FILE" 2>&1 || log "worktree cleanup refused; see $LOG_FILE"
+    fi
     trap - EXIT
+    release_all
     exit 0
 fi
 
