@@ -11,17 +11,18 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern SVECTOR D_mist_shooting_gallery_80185550[];
-extern SVECTOR D_mist_shooting_gallery_80185570[];
-extern SVECTOR D_mist_shooting_gallery_801855C0[];
-extern SVECTOR D_mist_shooting_gallery_801855F0[];
-extern SVECTOR D_mist_shooting_gallery_80185610[];
-extern SVECTOR D_mist_shooting_gallery_80185670[];
-extern SVECTOR D_mist_shooting_gallery_80185678[];
-extern SVECTOR D_mist_shooting_gallery_80185680[];
-extern SVECTOR D_mist_shooting_gallery_80185688[];
-extern SVECTOR D_mist_shooting_gallery_80185690[];
-extern SVECTOR D_mist_shooting_gallery_801856B0[];
+extern TaskDesc D_mist_shooting_gallery_80185378;
+extern SVECTOR  D_mist_shooting_gallery_80185550[];
+extern SVECTOR  D_mist_shooting_gallery_80185570[];
+extern SVECTOR  D_mist_shooting_gallery_801855C0[];
+extern SVECTOR  D_mist_shooting_gallery_801855F0[];
+extern SVECTOR  D_mist_shooting_gallery_80185610[];
+extern SVECTOR  D_mist_shooting_gallery_80185670[];
+extern SVECTOR  D_mist_shooting_gallery_80185678[];
+extern SVECTOR  D_mist_shooting_gallery_80185680[];
+extern SVECTOR  D_mist_shooting_gallery_80185688[];
+extern SVECTOR  D_mist_shooting_gallery_80185690[];
+extern SVECTOR  D_mist_shooting_gallery_801856B0[];
 
 void Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw31(SVECTOR* v, s32 arg1, s32 arg2);
@@ -44,7 +45,11 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180A00);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180B34);
+s32 func_mist_shooting_gallery_80180B34(void)
+{
+    Display_InitModeObj(&D_mist_shooting_gallery_80185378, 0, 0, 0);
+    return 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180B64);
 
