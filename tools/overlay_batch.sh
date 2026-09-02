@@ -168,6 +168,12 @@ for d in m2c maspsx asm-differ decomp-permuter; do
         rm -rf "$WT/tools/$d"
         ln -sfn "$ROOT/tools/$d" "$WT/tools/$d"
     fi
+    # These are tracked gitlinks, so replacing them with a symlink is a
+    # modification to a tracked path and `git add -A` stages it - which an agent
+    # did, breaking every submodule in the worktree and with it the build, so
+    # the vacuum's post-match verify failed and the sweep stopped after one
+    # function. .gitignore cannot protect a tracked path; skip-worktree can.
+    git -C "$WT" update-index --skip-worktree "tools/$d" 2>/dev/null || true
 done
 
 if [[ ! -d "$WT/asm" ]]; then

@@ -86,6 +86,26 @@ def merge_sections(current: str, incoming: str) -> str:
     return current.rstrip() + "\n\n" + add.rstrip() + "\n"
 
 
+def attempts_from_worktree(wt: Path, func: str) -> int | None:
+    """The attempt count the worktree's own commit recorded for `func`.
+
+    vacuum.sh writes `matched <fn> <attempts>`, and that number is training data
+    for fit_difficulty_model.py. Landing with a hardcoded 1 quietly rewrites a
+    3-attempt match as a 1-attempt one, which biases the scorer toward thinking
+    these functions are easier than they were.
+    """
+    r = subprocess.run(["git", "log", "--format=%s", "--all"],
+                       cwd=wt, capture_output=True, text=True)
+    for line in r.stdout.splitlines():
+        parts = line.split()
+        if len(parts) == 3 and parts[0] == "matched" and parts[1] == func:
+            try:
+                return int(parts[2])
+            except ValueError:
+                return None
+    return None
+
+
 def git(*args: str) -> str:
     r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
@@ -100,7 +120,9 @@ def main() -> int:
     ap.add_argument("overlay")
     ap.add_argument("--functions")
     ap.add_argument("--functions-file")
-    ap.add_argument("--attempts", type=int, default=1)
+    ap.add_argument("--attempts", type=int,
+                    help="override the attempt count; by default it is read "
+                         "from the worktree's own `matched <fn> <n>` commit")
     ap.add_argument("--extra", default="",
                     help="comma-separated extra paths to land (headers, docs)")
     args = ap.parse_args()
@@ -166,7 +188,8 @@ def main() -> int:
         trunk_c.write_text(text.replace(m.group(0), body_of[fn].rstrip("\n"), 1))
         paths = [str(trunk_c.relative_to(ROOT))] + (extras if fn == funcs[0] else [])
         git("add", *paths)
-        git("commit", "-q", "-m", f"matched {fn} {args.attempts}")
+        n = args.attempts if args.attempts else (attempts_from_worktree(wt, fn) or 1)
+        git("commit", "-q", "-m", f"matched {fn} {n}")
         print(f"  matched {fn}")
 
     print(f"landed {len(funcs)} function(s) from {args.overlay}")
