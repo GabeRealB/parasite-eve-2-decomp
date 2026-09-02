@@ -82,6 +82,26 @@ print("\n".join(sorted(f for f, c in d["claims"].items()
 CLAIMED_N=$(grep -c . <<<"$CLAIMED" || echo 0)
 log "$CLAIMED_N function(s) claimed"
 
+# Bind the lease to *this* process. overlay_batch.sh claims as a preparer that
+# exits immediately, so the lease is guarded only by its expiry - and a sweep
+# outlives it: mist_parking ran 8.5 hours against a 240-minute lease, was swept
+# mid-run, and its 58 functions became claimable by anything else while it was
+# still matching them. This driver lives exactly as long as the work does, so
+# adopting makes the lease do the same.
+orch adopt-overlay --session "$SESSION" --pid $$ >>"$LOG_FILE" 2>&1 \
+    || log "could not adopt the lease; it will expire on the clock instead"
+
+# And refresh it while the sweep runs, so a run longer than --lease-minutes is
+# not swept out from under itself.
+(
+  while kill -0 $$ 2>/dev/null; do
+    sleep 1800
+    orch adopt-overlay --session "$SESSION" --pid $$ >/dev/null 2>&1 || true
+  done
+) &
+LEASE_REFRESHER=$!
+trap 'kill $LEASE_REFRESHER 2>/dev/null || true; release_all' EXIT
+
 # --- match, one function at a time -------------------------------------------
 # vacuum.sh picks the easiest remaining function in the overlay each iteration
 # (tools/score_functions.py), so the ordering by difficulty is already its job.
