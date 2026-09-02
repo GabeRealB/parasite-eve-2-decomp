@@ -35,8 +35,7 @@ typedef struct _GpItemObj2 {
 /// `field_4` is a name/string pointer walked by `Gp_GetItemText` /
 /// `Gp_InitItemSeenBits` (fields separated by NUL or `'\n'`).
 typedef struct _GpItemDesc {
-    /* 0x00 */ u8    field_0;
-    /* 0x01 */ u8    field_1;
+    /* 0x00 */ u16   price;
     /* 0x02 */ u8    field_2;
     /* 0x03 */ u8    field_3;
     /* 0x04 */ void* field_4;

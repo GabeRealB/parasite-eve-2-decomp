@@ -50,6 +50,16 @@ typedef struct RoomTextBlock {
 } RoomTextBlock;
 STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
 
+/// View of the task that owns a shop / vending-machine panel, used by the row
+/// handlers in the parking and shelter rooms. `Task` declares offset 0x34 as a
+/// single `s32 spawnArg1`, but the shop tasks keep a mode in its upper halfword
+/// and read that halfword on its own, so the handlers reach the mode through
+/// this view of the same task rather than through `Task`.
+typedef struct RoomShopTask {
+    /* 0x00 */ byte pad_0[0x36];
+    /* 0x36 */ s16  mode;
+} RoomShopTask;
+
 // =============================================================================
 // Functions — shared room library (src/rooms/lib)
 // =============================================================================
