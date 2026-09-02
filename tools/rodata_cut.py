@@ -146,11 +146,8 @@ def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
             continue
         if owner == current:
             continue
-        if off <= head:
-            # The leading rodata always belongs to the overlay's first unit
-            # (gen_overlay_configs emits it as `<name>/<name>`), so "the very
-            # first table belongs to a later unit" is not expressible as a cut.
-            notes.append(f"{sym} would need the block start itself, needs manual work")
+        if off < head:
+            notes.append(f"{sym} sits below the leading rodata, needs manual work")
             continue
         cuts.append((off, owner))
         current = owner
@@ -165,6 +162,19 @@ def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
         if off not in placed:
             cuts.append((off, unit))
     cuts.sort()
+
+    # A kept cut that names the unit already in effect there is a no-op boundary,
+    # and keeping it splits that unit's .rodata into two subsegments - which is
+    # exactly the "unit owns two separate blocks" the linker script cannot
+    # express. shelter_b1_sterilization_room had one at 0x11C naming _5 inside
+    # the block the walk had just given to _5.
+    deduped, current = [], first_unit
+    for off, unit in cuts:
+        if unit == current:
+            continue
+        deduped.append((off, unit))
+        current = unit
+    cuts = deduped
 
     units = [u for _, u in cuts]
     if len(units) != len(set(units)):

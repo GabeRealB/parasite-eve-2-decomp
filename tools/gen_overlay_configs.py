@@ -189,23 +189,35 @@ def subsegments(
                     f"rodata (0x0..0x{start:X})"
                 )
             lines.append(f"      - [0x0, rodata, {name}_hdr]")
-        lines.append(f"      - [0x{head:X}, .rodata, {name}/{name}]")
         shared_units = {s["unit"] for s in shared}
-        for cut in sorted(rodata, key=lambda r: int(str(r["start"]), 16)):
+
+        def unit_path(unit: str) -> str:
+            if unit.startswith("lib/"):
+                return unit
+            if unit in shared_units:
+                return f"lib/{unit}"
+            return f"{name}/{unit}"
+
+        # The leading block belongs to the overlay's first unit by default, but
+        # a jump table at the very start belongs to whichever unit holds the
+        # function that uses it, and that need not be the first: both of
+        # actor_800200's tables are actor_800200_2's. A cut at exactly `head`
+        # renames this block instead of adding a second subsegment at the same
+        # offset. Nothing already in the manifest can carry one, because until
+        # now a cut had to be strictly greater than head.
+        ordered = sorted(rodata, key=lambda r: int(str(r["start"]), 16))
+        lead = f"{name}/{name}"
+        if ordered and int(str(ordered[0]["start"]), 16) == head:
+            lead = unit_path(str(ordered.pop(0)["unit"]))
+        lines.append(f"      - [0x{head:X}, .rodata, {lead}]")
+        for cut in ordered:
             cut_start = int(str(cut["start"]), 16)
             if not head < cut_start < start:
                 raise SystemExit(
                     f"{name}: rodata cut {cut['unit']} at 0x{cut_start:X} is "
                     f"outside the leading rodata (0x{head:X}..0x{start:X})"
                 )
-            unit = str(cut["unit"])
-            if unit.startswith("lib/"):
-                path = unit
-            elif unit in shared_units:
-                path = f"lib/{unit}"
-            else:
-                path = f"{name}/{unit}"
-            lines.append(f"      - [0x{cut_start:X}, .rodata, {path}]")
+            lines.append(f"      - [0x{cut_start:X}, .rodata, {unit_path(str(cut['unit']))}]")
     elif rodata or rodata_head:
         raise SystemExit(f"{name}: rodata cuts but the package has no leading rodata")
 
