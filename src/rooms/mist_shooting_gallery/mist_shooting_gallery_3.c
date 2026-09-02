@@ -188,7 +188,55 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 /// it is raised the state machine jumps to the 8 -> 9 shutdown, which releases
 /// the `Gp_StateF0` reference and kills the task.
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80183E78);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801842D0);
+void func_mist_shooting_gallery_801842D0(Task* arg0)
+{
+    MistShootingGalleryWork* work;
+    GameActor*               actor;
+
+    work  = (MistShootingGalleryWork*)arg0->idMap;
+    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+
+    switch (work->field_04) {
+        case 0:
+            if (work->field_0E != 0) {
+                return;
+            }
+            work->field_0A = 0x1E;
+            work->field_04++;
+            Display_AcquireRef();
+        case 1:
+            if ((s16)work->field_0A-- > 0) {
+                return;
+            }
+            work->field_0A = 0x5A;
+            work->field_04++;
+            Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 1, 0, 0);
+            SndEvt_EnqueueType6(0x5114000F, 0, 0);
+            return;
+        case 2:
+            if ((s16)--work->field_0A > 0) {
+                return;
+            }
+            work->field_04++;
+            actor->field_97B                  = 0;
+            actor->field_983                  = 7;
+            ((GpObj*)actor->field_AC)->flags |= 0x2000;
+            ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+            func_8014A908();
+            return;
+        case 3:
+            if (Game_Session->field_126 == 0) {
+                work->field_04++;
+            }
+            return;
+        case 4:
+            if (Game_Session->field_126 == 1) {
+                Display_ReleaseRef();
+                Task_Kill(arg0);
+            }
+            return;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184470);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_8018458C);
 void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
