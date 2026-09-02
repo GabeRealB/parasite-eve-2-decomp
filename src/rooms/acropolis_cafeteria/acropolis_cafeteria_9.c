@@ -83,7 +83,13 @@ extern TaskFuncTable4 D_acropolis_cafeteria_8017D69C;
 
 /// Per-frame entry point: runs the task's current state. The table is a local,
 /// so GCC copies it from `.rodata` onto the stack every frame.
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181E70);
+void func_acropolis_cafeteria_80181E70(Task* task)
+{
+    TaskFuncTable4 states;
+
+    states = D_acropolis_cafeteria_8017D69C;
+    states.funcs[task->state](task);
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80181ED4);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182078);
 
