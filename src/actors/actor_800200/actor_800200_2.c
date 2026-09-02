@@ -164,7 +164,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801658E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_8016599C);
+void func_actor_800200_8016599C(arg0)
+    GpActorWork* arg0;
+{
+    arg0->actor->field_910->field_D0 = 1;
+    func_actor_800200_801654EC(arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801659CC);
 
