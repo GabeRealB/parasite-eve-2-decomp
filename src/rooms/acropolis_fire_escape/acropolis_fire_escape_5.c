@@ -109,7 +109,16 @@ s32 func_acropolis_fire_escape_8017FE48(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FE50);
+void func_acropolis_fire_escape_8017FE50(Task* task)
+{
+    task->field_24 = D_acropolis_fire_escape_80181D3C;
+    Game_SetPtrSlot(task, 7);
+    Task_SpawnFromTable(&D_acropolis_fire_escape_80181D64, 0, 0, 0);
+    if (D_8007272D == 5) {
+        Game_Session->field_69 = 8;
+    }
+    task->state = task->state + 1;
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FECC);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FF24);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_5", func_acropolis_fire_escape_8017FF7C);
