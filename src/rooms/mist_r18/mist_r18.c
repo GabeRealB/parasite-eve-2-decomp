@@ -7,7 +7,7 @@
 #include "main/session.h"
 
 s32  func_8017A038(void);
-void func_mist_r18_8017DBB8(s32 shade, s16 arg1);
+void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
 
 extern u8 D_80071075;
 extern s8 D_80114C12;
@@ -95,7 +95,57 @@ void func_mist_r18_8017DA8C(Task* task)
     func_mist_r18_8017DBB8(shade, task->killCountdown);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017DBB8);
+/// Draw the room's two backdrop tint sprites (upper-left and lower-right
+/// halves of the mist overlay) plus the trailing tpage packet. `shade` picks
+/// the sprite code - shade-texture (0x65) while the fade is ramping in,
+/// semi-transparent (0x66) otherwise - and `arg1` is the grey level written
+/// into all three colour channels.
+void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
+{
+    SPRT*     sprt;
+    DR_TPAGE* tp;
+    s16       x;
+    s16       y;
+
+    x              = -0x96;
+    y              = -0x5A;
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    setSprt(sprt);
+    if (shade == 0) {
+        sprt->code = 0x65;
+    } else {
+        sprt->code = 0x66;
+    }
+    setXY0(sprt, x, y);
+    sprt->clut = 0x43C0;
+    setWH(sprt, 0xCF, 0x23);
+    setRGB0(sprt, arg1, arg1, arg1);
+    setUV0(sprt, 0, 0);
+    addPrim(Gpu_CurrentOt + 4, sprt);
+
+    x              = -0x22;
+    y              = 0x36;
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    setSprt(sprt);
+    if (shade == 0) {
+        sprt->code = 0x65;
+    } else {
+        sprt->code = 0x66;
+    }
+    setXY0(sprt, x, y);
+    setRGB0(sprt, arg1, arg1, arg1);
+    setUV0(sprt, 0, 0x24);
+    sprt->clut = 0x43C1;
+    setWH(sprt, 0xB7, 0x23);
+    addPrim(Gpu_CurrentOt + 4, sprt);
+
+    tp             = Gpu_PrimCursor;
+    Gpu_PrimCursor = tp + 1;
+    setDrawTPage(tp, 1, 0, 0x2B);
+    addPrim(Gpu_CurrentOt + 4, tp);
+}
 
 /// Blit the room's backdrop out of the off-screen VRAM staging area into the
 /// two framebuffer halves, bracketing both `MoveImage`s with STP writes so the

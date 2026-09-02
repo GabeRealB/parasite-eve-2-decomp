@@ -37974,3 +37974,42 @@ Splat invoked directly (rather than through `ninja_config.py`) writes
 `INCLUDE_ASM("asm/USA/<family>/nonmatchings/…")`; the tree's convention is
 `INCLUDE_ASM("<family>/nonmatchings/…")`, so strip the prefix after a manual
 re-split.
+
+## Which pseudo wins a hard register is `floor_log2(refs) * refs / live_length`
+
+When the only leftover is `regs` and the object dump is the *same* code with two
+or three hard registers permuted, stop guessing and read the allocator's own
+ranking. `./dump.sh` writes it: the `.greg` dump opens with
+
+```
+;; 5 regs to allocate: 83 81 86 85 80
+```
+
+which is GCC 2.8.1's `allocno_compare` order, and the `.lreg` dump gives the two
+inputs per pseudo (`Register 81 used 7 times across 67 insns`). The priority is
+`floor_log2(n_refs) * n_refs / live_length`, and allocation walks that list
+handing each allocno the lowest-numbered free register outside its conflict set.
+So the target's register assignment tells you the order the original source
+produced, and the order tells you which pseudo needs more references or a longer
+live range — a much narrower question than "why is `$a3` wrong".
+
+In `func_mist_r18_8017DBB8` the colour parameter (7 refs) outranked the two
+reassigned coordinate locals (4 refs each) and took `$a3`, where the target
+wanted it last in `$t4`. Widening the parameter from `s16` to `s32` was the fix:
+the wider pseudo's live length went 67 → 154 insns, which dropped its priority
+below both coordinates and handed `$a3`/`$t1` to them in the target's order.
+Sibling penalties (`reorder`) then resolved by themselves, because the schedule
+was only chasing the register reuse.
+
+## Constants held in a register across a branch mean one local, reassigned
+
+`li` of a constant several instructions *before* the branch, with the matching
+store after the join, is not a scheduling accident — GCC cannot constant-fold
+across a basic block with two predecessors, so the value is a local whose
+assignment sits ahead of the `if`. Writing the constant inline at the store
+instead gives `li`+`sh` adjacent and costs a few percent.
+
+The reassignment is the load-bearing part. Splitting the pair into one local per
+use site (`x1`, `x2`) puts each def in the same extended basic block as its
+single use, the constants fold back into the stores, and the score drops to
+where it was. One local written twice keeps both values in registers.
