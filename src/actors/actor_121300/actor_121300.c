@@ -2,11 +2,9 @@
 
 #include "main/task.h"
 
-extern Task* D_actor_121300_8013D418;
-
 extern s16 D_800691CA;
 
-extern TaskDesc D_actor_121300_8013D390;
+extern TaskDesc ActorsShared80136280Desc;
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80131EB0);
 
@@ -47,7 +45,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
 {
-    Task_SpawnFromTable(&D_actor_121300_8013D390, 0xA, arg2, arg0);
+    Task_SpawnFromTable(&ActorsShared80136280Desc, 0xA, arg2, arg0);
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134250);
@@ -61,15 +59,5 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 void func_actor_121300_801342D4(s32 arg0)
 {
-    Task_SpawnFromTable(&D_actor_121300_8013D390, 1, arg0, 0);
-}
-
-void func_actor_121300_80134304(s32 arg0)
-{
-    Task_SpawnFromTable(&D_actor_121300_8013D390, 2, arg0, 0);
-}
-
-void func_actor_121300_80134334(s32 arg0)
-{
-    Gp_DispatchMsg(D_actor_121300_8013D418, 0x7D5, arg0, 0);
+    Task_SpawnFromTable(&ActorsShared80136280Desc, 1, arg0, 0);
 }
