@@ -152,7 +152,31 @@ void func_mist_shooting_gallery_8017FBD8(void)
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FC2C);
+void func_mist_shooting_gallery_8017FC2C(Task* arg0)
+{
+    s32 var_a0;
+
+    arg0->field_24 = D_mist_shooting_gallery_801850E8;
+    Game_SetPtrSlot(arg0, 7);
+    func_8014C5E0(0x340, 0, 2);
+    if (GameFlag_GetNibble(0xED) != 0) {
+        Gp_MsgSlot4Chain(1, 0);
+        var_a0 = 1;
+    } else {
+        var_a0 = 0;
+    }
+    func_mist_shooting_gallery_801801E4(var_a0);
+    if (D_8007218B == 7) {
+        Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 0, 0, 0);
+    } else if (Game_Session->field_8 == 7) {
+        Task_SpawnFromTable(&D_8014E13C, 0, 0, 0);
+    }
+    if ((Game_Session->field_8 == 6) && (GameFlag_GetNibble(0xED) != 0)) {
+        Gp_RunCapCmd1(0x16);
+    }
+    Game_Session->field_69 = 2;
+    arg0->state            = arg0->state + 1;
+}
 void func_mist_shooting_gallery_8017FD40(void)
 {
     u8 temp_v1;
