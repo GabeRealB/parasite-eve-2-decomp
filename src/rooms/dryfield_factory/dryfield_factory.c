@@ -13,11 +13,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory", func_dryfiel
 INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory", func_dryfield_factory_8017DD00);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory", D_dryfield_factory_8017D5DC);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory", jtbl_dryfield_factory_8017D5EC);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory", D_dryfield_factory_8017D61C);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory", D_dryfield_factory_8017D628);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory", D_dryfield_factory_8017D634);

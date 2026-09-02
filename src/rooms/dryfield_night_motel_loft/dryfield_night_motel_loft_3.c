@@ -34,3 +34,5 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_l
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_3", func_dryfield_night_motel_loft_8017D9BC);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_3", func_dryfield_night_motel_loft_8017DB64);
+
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_3", D_dryfield_night_motel_loft_8017D5F8);

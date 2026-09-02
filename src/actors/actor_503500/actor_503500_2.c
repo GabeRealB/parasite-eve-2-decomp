@@ -114,3 +114,5 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132778);
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132990);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131E44);

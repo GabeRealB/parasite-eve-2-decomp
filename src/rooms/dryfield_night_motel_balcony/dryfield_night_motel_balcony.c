@@ -32,9 +32,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_mote
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", func_dryfield_night_motel_balcony_8017DD78);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", func_dryfield_night_motel_balcony_8017DDD0);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", jtbl_dryfield_night_motel_balcony_8017D60C);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", jtbl_dryfield_night_motel_balcony_8017D630);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", jtbl_dryfield_night_motel_balcony_8017D668);

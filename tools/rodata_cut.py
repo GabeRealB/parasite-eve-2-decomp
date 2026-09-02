@@ -78,11 +78,29 @@ def referencing_unit(sym: str, overlay: str) -> str | None:
     return units.pop() if len(units) == 1 else None
 
 
+def rodata_head(overlay: str) -> int:
+    """The file offset the leading rodata starts at (manifest `rodata_head`).
+
+    Manifest cut offsets are file offsets into the package, not offsets from the
+    first rodata symbol, and gen_overlay_configs requires head < cut < text
+    start. Nine overlays carry a non-zero head; mine_cavern's is 0, which is why
+    treating the first symbol as offset 0 worked there and produced a cut at
+    0x0 - rejected as "outside the leading rodata (0x1F4..0x268)" - elsewhere.
+    """
+    text = (ROOT / "configs/USA/overlays.toml").read_text()
+    m = re.search(rf"^{re.escape(overlay)} = \{{.*$", text, re.M)
+    if not m:
+        return 0
+    h = re.search(r'rodata_head = "(0x[0-9A-Fa-f]+)"', m.group(0))
+    return int(h.group(1), 16) if h else 0
+
+
 def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
     syms = rodata_symbols(overlay)
     if not syms:
         return [], ["no rodata in this overlay"]
     base = syms[0][0]
+    head = rodata_head(overlay)
     first_unit = min(unit_dirs(overlay), key=lambda p: p.name).name
     cuts, notes, current = [], [], first_unit
     for addr, sym, _ in syms:
@@ -93,7 +111,14 @@ def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
             notes.append(f"{sym}: no single referencing function, left alone")
             continue
         if owner != current:
-            cuts.append((addr - base, owner))
+            off = head + (addr - base)
+            if off <= head:
+                # The leading rodata always belongs to the overlay's first unit
+                # (gen_overlay_configs emits it as `<name>/<name>`), so "the very
+                # first table belongs to a later unit" is not expressible as a cut.
+                notes.append(f"{sym} would need the block start itself, needs manual work")
+                continue
+            cuts.append((off, owner))
             current = owner
     seen = [u for _, u in cuts]
     if len(seen) != len(set(seen)):

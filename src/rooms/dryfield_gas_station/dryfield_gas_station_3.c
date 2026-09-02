@@ -7,5 +7,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", fu
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017F2E8);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017F3B0);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D6A4);

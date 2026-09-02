@@ -7,5 +7,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yar
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", D_dryfield_night_junk_yard_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", D_dryfield_night_junk_yard_8017D5C4);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", jtbl_dryfield_night_junk_yard_8017D5D0);

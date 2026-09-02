@@ -11,5 +11,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parkin
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DAB4);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parking_lot", D_dryfield_night_parking_lot_8017D5DC);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parking_lot", jtbl_dryfield_night_parking_lot_8017D5E8);
