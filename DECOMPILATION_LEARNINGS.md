@@ -39230,3 +39230,40 @@ the `lhu` result keeps `$v0` as in the target. No extra instructions come
 out of the truncation because the consumers are `sh`. `s16 t` matches too.
 Ui_AllocTile / Ui_DrawListHighlight in the same TU already use `u16 x, y,
 t` for the same reason - copy the sibling's local types, not m2c's `s32`.
+## The odd constant in a run of byte stores goes first in the source
+
+A run of stores of the same immediate to adjacent struct bytes, with one store
+of a *different* immediate mixed in, is a two-register problem: whether the two
+constants share a hard register depends on where the odd one's `li` is
+scheduled, and the scheduler decides that from source order even though it
+freely reorders the stores themselves (distinct constant offsets off one base
+never alias).
+
+Symptom, matching a save-flag setter: everything is right except that the
+target holds the repeated `1` in `$v1` and materialises the odd `5` *early*,
+while ours holds the `1` in `$v0` and emits `li v0,5` after the last `1` store,
+so the two constants share `$v0`. Score 93%, `regs=7 reorder=1`, no control-flow
+penalty — the kind of leftover that looks like a coloring problem and is not.
+
+```c
+/* ours: li v0,5 sinks below the three sb's, so 1 and 5 share $v0 */
+D_80073BAE          = 1;
+Mc_SaveData.field_7 = 1;
+Mc_SaveData.field_8 = 1;
+Mc_SaveData.field_5 = 1;
+Mc_SaveData.field_6 = 5;
+
+/* target: li v0,5 is hoisted, 1 lives in $v1 across all four stores,
+   and the sb of field_6 still sinks to its original place */
+D_80073BAE          = 1;
+Mc_SaveData.field_6 = 5;
+Mc_SaveData.field_7 = 1;
+Mc_SaveData.field_8 = 1;
+Mc_SaveData.field_5 = 1;
+```
+
+Writing the odd store early gives its constant a birth before the repeated
+constant's live range ends, so the two no longer overlap the same free register,
+and `sched1` sinks the store back into the emitted order by itself. Do not read
+the emitted store order as the source order here, and do not reach for pins:
+`func_mist_parking_8018451C` went from 93% to 100% on that one line move.
