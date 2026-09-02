@@ -37175,3 +37175,23 @@ Gp_LinkObj(3, &work->field_47C);
 
 `Actor02000_Fn0251C` links four objects this way; sharing one local across all
 four cost 20 register penalties.
+
+## `<psyq/libgs.h>` needs `<psyq/libgte.h>` ahead of it in a scratch env
+
+`libgs.h` uses `MATRIX` / `VECTOR` / `SVECTOR` but does not include
+`libgte.h` itself, so on its own it produces a wall of
+`parse error before 'SVECTOR'` / `parse error before 'GsCOORDINATE2'` from the
+type declarations onwards. Real TUs never notice: their overlay header
+(`actors/actor_141000.h` and friends) already pulls in `<psyq/libgte.h>`, so
+the clang-format-sorted `libgpu.h` / `libgs.h` / `libgte.h` block works. A
+scratch `base_N.c` that only has `common.h` must include `libgte.h` first:
+
+```c
+#include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+```
+
+Once the function is ported into the host `.c`, the sorted order is fine again.
