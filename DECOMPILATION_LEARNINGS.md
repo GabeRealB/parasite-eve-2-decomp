@@ -39304,3 +39304,54 @@ Before pinning or permuting an argument-register shift, disassemble the callee
 and check which of `$a0`–`$a3` it actually reads. Here `Room_Util18` reads
 `$a0` (the task) and `$a2` (the placement) and ignores `$a1` / `$a3`, which
 confirms the arity is four even though only three arguments are set up.
+
+## `goto` a shared label to keep a two-sided bound from folding to `sltiu`
+
+`if (arg0 < 2 && arg0 >= 0)` is a `0 <= x < 2` range, and GCC 2.8.1 folds it
+into a single unsigned compare, collapsing two branches into one:
+
+```
+sltiu v0, v1, 2      /* ours */
+beqz  v0, kill
+```
+
+The target keeps both tests, each branching to the same block:
+
+```
+slti  v0, a0, 2      /* target */
+beqz  v0, kill
+bltz  a0, kill
+ nop
+j     end
+ sw   a0, 0x34(v1)
+```
+
+Nesting the conditions (`if (x < 2) { if (x >= 0) ... }`) does not help - the
+folding happens after the ifs are lowered. Write each test as its own branch to
+an explicit label instead, which also gives the epilogue block its own reload of
+the global (`lui $s0` in the first branch's delay slot, `lw` at the label)
+rather than keeping the first load live across both paths:
+
+```c
+Task* t = D_mist_parking_8019532C;
+
+if (t == NULL) {
+    return;
+}
+if (arg0 >= 2) {
+    goto kill;
+}
+if (arg0 < 0) {
+    goto kill;
+}
+t->spawnArg1 = arg0;
+return;
+kill:
+    Task_Kill(D_mist_parking_8019532C);
+    D_mist_parking_8019532C = NULL;
+```
+
+`func_mist_parking_801845D0` matched on the first attempt with this shape after
+the `&&` form scored 52%. Six other room/actor overlays carry the same body, but
+each references its own overlay's task pointer, so it cannot be promoted to a
+shared unit.
