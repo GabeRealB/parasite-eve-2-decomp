@@ -516,7 +516,18 @@ commit_match_if_needed() {
   local attempts
   attempts=$(count_attempts "$scratch")
 
-  if git log -1 --pretty=%s 2>/dev/null | grep -qE "^matched ${func}( |$)"; then
+  # Look across every commit this iteration made, not just HEAD. Agents are
+  # asked to record findings in DECOMPILATION_LEARNINGS.md, so a match is
+  # routinely followed by a `learnings: ...` commit - and with only `git log -1`
+  # the match underneath went unseen. The function was then treated as
+  # unmatched, nothing was left to stage, and it was filed as a give-up at
+  # 100.000%: func_acropolis_patio_8017DBAC landed and was marked difficult in
+  # the same run.
+  local range="HEAD"
+  if [[ -n "${ITER_BASE_SHA:-}" ]]; then
+    range="${ITER_BASE_SHA}..HEAD"
+  fi
+  if git log $range --pretty=%s 2>/dev/null | grep -qE "^matched ${func}( |$)"; then
     echo "Agent already committed a match for $func" | tee -a "$LOG_FILE"
     return 2
   fi
@@ -589,6 +600,14 @@ record_difficult_if_needed() {
   local attempts score
   attempts=$(count_attempts "$scratch")
   score=$(best_score "$func" "$scratch")
+  # A perfect score is not a give-up. If we get here at 100.000 the match was
+  # real and something upstream failed to notice it, so parking the function
+  # would be wrong twice over - it hides a working match and blocks a re-pick.
+  if [[ "$score" == "100.000" ]]; then
+    echo "Not recording a give-up for $func: best score is 100.000" \
+      | tee -a "$LOG_FILE"
+    return 0
+  fi
   if [[ -s "$DIFFICULT_FUNCTIONS" ]] && [[ -n "$(tail -c 1 "$DIFFICULT_FUNCTIONS")" ]]; then
     echo "" >>"$DIFFICULT_FUNCTIONS"
   fi
@@ -1167,6 +1186,7 @@ vacuum_orch_loop() {
         continue
       fi
 
+      ITER_BASE_SHA=$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo "")
       output=$(AGENT_FUNC="$func" run_agent "$(build_orch_match_prompt "$func" "$scratch" "$scratch/BRIEF.md" "$wt")" "$wt" 2>&1 | tee -a "$LOG_FILE")
       exit_code=${PIPESTATUS[0]}
       echo "$output"
@@ -1448,6 +1468,7 @@ while true; do
     continue
   fi
 
+  ITER_BASE_SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
   output=$(AGENT_FUNC="$simplest_func" run_agent "$prompt" 2>&1 | tee -a "$LOG_FILE")
   exit_code=${PIPESTATUS[0]}
   echo "$output"
