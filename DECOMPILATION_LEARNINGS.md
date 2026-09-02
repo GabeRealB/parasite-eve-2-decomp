@@ -37806,3 +37806,34 @@ declared aggregate whether or not it survives optimisation, so
 `-0x8` is 0x18 = 24 bytes of local the source declares and never reads.
 Adding one moved that function from 96.7% to 96.8% with the whole prologue and
 epilogue matching.
+
+## Chaining across two *different* destinations fixes the `lui` order too
+
+The `r = g = b` trick is usually described as a store-order fix, but it also
+decides which address `high` is emitted — and therefore coloured — first. In
+`func_acropolis_patio_8017DF48` the target is
+
+```
+lui a1, %hi(Game_Session)
+lui v1, %hi(D_8007216D)
+lw  a0, %lo(Game_Session)(a1)
+li  v0, 2
+sb  v0, %lo(D_8007216D)(v1)
+sb  v0, 5(a0)
+```
+
+Writing the two stores as separate statements *in the target's order*
+(`D_8007216D = 2; Game_Session->field_5 = 2;`) scores 96% with
+`regs=8`, `reorder=0`: every instruction is right and only the four address
+registers are rotated, because RTL generation creates `%hi(D_8007216D)` first
+and it wins the earlier allocno. The other statement order is worse (74%) — the
+scheduler will not swap the two `sb`s. The chained form gets both:
+
+```c
+Game_Session->field_5 = D_8007216D = 2;
+```
+
+The right-hand assignment stores first, but the left-hand lvalue's address is
+expanded first, so `%hi(Game_Session)` is the earlier pseudo. When a 96%
+`regs`-only leftover is a pure rotation of address registers between two
+symbols assigned the same value, try chaining before touching the dumps.
