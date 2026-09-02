@@ -144,6 +144,39 @@ release_all() {
     orch relinquish-overlay --session "$SESSION" >/dev/null 2>&1 || true
 }
 
+# Prefer replaying the worktree's own commits. They are already one
+# `matched <fn> <attempts>` per function, so the attempt counts survive - and a
+# promotion, which moves bodies into src/<family>/lib and re-partitions the
+# overlay's units, leaves trunk and the worktree with no per-function
+# correspondence at all. mist_r18 promoted a shared body into
+# rooms_shared_8017df80 and land_overlay.py refused all 13 functions with "no
+# INCLUDE_ASM slot on trunk"; cherry-picking the same 13 commits applied
+# cleanly and kept a 15-attempt and a 9-attempt count that the rewrite path
+# would have recorded as 1.
+#
+# It is only safe when trunk has not moved underneath: the base must still be an
+# ancestor, and no path the branch touched may have changed on trunk since. Fall
+# back to the file rewrite otherwise, which is what handles a drifted trunk.
+BRANCH_NAME=$(git -C "$WT" rev-parse --abbrev-ref HEAD)
+CAN_REPLAY=false
+if git merge-base --is-ancestor "$BASE" HEAD 2>/dev/null; then
+    touched=$(git -C "$WT" diff --name-only "$BASE"..HEAD)
+    if [[ -z "$(git diff --name-only "$BASE"..HEAD -- $touched 2>/dev/null)" ]]; then
+        CAN_REPLAY=true
+    fi
+fi
+
+if [[ "$CAN_REPLAY" == true ]]; then
+    log "replaying $(git rev-list --count "$BASE".."$BRANCH_NAME") commit(s) from $BRANCH_NAME"
+    if git cherry-pick "$BASE".."$BRANCH_NAME" >>"$LOG_FILE" 2>&1; then
+        log "replayed cleanly"
+    else
+        git cherry-pick --abort >/dev/null 2>&1 || true
+        log "replay failed; falling back to the file rewrite"
+        CAN_REPLAY=false
+    fi
+fi
+
 funcs_file=$(mktemp)
 printf '%s\n' "${MATCHED[@]}" >"$funcs_file"
 land_args=("$WT" "$OVERLAY" --functions-file "$funcs_file")
@@ -151,7 +184,8 @@ if [[ ${#EXTRAS[@]} -gt 0 ]]; then
     land_args+=(--extra "$(IFS=,; echo "${EXTRAS[*]}")")
 fi
 
-if ! python3 "$ROOT/tools/land_overlay.py" "${land_args[@]}" >>"$LOG_FILE" 2>&1; then
+if [[ "$CAN_REPLAY" != true ]] \
+   && ! python3 "$ROOT/tools/land_overlay.py" "${land_args[@]}" >>"$LOG_FILE" 2>&1; then
     log "landing failed; trunk left alone, worktree kept at $WT"
     rm -f "$funcs_file"; exit 1
 fi
