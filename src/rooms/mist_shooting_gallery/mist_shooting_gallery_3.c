@@ -238,7 +238,45 @@ void func_mist_shooting_gallery_801842D0(Task* arg0)
     }
 }
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184470);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_8018458C);
+void func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
+{
+    s32 digit0;
+    s32 digit1;
+    s32 digit2;
+    s32 digit3;
+    s32 frames;
+
+    frames = work->field_02;
+    if (work->field_0C < -0x78) {
+        work->field_0C += 0xA;
+    }
+
+    digit0 = frames / 18000;
+    if (digit0 != 0) {
+        frames %= 18000;
+    }
+    func_mist_shooting_gallery_801846F4(work->field_0C, 0x46, digit0);
+
+    digit1 = frames / 1800;
+    if (digit1 != 0) {
+        frames %= 1800;
+    }
+    func_mist_shooting_gallery_801846F4(work->field_0C + 0xC, 0x46, digit1);
+
+    digit2 = frames / 300;
+    if (digit2 != 0) {
+        frames %= 300;
+    }
+    func_mist_shooting_gallery_801846F4(work->field_0C + 0x24, 0x46, digit2);
+
+    digit3 = frames / 30;
+    if (digit3 != 0) {
+        frames %= 30;
+    }
+    func_mist_shooting_gallery_801846F4(work->field_0C + 0x30, 0x46, digit3);
+
+    func_mist_shooting_gallery_801846F4(work->field_0C + 0x18, 0x46, 0xA);
+}
 void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
 {
     SPRT*     p;
