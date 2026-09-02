@@ -39686,3 +39686,45 @@ if (mem != NULL) {
 
 `func_mist_parking_8017E90C`; the same shape should apply to any
 `Mem_Calloc` whose pointer is live across the calls that follow.
+
+## A loop entry test that reads a *copy* of the count: dead store plus a double soft use
+
+Target shape, for `count = 0; if (stackable) count = f(); else for (i = 0; i < n; i++) ...`:
+
+```
+beqz  v0,else
+ move s4,s3            # a copy of count, made only for the entry test
+...
+slt   v0,s4,a1         # entry test reads the copy
+beqz  v0,done
+ move a0,zero          # the loop counter itself
+```
+
+Plain C compares `count` directly (`slt v0,s3,a1`): jump1 duplicates the loop's
+exit test at the entry, cse1 canonicalises its `i` to the class head of the
+zero equivalence class, and `count` is the head because it lives longest (see
+"A dead store keeps `x`..."). Three separate things are needed to get the copy:
+
+1. **A guard local with a dead store after the last use of `count`** (`guard =
+   0;` at the end of the block) makes `guard` the canonical zero, so the entry
+   test is rewritten onto `guard` instead of `count`. `guard = 0` itself stays a
+   constant load through cse and becomes `move s4,s3` only in `reload_cse_regs`
+   (a hard register already holding 0 in the same block, no label between), so
+   `count` keeps 7 weighted refs and colours after `obj`.
+2. **A soft use before the loop keeps local-alloc from moving the init.** With
+   `REG_N_REFS == 2` and a constant init, `update_equiv_regs` moves the init
+   next to its single use - into the else block, past the label, where the
+   `move` from `count` can no longer be formed and the copy collapses onto the
+   loop counter. `SOFT_USE_REG(guard)` in the else block (before the `for`)
+   makes it three refs; nothing is emitted.
+3. **A fourth reference fixes the colouring order.** Global alloc ranks pseudos
+   by `floor_log2(refs) * refs / live_length`. `guard` at 3 refs over ~30 insns
+   loses `$s4` to `item` (6/80); `SOFT_USE_REG2(guard, guard)` gives 4 refs,
+   `floor_log2` steps from 1 to 2, and it colours first.
+
+Also in the same function: `count = 0` *inside* the block shortens its live
+range enough to flip `obj`/`count` between `$s2`/`$s3` once a copy insn adds an
+eighth ref - so a copy formed by an asm operand (`SOFT_TOUCH_REG(i)` after
+`i = 0`, which cse rewrites to read `count`) cannot reach 100% here, while the
+`reload_cse` copy can. `func_mist_parking_8017F764`; six other rooms carry the
+same body.
