@@ -18,9 +18,13 @@
 
 extern UiObject*    D_80067634;
 extern GpItemScan   D_80072724;
+extern u8           D_80071072;
 extern u8           D_mist_parking_8017D6D8[];
 extern u8           D_mist_parking_80186450[];
 extern u8           D_mist_parking_80186464[];
+extern u8           D_mist_parking_801864E0[];
+extern u8           D_mist_parking_801864F4[];
+extern u8           D_mist_parking_80186504[];
 extern UiList       D_mist_parking_80186540;
 extern UiObjectDesc D_mist_parking_801865C8;
 extern UiList       D_mist_parking_8018656C;
@@ -205,7 +209,46 @@ void func_mist_parking_8017F108(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017F31C);
+void func_mist_parking_8017F31C(Task* task)
+{
+    UiObject* obj;
+    u8*       text;
+    s32       kind;
+
+    kind = task->spawnArg1;
+    obj  = task->spawnArg2;
+    switch (kind) {
+        case 1:
+            text = D_mist_parking_801864F4;
+            break;
+        case 2:
+            text = D_mist_parking_80186504;
+            break;
+        default:
+            text = D_mist_parking_801864E0;
+            break;
+    }
+
+    Ui_DrawText((UiPanel*)obj, "Notice");
+    obj->field_2E = 0;
+    if (task->state == 0) {
+        Ui_SizeFromTextPlain((UiPanel*)obj, text);
+        task->killCountdown = 0xBC;
+        task->state        += 1;
+    }
+    Text_DrawMultiLine(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
+    task->killCountdown -= D_80071072;
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            obj->field_2E = -1;
+            return;
+        }
+        if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+            ((UiObject*)task->parent->spawnArg2)->field_2E = 6;
+            task->killCountdown                            = 0x7FFF;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking", func_mist_parking_8017F49C);
 
