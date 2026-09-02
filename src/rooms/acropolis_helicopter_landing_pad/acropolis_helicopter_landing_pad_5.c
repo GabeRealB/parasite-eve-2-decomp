@@ -1,6 +1,18 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017ED00);
+extern s8       D_8007106B;
+extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68;
+
+void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
+{
+    Display_SpawnWithOt(&D_acropolis_helicopter_landing_pad_80184E68, 1, 0, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017ED50);
 

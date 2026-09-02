@@ -3,18 +3,28 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/task.h"
 
-extern s32     D_80115730;
-extern s32     D_80115734;
-extern s32     D_80115754;
-extern SVECTOR D_shelter_b1_control_room_80181BD4[];
-extern SVECTOR D_shelter_b1_control_room_80181C3C[];
+extern s8       D_8007106B;
+extern s32      D_80115730;
+extern s32      D_80115734;
+extern s32      D_80115754;
+extern TaskDesc D_shelter_b1_control_room_80181BBC;
+extern SVECTOR  D_shelter_b1_control_room_80181BD4[];
+extern SVECTOR  D_shelter_b1_control_room_80181C3C[];
 
 void Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room_3", func_shelter_b1_control_room_8017F100);
+void func_shelter_b1_control_room_8017F100(Task* arg0)
+{
+    Display_SpawnWithOt(&D_shelter_b1_control_room_80181BBC, 1, 0, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    Task_Kill(arg0);
+}
 
 void func_shelter_b1_control_room_8017F150(Task* task)
 {
