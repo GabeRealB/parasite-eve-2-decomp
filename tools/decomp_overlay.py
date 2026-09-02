@@ -192,10 +192,22 @@ def list_nonmatching_dirs(
 ) -> list[Path]:
     overlays = discover_overlays(version)
     if overlay:
-        overlays = resolve_overlays(overlay, version)
-        if not overlays:
+        resolved = resolve_overlays(overlay, version)
+        if not resolved:
+            # A package name, not a family. `discover_overlays` only knows the
+            # families (USA/rooms, USA/actors, ...), but an overlay in this
+            # project *is* an extracted package, and the vacuum wants to be
+            # pointed at one room or one actor - not at all 168 rooms.
+            nested = [
+                item.asm_path / "nonmatchings" / overlay
+                for item in overlays
+                if (item.asm_path / "nonmatchings" / overlay).is_dir()
+            ]
+            if nested:
+                return nested
             known = ", ".join(overlay_key(o) for o in discover_overlays(version)) or "(none)"
             raise ValueError(f"unknown overlay '{overlay}'. Known: {known}")
+        overlays = resolved
     dirs: list[Path] = []
     for item in overlays:
         candidate = item.asm_path / "nonmatchings"
