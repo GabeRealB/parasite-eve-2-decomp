@@ -22,7 +22,9 @@ typedef struct Actor00100Work {
     /* 0x002 */ byte          pad_2[2];
     /* 0x004 */ s16           field_4;
     /* 0x006 */ s16           field_6;
-    /* 0x008 */ byte          pad_8[0x8A0];
+    /* 0x008 */ byte          pad_8[0x890];
+    /* 0x898 */ SVECTOR       field_898;
+    /* 0x8A0 */ byte          pad_8A0[8];
     /* 0x8A8 */ SVECTOR       field_8A8;
     /* 0x8B0 */ SVECTOR       field_8B0;
     /* 0x8B8 */ byte          pad_8B8[0x50];

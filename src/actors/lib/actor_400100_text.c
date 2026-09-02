@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_400100.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -39,11 +40,10 @@ extern GsCOORDINATE2 Gfx_ViewCoord;
 extern s8            D_80114C12;
 extern u8            D_80071075;
 
-void  Gp_UnlinkObj(Actor00100Obj* node);
-void  Gp_SetLightMode(Actor00100Ctx* arg0, s32 arg1);
-void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
-s32   Gp_DispatchMsg(void* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  Gp_DestroyEnemy(void* enemy, Task* task);
+void Gp_UnlinkObj(Actor00100Obj* node);
+void Gp_SetLightMode(Actor00100Ctx* arg0, s32 arg1);
+s32  Gp_DispatchMsg(void* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_DestroyEnemy(void* enemy, Task* task);
 
 void Actor00100_Fn04270(Actor00100* argx)
 {
@@ -345,7 +345,47 @@ void Actor00100_Fn0B3B4(Task* task)
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B3DC);
+void Actor00100_Fn0B3DC(Actor00100* arg0, s16 arg1, s16 arg2)
+{
+    Actor00100Work* work = arg0->field_1C;
+    s32             spawn;
+
+    switch (arg1) {
+        case 0:
+        case 1:
+            spawn              = 1;
+            work->field_898.vz = 0;
+            work->field_898.vx = 0;
+            work->field_898.vy = 0;
+            break;
+        case 9:
+            spawn              = 1;
+            work->field_898.vz = 0;
+            work->field_898.vx = 0;
+            work->field_898.vy = 0x2BC;
+            break;
+        case 7:
+            spawn              = 1;
+            work->field_898.vz = 0;
+            work->field_898.vx = 0;
+            work->field_898.vy = 0x2BC;
+            break;
+        case 14:
+        case 17:
+            spawn              = 1;
+            work->field_898.vz = 0;
+            work->field_898.vx = 0;
+            work->field_898.vy = 0x258;
+            break;
+        default:
+            spawn = 0;
+            break;
+    }
+
+    if (Gp_State1C->field_A == 2 && spawn == 1) {
+        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[arg1], arg2 | 0x80000000, &work->field_898);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B4D8);
 

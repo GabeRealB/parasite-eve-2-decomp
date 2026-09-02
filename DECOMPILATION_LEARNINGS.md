@@ -2858,6 +2858,24 @@ compiler's tables at exactly the offsets the migrated block occupied — the
 `INCLUDE_ASM`/`INCLUDE_RODATA` order in the file already encodes the layout and
 needs no hand-editing.
 
+**A shared-text twin needs the cut in every overlay that carries the body.**
+When the whole `.text` is one `shared` span — the relocated-actor case where two
+packages are the same code (`actor_400100` / `actor_407500`) — the shared object
+is compiled once and linked into both linker scripts, so its `.rodata` has to be
+named at the same offset in *both*. Adding
+`rodata = [{ start = "0x1B4", unit = "actor_400100_text" }]` to only one of the
+twins leaves the other with no `.rodata` subsegment for that object, and the
+table silently does not land where the overlay expects it. The generator maps a
+cut whose `unit` matches a `shared` span onto `lib/<unit>`, so the manifest
+entries for the twins stay identical apart from their names. The words in the
+table are relocations into the shared object's own `.text`, so one object still
+resolves correctly in each overlay.
+
+Delete the hand-written `Actor00100_Jt001B4`-style entry from every
+`configs/USA/sym/<family>/<overlay>.txt` once the table is compiler-generated:
+the address now sits inside a C-owned `.rodata` range that splat no longer
+disassembles, and nothing references the name.
+
 **A cut at the tail of an existing block needs no `.text` cut when every earlier
 function in the unit is still `INCLUDE_ASM`.** The table has to start its
 object's `.rodata` so GCC's `.align 3` costs nothing, and `INCLUDE_ASM`
