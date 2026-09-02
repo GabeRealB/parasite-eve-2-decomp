@@ -38013,3 +38013,56 @@ The reassignment is the load-bearing part. Splitting the pair into one local per
 use site (`x1`, `x2`) puts each def in the same extended basic block as its
 single use, the constants fold back into the stores, and the score drops to
 where it was. One local written twice keeps both values in registers.
+
+## A store sunk to the end of a block is an *early* source assignment
+
+Filling a stack struct from another struct's fields, mixed with constant
+stores, the target's store order lies about the source order. GCC 2.8.1's list
+scheduler emits whichever insn is *ready* next in source order, so a `sh` whose
+operand is still in its load's delay shadow is skipped over and does not come
+back up until every independent constant store has been spent:
+
+```
+lhu  v0, 4(s0)
+nop                 /* nothing ready */
+sh   v0, 0x14(sp)   /* sprite.u */
+lhu  v1, 6(s0)      /* sprite.v load ... */
+li   v0, 0x80
+sb   v0, 0x1c(sp)
+sb   v0, 0x1d(sp)
+sb   v0, 0x1e(sp)
+li   v0, 0x1000
+sh   zero, 0x20(sp)
+sh   v0, 0x22(sp)
+sh   v1, 0x16(sp)   /* ... store six insns later */
+```
+
+Read literally that is `u`, then the colours, then `v` last — and writing it
+that way scores worse, because the scheduler then also defers the `u` store and
+the two copies trade places. The source has the two field copies adjacent,
+ahead of the constants:
+
+```c
+sprite.u         = spawn->u;
+sprite.v         = spawn->v;
+sprite.r         = 0x80;
+sprite.g         = 0x80;
+sprite.b         = 0x80;
+sprite.semiTrans = 0;
+sprite.scale     = ONE;
+```
+
+The rule: in a block of stores to one local struct, order the source by which
+*loads* appear, not by which stores do; a store separated from its load by
+unrelated constant stores was sunk, not written late. `func_mist_r18_8017D5F4`
+has two such blocks (the second is `x, y, w, h, b, g, r, semiTrans`, whose `h`
+store lands in the following `jal`'s delay slot), and fixing both took it from
+93.9% to 99.4%.
+
+Related, from the same function: caching `spawn->script` in a C local ahead of
+the `if (script[0] != 0xFF) do { … } while (script[i] != 0xFF);` guard costs
+the preheader `move` pair the target has. Re-reading `spawn->script[i]` in the
+loop instead lets loop-invariant motion materialise its own pseudo for the base
+*and* for the `0xFF` compare constant, giving `move v1, a0` / `move a0, v0` —
+the same effect as "An extra preheader `move` means the guard reloads the list
+head", but with the array base and its sentinel hoisted as a pair.

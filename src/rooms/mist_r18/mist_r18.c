@@ -5,8 +5,13 @@
 #include "main/display.h"
 
 #include "main/session.h"
+#include "main/task.h"
+#include "rooms/mist_r18.h"
 
 s32  func_8017A038(void);
+void func_mist_r18_8017E448(MistR18Sprite* sprite);
+void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY);
+void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
 void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
 
 extern u8 D_80071075;
@@ -23,7 +28,103 @@ extern s32 D_mist_r18_80186564;
 extern s32 D_mist_r18_80186E9C;
 extern s32 D_mist_r18_80186EA0;
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017D5F4);
+/// Typewriter text task for the room's message box: state 0 measures the
+/// script (or, for a negative per-glyph delay, reveals all of it at once) and
+/// arms the countdown, state 1 draws the revealed glyphs each frame and
+/// advances one glyph whenever the countdown runs out. Any other state, or a
+/// session that has left the message, kills the task.
+void func_mist_r18_8017D5F4(Task* task)
+{
+    MistR18Sprite     sprite;
+    GameSession*      session;
+    MistR18TextSpawn* spawn;
+    s32               i;
+
+    spawn = task->spawnArg2;
+    if (session->field_1 == 0) {
+        task->state = -1;
+    }
+
+    switch (task->state) {
+        case 0:
+            spawn->index = 0;
+            if (spawn->delay < 0) {
+                i = 0;
+                if (spawn->script[0] != 0xFF) {
+                    do {
+                        i++;
+                        spawn->index++;
+                    } while (spawn->script[i] != 0xFF);
+                }
+                task->killCountdown = spawn->delayEnd;
+            } else {
+                task->killCountdown = spawn->delay;
+            }
+            break;
+
+        case 1:
+            sprite.x         = spawn->x;
+            sprite.y         = spawn->y;
+            sprite.u         = spawn->u;
+            sprite.v         = spawn->v;
+            sprite.r         = 0x80;
+            sprite.g         = 0x80;
+            sprite.b         = 0x80;
+            sprite.semiTrans = 0;
+            sprite.scale     = ONE;
+
+            if (spawn->script[spawn->index - 1] == 0xFF) {
+                break;
+            }
+
+            for (i = 0; i < spawn->index; i++) {
+                if (spawn->script[i] == 0xFE) {
+                    sprite.x  = spawn->x;
+                    sprite.y += spawn->lineHeight;
+                } else {
+                    sprite.u = spawn->glyphs[spawn->script[i]].u + (spawn->u & 0x3F);
+                    sprite.v = spawn->glyphs[spawn->script[i]].v + (u8)spawn->v;
+                    sprite.w = spawn->glyphs[spawn->script[i]].w;
+                    sprite.h = spawn->glyphs[spawn->script[i]].h;
+                    if (sprite.h != 0) {
+                        func_mist_r18_8017E534(&sprite, spawn->clutX, spawn->clutY);
+                    }
+                    sprite.x += spawn->glyphs[spawn->script[i]].w;
+                }
+            }
+
+            func_mist_r18_8017E654(1, spawn->u, spawn->v, 4);
+
+            if (--task->killCountdown < 0) {
+                spawn->index++;
+                if (spawn->script[spawn->index] == 0xFF) {
+                    task->killCountdown = spawn->delayEnd;
+                } else {
+                    task->killCountdown = spawn->delay;
+                }
+            }
+
+            sprite.x         = spawn->x - 3;
+            sprite.y         = spawn->y - 3;
+            sprite.w         = spawn->boxW;
+            sprite.h         = spawn->boxH;
+            sprite.b         = 0;
+            sprite.g         = 0;
+            sprite.r         = 0;
+            sprite.semiTrans = 1;
+            func_mist_r18_8017E448(&sprite);
+            func_mist_r18_8017E654(0, 0, 0, 5);
+            return;
+
+        default:
+            goto kill;
+    }
+    task->state++;
+    return;
+
+kill:
+    Task_Kill(task);
+}
 
 void func_mist_r18_8017D960(void)
 {
