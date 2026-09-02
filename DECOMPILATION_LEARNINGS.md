@@ -39267,3 +39267,40 @@ constant's live range ends, so the two no longer overlap the same free register,
 and `sched1` sinks the store back into the emitted order by itself. Do not read
 the emitted store order as the source order here, and do not reach for pins:
 `func_mist_parking_8018451C` went from 93% to 100% on that one line move.
+
+## A callee whose `$a0` is never written before the `jal` is being handed the caller's own `arg0`
+
+m2c reads a call's arity from the argument registers it can see being set up.
+When the caller forwards its *own* first parameter unchanged, `$a0` already
+holds the right value, GCC emits nothing for it, and m2c drops the argument
+entirely — renumbering the rest, so the m2c call looks well-formed and there is
+no gap in the `argN` names to notice.
+
+`func_mist_parking_801839CC` came out of m2c as a three-argument call:
+
+```c
+Room_Util18(0, &D_mist_parking_8018FC3C, 0);
+```
+
+which scores 82% with every instruction present and the whole argument block
+shifted down one register:
+
+```
+-lui     a2,%hi(D_mist_parking_8018FC3C)   # target
+-move    a1,zero
++lui     a1,%hi(D_mist_parking_8018FC3C)   # ours
++move    a0,zero
+```
+
+The tell is in the target, not in the diff: `$a0` is live from the prologue
+(`move s0,a0`) to the `jal` and is never redefined, so the callee must be
+receiving it. Restoring the leading parameter matched on the first attempt:
+
+```c
+Room_Util18(task, 0, &D_mist_parking_8018FC3C, 0);
+```
+
+Before pinning or permuting an argument-register shift, disassemble the callee
+and check which of `$a0`–`$a3` it actually reads. Here `Room_Util18` reads
+`$a0` (the task) and `$a2` (the placement) and ignores `$a1` / `$a3`, which
+confirms the arity is four even though only three arguments are set up.

@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 #include <psyq/libgte.h>
 
 /// Work object a `Gp_State1C`-pool room effect task keeps at `Task::spawnArg2`
@@ -23,5 +25,21 @@ typedef struct RoomEffWork {
     /* 0x28 */ byte    pad_28[2];
     /* 0x2A */ u16     field_2A;
 } RoomEffWork;
+
+/// Position + Euler rotation handed to `Room_Util18`, which copies it onto a
+/// task's `TmdObject` coordinate frame (`Task::extra->field_8`): the three
+/// longs become the coordinate's translation and the three shorts are fed to
+/// `RotMatrixZYX`. Room overlays keep one of these per placed object in their
+/// own `.data`.
+typedef struct RoomPlacement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} RoomPlacement;
+
+// =============================================================================
+// Functions — shared room library (src/rooms/lib)
+// =============================================================================
+
+s32 Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 
 #endif // ROOMS_ROOM_COMMON_H
