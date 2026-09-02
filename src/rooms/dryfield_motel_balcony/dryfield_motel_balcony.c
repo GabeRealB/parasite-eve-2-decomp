@@ -118,7 +118,13 @@ void func_dryfield_motel_balcony_8017DBC8(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", func_dryfield_motel_balcony_8017DBD0);
+void func_dryfield_motel_balcony_8017DBD0(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_motel_balcony_8017D5DC;
+    sp.funcs[task->state](task);
+}
 void func_dryfield_motel_balcony_8017DC28(Task* arg0)
 {
     if (arg0->state == 0) {
