@@ -39155,3 +39155,43 @@ restored the boost and matched 100% with identical instructions and the same
 `addiu s0, s0, -0x20` (the two pseudos still share `$s0`). When a `reorder`
 leftover survives every statement permutation, look for a local assigned twice
 and split it; the diff is in the tie-break, not in the source order.
+
+## Which call-argument copy sits next to the `jal` is decided by hard-register set counts
+
+Two zero arguments after a run of stores looked like a register-colouring miss:
+
+```
+target                               ours
+lw    a2, Game_Session               move  a2, a1          (hoisted to the top)
+move  a3, a1                         lw    a3, Game_Session
+sb    v0, 0x12D(a2)                  sb    v0, 0x12D(a3)
+...                                  ...
+move  a2, a1                         move  a3, a1
+```
+
+Neither pins nor the permuter fix it, because it is the *first* scheduler
+that chooses. When `-fschedule-insns` schedules the `jal` (backwards), every
+insn it frees goes through `adjust_priority`: a set of a register that is
+live here and has `REG_N_SETS == 1` ("birthing") gets the `7f000001`
+launch priority and is placed right next to the call. Everything else with
+priority 1 drifts to the top of the block. Hard registers count too, and
+`REG_N_SETS` is per hard register over the *whole function*, so a
+`register s32 color asm("a2")` pin earlier in the function gives `$a2` a
+second set, `a2 = a1` stops birthing, `a3 = a1` births instead and lands by
+the call, and the hoisted `a2` copy then blocks the store temporaries from
+using `$a2`.
+
+The second pass (`.sched2`) keeps the result, because `rank_for_schedule`
+breaks priority ties by LUID, and LUIDs are renumbered from the post-sched1
+order: the launched copy keeps a high LUID and wins the load-delay slot
+after `lw a2`, while a hoisted one loses it to `li v0, 1`.
+
+Fix in `Gp_LoadState2`: make `color` an unpinned pseudo with *two* sets
+(`color = 8; SOFT_TOUCH_REG(color);` — the `+r` output is the second set,
+and it also stops CSE from folding the 8 into the three `sb`s), keep it live
+into the hand-written `lui` asm so it still colours to `$a2`, and leave the
+argument copies alone. Both `a2 = a1` and `a3 = a1` then birth, both are
+launched, and the target's interleaving falls out with no pins on the
+temporaries. `color = 0; color = 8;` works the same way. When the diff is
+"the other argument register got hoisted", count the sets of that hard
+register before touching the C shape.

@@ -748,7 +748,75 @@ void Gp_LoadWaitStage(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", Gp_LoadState2);
+void Gp_LoadState2(Task* task)
+{
+    TILE*             tile;
+    DR_TPAGE*         dr;
+    DisplayState*     ds;
+    s32               color;
+    register s32      qhi asm("a1");
+    register s32      queued asm("a0");
+    s32               buf;
+    s8                yoff;
+    McSaveData*       save;
+    GpSndParam*       pair;
+    GameSessionFrom4* sess;
+
+    /* `color` must stay an unpinned pseudo with two sets: pinning it to
+     * `$a2` gives that hard register a second set, and then sched1 no longer
+     * "launches" the `a2 = a1` call-argument copy next to the jal. */
+    color = 8;
+    SOFT_TOUCH_REG(color);
+    ds = &Display_State;
+    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+    buf  = ds->field_114;
+    tile = &Gp_FadeTiles[buf];
+    SOFT_USE_REG2(qhi, tile);
+    dr     = &Gp_FadeTpages[buf];
+    queued = *(u16*)((s32)qhi + (s16)0x91C4);
+    if (queued == 0) {
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->r0 = color;
+        tile->g0 = color;
+        tile->b0 = color;
+        tile->x0 = -0xA0;
+        yoff     = ds->vramYOffset;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->y0 = -0x78 - yoff;
+        addPrim(Gpu_CurrentOt - 0x10, tile);
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(Gpu_CurrentOt - 0x10, dr);
+    }
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        sess = (GameSessionFrom4*)&Mc_SaveData.field_4;
+        Gp_InitStageVisit(sess);
+        save = &Mc_SaveData;
+        TOUCH_REG(save); /* keeps `save` as `sess - 4` (addiu s0, s0, -4) */
+        Mem_ConfigureAuxHeap(save->field_7, save->field_6);
+        if ((*(u32*)&save->field_4 & 0xFFFF0000) == 0x1050000) {
+            Mem_SetActiveAuxHeap(true);
+        }
+        Mem_InitAux();
+        Gp_ApplyNpcRoomSnd();
+        Snd_InitFromStage(Game_Session->field_7, Game_Session->field_6);
+        if (Game_Session->field_7 == 3 && GameFlag_GetNibble(0x7A) >= 4) {
+            D_80062735 = 1;
+        } else {
+            D_80062735 = 0;
+        }
+        Game_Session->field_12D        = 1;
+        *(s8*)&Game_Session->field_12E = -0x80;
+        Game_Session->field_12F        = 0x1E;
+        pair                           = (GpSndParam*)&D_8007A39C;
+        pair->field_0                  = 0x3C;
+        pair->field_2                  = 0;
+        Task_SpawnFromTable(&D_80062774, 0, 0, 0);
+        task->state++;
+    }
+}
 
 void Gp_LoadWaitCompanion(Task* task)
 {

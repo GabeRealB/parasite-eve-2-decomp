@@ -333,6 +333,16 @@ void Gp_LoadWaitBoot(Task* task);
 void Gp_LoadWaitStage(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle: `Gp_InitStageVisit` on the save location,
+/// `Mem_ConfigureAuxHeap(field_7, field_6)`, `Mem_SetActiveAuxHeap(1)` when
+/// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
+/// `Snd_InitFromStage`. Sets `D_80062735` when in stage 3 with game flag
+/// nibble 0x7A >= 4, primes `GameSession.field_12D/12E/12F` (1 / -0x80 /
+/// 0x1E) and `D_8007A39C` (0x3C / 0), spawns table `D_80062774` entry 0,
+/// then advances `task->state`.
+void Gp_LoadState2(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, enqueues CdCmd 0x21 with the current
 /// session location (`field_5` / `field_6` / `field_7`), then
 /// `Gp_PickCompanion`. If that returns a companion type, stores it in
