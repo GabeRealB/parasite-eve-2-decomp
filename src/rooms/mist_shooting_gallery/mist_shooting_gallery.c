@@ -191,7 +191,63 @@ void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
         }
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017E090);
+void func_mist_shooting_gallery_8017E090(Task* task)
+{
+    UiObject* obj;
+    UiList*   list;
+    Task*     child;
+    UiObject* childObj;
+    s16*      weapon;
+    s32       i;
+    s32       count;
+
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    list          = &D_mist_shooting_gallery_80184F4C;
+    /* Only "Select" is drawn; the target names that follow it share this
+     * literal because they are reached from a `.data` table of name/score
+     * pairs, so nothing else in the room's C claims those rodata bytes. */
+    Ui_DrawText((UiPanel*)obj,
+                "Select\0\0Red Target\0\0Brown Target\0\0\0\0Yellow Target\0\0\0Woman\0\0\0Crow\0\0\0\0Bee\0"
+                "Spider\0\0Snake\0\0\0Scorpion\0\0\0\0Rat\0Monkey\0\0Bear\0\0\0\0Bacterium");
+    if (task->state == 0) {
+        count  = 0;
+        i      = count;
+        weapon = D_mist_shooting_gallery_80184F34;
+        do {
+            if (func_800B7420(*weapon) != 0) {
+                Gp_SetItemSeenBit(*weapon, 1);
+                count += 1;
+            }
+            i++;
+            weapon++;
+        } while (i < 10);
+
+        list->field_4 = count;
+        if ((u8)count >= 0xB) {
+            list->field_5 = 0xA;
+        } else {
+            list->field_5 = count;
+        }
+        list->field_10 = 0;
+        list->field_9  = 0;
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        list->field_A = 1;
+        Ui_SetListScrollFlag(list, 1);
+        obj->field_C = -((s16)obj->field_10 / 2);
+        obj->field_E = -((s16)obj->field_12 / 2);
+        task->state += 1;
+    }
+    Ui_UpdateListNoAnim(list, obj);
+    child = task->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        if (childObj->field_2E == -1 || childObj->field_2E == 6) {
+            Ui_TeardownTree(childObj, childObj->owner);
+            obj->status = 1;
+        }
+    }
+}
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D65C);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017E234);
