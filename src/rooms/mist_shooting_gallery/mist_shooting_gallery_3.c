@@ -321,7 +321,188 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 /// `field_20`, and state 8 is the wave loop proper. `D_80114C0B` is the abort
 /// request: once it is raised the machine saves its place in `field_06` /
 /// `field_21` and jumps to the state-9 shutdown banner, which restores them.
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801838FC);
+void func_mist_shooting_gallery_801838FC(Task* arg0)
+{
+    MistShootingGalleryWork*  work;
+    MistShootingGallerySpawn* spawn;
+    GpXformArg                xform;
+    GameActor*                actor;
+    s32                       mode;
+    s32                       bonus;
+    u16                       key;
+    u16                       wave;
+    u16                       prev;
+    s32                       abort;
+    u8                        step;
+    u8                        hold;
+
+    work  = (MistShootingGalleryWork*)arg0->idMap;
+    bonus = D_80072310;
+
+    switch (work->field_04) {
+        case 0:
+            work->field_02 = 0x1518;
+            work->field_0A = 0x1E;
+            D_80115768     = 1;
+            work->field_04++;
+        case 1:
+            if (work->field_0A <= 0) {
+                if (D_80071075 == 0) {
+                    func_mist_shooting_gallery_80184BB8(0x14, 0, 0x8E0);
+                    work->field_0A = 0xF;
+                    D_80115768     = 0;
+                    work->field_04++;
+                }
+            } else {
+                work->field_0A--;
+            }
+            break;
+        case 2:
+            if ((u8)Game_Session->field_4 == 0x12) {
+                if (work->field_0A <= 0) {
+                    if (D_80071075 == 0) {
+                        work->field_0A = 1;
+                        work->field_04++;
+                        func_mist_shooting_gallery_80184BB8(0x14, 7, 0x8E0);
+                    }
+                } else {
+                    work->field_0A--;
+                }
+            }
+            break;
+        case 3:
+            if (work->field_1F != 0) {
+                work->field_0A = 0x1E;
+                work->field_04++;
+                Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                Gp_ArmStateF0(1);
+            }
+            break;
+        case 4:
+            work->field_0A--;
+            if ((s32)(work->field_0A << 16) <= 0) {
+                func_mist_shooting_gallery_80184CD0(arg0, &D_mist_shooting_gallery_8018690C[work->field_08]);
+                work->field_08++;
+                if (work->field_08 == 2) {
+                    work->field_20 = 8;
+                    work->field_0A = 0x3C;
+                    work->field_04++;
+                } else {
+                    work->field_0A = 0xF;
+                }
+            }
+            break;
+        case 5:
+            work->field_0A--;
+            if ((s32)(work->field_0A << 16) <= 0) {
+                func_mist_shooting_gallery_80184BB8(0x14, work->field_20, 0x8E0);
+                if (work->field_20 == 0xA) {
+                    work->field_0A = 0x1E;
+                    work->field_04++;
+                    func_800E9BDC(5, 0xA);
+                    xform.field_12 = 0xC00;
+                    ((void (*)(GpActorWork*, s32, GpXformArg*, s32))func_80104E00)(
+                        (GpActorWork*)Game_GetPtrSlot(3), 0, &xform, 0);
+                }
+                work->field_20++;
+            }
+            break;
+        case 6:
+            actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+            func_800E9BDC(5, 0xA);
+            if (actor->field_982 == 0) {
+                ((void (*)(GpActorWork*, s32, s32, s32))Gp_EnterActorMode2)(
+                    (GpActorWork*)Game_GetPtrSlot(3), 0, 2, 0);
+                work->field_04++;
+                mode                 = 0x10;
+                Gp_StateC08.field_6 |= 0x10;
+                work->field_0A       = 4;
+                work->field_20       = 0xE;
+                if (bonus == 2) {
+                    mode = 2;
+                }
+                func_mist_shooting_gallery_80184BB8(0x14, bonus + 0xB, mode);
+            }
+            break;
+        case 7:
+            func_800E9BDC(5, 0xA);
+            if (work->field_0A <= 0) {
+                if ((u32)((u8)Gp_StateC08.field_A - 2) >= 2) {
+                    func_mist_shooting_gallery_80184BB8(0x14, work->field_20, 0x8E0);
+                    if (work->field_20 == 0x12) {
+                        work->field_04++;
+                        func_800E9BDC(0, 0xA);
+                        Gp_StateC08.field_6 &= 0xFD;
+                    }
+                    work->field_20++;
+                }
+            } else {
+                work->field_0A--;
+            }
+            break;
+        case 8:
+            spawn = &D_mist_shooting_gallery_8018690C[work->field_08];
+            key   = spawn->field_00;
+            if (key != 0xFFFF) {
+                if (key != 0xFFF1) {
+                    if (work->field_00 == key) {
+                        do {
+                            func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                            spawn++;
+                            work->field_08++;
+                        } while (work->field_00 == spawn->field_00);
+                    }
+                    wave = work->field_00;
+                    if (wave <= 0xFFEF) {
+                        work->field_00 = wave + 1;
+                    }
+                } else if (work->field_0E == 0) {
+                    work->field_08++;
+                    if (work->field_08 >= 0x68) {
+                        work->field_08 = 9;
+                        work->field_00 = 0x90;
+                    }
+                }
+            }
+            func_mist_shooting_gallery_8018458C(work);
+            if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+                work->field_04 = 0;
+                arg0->state++;
+            }
+            break;
+        case 9:
+            if (work->field_0A <= 0) {
+                if (D_801153F4 == 0) {
+                    func_mist_shooting_gallery_80184BB8(0x14, work->field_20, 0x8E0);
+                    step = work->field_20;
+                    if (step == 0x17) {
+                        work->field_04 = work->field_06;
+                        work->field_20 = work->field_21;
+                    } else {
+                        work->field_20 = step + 1;
+                    }
+                }
+            } else {
+                work->field_0A--;
+            }
+            break;
+    }
+
+    if (work->field_1E == 0 && work->field_20 >= 0x13) {
+        abort = D_80114C0B;
+        if (abort == 1) {
+            prev           = work->field_04;
+            work->field_1E = abort;
+            hold           = work->field_20;
+            work->field_04 = 9;
+            work->field_0A = 0x1E;
+            work->field_20 = 0x13;
+            work->field_06 = prev;
+            work->field_21 = hold;
+        }
+    }
+}
 /// Per-frame update for the gallery's second course. Same shape as
 /// `func_mist_shooting_gallery_801831B0`: a countdown that steps the digit
 /// sprite through `field_20` (gated on `D_80071075`), a hand-off wait on
