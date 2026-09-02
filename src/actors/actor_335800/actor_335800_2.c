@@ -123,7 +123,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_8016343C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_8016354C);
+s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, Actor335800Msg* arg2, s32 arg3)
+{
+    Actor335800MainWork* work;
+
+    work = (Actor335800MainWork*)arg0->idMap;
+    if (arg2->field_2 == 0) {
+        work->field_504 = 0;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80163568);
 
