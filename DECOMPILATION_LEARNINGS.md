@@ -3,6 +3,24 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Extra `$a0`/`$a1` on a `void(void)` import: function-pointer cast
+
+An overlay jal of a `void f(void)` import (e.g. `Gp_ReleaseStateF0Clear`)
+may still set `$a0`/`$a1` in the delay slot — the original TU had no
+prototype. Including the real header and calling `f()` drops those
+moves (`insert`/`delete` around the jal). Do not redeclare the symbol
+with extra args if the header is already in the TU.
+
+Cast the call:
+
+```c
+((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+```
+
+A neighboring `void(void)` jal whose delay slot is an unrelated store
+(`Display_ReleaseRef` + `sh` of actor flags) needs no cast.
+`func_mist_shooting_gallery_80184A80` is the example.
+
 ## Scratch `-dp` comments drop maspsx load-delay nops after volatile `lbu`
 
 Scratch `build.sh` passes `-dp`, so a volatile byte load looks like

@@ -2,6 +2,8 @@
 
 #include "rooms/mist_shooting_gallery.h"
 
+#include "gameplay/3A34.h"
+#include "main/display.h"
 #include "main/pad.h"
 #include "main/stage.h"
 #include "main/task.h"
@@ -51,7 +53,18 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184A14);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184A80);
+void func_mist_shooting_gallery_80184A80(Task* arg0)
+{
+    GameActor* actor;
+
+    actor                             = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor->field_97B                  = 0;
+    actor->field_983                  = 7;
+    ((GpObj*)actor->field_AC)->flags |= 0x2000;
+    Display_ReleaseRef();
+    ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184AE0);
 
