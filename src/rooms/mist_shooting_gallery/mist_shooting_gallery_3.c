@@ -167,7 +167,71 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 /// strip stays perpendicular to it. `arg2` selects the strip out of the
 /// texture page: bit 0 picks the left or right half and bit 1 the upper or
 /// lower row. Nothing is drawn if either endpoint projects off-screen.
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801826C4);
+void func_mist_shooting_gallery_801826C4(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
+{
+    void**                          scratch;
+    u8*                             head;
+    MistShootingGalleryBeamScratch* block;
+    MistShootingGalleryBeamScratch* vecp;
+    POLY_FT4*                       prim;
+    s16                             ang;
+    u16                             vz;
+
+    scratch                                                  = (void**)G_SCRATCH_HEAD;
+    head                                                     = *scratch;
+    ((MistShootingGalleryBeamScratch*)(head - 0x20))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                                    = (MistShootingGalleryBeamScratch*)(head - 0x20);
+    block->vec.vy                                            = *(u16*)&coord->workm.t[1];
+    vz                                                       = *(u16*)&coord->workm.t[2];
+    *scratch                                                 = block;
+    block->vec.vz                                            = vz;
+    vecp                                                     = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->vec);
+    gte_rtps_real();
+    gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy0);
+    gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((MistShootingGalleryBeamScratch*)(head - 0x20))->otz);
+        gte_ldv0(arg1);
+        gte_rtps_real();
+        gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy1);
+        gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
+        if (block->flag >= 0) {
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2F);
+            prim->tpage = 0x28;
+            prim->clut  = 0x4287;
+            prim->u0    = (arg2 & 1) << 7;
+            prim->v0    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
+            prim->u1    = ((arg2 & 1) << 7) + 0x7F;
+            prim->v1    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
+            prim->u2    = (arg2 & 1) << 7;
+            prim->v2    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
+            prim->u3    = ((arg2 & 1) << 7) + 0x7F;
+            prim->v3    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
+            ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
+            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
+            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
+            prim->x0    = *(u16*)&block->sxy0.vx + *(u16*)&block->dx;
+            prim->x3    = *(u16*)&block->sxy1.vx - *(u16*)&block->dx;
+            prim->y0    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
+            prim->y3    = *(u16*)&block->sxy1.vy + *(u16*)&block->dy;
+            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
+            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
+            prim->x1    = *(u16*)&block->sxy1.vx + *(u16*)&block->dx;
+            prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
+            prim->y1    = *(u16*)&block->sxy1.vy - *(u16*)&block->dy;
+            prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
 void func_mist_shooting_gallery_80182B1C(Task* arg0)
 {
     GpActorWork*             slot;
