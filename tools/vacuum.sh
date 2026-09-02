@@ -68,6 +68,10 @@ Options:
                     merge lock. Do not run a non-orchestrator vacuum on this
                     tree at the same time.
   --difficult       Only pick functions listed in tools/difficult_functions.
+                    VACUUM_MODEL=<model> switches the agent model, which is
+                    worth trying here: 84 of the 130 give-ups sit at >=95% after
+                    a mean of 25 attempts *and* a permuter run, so they are more
+                    likely blocked on an unguessed C idiom than on search.
                     A verified match removes that name from the list.
   --overlay NAME    Only pick functions from this overlay (gameplay, USA/main,
                     asm path suffix). Combined with --difficult: intersection.
@@ -410,11 +414,11 @@ run_agent() {
         # frozen in the log until it ends. Stream the events and format them the
         # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
         if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-          claude -p --verbose --output-format stream-json \
+          claude -p ${VACUUM_MODEL:+--model "$VACUUM_MODEL"} --verbose --output-format stream-json \
             --dangerously-skip-permissions "$prompt" \
             | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
         else
-          claude -p --dangerously-skip-permissions "$prompt"
+          claude -p ${VACUUM_MODEL:+--model "$VACUUM_MODEL"} --dangerously-skip-permissions "$prompt"
         fi
         ;;
       grok)
