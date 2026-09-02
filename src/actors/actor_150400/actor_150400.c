@@ -3,12 +3,16 @@
 #include "main/task.h"
 
 extern TaskDesc D_actor_150400_80132CF0;
+extern TaskDesc D_80181BBC;
 extern Task*    D_actor_150400_8013C924;
 extern Task*    D_actor_150400_8013C928;
 
 INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80131ECC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80131F6C);
+void func_actor_150400_80131F6C(void)
+{
+    Task_SpawnFromTable(&D_80181BBC, 0, 0, 0);
+}
 
 void func_actor_150400_80131F9C(s32 arg0)
 {
