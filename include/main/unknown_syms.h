@@ -51,7 +51,6 @@ extern void  func_8017D6D4(void);
 extern void  func_801D4B64(Task* arg0);
 extern void  func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern s32   func_80042500(void);
-extern void  func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
 extern void  func_80046EEC(void* arg0, void* arg1, s32 arg2);
 extern s16   func_8004DE18(void* arg0);
 extern void  func_8004E200(void);

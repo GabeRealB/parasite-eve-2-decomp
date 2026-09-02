@@ -5193,7 +5193,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     } else {
         flag = 1;
     }
-    Ui_LayoutWithMode0(&obj, (void*)0x79, (void*)(y + 4), (void*)0x1B, (void*)7, (void*)0x102010);
+    Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
     if (slot->field_2 != 0xFF) {
         register u8*          str asm("a1");
         register TextDrawReq* p asm("a0");
@@ -5256,7 +5256,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         } else {
             flag = 1;
         }
-        Ui_LayoutWithMode0(&obj, (void*)0x79, (void*)(y + 4), (void*)0x1B, (void*)7, (void*)0x102010);
+        Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
         y -= 0xA;
     }
     rect.w = 0x39;

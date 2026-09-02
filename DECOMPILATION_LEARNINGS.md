@@ -39203,3 +39203,30 @@ launched, and the target's interleaving falls out with no pins on the
 temporaries. `color = 0; color = 8;` works the same way. When the diff is
 "the other argument register got hoisted", count the sets of that hard
 register before touching the C shape.
+
+## A halfword sum stored to two fields: type the temp `u16`, not `s32`
+
+`func_80046B34` (TILE + two LINE_F3 bevel) was at 99.66% with three
+register swaps and nothing else:
+
+```
+target                          ours
+lhu   v0, 0x20(t0)              lhu   v1, 0x20(t0)
+addu  v1, t1, t3                addu  v0, t1, t3
+addu  v0, v0, v1                addu  v0, v1, v0
+sh    v0, 0xC(a3)               sh    v0, 0xC(a3)
+sh    v0, 0x8(a3)               sh    v0, 0x8(a3)
+```
+
+Every swapped site was a `t = arg0->field_20 + (arg1 + arg3); l->x1 = t;
+l->x0 = t;` pair; the single-store `l->x0 = arg0->field_20 + ... - 1` next
+to it already matched. With `s32 t` the sum is written straight into the
+user variable (`set (reg/v:SI 90) (plus ...)`), a named pseudo live across
+both `sh`s that global alloc colours *first* (`r90 → $v0`), so the `lhu`
+temporary has to take `$v1`. With `u16 t` the sum lands in an anonymous
+`reg:SI` followed by a `(set (reg:HI t) (subreg:HI ...))` truncation; the
+named pseudo is now the HI copy, the SI add is allocated in insn order, and
+the `lhu` result keeps `$v0` as in the target. No extra instructions come
+out of the truncation because the consumers are `sh`. `s16 t` matches too.
+Ui_AllocTile / Ui_DrawListHighlight in the same TU already use `u16 x, y,
+t` for the same reason - copy the sibling's local types, not m2c's `s32`.

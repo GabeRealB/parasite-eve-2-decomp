@@ -886,7 +886,7 @@ void Gp_PickupTitleTask(Task* arg0)
         d->req.centerMode = 2;
         draw.req.field_E  = 0;
         func_8002E53C(&draw.req, Text_ItoaSigned(d->buf, count));
-        Ui_LayoutWithMode0(obj, (void*)(y + 0x6B), (void*)(x + 7), (void*)0x1B, (void*)7, (void*)0x102010);
+        Ui_LayoutWithMode0(obj, (y + 0x6B), (x + 7), 0x1B, 7, 0x102010);
     }
     USE_REG(item);
 }
@@ -1121,7 +1121,7 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
     s32         y;
 
     if (arg3 == 0) {
-        Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE), (void*)0xE, (void*)0xE, (void*)0x102010);
+        Ui_LayoutWithMode0(arg0, arg1, (arg2 - 0xE), 0xE, 0xE, 0x102010);
         return;
     }
     if (arg0->mode != 5) {
@@ -1143,7 +1143,7 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
         }
         Gp_DrawItemIcon(arg0, arg1, arg2, arg3, 0);
     }
-    Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE), (void*)0xE, (void*)0xE, (void*)0);
+    Ui_LayoutWithMode0(arg0, arg1, (arg2 - 0xE), 0xE, 0xE, 0);
 }
 
 void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
@@ -1161,7 +1161,7 @@ void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     req.centerMode = 2;
     req.field_E    = 0;
     func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
-    Ui_LayoutWithMode0(arg0, (void*)(arg1 + 0x69), (void*)(arg2 - 8), (void*)0x1B, (void*)7, (void*)0x102010);
+    Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
 
 void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 arg4)
@@ -1183,7 +1183,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 a
             req.centerMode = 2;
             req.field_E    = 0;
             func_8002E53C(&req, Text_ItoaSigned(buf, count));
-            Ui_LayoutWithMode0(arg0, (void*)(arg1 + 0x69), (void*)(arg2 - 8), (void*)0x1B, (void*)7, (void*)0x102010);
+            Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
         }
     }
 }

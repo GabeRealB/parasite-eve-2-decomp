@@ -908,7 +908,55 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/ui", func_80046B34);
+void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+{
+    TILE*    p;
+    LINE_F3* l;
+    s32      y;
+    u16      t;
+
+    if ((arg5 != 0) && (arg3 >= 2)) {
+        p              = (TILE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        p->x0          = arg0->field_20 + arg1 + 1;
+        y              = arg0->field_22;
+        p->w           = arg3 - 1;
+        p->h           = arg4 - 1;
+        *(u32*)&p->r0  = arg5;
+        setlen(p, 3);
+        p->y0 = y + arg2 + 1;
+        setcode(p, 0x60);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
+    }
+
+    l              = (LINE_F3*)Gpu_PrimCursor;
+    l->x2          = arg0->field_20 + arg1 + 1;
+    t              = arg0->field_20 + (arg1 + arg3);
+    l->x1          = t;
+    l->x0          = t;
+    Gpu_PrimCursor = (DR_TPAGE*)(l + 1);
+    l->y0          = arg0->field_22 + arg2;
+    t              = arg0->field_22 + (arg2 + arg4);
+    l->y2          = t;
+    l->y1          = t;
+    *(u32*)&l->r0  = ((arg6 & 1) == 0) ? 0x506058 : 0x101810;
+    setLineF3(l);
+    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, l);
+
+    l              = (LINE_F3*)Gpu_PrimCursor;
+    t              = arg0->field_20 + arg1;
+    l->x1          = t;
+    l->x2          = t;
+    l->x0          = arg0->field_20 + (arg1 + arg3) - 1;
+    Gpu_PrimCursor = (DR_TPAGE*)(l + 1);
+    t              = arg0->field_22 + arg2;
+    l->y1          = t;
+    l->y0          = t;
+    l->y2          = arg0->field_22 + (arg2 + arg4);
+    *(u32*)&l->r0  = ((arg6 & 1) == 0) ? 0x101810 : 0x506058;
+    setLineF3(l);
+    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, l);
+}
 
 /// Overlay of UiPanel / UiObject at the layout halfwords that Ui_DrawListHighlight
 /// loads as signed (field_1C / field_1E are written with potentially negative
@@ -1863,12 +1911,12 @@ void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg
     }
 }
 
-void Ui_LayoutWithMode0(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
+void Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
 {
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 0);
 }
 
-void Ui_LayoutWithMode1(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
+void Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
 {
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 1);
 }

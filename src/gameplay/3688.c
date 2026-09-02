@@ -1454,8 +1454,8 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
                 if (id != 0) {
                     Gp_DrawItemIcon(obj, x + col * 16, y + row * 16, id, 0);
                 }
-                Ui_LayoutWithMode0(obj, (void*)(x + col * 16), (void*)(y + row * 16 - 0xE),
-                                   (void*)0xE, (void*)0xE, (void*)0x102010);
+                Ui_LayoutWithMode0(obj, (x + col * 16), (y + row * 16 - 0xE),
+                                   0xE, 0xE, 0x102010);
             }
             goto skip_found;
         found_assign:
@@ -1850,8 +1850,8 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
                 req.centerMode = 2;
                 req.field_E    = 0;
                 func_8002E53C(&req, Text_ItoaSigned(buf, qty));
-                Ui_LayoutWithMode0(arg1, (void*)(x + 0x69), (void*)(y - 8), (void*)0x1B, (void*)7,
-                                   (void*)0x102010);
+                Ui_LayoutWithMode0(arg1, (x + 0x69), (y - 8), 0x1B, 7,
+                                   0x102010);
             }
         }
     }
@@ -3110,8 +3110,8 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                 draw.count.req.centerMode = 2;
                 draw.count.req.field_E    = 0;
                 func_8002E53C(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
-                Ui_LayoutWithMode0(obj, (void*)(x + 0x69), (void*)(y - 8), (void*)0x1B, (void*)7,
-                                   (void*)0x102010);
+                Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
+                                   0x102010);
             }
         }
 
@@ -3935,8 +3935,8 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
         addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
     }
-    Ui_LayoutWithMode0(arg0, (void*)(arg1 - 1), (void*)(arg2 - 1), (void*)((s16)vec.vx + 1),
-                       (void*)((s16)vec.vy + 1), (void*)0x81008);
+    Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
+                       ((s16)vec.vy + 1), 0x81008);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7DA8);
@@ -4481,8 +4481,8 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
             draw.count.req.centerMode = 2;
             draw.count.req.field_E    = 0;
             func_8002E53C(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
-            Ui_LayoutWithMode0(obj, (void*)(x + 0x69), (void*)(y - 8), (void*)0x1B, (void*)7,
-                               (void*)0x102010);
+            Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
+                               0x102010);
         }
         {
             s32          x;
