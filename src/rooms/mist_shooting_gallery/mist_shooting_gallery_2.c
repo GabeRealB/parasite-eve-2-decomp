@@ -122,7 +122,44 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180390);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018055C);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180728);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180A00);
+void func_mist_shooting_gallery_80180A00(Task* task)
+{
+    UiObject* obj;
+    s16       result;
+
+    if (task->state == 0) {
+        Display_InitPrimBufOnce();
+        obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018535C, task->spawnArg1, 1, 1, NULL);
+        if (obj == NULL) {
+            return;
+        }
+        GameMain_SetFrameTiming(0);
+        Game_Session->field_2 = 1;
+        task->spawnArg2       = obj;
+        task->state          += 1;
+    }
+
+    if (task->state == 1) {
+        obj    = task->spawnArg2;
+        result = obj->field_2E;
+        if ((result == -1) || (result == 6)) {
+            Ui_TeardownTree(obj, obj->owner);
+            task->killCountdown = 0xA;
+            task->state         = 2;
+        }
+    }
+
+    if (task->state == 2) {
+        task->killCountdown -= 1;
+        if (task->killCountdown <= 0) {
+            GameMain_SetFrameTiming(1);
+            Game_Session->field_2 = 0;
+            Task_Kill(task);
+            Stage_ReleasePrimBuf();
+            Stage_SetEndingFlag();
+        }
+    }
+}
 s32 func_mist_shooting_gallery_80180B34(void)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80185378, 0, 0, 0);
