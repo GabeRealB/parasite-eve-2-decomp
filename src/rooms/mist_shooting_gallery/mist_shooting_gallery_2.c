@@ -207,7 +207,29 @@ L_case5:
     Display_ResetHeapWrapper();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_801810D8);
+void func_mist_shooting_gallery_801810D8(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            SetDispMask(0);
+            if (D_80072176 == 0) {
+                task->state = 2;
+                return;
+            }
+            Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 2, 0, 0);
+            D_8007106B = 0;
+            Gp_SpawnViewTasks();
+        case 1:
+            task->state = task->state + 1;
+            return;
+        case 2:
+            Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 1, 0, 0);
+            D_8007106B = 1;
+            Gp_SpawnViewTasks();
+            Task_Kill(task);
+            return;
+    }
+}
 void func_mist_shooting_gallery_801811C0(s16 arg0)
 {
     if (arg0 == 0) {
