@@ -470,4 +470,16 @@ void func_acropolis_fire_escape_8017EA68(Task* task)
         }
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017ED60);
+void func_acropolis_fire_escape_8017ED60(Task* task)
+{
+    UiObject* obj;
+
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    if (task->state == 0) {
+        Wip_UiHolder       = (WipUiHolder*)obj;
+        task->exitCallback = Room_SaveUi01;
+        task->state       += 1;
+    }
+    Gp_DrawPromptLines(obj, task);
+}
