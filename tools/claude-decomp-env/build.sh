@@ -37,7 +37,7 @@ CPP="${CROSS}-cpp"
 NM="${CROSS}-nm"
 CC="$PROJECT_ROOT/tools/linux/gcc-2.8.1-psx/cc1"
 
-INCLUDE_FLAGS="-I $PROJECT_ROOT/include -I $PROJECT_ROOT/build -I $PROJECT_ROOT/include/psyq -I $PROJECT_ROOT/include/decomp"
+INCLUDE_FLAGS="-I $PROJECT_ROOT/include -I $PROJECT_ROOT/build -I $PROJECT_ROOT/include/psyq -I $PROJECT_ROOT/include/decomp -I $PROJECT_ROOT/tools/m2c"
 OPT_FLAGS="-O2"
 ENDIAN="-EL"
 MASPX_VERSION="2.77"

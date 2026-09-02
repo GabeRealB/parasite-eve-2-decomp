@@ -361,6 +361,29 @@ elif [[ "$BOOTSTRAP" == true ]]; then
         set -e
     fi
 
+    # `->unkNNN` is m2c's marker for a field it could not name, and it never
+    # compiles: either the pointer is `void *` ("request for member in something
+    # not a structure") or the struct is known but does not declare that offset
+    # ("structure has no member named `unk4C0'"). Both are the same failure.
+    # build.sh then fails before writing match_log.txt, so vacuum.sh records the
+    # function as "1 attempt, 0.000" - a give-up for a function nobody ever
+    # compiled. 523 functions were parked that way in a single day, 85 of which
+    # a seed matches outright. --valid-syntax emits M2C_FIELD() instead, which
+    # compiles and can be scored; it is uglier, and being able to score an ugly
+    # seed beats not being able to build a pretty one.
+    if [[ $M2C_EXIT_CODE -eq 0 ]] && grep -qE '\->unk[0-9A-Fa-f]+' <<<"$M2C_OUTPUT"; then
+        echo "Seed dereferences an untyped pointer; retrying with --valid-syntax."
+        set +e
+        VS_OUTPUT=$(python3 "$M2C" --target mips-gcc-c --valid-syntax \
+            "${M2C_FUNC_ARG[@]}" "${CONTEXT_ARG[@]}" "$ASM_PATH" "${JTBL_ASM[@]}" 2>&1)
+        VS_CODE=$?
+        set -e
+        if [[ $VS_CODE -eq 0 && -n "$VS_OUTPUT" ]]; then
+            M2C_OUTPUT="$VS_OUTPUT"
+            M2C_VALID_SYNTAX=true
+        fi
+    fi
+
     if [[ $M2C_EXIT_CODE -ne 0 ]]; then
         echo "Warning: m2c failed to generate C code. Creating blank base.c file."
         echo "$M2C_OUTPUT"
@@ -368,6 +391,17 @@ elif [[ "$BOOTSTRAP" == true ]]; then
     else
         {
             echo '#include "common.h"'
+            # m2c types the seed against a context built from the host C file,
+            # then the seed lands in a base.c that includes only common.h - so
+            # it names types nothing declares and will not compile
+            # ("`Actor120300Work' undeclared"). build.sh fails before writing
+            # match_log.txt and vacuum.sh files the function as "1 attempt,
+            # 0.000": a give-up for a function nobody compiled. Carry the host's
+            # own includes across so the seed can see what it was typed against.
+            if [[ -n "$C_FILE" && -f "$C_FILE" ]]; then
+                grep -E '^#include "' "$C_FILE" | grep -v '"common.h"' || true
+            fi
+            [[ "${M2C_VALID_SYNTAX:-false}" == true ]] && echo '#include "m2c_macros.h"'
             echo ""
             echo "// This is a decompilation attempt by the m2c tool."
             echo "// Function/type definitions might be missing or incomplete."
