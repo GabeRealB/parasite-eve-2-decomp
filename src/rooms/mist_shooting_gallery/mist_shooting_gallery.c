@@ -93,7 +93,42 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery",
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D6D8);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017EAE0);
+void func_mist_shooting_gallery_8017EAE0(Task* task)
+{
+    UiObject* obj  = task->spawnArg2;
+    UiList*   list = &D_mist_shooting_gallery_8018503C;
+
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, "SELECT");
+    if (task->state == 0) {
+        if (D_80072A92 == 0) {
+            list->field_4 = 2;
+            list->field_5 = 2;
+        } else if (D_80072A92 < 2) {
+            list->field_4 = 3;
+            list->field_5 = 3;
+        } else {
+            list->field_4 = 4;
+            list->field_5 = 4;
+        }
+        if (D_8007218B == 1) {
+            list->field_4 = 4;
+            list->field_5 = 4;
+        }
+        list->field_10 = 0;
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        list->field_A = 1;
+        Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[0], 0, 0, 1, obj);
+        Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[1], 0, 0, 1, obj);
+        Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018507C[2], 0, 0, 1, obj);
+        task->state = task->state + 1;
+    }
+    Ui_UpdateListNoAnim(list, obj);
+    if ((obj->status == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+        SndEvt_EnqueueType6(3, 0, 0);
+        obj->field_2E = 6;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017EC58);
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D708);
 
