@@ -44,7 +44,8 @@ typedef struct Actor100400Work {
     /* 0x628 */ s16      field_628;
     /* 0x62A */ byte     pad_62A[8];
     /* 0x632 */ s16      field_632;
-    /* 0x634 */ byte     pad_634[4];
+    /* 0x634 */ byte     pad_634[2];
+    /* 0x636 */ s16      field_636;
     /* 0x638 */ s16      field_638;
     /* 0x63A */ u16      field_63A;
     /* 0x63C */ s16      field_63C;
@@ -63,6 +64,7 @@ typedef struct Actor100400Work {
 typedef struct Actor100400Ctx {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ s16            field_C;
 } Actor100400Ctx;
 
 typedef struct Actor100400 {
