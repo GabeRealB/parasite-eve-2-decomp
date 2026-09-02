@@ -56,7 +56,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165380);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801653A0);
+void func_actor_800200_801653A0(GpActorWork* arg0)
+{
+    GameActor* actor = arg0->actor;
+
+    actor->field_954 = 0;
+    actor->field_956 = 2;
+    actor->field_95A = 2;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801653C0);
 
