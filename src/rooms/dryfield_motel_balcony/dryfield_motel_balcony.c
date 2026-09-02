@@ -81,7 +81,18 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", func_dryfield_motel_balcony_8017D8BC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", func_dryfield_motel_balcony_8017DB1C);
+s32 func_dryfield_motel_balcony_8017DB1C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 0x8:
+            Gp_EnqueueStageSnd6(0x521D0008, 0, 0);
+            break;
+        case 0x9:
+            Gp_EnqueueStageSnd6(0x521D0009, 0, 0);
+            break;
+    }
+    return 0;
+}
 s32 func_dryfield_motel_balcony_8017DB6C(void)
 {
     return 0;
