@@ -143,10 +143,4 @@ L_case5:
     Display_ResetHeapWrapper();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_8018397C);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_801839CC);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183A28);
-
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_9", D_mist_parking_8017D85C);
