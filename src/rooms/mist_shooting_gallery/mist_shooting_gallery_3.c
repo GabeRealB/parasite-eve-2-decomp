@@ -198,7 +198,13 @@ s32 func_mist_shooting_gallery_80184970(s32 arg0)
 }
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801849BC);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184A14);
+void func_mist_shooting_gallery_80184A14(Task* arg0)
+{
+    MistShootingGalleryWork*  work   = (MistShootingGalleryWork*)arg0->idMap;
+    MistShootingGalleryRounds rounds = D_mist_shooting_gallery_8017DB8C;
+
+    rounds.rounds[work->difficulty]();
+}
 void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
