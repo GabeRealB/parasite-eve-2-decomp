@@ -35,6 +35,8 @@ STATIC_ASSERT_SIZEOF(DdhCoordWork, 0x6C);
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);
 void func_dryfield_dilapidated_house_8017EE58(Task* task);
+void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
+void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
 s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 void func_dryfield_dilapidated_house_80181028(Task* task);
 void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);

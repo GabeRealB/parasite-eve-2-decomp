@@ -56,7 +56,16 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801813DC);
+void func_dryfield_dilapidated_house_801813DC(Task* task)
+{
+    SVECTOR verts[24];
+    s32     sp0;
+    s32     sp1;
+
+    func_dryfield_dilapidated_house_8017FAD4(task, verts, &sp0, &sp1);
+    func_dryfield_dilapidated_house_8017F568(task, verts, sp0);
+    func_dryfield_dilapidated_house_8017F568(task, verts, sp0);
+}
 
 void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 {
