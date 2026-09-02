@@ -120,7 +120,18 @@ s32 func_mist_shooting_gallery_8017F95C(void)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017F98C);
+void func_mist_shooting_gallery_8017F98C(DialogPrompt* arg0, UiObject* arg1)
+{
+    MistShootingGalleryModeTexts texts;
+    s32                          one;
+
+    texts = D_mist_shooting_gallery_8017D6D8;
+    one   = 1;
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A - 1, texts.text[arg0->field_8], arg0->field_1C, one, 0);
+    if (arg0->field_C == one) {
+        D_80072177 = (u8)arg0->field_8;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FA38);
 void func_mist_shooting_gallery_8017FAE8(Task* task)
 {
