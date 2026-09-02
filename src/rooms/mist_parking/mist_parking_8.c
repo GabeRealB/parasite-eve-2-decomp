@@ -5,10 +5,12 @@
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern s16      D_80071076;
 extern Task*    D_mist_parking_80195320;
 extern TaskDesc RoomsShared8018397cDesc;
+extern TaskDesc D_mist_parking_8018D75C;
 
 void func_mist_parking_801830F8(void)
 {
@@ -39,7 +41,27 @@ void func_mist_parking_8018316C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_801831F0);
+void func_mist_parking_801831F0(s32 arg0)
+{
+    Task**     slot;
+    Task*      task;
+    TmdObject* obj;
+
+    if (arg0 == 0) {
+        slot = &D_mist_parking_80195320;
+    } else {
+        slot = NULL;
+    }
+
+    if ((slot != NULL) && (*slot == NULL)) {
+        task  = Task_SpawnFromTable(&D_mist_parking_8018D75C, arg0, 0, 0);
+        *slot = task;
+        if (task != NULL) {
+            obj           = (TmdObject*)task->extra;
+            obj->field_C &= ~0x80;
+        }
+    }
+}
 
 void func_mist_parking_8018326C(s32 arg0)
 {
