@@ -23,6 +23,10 @@
 #   tools/overlay_batch.sh --release --session S
 #   tools/overlay_batch.sh --cleanup --overlay NAME [--session S]
 #
+# --bootstrap N pre-builds N scratch envs (default 5); the agent makes the rest
+# on demand. They are directories inside the worktree, not checkouts: ~160 KB
+# each, half of it symlinks.
+#
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -33,6 +37,7 @@ SESSION=""
 RELEASE=false
 KEEP=false
 CLEANUP=false
+WARM=5
 
 usage() {
     sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
@@ -45,6 +50,7 @@ while [[ $# -gt 0 ]]; do
         --session) SESSION="$2"; shift 2 ;;
         --release) RELEASE=true; shift ;;
         --cleanup) CLEANUP=true; shift ;;
+        --bootstrap) WARM="$2"; shift 2 ;;
         --keep)    KEEP=true; shift ;;
         -h|--help) usage ;;
         *) echo "unknown argument: $1" >&2; usage ;;
@@ -282,6 +288,37 @@ Rooms differ: 80 of 168 allocate nothing at all, and the anchor is
 
 `Task::extra` is a `TmdObject*`; `GameActorExt` was merged into it.
 
+## The matching loop — use it, do not read raw asm
+
+Every function here gets its own scratch env inside this worktree. Make one
+with:
+
+```
+./tools/claude --bootstrap-only <function>     # creates nonmatchings/<function>/
+cd nonmatchings/<function> && ./build.sh base.c
+```
+
+The first few are already built. `build.sh` prints what you actually need:
+
+```
+Score: 97.903% (65 differences)
+Penalties: stack=0 branch=0 regs=1 reorder=1 insert=0 delete=0
+```
+
+That score is the whole point. `build-and-verify --only` is pass/fail on the
+overlay's checksum: it cannot tell you 60% from 99.9%, or which of two edits
+regressed, and iterating against a binary signal is exactly where an earlier
+run's tokens went. Iterate in the scratch env until 100.00% with all-zero
+penalties, and only then paste the body into `src/` and run the scoped build.
+
+`base.c` is already m2c-seeded and compiles. Each scratch dir also carries
+`MATCH_LOOP.md` (the matching playbook — read it), `BRIEF.md` (this function's
+callers and context), `diff.py`, and `dump.sh` for an RTL summary at >=90%.
+Penalties that are only `regs`/`reorder` at >=95% are a permuter job, not a
+typing job: `./permute.sh --run --timeout 360 -j4 <func> <asm> <c>`.
+
+Delete the scratch dir when you are done with a function.
+
 ## Traps, all measured
 
 - Retyping a global reinterprets arithmetic in code you did not touch: a
@@ -370,6 +407,19 @@ BODY
 } > "$BRIEF"
 
 sed -i "s|__SESSION__|$SESSION|g; s|__OVERLAY__|$OVERLAY|g" "$BRIEF"
+
+# Warm a few scratch envs. Without one, an agent has no per-function score: all
+# it can run is build-and-verify, which is pass/fail on the whole overlay
+# checksum, so it cannot tell 60% from 99.9% or which of two edits regressed.
+# Iterating on a binary signal is where the tokens went in the first run.
+if [[ "$WARM" -gt 0 ]]; then
+    echo "bootstrapping $WARM scratch env(s) ..."
+    head -n "$WARM" <<<"$FUNCS_FREE" | while read -r fn; do
+        [[ -n "$fn" ]] || continue
+        (cd "$WT" && timeout 600 ./tools/claude --bootstrap-only "$fn" >/dev/null 2>&1) \
+            && echo "  $fn" || echo "  $fn (failed, agent can retry)"
+    done
+fi
 
 echo
 echo "brief: $BRIEF"
