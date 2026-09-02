@@ -158,7 +158,65 @@ void func_mist_shooting_gallery_80182064(Task* task)
 /// spins with the effect's angle. `arg1` picks one of six 40-pixel-wide
 /// frames out of the texture page, and the primitive is queued twice into the
 /// same OT slot. Nothing is drawn if the centre projects off-screen.
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80182294);
+void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**                           scratch;
+    u8*                              head;
+    MistShootingGalleryFlashScratch* block;
+    MistShootingGalleryFlashScratch* vecp;
+    POLY_FT4*                        prim;
+    s16                              u;
+    u16                              vz;
+
+    scratch                                                   = (void**)G_SCRATCH_HEAD;
+    head                                                      = *scratch;
+    ((MistShootingGalleryFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                                     = (MistShootingGalleryFlashScratch*)(head - 0x1C);
+    block->vec.vy                                             = *(u16*)&coord->workm.t[1];
+    vz                                                        = *(u16*)&coord->workm.t[2];
+    *scratch                                                  = block;
+    block->vec.vz                                             = vz;
+    vecp                                                      = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->vec);
+    gte_rtps_real();
+    gte_stsxy(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2A;
+        prim->clut  = 0x4293;
+        prim->v0    = 0x38;
+        prim->v1    = 0x38;
+        prim->v2    = 0x5F;
+        prim->v3    = 0x5F;
+        u           = arg1 % 6;
+        prim->u0    = u * 40;
+        prim->u1    = u * 40 + 0x27;
+        prim->u2    = u * 40;
+        prim->u3    = u * 40 + 0x27;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 /// Draws one frame of the gallery's tracer beam: a semi-transparent
 /// `POLY_FT4` stretched between the effect coordinate's world position and
 /// `arg1`, the endpoint the effect picked when it spawned. Both points are
