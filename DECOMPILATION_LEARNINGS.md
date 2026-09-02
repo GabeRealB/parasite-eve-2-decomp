@@ -39483,3 +39483,43 @@ local (`obj->field_2E = code`), which makes the short-to-short move a second
 memory read and emits `lh` for the compare plus `lhu` for the store off the same
 address. `func_mist_parking_8017FE74` is the example (92.8% as the plain chain,
 `insert=2 delete=2 reorder=2`; 100% inverted).
+
+## Shape a live range by *where* a local is introduced, not with a pin
+
+Two allocation misses in `func_mist_parking_8017EF24` (a 2-block text draw that
+ends in a `while (*p) p++` walk) were both fixed by moving where a value is
+created, with no `register` pin and no empty `asm`.
+
+**Split an accumulator so the pre-increment value becomes a local quantity.**
+The target keeps one `$s2` for a y offset and bumps it once
+(`addiu s2, s2, 0x28`). Written as `y += 0x28;` that is a single pseudo whose
+live range spans the loop, so it goes to global-alloc and the local allocator
+hands the four block-local quantities `$s1..$s4` — one register lower than the
+target everywhere. Written as a second variable:
+
+```c
+y  = (s16)obj->field_18;   /* dies at the split: local-alloc quantity, $s2 */
+y2 = y + 0x28;             /* spans the loop: global allocno, also $s2 */
+```
+
+`y` now dies before the loop, local-alloc places it in the `$s2` slot the target
+leaves empty, and the constants shift up to `$s3/$s4/$s5`. 82.7% -> 90.2%.
+
+**Assign a scratch pointer just before its first use to lower its priority.**
+`-O2` schedules before local-alloc, so `p = buf;` at the top of the function is
+already scheduled into the prologue and the pseudo's live length covers the
+whole body. The global allocator sorts by references / live length, so a 10-ref
+pointer with an 80-insn range loses `$s6` to a 12-ref `obj` with an 83-insn one.
+Moving the assignment down to the statement before the `Text_ItoaUnsigned` that
+fills the buffer shortens the range enough to flip the order — and `sched2`
+still hoists the `addiu s6, sp, 0x40` back to the top, exactly as the target
+has it. 94.96% -> 99.92%. This is the mirror of "Lengthen a parameter's live
+range to push it into a higher `$s` register": shorten by declaring late,
+lengthen by using late.
+
+Corollary for `TextDrawReq`-style blocks: fill the fields in the order the
+already-matched siblings use (`x`, `y`, `otIndex`, `field_8`, `glyphTable`,
+`centerMode`, `field_E`). Hoisting `field_8` above `otIndex` scores higher on
+its own (97.2% vs 95.0%) but does so by dragging the `sw` of the colour into
+the load-delay slot; with the live ranges fixed the sibling order is the one
+that reaches 100%.
