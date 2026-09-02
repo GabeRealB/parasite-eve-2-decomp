@@ -79,7 +79,23 @@ void Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw31(SVECTOR* v, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8017FEB8);
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180000);
+s32 func_mist_shooting_gallery_80180000(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 >= 5) {
+        if (arg2 >= 9) {
+            if (arg2 < 0x23) {
+                if (arg2 >= 0x21) {
+                    Gp_MsgPlayerWeapon(0);
+                    Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, 3);
+                }
+            }
+        } else {
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, 1);
+        }
+    }
+    return 0;
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018008C);
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018018C);
 
