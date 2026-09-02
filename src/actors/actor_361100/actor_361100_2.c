@@ -9,11 +9,16 @@
 
 extern Task* D_actor_361100_80171BE0;
 
+extern TaskDesc D_actor_361100_80165C58;
+
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_8016299C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_801629D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_80162A24);
+void func_actor_361100_80162A24(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_361100_80165C58, 1, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_2", func_actor_361100_80162A54);
 
