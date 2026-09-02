@@ -16,7 +16,10 @@ INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_801834D4);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_8018354C);
+void func_mist_parking_8018354C(void)
+{
+    Task_SpawnFromTable(&D_mist_parking_8018D75C, 3, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_8018357C);
 
