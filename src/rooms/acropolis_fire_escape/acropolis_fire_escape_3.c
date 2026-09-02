@@ -45,5 +45,15 @@ void func_acropolis_fire_escape_8017F1F8(DialogPrompt* prompt, UiObject* obj)
         obj->owner->state = 2;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_3", func_acropolis_fire_escape_8017F2C0);
+void func_acropolis_fire_escape_8017F2C0(DialogPrompt* prompt, UiObject* obj)
+{
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_acropolis_fire_escape_80181A0C, prompt->field_1C, 1, 0);
+    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        SndEvt_EnqueueType6(0x16, 0, 0);
+        Ui_SpawnFromDesc(&D_acropolis_fire_escape_80181CC8, 0, 1, 1, obj);
+        obj->field_2E     = 6;
+        obj->status       = 0;
+        obj->owner->state = 2;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_3", func_acropolis_fire_escape_8017F388);
