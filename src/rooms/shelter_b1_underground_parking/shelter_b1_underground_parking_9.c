@@ -32,7 +32,19 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_801846EC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_80184778);
+/// Commits the pending destination selected in the parking-lot map task:
+/// promotes the pending value into the committed one, tears down the prompt
+/// display, applies the selection to the session, then kills the child task
+/// spawned for the selection UI and advances to the next state.
+void func_shelter_b1_underground_parking_80184778(Task* task)
+{
+    D_shelter_b1_underground_parking_8018D788 = D_shelter_b1_underground_parking_8018D789;
+    func_shelter_b1_underground_parking_80183B9C();
+    func_shelter_b1_underground_parking_8018491C();
+    task->killCountdown = 0;
+    Task_Kill((Task*)task->spawnArg2);
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_9", func_shelter_b1_underground_parking_801847D0);
 

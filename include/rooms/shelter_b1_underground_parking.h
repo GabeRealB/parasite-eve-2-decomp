@@ -47,4 +47,9 @@ extern SbupActionPrompt D_80114D28;
 
 void func_shelter_b1_underground_parking_80183B9C(void);
 
+/// Lives in `shelter_b1_underground_parking_10`: maps the committed
+/// selection `D_shelter_b1_underground_parking_8018D788 & 0xF` through the
+/// room's destination table and writes the result into the session.
+void func_shelter_b1_underground_parking_8018491C(void);
+
 #endif // ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
