@@ -237,7 +237,59 @@ void func_mist_shooting_gallery_801842D0(Task* arg0)
             return;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184470);
+s32 func_mist_shooting_gallery_80184470(s32 score)
+{
+    s32 bonus = 0;
+
+    switch (((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap)->difficulty) {
+        case 0:
+            if (score >= 0x2710) {
+                bonus = 0x12C;
+            } else if (score >= 0x2328) {
+                bonus = 0xC8;
+            } else if (score >= 0x1F40) {
+                bonus = 0x64;
+            }
+            break;
+        case 1:
+            if (score >= 0x43F8) {
+                bonus = 0x12C;
+            } else if (score >= 0x41A0) {
+                bonus = 0xC8;
+            } else if (score >= 0x3E80) {
+                bonus = 0x64;
+            }
+            break;
+        case 2:
+            if (score > 0xC34F) {
+                bonus = 0x12C;
+            } else if (score > 0xB3AF) {
+                bonus = 0xC8;
+            } else if (score > 0x9857) {
+                bonus = 0x64;
+            }
+            break;
+        case 3:
+            if (score > 0xEA5F) {
+                bonus = 0x12C;
+            } else if (score > 0xDABF) {
+                bonus = 0xC8;
+            } else if (score > 0xCB1F) {
+                bonus = 0x64;
+            }
+            break;
+        case 4:
+            if (score > 0xD6D7) {
+                bonus = 0x12C;
+            } else if (score > 0xCF07) {
+                bonus = 0xC8;
+            } else if (score > 0xC34F) {
+                bonus = 0x64;
+            }
+            break;
+    }
+    return bonus;
+}
 void func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
 {
     s32 digit0;
