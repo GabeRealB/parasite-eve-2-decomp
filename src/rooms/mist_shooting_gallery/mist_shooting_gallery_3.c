@@ -184,7 +184,18 @@ void func_mist_shooting_gallery_80184954(void)
     work->field_1F = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184970);
+s32 func_mist_shooting_gallery_80184970(s32 arg0)
+{
+    MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap;
+    s32                      ret  = 0;
+
+    if (work->difficulty < 3) {
+        ret = arg0 >= 0xC8;
+    } else if (arg0 >= 0x12C) {
+        ret = 1;
+    }
+    return ret;
+}
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801849BC);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184A14);
