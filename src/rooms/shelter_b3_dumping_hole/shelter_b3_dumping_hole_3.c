@@ -2,6 +2,7 @@
 #include "main/fs.h"
 #include "main/task.h"
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04;
+extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017D9A8);
 
@@ -42,7 +43,10 @@ void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FE10);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FE34);
+void func_shelter_b3_dumping_hole_8017FE34(void)
+{
+    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FE64);
 
