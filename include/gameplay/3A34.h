@@ -918,6 +918,17 @@ typedef struct _GpNormScratch {
 } GpNormScratch;
 STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
 
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0994`.
+/// `local[0]` / `local[1]` are `(0, field_12 +/- field_1C, 0)` in the
+/// object's local space, rotated by `field_8->workm` into `vec` then added
+/// to `workm.t` to give the two world points `arg1[0]` / `arg1[1]`.
+/// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
+typedef struct _GpAxisScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR local[2];
+} GpAxisScratch;
+STATIC_ASSERT_SIZEOF(GpAxisScratch, 0x20);
+
 /// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C` and
 /// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
 /// `GpObj.field_10/14` offset by `field_C` (as an SVECTOR) scaled by
@@ -1363,6 +1374,7 @@ void            func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32             Gp_PairNop(void);
 void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
+void            func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2);
 void            Gp_ClearPendingObj4C(void);
 void            Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 /// Averages the first `arg2` `GpRec18` records of `arg0` into `arg1`

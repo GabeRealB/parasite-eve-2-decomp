@@ -574,6 +574,14 @@ block    = tmp;
 `Gp_UpdateActorColor` is the example. Same split-address `lui` in a branch delay
 as `Gp_CopyCoordOffset`.
 
+The unpinned substitutes do not reach it. `TOUCH_REG(head)` / `TOUCH_REG_USE`
+after `block = head` keep the copy but colour it backwards
+(`addiu a3, v0, -N` / `move v0, a3`, 99.8% regs-only), and reusing `head` in
+the tail restore makes it live across the call so it moves to an `$s`
+register. The permuter's own zero was a dead `head = 0x1F800000` inside the
+tail expression - the scoped `register u8* tmp asm("v0")` block is the
+readable form of the same thing. `func_800E0994` is the example.
+
 Pinning that push temp to `$v0` also *takes `$v0` away from the first field
 copy*, which flips the schedule: the target fills the `lhu` load-delay slot
 with the GTE macro's `lui %hi(GsWSMATRIX)`, but with `$v0` reserved the first

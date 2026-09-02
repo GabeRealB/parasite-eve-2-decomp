@@ -4162,7 +4162,42 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     *scratch = (u8*)*scratch + 0x30;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0994);
+void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
+{
+    void**         scratch;
+    u8*            head;
+    GpAxisScratch* block;
+    s32            i;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x20;
+        block = (GpAxisScratch*)tmp;
+    }
+    block->local[0].vx = 0;
+    block->local[0].vy = (u16)arg0->field_12 + (u16)arg0->field_1C;
+    block->local[0].vz = 0;
+    block->local[1].vx = 0;
+    block->local[1].vy = (u16)arg0->field_12 - (u16)arg0->field_1C;
+    block->local[1].vz = 0;
+    *scratch           = block;
+    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    for (i = 0; i < 2; i++) {
+        gte_ldv0(&block->local[i]);
+        gte_rtv0_real();
+        gte_stlvnl(&block->vec);
+        arg1[i].vx = block->vec.vx + ((GsCOORDINATE2*)arg0->field_8)->workm.t[0];
+        arg1[i].vy = block->vec.vy + ((GsCOORDINATE2*)arg0->field_8)->workm.t[1];
+        arg1[i].vz = block->vec.vz + ((GsCOORDINATE2*)arg0->field_8)->workm.t[2];
+    }
+    block->vec.vx = arg1[0].vx - arg1[1].vx;
+    block->vec.vy = arg1[0].vy - arg1[1].vy;
+    block->vec.vz = arg1[0].vz - arg1[1].vz;
+    VectorNormalS(&block->vec, arg2);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
 
 void Gp_ClearPendingObj4C(void)
 {
