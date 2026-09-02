@@ -3,5 +3,3 @@
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_2", func_mine_refuge_8017EE3C);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_2", func_mine_refuge_8017EF30);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_2", jtbl_mine_refuge_8017D644);

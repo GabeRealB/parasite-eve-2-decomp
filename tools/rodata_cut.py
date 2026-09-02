@@ -124,26 +124,27 @@ def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
     base = syms[0][0]
     head = rodata_head(overlay)
     first_unit = min(unit_dirs(overlay), key=lambda p: p.name).name
-    cuts = existing_cuts(overlay)          # start from what is already there
-    notes = []
+    have = dict(existing_cuts(overlay))
+    cuts, notes, current = [], [], first_unit
 
-    def owner_at(off: int) -> str:
-        best, unit = -1, first_unit
-        for o, u in cuts:
-            if o <= off and o > best:
-                best, unit = o, u
-        return unit
-
+    # Walk the block in address order carrying the owner forward. A jump table
+    # whose referencing unit differs from the owner starts a new block there;
+    # data blobs are literal bytes either way and simply inherit. Retargeting an
+    # existing cut is allowed - shelter_r47's cut at 0x84 named shelter_r47_2
+    # while the one table in that block belongs to shelter_r47_4 - but a cut we
+    # cannot re-derive is honoured as it stands, which is what keeps mine_mesa's
+    # shared-lib cut at 0x24.
     for addr, sym, _ in syms:
+        off = head + (addr - base)
         if not sym.startswith("jtbl_"):
-            continue                      # data blobs stay where they fall
+            continue
         owner = referencing_unit(sym, overlay)
         if owner is None:
-            # Could be a shared lib unit, which we do not search. Whatever the
-            # manifest already says about it stands.
+            if off in have:
+                cuts.append((off, have[off]))
+                current = have[off]
             continue
-        off = head + (addr - base)
-        if owner == owner_at(off):
+        if owner == current:
             continue
         if off <= head:
             # The leading rodata always belongs to the overlay's first unit
@@ -151,11 +152,19 @@ def plan(overlay: str) -> tuple[list[tuple[int, str]], list[str]]:
             # first table belongs to a later unit" is not expressible as a cut.
             notes.append(f"{sym} would need the block start itself, needs manual work")
             continue
-        if any(o == off for o, _ in cuts):
-            notes.append(f"{sym}: a cut already exists at 0x{off:X}, needs manual work")
-            continue
         cuts.append((off, owner))
-        cuts.sort()
+        current = owner
+
+    # Keep every existing cut whose offset we did not retarget. Dropping one is
+    # only safe when its block is fully understood, and it is not: mine_mesa's
+    # cut at 0x24 names a shared lib unit that referencing_unit cannot see, and
+    # losing it put the table in a different object from the .L labels its
+    # entries point at. A surviving cut that now owns only data costs nothing.
+    placed = {o for o, _ in cuts}
+    for off, unit in have.items():
+        if off not in placed:
+            cuts.append((off, unit))
+    cuts.sort()
 
     units = [u for _, u in cuts]
     if len(units) != len(set(units)):

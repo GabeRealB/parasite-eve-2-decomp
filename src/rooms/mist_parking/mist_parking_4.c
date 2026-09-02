@@ -89,3 +89,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_4", func_mist_parking_80182628);
+
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_4", D_mist_parking_8017D7DC);
+
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_4", D_mist_parking_8017D7F4);
