@@ -47,7 +47,25 @@ void func_mist_parking_80183600(void)
     D_mist_parking_80195324 = Task_SpawnFromTable(&D_mist_parking_8018D75C, 4, 0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183634);
+void func_mist_parking_80183634(s32 arg0)
+{
+    Task* t = D_mist_parking_80195324;
+
+    if (t == NULL) {
+        return;
+    }
+    if (arg0 >= 2) {
+        goto kill;
+    }
+    if (arg0 < 0) {
+        goto kill;
+    }
+    t->spawnArg1 = arg0;
+    return;
+kill:
+    Task_Kill(D_mist_parking_80195324);
+    D_mist_parking_80195324 = NULL;
+}
 
 void func_mist_parking_80183688(s32 arg0)
 {
