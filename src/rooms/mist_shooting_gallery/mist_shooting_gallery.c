@@ -381,7 +381,131 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
         obj->field_2E = 6;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017EC58);
+void func_mist_shooting_gallery_8017EC58(Task* task)
+{
+    u8          buf[0x20];
+    TextDrawReq req1;
+    TextDrawReq req2;
+    TextDrawReq req3;
+    TextDrawReq req4;
+    UiObject*   obj;
+    s32         val;
+    s32         q;
+    s32         color;
+    s32         rawExp;
+    s32         rawBp;
+    s32         xOff;
+    s16         top;
+    s32         y;
+
+    obj = task->spawnArg2;
+    Ui_DrawTitle((UiPanel*)obj, "STATUS");
+    obj->field_2E = 0;
+    if (task->state == 0) {
+        Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(4));
+        task->state = task->state + 1;
+    }
+
+    color = 0x606060;
+    top   = (s16)obj->field_18;
+    y     = top + 0xF;
+    val   = Gp_StatRows[Mc_SaveData.field_F].base.word;
+    xOff  = (s16)obj->field_1C + 6;
+    if (val < 100) {
+        color = 0xD287F;
+    }
+
+    req1.x          = obj->baseX + xOff;
+    req1.y          = (s16)(obj->baseY - 8) + y;
+    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.field_8    = 0x606060;
+    req1.glyphTable = 5;
+    req1.centerMode = 0;
+    req1.field_E    = 1;
+    func_8002E53C(&req1, "HP");
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
+
+    y     = top + 0x1E;
+    val   = Gp_StatRows[Mc_SaveData.field_F].field_4;
+    color = 0x606060;
+    if (val < 30) {
+        color = 0xD287F;
+    }
+
+    req2.x          = obj->baseX + xOff;
+    req2.y          = (s16)(obj->baseY - 8) + y;
+    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.field_8    = 0x606060;
+    req2.glyphTable = 5;
+    req2.centerMode = 0;
+    req2.field_E    = 1;
+    func_8002E53C(&req2, "MP");
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
+
+    y      = top + 0x2D;
+    rawExp = D_mist_shooting_gallery_8018E0BC;
+    switch (Mc_SaveData.field_F) {
+        case 3:
+            val = 0;
+            break;
+        case 2:
+            q = rawExp / 100;
+            goto clamp_exp;
+        case 1:
+            q = rawExp / 20;
+            goto clamp_exp;
+        default:
+            q = rawExp / 10;
+        clamp_exp:
+            if (q > 999999) {
+                q = 999999;
+            }
+            val = q;
+            break;
+    }
+
+    req3.x          = obj->baseX + xOff;
+    req3.y          = (s16)(obj->baseY - 8) + y;
+    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.field_8    = 0x606060;
+    req3.glyphTable = 5;
+    req3.centerMode = 0;
+    req3.field_E    = 1;
+    func_8002E53C(&req3, "EXP");
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
+
+    y    += 0xF;
+    rawBp = D_mist_shooting_gallery_8018E0C0;
+    switch (D_80072177) {
+        case 3:
+            val = 0;
+            break;
+        case 2:
+            q = rawBp / 100;
+            goto clamp_bp;
+        case 1:
+            q = rawBp / 20;
+            goto clamp_bp;
+        default:
+            q = rawBp / 10;
+        clamp_bp:
+            if (q > 999999) {
+                q = 999999;
+            }
+            val = q;
+            break;
+    }
+
+    req4.x          = obj->baseX + xOff;
+    req4.y          = (s16)(obj->baseY - 8) + y;
+    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.field_8    = 0x606060;
+    req4.glyphTable = 5;
+    req4.centerMode = 0;
+    req4.field_E    = 1;
+    func_8002E53C(&req4, "BP");
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
+}
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D708);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D718);
