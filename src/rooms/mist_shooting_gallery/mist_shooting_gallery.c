@@ -521,7 +521,86 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 /// totals back scaled down by the bonus mode - the same divisor table as
 /// `func_mist_shooting_gallery_8017FA38`, clamped to 999999. Once the kill
 /// countdown runs out the task exits and the stage is flagged as ended.
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017F6C8);
+void func_mist_shooting_gallery_8017F6C8(Task* task)
+{
+    UiObject*     obj;
+    WipSysConfig* cfg = &Wip_SysConfig;
+    s32           savedBp;
+    s32           savedExp;
+    s32           bp;
+    s32           exp;
+
+    if (task->state == 0) {
+        obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
+        if (obj != NULL) {
+            D_mist_shooting_gallery_8018E0C0 = cfg->field_C;
+            D_mist_shooting_gallery_8018E0BC = cfg->field_8;
+            GameMain_SetFrameTiming(0);
+            task->spawnArg2 = obj;
+            task->state     = task->state + 1;
+        }
+    } else if (task->state == 1) {
+        obj = task->spawnArg2;
+        if (obj->field_2E == 6) {
+            task->killCountdown = 0xA;
+            Ui_TeardownTree(obj, obj->owner);
+            Gp_RecalcMaxHp();
+            Gp_RecalcMaxMp();
+
+            savedBp = D_mist_shooting_gallery_8018E0BC;
+            switch (D_80072177) {
+                case 3:
+                    bp = 0;
+                    goto store_bp;
+                case 2:
+                    bp = savedBp / 100;
+                    break;
+                case 1:
+                    bp = savedBp / 20;
+                    break;
+                default:
+                    bp = savedBp / 10;
+                    break;
+            }
+            if (bp > 999999) {
+                bp = 999999;
+            }
+        store_bp:
+            cfg->field_8 = bp;
+
+            savedExp = D_mist_shooting_gallery_8018E0C0;
+            switch (D_80072177) {
+                case 3:
+                    exp = 0;
+                    goto store_exp;
+                case 2:
+                    exp = savedExp / 100;
+                    break;
+                case 1:
+                    exp = savedExp / 20;
+                    break;
+                default:
+                    exp = savedExp / 10;
+                    break;
+            }
+            if (exp > 999999) {
+                exp = 999999;
+            }
+        store_exp:
+            cfg->field_C = exp;
+            Gp_FillHpMp();
+            task->state = task->state + 1;
+        }
+    } else {
+        task->killCountdown = task->killCountdown - 1;
+        if (task->killCountdown < 0) {
+            Task_CallExit(task);
+            GameMain_SetFrameTiming(1);
+            Wip_UiHolder = NULL;
+            Stage_SetEndingFlag();
+        }
+    }
+}
 s32 func_mist_shooting_gallery_8017F95C(void)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80184F8C, 0x44, 0, 0);
