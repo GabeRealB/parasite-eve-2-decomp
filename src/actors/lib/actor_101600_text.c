@@ -212,7 +212,7 @@ static __inline__ void update_actor_color(Actor01600Ctx* ctx, GsCOORDINATE2* att
 void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
 {
     Actor01600Work*     work;
-    Actor01600Obj2C*    obj;
+    TmdObject*          obj;
     GsCOORDINATE2*      coords;
     GsCOORDINATE2*      attach;
     GsCOORDINATE2*      body;
@@ -494,7 +494,25 @@ u8 Actor01600_Fn06F78(Actor01600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06FDC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn070AC);
+/// Copies the source actor's texture page and CLUT row (`field_24` /
+/// `field_25`) onto this actor's model object, then re-runs the model stream
+/// twice so the new page/CLUT is baked into both of the object's primitive
+/// buffers. Objects without an aux buffer (`field_18` NULL) have nothing to
+/// rebuild and are left alone.
+void Actor01600_Fn070AC(Actor01600* arg0, Actor01600* arg1)
+{
+    TmdObject* src;
+    TmdObject* dst;
+
+    src           = arg1->field_2C;
+    dst           = arg0->field_2C;
+    dst->field_24 = src->field_24;
+    dst->field_25 = src->field_25;
+    if (dst->field_18 != NULL) {
+        Tmd_ProcessStream(dst);
+        Tmd_ProcessStream(dst);
+    }
+}
 
 s32 Actor01600_Fn07100(Actor01600* arg0)
 {

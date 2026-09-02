@@ -6,6 +6,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/tmd.h"
+
 /// Singly-linked node embedded in `Actor01600Ctx` at 0x10 and unlinked by
 /// `Gp_UnlinkNode`. Same layout as the gameplay `GpLinkNode`.
 typedef struct Actor01600Node {
@@ -24,15 +26,6 @@ typedef struct Actor01600Ctx {
     /* 0x54 */ s32            field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
-
-/// `field_8` is the actor's `GsCOORDINATE2` array: entry 0 is the actor's own
-/// coordinate, entry 1 the attachment point whose `workm.t` feeds
-/// `Gp_UpdateActorColor`.
-typedef struct Actor01600Obj2C {
-    /* 0x0 */ byte           pad_0[8];
-    /* 0x8 */ GsCOORDINATE2* field_8;
-    /* 0xC */ u16            field_C;
-} Actor01600Obj2C;
 
 typedef struct Actor01600Work {
     /* 0x000 */ byte   pad_0[0x29C];
@@ -98,7 +91,7 @@ typedef struct Actor01600 {
     /* 0x1C */ Actor01600Work*    field_1C;
     /* 0x20 */ Actor01600Ctx*     field_20;
     /* 0x24 */ byte               pad_24[8];
-    /* 0x2C */ Actor01600Obj2C*   field_2C;
+    /* 0x2C */ TmdObject*         field_2C;
 } Actor01600;
 STATIC_ASSERT_SIZEOF(Actor01600, 0x30);
 
