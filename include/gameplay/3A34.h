@@ -1349,6 +1349,7 @@ s32             func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECT
 void            func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
 void            func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
 void            func_800DEF80(GpObj* node, GpObj4C* other);
+void            func_800DF6AC(GpObj* node, GpObj4C* other, VECTOR3* pos);
 s32             func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void            Gp_ClearObjHeads(void);
 s32             func_800E0308(SVECTOR* arg0, SVECTOR* arg1);

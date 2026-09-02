@@ -18565,13 +18565,35 @@ slot  = Game_GetPtrSlot(idx);
 Pinning both with `register ... asm("s4")` / `asm("s3")` restores source
 order, but then `(u16)match` cannot rewrite `$s3` in place: the target's
 `andi s3, s3, 0xFFFF` in the `beqz` delay slot becomes `andi v1, s3,
-0xFFFF` / `bne v0, v1`. Assigning `s3match = (u16)s3match` after the
-call gets the in-place `andi` back and hoists the `$s3` save to the
-very start.
+0xFFFF` / `bne v0, v1`.
+
+The fix is the local's *type*, not a pin. With `s32 mch = match` and a
+`(u16)mch` in the loop test, the truncation is a separate `zero_extend`
+that loop hoists to the preheader; the `a2` copy then has two dependents
+(the call and the `andi`), and `rank_for_schedule` prefers the insn with
+more dependents, so `move s3, a2` is scheduled before `move s4, a1`.
+Declaring the local `u16 mch = match` makes the truncation part of the
+assignment: the `a2` copy and the `a1` copy are then symmetric (one
+dependent each, the call), the tie falls to source order, and the
+`andi s3, s3, 0xFFFF` still lands after the call in the `beqz` delay
+slot:
+
+```c
+s32 msk;
+u16 mch;
+...
+idx   = 3;
+msk   = mask;
+mch   = match;          /* u16 local: 100% */
+actor = ((GpActorWork*)Game_GetPtrSlot(idx))->actor;
+for (; node != NULL; node = node->next) {
+    if ((node->flags & msk) == mch) {
+```
 
 `func_800E06AC` (sibling of matched `func_800E0608`) is the example.
-Natural C is 88.75% (saves too early). Explicit locals are 99.167%
-(only those two pairs swapped).
+Natural C is 88.75% (saves too early). Explicit `s32` locals with a
+`(u16)` cast at the compare are 99.167% (only those two pairs swapped);
+`u16 mch` matches.
 
 ## Assign `a - b` before `ABS()` so the negate stays `negu`
 

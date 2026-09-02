@@ -4052,7 +4052,29 @@ void func_800E0608(GpObj* node, s32 mask, s32 match)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E06AC);
+void func_800E06AC(GpObj* node, s32 mask, s32 match)
+{
+    GpObj4C*   other;
+    GameActor* actor;
+    s32        idx;
+    s32        msk;
+    u16        mch;
+
+    other = Gp_Obj4CList;
+    idx   = 3;
+    msk   = mask;
+    mch   = match;
+    actor = ((GpActorWork*)Game_GetPtrSlot(idx))->actor;
+    for (; node != NULL; node = node->next) {
+        if ((node->flags & msk) == mch) {
+            for (; other != NULL; other = other->next) {
+                if (other->field_4A & 0x40) {
+                    func_800DF6AC(node, other, (VECTOR3*)&actor->field_10);
+                }
+            }
+        }
+    }
+}
 
 s32 Gp_PairNop(void)
 {
