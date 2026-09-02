@@ -170,18 +170,82 @@ if [[ ! -d "$WT/asm" ]]; then
         || { echo "split failed in $WT" >&2; exit 1; }
 fi
 
+# --- rodata triage -----------------------------------------------------------
+# A function whose compiler-generated jump table belongs to another unit's
+# .rodata cannot land, however good the C is, until a `rodata`/`units` cut is
+# made in the manifest. Discovering that after matching wastes the whole match:
+# 26 of the 49 functions the orchestrator has recorded as matched but which are
+# still unmatched in the tree are blocked this way. Triage before the agent
+# picks, not after.
+TRIAGE_JSON="$(mktemp)"
+trap 'rm -f "$TRIAGE_JSON"' EXIT
+python3 "$ROOT/tools/rodata_triage.py" "$OVERLAY" --json >"$TRIAGE_JSON" 2>/dev/null || echo '{}' >"$TRIAGE_JSON"
+BLOCKED="$(python3 - "$TRIAGE_JSON" <<'PYEOF'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    d = {}
+for b in d.get("blocked", []):
+    print("\t".join((b["func"], b["unit"], b["table"], b["owner"])))
+PYEOF
+)"
+
+# Filter the leased list here, next to the triage that produced the block list,
+# so the brief body is pure formatting and the counts in the heading come from
+# the same computation as the list under it.
+FUNCS_FREE="$(FUNCS_IN="$FUNCS" BLOCKED_IN="$BLOCKED" python3 - <<'PYEOF'
+import os
+blocked = {l.split("\t")[0] for l in os.environ.get("BLOCKED_IN", "").splitlines() if l.strip()}
+for f in os.environ.get("FUNCS_IN", "").splitlines():
+    f = f.strip()
+    if f and f not in blocked:
+        print(f)
+PYEOF
+)"
+FREE_COUNT="$(grep -c . <<<"$FUNCS_FREE" || echo 0)"
+
+if [[ -n "$BLOCKED" ]]; then
+    echo "rodata triage: $(wc -l <<<"$BLOCKED") function(s) blocked on a split change"
+fi
+
 # --- brief -------------------------------------------------------------------
 BRIEF="$WT/OVERLAY_BRIEF.md"
 {
-    echo "# Match overlay \`$OVERLAY\` ($COUNT functions)"
+    echo "# Match overlay \`$OVERLAY\` ($FREE_COUNT functions to match, $COUNT leased)"
     echo
     echo "Worktree: \`$WT\` — **build here, it needs no merge lock.**"
     echo "Lease session: \`$SESSION\` (held via tools/vacuum_orch.py)"
     echo
     echo "## Functions"
     echo '```'
-    echo "$FUNCS"
+    echo "$FUNCS_FREE"
     echo '```'
+
+    if [[ -n "$BLOCKED" ]]; then
+        echo
+        echo "## Do NOT match these - blocked on a split change"
+        echo
+        echo "Each carries a compiler-generated jump table that splat has placed in a"
+        echo "*different* unit's \`.rodata\`. A unit's \`.rodata\` appears once in the linker"
+        echo "script, at the offset its subsegment names, so decompiling the function emits"
+        echo "the table at the wrong address and the overlay stops matching. No amount of"
+        echo "work on the C body changes that."
+        echo
+        echo '| function | its unit | table | table owned by |'
+        echo '|---|---|---|---|'
+        while IFS=$'\t' read -r fn unit tbl owner; do
+            [[ -n "$fn" ]] && echo "| \`$fn\` | $unit | \`$tbl\` | $unit -> **$owner** |"
+        done <<<"$BLOCKED"
+        echo
+        echo "This is a finished-match trap: one of these reached 100.00% with all-zero"
+        echo "penalties in the first run of this workflow and still could not land."
+        echo "Report them with \`--unattempted\`, never \`--difficult\` - they are not hard,"
+        echo "they are parked. Fixing one needs a \`rodata\` cut (usually paired with"
+        echo "\`units\`) in \`configs/USA/overlays.toml\`, the affected \`src/\` files deleted"
+        echo "and a re-split; see CLAUDE.md, \"Compiler-generated jump tables\". Do that"
+        echo "deliberately as its own task, not in the middle of a matching run."
+    fi
     cat <<'BODY'
 
 ## Why these are worth doing together
