@@ -31,7 +31,10 @@ void func_mist_r18_8017E7F0(void)
     Task_SpawnFromTable(&D_mist_r18_80184F04, 5, 0, (s32)&D_mist_r18_80184EE4);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E824);
+void func_mist_r18_8017E824(void)
+{
+    Task_SpawnFromTable(&D_mist_r18_80184F04, 3, 0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E854);
 
