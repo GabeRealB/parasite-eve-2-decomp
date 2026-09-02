@@ -24,6 +24,10 @@ typedef struct {
 } MistParkingCapState;
 
 void                       func_mist_parking_801846A4(s32 arg0);
+extern s32                 D_mist_parking_80190C74;
+extern s32                 D_mist_parking_80190D64;
+extern s32                 D_mist_parking_80190E84;
+extern s32                 D_mist_parking_80191034;
 extern s32                 D_mist_parking_80191154;
 extern s32                 D_mist_parking_80191214;
 extern s32                 D_mist_parking_80191304;
@@ -204,7 +208,48 @@ void func_mist_parking_80183EAC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_12", func_mist_parking_801842DC);
+void func_mist_parking_801842DC(Task* task)
+{
+    s32 key;
+
+    switch (task->state) {
+        case 0:
+            func_mist_parking_801846A4(1);
+            func_800E8614((s32)&D_mist_parking_80190C74, 1);
+            task->state++;
+            break;
+        case 1:
+        case 3:
+            if (Game_Session->field_1 != 0) {
+                return;
+            }
+            task->state++;
+            break;
+        case 2:
+            key             = Gp_GetCapEventKey();
+            task->spawnArg1 = key;
+            switch (key) {
+                case 1:
+                    func_800E8614((s32)&D_mist_parking_80190D64, 1);
+                    break;
+                case 2:
+                    func_800E8614((s32)&D_mist_parking_80190E84, 1);
+                    break;
+                case 3:
+                    func_800E8614((s32)&D_mist_parking_80191034, 1);
+                    break;
+            }
+            task->state++;
+            break;
+        case 4:
+            if (task->spawnArg1 == 1) {
+                Gp_MsgPlayerWeapon(1);
+            }
+            func_mist_parking_801846A4(0);
+            Task_Kill(task);
+            break;
+    }
+}
 
 void func_mist_parking_80184408(s32 arg0)
 {
