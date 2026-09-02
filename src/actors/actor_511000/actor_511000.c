@@ -1,5 +1,8 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/tmd.h"
+
+#include "gameplay/gameplay.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80131E78);
 
@@ -106,7 +109,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133F48);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133F88);
+void func_actor_511000_80133F88(void* arg0, Task* arg1)
+{
+    ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_80133FC8);
 
