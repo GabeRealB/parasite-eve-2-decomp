@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "rooms/mist_shooting_gallery.h"
+
 #include "main/pad.h"
 #include "main/stage.h"
 #include "main/task.h"
@@ -36,7 +38,12 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801848B4);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184954);
+void func_mist_shooting_gallery_80184954(void)
+{
+    MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap;
+
+    work->field_1F = 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_80184970);
 
