@@ -11,6 +11,10 @@ void func_mist_r18_8017E144(s16 arg0);
 extern s32      D_mist_r18_80184EE4;
 extern TaskDesc D_mist_r18_80184F04;
 
+/// The two prop tasks `func_mist_r18_8017E784` tears down, by index.
+extern Task* D_mist_r18_80186E90;
+extern Task* D_mist_r18_80186E94;
+
 void func_mist_r18_8017E39C(void)
 {
 }
@@ -34,7 +38,21 @@ void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E6D8);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E784);
+/// Kill and clear prop task `idx` (0 or 1); other indices do nothing.
+void func_mist_r18_8017E784(s32 idx)
+{
+    if (idx == 0) {
+        if (D_mist_r18_80186E90 != NULL) {
+            Task_Kill(D_mist_r18_80186E90);
+        }
+        D_mist_r18_80186E90 = NULL;
+    } else if (idx == 1) {
+        if (D_mist_r18_80186E94 != NULL) {
+            Task_Kill(D_mist_r18_80186E94);
+        }
+        D_mist_r18_80186E94 = NULL;
+    }
+}
 
 void func_mist_r18_8017E7F0(void)
 {
