@@ -1,8 +1,21 @@
 #include "common.h"
+
+#include "gameplay/3CD8.h"
+
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/task.h"
+
+void func_mist_parking_801837A4(s32 arg0);
+void func_mist_parking_8018471C(s32 arg0);
 
 extern u8 D_8007216D;
+extern u8 D_80072170;
+
+extern s32 D_mist_parking_80186BB8;
+extern s32 D_mist_parking_8018DF34;
+extern s32 D_mist_parking_8018EDBC;
+extern s32 D_mist_parking_8018EFE4;
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_5", func_mist_parking_801826E8);
 
@@ -21,4 +34,19 @@ void func_mist_parking_801827A0(s32 arg0)
     Gp_SpawnIfCapIdle(arg0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_5", func_mist_parking_801827C0);
+void func_mist_parking_801827C0(Task* arg0)
+{
+    arg0->field_24 = &D_mist_parking_80186BB8;
+    Game_SetPtrSlot(arg0, 7);
+    if ((Game_Session->field_9 == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
+        if (D_80072170 == 3) {
+            func_800E3FAC(0xA2, 0x3C);
+            func_mist_parking_801837A4(0);
+            func_800E8634((s32)&D_mist_parking_8018DF34, 0, (s32)&D_mist_parking_8018EDBC);
+        } else {
+            func_mist_parking_8018471C(0);
+            func_800E8614((s32)&D_mist_parking_8018EFE4, 1);
+        }
+    }
+    arg0->state = arg0->state + 1;
+}
