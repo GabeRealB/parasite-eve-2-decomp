@@ -1,5 +1,12 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
+
+#include "main/session.h"
+#include "main/task.h"
+
+extern GpMsgEntry D_shelter_b1_main_corridor_801830A4[];
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017D620);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", D_shelter_b1_main_corridor_8017D5C0);
@@ -27,7 +34,12 @@ s32 func_shelter_b1_main_corridor_8017DCFC(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DD04);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DD4C);
+void func_shelter_b1_main_corridor_8017DD4C(Task* arg0)
+{
+    arg0->field_24 = D_shelter_b1_main_corridor_801830A4;
+    Game_SetPtrSlot(arg0, 7);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_shelter_b1_main_corridor_8017DD90(void)
 {
