@@ -221,7 +221,91 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", 
 /// of `D_mist_shooting_gallery_80186904` that carries the current wave number,
 /// draws the remaining time, and restarts the state machine once the clock
 /// runs out.
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", func_mist_shooting_gallery_801831B0);
+void func_mist_shooting_gallery_801831B0(Task* arg0)
+{
+    MistShootingGalleryWork*  work;
+    MistShootingGallerySpawn* spawn;
+    u16                       intro;
+    u16                       ready;
+    u16                       start;
+    u16                       key;
+    u16                       wave;
+    u8                        step;
+
+    work = (MistShootingGalleryWork*)arg0->idMap;
+    if (Pad_CheckButtons(0, 1, 0x100) != 0) {
+        func_8014A9A0();
+        return;
+    }
+
+    switch (work->field_04) {
+        case 0:
+            work->field_02 = 0xE10;
+            work->field_0A = 0x3C;
+            work->field_04++;
+        case 1:
+            intro          = work->field_0A - 1;
+            work->field_0A = intro;
+            if ((s32)(intro << 16) <= 0) {
+                func_mist_shooting_gallery_80184BB8(0x12, work->field_20, 0x8E0);
+                step = work->field_20;
+                if (step == 4) {
+                    work->field_0A = 0x3C;
+                    work->field_04++;
+                    return;
+                }
+                work->field_20 = step + 1;
+                return;
+            }
+        default:
+            return;
+        case 2:
+            ready          = work->field_0A;
+            work->field_0A = ready - 1;
+            if ((s32)(ready << 16) <= 0) {
+                work->field_0A = 0xA;
+                work->field_04++;
+                Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                SndEvt_EnqueueType6(0x5114000F, 0, 0);
+                Gp_ArmStateF0(1);
+                return;
+            }
+            break;
+        case 3:
+            start          = work->field_0A;
+            work->field_0A = start - 1;
+            if ((s32)(start << 16) <= 0) {
+                work->field_04++;
+                Display_ReleaseRef();
+                case 4:
+                    spawn = &D_mist_shooting_gallery_80186904[work->field_08];
+                    key   = spawn->field_00;
+                    if (key != 0xFFFF) {
+                        if (key != 0xFFF1) {
+                            if (work->field_00 == key) {
+                                do {
+                                    func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                                    spawn++;
+                                    work->field_08++;
+                                } while (work->field_00 == spawn->field_00);
+                            }
+                            wave = work->field_00;
+                            if (wave <= 0xFFEF) {
+                                work->field_00 = wave + 1;
+                            }
+                        } else if (work->field_0E == 0) {
+                            work->field_08++;
+                        }
+                    }
+                    func_mist_shooting_gallery_8018458C(work);
+                    if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+                        work->field_04 = 0;
+                        arg0->state++;
+                    }
+            }
+            break;
+    }
+}
 /// Per-frame update for the gallery's second bonus course. States 0-3 run the
 /// "ready" banner and the hand-off wait on `Game_Session::field_4`, gated on
 /// the countdown hold `D_80071075`; states 4-5 wait on the player picking up
