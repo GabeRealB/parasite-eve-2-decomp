@@ -2,49 +2,92 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1A8.h"
+#include "gameplay/268.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
 
-extern TaskDesc D_mist_shooting_gallery_80185378;
-extern SVECTOR  D_mist_shooting_gallery_80185550[];
-extern SVECTOR  D_mist_shooting_gallery_80185570[];
-extern SVECTOR  D_mist_shooting_gallery_801855C0[];
-extern SVECTOR  D_mist_shooting_gallery_801855F0[];
-extern SVECTOR  D_mist_shooting_gallery_80185610[];
-extern SVECTOR  D_mist_shooting_gallery_80185670[];
-extern SVECTOR  D_mist_shooting_gallery_80185678[];
-extern SVECTOR  D_mist_shooting_gallery_80185680[];
-extern SVECTOR  D_mist_shooting_gallery_80185688[];
-extern SVECTOR  D_mist_shooting_gallery_80185690[];
-extern SVECTOR  D_mist_shooting_gallery_801856B0[];
+#include "rooms/mist_shooting_gallery.h"
+
+extern u8 D_80062737;
+/// Screen-fade "overlay owns the display" flag, first byte of the flag block
+/// at 0x80071068. Declared as an array on purpose: GCC 2.8.1 exempts a
+/// *fixed-address scalar* store from aliasing with a varying-address struct
+/// load, so a plain `extern s8` here lets the scheduler hoist the following
+/// `arg0->state` load above the store. Indexing an array makes the store a
+/// struct reference and keeps the two in order.
+extern s8       D_80071068[];
+extern s8       D_8007106B;
+extern s8       D_8007272D;
+extern s16      D_8007A396;
+extern s8       D_80073BAE;
+extern s8       D_80072176;
+extern s8       D_80072177;
+extern s16      D_80114D08;
+extern s32      D_8014D038;
+extern TaskDesc D_8014E13C;
+extern s32      D_80153274;
+extern s32      D_80153D6C;
+
+extern s32  func_8014AA54(GpSaveLoc* loc);
+extern void func_8014AB6C(void);
+extern void func_8014AF0C(void);
+
+extern MistShootingGalleryCourseMenu D_mist_shooting_gallery_8017DADC;
+
+/// "SELECT" — the panel title, owned by `mist_shooting_gallery.c`'s rodata.
+extern char D_mist_shooting_gallery_8017DB04[];
+
+extern MistShootingGalleryLayout D_mist_shooting_gallery_80185198;
+extern MistShootingGalleryLayout D_mist_shooting_gallery_801851F8;
+extern MistShootingGalleryLayout D_mist_shooting_gallery_80189968;
+
+extern void*        D_mist_shooting_gallery_801853C0;
+extern u32          D_mist_shooting_gallery_8018D1B4[];
+extern u32          D_mist_shooting_gallery_8018DF38[];
+extern UiObjectDesc D_mist_shooting_gallery_8018535C;
+extern UiList       D_mist_shooting_gallery_80185338;
+extern TaskDesc     D_mist_shooting_gallery_801850DC;
+extern TaskDesc     D_mist_shooting_gallery_80185378;
+extern TaskDesc     D_mist_shooting_gallery_80185384;
+extern SVECTOR      D_mist_shooting_gallery_80185550[];
+extern SVECTOR      D_mist_shooting_gallery_80185570[];
+extern SVECTOR      D_mist_shooting_gallery_801855C0[];
+extern SVECTOR      D_mist_shooting_gallery_801855F0[];
+extern SVECTOR      D_mist_shooting_gallery_80185610[];
+extern SVECTOR      D_mist_shooting_gallery_80185670[];
+extern SVECTOR      D_mist_shooting_gallery_80185678[];
+extern SVECTOR      D_mist_shooting_gallery_80185680[];
+extern SVECTOR      D_mist_shooting_gallery_80185688[];
+extern SVECTOR      D_mist_shooting_gallery_80185690[];
+extern SVECTOR      D_mist_shooting_gallery_801856B0[];
 
 void Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw31(SVECTOR* v, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8017FEB8);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180000);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018008C);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018018C);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_801801E4);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180390);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018055C);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180728);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180A00);
-
 s32 func_mist_shooting_gallery_80180B34(void)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80185378, 0, 0, 0);
@@ -52,7 +95,6 @@ s32 func_mist_shooting_gallery_80180B34(void)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_80180B64);
-
 void func_mist_shooting_gallery_80180F2C(Task* arg0)
 {
     u8          slotParam[4];
@@ -131,9 +173,14 @@ L_case5:
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_801810D8);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_801811C0);
-
+void func_mist_shooting_gallery_801811C0(s16 arg0)
+{
+    if (arg0 == 0) {
+        D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018D1B4;
+        return;
+    }
+    D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018DF38;
+}
 void func_mist_shooting_gallery_801811EC(void)
 {
     u8 view;
