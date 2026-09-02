@@ -111,7 +111,22 @@ void func_mist_parking_801836CC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_9", func_mist_parking_80183708);
+void func_mist_parking_80183708(s32 arg0)
+{
+    Gp_ResetCap();
+    switch (arg0) {
+        case 1:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x140, 0x100);
+            break;
+        case 2:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(2);
+            func_800E6D4C(0x2C0, 0);
+            break;
+    }
+}
 
 void func_mist_parking_80183780(s32 arg0)
 {
