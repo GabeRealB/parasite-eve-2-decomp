@@ -243,6 +243,33 @@ write_blank_base() {
     } >"$created_dir/base.c"
 }
 
+# A give-up seed is only worth preferring over a fresh m2c run if it ever
+# scored. An archive at 0.0 is a seed that never compiled - which is how it came
+# to be archived - so handing it back reproduces the failure and, worse, hides
+# the improved bootstrap behind it. 349 of 597 archived seeds were at 0.0.
+giveup_seed_is_useful() {
+    local meta="$ROOT/tools/giveups/$FUNC_STEM/meta.json"
+    local score
+    if [[ -f "$meta" ]]; then
+        score=$(python3 -c '
+import json, sys
+try:
+    print(float(json.load(open(sys.argv[1])).get("score") or 0))
+except Exception:
+    print(0)' "$meta" 2>/dev/null || echo 0)
+        awk -v s="$score" 'BEGIN { exit !(s + 0 > 0) }' && return 0
+        echo "Ignoring give-up seed for $FUNC_STEM: it never scored (${score}%)."
+        return 1
+    fi
+    # No meta at all: trust it only if it does not carry m2c's unnamed-field
+    # marker, which never compiles.
+    if grep -qE '\->unk[0-9A-Fa-f]+' "$ROOT/tools/giveups/$FUNC_STEM/base.c" 2>/dev/null; then
+        echo "Ignoring give-up seed for $FUNC_STEM: unnamed field access, will not compile."
+        return 1
+    fi
+    return 0
+}
+
 GIVEUP_BASE="$ROOT/tools/giveups/$FUNC_STEM/base.c"
 GIVEUP_META="$ROOT/tools/giveups/$FUNC_STEM/meta.json"
 
@@ -255,7 +282,7 @@ if [[ "$USE_SCRATCH_SOURCE" == true ]]; then
         echo "$SOURCE_CODE"
     } >"$created_dir/base.c"
     echo "Using source code from decomp.me scratch (${SCRATCH_SCORE}% match)"
-elif [[ -f "$GIVEUP_BASE" ]]; then
+elif [[ -f "$GIVEUP_BASE" ]] && giveup_seed_is_useful; then
     cp "$GIVEUP_BASE" "$created_dir/base.c"
     giveup_note="tools/giveups/$FUNC_STEM/base.c"
     if [[ -f "$GIVEUP_META" ]]; then
@@ -401,6 +428,24 @@ elif [[ "$BOOTSTRAP" == true ]]; then
             if [[ -n "$C_FILE" && -f "$C_FILE" ]]; then
                 grep -E '^#include "' "$C_FILE" | grep -v '"common.h"' || true
             fi
+            # m2c also learns globals from the context, and with --globals used
+            # it does not re-declare what the context already had - but the
+            # context is the host .c, which often declares them file-locally
+            # rather than in a header. The seed then names a symbol nothing
+            # declares ("`D_actor_121300_8013D418' undeclared"). Carry across
+            # exactly the host declarations the seed actually references.
+            if [[ -n "$C_FILE" && -f "$C_FILE" ]]; then
+                M2C_BODY="$M2C_OUTPUT" python3 - "$C_FILE" <<'PYEOF' 2>/dev/null || true
+import os, re, sys
+host = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+body = os.environ.get("M2C_BODY", "")
+names = set(re.findall(r"\b[A-Za-z_]\w*\b", body))
+for line in host.splitlines():
+    m = re.match(r"^\s*extern\s+[^;=]*?\b(\w+)\s*(?:\[[^\]]*\])?\s*;\s*$", line)
+    if m and m.group(1) in names:
+        print(line.strip())
+PYEOF
+            fi
             [[ "${M2C_VALID_SYNTAX:-false}" == true ]] && echo '#include "m2c_macros.h"'
             echo ""
             echo "// This is a decompilation attempt by the m2c tool."
@@ -430,6 +475,14 @@ rm -f "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"
 cp "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"
 ln -sfn "${CLAUDE_CONFIG}" "$created_dir/"
 ln -sfn "$ROOT/DECOMPILATION_LEARNINGS.md" "$created_dir/"
+
+# Carrying the host includes across makes the seed's types resolve, but it also
+# puts m2c's guessed prototypes next to the real ones. Let the compiler say
+# which pairs conflict and drop m2c's side. This has to run after build.sh is
+# linked into the scratch dir, not right after base.c is written.
+if [[ "$BOOTSTRAP" == true ]]; then
+    python3 "$ROOT/tools/seed_repair.py" "$created_dir" || true
+fi
 
 python3 "$OVERLAY_PY" pack "$FUNC_STEM" >"$created_dir/BRIEF.md"
 echo "Wrote $created_dir/BRIEF.md"
