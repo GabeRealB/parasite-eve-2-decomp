@@ -1,5 +1,12 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
+
+#include "main/session.h"
+#include "main/task.h"
+
+extern GpMsgEntry D_shelter_b2_south_maintenance_walkway_80182550[];
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", func_shelter_b2_south_maintenance_walkway_8017D610);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", D_shelter_b2_south_maintenance_walkway_8017D5C0);
@@ -25,7 +32,12 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DC18(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", func_shelter_b2_south_maintenance_walkway_8017DC20);
+void func_shelter_b2_south_maintenance_walkway_8017DC20(Task* arg0)
+{
+    arg0->field_24 = D_shelter_b2_south_maintenance_walkway_80182550;
+    Game_SetPtrSlot(arg0, 7);
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_shelter_b2_south_maintenance_walkway_8017DC64(void)
 {
