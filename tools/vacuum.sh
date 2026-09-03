@@ -95,6 +95,10 @@ Environment:
   VACUUM_WORKTREE_PARENT   Directory for pe2-wt-<func> worktrees
                            (default: parent of this repo)
   VACUUM_ORCH_STATE        Override orchestrator JSON path
+  VACUUM_LAND_MODEL        Model for landing work - the port agent and the
+                    overlay drift landing. Splicing a verified body into the
+                    real file and fixing includes is mechanical, so this can be
+                    a cheaper model than VACUUM_MODEL. Defaults to VACUUM_MODEL.
   VACUUM_PORT_MAX_TURNS    Max turns for the port agent (default 80)
   VACUUM_PORT_TRIES        Failed trunk landings before marking difficult
                            (default 2). Stops the same claimed function from
@@ -309,6 +313,18 @@ pick_simplest_func() {
 # sweep does: tools/vacuum_overlay.sh passes VACUUM_TOTAL so the log says where
 # it is rather than only what it is doing, which over an 8-hour run is the
 # difference between reading progress and guessing at it.
+# The agent tag written on every run line. VACUUM_MODEL is what actually
+# decides cost, and the CLI name alone does not reveal it - the Fable
+# escalation runs all logged as "claude", so their spend could only be told
+# apart by which file it landed in.
+agent_tag() {
+  if [[ -n "${VACUUM_MODEL:-}" ]]; then
+    echo "$CLI/$VACUUM_MODEL"
+  else
+    echo "$CLI"
+  fi
+}
+
 progress_tag() {
   local n=$(( ${1:-0} + 1 ))
   if [[ -n "${VACUUM_TOTAL:-}" ]]; then
@@ -417,6 +433,11 @@ run_agent() {
   local prompt=$1
   local cwd=${2:-$PWD}
   local extra=()
+  # Matching and landing are different jobs. Matching is the search that needs
+  # the strong model; landing is mechanical - splice the verified body into the
+  # real file, fix includes, rebuild, commit - and a call site can ask for a
+  # cheaper model by setting AGENT_MODEL.
+  local model="${AGENT_MODEL-${VACUUM_MODEL:-}}"
   local grok_rules=""
   if [[ -n "${AGENT_MAX_TURNS:-}" ]]; then
     extra+=(--max-turns "$AGENT_MAX_TURNS")
@@ -448,11 +469,11 @@ run_agent() {
         # frozen in the log until it ends. Stream the events and format them the
         # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
         if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-          claude -p ${VACUUM_MODEL:+--model "$VACUUM_MODEL"} --verbose --output-format stream-json \
+          claude -p ${model:+--model "$model"} --verbose --output-format stream-json \
             --dangerously-skip-permissions "$prompt" \
             | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
         else
-          claude -p ${VACUUM_MODEL:+--model "$VACUUM_MODEL"} --dangerously-skip-permissions "$prompt"
+          claude -p ${model:+--model "$model"} --dangerously-skip-permissions "$prompt"
         fi
         ;;
       grok)
@@ -1149,7 +1170,7 @@ reset_trunk_to() {
 }
 
 vacuum_orch_loop() {
-  echo "Vacuum using CLI: $CLI (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
+  echo "Vacuum using CLI: $CLI, model ${VACUUM_MODEL:-default} (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
   vacuum_filter_desc | tee -a "$LOG_FILE"
   echo "Session log: $LOG_FILE" | tee -a "$LOG_FILE"
   echo "Shared log:  $MAIN_LOG_FILE (flock-appended per function)" | tee -a "$LOG_FILE"
@@ -1207,7 +1228,7 @@ vacuum_orch_loop() {
     fi
     ORCH_FUNC=$func
     note_skip "$func"
-    echo -e "\n[$(date '+%H:%M:%S')] [$CLI] [orch] $(progress_tag "$count")Decompiling $func...\n" | tee -a "$LOG_FILE"
+    echo -e "\n[$(date '+%H:%M:%S')] [$(agent_tag)] [orch] $(progress_tag "$count")Decompiling $func...\n" | tee -a "$LOG_FILE"
     if [[ "$func" != "$port_try_func" ]]; then
       port_tries=0
       port_try_func=$func
@@ -1384,8 +1405,9 @@ vacuum_orch_loop() {
 
     if [[ $did_fast -eq 0 ]]; then
       if [[ "$status" == "matched" ]]; then
-        echo "Starting port agent for $func ($status)..." | tee -a "$LOG_FILE"
-        AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
+        echo "Starting port agent for $func ($status), model ${VACUUM_LAND_MODEL:-${VACUUM_MODEL:-default}}..." | tee -a "$LOG_FILE"
+        AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" \
+        AGENT_MODEL="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}" run_agent \
           "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint" "$siblings")" \
           "$ROOT" | tee -a "$LOG_FILE"
         if include_asm_present "$func" "$ROOT"; then
@@ -1490,7 +1512,7 @@ if [[ $ORCH -eq 1 ]]; then
   exit $?
 fi
 
-echo "Vacuum using CLI: $CLI" | tee -a "$LOG_FILE"
+echo "Vacuum using CLI: $CLI, model ${VACUUM_MODEL:-default}" | tee -a "$LOG_FILE"
 vacuum_filter_desc | tee -a "$LOG_FILE"
 
 count=0
@@ -1534,7 +1556,7 @@ while true; do
   rm -f "$_pick_err"
 
   note_skip "$simplest_func"
-  echo -e "\n[$(date '+%H:%M:%S')] [$CLI] $(progress_tag "$count")Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
+  echo -e "\n[$(date '+%H:%M:%S')] [$(agent_tag)] $(progress_tag "$count")Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
 
   rm -rf "nonmatchings/${simplest_func}" "nonmatchings/${simplest_func}-"*
   bootstrap_out=$(./tools/claude --bootstrap-only --cli "$CLI" --id vacuum "$simplest_func" 2>&1 | tee -a "$LOG_FILE")

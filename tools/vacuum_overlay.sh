@@ -57,7 +57,7 @@ LOG_FILE="$ROOT/tools/vacuum-overlay-${OVERLAY:-auto}-$$.log"
 : >"$LOG_FILE"
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
-log "session $SESSION, cli $CLI, log $LOG_FILE"
+log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}, log $LOG_FILE"
 
 prep_args=(--session "$SESSION" --bootstrap 0)
 [[ -n "$OVERLAY" ]] && prep_args+=(--overlay "$OVERLAY")
@@ -257,7 +257,12 @@ Then:
 Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
 
     if command -v claude >/dev/null 2>&1; then
-        claude -p --verbose --output-format stream-json --dangerously-skip-permissions \
+        # Landing is mechanical next to matching, so it can run on a cheaper
+        # model; VACUUM_LAND_MODEL selects it, falling back to the session's.
+        land_model="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}"
+        log "drift landing agent, model ${land_model:-default}"
+        claude -p ${land_model:+--model "$land_model"} \
+            --verbose --output-format stream-json --dangerously-skip-permissions \
             "$port_prompt" >>"$LOG_FILE" 2>&1
         rc=$?
         log "port agent finished (rc=$rc)"
