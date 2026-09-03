@@ -7,6 +7,7 @@
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 
 extern Task* D_acropolis_fountain_80183BB4;
 
@@ -32,7 +33,21 @@ s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D7F4);
+s32 func_acropolis_fountain_8017D7F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 3:
+            SndEvt_EnqueueType6(0x51080003, 0, 0);
+            break;
+        case 4:
+            SndEvt_EnqueueType6(0x51080004, 0, 0);
+            break;
+        case 9:
+            SndEvt_EnqueueType6(0x51080009, 0, 0);
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D868);
 
