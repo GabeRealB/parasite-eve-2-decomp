@@ -6,11 +6,18 @@
 #include "main/task.h"
 
 extern s32 D_acropolis_east_elevator_hall_80185C8C;
+extern s32 D_acropolis_east_elevator_hall_8018621C;
 extern s32 D_acropolis_east_elevator_hall_801862F4;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F378);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F420);
+s32 func_acropolis_east_elevator_hall_8017F420(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 2) {
+        func_800E8614((s32)&D_acropolis_east_elevator_hall_8018621C, 0);
+    }
+    return 0;
+}
 
 void func_acropolis_east_elevator_hall_8017F450(void)
 {
