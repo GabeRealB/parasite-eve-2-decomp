@@ -6,17 +6,21 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
+
+#include <psyq/libgs.h>
 
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern s32 D_acropolis_east_elevator_hall_8017D5E0;
-extern s32 D_acropolis_east_elevator_hall_80185C8C;
-extern s32 D_acropolis_east_elevator_hall_80185D54;
-extern s32 D_acropolis_east_elevator_hall_801860B4;
-extern s32 D_acropolis_east_elevator_hall_8018621C;
-extern s32 D_acropolis_east_elevator_hall_801862F4;
-extern s32 D_acropolis_east_elevator_hall_8018631C;
+extern s32     D_acropolis_east_elevator_hall_8017D5E0;
+extern SVECTOR D_acropolis_east_elevator_hall_8017D5E8;
+extern s32     D_acropolis_east_elevator_hall_80185C8C;
+extern s32     D_acropolis_east_elevator_hall_80185D54;
+extern s32     D_acropolis_east_elevator_hall_801860B4;
+extern s32     D_acropolis_east_elevator_hall_8018621C;
+extern s32     D_acropolis_east_elevator_hall_801862F4;
+extern s32     D_acropolis_east_elevator_hall_8018631C;
 
 s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
 {
@@ -66,7 +70,46 @@ void func_acropolis_east_elevator_hall_8017F4E8(void)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F55C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F5B4);
+void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
+{
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    switch (task->state) {
+        case 0:
+            Task_Spawn(1, 0x25, 0, 0);
+            Task_Spawn(1, 0x25, 1, 0);
+            task->state++;
+            /* fallthrough */
+        case 1:
+            if ((u8)Game_Session->field_4 == 2) {
+                SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
+
+                Gp_SpawnEff(0x60022, coord, 0xC03, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x985;
+                vec.vz = 0x55;
+                Gp_SpawnEff(0x60022, coord, 0xC03, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0xA81;
+                vec.vz = -0x1CA;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0xA93;
+                vec.vz = -0x61C;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x460;
+                vec.vz = -0x1A1;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x449;
+                vec.vz = -0x635;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F77C);
 

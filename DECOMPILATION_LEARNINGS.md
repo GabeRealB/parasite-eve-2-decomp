@@ -1161,6 +1161,45 @@ an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
 `Gp_BindActorD4` is the example (`GpActorD4.coord = *extra->field_8`).
 
+## An 8-byte `SVECTOR` assign is a bare `lwl`/`lwr` pair from a rodata symbol
+
+The complement of the two entries above. A copy small enough that GCC
+unrolls it whole (8 bytes) with alignment 2 gets no `andi 3` runtime check
+at all - just two `lwl`/`lwr` load pairs and two `swl`/`swr` store pairs:
+
+```
+addiu t3, v0, %lo(D_..._8017D5E8)
+lwl   t0, 0x3(t3)
+lwr   t0, 0x0(t3)
+lwl   t1, 0x7(t3)
+lwr   t1, 0x4(t3)
+swl   t0, 0x13(sp)
+swr   t0, 0x10(sp)
+...
+```
+
+m2c cannot pair these across its own output and emits
+`M2C_ERROR(/* Unable to handle lwr; missing a corresponding lwl */)` for
+each half. The source is a whole-struct assignment of an `SVECTOR`-shaped
+type (four `s16`, so alignment 2), *not* four field stores:
+
+```c
+extern SVECTOR D_acropolis_east_elevator_hall_8017D5E8;
+
+SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
+```
+
+An aggregate initializer (`SVECTOR vec = { 0x1600, -0x964, 0x540, 0 };`)
+compiles to the same instructions but puts the constant in *this* TU's
+`.rodata`. In a room overlay the leading rodata block is one subsegment
+owned by the first code unit, so if the constant already sits in that block
+and the function lives in a later unit, that needs a manifest `rodata` cut.
+Referencing the existing symbol as an `extern` avoids the cut entirely, and
+matches how these overlays already reference their compiler-generated
+string literals.
+
+`func_acropolis_east_elevator_hall_8017F5B4` is the example.
+
 ## 56-byte assign needs a word-aligned member, not just size `% 4 == 0`
 
 A 0x38-byte stack copy that the target does as three aligned 16-byte
