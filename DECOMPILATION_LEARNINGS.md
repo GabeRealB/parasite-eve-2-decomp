@@ -39997,3 +39997,43 @@ Both details matter and neither is guessable: `s32 stateElse` still misses
 own `if` also misses — it has to be live across the preceding branch. This is
 the shape decomp-permuter's `new_var` hoists find, and it is worth reading them
 as "the contested block has one quantity too many" rather than as noise.
+
+### A table walk wants the *parameter* mutated, not a local copy of it
+
+A scan over a sentinel-terminated table is naturally written with a cursor:
+
+```c
+s32 f(RoomHotspot* table, s16 x, s16 y) {
+    RoomHotspot* entry = table;
+    s32 hit = 0;
+    if (entry->id != -1) {
+        do { ...; entry++; } while (entry->id != -1);
+    }
+    return hit;
+}
+```
+
+That scored 94.4% with `regs=28` and one *missing* instruction: the target
+opens with `move $a3, $a0` and then reuses `$a0` for the strength-reduced
+`table + 8` cursor, while the copy version has no `move` at all and puts the
+derived cursor in `$v1`. Every other instruction was identical, so the whole
+28-point register penalty was the knock-on renumbering from that one insn.
+
+`entry = table` is a copy `local-alloc` coalesces away, which is why the `move`
+never appears: `entry` simply *is* the incoming argument register. Walking the
+parameter itself, in a plain `while`, keeps the argument pseudo distinct from
+the loop's biv, so the argument gets copied out of `$a0` once and the biv is
+free to take `$a0` back:
+
+```c
+s32 f(RoomHotspot* table, s16 x, s16 y) {
+    s32 hit = 0;
+    while (table->id != -1) { ...; table++; }
+    return hit;
+}
+```
+
+100%, and shorter. Read a leading `move $aN, $a0` that the attempt lacks as
+"the source mutates the parameter"; a spare local cursor is the usual reason it
+is missing. The `if (...) do {} while (...)` unrolling m2c emits is likewise
+just `while`, and writing it back as `while` is free.
