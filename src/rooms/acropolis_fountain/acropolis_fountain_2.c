@@ -8,6 +8,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "rooms/acropolis_fountain.h"
 
 extern s16 D_80071076;
 
@@ -18,6 +19,9 @@ extern GpMsgEntry D_acropolis_fountain_8017E764[];
 
 extern GpObj4A D_acropolis_fountain_8017E7A4;
 extern GpObj4A D_acropolis_fountain_8017FB3C;
+
+extern SVECTOR  D_acropolis_fountain_8017E7F0;
+extern TaskDesc D_acropolis_fountain_8017E7FC;
 
 void func_acropolis_fountain_8017DA1C(void);
 
@@ -190,7 +194,47 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DD44);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E014);
+void func_acropolis_fountain_8017E014(Task* task)
+{
+    AcropolisFountainSplash* splash;
+    GsCOORDINATE2*           coord;
+    s32                      view;
+    s32                      one;
+    s32                      mask;
+    s32                      bit;
+    s16                      id;
+
+    coord  = ((TmdObject*)task->extra)->field_8;
+    splash = task->spawnArg2;
+    view   = Gp_GetViewIndex();
+    switch (task->state) {
+        case 0:
+            Gp_SpawnEff(0x60088, coord, 0, &D_acropolis_fountain_8017E7F0);
+            splash->viewIndex = view & 0xFF;
+            task->state       = 1;
+            /* fallthrough */
+        case 1:
+            mask = 0x100FE;
+            bit  = 1 << (splash->viewIndex - 1);
+            if (bit & mask) {
+                Task_SpawnFromTable(&D_acropolis_fountain_8017E7FC, 0, 0, 0);
+            }
+            task->state = 2;
+            break;
+        case 2:
+            one = 1;
+            id  = splash->viewIndex;
+            bit = one << (id - 1);
+            if (id != (view & 0xFF)) {
+                if (bit & 0x100FE) {
+                    Task_SpawnFromTable(&D_acropolis_fountain_8017E7FC, 1, 0, 0);
+                }
+                splash->viewIndex = (u8)view;
+                task->state       = 1;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E15C);
 

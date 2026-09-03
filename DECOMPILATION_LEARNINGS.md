@@ -41124,3 +41124,59 @@ arms — `(x & 2) ? 6 : 3` becomes `((x & 2) == 0) ? 3 : 6`, which is the same
 value but the codegen the ROM has. `func_acropolis_fountain_8017D77C` went from
 92% to 99% on that rewrite alone; writing it as a two-armed `if`/`else` around
 the call instead emits the call twice.
+
+## A literal mask turns `1 << k` into a bit extract; hold the mask in a local instead
+
+`(1 << (x - 1)) & 0x100FE` tested against zero is rewritten by combine into a
+bit extract, because both the shifted `1` and the mask are constants:
+
+    addiu $v0, $v0, -0x1
+    srav  $v1, $v1, $v0        /* mask >> k */
+    andi  $v1, $v1, 0x1
+
+The ROM instead shifts and masks:
+
+    addiu $v1, $v1, -0x1
+    sllv  $a0, $a0, $v1        /* 1 << k */
+    and   $v0, $a0, $v0
+
+Combine only folds when *both* operands are constant at RTL, so putting either
+side in a register defeats it. Which side you pick also decides the register
+assignment, and the two are not interchangeable:
+
+```c
+mask = 0x100FE;                  /* mask in $v0, the 1 in $a0 */
+bit  = 1 << (splash->viewIndex - 1);
+if (bit & mask) { … }
+
+one = 1;                         /* the 1 in $v0, mask in $a0 */
+bit = one << (id - 1);
+if (bit & 0x100FE) { … }
+```
+
+Local-alloc gives `$v0` to whichever quantity is allocated first, and that is
+the *shift base* when the `1` is the local and the *mask* when the mask is the
+local — not simply the earlier-declared one. `func_acropolis_fountain_8017E014`
+needs both forms in the same function: its `case 1` wants the mask in a local
+and its `case 2` wants the `1` in a local, which is what the two `and` operand
+registers in the ROM say. Swapping the source operand order (`mask & (1 << k)`)
+does not flip them; it just brings the bit extract back.
+
+The mirror-image note "Hoist `one = 1` so a loop bit-test stays `sllv` + `and`"
+is the same mechanism seen from the shift side.
+
+## The switch operand belongs after the call when it loads into a temp
+
+A state dispatcher that reads `task->state` into a *caller*-saved register
+(`lw $v1, 0x30($s4)` right after the `jal`) is reading it after the call in C:
+
+```c
+work = task->spawnArg2;
+view = Gp_GetViewIndex();
+switch (task->state) { … }
+```
+
+m2c hoists the load above the call into its own temp, which costs an extra
+callee-saved register and shifts the whole frame. If the ROM's switch operand
+lives in `$v0`/`$v1` while the values loaded *before* the call are in `$s0`…,
+move the `switch` expression below the call rather than pinning registers.
