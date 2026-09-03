@@ -40652,3 +40652,23 @@ grep the object dump for `jal <MACRO_NAME>` before touching the C: the scratch
 seed inherits only the host TU's includes, and a matched TU elsewhere may rely
 on a header the host does not include yet. The host `.c` needs the same
 include when the body is ported.
+
+### A raw `D_8011xxxx` import can be an interior slot of a named gameplay array
+
+`func_acropolis_helicopter_landing_pad_80180E40` writes through
+`D_801150C0` (rooms.imports.txt), which has no declaration anywhere in
+`include/`. `sym.gameplay.txt` places it inside `Gp_RoomCoords`
+(`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
+so it is `&Gp_RoomCoords[4]`, and the sibling imports `D_80115124` /
+`D_80115188` are slots 5 and 6. Writing it as `base = &Gp_RoomCoords[4];
+slot = (GpCoordTail*)&base->coord;` — the shape gameplay's matched
+`Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
+`%lo(sym)($s5)` store for `field_0` and the `4($s6)` store for `coord.flg`.
+
+Two consequences. When an import label is undeclared, check the sized symbols
+just below it in the owning overlay's sym file before typing it as a fresh
+struct. And the scratch scorer reports the spelling difference
+(`%lo(Gp_RoomCoords+0x190)` vs `%lo(D_801150C0)`) as a `regs` penalty
+(99.9%, three "differences" that are all relocation names), while the linked
+build is a byte-for-byte match — verify with `build-and-verify.sh` instead
+of chasing that last tenth in the scratch.
