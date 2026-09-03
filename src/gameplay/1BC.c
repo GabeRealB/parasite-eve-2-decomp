@@ -154,12 +154,12 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
 
 void Gp_StepCdAudioCmd(void)
 {
-    register s32 one asm("s0");
-    register s32 i_s1 asm("s1");
-    CdCmdQueue*  p;
-    s32          seed;
-    s16          ret;
-    s32          save23;
+    s32         one;
+    s32         i_s1;
+    CdCmdQueue* p;
+    s32         seed;
+    s16         ret;
+    s32         save23;
 
     p = &CdCmd_Queue;
     {
@@ -208,7 +208,7 @@ void Gp_StepCdAudioCmd(void)
             break;
         case 3: {
             register CdCmd190* info asm("a0");
-            register s32       size asm("a1");
+            s32                size;
             register s32       temp asm("v0");
             s32                extra;
             s32                end;
@@ -823,10 +823,10 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1)
     }
 
     {
-        register s32 tmp asm("v0");
+        s32          tmp;
         register s32 ax asm("a1");
         register s32 ay asm("a0");
-        register s32 az asm("v1");
+        s32          az;
 
         tmp     = ratan2((arg1->m[1][0] * cos1) / 4096 + (arg1->m[2][0] * sin1) / 4096,
                          (arg1->m[1][1] * cos1) / 4096 + (arg1->m[2][1] * sin1) / 4096);
@@ -1004,13 +1004,13 @@ void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
 
 void func_800B1EFC(Task* arg0)
 {
-    TILE*          p;
-    DR_TPAGE*      dr;
-    s8             yoff;
-    register Task* t asm("t1");
-    register s32   color asm("a2");
-    register s32   y asm("a0");
-    register s32   scaled asm("v0");
+    TILE*        p;
+    DR_TPAGE*    dr;
+    s8           yoff;
+    Task*        t;
+    register s32 color asm("a2");
+    register s32 y asm("a0");
+    register s32 scaled asm("v0");
 
     t = arg0;
     if (t->spawnArg1 > 0) {
@@ -1347,7 +1347,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
-    register s32              blend asm("v1");
+    s32                       blend;
     register GpPackedPose*    dest asm("v1");
     GpPackedPose*             p;
     GpAnimScratch80*          s;
@@ -1417,8 +1417,8 @@ void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* ar
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
-    register s32              blend asm("v1");
-    register GpPackedSvec*    p asm("v1");
+    s32                       blend;
+    GpPackedSvec*             p;
     GpPackedSvec*             dest;
     GpAnimScratch80*          s;
     s32                       inv;
@@ -1653,11 +1653,11 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     register GpAnimSlot* p asm("s0");
-    register s32         one asm("v0");
+    s32                  one;
     register s32         raw asm("a2");
     register s32         scaled asm("v1");
-    register s32         off asm("t0");
-    register s32         f8 asm("a3");
+    s32                  off;
+    s32                  f8;
     GpAnimSlot*          slot;
     GpAnimSet*           set;
     GpAnimRec*           recs;
@@ -1982,11 +1982,11 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
                            s32 arg5)
 {
     void**            scratch;
-    register void*    head asm("t1");
+    void*             head;
     GpAnimSlot*       slot;
     GpAnimMtxRec*     dest;
     register SVECTOR* st asm("a0");
-    register SVECTOR* trans asm("t0");
+    SVECTOR*          trans;
     SVECTOR*          rot;
     s32               idx;
     s32               off;
@@ -2212,7 +2212,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     GameSessionFrom4* loc;
     TmdObject*        extra;
     GsCOORDINATE2*    coord;
-    register SVECTOR* euler asm("s1");
+    SVECTOR*          euler;
     u16               id;
     s32               i;
 
@@ -2231,8 +2231,8 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     }
 
     {
-        register void** scratch asm("v1");
-        register void*  tmp asm("v0");
+        void**         scratch;
+        register void* tmp asm("v0");
 
         scratch  = (void**)G_SCRATCH_HEAD;
         rec      = Mc_SaveData.field_28;
@@ -2248,7 +2248,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         }
     }
     if (i == 0x20) {
-        register u32 hi asm("v0");
+        u32          hi;
         register u32 key asm("v1");
 
         rec  = Mc_SaveData.field_28;
@@ -2329,7 +2329,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         s32          j;
                         register s32 key asm("v1");
                         s32          t;
-                        register s32 lo asm("a0");
+                        s32          lo;
 
                         rec   = Mc_SaveData.field_28;
                         found = 0;
@@ -2353,7 +2353,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                                    (place->field_1 << 16) | place->field_2, NULL);
                     if (enemy != NULL) {
                         register s32 f3 asm("v1");
-                        register s32 f2 asm("a0");
+                        s32          f2;
                         register s32 v asm("v0");
 
                         v               = 0x900;
@@ -3032,16 +3032,16 @@ STATIC_ASSERT_SIZEOF(GpBit2Off2, 0x10);
 
 s32 Gp_LookupBit2Item(s32 arg0)
 {
-    GpBit2List*  lists;
-    GpBit2Rec*   rec;
-    GpBit2Off2*  tail;
-    GpItemA0*    attrs;
-    s32          idx;
-    s32          matched;
-    register u16 item asm("v1");
-    u16          extra;
-    s32          term;
-    s32          found;
+    GpBit2List* lists;
+    GpBit2Rec*  rec;
+    GpBit2Off2* tail;
+    GpItemA0*   attrs;
+    s32         idx;
+    s32         matched;
+    u16         item;
+    u16         extra;
+    s32         term;
+    s32         found;
 
     idx   = Mc_SaveData.field_7;
     lists = Gp_Bit2Banks[idx].field_0;
@@ -3110,7 +3110,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B65B0);
 void Gp_SpawnPlaceById(u16 arg0)
 {
     GameSessionFrom4*    sess;
-    register s32         hi asm("v1");
+    s32                  hi;
     register GpBit2Bank* tmp asm("a1");
     register GpBit2Bank* banks asm("t1");
     GpBit2List*          lists;
@@ -3147,7 +3147,7 @@ void Gp_SpawnPlaceById(u16 arg0)
         if ((u16)id == (u16)arg0) {
             s32           temp;
             register u32* flags asm("v0");
-            register s32  idx asm("v1");
+            s32           idx;
             s32           shift;
             u32           word;
 
@@ -3365,14 +3365,14 @@ done:
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32          index;
-    s32          index2;
-    GpItemRec*   table;
-    GpItemScan*  scan;
-    GpItemSlot*  slot;
-    s32          found;
-    s32          have;
-    register s32 shifted asm("v0");
+    s32         index;
+    s32         index2;
+    GpItemRec*  table;
+    GpItemScan* scan;
+    GpItemSlot* slot;
+    s32         found;
+    s32         have;
+    s32         shifted;
 
     scan  = &Mc_SaveData.field_5BC;
     table = Gp_GetItemTable(scan);
@@ -3383,11 +3383,11 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             shifted = Gp_FindScanQty(table, scan, &index, arg1);
             shifted = shifted << 16;
         } else {
-            register s32        i asm("v1");
+            s32                 i;
             register s32        count asm("v0");
             register s32        end asm("a0");
             register s32        off asm("v0");
-            register s32        limit asm("a1");
+            s32                 limit;
             register GpItemRec* rec asm("a0");
 
             i     = scan->field_0;
@@ -3409,13 +3409,13 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             shifted = shifted << 16;
         }
         if (shifted > 0) {
-            register s32        off asm("v0");
-            register GpItemQty* qtyTable asm("v1");
-            register s32        maxQty asm("a1");
-            register s32        clamped asm("a0");
-            register s32        i asm("v1");
-            register s32        idx asm("a0");
-            GpItemQty*          row;
+            register s32 off asm("v0");
+            GpItemQty*   qtyTable;
+            s32          maxQty;
+            register s32 clamped asm("a0");
+            s32          i;
+            register s32 idx asm("a0");
+            GpItemQty*   row;
 
             off = arg1 << 2;
             if (arg0 == 0) {
@@ -3488,14 +3488,14 @@ success:
 
 s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32          index;
-    s32          index2;
-    GpItemRec*   table;
-    GpItemSlot*  slot;
-    s32          found;
-    s32          have;
-    register s32 useSecond asm("s5");
-    register s32 shifted asm("v0");
+    s32         index;
+    s32         index2;
+    GpItemRec*  table;
+    GpItemSlot* slot;
+    s32         found;
+    s32         have;
+    s32         useSecond;
+    s32         shifted;
 
     table = Gp_GetItemTable(arg0);
     if ((u32)(arg2 - 0xA0) >= 0x20U) {
@@ -3512,11 +3512,11 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         shifted = Gp_FindScanQty(table, arg0, &index, arg1);
         shifted = shifted << 16;
     } else {
-        register s32        i asm("v1");
+        s32                 i;
         register s32        count asm("v0");
         register s32        end asm("a0");
         register s32        off asm("v0");
-        register s32        limit asm("a1");
+        s32                 limit;
         register GpItemRec* rec asm("a0");
 
         i     = arg0->field_0;
@@ -3543,13 +3543,13 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         return -1;
     }
     {
-        register s32        off asm("v0");
-        register GpItemQty* qtyTable asm("v1");
-        register s32        maxQty asm("a1");
-        register s32        clamped asm("a0");
-        register s32        i asm("v1");
-        register s32        idx asm("a0");
-        GpItemQty*          row;
+        register s32 off asm("v0");
+        GpItemQty*   qtyTable;
+        s32          maxQty;
+        register s32 clamped asm("a0");
+        s32          i;
+        register s32 idx asm("a0");
+        GpItemQty*   row;
 
         off      = arg1 << 2;
         qtyTable = Gp_QtyById0;

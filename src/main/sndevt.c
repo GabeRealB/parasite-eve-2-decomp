@@ -350,12 +350,12 @@ s32 Midi_Tick(void)
 {
     MidiSong*    obj;
     s32          i;
-    register s32 j asm("s2");
+    s32          j;
     register s32 off asm("s3");
-    register u8* cursor asm("s1");
+    u8*          cursor;
     s32          status;
-    register s32 two asm("s6");
-    register s32 eight asm("s7");
+    s32          two;
+    s32          eight;
     register s32 ffff asm("s5");
 
     i     = 0;
@@ -856,19 +856,19 @@ void Midi_KeyOffVoices(MidiSong* arg0)
 
 void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
 {
-    u8                  sp10;
-    register MidiTrack* entry asm("s0");
-    MidiHandler*        table;
-    u32                 temp;
-    s32                 quot;
-    s32                 ticks;
-    s32                 rem_factor;
-    u8                  status;
-    u32                 hi;
-    s32                 status_arg;
-    s32                 delta;
-    MidiHandler         handler;
-    u8*                 cursor;
+    u8           sp10;
+    MidiTrack*   entry;
+    MidiHandler* table;
+    u32          temp;
+    s32          quot;
+    s32          ticks;
+    s32          rem_factor;
+    u8           status;
+    u32          hi;
+    s32          status_arg;
+    s32          delta;
+    MidiHandler  handler;
+    u8*          cursor;
 
     entry = arg1;
     temp  = entry->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
@@ -968,9 +968,9 @@ void Midi_UpdateVoiceVolumes(MidiSong* arg0)
     register MidiOpcodeSlot* entry asm("t0");
     s32                      product;
     u32                      vol;
-    register s32             channel asm("t0");
+    s32                      channel;
     register s32             temp asm("v0");
-    register s32             scale asm("v1");
+    s32                      scale;
     s8                       voice;
     s32                      one;
     register s32             f3 asm("v0");
@@ -1207,7 +1207,7 @@ u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 
 s32 Midi_ReadVlq(u8* arg0, u8* arg1)
 {
-    register s32 result asm("a2");
+    s32 result;
 
     result = 0;
     *arg1  = 0;
@@ -1268,18 +1268,18 @@ u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2)
 
 u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
 {
-    SpuVoiceRef       sp10;
-    register s32      channel asm("s4");
-    s32               i;
-    s32               offset;
-    s16               pitchBend;
-    MidiNoteSlot*     slot;
-    register SndNote* note asm("a3");
-    register s32      scale asm("a1");
-    s32               prod;
-    s16               pitch;
-    SpuVoiceAttr*     attr;
-    s32               key;
+    SpuVoiceRef   sp10;
+    register s32  channel asm("s4");
+    s32           i;
+    s32           offset;
+    s16           pitchBend;
+    MidiNoteSlot* slot;
+    SndNote*      note;
+    register s32  scale asm("a1");
+    s32           prod;
+    s16           pitch;
+    SpuVoiceAttr* attr;
+    s32           key;
 
     channel                          = arg0 & 0xF;
     i                                = 0;
@@ -1497,10 +1497,10 @@ s32 SndBank_SetupFromLoad(SndLoadState* arg0)
 {
     SndBank*     bank;
     SndBankSlot* obj;
-    register u32 index asm("a1");
+    u32          index;
     register u32 temp asm("v1");
     register s32 slot asm("v0");
-    register s32 a asm("a0");
+    s32          a;
     s32          i;
     SndNote*     entry;
     SndNote*     raw;
@@ -1569,17 +1569,17 @@ success:
 
 s32 SndLoad_Complete(SndLoadState* arg0)
 {
-    register SndBank* s2 asm("s2");
-    register s32      s1 asm("s1");
-    register s32      s0 asm("s0");
-    register s32      v0r asm("v0");
-    MidiSong*         state;
-    s32               i;
-    s32*              ptr;
-    s32               base;
-    s32               temp;
-    s32               end;
-    u8                phase;
+    SndBank*     s2;
+    register s32 s1 asm("s1");
+    s32          s0;
+    s32          v0r;
+    MidiSong*    state;
+    s32          i;
+    s32*         ptr;
+    s32          base;
+    s32          temp;
+    s32          end;
+    u8           phase;
 
     if (D_800689E8 == 6) {
         D_800689E4 = 0xFF;

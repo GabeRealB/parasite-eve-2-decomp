@@ -10,7 +10,7 @@ void Pad_Init(void)
     u16                  half;
     u8                   one;
     volatile PadState*   base;
-    register s32         offset asm("a2");
+    s32                  offset;
     volatile PadState*   p;
     u8*                  ptr;
     u32                  i;

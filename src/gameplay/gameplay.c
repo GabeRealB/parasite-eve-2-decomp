@@ -275,14 +275,14 @@ void func_80715198(void);
 
 void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 {
-    register TmdObject*     node asm("s3");
-    register GsCOORDINATE2* coord asm("s1");
-    register s32            flag asm("s4");
-    register s32            bit asm("s6");
-    register s32            vy asm("t7");
-    register u32            i asm("s5");
-    register GpCoordFromT*  tail asm("s2");
-    GsCOORDINATE2*          parent;
+    TmdObject*             node;
+    GsCOORDINATE2*         coord;
+    s32                    flag;
+    s32                    bit;
+    register s32           vy asm("t7");
+    u32                    i;
+    register GpCoordFromT* tail asm("s2");
+    GsCOORDINATE2*         parent;
 
     {
         register s32 tmp asm("v0");
@@ -309,7 +309,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                     Gp_UpdateCoordTree(parent, flag, bit, 0);
                 }
                 if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                    register MATRIX* pwm asm("v0");
+                    MATRIX*          pwm;
                     register VECTOR* out asm("v1");
                     register VECTOR* trans asm("a0");
 
@@ -481,7 +481,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                             Gp_UpdateCoordTree(parent, flag, bit, 0);
                         }
                         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                            register MATRIX* pwm asm("v0");
+                            MATRIX*          pwm;
                             register VECTOR* trans asm("v1");
 
                             pwm = &parent->workm;
@@ -639,14 +639,14 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 
 void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 {
-    register TmdObject*     node asm("s3");
-    register GsCOORDINATE2* coord asm("s1");
-    register s32            flag asm("s4");
-    register s32            bit asm("s6");
-    register s32            vy asm("t7");
-    register u32            i asm("s5");
-    register GpCoordFromT*  tail asm("s2");
-    GsCOORDINATE2*          parent;
+    TmdObject*             node;
+    GsCOORDINATE2*         coord;
+    s32                    flag;
+    s32                    bit;
+    register s32           vy asm("t7");
+    u32                    i;
+    register GpCoordFromT* tail asm("s2");
+    GsCOORDINATE2*         parent;
 
     {
         register s32 tmp asm("v0");
@@ -673,7 +673,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                     Gp_UpdateCoordTree(parent, flag, bit, 0);
                 }
                 if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                    register MATRIX* pwm asm("v0");
+                    MATRIX*          pwm;
                     register VECTOR* out asm("v1");
                     register VECTOR* trans asm("a0");
 
@@ -845,7 +845,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                             Gp_UpdateCoordTree(parent, flag, bit, 0);
                         }
                         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                            register MATRIX* pwm asm("v0");
+                            MATRIX*          pwm;
                             register VECTOR* trans asm("v1");
 
                             pwm = &parent->workm;
@@ -1169,11 +1169,11 @@ void Gp_RestoreTmdLists(void)
 
 void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    register GsCOORDINATE2* coord asm("s1");
-    register s32            s2 asm("s2");
-    register s32            s3 asm("s3");
-    register s32            vy asm("t7");
-    GsCOORDINATE2*          parent;
+    GsCOORDINATE2* coord;
+    register s32   s2 asm("s2");
+    s32            s3;
+    register s32   vy asm("t7");
+    GsCOORDINATE2* parent;
 
     coord = arg0;
     s2    = arg1;
@@ -1191,9 +1191,9 @@ void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
             Gp_UpdateCoordTree(parent, s2, s3, arg3);
         }
         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-            register MATRIX* pwm asm("v0");
+            MATRIX*          pwm;
             register VECTOR* out asm("v1");
-            register VECTOR* trans asm("a0");
+            VECTOR*          trans;
 
             pwm = &parent->workm;
             gte_SetRotMatrix(pwm);
@@ -1389,19 +1389,19 @@ void Gp_DrawDisp2dOt(void)
 
 u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock*  ws;
-    register POLY_F4*      poly asm("t0");
-    register POLY_F4*      xy asm("a3");
-    register s32*          opz asm("t1");
-    register DisplayState* ds asm("t5");
-    register u32           mask asm("t2");
-    register u32           maskHi asm("t4");
-    register u32           clipMask asm("t3");
-    register s32           hi asm("v0");
-    u16*                   rec;
-    s32                    sz;
-    s32                    idx;
-    u8*                    szTable;
+    TmdScratchModelBlock* ws;
+    POLY_F4*              poly;
+    register POLY_F4*     xy asm("a3");
+    s32*                  opz;
+    DisplayState*         ds;
+    u32                   mask;
+    register u32          maskHi asm("t4");
+    register u32          clipMask asm("t3");
+    s32                   hi;
+    u16*                  rec;
+    s32                   sz;
+    s32                   idx;
+    u8*                   szTable;
 
     ws   = arg0;
     poly = (POLY_F4*)ws->field_4;
@@ -1466,19 +1466,19 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock*  ws;
-    register POLY_F3*      poly asm("t0");
-    register POLY_F3*      xy asm("a3");
-    register s32*          opz asm("t2");
-    register DisplayState* ds asm("t5");
-    register u32           mask asm("t1");
-    register u32           maskHi asm("t4");
-    register u32           clipMask asm("t3");
-    register s32           hi asm("v0");
-    u16*                   rec;
-    s32                    sz;
-    s32                    idx;
-    u8*                    szTable;
+    TmdScratchModelBlock* ws;
+    POLY_F3*              poly;
+    register POLY_F3*     xy asm("a3");
+    s32*                  opz;
+    DisplayState*         ds;
+    register u32          mask asm("t1");
+    register u32          maskHi asm("t4");
+    register u32          clipMask asm("t3");
+    s32                   hi;
+    u16*                  rec;
+    s32                   sz;
+    s32                   idx;
+    u8*                   szTable;
 
     ws   = arg0;
     poly = (POLY_F3*)ws->field_4;
@@ -1531,25 +1531,25 @@ u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    register TmdScratchModelBlock* ws asm("t1");
-    register POLY_GT3*             poly asm("t2");
-    register POLY_GT3*             xy asm("t0");
-    register s32*                  opz asm("t6");
-    register u32                   clipMask asm("t7");
-    register s32                   len asm("t8");
-    register s32                   code asm("t9");
-    register DisplayState*         ds asm("t5");
-    register u32                   mask asm("t3");
-    register u32                   maskHi asm("t4");
-    register s32                   hi asm("v0");
-    u16*                           rec;
-    register s32                   sz asm("a0");
-    s32                            idx;
-    u8*                            szTable;
-    u8*                            flagp;
-    u8*                            up;
-    s32                            i;
-    s32                            tpage;
+    TmdScratchModelBlock* ws;
+    POLY_GT3*             poly;
+    register POLY_GT3*    xy asm("t0");
+    s32*                  opz;
+    u32                   clipMask;
+    s32                   len;
+    s32                   code;
+    DisplayState*         ds;
+    u32                   mask;
+    register u32          maskHi asm("t4");
+    s32                   hi;
+    u16*                  rec;
+    register s32          sz asm("a0");
+    s32                   idx;
+    u8*                   szTable;
+    u8*                   flagp;
+    u8*                   up;
+    s32                   i;
+    s32                   tpage;
 
     ws   = arg0;
     poly = (POLY_GT3*)ws->field_4;
@@ -1584,8 +1584,8 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             gte_ldsz3s(sz);
                             gte_avsz3_real();
                             {
-                                register s32 f0 asm("v0");
-                                register s32 f1 asm("v1");
+                                s32          f0;
+                                s32          f1;
                                 register s32 f2 asm("a0");
 
                                 f0  = xy[-1].code;
@@ -1642,25 +1642,25 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    register TmdScratchModelBlock* ws asm("t1");
-    register POLY_GT4*             poly asm("t2");
-    register POLY_GT4*             xy asm("t0");
-    register s32*                  opz asm("t4");
-    register u32                   clipMask asm("t7");
-    register s32                   len asm("t8");
-    register s32                   code asm("t9");
-    register DisplayState*         ds asm("t6");
-    register u32                   mask asm("t3");
-    register u32                   maskHi asm("t5");
-    register s32                   hi asm("v0");
-    u16*                           rec;
-    register s32                   sz asm("a0");
-    s32                            idx;
-    u8*                            szTable;
-    u8*                            flagp;
-    u8*                            up;
-    s32                            i;
-    s32                            tpage;
+    TmdScratchModelBlock*  ws;
+    POLY_GT4*              poly;
+    register POLY_GT4*     xy asm("t0");
+    s32*                   opz;
+    u32                    clipMask;
+    s32                    len;
+    s32                    code;
+    register DisplayState* ds asm("t6");
+    u32                    mask;
+    u32                    maskHi;
+    s32                    hi;
+    u16*                   rec;
+    register s32           sz asm("a0");
+    s32                    idx;
+    u8*                    szTable;
+    u8*                    flagp;
+    u8*                    up;
+    s32                    i;
+    s32                    tpage;
 
     ws   = arg0;
     poly = (POLY_GT4*)ws->field_4;
@@ -1714,7 +1714,7 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             gte_ldsz3s(sz);
                             gte_avsz4_real();
                             {
-                                register s32 f0 asm("v1");
+                                s32          f0;
                                 register s32 f1 asm("v0");
                                 register s32 f2 asm("a0");
 
@@ -1776,21 +1776,21 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    register TmdScratchModelBlock* ws asm("a3");
-    register POLY_GT3*             poly asm("t1");
-    register POLY_GT3*             xy asm("a1");
-    register s32*                  opz asm("t4");
-    register u32                   clipMask asm("t5");
-    register s32                   len asm("t6");
-    register s32                   code asm("t7");
-    register DisplayState*         ds asm("t3");
-    register u32                   mask asm("t0");
-    register u32                   maskHi asm("t2");
-    register s32                   hi asm("v0");
-    u16*                           rec;
-    s32                            sz;
-    s32                            idx;
-    u8*                            szTable;
+    TmdScratchModelBlock* ws;
+    POLY_GT3*             poly;
+    register POLY_GT3*    xy asm("a1");
+    s32*                  opz;
+    u32                   clipMask;
+    s32                   len;
+    s32                   code;
+    DisplayState*         ds;
+    register u32          mask asm("t0");
+    register u32          maskHi asm("t2");
+    s32                   hi;
+    u16*                  rec;
+    s32                   sz;
+    s32                   idx;
+    u8*                   szTable;
 
     ws   = arg0;
     poly = (POLY_GT3*)ws->field_4;
@@ -1853,21 +1853,21 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 u32* func_8009A57C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    register TmdScratchModelBlock* ws asm("a3");
-    register POLY_GT4*             poly asm("t1");
-    register POLY_GT4*             xy asm("a1");
-    register s32*                  opz asm("t2");
-    register u32                   clipMask asm("t5");
-    register s32                   len asm("t6");
-    register s32                   code asm("t7");
-    register DisplayState*         ds asm("t4");
-    register u32                   mask asm("t0");
-    register u32                   maskHi asm("t3");
-    register s32                   hi asm("v0");
-    u16*                           rec;
-    s32                            sz;
-    s32                            idx;
-    u8*                            szTable;
+    TmdScratchModelBlock*  ws;
+    POLY_GT4*              poly;
+    register POLY_GT4*     xy asm("a1");
+    s32*                   opz;
+    u32                    clipMask;
+    s32                    len;
+    s32                    code;
+    register DisplayState* ds asm("t4");
+    register u32           mask asm("t0");
+    u32                    maskHi;
+    s32                    hi;
+    u16*                   rec;
+    s32                    sz;
+    s32                    idx;
+    u8*                    szTable;
 
     ws   = arg0;
     poly = (POLY_GT4*)ws->field_4;
@@ -4786,7 +4786,7 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A087C);
 
 void Gp_AreaEnterTask(Task* arg0)
 {
-    register u32           key asm("s2");
+    u32                    key;
     GpEndWork*             work;
     s32                    i;
     GpActorWork* volatile* p;
@@ -4842,8 +4842,8 @@ void Gp_AreaEnterTask(Task* arg0)
                     }
                 }
             } else {
-                register s32         hi asm("v0");
-                register McSaveData* save2 asm("a0");
+                s32         hi;
+                McSaveData* save2;
 
                 asm("lui %0, %%hi(Mc_SaveData)" : "=r"(hi));
                 asm("addiu %0, %1, %%lo(Mc_SaveData)" : "=r"(save2) : "r"(hi));
@@ -4872,10 +4872,10 @@ void Gp_AreaEnterTask(Task* arg0)
         }
         arg0->state++;
     } else if (arg0->state == 2) {
-        register s32       hi asm("v0");
-        register s32       ff asm("v1");
-        register s32       cur asm("v0");
-        register UiObject* obj asm("s0");
+        s32       hi;
+        s32       ff;
+        s32       cur;
+        UiObject* obj;
 
         asm("lui %0, %%hi(D_80062734)" : "=r"(hi));
         ff = 0xFF;
@@ -4897,7 +4897,7 @@ void Gp_AreaEnterTask(Task* arg0)
             }
         }
     } else if (arg0->state == 3) {
-        register UiObject* obj asm("a0");
+        UiObject* obj;
 
         obj = arg0->spawnArg2;
         if ((obj->field_2E == 6) || (obj->field_2E == -1)) {
@@ -4973,10 +4973,10 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     GpStateF0*    state;
     GpRec8*       rec;
     s32           cond;
-    register s32  ret asm("a0");
+    s32           ret;
     u8*           table;
     s32           idx;
-    register s32  val1 asm("s1");
+    s32           val1;
     register s32  val2 asm("s2");
     s32           flag;
     s32           temp2;
@@ -5136,10 +5136,10 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     y = 0x64 - height;
     y = y - Display_State.vramYOffset;
     {
-        register s32          color asm("v1");
-        register u8*          str asm("a1");
-        register TextDrawReq* p asm("a0");
-        register s32          x asm("v0");
+        s32          color;
+        register u8* str asm("a1");
+        TextDrawReq* p;
+        s32          x;
 
         if (Mc_SaveData.field_1a8 != 2) {
             if (item != 0x96) {
@@ -5195,10 +5195,10 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     }
     Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
     if (slot->field_2 != 0xFF) {
-        register u8*          str asm("a1");
-        register TextDrawReq* p asm("a0");
-        register s32          v asm("v0");
-        register s32          by asm("v1");
+        u8*          str;
+        TextDrawReq* p;
+        s32          v;
+        s32          by;
 
         flag = 0;
         y   += 0xA;
@@ -5272,19 +5272,19 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 
 s32 Gp_CheckAttachThreshold(s32 arg0)
 {
-    WipSysConfig*          cfg;
-    register WipSysConfig* p asm("a1");
-    register s32           result asm("t0");
-    register s32           ret asm("v1");
-    register s32           n asm("a3");
-    register GpRec16*      recs asm("v1");
-    register s32           off asm("v0");
-    GpStateF0*             state;
-    GpStateC08*            c08;
-    u8*                    table;
-    s32                    cond;
-    s32                    flag;
-    u16                    val;
+    WipSysConfig*     cfg;
+    WipSysConfig*     p;
+    register s32      result asm("t0");
+    register s32      ret asm("v1");
+    s32               n;
+    register GpRec16* recs asm("v1");
+    register s32      off asm("v0");
+    GpStateF0*        state;
+    GpStateC08*       c08;
+    u8*               table;
+    s32               cond;
+    s32               flag;
+    u16               val;
 
     cfg    = &Wip_SysConfig;
     result = 0;
@@ -5408,7 +5408,7 @@ void Gp_SetAttachState(s32 arg0)
     s32           cond;
     s32           ret;
     u8*           table;
-    register s32  n asm("a1");
+    s32           n;
     register s32  val asm("a0");
     s32           t;
     s32           tmp;
@@ -6477,11 +6477,11 @@ case_421: {
 }
 
 case_311: {
-    GpItemRec8*          rec;
-    register GpStateC08* p asm("a1");
-    register s32         temp asm("a0");
-    register s32         lo asm("v0");
-    s32                  tmp;
+    GpItemRec8*  rec;
+    GpStateC08*  p;
+    register s32 temp asm("a0");
+    register s32 lo asm("v0");
+    s32          tmp;
 
     p = &Gp_StateC08;
     asm volatile("" : "+r"(p) : : "v0");
@@ -6505,7 +6505,7 @@ case_321: {
     s32          idx;
     s32          min;
     s32          max;
-    register s32 result asm("v1");
+    s32          result;
     s32          flag;
     s32          t;
     s32          r;
@@ -6606,7 +6606,7 @@ static __inline__ void Gp_ProjectRingPt(GpCircleScratch* sc)
 
 static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 {
-    register LINE_F2* prim asm("a0");
+    LINE_F2* prim;
 
     prim             = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor   = (DR_TPAGE*)(prim + 1);
@@ -6635,8 +6635,8 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     slot = Game_GetPtrSlot(3);
     {
-        register void** scratch asm("a0");
-        register u8*    newhead asm("v1");
+        void**       scratch;
+        register u8* newhead asm("v1");
 
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;
@@ -6774,8 +6774,8 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     temp_x = arg1 * arg1;
 
     {
-        register void** scratch asm("a0");
-        u8*             head;
+        void** scratch;
+        u8*    head;
 
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;
@@ -6797,15 +6797,15 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                     vec->vz -= arg1;
                 }
                 {
-                    register s32 packed asm("a0");
-                    s32          tmp;
-                    s32          t;
-                    s32          x;
-                    s32          y;
-                    s32          x2;
-                    s32          y2;
-                    s32          z2;
-                    s32          scaled;
+                    s32 packed;
+                    s32 tmp;
+                    s32 t;
+                    s32 x;
+                    s32 y;
+                    s32 x2;
+                    s32 y2;
+                    s32 z2;
+                    s32 scaled;
 
                     t = vec->vy;
                     if (t >= -arg2 && t < 0x65) {
@@ -6907,26 +6907,26 @@ after_uv:
 
 void Gp_DrawHudSprites(GpIdMapC* arg0)
 {
-    register void**          scratch asm("v1");
-    register u8*             newhead asm("v0");
-    register u8*             head asm("s2");
-    register GpXformScratch* block asm("s0");
-    SVECTOR*                 vec;
-    register GpLinkXform*    node asm("s1");
-    register s32             mode asm("s5");
-    s32                      x;
-    register s32             cx asm("s6");
-    s32                      cy;
-    s32                      y;
-    s16                      vx;
-    s32                      vz;
-    s32                      i;
-    s32                      n;
-    s32                      sy;
-    DR_TPAGE*                tp;
-    SPRT*                    sp;
-    SPRT*                    sp2;
-    POLY_GT4*                poly;
+    void**          scratch;
+    register u8*    newhead asm("v0");
+    u8*             head;
+    GpXformScratch* block;
+    SVECTOR*        vec;
+    GpLinkXform*    node;
+    s32             mode;
+    s32             x;
+    s32             cx;
+    s32             cy;
+    s32             y;
+    s16             vx;
+    s32             vz;
+    s32             i;
+    s32             n;
+    s32             sy;
+    DR_TPAGE*       tp;
+    SPRT*           sp;
+    SPRT*           sp2;
+    POLY_GT4*       poly;
 
     x  = 0x61;
     y  = -0x6C;
@@ -7253,10 +7253,10 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 
 void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 {
-    void**                 scratch;
-    register u8*           head asm("v0");
-    register GpHudScratch* block asm("s0");
-    s32                    val;
+    void**        scratch;
+    register u8*  head asm("v0");
+    GpHudScratch* block;
+    s32           val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -7296,18 +7296,18 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 
 void Gp_UpdateLinkXforms(void)
 {
-    register GsCOORDINATE2*  player asm("s2");
-    register u8*             head asm("s3");
-    register GpXformScratch* block asm("s0");
-    SVECTOR                  tmp;
-    register GpLinkXform*    node asm("s1");
-    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*  player;
+    u8*             head;
+    GpXformScratch* block;
+    SVECTOR         tmp;
+    GpLinkXform*    node;
+    GsCOORDINATE2*  coord;
 
     node = (GpLinkXform*)Gp_LinkList;
     {
-        register Task*      slot asm("v1");
+        Task*               slot;
         register TmdObject* extra asm("v1");
-        register void**     scratch asm("v0");
+        void**              scratch;
         register u8*        newhead asm("v1");
 
         slot = Game_GetPtrSlot(3);
@@ -7326,7 +7326,7 @@ void Gp_UpdateLinkXforms(void)
     }
     if (node != NULL) {
         register SVECTOR* out asm("a1");
-        register SVECTOR* tmpp asm("a0");
+        SVECTOR*          tmpp;
         out  = (SVECTOR*)(head - 8);
         tmpp = &tmp;
         do {
@@ -7359,8 +7359,8 @@ void Gp_UpdateLinkXforms(void)
         } while (node != NULL);
     }
     {
-        register void** p asm("v1");
-        register u8*    h asm("v0");
+        void** p;
+        u8*    h;
         p  = (void**)G_SCRATCH_HEAD;
         h  = *p;
         *p = h + 0x48;
@@ -7877,14 +7877,14 @@ s32 Gp_SpendMp(s32 arg0)
 /// `out->t`.
 static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MATRIX* out)
 {
-    register short            t4 asm("t4");
-    register short            t5 asm("t5");
-    register short            t6 asm("t6");
-    register GpRelMatScratch* tmp asm("a0");
-    register MATRIX*          rootm asm("a3");
-    register MATRIX*          world asm("a2");
-    register u8*              head asm("a1");
-    VECTOR*                   vec;
+    register short   t4 asm("t4");
+    register short   t5 asm("t5");
+    register short   t6 asm("t6");
+    GpRelMatScratch* tmp;
+    register MATRIX* rootm asm("a3");
+    register MATRIX* world asm("a2");
+    u8*              head;
+    VECTOR*          vec;
 
     Gp_UpdateCoord(arg0);
     Gp_UpdateCoord(root);
@@ -7921,7 +7921,7 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
     register short          t5 asm("t5");
     register short          t6 asm("t6");
     register MATRIX*        rot asm("t0");
-    register MATRIX*        localMtx asm("v0");
+    MATRIX*                 localMtx;
     register MATRIX*        relMtx asm("s0");
     register GsCOORDINATE2* parent asm("v1");
     GsCOORDINATE2*          root;
@@ -7976,10 +7976,10 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
     register short          t4 asm("t4");
     register short          t5 asm("t5");
     register short          t6 asm("t6");
-    register MATRIX*        localMtx asm("v1");
+    MATRIX*                 localMtx;
     register MATRIX*        relMtx asm("s0");
     register MATRIX*        dstMtx asm("v0");
-    register GsCOORDINATE2* coord asm("s1");
+    GsCOORDINATE2*          coord;
     Task*                   task;
     VECTOR*                 pos;
     GsCOORDINATE2*          root;
@@ -8115,15 +8115,15 @@ void Gp_LoadStageView(void)
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
 {
-    register void**           scratch asm("s0");
-    register u8*              head asm("t0");
-    register MATRIX*          src asm("a3");
-    register GpRelMatScratch* tmp asm("a0");
-    register short            t4 asm("t4");
-    register short            t5 asm("t5");
-    register short            t6 asm("t6");
-    VECTOR*                   vec;
-    VECTOR*                   out;
+    void**           scratch;
+    u8*              head;
+    register MATRIX* src asm("a3");
+    GpRelMatScratch* tmp;
+    register short   t4 asm("t4");
+    register short   t5 asm("t5");
+    register short   t6 asm("t6");
+    VECTOR*          vec;
+    VECTOR*          out;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;

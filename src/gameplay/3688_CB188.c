@@ -453,7 +453,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     WipSysConfig* cfg;
     McSaveData*   save;
     register s32  n asm("a1");
-    register s32  i asm("v1");
+    s32           i;
     register s32  row;
     register s32  col;
 
@@ -817,21 +817,21 @@ typedef struct {
 
 void Gp_PickupTitleTask(Task* arg0)
 {
-    TextDrawReq             req;
-    ItemCountDraw           draw;
-    UiObject*               spawned;
-    s32                     color;
-    s32                     x;
-    s32                     y;
-    s32                     temp;
-    s32                     textY;
-    register s32            item asm("s3");
-    register Task*          task asm("s1");
-    register UiObject*      obj asm("s2");
-    register s32            color2 asm("v1");
-    register s32            count asm("a1");
-    register s32            ot asm("v0");
-    register ItemCountDraw* d asm("a0");
+    TextDrawReq        req;
+    ItemCountDraw      draw;
+    UiObject*          spawned;
+    s32                color;
+    s32                x;
+    s32                y;
+    s32                temp;
+    s32                textY;
+    s32                item;
+    Task*              task;
+    register UiObject* obj asm("s2");
+    s32                color2;
+    register s32       count asm("a1");
+    s32                ot;
+    ItemCountDraw*     d;
 
     item          = Gp_PubItemLoc;
     task          = arg0;
@@ -1940,9 +1940,9 @@ void Gp_DrawItemDescLine(DialogPrompt* arg0, UiObject* arg1)
         text = Text_SkipLines(Fs_GetChunkPayload(), arg0->field_8 + 5);
     }
     {
-        register s32       color asm("v1");
+        s32                color;
         register UiObject* obj asm("a0");
-        register u8*       str asm("a3");
+        u8*                str;
         register s32       mode asm("v0");
         s16                x;
         s16                y;
@@ -2304,21 +2304,21 @@ INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", Gp_MapTaskState2);
 
 void Gp_DrawMapCursor(Task* arg0)
 {
-    UiObject*                obj;
-    GameActor*               actor;
-    GpMapRec*                rec;
-    WipSysConfig*            cfg;
-    register GpMapCursorPos* pos asm("s1");
-    register s32             temp asm("v0");
-    register MATRIX*         mat asm("v1");
-    register s32             origin asm("a0");
-    register s32             scale asm("v1");
-    register s32             base asm("v1");
-    s32                      off;
-    SPRT_16*                 p;
-    DR_TPAGE*                dr;
-    s32                      u0;
-    s32                      ang;
+    UiObject*        obj;
+    GameActor*       actor;
+    GpMapRec*        rec;
+    WipSysConfig*    cfg;
+    GpMapCursorPos*  pos;
+    register s32     temp asm("v0");
+    register MATRIX* mat asm("v1");
+    register s32     origin asm("a0");
+    s32              scale;
+    register s32     base asm("v1");
+    s32              off;
+    SPRT_16*         p;
+    DR_TPAGE*        dr;
+    s32              u0;
+    s32              ang;
 
     obj   = arg0->spawnArg2;
     cfg   = &Wip_SysConfig;
@@ -2404,23 +2404,23 @@ INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0614);
 
 void Gp_DrawMapMarks(Task* arg0)
 {
-    register Task* keep asm("a0");
-    GameSession*   session;
-    GpFlagBank**   banks;
-    GpFlagBank*    bank;
-    s32            flags[2];
-    u8*            flagTbl;
-    GpMapMark*     recs;
-    GpMapMark**    markTable;
-    UiObject*      obj;
-    s32            color;
-    s32            i;
-    s32            which;
-    s32            bit;
-    s32            idx;
-    s32            one;
-    u8             stage;
-    s32            stageM1;
+    Task*        keep;
+    GameSession* session;
+    GpFlagBank** banks;
+    GpFlagBank*  bank;
+    s32          flags[2];
+    u8*          flagTbl;
+    GpMapMark*   recs;
+    GpMapMark**  markTable;
+    UiObject*    obj;
+    s32          color;
+    s32          i;
+    s32          which;
+    s32          bit;
+    s32          idx;
+    s32          one;
+    u8           stage;
+    s32          stageM1;
 
     keep      = arg0;
     color     = 0x5D7;
@@ -2737,13 +2737,13 @@ void Gp_MapTask(Task* arg0)
 
 void Gp_MapPanelInit(Task* arg0)
 {
-    RECT                  rect;
-    register GameSession* session asm("a0");
-    register GpMapRec**   table asm("v1");
-    register s32          idx asm("v0");
-    register u8           f6 asm("a0");
-    register GpMapRec*    recs asm("v1");
-    register u8           val asm("v1");
+    RECT         rect;
+    GameSession* session;
+    GpMapRec**   table;
+    s32          idx;
+    u8           f6;
+    GpMapRec*    recs;
+    u8           val;
 
     if ((s8)Display_State.field_122 == 0) {
         rect.x = 0x380;
@@ -2824,11 +2824,11 @@ void func_800D1F90(Task* arg0)
 
 u8 Gp_GetMapRoomId(void)
 {
-    register GameSession* session asm("a0");
-    register GpMapRec**   table asm("v1");
-    register s32          idx asm("v0");
-    register u8           f6 asm("a0");
-    register GpMapRec*    recs asm("v1");
+    GameSession* session;
+    GpMapRec**   table;
+    s32          idx;
+    u8           f6;
+    GpMapRec*    recs;
 
     session = Game_Session;
     table   = Gp_MapRecTables;
@@ -3029,11 +3029,11 @@ void Gp_PeCommandMenuTask(Task* arg0)
 
 void Gp_DiscardWarnTask(Task* arg0)
 {
-    u8*          rec;
-    register s32 id asm("s1");
-    Task*        child;
-    UiObject*    childObj;
-    UiObject*    parentObj;
+    u8*       rec;
+    s32       id;
+    Task*     child;
+    UiObject* childObj;
+    UiObject* parentObj;
 
     rec = Gp_SelItemRec;
     id  = *rec;
@@ -3079,10 +3079,10 @@ void Gp_DiscardWarnTask(Task* arg0)
             parentObj = arg0->parent->spawnArg2;
             if (childObj->field_2C == 0x33) {
                 if ((u32)(id - 0x80) < 0x20U) {
-                    register GpItemSlot* ret asm("v0");
-                    register GpItemSlot* slot asm("s0");
-                    register s32         a0id asm("a0");
-                    WipSysConfig*        cfg;
+                    GpItemSlot*   ret;
+                    GpItemSlot*   slot;
+                    register s32  a0id asm("a0");
+                    WipSysConfig* cfg;
 
                     ret  = Gp_GetItemSlot(id);
                     a0id = id;
@@ -3094,8 +3094,8 @@ void Gp_DiscardWarnTask(Task* arg0)
                         cfg->field_21 = 0;
                     }
                 } else if ((u32)(id - 0xA0) < 0x20U) {
-                    register s32 i asm("s0");
-                    GpItemSlot*  slot;
+                    s32         i;
+                    GpItemSlot* slot;
 
                     i = 0x80;
                     do {

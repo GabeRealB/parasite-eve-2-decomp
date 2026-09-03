@@ -648,7 +648,7 @@ void Gp_LoadWaitBoot(Task* task)
     CdCmdQueue*   queue;
     McSaveData*   save;
     GameSession*  session;
-    register s32  color asm("a2");
+    s32           color;
     register s32  qhi asm("a1");
     register s32  queued asm("a0");
     s32           buf;
@@ -668,7 +668,7 @@ void Gp_LoadWaitBoot(Task* task)
         session = Game_Session;
         save    = &Mc_SaveData;
         if (session->field_11C != save->field_22 || session->field_11E != Wip_SysConfig.field_26) {
-            register GameSession* sess asm("v1");
+            GameSession* sess;
 
             Gp_EnqueueConfigCd(0);
             Gp_EnqueueHeldWeaponCd();
@@ -710,9 +710,9 @@ void Gp_LoadWaitStage(Task* task)
     TILE*         tile;
     DR_TPAGE*     dr;
     DisplayState* ds;
-    register s32  color asm("a2");
-    register s32  qhi asm("a1");
-    register s32  queued asm("a0");
+    s32           color;
+    s32           qhi;
+    s32           queued;
     s32           buf;
     s8            yoff;
 
@@ -754,7 +754,7 @@ void Gp_LoadState2(Task* task)
     DR_TPAGE*         dr;
     DisplayState*     ds;
     s32               color;
-    register s32      qhi asm("a1");
+    s32               qhi;
     register s32      queued asm("a0");
     s32               buf;
     s8                yoff;
@@ -823,8 +823,8 @@ void Gp_LoadWaitCompanion(Task* task)
     TILE*         tile;
     DR_TPAGE*     dr;
     DisplayState* ds;
-    register s32  color asm("a2");
-    register s32  qhi asm("a1");
+    s32           color;
+    s32           qhi;
     register s32  queued asm("a0");
     s32           buf;
     s8            yoff;
@@ -858,12 +858,12 @@ void Gp_LoadWaitCompanion(Task* task)
         addPrim(Gpu_CurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        register GameSession* session asm("v1");
-        register s32          cmd asm("a0");
-        register u8*          p1 asm("a1");
-        register u8*          p2 asm("a2");
-        register s32          tmp asm("v0");
-        register s32          room asm("v1");
+        GameSession* session;
+        s32          cmd;
+        u8*          p1;
+        u8*          p2;
+        register s32 tmp asm("v0");
+        register s32 room asm("v1");
 
         session   = Game_Session;
         cmd       = 0x21;
@@ -897,8 +897,8 @@ void Gp_LoadWaitSave(Task* task)
     TILE*         tile;
     DR_TPAGE*     dr;
     DisplayState* ds;
-    register s32  color asm("a2");
-    register s32  qhi asm("a1");
+    s32           color;
+    s32           qhi;
     register s32  queued asm("a0");
     s32           buf;
     s8            yoff;
@@ -931,17 +931,17 @@ void Gp_LoadWaitSave(Task* task)
         addPrim(Gpu_CurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        register GameSession* session asm("a1");
+        GameSession* session;
 
         session = Game_Session;
         if ((*(u32*)&session->field_4 & 0xFFFF0000) == 0x3010000) {
             if (session->field_5 >= 4) {
-                register GameSession* sess asm("v1");
-                register s32          cmd asm("a0");
-                register u8*          p1 asm("a1");
-                register u8*          p2 asm("a2");
-                register s32          tmp asm("v0");
-                register s32          loc asm("v1");
+                GameSession* sess;
+                s32          cmd;
+                u8*          p1;
+                u8*          p2;
+                s32          tmp;
+                register s32 loc asm("v1");
 
                 Snd_InitFromStage(session->field_7, session->field_6);
                 cmd       = 0x21;
@@ -961,7 +961,7 @@ void Gp_LoadWaitSave(Task* task)
             }
         }
         {
-            register GameSession* sess asm("a0");
+            GameSession* sess;
 
             sess = Game_Session;
             if (sess->field_4C == 1) {
@@ -985,8 +985,8 @@ void Gp_LoadWaitAreaCd(Task* task)
     DR_TPAGE*     dr;
     DisplayState* ds;
     DisplayState* ds2;
-    register s32  color asm("a2");
-    register s32  qhi asm("a1");
+    s32           color;
+    s32           qhi;
     register s32  queued asm("a0");
     s32           buf;
     s8            yoff;
@@ -1125,13 +1125,13 @@ s32 Gp_PickCompanion(void)
 {
     McSaveData*           save;
     McSaveData*           p;
-    register McSaveData*  q asm("a0");
-    register GameSession* sess asm("v1");
+    McSaveData*           q;
+    GameSession*          sess;
     register GameSession* session asm("a0");
-    register u8*          bytes asm("s0");
+    u8*                   bytes;
     s32                   stage;
     u8                    hi;
-    register s32          arg asm("a0");
+    s32                   arg;
 
     arg   = 0x4B;
     save  = &Mc_SaveData;
@@ -1555,17 +1555,17 @@ void Gp_LinkViewSprts(void)
 
 void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 {
-    GpSprtCmd*             rec;
-    register u32           i asm("s4");
-    GpTpageSprt*           dest;
-    GpSprtElem*            elem;
-    GpSprtElem*            cur;
-    register DisplayState* hi asm("v0");
-    register DisplayState* ds asm("s7");
-    register u32           maskHi asm("s6");
-    u32                    mask;
-    SPRT*                  sprt;
-    u32                    tpage;
+    GpSprtCmd*    rec;
+    register u32  i asm("s4");
+    GpTpageSprt*  dest;
+    GpSprtElem*   elem;
+    GpSprtElem*   cur;
+    DisplayState* hi;
+    DisplayState* ds;
+    register u32  maskHi asm("s6");
+    u32           mask;
+    SPRT*         sprt;
+    u32           tpage;
 
     rec            = arg1;
     i              = 0;
@@ -2541,7 +2541,7 @@ void Gp_RebuildAreaIdBits(void)
     register GpAreaKey* keyp asm("s4");
     s32                 flag;
     s32                 bits;
-    register s32        i asm("s1");
+    s32                 i;
     register s32        one asm("s0");
     register s32        count asm("s5");
     u8                  stage;

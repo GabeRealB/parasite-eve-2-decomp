@@ -249,7 +249,7 @@ void Gp_RecalcMaxMp(void)
     s8*           levels;
     s32           acc;
     s32           i;
-    register s32  base asm("a3");
+    s32           base;
     s32           j;
     s32           count;
     register s32  start asm("a1");
@@ -533,12 +533,12 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8014);
 void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
     register GpItemRec* tmp asm("v0");
-    register GpItemRec* table asm("a3");
+    GpItemRec*          table;
     GpItemRec*          rec;
     GpItemRec*          src;
     GpItemRec           saved;
     s32                 i;
-    register s32        off asm("v0");
+    s32                 off;
 
     switch (arg0->field_2) {
         case 2:
@@ -627,14 +627,14 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
     s32                 i;
     s32                 j;
     s32                 key;
-    register s32        minKey asm("t2");
+    s32                 minKey;
     s32                 id;
     s32                 idx;
     s32                 next;
     s32                 count;
-    register s32        dummy5 asm("s5");
-    register s32        dummy6 asm("s6");
-    register s32        dummy7 asm("s7");
+    s32                 dummy5;
+    s32                 dummy6;
+    s32                 dummy7;
 
     i = 0;
     if ((arg0->field_1 - 1) > 0) {
@@ -741,24 +741,24 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
 
 s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("t1");
-    GpItemRec*          rec;
-    register s32        i asm("t0");
-    s32                 occupied;
-    s32                 count;
-    s32                 start;
-    s32                 limit;
-    s32                 used;
-    s32                 found;
-    GpItemRec*          table2;
-    GpItemRec*          walker;
-    s32                 count2;
-    s32                 start2;
-    GpItemA0*           p;
-    s32                 idx;
-    GpItemA0*           cap;
-    s32                 capacity;
+    GpItemRec* tmp;
+    GpItemRec* table;
+    GpItemRec* rec;
+    s32        i;
+    s32        occupied;
+    s32        count;
+    s32        start;
+    s32        limit;
+    s32        used;
+    s32        found;
+    GpItemRec* table2;
+    GpItemRec* walker;
+    s32        count2;
+    s32        start2;
+    GpItemA0*  p;
+    s32        idx;
+    GpItemA0*  cap;
+    s32        capacity;
 
     switch (arg0->field_2) {
         case 2:
@@ -845,24 +845,24 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
 
 s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("t0");
-    GpItemRec*          rec;
-    register s32        i asm("a3");
-    s32                 occupied;
-    s32                 count;
-    s32                 start;
-    s32                 limit;
-    s32                 used;
-    s32                 found;
-    GpItemRec*          table2;
-    GpItemRec*          walker;
-    s32                 count2;
-    s32                 start2;
-    GpItemA0*           p;
-    s32                 idx;
-    GpItemA0*           cap;
-    s32                 capacity;
+    GpItemRec* tmp;
+    GpItemRec* table;
+    GpItemRec* rec;
+    s32        i;
+    s32        occupied;
+    s32        count;
+    s32        start;
+    s32        limit;
+    s32        used;
+    s32        found;
+    GpItemRec* table2;
+    GpItemRec* walker;
+    s32        count2;
+    s32        start2;
+    GpItemA0*  p;
+    s32        idx;
+    GpItemA0*  cap;
+    s32        capacity;
 
     switch (arg0->field_2) {
         case 2:
@@ -1030,14 +1030,14 @@ done:
 GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
     register GpItemRec* tmp asm("v0");
-    register GpItemRec* table asm("t4");
+    GpItemRec*          table;
     register GpItemRec* dest asm("t2");
-    register s32        found asm("t3");
-    register s32        start asm("t1");
-    register s32        i asm("t0");
+    s32                 found;
+    s32                 start;
+    s32                 i;
     register s32        idx asm("v1");
-    register s32        off asm("v0");
-    register GpItemRec* result asm("v0");
+    s32                 off;
+    GpItemRec*          result;
     GpItemRec*          rec;
     GpItemA0*           attrs;
     s32                 temp;
@@ -1429,7 +1429,7 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
 {
     GpItemRec*          tmp;
     register GpItemRec* table asm("v1");
-    register s32        qty asm("a2");
+    s32                 qty;
     register GpItemRec* base asm("t0");
     register s32        item asm("t1");
     GpItemRec*          rec;
@@ -1502,22 +1502,22 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
 
 void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 {
-    register UiObject* obj asm("s7");
-    register Task*     task asm("s6");
-    register s32       sel asm("a0");
-    register s32       color asm("s5");
-    register s32       y0 asm("s4");
-    register s32       one asm("s3");
-    register s32       x asm("s2");
-    register s32       y asm("s1");
-    s32                item;
-    s32                level;
-    s32                width;
-    s32                other;
-    s32                saved;
-    u8*                str;
-    char*              text;
-    GpItemAttr*        p;
+    UiObject*    obj;
+    Task*        task;
+    register s32 sel asm("a0");
+    s32          color;
+    register s32 y0 asm("s4");
+    s32          one;
+    s32          x;
+    register s32 y asm("s1");
+    s32          item;
+    s32          level;
+    s32          width;
+    s32          other;
+    s32          saved;
+    u8*          str;
+    char*        text;
+    GpItemAttr*  p;
 
     obj  = arg0;
     sel  = Wip_SysConfig.field_23;
@@ -1537,8 +1537,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             }
         }
         if (level < 0xA) {
-            register s32 idx asm("v1");
-            McSaveData*  save;
+            s32         idx;
+            McSaveData* save;
             save = &Mc_SaveData;
             TOUCH_REG(save);
             idx                         = item - 0x60;
@@ -1557,7 +1557,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
         {
             register s32 tx asm("v1");
-            register s32 ty asm("v0");
+            s32          ty;
             tx = (-((UiPanel*)obj)->field_C.w) >> 1;
             ty = ((-((UiPanel*)obj)->field_C.h) >> 1) - 0x14;
             USE_REG(obj);
@@ -1578,8 +1578,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     }
 
     {
-        register UiObject* a0obj asm("a0");
-        register char*     notice asm("a1");
+        UiObject* a0obj;
+        char*     notice;
 
         a0obj = obj;
         TOUCH_REG(a0obj);
@@ -1598,7 +1598,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     one = 1;
     Text_DrawPrompt(obj, x, y, str, color, one, 0);
     {
-        register s32 w asm("v0");
+        s32          w;
         register s32 a0item asm("a0");
         register s32 za asm("a1");
         register s32 zb asm("a2");
@@ -1699,7 +1699,7 @@ void Gp_ResetInventory(void)
     register s32         item asm("a1");
     GpItemSlot*          slot;
     s32                  found;
-    register s32         i asm("a0");
+    s32                  i;
     GpItemMap*           p;
     GpItemScan*          scan;
     GpItemRec*           tmp;
@@ -1707,7 +1707,7 @@ void Gp_ResetInventory(void)
     s32                  count;
     s32                  start;
     s32                  off;
-    register McSaveData* save asm("v0");
+    McSaveData*          save;
     GpItemScan*          dest;
     register GpItemScan* src asm("t4");
     WipSysConfig*        pcfg;
@@ -1811,10 +1811,10 @@ void Gp_ResetInventory(void)
 void Gp_ClearInventory(void)
 {
     WipSysConfig*       cfg;
-    register s32        item asm("a1");
+    s32                 item;
     GpItemSlot*         slot;
     s32                 found;
-    register s32        i asm("a0");
+    s32                 i;
     GpItemMap*          p;
     GpItemScan*         scan;
     GpItemRec*          tmp;
@@ -1966,20 +1966,20 @@ void Gp_ClearInventory(void)
 
 void Gp_InitModeEquip(void)
 {
-    WipSysConfig*       cfg;
-    GpItemScan*         scan;
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("a1");
-    GpItemRec*          rec;
-    s32                 i;
-    s32                 acc;
-    s32                 count;
-    s32                 start;
-    s32                 limit;
-    s32                 off;
-    s32                 item;
-    GpItemSlot*         slots;
-    u8                  slotItem;
+    WipSysConfig* cfg;
+    GpItemScan*   scan;
+    GpItemRec*    tmp;
+    GpItemRec*    table;
+    GpItemRec*    rec;
+    s32           i;
+    s32           acc;
+    s32           count;
+    s32           start;
+    s32           limit;
+    s32           off;
+    s32           item;
+    GpItemSlot*   slots;
+    u8            slotItem;
 
     cfg = &Wip_SysConfig;
     acc = 0;
@@ -2032,10 +2032,10 @@ void Gp_ApplyBit2Bank(s32 arg0)
     GpBit2Rec*   rec;
     u32*         dest;
     register u32 id asm("a0");
-    register u32 word asm("v1");
-    register u32 val asm("a1");
+    u32          word;
+    u32          val;
     register s32 tmp asm("v0");
-    register s32 three asm("t2");
+    s32          three;
     register u16 term asm("t3");
     u16          inner;
     GpBit2Bank*  bank;
@@ -2093,11 +2093,11 @@ void Gp_ApplyBit2Bank(s32 arg0)
 
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
 {
-    register s32  shift asm("a2");
-    register u32  mask asm("a3");
-    register u32* p asm("v1");
-    register u32  nmask asm("a0");
-    register s32  temp asm("v0");
+    s32          shift;
+    u32          mask;
+    u32*         p;
+    u32          nmask;
+    register s32 temp asm("v0");
 
     shift = (arg0 & 0xF) * 2;
     USE_REG(shift);
@@ -2116,10 +2116,10 @@ void Gp_ClearScanItems(GpItemScan* arg0)
 {
     GpItemRec*          tmp;
     register GpItemRec* table asm("v1");
-    register s32        i asm("a1");
+    s32                 i;
     s32                 count;
     s32                 start;
-    register s32        off asm("v0");
+    s32                 off;
 
     switch (arg0->field_2) {
         case 2:
@@ -2295,15 +2295,15 @@ s32 Gp_CountCollectedBits(void)
 
 s32 Gp_CountScanItems(GpItemScan* arg0)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("a3");
-    GpItemRec*          rec;
-    s32                 i;
-    s32                 ret;
-    s32                 count;
-    s32                 start;
-    s32                 limit;
-    s32                 off;
+    GpItemRec* tmp;
+    GpItemRec* table;
+    GpItemRec* rec;
+    s32        i;
+    s32        ret;
+    s32        count;
+    s32        start;
+    s32        limit;
+    s32        off;
 
     switch (arg0->field_2) {
         case 2:
@@ -2343,18 +2343,18 @@ GpItemSlot* Gp_GetItemSlot(s32 arg0)
 
 s32 Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1)
 {
-    GpItemRec*   table;
-    s32          start;
-    s32          count;
-    s32          end;
-    s32          limit;
-    GpItemRec*   rec;
-    GpItemSlot*  slots;
-    GpItemSlot*  slot;
-    GpItemSlot*  alt;
-    s32          itemId;
-    s32          off;
-    register s32 ret asm("v0");
+    GpItemRec*  table;
+    s32         start;
+    s32         count;
+    s32         end;
+    s32         limit;
+    GpItemRec*  rec;
+    GpItemSlot* slots;
+    GpItemSlot* slot;
+    GpItemSlot* alt;
+    s32         itemId;
+    s32         off;
+    s32         ret;
 
     table = Gp_GetItemTable(arg0);
     count = 0;
@@ -2713,15 +2713,15 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
 
 s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("a3");
-    GpItemRec*          rec;
-    s32                 i;
-    s32                 acc;
-    s32                 count;
-    s32                 start;
-    s32                 limit;
-    s32                 off;
+    GpItemRec* tmp;
+    GpItemRec* table;
+    GpItemRec* rec;
+    s32        i;
+    s32        acc;
+    s32        count;
+    s32        start;
+    s32        limit;
+    s32        off;
 
     if (arg1 >= 0x100) {
         return Gp_HasCollectedBit(arg1);
@@ -2788,10 +2788,10 @@ void Gp_ApplyBit2List(GpBit2List* arg0, u32* dest)
     GpBit2List*  table;
     GpBit2Rec*   rec;
     register u32 id asm("a0");
-    register u32 word asm("v1");
-    register u32 val asm("a1");
+    u32          word;
+    u32          val;
     register s32 tmp asm("v0");
-    register s32 three asm("t1");
+    s32          three;
     register u16 term asm("t3");
     u16          inner;
 
@@ -2840,11 +2840,11 @@ void Gp_ApplyBit2List(GpBit2List* arg0, u32* dest)
 
 void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2)
 {
-    register s32  shift asm("a3");
-    register u32  mask asm("t0");
-    register u32* p asm("v1");
-    register u32  nmask asm("a0");
-    register s32  temp asm("v0");
+    s32          shift;
+    u32          mask;
+    u32*         p;
+    u32          nmask;
+    register s32 temp asm("v0");
 
     shift = (arg0 & 0xF) * 2;
     USE_REG(shift);
@@ -2956,12 +2956,12 @@ void Gp_WaitItemFlag2(Task* arg0)
         arg0->state   += 1;
     }
     if (arg0->state == 1) {
-        register GpBit2Bank* banks asm("v0");
-        register u32*        p asm("v1");
-        GameSession*         sess;
-        s32                  id;
-        s32                  shift;
-        u32                  word;
+        GpBit2Bank*   banks;
+        register u32* p asm("v1");
+        GameSession*  sess;
+        s32           id;
+        s32           shift;
+        u32           word;
 
         sess  = Game_Session;
         banks = Gp_Bit2Banks;
@@ -3276,9 +3276,9 @@ void Gp_AgeFlag119Void(void)
 
 s32 Gp_GetModLevel(s32 arg0)
 {
-    register s32 ret asm("a1");
-    register s32 idx asm("a2");
-    GpItemAttr*  p;
+    s32         ret;
+    s32         idx;
+    GpItemAttr* p;
 
     idx = arg0 - 0x60;
     ret = 0;
@@ -3366,15 +3366,15 @@ void func_800BC4E4(void)
 
 s32 Gp_CanMoveItems(void)
 {
-    register s32         ret asm("s4");
+    s32                  ret;
     register GpItemScan* src asm("s3");
-    register GpItemRec*  table asm("s5");
-    register s32         flag asm("s7");
-    register GpItemRec*  rec asm("s0");
-    register s32         count asm("s1");
-    register s32         i asm("s2");
+    GpItemRec*           table;
+    s32                  flag;
+    GpItemRec*           rec;
+    s32                  count;
+    s32                  i;
     register s32         off asm("v0");
-    register u32         destHi asm("s6");
+    u32                  destHi;
     s32                  start;
 
     src   = &Gp_MoveScanSrc;

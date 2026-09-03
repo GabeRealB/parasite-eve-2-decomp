@@ -297,20 +297,20 @@ void GameFlow_DispatchTable(Task* arg0)
 
 void Pad_TickEventBanks(PadState* arg0)
 {
-    PadState*    pad;
-    register u8* temp asm("t0");
-    s32          i;
-    register u8* p0 asm("a1");
-    register u8* p1 asm("a2");
-    s32          half;
-    u8           val;
-    u8           one;
+    PadState* pad;
+    u8*       temp;
+    s32       i;
+    u8*       p0;
+    u8*       p1;
+    s32       half;
+    u8        val;
+    u8        one;
 
     pad = arg0;
     {
-        register void** scratch asm("a0");
-        register void*  head asm("v1");
-        register void*  alloc asm("v0");
+        void**         scratch;
+        void*          head;
+        register void* alloc asm("v0");
 
         scratch         = (void**)G_SCRATCH_HEAD;
         p0              = &pad->events[0][0].field_0;
@@ -342,7 +342,7 @@ void Pad_TickEventBanks(PadState* arg0)
     } while (i < 8);
 
     {
-        register u8* p1b asm("a0");
+        u8* p1b;
 
         p0  = &pad->events[1][0].field_0;
         i   = 0;
@@ -380,16 +380,16 @@ INCLUDE_ASM("main/nonmatchings/gameflow", func_8002C1D8);
 
 void Pad_UpdatePort0(void)
 {
-    s32                  i;
-    s32                  offset;
-    PadRawPort*          raw;
-    DisplayState*        ds;
-    register PadScratch* scratch asm("s1");
-    PadState*            pad;
-    u16                  buttons;
-    u16                  prev;
-    register void**      head asm("v1");
-    register void*       tmp asm("v0");
+    s32            i;
+    s32            offset;
+    PadRawPort*    raw;
+    DisplayState*  ds;
+    PadScratch*    scratch;
+    PadState*      pad;
+    u16            buttons;
+    u16            prev;
+    void**         head;
+    register void* tmp asm("v0");
 
     head    = (void**)G_SCRATCH_HEAD;
     i       = 0;

@@ -81,7 +81,7 @@ void Tmd_InitSourceStream(TmdSource* arg0)
     u32                   dims;
     TmdModelStreamHandler handler;
     s32                   flag;
-    register u32          tmp asm("v0");
+    u32                   tmp;
 
     stream = arg0->field_20;
     if (arg0->field_0 == 0) {
@@ -318,9 +318,9 @@ void Tmd_ProcessStream(TmdObject* arg0)
 
     flag = 0;
     {
-        register void**                scratch asm("a0");
-        register TmdScratchModelBlock* head asm("v1");
-        void*                          tmp;
+        void**                scratch;
+        TmdScratchModelBlock* head;
+        void*                 tmp;
 
         scratch  = (void**)G_SCRATCH_HEAD;
         src      = arg0->field_10;
@@ -498,24 +498,24 @@ INCLUDE_ASM("main/nonmatchings/tmd", Tmd_Create);
 
 void Tmd_SetupDraw(TmdObject* arg0)
 {
-    u8                            buf[0x1000];
-    void**                        scratch;
-    register void*                tmp asm("t1");
-    register TmdScratchDrawBlock* ws asm("t0");
-    register void*                stream asm("a2");
-    register MATRIX*              colorMtx asm("t2");
-    register short                t4 asm("t4");
-    register short                t5 asm("t5");
-    register short                t6 asm("t6");
-    register u32                  flags asm("a1");
-    void*                         bufptr;
-    s32                           disp;
+    u8                   buf[0x1000];
+    void**               scratch;
+    void*                tmp;
+    TmdScratchDrawBlock* ws;
+    void*                stream;
+    register MATRIX*     colorMtx asm("t2");
+    register short       t4 asm("t4");
+    register short       t5 asm("t5");
+    register short       t6 asm("t6");
+    u32                  flags;
+    void*                bufptr;
+    s32                  disp;
 
     scratch = (void**)G_SCRATCH_HEAD;
     {
-        register u32        ds_hi asm("v1");
-        register TmdSource* p asm("v0");
-        register s32        d asm("v0");
+        u32        ds_hi;
+        TmdSource* p;
+        s32        d;
 
         __asm__("lui %0, %%hi(Display_State)" : "=r"(ds_hi));
         p      = arg0->field_10;
@@ -538,11 +538,11 @@ void Tmd_SetupDraw(TmdObject* arg0)
     arg0->field_14 ^= 1;
     ws->field_8     = arg0->field_10->field_14;
     {
-        register u_long*    ot asm("a0");
-        register TmdSource* p asm("v1");
-        register s32        e asm("v0");
-        register void*      b asm("v1");
-        s32                 field18;
+        u_long*    ot;
+        TmdSource* p;
+        s32        e;
+        void*      b;
+        s32        field18;
 
         COMPILER_BARRIER();
         ot           = Gpu_CurrentOt;
@@ -571,7 +571,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
     }
 
     {
-        register MATRIX* m asm("v0");
+        MATRIX*          m;
         register MATRIX* src asm("t3");
         register MATRIX* light asm("t7");
 

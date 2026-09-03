@@ -159,13 +159,13 @@ void CdStream_SpuIrqHandler(void)
 
 void CdStream_SetPitch(s16 arg0)
 {
-    CdStreamChannels*         p;
-    volatile CdStreamState*   q;
-    CdStreamChannel*          ch1b;
-    register CdStreamChannel* ch1 asm("v0");
-    s16                       val;
-    s32                       t0;
-    s32                       t1;
+    CdStreamChannels*       p;
+    volatile CdStreamState* q;
+    CdStreamChannel*        ch1b;
+    CdStreamChannel*        ch1;
+    s16                     val;
+    s32                     t0;
+    s32                     t1;
 
     p = &CdStream_Channels;
     q = (volatile CdStreamState*)p - 1;

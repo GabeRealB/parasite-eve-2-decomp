@@ -73,9 +73,9 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     SVECTOR*                vec;
     volatile ScratchRotXYZ* vblock;
     volatile MATRIX*        vmat;
-    register u16            cos_u asm("v0");
+    u16                     cos_u;
     register u16            cos_x2 asm("a1");
-    register u16            cos_y asm("a2");
+    u16                     cos_y;
     register s16            sin_y asm("v1");
     register u16            sin_x asm("v0");
     register s16            neg asm("v0");
@@ -127,7 +127,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_ldsv(vec);
     gte_rtir_real();
     {
-        register u16 sy asm("v0");
+        u16          sy;
         register u16 cy asm("v1");
         sy = block->sin_y;
         TOUCH_REG(sy);
@@ -142,7 +142,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_rtir_real();
     {
         register u16 cz asm("v0");
-        register u16 sz asm("v1");
+        u16          sz;
         cz            = block->cos_z;
         sz            = block->sin_z;
         col2          = (u8*)head - 0x30;
@@ -156,8 +156,8 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_ldsv(vec);
     gte_rtir_real();
     {
-        register s16 sz asm("v0");
-        register u16 cz asm("v1");
+        s16 sz;
+        u16 cz;
         sz            = block->sin_z;
         cz            = block->cos_z;
         sz            = -sz;
@@ -196,11 +196,11 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     SVECTOR*                vec;
     volatile ScratchRotXYZ* vblock;
     volatile MATRIX*        vmat;
-    register u16            sin_y asm("v1");
-    register u16            cos_x asm("a0");
+    u16                     sin_y;
+    u16                     cos_x;
     register u16            sin_x asm("a1");
-    register s16            neg asm("v0");
-    register u16            cos_y2 asm("v1");
+    s16                     neg;
+    u16                     cos_y2;
     void*                   col1;
     void*                   col2;
 
@@ -247,8 +247,8 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_ldsv(vec);
     gte_rtir_real();
     {
-        register s16 sx asm("v0");
-        register u16 cx asm("v1");
+        s16 sx;
+        u16 cx;
         sx = sin_x;
         TOUCH_REG_USE(sx, sin_x);
         sx            = -sx;
@@ -264,7 +264,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_rtir_real();
     {
         register u16 cz asm("v0");
-        register u16 sz asm("v1");
+        u16          sz;
         cz            = block->cos_z;
         sz            = block->sin_z;
         col2          = (u8*)head - 0x30;
@@ -279,7 +279,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_rtir_real();
     {
         register s16 sz asm("v0");
-        register u16 cz asm("v1");
+        u16          cz;
         sz            = block->sin_z;
         cz            = block->cos_z;
         block->vec.vz = 0;
@@ -319,9 +319,9 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     volatile ScratchRotZYX* vblock;
     volatile MATRIX*        vmat;
     register u16            sin_z asm("v0");
-    register u16            cos_z asm("a1");
+    u16                     cos_z;
     register u16            cos_y asm("a2");
-    register s16            sin_y asm("v1");
+    s16                     sin_y;
     register s16            neg asm("v0");
     register s16            sin_copy asm("a0");
     void*                   col1;
@@ -370,7 +370,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_ldsv(vec);
     gte_rtir_real();
     {
-        register u16 sy asm("v0");
+        u16          sy;
         register u16 cy asm("v1");
         sy = block->sin_y;
         TOUCH_REG(sy);
@@ -386,7 +386,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_rtir_real();
     {
         register u16 cx asm("v0");
-        register u16 sx asm("v1");
+        u16          sx;
         cx             = block->cos_x;
         sx             = block->sin_x;
         col2           = (u8*)head - 0x40;
@@ -401,7 +401,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_rtir_real();
     {
         register s16 sx asm("v0");
-        register u16 cx asm("v1");
+        u16          cx;
         sx             = block->sin_x;
         cx             = block->cos_x;
         block->vec3.vx = 0;
@@ -452,9 +452,9 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     *(s16*)(head - 0x30) = ONE;
     {
         register u16     cos_u asm("v0");
-        register u16     sin_u asm("v1");
+        u16              sin_u;
         register s16     neg_s asm("v0");
-        register u16     cos2 asm("v1");
+        u16              cos2;
         volatile MATRIX* vmat;
 
         cos_u         = block->cos_val;
@@ -568,8 +568,8 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
     p->cos_val = cos;
 
     if (flag != 0) {
-        register u16 cos_u asm("v0");
-        s16          t;
+        u16 cos_u;
+        s16 t;
 
         arg0->m[0][0] = ONE;
         arg0->m[0][1] = 0;
@@ -586,7 +586,7 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
         register u16         cos_u asm("v0");
         register u16         cos2 asm("a0");
         register u16         sin_u asm("v0");
-        register s16         copy asm("v1");
+        s16                  copy;
         volatile MATRIX*     vmat;
         volatile ScratchMat* vblock;
 
@@ -633,8 +633,8 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
     p->cos_val = cos;
 
     if (flag != 0) {
-        register u16 sin_u asm("v1");
-        s16          t;
+        u16 sin_u;
+        s16 t;
 
         arg0->m[0][0] = cos;
         arg0->m[0][1] = 0;
@@ -649,8 +649,8 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
         arg0->m[2][2] = p->cos_val;
     } else {
         register u16     sin_u asm("v1");
-        register s16     neg_s asm("v0");
-        register u16     cos2 asm("v1");
+        s16              neg_s;
+        u16              cos2;
         volatile MATRIX* vmat;
 
         *(s16*)(head - 0x24) = cos;
@@ -694,8 +694,8 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
     p->cos_val = cos;
 
     if (flag != 0) {
-        register u16 cos_u asm("v1");
-        s16          t;
+        u16 cos_u;
+        s16 t;
 
         arg0->m[0][0] = cos;
         t             = p->sin_val;
@@ -710,8 +710,8 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
         arg0->m[1][1] = cos_u;
     } else {
         register u16     sin_u asm("v0");
-        register s16     copy asm("v1");
-        register u16     cos2 asm("a0");
+        s16              copy;
+        u16              cos2;
         volatile MATRIX* vmat;
 
         *(s16*)(head - 0x24) = cos;
@@ -742,12 +742,12 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 {
     register void**            scratch asm("s0");
-    register u8*               head asm("a1");
-    register ScratchNormBlock* block asm("a2");
+    u8*                        head;
+    ScratchNormBlock*          block;
     register ScratchNormBlock* vec asm("a0");
-    register s32*              p_min asm("v0");
-    register s32*              p_tmp asm("a3");
-    register s32               val asm("a0");
+    s32*                       p_min;
+    s32*                       p_tmp;
+    s32                        val;
     s32                        shift;
 
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -791,10 +791,10 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
         block->lzc_min         = shift;
         *(s32*)(head - 0x18) >>= shift;
         {
-            register s32 t_vy asm("v0");
-            register s32 t_sh asm("a0");
-            register s32 t_vz asm("v1");
-            register s32 t_sh2 asm("a1");
+            s32 t_vy;
+            s32 t_sh;
+            s32 t_vz;
+            s32 t_sh2;
 
             t_vy = block->vy;
             USE_REG(t_vy);

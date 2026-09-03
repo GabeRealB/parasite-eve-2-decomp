@@ -111,8 +111,8 @@ void Task_Kill(Task* arg0)
     }
 
     {
-        register Task* p asm("v1");
-        register Task* n asm("a0");
+        Task* p;
+        Task* n;
 
         p = arg0->parent;
         if (p != NULL) {
@@ -207,7 +207,7 @@ void Task_Kill(Task* arg0)
     }
 
     {
-        register s32 t asm("v1");
+        s32 t;
 
         t = arg0->spawnType;
         if (t == 1) {

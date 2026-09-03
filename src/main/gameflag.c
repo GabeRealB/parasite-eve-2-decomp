@@ -7,7 +7,7 @@
 void GameFlag_SetNibble(s32 arg0, s32 arg1)
 {
     s32          idx;
-    register u8* ptr asm("v0");
+    u8*          ptr;
     register s32 val asm("v1");
     register s32 nibble asm("a0");
 

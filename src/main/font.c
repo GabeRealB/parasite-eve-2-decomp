@@ -153,11 +153,11 @@ void Stage_ApplyTableEntryWhenIdle(Task* arg0)
 
 void Stage_RequestFromAreaTable(s32 arg0)
 {
-    register GameSession* g asm("v1");
-    s32                   idx;
-    s32                   product;
-    TaskIdPair*           entry;
-    s32                   temp;
+    GameSession* g;
+    s32          idx;
+    s32          product;
+    TaskIdPair*  entry;
+    s32          temp;
 
     g       = Game_Session;
     idx     = g->field_7 - 1;
@@ -175,11 +175,11 @@ void Stage_RequestFromAreaTable(s32 arg0)
 
 void Stage_RequestMidiFromMap(s32 arg0)
 {
-    register GameSession* g asm("v1");
-    s32                   idx;
-    s32                   product;
-    TaskIdPair*           entry;
-    s32                   temp;
+    GameSession* g;
+    s32          idx;
+    s32          product;
+    TaskIdPair*  entry;
+    s32          temp;
 
     g       = Game_Session;
     idx     = g->field_7 - 1;

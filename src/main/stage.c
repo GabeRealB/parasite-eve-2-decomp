@@ -381,18 +381,18 @@ void Display_FlipOtAndDispatch(s32 arg0)
 
 void Display_InvertFramebufferGray(void)
 {
-    s32           i;
-    u32           maskR;
-    u32           maskG;
-    u32           maskB;
-    u32           maskAll;
-    register u32* p0 asm("a3");
-    u32*          p1;
-    register u32  a0 asm("a0");
-    register u32  a2 asm("a2");
-    register u32  a1 asm("a1");
-    register u32  v0 asm("v0");
-    register u32  v1 asm("v1");
+    s32          i;
+    u32          maskR;
+    u32          maskG;
+    u32          maskB;
+    u32          maskAll;
+    u32*         p0;
+    u32*         p1;
+    u32          a0;
+    u32          a2;
+    u32          a1;
+    register u32 v0 asm("v0");
+    register u32 v1 asm("v1");
 
     v0      = 0xFFFDA800;
     i       = 0;
@@ -849,20 +849,20 @@ void Mdec_StripCallback(void);
 
 void Mdec_ProcessDecode(void)
 {
-    register s32           temp_s0 asm("s0");
-    s32                    temp_v0;
-    s32                    temp_v0_2;
-    s32                    temp_v0_3;
-    register s32           var_a0 asm("a0");
-    register s32           var_s1 asm("s1");
-    register s32           var_s1_2 asm("s1");
-    u8*                    var_a0_2;
-    void*                  temp_a1;
-    s32                    temp_a1_2;
-    register CdCmd58Entry* entry asm("v1");
-    CdCmdQueue*            p;
-    CdCmdQueue*            q;
-    s16                    new_var;
+    s32           temp_s0;
+    s32           temp_v0;
+    s32           temp_v0_2;
+    s32           temp_v0_3;
+    s32           var_a0;
+    s32           var_s1;
+    register s32  var_s1_2 asm("s1");
+    u8*           var_a0_2;
+    void*         temp_a1;
+    s32           temp_a1_2;
+    CdCmd58Entry* entry;
+    CdCmdQueue*   p;
+    CdCmdQueue*   q;
+    s16           new_var;
 
     p = &CdCmd_Queue;
     switch ((s16)p->field_202) {
@@ -928,11 +928,11 @@ void Mdec_ProcessDecode(void)
                 do {
                     /* Mirror target: andi a0; lw v1,%lo(368)(s5); sll s0,a0,2;
                        addu a1,v1,s0; lw v0,4(a1) */
-                    register s32   base asm("v1");
-                    register s32   idx2 asm("v0");
-                    register void* a1p asm("a1");
-                    s32            t;
-                    s32            field4;
+                    register s32 base asm("v1");
+                    register s32 idx2 asm("v0");
+                    void*        a1p;
+                    s32          t;
+                    s32          field4;
 
                     var_a0 = var_s1 & 0xFFFF;
                     __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
@@ -966,7 +966,7 @@ void Mdec_ProcessDecode(void)
                         }
                         {
                             register s32 o asm("a0");
-                            register u8* b asm("v0");
+                            u8*          b;
                             __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"
                                              : "=r"(b)
                                              : "r"(hi364));
@@ -981,8 +981,8 @@ void Mdec_ProcessDecode(void)
                             if (temp_v0_2 != one) {
                                 if (temp_v0_2 == new_var) {
                                     register s32 o asm("a0");
-                                    register u8* b asm("v1");
-                                    register s32 e asm("v0");
+                                    u8*          b;
+                                    s32          e;
                                     __asm__ volatile(
                                         "lw %0, %%lo(Stage_CdEntry)(%1)"
                                         : "=r"(e)
@@ -1012,9 +1012,9 @@ void Mdec_ProcessDecode(void)
                 var_s1_2 = 0;
                 {
                     register s32 h368b asm("s3");
-                    register s32 hModeb asm("s5");
+                    s32          hModeb;
                     register s32 h234b asm("s4");
-                    register s32 h364b asm("s6");
+                    s32          h364b;
                     __asm__ volatile(
                         "lui %0, %%hi(Stage_CdEntry)\n\t"
                         "lui %1, %%hi(Fs_ChunkMode)\n\t"
@@ -1022,7 +1022,7 @@ void Mdec_ProcessDecode(void)
                         "lui %3, %%hi(Mdec_DecodeBase)"
                         : "=&r"(h368b), "=&r"(hModeb), "=&r"(h234b), "=r"(h364b));
                     do {
-                        register s32 idx asm("a0");
+                        s32          idx;
                         register s32 ebase asm("v1");
                         register s32 t4 asm("a1");
                         idx = var_s1_2 & 0xFFFF;
@@ -1053,10 +1053,10 @@ void Mdec_ProcessDecode(void)
                             }
                             temp_s0 = t4; /* move s0, a1 */
                             do {
-                                register s32 e asm("v0");
-                                register s32 b asm("v1");
+                                s32          e;
+                                s32          b;
                                 register s32 o asm("a0");
-                                register s32 a1c asm("a1");
+                                s32          a1c;
                                 __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
                                                  : "=r"(e) : "r"(h368b));
                                 __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"

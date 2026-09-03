@@ -12,13 +12,13 @@ s32 CdAudio_DriveStream(void)
     CdStreamParams*        setup;
     CdlLOC*                loc;
     s32                    acc;
-    register s32           i asm("s2");
+    s32                    i;
     s32                    voice;
     s32                    status;
     s16                    half;
     s32                    two;
     s32                    temp;
-    register s32           next asm("v0");
+    s32                    next;
     void*                  sector;
 
     setup = &CdStream_Params;
@@ -151,7 +151,7 @@ void CdAudio_FeedSector(s32 arg0);
 s32 CdAudio_DriveSeek(void)
 {
     u8                   phase;
-    register SectorHdr*  hdr asm("a2");
+    SectorHdr*           hdr;
     volatile CdAudioCtl* stream;
     s32                  status;
     register s32         tmp asm("a0");
@@ -937,28 +937,28 @@ void CdReady_Poll(void)
 
 void CdStream_Start(CdStreamParams* arg0)
 {
-    CdReadyEntry                     entry;
-    register volatile CdStreamState* p asm("s1");
-    s32                              flag;
-    volatile CdStreamState*          ap;
-    volatile CdStreamState*          a3;
-    CdStreamChannel*                 t0;
-    CdStreamChannel*                 ch1;
-    register s32                     sectors asm("a0");
-    s16                              pitch;
-    u8                               saved;
-    s16                              f6;
-    s16                              idx;
-    u32                              flags;
-    CdReadyEntry*                    e;
-    s32                              one;
-    s32                              cflags;
-    s16                              vff;
-    s16                              v1fc3;
-    s16                              v1000;
-    s32                              temp;
-    u8                               mode;
-    register s32                     base asm("v1");
+    CdReadyEntry            entry;
+    volatile CdStreamState* p;
+    s32                     flag;
+    volatile CdStreamState* ap;
+    volatile CdStreamState* a3;
+    CdStreamChannel*        t0;
+    CdStreamChannel*        ch1;
+    s32                     sectors;
+    s16                     pitch;
+    u8                      saved;
+    s16                     f6;
+    s16                     idx;
+    u32                     flags;
+    CdReadyEntry*           e;
+    s32                     one;
+    s32                     cflags;
+    s16                     vff;
+    s16                     v1fc3;
+    s16                     v1000;
+    s32                     temp;
+    u8                      mode;
+    s32                     base;
 
     p         = &CdStream_State;
     p->voiceL = arg0->voiceL;
@@ -1044,7 +1044,7 @@ void CdStream_Start(CdStreamParams* arg0)
     t0->voiceMask       = one << a3->voiceL;
     t0->spuAddr         = a3->spuBase;
     {
-        register s32 addr asm("v0");
+        s32          addr;
         register s32 mask asm("v1");
         addr            = a3->spuBase;
         mask            = a3->voiceR;
@@ -1086,8 +1086,8 @@ void CdStream_Start(CdStreamParams* arg0)
     }
 
     {
-        register s32 rem_tmp asm("a0");
-        register s32 temp_v1 asm("v1");
+        s32 rem_tmp;
+        s32 temp_v1;
 
         rem_tmp                  = (s32)&entry;
         entry.pollFn             = (s32)func_80059EE0;
@@ -1188,8 +1188,8 @@ void CdStream_TeardownVoices(void)
     u8                      saved;
     u8                      t;
     s32                     dead;
-    register s32            rem_tmp asm("a0");
-    register s32            temp asm("v0");
+    s32                     rem_tmp;
+    s32                     temp;
 
     p = &CdStream_State;
     if (p->flags2 & 1) {
@@ -1249,10 +1249,10 @@ void func_80058748(void)
     CdReadyEntry            entry;
     volatile CdStreamState* p;
     register s32            rem_tmp asm("a0");
-    register s32            field18 asm("a1");
+    s32                     field18;
     register s32            temp asm("v0");
-    register s32            rem asm("v1");
-    register s32            quot asm("a3");
+    s32                     rem;
+    s32                     quot;
 
     p            = &CdStream_State;
     field18      = p->field_18;

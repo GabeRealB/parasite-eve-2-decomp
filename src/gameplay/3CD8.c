@@ -507,13 +507,13 @@ void Gp_CapExit(Task* arg0)
 
 void Gp_DrawCapCaret(void)
 {
-    POLY_G3*     p;
-    s32          color;
-    u16          x;
-    u16          y;
-    register u32 mask asm("a3");
-    u32          mask_hi;
-    u_long*      ot;
+    POLY_G3* p;
+    s32      color;
+    u16      x;
+    u16      y;
+    u32      mask;
+    u32      mask_hi;
+    u_long*  ot;
 
     if (Gp_CapCaretDelay != 0) {
         Gp_CapCaretDelay--;
@@ -564,8 +564,8 @@ void Gp_DrawCapCaret(void)
 s16 Gp_CapCenterX(u16* arg0)
 {
     register s32        lineW asm("t0");
-    register s32        maxW asm("t1");
-    register s32        i asm("a3");
+    s32                 maxW;
+    s32                 i;
     register s32        width asm("v1");
     u16                 code;
     s32                 shifted;
@@ -633,9 +633,9 @@ s16 Gp_CapCenterX(u16* arg0)
 s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
 {
     register s32        lineW asm("t1");
-    register s32        selectedW asm("t3");
-    register s32        i asm("t0");
-    register s32        lineIndex asm("t2");
+    s32                 selectedW;
+    s32                 i;
+    s32                 lineIndex;
     register s32        width asm("v1");
     u16                 code;
     s32                 shifted;
@@ -707,9 +707,9 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
 
 s16 Gp_CapTextHeight(u16* arg0)
 {
-    register s32        lineH asm("a3");
-    register s32        total asm("t0");
-    register s32        i asm("t1");
+    s32                 lineH;
+    s32                 total;
+    s32                 i;
     u16                 code;
     s32                 shifted;
     volatile GlyphUvwh* glyph;
@@ -759,10 +759,10 @@ s16 Gp_CapTextHeight(u16* arg0)
 
 s16 Gp_CapTextTopY(u16* arg0)
 {
-    register s32        lineH asm("a3");
-    register s32        total asm("t0");
-    register s32        i asm("t1");
-    register s32        seenBreak asm("t2");
+    s32                 lineH;
+    s32                 total;
+    s32                 i;
+    s32                 seenBreak;
     u16                 code;
     s32                 shifted;
     register s32        next asm("v1");

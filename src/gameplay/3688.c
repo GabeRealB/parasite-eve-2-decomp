@@ -355,7 +355,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             arg = arg0->spawnArg1;
             if (arg == 0x45) {
-                register s32 ca0 asm("a0");
+                s32          ca0;
                 register s32 ca1 asm("a1");
                 register s32 ca2 asm("a2");
 
@@ -368,9 +368,9 @@ void Gp_MenuRootTask(Task* arg0)
             }
             {
                 register UiObjectDesc* desc asm("a0");
-                register s32           a1 asm("a1");
+                s32                    a1;
                 register s32           a2 asm("a2");
-                register s32           a3 asm("a3");
+                s32                    a3;
                 s32                    flag;
 
                 if (arg == 0x45) {
@@ -443,13 +443,13 @@ void Gp_MenuRootTask(Task* arg0)
             break;
         }
         case 0x32: {
-            DisplayState*      disp;
-            WipSysConfig*      cfg;
-            s32                attach;
-            s32                old;
-            register TaskNode* list asm("s1");
-            register TaskNode* prev asm("s3");
-            register s32       saved asm("s2");
+            DisplayState* disp;
+            WipSysConfig* cfg;
+            s32           attach;
+            s32           old;
+            TaskNode*     list;
+            TaskNode*     prev;
+            s32           saved;
 
             arg0->killCountdown--;
             if (arg0->killCountdown > 0) {
@@ -503,7 +503,7 @@ void Gp_MenuRootTask(Task* arg0)
         }
         case 0x3C: {
             WipSysConfig* cfg;
-            register s32  attach asm("a0");
+            s32           attach;
             TaskNode*     prev;
             s32*          flag;
 
@@ -1308,10 +1308,10 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     WipSysConfig* cfg;
     s32           item;
     s32           color;
-    register s32  x asm("s6");
+    s32           x;
     s32           y;
     s32           base;
-    register s32  i asm("s4");
+    s32           i;
     GpItemAttr*   attr;
 
     obj           = arg0->spawnArg2;
@@ -1334,7 +1334,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         Gp_DrawItemLabel(obj, x, y, item, color, 0);
 
         {
-            register s32 vx asm("v0");
+            s32 vx;
             vx              = obj->baseX + 0x20;
             vx              = vx + x;
             req1.x          = vx;
@@ -1350,7 +1350,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
 
         {
             register s32 t asm("v0");
-            register s32 bx asm("v1");
+            s32          bx;
             t               = mid + 0x1E;
             t               = x + t;
             bx              = obj->baseX;
@@ -1368,7 +1368,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
 
         {
-            register s32 vx asm("v0");
+            s32 vx;
             vx              = obj->baseX + 2;
             vx              = vx + x;
             req3.x          = vx;
@@ -1402,21 +1402,21 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         func_8002E53C(&req5, Gp_StrAttachments);
 
         {
-            register GpItemRec* found asm("a2");
-            register GpItemRec* table asm("v1");
+            GpItemRec* found;
+            GpItemRec* table;
 
             for (; i < Gp_GetModLevel(item); i++) {
-                s32                  col;
-                register s32         temp asm("v1");
-                register s32         row asm("s2");
-                register s32         prod asm("v0");
-                register McItemScan* scan asm("s0");
-                GpItemRec*           rec;
-                register s32         idx asm("v1");
-                register s32         j asm("a1");
-                register s32         count asm("a0");
-                register s32         slot asm("a3");
-                s32                  id;
+                s32          col;
+                register s32 temp asm("v1");
+                s32          row;
+                s32          prod;
+                McItemScan*  scan;
+                GpItemRec*   rec;
+                s32          idx;
+                s32          j;
+                register s32 count asm("a0");
+                register s32 slot asm("a3");
+                s32          id;
 
                 col = i / 5;
                 asm("lui $8, %%hi(Mc_SaveData+0x5BC)\n\taddiu %0, $8, %%lo(Mc_SaveData+0x5BC)"
@@ -1728,27 +1728,27 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
 void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    register s32         hi asm("s0");
-    register McItemScan* scan asm("s1");
-    register s32         remaining asm("s2");
-    register GpItemRec*  sel asm("s4");
-    register s32         item asm("s0");
-    s32                  status;
-    s32                  one;
-    s32                  temp;
-    s32                  idx1;
-    s32                  idx2;
-    UiObject*            obj;
+    s32          hi;
+    McItemScan*  scan;
+    register s32 remaining asm("s2");
+    GpItemRec*   sel;
+    register s32 item asm("s0");
+    s32          status;
+    s32          one;
+    s32          temp;
+    s32          idx1;
+    s32          idx2;
+    UiObject*    obj;
 
     asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
     asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
     remaining = arg0->field_8;
     {
         register GpItemRec* found asm("a1");
-        register GpItemRec* table asm("a2");
+        GpItemRec*          table;
         register s32        ok asm("a3");
-        register s32        loopOne asm("t3");
-        register s32        i asm("t0");
+        s32                 loopOne;
+        s32                 i;
         register s32        idx asm("v1");
         WipSysConfig*       p;
         GpItemRec*          rec;
@@ -1801,7 +1801,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         if (arg0->field_10 == arg0->field_8) {
             if (Gp_ItemOrderMode == 0) {
                 register s32 t asm("a0");
-                register s32 a1v asm("a1");
+                s32          a1v;
                 a1v = 1;
                 if (item == 0) {
                     t = (s32)Gp_StrEmpty;
@@ -1917,20 +1917,20 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
 
 void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
 {
-    register s32           count asm("t0");
-    register s32           i asm("t3");
-    register McItemRec*    rec asm("a3");
-    register s32           item asm("v1");
-    s32                    j;
-    s32                    off;
-    s32                    temp;
-    s32                    limit;
-    McItemRec*             table;
-    McItemRec*             rec2;
-    McItemScan*            scan;
-    register WipSysConfig* cfg asm("t4");
-    GpItemQty*             table0;
-    GpItemQty*             table1;
+    register s32        count asm("t0");
+    s32                 i;
+    register McItemRec* rec asm("a3");
+    register s32        item asm("v1");
+    s32                 j;
+    s32                 off;
+    s32                 temp;
+    s32                 limit;
+    McItemRec*          table;
+    McItemRec*          rec2;
+    McItemScan*         scan;
+    WipSysConfig*       cfg;
+    GpItemQty*          table0;
+    GpItemQty*          table1;
 
     count = 0;
     table = Mc_SaveData.field_1AC;
@@ -2228,7 +2228,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
     SOFT_TOUCH_REG(prompt);
     cfg = &Wip_SysConfig;
     {
-        register s32 t asm("v0");
+        s32 t;
         t    = cfg->field_21;
         item = t + 0x7F;
     }
@@ -2243,7 +2243,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
         if (prompt->field_10 == prompt->field_8) {
             if (Gp_ItemOrderMode == 0) {
                 register s32 name asm("a0");
-                register s32 a1v asm("a1");
+                s32          a1v;
                 a1v = 1;
                 if (item == 0) {
                     name = (s32)Gp_StrEmpty;
@@ -2265,9 +2265,9 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
         flag = Gp_ItemOrderMode;
         if (flag == 0) {
             register McItemScan* scan asm("s4");
-            register GpItemRec*  table asm("v1");
+            GpItemRec*           table;
             register s32         i asm("a1");
-            register s32         idx asm("v0");
+            s32                  idx;
 
             scan  = &Mc_SaveData.field_5BC;
             table = Gp_GetItemTable(scan);
@@ -2291,8 +2291,8 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
                 menu = &D_8010E9A4;
                 Gp_CountAmmoRows(menu, 0);
                 {
-                    register s32       n asm("v1");
-                    register UiObject* spawned asm("v1");
+                    s32       n;
+                    UiObject* spawned;
                     n = menu->field_4;
                     if (((u32)n >= 2U) || ((n == 1) && (cfg->field_21 == 0))) {
                         SndEvt_EnqueueType6(3, 0, 0);
@@ -2315,8 +2315,8 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
         } else if (flag == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 if ((u8)(*Gp_SelItemRec + 0x80) < 0x20) {
-                    register WipSysConfig* p asm("s0");
-                    register s32           a0item asm("a0");
+                    WipSysConfig* p;
+                    s32           a0item;
                     a0item = item;
                     TOUCH_REG(a0item);
                     p = &Wip_SysConfig;
@@ -2363,7 +2363,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
 
     {
         register s32 vx asm("v0");
-        register s32 vy asm("v1");
+        s32          vy;
         s32          grey;
         grey           = 0x606060;
         vx             = obj->baseX;
@@ -2410,8 +2410,8 @@ void Gp_WeaponMenuTask(Task* arg0)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
-        register GpItemSlot* slot asm("v1");
-        register s32         n asm("v0");
+        GpItemSlot*  slot;
+        register s32 n asm("v0");
 
         id   = Wip_SysConfig.field_21 + 0x7F;
         slot = Gp_GetItemSlot(id);
@@ -2440,8 +2440,8 @@ void Gp_WeaponMenuTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     {
-        register GpItemSlot* slot asm("v1");
-        register s32         n asm("v0");
+        GpItemSlot*  slot;
+        register s32 n asm("v0");
 
         id   = Wip_SysConfig.field_21 + 0x7F;
         slot = Gp_GetItemSlot(id);
@@ -2590,14 +2590,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C41A4);
 
 void Gp_ArmorMenuTask(Task* arg0)
 {
-    register UiObject* obj asm("s1");
-    UiList*            menu;
-    register s32       item asm("s5");
-    register s32       color asm("s7");
-    WipSysConfig*      cfg;
-    s32                status;
-    s32                x;
-    s32                y;
+    UiObject*     obj;
+    UiList*       menu;
+    s32           item;
+    s32           color;
+    WipSysConfig* cfg;
+    s32           status;
+    s32           x;
+    s32           y;
     struct {
         TextDrawReq req;
         struct {
@@ -2694,7 +2694,7 @@ void Gp_ArmorMenuTask(Task* arg0)
             if (((t >> 16) == one) || (t == one)) {
                 if (Gp_ItemOrderMode == 0) {
                     register s32 name asm("a0");
-                    register s32 a1v asm("a1");
+                    s32          a1v;
                     a1v = 1;
                     if (item == 0) {
                         name = (s32)Gp_StrEmpty;
@@ -2846,7 +2846,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         grey = 0x606060;
         {
             register s32 vx asm("v0");
-            register s32 vy asm("v1");
+            s32          vy;
             vx           = obj->baseX;
             vy           = (u16)obj->field_1C;
             vx           = vx + 2;
@@ -2923,9 +2923,9 @@ void Gp_ArmorMenuTask(Task* arg0)
     }
 
     if (obj->status == 0x17) {
-        register s32 t asm("a1");
+        s32          t;
         register s32 by asm("v0");
-        register s32 f18 asm("v1");
+        s32          f18;
         register s32 f2c asm("a0");
         by  = (s16)obj->baseY;
         f18 = (s16)obj->field_18;
@@ -2935,7 +2935,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         if (t < 0xF) {
             arg0->state = 2;
         } else {
-            register s32 h asm("a0");
+            s32          h;
             register s32 v asm("v1");
             register s32 one asm("v0");
             one         = 1;
@@ -2947,7 +2947,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                 menu->field_10 = (s8)menu->field_9;
             } else {
                 register s32 row9 asm("v0");
-                register s32 f5 asm("v1");
+                s32          f5;
                 register s32 vis asm("a0");
                 t    = t / h;
                 row9 = (s8)menu->field_9;
@@ -3067,8 +3067,8 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
     register DialogPrompt* prompt asm("s4");
     register UiObject*     obj asm("s5");
     register McItemScan*   scan asm("s7");
-    register GpItemRec*    rec asm("s0");
-    register s32           hi asm("v0");
+    GpItemRec*             rec;
+    s32                    hi;
     s32                    item;
     s32                    five;
     s32                    i;
@@ -3171,14 +3171,14 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
         }
 
         {
-            register s32 status asm("v1");
-            register s32 one asm("a0");
+            s32 status;
+            s32 one;
             status = obj->status;
             one    = 1;
             if (((status >> 16) == one) || (status == one)) {
                 if (prompt->field_10 == prompt->field_8) {
                     register s32 t asm("a0");
-                    register s32 a1v asm("a1");
+                    s32          a1v;
                     a1v = 1;
                     if (item == 0) {
                         t = (s32)Gp_StrEmpty;
@@ -3221,8 +3221,8 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
     } else {
         s32          target;
         s32          baseY;
-        register s32 status asm("v1");
-        register s32 one asm("a0");
+        s32          status;
+        s32          one;
         register s32 a1v asm("a1");
 
         one    = 1;
@@ -3253,7 +3253,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                 {
                     GpItemRec*   tmp;
                     register s32 idx asm("v1");
-                    register s32 n asm("a0");
+                    s32          n;
                     tmp = Gp_GetItemTable(scan);
                     i   = 0;
                     idx = scan->field_0;
@@ -3391,21 +3391,21 @@ typedef struct {
 
 void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
 {
-    CdCmdSlotBlk  blk;
-    CdCmdQueue*   queue;
-    CdCmdEntryS*  entry;
-    s32           index;
-    register s32  type asm("s3");
-    s32           nibble;
-    s32           hi;
-    s32           lo;
-    register s32  minusTwo asm("s0");
-    register s32  three asm("s1");
-    s32*          p;
-    register s32* base asm("s4");
-    register s32  off asm("v1");
-    CdCmdEntry*   cur;
-    register s32  idx asm("v0");
+    CdCmdSlotBlk blk;
+    CdCmdQueue*  queue;
+    CdCmdEntryS* entry;
+    s32          index;
+    register s32 type asm("s3");
+    s32          nibble;
+    s32          hi;
+    s32          lo;
+    s32          minusTwo;
+    s32          three;
+    s32*         p;
+    s32*         base;
+    s32          off;
+    CdCmdEntry*  cur;
+    register s32 idx asm("v0");
 
     queue = &CdCmd_Queue;
     if (arg0 == 0) {
@@ -3733,8 +3733,8 @@ void Gp_KeyItemMenuTask(Task* arg0)
 {
     UiObject*    obj;
     UiList*      menu;
-    register s32 count asm("v0");
-    register s32 count8 asm("a0");
+    s32          count;
+    s32          count8;
     register s32 sel asm("v1");
     Task*        child;
     Task*        next;
@@ -4009,7 +4009,7 @@ void Gp_EquipSummaryTask(Task* arg0)
 
     if (*stored != item) {
         s32*         table;
-        register s32 i asm("a0");
+        s32          i;
         register s32 minusOne asm("t0");
         s32*         p;
         register s32 slot asm("a1");
@@ -4089,21 +4089,21 @@ void Gp_EquipSummaryTask(Task* arg0)
 
 void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    TextDrawReq            req;
-    register s32           spawnArg asm("s4");
-    register s32           item asm("s0");
-    s32                    status;
-    s32                    x;
-    s32                    y;
-    s32                    color;
-    s32                    one;
-    s32                    temp;
-    s32                    i;
-    s32                    minusOne;
-    s32                    baseY;
-    register UiObject*     obj asm("s1");
-    register DialogPrompt* prompt asm("s5");
-    UiObject*              spawned;
+    TextDrawReq        req;
+    register s32       spawnArg asm("s4");
+    s32                item;
+    s32                status;
+    s32                x;
+    s32                y;
+    s32                color;
+    s32                one;
+    s32                temp;
+    s32                i;
+    s32                minusOne;
+    s32                baseY;
+    register UiObject* obj asm("s1");
+    DialogPrompt*      prompt;
+    UiObject*          spawned;
 
     obj      = arg1;
     spawnArg = obj->owner->spawnArg1;
@@ -4114,7 +4114,7 @@ void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
         if (prompt->field_10 == prompt->field_8) {
             {
                 register s32 t asm("a0");
-                register s32 a1v asm("a1");
+                s32          a1v;
                 a1v = 1;
                 if (item == 0) {
                     t = (s32)Gp_StrEmpty;
@@ -4393,19 +4393,19 @@ draw:
 
 void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    register DialogPrompt* prompt asm("s5");
-    register UiObject*     obj asm("s4");
-    register s32           item asm("s3");
-    register s32           spawnArg asm("s6");
-    s32                    status;
-    s32*                   table;
-    s32                    i;
-    s32                    slot;
-    s32                    minusOne;
-    s32*                   p;
-    GpItemRec*             rec;
-    s32                    qty;
-    GpItemSlot*            attach;
+    DialogPrompt* prompt;
+    UiObject*     obj;
+    s32           item;
+    s32           spawnArg;
+    s32           status;
+    s32*          table;
+    s32           i;
+    s32           slot;
+    s32           minusOne;
+    s32*          p;
+    GpItemRec*    rec;
+    s32           qty;
+    GpItemSlot*   attach;
     union {
         struct {
             u8          buf[0x20];
@@ -4425,7 +4425,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
                 s32 t;
                 t = (s32)Gp_StrRemoveAmmoHelp;
                 {
-                    register s32 a1v asm("a1");
+                    s32 a1v;
                     asm volatile("addu %0, $zero, $zero" : "=r"(a1v));
                     Ui_SetHolderParam(t, a1v, a1v);
                 }
@@ -4485,12 +4485,12 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
                                0x102010);
         }
         {
-            s32          x;
-            s32          y;
-            s32          color;
-            s32          temp;
-            s32          baseY;
-            register s32 five asm("v1");
+            s32 x;
+            s32 y;
+            s32 color;
+            s32 temp;
+            s32 baseY;
+            s32 five;
 
             x     = prompt->field_18;
             y     = prompt->field_1A;
@@ -4530,11 +4530,11 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
     if (prompt->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             {
-                register UiObjectDesc* a0v asm("a0");
-                register s32           a1v asm("a1");
-                register s32           a2v asm("a2");
-                register s32           a3v asm("a3");
-                char*                  slot;
+                UiObjectDesc* a0v;
+                s32           a1v;
+                register s32  a2v asm("a2");
+                register s32  a3v asm("a3");
+                char*         slot;
                 a0v = &D_8010EEF8;
                 a1v = (spawnArg << 8) | item;
                 a2v = 1;
@@ -4657,20 +4657,20 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
 
 void Gp_AttachListTask(Task* arg0)
 {
-    register UiList*   menu asm("s0");
-    register UiObject* obj asm("s1");
-    register s32       val asm("s2");
-    register Task*     task asm("s3");
-    register s32       one asm("s4");
-    register char*     hi asm("v0");
-    s32                state;
-    GpItemSlot*        slot;
-    u8                 temp;
-    Task*              child;
-    Task*              next;
-    Task*              head;
-    UiObject*          childObj;
-    s32                flag;
+    UiList*        menu;
+    UiObject*      obj;
+    s32            val;
+    register Task* task asm("s3");
+    s32            one;
+    register char* hi asm("v0");
+    s32            state;
+    GpItemSlot*    slot;
+    u8             temp;
+    Task*          child;
+    Task*          next;
+    Task*          head;
+    UiObject*      childObj;
+    s32            flag;
 
     task = arg0;
     obj  = task->spawnArg2;
@@ -4864,27 +4864,27 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
 
 void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    TextDrawReq                  req;
-    WipSysConfig*                cfg;
-    register s32                 hi asm("s0");
-    register McItemScan*         scan asm("s1");
-    register s32                 remaining asm("s2");
-    GpItemRec*                   rec;
-    register volatile GpItemRec* table asm("a2");
-    s32                          i;
-    register s32                 count asm("t0");
-    s32                          found;
-    s32                          item;
-    register s32                 id asm("t0");
-    s32                          x;
-    s32                          y;
-    s32                          color;
-    s32                          one;
-    s32                          temp;
-    s32                          baseY;
-    s32                          status;
-    register s32                 idx asm("v1");
-    register s32                 n asm("a1");
+    TextDrawReq         req;
+    WipSysConfig*       cfg;
+    s32                 hi;
+    McItemScan*         scan;
+    s32                 remaining;
+    GpItemRec*          rec;
+    volatile GpItemRec* table;
+    s32                 i;
+    register s32        count asm("t0");
+    s32                 found;
+    s32                 item;
+    register s32        id asm("t0");
+    s32                 x;
+    s32                 y;
+    s32                 color;
+    s32                 one;
+    s32                 temp;
+    s32                 baseY;
+    s32                 status;
+    register s32        idx asm("v1");
+    register s32        n asm("a1");
 
     asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
     asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
@@ -4996,17 +4996,17 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         hi = 0x8007 << 16;
         asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
         {
-            register McItemScan* a0scan asm("a0");
+            McItemScan* a0scan;
             a0scan = scan;
             TOUCH_REG(a0scan);
             cfg = &Wip_SysConfig;
             rec = Gp_GetItemTable(a0scan);
         }
         {
-            register s32                 idx asm("v1");
-            register s32                 n asm("a1");
-            register s32                 iter asm("a2");
-            register volatile GpItemRec* recTable asm("a0");
+            register s32        idx asm("v1");
+            s32                 n;
+            register s32        iter asm("a2");
+            volatile GpItemRec* recTable;
 
             iter = 0;
             asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
@@ -5044,13 +5044,13 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
 
     {
-        register s32 remaining asm("s2");
-        register s32 found asm("a1");
+        s32 remaining;
+        s32 found;
 
         asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
         asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
         {
-            register McItemScan* a0scan asm("a0");
+            McItemScan* a0scan;
             a0scan = scan;
             TOUCH_REG(a0scan);
             cfg       = &Wip_SysConfig;
@@ -5058,12 +5058,12 @@ void Gp_SelectArmorMenuTask(Task* arg0)
             rec       = Gp_GetItemTable(a0scan);
         }
         {
-            register s32                 iter asm("a3");
-            register s32                 n asm("a2");
-            register s32                 count asm("t0");
-            register s32                 id asm("a2");
-            register s32                 idx asm("v1");
-            register volatile GpItemRec* recTable asm("a0");
+            s32                 iter;
+            register s32        n asm("a2");
+            s32                 count;
+            register s32        id asm("a2");
+            register s32        idx asm("v1");
+            volatile GpItemRec* recTable;
 
             iter  = 0;
             found = iter;

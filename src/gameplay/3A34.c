@@ -502,13 +502,13 @@ void Gp_DrawWeaponLabel(Task* arg0)
 
 void Gp_UpdateRoomCoords(Task* arg0)
 {
-    register Task*           task asm("s7");
-    register GpRoomCoordSet* set asm("s5");
-    register SVECTOR*        vec asm("s4");
-    GsCOORDINATE2*           parent6C;
-    register s32             i asm("s1");
-    s32                      j;
-    u16                      tmp;
+    Task*           task;
+    GpRoomCoordSet* set;
+    SVECTOR*        vec;
+    GsCOORDINATE2*  parent6C;
+    s32             i;
+    s32             j;
+    u16             tmp;
 
     task = arg0;
     {
@@ -523,8 +523,8 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     {
-        register void** scratch asm("v0");
-        register u8*    head asm("v1");
+        void**       scratch;
+        register u8* head asm("v1");
 
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = (u8*)*scratch;
@@ -553,7 +553,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
             {
                 register GpCoord6C*   obj asm("s3");
-                register GpCoord6C*   cur asm("s0");
+                GpCoord6C*            cur;
                 register Gp6CDirWalk* dirw asm("s2");
                 register Gp6CMatWalk* matw asm("s6");
 
@@ -616,10 +616,10 @@ void Gp_UpdateRoomCoords(Task* arg0)
             }
 
             {
-                GsCOORDINATE2*          parent;
-                register GpCoord64View* view asm("a0");
-                register GpCoord64*     slot asm("v1");
-                register void*          base asm("v0");
+                GsCOORDINATE2* parent;
+                GpCoord64View* view;
+                GpCoord64*     slot;
+                register void* base asm("v0");
 
                 parent = &Gfx_ViewCoord;
                 base   = Gp_RoomCoords;
@@ -642,9 +642,9 @@ void Gp_UpdateRoomCoords(Task* arg0)
     Gp_UpdateCoord(&Gfx_ViewCoord);
 
     {
-        register s32        hi asm("v0");
+        s32                 hi;
         register GpCoord64* p asm("s1");
-        register s32        k asm("s2");
+        s32                 k;
 
         __asm__ volatile(
             "lui\t%0, %%hi(Gp_RoomCoords)\n\t"
@@ -662,7 +662,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
     {
         register GpCoord60* p asm("a0");
-        register GpCoord60* cur asm("s0");
+        GpCoord60*          cur;
 
         p = set->arr60;
         TOUCH_REG(p);
@@ -694,7 +694,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     if (set->n58 > 0) {
-        register GpCoord58* p asm("s0");
+        GpCoord58* p;
 
         p = set->arr58;
         for (i = 0; i < set->n58;) {
@@ -709,24 +709,24 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
 s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
 {
-    register void**         scratch asm("a1");
-    register u8*            head asm("a3");
-    register GpAttnScratch* block asm("a2");
-    register s32            vx asm("v0");
-    register s32            lum asm("v1");
-    register GpObj44*       obj asm("t0");
-    register GpObj44*       obj2 asm("t2");
-    register VECTOR3*       pos asm("t1");
-    s32                     result;
-    s32                     tooFar;
-    s32                     r;
-    s32                     g;
-    s32                     b;
-    s32                     dist;
-    s32                     inner;
-    u16                     scale;
-    u8*                     ptr;
-    s16                     room;
+    void**            scratch;
+    u8*               head;
+    GpAttnScratch*    block;
+    register s32      vx asm("v0");
+    s32               lum;
+    GpObj44*          obj;
+    register GpObj44* obj2 asm("t2");
+    register VECTOR3* pos asm("t1");
+    s32               result;
+    s32               tooFar;
+    s32               r;
+    s32               g;
+    s32               b;
+    s32               dist;
+    s32               inner;
+    u16               scale;
+    u8*               ptr;
+    s16               room;
 
     obj  = arg0;
     obj2 = obj;
@@ -831,10 +831,10 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
     register void**         scratch asm("a3");
     register u8*            head;
     register GpAttnScratch* tmp asm("a0");
-    register GpAttnScratch* block asm("t0");
-    register s32            result asm("a1");
+    GpAttnScratch*          block;
+    s32                     result;
     register s32            lum;
-    register GpObj44*       obj asm("t1");
+    GpObj44*                obj;
     s32                     tooFar;
     s32                     r;
     s32                     g;
@@ -907,13 +907,13 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
 
 s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
 {
-    register GpObj68*       obj2 asm("s2");
+    GpObj68*                obj2;
     register VECTOR3*       pos;
     register GpObj68*       obj asm("s1");
-    register s32            result asm("s3");
+    s32                     result;
     register void**         scratch asm("a1");
     register u8*            head asm("a2");
-    register u8*            addr asm("a0");
+    u8*                     addr;
     register GpSpotScratch* block asm("s0");
     register s32            lum;
     s32                     tooFar;
@@ -961,13 +961,13 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     if (tooFar) {
         result = 0;
     } else {
-        register VECTOR* light asm("a0");
+        VECTOR* light;
 
         block->innerSq = (obj2->field_60 * obj2->field_60) >> 2;
         light          = (VECTOR*)block;
         Gfx_NormalizeLightDir(light, (SVECTOR*)(head - 0x1C));
         {
-            register s32 dot asm("v0");
+            s32 dot;
 
             dot           = block->dir.vx * obj->field_24.m[0][2] + block->dir.vy * obj->field_24.m[1][2] + block->dir.vz * obj->field_24.m[2][2];
             block->cosAng = -dot >> 12;
@@ -1014,13 +1014,13 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     void**                       scratch;
     u8*                          head;
     register GpViewLightScratch* block asm("s0");
-    register SVECTOR*            dir asm("s5");
+    SVECTOR*                     dir;
     MATRIX*                      mtx;
     register MATRIX*             dirMtx asm("s6");
     register MATRIX*             colorMtx asm("s7");
     SVECTOR                      tmp;
     SVECTOR*                     tmpp;
-    register s32                 val asm("v0");
+    s32                          val;
     register s32                 scale;
 
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -1349,7 +1349,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
     mode     = arg0->field_4E & 3;
     if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (Game_Session->field_65 != 1)) {
         {
-            register void**          scratch asm("v1");
+            void**                   scratch;
             register GpColorScratch* tmp asm("v0");
 
             scratch  = (void**)G_SCRATCH_HEAD;
@@ -1416,11 +1416,11 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
 void Gp_LightFalloff(GpObj44* arg0)
 {
     register void**         scratch asm("a1");
-    register u8*            head asm("a0");
+    u8*                     head;
     register GpAttnScratch* tmp asm("v1");
-    register GpAttnScratch* block asm("a2");
+    GpAttnScratch*          block;
     register s32            result asm("t0");
-    register s32            lum asm("v1");
+    s32                     lum;
     s32                     tooFar;
     s32                     r;
     s32                     g;
@@ -1705,14 +1705,14 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 
 void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 {
-    void**                   scratch;
-    u8*                      head;
-    register GpLightScratch* block asm("s0");
-    SVECTOR*                 dir;
-    MATRIX*                  dirMtx;
-    MATRIX*                  colorMtx;
-    register s32             val asm("v0");
-    register s32             scale asm("t0");
+    void**          scratch;
+    u8*             head;
+    GpLightScratch* block;
+    SVECTOR*        dir;
+    MATRIX*         dirMtx;
+    MATRIX*         colorMtx;
+    register s32    val asm("v0");
+    register s32    scale asm("t0");
 
     scratch      = (void**)G_SCRATCH_HEAD;
     head         = *scratch;
@@ -1747,14 +1747,14 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 
 void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 {
-    void**                   scratch;
-    u8*                      head;
-    register GpLightScratch* block asm("s0");
-    SVECTOR*                 dir;
-    MATRIX*                  dirMtx;
-    MATRIX*                  colorMtx;
-    register s32             val asm("v0");
-    register s32             scale asm("t0");
+    void**          scratch;
+    u8*             head;
+    GpLightScratch* block;
+    SVECTOR*        dir;
+    MATRIX*         dirMtx;
+    MATRIX*         colorMtx;
+    register s32    val asm("v0");
+    register s32    scale asm("t0");
 
     scratch      = (void**)G_SCRATCH_HEAD;
     head         = *scratch;
@@ -1851,14 +1851,14 @@ void Gp_CopyDefaultBound(GBytes8* arg0)
 
 void Gp_BindDefaultMtx(Task* arg0)
 {
-    GpActorWork*     slot;
-    TmdObject*       extra;
-    GameActor*       actor;
-    register s32     result asm("v1");
-    s32              i;
-    register MATRIX* mtxA asm("a2");
-    register MATRIX* mtxB asm("a1");
-    register s32     addr asm("v0");
+    GpActorWork* slot;
+    TmdObject*   extra;
+    GameActor*   actor;
+    s32          result;
+    s32          i;
+    MATRIX*      mtxA;
+    MATRIX*      mtxB;
+    register s32 addr asm("v0");
 
     slot  = Game_GetPtrSlot(3);
     extra = slot->extra;
@@ -1909,7 +1909,7 @@ void Gp_DrawTargetCursor(void)
     s32           tv;
     s32           u0;
     s32           u1;
-    register u32  mask asm("a2");
+    u32           mask;
     s32           val;
 
     node = (GpLinkXform*)Gp_LinkList;
@@ -1996,7 +1996,7 @@ void Gp_DrawTargetCursor(void)
             ds                = &Display_State;
             *(u16*)&block->sy = *(u16*)&block->sy - (s8) * (u8*)&ds->vramYOffset;
             {
-                register s32 n asm("a0");
+                s32 n;
                 n     = ds->field_8;
                 n     = (u32)n % 24U;
                 frame = (u32)n / 3U;
@@ -2245,8 +2245,8 @@ done:
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 {
-    register u8*             head asm("a0");
-    register GpPerspSrc*     src asm("a1");
+    u8*                      head;
+    GpPerspSrc*              src;
     register GpPerspScratch* block asm("v1");
 
     src           = (GpPerspSrc*)slot->field_0;
@@ -2281,8 +2281,8 @@ void Gp_UpdateLockSlots(void)
     s32           x;
     s32           y;
     s32           val;
-    register s32  x14 asm("s3");
-    register s32  color asm("v0");
+    s32           x14;
+    s32           color;
     s32           ot;
     void*         obj;
     GpLinkNode*   node;
@@ -3053,8 +3053,8 @@ void Gp_RunPairHandler(GpObj* node)
 
 void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
 {
-    register s32      a3v asm("a3");
-    register GpRec18* slot asm("t1");
+    s32               a3v;
+    GpRec18*          slot;
     register GpRec18* otable asm("t0");
     register GpRec18* otherSlot asm("v1");
     unsigned int      recFlags;
@@ -3183,7 +3183,7 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)
     register s32     a asm("a0");
     register s32     b asm("v1");
     register s32     c asm("a1");
-    register s32     ret asm("s5");
+    s32              ret;
     register s32     t0 asm("a2");
     s32              dz;
     s32              rsum;
@@ -3686,14 +3686,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DD940);
 
 void func_800DDC2C(GpObj* arg0)
 {
-    register GpObj*         obj asm("a0");
-    register SVECTOR*       dir asm("a1");
-    register void**         scratch asm("a2");
-    register u8*            head asm("s0");
-    register GpEdgeScratch* block asm("s1");
-    GsCOORDINATE2*          coord;
-    s32                     prod;
-    s32                     x;
+    register GpObj* obj asm("a0");
+    SVECTOR*        dir;
+    register void** scratch asm("a2");
+    u8*             head;
+    GpEdgeScratch*  block;
+    GsCOORDINATE2*  coord;
+    s32             prod;
+    s32             x;
 
     obj     = arg0;
     dir     = (SVECTOR*)obj->field_C;
@@ -3723,14 +3723,14 @@ void func_800DDC2C(GpObj* arg0)
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
     {
-        register VECTOR*       out asm("a2");
-        register s32           off asm("a3");
-        register s32           i asm("t0");
-        register s32           val asm("v0");
-        register s32           t asm("v1");
-        register GpGridParams* p asm("a1");
-        register s32           y asm("a0");
-        register s32           hi asm("t1");
+        register VECTOR* out asm("a2");
+        s32              off;
+        register s32     i asm("t0");
+        s32              val;
+        s32              t;
+        GpGridParams*    p;
+        register s32     y asm("a0");
+        s32              hi;
 
         i = 0;
         asm volatile("lui %0, %%hi(Gp_GridParams)" : "=r"(hi) : "r"(i) : "memory");
@@ -3830,16 +3830,16 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 
 void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
-    register GpObj*         obj asm("t2");
-    register void**         scratch asm("v1");
+    GpObj*                  obj;
+    void**                  scratch;
     register u8*            head asm("v0");
     register s32            found asm("t1");
-    register GpActorD4Rec*  rec asm("t7");
+    GpActorD4Rec*           rec;
     register GpNormScratch* block asm("a0");
     register VECTOR*        pos asm("t0");
     register SVECTOR*       src asm("a3");
-    register SVECTOR*       local asm("t3");
-    register s32            temp asm("v0");
+    SVECTOR*                local;
+    s32                     temp;
     GpRec18*                slot;
     s32                     flags;
 
@@ -3968,7 +3968,7 @@ void Gp_ClearObjHeads(void)
 s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
 {
     void**           scratch;
-    register u8*     head asm("v0");
+    u8*              head;
     register VECTOR* vec asm("s1");
     GpObj3A*         node;
     s32              ret;
@@ -4412,19 +4412,19 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
 s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
 {
-    register void** scratch asm("v0");
-    register s32    hi asm("v0");
-    u8*             head;
-    GpNearScratch*  block;
-    GpActorD4Rec*   rec;
-    GpRec18*        slot;
-    s32             minDist;
-    s32             index;
-    s32             best;
-    s32             dx;
-    s32             dy;
-    s32             dz;
-    s32             dist;
+    void**         scratch;
+    s32            hi;
+    u8*            head;
+    GpNearScratch* block;
+    GpActorD4Rec*  rec;
+    GpRec18*       slot;
+    s32            minDist;
+    s32            index;
+    s32            best;
+    s32            dx;
+    s32            dy;
+    s32            dz;
+    s32            dist;
 
     minDist = -1;
     index   = 0;
@@ -5032,13 +5032,13 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     s32                extra;
     s8                 rem;
     u16*               scaleTbl;
-    register s32       hp asm("v0");
+    s32                hp;
     register GpDmgRow* table asm("a1");
     register u16*      cols asm("a0");
-    register s32       val asm("a1");
-    register s32       addr asm("v0");
-    register s32       scale asm("v0");
-    register s32       div asm("v0");
+    s32                val;
+    s32                addr;
+    s32                scale;
+    s32                div;
     register u32       mag asm("v0");
 
     ret = 0;
@@ -5053,7 +5053,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 
     if (arg3 == 0) {
         register s32 col asm("v1");
-        register s32 row asm("a0");
+        s32          row;
 
         hp    = Wip_SysConfig.field_18;
         table = Gp_DmgRows;
@@ -5083,8 +5083,8 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
             val = (u32)col >> 5;
         }
     } else {
-        register s32 col asm("v1");
-        register s32 row asm("a0");
+        s32 col;
+        s32 row;
 
         hp    = (s16)Mc_SaveData.field_6C8;
         table = Gp_DmgRows;

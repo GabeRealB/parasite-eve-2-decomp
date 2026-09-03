@@ -22,12 +22,12 @@ extern s32 Gp_LcgState;
 
 void Gp_DrawEffSprite81(Task* arg0)
 {
-    register void**           scratch asm("a2");
-    register u8*              head asm("a3");
+    void**                    scratch;
+    u8*                       head;
     register GpEffFt4Scratch* block asm("t1");
     TmdObject*                extra;
-    register GsCOORDINATE2*   coord asm("a1");
-    register GpEffWork*       mem asm("a0");
+    GsCOORDINATE2*            coord;
+    GpEffWork*                mem;
     POLY_FT4*                 prim;
     s16                       x;
     s16                       y;
@@ -107,15 +107,15 @@ void Gp_DrawEffSprite81(Task* arg0)
 
 void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
 {
-    register GsCOORDINATE2* coord asm("t7");
-    register void**         scratch asm("a0");
-    register GpQuadScratch* block asm("t1");
-    register SVECTOR*       v asm("t0");
-    register s32            i asm("t3");
-    GpQuadCorner*           tbl;
-    register u8*            head asm("v0");
-    register MATRIX*        wm asm("t8");
-    POLY_FT4*               prim;
+    GsCOORDINATE2*    coord;
+    register void**   scratch asm("a0");
+    GpQuadScratch*    block;
+    register SVECTOR* v asm("t0");
+    register s32      i asm("t3");
+    GpQuadCorner*     tbl;
+    register u8*      head asm("v0");
+    MATRIX*           wm;
+    POLY_FT4*         prim;
 
     coord    = arg0;
     scratch  = (void**)G_SCRATCH_HEAD;

@@ -275,13 +275,13 @@ end:
 
 u8 Fs_ProcessChunkHeader(void)
 {
-    register s32       s2 asm("s2");
-    register FsSector* sec asm("s0");
-    register s32       endSect asm("a2");
-    s32                type;
-    s32                endFlag;
-    s32                status;
-    s32                tmp;
+    s32          s2;
+    FsSector*    sec;
+    register s32 endSect asm("a2");
+    s32          type;
+    s32          endFlag;
+    s32          status;
+    s32          tmp;
 
     /*
      * Pure C prologue: sw s1 / lui s1 / sw s0 / addiu s0,s1,lo / move a0 /
@@ -318,7 +318,7 @@ u8 Fs_ProcessChunkHeader(void)
 
         /* lhu field_2; lbu type via absolute chunk.type; addu; sw via a1 */
         {
-            register s32 f2 asm("v0");
+            s32 f2;
             f2 = sec->chunk.field_2;
             TOUCH_REG(f2);
             type = Fs_CdSector.chunk.type;
@@ -352,7 +352,7 @@ u8 Fs_ProcessChunkHeader(void)
             Fs_ChunkReadPtr = Fs_CdSector.bytes + 0x10;
             Fs_DecompressChunk();
             {
-                register s32 d748 asm("v1");
+                s32 d748;
                 d748 = D5B498_8006D748;
                 __asm__ volatile(
                     ".set\tnoreorder\n\t"
@@ -377,7 +377,7 @@ u8 Fs_ProcessChunkHeader(void)
             }
 
         case 1: {
-            register s32 ff asm("a1");
+            s32 ff;
             Fs_CopyWorkEntries((FsWorkEntry*)(Fs_CdSector.bytes + 0x10));
             status = Fs_LoadImageStrip(0) & 0xFF;
             ff     = 0xFF;
@@ -389,7 +389,7 @@ u8 Fs_ProcessChunkHeader(void)
             }
             {
                 register s32 one asm("a0");
-                register s32 st asm("v1");
+                s32          st;
                 one = 1;
                 st  = status;
                 __asm__ volatile(
@@ -427,7 +427,7 @@ u8 Fs_ProcessChunkHeader(void)
         }
 
         case 2: {
-            register s32 ff asm("a0");
+            s32 ff;
             /* Force: bne phase3; delay lui LoadPhase (matches target) */
             __asm__ volatile(
                 ".set\tnoreorder\n\t"
@@ -491,13 +491,13 @@ u8 Fs_ProcessChunkHeader(void)
             {
                 register u32  wp_hi asm("v1");
                 register s32* srcp;
-                register s32* dstp asm("a0");
+                s32*          dstp;
                 __asm__ volatile("" : "=r"(wp_hi));
                 srcp = (s32*)(Fs_CdSector.bytes + 0x10 + s2);
                 s2   = 0;
                 __asm__("lw %0, %%lo(Fs_ChunkWritePtr)(%1)" : "=r"(dstp) : "r"(wp_hi));
                 {
-                    register s32* sp asm("v1");
+                    s32* sp;
                     sp = srcp;
                     do {
                         tmp = *sp;
@@ -538,13 +538,13 @@ u8 Fs_ProcessChunkHeader(void)
             Fs_LoadPhase = 0xFF;
             return 1;
         case4_body: {
-            register s32           one asm("t0");
-            register u32           ade_hi asm("a3");
-            register FsUnkADE8*    ade asm("a2");
-            register u8*           pp asm("a1");
-            register FsFolderSlot* sl asm("a0");
-            register u8*           qq asm("v1");
-            register u32           vtmp asm("v0");
+            s32           one;
+            u32           ade_hi;
+            FsUnkADE8*    ade;
+            u8*           pp;
+            FsFolderSlot* sl;
+            register u8*  qq asm("v1");
+            u32           vtmp;
             __asm__(
                 "lui %0, %%hi(Fs_CdSector)\n\t"
                 "addiu %1, %0, %%lo(Fs_CdSector+0x10)"
@@ -576,7 +576,7 @@ u8 Fs_ProcessChunkHeader(void)
         }
             {
                 register u32 ade asm("v0");
-                register u32 lph asm("v1");
+                u32          lph;
                 __asm__(
                     "lui %0, %%hi(D_8006ADE8)\n\t"
                     "lui %1, %%hi(Fs_LoadPhase)"
@@ -750,11 +750,11 @@ ret0:
 
 u8 Fs_ProcessChunkData(void)
 {
-    s32          status;
-    s32          result;
-    s32          endFlag;
-    s32*         offsets;
-    register s32 ff asm("a0");
+    s32  status;
+    s32  result;
+    s32  endFlag;
+    s32* offsets;
+    s32  ff;
 
     switch (Fs_LoadPhase) {
         case 0:
@@ -800,7 +800,7 @@ u8 Fs_ProcessChunkData(void)
                     D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
                     goto check_end_flag;
                 case 4: {
-                    register s32* p asm("a1");
+                    s32* p;
                     p          = &D_8006D860;
                     p[1]       = -1;
                     p[2]       = -1;
@@ -870,7 +870,7 @@ u8 Fs_ProcessChunkData(void)
                 goto ret0;
             }
             {
-                register u8* val asm("v1");
+                u8* val;
                 val = (u8*)D_8006ADE8.field_8;
                 __asm__ volatile(
                     ".set\tnoreorder\n\t"
@@ -1275,7 +1275,7 @@ sector_start:
                 register u32 flag asm("v0");
                 flag = isValidCategory;
                 if (!flag) {
-                    register u32        v asm("a2");
+                    u32                 v;
                     register FsCdfFile* tbl asm("v1");
                     words = sectorBuffer->words;
                     v     = words[(u16)headerOffset];
@@ -1417,7 +1417,7 @@ restart:
     } while (idx < 6);
 
     {
-        register s32 hi asm("v0");
+        s32 hi;
         __asm__ volatile(
             "lui %0, %%hi(Fs_CdSector)\n\t"
             "addiu %1, %0, %%lo(Fs_CdSector)"
@@ -1582,14 +1582,14 @@ restart:
 
 s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 {
-    register u_long* ot asm("s0");
-    register s32     retry asm("s1");
-    s32              none;
-    u8               yAdj;
-    FsImageChunk*    img;
-    RECT*            rect;
-    u_long*          z;
-    u32              inRange;
+    u_long*       ot;
+    register s32  retry asm("s1");
+    s32           none;
+    u8            yAdj;
+    FsImageChunk* img;
+    RECT*         rect;
+    u_long*       z;
+    u32           inRange;
 
     if (ResetRCnt(RCntCNT2) == 0) {
         return 0xFF;
@@ -1664,12 +1664,12 @@ s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 
 void Fs_CopyWorkEntries(FsWorkEntry* arg0)
 {
-    register FsWorkEntry* base asm("t0");
-    register s32          term asm("t1");
-    register u32          ace_hi asm("a3");
-    FsWorkEntry*          src;
-    FsWorkEntry*          dst;
-    u32*                  mid;
+    FsWorkEntry* base;
+    register s32 term asm("t1");
+    register u32 ace_hi asm("a3");
+    FsWorkEntry* src;
+    FsWorkEntry* dst;
+    u32*         mid;
 
     src  = arg0;
     term = 0xFFFF;
@@ -1702,8 +1702,8 @@ loop:
         c   = (s8)D5B498_8006C233 * 64;
         *px = t + c;
     } else {
-        register s32  t asm("v1");
-        register s16* px asm("v0");
+        register s32 t asm("v1");
+        s16*         px;
         px = &Fs_ImageRect.x;
         __asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
         *px = t;

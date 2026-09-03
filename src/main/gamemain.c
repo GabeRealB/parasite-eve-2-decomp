@@ -217,9 +217,9 @@ void GameMain_Loop(void)
 {
     s32                    s3;
     register DisplayState* ds asm("s2");
-    register s32           s4r asm("s4");
-    register s32           s5r asm("s5");
-    register s32           neg1 asm("s6");
+    s32                    s4r;
+    s32                    s5r;
+    s32                    neg1;
     s32                    ot_hi;
     GpuOtBuf*              otBase;
     s32                    skip;
@@ -257,7 +257,7 @@ void GameMain_Loop(void)
     neg1 = -1;
     __asm__("lui %0, %%hi(Gpu_OtBuffers)" : "=r"(ot_hi));
     {
-        register s32 v asm("v0");
+        s32 v;
         v = *(u8*)&ds->field_1f;
         /* depend on v so addiu cannot hoist above lbu */
         __asm__ volatile("addiu %0, %1, %%lo(Gpu_OtBuffers)"
@@ -299,7 +299,7 @@ void GameMain_Loop(void)
                 nv->field_12f == 0 && nv->field_11e == 0) {
                 GameMain_ShowLoading(1);
             } else {
-                register s32 _e asm("v0");
+                s32 _e;
                 __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
                 if (_e & 2) {
                     SndEvt_EnqueueTypeE();
@@ -316,14 +316,14 @@ void GameMain_Loop(void)
             ((void (*)(s32))Snd_PollAsync)(0);
 
             {
-                register s32 _e asm("v0");
+                s32 _e;
                 __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
                 if (_e != 0) {
                     skip = 0;
                     /* && short-circuit: reload EC80 only when field_244 != 0 */
                     if ((s16)CdCmd_Queue.field_244 != 0 &&
                         !(({
-                              register s32 _e2 asm("v0");
+                              s32 _e2;
                               __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)"
                                                : "=r"(_e2)
                                                : "r"(s4r));
@@ -339,7 +339,7 @@ void GameMain_Loop(void)
                         skip = 1;
                     }
                     if (skip == 0) {
-                        register s32 a0 asm("a0");
+                        s32 a0;
                         (void)a0;
                         VSync(0);
                         s3 = VSync(1) & 0x7FFF;
@@ -388,9 +388,9 @@ void GameMain_Loop(void)
             /* Keep ot/n live so li a1 lands right after ot setup, before EC68 loads */
             TOUCH_REG2(ot_local, n);
             {
-                register s32 d710r asm("s0");
-                s32          half;
-                s32          f10;
+                s32 d710r;
+                s32 half;
+                s32 f10;
                 half = D_8005EC68;
                 f10  = nv->field_10;
                 __asm__ volatile("lui %0, %%hi(Gpu_CurrentOt)" : "=r"(d710r));
@@ -401,7 +401,7 @@ void GameMain_Loop(void)
                 d710 = d710r;
             }
             {
-                register s32     endp asm("v1");
+                s32              endp;
                 register u_long* pr asm("v0");
                 __asm__ volatile("lui %0, 0xff" : "=r"(endp));
                 __asm__ volatile("lw %0, %%lo(Gpu_CurrentOt)(%1)" : "=r"(pr) : "r"(d710));
@@ -413,7 +413,7 @@ void GameMain_Loop(void)
             }
 
             {
-                register s32 idx asm("a0");
+                s32 idx;
                 idx               = nv->field_114;
                 Gpu_SysPrimCursor = Gpu_PrimBufStatic + (u32)idx * 0x3000;
                 Gpu_PrimCursor =
@@ -464,15 +464,15 @@ void GameMain_Loop(void)
                 s32 tmp = VSync(1) - s3;
                 q       = cq;
                 {
-                    register s32  a0r asm("a0");
-                    register u32  acc asm("v1");
-                    register u32* cursor asm("v0");
+                    s32          a0r;
+                    register u32 acc asm("v1");
+                    u32*         cursor;
                     a0r = tmp & 0x7FFF;
                     if (q->field_240 != 0) {
                         cursor = q->field_19C;
                         acc    = (u32)a0r + q->field_1A0;
                         if (acc < *cursor) {
-                            register s32 w asm("v0");
+                            s32 w;
                             do {
                                 w = VSync(1);
                                 w = (w - s3) & 0x7FFF;
@@ -486,7 +486,7 @@ void GameMain_Loop(void)
                         q->field_1A0 = acc;
                         {
                             register u32* c asm("v1");
-                            register u32* r asm("v0");
+                            u32*          r;
                             c = q->field_19C;
                             if (*c != 0) {
                                 r            = c + 1;
@@ -527,7 +527,7 @@ void GameMain_Loop(void)
                     a0 = 1;
                 } else {
                     register s32 one asm("a0");
-                    register s32 m2 asm("v0");
+                    s32          m2;
                     one = 1;
                     m2  = -2;
                     TOUCH_REG2(one, m2);

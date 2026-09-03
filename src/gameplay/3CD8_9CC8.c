@@ -430,15 +430,15 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 
 void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    register void**        scratch asm("a1");
-    register u8*           head asm("a3");
-    register GpArcScratch* block asm("s2");
-    POLY_G4*               prim;
-    DR_TPAGE*              dr;
-    register s32           ang asm("s3");
-    register s32           ang2 asm("s1");
-    s32                    otz;
-    u16                    vz;
+    void**        scratch;
+    u8*           head;
+    GpArcScratch* block;
+    POLY_G4*      prim;
+    DR_TPAGE*     dr;
+    s32           ang;
+    s32           ang2;
+    s32           otz;
+    u16           vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
@@ -506,15 +506,15 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 
 void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 {
-    register void**         scratch asm("a1");
-    register u8*            head asm("a2");
-    register GpRingScratch* block asm("s2");
-    POLY_G4*                prim;
-    DR_TPAGE*               dr;
-    register s32            ang asm("s3");
-    register s32            ang2 asm("s1");
-    s32                     otz;
-    u16                     vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_G4*       prim;
+    DR_TPAGE*      dr;
+    s32            ang;
+    register s32   ang2 asm("s1");
+    s32            otz;
+    u16            vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;

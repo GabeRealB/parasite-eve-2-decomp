@@ -25,11 +25,11 @@ void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
     s16          mid;
     u16          y;
     register s32 color asm("v0");
-    register s32 color0 asm("v1");
-    register s32 color2 asm("a0");
+    s32          color0;
+    s32          color2;
     register s32 color3 asm("a1");
-    register s32 val asm("a2");
-    register s32 t asm("a1");
+    s32          val;
+    s32          t;
     register s32 c asm("a0");
     u8           u;
     u8           h;
@@ -66,8 +66,8 @@ void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
     p2->y2 = y;
 
     {
-        register DR_MODE* r asm("a3");
-        register s32      y0r asm("v1");
+        DR_MODE* r;
+        s32      y0r;
         r              = (DR_MODE*)(p + 2);
         Gpu_PrimCursor = (DR_TPAGE*)r;
         if (p->x0 < p2->x0) {
@@ -604,13 +604,13 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
 
 void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
 {
-    SPRT_8*      p;
-    DR_TPAGE*    dr;
-    s32          n;
-    s32          y;
-    register s32 row asm("v1");
-    s32          half;
-    register s32 t asm("v0");
+    SPRT_8*   p;
+    DR_TPAGE* dr;
+    s32       n;
+    s32       y;
+    s32       row;
+    s32       half;
+    s32       t;
 
     n = (u32)Display_State.field_c >> 3;
     if (arg0->field_0 != 0) {
@@ -646,7 +646,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     s16              x;
     s32              y;
     u32              mask;
-    register u32     mask_hi asm("a1");
+    u32              mask_hi;
     register u_long* ot asm("a2");
     s32              y0;
     u16              t;
@@ -669,7 +669,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         y     = y + arg1->field_18;
         p->y0 = y;
         if (arg1->field_0 == 1) {
-            register s32 tmp asm("v0");
+            s32 tmp;
 
             tmp   = (((u32)Display_State.field_c >> 3) & 3) - 3;
             tmp   = y - tmp;
@@ -683,8 +683,8 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         p->y1 = t;
     } else {
         {
-            register s32 f1a asm("v1");
-            register s32 tmp asm("v0");
+            s32 f1a;
+            s32 tmp;
 
             f1a = arg1->field_1A;
             tmp = y + 2;
@@ -693,7 +693,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         p->y0 = y0;
         if (arg1->field_0 == 1) {
             register s32 tmp asm("v0");
-            register s32 c asm("v1");
+            s32          c;
 
             c     = 0xFFFD;
             tmp   = ((u32)Display_State.field_c >> 3) & 3;
@@ -703,7 +703,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         }
         {
             register u16 tv0 asm("v0");
-            register u16 tv1 asm("v1");
+            u16          tv1;
 
             tv0   = p->x1;
             tv1   = ((volatile POLY_G3*)p)->y0;
@@ -820,8 +820,8 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     }
 
     {
-        register s32 f5 asm("a1");
-        register s32 f7 asm("v0");
+        s32          f5;
+        s32          f7;
         register s32 f18 asm("a0");
         s32          f1a;
         s32          w;
@@ -973,14 +973,14 @@ typedef struct {
 
 void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
-    TILE*                         p;
-    s32                           y;
-    s32                           x1;
-    s32                           width;
-    s32                           h;
-    register u32                  color asm("t4");
-    register UiPanelSignedLayout* a1 asm("t0");
-    u16                           f14;
+    TILE*                p;
+    s32                  y;
+    s32                  x1;
+    s32                  width;
+    s32                  h;
+    register u32         color asm("t4");
+    UiPanelSignedLayout* a1;
+    u16                  f14;
 
     a1    = (UiPanelSignedLayout*)arg1;
     color = 0x1741F;
@@ -1022,7 +1022,7 @@ void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         p->x2 = temp;
         p->x0 = temp;
         {
-            register u16 f20 asm("v0");
+            u16          f20;
             register s32 next asm("v1");
             register s32 ur asm("a1");
 
@@ -1066,7 +1066,7 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32       y;
 
     if (arg1 < arg2) {
-        register s32 xoff asm("v1");
+        s32          xoff;
         register s32 left asm("v1");
         s32          base;
 
@@ -1080,7 +1080,7 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         p->x3 = temp;
         p->x1 = temp;
         {
-            register u16 f22 asm("v0");
+            u16          f22;
             register s32 next asm("v1");
             register s32 ur asm("v1");
             register s32 ul asm("a2");
@@ -1284,18 +1284,18 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
         TaskDesc desc;
         RECT     rect;
     } sp;
-    Task*                   task;
-    UiObject*               obj;
-    UiObject*               result;
-    TextLineNode*           node;
-    s32                     count;
-    s32                     maxWidth;
-    s32                     width;
-    s32                     field_8;
-    s16                     new_var;
-    s32                     cb;
-    register TextBlockDesc* arg0 asm("s4");
-    register s32            dummy asm("s5");
+    Task*          task;
+    UiObject*      obj;
+    UiObject*      result;
+    TextLineNode*  node;
+    s32            count;
+    s32            maxWidth;
+    s32            width;
+    s32            field_8;
+    s16            new_var;
+    s32            cb;
+    TextBlockDesc* arg0;
+    s32            dummy;
 
     arg0   = arg0_;
     result = NULL;
@@ -1890,9 +1890,9 @@ void Ui_SetListScrollFlag(UiList* arg0, s32 arg1)
 
 void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
 {
-    TILE*        p;
-    s32          y;
-    register u32 color asm("t3");
+    TILE* p;
+    s32   y;
+    u32   color;
 
     color = arg5;
 
@@ -2118,7 +2118,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     POLY_F3*      p;
     u16           temp_v0;
     u32           mask;
-    register u32  mask_hi asm("a1");
+    u32           mask_hi;
     register u32* ot asm("a2");
 
     p              = (POLY_F3*)Gpu_PrimCursor;
@@ -2133,7 +2133,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     p->y0          = temp_v0;
     if (arg4 == 0) {
         register u16 tv0 asm("v0");
-        register u16 tv1 asm("v1");
+        u16          tv1;
 
         tv0   = p->x1;
         tv1   = ((volatile POLY_F3*)p)->y0;
@@ -2146,7 +2146,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         p->x2 = tv0 + 5;
     } else {
         register u16 tv0 asm("v0");
-        register u16 tv1 asm("v1");
+        u16          tv1;
 
         tv0   = p->x1;
         tv1   = ((volatile POLY_F3*)p)->y0;

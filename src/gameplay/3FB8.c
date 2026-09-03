@@ -694,7 +694,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     u16               abr;
     s32               uv;
     s32               uv2;
-    register u8       green asm("v0");
+    u8                green;
     u8                blue;
     s32               ang;
     u16               size;
@@ -783,20 +783,20 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
 
 void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
 {
-    register GsCOORDINATE2* coord asm("t7");
-    register void**         scratch asm("a0");
-    register GpQuadScratch* block asm("t1");
-    register SVECTOR*       v asm("t0");
-    register s32            i asm("t3");
-    GpQuadCorner*           tbl;
-    register u8*            head asm("v0");
-    register MATRIX*        wm asm("t8");
-    POLY_FT4*               prim;
-    register s32            u0 asm("a2");
-    register s32            u1 asm("v1");
-    s32                     texV;
-    s32                     vTop;
-    u16*                    clutTbl;
+    GsCOORDINATE2*    coord;
+    register void**   scratch asm("a0");
+    GpQuadScratch*    block;
+    register SVECTOR* v asm("t0");
+    register s32      i asm("t3");
+    GpQuadCorner*     tbl;
+    register u8*      head asm("v0");
+    MATRIX*           wm;
+    POLY_FT4*         prim;
+    register s32      u0 asm("a2");
+    register s32      u1 asm("v1");
+    s32               texV;
+    s32               vTop;
+    u16*              clutTbl;
 
     coord    = arg0;
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -1353,18 +1353,18 @@ lcg:
 
 void Gp_DrawEffTri(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
 {
-    register u8*              rgb asm("s7");
-    register void**           scratch asm("t0");
-    register u8*              head asm("t1");
-    register GpEffFt4Scratch* block asm("s3");
-    POLY_G3*                  prim;
-    s16                       step;
-    s32                       i;
-    register s32              lcg asm("a0");
-    s32                       ang;
-    s16                       scale;
-    s16                       count;
-    u16                       vz;
+    register u8*     rgb asm("s7");
+    void**           scratch;
+    register u8*     head asm("t1");
+    GpEffFt4Scratch* block;
+    POLY_G3*         prim;
+    s16              step;
+    s32              i;
+    register s32     lcg asm("a0");
+    s32              ang;
+    s16              scale;
+    s16              count;
+    u16              vz;
 
     rgb     = arg3;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -1911,7 +1911,7 @@ void Gp_EffSprTaskA7(Task* arg0)
             prim->v3 = 0x37;
         }
         {
-            register s32 prod asm("v1");
+            s32 prod;
             prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24);
             block->dx = prod >> 12;
             USE_REG(prod); /* keep prod live so the shift lands in $v0 */
@@ -1922,7 +1922,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
         {
-            register s32 prod asm("v1");
+            s32 prod;
             prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24 + 0x400);
             block->dx = prod >> 12;
             USE_REG(prod);
@@ -2104,20 +2104,20 @@ void Gp_EffCtlTaskE3(Task* arg0)
 
 void Gp_EffSprTask80(Task* arg0)
 {
-    GpEffFt4Scratch*        block;
-    register GsCOORDINATE2* coord asm("s2");
-    register GpEffWork*     mem asm("s1");
-    POLY_FT4*               prim;
-    s16                     x;
-    s16                     y;
-    register s32            amt asm("a2");
-    s32                     t;
-    u16                     uv;
-    s32                     scale;
-    s32                     c;
-    u32                     rnd;
-    s32                     flag2;
-    u8*                     head;
+    GpEffFt4Scratch* block;
+    GsCOORDINATE2*   coord;
+    GpEffWork*       mem;
+    POLY_FT4*        prim;
+    s16              x;
+    s16              y;
+    s32              amt;
+    s32              t;
+    u16              uv;
+    s32              scale;
+    s32              c;
+    u32              rnd;
+    s32              flag2;
+    u8*              head;
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
@@ -2224,20 +2224,20 @@ void Gp_EffSprTask80(Task* arg0)
 
 void Gp_EffSprTask8D(Task* arg0)
 {
-    register void**           scratch asm("a0");
-    register u8*              head asm("a1");
-    register GpEffFt4Scratch* block asm("t1");
-    register GsCOORDINATE2*   coord asm("s1");
-    register GpEffWork*       mem asm("s0");
-    POLY_FT4*                 prim;
-    s16                       x;
-    s16                       y;
-    register s32              amt asm("t2");
-    s32                       t;
-    u16                       uv;
-    u16                       vz;
-    s32                       scale;
-    s32                       c;
+    void**           scratch;
+    u8*              head;
+    GpEffFt4Scratch* block;
+    GsCOORDINATE2*   coord;
+    GpEffWork*       mem;
+    POLY_FT4*        prim;
+    s16              x;
+    s16              y;
+    s32              amt;
+    s32              t;
+    u16              uv;
+    u16              vz;
+    s32              scale;
+    s32              c;
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
@@ -2845,7 +2845,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
 
     {
-        register s32   zero asm("a0");
+        s32            zero;
         s32            temp;
         GsCOORDINATE2* next;
         zero = 0;
@@ -2869,7 +2869,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     }
 
     {
-        register s32   zero asm("a0");
+        s32            zero;
         s32            temp;
         GsCOORDINATE2* next;
         zero = 0;
@@ -2962,24 +2962,24 @@ void Gp_PlayerWorkState1(GpActorWork* arg0)
 
 void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    register s32           id asm("s4");
-    register s32           kind asm("s5");
-    register void**        scratch asm("v1");
-    register s32           hi asm("v1");
-    register u8*           head asm("v0");
-    register void*         p asm("v0");
-    register GameActor*    actor asm("s1");
-    register GpObj*        obj asm("s2");
-    register GpActorD4Rec* rec asm("s0");
-    VECTOR*                tmp;
-    GsCOORDINATE2*         src;
-    Task*                  task;
-    register void*         extra asm("v0");
-    s16                    vz;
-    s32                    scale;
-    register s32           three asm("v0");
-    register s32           packed asm("v1");
-    register s32           flag asm("v0");
+    register s32   id asm("s4");
+    s32            kind;
+    void**         scratch;
+    register s32   hi asm("v1");
+    u8*            head;
+    register void* p asm("v0");
+    GameActor*     actor;
+    GpObj*         obj;
+    GpActorD4Rec*  rec;
+    VECTOR*        tmp;
+    GsCOORDINATE2* src;
+    Task*          task;
+    register void* extra asm("v0");
+    s16            vz;
+    s32            scale;
+    register s32   three asm("v0");
+    s32            packed;
+    register s32   flag asm("v0");
 
     id = arg1;
     SOFT_TOUCH_REG(id);
@@ -3170,23 +3170,23 @@ typedef struct {
 
 void Gp_UpdatePlayerMove(void)
 {
-    void**                  scratch;
-    u8*                     head;
-    u8*                     newhead;
-    SVECTOR*                vec;
-    GpActorWork*            work;
-    GameActor*              actor;
-    GameActor*              p;
-    register TmdObject*     extra asm("v0");
-    register GsCOORDINATE2* coord asm("s1");
-    u16                     buttons;
-    u16                     prev;
-    s8                      f975;
-    s8                      f977;
-    GameSession*            session;
-    Task*                   task;
-    MATRIX*                 mat;
-    register s8             f973 asm("a1");
+    void**              scratch;
+    u8*                 head;
+    u8*                 newhead;
+    SVECTOR*            vec;
+    GpActorWork*        work;
+    GameActor*          actor;
+    GameActor*          p;
+    register TmdObject* extra asm("v0");
+    GsCOORDINATE2*      coord;
+    u16                 buttons;
+    u16                 prev;
+    s8                  f975;
+    s8                  f977;
+    GameSession*        session;
+    Task*               task;
+    MATRIX*             mat;
+    register s8         f973 asm("a1");
 
     work     = Game_GetPtrSlot(3);
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -3371,8 +3371,8 @@ void Gp_StepPlayerMove(GpActorWork* arg0)
     s32                     t2;
 
     {
-        register void** scratch asm("v1");
-        register u8*    tmp asm("v0");
+        void**       scratch;
+        register u8* tmp asm("v0");
 
         scratch = (void**)G_SCRATCH_HEAD;
         tmp     = *scratch;
@@ -3400,7 +3400,7 @@ void Gp_StepPlayerMove(GpActorWork* arg0)
                     actor->field_4 = 0;
                     actor->field_8 = 0;
             } else {
-                register SVECTOR* vec0 asm("s0");
+                SVECTOR* vec0;
 
                 s->scale = D_80112E10[(u16)actor->field_958];
                 vec0     = &s->vec;
@@ -3499,7 +3499,7 @@ void Gp_TurnPlayer(GpActorWork* arg0)
         }
     }
     {
-        register SVECTOR* rot asm("a0");
+        SVECTOR* rot;
 
         rot = (SVECTOR*)&actor->field_50;
         TOUCH_REG2(rot, coord);
@@ -3508,7 +3508,7 @@ void Gp_TurnPlayer(GpActorWork* arg0)
         MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
     }
     if ((s8)actor->field_97E == 1) {
-        register s32 temp asm("a0");
+        s32          temp;
         register s16 delta asm("v1");
         s32          val;
 
@@ -3627,12 +3627,12 @@ void Gp_TurnPlayer(GpActorWork* arg0)
 
 void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
 {
-    register void** scratch asm("v0");
-    register s32    hi asm("v0");
-    u8*             head;
-    register u8*    tmp asm("v1");
-    GameActor*      actor;
-    register s32    thresh asm("s4");
+    void**       scratch;
+    s32          hi;
+    u8*          head;
+    register u8* tmp asm("v1");
+    GameActor*   actor;
+    s32          thresh;
 
     thresh = arg1;
     asm("lui %0, 0x1F80" : "=r"(hi) : "r"(thresh));
@@ -3654,7 +3654,7 @@ void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
         s32             delta;
         s32             flag;
         register s32    packed asm("s2");
-        register s32    limit asm("s0");
+        s32             limit;
         register u16*   tbl asm("a1");
 
         block = (GpYawScratch*)tmp;
@@ -3728,7 +3728,7 @@ void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
                 limit += val;
             }
             {
-                register s32 angle asm("a0");
+                s32          angle;
                 register s32 neg asm("v1");
 
                 angle = block->angle;
@@ -3769,21 +3769,21 @@ void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
 
 void Gp_AimPitchToLock(GpActorWork* arg0)
 {
-    register void**          scratch asm("v0");
-    u8*                      head;
-    register u8*             tmp asm("v1");
-    GameActor*               actor;
-    register GpPitchScratch* block asm("s1");
-    register VECTOR3*        lock asm("s0");
-    register VECTOR3*        dest asm("a0");
-    GsCOORDINATE2*           src;
-    register GpAimRot*       tbl asm("v0");
-    register s32             item asm("v1");
-    Task*                    slot;
-    s32                      val;
-    register s32             dz asm("a0");
-    s32                      angle;
-    s32                      dist;
+    register void**   scratch asm("v0");
+    u8*               head;
+    register u8*      tmp asm("v1");
+    GameActor*        actor;
+    GpPitchScratch*   block;
+    register VECTOR3* lock asm("s0");
+    register VECTOR3* dest asm("a0");
+    GsCOORDINATE2*    src;
+    GpAimRot*         tbl;
+    s32               item;
+    Task*             slot;
+    s32               val;
+    register s32      dz asm("a0");
+    s32               angle;
+    s32               dist;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -3881,21 +3881,21 @@ void Gp_AimPitchToLock(GpActorWork* arg0)
 
 void Gp_AimPitchToLockAlt(GpActorWork* arg0)
 {
-    register void**          scratch asm("v0");
-    u8*                      head;
-    register u8*             tmp asm("v1");
-    GameActor*               actor;
-    register GpPitchScratch* block asm("s1");
-    register VECTOR3*        lock asm("s0");
-    register VECTOR3*        dest asm("a0");
-    GsCOORDINATE2*           src;
-    register GpAimRot*       tbl asm("v0");
-    register s32             item asm("v1");
-    Task*                    slot;
-    s32                      val;
-    register s32             dz asm("a0");
-    s32                      angle;
-    s32                      dist;
+    register void**   scratch asm("v0");
+    u8*               head;
+    register u8*      tmp asm("v1");
+    GameActor*        actor;
+    GpPitchScratch*   block;
+    register VECTOR3* lock asm("s0");
+    register VECTOR3* dest asm("a0");
+    GsCOORDINATE2*    src;
+    GpAimRot*         tbl;
+    s32               item;
+    Task*             slot;
+    s32               val;
+    register s32      dz asm("a0");
+    s32               angle;
+    s32               dist;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -3993,8 +3993,8 @@ void Gp_AimPitchToLockAlt(GpActorWork* arg0)
 
 void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    register void** scratch asm("v0");
-    register s32    hi asm("v0");
+    void**          scratch;
+    s32             hi;
     u8*             head;
     register u8*    tmp asm("v1");
     GameActor*      actor;
@@ -4003,12 +4003,12 @@ void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2)
     VECTOR3*        dest;
     GsCOORDINATE2*  src;
     GpAimRot*       rec;
-    register s32    val asm("v0");
+    s32             val;
     register s32    dist asm("a1");
     register s32    cmp asm("v0");
     s32             dz;
     s32             angle;
-    register s32    thresh asm("s4");
+    s32             thresh;
 
     thresh = arg2;
     asm("lui %0, 0x1F80" : "=r"(hi) : "r"(thresh));
@@ -4121,10 +4121,10 @@ void Gp_AimPitchDirect(GpActorWork* arg0)
 
 void func_801030CC(GpActorWork* arg0)
 {
-    register void**      scratch asm("v0");
+    void**               scratch;
     u8*                  head;
-    register s32         temp asm("v1");
-    register RECT*       rect asm("s1");
+    s32                  temp;
+    RECT*                rect;
     GameActor*           actor;
     register GpImgRec*** table asm("a0");
     GpImgRec*            img;
@@ -4596,12 +4596,12 @@ s32 func_80103D8C(s32 arg0, s32 arg1)
 
 s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
 {
-    void**       scratch;
-    u8*          head;
-    VECTOR3*     vec;
-    s32          vz;
-    register s32 absz asm("v1");
-    register s32 vx asm("a0");
+    void**   scratch;
+    u8*      head;
+    VECTOR3* vec;
+    s32      vz;
+    s32      absz;
+    s32      vx;
 
     scratch                       = (void**)G_SCRATCH_HEAD;
     head                          = *scratch;
@@ -4918,14 +4918,14 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 
 s32 func_80104684(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    register GameActor* actor asm("s0");
-    register TmdObject* extra asm("s1");
-    register void       (*func)(TmdObject*) asm("s2");
-    register Task*      child asm("s3");
-    register Task*      cur asm("s0");
-    register s32        hi asm("v1");
-    register Task*      temp asm("v0");
-    u16                 flags;
+    GameActor*     actor;
+    TmdObject*     extra;
+    void           (*func)(TmdObject*);
+    Task*          child;
+    Task*          cur;
+    s32            hi;
+    register Task* temp asm("v0");
+    u16            flags;
 
     actor = arg0->actor;
     extra = (TmdObject*)arg0->extra;
@@ -5206,7 +5206,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
 
 s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
 {
-    register GameActor* actor asm("s0");
+    GameActor*          actor;
     register GameActor* inner asm("s1");
     WipSysConfig*       p;
     void**              scratch;
@@ -5752,17 +5752,17 @@ void func_80105B74(VECTOR3* arg0)
 
 s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
 {
-    register s32 minDist asm("s5");
+    s32 minDist;
 
     minDist = 0x7FFFFFFF;
     if (Gp_CountRec18Hi(arg0, 0x30000) == 0) {
         s32               idx;
-        register s32*     pidx asm("s4");
+        s32*              pidx;
         register void**   scratch asm("v1");
         GpPickScratch*    block;
         register GpRec18* rec asm("s1");
-        register s32      i asm("s3");
-        register s32      bestIdx asm("s6");
+        s32               i;
+        s32               bestIdx;
         s32               dist;
         GpRec18*          picked;
 
@@ -5780,8 +5780,8 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
         }
         do {
             if (rec->field_4 & 0x100000) {
-                register s32 fy asm("a0");
-                register s32 dy asm("v1");
+                s32 fy;
+                s32 dy;
                 {
                     register s32 dx asm("v0");
                     dx   = arg1->workm.t[0] - rec->field_8;
@@ -6584,18 +6584,18 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
 
 void Gp_PlayerNormalState6(GpActorWork* arg0)
 {
-    register GpActorWork* work asm("s1");
-    register s32          fade asm("s2");
-    register s32          a3 asm("a3");
-    register s32          next asm("v0");
-    register s32          kind asm("v1");
-    GameActor*            actor;
-    GameActor*            inner;
-    s32                   mode;
-    s32                   temp;
-    s32                   flag;
-    s32                   snd;
-    s32                   val;
+    GpActorWork* work;
+    s32          fade;
+    register s32 a3 asm("a3");
+    s32          next;
+    s32          kind;
+    GameActor*   actor;
+    GameActor*   inner;
+    s32          mode;
+    s32          temp;
+    s32          flag;
+    s32          snd;
+    s32          val;
 
     work             = arg0;
     actor            = work->actor;
@@ -7719,9 +7719,9 @@ void func_80109374(GpActorWork* arg0)
 
 void Gp_UpdateLockTarget(GpActorWork* arg0)
 {
-    register GameActor* inner asm("a1");
-    GpLinkNode*         next;
-    u16                 flags;
+    GameActor*  inner;
+    GpLinkNode* next;
+    u16         flags;
 
     inner = arg0->actor;
     if (inner->field_90C != NULL) {
@@ -7745,7 +7745,7 @@ void Gp_UpdateLockTarget(GpActorWork* arg0)
     return;
 
 install: {
-    register GpLinkNode* arg1 asm("a1");
+    GpLinkNode*          arg1;
     register GpLinkNode* node asm("v1");
     GameActor*           actor;
     s32                  flag;
@@ -8642,15 +8642,15 @@ void func_8010AC54(GpActorWork* arg0)
 
 void func_8010AD64(GpActorWork* arg0)
 {
-    void**              scratch;
-    register u8*        head asm("t1");
-    SVECTOR*            vec;
-    register GameActor* inner asm("a0");
-    GameActor*          inner2;
-    GpEffArg*           params;
-    GsCOORDINATE2*      coord;
-    s32                 val;
-    s32                 idx;
+    void**         scratch;
+    u8*            head;
+    SVECTOR*       vec;
+    GameActor*     inner;
+    GameActor*     inner2;
+    GpEffArg*      params;
+    GsCOORDINATE2* coord;
+    s32            val;
+    s32            idx;
 
     scratch = (void**)G_SCRATCH_HEAD;
     TOUCH_REG(scratch);
@@ -9087,7 +9087,7 @@ s32 Gp_SetupAllyWeapon(void)
     s16          val2;
     GpEffWork*   eff;
     GpAnimObj*   extra;
-    register s32 ret asm("v0");
+    s32          ret;
 
     work  = Game_GetPtrSlot(0xA);
     actor = work->actor;

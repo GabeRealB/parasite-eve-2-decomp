@@ -264,7 +264,7 @@ void Mc_StatePadFileName(Task* arg0, McWork* arg1)
 void Mc_StateNameEntry(Task* arg0, McWork* arg1)
 {
     register Task*     task asm("s3");
-    register McWork*   work asm("s2");
+    McWork*            work;
     register UiObject* flag asm("s0");
     register s32       syncResult asm("s1");
     s32                status;
@@ -338,30 +338,30 @@ void Mc_StateNameEntry(Task* arg0, McWork* arg1)
 
 void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
 {
-    register Task*            task asm("s6");
-    register McWork*          work asm("s0");
-    register s32              nine asm("s5");
-    register s32              bufSize asm("s3");
-    register McChecksumBlock* bufPtr asm("s2");
-    register s32              doubled asm("s4");
-    register void*            mem asm("s1");
-    s32                       field24;
-    register s32              f24 asm("v0");
-    s32                       size;
-    s32                       tmp;
-    s32                       ret;
-    s32                       one;
-    UiObject*                 obj;
-    McPromptPair*             entry;
-    McPromptPair*             promptBase;
+    Task*            task;
+    McWork*          work;
+    register s32     nine asm("s5");
+    s32              bufSize;
+    McChecksumBlock* bufPtr;
+    s32              doubled;
+    void*            mem;
+    s32              field24;
+    s32              f24;
+    s32              size;
+    s32              tmp;
+    s32              ret;
+    s32              one;
+    UiObject*        obj;
+    McPromptPair*    entry;
+    McPromptPair*    promptBase;
 
     work    = arg1;
     task    = arg0;
     field24 = work->field_24;
     if (field24 == 0) {
-        register u32           i0 asm("t0");
+        u32                    i0;
         register u32           j asm("v1");
-        register McBufferSlot* p asm("a3");
+        McBufferSlot*          p;
         register McBufferSlot* base asm("v0");
         u32                    count;
         u8*                    ptr;
@@ -391,7 +391,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
     } else if (work->field_28 & 1) {
         nine = 9;
         {
-            register McBufferSlot* slots asm("a0");
+            McBufferSlot* slots;
             slots   = Mc_BufferSlots;
             bufSize = slots[nine - field24].field_4;
             bufPtr  = slots[nine - field24].field_0;
@@ -596,7 +596,7 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
 
 void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
 {
-    register Task*     task asm("s6");
+    Task*              task;
     register s32       one asm("s5");
     register UiObject* saved asm("s3");
     register s32       syncResult asm("s1");
@@ -848,16 +848,16 @@ void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
 void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
 {
     McChecksumBlock*       temp;
-    register McBufferSlot* p asm("a3");
+    McBufferSlot*          p;
     McBufferSlot*          base;
     s16                    sum;
     u32                    count;
-    register u32           i asm("t1");
+    u32                    i;
     register u32           j asm("a0");
     u8*                    ptr;
     s32                    flag;
-    register s32           slotSum asm("a1");
-    register u32           i2 asm("a0");
+    s32                    slotSum;
+    u32                    i2;
     register McBufferSlot* p2 asm("v1");
     s32                    size;
     void*                  mem;
@@ -904,7 +904,7 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
                 i2      += 1;
             } while (i2 < 9);
             {
-                register u32 chk asm("v1");
+                u32          chk;
                 register u32 masked asm("v0");
                 chk    = Mc_SaveData.field_940;
                 masked = slotSum & 0xFFFF;
@@ -1000,7 +1000,7 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
                 {
                     register McBufferSlot* slots asm("v0");
                     register s32           size asm("a2");
-                    register void*         dest asm("a0");
+                    void*                  dest;
 
                     slots = Mc_BufferSlots;
                     size  = slots[slotIdx].field_4;
@@ -1050,19 +1050,19 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
 
 void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
 {
-    register DialogPrompt* s1 asm("s1");
-    register UiObject*     s0 asm("s0");
-    register s32           s2 asm("s2");
-    s16                    var_v0;
-    s32                    ok;
-    s32                    var_s3;
-    McSaveData*            temp_a2;
-    register s16           sum asm("v1");
-    s32                    i;
-    s32                    limit;
-    s32                    tmp;
-    s32                    off;
-    volatile u8*           ptr;
+    DialogPrompt*      s1;
+    register UiObject* s0 asm("s0");
+    s32                s2;
+    s16                var_v0;
+    s32                ok;
+    s32                var_s3;
+    McSaveData*        temp_a2;
+    register s16       sum asm("v1");
+    s32                i;
+    s32                limit;
+    s32                tmp;
+    s32                off;
+    volatile u8*       ptr;
 
     s1 = arg0;
     s0 = arg1;
@@ -2192,15 +2192,15 @@ void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
 
 void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
 {
-    register McWork*   a1 asm("s1");
-    register Task*     a0 asm("s2");
-    register s32       openIdx asm("s0");
-    register UiObject* obj asm("s0");
-    register s32       modeIdx asm("s1");
-    s32                ret;
-    s32                openResult;
-    McPromptPair*      entry;
-    McPromptPair*      base;
+    McWork*        a1;
+    register Task* a0 asm("s2");
+    s32            openIdx;
+    UiObject*      obj;
+    s32            modeIdx;
+    s32            ret;
+    s32            openResult;
+    McPromptPair*  entry;
+    McPromptPair*  base;
 
     a1      = arg1;
     openIdx = a1->field_A14;
@@ -2252,14 +2252,14 @@ void Mc_StateReadHeader(Task* arg0, McWork* arg1)
 
 void Mc_StateOpenNext(Task* arg0, McWork* arg1)
 {
-    register McWork*   a1 asm("s1");
-    register Task*     a0 asm("s0");
-    register UiObject* obj asm("s0");
-    register s32       modeIdx asm("s1");
-    register s32       ret asm("s3");
-    s32                temp_v0;
-    McPromptPair*      entry;
-    McPromptPair*      base;
+    McWork*       a1;
+    Task*         a0;
+    UiObject*     obj;
+    s32           modeIdx;
+    s32           ret;
+    s32           temp_v0;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     a1 = arg1;
     a0 = arg0;
@@ -2539,11 +2539,11 @@ void Mc_StateEnterPromptF(Task* arg0, McWork* arg1)
 
 void Mc_StateAccept(Task* arg0, McWork* arg1)
 {
-    register McWork*   a1 asm("s1");
+    McWork*            a1;
     register Task*     a0 asm("s0");
     register UiObject* obj asm("s0");
-    register s32       modeIdx asm("s1");
-    register s32       ret asm("s3");
+    s32                modeIdx;
+    s32                ret;
     McPromptPair*      entry;
     McPromptPair*      base;
 
@@ -2741,15 +2741,15 @@ void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
 
 void Mc_StateOpenDirEntry(Task* arg0, McWork* arg1)
 {
-    register McWork*   a1 asm("s1");
-    register Task*     a0 asm("s2");
-    register s32       openIdx asm("s0");
-    register UiObject* obj asm("s0");
-    register s32       modeIdx asm("s1");
-    s32                ret;
-    s32                openResult;
-    McPromptPair*      entry;
-    McPromptPair*      base;
+    McWork*        a1;
+    register Task* a0 asm("s2");
+    s32            openIdx;
+    UiObject*      obj;
+    s32            modeIdx;
+    s32            ret;
+    s32            openResult;
+    McPromptPair*  entry;
+    McPromptPair*  base;
 
     a1      = arg1;
     openIdx = a1->field_A14;
@@ -2801,14 +2801,14 @@ void Mc_StateReadSlot(Task* arg0, McWork* arg1)
 
 void Mc_StateWalkDirectory(Task* arg0, McWork* arg1)
 {
-    register McWork*   a1 asm("s1");
-    register Task*     a0 asm("s0");
-    register UiObject* obj asm("s0");
-    register s32       modeIdx asm("s1");
-    register s32       ret asm("s3");
-    s32                temp_v0;
-    McPromptPair*      entry;
-    McPromptPair*      base;
+    McWork*       a1;
+    Task*         a0;
+    UiObject*     obj;
+    s32           modeIdx;
+    s32           ret;
+    s32           temp_v0;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     a1 = arg1;
     a0 = arg0;

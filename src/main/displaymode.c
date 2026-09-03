@@ -11,7 +11,7 @@ void Display_SetMode(s32 arg0)
     u32           temp_s4;
     s32           temp_s3;
     char          temp_s0;
-    register s32  temp_s1 asm("s1");
+    s32           temp_s1;
     DisplayState* new_var;
     s8            var_s7;
     u32           temp_v0_2;

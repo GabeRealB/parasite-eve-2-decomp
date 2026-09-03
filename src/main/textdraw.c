@@ -494,8 +494,8 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
         u8 data[2];
     } Bytes2;
 
-    register u8* dest asm("a3");
-    register u32 place asm("a2");
+    u8*          dest;
+    u32          place;
     register u32 digit asm("v1");
     u32          temp;
     u8*          ret;
@@ -537,7 +537,7 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
 
 u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
 {
-    register u8* dest asm("a2");
+    u8*          dest;
     register s32 place asm("a0");
     s32          digit;
     s32          temp;
@@ -554,7 +554,7 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
         register s8* src asm("t2");
         register s32 c0 asm("a3");
         register s32 c1 asm("t0");
-        register s32 hi asm("v0");
+        s32          hi;
         do {
             asm volatile("lui %1, %%hi(D_800138C8)\n\t"
                          "addiu %0, %1, %%lo(D_800138C8)"
@@ -597,7 +597,7 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
 
 u8* Text_ItoaHex(u8* arg0, u32 arg1)
 {
-    register u8* dest asm("a3");
+    u8*          dest;
     register u32 place asm("a2");
     u32          digit;
     u32          temp;
@@ -609,7 +609,7 @@ u8* Text_ItoaHex(u8* arg0, u32 arg1)
         register s8* src asm("t3");
         register s32 c0 asm("t0");
         register s32 c1 asm("t1");
-        register s32 hi asm("v0");
+        s32          hi;
         do {
             asm volatile("lui %1, %%hi(D_800138C8)\n\t"
                          "addiu %0, %1, %%lo(D_800138C8)"

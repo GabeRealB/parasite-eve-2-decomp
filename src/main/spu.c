@@ -319,13 +319,13 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
 
 s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
 {
-    register s32 v1r asm("v1");
-    register s8* base asm("t1");
-    register s32 idx asm("a3");
+    s32          v1r;
+    s8*          base;
+    s32          idx;
     register s8* slotp asm("t0");
     register s32 a2r asm("a2");
-    register s32 found asm("t2");
-    register s32 v0r asm("v0");
+    s32          found;
+    s32          v0r;
 
     /* $a0 stays as voice id for sb; $v1 keeps %hi for dual lhu/lh of count. */
     __asm__ volatile(

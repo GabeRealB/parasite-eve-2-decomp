@@ -91,14 +91,14 @@ s32 Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s
     TextDrawReq           sp50[2];
     u8*                   cur;
     s32                   temp;
-    register UiObject*    obj asm("s3");
+    UiObject*             obj;
     register s32          x asm("s2");
     register s32          y asm("s1");
     register TextDrawReq* p asm("s0");
     register u8*          buf asm("s4");
     register s32          ret asm("s5");
     register s32          four asm("s6");
-    register s32          a6 asm("s7");
+    s32                   a6;
     s32                   a5;
 
     a5   = arg5;
@@ -244,21 +244,21 @@ void Text_DrawPromptCompat(void* arg0, void* arg1, void* arg2, void* arg3, void*
 s32 Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
                              s32 arg7, s32 arg8)
 {
-    u8                    sp10[0x40];
-    TextDrawReq           sp50[2];
-    u8*                   cur;
-    s32                   temp;
-    s32                   four;
-    register UiObject*    obj asm("s4");
-    register s32          x asm("s3");
-    register s32          y asm("s1");
-    register s32          result asm("s7");
-    register s32          rem asm("s2");
-    register TextDrawReq* p asm("s0");
-    register u8*          buf asm("s5");
-    register s32          ret asm("s6");
-    register u8*          a0tmp asm("a0");
-    register s32          a1tmp asm("a1");
+    u8                 sp10[0x40];
+    TextDrawReq        sp50[2];
+    u8*                cur;
+    s32                temp;
+    s32                four;
+    register UiObject* obj asm("s4");
+    s32                x;
+    s32                y;
+    s32                result;
+    s32                rem;
+    TextDrawReq*       p;
+    u8*                buf;
+    s32                ret;
+    u8*                a0tmp;
+    s32                a1tmp;
 
     x      = arg1;
     y      = arg2;
@@ -409,20 +409,20 @@ void Mc_InitDualBankBuffers(void)
 
 void Mc_InitBufferSlots(void)
 {
-    McBufferSlot*             base;
-    register McBufferSlot*    slot asm("t1");
-    McBufferSlot*             end;
-    register McChecksumBlock* block asm("t0");
-    register s32              size asm("a3");
-    register u8*              fptr asm("a0");
-    register s16              sum asm("a2");
-    register u32              fi asm("v1");
-    register u32              i asm("a1");
-    register u32              count asm("a0");
-    register s32              fill asm("t2");
-    register volatile u8*     cptr asm("v1");
-    s32                       tmp;
-    s32                       cond;
+    McBufferSlot*    base;
+    McBufferSlot*    slot;
+    McBufferSlot*    end;
+    McChecksumBlock* block;
+    register s32     size asm("a3");
+    u8*              fptr;
+    s16              sum;
+    register u32     fi asm("v1");
+    u32              i;
+    register u32     count asm("a0");
+    s32              fill;
+    volatile u8*     cptr;
+    s32              tmp;
+    s32              cond;
 
     fill = -1;
     base = Mc_BufferSlots;

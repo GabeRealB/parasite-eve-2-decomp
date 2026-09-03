@@ -184,18 +184,18 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
     McPromptPair*       prompt;
     McPromptPair*       base;
     s32                 idx;
-    register s32        i asm("a3");
+    s32                 i;
     register McDirWalk* walk asm("t0");
-    register s32        val asm("v1");
-    register u8*        p asm("v0");
-    register s32        fill asm("t1");
+    s32                 val;
+    u8*                 p;
+    s32                 fill;
     register s32        size asm("v0");
-    register s32        head asm("a0");
+    s32                 head;
     register s32        headAdj asm("a2");
     register s32        sizeAdj asm("v1");
     register s32        blocks asm("a1");
     register s32        start asm("a0");
-    register s32        new28c asm("v0");
+    s32                 new28c;
     register s32        n asm("v1");
 
     arg1->field_4 -= 1;
@@ -381,8 +381,8 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
     if (child == NULL) {
         if (Ui_SpawnFromDesc(D_8006121C, (s32)arg1, 1, 2, saved) != 0) {
             {
-                UiList*     menu;
-                register u8 t asm("a2");
+                UiList* menu;
+                u8      t;
 
                 menu          = &D_80061194;
                 t             = arg1->field_288;
@@ -409,13 +409,13 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
             if (saved->field_2C >= 0) {
                 if (saved->field_2C < arg1->field_288) {
                     {
-                        u8*          src;
-                        u8*          name;
-                        register s32 matchCount asm("t0");
-                        register u8* walk asm("a2");
-                        u8*          dst;
-                        register s32 i asm("v1");
-                        s32          j;
+                        u8* src;
+                        u8* name;
+                        s32 matchCount;
+                        u8* walk;
+                        u8* dst;
+                        s32 i;
+                        s32 j;
 
                         src        = (u8*)arg1->field_30[saved->field_2C];
                         name       = Mc_FileName;
@@ -425,7 +425,7 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                         i          = 0;
                         do {
                             {
-                                register u8 ch asm("v0");
+                                u8 ch;
                                 ch    = *walk;
                                 walk += 1;
                                 i    += 1;
@@ -436,8 +436,8 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                         j = 0;
                         do {
                             {
-                                register u8 ch asm("v1");
-                                register u8 n asm("v0");
+                                u8 ch;
+                                u8 n;
                                 ch = *src;
                                 n  = *name;
                                 if (n == ch) {
@@ -456,16 +456,16 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                     }
                 } else {
                     {
-                        u8*          name;
-                        u8*          dst;
-                        register s32 i asm("v1");
+                        u8* name;
+                        u8* dst;
+                        s32 i;
 
                         name = Mc_FileName;
                         dst  = Mc_FileNameBuf;
                         i    = 0;
                         do {
                             {
-                                register u8 ch asm("v0");
+                                u8 ch;
                                 ch    = *name;
                                 name += 1;
                                 i    += 1;

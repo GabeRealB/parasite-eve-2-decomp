@@ -196,7 +196,7 @@ void Gp_ItemMoveTask(Task* arg0)
     GpItemScan**     scans;
     u16              item;
     s32              val;
-    register s32     code asm("v0");
+    s32              code;
     Task*            owner;
     Task*            child;
     Task*            next;
@@ -272,18 +272,18 @@ end:
 
 void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    register GpItemRec* rec asm("s1");
-    register s32        item asm("s0");
-    register Task*      owner asm("a1");
-    s32                 item2;
-    s32                 status;
-    s32                 one;
-    s32                 selected;
-    s32                 flag;
-    s32                 flags;
-    s32                 idx;
-    UiObject*           spawned;
-    WipSysConfig*       cfg;
+    GpItemRec*     rec;
+    s32            item;
+    register Task* owner asm("a1");
+    s32            item2;
+    s32            status;
+    s32            one;
+    s32            selected;
+    s32            flag;
+    s32            flags;
+    s32            idx;
+    UiObject*      spawned;
+    WipSysConfig*  cfg;
 
     rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
     TOUCH_REG(rec);
@@ -298,7 +298,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     }
     status = arg1->status;
     {
-        register s32 one2 asm("a0");
+        s32 one2;
         one2 = 1;
         if (((status >> 16) == one2) || (status == one2)) {
             if (arg0->field_10 == arg0->field_8) {
@@ -396,7 +396,7 @@ void Gp_ItemPaneTask(Task* arg0)
             arg0->flags = 0;
         }
         {
-            register s32         val asm("v0");
+            s32                  val;
             register GpItemScan* s asm("v0");
 
             s             = &Gp_MoveScanSrc;
@@ -675,7 +675,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 {
     GpPromptTexts        texts;
     s32                  one;
-    register s32         i asm("s2");
+    s32                  i;
     register GpItemScan* scan asm("s3");
     GpItemRec*           rec;
     GpItemSlot*          slot;
@@ -693,7 +693,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     {
-        register s32 mode asm("v0");
+        s32 mode;
 
         mode = arg0->field_8;
         one  = 1;
@@ -1114,8 +1114,8 @@ void Gp_PublishItemObj(Task* arg0)
     s32 count;
 
     {
-        register GpItemObj8* obj asm("v1");
-        register u16         ritem asm("a0");
+        GpItemObj8*  obj;
+        register u16 ritem asm("a0");
 
         obj           = arg0->spawnArg2;
         ritem         = obj->field_8;

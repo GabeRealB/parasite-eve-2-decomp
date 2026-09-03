@@ -63,16 +63,16 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 
 void Boot_LoadInitialFile(Task* task)
 {
-    u8             modeParam[8];
-    u8             param1[8];
-    u8             param2[8];
-    s32            state;
-    s32            next;
-    u8             fade;
-    register Task* a0 asm("s0");
-    CdCmdQueue*    queue;
-    register s32   ch asm("a1");
-    register u32   size asm("a2");
+    u8          modeParam[8];
+    u8          param1[8];
+    u8          param2[8];
+    s32         state;
+    s32         next;
+    u8          fade;
+    Task*       a0;
+    CdCmdQueue* queue;
+    s32         ch;
+    u32         size;
 
     a0    = task;
     queue = &CdCmd_Queue;

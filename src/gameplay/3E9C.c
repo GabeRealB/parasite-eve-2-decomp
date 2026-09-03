@@ -2168,19 +2168,19 @@ void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
 
 void Gp_EffSprTask9E(Task* arg0)
 {
-    register void**         scratch asm("a0");
-    register u8*            head asm("v0");
-    register GpQuadScratch* block asm("t1");
-    register SVECTOR*       v asm("a1");
-    register s32            i asm("a3");
-    GpEffWork*              mem;
-    GsCOORDINATE2*          coord;
-    GpQuadCorner*           tbl;
-    MATRIX*                 m;
-    POLY_FT4*               prim;
-    s32                     scale;
-    s32                     shade;
-    u8                      col;
+    register void**   scratch asm("a0");
+    register u8*      head asm("v0");
+    GpQuadScratch*    block;
+    register SVECTOR* v asm("a1");
+    s32               i;
+    GpEffWork*        mem;
+    GsCOORDINATE2*    coord;
+    GpQuadCorner*     tbl;
+    MATRIX*           m;
+    POLY_FT4*         prim;
+    s32               scale;
+    s32               shade;
+    u8                col;
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
@@ -2389,13 +2389,13 @@ void Gp_EffSprTask54(Task* arg0)
 
 void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
 {
-    register void**         scratch asm("v0");
-    register u8*            head asm("v1");
-    register GpQuadScratch* block asm("t1");
-    register SVECTOR*       v asm("a3");
-    register s32            i asm("t2");
-    GpQuadCorner*           tbl;
-    POLY_FT4*               prim;
+    void**            scratch;
+    register u8*      head asm("v1");
+    GpQuadScratch*    block;
+    register SVECTOR* v asm("a3");
+    s32               i;
+    GpQuadCorner*     tbl;
+    POLY_FT4*         prim;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = (u8*)*scratch - 0x38;
@@ -2466,13 +2466,13 @@ void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
 {
-    register void**         scratch asm("v0");
-    register u8*            head asm("v1");
-    register GpQuadScratch* block asm("t1");
-    register SVECTOR*       v asm("a2");
-    register s32            i asm("t0");
-    GpQuadCorner*           tbl;
-    POLY_FT4*               prim;
+    void**            scratch;
+    register u8*      head asm("v1");
+    GpQuadScratch*    block;
+    register SVECTOR* v asm("a2");
+    s32               i;
+    GpQuadCorner*     tbl;
+    POLY_FT4*         prim;
 
     if (arg2 >= 0 && Gp_State1C->field_4 < 2) {
         scratch  = (void**)G_SCRATCH_HEAD;

@@ -387,12 +387,12 @@ void Mdec_UploadSlice(void)
 
 void Mdec_KickStrip(void)
 {
-    CdCmdQueue*       p;
-    s32               size;
-    register u_long** base asm("v1");
-    u_long**          outs;
-    u16               ac6c;
-    s32               temp;
+    CdCmdQueue* p;
+    s32         size;
+    u_long**    base;
+    u_long**    outs;
+    u16         ac6c;
+    s32         temp;
 
     p = &CdCmd_Queue;
     StFreeRing(D_8006AC68);

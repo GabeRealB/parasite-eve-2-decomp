@@ -133,10 +133,10 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
             D_80082130 = 0;
             break;
         case 5: {
-            register s32 v asm("v0");
+            s32          v;
             register s32 hi asm("v1");
             register s32 out asm("a0");
-            register s32 al asm("a2");
+            s32          al;
 
             al = temp_a2;
             __asm__ volatile(
@@ -654,7 +654,7 @@ s32 SndScript_StopMatching(s32 arg0, s32 arg1)
         four = 4;
         flag = (arg1 == 1);
         {
-            register s32 hi asm("v0");
+            s32 hi;
             __asm__ volatile(
                 "lui %0, %%hi(SndScript_Slots)\n\t"
                 "addiu %1, %0, %%lo(SndScript_Slots)"
@@ -746,8 +746,8 @@ s32 SndVoice_DriveSlots(void)
     SndVoice*     head;
     SndVoice*     walk;
     s32           i;
-    register s32  one asm("s4");
-    register s32  four asm("s7");
+    s32           one;
+    s32           four;
     register s32  offset asm("s5");
     s32           count;
     s32           new_val;
