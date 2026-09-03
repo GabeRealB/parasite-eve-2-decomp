@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "rooms/room_common.h"
+
 #include <psyq/libgte.h>
 
 /// 0x1C-byte scratch block taken from `G_SCRATCH_HEAD` by the room's billboard
@@ -57,21 +59,6 @@ typedef struct _RoomEventReq {
     /* 0x12 */ s16 itemId;
 } RoomEventReq;
 STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
-
-/// 8-byte message record the room message handlers receive alongside the
-/// request. `field_5` non-zero suppresses the side effects (the gate only
-/// reports what *would* happen); `field_6` is the nibble index passed to
-/// `Gp_SetNibbleIf`. Alignment is 2, which is why the whole-record copies
-/// compile to `lwl`/`lwr` pairs.
-typedef struct _RoomEventMsg {
-    /* 0x0 */ u16 msgId;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ s8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-    /* 0x6 */ u16 field_6;
-} RoomEventMsg;
-STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 
 /// One row of `D_dryfield_motel_balcony_801822AC`, indexed by
 /// `GpEffWork.field_20` (the palette selector packed into the spawn arg).

@@ -41006,3 +41006,20 @@ the second loop reads. The `u16` pseudo then has one use, the lowest priority
 of the lot, and is the one that spills. Same story for `*(u16*)&blk->step`
 from m2c: that `lhu` of the low half is GCC's `convert_to_integer` shortening
 of an `s32` field in a 16-bit `-`/`+`, so `blk->x - blk->step` is the source.
+
+## `lwl`/`lwr` + `swl`/`swr` quads are a whole-struct assignment, not unaligned field access
+
+m2c gives up on the pair with `M2C_ERROR(/* Unable to handle lwr; missing a
+corresponding lwl */)` and invents `M2C_UNALIGNED32` field writes, which cannot
+be written in C. The source is much simpler: a struct assignment `*out = *in`
+where the struct's alignment is smaller than its size, so `expand_block_move`
+cannot use `lw`/`sw`. `func_acropolis_hallway_8017D5D0` copies an 8-byte
+`RoomEventMsg` (alignment 2, because its widest member is `u16`) and compiles to
+exactly the ROM's
+
+    lwl $a1, 0x3($s0) / lwr $a1, 0x0($s0) / lwl $t0, 0x7($s0) / lwr $t0, 0x4($s0)
+    swl $a1, 0x3($s2) / swr $a1, 0x0($s2) / swl $t0, 0x7($s2) / swr $t0, 0x4($s2)
+
+from one `*out = *in;`. Count the `lwl` offsets to recover the size (the highest
+`swl` offset + 1) and take the alignment from the field types; do not try to
+reproduce the byte-lane instructions by hand.

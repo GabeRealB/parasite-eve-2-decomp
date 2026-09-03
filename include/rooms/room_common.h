@@ -182,6 +182,23 @@ typedef struct RoomPeUsage {
 } RoomPeUsage;
 STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 
+/// 8-byte message record a room's message handlers receive alongside the
+/// request. Handlers registered in a room's `(msgId, handler)` dispatch table
+/// are passed the incoming record and an outgoing copy of it, and answer by
+/// editing `field_3` of the copy. `field_5` non-zero suppresses the side
+/// effects (the handler only reports what *would* happen); `field_6` is the
+/// nibble index passed to `Gp_SetNibbleIf`. Alignment is 2, which is why the
+/// whole-record copies compile to `lwl`/`lwr` pairs.
+typedef struct _RoomEventMsg {
+    /* 0x0 */ u16 msgId;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ s8  field_3;
+    /* 0x4 */ u8  field_4;
+    /* 0x5 */ u8  field_5;
+    /* 0x6 */ u16 field_6;
+} RoomEventMsg;
+STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
+
 // =============================================================================
 // Functions — shared room library (src/rooms/lib)
 // =============================================================================
