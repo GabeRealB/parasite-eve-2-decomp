@@ -305,6 +305,7 @@ void Pad_TickEventBanks(PadState* arg0)
     s32       half;
     u8        val;
     u8        one;
+    u8*       p1b;
 
     pad = arg0;
     {
@@ -341,29 +342,25 @@ void Pad_TickEventBanks(PadState* arg0)
         p0 += 4;
     } while (i < 8);
 
-    {
-        u8* p1b;
-
-        p0  = &pad->events[1][0].field_0;
-        i   = 0;
-        p1b = &pad->events[1][0].field_1;
-        do {
-            if (*p0 != 0) {
-                half                      = *(volatile u16*)(p1b + 1) - 1;
-                *(volatile u16*)(p1b + 1) = half;
-                if ((half << 16) == 0) {
-                    *p0 = 0;
-                }
-                val = *p1b;
-                if (temp[1] < val) {
-                    temp[1] = val;
-                }
+    p0  = &pad->events[1][0].field_0;
+    i   = 0;
+    p1b = &pad->events[1][0].field_1;
+    do {
+        if (*p0 != 0) {
+            half                      = *(volatile u16*)(p1b + 1) - 1;
+            *(volatile u16*)(p1b + 1) = half;
+            if ((half << 16) == 0) {
+                *p0 = 0;
             }
-            i   += 1;
-            p1b += 4;
-            p0  += 4;
-        } while (i < 8);
-    }
+            val = *p1b;
+            if (temp[1] < val) {
+                temp[1] = val;
+            }
+        }
+        i   += 1;
+        p1b += 4;
+        p0  += 4;
+    } while (i < 8);
 
     if (Mc_SaveData.field_21 == 0) {
         pad->field_5A = temp[0];

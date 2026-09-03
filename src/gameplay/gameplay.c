@@ -6759,6 +6759,17 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32          temp_x;
     s32          idx;
     u16          val;
+    s32          packed;
+    s32          tmp;
+    s32          t;
+    s32          x;
+    s32          y;
+    s32          x2;
+    s32          y2;
+    s32          z2;
+    s32          scaled;
+    void**       scratch;
+    u8*          head;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -6773,19 +6784,14 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     arg1  += 0x64;
     temp_x = arg1 * arg1;
 
-    {
-        void** scratch;
-        u8*    head;
-
-        scratch  = (void**)G_SCRATCH_HEAD;
-        head     = *scratch;
-        node     = (GpLinkXform*)Gp_LinkList;
-        head    -= 8;
-        *scratch = head;
-        vec      = (SVECTOR*)head;
-    }
-    ry2 = temp_y >> 8;
-    rx2 = temp_x >> 8;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    node     = (GpLinkXform*)Gp_LinkList;
+    head    -= 8;
+    *scratch = head;
+    vec      = (SVECTOR*)head;
+    ry2      = temp_y >> 8;
+    rx2      = temp_x >> 8;
 
     if (node != NULL) {
         do {
@@ -6796,49 +6802,37 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (arg3 != 0) {
                     vec->vz -= arg1;
                 }
-                {
-                    s32 packed;
-                    s32 tmp;
-                    s32 t;
-                    s32 x;
-                    s32 y;
-                    s32 x2;
-                    s32 y2;
-                    s32 z2;
-                    s32 scaled;
-
-                    t = vec->vy;
-                    if (t >= -arg2 && t < 0x65) {
-                        tmp    = *(u16*)&vec->vx;
-                        packed = tmp << 16;
-                        USE_REG(tmp);
-                        t = packed >> 16;
+                t = vec->vy;
+                if (t >= -arg2 && t < 0x65) {
+                    tmp    = *(u16*)&vec->vx;
+                    packed = tmp << 16;
+                    USE_REG(tmp);
+                    t = packed >> 16;
+                    if (t >= -arg1 && !(arg1 < t)) {
+                        t = vec->vz;
                         if (t >= -arg1 && !(arg1 < t)) {
-                            t = vec->vz;
-                            if (t >= -arg1 && !(arg1 < t)) {
-                                scaled  = packed >> 20;
-                                vec->vx = scaled;
-                                asm volatile("" ::"r"(packed), "r"(scaled) : "memory");
-                                x       = vec->vx;
-                                x2      = x * x;
-                                t       = *(u16*)&vec->vz;
-                                t     <<= 16;
-                                t     >>= 20;
-                                z2      = t * t;
-                                vec->vy = (*(u16*)&vec->vy << 16) >> 20;
-                                COMPILER_BARRIER();
-                                y       = vec->vy;
-                                y2      = y * y;
-                                vec->vz = t;
-                                if ((u32)(ry2 * (x2 + z2) + rx2 * y2) <= (u32)(ry2 * rx2)) {
-                                    goto apply;
-                                }
+                            scaled  = packed >> 20;
+                            vec->vx = scaled;
+                            asm volatile("" ::"r"(packed), "r"(scaled) : "memory");
+                            x       = vec->vx;
+                            x2      = x * x;
+                            t       = *(u16*)&vec->vz;
+                            t     <<= 16;
+                            t     >>= 20;
+                            z2      = t * t;
+                            vec->vy = (*(u16*)&vec->vy << 16) >> 20;
+                            COMPILER_BARRIER();
+                            y       = vec->vy;
+                            y2      = y * y;
+                            vec->vz = t;
+                            if ((u32)(ry2 * (x2 + z2) + rx2 * y2) <= (u32)(ry2 * rx2)) {
+                                goto apply;
                             }
                         }
                     }
-                    goto next_node;
-                apply:;
                 }
+                goto next_node;
+            apply:;
                 enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
                 obj54 = (GpObj54*)enemy;
                 if (arg0 == 0) {
@@ -7302,6 +7296,8 @@ void Gp_UpdateLinkXforms(void)
     SVECTOR         tmp;
     GpLinkXform*    node;
     GsCOORDINATE2*  coord;
+    void**          p;
+    u8*             h;
 
     node = (GpLinkXform*)Gp_LinkList;
     {
@@ -7358,13 +7354,9 @@ void Gp_UpdateLinkXforms(void)
             node = node->next;
         } while (node != NULL);
     }
-    {
-        void** p;
-        u8*    h;
-        p  = (void**)G_SCRATCH_HEAD;
-        h  = *p;
-        *p = h + 0x48;
-    }
+    p  = (void**)G_SCRATCH_HEAD;
+    h  = *p;
+    *p = h + 0x48;
 }
 
 void Gp_StartAreaBgm(s16* arg0)

@@ -1313,6 +1313,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     s32           base;
     s32           i;
     GpItemAttr*   attr;
+    s32           vx;
 
     obj           = arg0->spawnArg2;
     cfg           = &Wip_SysConfig;
@@ -1367,18 +1368,15 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         }
         func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
 
-        {
-            s32 vx;
-            vx              = obj->baseX + 2;
-            vx              = vx + x;
-            req3.x          = vx;
-            req3.y          = obj->baseY + (y - 2);
-            req3.otIndex    = (s16)obj->drawOrder + 1;
-            req3.field_8    = color;
-            req3.glyphTable = 5;
-            req3.centerMode = 0;
-            req3.field_E    = 1;
-        }
+        vx              = obj->baseX + 2;
+        vx              = vx + x;
+        req3.x          = vx;
+        req3.y          = obj->baseY + (y - 2);
+        req3.otIndex    = (s16)obj->drawOrder + 1;
+        req3.field_8    = color;
+        req3.glyphTable = 5;
+        req3.centerMode = 0;
+        req3.field_E    = 1;
         func_8002E53C(&req3, Gp_StrHp);
 
         req4.x          = obj->baseX + (x + mid);
@@ -2223,15 +2221,13 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
     UiList*                menu;
     Task*                  parent;
     u8*                    ptr;
+    s32                    t;
 
     prompt = arg0;
     SOFT_TOUCH_REG(prompt);
-    cfg = &Wip_SysConfig;
-    {
-        s32 t;
-        t    = cfg->field_21;
-        item = t + 0x7F;
-    }
+    cfg  = &Wip_SysConfig;
+    t    = cfg->field_21;
+    item = t + 0x7F;
     if (item < 0x80) {
         item = 0;
     }
@@ -4986,6 +4982,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     s32                  minusOne;
     s32                  flag;
     s32                  val;
+    McItemScan*          a0scan;
 
     menu          = &D_8010E9F4;
     obj           = arg0->spawnArg2;
@@ -5049,14 +5046,11 @@ void Gp_SelectArmorMenuTask(Task* arg0)
 
         asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
         asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
-        {
-            McItemScan* a0scan;
-            a0scan = scan;
-            TOUCH_REG(a0scan);
-            cfg       = &Wip_SysConfig;
-            remaining = menu->field_10;
-            rec       = Gp_GetItemTable(a0scan);
-        }
+        a0scan = scan;
+        TOUCH_REG(a0scan);
+        cfg       = &Wip_SysConfig;
+        remaining = menu->field_10;
+        rec       = Gp_GetItemTable(a0scan);
         {
             s32                 iter;
             register s32        n asm("a2");

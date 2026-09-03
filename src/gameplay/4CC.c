@@ -284,6 +284,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     s32            idx;
     UiObject*      spawned;
     WipSysConfig*  cfg;
+    s32            one2;
 
     rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
     TOUCH_REG(rec);
@@ -297,14 +298,11 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     status = arg1->status;
-    {
-        s32 one2;
-        one2 = 1;
-        if (((status >> 16) == one2) || (status == one2)) {
-            if (arg0->field_10 == arg0->field_8) {
-                Gp_SetPreviewItem(item, 0);
-                Gp_SetHolderItemText(item);
-            }
+    one2   = 1;
+    if (((status >> 16) == one2) || (status == one2)) {
+        if (arg0->field_10 == arg0->field_8) {
+            Gp_SetPreviewItem(item, 0);
+            Gp_SetHolderItemText(item);
         }
     }
     if (arg1->owner->spawnArg1 == 0) {
@@ -680,6 +678,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
     GpItemRec*           rec;
     GpItemSlot*          slot;
     s32                  attach;
+    s32                  mode;
 
     texts = Gp_ItemPromptTexts;
     if (arg0->field_8 == 0) {
@@ -692,13 +691,9 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     }
-    {
-        s32 mode;
-
-        mode = arg0->field_8;
-        one  = 1;
-        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, one, 0);
-    }
+    mode = arg0->field_8;
+    one  = 1;
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, one, 0);
 
     if (arg0->field_C == one) {
         if (arg0->field_8 == 2) {

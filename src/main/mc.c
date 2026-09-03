@@ -354,6 +354,12 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
     UiObject*        obj;
     McPromptPair*    entry;
     McPromptPair*    promptBase;
+    s16              sum;
+    u8*              src;
+    u32              ji;
+    u32              cnt;
+    McChecksumBlock* blk;
+    s16              inv;
 
     work    = arg1;
     task    = arg0;
@@ -409,30 +415,21 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
                 func_80030AB0(work);
                 memcpy(mem, bufPtr, doubled);
             } else {
-                {
-                    s16              sum;
-                    u8*              src;
-                    u32              ji;
-                    u32              cnt;
-                    McChecksumBlock* blk;
-                    s16              inv;
-
-                    sum = 0;
-                    src = bufPtr->field_4;
-                    ji  = 0;
-                    cnt = bufSize - 4;
-                    blk = bufPtr;
-                    if (cnt != 0) {
-                        do {
-                            ji  += 1;
-                            sum += (s8)*src;
-                            src += 1;
-                        } while (ji < cnt);
-                    }
-                    inv          = ~sum;
-                    blk->field_0 = sum;
-                    blk->field_2 = inv;
+                sum = 0;
+                src = bufPtr->field_4;
+                ji  = 0;
+                cnt = bufSize - 4;
+                blk = bufPtr;
+                if (cnt != 0) {
+                    do {
+                        ji  += 1;
+                        sum += (s8)*src;
+                        src += 1;
+                    } while (ji < cnt);
                 }
+                inv          = ~sum;
+                blk->field_0 = sum;
+                blk->field_2 = inv;
                 if (work->field_24 == 8) {
                     McChecksumBlock* temp;
                     McBufferSlot*    bp;

@@ -1837,6 +1837,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     s32                n;
     s16                step;
     u16                vz;
+    s32                prod;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
@@ -1921,12 +1922,9 @@ void Gp_EffSprTaskA7(Task* arg0)
         prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        {
-            s32 prod;
-            prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24 + 0x400);
-            block->dx = prod >> 12;
-            USE_REG(prod);
-        }
+        prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24 + 0x400);
+        block->dx = prod >> 12;
+        USE_REG(prod);
         block->dy = (((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->field_24 + 0x400)) >> 12;
         prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
         prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
@@ -2803,6 +2801,9 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     s32            idx;
     GpAnimArg      sp;
     Task*          task;
+    s32            zero;
+    s32            temp;
+    GsCOORDINATE2* next;
 
     actor = arg0->actor;
     extra = arg0->extra;
@@ -2868,28 +2869,23 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         Gp_LinkObj(zero, obj);
     }
 
-    {
-        s32            zero;
-        s32            temp;
-        GsCOORDINATE2* next;
-        zero = 0;
-        TOUCH_REG(zero);
-        obj->flags     |= 0x8000;
-        link            = (GpRec18*)actor->field_A0;
-        obj             = (GpObj*)actor->field_EC;
-        next            = (GsCOORDINATE2*)arg0->extra->field_8;
-        obj->field_C    = link;
-        obj->field_8    = next + 1;
-        actor->field_A8 = (s32)recs;
-        obj->field_10   = 0;
-        obj->field_12   = 0x52;
-        obj->field_14   = 0;
-        temp            = save->field_22;
-        obj->field_1C   = size;
-        obj->flags      = 0x24;
-        obj->field_18   = temp | packed;
-        Gp_LinkObj(zero, obj);
-    }
+    zero = 0;
+    TOUCH_REG(zero);
+    obj->flags     |= 0x8000;
+    link            = (GpRec18*)actor->field_A0;
+    obj             = (GpObj*)actor->field_EC;
+    next            = (GsCOORDINATE2*)arg0->extra->field_8;
+    obj->field_C    = link;
+    obj->field_8    = next + 1;
+    actor->field_A8 = (s32)recs;
+    obj->field_10   = 0;
+    obj->field_12   = 0x52;
+    obj->field_14   = 0;
+    temp            = save->field_22;
+    obj->field_1C   = size;
+    obj->flags      = 0x24;
+    obj->field_18   = temp | packed;
+    Gp_LinkObj(zero, obj);
     obj->flags |= 0xC000;
 
     kind             = actor->field_954;
@@ -3481,6 +3477,7 @@ void Gp_TurnPlayer(GpActorWork* arg0)
     GameActor*     actor;
     GsCOORDINATE2* coord;
     s32            flag;
+    SVECTOR*       rot;
 
     actor = arg0->actor;
     extra = arg0->extra;
@@ -3498,15 +3495,11 @@ void Gp_TurnPlayer(GpActorWork* arg0)
             actor->field_52 = ((u16)actor->field_52 + tbl[idx] * (s8)yaw) & 0xFFF;
         }
     }
-    {
-        SVECTOR* rot;
-
-        rot = (SVECTOR*)&actor->field_50;
-        TOUCH_REG2(rot, coord);
-        coord = (GsCOORDINATE2*)&coord->coord;
-        RotMatrix(rot, (MATRIX*)coord);
-        MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
-    }
+    rot = (SVECTOR*)&actor->field_50;
+    TOUCH_REG2(rot, coord);
+    coord = (GsCOORDINATE2*)&coord->coord;
+    RotMatrix(rot, (MATRIX*)coord);
+    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
     if ((s8)actor->field_97E == 1) {
         s32          temp;
         register s16 delta asm("v1");

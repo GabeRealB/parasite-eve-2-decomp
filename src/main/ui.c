@@ -35,6 +35,8 @@ void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
     u8           h;
     s16          sx;
     u16          ux;
+    DR_MODE*     r;
+    s32          y0r;
 
     p  = (POLY_GT4*)Gpu_PrimCursor;
     p2 = p + 1;
@@ -65,20 +67,16 @@ void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
     p2->y3 = y;
     p2->y2 = y;
 
-    {
-        DR_MODE* r;
-        s32      y0r;
-        r              = (DR_MODE*)(p + 2);
-        Gpu_PrimCursor = (DR_TPAGE*)r;
-        if (p->x0 < p2->x0) {
-            y0r = p->y0;
-            if (p->y2 < y0r) {
-                dr = r;
-                goto body;
-            }
+    r              = (DR_MODE*)(p + 2);
+    Gpu_PrimCursor = (DR_TPAGE*)r;
+    if (p->x0 < p2->x0) {
+        y0r = p->y0;
+        if (p->y2 < y0r) {
+            dr = r;
+            goto body;
         }
-        goto end;
     }
+    goto end;
 body:
     Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
 
@@ -650,6 +648,8 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     register u_long* ot asm("a2");
     s32              y0;
     u16              t;
+    s32              f1a;
+    s32              tmp;
 
     p              = (POLY_G3*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
@@ -682,14 +682,9 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         p->y2 = t;
         p->y1 = t;
     } else {
-        {
-            s32 f1a;
-            s32 tmp;
-
-            f1a = arg1->field_1A;
-            tmp = y + 2;
-            y0  = f1a + tmp;
-        }
+        f1a   = arg1->field_1A;
+        tmp   = y + 2;
+        y0    = f1a + tmp;
         p->y0 = y0;
         if (arg1->field_0 == 1) {
             register s32 tmp asm("v0");

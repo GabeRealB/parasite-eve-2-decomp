@@ -1518,6 +1518,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     u8*          str;
     char*        text;
     GpItemAttr*  p;
+    UiObject*    a0obj;
+    char*        notice;
 
     obj  = arg0;
     sel  = Wip_SysConfig.field_23;
@@ -1577,22 +1579,17 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         return;
     }
 
-    {
-        UiObject* a0obj;
-        char*     notice;
-
-        a0obj = obj;
-        TOUCH_REG(a0obj);
-        notice = Gp_StrNotice2;
-        TOUCH_REG(notice);
-        color = 0x606060;
-        TOUCH_REG(color);
-        x  = obj->field_1C;
-        y0 = (s16)obj->field_18;
-        Ui_DrawText((UiPanel*)a0obj, notice);
-        x = x + 2;
-        TOUCH_REG(x);
-    }
+    a0obj = obj;
+    TOUCH_REG(a0obj);
+    notice = Gp_StrNotice2;
+    TOUCH_REG(notice);
+    color = 0x606060;
+    TOUCH_REG(color);
+    x  = obj->field_1C;
+    y0 = (s16)obj->field_18;
+    Ui_DrawText((UiPanel*)a0obj, notice);
+    x = x + 2;
+    TOUCH_REG(x);
     y   = y0 + 0xF;
     str = Gp_StrMore;
     one = 1;

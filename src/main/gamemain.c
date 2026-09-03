@@ -240,6 +240,7 @@ void GameMain_Loop(void)
     s32                    d710;
     s32                    n;
     u8                     raw;
+    s32                    _t;
 
     s3 = 0;
     {
@@ -515,14 +516,11 @@ void GameMain_Loop(void)
                                          : "memory");
                     }
                     VSync(vsarg);
-                    {
-                        s32 _t;
-                        __asm__ volatile("lw %0, %%lo(Display_PendingFlip)(%1)" : "=r"(_t) : "r"(s5r));
-                        if (_t == (u32)neg1) {
-                            D_8005EC78 = D_8005EC74;
-                            s3         = -D_8005EC74;
-                            goto apply_offset;
-                        }
+                    __asm__ volatile("lw %0, %%lo(Display_PendingFlip)(%1)" : "=r"(_t) : "r"(s5r));
+                    if (_t == (u32)neg1) {
+                        D_8005EC78 = D_8005EC74;
+                        s3         = -D_8005EC74;
+                        goto apply_offset;
                     }
                     a0 = 1;
                 } else {

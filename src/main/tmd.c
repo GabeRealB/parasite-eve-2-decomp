@@ -315,26 +315,23 @@ void Tmd_ProcessStream(TmdObject* arg0)
     s32                   flag;
     void*                 buf;
     u32                   hi;
+    void**                scratch;
+    TmdScratchModelBlock* head;
+    void*                 tmp;
 
-    flag = 0;
-    {
-        void**                scratch;
-        TmdScratchModelBlock* head;
-        void*                 tmp;
-
-        scratch  = (void**)G_SCRATCH_HEAD;
-        src      = arg0->field_10;
-        tmp      = *scratch;
-        stream   = src->field_20;
-        hi       = *(u32*)&Game_Session->field_4;
-        head     = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
-        hi      &= 0xFFFF0000;
-        *scratch = head;
-        if ((hi == 0x020F0000) || (hi == 0x02100000)) {
-            flag = 1;
-        }
-        ws = head;
+    flag     = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    src      = arg0->field_10;
+    tmp      = *scratch;
+    stream   = src->field_20;
+    hi       = *(u32*)&Game_Session->field_4;
+    head     = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
+    hi      &= 0xFFFF0000;
+    *scratch = head;
+    if ((hi == 0x020F0000) || (hi == 0x02100000)) {
+        flag = 1;
     }
+    ws = head;
 
     ws->field_80 = arg0;
     buf          = arg0->field_18;
@@ -510,6 +507,11 @@ void Tmd_SetupDraw(TmdObject* arg0)
     u32                  flags;
     void*                bufptr;
     s32                  disp;
+    u_long*              ot;
+    TmdSource*           p;
+    s32                  e;
+    void*                b;
+    s32                  field18;
 
     scratch = (void**)G_SCRATCH_HEAD;
     {
@@ -537,24 +539,16 @@ void Tmd_SetupDraw(TmdObject* arg0)
     ws->field_0     = (u8*)ws->field_0 + arg0->field_10->field_8;
     arg0->field_14 ^= 1;
     ws->field_8     = arg0->field_10->field_14;
-    {
-        u_long*    ot;
-        TmdSource* p;
-        s32        e;
-        void*      b;
-        s32        field18;
-
-        COMPILER_BARRIER();
-        ot           = Gpu_CurrentOt;
-        p            = arg0->field_10;
-        field18      = p->field_18;
-        ws->field_14 = ot;
-        ws->field_C  = field18;
-        e            = arg0->field_E;
-        b            = buf;
-        ws->field_10 = b;
-        ws->field_14 = ot + e;
-    }
+    COMPILER_BARRIER();
+    ot           = Gpu_CurrentOt;
+    p            = arg0->field_10;
+    field18      = p->field_18;
+    ws->field_14 = ot;
+    ws->field_C  = field18;
+    e            = arg0->field_E;
+    b            = buf;
+    ws->field_10 = b;
+    ws->field_14 = ot + e;
 
     colorMtx = (MATRIX*)arg0->field_20;
     gte_SetColorMatrix(colorMtx);

@@ -364,6 +364,7 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
     s32           ret;
     s32           one;
     s32           syncResult;
+    u8            ch;
 
     one           = 1;
     saved         = arg0->spawnArg2;
@@ -464,14 +465,11 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                         dst  = Mc_FileNameBuf;
                         i    = 0;
                         do {
-                            {
-                                u8 ch;
-                                ch    = *name;
-                                name += 1;
-                                i    += 1;
-                                *dst  = ch;
-                            }
-                            dst += 1;
+                            ch    = *name;
+                            name += 1;
+                            i    += 1;
+                            *dst  = ch;
+                            dst  += 1;
                         } while (i < 0x15);
                     }
                     {

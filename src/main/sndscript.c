@@ -637,6 +637,7 @@ void SndEvt_EnqueueTypeF(void)
 s32 SndScript_StopMatching(s32 arg0, s32 arg1)
 {
     s32 i;
+    s32 hi;
 
     if (!(arg0 & 0xFF)) {
         register SndScript* p asm("v1");
@@ -653,13 +654,10 @@ s32 SndScript_StopMatching(s32 arg0, s32 arg1)
         k60  = 0x60000000;
         four = 4;
         flag = (arg1 == 1);
-        {
-            s32 hi;
-            __asm__ volatile(
-                "lui %0, %%hi(SndScript_Slots)\n\t"
-                "addiu %1, %0, %%lo(SndScript_Slots)"
-                : "=&r"(hi), "=r"(p));
-        }
+        __asm__ volatile(
+            "lui %0, %%hi(SndScript_Slots)\n\t"
+            "addiu %1, %0, %%lo(SndScript_Slots)"
+            : "=&r"(hi), "=r"(p));
         do {
             hi = p->field_0 & mask;
             if ((hi == arg0) || ((arg0 == k80) && (hi != k60))) {

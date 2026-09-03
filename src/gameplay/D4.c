@@ -905,6 +905,7 @@ void Gp_LoadWaitSave(Task* task)
     u8            param1[8];
     u8            param2[8];
     GpAreaKey*    saveKey;
+    GameSession*  sess;
 
     color = 8;
     ds    = &Display_State;
@@ -960,14 +961,10 @@ void Gp_LoadWaitSave(Task* task)
                 CdCmd_Enqueue(cmd, p1, p2);
             }
         }
-        {
-            GameSession* sess;
-
-            sess = Game_Session;
-            if (sess->field_4C == 1) {
-                Gp_SetAreaObjId((GpAreaKey*)&sess->field_4, Mc_SaveData.field_9, -1);
-                Game_Session->field_4C = 0;
-            }
+        sess = Game_Session;
+        if (sess->field_4C == 1) {
+            Gp_SetAreaObjId((GpAreaKey*)&sess->field_4, Mc_SaveData.field_9, -1);
+            Game_Session->field_4C = 0;
         }
         saveKey = (GpAreaKey*)&Mc_SaveData.field_4;
         Gp_MarkAreaVisited(saveKey);

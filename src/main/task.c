@@ -98,6 +98,9 @@ void Task_Kill(Task* arg0)
     TaskNode*  prev;
     void*      extra;
     s32        type;
+    s32        t;
+    Task*      p;
+    Task*      n;
 
     temp = arg0->firstChild;
     if (temp != NULL) {
@@ -110,27 +113,22 @@ void Task_Kill(Task* arg0)
         } while (cur != start);
     }
 
-    {
-        Task* p;
-        Task* n;
-
-        p = arg0->parent;
-        if (p != NULL) {
-            n = arg0->nextSibling;
-            if (n == arg0) {
-                p->firstChild = NULL;
-            } else {
-                if (p->firstChild == arg0) {
-                    p->firstChild = n;
-                }
-                cur = arg0;
-                if (arg0->nextSibling != arg0) {
-                    do {
-                        cur = cur->nextSibling;
-                    } while (cur->nextSibling != arg0);
-                }
-                cur->nextSibling = arg0->nextSibling;
+    p = arg0->parent;
+    if (p != NULL) {
+        n = arg0->nextSibling;
+        if (n == arg0) {
+            p->firstChild = NULL;
+        } else {
+            if (p->firstChild == arg0) {
+                p->firstChild = n;
             }
+            cur = arg0;
+            if (arg0->nextSibling != arg0) {
+                do {
+                    cur = cur->nextSibling;
+                } while (cur->nextSibling != arg0);
+            }
+            cur->nextSibling = arg0->nextSibling;
         }
     }
 
@@ -206,16 +204,12 @@ void Task_Kill(Task* arg0)
         return;
     }
 
-    {
-        s32 t;
-
-        t = arg0->spawnType;
-        if (t == 1) {
-            goto imm1;
-        }
-        if (t == 2) {
-            goto imm2;
-        }
+    t = arg0->spawnType;
+    if (t == 1) {
+        goto imm1;
+    }
+    if (t == 2) {
+        goto imm2;
     }
     goto imm_unlink;
 

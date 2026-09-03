@@ -959,6 +959,8 @@ void CdStream_Start(CdStreamParams* arg0)
     s32                     temp;
     u8                      mode;
     s32                     base;
+    s32                     rem_tmp;
+    s32                     temp_v1;
 
     p         = &CdStream_State;
     p->voiceL = arg0->voiceL;
@@ -1085,20 +1087,15 @@ void CdStream_Start(CdStreamParams* arg0)
         }
     }
 
-    {
-        s32 rem_tmp;
-        s32 temp_v1;
-
-        rem_tmp                  = (s32)&entry;
-        entry.pollFn             = (s32)func_80059EE0;
-        temp_v1                  = arg0->startSector;
-        entry.doneFn             = (s32)CdStream_Continue;
-        entry.errorFn            = (s32)CdStream_FinishQueueEntry;
-        entry.sectorPos          = temp_v1;
-        CdStream_State.readySlot = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
-    }
-    CdStream_State.phase = 2;
-    D_80068B74           = -1;
+    rem_tmp                  = (s32)&entry;
+    entry.pollFn             = (s32)func_80059EE0;
+    temp_v1                  = arg0->startSector;
+    entry.doneFn             = (s32)CdStream_Continue;
+    entry.errorFn            = (s32)CdStream_FinishQueueEntry;
+    entry.sectorPos          = temp_v1;
+    CdStream_State.readySlot = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
+    CdStream_State.phase     = 2;
+    D_80068B74               = -1;
 }
 
 void CdStream_Continue(void)

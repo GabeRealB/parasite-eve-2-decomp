@@ -927,6 +927,7 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     u16                     scale;
     u8*                     ptr;
     s16                     room;
+    s32                     dot;
 
     obj2 = arg0, pos = arg1, obj = obj2;
     TOUCH_REG3(obj2, pos, obj);
@@ -966,12 +967,8 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
         block->innerSq = (obj2->field_60 * obj2->field_60) >> 2;
         light          = (VECTOR*)block;
         Gfx_NormalizeLightDir(light, (SVECTOR*)(head - 0x1C));
-        {
-            s32 dot;
-
-            dot           = block->dir.vx * obj->field_24.m[0][2] + block->dir.vy * obj->field_24.m[1][2] + block->dir.vz * obj->field_24.m[2][2];
-            block->cosAng = -dot >> 12;
-        }
+        dot           = block->dir.vx * obj->field_24.m[0][2] + block->dir.vy * obj->field_24.m[1][2] + block->dir.vz * obj->field_24.m[2][2];
+        block->cosAng = -dot >> 12;
         if (rcos(obj2->field_68 >> 1) < block->cosAng) {
             r            = obj2->field_50;
             g            = obj2->field_52;
@@ -1911,6 +1908,7 @@ void Gp_DrawTargetCursor(void)
     s32           u1;
     u32           mask;
     s32           val;
+    s32           n;
 
     node = (GpLinkXform*)Gp_LinkList;
     if (Pad_RemapState->field_A != 0) {
@@ -1995,14 +1993,11 @@ void Gp_DrawTargetCursor(void)
             }
             ds                = &Display_State;
             *(u16*)&block->sy = *(u16*)&block->sy - (s8) * (u8*)&ds->vramYOffset;
-            {
-                s32 n;
-                n     = ds->field_8;
-                n     = (u32)n % 24U;
-                frame = (u32)n / 3U;
-            }
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            n                 = ds->field_8;
+            n                 = (u32)n % 24U;
+            frame             = (u32)n / 3U;
+            prim              = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor    = (DR_TPAGE*)(prim + 1);
             if (small == 1) {
                 prim->x0 = prim->x2 = *(u16*)&block->sx - 8;
                 prim->x1 = prim->x3 = *(u16*)&block->sx + 8;

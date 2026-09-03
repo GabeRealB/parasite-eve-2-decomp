@@ -282,6 +282,9 @@ u8 Fs_ProcessChunkHeader(void)
     s32          endFlag;
     s32          status;
     s32          tmp;
+    s32*         sp;
+    s32          f2;
+    s32          d748;
 
     /*
      * Pure C prologue: sw s1 / lui s1 / sw s0 / addiu s0,s1,lo / move a0 /
@@ -317,20 +320,17 @@ u8 Fs_ProcessChunkHeader(void)
             : "v0", "a0", "a3", "memory");
 
         /* lhu field_2; lbu type via absolute chunk.type; addu; sw via a1 */
-        {
-            s32 f2;
-            f2 = sec->chunk.field_2;
-            TOUCH_REG(f2);
-            type = Fs_CdSector.chunk.type;
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "addu\t%0, %0, %2\n\t"
-                "sw\t%0, %%lo(D_8006C4D4)(%1)\n\t"
-                ".set\treorder"
-                : "+r"(f2)
-                : "r"(d4_hi), "r"(sec)
-                : "memory");
-        }
+        f2 = sec->chunk.field_2;
+        TOUCH_REG(f2);
+        type = Fs_CdSector.chunk.type;
+        __asm__ volatile(
+            ".set\tnoreorder\n\t"
+            "addu\t%0, %0, %2\n\t"
+            "sw\t%0, %%lo(D_8006C4D4)(%1)\n\t"
+            ".set\treorder"
+            : "+r"(f2)
+            : "r"(d4_hi), "r"(sec)
+            : "memory");
     }
 
     switch (type) {
@@ -351,30 +351,27 @@ u8 Fs_ProcessChunkHeader(void)
             D5B498_8006D748 = 0;
             Fs_ChunkReadPtr = Fs_CdSector.bytes + 0x10;
             Fs_DecompressChunk();
-            {
-                s32 d748;
-                d748 = D5B498_8006D748;
-                __asm__ volatile(
-                    ".set\tnoreorder\n\t"
-                    "ori\t$2, $0, 0xFFFF\n\t"
-                    "beq\t%0, $2, %3\n\t"
-                    "addiu\t$17, $0, 1\n\t"
-                    "beqz\t%0, 1f\n\t"
-                    "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
-                    "lbu\t$3, %%lo(Fs_ChunkEndFlag)($2)\n\t"
-                    "j\t%1\n\t"
-                    "addiu\t$2, $0, 0xFF\n\t"
-                    "1:\n\t"
-                    "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
-                    "sb\t$17, %%lo(Fs_LoadPhase)($2)\n\t"
-                    "lui\t$2, %%hi(Fs_Streaming)\n\t"
-                    "j\t%2\n\t"
-                    "sb\t$17, %%lo(Fs_Streaming)($2)\n\t"
-                    ".set\treorder"
-                    :
-                    : "r"(d748), "i"(&&check_end_ff), "i"(&&ret0), "i"(&&soft_error)
-                    : "v0", "s1", "memory");
-            }
+            d748 = D5B498_8006D748;
+            __asm__ volatile(
+                ".set\tnoreorder\n\t"
+                "ori\t$2, $0, 0xFFFF\n\t"
+                "beq\t%0, $2, %3\n\t"
+                "addiu\t$17, $0, 1\n\t"
+                "beqz\t%0, 1f\n\t"
+                "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
+                "lbu\t$3, %%lo(Fs_ChunkEndFlag)($2)\n\t"
+                "j\t%1\n\t"
+                "addiu\t$2, $0, 0xFF\n\t"
+                "1:\n\t"
+                "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
+                "sb\t$17, %%lo(Fs_LoadPhase)($2)\n\t"
+                "lui\t$2, %%hi(Fs_Streaming)\n\t"
+                "j\t%2\n\t"
+                "sb\t$17, %%lo(Fs_Streaming)($2)\n\t"
+                ".set\treorder"
+                :
+                : "r"(d748), "i"(&&check_end_ff), "i"(&&ret0), "i"(&&soft_error)
+                : "v0", "s1", "memory");
 
         case 1: {
             s32 ff;
@@ -496,17 +493,14 @@ u8 Fs_ProcessChunkHeader(void)
                 srcp = (s32*)(Fs_CdSector.bytes + 0x10 + s2);
                 s2   = 0;
                 __asm__("lw %0, %%lo(Fs_ChunkWritePtr)(%1)" : "=r"(dstp) : "r"(wp_hi));
-                {
-                    s32* sp;
-                    sp = srcp;
-                    do {
-                        tmp = *sp;
-                        sp++;
-                        s2++;
-                        *dstp = tmp;
-                        dstp++;
-                    } while (s2 < 0x1FC);
-                }
+                sp = srcp;
+                do {
+                    tmp = *sp;
+                    sp++;
+                    s2++;
+                    *dstp = tmp;
+                    dstp++;
+                } while (s2 < 0x1FC);
             }
             Fs_ChunkWritePtr += 0x7F0;
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
@@ -755,6 +749,7 @@ u8 Fs_ProcessChunkData(void)
     s32  endFlag;
     s32* offsets;
     s32  ff;
+    u8*  val;
 
     switch (Fs_LoadPhase) {
         case 0:
@@ -869,19 +864,16 @@ u8 Fs_ProcessChunkData(void)
             if (D_8006ADE8.field_4 != D_8006ADE8.field_2) {
                 goto ret0;
             }
-            {
-                u8* val;
-                val = (u8*)D_8006ADE8.field_8;
-                __asm__ volatile(
-                    ".set\tnoreorder\n\t"
-                    "lui $2, %%hi(Fs_ChunkWritePtr)\n\t"
-                    "j %1\n\t"
-                    "sw %0, %%lo(Fs_ChunkWritePtr)($2)\n\t"
-                    ".set\treorder"
-                    :
-                    : "r"(val), "i"(&&ret0)
-                    : "v0", "memory");
-            }
+            val = (u8*)D_8006ADE8.field_8;
+            __asm__ volatile(
+                ".set\tnoreorder\n\t"
+                "lui $2, %%hi(Fs_ChunkWritePtr)\n\t"
+                "j %1\n\t"
+                "sw %0, %%lo(Fs_ChunkWritePtr)($2)\n\t"
+                ".set\treorder"
+                :
+                : "r"(val), "i"(&&ret0)
+                : "v0", "memory");
 
         case 5:
             if (Fs_ChunkMode != 3) {
@@ -1321,6 +1313,7 @@ void Fs_ScanIsoDirectory(s32 mode)
     s32          phase;
     s32          endSec;
     u8*          p;
+    u8**         slot;
 
     initBsSector = 0;
     initBsCount  = initBsSector;
@@ -1504,12 +1497,9 @@ restart:
             D5B498_8006D850 = NULL;
             D5B498_8006D748 = 0;
             D5B498_8006D858 = 1;
-            {
-                u8** slot;
-                slot  = &D_8006C4D4;
-                p     = (u8*)&Fs_CdSector;
-                *slot = p + 0x800;
-            }
+            slot            = &D_8006C4D4;
+            p               = (u8*)&Fs_CdSector;
+            *slot           = p + 0x800;
             CdCmd_RequestVlcRebuild();
 
             {

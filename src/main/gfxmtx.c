@@ -749,6 +749,10 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
     s32*                       p_tmp;
     s32                        val;
     s32                        shift;
+    s32                        t_vy;
+    s32                        t_sh;
+    s32                        t_vz;
+    s32                        t_sh2;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = (u8*)*scratch;
@@ -790,21 +794,14 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
         shift                  = 0x12 - val;
         block->lzc_min         = shift;
         *(s32*)(head - 0x18) >>= shift;
-        {
-            s32 t_vy;
-            s32 t_sh;
-            s32 t_vz;
-            s32 t_sh2;
-
-            t_vy = block->vy;
-            USE_REG(t_vy);
-            t_sh  = block->lzc_min;
-            t_vz  = block->vz;
-            t_sh2 = t_sh;
-            TOUCH_REG(t_sh2);
-            block->vy = t_vy >> t_sh;
-            block->vz = t_vz >> t_sh2;
-        }
+        t_vy                   = block->vy;
+        USE_REG(t_vy);
+        t_sh  = block->lzc_min;
+        t_vz  = block->vz;
+        t_sh2 = t_sh;
+        TOUCH_REG(t_sh2);
+        block->vy = t_vy >> t_sh;
+        block->vz = t_vz >> t_sh2;
     }
 
     VectorNormalS((VECTOR*)block, out);
