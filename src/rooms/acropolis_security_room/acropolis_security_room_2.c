@@ -7,6 +7,7 @@
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -283,7 +284,30 @@ void func_acropolis_security_room_80180030(Task* task)
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_801800A4);
+void func_acropolis_security_room_801800A4(Task* task)
+{
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    s32                         level;
+    s16                         frames;
+
+    GameFlag_SetNibble(0x1EE, 0);
+    level = (u8)st->frames;
+    Fade_DrawOverlay(level, level, level, 2);
+    frames     = st->frames + 4;
+    st->frames = frames;
+    if ((u16)frames == 0x80) {
+        SndEvt_EnqueueType6(0x51060002, 0, 0);
+    }
+    if (st->frames >= 0x100) {
+        st->frames = 0;
+        D_8007216C = 0xE;
+        /* Same load-delay shape as `func_acropolis_security_room_80180010`:
+         * without the barrier GCC hoists the `lw` of `task->state` above the
+         * byte store and drops the delay `nop`. */
+        SOFT_BARRIER();
+        task->state = task->state + 1;
+    }
+}
 
 void func_acropolis_security_room_8018014C(Task* task)
 {
