@@ -584,6 +584,17 @@ try_permuter_poststep() {
   return 0
 }
 
+# Commit tools/difficult_functions on its own if it has pending changes. Used
+# where the match itself was committed by the agent, so there is no commit of
+# ours to fold the list change into.
+commit_difficult_list() {
+  local why=$1
+  git diff --quiet -- tools/difficult_functions 2>/dev/null && return 0
+  git add -- tools/difficult_functions 2>/dev/null || return 0
+  git commit -q -m "difficult_functions: $why" >/dev/null 2>&1 \
+    && echo "Committed tools/difficult_functions ($why)" | tee -a "$LOG_FILE"
+}
+
 commit_match_if_needed() {
   # 0 = we verified + committed; 2 = agent already committed (still verify);
   # 1 = no integrated match.
@@ -605,6 +616,12 @@ commit_match_if_needed() {
   fi
   if git log $range --pretty=%s 2>/dev/null | grep -qE "^matched ${func}( |$)"; then
     echo "Agent already committed a match for $func" | tee -a "$LOG_FILE"
+    # Clear the give-up here too. Most agents commit their own match, so this is
+    # the common path, and returning straight out of it left the function listed
+    # as a give-up after it had been matched - which then advertises it to the
+    # next retry pass as a promising candidate.
+    forget_difficult_entry "$func"
+    commit_difficult_list "cleared after $func matched"
     return 2
   fi
 
@@ -627,7 +644,12 @@ commit_match_if_needed() {
     return 1
   fi
   forget_difficult_entry "$func"
+  # Stage the real list as well as whatever DIFFICULT_FUNCTIONS points at. With
+  # VACUUM_DIFFICULT_FILE set it points at a scratch file outside the repo, so
+  # `git add` on it silently staged nothing and the edit to
+  # tools/difficult_functions was left dirty in the working tree.
   git add -- "$DIFFICULT_FUNCTIONS" 2>/dev/null || true
+  git add -- tools/difficult_functions 2>/dev/null || true
   git commit -m "matched $func $attempts"
   echo "Auto-committed matched $func $attempts" | tee -a "$LOG_FILE"
   return 0
