@@ -3456,6 +3456,56 @@ switch (arg0->spawnArg1) {
   dense set of cases. Again, body order in the asm = source order.
 - Unreferenced table slots map to the `break`/default label.
 
+### A sparse two-case `switch` is written as `if` / `else if`
+
+`switch` and an `if` / `else if` chain are *not* interchangeable in GCC 2.8.1
+when the case values are sparse (here 3 and 9). A `switch` emits the whole
+dispatch up front — every comparison, then a jump to the default — before any
+case body:
+
+```
+beq   s0,v0,case3     # all tests first
+li    v0,9
+beq   s0,v0,case9
+li    v0,1
+j     end
+```
+
+An `if` / `else if` chain interleaves each test with the body it guards, and
+lets the *first* body jump forward over the *second* test:
+
+```
+bne   s0,v0,test9     # target
+ li   v0,9            # ...constant for the next test, in the delay slot
+<case 3 body>         # ends in `j end`
+test9:
+bne   s0,v0,end
+```
+
+So: dispatch that is one contiguous block at the top of the function is a
+`switch`; comparisons separated by their bodies are an `if` chain. The chain
+form also lets the delay slot of the first `bne` preload the *next* case's
+constant, which a later `jal` can then reuse (`move a0,v0` instead of
+`li a0,9`) — that reused constant is a reliable tell on its own.
+(`func_acropolis_fountain_8017D604`)
+
+### A `u16` local re-truncates; use `s32` when the source is `lhu`
+
+Holding a `u16` field in a `u16` local costs an extra `andi reg,reg,0xffff`
+after the `lhu`, because the local's declared type forces a truncation GCC does
+not know is redundant. It also splits the value across two registers (one for
+the raw load, one for the masked copy), which shows up as `regs` penalties and
+a larger frame.
+
+```c
+u16 msgId = in->msgId;   /* lhu s3,0(s1) ; andi s0,s3,0xffff */
+s32 msgId = in->msgId;   /* lhu s0,0(s1) */
+```
+
+`lhu` already zero-extends, so `s32` (or `int`) is the type that matches when
+the value is only compared and stored back to a narrower field.
+(`func_acropolis_fountain_8017D604`)
+
 ## Force prologue moves before the first load (delay-slot fill)
 
 When the target opens with several independent `move`s *then* an `lbu`/`lw`
