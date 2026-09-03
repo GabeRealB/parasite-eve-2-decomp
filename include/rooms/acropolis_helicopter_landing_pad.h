@@ -30,4 +30,13 @@ typedef struct AhlpEnemyWork {
 } AhlpEnemyWork;
 STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 
+/// Payload of room msg `0x7D3`, handled by
+/// `func_acropolis_helicopter_landing_pad_8017D824`. `phase` selects which
+/// of the two `RoomPlacement`s the model is moved to (0 / 2 first, 1 second).
+typedef struct AhlpMsg7D3 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 phase;
+} AhlpMsg7D3;
+STATIC_ASSERT_SIZEOF(AhlpMsg7D3, 0x8);
+
 #endif

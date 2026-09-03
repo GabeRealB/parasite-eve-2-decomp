@@ -22,6 +22,10 @@ extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
 
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
+s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPlacement* placement, s32 arg3);
+
+extern RoomPlacement D_acropolis_helicopter_landing_pad_80182394;
+extern RoomPlacement D_acropolis_helicopter_landing_pad_801823AC;
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
 /// into `Task::idMap`, marks the model (`field_E = 8`, clears bit 0x80 of
@@ -63,12 +67,42 @@ void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D824);
+/// Msg 0x7D3 handler: repositions the model by `msg->phase`. Phases 0 and 1
+/// take the first / second placement, arm the 0x78 countdown and reset the
+/// work block's first three words with the step set to -0x19 / +0x19; phase 2
+/// returns to the first placement and clears the countdown.
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AhlpMsg7D3* msg)
+{
+    AhlpEnemyWork* work = (AhlpEnemyWork*)task->idMap;
 
-/// Places the task's model at `placement`: copies the position onto the
-/// coordinate's translation, the Euler angles onto its rotation, rebuilds
-/// the rotation matrix and marks the coordinate dirty.
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 arg1, RoomPlacement* placement)
+    switch (msg->phase) {
+        case 0:
+            func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
+            work->field_50 = 0x78;
+            work->field_0  = 0;
+            work->field_4  = -0x19;
+            work->field_8  = 0;
+            break;
+        case 1:
+            func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_801823AC, 0);
+            work->field_50 = 0x78;
+            work->field_0  = 0;
+            work->field_4  = 0x19;
+            work->field_8  = 0;
+            break;
+        case 2:
+            func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
+            work->field_50 = 0;
+            break;
+    }
+    return 0;
+}
+
+/// Msg 0x7D4 handler, also called directly by the 0x7D3 handler. Places the
+/// task's model at `placement`: copies the position onto the coordinate's
+/// translation, the Euler angles onto its rotation, rebuilds the rotation
+/// matrix and marks the coordinate dirty.
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPlacement* placement, s32 arg3)
 {
     RoomCoord* coord;
 
