@@ -6,10 +6,13 @@
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
@@ -348,7 +351,47 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180368);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_801804CC);
+/// Second `TaskDesc` of `D_acropolis_security_room_80182700`: kicks off the
+/// streamed cutscene for the security room, waits for the CD queue to go idle
+/// (or for the player to skip it), then asks the task system to kill itself.
+void func_acropolis_security_room_801804CC(Task* arg0)
+{
+    u8          slotParam[4];
+    CdCmdQueue* queue;
+    Task*       task;
+
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+    }
+    return;
+
+L_case0:
+    queue->field_1EA = 1;
+    slotParam[0]     = Stream_FindSlot(&Game_Session->field_4, 0, 0);
+    CdCmd_Enqueue(0x61, 0, slotParam);
+    goto advance;
+
+L_case1:
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case2:
+    Task_RequestKill(task, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_801805A4);
 
