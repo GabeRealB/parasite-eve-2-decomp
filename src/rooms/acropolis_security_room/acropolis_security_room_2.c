@@ -277,7 +277,31 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FD64);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FE24);
+/// `GpMsgEntry` handler for message 0x13F1, the "can this key item be used
+/// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
+/// player highlighted; the three ids this room accepts each select a sub-step
+/// of the cap script, recorded in the state block's `field_0` for
+/// `func_acropolis_security_room_8017FA18` to pick up. Any other item stores 0
+/// and answers 0, which is the "cannot use that now" reply.
+s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 arg3)
+{
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+
+    if (item == 0x101) {
+        st->field_0 = 3;
+        return 1;
+    }
+    if (item == 0x103) {
+        st->field_0 = 2;
+        return 1;
+    }
+    if (item == 0x104) {
+        st->field_0 = 1;
+        return 1;
+    }
+    st->field_0 = 0;
+    return 0;
+}
 
 /// Fades the screen to white over 0x40 frames, then steps the caller on one
 /// state: `frames` doubles as the fade level here, rising by 4 a frame and
