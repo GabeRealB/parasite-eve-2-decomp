@@ -83,4 +83,21 @@ typedef struct AhlpLightScratch {
 } AhlpLightScratch;
 STATIC_ASSERT_SIZEOF(AhlpLightScratch, 0x14);
 
+/// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
+/// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
+/// endpoints, rotated by the coord's `workm` and offset by its translation;
+/// `otz` is `SZ3 >> 2` of the second `RTPS`, `flag` the GTE flag word (bit 31
+/// rejects the line), and `x0..y1` the two projected screen points.
+typedef struct AhlpSparkScratch {
+    /* 0x00 */ SVECTOR a;
+    /* 0x08 */ SVECTOR b;
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ s32     flag;
+    /* 0x18 */ u16     x0;
+    /* 0x1A */ u16     y0;
+    /* 0x1C */ u16     x1;
+    /* 0x1E */ u16     y1;
+} AhlpSparkScratch;
+STATIC_ASSERT_SIZEOF(AhlpSparkScratch, 0x20);
+
 #endif

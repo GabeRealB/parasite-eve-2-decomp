@@ -40807,3 +40807,100 @@ for (a = 0x200; a < 0x1000; a += 0x800) {   /* one temp d reused three times -> 
 Declaring `b`/`c` for loop 1 and a separate `d` for loop 2 went 97.19% → 100%.
 The `a += 0x200` increment is CSE'd with `c` (`move s4,s1`) on its own; do not
 write the increment through the temp.
+
+## Struct-field reads of the scratch block float over scalar-global stores; `*(u16*)&` reads do not
+
+The aliasing rule from "Struct-typing a body changes GCC 2.8.1's aliasing"
+(an in-struct MEM with a varying address never conflicts with a non-struct
+MEM) applies to the *loads* as much as the stores, and it decides where the
+scheduler may put a `+=` on a scratch-block field relative to a chain of
+`Gp_LcgState = Gp_LcgState * 5 + K;` stores.
+
+`func_acropolis_helicopter_landing_pad_80180A64` adds the coord translation to
+a rotated `SVECTOR` and then rolls three more LCG draws into a second vector.
+The target interleaves them:
+
+```asm
+lhu   v0,-0x20(t7)        ; a.vx
+lhu   v1,0x38(s0)         ; t[0]
+lw    a0,%lo(Gp_LcgState)(a3)
+...
+sw    v0,%lo(Gp_LcgState)(a3)
+sw    v1,%lo(Gp_LcgState)(a3)
+lhu   a1,2(t3)            ; a.vy, after two LCG stores
+...
+sw    a0,%lo(Gp_LcgState)(a3)
+lhu   v0,4(t3)            ; a.vz, after the third
+```
+
+Written the sibling way, `blk->a.vy = *(u16*)&blk->a.vy + *(u16*)&coord->workm.t[1];`
+the reads are non-struct MEMs, they conflict with the `sw` to the scalar
+global, and the only C order that reproduces the target is a contrived
+`L1; b.vx; L2; b.vy; a.vy; L3; ...` interleave — which then dead-stores the
+first `sw` (see "Interleave stores to keep redundant global writes alive").
+Cast the *value* instead of the address:
+
+```c
+blk->a.vx = (u16)blk->a.vx + (u16)coord->workm.t[0];
+blk->a.vy = (u16)blk->a.vy + (u16)coord->workm.t[1];
+blk->a.vz = (u16)blk->a.vz + (u16)coord->workm.t[2];
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+blk->b.vx   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+...
+```
+
+`(u16)field` on an `s16` member still emits `lhu` (combine folds the zero
+extension into the load) but keeps `MEM_IN_STRUCT_P`, so the loads carry no
+dependence on the global stores and the list scheduler interleaves the two
+statement groups on priority alone. The natural source order — the three
+`+=` then the three draws — went 94.5% → 99.9% on this change; the
+`*(u16*)&` form is still right for the *second* vector in the same function,
+whose reads the target does order against the stores. Decide per group from
+where the target's `lhu`s sit relative to the `sw`s.
+
+## Byte store from a `u16` copy while the shift uses the masked original
+
+Target:
+
+```asm
+andi  a1,v0,0xff
+move  a2,a1
+...
+srl   v0,a1,0x1          ; r0 = masked >> 1
+sb    v0,4(a0)
+sb    a2,5(a0)           ; g0 = the copy
+```
+
+`u32 tmp = (x >> 16) & 0xFF; u8 lvl = tmp;` gets the copy but the wrong way
+round: CSE rewrites the `(set (mem:QI) (reg:QI lvl))` source to
+`(subreg:QI (reg tmp))` because a plain REG source is looked up against its
+equivalence class, and combine then folds `zero_extend(lvl)` in `lvl >> 1` to
+a paradoxical subreg of the copy. `srl` reads `a2`, `sb` reads `a1`. Using
+`tmp >> 1` with a `u8` copy loses the copy altogether.
+
+Declare the copy `u16` (or `s16`) and shift the original:
+
+```c
+u32 tmp;
+u16 lvl;
+tmp = ((u32)Gp_LcgState >> 16) & 0xFF;
+lvl = tmp;
+...
+setRGB0(prim, tmp >> 1, lvl, 0xFF);
+```
+
+The byte store of a `u16` is `(subreg:QI (reg:HI lvl))`; that source is not a
+bare REG, so `cse_insn` does not swap it for `tmp`'s subreg, and `canon_reg`
+leaves `lvl` alone because it is the first register of its own class. 99.88%
+→ 100% in `func_acropolis_helicopter_landing_pad_80180A64`.
+
+## `GsWSMATRIX` (0x80071138) and `Gfx_ViewWorldMtx` (0x80070F34) are different matrices
+
+Both are loaded with `gte_SetTransMatrix` / `gte_SetRotMatrix` before an
+`rtps`, and both appear in the same room TU: `func_acropolis_helicopter_landing_pad_8017F010`
+projects through `Gfx_ViewWorldMtx`, its sibling
+`func_acropolis_helicopter_landing_pad_80180A64` through `GsWSMATRIX`. The
+scratch diff shows the symbol name in the `lui`/`addiu` relocation, and that
+line is the *only* leftover once codegen matches. Read the name off the target
+asm rather than copying the neighbour's; `GsWSMATRIX` needs
+`#include <psyq/libgs.h>`.
