@@ -39728,3 +39728,51 @@ eighth ref - so a copy formed by an asm operand (`SOFT_TOUCH_REG(i)` after
 `i = 0`, which cse rewrites to read `count`) cannot reach 100% here, while the
 `reload_cse` copy can. `func_mist_parking_8017F764`; six other rooms carry the
 same body.
+
+## An arithmetic insn that reads the call-argument register (`addu t0,t0,a1`) wants the statement written *after* the call
+
+A results loop computed `subtotal = kills * points`, printed it with
+`func_8002E53C(&req, Text_ItoaSigned(buf, subtotal))`, and accumulated
+`total += subtotal`. Everything matched except one operand: the target's add
+read the argument register, ours read the callee-saved home of `subtotal`:
+
+```
+move  a1,s0             # the Text_ItoaSigned argument copy, hoisted by sched2
+...
+addu  t0,t0,a1          # target: total += <the copy>
+addu  t0,t0,s0          # ours:   total += subtotal
+```
+
+The same thing had already happened for free one row earlier (`move a1,s7;
+mult a1,s0` — the multiply reads the `kills` argument copy), so the mechanism
+is real and worth knowing: **local-alloc forwards a `(set a1 pseudo)` copy into
+every later use of the pseudo, provided the pseudo dies before `a1` is
+overwritten**. `.lreg` is where the pseudo turns into `(reg:SI 5 a1)` in the
+`mult`/`plus`; `.sched` still shows the pseudo. So the add reads `$a1` only if
+sched1 has already placed the argument copy *before* the add.
+
+sched1 orders equal-priority insns by insn uid (source order), and the copy is
+emitted as part of the call sequence, after every statement that precedes the
+call in the C. Written before the call, the add keeps a smaller uid and stays
+in front of the copy, however you shuffle it among the struct-field stores —
+a 1620-variant sweep over the positions of `subtotal = …`, `rows += 1`,
+`total += subtotal` and `y += 0xB` produced exactly nine distinct object files
+and none of the pre-call placements changed that operand. Written *after* the
+call, the add's uid is the largest in the block, sched1 hoists it back above
+both `jal`s (its pseudos cross calls, so nothing pins it below them), the
+tie-break now puts it after the copy, and local-alloc substitutes `$a1`:
+
+```c
+func_8002E53C(&req4, Text_ItoaSigned(buf, subtotal));
+total += subtotal;
+y     += 0xB;
+```
+
+Two side conditions from the same sweep: `y += 0xB` has to move with it (kept
+between the field stores it costs `regs`/`reorder`), and the multiply must not
+sink — with the add gone from the pre-call region the `mult` drifts below the
+next `jal` unless another consumer anchors it there, so keep
+`subtotal = kills * points` immediately before the `req4` block (or anywhere
+earlier; all four positions tied). Look for this whenever the *only* leftover
+diff is an `$aN` where you have an `$sN` in an add/mult that follows a call
+whose argument was that same value. `func_mist_shooting_gallery_8017E234`.

@@ -101,6 +101,17 @@ typedef struct MistShootingGalleryCourse {
 } MistShootingGalleryCourse;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryCourse, 0x8);
 
+/// One row of the gallery's RESULT panel: the points one kill of that target
+/// is worth and the name printed beside it ("Red Target", "Crow", ...).
+/// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
+/// `D_mist_shooting_gallery_80184F98` in step with the per-target kill counts
+/// in `MistShootingGalleryWork::pad_0F`.
+typedef struct MistShootingGalleryTarget {
+    /* 0x0 */ s32 points;
+    /* 0x4 */ u8* name;
+} MistShootingGalleryTarget;
+STATIC_ASSERT_SIZEOF(MistShootingGalleryTarget, 0x8);
+
 /// The ten course lists the SELECT menu can offer, indexed by
 /// `Mc_SaveData::field_F` (the difficulty the save runs at) plus 5 outside a
 /// debug attach. `func_mist_shooting_gallery_8018055C` stack-copies the whole
