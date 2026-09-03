@@ -18,7 +18,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 void func_shelter_b1_underground_parking_80184594(Task* task)
 {
-    SbupActionPrompt* prompt = &D_80114D28;
+    RoomActionPrompt* prompt = &D_80114D28;
     SbupExamineWork*  work   = (SbupExamineWork*)task->idMap;
 
     func_shelter_b1_underground_parking_80183B9C();

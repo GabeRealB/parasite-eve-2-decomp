@@ -2,10 +2,12 @@
 
 #include <psyq/stdio.h>
 
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/acropolis_security_room.h"
 
 extern Task* D_acropolis_security_room_801855A8;
 extern Task* D_acropolis_security_room_801855AC;
@@ -123,7 +125,21 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EA28);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EA5C);
+/// Confirms the camera the player picked on the security monitor: clears the
+/// action prompt, redraws the panel for the selected camera plus its cursor
+/// overlay, spawns the prompt at the panel's coordinates and advances the task.
+void func_acropolis_security_room_8017EA5C(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    AsrMonitorWork*   work   = (AsrMonitorWork*)task->idMap;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E37C(task);
+    func_800D4E78(prompt->screenX, prompt->screenY, work->promptKind);
+    task->state = 4;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EADC);
 
