@@ -100,4 +100,20 @@ typedef struct AhlpSparkScratch {
 } AhlpSparkScratch;
 STATIC_ASSERT_SIZEOF(AhlpSparkScratch, 0x20);
 
+/// 0x1C scratch block `func_acropolis_helicopter_landing_pad_80181064` takes
+/// from `G_SCRATCH_HEAD` for one lens-flare sprite. `pos` is the coord's
+/// world translation, `otz` is `SZ3 >> 2` of the `RTPS`, `flag` the GTE flag
+/// word (bit 31 rejects the sprite), `sx` / `sy` the projected centre and
+/// `dx` / `dy` the rotated half-extents of the quad's two diagonals.
+typedef struct AhlpFlareScratch {
+    /* 0x00 */ SVECTOR pos;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
+} AhlpFlareScratch;
+STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
+
 #endif

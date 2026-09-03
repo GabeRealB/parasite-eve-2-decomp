@@ -40904,3 +40904,40 @@ scratch diff shows the symbol name in the `lui`/`addiu` relocation, and that
 line is the *only* leftover once codegen matches. Read the name off the target
 asm rather than copying the neighbour's; `GsWSMATRIX` needs
 `#include <psyq/libgs.h>`.
+
+## `s16 field++` then compare the field: `lhu`/`addiu`/`sh` with the reload CSE'd to `sll`/`sra`
+
+A frame counter that is bumped and then tested against a limit in the same
+block:
+
+```asm
+lhu   v1,0x22(s2)
+lh    a0,0x2a(s2)
+addiu v1,v1,1
+sh    v1,0x22(s2)
+sll   v1,v1,0x10        ; the *reload* of field_22, folded by CSE
+sra   v1,v1,0x10
+sll   v0,a0,0x1         ; field_2A * 6 - 1
+addu  v0,v0,a0
+sll   v0,v0,0x1
+addiu v0,v0,-0x1
+slt   v0,v0,v1
+```
+
+The `lhu` is not a sign of a `u16` field: a plain `s16` `mem->field_22++` is
+HImode arithmetic, and the MIPS `movhi` load is `lhu`. The `sll`/`sra` pair is
+a second read of the same field, `mem->field_22` in the compare, which
+`cse_insn` finds in the just-stored `(mem:HI)` and rewrites to a sign-extend of
+the incremented register. Spelling it with a local (`next = (u16)f + 1; f = next;
+if (limit < next)`) gives the same instructions but places the `sh`/`sll`/`sra`
+after the `* 6 - 1` arithmetic. Which side of that arithmetic the store and
+extend land on follows the compare's operand order, because the extend is
+emitted where the reread is evaluated:
+
+```c
+mem->field_22++;
+if (mem->field_22 > mem->field_2A * 6 - 1) {   /* store + extend first */
+```
+
+`a > b` still becomes `slt v0, b, a`, so the operand swap costs nothing.
+Last leftover in `func_acropolis_helicopter_landing_pad_80181064`.

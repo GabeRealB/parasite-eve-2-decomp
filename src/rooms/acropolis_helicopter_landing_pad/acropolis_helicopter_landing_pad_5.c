@@ -602,7 +602,142 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80181064);
+/// Effect task for one helipad lens flare. State 0 seeds the `GpEffWork`
+/// from the LCG: a 0x200..0x3FF radius (`field_24`), a 12-bit angle
+/// (`field_26`), a 1..4 lifetime scale (`field_2A`, the flare lives
+/// `field_2A * 6` frames counted in `field_22`) and a per-frame drift
+/// (`field_10` / `field_12` / `field_14`). Each frame the coord's translation
+/// is projected through `GsWSMATRIX` into a semi-transparent `POLY_FT4`
+/// (tpage 0x2B, clut 0x4384, one of `field_2A` 40x40 cells on row 0x48)
+/// whose four corners are the projected centre plus / minus
+/// `field_24 * 39 / otz` rotated by `field_26` and `field_26 + 0x400`. The
+/// last eight frames fade to grey; before that a spawned flare
+/// (`spawnArg1`) flickers a random green / blue-white tint on 1-in-4 LCG rolls
+/// and fires a 0x600E0 effect on 1-in-16, and every flare fires 0x6005A on
+/// 1-in-16. While `Gp_State1C::field_4` is 0 the coord drifts and the frame
+/// counter advances until it expires, which releases the state-1C memory;
+/// `field_4 >= 4` releases it at once and 2..3 idles.
+void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
+{
+    GpEffWork*        mem;
+    GsCOORDINATE2*    coord;
+    void**            scratch;
+    u8*               head;
+    AhlpFlareScratch* blk;
+    POLY_FT4*         prim;
+    s32               span;
+    s32               n;
+    s32               lvl;
+    u8                tmp;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (Gp_State1C->field_4 >= 2) {
+        if (Gp_State1C->field_4 >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    {
+        Gp_UpdateCoord(coord);
+        if (arg0->state == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_24 = (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_2A = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 = -(((u32)Gp_LcgState >> 16) & 0x1F) - 0x40;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            arg0->state++;
+        }
+        scratch     = (void**)G_SCRATCH_HEAD;
+        head        = *scratch;
+        *scratch    = head - 0x1C;
+        blk         = (AhlpFlareScratch*)(head - 0x1C);
+        blk->pos.vx = coord->workm.t[0];
+        blk->pos.vy = coord->workm.t[1];
+        blk->pos.vz = coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->pos);
+        gte_rtps_real();
+        gte_stsxy(&((AhlpFlareScratch*)(head - 0x1C))->sx);
+        gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
+        if (blk->flag >= 0) {
+            gte_stszotz(&((AhlpFlareScratch*)(head - 0x1C))->otz);
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyFT4(prim);
+            span = mem->field_2A * 6;
+            n    = mem->field_22;
+            if (span - 8 < n) {
+                lvl = (span - n + 1) * 16;
+                setRGB0(prim, lvl, lvl, lvl);
+            } else {
+                if (arg0->spawnArg1 != 0) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                        tmp         = (u32)Gp_LcgState >> 16;
+                        setRGB0(prim, tmp >> 1, tmp, 0xFF);
+                    } else {
+                        prim->code |= 1;
+                    }
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->field_4 == 0) {
+                        Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
+                    }
+                } else {
+                    prim->code = 0x2D;
+                }
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->field_4 == 0) {
+                    Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1, NULL);
+                }
+            }
+            prim->tpage = 0x2B;
+            prim->code |= 2;
+            prim->clut  = 0x4384;
+            prim->u0    = (mem->field_22 / mem->field_2A) * 0x28;
+            prim->v0    = 0x48;
+            prim->u1    = (mem->field_22 / mem->field_2A) * 0x28 + 0x27;
+            prim->v1    = 0x48;
+            prim->u2    = (mem->field_22 / mem->field_2A) * 0x28;
+            prim->v2    = 0x6F;
+            prim->u3    = (mem->field_22 / mem->field_2A) * 0x28 + 0x27;
+            prim->v3    = 0x6F;
+            blk->dx     = ((mem->field_24 * 0x27 / blk->otz) * rsin(mem->field_26)) >> 12;
+            blk->dy     = ((mem->field_24 * 0x27 / blk->otz) * rcos(mem->field_26)) >> 12;
+            prim->x0    = blk->sx + (u16)blk->dx;
+            prim->x3    = blk->sx - (u16)blk->dx;
+            prim->y0    = blk->sy - (u16)blk->dy;
+            prim->y3    = blk->sy + (u16)blk->dy;
+            blk->dx     = ((mem->field_24 * 0x27 / blk->otz) * rsin(mem->field_26 + 0x400)) >> 12;
+            blk->dy     = ((mem->field_24 * 0x27 / blk->otz) * rcos(mem->field_26 + 0x400)) >> 12;
+            prim->x1    = blk->sx + (u16)blk->dx;
+            prim->x2    = blk->sx - (u16)blk->dx;
+            prim->y1    = blk->sy - (u16)blk->dy;
+            prim->y2    = blk->sy + (u16)blk->dy;
+            addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        if (Gp_State1C->field_4 == 0) {
+            coord->coord.t[0] += mem->field_10;
+            coord->coord.t[1] += mem->field_12;
+            coord->coord.t[2] += mem->field_14;
+            coord->flg         = 0;
+            mem->field_22++;
+            if (mem->field_22 > mem->field_2A * 6 - 1) {
+                Gp_ReleaseState1CMem(mem, arg0);
+            }
+        }
+    }
+}
 
 /// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C::field_8`
 /// while view 0x12 is active, folds the frame counter `D_80070F70 * 4` into a
