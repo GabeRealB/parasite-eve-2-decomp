@@ -40704,3 +40704,41 @@ state: writing state 1's `D += step` sum through `d1` and re-reading
 `case 0` colouring even though the two live ranges never overlap. When a
 `regs`-only leftover survives every local edit inside the mismatching block,
 look at the other cases for a local the original evidently recycled.
+
+### A bare `extern u8` inside `Mc_SaveData` lets its load hoist over a struct store; name the member
+
+`func_acropolis_helicopter_landing_pad_8017DA9C` state 7 decrements a
+countdown and then tests the visit counter:
+
+```asm
+lw    v0,0x34(s2)
+addiu v0,v0,-1
+sw    v0,0x34(s2)          /* store first ... */
+lui   v0,%hi(D_80072171)
+lbu   v0,%lo(D_80072171)(v0)   /* ... then the load */
+```
+
+m2c (and most matched rooms) declare that byte as `extern u8 D_80072171`.
+Written that way -- `task->spawnArg1 -= 1; if (D_80072171 >= 2)` -- the
+score drops from 99.8% to 96.7% with `branch=6 insert=3 delete=5`: GCC
+issues the `lbu` first and sinks the `sw` into the `bnez` delay slot. It is
+the load-side twin of "Struct-typing a body changes GCC 2.8.1's aliasing":
+`task->spawnArg1` is an in-struct `MEM` with a varying address, the bare
+extern is a fixed-address scalar, so `true_dependence` says they cannot
+alias and the scheduler is free to reorder them.
+
+`D_80072171` is `Mc_SaveData + 9`, and `Mc_SaveData.field_9` is itself a
+`COMPONENT_REF`, so writing the member restores the dependence and the
+target order with no barrier:
+
+```c
+task->spawnArg1 -= 1;
+if (Mc_SaveData.field_9 >= 2) { ... }
+```
+
+The same holds for `D_8007216C` (`(GpAreaKey*)&Mc_SaveData.field_4`, the
+cast `src/gameplay/D4.c` already uses). Bytes are identical either way for
+the `lui`/`lbu` pair -- `%lo(Mc_SaveData+9)` assembles to `0x2171` -- so the
+scratch diff shows only symbol spelling once the order is right. When a
+`D_8007216x`/`D_800721xx` import sits in a room's callee list, check whether
+it is a `Mc_SaveData` offset before reaching for `SOFT_BARRIER()`.

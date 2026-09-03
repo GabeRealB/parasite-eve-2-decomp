@@ -13,6 +13,8 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "main/gfx.h"
+#include "main/fs.h"
+#include "gameplay/3A34.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
 extern s16 D_80071076;
@@ -52,6 +54,21 @@ extern s32 D_acropolis_helicopter_landing_pad_80187D78;
 
 extern RoomPlacement D_acropolis_helicopter_landing_pad_80182394;
 extern RoomPlacement D_acropolis_helicopter_landing_pad_801823AC;
+
+/// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
+/// msg 0x3E8 record's `field_0` in `func_acropolis_helicopter_landing_pad_8017DA9C`.
+extern u8 D_80073BA9;
+/// Script / cutscene blocks and message payloads used by the room's
+/// state-machine task `func_acropolis_helicopter_landing_pad_8017DA9C`:
+/// `..._801837B0` is the slot-3 msg 0x3E9 argument, `..._8018467C` /
+/// `..._80184CF4` the `func_800E8634` script pair started at the end,
+/// `..._80184E28` the 0x7D3 payload sent to the spawned enemy task and
+/// `..._80184E3C` the 0x14-byte msg 0x3E8 record.
+extern s32        D_acropolis_helicopter_landing_pad_801837B0;
+extern s32        D_acropolis_helicopter_landing_pad_8018467C;
+extern s32        D_acropolis_helicopter_landing_pad_80184CF4;
+extern AhlpMsg7D3 D_acropolis_helicopter_landing_pad_80184E28;
+extern GpRec14    D_acropolis_helicopter_landing_pad_80184E3C;
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
 /// into `Task::idMap`, marks the model (`field_E = 8`, clears bit 0x80 of
@@ -207,7 +224,117 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", D_acropolis_helicopter_landing_pad_8017D5E4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017DA9C);
+/// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
+/// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData.field_9`), stamps
+/// the save location with 0x12 and sets the override vector. States 1-4 wait
+/// for `Game_Session->field_4D`, post 0x7D9 to slot 4 on a first visit, then
+/// call `func_800A99B4`. State 5 asks slot 4 to spawn the enemy task (0x7D8),
+/// positions it (0x7D3), pushes the slot-3 weapon record with `field_4 = 9`
+/// and hands the enemy's coordinate to slot 3 (0x3F5). State 6 queues CD
+/// command 0x21 on a first visit and arms a 0x78 frame countdown; state 7
+/// waits for the CD to go idle (or skips to 9 on a later visit); state 8
+/// registers the area object and spawns the area; state 9 starts the exit
+/// script pair and kills the task. Every frame, hitting countdown 0x5A queues
+/// sound event 0x51100003.
+void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
+{
+    u8      param1[8];
+    u8      param2[8];
+    SVECTOR vec;
+    Task*   spawned;
+    void*   coord;
+
+    switch (task->state) {
+        case 0:
+            task->spawnArg1 = 0;
+            Gp_MsgPlayerWeapon(0);
+            task->state += 1;
+            if (Mc_SaveData.field_9 >= 2) {
+                Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
+            }
+            Mc_SaveData.field_4 = 0x12;
+            vec.vx              = 0x4B0;
+            vec.vy              = 0x4B0;
+            vec.vz              = 0x610;
+            Gp_SetOverrideVec(&vec);
+            break;
+        case 1:
+            if (Game_Session->field_4D != 0) {
+                task->state += 1;
+            }
+            break;
+        case 2:
+            if (Mc_SaveData.field_9 < 2) {
+                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D9, 0, 0);
+            }
+            task->state += 1;
+            break;
+        case 3:
+            task->state += 1;
+            break;
+        case 4:
+            func_800A99B4();
+            task->state += 1;
+            break;
+        case 5:
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D8, 0x28, (s32)&spawned);
+            Gp_DispatchMsg(spawned, 0x7D3, (s32)&D_acropolis_helicopter_landing_pad_80184E28, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
+            D_acropolis_helicopter_landing_pad_80184E3C.field_4 = 9;
+            D_acropolis_helicopter_landing_pad_80184E3C.field_0 = D_80073BA9 + 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            coord = ((TmdObject*)spawned->extra)->field_8;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F5, (s32)coord, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            task->state += 1;
+            break;
+        case 6:
+            if (Mc_SaveData.field_9 < 2) {
+                param1[2] = 0x33;
+                param2[0] = 0xA;
+                param2[2] = 3;
+                param1[3] = 0;
+                param1[0] = 0;
+                param2[1] = 0;
+                param2[3] = 5;
+                CdCmd_Enqueue(0x21, param1, param2);
+                func_800ABFF8();
+                func_800AC000();
+            }
+            task->spawnArg1 = 0x78;
+            task->state    += 1;
+            break;
+        case 7:
+            task->spawnArg1 -= 1;
+            if (Mc_SaveData.field_9 >= 2) {
+                task->state = 9;
+            } else if (CdCmd_IsIdle()) {
+                func_800A99B4();
+                task->state += 1;
+            }
+            break;
+        case 8:
+            task->spawnArg1 -= 1;
+            Gp_SetAreaObjId((GpAreaKey*)&Mc_SaveData.field_4, 2, 1);
+            Gp_SyncAreaKeyIndex((GpAreaKey*)&Mc_SaveData.field_4);
+            Gp_SpawnArea((GpAreaKey*)&Mc_SaveData.field_4);
+            D_acropolis_helicopter_landing_pad_80184D9C = 4;
+            task->state                                += 1;
+            break;
+        case 9:
+            task->spawnArg1 -= 1;
+            if (task->spawnArg1 <= 0) {
+                func_800E8634((s32)&D_acropolis_helicopter_landing_pad_8018467C, 1,
+                              (s32)&D_acropolis_helicopter_landing_pad_80184CF4);
+                Task_Kill(task);
+            }
+            break;
+    }
+    if (task->spawnArg1 == 0x5A) {
+        SndEvt_EnqueueType6(0x51100003, 0, 0);
+    }
+}
 
 /// Frame-counted timeline task: three phases, each spawning the enemy task
 /// (`func_..._8017E618`) and, a few frames later, a script-18 pair; kills
