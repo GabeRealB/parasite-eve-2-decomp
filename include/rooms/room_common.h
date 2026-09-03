@@ -182,6 +182,30 @@ typedef struct RoomPeUsage {
 } RoomPeUsage;
 STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 
+/// 0xAC work block the mirror-reflection task keeps at `Task::idMap`. Rooms
+/// with a reflective surface (the Acropolis elevator halls and square, motel
+/// room 6, the Neo Ark observatory) spawn a task that re-attaches the player's
+/// own TMD source and draws it through `coord`, which is `Gfx_ViewCoord` with
+/// one GTE rotation column negated.
+///
+/// `viewFlg` caches `Gfx_ViewCoord.flg & 0x7FFFFFFF` so the mirror only rebuilds
+/// its matrices when the view moves, and `field_4` marks the block as live;
+/// both are set to their "dirty" values (`-1` / `0`) as the task starts so the
+/// first frame always rebuilds. `light` and `color` are the matrices hung off
+/// the clone's `TmdObject`, `field_A0` is the screen-space clip rectangle
+/// (-160, 160, -120, 120) and `configRev` caches `Wip_SysConfig.field_21`.
+typedef struct RoomMirrorWork {
+    /* 0x00 */ s32           viewFlg;
+    /* 0x04 */ s32           field_4;
+    /* 0x08 */ byte          pad_8[8];
+    /* 0x10 */ GsCOORDINATE2 coord;
+    /* 0x60 */ MATRIX        light;
+    /* 0x80 */ MATRIX        color;
+    /* 0xA0 */ s16           field_A0[4];
+    /* 0xA8 */ s32           configRev;
+} RoomMirrorWork;
+STATIC_ASSERT_SIZEOF(RoomMirrorWork, 0xAC);
+
 /// 8-byte message record a room's message handlers receive alongside the
 /// request. Handlers registered in a room's `(msgId, handler)` dispatch table
 /// are passed the incoming record and an outgoing copy of it, and answer by

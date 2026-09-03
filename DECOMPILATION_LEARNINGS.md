@@ -41306,3 +41306,41 @@ base is an unknown pointer it cannot disambiguate from a static. So a load that
 appears before every store in a block is a statement that appears before them
 in the C, however far its result is used — the `insert`/`delete` mix around
 constant stores is the tell, not a UV ordering problem.
+
+## Order independent stores to one struct so the loaded operand comes first
+
+`func_acropolis_east_elevator_hall_8017D5F0` writes three unrelated fields of
+its work block in a row. m2c emitted them in the order the target's `sw`s
+appear:
+
+```c
+work->field_4   = 1;                                /* 94.4%: regs=31 */
+work->configRev = -1;
+work->viewFlg   = Gfx_ViewCoord.flg & 0x7FFFFFFF;
+```
+
+Moving the masked store to the front - and changing nothing else - was the whole
+match:
+
+```c
+work->viewFlg   = Gfx_ViewCoord.flg & 0x7FFFFFFF;   /* 100% */
+work->field_4   = 1;
+work->configRev = -1;
+```
+
+GCC reorders stores to distinct constant offsets of one base freely, so source
+order does not have to be object-dump order. What it does fix is when the `lw`
+of the global and the `lui`/`ori` of the mask enter `sched1`'s ready list. With
+the masked store written first both are hoisted to the top of the block, the
+loaded value stays live across the two immediate stores, and the short-lived
+constants land in the `$a0`/`$a1` the target uses instead of `$v1`/`$a0`.
+
+The knock-on reached global allocation too: with the wrong order the trailing
+`for (i = 0; i < 2; i++)` counter came out `9 refs / 26 insns` and beat the
+`TmdObject*` local (`7 / 17`) in `global_alloc`'s
+`floor_log2(n_refs) * n_refs / live_length` order, so the two swapped
+`$s1`/`$s2` (`regs=31`). Hoisting `i = 0;` ten insns above the loop stretched it
+to `9 / 37` and fixed that on its own - but it was a detour: with the stores in
+the right order the plain `for` allocates correctly. When a leftover looks like
+a live-range problem in a block that also has independent stores, try the store
+order before reshaping the ranges.
