@@ -40672,3 +40672,35 @@ struct. And the scratch scorer reports the spelling difference
 (99.9%, three "differences" that are all relocation names), while the linked
 build is a byte-for-byte match — verify with `build-and-verify.sh` instead
 of chasing that last tenth in the scratch.
+
+### A block-local `slt` temp cannot be re-ranked; assign the compare to the local whose register it must take
+
+`func_acropolis_helicopter_landing_pad_8017E0F8` compares two abs distances
+and the target wants `slt $v1, $v1, $v0` / `beqz $v1` — the result lands in
+the register of the first operand (`d1`). Plain `if (d1 < d2)` gives
+`slt $v0, $v1, $v0` at 99.9% with `regs=2` and nothing else, and no
+rewrite of the operands, declaration order or compare direction moves it.
+The reason is in `.lreg`: the compare result is `Register 107 used 2 times
+across 2 insns in block 10`, a *local* pseudo, so local-alloc colours it
+before global-alloc runs and simply takes the first free register (`$v0`).
+It has no rank to change. The only way for it to end up in `d1`'s register
+is for it to *be* `d1`'s pseudo:
+
+```c
+d1 = d1 < d2;
+if (d1) {
+    D_..._80187F74 = wrapped;
+}
+```
+
+Assigning the flag to `d2` instead (`d2 = d1 < d2`) stays at 99.9%: the
+target's `slt` destination names which local the original overwrote.
+
+The same function needed two more rank levers before that, both found by the
+permuter and both about *reusing* a state-0 local in the other `switch`
+state: writing state 1's `D += step` sum through `d1` and re-reading
+`spawnArg1` into `target` for the kill compare. A pseudo's `n_refs` and
+`live_length` are whole-function sums, so a `case 1` reuse re-ranks the
+`case 0` colouring even though the two live ranges never overlap. When a
+`regs`-only leftover survives every local edit inside the mismatching block,
+look at the other cases for a local the original evidently recycled.

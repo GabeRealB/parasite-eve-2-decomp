@@ -22,6 +22,9 @@ extern s32 D_acropolis_helicopter_landing_pad_801844B4;
 extern s32 D_acropolis_helicopter_landing_pad_80184E0C;
 extern s32 D_acropolis_helicopter_landing_pad_80187F84;
 extern s16 D_acropolis_helicopter_landing_pad_80187F7C;
+/// Turn-to-heading task state: current unwrapped yaw and signed step.
+extern s32 D_acropolis_helicopter_landing_pad_80187F74;
+extern s32 D_acropolis_helicopter_landing_pad_80187F78;
 
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// phase advance, `D_80114C12` is the cutscene/among-us mode flag.
@@ -273,7 +276,74 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E0F8);
+/// Turn-to-heading task: rotates the player actor's yaw
+/// (`GameActor.field_52`, masked to 12 bits) to `spawnArg1` in `0x100` steps
+/// along the shorter direction. State 0 picks the unwrapped start angle
+/// (`yaw`, or `yaw +/- 0x1000` when that is closer to the target) and the
+/// step sign; state 1 steps, clamps onto the target and kills the task.
+///
+/// `tmp` carries three unrelated values (the first abs distance, the
+/// "wrapped is closer" flag and state 1's new yaw), and `target` is re-read
+/// in state 1: both are what puts the `slt` result and the state-1 sum in
+/// the same registers as the original.
+void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
+{
+    GameActor* actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    s32        wrapped;
+    s32        tmp;
+    s32        dist;
+    s32        target;
+    s32        cur;
+
+    switch (arg0->state) {
+        case 0:
+            D_acropolis_helicopter_landing_pad_80187F74 = actor->field_52 & 0xFFF;
+            if (arg0->spawnArg1 < D_acropolis_helicopter_landing_pad_80187F74) {
+                wrapped = D_acropolis_helicopter_landing_pad_80187F74 - 0x1000;
+            } else {
+                wrapped = D_acropolis_helicopter_landing_pad_80187F74 + 0x1000;
+            }
+            target = arg0->spawnArg1;
+            cur    = D_acropolis_helicopter_landing_pad_80187F74;
+            tmp    = wrapped - target;
+            if (tmp < 0) {
+                tmp = -tmp;
+            }
+            dist = cur - target;
+            if (dist < 0) {
+                dist = -dist;
+            }
+            tmp = tmp < dist;
+            if (tmp) {
+                D_acropolis_helicopter_landing_pad_80187F74 = wrapped;
+            }
+            if (arg0->spawnArg1 > D_acropolis_helicopter_landing_pad_80187F74) {
+                D_acropolis_helicopter_landing_pad_80187F78 = 0x100;
+            } else {
+                D_acropolis_helicopter_landing_pad_80187F78 = -0x100;
+            }
+            arg0->state++;
+            break;
+        case 1:
+            tmp                                         = D_acropolis_helicopter_landing_pad_80187F74 + D_acropolis_helicopter_landing_pad_80187F78;
+            D_acropolis_helicopter_landing_pad_80187F74 = tmp;
+            if (D_acropolis_helicopter_landing_pad_80187F78 > 0) {
+                target = arg0->spawnArg1;
+                if (target < tmp) {
+                    D_acropolis_helicopter_landing_pad_80187F74 = target;
+                    Task_Kill(arg0);
+                }
+            }
+            if (D_acropolis_helicopter_landing_pad_80187F78 < 0) {
+                if (D_acropolis_helicopter_landing_pad_80187F74 < arg0->spawnArg1) {
+                    D_acropolis_helicopter_landing_pad_80187F74 = arg0->spawnArg1;
+                    Task_Kill(arg0);
+                }
+            }
+            actor->field_52 = D_acropolis_helicopter_landing_pad_80187F74;
+            break;
+    }
+}
 
 /// Helipad rotor / lift task: swings the player model's coord part 4 about X
 /// by `-angle * 0x60 / 0x1000` and updates it. State 1 ramps
