@@ -13,6 +13,7 @@ extern Task* D_acropolis_security_room_801855A8;
 extern Task* D_acropolis_security_room_801855AC;
 
 extern GpMsgEntry D_acropolis_security_room_801825DC[];
+extern TaskDesc   D_acropolis_security_room_80182618;
 
 s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -26,7 +27,13 @@ s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 ar
     return ret;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D708);
+s32 func_acropolis_security_room_8017D708(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    if (arg2 == 2) {
+        Task_SpawnFromTable(&D_acropolis_security_room_80182618, 1, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D740);
 
