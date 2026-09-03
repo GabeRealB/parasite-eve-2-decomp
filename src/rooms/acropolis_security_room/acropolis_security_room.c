@@ -23,9 +23,14 @@ extern TaskDesc   D_acropolis_security_room_80182618;
 /// from this table).
 extern s16 D_acropolis_security_room_801826B4[];
 
+/// The security monitor's own hotspot table, hit-tested by
+/// `func_acropolis_security_room_8017ECB4`.
+extern AsrHotspot D_acropolis_security_room_80182648[];
+
 extern s8  D_8007216C;
 extern s16 D_80114D08;
 
+s32  func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
 void func_acropolis_security_room_8017E490(Task* task);
 void func_acropolis_security_room_8017EDE4(Task* task);
 
@@ -237,7 +242,43 @@ done:
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EB9C);
+/// Idle state of the security monitor: hit-tests the action cursor against the
+/// monitor's hotspot table and mirrors the result into the room's action
+/// prompt. A hit that the player confirms (`field_14 == 2`) on a raised hotspot
+/// clears the prompt and runs cap command 0xE; `field_1C == 2` leaves the
+/// monitor by advancing to state 5.
+void func_acropolis_security_room_8017EB9C(Task* task)
+{
+    RoomActionPrompt* prompt  = &D_80114D28;
+    AsrHotspot*       hotspot = D_acropolis_security_room_80182648;
+
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screenX, prompt->screenY) != 0) {
+        prompt->mode = 2;
+        if (prompt->field_14 == 2) {
+            for (; hotspot->id != -1; hotspot++) {
+                if (hotspot->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    Gp_RunCapCmd(0xE, 0);
+                    return;
+                }
+            }
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->field_1C == 2) {
+        task->state = 5;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017ECB4);
 
