@@ -32,6 +32,16 @@ extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
 
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPlacement* placement, s32 arg3);
+void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
+
+/// Three `Gp_SpawnScript18` argument pairs used by the state timeline in
+/// `func_acropolis_helicopter_landing_pad_8017DE78`, one pair per phase.
+extern s32 D_acropolis_helicopter_landing_pad_80187D40;
+extern s32 D_acropolis_helicopter_landing_pad_80187D48;
+extern s32 D_acropolis_helicopter_landing_pad_80187D50;
+extern s32 D_acropolis_helicopter_landing_pad_80187D60;
+extern s32 D_acropolis_helicopter_landing_pad_80187D68;
+extern s32 D_acropolis_helicopter_landing_pad_80187D78;
 
 extern RoomPlacement D_acropolis_helicopter_landing_pad_80182394;
 extern RoomPlacement D_acropolis_helicopter_landing_pad_801823AC;
@@ -163,7 +173,38 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_he
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017DA9C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017DE78);
+/// Frame-counted timeline task: three phases, each spawning the enemy task
+/// (`func_..._8017E618`) and, a few frames later, a script-18 pair; kills
+/// itself at frame 0x280.
+void func_acropolis_helicopter_landing_pad_8017DE78(Task* task)
+{
+    switch (task->state) {
+        case 0xC8:
+        case 0x0:
+            func_acropolis_helicopter_landing_pad_8017E618(0xF, 2);
+            break;
+        case 0x7:
+        case 0xCF:
+            Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D68, (s32)&D_acropolis_helicopter_landing_pad_80187D78);
+            break;
+        case 0x19A:
+            func_acropolis_helicopter_landing_pad_8017E618(0x16, 3);
+            break;
+        case 0x1A5:
+            Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D50, (s32)&D_acropolis_helicopter_landing_pad_80187D60);
+            break;
+        case 0x208:
+            func_acropolis_helicopter_landing_pad_8017E618(0x1E, 4);
+            break;
+        case 0x217:
+            Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D40, (s32)&D_acropolis_helicopter_landing_pad_80187D48);
+            break;
+        case 0x280:
+            Task_Kill(task);
+            break;
+    }
+    task->state += 1;
+}
 
 void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
 {
