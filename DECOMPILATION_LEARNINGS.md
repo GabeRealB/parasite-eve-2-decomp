@@ -39776,3 +39776,21 @@ next `jal` unless another consumer anchors it there, so keep
 earlier; all four positions tied). Look for this whenever the *only* leftover
 diff is an `$aN` where you have an `$sN` in an add/mult that follows a call
 whose argument was that same value. `func_mist_shooting_gallery_8017E234`.
+
+## A project header can be latently order-dependent on a psyq type
+
+`parse error before 'SVECTOR'` from a *new* `.c` that includes only headers
+existing files already include is an include-order bug in the project header,
+not in your file. `include/rooms/room_common.h` pulled `main/ui.h` (which
+includes `psyq/libgpu.h`, and `libgpu.h`'s `TMD_PRIM` uses `SVECTOR`) *before*
+`psyq/libgte.h`, which is where `SVECTOR` is typedef'd. Every existing consumer
+happened to include `libgte.h` first through some other header — a room `.c`
+gets it via `gameplay/268.h` — so the bug stayed invisible until a lean
+`src/rooms/lib/*.c` included `room_common.h` on its own.
+
+Symptom: the cascade of `parse error before '*'` / `before '}'` starts inside a
+*psyq* struct in the `.i`, not inside the project struct you just touched.
+Check the `.i` (`ninja build/USA/<path>.i`) for where the failing type is
+actually typedef'd relative to its first use. Fix the header (hoist the psyq
+include above the project includes) rather than papering over it with an extra
+`#include` in the new `.c` — the next lean TU hits the same wall.

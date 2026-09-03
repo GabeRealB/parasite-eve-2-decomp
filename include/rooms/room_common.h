@@ -3,10 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 #include "main/ui.h"
-
-#include <psyq/libgte.h>
 
 /// Gameplay-side action-prompt state, imported by room overlays as the unnamed
 /// data symbol `D_80114D28` (the gameplay symbol map has no name for it yet).
