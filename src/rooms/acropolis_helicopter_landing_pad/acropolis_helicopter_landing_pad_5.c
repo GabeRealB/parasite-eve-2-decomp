@@ -21,7 +21,24 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017ED50);
+/// Asks the slot-7 task to warp to stage 0xF, room 3 (message 0x13EE with the
+/// room's `GpSaveLoc`); advances on success, otherwise kills the task.
+void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
+{
+    Task* slot = Game_GetPtrSlot(7);
+
+    D_acropolis_helicopter_landing_pad_80187F90.field_4 = 1;
+    D_acropolis_helicopter_landing_pad_80187F90.field_3 = 1;
+    *(u16*)&D_acropolis_helicopter_landing_pad_80187F90 = 0xF;
+    D_acropolis_helicopter_landing_pad_80187F90.field_2 = 3;
+    D_acropolis_helicopter_landing_pad_80187F90.field_5 = 0;
+    if (Gp_DispatchMsg(slot, 0x13EE, (s32)&D_acropolis_helicopter_landing_pad_80187F90,
+                       (s32)&D_acropolis_helicopter_landing_pad_80187F90) != 0) {
+        arg0->state += 1;
+    } else {
+        Task_Kill(arg0);
+    }
+}
 
 void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
 {
