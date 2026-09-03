@@ -192,7 +192,53 @@ void func_acropolis_security_room_8017D9DC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017DB30);
+/// Runs the hotspot-hit state of the security monitor: redraws the panel and
+/// cursor, then hit-tests the action cursor against the room's hotspot table.
+/// A miss leaves the prompt highlighted (`mode` 1); a hit with the prompt
+/// confirmed (`field_14` 2) scans the table for the raised entry and hands its
+/// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
+/// task advances to state 5 once the prompt has been dismissed.
+void func_acropolis_security_room_8017DB30(Task* task)
+{
+    AsrMonitorWork*   work;
+    AsrHotspot*       hs;
+    RoomActionPrompt* prompt;
+
+    hs     = D_acropolis_security_room_80182648;
+    prompt = &D_80114D28;
+    work   = (AsrMonitorWork*)task->idMap;
+    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E37C(task);
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (func_acropolis_security_room_8017ECB4(hs, prompt->screenX, prompt->screenY) != 0) {
+        prompt->mode = 2;
+        if ((prompt->field_14 == 2) && (hs->id != -1)) {
+            do {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    work->selection  = hs->id;
+                    work->promptKind = hs->promptKind;
+                    task->state      = 3;
+                    return;
+                }
+                hs++;
+            } while (hs->id != -1);
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->field_1C == 2) {
+        task->state = 5;
+    }
+}
 
 /// Runs the camera-list state of the security monitor: mirrors the highlighted
 /// row into `Mc_SaveData.field_4` (with a click), scrolls the panel by a page
