@@ -3,12 +3,14 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 /// Scratch state of the security-room cap script, stored at `Task::idMap`.
@@ -312,6 +314,25 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80181E28);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80182574);
+/// Per-frame visibility hook for the security-room prop: the model is drawn
+/// (`field_C = 8`) until the item's 2-bit flag reaches 2, after which it is
+/// hidden (`field_C = 0x80`).
+void func_acropolis_security_room_80182574(Task* task)
+{
+    GpItemObj8* obj;
+    TmdObject*  tmd;
+    s32         flag;
+
+    obj  = (GpItemObj8*)task->spawnArg2;
+    tmd  = (TmdObject*)task->extra;
+    flag = Gp_GetCurBit2Flag(obj->field_8);
+    Gp_GetViewIndex();
+    if (flag == 2) {
+        tmd->field_C = 0x80;
+    } else {
+        tmd->field_C = 8;
+        tmd->field_E = 0;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", D_acropolis_security_room_8017D6AC);
