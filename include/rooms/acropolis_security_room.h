@@ -58,6 +58,33 @@ typedef struct AsrHotspot {
 } AsrHotspot;
 STATIC_ASSERT_SIZEOF(AsrHotspot, 0xC);
 
+/// Scratch state of the security-room cap script, stored at `Task::idMap`.
+///
+/// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
+/// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
+/// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::idMap` slot,
+/// so the size below is the allocation and not a guess; the same function
+/// parks the family's `GpMsgEntry[]` in `Task::field_24`. The overlay's other
+/// two allocators (`Mem_Calloc(0xA)` in `func_acropolis_security_room_8017D9DC`
+/// and `Mem_Calloc(4)` in `func_acropolis_security_room_80180368`) belong to
+/// other task families and to a different block.
+typedef struct AcropolisSecurityRoomState {
+    /* 0x0 */ s32   field_0;    // sub-step picked by the previous cap event
+    /* 0x4 */ Task* child;      // task this state spawned, polled by Task_PollKill
+    /* 0x8 */ u16   frames;     // frames the current state has been running
+    /* 0xA */ s16   variant;    // 0 = the pair-4 cap script, 1 = the pair-3 one
+    /* 0xC */ s8    promptKind; // display mode forwarded to `func_800D4E78`
+    /* 0xD */ byte  pad_D[0x3];
+} AcropolisSecurityRoomState;
+STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
+
+/// The script's hotspot table, terminated by an entry whose `id` is -1.
+extern AsrHotspot D_acropolis_security_room_801826DC[];
+
+/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
+/// hotspot table `table`. Same body as `func_acropolis_security_room_8017ECB4`.
+s32 func_acropolis_security_room_8017FCB0(AsrHotspot* table, s16 x, s16 y);
+
 /// Draws the security-monitor panel for the camera `id` (the work block's
 /// `cameraId` biased by -0x7F); a negative `id` draws the "no signal" panel.
 void func_acropolis_security_room_8017E0C4(s16 id);

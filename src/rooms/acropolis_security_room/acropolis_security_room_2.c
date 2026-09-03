@@ -19,26 +19,6 @@
 #include "rooms/acropolis_security_room.h"
 #include "rooms/room_common.h"
 
-/// Scratch state of the security-room cap script, stored at `Task::idMap`.
-///
-/// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
-/// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
-/// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::idMap` slot,
-/// so the size below is the allocation and not a guess; the same function
-/// parks the family's `GpMsgEntry[]` in `Task::field_24`. The overlay's other
-/// two allocators (`Mem_Calloc(0xA)` in `func_acropolis_security_room_8017D9DC`
-/// and `Mem_Calloc(4)` in `func_acropolis_security_room_80180368`) belong to
-/// other task families and to a different block.
-typedef struct {
-    /* 0x0 */ s32   field_0;    // sub-step picked by the previous cap event
-    /* 0x4 */ Task* child;      // task this state spawned, polled by Task_PollKill
-    /* 0x8 */ u16   frames;     // frames the current state has been running
-    /* 0xA */ s16   variant;    // 0 = the pair-4 cap script, 1 = the pair-3 one
-    /* 0xC */ s8    promptKind; // display mode forwarded to `func_800D4E78`
-    /* 0xD */ byte  pad_D[0x3];
-} AcropolisSecurityRoomState;
-STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
-
 void func_acropolis_security_room_8017FD64(s32 arg0);
 void func_acropolis_security_room_8017F480(Task* task);
 void func_acropolis_security_room_80180308(Task* task);
@@ -54,9 +34,6 @@ extern TaskDesc D_acropolis_security_room_801826C0[];
 
 /// The script's message table, parked in `Task::field_24`.
 extern GpMsgEntry D_acropolis_security_room_801826CC[];
-
-/// The script's hotspot table, terminated by an entry whose `id` is -1.
-extern AsrHotspot D_acropolis_security_room_801826DC[];
 
 /// The cap script's 16 state handlers, dispatched by
 /// `func_acropolis_security_room_80180294`.

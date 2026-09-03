@@ -473,6 +473,49 @@ void func_acropolis_security_room_8017ED68(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EDE4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EE44);
+/// Idle state of the security room's cap script: the same hotspot scan
+/// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
+/// the script's own table and with the hit recorded in the script's state
+/// block instead of dispatched as a cap command. A confirmed
+/// (`field_14 == 2`) hit copies the hotspot's `id` and `promptKind` into the
+/// state block and advances to state 3; with nothing under the cursor the
+/// pending sub-step is cleared and the prompt merely highlights (`mode` 1).
+/// `field_1C == 2` leaves the scan by advancing to state 5.
+void func_acropolis_security_room_8017EE44(Task* task)
+{
+    RoomActionPrompt*           prompt = &D_80114D28;
+    AsrHotspot*                 hs     = D_acropolis_security_room_801826DC;
+    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
+
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (func_acropolis_security_room_8017FCB0(hs, prompt->screenX, prompt->screenY) != 0) {
+        prompt->mode = 2;
+        if (prompt->field_14 == 2) {
+            for (; hs->id != -1; hs++) {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    st->variant      = hs->id;
+                    st->promptKind   = hs->promptKind;
+                    task->state      = 3;
+                    return;
+                }
+            }
+        }
+    } else {
+        st->field_0  = 0;
+        prompt->mode = 1;
+    }
+    if (prompt->field_1C == 2) {
+        task->state = 5;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D63C);
