@@ -87,14 +87,19 @@ typedef struct _GpMsg13EF {
 } GpMsg13EF;
 STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
 
-/// 0x18-byte stack payload for slot-3 msg `0x3EE`. `Gp_MsgPlayer3EE` writes
-/// `Gp_DirNibble << 4` at `field_12` and zeros `field_10` / `field_14`.
+/// 0x18-byte stack payload for the slot-3 warp messages. `Gp_MsgPlayer3EE`
+/// writes `Gp_DirNibble << 4` at `field_12` and zeros `field_10` / `field_14`;
+/// senders of msg `0x3F2` fill the destination position in
+/// `field_0` / `field_4` / `field_8` instead.
 typedef struct _GpMsg3EE {
-    /* 0x00 */ byte pad_0[0x10];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s16  pad_16;
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ s16 field_12;
+    /* 0x14 */ s16 field_14;
+    /* 0x16 */ s16 pad_16;
 } GpMsg3EE;
 STATIC_ASSERT_SIZEOF(GpMsg3EE, 0x18);
 

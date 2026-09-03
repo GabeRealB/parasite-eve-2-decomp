@@ -41023,3 +41023,21 @@ exactly the ROM's
 from one `*out = *in;`. Count the `lwl` offsets to recover the size (the highest
 `swl` offset + 1) and take the alignment from the field types; do not try to
 reproduce the byte-lane instructions by hand.
+
+## A short frame around a `Gp_DispatchMsg` payload means the wrong payload type
+
+When every emitted instruction already matches and the only diff is the frame
+size (`addiu $sp,$sp,-0x28` against the ROM's `-0x30`, with the `$s0`/`$ra`
+slots shifted to match), the stack local handed to `Gp_DispatchMsg` as `arg2`
+is bigger than the fields the function writes. `func_acropolis_fountain_8017DC00`
+stores only three words at `sp+0x10`/`0x14`/`0x18` yet reserves 0x18 bytes of
+locals: the payload is the 0x18-byte `GpMsg3EE` (`include/gameplay/1A8.h`), and
+msg `0x3F2` fills its position triple at `field_0`/`field_4`/`field_8` while
+leaving the yaw halfwords at `0x10`..`0x16` untouched.
+
+Recover the local's size from the frame — locals span the argument area
+(`0x10`) up to the first saved register — and look for a message struct of that
+size before reaching for the filler-aggregate trick in "An unreferenced
+aggregate local still gets its stack slot". The slot-3 warp payloads are shared
+across ids, so a sender that writes three fields of a 0x18-byte struct is the
+normal shape, not padding.
