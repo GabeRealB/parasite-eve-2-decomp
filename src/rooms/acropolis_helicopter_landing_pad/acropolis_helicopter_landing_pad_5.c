@@ -2,10 +2,12 @@
 #include "gameplay/gameplay.h"
 #include "gameplay/1A8.h"
 #include "main/display.h"
+#include "main/mc.h"
 #include "main/task.h"
 
-extern s8       D_8007106B;
-extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68;
+extern s8        D_8007106B;
+extern TaskDesc  D_acropolis_helicopter_landing_pad_80184E68;
+extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
 
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 {
@@ -44,7 +46,16 @@ void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EEDC);
+void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
+{
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+        Mc_SaveData.field_6 = D_acropolis_helicopter_landing_pad_80187F90.field_0;
+        Mc_SaveData.field_8 = D_acropolis_helicopter_landing_pad_80187F90.field_2;
+        Mc_SaveData.field_5 = D_acropolis_helicopter_landing_pad_80187F90.field_3;
+        Task_Spawn(0, 0x11, 0, 0);
+        Task_Kill(arg0);
+    }
+}
 
 void func_acropolis_helicopter_landing_pad_8017EF60(void)
 {
