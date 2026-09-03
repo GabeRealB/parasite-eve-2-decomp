@@ -40551,3 +40551,34 @@ as three `u16` stores followed by `RotMatrix(temp + 0x44, temp + 4)`. Write
 it against `RoomCoord` (`include/rooms/room_common.h`): `coord->rot.vx = …;
 RotMatrix(&coord->rot, &coord->coord); coord->flg = 0;`. The type is 0x50
 bytes like the libgs one, so `field_8[i]` indexing is unchanged.
+
+## `andi 0x7F` narrowed to `0x7C`: an `s16` local's `(v & K)` is folded into HImode and re-extended
+
+`func_acropolis_helicopter_landing_pad_801818F0` stores a frame counter times
+four into an `s16` field, then folds it into a triangle wave:
+
+```c
+v = D_80070F70 * 4;   work->field_24 = v;
+if (v & 0x80) level = 0x7F - (v & 0x7F); else level = v & 0x7C;
+work->field_24 = level * 2;
+```
+
+With `s16 v` the true arm compiles to `andi v1,v1,0x7c` where the ROM has
+`0x7f`. The C front end folds `(int)v & 0x7F` into `(int)(short)(v & 0x7F)`,
+so the RTL is `and` + `ashift 16` + `ashiftrt 16`; when `combine` merges the
+sign extension away it runs `simplify_and_const_int`, whose `nonzero_bits`
+knows the `sll 2` result has two zero low bits and rewrites the mask. The
+`0x80` test and the `0x7C` arm are not affected because their masks already
+have those bits clear. An `s32 v` has no sign extension to fold, so the `and`
+insn is never revisited and the constant survives. Contrast with "`(u8)x` folds
+to `andi 0xF0` when GCC knows the low nibble": same `nonzero_bits` rule, but
+here the trigger is the `s16` type of the *operand*, not a cast on the result.
+
+The same function needs `v = D_80070F70 << 2;` rather than `* 4`. With one
+definition of `v`, `* 4` expands as `tmp = ashift; v = tmp` and the jump pass
+turns the copy around into `v = ashift; tmp = v` instead of deleting it; CSE
+then substitutes `tmp` for `v` on the *else* path, so both pseudos stay live
+and an extra `move a0,v1` appears before the branch. `<< 2` expands with `v`
+as the shift's target and there is no copy. Giving `v` a second (even dead)
+assignment also removes it, which is why the multi-assignment m2c seed never
+showed the `move`.

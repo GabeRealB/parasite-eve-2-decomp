@@ -1,17 +1,22 @@
 #include "common.h"
 #include "gameplay/gameplay.h"
 #include "gameplay/1A8.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "main/display.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 
 extern s8        D_8007106B;
+extern s32       D_80070F70;
+extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern TaskDesc  D_acropolis_helicopter_landing_pad_80184E68;
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
 
 void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
 void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
+void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s16 level);
 
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 {
@@ -114,7 +119,40 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80181064);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_801818F0);
+/// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C::field_8`
+/// while view 0x12 is active, folds the frame counter `D_80070F70 * 4` into a
+/// 0..0xFE triangle wave kept in the effect work's `field_24` (the low two bits
+/// are dropped on the rising half so the ramp steps in fours), then runs
+/// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
+void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
+{
+    GpEffWork* work = (GpEffWork*)arg0->spawnArg2;
+    SVECTOR*   pos;
+    s32        i;
+    s32        v;
+    s32        level;
+
+    if ((Gp_GetViewIndex() & 0xFF) == 0x12) {
+        Gp_State1C->field_8 = -1;
+    } else {
+        Gp_State1C->field_8 = 0;
+    }
+
+    v              = D_80070F70 << 2;
+    work->field_24 = v;
+    if (v & 0x80) {
+        level = 0x7F - (v & 0x7F);
+    } else {
+        level = v & 0x7C;
+    }
+    work->field_24 = level * 2;
+
+    i   = 0;
+    pos = D_acropolis_helicopter_landing_pad_80184E80;
+    for (; i < 12; i++) {
+        func_acropolis_helicopter_landing_pad_8017F010(pos++, i, work->field_24);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_801819C0);
 
