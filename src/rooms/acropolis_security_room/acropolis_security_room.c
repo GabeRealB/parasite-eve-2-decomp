@@ -10,7 +10,17 @@
 extern Task* D_acropolis_security_room_801855A8;
 extern Task* D_acropolis_security_room_801855AC;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D6DC);
+s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s32 ret;
+
+    if (arg0 == NULL) {
+        ret = 0;
+    } else {
+        ret = Gp_DispatchMsg(arg0, arg1, arg2, arg3);
+    }
+    return ret;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D708);
 
