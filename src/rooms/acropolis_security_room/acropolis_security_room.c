@@ -2,6 +2,7 @@
 
 #include <psyq/stdio.h>
 
+#include "gameplay/1A8.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -35,7 +36,12 @@ s32 func_acropolis_security_room_8017D708(Task* arg0, s32 arg1, s32 arg2, s32 ar
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D740);
+void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, GpMsg13EF* arg2)
+{
+    if (arg2->field_2 == 0) {
+        Task_SpawnFromTable(&D_acropolis_security_room_80182618, 0, 0, 0);
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D5C0);
 
