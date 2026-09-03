@@ -40635,3 +40635,20 @@ dies at the `field_8` load, so the surviving use is a fresh pseudo initialised
 by a copy — the `move`. Writing the shared local first (`obj`, then
 `coord = obj->field_8`) is what removes the copy, so pick the shape from
 whether the target has it.
+
+### A ported matched body scoring far below m2c: check that `ABS` is a macro, not a `jal`
+
+`func_acropolis_helicopter_landing_pad_8017E81C` is a byte-for-byte copy of
+gameplay's matched `Gp_ShakeTask`. Pasting that body into the m2c scratch seed
+scored **68%**, below the 90% m2c baseline, with `regs=40 insert=15`. The
+object dump had `jal ABS` three times: the seed's include list (`common.h`,
+`gameplay/*.h`, `main/task.h`) does not pull in `psyq/abs.h`, so GCC 2.8.1
+treated `ABS(x)` as an implicit `int ABS()` call, and the extra calls forced
+`packed`/`lo` into `$s1`/`$s2` and grew the frame. Adding
+`#include <psyq/abs.h>` took the same text to 100%.
+
+When a sibling or `overlay_dup_index.py find` body scores *worse* than m2c,
+grep the object dump for `jal <MACRO_NAME>` before touching the C: the scratch
+seed inherits only the host TU's includes, and a matched TU elsewhere may rely
+on a header the host does not include yet. The host `.c` needs the same
+include when the body is ported.
