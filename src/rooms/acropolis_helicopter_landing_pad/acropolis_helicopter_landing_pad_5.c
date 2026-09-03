@@ -10,6 +10,7 @@
 
 extern s8        D_8007106B;
 extern s32       D_80070F70;
+extern s32       Gp_LcgState;
 extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern TaskDesc  D_acropolis_helicopter_landing_pad_80184E68;
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
@@ -115,7 +116,64 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80180A64);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80180E40);
+/// Effect task for the helipad beacon anchored to `Gp_RoomCoords[4]`. State 0
+/// spawns two 0x6005E effects, takes the slot (refcount 4) and seeds its
+/// light parameters from the coord and an LCG draw; state 1 spawns two more
+/// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
+/// 64th frame; state 3 releases the state-1C memory. Idle while
+/// `Gp_State1C::field_4` is set.
+void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+
+    base  = &Gp_RoomCoords[4];
+    slot  = (GpCoordTail*)&base->coord;
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (arg0->state == 3) {
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    if (Gp_State1C->field_4 != 0 && arg0->state < 3) {
+        return;
+    }
+    Gp_UpdateCoord(coord);
+    switch (arg0->state) {
+        case 0:
+            Gp_SpawnEff(0x6005E, coord, 1, NULL);
+            Gp_SpawnEff(0x6005E, coord, 1, NULL);
+            base->field_0          = 4;
+            slot->field_58         = 0x1900;
+            slot->field_5C         = 0x1C20;
+            slot->field_50         = 0x800;
+            slot->field_52         = 0x800;
+            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54         = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            slot->coord.coord.t[0] = coord->coord.t[0];
+            slot->coord.coord.t[1] = coord->coord.t[1];
+            slot->coord.coord.t[2] = coord->coord.t[2];
+            base->coord.flg        = 0;
+            break;
+        case 1:
+            Gp_SpawnEff(0x6005E, coord, 0, NULL);
+            Gp_SpawnEff(0x6005E, coord, 0, NULL);
+            break;
+        case 2:
+            if (D_80070F70 & 0x40) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
+                    Gp_SpawnEff(0x6005A, coord, 2, NULL);
+                }
+            }
+            break;
+        case 3:
+            Gp_ReleaseState1CMem(mem, arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80181064);
 
