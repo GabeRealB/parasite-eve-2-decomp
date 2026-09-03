@@ -39,6 +39,24 @@ typedef struct AsrMonitorStateTable {
 } AsrMonitorStateTable;
 STATIC_ASSERT_SIZEOF(AsrMonitorStateTable, 0x20);
 
+/// One entry of the room's 0xFFFF-terminated hotspot table
+/// (`D_acropolis_security_room_801826DC`). `x` / `y` / `w` / `h` are the screen
+/// rectangle `func_acropolis_security_room_8017FCB0` tests the action cursor
+/// against; on a hit it raises `hit` on that entry and clears it on every other.
+/// `func_acropolis_security_room_8017EE44` then scans for the raised entry and
+/// copies `id` and `promptKind` into the script's state block, so `id` is the
+/// script variant the hotspot selects rather than an on-screen target id.
+typedef struct AsrHotspot {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id; // list terminator is -1
+    /* 0xA */ u8  promptKind;
+    /* 0xB */ s8  hit;
+} AsrHotspot;
+STATIC_ASSERT_SIZEOF(AsrHotspot, 0xC);
+
 /// Draws the security-monitor panel for the camera `id` (the work block's
 /// `cameraId` biased by -0x7F); a negative `id` draws the "no signal" panel.
 void func_acropolis_security_room_8017E0C4(s16 id);

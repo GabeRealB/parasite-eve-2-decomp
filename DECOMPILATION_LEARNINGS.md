@@ -39891,3 +39891,35 @@ from the dispatcher's own position at the end of the unit. Defining it as a
 file-scope `static const` at the point the `INCLUDE_RODATA` line occupied keeps
 GCC's emission order right — the same trick `PowerSupplyMsg` uses in that file.
 `func_acropolis_security_room_8017ED68`.
+
+### Statement order that changes nothing means the leftover is sched1's block scope
+
+A long straight-line block that scores in the high 90s on `regs` + `reorder`
+usually invites reordering the C statements. When *every* permutation compiles
+to byte-identical code, reordering is not the lever: GCC 2.8.1 has already
+rebuilt the block from the dependence graph, and the leftover is a list-scheduler
+decision inside one basic block.
+
+In `func_acropolis_security_room_8017FA18` the target fills the load-delay slot
+of `lw $v0, 0x30($s1)` (`task->state`) with the `li $a0, 9` argument of the
+following `GameFlag_GetNibble(9)`; GCC instead hoists that `li` ten instructions
+earlier, right behind the previous `jal`, which then costs `$a1` for a `%hi` and
+shows up as `regs=4 reorder=2`. All 24 orderings of the four assignments before
+it produced the same object code.
+
+What fixes it is a basic-block boundary, not an order:
+
+```c
+D_8007216C = 6;
+SOFT_BARRIER();          /* sched1 stops here; the li stays with its call */
+task->state++;
+...
+func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+```
+
+Any boundary works — `SCHED_BARRIER()`, `COMPILER_BARRIER()` and a
+`do { ... } while (0)` around the tail all reach 100% — so prefer the weakest,
+`SOFT_BARRIER()`, and put it at the split point rather than wrapping statements
+in a loop the source never had. (decomp-permuter finds the `do/while (0)` form
+on its own; read that output as "a block boundary belongs here" and write the
+barrier instead.)

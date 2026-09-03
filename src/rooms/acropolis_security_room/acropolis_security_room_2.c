@@ -9,12 +9,14 @@
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
+#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/acropolis_security_room.h"
 #include "rooms/room_common.h"
 
 /// Scratch state of the security-room cap script, stored at `Task::idMap`.
@@ -45,6 +47,16 @@ void func_acropolis_security_room_80180308(Task* task);
 /// `func_acropolis_security_room_80180368`, index 1 is
 /// `func_acropolis_security_room_801804CC`.
 extern TaskDesc D_acropolis_security_room_80182700[];
+
+/// The single-entry `TaskDesc` table the script spawns its child task from:
+/// `func_acropolis_security_room_8017F9C8`.
+extern TaskDesc D_acropolis_security_room_801826C0[];
+
+/// The script's message table, parked in `Task::field_24`.
+extern GpMsgEntry D_acropolis_security_room_801826CC[];
+
+/// The script's hotspot table, terminated by an entry whose `id` is -1.
+extern AsrHotspot D_acropolis_security_room_801826DC[];
 
 extern s8  D_8007216C;
 extern s16 D_80114D08;
@@ -157,7 +169,38 @@ void func_acropolis_security_room_8017F9C8(Task* task)
     funcs[task->state](task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FA18);
+/// State 0 of the security-room cap script: allocates the 0x10 state block into
+/// `Task::idMap`, spawns the script's child task, publishes the message table
+/// and the current pair-flag nibble, takes a display reference and clears every
+/// hotspot's `hit` flag before the first cursor scan. A failed allocation kills
+/// the task instead.
+void func_acropolis_security_room_8017FA18(Task* task)
+{
+    AcropolisSecurityRoomState* st;
+    AsrHotspot*                 hs;
+
+    st = Mem_Calloc(sizeof(AcropolisSecurityRoomState), 0);
+    if (st == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    task->spawnArg2 = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
+    task->field_24  = D_acropolis_security_room_801826CC;
+    task->idMap     = (TaskIdMap*)st;
+    D_8007216C      = 6;
+    SOFT_BARRIER();
+    task->state++;
+    st->field_0 = 0;
+    st->frames  = 0;
+    func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+    Game_Session->field_66 = 1;
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    Display_AcquireRef();
+    for (hs = D_acropolis_security_room_801826DC; hs->id != -1; hs++) {
+        hs->hit = 0;
+    }
+}
 
 /// Arms the action prompt for the script's hotspot and steps the caller on one
 /// state: highlights (`mode` 1) the fixed target id 0x80 and clears the prompt's
