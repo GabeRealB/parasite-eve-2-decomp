@@ -12,11 +12,14 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "main/gfx.h"
+#include "rooms/acropolis_helicopter_landing_pad.h"
 
 extern s16        D_80071076;
 extern s32        D_acropolis_helicopter_landing_pad_80184D9C;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
+extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
 
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 
@@ -44,7 +47,21 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D6E0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D7B0);
+/// Points the model's light / colour matrices at the work block's own copies
+/// and loads the room's three flat lights into them.
+void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
+{
+    AhlpEnemyWork* work = (AhlpEnemyWork*)task->idMap;
+    TmdObject*     obj  = task->extra;
+    GsF_LIGHT*     light;
+    s32            i;
+
+    obj->field_1C = &work->lightMtx;
+    obj->field_20 = &work->colorMtx;
+    for (i = 0, light = D_acropolis_helicopter_landing_pad_80182340; i < 3; i++, light++) {
+        Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D824);
 
