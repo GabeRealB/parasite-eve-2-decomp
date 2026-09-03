@@ -32,6 +32,8 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
 
 void func_acropolis_security_room_8017FD64(s32 arg0);
+void func_acropolis_security_room_8017F480(Task* task);
+void func_acropolis_security_room_80180308(Task* task);
 
 /// The two `TaskDesc`s this room's script spawns from: index 0 is
 /// `func_acropolis_security_room_80180368`, index 1 is
@@ -134,7 +136,20 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017F8E0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017F9C8);
+/// Task callback of the descriptor at `D_acropolis_security_room_801826C0`:
+/// a two-state dispatcher whose handler table is built on the stack rather
+/// than read from `.data`, so state 0 runs
+/// `func_acropolis_security_room_80180308` and state 1 runs
+/// `func_acropolis_security_room_8017F480`.
+void func_acropolis_security_room_8017F9C8(Task* task)
+{
+    TaskFunc funcs[2] = {
+        func_acropolis_security_room_80180308,
+        func_acropolis_security_room_8017F480,
+    };
+
+    funcs[task->state](task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FA18);
 
