@@ -27,7 +27,7 @@ typedef struct {
     /* 0x0 */ s32   field_0;    // sub-step picked by the previous cap event
     /* 0x4 */ Task* child;      // task this state spawned, polled by Task_PollKill
     /* 0x8 */ u16   frames;     // frames the current state has been running
-    /* 0xA */ byte  pad_A[0x2];
+    /* 0xA */ s16   variant;    // 0 = the pair-4 cap script, 1 = the pair-3 one
     /* 0xC */ s8    promptKind; // display mode forwarded to `func_800D4E78`
     /* 0xD */ byte  pad_D[0x3];
 } AcropolisSecurityRoomState;
@@ -185,7 +185,33 @@ void func_acropolis_security_room_8017FB54(Task* task)
     task->state = 4;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FBA4);
+/// Runs one step of whichever cap script this task family is driving, once the
+/// gameplay side reports the action prompt has been dismissed: clears the
+/// prompt, then hands the task to `func_acropolis_security_room_8017F1BC` or
+/// `func_acropolis_security_room_8017F300` and resets the sub-step. While
+/// `func_800D4EC0` still reports a prompt up and no sub-step is pending, the
+/// task instead parks on state 2. `variant` is never written in this overlay --
+/// the state block is calloc'd -- so the `func_acropolis_security_room_8017F300`
+/// arm is the one this room actually takes.
+void func_acropolis_security_room_8017FBA4(Task* task)
+{
+    RoomActionPrompt*           prompt = &D_80114D28;
+    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if ((func_800D4EC0() != 0) || (st->field_0 != 0)) {
+        if (st->variant == 1) {
+            func_acropolis_security_room_8017F1BC(task);
+            st->field_0 = 0;
+            return;
+        }
+        func_acropolis_security_room_8017F300(task);
+        st->field_0 = 0;
+        return;
+    }
+    task->state = 2;
+}
 
 void func_acropolis_security_room_8017FC30(Task* task)
 {
