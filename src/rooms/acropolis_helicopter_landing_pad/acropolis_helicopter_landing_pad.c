@@ -1,7 +1,9 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -10,10 +12,33 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s16      D_80071076;
-extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68;
+extern s16        D_80071076;
+extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
+extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D658);
+void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
+
+/// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
+/// into `Task::idMap`, marks the model (`field_E = 8`, clears bit 0x80 of
+/// `field_C`), runs the placement setup and installs the message table.
+void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
+{
+    TmdObject* obj = task->extra;
+    void*      mem;
+
+    mem = Mem_Calloc(0x54, false);
+    if (mem == NULL) {
+        Gp_EnemyTaskExit(task);
+        return;
+    }
+    task->idMap   = mem;
+    obj->field_E  = 8;
+    obj->field_C &= 0xFF7F;
+    func_acropolis_helicopter_landing_pad_8017D7B0(task);
+    task->field_24      = D_acropolis_helicopter_landing_pad_80182328;
+    task->killCountdown = 0;
+    task->state         = task->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D6E0);
 
