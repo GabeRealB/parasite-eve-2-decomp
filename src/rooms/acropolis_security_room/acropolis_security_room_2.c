@@ -279,7 +279,31 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FE24);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FE6C);
+/// Fades the screen to white over 0x40 frames, then steps the caller on one
+/// state: `frames` doubles as the fade level here, rising by 4 a frame and
+/// driving `Fade_DrawOverlay`'s three colour channels together. At the halfway
+/// point (0x80) the door chime is queued; once the level passes 0xFF the
+/// counter is reset for the next state and `D_8007216C` is set to 0x10.
+void func_acropolis_security_room_8017FE6C(Task* task)
+{
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    u8                          level;
+
+    level = st->frames;
+    Fade_DrawOverlay(level, level, level, 2);
+    st->frames = st->frames + 4;
+    if (st->frames == 0x80) {
+        SndEvt_EnqueueType6(0x51060002, 0, 0);
+    }
+    if (st->frames >= 0x100) {
+        st->frames = 0;
+        D_8007216C = 0x10;
+        /* Without the barrier GCC hoists the `lw` of `task->state` above the
+         * byte store, dropping the load-delay `nop`. */
+        SOFT_BARRIER();
+        task->state = task->state + 1;
+    }
+}
 
 void func_acropolis_security_room_8017FF0C(Task* task)
 {
