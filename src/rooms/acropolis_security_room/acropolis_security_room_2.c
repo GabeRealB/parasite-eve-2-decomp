@@ -277,7 +277,27 @@ void func_acropolis_security_room_8017FC30(Task* task)
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FCB0);
+/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
+/// hotspot table `table`, raising `hit` on every entry whose rectangle
+/// contains the point and clearing it on every other one. Returns non-zero if
+/// any entry was hit, so the caller can tell "cursor is over something" from
+/// "cursor is over nothing" without rescanning the table.
+s32 func_acropolis_security_room_8017FCB0(AsrHotspot* table, s16 x, s16 y)
+{
+    s32 hit;
+
+    hit = 0;
+    while (table->id != -1) {
+        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
+            table->hit = 1;
+            hit        = 1;
+        } else {
+            table->hit = 0;
+        }
+        table++;
+    }
+    return hit;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FD64);
 
