@@ -9,6 +9,9 @@
 #include "main/session.h"
 #include "main/sound.h"
 
+extern s16 D_80071076;
+
+extern u8    D_acropolis_fountain_80183BB0;
 extern Task* D_acropolis_fountain_80183BB4;
 
 extern GpMsgEntry D_acropolis_fountain_8017E764[];
@@ -49,7 +52,32 @@ s32 func_acropolis_fountain_8017D7F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D868);
+void func_acropolis_fountain_8017D868(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_RunCapCmd1(1);
+            task->state = task->state + 1;
+            break;
+
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                task->state = task->state + 1;
+            }
+            /* fallthrough */
+
+        case 2:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            Mc_SaveData.field_6 = 3;
+            Mc_SaveData.field_5 = 3;
+            Mc_SaveData.field_8 = D_acropolis_fountain_80183BB0;
+            D_80071076          = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            GameFlag_SetNibble(0, 5);
+            Task_Kill(task);
+            break;
+    }
+}
 
 void func_acropolis_fountain_8017D960(Task* arg0)
 {
