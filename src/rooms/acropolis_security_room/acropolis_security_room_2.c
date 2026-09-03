@@ -1,7 +1,9 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
@@ -28,6 +30,7 @@
 void func_acropolis_security_room_8017FD64(s32 flags);
 void func_acropolis_security_room_8017F480(Task* task);
 void func_acropolis_security_room_80180308(Task* task);
+void func_acropolis_security_room_80180A78(Task* task);
 
 /// The two `TaskDesc`s this room's script spawns from: index 0 is
 /// `func_acropolis_security_room_80180368`, index 1 is
@@ -658,7 +661,133 @@ L_case2:
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_801805A4);
+/// The 0x100-entry RGB555 palette every monitor-screen CLUT is blended
+/// towards: the "off" colours of the four security-camera feeds.
+extern u16 D_acropolis_security_room_80182718[];
+
+/// The four lit palettes, one per camera feed, blended against
+/// `D_acropolis_security_room_80182718` by the feed's own brightness.
+extern u16 D_acropolis_security_room_80182918[];
+extern u16 D_acropolis_security_room_80182B18[];
+extern u16 D_acropolis_security_room_80182D18[];
+extern u16 D_acropolis_security_room_80182F18[];
+
+/// The four blend results, uploaded to VRAM by
+/// `D_acropolis_security_room_80183918`.
+extern u16 D_acropolis_security_room_80183118[];
+extern u16 D_acropolis_security_room_80183318[];
+extern u16 D_acropolis_security_room_80183518[];
+extern u16 D_acropolis_security_room_80183718[];
+
+/// The upload records for the four blended CLUTs above.
+extern GpImgRec D_acropolis_security_room_80183918[];
+
+/// Camera-lit bitmask for each value of `GameFlag_GetNibble(9)`; bit N is set
+/// while feed N is showing something.
+extern u16 D_acropolis_security_room_80183968[];
+
+/// Spawn position and effect id of the flash each newly lit feed plays,
+/// indexed by feed.
+extern SVECTOR D_acropolis_security_room_80183998[];
+extern s16     D_acropolis_security_room_801839B8[];
+
+/// Per-frame update of the security-room's four monitor feeds: state 0 seeds
+/// the four screen CLUTs from the unlit palette, state 1 re-blends each of
+/// them towards its lit palette by that feed's brightness and spawns the
+/// flash effects. `Task::spawnArg2` is the `GpEffWork` holding the lit-feed
+/// bitmask (`field_20`) and the four per-feed brightnesses
+/// (`field_24` .. `field_2A`).
+void func_acropolis_security_room_801805A4(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    s32            i;
+
+    work  = (GpEffWork*)task->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+
+    switch (task->state) {
+        case 0: {
+            u16* base = D_acropolis_security_room_80182718;
+            u16* pal  = D_acropolis_security_room_80182918;
+            u16* out  = D_acropolis_security_room_80183118;
+
+            for (i = 0; i < 0x100; i += 0x10) {
+                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            }
+            pal = D_acropolis_security_room_80182B18;
+            out = D_acropolis_security_room_80183318;
+            for (i = 0; i < 0x100; i += 0x10) {
+                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            }
+            pal = D_acropolis_security_room_80182D18;
+            out = D_acropolis_security_room_80183518;
+            for (i = 0; i < 0x100; i += 0x10) {
+                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            }
+            pal = D_acropolis_security_room_80182F18;
+            out = D_acropolis_security_room_80183718;
+            for (i = 0; i < 0x100; i += 0x10) {
+                Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+            }
+            Gp_LoadImages(D_acropolis_security_room_80183918);
+            task->state = task->state + 1;
+            break;
+        }
+
+        case 1:
+            work->field_20 = D_acropolis_security_room_80183968[GameFlag_GetNibble(9)];
+            if ((Gp_GetViewIndex() & 0xFF) == 6) {
+                u16* pal  = D_acropolis_security_room_80182918;
+                u16* base = D_acropolis_security_room_80182718;
+                u16* out  = D_acropolis_security_room_80183118;
+                s32  limit;
+
+                // The cap flickers by one step every other frame.
+                limit          = 0x1000 - ((Display_State.field_8 & 1) << 9);
+                work->field_24 = (work->field_20 & 1) ? ((work->field_24 < limit) ? work->field_24 + 0x200 : limit) : 0;
+                work->field_26 = (work->field_20 & 2) ? ((work->field_26 < limit) ? work->field_26 + 0x200 : limit) : 0;
+                work->field_28 = (work->field_20 & 4) ? ((work->field_28 < limit) ? work->field_28 + 0x200 : limit) : 0;
+                work->field_2A = (work->field_20 & 8) ? ((work->field_2A < limit) ? work->field_2A + 0x200 : limit) : 0;
+
+                for (i = 0; i < 0x100; i += 0x10) {
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_24, &out[i]);
+                }
+                pal = D_acropolis_security_room_80182B18;
+                out = D_acropolis_security_room_80183318;
+                for (i = 0; i < 0x100; i += 0x10) {
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_26, &out[i]);
+                }
+                pal = D_acropolis_security_room_80182D18;
+                out = D_acropolis_security_room_80183518;
+                for (i = 0; i < 0x100; i += 0x10) {
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_28, &out[i]);
+                }
+                pal = D_acropolis_security_room_80182F18;
+                out = D_acropolis_security_room_80183718;
+                for (i = 0; i < 0x100; i += 0x10) {
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_2A, &out[i]);
+                }
+                Gp_LoadImages(D_acropolis_security_room_80183918);
+
+                for (i = 0; i < 4; i++) {
+                    Gp_SpawnEff(0x60049, coord, i, NULL);
+                }
+            } else if (((Gp_GetViewIndex() & 0xFF) != 8) && ((Gp_GetViewIndex() & 0xFF) != 0x10)) {
+                for (i = 0; i < 4; i++) {
+                    if ((work->field_20 >> i) & 1) {
+                        Gp_SpawnEff(0x600A0, coord, D_acropolis_security_room_801839B8[i],
+                                    &D_acropolis_security_room_80183998[i]);
+                    }
+                }
+            }
+            break;
+    }
+
+    if (GameFlag_GetNibble(1) < 3) {
+        func_acropolis_security_room_80180A78(task);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180A78);
 

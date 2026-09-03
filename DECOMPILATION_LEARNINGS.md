@@ -40118,3 +40118,78 @@ addPrim(Gpu_CurrentOt + 3, line);
 That single move took the function from 92.0% to 100%. The tell in the target
 is a `sb` of an argument register sitting *after* the last `lhu` of the block
 rather than between two of them.
+
+## A shared base address kept in a callee-saved register means a pointer local
+
+**Problem.** `func_acropolis_security_room_801805A4` runs four `for (i = 0; i <
+0x100; i += 0x10)` loops in a row, each blending one CLUT against the same
+unlit palette. Written with the arrays named directly —
+`Gp_BlendRgb555Clut(&D_80182918[i], &D_80182718[i], 0, &D_80183118[i])` — every
+loop preheader re-materialises `&D_80182718` with its own `lui` / `addiu`
+(75.8%). The target computes it once and starts each preheader with
+`move $s2, $s4`.
+
+**Cause.** With a bare `&D_80182718[i]` the address is a constant *inside* the
+address expression, so strength reduction initialises the giv from the constant
+itself and there is no invariant pseudo left to share; each loop gets its own
+`lui`/`addiu`. Give the base a pointer local and the giv is initialised from a
+register instead. That register is never incremented, so it survives all four
+loops and `cse` after loop prefers copying it (one insn) over rebuilding the
+symbol (two). The per-loop `pal` / `out` locals, by contrast, are dead after
+their single use in the *same* extended basic block, so their copies collapse
+back into inline `lui`/`addiu` — which is why only the shared base shows a
+`move`.
+
+```c
+u16* base = D_acropolis_security_room_80182718;
+u16* pal  = D_acropolis_security_room_80182918;
+u16* out  = D_acropolis_security_room_80183118;
+
+for (i = 0; i < 0x100; i += 0x10) {
+    Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+}
+pal = D_acropolis_security_room_80182B18;
+out = D_acropolis_security_room_80183318;
+for (i = 0; i < 0x100; i += 0x10) {
+    Gp_BlendRgb555Clut(&pal[i], &base[i], 0, &out[i]);
+}
+```
+
+**The same base in two hard registers means two variables.** This function
+blends the same four palettes in `case 0` and again in `case 1`, and the target
+holds `&D_80182718` in `$s4` for one and `$s6` for the other. One C variable is
+one pseudo and gets one hard register for the whole function, so a single
+`base` declared at function scope cannot produce that. Declaring it inside each
+`case` / `if` block gives two pseudos and the two registers fall out. Whenever
+the same constant address lives in different callee-saved registers in
+different arms of a `switch`, the block-scoped local is the shape to write.
+
+**Corollary — initialiser order is source order.** In `case 1` the three
+address computations appear *before* the flicker arithmetic that follows them,
+which no pass would schedule across the branchy block between. They are C89
+block-top declaration initialisers, and swapping two of them (`pal` before
+`base`) was the last 0.1%.
+
+## A `s16` compare operand costs a `sll`/`sra` pair
+
+**Problem.** The same function clamps four `s16` brightness fields against a
+limit. Declaring that limit `s16` — it only ever holds `0x1000` or `0xE00` —
+made GCC sign-extend it at each of the four uses (`sll $v0, $a1, 0x10` /
+`sra $v0, $v0, 0x10`) before the `slt`, and it also narrowed the `lw` of the
+frame counter feeding it to an `lhu`.
+
+**Fix.** Give a comparison operand its natural `s32` type even when the value
+is small and the result is stored back into a `s16` field; the truncation on
+the store is free, the sign extension on every compare is not.
+
+```c
+s32 limit = 0x1000 - ((Display_State.field_8 & 1) << 9);
+
+work->field_24 = (work->field_20 & 1) ? ((work->field_24 < limit) ? work->field_24 + 0x200 : limit) : 0;
+```
+
+Note also the shape of the clamp: writing it as a nested conditional
+*expression* gives each of the four statements its own temporary, which is what
+lets the register allocator put three of them in `$v1` and coalesce the fourth
+with the dying `limit`. An `if`/`else` chain storing into one shared `s16`
+local is a single pseudo and cannot reproduce that.
