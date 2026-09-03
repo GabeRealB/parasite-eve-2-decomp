@@ -10,7 +10,18 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "gameplay/gameplay.h"
 #include "rooms/acropolis_fountain.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s16 D_80071076;
 extern s32 D_80070F70;
@@ -197,7 +208,90 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
     states[arg0->state](arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DD44);
+/// Draws the fountain's water-spray sprite for the current frame. The task's
+/// coordinate is refreshed and projected through `GsWSMATRIX` into a
+/// `G_SCRATCH_HEAD` block; the resulting screen point becomes the centre of a
+/// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x4382, the 0x28x0x27 cell at
+/// u 0x50) whose half-extent is `0x4E00 / otz`, so the spray shrinks with
+/// distance and is dropped entirely inside `otz` 0x11. The grey level
+/// alternates between 0x40 and 0x50 with the frame counter's low bit, which
+/// makes the spray flicker. Only the eight camera views in the `0x1040C0` mask
+/// see the fountain, and the whole draw is skipped once `Gp_State1C::field_4`
+/// reaches 4 (the room is fading out).
+void func_acropolis_fountain_8017DD44(Task* task)
+{
+    void**                                  scratch;
+    u8*                                     head;
+    AcropolisFountainSprayScratch*          blk;
+    register AcropolisFountainSprayScratch* p asm("a0");
+    GsCOORDINATE2*                          coord;
+    POLY_FT4*                               prim;
+    s16                                     x;
+    s16                                     y;
+    u16                                     vz;
+    s32                                     level;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)Game_Session->field_4 - 1)) & 1)) {
+        Gp_UpdateCoord(coord);
+        scratch     = (void**)G_SCRATCH_HEAD;
+        head        = *scratch;
+        blk         = (AcropolisFountainSprayScratch*)(head - 0x14);
+        blk->pos.vx = *(u16*)&coord->workm.t[0];
+        blk->pos.vy = *(u16*)&coord->workm.t[1];
+        vz          = *(u16*)&coord->workm.t[2];
+        *scratch    = blk;
+        p           = blk;
+        blk->pos.vz = vz;
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&((AcropolisFountainSprayScratch*)(head - 0x14))->pos);
+        gte_rtps_real();
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        gte_stsxy(&((AcropolisFountainSprayScratch*)(head - 0x14))->sx);
+        gte_stszotz(&p->otz);
+        if (((AcropolisFountainSprayScratch*)(head - 0x14))->otz >= 0x11) {
+            level       = (((u8)Display_State.field_8 & 1) << 4) + 0x40;
+            prim->tpage = 0x2B;
+            prim->clut  = 0x4382;
+            prim->u0    = 0x50;
+            prim->v0    = 0;
+            prim->u1    = 0x77;
+            prim->v1    = 0;
+            prim->u2    = 0x50;
+            prim->v2    = 0x27;
+            prim->u3    = 0x77;
+            prim->v3    = 0x27;
+            prim->r0    = level;
+            prim->g0    = level;
+            prim->b0    = level;
+            prim->code |= 2;
+            blk->half   = 0x4E00 / ((AcropolisFountainSprayScratch*)(head - 0x14))->otz;
+            x           = blk->sx - (u16)blk->half;
+            prim->x2    = x;
+            prim->x0    = x;
+            x           = blk->sx + (u16)blk->half;
+            prim->x3    = x;
+            prim->x1    = x;
+            y           = blk->sy - (u16)blk->half;
+            prim->y1    = y;
+            prim->y0    = y;
+            y           = blk->sy + (u16)blk->half;
+            prim->y3    = y;
+            prim->y2    = y;
+            addPrim((u_long*)(((((u32)((AcropolisFountainSprayScratch*)(head - 0x14))->otz
+                                 << Display_State.field_128) >>
+                                2) &
+                               0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    }
+}
 
 void func_acropolis_fountain_8017E014(Task* task)
 {

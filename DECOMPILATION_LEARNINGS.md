@@ -41210,3 +41210,60 @@ Note also that each `(u16)view` in a *different* basic block is recomputed
 value): CSE only spans an extended basic block, and the case arms are join
 points. Do not chase that with a temp — writing the cast at every use is what
 the ROM does.
+
+## A `move` between two registers holding the same pointer is a pin, not `TOUCH_REG`
+
+`func_acropolis_fountain_8017DD44` takes a 0x14-byte block off
+`G_SCRATCH_HEAD`, keeps it in `$a1`, and copies it to `$a0` for one use — the
+`gte_stszotz` operand:
+
+```
+addiu   $a1, $t1, -0x14      /* blk */
+…
+move    $a0, $a1
+sw      $a1, 0x0($t2)        /* *scratch = blk */
+…
+sw      $t4, 0x0($a0)        /* gte_stszotz(&p->otz) */
+```
+
+Writing a second C local `p = blk` does nothing: GCC 2.8.1 copy-propagates it
+away and both uses share one register. The empty-asm helpers do force the copy,
+but they are also real insns during `sched1`, so `TOUCH_REG(p)` inserts a `nop`
+and `SOFT_TOUCH_REG(p)` still perturbs where the neighbouring
+`addiu %lo(GsWSMATRIX)` lands (99.3%, `reorder=2`). Only
+`register T* p asm("a0")` reproduces it exactly: the copy is emitted by reload,
+after scheduling has run, so it costs one `move` and changes nothing else.
+When the leftover is a lone `move` between two registers that provably hold the
+same value, that is a reload artifact — reach for the hard pin rather than an
+empty `asm`.
+
+## A `lbu` in the delay slot means the value was computed at the top of the block
+
+Same function, drawing the spray `POLY_FT4`. The ROM starts the `otz >= 0x11`
+block with the address and load of the frame counter, with the `lui` stolen for
+the branch's delay slot, then writes tpage / clut / UVs, and only folds the
+loaded byte into the RGB stores at the end:
+
+```
+bnez    $v0, .Lskip
+ lui    $a3, %hi(Display_State)
+addiu   $a3, $a3, %lo(Display_State)
+lbu     $v1, 0x8($a3)
+li      $v0, 0x2B
+sh      $v0, 0x16($t0)       /* tpage */
+```
+
+With `level` computed next to its `prim->r0 = level` uses, GCC 2.8.1 leaves the
+load in the middle of the prim stores and the whole block schedules differently
+(89.7% → 8 insert / 9 delete). Moving the one statement
+
+```c
+level = (((u8)Display_State.field_8 & 1) << 4) + 0x40;
+```
+
+to the head of the block took it to 99.97%: `sched1` hoists the *arithmetic*
+freely but will not lift a load across the intervening stores to `prim`, whose
+base is an unknown pointer it cannot disambiguate from a static. So a load that
+appears before every store in a block is a statement that appears before them
+in the C, however far its result is used — the `insert`/`delete` mix around
+constant stores is the tell, not a UV ordering problem.

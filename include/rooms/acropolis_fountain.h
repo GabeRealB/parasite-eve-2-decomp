@@ -29,4 +29,20 @@ typedef struct AcropolisFountainSndWork {
     /* 0x2 */ u16 started;
 } AcropolisFountainSndWork;
 
+/// 0x14 scratch block `func_acropolis_fountain_8017DD44` takes from
+/// `G_SCRATCH_HEAD` for the fountain's water-spray sprite. `pos` is the
+/// coordinate's `workm` translation truncated to s16 and fed to `gte_ldv0`,
+/// `sx` / `sy` are the `gte_stsxy` of the single `RTPS` and `otz` its
+/// `gte_stszotz`. `half` is `0x4E00 / otz`, the on-screen half-extent the
+/// quad's four corners are offset by, so the sprite shrinks with distance;
+/// an `otz` below 0x11 is too close to the camera and the sprite is skipped.
+typedef struct AcropolisFountainSprayScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     half;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ u16     sx;
+    /* 0x12 */ u16     sy;
+} AcropolisFountainSprayScratch;
+STATIC_ASSERT_SIZEOF(AcropolisFountainSprayScratch, 0x14);
+
 #endif // ROOMS_ACROPOLIS_FOUNTAIN_H
