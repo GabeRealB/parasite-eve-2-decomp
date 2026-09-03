@@ -40386,3 +40386,49 @@ stick = pad->field_54;                          /* lh */
 an `s32` compiles as `lhu` + `sll`/`sra` rather than `lh`. Room code that wants
 the plain `lh` has to take a non-volatile pointer:
 `PadState* pad = (PadState*)&Pad_States[port];`.
+
+## Splitting a unit for a jump table by hand, without deleting the matched `src/`
+
+The `units` + `rodata` cut that gives a compiler-generated jump table the start
+of its own object renumbers every later unit, and the standard recipe is to
+delete the overlay's `src/` files and `asm/` trees and re-split. That throws
+away every matched function in the overlay and makes you re-apply them. When
+the overlay is already largely decompiled it is cheaper to do the split by
+hand — splat only *creates* files it does not find, so a correct hand-split
+tree survives the next split untouched:
+
+1. `git mv` the trailing units up one number (`_2.c` → `_3.c`) and `sed` their
+   `INCLUDE_ASM`/`INCLUDE_RODATA` path strings to the new unit directory.
+2. Cut the source file at the function named by the new `.text` offset; the
+   tail becomes the new `_2.c`, and its `INCLUDE_ASM` strings get retargeted
+   the same way.
+3. Give the new file its own include block and `extern` declarations for what
+   it now reaches across the unit boundary.
+
+In `acropolis_security_room` that moved `func_acropolis_security_room_8017E490`
+and the ten functions after it out of unit 1, for a jump table at `.rodata`
+`0x4C`.
+
+**The trap is a `static const` table left behind.** Unit 1's `.rodata` span is
+fixed by the config, so every item in it must still be emitted — but a
+`static const` whose only reference moved to the new unit is now unreferenced,
+and GCC drops it, shortening the section and shifting everything after it. Make
+it non-`static` and `extern`-declare it in the new unit:
+
+```c
+/* unit 1 - owns .rodata 0x2C..0x4C, so this must be emitted even though
+   nothing in this file reads it any more. */
+const AsrMonitorStateTable AsrMonitorStates = { ... };
+
+/* unit 2 */
+extern const AsrMonitorStateTable AsrMonitorStates;
+```
+
+The codegen is unchanged: `%hi`/`%lo` of a global resolves to the same address
+as `%hi`/`%lo` of the local label, so functions that read the table still match.
+
+**Related:** `overlay_dup_index.py promote` refuses a body that appears *twice
+in the same overlay* ("every overlay carrying it contains it twice; cannot
+share") — there is no single symbol the sharers could link. The two copies stay
+as two matched C functions, but the second one is still free: `find` names the
+sibling and its body can be pasted verbatim, renaming only the callees.

@@ -13,6 +13,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/acropolis_security_room.h"
+#include "rooms/room_common.h"
 
 extern Task* D_acropolis_security_room_801855A8;
 extern Task* D_acropolis_security_room_801855AC;
@@ -31,12 +32,9 @@ extern s16 D_acropolis_security_room_801826B4[];
 /// `func_acropolis_security_room_8017ECB4`.
 extern AsrHotspot D_acropolis_security_room_80182648[];
 
-extern s8  D_8007216C;
-extern s16 D_80114D08;
+extern s8 D_8007216C;
 
-s32  func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
-void func_acropolis_security_room_8017E490(Task* task);
-void func_acropolis_security_room_8017EDE4(Task* task);
+s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
 
 s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -490,7 +488,7 @@ void func_acropolis_security_room_8017EB9C(Task* task);
 /// States of the security-monitor task, dispatched by
 /// `func_acropolis_security_room_8017ED68`: set up the work block, run the
 /// camera list, redraw the panel, confirm a camera, and leave the monitor.
-static const AsrMonitorStateTable AsrMonitorStates = {
+const AsrMonitorStateTable AsrMonitorStates = {
     { {
         func_acropolis_security_room_8017D9DC,
         func_acropolis_security_room_8017EA28,
@@ -502,196 +500,3 @@ static const AsrMonitorStateTable AsrMonitorStates = {
     } },
     NULL,
 };
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E490);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E8F0);
-
-/// Two-state dispatcher whose handler table is built on the stack rather than
-/// read from `.data`: state 0 runs `func_acropolis_security_room_8017EDE4` and
-/// state 1 runs `func_acropolis_security_room_8017E490`.
-void func_acropolis_security_room_8017E9D8(Task* task)
-{
-    TaskFunc funcs[2] = {
-        func_acropolis_security_room_8017EDE4,
-        func_acropolis_security_room_8017E490,
-    };
-
-    funcs[task->state](task);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EA28);
-
-/// Confirms the camera the player picked on the security monitor: clears the
-/// action prompt, redraws the panel for the selected camera plus its cursor
-/// overlay, spawns the prompt at the panel's coordinates and advances the task.
-void func_acropolis_security_room_8017EA5C(Task* task)
-{
-    RoomActionPrompt* prompt = &D_80114D28;
-    AsrMonitorWork*   work   = (AsrMonitorWork*)task->idMap;
-
-    prompt->mode     = 0;
-    prompt->targetId = 0;
-    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
-    func_acropolis_security_room_8017E37C(task);
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
-}
-
-/// Leaves the security monitor: records which camera was on screen as the
-/// `0x2A` nibble (index into `D_acropolis_security_room_801826B4`, 0 if the id
-/// is not in the table), restores the room's normal display state and kills the
-/// monitor task along with the child task it spawned.
-void func_acropolis_security_room_8017EADC(Task* task)
-{
-    AsrMonitorWork* work;
-    s16*            camera;
-    s32             index;
-    s32             cameraId;
-
-    index      = 0;
-    camera     = D_acropolis_security_room_801826B4;
-    work       = (AsrMonitorWork*)task->idMap;
-    D_80114D08 = 0xA;
-    cameraId   = (s16)work->cameraId;
-loop:
-    if (cameraId != *camera) {
-        index  += 1;
-        camera += 1;
-        if (index >= 5) {
-            GameFlag_SetNibble(0x2A, 0);
-            goto done;
-        }
-        goto loop;
-    }
-    GameFlag_SetNibble(0x2A, index);
-done:
-    D_8007216C = 4;
-    Display_ReleaseRef();
-    Game_Session->field_66 = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_1  = 0;
-    Task_Kill((Task*)task->spawnArg2);
-    Task_RequestKill(task, 0);
-}
-
-/// Idle state of the security monitor: hit-tests the action cursor against the
-/// monitor's hotspot table and mirrors the result into the room's action
-/// prompt. A hit that the player confirms (`buttons[0].state == 2`) on a raised hotspot
-/// clears the prompt and runs cap command 0xE; `buttons[1].state == 2` leaves the
-/// monitor by advancing to state 5.
-void func_acropolis_security_room_8017EB9C(Task* task)
-{
-    RoomActionPrompt* prompt  = &D_80114D28;
-    AsrHotspot*       hotspot = D_acropolis_security_room_80182648;
-
-    Game_Session->field_68 = 1;
-    Game_Session->field_1  = 1;
-    if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
-        return;
-    }
-    prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
-            for (; hotspot->id != -1; hotspot++) {
-                if (hotspot->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    Gp_RunCapCmd(0xE, 0);
-                    return;
-                }
-            }
-        }
-    } else {
-        prompt->mode = 1;
-    }
-    if (prompt->buttons[1].state == 2) {
-        task->state = 5;
-    }
-}
-
-/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
-/// hotspot table `table`, raising `hit` on every entry whose rectangle
-/// contains the point and clearing it on every other one. Returns non-zero if
-/// any entry was hit, so `func_acropolis_security_room_8017EB9C` can tell
-/// "cursor is over something" from "cursor is over nothing" without rescanning
-/// the table. Same body as `func_acropolis_security_room_8017FCB0`.
-s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
-
-/// Runs the security monitor's current state. The seven handlers are copied
-/// onto the stack first, so the call goes through a local table rather than
-/// through `.rodata`.
-void func_acropolis_security_room_8017ED68(Task* task)
-{
-    TaskFuncTable7 sp;
-
-    sp = AsrMonitorStates.states;
-    sp.funcs[task->state](task);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EDE4);
-
-/// Idle state of the security room's cap script: the same hotspot scan
-/// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
-/// the script's own table and with the hit recorded in the script's state
-/// block instead of dispatched as a cap command. A confirmed
-/// (`buttons[0].state == 2`) hit copies the hotspot's `id` and `promptKind` into the
-/// state block and advances to state 3; with nothing under the cursor the
-/// pending sub-step is cleared and the prompt merely highlights (`mode` 1).
-/// `buttons[1].state == 2` leaves the scan by advancing to state 5.
-void func_acropolis_security_room_8017EE44(Task* task)
-{
-    RoomActionPrompt*           prompt = &D_80114D28;
-    AsrHotspot*                 hs     = D_acropolis_security_room_801826DC;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
-
-    Game_Session->field_68 = 1;
-    Game_Session->field_1  = 1;
-    if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
-        return;
-    }
-    prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
-            for (; hs->id != -1; hs++) {
-                if (hs->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    st->variant      = hs->id;
-                    st->promptKind   = hs->promptKind;
-                    task->state      = 3;
-                    return;
-                }
-            }
-        }
-    } else {
-        st->field_0  = 0;
-        prompt->mode = 1;
-    }
-    if (prompt->buttons[1].state == 2) {
-        task->state = 5;
-    }
-}
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D63C);
