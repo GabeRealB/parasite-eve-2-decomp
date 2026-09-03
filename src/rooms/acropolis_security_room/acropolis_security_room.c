@@ -16,6 +16,9 @@ extern Task* D_acropolis_security_room_801855AC;
 extern GpMsgEntry D_acropolis_security_room_801825DC[];
 extern TaskDesc   D_acropolis_security_room_80182618;
 
+void func_acropolis_security_room_8017E490(Task* task);
+void func_acropolis_security_room_8017EDE4(Task* task);
+
 s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 ret;
@@ -134,7 +137,18 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E8F0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E9D8);
+/// Two-state dispatcher whose handler table is built on the stack rather than
+/// read from `.data`: state 0 runs `func_acropolis_security_room_8017EDE4` and
+/// state 1 runs `func_acropolis_security_room_8017E490`.
+void func_acropolis_security_room_8017E9D8(Task* task)
+{
+    TaskFunc funcs[2] = {
+        func_acropolis_security_room_8017EDE4,
+        func_acropolis_security_room_8017E490,
+    };
+
+    funcs[task->state](task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EA28);
 
