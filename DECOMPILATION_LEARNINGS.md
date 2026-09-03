@@ -40941,3 +40941,68 @@ if (mem->field_22 > mem->field_2A * 6 - 1) {   /* store + extend first */
 
 `a > b` still becomes `slt v0, b, a`, so the operand swap costs nothing.
 Last leftover in `func_acropolis_helicopter_landing_pad_80181064`.
+
+## `move_movables` by the numbers: threshold 29, `insn_count` includes the movables, forcing doubles `savings`
+
+The hoist test in GCC 2.8.1 `loop.c` is
+`threshold * savings * lifetime >= insn_count`, with
+`threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` — **29** for
+every draw loop in this project (one call, 28 non-fixed regs). Three details
+decide most "why is this `lui` inside the loop" questions:
+
+- `insn_count` is the loop's RTL insn count **before** hoisting, so it
+  includes the constants and addresses that end up moved, and it excludes
+  nothing that reload later folds away (subreg copies from narrowing stores,
+  `mflo`s are not insns yet). `-dL` prints it as `Loop from A to B: N real
+  insns.`
+- `savings` is `n_times_set` (1), not the number of uses. It is only larger
+  when a *dependent* movable forces the insn: `m1->savings += m1->savings`
+  (doubled) and `m1->lifetime += m->lifetime`. A `u16` flag multiplied inside
+  the loop is `zero_extend` (life 1) + `mult` (cond, forces it) → life 2,
+  savings 2 → `116 >= N`, so the product hoists in any loop under 117 insns.
+  Give the product a destination that is set twice in the loop
+  (`c = fr * l; ...; c = fg * l;`) and the `mult` is no movable, nothing forces
+  the extend, and both stay inside (`lhu` from the spill slot each iteration).
+- `combine_movables` sums `savings` and `lifetime` of every movable loading the
+  same constant, so two `0xFF000000` loads that CSE did not merge still hoist
+  as one (2 × 2 × 29 = 116).
+
+The one that bites: `lui vN, %hi(Gpu_PrimCursor)` for a global that the loop
+reads and writes back (`Gpu_PrimCursor = prim + 1`) is a move-insn with life 3
+(`high`, `lw`, `addiu`, `sw`): 29 × 3 = 87. It hoists into a callee-saved
+register when the loop has ≤ 87 RTL insns and stays inside — reloaded in the
+delay slot of the back edge — at 88 or more. Two otherwise identical loops can
+therefore differ only by their size. `func_acropolis_security_room_801817A4`
+has both loops at 88+ in the ROM (in-loop `lui v1`) while the natural C gives
+81 and 87; padding with `USE_REG` reproduces the ROM's allocation (92.1% →
+94.5%), so the count is the whole difference, but no source construct that
+supplies those insns was found and the function is parked.
+
+## Hoisted constants that lose the callee-saved race are rematerialised, not spilled
+
+`update_equiv_regs` (`local-alloc.c`) marks every pseudo set once to a
+`CONST_INT`, `high` or `symbol_ref` as constant-equivalent, **doubles its
+`REG_LIVE_LENGTH`** (halving its `global.c` priority), and if it is referenced
+exactly twice substitutes the constant into the use and drops the pseudo.
+Whatever loses the allocation is then not stored to the stack: reload re-emits
+the `lui`/`lui`+`addiu` before each use, and `find_equiv_reg` lets a second use
+inherit the temp. So a loop that keeps `0xFFFFFF` in `$s2` but rebuilds
+`0xFF000000` in `$a3` (once, ahead of both `and`s) or `&Display_State` in `$t2`
+(twice) has *hoisted* all three; the matched `Gp_DrawEffShard` second loop
+does exactly that with its `.greg` showing the two as `SPILL`. Do not read an
+in-loop `lui` of a mask as "not hoisted" and do not fight it with a goto-loop
+or a barrier — it is register pressure, and the fix, when there is one, is on
+the pseudos that *won* the registers.
+
+## The `u16` flag's pre-loop product must use the `s32` value, not the `u16` copy
+
+`func_acropolis_security_room_801817A4` stores `(spawnArg1 >> 1) & 1` as a
+spilled `u16` (`sh a1, 0x18(sp)`, `lhu` inside loop 2) yet multiplies it before
+loop 1 straight from the `andi` result (`mult s3, a1`, no `lhu`, no
+`andi 0xffff`). `combine` will not fold `zero_extend (reg:HI)` back to the
+32-bit source when the `HI` pseudo has a second use in another block, so write
+what the ROM did: an `s32 f` for the arithmetic and `u16 fr = f;` for the copy
+the second loop reads. The `u16` pseudo then has one use, the lowest priority
+of the lot, and is the one that spills. Same story for `*(u16*)&blk->step`
+from m2c: that `lhu` of the low half is GCC's `convert_to_integer` shortening
+of an `s32` field in a 16-bit `-`/`+`, so `blk->x - blk->step` is the source.
