@@ -1,4 +1,5 @@
 #include "common.h"
+#include <psyq/abs.h>
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -16,6 +17,7 @@ extern s32        D_acropolis_helicopter_landing_pad_80187F84;
 extern s32        D_acropolis_helicopter_landing_pad_801837E0[];
 
 extern s32 D_801156A8;
+extern s32 Gp_LcgState;
 
 void func_acropolis_helicopter_landing_pad_8017E75C(s32 arg0)
 {
@@ -41,7 +43,50 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E81C);
+void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
+{
+    register s32 tmp asm("v0");
+    register s32 hi asm("v1");
+    s32          packed;
+    s32          lo;
+    s32          scaled;
+    s32          val;
+
+    packed = (s32)arg0->spawnArg2;
+    lo     = packed & 0xFF;
+
+    switch (arg0->state) {
+        case 0:
+            arg0->spawnArg1 = -lo;
+            arg0->state++;
+            break;
+        case 1:
+            if (lo < arg0->spawnArg1) {
+                Display_ClampField126(0);
+                Task_Kill(arg0);
+            } else {
+                tmp         = ABS(arg0->spawnArg1);
+                hi          = lo - tmp;
+                tmp         = packed >> 8;
+                scaled      = hi * tmp;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                hi          = (u32)Gp_LcgState >> 16;
+                hi          = scaled * hi;
+                hi          = hi / lo;
+                val         = hi >> 16;
+                if (arg0->spawnArg1 & 1) {
+                    val = ABS(val);
+                    Display_ClampField126(val);
+                } else {
+                    tmp = ABS(val);
+                    val = -tmp;
+                    Display_ClampField126(val);
+                }
+                arg0->spawnArg1++;
+            }
+            break;
+    }
+}
 
 void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
 {
