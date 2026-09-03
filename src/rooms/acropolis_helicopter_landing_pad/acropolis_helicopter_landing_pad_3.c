@@ -9,10 +9,13 @@ extern Task*      D_acropolis_helicopter_landing_pad_80187F80;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[];
 extern s32        D_acropolis_helicopter_landing_pad_80183A04;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184DA0[];
+extern s32        D_acropolis_helicopter_landing_pad_80184D9C;
 extern s32        D_acropolis_helicopter_landing_pad_80184E0C;
 extern GpObj4A    D_acropolis_helicopter_landing_pad_80185FAC[];
 extern s32        D_acropolis_helicopter_landing_pad_80187F84;
 extern s32        D_acropolis_helicopter_landing_pad_801837E0[];
+
+extern s32 D_801156A8;
 
 void func_acropolis_helicopter_landing_pad_8017E75C(s32 arg0)
 {
@@ -40,7 +43,35 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E81C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E974);
+void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            Gp_StartCapSlot(4, 1, 0);
+        case 2:
+        case 3:
+            task->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_801156A8 == 1) {
+                    Gp_MsgPlayerWeapon(1);
+                    Task_Kill(task);
+                    break;
+                }
+                Display_AcquireRef();
+                task->state++;
+            }
+            task->state++;
+            break;
+        case 4:
+            D_acropolis_helicopter_landing_pad_80184D9C = 3;
+            Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 0, 0, 0);
+            Task_Kill(task);
+            break;
+    }
+}
 
 void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
 {
