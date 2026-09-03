@@ -40292,3 +40292,97 @@ The same rule settled the second half of
 `func_acropolis_security_room_80180A78`: three `+=` of a `MATRIX`'s translation
 row have to be written back to back, with the *next* block's constant store
 following them, or the scheduler fills the wrong load-delay slot with it.
+
+## Two loop address registers, one at `+0` and one at `+2`: a source pointer *plus* an indexed pointer
+
+**Problem.** `func_acropolis_security_room_8017F480` walks the two button slots
+of a `RoomActionPrompt` (element size 8, first field at `+0x14`). The target
+keeps *three* induction variables in the inner loop — the counter, a pointer at
+`prompt+0x14` and a pointer at `prompt+0x16` — and reaches the third field at
+`prompt+0x18` as a **displacement** off the second:
+
+```
+addiu s3, s1, 0x14        # before the loop guard
+move  s4, zero            # i = 0
+addiu s2, s1, 0x16        # after it
+...
+sh    v0, 0(s3)           # slot->state
+lhu   v0, 0(s2)           # slot->heldFrames
+lw    v1, 2(s2)           # slot->lastPos   <- +2, not its own register
+...
+addiu s4, s4, 1 ; addiu s3, s3, 8 ; addiu s2, s2, 8
+```
+
+**Symptom.** The obvious `prompt->buttons[i].field` spelling gives *one* address
+register holding `prompt + 8*i` with `0x14`/`0x16`/`0x18` displacements, and
+GCC then eliminates `i` against it (`bne s0, s2` instead of `slti v0, s4, 2`),
+which costs a register and spills an outer-loop value. Three explicit walking
+pointers give three registers and the same biv elimination.
+
+**Fix.** Read the *placement of each register's init* in the object dump — it
+says which optimiser produced it:
+
+- an init emitted **before the loop guard** (and duplicated into a delay slot)
+  is a plain source statement, i.e. a pointer the C increments itself (a biv);
+- an init emitted **after** the biv init (`move s4, zero`) is a giv init that
+  `emit_iv_add_mult` put in the preheader.
+
+So the shape above is one source pointer and one *indexed* pointer:
+
+```c
+statep = &prompt->buttons[0].state;        /* biv: the C increments it */
+heldp  = &prompt->buttons[0].heldFrames;   /* invariant; indexed below */
+idx    = 0;
+for (i = 0; i < 2; i++, statep += 4, idx += 4) {
+    ...
+    heldp[idx]                                        /* giv, add = prompt+0x16 */
+    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed  /* giv, add = prompt+0x18 */
+    ...
+    *statep = ...;
+}
+```
+
+Two givs of the same biv whose `add_val`s differ by a constant are merged by
+`combine_givs` into one register plus a displacement, which is where `2(s2)`
+comes from. A source pointer is a separate biv class and never merges with
+them, which is what keeps `0(s3)` in its own register.
+
+`idx` is the trick from "A separate index biv puts the giv init in the loop
+preheader" applied for a different reason: indexing off `prompt->buttons[i]`
+creates a bare `i*8` giv, and `maybe_eliminate_biv` then rewrites both `i < 2`
+and `i == 0` against it and deletes `i`. Indexing a pointer with its own
+counter leaves `i` with no giv to be eliminated through, so it survives as the
+loop counter — which is what the target does.
+
+**Why the copies do not each get a register.** `strength_reduce` only reduces a
+giv when `lifetime * threshold * benefit >= insn_count`; the `.loop` dump
+prints the losers as `giv of insn N not worth while, <value> vs <insn_count>`.
+With two identical accesses combined, the value sits within a few insns of the
+loop size, so whether the third field gets its own register or stays a
+displacement is decided by how the *other* two addresses are spelled — not by
+anything local to that access.
+
+## `(u16)x << 0x10 >> 0x15` keeps `lhu`; `x >> 5` on the same `s16` field gives `lh`
+
+Two reads of the same `PadState::field_54` in one function assemble differently
+in `func_acropolis_security_room_8017F480`: the linear analog path loads it
+`lhu` and sign-extends with a shift pair, the squared path loads it `lh`.
+
+```
+lhu  v0, 0x54(a0) ; sll v0, v0, 0x10 ; sra s0, v0, 0x15   # (u16) cast, then shifts
+lh   v0, 0x54(a0) ; mult v0, v0                            # plain s16 read
+```
+
+Writing `pad->field_54 >> 5` on the `s16` field folds to `lh` + `sra 5` and
+loses the pair. Casting to `u16` first forces the zero-extending load, and the
+explicit `<< 0x10 >> 0x15` then reproduces the sign-extend-and-shift:
+
+```c
+step = ((u16)pad->field_54 << 0x10) >> 0x15;   /* lhu, sll 16, sra 21 */
+stick = pad->field_54;                          /* lh */
+```
+
+**Related:** `Pad_States` is declared `volatile`, and a volatile `s16` read into
+an `s32` compiles as `lhu` + `sll`/`sra` rather than `lh`. Room code that wants
+the plain `lh` has to take a non-volatile pointer:
+`PadState* pad = (PadState*)&Pad_States[port];`.

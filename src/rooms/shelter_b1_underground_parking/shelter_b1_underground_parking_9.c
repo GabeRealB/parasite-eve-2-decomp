@@ -24,7 +24,7 @@ void func_shelter_b1_underground_parking_80184594(Task* task)
     func_shelter_b1_underground_parking_80183B9C();
     prompt->mode     = 0;
     prompt->targetId = 0;
-    func_800D4E78(prompt->screenX, prompt->screenY, work->promptKind);
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 

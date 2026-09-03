@@ -195,7 +195,7 @@ void func_acropolis_security_room_8017D9DC(Task* task)
 /// Runs the hotspot-hit state of the security monitor: redraws the panel and
 /// cursor, then hit-tests the action cursor against the room's hotspot table.
 /// A miss leaves the prompt highlighted (`mode` 1); a hit with the prompt
-/// confirmed (`field_14` 2) scans the table for the raised entry and hands its
+/// confirmed (`buttons[0].state` 2) scans the table for the raised entry and hands its
 /// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
 /// task advances to state 5 once the prompt has been dismissed.
 void func_acropolis_security_room_8017DB30(Task* task)
@@ -217,9 +217,9 @@ void func_acropolis_security_room_8017DB30(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017ECB4(hs, prompt->screenX, prompt->screenY) != 0) {
+    if (func_acropolis_security_room_8017ECB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if ((prompt->field_14 == 2) && (hs->id != -1)) {
+        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
             do {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -235,7 +235,7 @@ void func_acropolis_security_room_8017DB30(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->field_1C == 2) {
+    if (prompt->buttons[1].state == 2) {
         task->state = 5;
     }
 }
@@ -534,7 +534,7 @@ void func_acropolis_security_room_8017EA5C(Task* task)
     prompt->targetId = 0;
     func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
     func_acropolis_security_room_8017E37C(task);
-    func_800D4E78(prompt->screenX, prompt->screenY, work->promptKind);
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
@@ -577,8 +577,8 @@ done:
 
 /// Idle state of the security monitor: hit-tests the action cursor against the
 /// monitor's hotspot table and mirrors the result into the room's action
-/// prompt. A hit that the player confirms (`field_14 == 2`) on a raised hotspot
-/// clears the prompt and runs cap command 0xE; `field_1C == 2` leaves the
+/// prompt. A hit that the player confirms (`buttons[0].state == 2`) on a raised hotspot
+/// clears the prompt and runs cap command 0xE; `buttons[1].state == 2` leaves the
 /// monitor by advancing to state 5.
 void func_acropolis_security_room_8017EB9C(Task* task)
 {
@@ -593,9 +593,9 @@ void func_acropolis_security_room_8017EB9C(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screenX, prompt->screenY) != 0) {
+    if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->field_14 == 2) {
+        if (prompt->buttons[0].state == 2) {
             for (; hotspot->id != -1; hotspot++) {
                 if (hotspot->hit != 0) {
                     prompt->mode     = 0;
@@ -608,7 +608,7 @@ void func_acropolis_security_room_8017EB9C(Task* task)
     } else {
         prompt->mode = 1;
     }
-    if (prompt->field_1C == 2) {
+    if (prompt->buttons[1].state == 2) {
         task->state = 5;
     }
 }
@@ -653,10 +653,10 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 /// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
 /// the script's own table and with the hit recorded in the script's state
 /// block instead of dispatched as a cap command. A confirmed
-/// (`field_14 == 2`) hit copies the hotspot's `id` and `promptKind` into the
+/// (`buttons[0].state == 2`) hit copies the hotspot's `id` and `promptKind` into the
 /// state block and advances to state 3; with nothing under the cursor the
 /// pending sub-step is cleared and the prompt merely highlights (`mode` 1).
-/// `field_1C == 2` leaves the scan by advancing to state 5.
+/// `buttons[1].state == 2` leaves the scan by advancing to state 5.
 void func_acropolis_security_room_8017EE44(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
@@ -671,9 +671,9 @@ void func_acropolis_security_room_8017EE44(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017FCB0(hs, prompt->screenX, prompt->screenY) != 0) {
+    if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->field_14 == 2) {
+        if (prompt->buttons[0].state == 2) {
             for (; hs->id != -1; hs++) {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
@@ -689,7 +689,7 @@ void func_acropolis_security_room_8017EE44(Task* task)
         st->field_0  = 0;
         prompt->mode = 1;
     }
-    if (prompt->field_1C == 2) {
+    if (prompt->buttons[1].state == 2) {
         task->state = 5;
     }
 }

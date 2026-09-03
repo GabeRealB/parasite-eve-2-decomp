@@ -15,13 +15,13 @@ void Room_Util04(Task* task)
     s32               i;
 
     for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0  = 0;
-        prompt->field_4  = 0;
-        prompt->targetId = 0x100;
-        prompt->field_E  = 0xF;
-        prompt->field_16 = 0;
-        prompt->field_1E = 0;
-        prompt->mode     = 1;
+        prompt->field_0               = 0;
+        prompt->field_4               = 0;
+        prompt->targetId              = 0x100;
+        prompt->field_E               = 0xF;
+        prompt->buttons[0].heldFrames = 0;
+        prompt->buttons[1].heldFrames = 0;
+        prompt->mode                  = 1;
     }
     task->state = task->state + 1;
 }
