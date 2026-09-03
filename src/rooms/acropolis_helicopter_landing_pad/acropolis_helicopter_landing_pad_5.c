@@ -3,11 +3,15 @@
 #include "gameplay/1A8.h"
 #include "main/display.h"
 #include "main/mc.h"
+#include "main/session.h"
 #include "main/task.h"
 
 extern s8        D_8007106B;
 extern TaskDesc  D_acropolis_helicopter_landing_pad_80184E68;
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
+
+void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
+void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
 
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 {
@@ -62,7 +66,22 @@ void func_acropolis_helicopter_landing_pad_8017EF60(void)
     Task_Spawn(2, 0xF, 0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EF8C);
+/// Five-state dispatcher of the room's intro task; the handler table is built
+/// on the stack. Marks the player actor's `field_930` as 2 before every step.
+void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
+{
+    GameActor* actor     = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    TaskFunc   states[5] = {
+        func_acropolis_helicopter_landing_pad_8017ED50,
+        func_acropolis_helicopter_landing_pad_8017EDD4,
+        func_acropolis_helicopter_landing_pad_8017EE2C,
+        func_acropolis_helicopter_landing_pad_8017EE80,
+        func_acropolis_helicopter_landing_pad_8017EEDC,
+    };
+
+    actor->field_930 = 2;
+    states[arg0->state](arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017F010);
 

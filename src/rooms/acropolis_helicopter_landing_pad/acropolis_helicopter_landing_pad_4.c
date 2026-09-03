@@ -84,5 +84,3 @@ L_case5:
     Task_Kill(task);
     Display_ResetHeapWrapper();
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_4", D_acropolis_helicopter_landing_pad_8017D644);
