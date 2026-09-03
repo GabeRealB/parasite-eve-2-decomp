@@ -245,6 +245,27 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
 
     An overlay that contains the body twice is left out: ld includes an input
     object once, so the second slot would go unfilled.
+
+    **Most duplicated bodies cannot be promoted as things stand**, and it is
+    worth knowing why before planning a promotion pass around them. Measured
+    over the 42 clusters that account for the 828 functions the vacuum skips as
+    already-matched-elsewhere: 39 are refused because the body references its
+    own overlay's data, one because every carrier holds it twice, and the last
+    two are already shared. Not one was promotable.
+
+    The refusal is a tooling gap rather than a fact about the code. Two copies
+    of such a body differ only in the address of the room-local data they read -
+    D_acropolis_square_8017D620 against D_acropolis_fire_escape_8017D610 - and
+    each overlay is a separate link, so one object could serve all of them if
+    the symbol resolved per overlay. The build already writes a per-overlay
+    linkers/USA/undefined_syms_auto.<overlay>.txt; what is missing is for
+    promotion to name the data with a shared symbol and emit that symbol at each
+    carrier's own address. Shared units reference externals today only when the
+    symbol is overlay-neutral (room_util30.c reads D_8007216D, a fixed global).
+
+    Until that exists, the high-value work of this shape is not promotion at all
+    but the 78 already-shared units whose body is still INCLUDE_ASM, covering
+    631 carrier slots - matching room_draw03 once fills a stub in 40 overlays.
     """
     import tomllib
 
