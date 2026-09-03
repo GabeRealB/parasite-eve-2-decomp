@@ -391,7 +391,82 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80180664);
+/// Draws one random spark line off the floodlight coord, the same shape as
+/// `func_acropolis_helicopter_landing_pad_80180A64` with a different box:
+/// `a` is rolled 64 wide and 128 tall hanging 0xC0..0x41 below the coord,
+/// `b` is centred (128 wide, 255 tall via an LCG modulo). Both are rotated by
+/// the coord's `workm`, offset by its translation and projected through
+/// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
+/// and red half of it. Nothing is queued when the GTE flag word is negative.
+void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
+{
+    void**            scratch;
+    u8*               head;
+    AhlpSparkScratch* blk;
+    LINE_F2*          prim;
+    SVECTOR*          vec;
+    u32               tmp;
+    u16               lvl;
+
+    Gp_UpdateCoord(coord);
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    *scratch    = head - 0x20;
+    blk         = (AhlpSparkScratch*)(head - 0x20);
+    vec         = &blk->a;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    blk->a.vx   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    blk->a.vy   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0xC0;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    blk->a.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+    __asm__("" : "+r"(vec));
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(vec);
+    gte_rtv0_real();
+    gte_stsv(vec);
+    blk->a.vx   = (u16)blk->a.vx + (u16)coord->workm.t[0];
+    blk->a.vy   = (u16)blk->a.vy + (u16)coord->workm.t[1];
+    blk->a.vz   = (u16)blk->a.vz + (u16)coord->workm.t[2];
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    blk->b.vx   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0x40;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    blk->b.vy   = (((u32)Gp_LcgState >> 16) % 0xFF) - 0x80;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    blk->b.vz   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0x40;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
+    gte_rtv0_real();
+    gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
+    blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
+    blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
+    blk->b.vz = *(u16*)&blk->b.vz + *(u16*)&coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
+    gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
+    gte_rtps_real();
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    tmp         = ((u32)Gp_LcgState >> 16) & 0xFF;
+    lvl         = tmp;
+    gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x1);
+    gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
+    if (blk->flag >= 0) {
+        gte_stszotz(&((AhlpSparkScratch*)(head - 0x20))->otz);
+        prim           = (LINE_F2*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setLineF2(prim);
+        setRGB0(prim, tmp >> 1, lvl, 0xFF);
+        prim->x0 = blk->x0;
+        prim->y0 = blk->y0;
+        prim->x1 = blk->x1;
+        prim->y1 = blk->y1;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
 
 /// Draws one random spark line off the floodlight coord: two endpoints are
 /// rolled from the LCG (`a` in a 64x128x64 box, `b` in 64x256x64), rotated by
