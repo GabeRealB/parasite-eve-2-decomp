@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
@@ -13,6 +14,7 @@
 #include "rooms/room_common.h"
 
 extern s16        D_80071076;
+extern s32        D_acropolis_helicopter_landing_pad_80184D9C;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 
@@ -115,4 +117,28 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E270);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E3F0);
+/// Message 0x13EE handler: copies the requested `GpSaveLoc` to `dst`. For a
+/// warp into stage 0xF it consults the room's phase
+/// (`D_acropolis_helicopter_landing_pad_80184D9C`): phase 0 queues sound
+/// event 0x1E and refuses the warp (returns 1); phase 2 starts cap slot 9
+/// first. `field_5` set skips the side effect either way.
+s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    if (*(u16*)src == 0xF) {
+        if (D_acropolis_helicopter_landing_pad_80184D9C == 0) {
+            if (src->field_5 == 0) {
+                SndEvt_EnqueueType7(-1, 0x1E);
+            }
+            return 1;
+        }
+        if (D_acropolis_helicopter_landing_pad_80184D9C == 2) {
+            if (src->field_5 == 0) {
+                Gp_StartCapSlot(9, 1, 0);
+            }
+            return 0;
+        }
+        return 0;
+    }
+    return 1;
+}
