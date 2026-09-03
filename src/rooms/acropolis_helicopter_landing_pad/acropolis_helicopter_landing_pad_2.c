@@ -9,13 +9,20 @@ void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 
 extern s8 D_801153F1;
 
+extern s32      D_acropolis_helicopter_landing_pad_80184D9C;
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0;
 extern s32      D_acropolis_helicopter_landing_pad_80184E50;
 extern s32      D_acropolis_helicopter_landing_pad_80187F84;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E4A4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", func_acropolis_helicopter_landing_pad_8017E570);
+s32 func_acropolis_helicopter_landing_pad_8017E570(s32 arg0, s32 arg1, s32 arg2)
+{
+    if ((arg2 == 4) && (D_acropolis_helicopter_landing_pad_80184D9C == 2)) {
+        Task_SpawnFromTable(&D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);
+    }
+    return 0;
+}
 
 void func_acropolis_helicopter_landing_pad_8017E5B8(void)
 {
