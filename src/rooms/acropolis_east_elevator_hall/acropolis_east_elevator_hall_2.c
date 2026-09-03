@@ -1,15 +1,32 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 
 extern s32 D_acropolis_east_elevator_hall_80185C8C;
+extern s32 D_acropolis_east_elevator_hall_80185D54;
+extern s32 D_acropolis_east_elevator_hall_801860B4;
 extern s32 D_acropolis_east_elevator_hall_8018621C;
 extern s32 D_acropolis_east_elevator_hall_801862F4;
+extern s32 D_acropolis_east_elevator_hall_8018631C;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", func_acropolis_east_elevator_hall_8017F378);
+s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+{
+    if (arg2->field_2 == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
+        func_800E8634((s32)&D_acropolis_east_elevator_hall_80185D54, 0, (s32)&D_acropolis_east_elevator_hall_801860B4);
+        D_acropolis_east_elevator_hall_8018631C = 1;
+        GameFlag_SetNibble(0, 1);
+        GameFlag_SetNibble(3, 0);
+        GameFlag_SetNibble(0x155, 3);
+        GameFlag_SetNibble(8, 2);
+        func_800E3FAC(0xA2, 2);
+    }
+    return 0;
+}
 
 s32 func_acropolis_east_elevator_hall_8017F420(s32 arg0, s32 arg1, s32 arg2)
 {
