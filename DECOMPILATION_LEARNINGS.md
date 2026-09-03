@@ -40254,3 +40254,41 @@ if (id >= 0) {
     c = (~id + 1) & 0xFF;
 }
 ```
+
+## Constant field stores hide in the `multu` shadow — put them *after* the divide
+
+**Problem.** A scratch block is filled with two constants and one value that
+needs a `% 406`, which aspsx expands to `multu`/`mfhi` plus a shift chain. The
+target schedules the pointer publish and one constant store *between* the
+`multu` and its `mfhi`:
+
+```
+multu   $a0, $t3
+li      $t2, 0x9af
+li      $t1, 0xf633
+sw      $a2, 0($s0)
+sh      $t2, 8($a2)      # blk->a.vz = 0x9AF
+mfhi    $s1
+```
+
+**Symptom.** Writing the constant *before* the division statement scores ~93%
+with `reorder`/`regs` only: the store floats up into the load-delay slot ahead
+of the division instead, and the constant's pseudo is allocated a register one
+number lower because its live range starts earlier (`$t3` vs `$t2` here). The
+knock-on shifts every later store in the block.
+
+**Fix.** GCC 2.8.1's scheduler will sink an independent store into the multiply
+latency, but it will not lift one across it, so source order decides which
+happens. Emit the long statement first and the cheap constant stores after it:
+
+```c
+blk->a.vx = -0x427;
+blk->a.vy = ((u32)Display_State.field_8 * 6) % 406 + 0xF633;
+*scratch  = blk;
+blk->a.vz = 0x9AF;
+```
+
+The same rule settled the second half of
+`func_acropolis_security_room_80180A78`: three `+=` of a `MATRIX`'s translation
+row have to be written back to back, with the *next* block's constant store
+following them, or the scheduler fills the wrong load-delay slot with it.

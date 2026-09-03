@@ -6,6 +6,8 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
+#include <psyq/libgte.h>
+
 /// 0xA work block of the security-monitor task, hung off the `Task::idMap`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
 /// `Mem_Calloc(0xA)` block `func_acropolis_security_room_8017D9DC` allocates.
@@ -127,5 +129,21 @@ void func_acropolis_security_room_8017E37C(Task* task);
 /// Outlines `rect` on screen with four flat `LINE_F2` primitives in the colour
 /// (`r`, `g`, `b`), linked into `Gpu_CurrentOt[3]`.
 void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b);
+
+/// 0x14-byte scratch block `func_acropolis_security_room_80180A78` takes from
+/// `G_SCRATCH_HEAD` while it draws the security laser. `a` and `b` are the two
+/// endpoints of the beam in the emitter's local frame; each is rotated by the
+/// emitter's `GsCOORDINATE2::workm` and then biased by that matrix's
+/// translation, so both end up in world space. `otz` receives `SZ3 >> 2` from
+/// the `RTPS` of `a` and doubles as the OT slot selector.
+typedef struct AsrBeamScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR a;
+    /* 0x0C */ SVECTOR b;
+} AsrBeamScratch;
+STATIC_ASSERT_SIZEOF(AsrBeamScratch, 0x14);
+
+/// Draws the security room's sweeping laser beam for this frame.
+void func_acropolis_security_room_80180A78(Task* task);
 
 #endif // ROOMS_ACROPOLIS_SECURITY_ROOM_H

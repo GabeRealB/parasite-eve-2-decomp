@@ -27,10 +27,17 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
+/// vector added. Same reason as above for spelling out the word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 void func_acropolis_security_room_8017FD64(s32 flags);
 void func_acropolis_security_room_8017F480(Task* task);
 void func_acropolis_security_room_80180308(Task* task);
-void func_acropolis_security_room_80180A78(Task* task);
 
 /// The two `TaskDesc`s this room's script spawns from: index 0 is
 /// `func_acropolis_security_room_80180368`, index 1 is
@@ -789,7 +796,72 @@ void func_acropolis_security_room_801805A4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180A78);
+/// Draws the security room's sweeping laser beam: two points in the emitter's
+/// local frame are rotated into world space by the emitter coordinate's
+/// `workm`, projected through `GsWSMATRIX`, and linked into the current OT as
+/// one semi-transparent flat `LINE_F2`. The beam only exists in the two camera
+/// views selected by the `0xC` bitmask over `GameSession::field_4`, its far
+/// endpoint sweeps with the frame counter (`Display_State.field_8 * 6` folded
+/// into a 406-step range), and nothing is queued when the near endpoint
+/// projects closer than an OTZ of 0x11.
+void func_acropolis_security_room_80180A78(Task* task)
+{
+    void**          scratch;
+    u8*             head;
+    AsrBeamScratch* blk;
+    GsCOORDINATE2*  coord;
+    LINE_F2*        prim;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    if ((0xC >> ((u8)Game_Session->field_4 - 1)) & 1) {
+        scratch   = (void**)G_SCRATCH_HEAD;
+        head      = *scratch;
+        blk       = (AsrBeamScratch*)(head - 0x14);
+        blk->a.vx = -0x427;
+        blk->a.vy = ((u32)Display_State.field_8 * 6) % 406 + 0xF633;
+        *scratch  = blk;
+        blk->a.vz = 0x9AF;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
+        gte_rtv0_real();
+        gte_stsv(&((AsrBeamScratch*)(head - 0x14))->a);
+        blk->a.vx = *(u16*)&blk->a.vx + *(u16*)&coord->workm.t[0];
+        blk->a.vy = *(u16*)&blk->a.vy + *(u16*)&coord->workm.t[1];
+        blk->a.vz = *(u16*)&blk->a.vz + *(u16*)&coord->workm.t[2];
+        blk->b.vx = -0x1F0;
+        blk->b.vy = ((u32)Display_State.field_8 * 6) % 406 + 0xF633;
+        blk->b.vz = 0x9AF;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
+        gte_rtv0_real();
+        gte_stsv(&((AsrBeamScratch*)(head - 0x14))->b);
+        blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
+        blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
+        blk->b.vz = *(u16*)&blk->b.vz + *(u16*)&coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
+        gte_rtps_real();
+        prim           = (LINE_F2*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setLineF2(prim);
+        gte_stsxy(&prim->x0);
+        gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
+        gte_rtps_real();
+        prim->code |= 2;
+        gte_stsxy(&prim->x1);
+        gte_stszotz(&blk->otz);
+        if (((AsrBeamScratch*)(head - 0x14))->otz > 0x10) {
+            setRGB0(prim, 0x10, 0x10, 0x10);
+            addPrim((u_long*)(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << Display_State.field_128) >> 2) &
+                               0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 2, ((AsrBeamScratch*)(head - 0x14))->otz);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    }
+}
 
 /// Per-frame draw for the security-room's flash sprite: refreshes the task's
 /// coordinate frame, loads it into the GTE, then queues one 128x128 textured
