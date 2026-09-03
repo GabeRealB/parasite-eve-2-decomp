@@ -40193,3 +40193,64 @@ Note also the shape of the clamp: writing it as a nested conditional
 lets the register allocator put three of them in `$v1` and coalesce the fourth
 with the dying `limit`. An `if`/`else` chain storing into one shared `s16`
 local is a single pseudo and cannot reproduce that.
+
+## Primitive field store order: interleave vertices, do not group by constant
+
+**Problem.** `func_acropolis_security_room_8017E0C4` fills three `POLY_F4`
+packets whose eight coordinates are two distinct constants each (`x` is
+`-0x66` or `0x6C`, `y` is `-0x5F` or `0x3C`). The object dump stores them
+grouped — `sh` to `x0`, `x2`, then `x1`, `x3` — so the obvious source is
+grouped too. That version stalls at 84% with the whole penalty in `regs` and in
+`insert`/`delete` pairs for six moved `li`s: the target materialises `-0x66`
+and `0x6C` in their own long-lived registers (`$a0`, `$v1`) at the *top* of the
+block, before the `lw` of `Gpu_PrimCursor`, while the grouped source funnels
+every constant through `$v0` right before its pair of stores.
+
+**Cause.** Two `sh`s at different constant offsets from the same base do not
+conflict, so `sched1` — which runs *before* register allocation — is free to
+reorder them. Store order in the object dump is therefore **not** source order,
+and grouping by constant is not what the source did. Writing the vertices in
+their natural order gives `-0x66` uses at statements 1 and 5 and `0x6C` uses at
+3 and 7; those long live ranges are what earn separate hard registers and let
+the scheduler hoist the `li` to the top of the block. `sched1` then re-groups
+the stores by constant, reproducing the dump.
+
+```c
+poly->x0 = -0x66;  poly->y0 = -0x5F;
+poly->x1 = 0x6C;   poly->y1 = -0x5F;
+poly->x2 = -0x66;  poly->y2 = 0x3C;
+poly->x3 = 0x6C;   poly->y3 = 0x3C;
+```
+
+That one reordering took the function from 84% to 100%. The reverse reading is
+the useful rule: when a constant's `li` sits far from its stores and lands in a
+register that is reused for something else afterwards, its uses are *separated*
+in the source, not adjacent.
+
+## `nor`/`addiu` negation means `~x + 1`, and the mask width names the type
+
+**Problem.** The same function negates a `s16` in one arm of an `if`:
+
+```
+nor    $v0, $zero, $a0
+addiu  $v0, $v0, 1
+andi   $v1, $v0, 0xff
+```
+
+`-id` compiles to a single `negu`, so the two-instruction negation is literally
+`~id + 1` in the source. The trailing `andi` is not free either: with `u8 c`,
+GCC folds `& 0xFF` into the QImode truncation and emits neither the mask nor a
+sign extension, and with `int c` it emits the mask *plus* the `sll`/`sra` pair
+that sign-extends the `s16` parameter. Only `u16 c` gives exactly
+`nor`/`addiu`/`andi 0xff` with no extension, and it is also what keeps `id`
+itself in `$a0` (a wider type forces a `move` to preserve it across the
+compare's `sll`).
+
+```c
+u16 c;
+if (id >= 0) {
+    c = id & 0x7F;
+} else {
+    c = (~id + 1) & 0xFF;
+}
+```

@@ -356,7 +356,93 @@ void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
     addPrim(Gpu_CurrentOt + 3, line);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E0C4);
+/// Washes the security-monitor panel with the grey level `id` -- the work
+/// block's `cameraId` biased by -0x7F -- as a semi-transparent `POLY_F4`
+/// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `Gpu_CurrentOt[0xC]`, followed by
+/// the drawing-mode packet that restores the panel's texture page. A negative
+/// `id` uses its magnitude and the other semi-transparency rate (0xE100004A
+/// rather than 0xE100002A), which is what makes the "no signal" panel read
+/// differently from a live camera. The strip below the panel (y 0x3C to 0x38)
+/// is then blacked out with an opaque quad in `Gpu_CurrentOt[0xB]`.
+void func_acropolis_security_room_8017E0C4(s16 id)
+{
+    POLY_F4* poly;
+    DR_MODE* dr;
+    u16      c;
+
+    if (id >= 0) {
+        c              = id & 0x7F;
+        poly           = (POLY_F4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setlen(poly, 5);
+        setcode(poly, 0x2A);
+        poly->r0 = c;
+        poly->g0 = c;
+        poly->b0 = c;
+        poly->x0 = -0x66;
+        poly->y0 = -0x5F;
+        poly->x1 = 0x6C;
+        poly->y1 = -0x5F;
+        poly->x2 = -0x66;
+        poly->y2 = 0x3C;
+        poly->x3 = 0x6C;
+        poly->y3 = 0x3C;
+        addPrim(Gpu_CurrentOt + 0xC, poly);
+
+        dr             = (DR_MODE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+        setlen(dr, 1);
+        dr->code[0] = 0xE100002A;
+        addPrim(Gpu_CurrentOt + 0xC, dr);
+    } else {
+        c              = (~id + 1) & 0xFF;
+        poly           = (POLY_F4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setlen(poly, 5);
+        setcode(poly, 0x2A);
+        poly->r0 = c;
+        poly->g0 = c;
+        poly->b0 = c;
+        poly->x0 = -0x66;
+        poly->y0 = -0x5F;
+        poly->x1 = 0x6C;
+        poly->y1 = -0x5F;
+        poly->x2 = -0x66;
+        poly->y2 = 0x3C;
+        poly->x3 = 0x6C;
+        poly->y3 = 0x3C;
+        addPrim(Gpu_CurrentOt + 0xC, poly);
+
+        dr             = (DR_MODE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+        setlen(dr, 1);
+        dr->code[0] = 0xE100004A;
+        addPrim(Gpu_CurrentOt + 0xC, dr);
+    }
+
+    poly           = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    setlen(poly, 5);
+    setcode(poly, 0x28);
+    poly->r0 = 0;
+    poly->g0 = 0;
+    poly->b0 = 0;
+    poly->x0 = -0x66;
+    poly->y0 = 0x3C;
+    poly->x1 = 0x6C;
+    poly->y1 = 0x3C;
+    poly->x2 = -0x66;
+    poly->y2 = 0x38;
+    poly->x3 = 0x6C;
+    poly->y3 = 0x38;
+    addPrim(Gpu_CurrentOt + 0xB, poly);
+
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    setlen(dr, 1);
+    dr->code[0] = 0xE100000A;
+    addPrim(Gpu_CurrentOt + 0xB, dr);
+}
 
 /// Draws the blinking cursor overlay on top of the monitor panel: a 0x6C-wide
 /// grey `TILE` whose top edge and height both track `AsrMonitorWork::blinkTimer`,
