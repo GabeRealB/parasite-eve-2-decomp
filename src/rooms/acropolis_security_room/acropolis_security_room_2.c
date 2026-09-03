@@ -25,7 +25,7 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-void func_acropolis_security_room_8017FD64(s32 arg0);
+void func_acropolis_security_room_8017FD64(s32 flags);
 void func_acropolis_security_room_8017F480(Task* task);
 void func_acropolis_security_room_80180308(Task* task);
 
@@ -323,7 +323,37 @@ s32 func_acropolis_security_room_8017FCB0(AsrHotspot* table, s16 x, s16 y)
     return hit;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FD64);
+/// Repaints the two security-monitor sprites for the current state of game
+/// flag nibble 9, whose low two bits say which of the two shutters has been
+/// opened. The nibble selects, for each of the two sprite commands of view 6
+/// in this room's sprite record, whether `Gp_LinkViewSprts` skips linking it
+/// (`field_4` non-zero) or draws it.
+void func_acropolis_security_room_8017FD64(s32 flags)
+{
+    GameSession*      g    = Game_Session;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GpSprtCmd*        cmd;
+
+    cmd = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1][5].field_4;
+    switch (flags & 0xFF) {
+        case 0:
+            cmd[1].field_4 = 1;
+            cmd[2].field_4 = 1;
+            break;
+        case 1:
+            cmd[1].field_4 = 0;
+            cmd[2].field_4 = 1;
+            break;
+        case 2:
+            cmd[1].field_4 = 1;
+            cmd[2].field_4 = 0;
+            break;
+        case 3:
+            cmd[1].field_4 = 0;
+            cmd[2].field_4 = 0;
+            break;
+    }
+}
 
 /// `GpMsgEntry` handler for message 0x13F1, the "can this key item be used
 /// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
