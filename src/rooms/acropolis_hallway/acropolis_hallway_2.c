@@ -19,5 +19,3 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway_2", func_acr
 INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway_2", func_acropolis_hallway_8017D9D4);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway_2", func_acropolis_hallway_8017E120);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway_2", func_acropolis_hallway_8017E1C0);

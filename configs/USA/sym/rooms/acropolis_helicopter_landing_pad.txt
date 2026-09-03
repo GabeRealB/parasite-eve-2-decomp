@@ -1,3 +1,4 @@
 // Overlay-local symbols for acropolis_helicopter_landing_pad.
 Room_Util06 = 0x8017E49C; // shared body, see src/rooms/lib/
 Room_Util07 = 0x8017E724; // shared body, see src/rooms/lib/
+RoomsShared801822b0 = 0x801822B0; // shared body, see src/rooms/lib/
