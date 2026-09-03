@@ -1,5 +1,6 @@
 #include "common.h"
 #include "gameplay/gameplay.h"
+#include "gameplay/1A8.h"
 #include "main/display.h"
 #include "main/task.h"
 
@@ -16,7 +17,18 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017ED50);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EDD4);
+void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
+{
+    GpMsg3EE msg;
+    Task*    slot;
+
+    slot         = Game_GetPtrSlot(3);
+    msg.field_10 = 0;
+    msg.field_12 = 0;
+    msg.field_14 = 0;
+    Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EE2C);
 
