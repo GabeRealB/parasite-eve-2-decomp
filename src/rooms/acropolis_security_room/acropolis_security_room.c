@@ -6,6 +6,7 @@
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/acropolis_security_room.h"
@@ -15,6 +16,15 @@ extern Task* D_acropolis_security_room_801855AC;
 
 extern GpMsgEntry D_acropolis_security_room_801825DC[];
 extern TaskDesc   D_acropolis_security_room_80182618;
+
+/// The five camera ids the security monitor can display, in the order the
+/// `GameFlag_GetNibble(0x2A)` nibble indexes them (see
+/// `func_acropolis_security_room_8017D9DC`, which seeds `AsrMonitorWork::cameraId`
+/// from this table).
+extern s16 D_acropolis_security_room_801826B4[];
+
+extern s8  D_8007216C;
+extern s16 D_80114D08;
 
 void func_acropolis_security_room_8017E490(Task* task);
 void func_acropolis_security_room_8017EDE4(Task* task);
@@ -168,7 +178,42 @@ void func_acropolis_security_room_8017EA5C(Task* task)
     task->state = 4;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EADC);
+/// Leaves the security monitor: records which camera was on screen as the
+/// `0x2A` nibble (index into `D_acropolis_security_room_801826B4`, 0 if the id
+/// is not in the table), restores the room's normal display state and kills the
+/// monitor task along with the child task it spawned.
+void func_acropolis_security_room_8017EADC(Task* task)
+{
+    AsrMonitorWork* work;
+    s16*            camera;
+    s32             index;
+    s32             cameraId;
+
+    index      = 0;
+    camera     = D_acropolis_security_room_801826B4;
+    work       = (AsrMonitorWork*)task->idMap;
+    D_80114D08 = 0xA;
+    cameraId   = (s16)work->cameraId;
+loop:
+    if (cameraId != *camera) {
+        index  += 1;
+        camera += 1;
+        if (index >= 5) {
+            GameFlag_SetNibble(0x2A, 0);
+            goto done;
+        }
+        goto loop;
+    }
+    GameFlag_SetNibble(0x2A, index);
+done:
+    D_8007216C = 4;
+    Display_ReleaseRef();
+    Game_Session->field_66 = 0;
+    Game_Session->field_68 = 0;
+    Game_Session->field_1  = 0;
+    Task_Kill((Task*)task->spawnArg2);
+    Task_RequestKill(task, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EB9C);
 

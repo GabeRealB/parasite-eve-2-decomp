@@ -39794,3 +39794,62 @@ Check the `.i` (`ninja build/USA/<path>.i`) for where the failing type is
 actually typedef'd relative to its first use. Fix the header (hoist the psyq
 include above the project includes) rather than papering over it with an extra
 `#include` in the new `.c` — the next lean TU hits the same wall.
+
+## The same call written twice: duplicated argument setup around a join
+
+A call whose *constant* argument is set in both predecessors of the join, with
+the `jal` delay slot left as `nop`, means the source called the function twice:
+
+```
+    beq   $v1, $v0, .Ldone
+     addiu $a0, $zero, 0x2A     # copy in the delay slot
+    …loop tail…
+    addiu $a0, $zero, 0x2A      # original, on the fall-through path
+    addu  $a1, $zero, $zero
+.Ldone:
+    jal   GameFlag_SetNibble
+     nop
+```
+
+Writing it once — a search loop that falls out with `i = 0` and then calls
+`GameFlag_SetNibble(0x2A, i)` at the join — is *better* code and scores 95%:
+GCC sinks the `li $a0` past the join and it ends up in the `jal` delay slot,
+leaving `nop` in the `beq`'s. Duplicating the call instead lets cross-jumping
+tail-merge just the `jal`, so each predecessor keeps its own argument setup:
+
+```c
+loop:
+    if (cam != *p) {
+        i += 1;
+        p += 1;
+        if (i >= 5) {
+            GameFlag_SetNibble(0x2A, 0);   /* not `i = 0; goto join;` */
+            goto done;
+        }
+        goto loop;
+    }
+    GameFlag_SetNibble(0x2A, i);
+done:
+```
+
+This is the counterpart of "A `move` duplicated in a delay slot *and* before
+the label": there the duplicate is `fill_slots_from_thread` stealing the join
+block's first insn, here it is two real call sites that never got merged.
+`func_acropolis_security_room_8017EADC`.
+
+### The `(s16)` cast only folds into `lh` if the local is `int`-wide
+
+"One `u16` field read as both `lhu` and `lh`" says an explicit `(s16)` cast on a
+`u16` field folds back into a single `lh`. It only does so when the value's
+destination is word-sized. Assigning the cast to an `s16` local keeps the
+truncation visible and `combine` gives up:
+
+```c
+s16 cam = (s16)work->cameraId;   /* lhu; nop; sll 16; sra 16  */
+s32 cam = (s16)work->cameraId;   /* lh                        */
+```
+
+Both spellings compare identically afterwards, so the leftover `sll`/`sra` pair
+is the only signal. Widen the local before reaching for a struct-field type
+change — `AsrMonitorWork::cameraId` has to stay `u16` for the `lhu` in
+`func_acropolis_security_room_8017EA5C`.
