@@ -391,7 +391,28 @@ void func_acropolis_security_room_8017EB9C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017ECB4);
+/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
+/// hotspot table `table`, raising `hit` on every entry whose rectangle
+/// contains the point and clearing it on every other one. Returns non-zero if
+/// any entry was hit, so `func_acropolis_security_room_8017EB9C` can tell
+/// "cursor is over something" from "cursor is over nothing" without rescanning
+/// the table. Same body as `func_acropolis_security_room_8017FCB0`.
+s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y)
+{
+    s32 hit;
+
+    hit = 0;
+    while (table->id != -1) {
+        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
+            table->hit = 1;
+            hit        = 1;
+        } else {
+            table->hit = 0;
+        }
+        table++;
+    }
+    return hit;
+}
 
 /// Runs the security monitor's current state. The seven handlers are copied
 /// onto the stack first, so the call goes through a local table rather than
