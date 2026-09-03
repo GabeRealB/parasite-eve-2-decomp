@@ -58,6 +58,18 @@ typedef struct AsrHotspot {
 } AsrHotspot;
 STATIC_ASSERT_SIZEOF(AsrHotspot, 0xC);
 
+/// Screen rectangle outlined by `func_acropolis_security_room_8017DE80`: the
+/// corners it draws are (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are
+/// extents rather than a second corner. The fields are unsigned because the
+/// drawer loads every one of them with `lhu`.
+typedef struct AsrRect {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ u16 y;
+    /* 0x4 */ u16 w;
+    /* 0x6 */ u16 h;
+} AsrRect;
+STATIC_ASSERT_SIZEOF(AsrRect, 0x8);
+
 /// Scratch state of the security-room cap script, stored at `Task::idMap`.
 ///
 /// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
@@ -111,5 +123,9 @@ void func_acropolis_security_room_8017E0C4(s16 id);
 
 /// Draws the blinking cursor overlay on top of the monitor panel.
 void func_acropolis_security_room_8017E37C(Task* task);
+
+/// Outlines `rect` on screen with four flat `LINE_F2` primitives in the colour
+/// (`r`, `g`, `b`), linked into `Gpu_CurrentOt[3]`.
+void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b);
 
 #endif // ROOMS_ACROPOLIS_SECURITY_ROOM_H

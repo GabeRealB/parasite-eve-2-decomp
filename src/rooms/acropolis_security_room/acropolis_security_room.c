@@ -298,7 +298,63 @@ void func_acropolis_security_room_8017DC7C(Task* task)
     task->state = 2;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017DE80);
+/// Outlines `rect` on screen in the colour (`r`, `g`, `b`) with four
+/// unconnected flat lines -- top, right, bottom and left edge of the rectangle
+/// spanning (`x`, `y`) to (`x + w`, `y + h`) -- each linked into
+/// `Gpu_CurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
+/// drawer for the hotspot rectangles.
+void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
+{
+    LINE_F2* line;
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E0C4);
 

@@ -40087,3 +40087,34 @@ worse (76% in this function). The two macros are chosen independently.
 
 **Order still matters.** With `setUVWH` in place, putting `setlen`/`setcode`
 *before* it left `insert=2 delete=2`; moving them after it was the 100%.
+
+## Colour `sb` stores of arguments go last in a prim-fill block
+
+**Problem.** `func_acropolis_security_room_8017DE80` fills four `LINE_F2`
+packets in a row from a `u16` rectangle. Writing the block in the order m2c
+prints it — `x0`, `y0`, `x1`, `r0`, `g0`, `b0`, `y1` — scored 92.0% with
+`reorder=9 insert=2 delete=4`. The `sb $a1/$a2/$a3` trio landed in the middle
+of the `x1 = x + w` computation instead of after the `y1` loads.
+
+**Cause.** Stores of an incoming argument register have no operands to wait
+for, so the list scheduler uses them as filler for whichever load-delay gap it
+reaches first. Their position in the RTL stream decides which gap that is. Put
+them before the last coordinate assignment and they fill the `lhu`/`addu` gap
+of the *previous* one.
+
+**Fix.** Assign every coordinate first and the colours last:
+
+```c
+line->x0 = rect->x;
+line->y0 = rect->y;
+line->x1 = rect->x + rect->w;
+line->y1 = rect->y;
+line->r0 = r;
+line->g0 = g;
+line->b0 = b;
+addPrim(Gpu_CurrentOt + 3, line);
+```
+
+That single move took the function from 92.0% to 100%. The tell in the target
+is a `sb` of an argument register sitting *after* the last `lhu` of the block
+rather than between two of them.
