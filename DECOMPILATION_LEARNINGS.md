@@ -41041,3 +41041,25 @@ size before reaching for the filler-aggregate trick in "An unreferenced
 aggregate local still gets its stack slot". The slot-3 warp payloads are shared
 across ids, so a sender that writes three fields of a 0x18-byte struct is the
 normal shape, not padding.
+
+## A constant ternary puts the *else* arm in the branch delay slot
+
+For `c ? A : B` where both arms are small constants feeding one call, GCC 2.8.1
+emits the branch on `c` with **B** in the delay slot and **A** on the
+fall-through path:
+
+    andi $v0, $v0, 0x2
+    beqz $v0, .Lcall
+     addiu $a0, $zero, 0x3      /* B: the else arm */
+    addiu $a0, $zero, 0x6       /* A: the then arm */
+  .Lcall:
+    jal  Gp_RunCapCmd1
+
+So the constant you see in the ROM's delay slot is the ternary's *second* arm,
+and the branch condition is the ternary's condition unnegated. If your attempt
+has the two constants swapped and the branch polarity flipped (`beqz`+3/6
+against the ROM's `bnez`+6/3), the fix is to negate the condition *and* swap the
+arms — `(x & 2) ? 6 : 3` becomes `((x & 2) == 0) ? 3 : 6`, which is the same
+value but the codegen the ROM has. `func_acropolis_fountain_8017D77C` went from
+92% to 99% on that rewrite alone; writing it as a two-armed `if`/`else` around
+the call instead emits the call twice.

@@ -17,7 +17,20 @@ extern GpObj4A D_acropolis_fountain_8017FB3C;
 
 void func_acropolis_fountain_8017DA1C(void);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D77C);
+s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    s32 args[2];
+
+    if (arg2 == 3) {
+        Gp_RunCapCmd1(((GameFlag_GetNibble(9) & 2) == 0) ? 3 : 6);
+    }
+    if (arg2 == 4) {
+        Gp_StartCapSlot(4, 1, 0);
+        func_acropolis_fountain_8017DA1C();
+        GameFlag_SetNibble(0x12, 1);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D7F4);
 
