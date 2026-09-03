@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -18,6 +19,11 @@
 #include "main/tmd.h"
 #include "rooms/acropolis_security_room.h"
 #include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/libgte.h>
 
 void func_acropolis_security_room_8017FD64(s32 arg0);
 void func_acropolis_security_room_8017F480(Task* task);
@@ -585,7 +591,59 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180A78);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180E34);
+/// Per-frame draw for the security-room's flash sprite: refreshes the task's
+/// coordinate frame, loads it into the GTE, then queues one 128x128 textured
+/// quad from `D_acropolis_security_room_80183970` -- picked by the low two bits
+/// of `Task::spawnArg1` -- into the current OT before releasing the effect's
+/// `Gp_State1C` work block.
+void func_acropolis_security_room_80180E34(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    POLY_FT4*      prim;
+    s16            x;
+    s16            y;
+    u16            cx;
+    u16            cy;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    mem   = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setPolyFT4(prim);
+    mem->field_24 = *(u16*)&arg0->spawnArg1 & 3;
+    prim->tpage   = 0xAB;
+    prim->code   |= 3;
+    prim->clut    = D_acropolis_security_room_80183970[mem->field_24].clut << 6;
+    cx            = D_acropolis_security_room_80183970[mem->field_24].x;
+    cy            = D_acropolis_security_room_80183970[mem->field_24].y;
+    prim->u0      = D_acropolis_security_room_80183970[mem->field_24].u;
+    prim->v0      = D_acropolis_security_room_80183970[mem->field_24].v;
+    prim->u1      = D_acropolis_security_room_80183970[mem->field_24].u + 0x7F;
+    prim->v1      = D_acropolis_security_room_80183970[mem->field_24].v;
+    prim->u2      = D_acropolis_security_room_80183970[mem->field_24].u;
+    prim->v2      = D_acropolis_security_room_80183970[mem->field_24].v + 0x7F;
+    prim->u3      = D_acropolis_security_room_80183970[mem->field_24].u + 0x7F;
+    prim->v3      = D_acropolis_security_room_80183970[mem->field_24].v + 0x7F;
+    x             = cx - 0x40;
+    prim->x2      = x;
+    prim->x0      = x;
+    x             = cx + 0x3F;
+    prim->x3      = x;
+    prim->x1      = x;
+    y             = cy - 0x40;
+    prim->y1      = y;
+    prim->y0      = y;
+    y             = cy + 0x3F;
+    prim->y3      = y;
+    prim->y2      = y;
+    addPrim((u_long*)(((((u32)0x30 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80181108);
 

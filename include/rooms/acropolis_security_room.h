@@ -78,6 +78,26 @@ typedef struct AcropolisSecurityRoomState {
 } AcropolisSecurityRoomState;
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
 
+/// One frame of the 128x128 textured quad `func_acropolis_security_room_80180E34`
+/// draws: the sprite is centred on (`x`, `y`) with texture page 0xAB, the CLUT
+/// `clut << 6` and its top-left texel at (`u`, `v`), the other three corners
+/// being that texel plus 0x7F on each axis. The table
+/// (`D_acropolis_security_room_80183970`) has four entries and is indexed by
+/// the low two bits of the drawing task's `Task::spawnArg1`.
+typedef struct AsrSpriteFrame {
+    /* 0x0 */ u16  clut;
+    /* 0x2 */ u8   u;
+    /* 0x3 */ byte pad_3[1];
+    /* 0x4 */ u8   v;
+    /* 0x5 */ byte pad_5[1];
+    /* 0x6 */ u16  x;
+    /* 0x8 */ u16  y;
+} AsrSpriteFrame;
+STATIC_ASSERT_SIZEOF(AsrSpriteFrame, 0xA);
+
+/// The four sprite frames `func_acropolis_security_room_80180E34` picks from.
+extern AsrSpriteFrame D_acropolis_security_room_80183970[];
+
 /// The script's hotspot table, terminated by an entry whose `id` is -1.
 extern AsrHotspot D_acropolis_security_room_801826DC[];
 
