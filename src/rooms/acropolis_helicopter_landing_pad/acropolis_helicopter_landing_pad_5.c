@@ -3,7 +3,9 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/3A34.h"
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -18,6 +20,8 @@ extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
 void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
 void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
 void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s16 level);
+void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord);
+void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord);
 
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 {
@@ -110,7 +114,110 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017FA30);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_801802E0);
+/// Effect task for the helipad floodlights anchored to `Gp_RoomCoords[4]` and
+/// `[5]`. On first run it parents the coord to the work's `field_8` and
+/// positions it from `field_18..1C`. State 0 rolls 0-3 spawns of
+/// `func_acropolis_helicopter_landing_pad_80180664`, a 1-in-4 roll of
+/// `func_acropolis_helicopter_landing_pad_80180A64`, and claims slot 4 as a
+/// light (refcount 4). State 1 (also reached by fallthrough) rearms
+/// `field_24` on a 1-in-4 roll every 8th frame; when armed it plays sound
+/// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
+/// effects reparented under this task, and claims slot 5 as a light. State 2
+/// releases the state-1C memory, the only step taken while
+/// `Gp_State1C::field_4` is set.
+void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    GpEffWork*     eff;
+    s32            i;
+    s32            n;
+    s32            pan;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (Gp_State1C->field_4 != 0) {
+        if (arg0->state == 2) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    if (mem->field_20 == 0) {
+        coord->sub        = mem->field_8;
+        coord->coord.t[0] = mem->field_18;
+        coord->coord.t[1] = mem->field_1A;
+        coord->coord.t[2] = mem->field_1C;
+        coord->flg        = 0;
+        Gp_UpdateCoord(coord);
+        mem->field_24 = 1;
+        mem->field_20++;
+    }
+    mem->field_22++;
+    switch (arg0->state) {
+        case 0:
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            n           = ((u32)Gp_LcgState >> 16) & 3;
+            for (i = 0; i < n; i++) {
+                func_acropolis_helicopter_landing_pad_80180664(coord);
+            }
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                if (Gp_State1C->field_4 == 0) {
+                    func_acropolis_helicopter_landing_pad_80180A64(coord);
+                }
+            }
+            base           = &Gp_RoomCoords[4];
+            slot           = (GpCoordTail*)&base->coord;
+            base->field_0  = 4;
+            slot->field_58 = 0x15E0;
+            slot->field_5C = 0x1900;
+            slot->field_50 = 0x800;
+            slot->field_52 = 0x800;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->coord.coord);
+            base->coord.flg = 0;
+            /* fallthrough */
+        case 1:
+            if ((D_80070F70 & 7) == 0) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                    mem->field_24 = 1;
+                }
+            }
+            if (mem->field_24 != 0) {
+                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(0x51100001, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                mem->field_24 = 0;
+                eff           = Gp_SpawnEff(0x6003B, coord, 0x200, NULL);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+                for (i = 0; i < 6; i++) {
+                    eff = Gp_SpawnEff(0x600A4, coord, 1, NULL);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                base           = &Gp_RoomCoords[5];
+                slot           = (GpCoordTail*)&base->coord;
+                base->field_0  = 4;
+                slot->field_58 = 0xFA0;
+                slot->field_5C = 0x12C0;
+                slot->field_50 = 0xC00;
+                slot->field_52 = 0xC00;
+                slot->field_54 = 0x600;
+                Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->coord.coord);
+                base->coord.flg = 0;
+            }
+            break;
+        case 2:
+            Gp_ReleaseState1CMem(mem, arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_80180664);
 
