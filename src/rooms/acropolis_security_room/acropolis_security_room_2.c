@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -8,6 +9,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of the security-room cap script, stored at `Task::idMap`.
 ///
@@ -20,10 +22,12 @@
 /// and `Mem_Calloc(4)` in `func_acropolis_security_room_80180368`) belong to
 /// other task families and to a different block.
 typedef struct {
-    /* 0x0 */ s32   field_0; // sub-step picked by the previous cap event
-    /* 0x4 */ Task* child;   // task this state spawned, polled by Task_PollKill
-    /* 0x8 */ u16   frames;  // frames the current state has been running
-    /* 0xA */ byte  pad_A[0x6];
+    /* 0x0 */ s32   field_0;    // sub-step picked by the previous cap event
+    /* 0x4 */ Task* child;      // task this state spawned, polled by Task_PollKill
+    /* 0x8 */ u16   frames;     // frames the current state has been running
+    /* 0xA */ byte  pad_A[0x2];
+    /* 0xC */ s8    promptKind; // display mode forwarded to `func_800D4E78`
+    /* 0xD */ byte  pad_D[0x3];
 } AcropolisSecurityRoomState;
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
 
@@ -136,7 +140,19 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FB20);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FB54);
+/// Spawns the action prompt for the script's current step: clears the prompt's
+/// highlight state, then re-spawns it at the coordinates the gameplay side left
+/// in `D_80114D28` with the display mode this state picked.
+void func_acropolis_security_room_8017FB54(Task* task)
+{
+    RoomActionPrompt*           prompt = &D_80114D28;
+    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_800D4E78(prompt->screenX, prompt->screenY, st->promptKind);
+    task->state = 4;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017FBA4);
 
