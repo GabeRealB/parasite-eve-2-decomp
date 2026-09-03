@@ -84,7 +84,12 @@ void func_acropolis_fountain_8017DB54(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DBAC);
+void func_acropolis_fountain_8017DBAC(Task* arg0)
+{
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+        arg0->state = (s32)(arg0->state + 1);
+    }
+}
 
 void func_acropolis_fountain_8017DC00(Task* arg0)
 {
