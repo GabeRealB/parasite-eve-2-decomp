@@ -37670,6 +37670,27 @@ them too far instead. Dropping the local entirely and indexing `arg2[0..2]`
 directly lets GCC choose `s6` itself and lands the prologue exactly
 (`func_dryfield_motel_balcony_8017F7E8`, 99.8% -> 100%).
 
+## `Task* task = arg0;` shortens the parameter's live range and moves it a register
+
+Renaming a parameter by copying it into a local is the standard tidy-up after
+m2c, and it is not free. The copy is coalesced, so the reference count is
+unchanged, but the pseudo now starts at the copy rather than at function entry
+and `reg_live_length` drops sharply -- in
+`func_acropolis_security_room_80180368` (a three-state task handler) from 110
+insns to 56. Global alloc sorts by roughly `log2(refs) * refs / live_length`,
+so the shorter range *raised* the task pointer's priority from 0.27 to 0.54,
+above the 0.38 of the `Task::idMap` pointer it should have lost to. The two
+swapped: `task` took `$s1` and the idMap pointer `$s2`, where the target has
+them the other way round, and every instruction touching either was wrong.
+98.99% -> 100.00% by deleting the copy and using `arg0` directly (or, as here,
+renaming the *parameter* itself to `task`, which is the same pseudo).
+
+Symptom: an otherwise perfect function whose only diffs are two callee-saved
+registers consistently exchanged, with `branch`/`insert`/`delete` all zero.
+Check `.lreg` for the two `used N times across M insns` lines and compute the
+ratio before reaching for a pin -- the fix is usually to remove a local, not to
+add one.
+
 ## A `GpFixed16` high half: `.h.hi` gives `lhu`, `.w >> 16` gives `lh`
 
 `func_acropolis_cafeteria_80181ED4` copies the three 16.16 deltas

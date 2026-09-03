@@ -474,7 +474,73 @@ void func_acropolis_security_room_80180308(Task* task)
     task->state = task->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180368);
+/// Scratch state of the security-room ambience task, stored at `Task::idMap`.
+/// `func_acropolis_security_room_80180368` allocates it with `Mem_Calloc(4, 0)`,
+/// so the size below is the allocation and not a guess.
+typedef struct {
+    /* 0x0 */ u16  fadeStarted; // the looping ambience has already been faded out
+    /* 0x2 */ byte pad_2[0x2];
+} AsrAmbienceState;
+STATIC_ASSERT_SIZEOF(AsrAmbienceState, 0x4);
+
+/// First `TaskDesc` of `D_acropolis_security_room_80182700`: starts the room's
+/// looping ambience, then rides alongside the cutscene task
+/// (`func_acropolis_security_room_801804CC`) until the CD queue reaches its cue
+/// or the player skips, fading the loop out exactly once either way, and asks
+/// the task system to kill itself.
+void func_acropolis_security_room_80180368(Task* task)
+{
+    CdCmdQueue*       queue;
+    s32               state;
+    AsrAmbienceState* st;
+    AsrAmbienceState* alloc;
+
+    queue = &CdCmd_Queue;
+    state = task->state;
+    st    = (AsrAmbienceState*)task->idMap;
+
+    switch (state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+    }
+    return;
+
+L_case0:
+    alloc       = (AsrAmbienceState*)Mem_Calloc(sizeof(AsrAmbienceState), 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    Mem_Set(alloc, 0, sizeof(AsrAmbienceState));
+    SndEvt_EnqueueType6(0x51060008, 0, 0);
+    goto advance;
+
+L_case1:
+    if (queue->field_1EA >= 0x46 && st->fadeStarted == 0) {
+        SndEvt_EnqueueType7(0x51060008, 0x14);
+        st->fadeStarted = state;
+    }
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        task->state = task->state + 1;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    if (st->fadeStarted == 0) {
+        SndEvt_EnqueueType7(0x51060008, 0x14);
+    }
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case2:
+    Task_RequestKill(task, 0);
+}
 
 /// Second `TaskDesc` of `D_acropolis_security_room_80182700`: kicks off the
 /// streamed cutscene for the security room, waits for the CD queue to go idle
