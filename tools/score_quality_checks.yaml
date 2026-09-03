@@ -1,0 +1,35 @@
+# clang-tidy checks consulted by `score_quality.py --tidy`.
+#
+# Measured on this tree 2026-09-03: with the list below the signal is close to
+# nil, and that is a property of the codebase rather than of the list. Two
+# structural reasons, both worth knowing before spending time tuning it:
+#
+#   1. The scaffolding lives in macro expansions. clang-tidy reports against
+#      the expansion, so `TOUCH_REG(x)` surfaces - if at all - as a complaint
+#      about the macro's *name*, not about what it does. The only findings that
+#      mentioned a steering macro at all were `readability-identifier-naming`
+#      objecting that `gte_rtv0sf0` is not UPPER_CASE, which targets the
+#      legitimate population.
+#   2. Scaffolding exists precisely to manufacture uses. `TOUCH_REG` takes its
+#      operand with a "+r" constraint, so the variable is read and written as
+#      far as any analysis can tell. Dead-store and unused-value checks - the
+#      obvious candidates - therefore find nothing by construction.
+#
+# What was tried and rejected, with counts from src/gameplay/3A34.c:
+#   readability-magic-numbers            124  hardware constants, unfixable
+#   bugprone-branch-clone                 36  ordinary switch fallthrough
+#   readability-non-const-parameter       28  1999 C did not use const
+#   readability-redundant-declaration     11  all false hits on INCLUDE_ASM
+#   clang-analyzer-deadcode.DeadStores     0  see (2) above
+#   bugprone-narrowing-conversions         1  across three large files
+#
+# Kept below: the few that are at least type- rather than style-oriented, so a
+# hit is worth reading. Add to this list to re-test a hypothesis; the counts
+# land in the `tidy` column of the normal ranking.
+checks:
+  - clang-analyzer-core.NullDereference
+  - clang-analyzer-core.uninitialized.Assign
+  - bugprone-narrowing-conversions
+  - bugprone-misplaced-widening-cast
+  - bugprone-signed-char-misuse
+  - readability-inconsistent-declaration-parameter-name
