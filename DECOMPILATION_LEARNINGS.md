@@ -39944,3 +39944,56 @@ Any boundary works — `SCHED_BARRIER()`, `COMPILER_BARRIER()` and a
 in a loop the source never had. (decomp-permuter finds the `do/while (0)` form
 on its own; read that output as "a block boundary belongs here" and write the
 barrier instead.)
+
+### An `sb` whose `%hi` and immediate registers are swapped is a qty-set problem in the *other* arm
+
+`func_acropolis_security_room_8017D9DC` sat at 99.765% (`regs=4`, everything
+else zero) with a diff confined to the `else` arm of one `if`:
+
+```
+  lui  v0,%hi(D_8007216C)      lui  v1,%hi(D_8007216C)
+  li   v1,5                    li   v0,5
+  sb   v1,%lo(D_8007216C)(v0)  sb   v0,%lo(D_8007216C)(v1)
+  li   v0,6                    li   v0,6
+```
+
+Two pseudos, born in expansion order (`high` for the address, then the QI
+constant) and dying at the same `sb`. `local-alloc` sorts quantities by
+`n_refs / live_length`, highest first, and the first one allocated takes the
+lower-numbered register — so the pseudo born *last* always has the shorter
+range, always wins, and always takes `$v0`. The `if` arm above it wants exactly
+that (`li $v0,8` / `lui $v1`); the `else` arm wants the opposite. **No statement
+order inside the arm can produce it**: nothing can be moved between the `high`
+and the store, and the address is always expanded first.
+
+Confirm that before hunting for the lever. Forcing the constant to be born
+first — `s8 tmp; tmp = 5; D_8007216C = tmp;` — does give the target's register
+pair (`regs=0`), but emits `li` before `lui` and leaves `reorder=1`, and sched1
+will not swap them back: `rank_for_schedule` finds equal priority and equal
+class for two cost-1 operands of the same store and falls through to the
+`INSN_LUID` tie-break, which keeps the original order. Register pair and
+instruction order are unreachable together from inside the arm.
+
+The lever is the arm's *other* statement. The `else` arm was
+`D_8007216C = 5; state = 6;`, and that `6` is a third quantity in the same
+block. Hoisting it into an `s16` local assigned before the *preceding* branch
+takes it out of the block and flips the pair:
+
+```c
+s16 stateElse;
+...
+stateElse = 6;                       /* before the earlier if/else */
+...
+if (GameFlag_GetNibble(1) < 3) {
+    ...
+} else {
+    D_8007216C = 5;
+    state      = stateElse;          /* was: state = 6 */
+}
+```
+
+Both details matter and neither is guessable: `s32 stateElse` still misses
+(a 4-byte quantity sorts differently), and assigning it immediately before its
+own `if` also misses — it has to be live across the preceding branch. This is
+the shape decomp-permuter's `new_var` hoists find, and it is worth reading them
+as "the contested block has one quantity too many" rather than as noise.

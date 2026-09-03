@@ -6,8 +6,10 @@
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/acropolis_security_room.h"
@@ -17,6 +19,7 @@ extern Task* D_acropolis_security_room_801855AC;
 
 extern GpMsgEntry D_acropolis_security_room_801825DC[];
 extern TaskDesc   D_acropolis_security_room_80182618;
+extern TaskDesc   D_acropolis_security_room_8018263C;
 
 /// The five camera ids the security monitor can display, in the order the
 /// `GameFlag_GetNibble(0x2A)` nibble indexes them (see
@@ -135,7 +138,59 @@ void func_acropolis_security_room_8017D97C(void)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D984);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D9DC);
+/// Entry state of the security-monitor task: allocates the `AsrMonitorWork`
+/// block into the `Task::idMap` slot, spawns the monitor's companion task,
+/// seeds `cameraId` from the `GameFlag_GetNibble(0x2A)` camera table, and picks
+/// the next state from the `GameFlag_GetNibble(1)` progress nibble (state+1 and
+/// prompt kind 8 before chapter 3, state 6 and prompt kind 5 after). Finally it
+/// clears every hotspot's `hit` flag so the first hit test starts clean.
+void func_acropolis_security_room_8017D9DC(Task* task)
+{
+    AsrMonitorWork* work;
+    AsrHotspot*     hs;
+    s16             flag;
+    s32             state;
+    s16             stateElse;
+
+    work = (AsrMonitorWork*)Mem_Calloc(sizeof(AsrMonitorWork), 0);
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    task->spawnArg2  = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
+    task->idMap      = (TaskIdMap*)work;
+    work->blinkTimer = 0;
+    stateElse        = 6;
+    flag             = GameFlag_GetNibble(0x2A);
+    if ((u16)flag < 5) {
+        work->cameraId = D_acropolis_security_room_801826B4[flag];
+    } else {
+        work->cameraId = D_acropolis_security_room_801826B4[0];
+    }
+    if (GameFlag_GetNibble(1) < 3) {
+        D_8007216C = 8;
+        /* Without this the scheduler hoists the `task->state` load above the
+           `D_8007216C` byte store to fill its load-delay slot. */
+        SOFT_BARRIER();
+        state = task->state;
+        state++;
+    } else {
+        D_8007216C = 5;
+        state      = stateElse;
+    }
+    task->state = state;
+    Display_AcquireRef();
+    Game_Session->field_68 = 1;
+    Game_Session->field_66 = 1;
+    Game_Session->field_1  = 1;
+    hs                     = D_acropolis_security_room_80182648;
+    if (hs->id != -1) {
+        do {
+            hs->hit = 0;
+            hs++;
+        } while (hs->id != -1);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017DB30);
 
@@ -203,7 +258,6 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E37C);
 
-void func_acropolis_security_room_8017D9DC(Task* task);
 void func_acropolis_security_room_8017DB30(Task* task);
 void func_acropolis_security_room_8017DC7C(Task* task);
 void func_acropolis_security_room_8017EA28(Task* task);
