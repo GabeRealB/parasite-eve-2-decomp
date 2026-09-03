@@ -24,6 +24,7 @@ extern GpObj4A D_acropolis_fountain_8017E7A4;
 extern GpObj4A D_acropolis_fountain_8017FB3C;
 
 extern SVECTOR  D_acropolis_fountain_8017E7F0;
+extern s16      D_acropolis_fountain_8017E7F8;
 extern TaskDesc D_acropolis_fountain_8017E7FC;
 
 void func_acropolis_fountain_8017DA1C(void);
@@ -240,7 +241,85 @@ void func_acropolis_fountain_8017E014(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E15C);
+void func_acropolis_fountain_8017E15C(Task* task, s32 view)
+{
+    AcropolisFountainSndWork* work;
+    CdCmdQueue*               queue;
+    u16                       frame;
+
+    queue = &CdCmd_Queue;
+    work  = (AcropolisFountainSndWork*)task->idMap;
+    switch (work->state) {
+        case 0:
+            frame = queue->field_1EA;
+            if (frame >= 0xF0) {
+                if (D_acropolis_fountain_8017E7F8 != 0) {
+                    SndEvt_EnqueueType7(0x51080001, 0x14);
+                    D_acropolis_fountain_8017E7F8 = 0;
+                }
+            } else if ((u16)(frame - 0xF) < 0xE2) {
+                if (work->started == 0 || D_acropolis_fountain_8017E7F8 == 0) {
+                    work->started = 1;
+                    work->state   = work->state + 1;
+                }
+            }
+            break;
+
+        case 1:
+            work->state = 2;
+            break;
+
+        case 2:
+            switch ((u16)view) {
+                case 2:
+                case 3:
+                    if (D_acropolis_fountain_8017E7F8 != 0) {
+                        SndEvt_EnqueueTypeA(0x51080001, 7, 2);
+                    } else {
+                        SndEvt_EnqueueType6(0x51080001, 7, 2);
+                    }
+                    break;
+                case 4:
+                    if (D_acropolis_fountain_8017E7F8 != 0) {
+                        SndEvt_EnqueueTypeA(0x51080001, 0, 0);
+                    } else {
+                        SndEvt_EnqueueType6(0x51080001, 0, 0);
+                    }
+                    break;
+                case 5:
+                    if (D_acropolis_fountain_8017E7F8 != 0) {
+                        SndEvt_EnqueueTypeA(0x51080001, -7, 2);
+                    } else {
+                        SndEvt_EnqueueType6(0x51080001, -7, 2);
+                    }
+                    break;
+                case 6:
+                    if (D_acropolis_fountain_8017E7F8 != 0) {
+                        SndEvt_EnqueueTypeA(0x51080001, -7, 0);
+                    } else {
+                        SndEvt_EnqueueType6(0x51080001, -7, 0);
+                    }
+                    break;
+                case 7:
+                    if (D_acropolis_fountain_8017E7F8 != 0) {
+                        SndEvt_EnqueueTypeA(0x51080001, 0, 2);
+                    } else {
+                        SndEvt_EnqueueType6(0x51080001, 0, 2);
+                    }
+                    break;
+                case 8:
+                    if (D_acropolis_fountain_8017E7F8 != 0) {
+                        SndEvt_EnqueueTypeA(0x51080001, 7, 3);
+                    } else {
+                        SndEvt_EnqueueType6(0x51080001, 7, 3);
+                    }
+                    break;
+            }
+            D_acropolis_fountain_8017E7F8 = 1;
+            work->state                   = 0;
+            break;
+    }
+}
 
 void func_acropolis_fountain_8017E3D4(Task* task)
 {

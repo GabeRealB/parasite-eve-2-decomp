@@ -17,4 +17,16 @@ typedef struct AcropolisFountainSplash {
     /* 0x24 */ s16  viewIndex;
 } AcropolisFountainSplash;
 
+/// Four-byte work block `func_acropolis_fountain_8017E3D4` allocates into
+/// `Task::idMap` (`Mem_Calloc(4, 0)`) and hands to
+/// `func_acropolis_fountain_8017E15C`, which drives the fountain's waterfall
+/// loop. `state` walks 0 -> 1 -> 2 -> 0: state 0 waits for the streamed
+/// fountain video to reach its playing window, state 2 (re)starts the loop for
+/// the camera the player is on, and `started` latches that the window was
+/// entered so the sound is not retriggered every frame.
+typedef struct AcropolisFountainSndWork {
+    /* 0x0 */ u16 state;
+    /* 0x2 */ u16 started;
+} AcropolisFountainSndWork;
+
 #endif // ROOMS_ACROPOLIS_FOUNTAIN_H
