@@ -21,6 +21,7 @@ extern s32 D_acropolis_helicopter_landing_pad_80184124;
 extern s32 D_acropolis_helicopter_landing_pad_801844B4;
 extern s32 D_acropolis_helicopter_landing_pad_80184E0C;
 extern s32 D_acropolis_helicopter_landing_pad_80187F84;
+extern s16 D_acropolis_helicopter_landing_pad_80187F7C;
 
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// phase advance, `D_80114C12` is the cutscene/among-us mode flag.
@@ -242,7 +243,54 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E0F8);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017E270);
+/// Helipad rotor / lift task: swings the player model's coord part 4 about X
+/// by `-angle * 0x60 / 0x1000` and updates it. State 1 ramps
+/// `D_acropolis_helicopter_landing_pad_80187F7C` up to 0x1000 (then state 2),
+/// state 2 ramps it back to 0 (then state 0), state 0 resets it.
+///
+/// The extra locals are dead: the original wrote `dir` and reserved the
+/// other aggregates (0x50 bytes of frame) for code that no longer runs, and
+/// the constant stores survive in the binary.
+void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR        unusedA;
+    VECTOR         unusedB;
+    VECTOR         dir;
+    MATRIX         unusedM;
+    SVECTOR        unusedC;
+
+    coord  = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4];
+    dir.vx = -0x249;
+    dir.vy = 0;
+    dir.vz = 0xB8;
+
+    switch (task->state) {
+        case 0:
+            D_acropolis_helicopter_landing_pad_80187F7C = 0;
+            break;
+        case 1:
+            Gfx_RotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, 0);
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            D_acropolis_helicopter_landing_pad_80187F7C += 0x190;
+            if (D_acropolis_helicopter_landing_pad_80187F7C > 0x1000) {
+                D_acropolis_helicopter_landing_pad_80187F7C = 0x1000;
+                task->state                                 = 2;
+            }
+            break;
+        case 2:
+            Gfx_RotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, 0);
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            D_acropolis_helicopter_landing_pad_80187F7C -= 0x190;
+            if (D_acropolis_helicopter_landing_pad_80187F7C < 0) {
+                D_acropolis_helicopter_landing_pad_80187F7C = 0;
+                task->state                                 = 0;
+            }
+            break;
+    }
+}
 
 /// Message 0x13EE handler: copies the requested `GpSaveLoc` to `dst`. For a
 /// warp into stage 0xF it consults the room's phase

@@ -40582,3 +40582,36 @@ and an extra `move a0,v1` appears before the branch. `<< 2` expands with `v`
 as the shift's target and there is no copy. Giving `v` a second (even dead)
 assignment also removes it, which is why the multi-assignment m2c seed never
 showed the `move`.
+
+## Immediate stores to stack slots nothing reads are dead struct-field writes; their position fixes the statement, the frame fixes the padding
+
+`func_acropolis_helicopter_landing_pad_8017E270` stores `-0x249`, `0xB8` and
+`0` to `sp+0x28 / 0x30 / 0x2C` right after `Game_GetPtrSlot` returns, never
+reads them back, and reserves a 0x78 frame (0x50 bytes of locals) for a body
+that otherwise lives in registers. GCC 2.8.1 does not delete dead stores to
+memory, so this is the trace of a local aggregate the original code filled
+for a path that was compiled out.
+
+Two readings of the trace:
+
+- **Scheduler barrier gives the source position.** Stack stores never move
+  across a `jal`, so stores *after* the call were written after the call —
+  explicit member assignments (`dir.vx = -0x249; dir.vy = 0; dir.vz = 0xB8;`)
+  following the pointer lookup, not an initializer on the declaration. A
+  declaration initializer lands before the call, and an *array* initializer
+  becomes a `.rodata` copy (`lw`/`sw` triples) instead of immediates.
+- **Frame size gives the padding.** Unused aggregate locals keep their slot
+  (see "An unreferenced aggregate local still gets its stack slot"), and the
+  first declared one sits lowest. Declare filler aggregates before and after
+  the live one until the frame matches:
+
+```c
+SVECTOR unusedA;   /* sp+0x10 */
+VECTOR  unusedB;   /* sp+0x18 */
+VECTOR  dir;       /* sp+0x28: the three stores */
+MATRIX  unusedM;   /* sp+0x38 */
+SVECTOR unusedC;   /* sp+0x58; locals 0x50 -> frame 0x78 */
+```
+
+m2c drops the stores entirely, so its seed scored 87% on frame size alone;
+the struct-assignment shape plus padding is 100%.
