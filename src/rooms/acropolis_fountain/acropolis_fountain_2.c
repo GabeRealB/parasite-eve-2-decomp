@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main/task.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/stream.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/1A8.h"
@@ -11,6 +13,7 @@
 #include "rooms/acropolis_fountain.h"
 
 extern s16 D_80071076;
+extern s32 D_80070F70;
 
 extern u8    D_acropolis_fountain_80183BB0;
 extern Task* D_acropolis_fountain_80183BB4;
@@ -24,6 +27,7 @@ extern SVECTOR  D_acropolis_fountain_8017E7F0;
 extern TaskDesc D_acropolis_fountain_8017E7FC;
 
 void func_acropolis_fountain_8017DA1C(void);
+void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 
 s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -238,7 +242,97 @@ void func_acropolis_fountain_8017E014(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E15C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017E3D4);
+void func_acropolis_fountain_8017E3D4(Task* task)
+{
+    CdCmdQueue* queue;
+    CdCmdQueue* queue2;
+    StreamSlot* slot;
+    StreamSlot* slot2;
+    SPRT*       p;
+    DR_TPAGE*   dr;
+    GBytes8     key;
+    GBytes8     key2;
+    s16         view;
+    s32         ot;
+    u16         count;
+    u32         tpage;
+
+    D_acropolis_fountain_80183BB4 = task;
+    queue                         = &CdCmd_Queue;
+    if (Game_Session->field_5 != 1) {
+        return;
+    }
+    switch (task->state) {
+        case 0:
+            task->idMap = Mem_Calloc(4, 0);
+            if (task->idMap == NULL) {
+                Task_Kill(task);
+                return;
+            }
+            Mem_Set(task->idMap, 0, 4);
+            task->state = task->state + 1;
+            break;
+
+        case 1:
+            view = Gp_FindViewIndex((u8)Game_Session->field_4);
+            func_acropolis_fountain_8017E15C(task, (u16)view);
+            switch ((u16)view) {
+                case 3:
+                case 5:
+                    if (queue->field_20A != 0) {
+                        return;
+                    }
+                    Game_Session->field_4E = 1;
+                    key                    = ((SessionBytesAt4*)Game_Session)->field_4;
+                    key.data[0]            = view;
+                    slot                   = Stream_GetSlot(Stream_FindSlotByKey(key.data) & 0xFFFF);
+
+                    p              = (SPRT*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+                    setlen(p, 4);
+                    setcode(p, 0x65);
+                    p->u0 = 0;
+                    p->v0 = 0;
+                    if ((u16)view == 3) {
+                        ot    = 0x23;
+                        p->x0 = 0x70;
+                        p->y0 = 8;
+                    } else if ((u16)view == 5) {
+                        ot    = 0x1D;
+                        p->x0 = -0xA0;
+                        p->y0 = 0x2A;
+                    }
+                    dr   = Gpu_PrimCursor;
+                    p->w = slot->field_12;
+                    p->h = slot->field_14;
+                    addPrim(&Gpu_CurrentOt[ot], p);
+
+                    Gpu_PrimCursor = dr + 1;
+                    setlen(dr, 1);
+                    tpage       = (u32)(slot->field_18 & 0x100) >> 4;
+                    dr->code[0] = tpage | (((u32)(slot->field_16 & 0x3FF) >> 6) | 0x100) |
+                                  ((slot->field_18 & 0x200) * 4) | 0xE1000000;
+                    addPrim(&Gpu_CurrentOt[ot], dr);
+                    break;
+
+                case 2:
+                case 8:
+                    if (D_80070F70 & 1) {
+                        queue2            = &CdCmd_Queue;
+                        key2              = ((SessionBytesAt4*)Game_Session)->field_4;
+                        key2.data[0]      = Gp_FindViewIndex(4);
+                        slot2             = Stream_GetSlot(Stream_FindSlot(key2.data, 0, 1) & 0xFFFF);
+                        count             = queue2->field_1EA + 1;
+                        queue2->field_1EA = count;
+                        if (count >= slot2->field_1A - 0xA) {
+                            queue2->field_1EA = 1;
+                        }
+                    }
+                    break;
+            }
+            break;
+    }
+}
 
 void func_acropolis_fountain_8017E72C(Task* arg0)
 {

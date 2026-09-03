@@ -41180,3 +41180,33 @@ m2c hoists the load above the call into its own temp, which costs an extra
 callee-saved register and shifts the whole frame. If the ROM's switch operand
 lives in `$v0`/`$v1` while the values loaded *before* the call are in `$s0`…,
 move the `switch` expression below the call rather than pinning registers.
+
+## A narrow local's declared width moves the argument-setup `move`
+
+When a local is written once from an `s8`-returning callee and then read only
+through `(u16)` casts, `s32` and `s16` produce the *same* instructions and
+differ only in where `sched1` puts the argument setup. In
+`func_acropolis_fountain_8017E3D4`:
+
+```c
+s16 view;                                        /* s32 scores 99.72% */
+
+view = Gp_FindViewIndex((u8)Game_Session->field_4);
+func_acropolis_fountain_8017E15C(task, (u16)view);
+switch ((u16)view) { … }
+```
+
+Both widths emit `sll`/`sra` for the `s8` return, one `andi` for each `(u16)`
+use, and the same registers. With `s32` the `move $a0, $s0` that sets up the
+first argument is hoisted *above* the `sll`/`sra`; with `s16` it stays between
+`sra` and `andi`, as in the ROM. HImode promotion makes the extension part of
+the assignment's own pattern rather than a free-floating pair the scheduler can
+step over. When the only leftover is `reorder=1` on an argument `move`, try the
+narrower declaration before reaching for `SOFT_BARRIER()`, which also reaches
+100% here but hides the reason.
+
+Note also that each `(u16)view` in a *different* basic block is recomputed
+(`andi $v1, $s1, 0xFFFF` after the switch, even though `$s0` still holds the
+value): CSE only spans an extended basic block, and the case arms are join
+points. Do not chase that with a temp — writing the cast at every use is what
+the ROM does.
