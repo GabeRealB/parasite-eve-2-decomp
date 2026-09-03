@@ -7,6 +7,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/acropolis_security_room.h"
@@ -138,7 +139,63 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017DB30);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017DC7C);
+/// Runs the camera-list state of the security monitor: mirrors the highlighted
+/// row into `Mc_SaveData.field_4` (with a click), scrolls the panel by a page
+/// when the row is one of the two 0x8000/0x8001 scroll commands, and fires the
+/// two one-shot cap sequences the room gates on the `0xA` game-flag nibble.
+/// Then redraws the panel plus cursor overlay and advances to state 2.
+void func_acropolis_security_room_8017DC7C(Task* task)
+{
+    AsrMonitorWork* work;
+    McSaveData*     save;
+    s32             sfx;
+    s16             sel;
+    u16             usel;
+
+    work                = (AsrMonitorWork*)task->idMap;
+    D_80114D28.mode     = 0;
+    D_80114D28.targetId = 0;
+    if (func_800D4EC0() != 0) {
+        sel = work->selection;
+        if (sel >= 0) {
+            save = &Mc_SaveData;
+            if (save->field_4 != sel) {
+                save->field_4 = work->selection;
+                SndEvt_EnqueueType6(0x51060003, 0, 0);
+                if ((work->selection == 0xA) && !(GameFlag_GetNibble(0xA) & 2)) {
+                    work->field_7 = 1;
+                }
+            }
+        }
+        usel = work->selection;
+        if (usel == 0x8000) {
+            if (((s16)work->cameraId + 0x3E) < 0xFE) {
+                work->cameraId += 0x3E;
+                sfx             = 0x51060006;
+                goto play;
+            }
+        } else if (usel == 0x8001) {
+            if (((s16)work->cameraId - 0x3E) > 0) {
+                work->cameraId -= 0x3E;
+                sfx             = 0x51060007;
+            play:
+                SndEvt_EnqueueType6(sfx, 0, 0);
+            }
+        }
+        if (((u8)D_8007216C == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
+            Gp_StartCapSlot(0xD, 0, 0);
+            GameFlag_SetNibble(0xA, GameFlag_GetNibble(0xA) | 1);
+        }
+        if (((u8)D_8007216C == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
+            (work->field_8 == 0) && (GameFlag_GetNibble(0x102) == 0)) {
+            Gp_StartCapSlot(0xC, 0, 0);
+            work->field_8 = 1;
+        }
+    }
+    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E37C(task);
+    task->state = 2;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017DE80);
 

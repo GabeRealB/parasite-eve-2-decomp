@@ -23,8 +23,9 @@ typedef struct AsrMonitorWork {
     /* 0x02 */ s16  blinkTimer;
     /* 0x04 */ s16  selection;
     /* 0x06 */ s8   promptKind;
-    /* 0x07 */ byte pad_7[0x1];
-    /* 0x08 */ byte pad_8[0x2];
+    /* 0x07 */ s8   field_7;
+    /* 0x08 */ s8   field_8;
+    /* 0x09 */ byte pad_9[0x1];
 } AsrMonitorWork;
 STATIC_ASSERT_SIZEOF(AsrMonitorWork, 0xA);
 
