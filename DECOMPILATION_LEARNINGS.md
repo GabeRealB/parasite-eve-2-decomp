@@ -40432,3 +40432,111 @@ in the same overlay* ("every overlay carrying it contains it twice; cannot
 share") — there is no single symbol the sharers could link. The two copies stay
 as two matched C functions, but the second one is still free: `find` names the
 sibling and its body can be pasted verbatim, renaming only the callees.
+
+## Scratch-head codegen has two forms in one function: the caller's local pair, the inlined helper's `$at`
+
+`func_acropolis_security_room_80181E28` allocates a 0xE4 block from
+`G_SCRATCH_HEAD` in the caller and a 0x20 block twice more inside what turned
+out to be an inlined helper. The ROM mixes both `0x1F8003FC` forms:
+
+```
+lui  a1, 0x1F80         /* caller: address held in a register */
+ori  a1, a1, 0x3FC
+lw   a0, 0(a1)
+...
+sw   s0, 0(a1)
+lui  a1, 0x1F80         /* helper: gas macro, one access per site */
+lw   a1, 0x3FC(a1)
+...
+lui  at, 0x1F80
+sw   a2, 0x3FC(at)
+```
+
+`memory_address` force-regs the constant at expand, so a site with a single
+`(mem (const_int 0x1F8003FC))` gets folded back to the absolute form by
+`combine` and assembles through `$at`; two or more sites in one function get
+CSE'd onto one pseudo and come out as `lui`/`ori` + `0(reg)`. The two forms
+therefore mean two different source shapes in the *same* function:
+
+- a `void** scratch = (void**)G_SCRATCH_HEAD;` local, whose load/store pair is
+  the register form, and
+- a `static __inline__` helper containing the rest of the alloc/use/free, whose
+  accesses rematerialise (same effect as the `Gfx_SetDefaultFlatLight` /
+  `Gp_SpawnViewCoordTask` notes above, applied to only part of a function).
+
+The inline helper also breaks the store-to-load forwarding that otherwise
+collapses `*scratch = block;` followed by `head = *(void**)G_SCRATCH_HEAD;`
+into an `addiu` off the value just stored. Neither a `volatile` cast nor an
+intervening `memory` barrier reproduces the reload; moving the block into the
+helper does.
+
+When one helper is inlined twice and only the first copy needs a pin, give the
+second call its own `static __inline__` copy of the body. Two identical inline
+functions is the readable way to say "these two expansions colour differently".
+
+## Angle wrap: `while (d < -0x800) d += 0x1000;` rotates unless you write the label
+
+The wrap-into-range idiom compiles to a *top-tested* loop in the ROM —
+
+```
+loop:
+sll   v0, v1, 16
+sra   v0, v0, 16
+slti  v0, v0, -0x800
+beqz  v0, done
+ nop
+j     loop
+ addiu v1, v1, 0x1000
+```
+
+— but a plain `while` gets rotated with the first test peeled, because the
+sign-extended value is still live from the `lh` that loaded `d`, so the
+duplicated test costs one `slti` instead of `sll`/`sra`/`slti` and GCC's
+duplication budget allows it. `for (;;) { if (...) break; ... }` compiles
+identically to the `while`; only an explicit label plus `goto` keeps the
+`beqz` / `j` shape (same mechanism as "Mid-loop unlink: `goto` resists loop
+rotation").
+
+Related shapes in the same function:
+
+- `d = st->angle[i]; if (st->angle[i] < 0) { ... }` gives the ROM's `lh v0` /
+  `bgez v0` / `move v1, v0`: one sign-extending load, tested directly, copied
+  into the loop's own register.
+- `t = d; st->diff = t; if (t < 0) t = -t;` stores the *sign-extended* value
+  (`sra` then `sh`), which is what lets the following `bgez` / `negu` reuse it.
+  Writing `st->diff = d;` stores the untruncated register instead and the
+  `sra` disappears.
+
+## `SOFT_BARRIER()` after a store keeps it out of the next branch's delay slot
+
+`st->diff = t; if (t < 0) t = -t;` lets `dbr` fill the `bgez` delay slot with
+the `sh`. The ROM has the `sh` before the branch and a `nop` in the slot. A
+non-volatile `SOFT_BARRIER()` between the store and the `if` is enough;
+`SCHED_BARRIER()` works too but is a wider fence and cost more elsewhere here.
+
+## Pinning one `$v0` temp starves an unrelated load — pin both consumers
+
+`addiu v0, a1, -0x20` / `move a2, v0` (an uncoalesced push temp) needs
+`register u8* tmp asm("v0")`, and GCC 2.8.1 then keeps `$v0` away from every
+other pseudo in the function, so a nearby `lw v0, 0x4C(s2)` came out as
+`lw v1`. The fix is not to drop the pin but to pin *the other* consumer to the
+same register in a disjoint scope:
+
+```c
+{
+    register GsCOORDINATE2* parent asm("v0");
+    parent = coord;
+    ((AsrWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch)))->coord = parent;
+}
+{
+    register u8* tmp asm("v0");
+    tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch);
+    blk = (AsrWalkScratch*)tmp;
+}
+```
+
+The two live ranges do not overlap, GCC 2.8.1 accepts both, and `$v0` is used
+for the load and then for the temp exactly as the ROM does. Same shape as the
+two `$v0` scopes in `Gp_DrawRing`, but here the second scope exists to *give a
+register back*, not to create a copy. That was the last instruction of the
+match (99.5% → 100%).
