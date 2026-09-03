@@ -40615,3 +40615,23 @@ SVECTOR unusedC;   /* sp+0x58; locals 0x50 -> frame 0x78 */
 
 m2c drops the stores entirely, so its seed scored 87% on frame size alone;
 the struct-assignment shape plus padding is 100%.
+
+### A lone `move aN,vN` copy of a loaded pointer: deref the field inline once, then name it
+
+`func_acropolis_helicopter_landing_pad_8017D6E0` opens with `lw v1,0x2C(a0)` /
+`lw a0,8(v1)` and then `addu a2,v1,zero` in a delay slot, with `$a2` used only
+much later for the `lhu/sh 0xC` flag update. A single `TmdObject* obj =
+task->extra;` local used for both accesses keeps the pointer in one register
+(`lw a2,0x2C(a0)`, no copy). The copy appears when the *first* use is an
+inline chained deref and the *second* is a named local:
+
+```c
+RoomCoord* coord = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+TmdObject* obj   = task->extra;
+```
+
+CSE folds the second load into the pseudo holding the first, but that pseudo
+dies at the `field_8` load, so the surviving use is a fresh pseudo initialised
+by a copy — the `move`. Writing the shared local first (`obj`, then
+`coord = obj->field_8`) is what removes the copy, so pick the shape from
+whether the target has it.

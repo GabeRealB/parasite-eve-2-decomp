@@ -30,6 +30,9 @@ extern s8         D_80114C12;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
+/// Per-camera-view visibility table indexed by `(u8)Game_Session->field_4`:
+/// a non-zero byte keeps the enemy model visible in that view.
+extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPlacement* placement, s32 arg3);
@@ -69,7 +72,36 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
     task->state         = task->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D6E0);
+/// Per-frame update of the enemy task's model. While the `field_50` countdown
+/// armed by the 0x7D3 handler is running, the model's coordinate translation
+/// is stepped by the work block's three velocity words and marked dirty; the
+/// countdown is clamped at zero once it expires. When `Game_Session->field_4D`
+/// is set, the model is hidden (bit 0x80 of `field_C`) in every camera view
+/// whose entry in the per-view table is zero and shown again otherwise.
+void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
+{
+    AhlpEnemyWork* work  = (AhlpEnemyWork*)task->idMap;
+    RoomCoord*     coord = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+    TmdObject*     obj   = task->extra;
+    s16            n;
+
+    n = --work->field_50;
+    if (n >= 0) {
+        coord->coord.t[0] += work->field_0;
+        coord->coord.t[1] += work->field_4;
+        coord->coord.t[2] += work->field_8;
+        coord->flg         = 0;
+    } else {
+        work->field_50 = 0;
+    }
+    if (Game_Session->field_4D != 0) {
+        if (D_acropolis_helicopter_landing_pad_80182370[(u8)Game_Session->field_4] != 0) {
+            obj->field_C &= 0xFF7F;
+        } else {
+            obj->field_C |= 0x80;
+        }
+    }
+}
 
 /// Points the model's light / colour matrices at the work block's own copies
 /// and loads the room's three flat lights into them.
