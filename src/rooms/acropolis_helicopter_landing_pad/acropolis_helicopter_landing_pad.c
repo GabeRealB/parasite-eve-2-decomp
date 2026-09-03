@@ -7,6 +7,8 @@
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "rooms/room_common.h"
 
 extern s16      D_80071076;
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68;
@@ -19,7 +21,24 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D824);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D8E8);
+/// Places the task's model at `placement`: copies the position onto the
+/// coordinate's translation, the Euler angles onto its rotation, rebuilds
+/// the rotation matrix and marks the coordinate dirty.
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 arg1, RoomPlacement* placement)
+{
+    RoomCoord* coord;
+
+    coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->rot.vx     = placement->rot.vx;
+    coord->rot.vy     = placement->rot.vy;
+    coord->rot.vz     = placement->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", D_acropolis_helicopter_landing_pad_8017D5C0);
 

@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 
 #include "main/task.h"
+#include "main/tmd.h"
 #include "main/ui.h"
 
 /// On-screen position of an action prompt's cursor. `Room_UtilCursor` compares
@@ -91,6 +92,19 @@ typedef struct RoomPlacement {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
 } RoomPlacement;
+
+/// The `GsCOORDINATE2` at `TmdObject::field_8` as the room overlays see it: the
+/// game stores the placed object's Euler angles in the `SVECTOR` that overlays
+/// libgs's `param` / `super` slots (0x44-0x4B) and rebuilds `coord` from it
+/// with `RotMatrix`. `sub` is the parent coordinate (`GsCOORDINATE2::sub`).
+typedef struct RoomCoord {
+    /* 0x00 */ u32            flg;
+    /* 0x04 */ MATRIX         coord;
+    /* 0x24 */ MATRIX         workm;
+    /* 0x44 */ SVECTOR        rot;
+    /* 0x4C */ GsCOORDINATE2* sub;
+} RoomCoord;
+STATIC_ASSERT_SIZEOF(RoomCoord, 0x50);
 
 /// 0x20 work block a room's "show a two-line message" task allocates and parks
 /// in `Task::idMap`: a `TextBlockDesc` handed to `Ui_SpawnTextBlock` followed by

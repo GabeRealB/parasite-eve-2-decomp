@@ -40540,3 +40540,14 @@ for the load and then for the temp exactly as the ROM does. Same shape as the
 two `$v0` scopes in `Gp_DrawRing`, but here the second scope exists to *give a
 register back*, not to create a copy. That was the last instruction of the
 match (99.5% → 100%).
+
+## `sh` at 0x44/0x46/0x48 of a coord node + `RotMatrix(node + 0x44, node + 4)` is an `SVECTOR` over `param`
+
+libgs's `GsCOORDINATE2` has a `GsCOORD2PARAM*` at 0x44 and `super` at 0x48,
+but the game never uses them that way: room and actor overlays keep the
+object's Euler angles there and pass `node + 0x44` to `RotMatrix` /
+`RotMatrixZYX` with `&node->coord` (`node + 4`) as the output. m2c shows it
+as three `u16` stores followed by `RotMatrix(temp + 0x44, temp + 4)`. Write
+it against `RoomCoord` (`include/rooms/room_common.h`): `coord->rot.vx = …;
+RotMatrix(&coord->rot, &coord->coord); coord->flg = 0;`. The type is 0x50
+bytes like the libgs one, so `field_8[i]` indexing is unchanged.
