@@ -40060,3 +40060,30 @@ the body changes.
 Read a lone off-by-N on the `Gpu_PrimCursor` store as "wrong primitive struct"
 and check the sizes (`TILE` 0x10, `TILE_16` 0xC, `DR_TPAGE` 0x8, `DR_MODE` /
 `DR_TWIN` / `DR_AREA` / `DR_OFFSET` 0xC) before touching the code that fills it.
+
+## `setUVWH` / `setXYWH` are not interchangeable with writing the fields by hand
+
+**Problem.** A `POLY_FT4` setup scored 93.9% with `regs=6 reorder=2 insert=1
+delete=1`. The only diff was how the two `u` constants were materialised: the
+target hoisted `li $v1, 0x10` far above its uses and interleaved the stores
+`sb zero,0xc / sb v1,0x14 / sb zero,0x1c / sb v1,0x24`, while writing
+`prim->u0 = 0; prim->u1 = 0x10; prim->u2 = 0; prim->u3 = 0x10;` produced a
+`li $v0, 0x10` right next to a fused pair of stores.
+
+**Cause.** `setUVWH(p,u,v,w,h)` expands to `u0,v0, u0+w,v0, u0,v0+h, u0+w,v0+h`
+in that order, so the `+w` value is one CSE'd pseudo whose live range starts at
+`u1` and ends at `u3`, spanning the `v` stores in between. Writing the eight
+fields individually creates the constant at its first use instead, so its live
+range is short and the scheduler packs its two stores together. The hoisted
+`li` of the *width* constant — sitting above stores it has nothing to do with —
+is the tell that the source used `setUVWH`, not eight assignments.
+
+**Fix.** When a textured-quad setup stores a rectangle's worth of UVs, write
+`setUVWH(prim, u0, v0, w, h)` and derive `w`/`h` from the deltas (`0x10`,
+`0x17` here). The same applies to `setXYWH`, but check it: if the XY stores in
+the target come out `x2` before `x0` and pair the two halves, the source used
+explicit `prim->x2 = x; prim->x0 = x;` temporaries and `setXYWH` scores far
+worse (76% in this function). The two macros are chosen independently.
+
+**Order still matters.** With `setUVWH` in place, putting `setlen`/`setcode`
+*before* it left `insert=2 delete=2`; moving them after it was the 100%.

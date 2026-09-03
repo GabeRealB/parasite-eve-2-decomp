@@ -139,7 +139,48 @@ void func_acropolis_security_room_8017F300(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017F480);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017F8E0);
+/// Queues the security-room's 16x24 cursor/highlight quad at (`x`, `y`) into
+/// the current OT. `variant` picks the palette -- 0x3C87 when it is 2, and
+/// 0x3C88 otherwise -- and 0 draws nothing at all.
+void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant)
+{
+    POLY_FT4* prim;
+    s16       px;
+    s16       py;
+
+    if (variant == 0) {
+        return;
+    }
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+
+    px       = x - 2;
+    prim->x2 = px;
+    prim->x0 = px;
+    px       = x + 0xE;
+    prim->x3 = px;
+    prim->x1 = px;
+    py       = y - 2;
+    prim->y1 = py;
+    prim->y0 = py;
+    py       = y + 0x15;
+    prim->y3 = py;
+    prim->y2 = py;
+
+    prim->tpage = 0x1E;
+    if (variant == 2) {
+        prim->clut = 0x3C87;
+    } else {
+        prim->clut = 0x3C88;
+    }
+
+    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
+    setlen(prim, 9);
+    setcode(prim, 0x2D);
+
+    addPrim(Gpu_CurrentOt, prim);
+}
 
 /// Task callback of the descriptor at `D_acropolis_security_room_801826C0`:
 /// a two-state dispatcher whose handler table is built on the stack rather
