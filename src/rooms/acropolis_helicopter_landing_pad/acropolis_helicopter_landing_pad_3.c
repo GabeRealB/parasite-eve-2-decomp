@@ -12,13 +12,31 @@ extern TaskDesc   D_acropolis_helicopter_landing_pad_80184DA0[];
 extern s32        D_acropolis_helicopter_landing_pad_80184E0C;
 extern GpObj4A    D_acropolis_helicopter_landing_pad_80185FAC[];
 extern s32        D_acropolis_helicopter_landing_pad_80187F84;
+extern s32        D_acropolis_helicopter_landing_pad_801837E0[];
 
 void func_acropolis_helicopter_landing_pad_8017E75C(s32 arg0)
 {
     D_acropolis_helicopter_landing_pad_80187F80->state = arg0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E76C);
+void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
+{
+    s32 args[2];
+
+    switch (task->state) {
+        case 0:
+            args[0] = 0xC;
+            args[1] = 9;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F2, (s32)&D_acropolis_helicopter_landing_pad_801837E0, (s32)args);
+            task->state++;
+            break;
+        case 1:
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+                Task_Kill(task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", func_acropolis_helicopter_landing_pad_8017E81C);
 
