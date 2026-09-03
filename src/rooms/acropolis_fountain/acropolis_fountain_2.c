@@ -4,10 +4,18 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/1A8.h"
+#include "gameplay/D4.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+
 extern Task* D_acropolis_fountain_80183BB4;
+
+extern GpMsgEntry D_acropolis_fountain_8017E764[];
 
 extern GpObj4A D_acropolis_fountain_8017E7A4;
 extern GpObj4A D_acropolis_fountain_8017FB3C;
+
+void func_acropolis_fountain_8017DA1C(void);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D77C);
 
@@ -15,7 +23,15 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_a
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D868);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017D960);
+void func_acropolis_fountain_8017D960(Task* arg0)
+{
+    arg0->field_24 = D_acropolis_fountain_8017E764;
+    Game_SetPtrSlot(arg0, 7);
+    if (GameFlag_GetNibble(0x12) != 0) {
+        func_acropolis_fountain_8017DA1C();
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_acropolis_fountain_8017D9BC(void)
 {
