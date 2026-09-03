@@ -10,6 +10,8 @@
 extern Task* D_acropolis_security_room_801855A8;
 extern Task* D_acropolis_security_room_801855AC;
 
+extern GpMsgEntry D_acropolis_security_room_801825DC[];
+
 s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 ret;
@@ -85,7 +87,13 @@ void func_acropolis_security_room_8017D834(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D930);
+void func_acropolis_security_room_8017D930(Task* arg0)
+{
+    arg0->field_24 = D_acropolis_security_room_801825DC;
+    Game_SetPtrSlot(arg0, 7);
+    arg0->state                        = arg0->state + 1;
+    D_acropolis_security_room_801855AC = NULL;
+}
 
 void func_acropolis_security_room_8017D97C(void)
 {
