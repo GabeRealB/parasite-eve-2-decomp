@@ -71,10 +71,16 @@ Options:
                     merge lock. Do not run a non-orchestrator vacuum on this
                     tree at the same time.
   --difficult       Only pick functions listed in tools/difficult_functions.
-                    VACUUM_MODEL=<model> switches the agent model, which is
-                    worth trying here: 84 of the 130 give-ups sit at >=95% after
-                    a mean of 25 attempts *and* a permuter run, so they are more
-                    likely blocked on an unguessed C idiom than on search.
+                    VACUUM_MODEL=<model> switches the agent model. This is an
+                    escalation for functions that have already failed, not a
+                    default: a stronger model costs more per run, and ordinary
+                    sweeps match most functions in one or two attempts on the
+                    default model anyway. It earns its cost here because a
+                    give-up at >=95% after ~25 attempts *and* a permuter run is
+                    usually blocked on an unguessed C idiom rather than on
+                    search - measured on this list, a model switch matched 8 of
+                    8, including one function stalled at 99.928% after 40
+                    attempts that matched on its first.
                     A verified match removes that name from the list.
   --overlay NAME    Only pick functions from this overlay (gameplay, USA/main,
                     asm path suffix). Combined with --difficult: intersection.
