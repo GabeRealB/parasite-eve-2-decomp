@@ -414,7 +414,28 @@ void func_acropolis_security_room_80180218(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180294);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180308);
+/// Resets both action-prompt slots before the script's first cursor scan and
+/// steps the caller on one state: clears each slot's leading words and its two
+/// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
+/// marks the slot as highlighted (`mode` 1). Same body as the shared
+/// `Room_Util04`, which this overlay cannot link because it carries a second
+/// copy at `func_acropolis_security_room_8017EDE4`.
+void func_acropolis_security_room_80180308(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    s32               i;
+
+    for (i = 0; i < 2; i++, prompt++) {
+        prompt->field_0  = 0;
+        prompt->field_4  = 0;
+        prompt->targetId = 0x100;
+        prompt->field_E  = 0xF;
+        prompt->field_16 = 0;
+        prompt->field_1E = 0;
+        prompt->mode     = 1;
+    }
+    task->state = task->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180368);
 

@@ -18,17 +18,20 @@
 /// globals the prompt's display task reads. Fields no room overlay touches are
 /// left as padding.
 typedef struct RoomActionPrompt {
-    /* 0x00 */ byte pad_0[0x8];
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
     /* 0x08 */ s16  screenX;
     /* 0x0A */ s16  screenY;
     /* 0x0C */ s16  targetId;
-    /* 0x0E */ byte pad_E[0x2];
+    /* 0x0E */ s16  field_E;
     /* 0x10 */ u8   mode;
     /* 0x11 */ byte pad_11[0x3];
     /* 0x14 */ u16  field_14;
-    /* 0x16 */ byte pad_16[0x6];
+    /* 0x16 */ s16  field_16;
+    /* 0x18 */ byte pad_18[0x4];
     /* 0x1C */ u16  field_1C;
-    /* 0x1E */ byte pad_1E[0x2];
+    /* 0x1E */ s16  field_1E;
+    /* 0x20 */ byte pad_20[0x4];
 } RoomActionPrompt;
 
 extern RoomActionPrompt D_80114D28;
