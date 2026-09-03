@@ -40037,3 +40037,26 @@ s32 f(RoomHotspot* table, s16 x, s16 y) {
 "the source mutates the parameter"; a spare local cursor is the usual reason it
 is missing. The `if (...) do {} while (...)` unrolling m2c emits is likewise
 just `while`, and writing it back as `while` is free.
+
+### The prim-cursor advance names the psyq primitive, not the code word
+
+A "set drawing mode" packet built into `Gpu_PrimCursor` looks like a `DR_TPAGE`
+in the assembly — one `sb 1, 0x3` for the length and one `sw` of an `0xE1……`
+GPU word into `0x4` — so m2c and the surrounding decompiled code both suggest
+`DR_TPAGE`. The only instruction that distinguishes the psyq special primitives
+is the cursor bump:
+
+```
+addiu $v1, $a0, 0xC     ; DR_MODE / DR_TWIN  (tag + u_long code[2])
+addiu $v1, $a0, 0x8     ; DR_TPAGE           (tag + u_long code[1])
+```
+
+`func_acropolis_security_room_8017E37C` scored 99.93% with a single leftover,
+`addiu v1,a0,8` against the target's `addiu v1,a0,0xc`; swapping `DR_TPAGE` for
+`DR_MODE` — same two stores, only `code[]` is longer — took it to 100%. The
+second `code` word is simply left uninitialised, which is why nothing else in
+the body changes.
+
+Read a lone off-by-N on the `Gpu_PrimCursor` store as "wrong primitive struct"
+and check the sizes (`TILE` 0x10, `TILE_16` 0xC, `DR_TPAGE` 0x8, `DR_MODE` /
+`DR_TWIN` / `DR_AREA` / `DR_OFFSET` 0xC) before touching the code that fills it.

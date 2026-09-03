@@ -302,7 +302,41 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E0C4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E37C);
+/// Draws the blinking cursor overlay on top of the monitor panel: a 0x6C-wide
+/// grey `TILE` whose top edge and height both track `AsrMonitorWork::blinkTimer`,
+/// followed by the drawing-mode packet that restores the panel's texture page.
+/// The timer wraps at 0x97, which is what makes the bar sweep and restart.
+void func_acropolis_security_room_8017E37C(Task* task)
+{
+    AsrMonitorWork* work;
+    TILE*           tile;
+    DR_MODE*        dr;
+    s16             y;
+
+    tile           = (TILE*)Gpu_PrimCursor;
+    work           = (AsrMonitorWork*)task->idMap;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    setlen(tile, 3);
+    setcode(tile, 0x42);
+    tile->r0 = 0x60;
+    tile->g0 = 0x60;
+    tile->b0 = 0x60;
+    tile->x0 = -0x66;
+    tile->w  = 0x6C;
+    y        = work->blinkTimer - 0x5F;
+    tile->h  = y;
+    tile->y0 = y;
+    addPrim(Gpu_CurrentOt + 0xE, tile);
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    setlen(dr, 1);
+    dr->code[0] = 0xE100000A;
+    addPrim(Gpu_CurrentOt + 0xE, dr);
+    work->blinkTimer++;
+    if (work->blinkTimer >= 0x97) {
+        work->blinkTimer = 0;
+    }
+}
 
 void func_acropolis_security_room_8017DB30(Task* task);
 void func_acropolis_security_room_8017DC7C(Task* task);
