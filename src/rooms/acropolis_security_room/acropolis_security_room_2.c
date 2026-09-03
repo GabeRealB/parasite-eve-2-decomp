@@ -58,6 +58,10 @@ extern GpMsgEntry D_acropolis_security_room_801826CC[];
 /// The script's hotspot table, terminated by an entry whose `id` is -1.
 extern AsrHotspot D_acropolis_security_room_801826DC[];
 
+/// The cap script's 16 state handlers, dispatched by
+/// `func_acropolis_security_room_80180294`.
+extern const TaskFuncTable16 D_acropolis_security_room_8017D63C;
+
 extern s8  D_8007216C;
 extern s16 D_80114D08;
 
@@ -436,7 +440,16 @@ void func_acropolis_security_room_80180218(Task* task)
     Game_Session->field_1  = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_80180294);
+/// Runs the cap script's current state. The sixteen handlers are copied onto
+/// the stack first, so the call goes through a local table rather than through
+/// `.rodata`.
+void func_acropolis_security_room_80180294(Task* task)
+{
+    TaskFuncTable16 sp;
+
+    sp = D_acropolis_security_room_8017D63C;
+    sp.funcs[task->state](task);
+}
 
 /// Resets both action-prompt slots before the script's first cursor scan and
 /// steps the caller on one state: clears each slot's leading words and its two
