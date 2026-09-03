@@ -40742,3 +40742,68 @@ the `lui`/`lbu` pair -- `%lo(Mc_SaveData+9)` assembles to `0x2171` -- so the
 scratch diff shows only symbol spelling once the order is right. When a
 `D_8007216x`/`D_800721xx` import sits in a room's callee list, check whether
 it is a `Mc_SaveData` offset before reaching for `SOFT_BARRIER()`.
+
+## Store the scratch push temp before naming it, or CSE folds the `move` into the block pointer
+
+`func_acropolis_helicopter_landing_pad_8017F010` pushes a 0x14 block and wants
+
+```asm
+lw    a0,0(v1)
+addiu v0,a0,-0x14
+move  s3,v0
+sw    v0,0(v1)
+```
+
+Both `blk = (T*)(head - 0x14); *scratch = blk;` and the explicit
+`tmp = head - 0x14; blk = (T*)tmp; *scratch = tmp;` compile to
+`addiu s3,a0,-0x14` / `sw s3,0(v1)` with no `move`. The temp is not being
+tied by local-alloc; it is being rewritten away by CSE. `make_regs_eqv` makes
+the *longer-lived* pseudo the canonical one for a quantity when it outlives the
+basic block, so once `blk = tmp` has been seen, a later `*scratch = tmp` is
+canonicalised to `*scratch = blk` and `tmp` dies at the copy, which local-alloc
+then ties. Emit the store **before** the assignment that names the block:
+
+```c
+head     = *scratch;
+*scratch = head - 0x14;               /* addiu v0 ... ; sw v0 */
+blk      = (AhlpLightScratch*)(head - 0x14);   /* CSE: blk = tmp -> move s3,v0 */
+```
+
+The store is processed while `tmp` is still the only member of its quantity,
+so it keeps `tmp`; the block-local temp then goes to local-alloc (`$v0`) and
+the copy into the global `blk` survives. This is the same shape "Unpin the
+scratch `block` instead of pinning the `head` temp" arrives at by removing a
+pin, and it is why `src/gameplay/3FB8_7E28.c` needed `register u8* tmp asm("v0")`:
+it names the block first.
+
+## Per-loop temporaries stay block-local and take `s0`/`s1` before global alloc runs
+
+Two `for` loops that each hoist `a + 0x100` / `a + 0x200` style call
+arguments will put the primitive pointer in `$s0` if the temporaries are one
+pair of C locals shared by both loops (`prim=s0 blk=s1 a=s3 b=s2 c=s4`), when
+the target has `prim=s2 blk=s3 a=s4` with `s0`/`s1` holding the temporaries.
+`regs=283` was the only leftover.
+
+A shared local spans both loop bodies, so it is a *global* pseudo and is
+allocated after `prim` (highest `refs/length` priority) — `prim` takes the
+first free callee-saved register, `$s0`. When every loop body is one basic
+block (no branches between the `jal`s) and each loop has its **own**
+temporaries, those pseudos are block-local: local-alloc runs first and, because
+they cross calls, hands them the first callee-saved registers `$s0`, `$s1`.
+Global alloc then finds those conflicting and gives `prim` `$s2`, `blk` `$s3`,
+the loop counter `$s4`, and the entry-block pointers fall into place behind
+them (`work=s0 light=s1 index=s2 pos=s4 level=s5`).
+
+```c
+for (a = 0; a < 0x1000; a += 0x200) {   /* b = a+0x100 -> s0, c = a+0x200 -> s1 */
+    b = a + 0x100; ... rsin(b) ... rcos(b) ...
+    c = a + 0x200; ... rsin(c) ...
+}
+for (a = 0x200; a < 0x1000; a += 0x800) {   /* one temp d reused three times -> s0 */
+    d = a - 0x400; ...; d = a + 0x400; ...; d = a + 0x800; ...
+}
+```
+
+Declaring `b`/`c` for loop 1 and a separate `d` for loop 2 went 97.19% → 100%.
+The `a += 0x200` increment is CSE'd with `c` (`move s4,s1`) on its own; do not
+write the increment through the temp.
