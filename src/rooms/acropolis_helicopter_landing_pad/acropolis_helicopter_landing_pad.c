@@ -15,8 +15,17 @@
 #include "main/gfx.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
-extern s16        D_80071076;
-extern s32        D_acropolis_helicopter_landing_pad_80184D9C;
+extern s16 D_80071076;
+extern s32 D_acropolis_helicopter_landing_pad_80184D9C;
+extern s32 D_acropolis_helicopter_landing_pad_80184124;
+extern s32 D_acropolis_helicopter_landing_pad_801844B4;
+extern s32 D_acropolis_helicopter_landing_pad_80184E0C;
+extern s32 D_acropolis_helicopter_landing_pad_80187F84;
+
+/// Main-executable globals with no module header yet: `D_80071075` gates the
+/// phase advance, `D_80114C12` is the cutscene/among-us mode flag.
+extern u8         D_80071075;
+extern s8         D_80114C12;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
@@ -122,7 +131,33 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_he
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D964);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D9BC);
+/// Per-frame phase tick of the helipad script. In phase 1 it posts msg 0x7D6
+/// to slot 4; once that is refused and no cutscene/among-us mode
+/// (`D_80114C12`) or blocker (`D_80071075`) is active it advances to phase 2,
+/// starts the second script block and queues sound 0xA2. Room 5 of the
+/// session raises `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
+/// `Game_Session->field_1` resets `D_acropolis_helicopter_landing_pad_80187F84`.
+void func_acropolis_helicopter_landing_pad_8017D9BC(void)
+{
+    s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
+
+    if (phase == 1) {
+        if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
+            if ((D_80114C12 != phase) && (D_80071075 == 0)) {
+                D_acropolis_helicopter_landing_pad_80184D9C = 2;
+                func_800E8634((s32)&D_acropolis_helicopter_landing_pad_80184124, 0,
+                              (s32)&D_acropolis_helicopter_landing_pad_801844B4);
+                func_800E3FAC(0xA2, 8);
+            }
+        }
+    }
+    if ((u8)Game_Session->field_4 == 5) {
+        D_acropolis_helicopter_landing_pad_80184E0C = 1;
+    }
+    if (Game_Session->field_1 == 0) {
+        D_acropolis_helicopter_landing_pad_80187F84 = 0;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", D_acropolis_helicopter_landing_pad_8017D5E4);
 
