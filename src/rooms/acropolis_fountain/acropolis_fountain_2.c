@@ -129,7 +129,21 @@ void func_acropolis_fountain_8017DC6C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DCD4);
+/// Six-state dispatcher of the fountain cutscene task; the handler table is
+/// built on the stack from the overlay's rodata block.
+void func_acropolis_fountain_8017DCD4(Task* arg0)
+{
+    TaskFunc states[6] = {
+        func_acropolis_fountain_8017DAA4,
+        func_acropolis_fountain_8017DB00,
+        func_acropolis_fountain_8017DB54,
+        func_acropolis_fountain_8017DBAC,
+        func_acropolis_fountain_8017DC00,
+        func_acropolis_fountain_8017DC6C,
+    };
+
+    states[arg0->state](arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain_2", func_acropolis_fountain_8017DD44);
 

@@ -35688,6 +35688,17 @@ state functions, and those symbols exist only in that overlay's symbol map. The
 five weapons copies have five distinct byte images for that reason, and
 `overlay_dup_index.py promote` refuses them. Match it per overlay.
 
+Moving that `rodata` cut *earlier* can put the compiler's table in front of a
+jump table the same unit already owns, and that is fine as long as the table
+ends 8-aligned. `acropolis_fountain` cut at `0x28` so `acropolis_fountain_2`
+owned only `jtbl_…_8017D5E8`; the dispatcher's own table lives at `0x10`, so the
+cut moves to `0x10` and the unit's `.rodata` becomes six generated words
+(`0x10`-`0x28`) followed by the `INCLUDE_ASM`-supplied jtbl. The usual "a
+generated jump table must *start* its unit's `.rodata`" caveat is really about
+`.align 3` padding: `0x10 + 0x18 = 0x28` is already 8-aligned, so nothing is
+inserted and no `units` cut is needed. Delete the *first* unit's `src/` file and
+re-split so splat drops the now-moved `INCLUDE_RODATA` line itself.
+
 ## Duplicate the tail call instead of an `else` when statement order can only fix one of scheduling and allocation
 
 `func_hypervelocity_8011F270` reads three things at the top — `mem =
