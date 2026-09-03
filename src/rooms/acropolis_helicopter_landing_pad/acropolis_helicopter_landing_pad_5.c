@@ -20,7 +20,17 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EE2C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EE80);
+void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
+{
+    s32   args[2];
+    Task* slot;
+
+    slot    = Game_GetPtrSlot(3);
+    args[0] = 1;
+    args[1] = 3;
+    Gp_DispatchMsg(slot, 0x3EF, (s32)args, 0);
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_5", func_acropolis_helicopter_landing_pad_8017EEDC);
 
