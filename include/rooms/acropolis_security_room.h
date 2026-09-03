@@ -28,6 +28,17 @@ typedef struct AsrMonitorWork {
 } AsrMonitorWork;
 STATIC_ASSERT_SIZEOF(AsrMonitorWork, 0xA);
 
+/// The security-monitor task's state table: seven handlers plus the NULL slot
+/// the original `.rodata` table ends with. Only the seven handlers are copied
+/// onto the stack by the dispatcher `func_acropolis_security_room_8017ED68`,
+/// which is why the terminator is a separate member rather than an eighth
+/// entry of `states`.
+typedef struct AsrMonitorStateTable {
+    /* 0x00 */ TaskFuncTable7 states;
+    /* 0x1C */ TaskFunc       end;
+} AsrMonitorStateTable;
+STATIC_ASSERT_SIZEOF(AsrMonitorStateTable, 0x20);
+
 /// Draws the security-monitor panel for the camera `id` (the work block's
 /// `cameraId` biased by -0x7F); a negative `id` draws the "no signal" panel.
 void func_acropolis_security_room_8017E0C4(s16 id);

@@ -39853,3 +39853,41 @@ Both spellings compare identically afterwards, so the leftover `sll`/`sra` pair
 is the only signal. Widen the local before reaching for a struct-field type
 change — `AsrMonitorWork::cameraId` has to stay `u16` for the `lhu` in
 `func_acropolis_security_room_8017EA5C`.
+
+### A stack-copied dispatch table whose `.rodata` is longer than the copy
+
+The usual state dispatcher copies its handler table onto the stack and calls
+through the copy (`TaskFuncTable4 sp; sp = D_...; sp.funcs[task->state](task);`).
+Occasionally the `.rodata` block is one word longer than what the function
+copies — seven `lw`/`sw` pairs, but eight words in the data, the last one zero:
+
+```
+dlabel D_acropolis_security_room_8017D5EC
+    .word func_..._8017D9DC     /* 7 handlers */
+    ...
+    .word 0x00000000            /* copied by nobody */
+```
+
+A seven-entry local initializer gives the right seven `lw`/`sw` pairs but only
+28 bytes of `.rodata`; bumping the array to eight adds the zero word *and* an
+eighth `lw`/`sw`. The trailing zero is a terminator on the source table, not
+padding, so the copy is a prefix of it. Model that with a nested struct, and no
+cast is needed:
+
+```c
+typedef struct { TaskFunc funcs[7]; } TaskFuncTable7;
+typedef struct { TaskFuncTable7 states; TaskFunc end; } AsrMonitorStateTable;
+
+static const AsrMonitorStateTable AsrMonitorStates = { { { f0, ..., f6 } }, NULL };
+
+TaskFuncTable7 sp;
+sp = AsrMonitorStates.states;      /* 28 bytes, 32 bytes of .rodata */
+sp.funcs[task->state](task);
+```
+
+Placement matters as much as the bytes. The block sat *before* an earlier
+function's compiler-generated jump table in `.rodata`, so it cannot be emitted
+from the dispatcher's own position at the end of the unit. Defining it as a
+file-scope `static const` at the point the `INCLUDE_RODATA` line occupied keeps
+GCC's emission order right — the same trick `PowerSupplyMsg` uses in that file.
+`func_acropolis_security_room_8017ED68`.

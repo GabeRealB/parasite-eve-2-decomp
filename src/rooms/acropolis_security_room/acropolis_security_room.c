@@ -141,7 +141,29 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E37C);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D5EC);
+void func_acropolis_security_room_8017D9DC(Task* task);
+void func_acropolis_security_room_8017DB30(Task* task);
+void func_acropolis_security_room_8017DC7C(Task* task);
+void func_acropolis_security_room_8017EA28(Task* task);
+void func_acropolis_security_room_8017EA5C(Task* task);
+void func_acropolis_security_room_8017EADC(Task* task);
+void func_acropolis_security_room_8017EB9C(Task* task);
+
+/// States of the security-monitor task, dispatched by
+/// `func_acropolis_security_room_8017ED68`: set up the work block, run the
+/// camera list, redraw the panel, confirm a camera, and leave the monitor.
+static const AsrMonitorStateTable AsrMonitorStates = {
+    { {
+        func_acropolis_security_room_8017D9DC,
+        func_acropolis_security_room_8017EA28,
+        func_acropolis_security_room_8017DB30,
+        func_acropolis_security_room_8017EA5C,
+        func_acropolis_security_room_8017DC7C,
+        func_acropolis_security_room_8017EADC,
+        func_acropolis_security_room_8017EB9C,
+    } },
+    NULL,
+};
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017E490);
 
@@ -219,7 +241,16 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017ECB4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017ED68);
+/// Runs the security monitor's current state. The seven handlers are copied
+/// onto the stack first, so the call goes through a local table rather than
+/// through `.rodata`.
+void func_acropolis_security_room_8017ED68(Task* task)
+{
+    TaskFuncTable7 sp;
+
+    sp = AsrMonitorStates.states;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017EDE4);
 

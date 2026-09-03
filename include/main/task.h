@@ -31,6 +31,10 @@ typedef struct {
 } TaskFuncTable6;
 
 typedef struct {
+    TaskFunc funcs[7];
+} TaskFuncTable7;
+
+typedef struct {
     TaskFunc funcs[8];
 } TaskFuncTable8;
 
