@@ -42011,3 +42011,50 @@ and the `9` is unobservable: any value greater than 5 gives byte-identical code,
 because everything the node generates is deleted. Pick one that fits the
 message ids the sibling handlers in the overlay use, and do not read the
 constant back out of the assembly — it is not there.
+
+## Two bounds on one variable fold into a `sltiu` range test unless they are separate `if` statements
+
+`func_acropolis_roof_garden_80180160` hides an item mesh unless the room is
+being drawn from views 5..7 and the item's 2-bit flag is not 2. The target
+tests the two bounds separately:
+
+```
+slti  $v0, $v1, 0x8
+beqz  $v0, .set80
+slti  $v0, $v1, 0x5
+bnez  $v0, .store
+```
+
+Both of the obvious spellings — `if (view < 8 && view >= 5 && flag != 2)` and
+its inverted `if (view >= 8 || view < 5 || flag == 2)` — instead give
+
+```
+addiu $v0, $v0, -0x5
+sltiu $v0, $v0, 0x3
+```
+
+because `fold` merges two comparisons against the *same operand* inside one
+`&&`/`||` expression into an unsigned range check. It only does this within a
+single expression, so writing the three hidden cases as an `else if` chain
+keeps the two `slti`s:
+
+```c
+if (view >= 8) {
+    tmd->field_C = 0x80;
+} else if (view < 5) {
+    tmd->field_C = 0x80;
+} else if (flag == 2) {
+    tmd->field_C = 0x80;
+} else {
+    tmd->field_C = 8;
+    tmd->field_E = 0;
+}
+```
+
+The duplicated arms are not a problem: cross-jumping merges the three `sh
+$v0, 0xC($s0)` tails into one and leaves the `li 0x80` duplicated, one copy of
+it in a branch delay slot — which is exactly the asymmetry the target shows
+(`.set80` loads the constant and falls through to the shared store, while the
+`view < 5` branch carries its own `li` in the delay slot). So a range check
+written as *two* `slti`s is direct evidence that the source used separate
+statements rather than one `&&`/`||` condition.
