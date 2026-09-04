@@ -1,10 +1,18 @@
 #include "common.h"
 #include "main/fs.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "rooms/room_common.h"
-extern s32      D_acropolis_observatory_8017E7D8;
-extern TaskDesc D_acropolis_observatory_8017E7DC;
-extern TaskDesc D_acropolis_observatory_8017FE6C;
+
+/// One byte of gameplay state shared with the field actors, latched here when
+/// the observatory task first runs during session phase 2 with nibble 0xCA
+/// still clear. See `Room_Util31`, which writes the same byte.
+extern s8 D_8011540A;
+
+extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
+extern s32        D_acropolis_observatory_8017E7D8;
+extern TaskDesc   D_acropolis_observatory_8017E7DC;
+extern TaskDesc   D_acropolis_observatory_8017FE6C;
 
 /// Message gate for the observatory hotspot: sub-id 1 arms the room's task the
 /// first time it fires during session phase 2, latching nibble 0xCA so a later
@@ -19,7 +27,19 @@ s32 func_acropolis_observatory_8017D7C4(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_observatory/acropolis_observatory_2", func_acropolis_observatory_8017D834);
+/// Observatory task entry: parks the overlay's message table in the task and
+/// registers it as the room's slot-7 pointer. On the phase-2 visit that has not
+/// yet latched nibble 0xCA it also arms the shared field-actor byte, then steps
+/// the task on to its next state.
+void func_acropolis_observatory_8017D834(Task* task)
+{
+    task->field_24 = D_acropolis_observatory_8017E7B8;
+    Game_SetPtrSlot(task, 7);
+    if ((Game_Session->field_5 == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
+        D_8011540A = 1;
+    }
+    task->state = (s32)(task->state + 1);
+}
 
 void func_acropolis_observatory_8017D8AC(void)
 {
