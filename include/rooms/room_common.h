@@ -242,4 +242,30 @@ void RoomsShared80180f94(UiList* list, UiObject* obj);
 /// item kind (a higher level of the same kind replaces the entry it finds).
 void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item);
 
+/// 0x14-byte scratch block an elevator hall's light-shaft task takes from
+/// `G_SCRATCH_HEAD`. `vec` is the
+/// shaft's world position copied out of the task's `GsCOORDINATE2`
+/// (`workm.t`) and pushed through `GsWSMATRIX` with a single `RTPS` - but the
+/// screen point is kept too: `sx` / `sy` are the projected centre and `halfWidth`
+/// the shaft's on-screen half width, `spawnArg1`'s high byte scaled by `1 / otz`
+/// so the two `POLY_G4` halves narrow with distance.
+typedef struct _RoomShaftScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     halfWidth;
+    /* 0x08 */ SVECTOR vec;
+    /* 0x10 */ u16     sx;
+    /* 0x12 */ u16     sy;
+} RoomShaftScratch;
+STATIC_ASSERT_SIZEOF(RoomShaftScratch, 0x14);
+
+/// Overlay of `Task::spawnArg1` for that task: `phase` steps the shaft's
+/// pulsing red channel off the global frame counter, `height` is the length
+/// the two halves are drawn at before the `1 / otz` divide.
+typedef struct _RoomShaftArg {
+    /* 0x0 */ u8   phase;
+    /* 0x1 */ u8   height;
+    /* 0x2 */ byte pad_2[2];
+} RoomShaftArg;
+STATIC_ASSERT_SIZEOF(RoomShaftArg, 0x4);
+
 #endif // ROOMS_ROOM_COMMON_H

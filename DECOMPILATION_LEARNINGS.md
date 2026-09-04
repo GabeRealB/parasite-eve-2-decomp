@@ -41422,3 +41422,48 @@ Put the redundant-looking second read last in its block and the copy lands in
 the following branch's delay slot. The general rule: an unexplained
 caller-saved-to-callee-saved `move` right after a load is a CSE artifact, so
 add a read, do not chase it in `.lreg`/`.greg`.
+
+## Two more ways to get the caller-saved-to-callee-saved `move`
+
+The previous entry blames a duplicated field read. That is one source; the pair
+`compute into a caller-saved register` + `move into a callee-saved one` is
+really the signature of **two pseudos where the C has one variable**, and the
+copy survives only when `combine` cannot fold it. Two more shapes produce it,
+both seen in `RoomsShared8017f77c` (`func_acropolis_east_elevator_hall_8017F77C`):
+
+**A value written in both arms of an `if`/`else`.** Writing the result straight
+into the variable the loop later reads gives one pseudo and no copy:
+
+```c
+/* subu s3, v0, v1 / andi s3, v1, 0x7f - red is s3 everywhere, no move */
+if (t & 0x80) { red = 0x80 - (t & 0x7F); } else { red = t & 0x7F; }
+```
+
+Assigning a *second* local in the arms and copying it out afterwards keeps them
+apart: the arm-local never crosses a call, so `global_alloc` gives it `$a0`,
+while `red` is live across the loop's `jal` and gets `$s7`. `combine` cannot
+fold a copy whose source has two definitions, so the `move` stays:
+
+```c
+/* subu a0, v0, v1 / andi a0, v1, 0x7f / move s7, a0 - the ROM's shape */
+if (t & 0x80) { level = 0x80 - (t & 0x7F); } else { level = t & 0x7F; }
+red = level;
+```
+
+**A straight-line temporary.** The same split in straight-line code cannot be
+written in plain C at all: with one definition, `combine` folds `raw = head -
+0x14; block = raw;` back into a single `addiu` no matter how it is spelled
+(extra local, cast through `s32`, typed pointer arithmetic, a second use of
+`raw`, pinning `block`). Break the propagation with an empty asm on the
+temporary and both instructions come back:
+
+```c
+raw = head - 0x14;
+SOFT_TOUCH_REG(raw);            /* addiu v0, a0, -0x14 */
+block = (RoomShaftScratch*)raw; /* move  s1, v0        */
+```
+
+So: `insert`/`delete` of exactly one `move` next to an `addiu` or a load is a
+pseudo-splitting problem. Try the duplicated read first, then a second local in
+the branch arms, and only reach for `SOFT_TOUCH_REG` when the split has to
+happen inside one basic block.
