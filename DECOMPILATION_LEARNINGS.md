@@ -41377,3 +41377,48 @@ is the case the pin exists for - `register AeehMoteScratch* block asm("v1")`
 matched on the next build. Compute the two ratios from `.lreg` before reaching
 for a pin: if the losing range can be shortened or given more references, do
 that instead; if both ends are pinned down by the target, stop and pin.
+
+## A stray `move sN, aN` after a load means the C reads the field twice
+
+`func_acropolis_east_elevator_hall_8017F128` loads the mirror task's
+`TmdObject*` once and uses it twice - to index the mirrored model's part array
+before the state check, and to read the draw flags after two `jal`s. The
+target does it in two registers:
+
+```
+lw    a1, 0x20(s2)      # mirror = task->spawnArg2
+lw    a0, 0x2c(a1)      # mirror->extra
+lw    s4, 0x1c(a1)
+...
+lw    v1, 8(a0)         # ->field_8, still in the caller-saved copy
+bnez  v0, ...
+ move s6, a0            # the copy that survives the calls
+```
+
+Hoisting the load into a local (`mirrorExtra = mirror->extra;` then using
+`mirrorExtra` in both places) gives one pseudo, `global_alloc` puts it straight
+in `$s6`, and the `move` never appears - 95.4% with `insert=1 delete=2` and
+every later branch off by four bytes.
+
+Writing the field access **twice** is what produces it. CSE sees the second
+`mirror->extra` as an available expression, and GCC 2.8.1's CSE does not just
+delete the reload: it inserts `(set p2 p1)` at the first computation and
+rewrites the later use to `p2`. `p1` now dies inside the entry block and
+`local_alloc` hands it a caller-saved register, while `p2` is live across the
+calls and `global_alloc` gives it a callee-saved one - exactly the `lw $a0` +
+`move $s6` pair.
+
+```c
+/* one read: no move, function is one insn short */
+mirrorExtra = mirror->extra;
+mirrorPart  = &mirrorExtra->field_8[tbl[task->spawnArg1]];
+
+/* two reads: CSE emits the copy */
+mirrorPart  = &((TmdObject*)mirror->extra)->field_8[tbl[task->spawnArg1]];
+mirrorExtra = mirror->extra;
+```
+
+Put the redundant-looking second read last in its block and the copy lands in
+the following branch's delay slot. The general rule: an unexplained
+caller-saved-to-callee-saved `move` right after a load is a CSE artifact, so
+add a read, do not chase it in `.lreg`/`.greg`.
