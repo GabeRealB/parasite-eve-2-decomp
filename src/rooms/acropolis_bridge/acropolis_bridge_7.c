@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3688.h"
+#include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -19,6 +20,7 @@ typedef struct AcropolisBridgePromptWork {
     /* 0x04 */ s16  field_4;
     /* 0x06 */ byte pad_6[0x8];
     /* 0x0E */ s8   promptKind;
+    /* 0x0F */ s8   promptBusy;
 } AcropolisBridgePromptWork;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F280);
@@ -58,7 +60,25 @@ void func_acropolis_bridge_8017F460(Task* task)
     task->state = 4;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F4CC);
+/// Closes the prompt the script's current step put up, clears the highlight
+/// state, and advances the task to state 2. If `func_800D4EC0` still reports a
+/// prompt on screen, the step is flagged busy in `promptBusy` (which the
+/// hotspot scan in `func_acropolis_bridge_8017E1D0` gates on) and cap slot 9 is
+/// started.
+void func_acropolis_bridge_8017F4CC(Task* task)
+{
+    RoomActionPrompt*          prompt = &D_80114D28;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+
+    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if (func_800D4EC0() != 0) {
+        work->promptBusy = 1;
+        Gp_StartCapSlot(9, 0, 0);
+    }
+    task->state = 2;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F544);
 
