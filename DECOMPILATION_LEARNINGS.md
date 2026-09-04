@@ -13855,6 +13855,35 @@ sp.field_4 = arg0->field_14[glyphIdx].u + ...;
 
 `TextStream_Draw` needs this for its 4-byte glyph table indexing.
 
+## `addu` load order and operand order are coupled — hoist the second term
+
+When both terms of a sum are freshly loaded, swapping them in the source swaps
+*both* the load order and the `addu` operand order, so neither `a + b` nor
+`b + a` can give a target that wants one of each. Hoisting the term that must
+load *first* into its own statement decouples them: the hoisted term's RTL is
+emitted (and scheduled) first, while the remaining `a + t` still puts `a` in
+`rs`.
+
+```c
+/* target: lbu v1, 8(a3)   ← display loaded first
+           lbu a0, 0x28(s0)
+           addu a0, a0, v1 ← but field_28 is the rs operand */
+
+/* 99.7%: field_28 loads first (addu a0,a0,v0 is right, order is not) */
+lvl = (u8)mem->field_28 + ((u8)Display_State.field_8 & 1) * 0x10;
+
+/* 99.7%: display loads first, but addu v0,v0,a0 (display is rs) */
+lvl = ((u8)Display_State.field_8 & 1) * 0x10 + (u8)mem->field_28;
+
+/* 100% */
+flicker = ((u8)Display_State.field_8 & 1) * 0x10;
+lvl     = (u8)mem->field_28 + flicker;
+```
+
+`func_acropolis_roof_garden_8017DE90` needed this. Same shape as "Jump-table
+mult: load order vs `mult` operand order", but the fix there is keeping a value
+live early rather than hoisting a whole sub-expression.
+
 ## Reuse one `DR_TPAGE*` for sequential tpage prims
 
 When a function allocates and inserts two (or more) `DR_TPAGE` primitives in
