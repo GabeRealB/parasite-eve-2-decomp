@@ -210,4 +210,30 @@ void func_acropolis_bridge_8017E4FC(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E60C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E81C);
+/// Shows one frame of the bridge prompt: in the current room's eighth SPRT
+/// record, every command from 1 to 33 gets its skip-OT-link flag set and only
+/// command 34 is left drawing. `func_acropolis_bridge_8017E4FC` calls this on
+/// each of the first ten frames of a pass.
+void func_acropolis_bridge_8017E81C(void)
+{
+    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+    GpSprtCmd*        cmd;
+    s32               i;
+
+    Gp_GetViewIndex();
+    cmd = Gp_SprtTables[sess->field_3 - 1][Game_Session->field_74 - 1].field_0[sess->field_2 - 1][7].field_4;
+
+    for (i = 0x15; i < 0x1F; i++) {
+        cmd[i].field_4 = 1;
+    }
+    for (i = 0xB; i < 0x15; i++) {
+        cmd[i].field_4 = 1;
+    }
+    for (i = 1; i < 0xB; i++) {
+        cmd[i].field_4 = 1;
+    }
+    cmd[34].field_4 = 0;
+    cmd[33].field_4 = 1;
+    cmd[32].field_4 = 1;
+    cmd[31].field_4 = 1;
+}
