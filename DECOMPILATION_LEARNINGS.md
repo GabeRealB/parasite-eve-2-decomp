@@ -41623,3 +41623,53 @@ out->field_3 = nib;
 
 `func_acropolis_sanctuary_8017D73C` is the worked example (94.7% -> 99.7% from
 the ternary, 99.7% -> 100% from the reassignment).
+
+## `bltz` + `slti N` before the `bne N` is a switch with empty low cases
+
+`func_acropolis_sanctuary_8017DA40` reads a `u16` field and then tests it three
+times before running the only body in sight:
+
+```asm
+lhu   v1,4(s2)
+bltz  v1, end          /* can never be taken: v1 is zero-extended */
+slti  v0,v1,2
+bnez  v0, end
+li    v0,2
+bne   v1,v0, end
+```
+
+Written as the obvious `switch (work->phase) { case 2: ... }` GCC emits the
+`bne` alone and nothing else — 96.8% with `branch=6 delete=4`. The two dead
+range checks come back by spelling out the cases below it, even though they do
+nothing:
+
+```c
+switch (cutscene->phase) {
+    case 0:
+    case 1:
+        break;
+    case 2:
+        ...
+        break;
+}
+```
+
+`expand_case` runs `group_case_nodes` first, which merges `case 0:` and
+`case 1:` into one range node `[0,1]` because they share a label (both are the
+empty `break`). The tree is then `[0,1]` with a right child `[2,2]`:
+`node_has_low_bound` fails on the root, so GCC emits `if (i < 0) goto default`
+— it cannot fold that away, because the index is `int` after promotion and
+2.8.1 has no range propagation — then `if (i <= 1) goto <break label>`, which
+is the same address as `default`. The right leaf now *has* a low bound, so only
+`i != 2` is left.
+
+So read the shape backwards: a signed range check on a value the load already
+proved non-negative means the original had case labels the decompiled body
+never shows, one per branch above the real case. `slti v0,v1,N` names the
+boundary — cases `0..N-1` were grouped, so they shared one empty label.
+
+This is the range-node twin of "Empty switch case as binary-search pivot to
+shared default": there the recovered case is a single pivot value in the middle
+of the tree, here it is a run of low values that `group_case_nodes` folds into
+one node. Both say the same thing — cases whose body is empty leave a trace in
+the dispatch even though they leave none in the body.

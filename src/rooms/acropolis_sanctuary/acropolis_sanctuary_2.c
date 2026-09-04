@@ -12,7 +12,18 @@
 #include "rooms/acropolis_sanctuary.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80073BA9;
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
+/// `D_80071075` and `D_80114C12` gate the cutscene task's setup (the latter is
+/// the cutscene/among-us mode flag) and `D_8007218A` picks which of the two
+/// weapon-id bases that record uses. `D_80071076` is set to 1 alongside the
+/// save writes when the task hands off to task 0x11, the same way the fountain
+/// and helicopter-pad rooms set it.
+extern u8  D_80073BA9;
+extern u8  D_80071075;
+extern s16 D_80071076;
+extern s8  D_8007218A;
+extern s8  D_80114C12;
 
 extern SVECTOR       D_acropolis_sanctuary_8017D5D0;
 extern GpMsgEntry    D_acropolis_sanctuary_8018081C[];
@@ -26,6 +37,13 @@ extern GpMsgEntry    D_acropolis_sanctuary_80182310[];
 extern s32           D_acropolis_sanctuary_80182770;
 extern SVECTOR       D_acropolis_sanctuary_80182774[];
 extern Task*         D_acropolis_sanctuary_80186C90;
+
+/// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
+/// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
+/// `func_800E8634` is started on.
+extern s32 D_acropolis_sanctuary_801820E4;
+extern s32 D_acropolis_sanctuary_801820F0;
+extern s32 D_acropolis_sanctuary_801821C8;
 
 extern void func_acropolis_sanctuary_8017DD78(void);
 extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
@@ -95,7 +113,106 @@ void func_acropolis_sanctuary_8017D930(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D9E8);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DA40);
+/// The sanctuary cutscene task. State 0 allocates the task's `AcsCutsceneWork`
+/// block, captures slot 3 in it, publishes the task itself in
+/// `D_acropolis_sanctuary_80186C90` and cues the scene: slot 3 is sent the
+/// 0x3E8 weapon record for the equipped weapon, the scene's sound event is
+/// enqueued and its script pair is started.
+///
+/// State 1 drives the scene. `GameSession::field_1` reaching 0 instead stops
+/// the sound, writes the room's exit into the save and hands off to task 0x11
+/// before the task kills itself. Otherwise the scene fires exactly
+/// once, when `func_acropolis_sanctuary_8017DCE0` has armed `phase` at 2 and
+/// `step` is still 0: the player's effects are dropped, slot 3 is given the
+/// 0x3F4 record and then warped to the scene's mark with a 0x3E9 placement, and
+/// `step` is bumped so the next frame does nothing.
+void func_acropolis_sanctuary_8017DA40(Task* arg0)
+{
+    AcsMsgArg        weapon;
+    AcsMsgArg        rec;
+    AcsMsgArg*       msg;
+    AcsCutsceneWork* work;
+    AcsCutsceneWork* cutscene;
+    AcsCutsceneWork* slot;
+    AcsCutsceneWork* target;
+    s32              state;
+    s32              idx;
+    s32              weaponId;
+
+    state = arg0->state;
+    switch (state) {
+        case 0:
+            if (D_80114C12 != 1 && D_80071075 == 0) {
+                work        = Mem_Calloc(0xC, 0);
+                arg0->idMap = (TaskIdMap*)work;
+                if (work == NULL) {
+                    Task_Kill(arg0);
+                } else {
+                    Mem_Set(work, 0, 0xC);
+                    work->target                   = Game_GetPtrSlot(3);
+                    D_acropolis_sanctuary_80186C90 = arg0;
+                }
+                slot     = (AcsCutsceneWork*)arg0->idMap;
+                weaponId = D_80073BA9;
+                idx      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+
+                weapon.rec.field_0  = idx;
+                weapon.rec.field_4  = 1;
+                weapon.rec.field_8  = 1;
+                weapon.rec.field_C  = 0xF;
+                weapon.rec.field_10 = 0;
+                Gp_DispatchMsg(slot->target, 0x3E8, (s32)&weapon, 0);
+                SndEvt_EnqueueType6(0x510C0007, 0, 0);
+                func_800E8634((s32)&D_acropolis_sanctuary_801820F0, 0, (s32)&D_acropolis_sanctuary_801821C8);
+                arg0->state = arg0->state + 1;
+            }
+            break;
+
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                SndEvt_EnqueueType7(0x80000000, 0);
+                Mc_SaveData.field_6 = 0xD;
+                Mc_SaveData.field_7 = 1;
+                Mc_SaveData.field_8 = 2;
+                Mc_SaveData.field_5 = 1;
+                D_80071076          = 1;
+                Task_Spawn(0, 0x11, 0, 0);
+                Task_Kill(arg0);
+                break;
+            }
+            cutscene = (AcsCutsceneWork*)arg0->idMap;
+            msg      = &rec;
+            switch (cutscene->phase) {
+                case 0:
+                case 1:
+                    break;
+                case 2:
+                    if (cutscene->step == 0) {
+                        Gp_KillPlayerEffs();
+                        target = (AcsCutsceneWork*)arg0->idMap;
+                        if (target->target != NULL) {
+                            rec.rec.field_0   = (s32)&D_acropolis_sanctuary_801820E4;
+                            rec.rec.field_4   = 0;
+                            rec.rec.field_8   = 0;
+                            msg->rec.field_C  = 0xF;
+                            msg->rec.field_10 = 1;
+                            Gp_DispatchMsg(target->target, 0x3F4, (s32)msg, 0);
+                        }
+                        rec.place.pos.vx  = -0x1DB0;
+                        rec.place.pos.vy  = 0;
+                        msg->place.pos.vz = -0x1130;
+                        rec.place.rot.vx  = 0;
+                        rec.place.rot.vy  = 0;
+                        rec.place.rot.vz  = 0;
+                        Gp_DispatchMsg(cutscene->target, 0x3E9, (s32)msg, 0);
+                        Mc_SaveData.field_4 = 0xE;
+                        cutscene->step      = cutscene->step + 1;
+                    }
+                    break;
+            }
+            break;
+    }
+}
 
 /// Request entry point for the sanctuary cutscene task's work block: 0 and 1
 /// arm the script at phase 1 or 2 respectively, rewinding `step` so the driver
