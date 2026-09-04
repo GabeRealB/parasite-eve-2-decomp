@@ -159,7 +159,58 @@ void func_acropolis_bridge_8017E04C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E1D0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E3A0);
+/// Winds the bridge prompt back down, the mirror of
+/// `func_acropolis_bridge_8017E04C`: it clears the "bridge is up" sprite
+/// command of the camera the player is on, then runs the same twenty-frame
+/// pass as `func_acropolis_bridge_8017E4FC` - the first ten frames re-arm the
+/// script at step 0xFFF, the next ten replay the step the work block holds,
+/// and the twentieth resets the frame counter and counts one completed pass.
+/// The cursor is hit-tested against the room's hotspot table either way so
+/// `mode` reports whether it sits over one, and the third pass ends the script
+/// in state 8 with `D_acropolis_bridge_801917A8` raised.
+void func_acropolis_bridge_8017E3A0(Task* task)
+{
+    RoomActionPrompt*          prompt = &D_80114D28;
+    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    GameSessionFrom4*          sess   = (GameSessionFrom4*)&Game_Session->field_4;
+    GpSprtRec*                 rec;
+    s32                        view;
+    s16                        tick;
+    s32                        step;
+
+    view                                  = Gp_GetViewIndex();
+    rec                                   = Gp_SprtTables[sess->field_3 - 1][Game_Session->field_74 - 1].field_0[sess->field_2 - 1];
+    rec[(u8)view - 1].field_4[35].field_4 = 0;
+
+    tick = work->field_A;
+    step = 0xFFF;
+    if (tick >= 0xA) {
+        if (tick >= 0x14) {
+            goto reset;
+        }
+        step = work->field_4;
+    }
+    func_acropolis_bridge_8017E60C(step, 0);
+    work->field_A++;
+    goto after;
+
+reset:
+    work->field_A = 0;
+    work->field_8++;
+
+after:
+    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+    } else {
+        prompt->mode = 1;
+    }
+
+    if (work->field_8 == 3) {
+        task->state                 = 8;
+        D_acropolis_bridge_801917A8 = 1;
+    }
+}
 
 /// Idles the bridge prompt for twenty frames per pass: the first ten frames
 /// keep the prompt task ticking through `func_acropolis_bridge_8017E81C`, the
