@@ -4,6 +4,9 @@
 #include "main/session.h"
 #include "main/task.h"
 
+extern SVECTOR D_acropolis_bridge_80189240[];
+extern u16     D_acropolis_bridge_801917A4;
+
 void func_acropolis_bridge_8017F2D0(s32 arg0);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017DD9C);
@@ -19,7 +22,10 @@ void func_acropolis_bridge_8017DE94(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017DEE4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E024);
+s16 func_acropolis_bridge_8017E024(void)
+{
+    return D_acropolis_bridge_80189240[D_acropolis_bridge_801917A4 + 1].vy;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E04C);
 
