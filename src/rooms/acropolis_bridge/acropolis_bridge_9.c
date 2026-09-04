@@ -1,7 +1,10 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
 
@@ -70,4 +73,15 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187D04);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187D80);
+/// Runs the bridge enemy's current state handler: spawn/setup
+/// (`func_acropolis_bridge_80185988`), per-frame tick
+/// (`func_acropolis_bridge_80187850`) or teardown (`Gp_DestroyEnemy`). The
+/// table is copied onto the stack before the call, as everywhere else this
+/// dispatch shape appears.
+void func_acropolis_bridge_80187D80(Task* task)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_acropolis_bridge_8017D6E8;
+    sp.funcs[task->state](task->spawnArg2, task);
+}
