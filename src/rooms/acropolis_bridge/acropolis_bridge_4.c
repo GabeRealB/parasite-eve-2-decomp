@@ -12,6 +12,14 @@ extern s8 D_8007216C;
 extern s32   D_acropolis_bridge_801917A0;
 extern Task* D_acropolis_bridge_80191798;
 
+/// Payload `func_acropolis_bridge_8017DC68` passes as `Gp_DispatchMsg`'s
+/// `arg2` for message 0x7DA.
+typedef struct AcropolisBridgeMsg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} AcropolisBridgeMsg7DA;
+
 /// Per-frame state of the bridge model task: raises bit 0x80 of the object's
 /// flags on camera views 8..10 and clears them elsewhere, then clears the root
 /// coordinate's `flg` so its world matrix is rebuilt this frame.
@@ -56,7 +64,22 @@ void func_acropolis_bridge_8017DC1C(Task* arg0)
     D_acropolis_bridge_80191798 = temp_v0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_4", func_acropolis_bridge_8017DC68);
+void func_acropolis_bridge_8017DC68(Task* arg0)
+{
+    AcropolisBridgeMsg7DA msg = { 1, 0xB, 1 };
+
+    if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
+        if (D_acropolis_bridge_801917A0 == 0) {
+            D_8007216C             = 6;
+            Game_Session->field_68 = 0;
+            arg0->state            = (s32)(arg0->state + 1);
+        } else {
+            D_8007216C = 9;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            arg0->state = (s32)(arg0->state + 1);
+        }
+    }
+}
 
 void func_acropolis_bridge_8017DD24(Task* arg0)
 {

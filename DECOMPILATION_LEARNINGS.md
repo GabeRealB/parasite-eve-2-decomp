@@ -45759,3 +45759,39 @@ Same family as "Shape a live range by *where* a local is introduced", but for
 emission order rather than allocation: a lone `reorder=1` between a store and a
 following load is almost always this, and the cure is a declaration, not a
 barrier.
+
+## A message-payload struct wants an initializer, not field assignments
+
+The "local 2-func table: use an initializer so the prologue saves come first"
+rule is not specific to function-pointer tables — it applies to any small
+stack record built before the first `jal` and passed by address.
+
+`func_acropolis_bridge_8017DC68` fills a three-field payload and hands it to
+`Gp_DispatchMsg` as `arg2`. Written as separate assignments:
+
+```c
+AcropolisBridgeMsg7DA msg;
+
+msg.field_0 = 1;
+msg.field_1 = 0xB;
+msg.field_2 = 1;
+```
+
+the `sb`/`sb`/`sh` block is a plain RTL sequence the scheduler may interleave
+with the prologue, and `sw ra, 0x20(sp)` sinks past the first two stores —
+98.7% with `reorder=1` and nothing else wrong. An initializer emits the whole
+prologue first, then the stores:
+
+```c
+AcropolisBridgeMsg7DA msg = { 1, 0xB, 1 };
+```
+
+100% with no other change. A lone `reorder=1` that is only the position of
+`sw ra` among the record's stores is this, every time.
+
+The register half of the same function is the ordinary priority story: `arg0`
+(3 refs / 68 insns) lost `$s0` to the `%hi(D_…)` address pseudo (3 refs / 26).
+Writing `arg0->state = arg0->state + 1` in **both** arms of the `if` instead of
+once after the join raised `arg0` to 5 refs, which flips
+`floor_log2(refs) * refs / live_length` in its favour; `jump2` then merged the
+duplicated tails back into the target's single copy.
