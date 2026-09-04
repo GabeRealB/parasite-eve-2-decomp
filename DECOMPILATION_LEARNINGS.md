@@ -44026,3 +44026,63 @@ slot->field_54 = slot->field_50 >> 2;
 CSE still replaces both read-backs with the stored register, and the signedness
 of each read-back is what picks `srl` (from `u16`) versus the `sll 16` / `sra 18`
 pair (from the `s16` field). 97.4% → 100%.
+
+## Store the decremented counter through one local, do not spell `x - 1` twice
+
+`func_m93r_8011D1C4` case 2 loads a frame-delay counter, takes one branch when
+it is zero and, on the other arm, stores `counter - 1` and takes a second
+branch when *that* is zero. The target spends a single register on it:
+
+```
+lw    v0, 0x934(s0)
+nop
+bnez  v0, .Larm2
+ addiu v0, v0, -1      # speculated into the delay slot
+.Larm2:
+bnez  v0, .Lout
+ sw   v0, 0x934(s0)
+```
+
+Ported from an already-matched sibling whose reload constant was `3`, the arm
+read `actor->field_934 = delay - 1; if (delay - 1 == 0)`. That is correct C and
+scores 98.8%, but it produces two registers and a different second branch:
+
+```
+lw    v1, 0x934(s0)
+bnez  v1, .Larm2
+ addiu v0, v1, -0x1
+.Larm2:
+bne   v1, t0, .Lout    # compares delay against 1, not delay-1 against 0
+ sw   v0, 0x934(s0)
+```
+
+Both `delay - 1` expressions do CSE into one `addiu`, so the subtraction is not
+duplicated — but `delay` itself stays live across it for the second test, which
+2.8.1 then rewrites as `delay == 1` against the switch's already-materialised
+`1` in `$t0`. Two registers are live where the ROM has one.
+
+Assigning through the local instead collapses it:
+
+```c
+delay = actor->field_934;
+if (delay == 0) {
+    /* fire */
+    break;
+}
+delay--;
+actor->field_934 = delay;
+if (delay == 0) {
+    /* lock-on */
+}
+```
+
+Now `delay` is dead after the store, so the decrement reuses its register, the
+second test is a plain `bnez` on it, and — because the value is dead on the
+fall-through arm — the delay-slot filler may speculate the `addiu` into the
+first branch's slot, which is what puts it there in the ROM. 99.947%, and the
+residue was only a `%hi`/`%lo` symbol *name*.
+
+The general rule: when the ROM tests a counter both before and after a
+decrement, write the decrement as a statement on a local and test the local.
+Re-deriving `x - 1` inside the condition keeps `x` live and hands 2.8.1 a
+constant compare instead.
