@@ -1,7 +1,9 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/mem.h"
 #include "main/session.h"
@@ -68,7 +70,40 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F6F0);
+/// Fourth state of the elevator task: drives the car along its shaft from the
+/// task's per-frame step, clamps the travel to [0, 0x2D0], and refreshes the
+/// model's world matrix and lighting from the resulting position.
+void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
+{
+    VECTOR             pos;
+    TmdObject*         extra;
+    GsCOORDINATE2*     coord;
+    AwehElevatorState* work;
+
+    work  = (AwehElevatorState*)task->idMap;
+    extra = (TmdObject*)task->extra;
+    coord = extra->field_8;
+
+    work->field_0 += task->spawnArg1 * 0x14;
+    if (work->field_0 < 0) {
+        work->field_0 = 0;
+    }
+    if (work->field_0 >= 0x2D1) {
+        work->field_0 = 0x2D0;
+    }
+    coord->coord.t[0] = (work->field_0 * (s32)task->spawnArg2) - 1000;
+    if ((u8)Game_Session->field_4 == 5) {
+        extra->field_C = 0;
+    } else {
+        extra->field_C = 0x80;
+    }
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    func_800D7A9C(extra, &pos, 0, 3);
+}
 
 /// Third state of the elevator task: on the two session phases that use it,
 /// spawns the lift's ambient effects around the room's coordinate system.
