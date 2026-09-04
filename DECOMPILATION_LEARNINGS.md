@@ -45717,3 +45717,45 @@ arg0->state                 = next;
 is unchanged — only the allocation moves. Same family as "Shape a live range by
 *where* a local is introduced": to *raise* a caller-saved register, overlap it
 with a value that is still live, rather than pinning it.
+
+## A load the scheduler cannot lift past a store must be declared before it
+
+GCC 2.8.1's `sched` pass will not move a load above a store through a different
+pointer — it has no way to prove they do not alias — so the *source* order of a
+store and an unrelated pointer chase is what decides which one fills the load
+delay slot.
+
+`func_acropolis_bridge_80187D04` is the minimal case. m2c emits the second
+pointer inline in the assignment that uses it, after the store:
+
+```c
+extra->field_C = 0x80;
+M2C_FIELD(M2C_FIELD(task, void**, 0x20), s8*, 0x14) = 1;
+```
+
+That scores 98.07% with `reorder=1`: the `sh` goes first and the `li v0, 1`
+ends up filling the `lw`'s delay slot. The target loads first and lets the
+store fill the slot:
+
+```
+lw   v1, 0x20(v1)
+sh   v0, 0xc(a0)
+li   v0, 1
+sb   v0, 0x14(v1)
+```
+
+Declaring the pointer as a block-scope local *above* the store is the whole fix
+— nothing else changes, and no pin is involved:
+
+```c
+if (work->field_4 != 0) {
+    GpEnemy* enemy = (GpEnemy*)task->spawnArg2;
+
+    extra->field_C      = 0x80;
+    enemy->node.field_4 = 1;
+```
+
+Same family as "Shape a live range by *where* a local is introduced", but for
+emission order rather than allocation: a lone `reorder=1` between a store and a
+following load is almost always this, and the cure is a declaration, not a
+barrier.

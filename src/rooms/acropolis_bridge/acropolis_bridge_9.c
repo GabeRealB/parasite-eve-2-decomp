@@ -1,10 +1,24 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
+
+/// Work block the bridge enemy's task keeps at `Task::idMap`. `field_4` is the
+/// live flag every state handler in this unit gates on, and `field_12E` /
+/// `field_196` are the two flag halfwords whose bit 15 the handlers toggle to
+/// enable one behaviour and disable the other.
+typedef struct AcropolisBridgeEnemyWork {
+    /* 0x000 */ byte pad_0[0x4];
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ byte pad_6[0x128];
+    /* 0x12E */ u16  field_12E;
+    /* 0x130 */ byte pad_130[0x66];
+    /* 0x196 */ u16  field_196;
+} AcropolisBridgeEnemyWork;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
 
@@ -71,7 +85,30 @@ s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187C10);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187D04);
+/// Shuts the bridge enemy's animation down. While the work block is still live
+/// it hides the mesh behind the default flag set, tags the enemy's link node
+/// and clears bit 15 of both behaviour flag words; once the work block has been
+/// cleared it instead adds the "skip drawing" bit and releases the TMD's aux
+/// buffers.
+void func_acropolis_bridge_80187D04(Task* task)
+{
+    AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    TmdObject*                extra = (TmdObject*)task->extra;
+
+    if (work->field_4 != 0) {
+        GpEnemy* enemy = (GpEnemy*)task->spawnArg2;
+
+        extra->field_C      = 0x80;
+        enemy->node.field_4 = 1;
+        work->field_12E    &= 0x7FFF;
+        work->field_196    &= 0x7FFF;
+        return;
+    }
+    extra->field_C |= 4;
+    if (extra->field_18 != NULL) {
+        Tmd_FreeBuffers(extra);
+    }
+}
 
 /// Runs the bridge enemy's current state handler: spawn/setup
 /// (`func_acropolis_bridge_80185988`), per-frame tick
