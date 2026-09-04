@@ -43872,3 +43872,39 @@ needed for `addiu v0, a2, -0x18` / `move s2, v0`. Unpinning those `$v0`
 temps drops the extra move and looks like a control-flow miss.
 `Room_Draw04` is the example; `Room_Draw10` already uses the `$v0` pair.
 
+
+## Scratch score stalls at 99.9% on `%hi`/`%lo` symbol names, not on codegen
+
+**Problem.** `func_mp5a5_p2_8011DDA4` is byte-for-byte the sibling
+`func_mp5a5_p1_8011DDA4` with six weapon constants bumped, so the ported C is
+exact — yet `./build.sh` reported 99.911% with `regs=4`.
+
+**Symptom.** The whole diff was relocation *names*:
+
+```
+-lbu    v0,%lo(D_80073BAA)(v0)          <- target (raw splat symbol)
++lbu    v0,%lo(Wip_SysConfig+0x22)(v0)  <- ours (named struct + field)
+-lb     v0,%lo(D_8007218A)(v0)
++lb     v0,%lo(Mc_SaveData+0x22)(v0)
+```
+
+`Wip_SysConfig+0x22` *is* `0x80073BAA` and `Mc_SaveData+0x22` *is*
+`0x8007218A`. The scratch harness links the target against splat's unnamed
+`D_` symbols, so any field access through a named struct in a *different* TU
+shows as a difference even though the linked bytes are identical.
+
+**Fix.** Do not chase it — no C edit removes it, and the `regs` penalty is an
+artifact of the normalizer, not register allocation. When the residual diff is
+only `%hi`/`%lo` operands whose named symbol plus field offset equals the
+target's `D_` address, install the function and let
+`./tools/build-and-verify.sh` decide. Here the scoped and full builds both
+matched on the first try.
+
+**Corollary for sibling overlays.** Weapon variants (`mp5a5` / `mp5a5_p1` /
+`mp5a5_p2`) share the same state machine; only the item id, the sound bank
+word and the effect slot differ. Diffing the sibling's already-matched `.s`
+under `asm/USA/<family>/matchings/` against the target
+(`diff <(sed 's/_p1/XX/g' …) <(sed 's/_p2/XX/g' …)`) shows the constant list
+directly, and porting the matched C with those substitutions beats starting
+from m2c. `overlay_dup_index.py find` will not report these as copies, because
+the differing immediates make the disassembly text differ.
