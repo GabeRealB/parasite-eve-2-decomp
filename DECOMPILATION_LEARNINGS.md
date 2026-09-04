@@ -46042,3 +46042,39 @@ work->field_0 = 6;
 The two spellings are indistinguishable in the source's intent, so read the
 penalty mix: a pure `regs` leftover on an otherwise exact tail of constant
 stores means the temp is real in your C and was never real in the original.
+
+## A stack-array constant pool needs no `rodata` cut — it is `.align 2`, unlike a jump table
+
+The corpus warns that a compiler-generated table must *start* its object's
+`.rodata`, because GCC emits it with `.align 3` and any earlier `.rodata`
+contribution in the same object turns that into an in-object pad. That applies
+to switch **jump tables**. The pool for a stack array initializer —
+`TaskFunc states[14] = { … }` and friends, the room-overlay state dispatcher
+pattern — is emitted as `.rdata` / `.align 2`, so on a 4-aligned offset it can
+sit anywhere inside a unit's `.rodata` and needs no manifest cut at all.
+
+What decides its offset is instead **source order**: cc1 emits the pool
+immediately before the function that uses it, and `INCLUDE_ASM` /
+`INCLUDE_RODATA` are top-level asm that stay where they are written. So
+replacing an `INCLUDE_ASM` with the C body puts the pool exactly where the
+assembly block was.
+
+`acropolis_bridge` is the worked case. Its leading rodata is
+`D_…_8017D5C0` (0x0), `D_…_8017D5C4` (0x4), `D_…_8017D5D0` (0x10, the pool of
+the still-asm `func_…_8017D878`), the pool of `func_…_8017D8D0` (0x1C), then
+`D_…_8017D614` (0x54) — five blocks in one unit. Decompiling `8017D8D0` alone,
+with the C body left in the slot its `INCLUDE_ASM` line occupied, lands the
+14-word pool at 0x1C and checksums with the manifest untouched:
+
+```
+	.end	__maspsx_include_asm_hack_func_acropolis_bridge_8017D878
+	.rdata
+	.align	2
+$LC0:
+	.word	func_acropolis_bridge_8017DB60
+	…
+```
+
+Check `build/USA/src/<unit>.c.s` for `.align 3` before reaching for a `rodata`
+or `rodata_head` key: if the directive is `.align 2`, the placement is already
+correct and a cut would only renumber the overlay's units for nothing.

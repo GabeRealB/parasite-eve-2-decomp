@@ -12,6 +12,15 @@ extern s32      D_acropolis_bridge_8018912C;
 
 void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
 
+void func_acropolis_bridge_8017DB60(Task* task);
+void func_acropolis_bridge_8017DBA0(Task* task);
+void func_acropolis_bridge_8017DC1C(Task* task);
+void func_acropolis_bridge_8017DC68(Task* task);
+void func_acropolis_bridge_8017DD24(Task* task);
+void func_acropolis_bridge_8017DD9C(Task* task);
+void func_acropolis_bridge_8017DDEC(Task* task);
+void func_acropolis_bridge_8017DE94(Task* task);
+
 /// Room message handler: answers msg 0xF (first use of the bridge) by running
 /// the cutscene once and marking the area object, and msg 0xB by asking for
 /// response 2 in the outgoing copy.
@@ -76,6 +85,30 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D878);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D8D0);
+/// Fourteen-state dispatcher of the bridge's main cutscene task; the handler
+/// table is built on the stack and the entry named by `Task::state` is called.
+/// States 2 and 6..9 are `Room_Util26`, which just advances the state, so those
+/// steps burn one frame each.
+void func_acropolis_bridge_8017D8D0(Task* task)
+{
+    TaskFunc states[14] = {
+        func_acropolis_bridge_8017DB60,
+        func_acropolis_bridge_8017DBA0,
+        Room_Util26,
+        func_acropolis_bridge_8017DC1C,
+        func_acropolis_bridge_8017DC68,
+        func_acropolis_bridge_8017DD24,
+        Room_Util26,
+        Room_Util26,
+        Room_Util26,
+        Room_Util26,
+        func_acropolis_bridge_8017DD9C,
+        func_acropolis_bridge_8017DDEC,
+        func_acropolis_bridge_8017DE94,
+        Task_Kill,
+    };
+
+    states[task->state](task);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D614);
