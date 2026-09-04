@@ -120,7 +120,25 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DD78);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DF88);
+/// Toggles a pair of sprite commands for view `arg1` of the current room:
+/// `arg0` zero draws the second command and skips the third, non-zero does the
+/// reverse. `Gp_LinkViewSprts` reads `field_4` to decide whether to skip
+/// OT-linking each command's prims.
+void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
+{
+    GameSession*      g    = Game_Session;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GpSprtCmd*        cmd;
+
+    cmd = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1][(arg1 & 0xFF) - 1].field_4;
+    if ((arg0 & 0xFF) == 0) {
+        cmd[1].field_4 = 0;
+        cmd[2].field_4 = 1;
+    } else {
+        cmd[1].field_4 = 1;
+        cmd[2].field_4 = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017E00C);
 
