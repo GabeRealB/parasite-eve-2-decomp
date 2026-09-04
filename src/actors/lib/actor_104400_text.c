@@ -3,6 +3,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+
 s16 Actor04400_Fn06618(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
@@ -346,7 +349,20 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08908);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn089C0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08A40);
+void Actor04400_Fn08A40(Task* arg0)
+{
+    Actor104400Work* work2;
+    Actor104400Work* work;
+
+    work                                  = (Actor104400Work*)arg0->idMap;
+    ((GpEnemy*)arg0->spawnArg2)->field_54 = 0;
+    work2                                 = (Actor104400Work*)arg0->idMap;
+    Gp_UnlinkObj(&work2->obj_2AC);
+    Gp_UnlinkObj(&work2->obj_2CC);
+    Gp_UnlinkObj(&work2->obj_3AC);
+    work->field_412 = 0;
+    work->field_420 = work->field_420 + 1;
+}
 
 void Actor04400_Fn08A9C(void)
 {

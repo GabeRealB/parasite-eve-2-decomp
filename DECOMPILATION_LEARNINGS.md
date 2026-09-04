@@ -3,6 +3,26 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Do not punch a hole in a whole-`.text` shared actor unit
+
+`overlay_dup_index.py find` reports a body under `USA/actors/lib` when it
+already lives in an `actor_*_text` object that covers the overlay's entire
+`.text` (`text_all_shared` in `gen_overlay_configs.py`). Promoting that
+*function* as a new `actors_shared_*` span into the same overlay would split
+the existing `0x220..end` unit, and `text_all_shared` is true only when the
+**first** shared cut runs start-to-end. A hole makes the generator emit the
+package header as `.rodata` paired with a C unit instead of `rodata,
+<overlay>_header`, which shifts the dispatch tables.
+
+Leave the body in `actor_*_text` under its original name (it already serves
+the slot twins) and `promote --unit actors_shared_<addr>` only the copies in
+overlays that are not whole-text-shared. Those copies still split *their*
+host `.c` at the cut — tail becomes `<overlay>_3`, and any `rodata` cut that
+named the old unit has to follow the functions that moved (see "Promoting a
+matched body into a family's shared library"). `Actor04400_Fn08A40` is the
+example: one C copy stays in `actor_104400_text.c`, the 341700/342400 copies
+share `ActorsShared8016a890`.
+
 ## Extra `$a0`/`$a1` on a `void(void)` import: function-pointer cast
 
 An overlay jal of a `void f(void)` import (e.g. `Gp_ReleaseStateF0Clear`)
