@@ -51,9 +51,96 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x290 */ u16        field_290;
 } AcropolisBridgeEnemyWork;
 
+/// One entry of the patrol node table the walker task steers by. The three
+/// packed coordinates are copied straight into the scratch `SVECTOR3` the
+/// caller hands down, so they are read back as raw halfwords.
+typedef struct AcropolisBridgeNavNode {
+    /* 0x0 */ u16  x;
+    /* 0x2 */ u16  y;
+    /* 0x4 */ u16  z;
+    /* 0x6 */ byte pad_6[0x2];
+} AcropolisBridgeNavNode;
+
+/// The room's patrol data for the walker: the node table every route indexes
+/// and the second byte table `func_acropolis_bridge_8018532C` walks with its
+/// own cursor at `field_76`.
+typedef struct AcropolisBridgeNavData {
+    /* 0x0 */ AcropolisBridgeNavNode* nodes;
+    /* 0x4 */ u8*                     field_4;
+} AcropolisBridgeNavData;
+
+/// One patrol route: a 0xFF-terminated list of node indices plus the cursor
+/// into it, which wraps back to the first node at the terminator. `arrived` is
+/// the flag `func_acropolis_bridge_80184208` raises on the frame the walker
+/// reaches its current node and the cursor steps on.
+typedef struct AcropolisBridgeNavRoute {
+    /* 0x0 */ u8*  nodes;
+    /* 0x4 */ byte pad_4[0x1];
+    /* 0x5 */ u8   cursor;
+    /* 0x6 */ s8   arrived;
+} AcropolisBridgeNavRoute;
+
+/// Work block of the walker task this unit's second half drives (the task
+/// `func_acropolis_bridge_8018532C` ticks). `node` is the patrol node it is
+/// currently heading for and `field_62` / `field_64` the movement deltas that
+/// are cleared whenever it arrives.
+typedef struct AcropolisBridgeWalkerWork {
+    /* 0x00 */ AcropolisBridgeNavData*  nav;
+    /* 0x04 */ AcropolisBridgeNavRoute* route;
+    /* 0x08 */ byte                     pad_8[0x5A];
+    /* 0x62 */ s16                      field_62;
+    /* 0x64 */ s16                      field_64;
+    /* 0x66 */ byte                     pad_66[0x4];
+    /* 0x6A */ u8                       node;
+} AcropolisBridgeWalkerWork;
+
+/// Reports whether the walker has reached the patrol node at `work->node`.
+s16 func_acropolis_bridge_80184024(AcropolisBridgeWalkerWork* work);
+
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184208);
+/// Steers the walker along its patrol route. `pos` receives the position of the
+/// node it is heading for; while it is still short of that node the route's
+/// `arrived` flag stays clear, and on the frame it gets there the flag is
+/// raised, the movement deltas are cleared and the cursor steps to the next
+/// node -- wrapping back to the first when it hits the 0xFF terminator -- so
+/// `pos` already describes the new node.
+void func_acropolis_bridge_80184208(AcropolisBridgeWalkerWork* work, SVECTOR3* pos)
+{
+    AcropolisBridgeNavRoute* route;
+    AcropolisBridgeNavRoute* step;
+    AcropolisBridgeNavRoute* wrap;
+    AcropolisBridgeNavRoute* next;
+    u8                       node;
+
+    route      = work->route;
+    work->node = route->nodes[route->cursor];
+    if (func_acropolis_bridge_80184024(work) == 0) {
+        pos->vx              = work->nav->nodes[work->node].x;
+        pos->vy              = work->nav->nodes[work->node].y;
+        pos->vz              = work->nav->nodes[work->node].z;
+        work->route->arrived = 0;
+        return;
+    }
+
+    work->route->arrived = 1;
+    step                 = work->route;
+    work->field_62       = 0;
+    work->field_64       = 0;
+    step->cursor++;
+
+    wrap = work->route;
+    if (wrap->nodes[wrap->cursor] == 0xFF) {
+        wrap->cursor = 0;
+    }
+
+    next       = work->route;
+    node       = next->nodes[next->cursor];
+    work->node = node;
+    pos->vx    = work->nav->nodes[node].x;
+    pos->vy    = work->nav->nodes[work->node].y;
+    pos->vz    = work->nav->nodes[work->node].z;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801843A0);
 

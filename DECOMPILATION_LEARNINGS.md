@@ -46215,3 +46215,36 @@ the outer register, but the third follows a `sh` to the same object, so CSE has
 invalidated the memory and a real `lw $s2,0x1c($a0)` is re-emitted — which is
 exactly what the target does. A single shared local can never produce that
 reload.
+
+## A missing `move $a0,$sN` before a `jal` does not mean the call takes no arguments
+
+`func_acropolis_bridge_80184208` calls `func_acropolis_bridge_80184024` with no
+argument setup at all:
+
+```
+    move   $s0, $a0          # work
+    ...
+    jal    func_acropolis_bridge_80184024
+     sb    $v0, 0x6a($s0)
+```
+
+m2c reads that literally and emits `func_acropolis_bridge_80184024()`. The
+callee does take the pointer — every other call site in the overlay sets `$a0`
+explicitly — but here `$a0` still holds the incoming argument, so GCC 2.8.1
+deletes the redundant `$a0 = pseudo` copy: the prologue's `move $s0,$a0` tells
+CSE the two registers are equal, and the copy back is dead.
+
+Writing the argument out is not cosmetic. The argumentless version scored
+98.4%, because the *scheduler* placed the `move $s1,$a1` parameter copy after
+`lbu $v0,0x0($v0)` instead of into the preceding load-delay slot; adding the
+argument moved it to the slot the target uses and the function matched. So pass
+the argument whenever the register plausibly still holds it, and only conclude
+the call is argumentless if `$a0` has demonstrably been clobbered.
+
+The elision is fragile in the other direction too. Holding the callee's
+argument in a local that the allocator happens to put in `$a0` — here a single
+`route` pointer reused across the whole function, giving `lw $a0,0x4($s0)` —
+clobbers `$a0`, so the copy comes back as a real `move $a0,$s0` and the match
+is lost. Splitting that local into one pseudo per use, which this function
+needed anyway, both fixes the register assignment and lets the copy stay
+deleted.
