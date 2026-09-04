@@ -43019,3 +43019,40 @@ ty += 1;
 Combine cannot do this fold on its own — the `+ 1` result is used by the two
 stores in between, so it does not die at the `+ 8` — which is why the leftover
 looks like a scheduling artefact and is not one.
+
+## Promoting a shared body renumbers every later unit in *both* overlays
+
+`overlay_dup_index.py promote` writes the `shared` span into
+`configs/USA/overlays.toml`, but a span inserted in the middle of an overlay's
+`.text` adds a unit boundary, so every `<overlay>_N` after it shifts to `N+1`.
+The build then fails with a wall of
+
+```
+Error: can't open asm/USA/rooms/nonmatchings/<overlay>/<overlay>_4/func_....s
+```
+
+because the existing `src/<family>/<overlay>/<overlay>_N.c` files still name
+the old unit in their `INCLUDE_ASM`, and splat has quietly generated a fresh
+all-`INCLUDE_ASM` file at the new highest number (an exact duplicate of the old
+last unit — that duplicate pair is how you spot the shift).
+
+Fix it in this order, for **each** overlay the promotion touched:
+
+1. Read the new boundaries out of `configs/USA/generated/<overlay>.yaml` — the
+   `[0x…, c, <overlay>/<overlay>_N]` lines are authoritative.
+2. Repoint any `rodata` entry in the manifest that names a unit **after** the
+   inserted span: those keys are by unit *name*, so `acropolis_bridge_5` has to
+   become `acropolis_bridge_6` or the rodata lands in the wrong object.
+3. Delete the pure-`INCLUDE_ASM` `.c` files after the span and let splat
+   regenerate them at the new numbers. Files that contain decompiled C must be
+   edited by hand instead: split the one straddling the new boundary and rewrite
+   the `INCLUDE_ASM` unit names in the moved half.
+
+Also delete the stale `asm/…/nonmatchings/<unit>/<func>.s` of the function you
+just matched before running `promote --rebuild`; the index is built from `asm/`
+and will otherwise see the body twice in one overlay and refuse with
+`every overlay carrying it contains it twice; cannot share`.
+
+Finally, a scoped `--only <family>` build does **not** catch this — the renumber
+breaks the *other* overlay carrying the body, so run the bare
+`./tools/build-and-verify.sh`.

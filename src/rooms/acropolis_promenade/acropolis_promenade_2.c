@@ -55,22 +55,3 @@ void func_acropolis_promenade_8017D9E0(Task* arg0)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017DA4C);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017DAA4);
-
-void func_acropolis_promenade_8017DB48(Task* task)
-{
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-
-    obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
-    if (Gp_GetViewIndex() == 5) {
-        obj->field_C = 0x80;
-    } else {
-        obj->field_C = 0;
-    }
-    coord->flg = 0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017DB9C);
