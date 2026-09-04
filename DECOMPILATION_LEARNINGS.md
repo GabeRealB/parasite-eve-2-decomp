@@ -43631,3 +43631,53 @@ Use `grep -a`, or the Grep tool (ripgrep reads the file fine and reports all
 151 hits). `rsin` and `rcos` are declared at `include/psyq/libgte.h:440` as
 `int rsin(int)` — note the `int` return, so `>> 4` on the result is an `sra`
 and a target `srl` needs `(u32)rsin(x) >> 4`.
+## A `MATRIX` identity splat written as `sw`/`sw`/`sw`/`sw`/`sh`
+
+GCC 2.8.1 does not merge adjacent halfword constant stores, so a target that
+sets an identity rotation with only five stores was never nine `m[i][j] = ONE`
+assignments in the source:
+
+```
+li    v0,0x1000
+addiu a1,s0,4
+sw    v0,4(s0)      /* m[0][0], m[0][1] */
+sw    zero,4(a1)    /* m[0][2], m[1][0] */
+sw    v0,8(a1)      /* m[1][1], m[1][2] */
+sw    zero,0xc(a1)  /* m[2][0], m[2][1] */
+sh    v0,0x10(a1)   /* m[2][2]          */
+```
+
+Writing the nine fields gives eight `sh` plus one more and stalls at ~93%.
+The source used a word-wise view of the matrix, which a union expresses
+without pointer arithmetic:
+
+```c
+typedef union HyperMat {
+    MATRIX mat;
+    struct {
+        s32 m00_m01;
+        s32 m02_m10;
+        s32 m11_m12;
+        s32 m20_m21;
+        s16 m22;
+    } ident;
+} HyperMat;
+```
+
+The base register is the second half of the tell. `a1` here is the
+`RotMatrixX` argument, and the *stores* use it too — the address is
+materialised once and shared. Reaching for the union alone but passing
+`&coord->coord.mat` at the call keeps the two address expressions separate:
+the scheduler hoists `addiu a1,s0,4` into a branch delay slot far above and
+every store stays on `s0`. Bind one local pointer and use it for both:
+
+```c
+mat                = &coord->coord;
+mat->ident.m00_m01 = 0x1000;
+/* ... */
+RotMatrixX(coord->angle, &mat->mat);
+```
+
+The first store still comes out as `4(s0)` rather than `0(a1)`; that is the
+expected shape, not a leftover. `func_hypervelocity_8011F374` is the worked
+example (93.3% → 100% on that one change).
