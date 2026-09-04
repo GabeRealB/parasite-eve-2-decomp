@@ -54,7 +54,40 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F358);
+/// Picks which of three mutually exclusive bridge sprites view 9 of this room
+/// draws. `Gp_LinkViewSprts` treats a nonzero `field_4` as "skip OT-linking",
+/// so the selected command gets 0 and the other two get 1; a state outside
+/// 0..2 hides all three.
+void func_acropolis_bridge_8017F358(s32 state)
+{
+    GameSession*      g    = Game_Session;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GpSprtRec*        rec;
+    GpSprtCmd*        cmd;
+    s32               mode;
+
+    rec  = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+    cmd  = rec[9].field_4;
+    mode = state & 0xFF;
+
+    if (mode == 0) {
+        cmd[1].field_4 = 0;
+        cmd[2].field_4 = 1;
+        cmd[3].field_4 = 1;
+    } else if (mode == 1) {
+        cmd[1].field_4 = 1;
+        cmd[2].field_4 = 0;
+        cmd[3].field_4 = 1;
+    } else if (mode == 2) {
+        cmd[1].field_4 = 1;
+        cmd[2].field_4 = 1;
+        cmd[3].field_4 = 0;
+    } else {
+        cmd[1].field_4 = 1;
+        cmd[2].field_4 = 1;
+        cmd[3].field_4 = 1;
+    }
+}
 
 /// Arms the action prompt for a fresh script step: parks the cursor at the top
 /// left with the highlight mode on and the cursor speed at 0x80, tears down any
