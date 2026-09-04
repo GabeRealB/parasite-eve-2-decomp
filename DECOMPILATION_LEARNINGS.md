@@ -42595,3 +42595,70 @@ operand as `&((T*)(head - 0x14))->otz` does *not* work — CSE folds it back ont
 The general rule: an `asm` operand needs a hard register, so it is the one place
 where an "unnecessary" pointer local reliably survives copy-propagation and can
 be used to re-rank the allocation.
+
+## A field stored with `sw` but read with `lhu` is `s32` read into a `u16` local
+
+The mirror work block in the acropolis elevator halls writes offset `0xC` as a
+word and reads it back as a halfword:
+
+```
+lhu   v1, 0xC(s6)      # extra->field_C, a u16
+sw    v1, 0xC(s7)      # work->field_C
+...
+lhu   v0, 0xC(s7)      # read back
+sh    v0, 0xC(s6)
+andi  v0, v0, 0x80
+```
+
+The natural reading — "the field is `u16`, so declare it `u16`" — gives `sh` on
+the store and is wrong. The field is `s32`; the `lhu` on the read side comes
+from `combine` folding `lw` + `andi 0xFFFF` when the destination local is `u16`
+and every later use is 16-bit:
+
+```c
+/* RoomMirrorWork */
+/* 0x0C */ s32 field_C;
+...
+work->field_C  = extra->field_C;   /* lhu (u16 source) + sw */
+flags          = work->field_C;    /* u16 flags -> lw+andi, combined into lhu */
+extra->field_C = flags;
+```
+
+So a width mismatch between the store and the load of the *same* field is not a
+contradiction: pick the width from the store, and let the reading local's type
+narrow the load.
+
+## Two allocation basins: cached member vs. repeated member reads
+
+`func_acropolis_west_elevator_hall_8017D7B0` (shared, byte-identical, by six
+rooms) plateaus at 99.716% and the last instruction is instructive. The target
+reads `b->texOfs` three times inside the sprite loop — `lhu` for the `tpage`
+field, then `lbu` twice for the two `u` coordinates, the stores in between
+killing CSE and `combine` narrowing the two byte uses:
+
+```c
+poly->tpage = getTPage(2, k & 3, b->texOfs, 0x100);
+poly->u0    = poly->u2 = poly->x0 - 0x60 + drawW - b->texOfs;
+poly->v0    = poly->v1 = poly->y0 + 0x78;
+poly->v2    = poly->v3 = poly->y2 + 0x78;
+poly->u1    = poly->u3 = poly->x1 - 0x60 + drawW - b->texOfs;
+```
+
+Writing it that way reproduces the target's instruction *sequence* in that loop
+and drops the score from 99.716% to 98.761%: the third load frees `$a2`, which
+flips two near-tied allocnos in `.greg`'s priority list (`85 93` becomes
+`93 85`), and the whole function reallocates — the `%hi` of the spawn table
+gets hoisted out of its loop into `$s5`, the constant `0xF0` stops being
+rematerialised, and `regs` goes 47 → 167. Caching the value in a `u16` local
+instead leaves `$a2` occupied and the loop one instruction short, but every
+other block matches.
+
+Both spellings are stable local optima, and roughly forty variants — caching
+each of the three reads independently, `u8` versus `u16` temporaries, barrier
+placement, an extra named local for a `gte_*` operand (the usual re-ranking
+trick), and 110 declaration reorderings, which GCC 2.8.1 ignores entirely
+because pseudos are numbered at first *use* — stay inside whichever basin they
+started in. Two permuter runs (8.7k and 24k iterations) also failed. The lesson
+is diagnostic: when the higher-scoring candidate is the one whose instruction
+count is *wrong*, the remaining work is a global allocation shift, not a local
+fix, and neither more C variants nor the permuter will reach it.

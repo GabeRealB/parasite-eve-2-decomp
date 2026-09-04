@@ -197,7 +197,8 @@ STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 typedef struct RoomMirrorWork {
     /* 0x00 */ s32           viewFlg;
     /* 0x04 */ s32           field_4;
-    /* 0x08 */ byte          pad_8[8];
+    /* 0x08 */ s32           field_8;
+    /* 0x0C */ s32           field_C;
     /* 0x10 */ GsCOORDINATE2 coord;
     /* 0x60 */ MATRIX        light;
     /* 0x80 */ MATRIX        color;
