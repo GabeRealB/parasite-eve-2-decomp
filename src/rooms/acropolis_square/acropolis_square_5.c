@@ -229,7 +229,84 @@ void func_acropolis_square_80181AEC(Task* task)
 /// width) tiled across the screen from `D_acropolis_square_801888A0`, each with
 /// its own texture page. States 0-3 slide the strip in and hold it for a while,
 /// state 4 kills the task; every state still draws.
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_5", func_acropolis_square_80181DD0);
+void func_acropolis_square_80181DD0(Task* task)
+{
+    SPRT*     p;
+    DR_TPAGE* dr;
+    s32       x;
+    s32       i;
+    s32       tpageX;
+    s32       count;
+    s32       count2;
+    s32       pos;
+
+    switch (task->state) {
+        case 0:
+            D_acropolis_square_801888A0 = -0x140;
+            D_acropolis_square_801888A4 = 0;
+            task->state                += 1;
+            break;
+
+        case 1:
+            count                       = D_acropolis_square_801888A4 + 1;
+            D_acropolis_square_801888A4 = count;
+            if (count >= 0x2E) {
+                task->state += 1;
+            }
+            break;
+
+        case 2:
+            pos                         = D_acropolis_square_801888A0 + 1;
+            D_acropolis_square_801888A0 = pos;
+            if (pos >= 0) {
+                D_acropolis_square_801888A4 = 0;
+                task->state                += 1;
+            }
+            break;
+
+        case 3:
+            count2                      = D_acropolis_square_801888A4 + 1;
+            D_acropolis_square_801888A4 = count2;
+            if (count2 >= 0x1F) {
+                task->state += 1;
+            }
+            break;
+
+        case 4:
+            D_8007216C = 0xD;
+            Task_Kill(task);
+            break;
+    }
+
+    x = D_acropolis_square_801888A0;
+    for (i = 0; i < 3; i++) {
+        tpageX         = 0x1C0 + i * 0x80;
+        p              = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        setlen(p, 4);
+        setcode(p, 0x65);
+        p->x0 = x - 0xA0;
+        p->y0 = -0x78;
+        p->u0 = 0;
+        p->v0 = 0;
+        if (i == 2) {
+            p->w = 0x80;
+            p->h = 0xF0;
+        } else {
+            p->w = 0x100;
+            p->h = 0xF0;
+        }
+        p->clut = GetClut(0, 0xFF);
+        addPrim(&Gpu_CurrentOt[4], p);
+
+        dr             = Gpu_PrimCursor;
+        Gpu_PrimCursor = dr + 1;
+        setDrawTPage(dr, 0, 1, GetTPage(1, 0, tpageX, 0x100));
+        addPrim(&Gpu_CurrentOt[4], dr);
+
+        x += 0x100;
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_5", func_acropolis_square_80182048);
 
 s32 func_acropolis_square_801820D8(Task* task, s32 msgId, GpMsg13EF* arg2)
