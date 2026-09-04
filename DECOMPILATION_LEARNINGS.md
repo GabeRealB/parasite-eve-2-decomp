@@ -43908,3 +43908,37 @@ under `asm/USA/<family>/matchings/` against the target
 directly, and porting the matched C with those substitutions beats starting
 from m2c. `overlay_dup_index.py find` will not report these as copies, because
 the differing immediates make the disassembly text differ.
+
+## A bare `extern u8 G;` load hoists above struct stores; a struct member does not
+
+`func_mp5a5_8011DDA4` case 3 writes four `GameActor` fields and then folds a
+byte global into the fourth:
+
+```c
+actor->field_95E = 4;
+actor->field_934 = 3;
+actor->field_940 = 0;
+actor->field_124 = Wip_SysConfig.field_22 | 0x21E00;
+```
+
+The target keeps that order — `sh 0x95E`, `sw 0x934`, `lui %hi`, `sh 0x940`,
+`lbu %lo`, `or`, `sw 0x124`. Written against a raw `extern u8 D_80073BAA;` the
+scheduler hoists the whole `lui`/`lbu` pair above `li 3` / `sw 0x934` /
+`sh 0x940`. That lengthens the `lbu` result's live range across the `li 3`
+quantity, so the `0x21E00` constant loses `$v1` and lands in `$a1`: six
+instructions differ, and no permutation of the statements or scheduling barrier
+recovers it, because a barrier can only put a store wholly before or wholly
+after the load pair, never between the `lui` and the `lbu`.
+
+The fix is the declaration, not the statement order. `actor->field_X` MEMs are
+`MEM_IN_STRUCT_P`; a bare scalar global MEM is not, and 2.8.1's alias check
+lets that load move above every one of those stores. Reading the byte through
+an aggregate — a struct member as here, or `extern u8 G[2];` read as `G[0]` —
+sets `MEM_IN_STRUCT_P` on the load too, so it can no longer pass the stores and
+the block schedules and colours like the target.
+
+Read it as evidence about the original declaration rather than as a hack: if a
+byte global will not stay put behind neighbouring struct stores, it was a
+struct member or an array in the original source. Here `D_80073BAA` is
+`Wip_SysConfig + 0x22`, and naming it that way is both the correct symbol and
+the thing that makes the block match.
