@@ -1,13 +1,31 @@
 #include "common.h"
+
+#include "decomp/common.h"
+
+#include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "rooms/room_common.h"
+extern s8       D_8007216C;
 extern TaskDesc D_acropolis_square_80183808;
 extern Task*    D_acropolis_square_8018889C;
+extern s32      D_acropolis_square_80183B34[];
 extern s32      D_acropolis_square_80183B98;
+extern s32      D_acropolis_square_80183B58;
+extern s32      D_acropolis_square_80183830;
+extern s32      D_acropolis_square_8018399C;
+extern s32      D_acropolis_square_80183A5C;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182110);
-
+s32 func_acropolis_square_80182110(s32 arg0, s32 arg1, s32 arg2)
+{
+    SndEvt_EnqueueType6(D_acropolis_square_80183B34[arg2], 0, 0);
+    return 0;
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182148);
-
 void func_acropolis_square_80182200(s32 arg0)
 {
     switch (arg0) { /* irregular */
@@ -23,13 +41,10 @@ void func_acropolis_square_80182200(s32 arg0)
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182260);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801822A4);
-
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182308);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182360);
-
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801823DC);
-
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801825DC);
 
 s32 func_acropolis_square_8018344C(s32 arg0, s32 arg1, s32 arg2)

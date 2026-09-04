@@ -42682,3 +42682,319 @@ started in. Two permuter runs (8.7k and 24k iterations) also failed. The lesson
 is diagnostic: when the higher-scoring candidate is the one whose instruction
 count is *wrong*, the remaining work is a global allocation shift, not a local
 fix, and neither more C variants nor the permuter will reach it.
+
+## Put the body in the `if` so the guard's `return 1` never needs its own block
+
+A two-valued predicate whose work is guarded by a flag check has two natural
+spellings, and only one of them reaches the target when the constant return
+must land in the branch delay slot:
+
+```
+jal   GameFlag_GetNibble
+bnez  v0, .Lend
+ li   v0, 1          /* delay: the "already done" result */
+... body ...
+jal   Task_SpawnFromTable
+ sb   s0, 0x1(v0)
+move  v0, zero
+.Lend:
+lw    ra, 0x1C($sp)
+```
+
+The guard-clause spelling `if (call() != 0) { return 1; } body; return 0;`
+scores 95% and leaves an extra `j` — GCC keeps `li v0,1` as its own tail block
+after the body, because the forward `bnez` is predicted *not* taken and reorg
+therefore fills its slot from the fall-through thread (`li a0, 0x1F` for the
+next call) instead of stealing from the target thread. `if/else` on the same
+condition lays out identically. Write the body inside the `if` and leave the
+constant as the function's last statement:
+
+```c
+if (GameFlag_GetNibble(0x1F) == 0) {
+    GameFlag_SetNibble(0x1F, 1);
+    ... body ...
+    return 0;
+}
+return 1;
+```
+
+Now `li v0,1` is the fall-through of the *body's* block and reorg pulls it into
+the slot from before the branch, with no `j` to the epilogue.
+
+A single `ret` variable (`ret = 1; if (...) { body; ret = 0; } return ret;`)
+also fills the slot, but CSE then hands every literal `1` in the body that same
+pseudo, which is live across the calls and so lands in `$s0` (`move a1,s0`,
+`move a2,s0` instead of `li a1,1`, `li a2,1`). `func_acropolis_square_80182360`
+is the example.
+
+## `do {} while (0)` around a duplicated block flips two callee-saved regs
+
+**Problem.** A room message handler matched at 99.2% with `branch = insert =
+delete = reorder = stack = 0` and only `regs` left: every `$s0` in the target
+was `$s1` in the build and vice versa. The two competing values were the
+incoming `RoomEventMsg*` argument (target `$s0`) and a short-lived `u16` temp
+holding `arg2->msgId` in the last block (target `$s1`).
+
+**Symptom.** `.lreg` shows the two allocnos with nearly equal priority. GCC
+2.8.1 sorts allocnos by
+`floor_log2(n_refs) * n_refs * size / live_length` (`allocno_compare` in
+`global.c`) and hands out hard registers in that order, ties broken by
+ascending pseudo number. Here:
+
+```
+Register 82 used 13 times across 140 insns;  → 3*13/140 = 0.2786
+Register 84 used  3 times across  10 insns;  → 1* 3/ 10 = 0.3000
+```
+
+so the temp (84) was served first and took `$s0`. The margin is ~2%, and no
+amount of restructuring the *tail* moved it: making the temp `s32`, folding the
+`== 3` and `field_5` tests into one `&&`, reordering the declarations and
+splitting the store all leave 3 refs / 10 insns exactly.
+
+**Fix.** The lever is the *other* allocno's `live_length`, and any construct
+that adds RTL notes to a block inside its range moves it. Wrapping the body of
+a block the source duplicates (here the two identical
+`Gp_SetNibbleIf(); Gp_RunCapCmd1();` tails that `jump2` cross-jumps back
+together after register allocation) in `do { … } while (0)` was enough:
+
+```c
+if (arg2->field_5 == 0) {
+    do {
+        Gp_SetNibbleIf(arg2->field_6, 2);
+        Gp_RunCapCmd1(1);
+    } while (0);
+}
+```
+
+Note the counts that feed the formula are taken *before* `jump2`, so a block
+the source writes twice is counted twice even though it appears once in the
+final assembly — that is why the argument pointer has 13 refs for 11 visible
+uses. `func_acropolis_square_80181794` is the example; the permuter found the
+`do {} while (0)` after ~12 iterations from a 99.2% seed.
+
+## Constant stores to an unused stack local are kept
+
+`func_acropolis_square_80181794` opens with
+
+```
+addiu $v0, $zero, 0x1
+sb    $v0, 0x13($sp)
+addiu $v0, $zero, 0x4
+sb    $v0, 0x12($sp)
+```
+
+and never reads those bytes or takes the address of anything on the stack. m2c
+drops them entirely. They are a leftover `GpAreaKey key; key.field_3 = 1;
+key.field_2 = 4;` — the sibling rooms follow it with
+`Gp_SetAreaObjId(&key, …)` (`func_acropolis_bridge_8017D6F4`,
+`func_acropolis_roof_garden_8017DBEC`), this room does not. GCC 2.8.1 does not
+dead-store-eliminate stores to a stack *aggregate*, so writing the same dead
+struct back reproduces them exactly; the offsets in the asm give the field
+offsets, and the local's size sets the frame padding.
+
+## Cross-jumping merges identical switch arms; `SOFT_BARRIER()` un-merges them
+
+A jump table can point two entries at two *separate* blocks holding the same
+instructions. GCC 2.8.1's cross-jumping normally refuses to leave that in:
+given two unconditional jumps to the same label whose preceding insns are
+identical, it deletes the earlier block and repoints the table entry at the
+later one. `func_acropolis_square_80182148` has
+
+```
+.L80182188:  jal Gp_RunCapCmd1 ; li a0,5 ; j .L801821C8 ; nop   <- case 0
+.L801821A4:  jal Gp_RunCapCmd1 ; li a0,5 ; j .L801821C8 ; nop   <- case 3
+```
+
+and every source shape that writes both arms honestly collapses them to one
+block, stalling at 91%. A `SOFT_BARRIER()` in one arm fixes it: the empty
+`asm` insn sits between the call and the jump, so the backward tail comparison
+mismatches on the first insn and neither block is touched. It emits nothing,
+so the assembly is otherwise unchanged.
+
+```c
+case 0:
+    Gp_RunCapCmd1(5);
+    SOFT_BARRIER();
+    goto advance;
+...
+case 3:
+    Gp_RunCapCmd1(5);
+    goto advance;
+```
+
+The complementary merge — a *partial* tail shared between two arms — is
+controlled by source layout instead, and needs no barrier. Cross-jumping also
+compares each jump against the insns that **fall through** into its target
+label, and there one matching insn is enough. In the same function `case 1`
+and `case 6` both store to `D_8007216C`, and only the `sb` is shared:
+
+```
+.L801821C4:  sb v0, %lo(D_8007216C)(v1)     <- case 1 jumps here
+.L801821C8:  lw v0, 0x30(s0) ...            <- the shared tail
+```
+
+That only happens when `case 6`'s arm physically falls into the tail block, so
+the tail must be written *inside* the switch, as the body of the arm that
+follows `case 6` — not after the closing brace:
+
+```c
+case 6:
+    Gp_RunCapCmd1(5);
+    D_8007216C = 8;
+    /* fallthrough */
+case 4:
+case 5:
+advance:
+    task->state++;
+    return;
+case 2:                 /* the arms that return early come last */
+case 7:
+    ...
+```
+
+With the tail after the switch (an ordinary `break`), the label is preceded by
+a barrier instead, the `sb` is duplicated into each arm's delay slot, and the
+block order puts the early-return arm before the tail. Read the target's block
+order as the source order of the arms: here it is 0, 1, 3, 6, 4/5, 2/7.
+
+## Room effect task prologue: read `extra->field_8` before `spawnArg2`, and both before `state`
+
+A room's `Gp_State1C` effect task opens by unpacking three `Task` fields, and
+m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
+
+```
+lw v0, 0x2C(s1)     # task->extra
+lw v1, 0x30(s1)     # task->state
+lw s0, 0x20(s1)     # task->spawnArg2
+lw s2, 0x8(v0)      # ((TmdObject*)extra)->field_8
+```
+
+m2c emits its temporaries in the order the *values are used*, so `state` comes
+first and the object dump opens `0x30, 0x2C, 0x20, 0x8(v0)`. The source order is
+
+```c
+coord = ((TmdObject*)task->extra)->field_8;
+work  = task->spawnArg2;
+switch (task->state) { ... }
+```
+
+`lw 0x8(v0)` depends on `lw 0x2C`, so the scheduler fills the load delay with
+the next independent load whose consumer is earliest — the `state` read feeding
+the dispatch branch — then `spawnArg2`, then the dependent load. That reproduces
+the target order without touching anything else.
+
+Worth knowing because the top-of-function order also decides register
+*allocation* further down. In this function each `case 1` arm builds a
+`Gp_SpawnEff` argument as `global * K + C`: with m2c's order the `lw` of the
+global was scheduled after the last `sh` to `work->field_10`, so it was free to
+take `$v0` and the `lui/ori` constant took `$v1`; the target schedules that load
+between the `vy` and `vz` stores, where `$v0` is busy holding the `li` for the
+store, so the global lands in `$v1` and the constant in `$t0`. Fixing the
+prologue order fixed a 41-instruction `regs` penalty spread over three arms —
+which no pin would have found, because nothing was wrong with the arms.
+
+## A shared switch tail belongs where the target puts it, not on its lowest case
+
+`func_acropolis_square_80181AEC` dispatches on `task->state` through a 6-entry
+jump table. Entries 1 and 2 point at a two-line tail (`task->state += 1;
+return;`) that cases 0 and 3 also `j` to, and case 4 falls into. In the target
+that tail sits *physically* between case 4's last instruction and case 5:
+
+```
+case 0 body … j tail
+case 3 body … j tail
+case 4 body … jal Gp_MsgPlayerWeapon(1)   # falls through
+tail:  lw v0,0x30(s1); addiu v0,v0,1; j end; sw v0,0x30(s1)
+case 5 body
+```
+
+m2c writes the tail under `case 1: case 2:` in numeric order, i.e. right after
+case 0, and that costs `branch=1 insert=1 delete=1` — the two `j tail` edges
+invert into a `j` out of case 4. GCC emits case bodies in *source* order and the
+jump table is built from the case values, so the fix is to move the `case 1:
+case 2:` labels to where the block belongs and reach them with a `goto`:
+
+```c
+case 4:
+    …
+    Gp_MsgPlayerWeapon(1);
+    /* fallthrough */
+case 1:
+case 2:
+advance:
+    task->state += 1;
+    return;
+case 5:
+```
+
+with `goto advance;` ending cases 0 and 3. Case labels are just labels; nothing
+requires them in numeric order, and their order is the one lever you have over
+block placement.
+
+Two tidy-ups that look harmless will undo this. Reusing one local across the
+three arms that each do `pan = Gp_GetObjPan(...)`, and folding m2c's
+`temp = g + 1; g = temp;` into `g += 1`, together pushed the function from 100%
+to 97.9% with `regs=35` and an extra callee-saved register in the frame. Keep
+m2c's one-temp-per-use shape and rename the temps instead.
+
+## Which pseudo gets `$s0` is `floor_log2(refs) * refs / live_length` — read it off `.lreg`
+
+When the whole function matches except that two callee-saved registers are
+swapped (`$s2` holds `arg0` in the target and the buffer pointer in your build,
+with every later `$s3`..`$s8` shifted to match), do not guess: `global_alloc`
+sorts allocnos by
+
+```
+priority = floor_log2(n_refs) * n_refs / live_length
+```
+
+descending, and hands each one the first free register in `REG_ALLOC_ORDER`
+(caller-saved first, then `$s0`, `$s1`, …, `$fp` last). The two inputs are
+printed verbatim at the top of `base_N.i.lreg`:
+
+```
+Register 80 used 14 times across 406 insns; crosses 10 calls; …   <- arg0
+Register 86 used  6 times across  87 insns; crosses  5 calls; …   <- p = buf
+```
+
+3·14/406 = 0.103 against 2·6/87 = 0.138, so `p` outranks `arg0` and takes the
+lower register — which is exactly the observed swap. Ranking every allocno this
+way reproduced the target's whole `$s0`..`$fp` assignment, so the leftover is
+never "the allocator felt like it": one of the two numbers is wrong, and the
+question becomes which source shape changes it.
+
+`n_refs` is counted **before** cross-jumping (`jump2` runs after reload), so a
+tail the target duplicates in both arms of an `if` still contributes its
+references twice at allocation time. Here the target's single
+`Text_DrawPrompt(…)` after the join is really *two* calls, one per arm, merged
+later; writing it once left `arg0` three references short (14 instead of 17),
+which is what put `p` ahead of it. Duplicating the call fixed the register
+assignment and the emitted code stayed identical — 85% to 94% in one edit. This
+generalises the older "duplicate the shared tail call instead of `goto`" entry:
+the reason a duplicated tail helps is that it feeds the priority formula, so
+count the references before deciding the source shape is wrong.
+
+## `t = a + b + 1;` then `t += 8` folds to `+ 9`; splitting the `+ 1` keeps the chain
+
+CSE, not combine, is what turns
+
+```c
+ty = obj->baseY + rowY + 1;   /* A = baseY + rowY; ty = A + 1 */
+prim->y1 = ty;
+prim->y0 = ty;
+ty += 8;                      /* becomes A + 9, and A stays live */
+```
+
+into `addiu $a1, $v1, 1` / … / `addiu $a1, $v1, 9`: the temporary `A` is still an
+available expression, so `(A + 1) + 8` is folded back through it. The target's
+`addiu $v1, $v1, 1` / `addiu $v1, $v1, 8` chain needs `A` gone, which happens as
+soon as the `+ 1` writes the *same* variable:
+
+```c
+ty = obj->baseY + rowY;
+ty += 1;
+```
+
+Combine cannot do this fold on its own — the `+ 1` result is used by the two
+stores in between, so it does not die at the `+ 8` — which is why the leftover
+looks like a scheduling artefact and is not one.
