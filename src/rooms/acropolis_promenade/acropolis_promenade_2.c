@@ -30,7 +30,18 @@ void func_acropolis_promenade_8017D930(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017D938);
+s32 func_acropolis_promenade_8017D938(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 0xA:
+            SndEvt_EnqueueType6(0x510B0009, 0, 0);
+            break;
+        case 0x67:
+            SndEvt_EnqueueType6(0x510B000A, 0, 0);
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017D988);
 
