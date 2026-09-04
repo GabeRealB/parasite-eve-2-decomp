@@ -20,6 +20,7 @@ Implementation references:
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 | **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
 | **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/pkg_model.py`, `src/main/tmd.c` |
+| **Dialogue (CAP)** | [`CAP_FORMAT.md`](CAP_FORMAT.md), `src/gameplay/3CD8.c`, `3CD8_34D8.c` |
 | Animation in packages | `tools/peassets/pkg_anim.py`, `src/gameplay/1BC.c` |
 | Assets embedded in the executables | `tools/peassets/exe_assets.py` |
 
@@ -929,7 +930,12 @@ Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
 
 ### 10.2 Other types
 
-- **`.pe2cap2`**: dialogue-related; may carry a RAM load address in `load_addr`.
+- **`.pe2cap2`**: per-room dialogue, magic `"CAP"`. A header of three
+  file-relative offsets (glyph table, event table, pointer table) rebased in
+  place by `Gp_RelocCapFile`; the pointer table doubles as the command index
+  driving a five-opcode chooser over counters and game flags. Full layout and
+  opcode reference in [`CAP_FORMAT.md`](CAP_FORMAT.md). May carry a RAM load
+  address in `load_addr`.
 - **`.txt`**: ASCII (type `0x7`). On-disc clean payload is CRLF text
   (usually ending in `\Z` or `\Z\r\n`) zero-padded to chunk capacity.
   Inflated `txt/` is the text only (no trailing NUL / zero pad).
@@ -1216,7 +1222,10 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
   varied; wrong for textures that intentionally use a monochrome row.
   Title chrome is `GetClut(0, 255)`. UI text is `0x7FFD` (EXE outline
   palettes), not the font TIM clut — see §7.5 / §7.6.
-- **Cap2 / dialogue** internals undocumented.
+- **Cap2 / dialogue** container, relocation, event records and the five
+  interpreter opcodes are documented in [`CAP_FORMAT.md`](CAP_FORMAT.md).
+  Still open there: the `u16*` text encoding, `GpEvt12` fields 0-3/6,
+  and the `0x13F0` message contract used by opcode 3.
 - **Streaming movies (STR/MDEC)** and **audio (MTS)**: documented in
   [`STREAM_FORMATS.md`](STREAM_FORMATS.md). A full `extract.py` run writes
   them (or re-run `extract_movies.py` / `extract_streams.py`). INTER movies
