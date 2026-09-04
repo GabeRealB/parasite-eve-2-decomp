@@ -55,7 +55,7 @@ as12 = { item = 0x8E, weapon = "AS12" }
 grenade_pistol = { item = 0x8A, weapon = "Grenade Pistol", rodata = [{ start = "0x4", unit = "grenade_pistol_3" }], shared = [{ start = "0x1E0", end = "0x53C", unit = "weapons_shared_8011d3a0" }, { start = "0x9A0", end = "0x9CC", unit = "weapons_shared_8011ddf8" }, { start = "0x9CC", end = "0xA10", unit = "weapons_shared_8011de24" }] }
 gunblade = { item = 0x96, weapon = "Gunblade" }
 hypervelocity = { item = 0x95, weapon = "Hypervelocity", rodata = [{ start = "0x18", unit = "hypervelocity_3" }], shared = [{ start = "0x1F5C", end = "0x1FA8", unit = "weapons_shared_8011e4ac" }, { start = "0x24E0", end = "0x2500", unit = "weapons_shared_8011db78" }] }
-m249 = { item = 0x90, weapon = "M249" }
+m249 = { item = 0x90, weapon = "M249", rodata_head = "0x4" }
 m4a1 = { item = 0x8F, weapon = "M4A1 Rifle" }
 m4a1_bayonet = { item = 0x99, weapon = "M4A1 Bayonet" }
 m4a1_grenade = { item = 0x9A, weapon = "M4A1 Grenade", rodata = [{ start = "0x1C", unit = "m4a1_grenade_2" }], shared = [{ start = "0xC38", end = "0xC64", unit = "weapons_shared_8011ddf8" }, { start = "0xC64", end = "0xCA8", unit = "weapons_shared_8011de24" }] }

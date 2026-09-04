@@ -3458,6 +3458,19 @@ the leading rodata, because then nothing follows it to be padded.
 actor_146300 = { rodata_head = "0x4" }
 ```
 
+Every `weapons` package carries the same 4-byte header word at rodata `0x0`, so
+this is the standing shape for a weapon overlay: the entry point is the first
+function, and the moment its state switch grows past four cases GCC emits a
+jump table at `0x4`. `m249` is the worked example - `func_m249_8011D1DC`
+matched 100% while `build/USA/out/m249` still FAILED, because `.align 3` after
+the header word pushed `jtbl_m249_8011D1C4` to `0x8011D1C8`. Adding
+`rodata_head = "0x4"` and dropping the `INCLUDE_RODATA` line from the C file
+(the word becomes the `m249_hdr` assembly object) is the whole fix.
+
+```toml
+m249 = { item = 0x90, weapon = "M249", rodata_head = "0x4" }
+```
+
 ## Shared `task->state++` is per-case stores, not a `next` phi
 
 A long task switch whose every advancing arm is `lw v0, 0x30(s1) / j store /
