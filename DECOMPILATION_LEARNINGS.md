@@ -3,6 +3,37 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Combined `*scratch = tmp` assignment keeps the add in `$v0` without a pin
+
+A 0xC `G_SCRATCH_HEAD` bump that wants
+
+```
+lui    v1, 0x1F80
+ori    v1, v1, 0x3FC
+lw     a1, 0(v1)
+addiu  v0, a1, -0xC
+move   s2, v0
+sw     v0, 0(v1)
+```
+
+is the Draw25 `register u8* tmp asm("v0")` shape, but a function-scope `$v0`
+pin then fights a later `sll v0, t0, 16` packed shift. Splitting the bump as
+`tmp = head - N; block = tmp; *scratch = tmp` still colors the arena as `$a1`
+and stores `$s2`, because CSE canonicalises the store onto the longer-lived
+`block`. Combining the store into the add, then touching `tmp` before naming
+the block, keeps `tmp` as the store operand:
+
+```c
+tmp   = (*scratch = head - 0xC);
+SOFT_TOUCH_REG(tmp);
+block = (T*)tmp;
+```
+
+The arena stays in `$v1`, the add stays in `$v0`, and `$v0` is free for the
+packed shift. `Room_Draw30` is the example. Same idea as "Store the scratch
+push temp before naming it", written as one assignment so CSE cannot fold the
+store onto `block`.
+
 ## Live `lbu` into `$a0` so the next independent temp takes `$v1`
 
 A preheader that materialises `arg << 16` and then `lbu`s a blend byte wants

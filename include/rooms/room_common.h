@@ -246,6 +246,11 @@ void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// 0x11, queues four gouraud `POLY_G4` wedges around the projected centre.
 /// `arg1` is a signed half-extent; the on-screen radius is `arg1 * 64 / otz`.
 void Room_Draw25(SVECTOR* arg0, s16 arg1);
+/// Same four-wedge gouraud disc as `Room_Draw25` (same 0xC scratch layout),
+/// but `arg2` scales the inner vertex by the frame-counter blend byte
+/// `((field_8 & 1) * 8 | 0x20)`: red is `blend * ((arg2 << 16) >> 24)`,
+/// green `blend * (((arg2 << 16) >> 20) & 1)`, blue `blend * (arg2 & 1)`.
+void Room_Draw30(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
 /// non-negative, queues four gouraud `POLY_G4` wedges around the projected
 /// centre. `arg1` is a signed half-extent; the on-screen radius is
@@ -327,10 +332,11 @@ typedef struct _RoomQuadScratch {
 } RoomQuadScratch;
 STATIC_ASSERT_SIZEOF(RoomQuadScratch, 0x24);
 
-/// 0xC-byte scratch block `Room_Draw25` takes from `G_SCRATCH_HEAD`. `otz` is
-/// the `gte_stszotz` of `arg0` through `Gfx_ViewWorldMtx`; `sx`/`sy` are that
-/// screen point and `radius` is `arg1 * 64 / otz`, the on-screen half-extent
-/// of the four `POLY_G4` wedges.
+/// 0xC-byte scratch block `Room_Draw25` and `Room_Draw30` take from
+/// `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of `arg0` through
+/// `Gfx_ViewWorldMtx`; `sx`/`sy` are that screen point and `radius` is
+/// `(s16)arg1 * 64 / otz`, the on-screen half-extent of the four `POLY_G4`
+/// wedges.
 typedef struct _RoomDraw25Scratch {
     /* 0x00 */ s32 otz;
     /* 0x04 */ s32 radius;
