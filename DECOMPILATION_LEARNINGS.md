@@ -36924,6 +36924,25 @@ example. Reach for this only once the rest of the body already matches and
 `stack` is the sole leftover — a missing local and a spilled temporary look the
 same in the frame size but not in the instruction stream.
 
+## A filler local can precede the live one: aggregates sit below scalars
+
+`func_acropolis_bridge_8017DDEC` scored 99.2% with the whole body correct and
+only the frame wrong: `addiu $sp,$sp,-0x20` with the `Task_PollKill` out-param
+at `sp+0x10`, against the target's `-0x28` with it at `sp+0x18`. The extra
+eight bytes are an unused aggregate, as in "An unreferenced aggregate local
+still gets its stack slot" — but here the *live* variable is a scalar, and the
+filler has to be declared **first**:
+
+```c
+s32 unused[2];   /* sp+0x10..sp+0x18, never read */
+s32 killed;      /* sp+0x18: &killed goes to Task_PollKill */
+```
+
+So the ordering rule is not "the live local comes first"; GCC 2.8.1 lays the
+aggregates out from the bottom of the local area in declaration order and puts
+the scalars above them. When the leftover is `stack` alone and the live local
+is a scalar, try the filler *before* it.
+
 ## `res = half` in one arm forces a join copy; two arms give two `move`s
 
 Reusing the input variable as the phi result,

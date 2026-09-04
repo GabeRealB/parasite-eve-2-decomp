@@ -1,6 +1,9 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -20,7 +23,22 @@ void func_acropolis_bridge_8017DD9C(Task* arg0)
     arg0->state                 = next;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017DDEC);
+void func_acropolis_bridge_8017DDEC(Task* arg0)
+{
+    s32 unused[2]; // never read; the target still reserves sp+0x10..sp+0x18 for it
+    s32 killed;
+
+    if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 1, 0x7D5);
+        Mc_SaveData.field_4    = 6;
+        Mc_SaveData.field_5    = 2;
+        Game_Session->field_5  = 2;
+        Game_Session->field_76 = 1;
+        GameFlag_SetNibble(2, 3);
+        Gp_MsgPlayerWeapon(1);
+        arg0->state = arg0->state + 1;
+    }
+}
 
 void func_acropolis_bridge_8017DE94(Task* arg0)
 {
