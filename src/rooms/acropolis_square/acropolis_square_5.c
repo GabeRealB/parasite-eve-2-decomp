@@ -29,7 +29,39 @@ extern s32                     D_acropolis_square_801888A4;
 extern GsCOORDINATE2           D_acropolis_square_801888CC;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_5", func_acropolis_square_80181794);
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_5", func_acropolis_square_801819BC);
+s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    s32 var_a0;
+
+    if (arg2 == 2) {
+        if (Mc_SaveData.field_8 == 7) {
+            Mc_SaveData.field_8 = 1;
+        }
+        D_acropolis_square_801888AC.camera   = 9;
+        D_acropolis_square_801888AC.field_1  = 1;
+        D_acropolis_square_801888AC.capFile  = 1;
+        D_acropolis_square_801888AC.sndStart = 0x51010001;
+        D_acropolis_square_801888AC.snd8     = 0x51010007;
+        D_acropolis_square_801888AC.snd10    = 0x51010006;
+        D_acropolis_square_801888AC.sndC     = 0x5101000B;
+        D_acropolis_square_801888AC.field_2  = D_acropolis_square_8018382C;
+        D_acropolis_square_8018382C          = 0;
+        Task_SpawnFromTable(&D_acropolis_square_801837A0, 0, 2, (s32)&D_acropolis_square_801888AC);
+    }
+    if ((arg2 == 0xE) && (GameFlag_GetNibble(0x124) == 0)) {
+        GameFlag_SetNibble(0x124, 1);
+        Gp_SpawnIfCapIdle(0xE, 1);
+    }
+    if ((arg2 == 0x10) && (GameFlag_GetNibble(0x156) == 0)) {
+        GameFlag_SetNibble(0x156, 1);
+        var_a0 = 0x11;
+        if (D_80072310 != 1) {
+            var_a0 = 0x10;
+        }
+        Gp_SpawnIfCapIdle(var_a0, 1);
+    }
+    return 0;
+}
 /// Siren task for the square. States 0-2 arm the scene and tick, 3 fires the
 /// first siren blast, 4 repeats it every 0x79 frames until the player answers,
 /// and 5 waits for the scripted phase to advance before handing the scene off
