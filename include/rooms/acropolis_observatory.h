@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+#include <psyq/libgte.h>
+
 /// 8-byte work block the observatory's scene task keeps at `Task::idMap`
 /// (`Mem_Calloc(8, 0)` in state 0 of `func_acropolis_observatory_8017E19C`).
 ///
@@ -18,5 +20,27 @@ typedef struct AobSceneWork {
     /* 0x6 */ u16   step;
 } AobSceneWork;
 STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
+
+/// 0x14 work block the observatory's streamed-scene task
+/// (`func_acropolis_observatory_8017DD3C`) keeps at `Task::idMap`
+/// (`Mem_Calloc(0x14, 0)` in its state 0).
+///
+/// `mtx` is `Wip_SysConfig.field_4`, the player actor's coordinate matrix; the
+/// task walks its translation along `D_acropolis_observatory_8017F16C` once per
+/// frame while the stream runs. `target` is the slot-3 task every message the
+/// scene sends is addressed to, captured once from `Game_GetPtrSlot(3)`.
+/// `child` is the prompt task spawned from `D_acropolis_observatory_8017E7DC`
+/// entry 2 and polled with `Task_PollKill`; `spawned` records that it exists,
+/// since the calloc leaves it at 0. `script` is the scene's script task, which
+/// the observatory task reparents itself under.
+typedef struct AobStreamWork {
+    /* 0x00 */ MATRIX* mtx;
+    /* 0x04 */ Task*   target;
+    /* 0x08 */ Task*   child;
+    /* 0x0C */ Task*   script;
+    /* 0x10 */ u16     spawned;
+    /* 0x12 */ u16     pad_12;
+} AobStreamWork;
+STATIC_ASSERT_SIZEOF(AobStreamWork, 0x14);
 
 #endif

@@ -41894,3 +41894,46 @@ and the compare is then sign-extended from it, which changes nothing. The
 into the `lhu` and loses the instruction. CSE keeps only one `mem:HI` load
 insn, so the extend `lh` and the `lhu` end up on the same pointer, exactly as
 the target has them. `func_acropolis_observatory_8017E19C` is the example.
+
+## Cross-jumping only merges tails that already agree on registers, so a scalar-global store shows up as a `branch`/`insert`/`delete` miss
+
+`func_acropolis_observatory_8017DD3C` is a five-case `switch` in which four
+arms end with the same `task->state = task->state + 1;`. The target emits that
+tail once, at the end of the last arm that uses it, with the other three
+arms doing `j` to it. A first attempt sat at 96.3% with
+`branch=7 insert=4 delete=3`: three of the four arms merged, and the fourth
+kept its own copy.
+
+The tempting reading — "control flow is wrong, restructure the `switch`" — is
+wrong. GCC 2.8.1 runs `jump_optimize` with `JUMP_CROSS_JUMP` **after reload**,
+so two tails only merge when they are identical *including their hard
+registers*. The odd arm out was
+
+```c
+D_8007216C = Gp_FindViewIndex(4);   /* extern s8 */
+task->state = task->state + 1;
+```
+
+where the first scheduling pass (which runs *before* register allocation)
+hoisted the `lw` of `task->state` above the `sb`. That kept `$v0` — the
+`Gp_FindViewIndex` return value — live across the load, so the state temp was
+allocated `$v1` instead of `$v0`, and the block no longer matched its three
+siblings byte for byte.
+
+The hoist is the `fixed_scalar_and_varying_struct_p` case from "Struct-typing a
+body changes GCC 2.8.1's aliasing": `task->state` is an in-struct MEM at a
+register-based address, `D_8007216C` is a scalar MEM at a fixed address, so
+`true_dependence` says they cannot alias. The fix is that entry's preferred
+remedy — the "bare global" was interior to a named symbol. `configs/USA/sym.main.txt`
+gives `Mc_SaveData = 0x80072168`, so `D_8007216C` is `Mc_SaveData.field_4` and
+`D_8007218A` is `Mc_SaveData.field_22`; `configs/USA/sym.gameplay.txt` gives
+`Gp_StateF0 = 0x801153F0`, so `D_801153F4` is `Gp_StateF0.field_4`. Writing the
+member form restores the dependence, the registers agree again, and all four
+tails merge: 96.3% → 99.8%, with `branch`/`insert`/`delete` all zero.
+
+The transferable point is the *symptom*. A non-zero `branch`/`insert`/`delete`
+normally means the C shape is wrong, but when the extra/missing instructions
+are a duplicated tail — the same two or three instructions appearing once too
+often, with the surviving copy in the wrong arm — look for a register
+disagreement in the odd arm, and from there for a bare `extern` scalar next to
+struct traffic. Restructuring the `switch` cannot fix it.
