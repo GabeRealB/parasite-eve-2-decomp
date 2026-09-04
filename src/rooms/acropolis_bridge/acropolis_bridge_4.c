@@ -1,13 +1,34 @@
 #include "common.h"
-#include "main/display.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/task.h"
+#include "main/tmd.h"
+
+#include <psyq/libgs.h>
+
 extern s8 D_8007216C;
 
 extern s32   D_acropolis_bridge_801917A0;
 extern Task* D_acropolis_bridge_80191798;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_4", func_acropolis_bridge_8017DB08);
+/// Per-frame state of the bridge model task: raises bit 0x80 of the object's
+/// flags on camera views 8..10 and clears them elsewhere, then clears the root
+/// coordinate's `flg` so its world matrix is rebuilt this frame.
+void func_acropolis_bridge_8017DB08(Task* task)
+{
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+
+    extra = (TmdObject*)task->extra;
+    coord = extra->field_8;
+    if ((u32)(Gp_GetViewIndex() - 8) < 3U) {
+        extra->field_C = 0x80;
+    } else {
+        extra->field_C = 0;
+    }
+    coord->flg = 0;
+}
 
 void func_acropolis_bridge_8017DB60(Task* arg0)
 {
