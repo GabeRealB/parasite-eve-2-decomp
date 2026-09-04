@@ -69,6 +69,30 @@ OVERLAY=$(awk '/^leased /{print $2; exit}' "$LOG_FILE" | tr -d ':')
 WT="$ROOT/../pe2-ov-$OVERLAY"
 log "leased $OVERLAY, worktree $WT"
 
+# Carry give-up archives out of the worktree and remove it. tools/giveups/ is
+# gitignored, so no landing path moves it, and it holds the best compiling C for
+# every function that stalled - the whole point being that a later retry does
+# not restart from m2c.
+cleanup_worktree() {
+    if [[ -d "$WT/tools/giveups" ]]; then
+        local carried=0 d name
+        for d in "$WT"/tools/giveups/*/; do
+            [[ -d "$d" ]] || continue
+            name=$(basename "$d")
+            if [[ ! -d "$ROOT/tools/giveups/$name" ]]; then
+                mkdir -p "$ROOT/tools/giveups"
+                cp -r "$d" "$ROOT/tools/giveups/$name" && carried=$((carried+1))
+            fi
+        done
+        [[ $carried -gt 0 ]] && log "carried $carried give-up archive(s) to trunk"
+    fi
+    if [[ "$KEEP" == false ]]; then
+        "$ROOT/tools/overlay_batch.sh" --cleanup --overlay "$OVERLAY" --session "$SESSION" \
+            >>"$LOG_FILE" 2>&1 || log "worktree cleanup refused; see $LOG_FILE"
+    fi
+}
+
+
 release_all() {
     orch relinquish-overlay --session "$SESSION" >/dev/null 2>&1 || true
 }
@@ -266,12 +290,28 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
             "$port_prompt" >>"$LOG_FILE" 2>&1
         rc=$?
         log "port agent finished (rc=$rc)"
-        if ./tools/build-and-verify.sh >>"$LOG_FILE" 2>&1; then
-            log "trunk verified after agent landing"
-            trap - EXIT; release_all; exit 0
+
+        # Do NOT re-verify here. The agent already ran an unscoped build while
+        # holding the merge lock, and re-running it afterwards is outside the
+        # lock: another session that commits in that window makes trunk look
+        # broken when the landing was fine. acropolis_promenade landed all 12
+        # commits and verified 449/449, then this build failed on
+        # `cannot find build/USA/src/rooms/lib/room_script05.c.o` - a shared
+        # unit a concurrent grok session had just added. rc=1, worktree kept,
+        # nothing actually wrong. The queue verifies trunk after every room
+        # anyway, so the second check bought nothing and cost a false alarm.
+        if [[ $rc -ne 0 ]]; then
+            log "landing agent failed; worktree kept at $WT"
+            exit 1
         fi
-        log "TRUNK BUILD FAILED after the agent landing - inspect $LOG_FILE"
-        exit 1
+        if git -C "$WT" log --oneline "$BASE..HEAD" --format=%s \
+             | grep -qvxFf <(git -C "$ROOT" log --oneline "$BASE..HEAD" --format=%s); then
+            log "agent reported success but some commits are missing on trunk; worktree kept at $WT"
+            exit 1
+        fi
+        log "agent landing complete; every branch commit is on trunk"
+        cleanup_worktree
+        trap - EXIT; release_all; exit 0
     fi
     log "no claude CLI available; leaving the worktree at $WT for a manual landing"
     exit 1
@@ -363,30 +403,9 @@ orch finish-overlay --session "$SESSION" \
     ${diff_csv:+--difficult "$diff_csv"} \
     ${unattempted:+--unattempted "$unattempted"} >>"$LOG_FILE" 2>&1 || true
 
-# tools/giveups/ is gitignored, so nothing in the landing path moves it and the
-# worktree is about to be deleted. It holds the best compiling C for every
-# function that stalled - mist_parking's 8017F764 reached 98.846% over 21
-# attempts - and its whole purpose is to stop a later retry restarting from m2c.
-# Copy any archive trunk does not already have.
-if [[ -d "$WT/tools/giveups" ]]; then
-    carried=0
-    for d in "$WT"/tools/giveups/*/; do
-        [[ -d "$d" ]] || continue
-        name=$(basename "$d")
-        if [[ ! -d "$ROOT/tools/giveups/$name" ]]; then
-            mkdir -p "$ROOT/tools/giveups"
-            cp -r "$d" "$ROOT/tools/giveups/$name" && carried=$((carried+1))
-        fi
-    done
-    [[ $carried -gt 0 ]] && log "carried $carried give-up archive(s) to trunk"
-fi
-
 log "landed ${#MATCHED[@]}; difficult $(grep -c . <<<"$DIFFICULT" || echo 0); unattempted $(tr ',' '\n' <<<"$unattempted" | grep -c . || echo 0)"
 
-if [[ "$KEEP" == false ]]; then
-    "$ROOT/tools/overlay_batch.sh" --cleanup --overlay "$OVERLAY" --session "$SESSION" \
-        >>"$LOG_FILE" 2>&1 || log "worktree cleanup refused; see $LOG_FILE"
-fi
+cleanup_worktree
 
 trap - EXIT
 release_all
