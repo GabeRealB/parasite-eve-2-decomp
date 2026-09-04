@@ -42438,3 +42438,55 @@ corrects the failing case without disturbing anything already matched.
 crashes on it, so `wine32:i386` and `wine32-stable` are required. The source
 must have CRLF line endings and live in a short path next to `ASPSX.EXE`, or
 the DOS-era argument parsing mangles it.
+
+## A "did work" flag set *after* a nested store of the same constant keeps its own register
+
+A block that both latches a flag and, under a nested test, stores the same
+constant into a struct field is the second half of the elevator-hall lighting
+ramp, and where you write `flag = 1` decides whether the two `1`s share a
+register:
+
+```c
+blend = 0;
+if (work->field_26 == 0) {
+    work->field_24 = work->field_24 + 0x800;
+    blend = 1;                                   /* before the nested if */
+    if (work->field_24 == 0x1000) { work->field_26 = 1; }
+}
+if (blend != 0) { ... }
+```
+
+With the flag assigned first, CSE sees one live `1` covering both uses and
+folds them, so the store reuses the flag's register and the flag lives in an
+argument register:
+
+```
+bne  $v0, $v1, .Ljoin
+ li  $a0, 1             # flag and store value are the same reg
+sh   $a0, 0x26($s4)
+.Ljoin:
+beqz $a0, .Lskip
+```
+
+Moving `blend = 1` *below* the nested `if` puts it in the join block instead.
+The two constants are now in different blocks, CSE leaves them alone, and the
+delay-slot pass hoists the join block's `li` into the `bne` — it is needed on
+both paths — so the instruction order is unchanged while the register count
+goes up by one:
+
+```
+bne  $v0, $v1, .Ljoin
+ li  $v1, 1             # the join-block flag, hoisted into the delay slot
+li   $v0, 1             # the store's own constant
+sh   $v0, 0x26($s4)
+.Ljoin:
+beqz $v1, .Lskip
+```
+
+Signature: the target loads the *same* small constant twice around a single
+conditional store, and the flag's register differs from the stored one
+(penalties `regs` plus a one-instruction `delete`). The fix is purely
+positional — same statements, flag assignment moved past the nested `if`.
+Note this is the mirror of the three-way constant select above: there the
+default has to be written *before* the nested test, here the flag has to be
+written *after* it.

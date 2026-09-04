@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -21,6 +22,14 @@ extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
 extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
 extern Task*      D_acropolis_west_elevator_hall_80186AE4[];
+
+/// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
+/// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
+/// `...80184E04` the blended result that `...80185004` uploads to VRAM.
+extern u16      D_acropolis_west_elevator_hall_80184A04[];
+extern u16      D_acropolis_west_elevator_hall_80184C04[];
+extern u16      D_acropolis_west_elevator_hall_80184E04[];
+extern GpImgRec D_acropolis_west_elevator_hall_80185004[];
 
 void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 {
@@ -143,4 +152,44 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F990);
+/// Per-frame update of the lift bay's lighting: ramps `GpEffWork::field_24`
+/// from 0 to 0x1000 in 0x800 steps, re-blending the bay CLUT towards its lit
+/// palette on every step it takes, and latching `field_26` once the ramp is
+/// full. On every session phase but 5 the CLUT is then blended straight back
+/// to the unlit palette and the effect's work object is released, so only
+/// phase 5 keeps the lit bay on screen.
+void func_acropolis_west_elevator_hall_8017F990(Task* task)
+{
+    GpEffWork* work;
+    s32        i;
+    s32        blend;
+
+    work  = (GpEffWork*)task->spawnArg2;
+    blend = 0;
+    if (work->field_26 == 0) {
+        work->field_24 = work->field_24 + 0x800;
+        if (work->field_24 == 0x1000) {
+            work->field_26 = 1;
+        }
+        blend = 1;
+    }
+
+    if (blend != 0) {
+        for (i = 0; i < 0x100; i += 0x10) {
+            Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
+                               &D_acropolis_west_elevator_hall_80184A04[i], work->field_24,
+                               &D_acropolis_west_elevator_hall_80184E04[i]);
+        }
+        Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
+    }
+
+    if ((u8)Game_Session->field_4 != 5) {
+        for (i = 0; i < 0x100; i += 0x10) {
+            Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
+                               &D_acropolis_west_elevator_hall_80184A04[i], 0,
+                               &D_acropolis_west_elevator_hall_80184E04[i]);
+        }
+        Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
+        Gp_ReleaseState1CMem(work, task);
+    }
+}
