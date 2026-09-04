@@ -43681,3 +43681,67 @@ RotMatrixX(coord->angle, &mat->mat);
 The first store still comes out as `4(s0)` rather than `0(a1)`; that is the
 expected shape, not a leftover. `func_hypervelocity_8011F374` is the worked
 example (93.3% → 100% on that one change).
+
+### A switch case that compares against the switch value needs the value in a local
+
+`func_m4a1_p2_8011D1C4` dispatches on `actor->field_95E` and, inside `case 2`,
+compares a counter against that same field:
+
+```
+lhu   v1,0x95e(s0)      <- entry, feeds the case tree
+...
+sw    v0,0x934(s0)
+bne   v0,v1,...         <- still the entry load
+```
+
+Writing the compare as `if (count != actor->field_95E)` reloads it
+(`lhu v1,0x95e(s0)` + `nop` right before the `bne`): the preceding
+`actor->field_934 = count` store is a memory write, and cse drops the earlier
+`lhu` from the table rather than disambiguating the two constant offsets off
+`s0`. Hold the dispatch value in a local instead, so the comparison is a
+register use with no memory reference at all:
+
+```c
+state = actor->field_95E;
+switch (state) {
+case 2:
+    count            = actor->field_934 - 1;
+    actor->field_934 = count;
+    if (count != state) {
+        break;
+    }
+```
+
+Two instructions, but they push every later branch offset by 4, so the diff
+looks much bigger than the cause. m2c names the reload and the entry load the
+same temp (`temp_v1`), which is the hint that the original was one variable.
+
+### Narrow the case-local so it cannot steal the switch's constant register
+
+Complement to "A `reload_cse` copy in front of a struct-field store": moving
+`anim = 1` *after* `actor->field_95E = 1` fixes the store (it picks up the
+constant the switch tree already materialised) but leaves the *next* use of the
+same constant wrong. In `func_m4a1_p2_8011D1C4` case 0 the target is
+
+```
+li    a0,1              <- the switch tree's constant
+...
+sh    a0,0x95e(s0)
+bne   v1,a0,...         <- if (actor->field_97F == 1)
+li    a3,3              <- anim
+```
+
+With `s32 anim`, the `bne` compares against `a3` instead: `anim = 1` is the most
+recent SImode `(set reg 1)`, so cse canonicalises the following compare onto it.
+Declaring the local at the width it is actually stored at puts its constant in a
+different mode class, and the SImode uses go back to the switch's register:
+
+```c
+s16 anim;   /* stored to actor->field_93E, an s16 */
+s32 fade;   /* separate local for the later Gp_AnimPlayChildSlotsEx argument */
+```
+
+Narrowing is only right when the local really is a halfword field's value —
+`func_p08_8011D1D8` is the case where a `u8` local is the false trail, because
+there `reload_cse` has to fold the constant, not avoid it. Splitting the
+second, unrelated 1 into its own `s32` local keeps that distinction visible.
