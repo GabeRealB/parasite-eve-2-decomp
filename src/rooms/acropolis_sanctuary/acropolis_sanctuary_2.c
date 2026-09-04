@@ -3,8 +3,12 @@
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
+#include "main/task.h"
 
-extern u8 D_acropolis_sanctuary_80181814[];
+#include "rooms/room_common.h"
+
+extern u8       D_acropolis_sanctuary_80181814[];
+extern TaskDesc D_acropolis_sanctuary_80182240;
 
 extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
 
@@ -16,7 +20,18 @@ s32 func_acropolis_sanctuary_8017D810(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D848);
+/// Message gate for the sanctuary hotspot registered under id 0x13EF: sub-id 1
+/// arms the room's own task the first time it is seen, latching nibble 7 so a
+/// second visit does nothing. The record is not copied to the outgoing one -
+/// this handler only ever consumes the message (returns 0).
+s32 func_acropolis_sanctuary_8017D848(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    if (in->field_2 == 1 && GameFlag_GetNibble(7) == 0) {
+        GameFlag_SetNibble(7, 1);
+        Task_SpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
+    }
+    return 0;
+}
 
 void func_acropolis_sanctuary_8017D8A0(u32 arg0)
 {
