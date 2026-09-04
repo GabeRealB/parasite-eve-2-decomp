@@ -41515,3 +41515,49 @@ So: `insert`/`delete` of exactly one `move` next to an `addiu` or a load is a
 pseudo-splitting problem. Try the duplicated read first, then a second local in
 the branch arms, and only reach for `SOFT_TOUCH_REG` when the split has to
 happen inside one basic block.
+
+## Forcing `li -mask` + `and` instead of `andi`: hold the mask in a local
+
+The inverse of "Same byte mask across a call: `andi` vs CSE'd `and`". When the
+target clears the same bit on several `u8` fields and uses one `li reg,-0x41`
+plus N `and`s, writing `p->field &= ~0x40;` will *not* reproduce it: the load is
+an `lbu`, so combine knows the high bits are zero, narrows `-65` to `191`, and
+that fits `andi`.
+
+Symptom: N x `andi v0,v0,0xbf` where the target has `li a1,-0x41` and N x
+`and v0,v0,a1`, plus a one-register shift in everything allocated after it.
+
+Fix: put the mask in an ordinary `s32` local and use that. The constant reaches
+the `and` as a pseudo, so nothing narrows it, and recog rejects substituting
+`const_int -65` back into `andsi3` (it is not `uns_arith_operand`), leaving the
+CSE'd register form:
+
+```c
+s32 mask;
+
+mask = ~0x40;
+p0->field_4A &= mask;
+p3->field_4A &= mask;
+/* ... */
+```
+
+Assign `mask` before the pointer locals to get its register allocated first.
+
+## Explicit pointer locals stop element offsets folding into the mem operand
+
+`arr[3].field_4A &= mask;` on an `extern T arr[]` folds the whole displacement
+into the memory operand (`lbu v0,0x12e(v1)`), because the address stays a
+`symbol + const` inside each mem. The target instead computing
+`addiu a2,a0,0xe4` / `lbu v0,0x4a(a2)` / `sb v0,0x4a(a2)` means the address was
+a pseudo with two uses (the load and the store), which combine cannot fold into
+both. Write one pointer local per element:
+
+```c
+p3 = &D_acropolis_sanctuary_80183CAC[3];
+p3->field_4A &= mask;
+```
+
+This also fixes the instruction scheduling for free: GCC then interleaves the
+next element's `addiu` with the previous element's `sb`, which is the pairing
+the target shows. `func_acropolis_sanctuary_8017D5E0` is the worked example
+(64% -> 77% from the pointer locals, 77% -> 100% from the mask local).
