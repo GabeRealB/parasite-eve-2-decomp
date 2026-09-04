@@ -41561,3 +41561,37 @@ This also fixes the instruction scheduling for free: GCC then interleaves the
 next element's `addiu` with the previous element's `sb`, which is the pairing
 the target shows. `func_acropolis_sanctuary_8017D5E0` is the worked example
 (64% -> 77% from the pointer locals, 77% -> 100% from the mask local).
+
+## Reuse the call-result variable to keep a two-way constant in `$v0`
+
+`x = cond ? 1 : 2` right after a call, where the call's return value *is* the
+condition, wants the constants in the return register itself. Two wrong shapes:
+
+Presetting the variable makes it live across the call, so it gets a callee-saved
+register and the `li` hoists into the delay slot of the *earlier* branch:
+
+```c
+var = 2;                                /* li s0,2 in the wrong delay slot */
+if (GameFlag_GetNibble(2) == 0) var = 1;
+out->field_3 = var;
+```
+
+A ternary on the call keeps the range short but still needs a second pseudo,
+because `$v0` is live at the compare, so the constants land in `$v1`:
+
+```c
+out->field_3 = (GameFlag_GetNibble(2) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
+```
+
+Fix: store the return value in a local and reassign *that same local* in both
+arms. One pseudo covers the return and the constants, so it gets `$v0`, and the
+`li v0,2` fills the `bnez v0` delay slot as in the target:
+
+```c
+nib = GameFlag_GetNibble(2);
+if (nib == 0) { nib = 1; } else { nib = 2; }
+out->field_3 = nib;
+```
+
+`func_acropolis_sanctuary_8017D73C` is the worked example (94.7% -> 99.7% from
+the ternary, 99.7% -> 100% from the reassignment).

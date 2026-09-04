@@ -7,6 +7,8 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 
+#include "rooms/room_common.h"
+
 extern s8             D_8007272D;
 extern s32            D_acropolis_sanctuary_80180B0C;
 extern s32            D_acropolis_sanctuary_80181664;
@@ -66,7 +68,35 @@ void func_acropolis_sanctuary_8017D5E0(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", func_acropolis_sanctuary_8017D73C);
+/// Message gate for the sanctuary's second hotspot: copies the incoming record
+/// to the outgoing one, then answers message 0xB. The first time the message is
+/// seen for real (`field_5` == 0) it latches nibble 7 to 2 and raises the room's
+/// 0x13 bit-2 flag; the answer written back into `field_3` is 1 while nibble 2
+/// is still clear and 2 once it is set.
+s32 func_acropolis_sanctuary_8017D73C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    s32 nib;
+
+    *out = *in;
+    if (in->msgId == 0xB) {
+        if (in->field_5 == 0) {
+            if (GameFlag_GetNibble(7) == 0) {
+                GameFlag_SetNibble(7, 2);
+                Gp_SetCurBit2Flag(0x13, 2);
+            }
+        }
+        if (in->msgId == 0xB && in->field_5 == 0) {
+            nib = GameFlag_GetNibble(2);
+            if (nib == 0) {
+                nib = 1;
+            } else {
+                nib = 2;
+            }
+            out->field_3 = nib;
+        }
+    }
+    return 1;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", D_acropolis_sanctuary_8017D5C0);
 
