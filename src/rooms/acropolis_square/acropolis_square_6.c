@@ -40,7 +40,16 @@ void func_acropolis_square_80182200(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182260);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801822A4);
+void func_acropolis_square_801822A4(void)
+{
+    char pad[0x10];
+
+    if (Mc_SaveData.field_8 == 7 && D_acropolis_square_80183830 == 0) {
+        D_acropolis_square_80183830 = 1;
+        Mc_SaveData.field_5C5       = 2;
+        func_800E8634((s32)&D_acropolis_square_8018399C, 0, (s32)&D_acropolis_square_80183A5C);
+    }
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182308);
 
 s32 func_acropolis_square_80182360(void)
