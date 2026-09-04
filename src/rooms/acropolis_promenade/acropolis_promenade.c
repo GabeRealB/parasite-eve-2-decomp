@@ -119,7 +119,3 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_a
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5C4);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5D0);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5DC);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5E0);

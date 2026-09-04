@@ -43241,3 +43241,61 @@ gives both. The rule of thumb: the statement that reads the head last is the one
 that gets the temp register, so anything you want to see *before* the publish
 has to be written before it, and the block pointer has to be written last for
 the copy to survive.
+
+## An `int` expression stored into a `u16` field narrows its own source load
+
+`func_acropolis_promenade_8017F0BC` builds a clut word from a `s32` task field:
+
+```c
+prim->clut = ((task->spawnArg1 + 2) & 0x3F) | 0x4380;   /* lhu 0x34(s1) */
+```
+
+The target loads the same field with `lw` everywhere, including here. The
+difference is not RTL: the C front end's `convert_to_integer` distributes the
+implicit `int -> unsigned short` conversion at the assignment down through
+`|`, `&` and `+`, so the whole chain — and with it the `COMPONENT_REF` — is
+expanded in `HImode`, and a `mem:SI` load of a 32-bit field comes out as
+`lhu`. `.rtl` shows it before any optimisation pass runs: `(set (reg:HI)
+(mem:HI ...))` feeding `(plus:SI (subreg:SI (reg:HI)))`.
+
+Routing the value through an `s32` local blocks the shortening, because the
+conversion then applies to a `VAR_DECL` rather than to a binary operator:
+
+```c
+clut       = ((task->spawnArg1 + 2) & 0x3F) | 0x4380;
+prim->clut = clut;                                      /* lw 0x34(s1) */
+```
+
+The tell is a one-instruction `lw` vs `lhu` (or `lb`/`lbu`) diff on a field the
+same function loads at full width elsewhere: the narrow load is the assignment
+target's width leaking backwards, not a wrong field type. The same rule
+explains the reverse case — `work->field_22 = task->spawnArg1;` legitimately
+emits `lhu` because there is no operator in between.
+
+## A stack array initializer is rodata, so a later code unit needs a `rodata` cut
+
+An overlay's leading rodata block is one subsegment owned by the first code
+unit. Compiler-generated jump tables are the documented reason to cut it, but a
+plain local array initializer does the same thing:
+
+```c
+u8 base[3] = { 0x20, 0x60, 0x20 };
+u8 step[3] = { 0x08, 0x10, 0x0C };
+```
+
+GCC 2.8.1 emits one 4-byte-aligned template per array into `.rodata` and copies
+it onto the stack byte by byte. The tell in the target is a run of `lb`/`sb`
+pairs off an overlay-local data symbol into consecutive stack slots — three
+here, one per array element — with no other reference to that symbol anywhere.
+
+The fix is the manifest `rodata` key, exactly as for a jump table: cut the
+leading block where ownership changes and drop the now-owned `INCLUDE_RODATA`
+lines from the first unit's `.c`.
+
+```toml
+acropolis_promenade = { text = [0x24, 0x2844], rodata = [{ start = "0x1C", unit = "acropolis_promenade_4" }], ... }
+```
+
+Ordering matters twice over: the templates are emitted in declaration order, so
+the array declared first has to be the one at the lower address, and the cut
+offset is the address of that first template.
