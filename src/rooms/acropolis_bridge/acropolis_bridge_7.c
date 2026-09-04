@@ -65,7 +65,33 @@ void func_acropolis_bridge_8017F280(Task* task)
     states[task->state](task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F2D0);
+/// Repaints the two bridge sprites that game flag nibble 0x10 governs: one
+/// sprite command in view 2 of this room's sprite record and one in view 5.
+/// `Gp_LinkViewSprts` reads `field_4` to decide whether to skip OT-linking a
+/// command's prims, so a zero nibble draws both and a non-zero one hides them.
+void func_acropolis_bridge_8017F2D0(s32 flags)
+{
+    GameSession*      g    = Game_Session;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GpSprtRec*        rec;
+    GpSprtCmd*        cmd;
+
+    rec = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+
+    cmd = rec[1].field_4;
+    if ((flags & 0xFF) == 0) {
+        cmd[11].field_4 = 0;
+    } else {
+        cmd[11].field_4 = 1;
+    }
+
+    cmd = rec[4].field_4;
+    if ((flags & 0xFF) == 0) {
+        cmd[16].field_4 = 0;
+    } else {
+        cmd[16].field_4 = 1;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F358);
 

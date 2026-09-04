@@ -45882,3 +45882,28 @@ is wrong, not something to pad around.
 
 The `TaskFuncTableN` family in `include/main/task.h` exists for the global
 shape; add the missing arity there rather than declaring a bare array.
+
+## A pointer used only by stores in both `if` arms must be its own local
+
+`if (c) p->a[K].f = 0; else p->a[K].f = 1;` where `p->a` is itself a load does
+**not** get the load hoisted: GCC 2.8.1 emits `lw` inside each arm, and the
+duplicated tails then diverge in register choice as well, so a two-branch
+function loses ~16% on `insert`/`delete`/`regs` at once.
+
+```c
+/* duplicated lw 0x10(a0) in both arms */
+if ((flags & 0xFF) == 0) rec[1].field_4[11].field_4 = 0;
+else                     rec[1].field_4[11].field_4 = 1;
+
+/* single lw 0x10(a0) ahead of the branch, as the target has */
+cmd = rec[1].field_4;
+if ((flags & 0xFF) == 0) cmd[11].field_4 = 0;
+else                     cmd[11].field_4 = 1;
+```
+
+Loads feeding a *value* expression are CSE'd across arms; loads feeding only a
+store address are not, because the store never makes the pointer a live value
+outside its own arm. Whenever the target loads a pointer before the branch and
+the C reaches through it inside both arms, name it. Reusing one local for
+several such pointers in sequence (`cmd` again for the next record) is fine —
+the live ranges do not overlap.
