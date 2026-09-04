@@ -43056,3 +43056,46 @@ and will otherwise see the body twice in one overlay and refuse with
 Finally, a scoped `--only <family>` build does **not** catch this — the renumber
 breaks the *other* overlay carrying the body, so run the bare
 `./tools/build-and-verify.sh`.
+
+## A hoisted global load above the prologue starts the overlay `.text` too late
+
+`gen_overlay_configs.py` derives an overlay's `.text` span from the first
+`addiu $sp, $sp, -N`. GCC 2.8.1 routinely schedules the `lui`/`lw` of a global
+that the first statement reads *above* the stack adjustment (`Gp_LookupStageFlag`
+and a dozen other matched gameplay functions open that way). When the overlay's
+very first function does that, the detector starts the span one or two
+instructions late, and those instructions are stranded at the end of the leading
+`.rodata` subsegment.
+
+The symptom is not a build failure — the split is self-consistent — it is an
+*unmatchable* function. m2c emits `M2C_ERROR(/* Read from unset register $v0 */)`
+for a branch on a register nothing in the function wrote, and an argument
+register that is really a `lui` base appears as a bogus pointer parameter:
+
+```
+dlabel D_acropolis_promenade_8017D5E4
+    .word 0x3C048018   # lui   $a0, 0x8018
+    .word 0x8C821140   # lw    $v0, 0x1140($a0)
+glabel func_acropolis_promenade_8017D5EC
+    addiu $sp, $sp, -0x18
+    bnez  $v0, ...           # $v0 never written
+    ...
+    sw    $v0, 0x1140($a0)   # $a0 is not an argument
+```
+
+Two tells confirm it before you touch anything: the "rodata" words disassemble
+as instructions, and a task table in the real rodata takes that address as a
+function pointer (`D_..._8017D5C4` holds `{ func_..._8017D9E0, D_..._8017D5E4,
+Task_Kill }`).
+
+Fix it in the manifest, not in the C — pin the span with the `text` key,
+regenerate, delete the affected `src/` file so splat re-emits the
+`INCLUDE_ASM` / `INCLUDE_RODATA` lines itself, and re-split:
+
+```toml
+acropolis_promenade = { text = [0x24, 0x2844], ... }
+```
+
+The function is then named for its real entry point
+(`func_acropolis_promenade_8017D5E4`), takes no arguments, and reads the global
+the hoisted `lw` was loading.
