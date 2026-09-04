@@ -30,7 +30,52 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80181D28);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_801820A0);
+s32 func_acropolis_bridge_801820A0(Task* task)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR        pos;
+    s32            i;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+
+    i = 0;
+    do {
+        pos.vx      = -0x3E58;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vy      = ((u32)Gp_LcgState >> 16) % 1536 + 0xF830;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vz      = (((u32)Gp_LcgState >> 16) & 0xF) + 0xF63C;
+        Gp_SpawnEff(0x600BC, coord, 0, &pos);
+
+        pos.vx      = -0x3E58;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vy      = ((u32)Gp_LcgState >> 16) % 1536 + 0xF830;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vz      = 0xFA06 - (((u32)Gp_LcgState >> 16) & 0xF);
+        Gp_SpawnEff(0x600BC, coord, 0, &pos);
+
+        pos.vx      = -0x3E58;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vy      = (((u32)Gp_LcgState >> 16) & 0xF) + 0xF830;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vz      = (u16)((u32)Gp_LcgState >> 16) % 970 + 0xF63C;
+        Gp_SpawnEff(0x600BC, coord, 0, &pos);
+        i++;
+    } while (i < 0x20);
+
+    i = 0;
+    do {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vx      = -0x3E58;
+        pos.vy      = ((u32)Gp_LcgState >> 16) % 1536 - 0x7D0;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        pos.vz      = (u16)((u32)Gp_LcgState >> 16) % 970 - 0x9C4;
+        Gp_SpawnEff(0x600BC, coord, 0, &pos);
+        i++;
+    } while (i < 8);
+
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80182394);
 

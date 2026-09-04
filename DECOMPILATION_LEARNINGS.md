@@ -46248,3 +46248,44 @@ clobbers `$a0`, so the copy comes back as a real `move $a0,$s0` and the match
 is lost. Splitting that local into one pseudo per use, which this function
 needed anyway, both fixes the register assignment and lets the copy stay
 deleted.
+
+## `x % <even constant>` needs a `(u16)` cast when `x` is `rand >> 16`
+
+An unsigned remainder by an even constant expands to a *pre-shift* — GCC 2.8.1
+turns `x % 970` into `x - (((x >> 1) * 0x872032AD >> 32) >> 8) * 970`. When `x`
+is itself a shift, as in the LCG idiom, the two shifts collide:
+
+```c
+pos.vz = ((u32)Gp_LcgState >> 16) % 970 + 0xF63C;   /* wrong */
+```
+
+CSE knows the pre-shift's operand is `lcg >> 16`, folds the pair into
+`srl a1, t0, 0x11`, and then has to re-materialise `srl t3, t0, 0x10` for the
+`subu` that computes the remainder — two shifts where the target has one
+`srl t1, t0, 0x10` feeding both `srl a1, t1, 0x1` and `subu t1, t1, v0`.
+Hoisting the shift into a local does not help; CSE folds through the local too.
+(With no local at all, `expand_divmod` re-expands the tree for the remainder's
+operand and you get the duplicated shift for a second reason — that is the
+19.9% m2c baseline here.)
+
+A `(u16)` cast on the shifted value fixes it:
+
+```c
+pos.vz = (u16)((u32)Gp_LcgState >> 16) % 970 + 0xF63C;   /* matches */
+```
+
+The cast is a no-op numerically — the value is already 16 bits — but the
+`(x >> 16) & 0xFFFF` it produces survives CSE, so the pre-shift is expressed
+against the masked pseudo and cannot be folded back into `x`. `combine` then
+drops the `andi` as redundant via `nonzero_bits`, leaving exactly the target's
+shift pair. Odd divisors need no pre-shift and so never show the problem:
+`% 1536` in the same function matches without the cast.
+
+`func_acropolis_bridge_801820A0` also shows the constant-form tell for a loop
+body: 63536 and 63036 are materialised with `ori $s4, $zero, 0xF830` /
+`ori $s6, $zero, 0xF63C` in the 0x20-iteration loop but appear as
+`addiu $t2, $t2, -0x7D0` / `addiu $t3, $t3, -0x9C4` in the 8-iteration loop.
+That is not a scheduling artefact — the source really writes `+ 0xF830` in one
+loop and `- 0x7D0` in the other. A positive `0x....` literal too large for
+`addiu` has to be hoisted into a register; a small negative one stays an
+immediate. Read the form off the asm and write the literal that produces it.
