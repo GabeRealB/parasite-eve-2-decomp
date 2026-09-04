@@ -3,6 +3,27 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Name the indexed dest before an independent store through the same coord
+
+`coord->flg = 0; coord->sub = &parent->field_8[part];` lets sched1 issue the
+flg store as soon as `coord` is loaded. That pulls `extra->field_8` to the
+top, loads `part` late into `$v1`, and hands `$a1` to `coord` instead of
+`part` — so the `* 0x50` is `sll v1` / `addu v0,v1` with `coord` in `$a1`,
+not the target's `lw a1, spawnArg1` / `sll v0,a1,2` / `coord` in `$t0`.
+
+Name the indexed pointer first so the `* 5` completes before either store:
+
+```c
+dest        = &parentExtra->field_8[part];
+coord->flg  = 0;
+coord->sub  = dest;
+```
+
+`part` then wins `$a1`, `coord` falls into `$t0`, and `sw zero,0(t0)` sits
+after `sll v0,v0,4` as a delay-slot fill. Pinning `part` to `$a1` gets the
+registers and still leaves the two `lw`s swapped; the dest local is what
+fixes the schedule. `Room_Script13` is the example.
+
 ## Do not punch a hole in a whole-`.text` shared actor unit
 
 `overlay_dup_index.py find` reports a body under `USA/actors/lib` when it
