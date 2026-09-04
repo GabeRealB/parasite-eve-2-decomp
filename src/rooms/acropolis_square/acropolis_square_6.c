@@ -43,7 +43,21 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acrop
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801822A4);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182308);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_80182360);
+s32 func_acropolis_square_80182360(void)
+{
+    GpAreaKey key;
+
+    if (GameFlag_GetNibble(0x1F) == 0) {
+        GameFlag_SetNibble(0x1F, 1);
+        key.field_3 = 1;
+        key.field_2 = 1;
+        Gp_SetAreaObjId(&key, 2, 1);
+        Game_Session->field_1 = 1;
+        Task_SpawnFromTable(&D_acropolis_square_80183808, 0, 0, 0);
+        return 0;
+    }
+    return 1;
+}
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801823DC);
 INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_6", func_acropolis_square_801825DC);
 
