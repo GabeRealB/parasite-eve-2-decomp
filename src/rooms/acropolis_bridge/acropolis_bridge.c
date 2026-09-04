@@ -1,14 +1,43 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 extern TaskDesc D_acropolis_bridge_80188E7C[];
+extern s32      D_acropolis_bridge_80188EBC;
+extern s32      D_acropolis_bridge_8018912C;
 
 void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D6F4);
+/// Room message handler: answers msg 0xF (first use of the bridge) by running
+/// the cutscene once and marking the area object, and msg 0xB by asking for
+/// response 2 in the outgoing copy.
+s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+{
+    GpAreaKey key;
+
+    *out = *in;
+    if (in->msgId == 0xF) {
+        if (GameFlag_GetNibble(0x10) == 0) {
+            if (in->field_5 == 0) {
+                GameFlag_SetNibble(0x10, 1);
+                func_800E8634((s32)&D_acropolis_bridge_80188EBC, 0, (s32)&D_acropolis_bridge_8018912C);
+                GameFlag_SetNibble(6, 1);
+                key.field_3 = 1;
+                key.field_2 = 0xC;
+                Gp_SetAreaObjId(&key, 3, 1);
+            }
+            return 2;
+        }
+    }
+    if ((in->msgId == 0xB) && (in->field_5 == 0)) {
+        out->field_3 = 2;
+    }
+    return 1;
+}
 
 s32 func_acropolis_bridge_8017D7F0(void)
 {
