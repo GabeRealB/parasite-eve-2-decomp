@@ -1163,9 +1163,36 @@ fast_port_from_worktree() {
   return 1
 }
 
+# Undo this session's failed landing - and nothing else.
+#
+# `reset --hard $pre_port` used to be unconditional, and $pre_port is captured
+# once when the merge lock is taken, long before these call sites. With
+# concurrent orchestrator sessions that snapshot goes stale: weapons-1 rolled
+# trunk back to its own pre_port and took two commits another session had
+# landed in between (`matched func_p08_8011D1D8`, plus a learnings entry) with
+# it. Silently - a hard reset reports nothing.
+#
+# So refuse to drop any commit this session did not make. `$func` is in scope at
+# every call site and every landing commit names it, so a commit whose subject
+# does not mention it belongs to somebody else and the reset is abandoned;
+# the working tree is still cleaned, which is the part that matters for retry.
 reset_trunk_to() {
   local rev=$1
-  git -C "$ROOT" reset --hard "$rev" >/dev/null 2>&1 || true
+  local foreign=0 subj
+  while IFS= read -r subj; do
+    [[ -z "$subj" ]] && continue
+    if [[ "$subj" != *"$func"* ]]; then
+      echo "reset_trunk_to: refusing to discard '$subj' (not this session's)" \
+        | tee -a "$LOG_FILE"
+      foreign=1
+    fi
+  done < <(git -C "$ROOT" log --format=%s "$rev..HEAD" 2>/dev/null)
+
+  if [[ $foreign -eq 0 ]]; then
+    git -C "$ROOT" reset --hard "$rev" >/dev/null 2>&1 || true
+  else
+    git -C "$ROOT" reset --hard HEAD >/dev/null 2>&1 || true
+  fi
   git -C "$ROOT" clean -fd -- "${MATCH_LAND_PATHS[@]}" >/dev/null 2>&1 || true
 }
 
