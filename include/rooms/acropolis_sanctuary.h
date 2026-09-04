@@ -127,4 +127,27 @@ typedef struct AcsBlockerShift {
     /* 0x4 */ u16 vz;
 } AcsBlockerShift;
 
+/// Per-frame scratch the sanctuary's flame sprite builds at `G_SCRATCH_HEAD`:
+/// `pos` is the packed `SVECTOR` fed to RTPS, `sx` / `sy` the projected screen
+/// point, `otz` the depth (`SZ3 >> 2`) the ordering-table slot is taken from
+/// and `half` the sprite's half-extent, `field_24 * 0x27 / otz`, so the flame
+/// shrinks with distance.
+typedef struct AcsSprayScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     half;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ u16     sx;
+    /* 0x12 */ u16     sy;
+} AcsSprayScratch;
+STATIC_ASSERT_SIZEOF(AcsSprayScratch, 0x14);
+
+/// One grey level per sprite variant, indexed by the variant the flame task
+/// picked out of `Task::spawnArg1` (bits 8..9). The overlay holds two of these,
+/// the base level `D_acropolis_sanctuary_8017D5D8` and the per-frame flicker
+/// amplitude `D_acropolis_sanctuary_8017D5DC`; both are copied onto the stack
+/// so the variant index can subscript them.
+typedef struct AcsSpriteLevels {
+    /* 0x0 */ u8 v[3];
+} AcsSpriteLevels;
+
 #endif

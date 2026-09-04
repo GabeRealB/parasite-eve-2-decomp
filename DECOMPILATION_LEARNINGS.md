@@ -41741,3 +41741,37 @@ this single change).
 This is the intra-function twin of "Materialize long-lived pointers before
 early-return guards": there the fix is *where* the pointer is assigned, here it
 is *whether* there is a pointer variable at all.
+
+## `getClut(idx * 0x10, y)` keeps the `lh` that a hand-written mask turns into `lhu`
+
+`prim->clut = (y << 6) | (field & 0x3F)` on an `s16` field compiles to `lhu` +
+`andi`, not the `lh` + `andi` the target has. Combine sees
+`(and (sign_extend (mem:HI)) 63)`, and `force_to_mode` notices the mask only
+covers bits the halfword already holds, so it rewrites the `sign_extend` into a
+plain `HImode` move -- `extendhisi2` (`lh`) becomes `movhi_internal2` (`lhu`).
+The two are numerically identical here, so nothing but the load width differs
+and the penalty mix is a single `insert`/`delete` pair.
+
+The fix is to write the CLUT the way the game did, with the Psy-Q macro:
+
+```c
+/* lhu 0x26(s0); andi 0x3f; ori 0x4380   -- wrong load */
+prim->clut = (mem->field_26 & 0x3F) | 0x4380;
+
+/* lh  0x26(s0); andi 0x3f; ori 0x4380   -- matches */
+prim->clut = getClut(mem->field_26 * 0x10, 0x10E);
+```
+
+`getClut(x, y)` is `((y) << 6) | (((x) >> 4) & 0x3f)`, so a CLUT x of
+`index * 16` -- one 16-colour 4bpp palette per sprite variant -- collapses to
+exactly `index & 0x3F` after combine folds the `<< 4` against the `>> 4`. What
+it does *not* collapse is the sign extension: the mask is pushed through the
+shift pair one step at a time and combine gives up before it reaches the load,
+so `lh` survives. `(field << 16 >> 16) & 0x3F` produces the same code for the
+same reason, but `getClut` is what the CLUT y value in the neighbouring
+literals (`0x4380` is `0x10E << 6`, and `acropolis_fountain` writes the
+constant `0x4382` for the same page) says the original wrote.
+
+Generally: when a mask on a 16-bit field flips `lh` to `lhu` and the value is a
+packed hardware field, look for the Psy-Q packing macro (`getClut`, `getTPage`)
+before reaching for a cast. `func_acropolis_sanctuary_8017F4E8` is the example.

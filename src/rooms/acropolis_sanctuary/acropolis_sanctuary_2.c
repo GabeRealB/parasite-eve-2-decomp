@@ -5,13 +5,24 @@
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 
+#include "main/display.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
 #include "rooms/acropolis_sanctuary.h"
 #include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -26,23 +37,26 @@ extern s16 D_80071076;
 extern s8  D_8007218A;
 extern s8  D_80114C12;
 
-extern SVECTOR       D_acropolis_sanctuary_8017D5D0;
-extern GpMsgEntry    D_acropolis_sanctuary_8018081C[];
-extern RoomPlacement D_acropolis_sanctuary_801808BC;
-extern GpRec14       D_acropolis_sanctuary_801809F8;
-extern GpRec14       D_acropolis_sanctuary_80180A0C;
-extern s32           D_acropolis_sanctuary_80180AE8;
-extern u8            D_acropolis_sanctuary_80181814[];
-extern TaskDesc      D_acropolis_sanctuary_80182240;
-extern AcsBlockerSet D_acropolis_sanctuary_801822EC;
-extern GpMsgEntry    D_acropolis_sanctuary_80182310[];
-extern AcsTile       D_acropolis_sanctuary_80182320[];
-extern AcsQuad       D_acropolis_sanctuary_80182710[];
-extern s16           D_acropolis_sanctuary_80182750[];
-extern s32           D_acropolis_sanctuary_80182770;
-extern SVECTOR       D_acropolis_sanctuary_80182774[];
-extern AcsBlockerSet D_acropolis_sanctuary_80183568;
-extern Task*         D_acropolis_sanctuary_80186C90;
+extern SVECTOR         D_acropolis_sanctuary_8017D5D0;
+extern AcsSpriteLevels D_acropolis_sanctuary_8017D5D8;
+extern AcsSpriteLevels D_acropolis_sanctuary_8017D5DC;
+extern GpMsgEntry      D_acropolis_sanctuary_8018081C[];
+extern RoomPlacement   D_acropolis_sanctuary_801808BC;
+extern GpRec14         D_acropolis_sanctuary_801809F8;
+extern GpRec14         D_acropolis_sanctuary_80180A0C;
+extern s32             D_acropolis_sanctuary_80180AE8;
+extern u8              D_acropolis_sanctuary_80181814[];
+extern TaskDesc        D_acropolis_sanctuary_80182240;
+extern AcsBlockerSet   D_acropolis_sanctuary_801822EC;
+extern GpMsgEntry      D_acropolis_sanctuary_80182310[];
+extern AcsTile         D_acropolis_sanctuary_80182320[];
+extern AcsQuad         D_acropolis_sanctuary_80182710[];
+extern s16             D_acropolis_sanctuary_80182750[];
+extern s32             D_acropolis_sanctuary_80182770;
+extern SVECTOR         D_acropolis_sanctuary_80182774[];
+extern u16             D_acropolis_sanctuary_801827D4[];
+extern AcsBlockerSet   D_acropolis_sanctuary_80183568;
+extern Task*           D_acropolis_sanctuary_80186C90;
 
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
@@ -390,7 +404,98 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017EC90);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017F4E8);
+/// Draws one frame of the sanctuary's flame sprite. The task's coordinate is
+/// refreshed and projected through `GsWSMATRIX` into an `AcsSprayScratch` block
+/// taken from `G_SCRATCH_HEAD`; the projected point becomes the centre of a
+/// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
+/// `field_24 * 0x27 / otz`, so the flame shrinks with distance and is dropped
+/// entirely inside `otz` 0x11. `Task::spawnArg1` is unpacked once, on the first
+/// frame: bits 16..27 are the sprite's size (defaulting to 0x280 when zero),
+/// bits 8..9 pick one of four 0x28x0x27 cells across the sheet -- and, through
+/// `getClut`, the matching 16-colour palette -- and only the low nibble is kept,
+/// as the index into `D_acropolis_sanctuary_801827D4`, the per-variant mask of
+/// camera views the flame is visible from. The grey level is the variant's base
+/// level plus its flicker amplitude on odd frames.
+void func_acropolis_sanctuary_8017F4E8(Task* arg0)
+{
+    GpEffWork*       mem;
+    GsCOORDINATE2*   coord;
+    void**           scratch;
+    u8*              head;
+    AcsSprayScratch* blk;
+    POLY_FT4*        prim;
+    AcsSpriteLevels  base;
+    AcsSpriteLevels  step;
+    s32              param;
+    s32              lvl;
+    s16              x;
+    s16              y;
+
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1 & 0xF] >> ((u8)Game_Session->field_4 - 1)) & 1) {
+        Gp_UpdateCoord(coord);
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        *scratch = head - 0x14;
+        blk      = (AcsSprayScratch*)(head - 0x14);
+        if (arg0->state == 0) {
+            base            = D_acropolis_sanctuary_8017D5D8;
+            step            = D_acropolis_sanctuary_8017D5DC;
+            param           = arg0->spawnArg1;
+            mem->field_24   = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
+            mem->field_26   = (arg0->spawnArg1 >> 8) & 3;
+            arg0->spawnArg1 = arg0->spawnArg1 & 0xF;
+            mem->field_28   = base.v[mem->field_26];
+            mem->field_2A   = step.v[mem->field_26];
+            arg0->state++;
+        }
+        blk->pos.vx = *(u16*)&coord->workm.t[0];
+        blk->pos.vy = *(u16*)&coord->workm.t[1];
+        blk->pos.vz = *(u16*)&coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->pos);
+        gte_rtps_real();
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        gte_stsxy(&blk->sx);
+        gte_stszotz(&blk->otz);
+        if (blk->otz >= 0x11) {
+            lvl         = (u8)mem->field_28 + (Display_State.field_8 & 1) * mem->field_2A;
+            prim->tpage = 0x2B;
+            prim->code |= 2;
+            setRGB0(prim, lvl, lvl, lvl);
+            prim->clut = getClut(mem->field_26 * 0x10, 0x10E);
+            prim->u0   = mem->field_26 * 0x28;
+            prim->v0   = 0;
+            prim->u1   = mem->field_26 * 0x28 + 0x27;
+            prim->v1   = 0;
+            prim->u2   = mem->field_26 * 0x28;
+            prim->v2   = 0x27;
+            prim->u3   = mem->field_26 * 0x28 + 0x27;
+            prim->v3   = 0x27;
+            blk->half  = (mem->field_24 * 0x27) / blk->otz;
+            x          = blk->sx - (u16)blk->half;
+            prim->x2   = x;
+            prim->x0   = x;
+            x          = blk->sx + (u16)blk->half;
+            prim->x3   = x;
+            prim->x1   = x;
+            y          = blk->sy - (u16)blk->half;
+            prim->y1   = y;
+            prim->y0   = y;
+            y          = blk->sy + (u16)blk->half;
+            prim->y3   = y;
+            prim->y2   = y;
+            addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    }
+}
 
 /// Spawns effect 0x60078 on the room task's model coordinate, seeded with the
 /// fixed offset vector held in this unit's rodata. Always consumes the event
