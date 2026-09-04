@@ -43453,3 +43453,38 @@ Then delete the overlay's `src/` files and re-split: splat folds the table back
 into the referencing function's `.s`. `overlay_dup_index.py promote` writes the
 `shared` span but not this cut, so expect to add it by hand for every carrying
 overlay whenever the promoted body is not the last one in the file.
+
+## Two incoming-arg copies: pin both, later one fills the `beqz` delay
+
+A leaf that reuses `$a1` (e.g. `%hi(Gpu_PrimCursor)`) and `$a3` (`0xFFFFFF`
+from `addPrim`) needs prologue copies of those parameters. The target wants
+argument order, with the `$a3` copy in the first `beqz` delay:
+
+```
+move  t1, a0
+move  v1, a1
+lw    t0, 0x14(sp)
+lw    t2, 0x18(sp)
+beqz  t0, end
+ move t3, a3
+```
+
+A single `register s32 dx asm("v1"); dx = arg1;` makes the `$v1` copy a *user*
+assignment. `dbr` then parks that move in the delay slot and leaves the `$a3`
+incoming save in the main stream (99.7%, `regs=4`). Pin the second copy too,
+assigned *after* the first in source:
+
+```c
+register s32 dx asm("v1");
+register s32 w asm("t3");
+
+dx = arg1;
+w  = arg3;
+if ((arg5 != 0) && (w >= 2)) {
+```
+
+Both copies become user assignments; the later one is what remains for the
+delay slot. Declaring the `$v1` pin *inside* the `if` creates a lexical block
+that `dbr` will not fill across, so `lui a3, 0xff` cannot take the second
+branch's delay (`nop` instead). Keep both pins at function scope. `Room_Draw22`
+is the example.

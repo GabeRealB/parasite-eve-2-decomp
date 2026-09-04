@@ -238,6 +238,10 @@ void Room_SaveUi01(Task* task);
 /// half-extent divided by the projected depth and `arg2` packs the primitive's
 /// page/blend bits.
 void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
+/// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
+/// height. Left vertices take `arg5`, right vertices take `arg6`.
+void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
