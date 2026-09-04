@@ -44117,3 +44117,47 @@ The general rule: when the ROM tests a counter both before and after a
 decrement, write the decrement as a statement on a local and test the local.
 Re-deriving `x - 1` inside the condition keeps `x` live and hands 2.8.1 a
 constant compare instead.
+
+## Put the pinned `G_SCRATCH_HEAD` block last among the entry-block statements
+
+The weapon firing state machines all open the same way: borrow 0x50 bytes of
+the hardware scratchpad into a `spot` local, then load `actor`, `coord` and the
+`GpActorD4Rec` pointer before the `switch`. The scratch borrow needs its
+`register u8* tmp asm("v0")` pin so the pre-decrement value reaches both the
+callee-saved copy and the store-back:
+
+```c
+{
+    register u8* tmp asm("v0");
+
+    tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
+    spot                    = (GsCOORDINATE2*)tmp;
+    *(void**)G_SCRATCH_HEAD = tmp;
+}
+```
+
+Where that block sits relative to the plain loads decides the whole entry
+block's schedule, and it is worth several points. Written first — the order
+`func_m950_8011D1DC` and `func_mp5a5_8011DDA4` use — the `lui`/`ori` of the
+scratch-head address wins the ready list, the parameter copy `move $s2, $a0`
+slides down to fill the `lw` load-delay slot, and the `arg0->actor` load lands
+after the store-back. That is a 97.3% near-miss with `regs=11 reorder=2` in the
+first block only.
+
+Moving the block *after* the three loads gives 2.8.1 the ROM's schedule
+directly — `sw $s2` / `move $s2, $a0` first, `lw $s0, 0x1c($s2)` filling the
+scratch load's delay slot:
+
+```c
+actor = arg0->actor;
+coord = arg0->extra->field_8;
+rec   = (GpActorD4Rec*)actor->field_14C;
+{ /* scratch borrow, as above */ }
+switch (actor->field_95E) {
+```
+
+`func_p229_8011DDA0` went 97.3% → 100% on that move alone (the residue was
+`%hi`/`%lo` symbol names for `Wip_SysConfig.field_22` and `Mc_SaveData.field_22`,
+which link identically). Only the relative position of the pinned block matters:
+permuting `actor` / `coord` / `rec` among themselves changed nothing, because
+the pin, not source order, is what reprioritises the ready list.
