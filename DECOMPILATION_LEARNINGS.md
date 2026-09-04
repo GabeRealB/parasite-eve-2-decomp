@@ -34426,6 +34426,25 @@ as "duplicate the call in each branch when only one argument differs" above, but
 here the leftover is four register diffs rather than a spill, so it looks like a
 colouring problem and is not one.
 
+Duplicate **every** use, not just the one call. When the selected address is
+live across two calls it has to sit in a callee-saved register, and the same
+`regs=4` leftover appears with `$s0` in place of `$a0`:
+
+```
+lui   v0,%hi(D_acropolis_sanctuary_801809F8)   # ours
+addiu s0,v0,%lo(D_acropolis_sanctuary_801809F8)
+lui   s0,%hi(D_acropolis_sanctuary_801809F8)   # target
+addiu s0,s0,%lo(D_acropolis_sanctuary_801809F8)
+```
+
+The mechanism is the same: with a join-point temporary the address pseudo is
+*global* (live across blocks), so global alloc gives it `$s0` while local alloc
+independently hands the `high` pseudo `$v0`. Repeating the whole tail in each
+arm keeps the address pseudo block-local, local alloc ties it to its `high`, and
+`jump2` cross-jumps the duplicated `jal`s back together so the instruction count
+is unchanged. `func_acropolis_sanctuary_8017D8CC` went 99.20% → 100% by moving
+both `Gp_PlayerWeaponId(...)` and `Gp_DispatchMsg(...)` inside the `if`/`else`.
+
 ## A shared body may reference overlay-local data — give the datum one name in every sym map
 
 `overlay_dup_index.py promote` refuses a body that references `D_<unit>_` /

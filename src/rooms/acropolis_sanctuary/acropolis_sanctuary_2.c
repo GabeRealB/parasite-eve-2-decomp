@@ -9,9 +9,13 @@
 
 #include "rooms/room_common.h"
 
+extern u8 D_80073BA9;
+
 extern SVECTOR       D_acropolis_sanctuary_8017D5D0;
 extern GpMsgEntry    D_acropolis_sanctuary_8018081C[];
 extern RoomPlacement D_acropolis_sanctuary_801808BC;
+extern GpRec14       D_acropolis_sanctuary_801809F8;
+extern GpRec14       D_acropolis_sanctuary_80180A0C;
 extern s32           D_acropolis_sanctuary_80180AE8;
 extern u8            D_acropolis_sanctuary_80181814[];
 extern TaskDesc      D_acropolis_sanctuary_80182240;
@@ -45,7 +49,19 @@ void func_acropolis_sanctuary_8017D8A0(u32 arg0)
     func_acropolis_sanctuary_8017DF88((arg0 >> 8) & 0xFF, arg0 & 0xFF);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D8CC);
+/// Republishes the player's weapon to slot 3: picks the room's 0x3E8 record by
+/// the equipped-weapon index in `D_80073BA9`, has `Gp_PlayerWeaponId` stamp the
+/// current weapon model id into its `field_0`, then sends it.
+void func_acropolis_sanctuary_8017D8CC(void)
+{
+    if (D_80073BA9 == 2) {
+        Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.field_0);
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_801809F8, 0);
+    } else {
+        Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.field_0);
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_80180A0C, 0);
+    }
+}
 
 /// State 0 of the sanctuary room task: publishes the room's message-handler
 /// table under pointer slot 7 and advances to the next state. Unless nibble 6
