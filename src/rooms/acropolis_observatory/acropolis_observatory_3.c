@@ -3,6 +3,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -10,7 +11,13 @@
 
 #include "rooms/acropolis_observatory.h"
 
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -148,7 +155,87 @@ void func_acropolis_observatory_8017E19C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_observatory/acropolis_observatory_3", func_acropolis_observatory_8017E424);
+/// Draws the observatory's lens flare: the model's world position is projected
+/// through `GsWSMATRIX` into an `AobFlareScratch` block off `G_SCRATCH_HEAD`,
+/// and, when the `rtps` reports no error, the projected point becomes the
+/// centre of a semi-transparent `POLY_FT4` on tpage 0x2B. The depth used for
+/// both the size and the ordering-table slot is the raw `otz` pulled 0x40
+/// towards the camera and clamped to 0x10, so the flare stops growing once it
+/// is very close. The CLUT alternates between two palettes on odd and even
+/// frames, which is what makes the flare flicker.
+void func_acropolis_observatory_8017E424(Task* arg0)
+{
+    void**           scratch;
+    u8*              head;
+    AobFlareScratch* blk;
+    POLY_FT4*        prim;
+    GsCOORDINATE2*   coord;
+    void*            mem;
+    u16              vz;
+    s16              x;
+    s16              y;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    mem   = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    blk         = (AobFlareScratch*)(head - sizeof(AobFlareScratch));
+    blk->pos.vx = *(u16*)&coord->workm.t[0];
+    blk->pos.vy = *(u16*)&coord->workm.t[1];
+    vz          = *(u16*)&coord->workm.t[2];
+    *scratch    = blk;
+    blk->pos.vz = vz;
+
+    {
+        SVECTOR* v = &blk->pos;
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(v);
+    }
+    gte_rtps_real();
+    gte_stsxy(&blk->sx);
+    gte_stflg(&blk->flag);
+    if (blk->flag >= 0) {
+        gte_stszotz(&blk->otz);
+        blk->otz -= 0x40;
+        if (blk->otz < 0x10) {
+            blk->otz = 0x10;
+        }
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2B;
+        prim->clut  = getClut(0xE0 + (u32)(Display_State.field_8 & 1) * 0x10, 0x10F);
+        prim->u0    = 0;
+        prim->v0    = 0xA0;
+        prim->u1    = 0x1F;
+        prim->v1    = 0xA0;
+        prim->u2    = 0;
+        prim->v2    = 0xBF;
+        prim->u3    = 0x1F;
+        prim->v3    = 0xBF;
+        blk->half   = 0x5D00 / blk->otz;
+        x           = blk->sx - (u16)blk->half;
+        prim->x2    = x;
+        prim->x0    = x;
+        x           = blk->sx + (u16)blk->half;
+        prim->x3    = x;
+        prim->x1    = x;
+        y           = blk->sy - (u16)blk->half;
+        prim->y1    = y;
+        prim->y0    = y;
+        y           = blk->sy + (u16)blk->half;
+        prim->y3    = y;
+        prim->y2    = y;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AobFlareScratch);
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 /// Re-spawns the observatory's ambient effects for the current camera view,
 /// one per entry whose view mask contains the active view. Skipped entirely

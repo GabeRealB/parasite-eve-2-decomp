@@ -43,4 +43,21 @@ typedef struct AobStreamWork {
 } AobStreamWork;
 STATIC_ASSERT_SIZEOF(AobStreamWork, 0x14);
 
+/// 0x18 block the observatory's lens-flare task takes off `G_SCRATCH_HEAD` for
+/// one frame. `pos` is the model's world position (`GsCOORDINATE2::workm`
+/// translation) loaded into the GTE as V0; `sx`/`sy`, `otz` and `flag` are the
+/// `rtps` results read back with `gte_stsxy`, `gte_stszotz` and `gte_stflg`.
+/// `otz` doubles as the sprite's depth after being pulled 0x40 towards the
+/// camera and clamped to 0x10, and `half` is the flare's half-extent in pixels,
+/// `0x5D00 / otz`, so the quad shrinks with distance.
+typedef struct AobFlareScratch {
+    /* 0x00 */ SVECTOR pos;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     half;
+    /* 0x14 */ u16     sx;
+    /* 0x16 */ u16     sy;
+} AobFlareScratch;
+STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
+
 #endif

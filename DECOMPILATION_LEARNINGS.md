@@ -23247,6 +23247,26 @@ vec      = &block->vec;
 
 `Gp_GetObjPan` is the example.
 
+The alias has to be taken *before* any `asm volatile` that sits between the
+store and the `gte_ldv0` -- typically the `gte_SetTransMatrix` /
+`gte_SetRotMatrix` pair. GCC 2.8.1's scheduler will not hoist the `move`
+across a volatile asm, so writing the alias next to the `gte_ldv0` leaves it
+after the `ctc2` block instead of up with the scratch store:
+
+```c
+*scratch = blk;
+blk->pos.vz = vz;
+{
+    SVECTOR* v = &blk->pos;     /* not down by the gte_ldv0 */
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(v);
+}
+```
+
+`func_acropolis_observatory_8017E424` is the example: with the alias at the
+`gte_ldv0` the only diff is that one `move`, scheduled ~15 instructions late.
+
 ## `if (flag >= 0) { work } else { ret = 0 }` keeps the jump / else block
 
 Inverting that test (`if (flag < 0) ret = 0; else work`) lets GCC put
