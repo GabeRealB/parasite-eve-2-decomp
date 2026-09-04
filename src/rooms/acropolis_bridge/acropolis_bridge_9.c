@@ -2,6 +2,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -83,7 +84,30 @@ s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187C10);
+/// Relights the bridge enemy's model. Borrows a `VECTOR` from the scratchpad
+/// arena, optionally refreshes the TMD's root coordinate first (`arg1 == 1`),
+/// then feeds that part's world translation to `func_800D7A9C` so the object's
+/// colour matrix is rebuilt for its current position, and releases the scratch.
+void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
+{
+    void**  scratch;
+    u8*     head;
+    VECTOR* pos;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    pos      = (VECTOR*)(head - 0x10);
+    *scratch = pos;
+    if (arg1 == 1) {
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+    }
+    ((VECTOR*)(head - 0x10))->vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
+    pos->vy                      = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    pos->vz                      = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    func_800D7A9C((TmdObject*)task->extra, pos, 0, 3);
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 /// Shuts the bridge enemy's animation down. While the work block is still live
 /// it hides the mesh behind the default flag set, tags the enemy's link node
