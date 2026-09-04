@@ -242,6 +242,10 @@ void Room_SaveUi01(Task* task);
 /// half-extent divided by the projected depth and `arg2` packs the primitive's
 /// page/blend bits.
 void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the OTZ is at least
+/// 0x11, queues four gouraud `POLY_G4` wedges around the projected centre.
+/// `arg1` is a signed half-extent; the on-screen radius is `arg1 * 64 / otz`.
+void Room_Draw25(SVECTOR* arg0, s16 arg1);
 /// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
 /// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
 /// height. Left vertices take `arg5`, right vertices take `arg6`.
@@ -302,5 +306,17 @@ typedef struct _RoomQuadScratch {
     /* 0x04 */ SVECTOR v[4];
 } RoomQuadScratch;
 STATIC_ASSERT_SIZEOF(RoomQuadScratch, 0x24);
+
+/// 0xC-byte scratch block `Room_Draw25` takes from `G_SCRATCH_HEAD`. `otz` is
+/// the `gte_stszotz` of `arg0` through `Gfx_ViewWorldMtx`; `sx`/`sy` are that
+/// screen point and `radius` is `arg1 * 64 / otz`, the on-screen half-extent
+/// of the four `POLY_G4` wedges.
+typedef struct _RoomDraw25Scratch {
+    /* 0x00 */ s32 otz;
+    /* 0x04 */ s32 radius;
+    /* 0x08 */ u16 sx;
+    /* 0x0A */ u16 sy;
+} RoomDraw25Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
 
 #endif // ROOMS_ROOM_COMMON_H
