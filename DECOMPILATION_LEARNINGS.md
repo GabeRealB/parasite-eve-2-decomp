@@ -41344,3 +41344,36 @@ to `9 / 37` and fixed that on its own - but it was a detour: with the stores in
 the right order the plain `for` allocates correctly. When a leftover looks like
 a live-range problem in a block that also has independent stores, try the store
 order before reshaping the ranges.
+
+## `local_alloc` orders by `live_length / n_refs` ascending, the inverse of `global_alloc`
+
+`func_acropolis_east_elevator_hall_8017FAAC` projects one world point through
+`GsWSMATRIX` into a 0xC-byte `G_SCRATCH_HEAD` block and links a `TILE_1` into
+the OT. The unpinned C scored 99.6% with `regs=9`, and the whole diff was two
+block-local pointers trading registers: the scratch pointer wanted `$v1` and got
+`$a0`, while the `lui %hi(Gpu_PrimCursor)` base wanted `$a0` and got `$v1`.
+
+`base_N.i.lreg` names both quantities and its `;; Register N in M.` lines give
+the answer:
+
+```
+Register 83 used 6 times across 23 insns in block 0;   ;; Register 83 in 4.   ($a0) scratch pointer
+Register 93 used 3 times across 8 insns in block 0;    ;; Register 93 in 3.   ($v1) %hi base
+```
+
+`global_alloc` sorts by `floor_log2(n_refs) * n_refs / live_length` *descending*
+- more references over a shorter range wins. `local_alloc` sorts the other way:
+`live_length / n_refs` **ascending**, so the shortest-lived quantity per
+reference is allocated first and takes the lowest register in `REG_ALLOC_ORDER`
+that is still free. Here `8/3 = 2.67` beats `23/6 = 3.83`, so the two-instruction
+`%hi` base is served before the scratch pointer that spans the whole block, and
+every `$v0` quantity in the block (`2/2`, `3/2`, `4/2`) is served before both.
+
+Applying the ranking by hand explained the entire allocation, including why the
+scratch pointer could not have won: its birth and death are both fixed by the
+target's own instruction order, and its reference count is fixed by the six
+accesses the target makes, so no rearrangement of the C changes the ratio. That
+is the case the pin exists for - `register AeehMoteScratch* block asm("v1")`
+matched on the next build. Compute the two ratios from `.lreg` before reaching
+for a pin: if the losing range can be shortened or given more references, do
+that instead; if both ends are pinned down by the target, stop and pin.
