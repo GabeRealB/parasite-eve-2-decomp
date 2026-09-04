@@ -1,9 +1,13 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 extern s32 D_acropolis_roof_garden_80183C0C;
+extern s32 D_acropolis_roof_garden_80183D74;
+extern s32 D_acropolis_roof_garden_80184194;
+extern s32 D_acropolis_roof_garden_8018432C;
 
 extern u8 D_801153F4;
 
@@ -68,6 +72,18 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DB74);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DBEC);
+void func_acropolis_roof_garden_8017DBEC(void)
+{
+    GpAreaKey key;
+
+    if ((Game_Session->field_8 == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
+        D_acropolis_roof_garden_8018432C = 1;
+        func_800E8634((s32)&D_acropolis_roof_garden_80183D74, 0, (s32)&D_acropolis_roof_garden_80184194);
+        GameFlag_SetNibble(6, 1);
+        key.field_3 = 1;
+        key.field_2 = 0xC;
+        Gp_SetAreaObjId(&key, 3, 1);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DC74);
