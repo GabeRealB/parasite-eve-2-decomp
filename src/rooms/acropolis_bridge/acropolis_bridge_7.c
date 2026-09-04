@@ -27,7 +27,20 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F358);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F404);
+/// Arms the action prompt for a fresh script step: parks the cursor at the top
+/// left with the highlight mode on and the cursor speed at 0x80, tears down any
+/// prompt still up, then advances the task to its next state.
+void func_acropolis_bridge_8017F404(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    prompt->targetId    = 0x80;
+    prompt->mode        = 1;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    func_acropolis_bridge_8017E60C(0xFFF, 0);
+    task->state++;
+}
 
 /// Spawns the action prompt for the script's current step: closes the previous
 /// prompt, clears the highlight state, then re-spawns the prompt at the
