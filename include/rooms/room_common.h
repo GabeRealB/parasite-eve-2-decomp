@@ -229,6 +229,7 @@ STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 // =============================================================================
 
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+void Room_Script10(Task* task);
 void Room_Script21(Task* task);
 
 /// Fills the "Play Data" item-usage panel's `RoomItemUsage` block from the
