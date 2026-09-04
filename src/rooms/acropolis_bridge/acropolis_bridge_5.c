@@ -2,14 +2,17 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "rooms/acropolis_bridge.h"
 
 extern TaskDesc D_acropolis_bridge_80189234;
+extern TaskDesc D_acropolis_bridge_80189830;
 extern SVECTOR  D_acropolis_bridge_80189240[];
 extern Task*    D_acropolis_bridge_8019179C;
 extern u16      D_acropolis_bridge_801917A4;
@@ -112,7 +115,44 @@ s16 func_acropolis_bridge_8017E024(void)
     return D_acropolis_bridge_80189240[D_acropolis_bridge_801917A4 + 1].vy;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E04C);
+/// Brings the bridge's action-prompt script online: allocates its
+/// `AcropolisBridgePromptWork` block, spawns the prompt task it drives, arms
+/// the script at step 0xFFF, raises the "bridge is up" sprite command of the
+/// camera the player is on, and clears every hotspot's hit flag so the first
+/// hit test starts clean. A failed allocation kills the task instead.
+void func_acropolis_bridge_8017E04C(Task* task)
+{
+    AcropolisBridgePromptWork* work;
+    GameSessionFrom4*          sess;
+    AcropolisBridgeHotspot*    hs;
+    GpSprtRec*                 rec;
+    s32                        view;
+
+    work = (AcropolisBridgePromptWork*)Mem_Calloc(0x10, 0);
+    if (work == NULL) {
+        Task_RequestKill(task, 0);
+        return;
+    }
+    task->spawnArg2 = Task_SpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
+    task->idMap     = (TaskIdMap*)work;
+    work->field_0   = 0x14;
+    work->field_4   = 0xFFF;
+    sess            = (GameSessionFrom4*)&Game_Session->field_4;
+    task->state++;
+    view                                  = Gp_GetViewIndex();
+    rec                                   = Gp_SprtTables[sess->field_3 - 1][Game_Session->field_74 - 1].field_0[sess->field_2 - 1];
+    rec[(u8)view - 1].field_4[35].field_4 = 1;
+    Game_Session->field_66                = 1;
+    Gp_MsgPlayer3F3(0);
+    Display_AcquireRef();
+    Game_Session->field_1  = 1;
+    Game_Session->field_68 = 1;
+    for (hs = D_acropolis_bridge_8018983C; hs->id != -1; hs++) {
+        hs->hit = 0;
+    }
+    D_acropolis_bridge_801917A8 = 0;
+    func_acropolis_bridge_8017E60C(work->field_4, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E1D0);
 

@@ -4,6 +4,7 @@
 #include "main/display.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/acropolis_bridge.h"
 
 #include <psyq/libgs.h>
 
@@ -11,14 +12,6 @@ extern s8 D_8007216C;
 
 extern s32   D_acropolis_bridge_801917A0;
 extern Task* D_acropolis_bridge_80191798;
-
-/// Payload `func_acropolis_bridge_8017DC68` passes as `Gp_DispatchMsg`'s
-/// `arg2` for message 0x7DA.
-typedef struct AcropolisBridgeMsg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} AcropolisBridgeMsg7DA;
 
 /// Per-frame state of the bridge model task: raises bit 0x80 of the object's
 /// flags on camera views 8..10 and clears them elsewhere, then clears the root

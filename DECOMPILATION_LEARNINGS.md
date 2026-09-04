@@ -45907,3 +45907,31 @@ outside its own arm. Whenever the target loads a pointer before the branch and
 the C reaches through it inside both arms, name it. Reusing one local for
 several such pointers in sequence (`cmd` again for the next record) is fine —
 the live ranges do not overlap.
+
+## Mask a call result at the *use*, not at the assignment
+
+Where the byte mask on a function's return value is written decides where GCC
+2.8.1 schedules the `andi`. `func_acropolis_bridge_8017E04C` calls
+`Gp_GetViewIndex()` and then indexes a three-level sprite table with the low
+byte; masking at the assignment leaves exactly one instruction misplaced
+(99.4%, `reorder=1`), because the `andi` becomes part of the call's own value
+computation and the scheduler emits it in the first slot after the `jal`:
+
+```c
+/* andi lands immediately after the jal's delay slot */
+view = Gp_GetViewIndex() & 0xFF;
+rec  = Gp_SprtTables[...][...].field_0[...];
+rec[view - 1].field_4[35].field_4 = 1;
+
+/* andi sinks into the table walk, as the target has */
+view = Gp_GetViewIndex();
+rec  = Gp_SprtTables[...][...].field_0[...];
+rec[(u8)view - 1].field_4[35].field_4 = 1;
+```
+
+With the cast at the use, the `andi` is an ordinary insn of the indexing
+expression and the scheduler is free to slide it in among the `lui`/`addiu` of
+the table base. This is the same shape `Gp_LinkViewSprts` in `gameplay/D4.c`
+already uses (`view = Gp_GetViewIndex();` … `recs[(u8)view - 1]`), so prefer
+that idiom for every view-index lookup. The reverse also holds: if the target
+masks right after the `jal`, fold the `& 0xFF` into the assignment.
