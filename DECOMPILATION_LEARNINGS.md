@@ -43099,3 +43099,33 @@ acropolis_promenade = { text = [0x24, 0x2844], ... }
 The function is then named for its real entry point
 (`func_acropolis_promenade_8017D5E4`), takes no arguments, and reads the global
 the hoisted `lw` was loading.
+
+## `overlay_dup_index find` reporting no copies does not mean there is no twin
+
+**Problem.** `func_acropolis_promenade_8017DB9C` is a 246-instruction streamed
+scene driver. `python3 tools/overlay_dup_index.py find` reported one body, no
+copies, so the vacuum treated it as a fresh 246-instruction match.
+
+**Symptom.** The m2c seed scored 62.7% with `branch=13 insert=19 delete=60` —
+a whole switch's worth of control flow to rebuild by hand.
+
+**Fix.** The dup index compares disassembly *text*, so a twin that differs only
+in its table addresses, its message ids and one constant is not a "copy". Find
+it by grepping `src/` for a distinctive global or field the asm touches rather
+than for the body:
+
+```
+grep -rn "field_1EA\|field_1FA" src/     # -> acropolis_observatory_2.c
+```
+
+`func_acropolis_observatory_8017D9A8` turned out to be the same task with a
+different path table and one fewer state, already matched and already carrying
+the `AobStreamWork` struct, the `GpRec14` 0x3E8 record and the `RoomPlacement`
+0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
+every remaining difference a symbol *name* (`Mc_SaveData+0x22` vs
+`D_8007218A`), i.e. already a match.
+
+Good discriminators to grep for: an unusual struct field offset, a rare callee
+(`Gp_SpawnScript18`, `Task_PollKill`), or a distinctive constant. Do this before
+reshaping an m2c switch by hand — a matched twin gives you the struct, the
+payload types and the statement order for free.
