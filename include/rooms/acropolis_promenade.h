@@ -69,4 +69,21 @@ typedef struct ApmGlowSpriteScratch {
 } ApmGlowSpriteScratch;
 STATIC_ASSERT_SIZEOF(ApmGlowSpriteScratch, 0x14);
 
+/// Per-frame scratch the promenade's twinkle task
+/// (`func_acropolis_promenade_8017E634`) builds at `G_SCRATCH_HEAD`: `pos` is
+/// the task coordinate's translation, projected through `GsWSMATRIX` into
+/// `sxy`, and `otz` is the resulting depth. `dx` / `dy` are the corner offsets
+/// the two quads are drawn at - `0x1680 / otz` on both axes for the upright
+/// star, then `(0x3A80 / otz) * rsin` / `rcos` of the spin angle for the
+/// rotating one, so both shrink with distance. The block is exactly the 0x18
+/// bytes the task reserves off the scratch head.
+typedef struct ApmTwinkleScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     dx;
+    /* 0x08 */ s32     dy;
+    /* 0x0C */ SVECTOR pos;
+    /* 0x14 */ DVECTOR sxy;
+} ApmTwinkleScratch;
+STATIC_ASSERT_SIZEOF(ApmTwinkleScratch, 0x18);
+
 #endif // ROOMS_ACROPOLIS_PROMENADE_H

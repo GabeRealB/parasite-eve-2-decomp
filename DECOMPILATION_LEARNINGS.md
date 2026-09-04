@@ -43299,3 +43299,45 @@ acropolis_promenade = { text = [0x24, 0x2844], rodata = [{ start = "0x1C", unit 
 Ordering matters twice over: the templates are emitted in declaration order, so
 the array declared first has to be the one at the lower address, and the cut
 offset is the address of that first template.
+
+## `&blk->otz` as a typed local does force the `move` that `p = blk` cannot
+
+"A `move` between two registers holding the same pointer is a pin, not
+`TOUCH_REG`" says GCC 2.8.1 copy-propagates a second pointer local away, so a
+lone `move` before a `gte_stszotz` needs a hard `register T* p asm("…")` pin.
+That is true of `p = blk`, where both locals have the same type and value, but
+it is not true of the *member address* spelling:
+
+```c
+blk  = (ApmTwinkleScratch*)(head - 0x18);
+otzp = &blk->otz;               /* own pseudo: emits `move $v1, $s6`   */
+...
+gte_stszotz(otzp);
+```
+
+`func_acropolis_promenade_8017E634` needed exactly this (97.60% -> 98.87%, and
+`branch` 19 -> 0, since the missing `move` shifted every later branch by 4). The
+pin was not an option there: the target recycles `$v1` for a dozen temps after
+the store, and a function-scope pin would have pushed all of them elsewhere.
+
+Reach for `otzp = &blk-><first member>` before the hard pin. It survives
+copy-propagation because it is a different type from `blk`, it costs the same
+one `move`, and unlike a pin it leaves the register free once the operand dies.
+
+## Let the scheduler group the prim constants; write the fields in pairs
+
+When a `POLY_FT4`'s `sb`s come out of the target grouped by value
+(`v0`,`v1` = 0x10 together, then `u0`, `u1`, …), the temptation is to write the
+C in that order. Do not: that order is the *output* of `sched1`, and feeding it
+back in re-times when each literal is materialised.
+
+`func_acropolis_promenade_8017E634` stalled at 98.87% written value-grouped —
+the `li 0x10` was hoisted so early that it took `$v0`, which then forced the
+`0xAAAAAAAB` division magic to be materialised after the two `sb`s instead of
+before the `sll`/`addu` LCG chain. Writing the plain `u0, v0, u1, v1, u2, v2,
+u3, v3` order was 100% with no other change; the scheduler reproduced the
+value-grouped output on its own.
+
+Same rule as "Give sibling prim blocks the same field-store order to fix
+hoisted-constant registers", from the other side: source order is what
+`local_alloc` ranks, so keep it canonical and let the passes permute it.

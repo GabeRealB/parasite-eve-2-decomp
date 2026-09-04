@@ -159,7 +159,118 @@ void func_acropolis_promenade_8017E394(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_4", func_acropolis_promenade_8017E634);
+/// One frame of the promenade's twinkling star: two semi-transparent
+/// `POLY_FT4`s stacked on the same screen point, centred on the task's own
+/// coordinate frame. The frame's translation is projected through `GsWSMATRIX`
+/// into a 0x18-byte `G_SCRATCH_HEAD` block, and both quads are dropped
+/// entirely inside `otz` 0x11.
+///
+/// The lower quad is upright, of half-extent `0x1680 / otz`, and animates
+/// through six 0x10x0x10 cells at v = 0 on tpage 0x2B by stepping `u` with
+/// `work->field_22 % 6`; it is drawn `code |= 3`, so semi-transparent *and*
+/// unshaded. The upper quad is the 0x27x0x27 flare at v = 0x10 with clut
+/// 0x4381, drawn at `0x3A80 / otz` from the centre along the spin angle
+/// `work->field_24` and its quarter-turn (`+ 0x400`), so it rotates a frame at
+/// a time. Its colour is a fresh random grey (0x20..0x7F, equal on all three
+/// channels) every frame, which is what makes the star flicker.
+///
+/// Like the promenade's other glows, the task is one-shot: the work block is
+/// released as soon as both quads have been queued, so the room respawns it
+/// every frame it wants the star.
+void func_acropolis_promenade_8017E634(Task* task)
+{
+    GsCOORDINATE2*     coord;
+    RoomEffWork*       work;
+    void**             scratch;
+    u8*                head;
+    ApmTwinkleScratch* blk;
+    s32*               otzp;
+    POLY_FT4*          prim;
+    s32                grey;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = task->spawnArg2;
+    Gp_UpdateCoord(coord);
+    work->field_22 = task->spawnArg1;
+    scratch        = (void**)G_SCRATCH_HEAD;
+    head           = *scratch;
+    blk            = (ApmTwinkleScratch*)(head - 0x18);
+    otzp           = &blk->otz;
+    blk->pos.vx    = coord->workm.t[0];
+    blk->pos.vy    = coord->workm.t[1];
+    *scratch       = blk;
+    blk->pos.vz    = coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->pos);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&blk->sxy);
+    gte_stszotz(otzp);
+    if (blk->otz >= 0x11) {
+        prim->tpage = 0x2B;
+        prim->clut  = 0x4380;
+        prim->code |= 3;
+        prim->u0    = ((s16)work->field_22 % 6) * 16;
+        prim->v0    = 0;
+        prim->u1    = ((s16)work->field_22 % 6) * 16 + 0xF;
+        prim->v1    = 0;
+        prim->u2    = ((s16)work->field_22 % 6) * 16;
+        prim->v2    = 0xF;
+        prim->u3    = ((s16)work->field_22 % 6) * 16 + 0xF;
+        prim->v3    = 0xF;
+        blk->dx     = 0x1680 / blk->otz;
+        blk->dy     = 0x1680 / blk->otz;
+        prim->x0 = prim->x2 = blk->sxy.vx - blk->dx;
+        prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
+        prim->y0 = prim->y1 = blk->sxy.vy - blk->dy;
+        prim->y2 = prim->y3 = blk->sxy.vy + blk->dy;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        prim->clut  = 0x4381;
+        prim->tpage = 0x2B;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        grey        = ((u32)Gp_LcgState >> 16) % 96 + 0x20;
+        prim->u0    = 0;
+        prim->v0    = 0x10;
+        prim->u1    = 0x27;
+        prim->v1    = 0x10;
+        prim->u2    = 0;
+        prim->v2    = 0x37;
+        prim->u3    = 0x27;
+        prim->v3    = 0x37;
+        prim->code |= 2;
+        prim->r0    = grey;
+        prim->g0    = grey;
+        prim->b0    = grey;
+
+        work->field_24 = Display_State.field_8 + work->field_22;
+        blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24)) >> 12;
+        blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24)) >> 12;
+        prim->x0       = blk->sxy.vx + blk->dx;
+        prim->x3       = blk->sxy.vx - blk->dx;
+        prim->y0       = blk->sxy.vy - blk->dy;
+        prim->y3       = blk->sxy.vy + blk->dy;
+        blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24 + 0x400)) >> 12;
+        blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24 + 0x400)) >> 12;
+        prim->x1       = blk->sxy.vx + blk->dx;
+        prim->x2       = blk->sxy.vx - blk->dx;
+        prim->y1       = blk->sxy.vy - blk->dy;
+        prim->y2       = blk->sxy.vy + blk->dy;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    Gp_ReleaseState1CMem(work, task);
+}
 
 /// Draws one frame of the promenade's ground glow: a semi-transparent textured
 /// quad lying flat under the task's coordinate frame. The four corner signs in
