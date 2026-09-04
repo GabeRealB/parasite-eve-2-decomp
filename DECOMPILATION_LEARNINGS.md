@@ -41705,3 +41705,39 @@ pulls the address computation up to the index load, an index local pushes it
 down to first use. Pick whichever side of the operand chain the target puts it
 on. `func_acropolis_sanctuary_8017E134` is the worked example (89% -> 100%,
 `regs=22 reorder=1 insert=6 delete=6` -> all zero, from this single change).
+
+## A global's base address is only kept in `$sN` across a `jal` if a local pointer names it
+
+Two loops over the same global struct with a call between them, written as
+direct global references, make GCC 2.8.1 materialise the `lui`/`addiu` pair
+*twice* — once per loop — because each loop's use is its own pseudo and neither
+crosses the call:
+
+```c
+for (i = 0; i < 4; i++) { D_80183568.corners[i].vx = D_801822EC.corners[i].vx; ... }
+if (GameFlag_GetNibble(6) == 0) { ... }
+for (i = 0; i < 8; i++) { D_80183568.corners[i].vx += shift.vx; }   /* second lui/addiu */
+```
+
+The target had one `addiu s0, v0, %lo(D_80183568)` in the prologue, `sw s0` /
+`lw s0` around it, and no re-materialisation after the call. Binding the global
+to a named local pointer at the top of the function is what produces that: the
+address becomes a single pseudo live across the `jal`, so the allocator is
+forced to give it a callee-saved register.
+
+```c
+AcsBlockerSet* dst = &D_acropolis_sanctuary_80183568;
+AcsBlockerSet* src = &D_acropolis_sanctuary_801822EC;
+```
+
+Declare them in the order the target materialises the addresses. The symptom is
+distinctive and easy to misread as register colouring: every instruction lines
+up except that the target uses `$s0` where you use a scratch register, plus one
+extra `lui`/`addiu` pair after the call and a shifted `ra`/`s0` save slot
+(`stack=18 regs=38` on an otherwise byte-identical body).
+`func_acropolis_sanctuary_8017DD78` is the worked example (92.7% -> 100% from
+this single change).
+
+This is the intra-function twin of "Materialize long-lived pointers before
+early-return guards": there the fix is *where* the pointer is assigned, here it
+is *whether* there is a pointer variable at all.

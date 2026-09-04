@@ -76,4 +76,55 @@ typedef struct AcsTile {
 } AcsTile;
 STATIC_ASSERT_SIZEOF(AcsTile, 0xE);
 
+/// One quad of the sanctuary's blocker cage, from the four-entry table at
+/// `D_acropolis_sanctuary_801822AC` (the template) and its live copy hanging
+/// off `AcsBlockerSet::edges`. The quad is given as two index pairs into
+/// `AcsBlockerSet::corners` -- `bottom0` / `bottom1` are the low corners of the
+/// two posts it spans and `top0` / `top1` the high ones -- plus the index of
+/// its facing direction in `AcsBlockerSet::normals`.
+/// `func_acropolis_sanctuary_8017DD78` sets `field_A` to 1 on every quad it
+/// copies, which is what arms the cage.
+typedef struct AcsBlockerEdge {
+    /* 0x0 */ s16 bottom0;
+    /* 0x2 */ s16 bottom1;
+    /* 0x4 */ s16 top0;
+    /* 0x6 */ s16 top1;
+    /* 0x8 */ s16 normal;
+    /* 0xA */ s16 field_A;
+} AcsBlockerEdge;
+STATIC_ASSERT_SIZEOF(AcsBlockerEdge, 0xC);
+
+/// The sanctuary's blocker cage: four unit-length facing directions, eight
+/// corner points (four posts, low corner then high corner) and the four quads
+/// that join them. The overlay holds two of these -- the template at
+/// `D_acropolis_sanctuary_801822EC` and the live set at
+/// `D_acropolis_sanctuary_80183568`, whose arrays are longer because the live
+/// set is also used for the room's other geometry.
+/// `func_acropolis_sanctuary_8017DD78` copies the template's first four
+/// normals, eight corners and four quads into the live set.
+typedef struct AcsBlockerSet {
+    /* 0x00 */ s32             field_0;
+    /* 0x04 */ SVECTOR*        normals;
+    /* 0x08 */ SVECTOR*        corners;
+    /* 0x0C */ AcsBlockerEdge* edges;
+    /* 0x10 */ s16**           field_10;
+    /* 0x14 */ s32             field_14;
+    /* 0x18 */ s32             field_18;
+    /* 0x1C */ s16             field_1C;
+    /* 0x1E */ s16             field_1E;
+    /* 0x20 */ s16             field_20;
+    /* 0x22 */ s16             field_22;
+} AcsBlockerSet;
+STATIC_ASSERT_SIZEOF(AcsBlockerSet, 0x24);
+
+/// The offset `func_acropolis_sanctuary_8017DD78` adds to every corner of the
+/// blocker cage once it has been copied. Both variants are positive, and the
+/// components are read back unsigned because only the low 16 bits of the sum
+/// reach the `s16` corner they are added to.
+typedef struct AcsBlockerShift {
+    /* 0x0 */ u16 vx;
+    /* 0x2 */ u16 vy;
+    /* 0x4 */ u16 vz;
+} AcsBlockerShift;
+
 #endif

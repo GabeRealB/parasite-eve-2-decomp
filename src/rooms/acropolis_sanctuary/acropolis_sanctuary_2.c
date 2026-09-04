@@ -34,12 +34,14 @@ extern GpRec14       D_acropolis_sanctuary_80180A0C;
 extern s32           D_acropolis_sanctuary_80180AE8;
 extern u8            D_acropolis_sanctuary_80181814[];
 extern TaskDesc      D_acropolis_sanctuary_80182240;
+extern AcsBlockerSet D_acropolis_sanctuary_801822EC;
 extern GpMsgEntry    D_acropolis_sanctuary_80182310[];
 extern AcsTile       D_acropolis_sanctuary_80182320[];
 extern AcsQuad       D_acropolis_sanctuary_80182710[];
 extern s16           D_acropolis_sanctuary_80182750[];
 extern s32           D_acropolis_sanctuary_80182770;
 extern SVECTOR       D_acropolis_sanctuary_80182774[];
+extern AcsBlockerSet D_acropolis_sanctuary_80183568;
 extern Task*         D_acropolis_sanctuary_80186C90;
 
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
@@ -242,7 +244,49 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DD78);
+/// Arms the sanctuary's blocker cage: copies the first four normals, eight
+/// corners and four quads of the template at `D_acropolis_sanctuary_801822EC`
+/// into the live set at `D_acropolis_sanctuary_80183568`, marking every copied
+/// quad live, then slides all eight corners to where the cage belongs. Nibble 6
+/// is the sanctuary cutscene flag: before the scene the cage sits across the
+/// doorway, afterwards it is pushed 3000 units aside and out of the way.
+void func_acropolis_sanctuary_8017DD78(void)
+{
+    AcsBlockerSet*  dst = &D_acropolis_sanctuary_80183568;
+    AcsBlockerSet*  src = &D_acropolis_sanctuary_801822EC;
+    AcsBlockerShift shift;
+    s32             i;
+
+    for (i = 0; i < 4; i++) {
+        dst->normals[i].vx           = src->normals[i].vx;
+        dst->normals[i].vy           = src->normals[i].vy;
+        dst->normals[i].vz           = src->normals[i].vz;
+        dst->corners[i * 2].vx       = src->corners[i * 2].vx;
+        dst->corners[i * 2].vy       = src->corners[i * 2].vy;
+        dst->corners[i * 2].vz       = src->corners[i * 2].vz;
+        dst->corners[(i * 2) + 1].vx = src->corners[(i * 2) + 1].vx;
+        dst->corners[(i * 2) + 1].vy = src->corners[(i * 2) + 1].vy;
+        dst->corners[(i * 2) + 1].vz = src->corners[(i * 2) + 1].vz;
+        dst->edges[i]                = src->edges[i];
+        dst->edges[i].field_A        = 1;
+    }
+
+    if (GameFlag_GetNibble(6) == 0) {
+        shift.vx = 200;
+        shift.vy = 0;
+        shift.vz = 380;
+    } else {
+        shift.vx = 3000;
+        shift.vy = 0;
+        shift.vz = 0;
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->corners[i].vx += shift.vx;
+        dst->corners[i].vy += shift.vy;
+        dst->corners[i].vz += shift.vz;
+    }
+}
 
 /// Toggles a pair of sprite commands for view `arg1` of the current room:
 /// `arg0` zero draws the second command and skips the third, non-zero does the
