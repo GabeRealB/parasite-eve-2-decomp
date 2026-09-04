@@ -42490,3 +42490,71 @@ positional — same statements, flag assignment moved past the nested `if`.
 Note this is the mirror of the three-way constant select above: there the
 default has to be written *before* the nested test, here the flag has to be
 written *after* it.
+
+## LICM hoists a loop-invariant constant on `span * ~17 >= loop insn count`
+
+GCC 2.8.1's `move_movables` decides each loop-invariant constant on its own,
+and the comparison is between the constant's *span* and the size of the loop.
+Measuring both on the **cse1 output** (`<file>.i.cse`, the RTL loop.c actually
+sees) — span = LUID distance from the `(set reg (const_int K))` to the last
+insn mentioning that pseudo, count = `insn`/`jump_insn`/`call_insn` between
+`NOTE_INSN_LOOP_BEG` and `NOTE_INSN_LOOP_END` — a `0xFF000000` mask behaved
+like this:
+
+| span | loop insns | hoisted? |
+|---|---|---|
+| 3 | 68 | no |
+| 5 | 70 | yes |
+| 5 | 86 | no |
+| 6 | 70 | yes |
+| 6 | 104 | no |
+
+so the cut is around `span * 17 >= insn_count`. A constant materialised
+immediately before a single use has span 1 and is never hoisted, which is the
+already-documented "declare it as a local" case; this is the same rule with the
+span left free.
+
+The reason to care is register allocation, not the `lui` itself. A hoisted
+constant becomes a *global* allocno that conflicts with everything in the loop,
+and in `global.c`'s priority order it outranks a `Task*` parameter (three refs,
+live for the whole function) — so the parameter loses the last callee-saved
+register and reload spills it to its incoming argument slot:
+
+```
+sw   $a0, 0x40($sp)     # ours: the parameter spilled
+lui  $s5, 0xFF00        # the mask won $s5
+...
+lw   $a1, 0x40($sp)
+```
+```
+move $fp, $a0           # target: parameter in $fp
+...
+lui  $a1, 0xFF00        # mask rebuilt in the loop, once, ahead of both `and`s
+```
+
+`addPrim` puts its two masks on opposite sides of that cut in the same loop:
+`0xFFFFFF` gets **three** uses, because `setaddr(p, getaddr(ot))` masks the
+bitfield read and then masks the value again (a redundant `and` that only
+`combine` removes), while `0xFF000000` gets two, six insns apart. So the
+low mask is hoisted and the high one is a coin flip on loop size.
+
+Two levers, both weak:
+
+- **Shorten the span.** Writing the second `setaddr` by hand as
+  `*ot = (*ot & 0xFF000000) | ((u32)p & 0xFFFFFF);` evaluates the mask before
+  the pointer and takes the span 6 → 5. Five is the floor: the `ior`, the
+  store to `p->tag` and the reload of `*ot` all have to sit between the two
+  uses, and pulling the second `*ot` read above the store just lets CSE merge
+  the two loads into one.
+- **Grow the loop**, which is not something a decompilation gets to choose.
+
+Things that do *not* move it: naming the mask as a local (before the loop or
+inside it — an explicit local is not const-equivalent and ranks *higher*),
+`do`/`while` vs `for`, reordering the other statements, or splitting the two
+`and`s into separate variables (cse1 merges equal `const_int`s in a basic
+block unconditionally; there is no `volatile` or barrier that stops it).
+
+`func_acropolis_west_elevator_hall_8017FE18` is the unsolved example: a
+0x52-iteration `SetDrawMove` loop whose 70-insn body sits just under the cut,
+so the mask is hoisted, the `Task*` is spilled, and every callee-saved register
+from `$s5` up shifts by one. It stalls at 85% with the correct shape.
