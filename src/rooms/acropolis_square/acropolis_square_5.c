@@ -134,7 +134,97 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// first siren blast, 4 repeats it every 0x79 frames until the player answers,
 /// and 5 waits for the scripted phase to advance before handing the scene off
 /// to the slot-5 task and killing itself.
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_5", func_acropolis_square_80181AEC);
+void func_acropolis_square_80181AEC(Task* task)
+{
+    s32 pan;
+    s32 pan2;
+    s32 pan3;
+    s32 count;
+    s32 count2;
+    u32 state;
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            D_acropolis_square_8018382C = 1;
+            D_acropolis_square_80188898 = 0;
+            func_800E8634((s32)&D_acropolis_square_80183834, 0, (s32)&D_acropolis_square_801838DC);
+            goto advance;
+
+        case 3:
+            D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
+            D_acropolis_square_801888CC.coord.t[1] = -0xF96;
+            D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
+            D_acropolis_square_801888CC.sub        = &Gfx_ViewCoord;
+            Gp_UpdateCoord(&D_acropolis_square_801888CC);
+            pan = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
+            SndEvt_EnqueueType6(
+                0x51010009, (s8)pan, (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
+            goto advance;
+
+        case 4:
+            count                       = D_acropolis_square_80188898 + 1;
+            D_acropolis_square_80188898 = count;
+            if (count >= 0x79) {
+                D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
+                D_acropolis_square_801888CC.coord.t[1] = -0xF96;
+                D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
+                D_acropolis_square_80188898            = 0;
+                D_acropolis_square_801888CC.sub        = &Gfx_ViewCoord;
+                Gp_UpdateCoord(&D_acropolis_square_801888CC);
+                pan2 = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
+                SndEvt_EnqueueType6(0x51010009, (s8)pan2,
+                                    (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
+            }
+            if (Game_Session->field_1 != 0) {
+                return;
+            }
+            Gp_MsgPlayerWeapon(1);
+            /* fallthrough */
+
+        case 1:
+        case 2:
+        advance:
+            task->state += 1;
+            return;
+
+        case 5:
+            if ((u32)(D_8007216C - 5) >= 3U) {
+                if (D_8007216C == 9) {
+                    goto checkArmed;
+                }
+                goto handOff;
+            }
+        checkArmed:
+            if (D_acropolis_square_8018382C == 0) {
+            handOff:
+                if (D_acropolis_square_8018382C != 0) {
+                    GameFlag_SetNibble(3, 0);
+                    GameFlag_SetNibble(0x155, 2);
+                    D_acropolis_square_8018382C = 0;
+                }
+                Gp_DispatchMsg((Task*)Game_GetPtrSlot(5), 0xC1F, 0, 0);
+                SndEvt_EnqueueType7(0x51010009, 1);
+                Task_Kill(task);
+                return;
+            }
+            count2                      = D_acropolis_square_80188898 + 1;
+            D_acropolis_square_80188898 = count2;
+            if (count2 >= 0x79) {
+                D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
+                D_acropolis_square_801888CC.coord.t[1] = -0xF96;
+                D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
+                D_acropolis_square_80188898            = 0;
+                D_acropolis_square_801888CC.sub        = &Gfx_ViewCoord;
+                Gp_UpdateCoord(&D_acropolis_square_801888CC);
+                pan3 = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
+                SndEvt_EnqueueType6(0x51010009, (s8)pan3,
+                                    (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
+            }
+            break;
+    }
+}
 /// Scrolling backdrop task: three 256x240 sprite strips (the last one half
 /// width) tiled across the screen from `D_acropolis_square_801888A0`, each with
 /// its own texture page. States 0-3 slide the strip in and hold it for a while,
