@@ -7,8 +7,9 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80114D08;
-extern s32 D_acropolis_bridge_801917A8;
+extern s16            D_80114D08;
+extern s32            D_acropolis_bridge_801917A8;
+extern TaskFuncTable9 D_acropolis_bridge_8017D614;
 
 void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
 void func_acropolis_bridge_8017ED38(Task* task);
@@ -104,4 +105,13 @@ void func_acropolis_bridge_8017F658(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F6D4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F788);
+/// Nine-state dispatcher of this room's script task: copies the handler table
+/// out of the overlay's rodata onto the stack and tails into the entry named by
+/// `Task::state`.
+void func_acropolis_bridge_8017F788(Task* task)
+{
+    TaskFuncTable9 states;
+
+    states = D_acropolis_bridge_8017D614;
+    states.funcs[task->state](task);
+}

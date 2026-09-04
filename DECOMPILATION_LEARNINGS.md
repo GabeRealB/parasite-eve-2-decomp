@@ -45795,3 +45795,38 @@ Writing `arg0->state = arg0->state + 1` in **both** arms of the `if` instead of
 once after the join raised `arg0` to 5 refs, which flips
 `floor_log2(refs) * refs / live_length` in its favour; `jump2` then merged the
 duplicated tails back into the target's single copy.
+
+## Rodata link order says whether a stack-copied table is a global or a local initializer
+
+A state dispatcher that block-copies a handler table onto the stack has two C
+shapes that produce byte-identical code:
+
+```c
+TaskFunc states[9] = { f0, f1, ... };   /* local initializer: GCC parks the
+                                           table in this unit's .rodata */
+TaskFuncTable9 states = D_overlay_8017D614;  /* copy from a named global that
+                                                some unit already defines */
+```
+
+The assembly cannot tell them apart, but the *address* of the table can.
+`func_acropolis_bridge_8017F788` lives in text unit `acropolis_bridge_7`, and
+its table sits at rodata offset `0x54` — ahead of the jump table at `0x7C`
+owned by `acropolis_bridge_6`, an *earlier* text unit. Rodata is emitted in
+object order, so a table belonging to `_7` cannot precede one belonging to
+`_6`: the table is a const global defined back in the first unit, and the
+function only copies it. The local-initializer version scores 99.7% with the
+only diff being `%hi(.rodata)` against `%hi(D_acropolis_bridge_8017D614)` —
+that lone symbol-name diff is the tell.
+
+Taking the initializer at face value costs a manifest change that then cannot
+be made to work. Cutting the leading rodata at `0x54` for `acropolis_bridge_7`
+does hand the block to the right unit, but the compiler emits only the 36 bytes
+of the table, while the target has 4 bytes of padding at `0x78` before the next
+unit's `.align 3` jump table. That pad came from the assembler *inside a single
+object*; across two objects the overlay linker scripts use `SUBALIGN(4)`, which
+forces the next input section down to alignment 4, and the image ends up 4
+bytes short. A gap between two rodata subsegments is therefore a sign the split
+is wrong, not something to pad around.
+
+The `TaskFuncTableN` family in `include/main/task.h` exists for the global
+shape; add the missing arity there rather than declaring a bare array.
