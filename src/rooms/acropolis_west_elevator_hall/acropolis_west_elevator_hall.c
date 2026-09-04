@@ -20,7 +20,12 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_e
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", func_acropolis_west_elevator_hall_8017F418);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", func_acropolis_west_elevator_hall_8017F470);
+s32 func_acropolis_west_elevator_hall_8017F470(void)
+{
+    D_acropolis_west_elevator_hall_80186AE4[0]->spawnArg1 = 1;
+    D_acropolis_west_elevator_hall_80186AE4[1]->spawnArg1 = 1;
+    return 0;
+}
 
 s32 func_acropolis_west_elevator_hall_8017F498(void)
 {
