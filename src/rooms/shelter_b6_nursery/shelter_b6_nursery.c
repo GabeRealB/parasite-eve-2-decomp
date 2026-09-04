@@ -4,8 +4,9 @@
 #include "main/pad.h"
 #include "main/task.h"
 #include "main/ui.h"
+#include "rooms/room_common.h"
 #include <psyq/libgte.h>
-extern void         Room_SaveUi01(Task* task);
+
 extern UiList       D_shelter_b6_nursery_80184F30;
 extern UiObjectDesc D_shelter_b6_nursery_80184F54;
 

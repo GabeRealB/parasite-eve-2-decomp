@@ -12,8 +12,7 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
-
-extern void Room_SaveUi01(Task* task);
+#include "rooms/room_common.h"
 
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_800611E4;
