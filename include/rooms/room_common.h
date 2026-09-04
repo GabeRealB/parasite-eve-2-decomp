@@ -83,11 +83,12 @@ typedef struct RoomEffWork {
     /* 0x2A */ u16     field_2A;
 } RoomEffWork;
 
-/// Position + Euler rotation handed to `Room_Util18`, which copies it onto a
-/// task's `TmdObject` coordinate frame (`Task::extra->field_8`): the three
-/// longs become the coordinate's translation and the three shorts are fed to
-/// `RotMatrixZYX`. Room overlays keep one of these per placed object in their
-/// own `.data`.
+/// Position + Euler rotation handed to `Room_Util08` / `Room_Util18`, which
+/// copy it onto a task's `TmdObject` coordinate frame (`Task::extra->field_8`):
+/// the three longs become the coordinate's translation and the three shorts
+/// are the Euler angles (`Room_Util08` applies Y then X then Z via
+/// `Gfx_RotMatrix*`; `Room_Util18` feeds them to `RotMatrixZYX`). Room overlays
+/// keep one of these per placed object in their own `.data`.
 typedef struct RoomPlacement {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
@@ -228,6 +229,7 @@ STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 // Functions — shared room library (src/rooms/lib)
 // =============================================================================
 
+void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_Script10(Task* task);
 void Room_Script11(Task* task);
