@@ -10,6 +10,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "rooms/acropolis_bridge.h"
+#include "rooms/room_common.h"
 
 extern TaskDesc D_acropolis_bridge_80189234;
 extern TaskDesc D_acropolis_bridge_80189830;
@@ -23,6 +24,8 @@ extern s32 D_acropolis_bridge_80190B8C;
 extern s32 D_acropolis_bridge_80190BA4;
 
 void func_acropolis_bridge_8017F2D0(s32 arg0);
+void func_acropolis_bridge_8017E81C(void);
+s32  func_acropolis_bridge_8017F6D4(AcropolisBridgeHotspot* table, s16 x, s16 y);
 
 void func_acropolis_bridge_8017DD9C(Task* arg0)
 {
@@ -158,7 +161,52 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E3A0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E4FC);
+/// Idles the bridge prompt for twenty frames per pass: the first ten frames
+/// keep the prompt task ticking through `func_acropolis_bridge_8017E81C`, the
+/// next ten hold it closed, and the twentieth counts one completed pass in
+/// `field_8`. Either way the cursor is re-hit-tested against the room's
+/// hotspot table so `mode` reports whether it sits over one. After three
+/// passes the script rewinds to state 2 for another attempt, and once three
+/// attempts have been spent it gives up into state 8.
+void func_acropolis_bridge_8017E4FC(Task* task)
+{
+    RoomActionPrompt*          prompt = &D_80114D28;
+    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    s16                        tick;
+    u8                         retry;
+
+    Gp_GetViewIndex();
+    tick = work->field_A;
+    if (tick < 0xA) {
+        func_acropolis_bridge_8017E81C();
+        work->field_A++;
+    } else if (tick < 0x14) {
+        func_acropolis_bridge_8017E60C(0xFFF, 0);
+        work->field_A++;
+    } else {
+        work->field_A = 0;
+        work->field_8++;
+    }
+
+    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+    } else {
+        prompt->mode = 1;
+    }
+
+    if (work->field_8 == 3) {
+        task->state      = 2;
+        work->field_6    = 0;
+        work->field_4    = 0xFFF;
+        retry            = work->retryCount + 1;
+        work->retryCount = retry;
+        if (retry >= 3) {
+            task->state                 = 8;
+            D_acropolis_bridge_801917A8 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E60C);
 

@@ -10,7 +10,8 @@
 typedef struct AcropolisBridgePromptWork {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s16  field_4;
-    /* 0x06 */ byte pad_6[0x2];
+    /* 0x06 */ s8   field_6;
+    /* 0x07 */ u8   retryCount;
     /* 0x08 */ s16  field_8;
     /* 0x0A */ s16  field_A;
     /* 0x0C */ byte pad_C[0x2];
