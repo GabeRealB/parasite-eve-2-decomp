@@ -43560,23 +43560,3 @@ Use `grep -a`, or the Grep tool (ripgrep reads the file fine and reports all
 151 hits). `rsin` and `rcos` are declared at `include/psyq/libgte.h:440` as
 `int rsin(int)` — note the `int` return, so `>> 4` on the result is an `sra`
 and a target `srl` needs `(u32)rsin(x) >> 4`.
-## `include/psyq/libgte.h` is invisible to grep without `-a`
-
-The header is `C source, Non-ISO extended-ASCII text`, so GNU grep classifies
-it as binary and drops it silently - from a recursive search *and* from a
-search that names the file directly. Naming the file does not help; only `-a`
-does.
-
-```
-$ grep -rln SVECTOR include/psyq/     # libgpu.h libhmd.h libgs.h - no libgte.h
-$ grep -n rsin include/psyq/libgte.h  # nothing
-$ grep -an rsin include/psyq/libgte.h
-440:extern int rsin(int a);
-```
-
-So `SVECTOR`, `MATRIX`, `rsin`, `rcos` and every other GTE declaration look
-undeclared: a recursive grep returns only the files that *use* them, or only
-doc comments that mention them. Do not conclude a prototype is missing and add
-an `extern` for it - check with `grep -a` first. `rsin` / `rcos` return `int`,
-so `>> 4` on the result is an arithmetic shift; a target `srl` needs
-`(u32)rsin(x) >> 4`.
