@@ -245,6 +245,9 @@ STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
 void Room_Util01(u8* str, s32 decimals);
+/// Resets both action-prompt slots before a script's first cursor scan and
+/// steps the caller on one state.
+void Room_Util04(Task* task);
 void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_Util19(Task* task, s32 arg1, s32 arg2);

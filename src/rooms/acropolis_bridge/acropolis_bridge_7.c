@@ -11,6 +11,7 @@ extern s16 D_80114D08;
 extern s32 D_acropolis_bridge_801917A8;
 
 void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
+void func_acropolis_bridge_8017ED38(Task* task);
 
 /// Work block this room's script tasks keep at `Task::idMap`. `field_4` is the
 /// script step handed to `func_acropolis_bridge_8017E60C` and `promptKind` the
@@ -23,7 +24,14 @@ typedef struct AcropolisBridgePromptWork {
     /* 0x0F */ s8   promptBusy;
 } AcropolisBridgePromptWork;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F280);
+/// Two-state dispatcher of this room's prompt script task: builds the handler
+/// table on the stack and tails into the entry named by `Task::state`.
+void func_acropolis_bridge_8017F280(Task* task)
+{
+    TaskFunc states[2] = { Room_Util04, func_acropolis_bridge_8017ED38 };
+
+    states[task->state](task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F2D0);
 
