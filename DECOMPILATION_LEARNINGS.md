@@ -43129,3 +43129,34 @@ Good discriminators to grep for: an unusual struct field offset, a rare callee
 (`Gp_SpawnScript18`, `Task_PollKill`), or a distinctive constant. Do this before
 reshaping an m2c switch by hand — a matched twin gives you the struct, the
 payload types and the statement order for free.
+
+## A `D_<addr>` label in the middle of an array is a relocation artifact, not a second array
+
+splat/spimdisasm creates a data label at every address some relocation resolves
+to, so an array that a function reaches at four different constant offsets comes
+back as four separate `dlabel`s. Reading the target asm literally then suggests
+four source arrays, which is wrong and pushes you toward adding symbols to
+`configs/USA/sym/…` that the original never had.
+
+`func_acropolis_promenade_8017E03C` walks one twelve-entry `SVECTOR` array at
+`0x80181B14` alongside a twelve-entry `u16` mask table at `0x80181B78`, but the
+disassembly names `D_acropolis_promenade_80181B34` (`+0x20`),
+`_80181B44` (`+0x30`), `_80181B6C` (`+0x58`) and `_80181B8E` (`+0x16` into the
+mask table). Declaring the two arrays once and indexing them,
+
+```c
+if (D_acropolis_promenade_80181B78[i + 4] & mask) {
+    Gp_SpawnEff(0x60062, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
+}
+```
+
+emits `%hi(D_…_80181B14)` / `%lo(D_…_80181B14+0x20)` where the target emits
+`%hi(D_…_80181B34)` / `%lo(D_…_80181B34)`. The linked words are identical — only
+the symbol the addend hangs off differs — but `dist.py` counts each such pair,
+so the scratch score stops at 99.81% with `regs=8` and everything else zero.
+
+That shape (`regs` non-zero, every differing line a `%hi`/`%lo` symbol name, the
+addends adding up to the same address) is a match. Confirm with the real build
+rather than chasing the score: `./tools/build-and-verify.sh` printed
+`✅ BUILD SUCCEEDED` on the 99.81% object. This is the array-indexing case of
+the `Gfx_ViewWorldMtx` versus `Gfx_ViewCoord.workm` entry above.

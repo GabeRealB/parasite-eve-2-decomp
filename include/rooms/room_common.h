@@ -232,6 +232,11 @@ STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_SaveUi01(Task* task);
+/// Handwritten GTE routine. Projects the world-space point `arg0` through
+/// `Gfx_ViewWorldMtx` and emits screen-aligned quads there; `arg1` is a signed
+/// half-extent divided by the projected depth and `arg2` packs the primitive's
+/// page/blend bits.
+void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
 void Room_Script10(Task* task);
 void Room_Script11(Task* task);
 void Room_Script21(Task* task);
