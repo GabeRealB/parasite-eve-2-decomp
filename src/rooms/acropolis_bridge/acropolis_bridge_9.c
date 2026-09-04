@@ -8,6 +8,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 #include "rooms/acropolis_bridge.h"
 
 extern s16                   D_acropolis_bridge_801915E4[][6];
@@ -19,37 +20,6 @@ extern s32                   Gp_LcgState;
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_acropolis_bridge_8018581C(Task* task);
-
-/// Work block the bridge enemy's task keeps at `Task::idMap`. `field_4` is the
-/// live flag every state handler in this unit gates on, and `field_12E` /
-/// `field_196` are the two flag halfwords whose bit 15 the handlers toggle to
-/// enable one behaviour and disable the other. `field_1F0` is the `GpEffArg`
-/// the death effect is spawned with and `field_290` the death-sequence frame
-/// counter.
-typedef struct AcropolisBridgeEnemyWork {
-    /* 0x000 */ s16        field_0;
-    /* 0x002 */ byte       pad_2[0x2];
-    /* 0x004 */ s16        field_4;
-    /* 0x006 */ byte       pad_6[0x6];
-    /* 0x00C */ GpAnimCtx  anim;
-    /* 0x020 */ GpAnimSlot slots[4];
-    /* 0x0C0 */ byte       pad_C0[0x40];
-    /* 0x100 */ s16        field_100;
-    /* 0x102 */ s16        field_102;
-    /* 0x104 */ s16        field_104;
-    /* 0x106 */ u16        field_106;
-    /* 0x108 */ s16        field_108;
-    /* 0x10A */ byte       pad_10A[0x2];
-    /* 0x10C */ s16        field_10C;
-    /* 0x10E */ byte       pad_10E[0x20];
-    /* 0x12E */ u16        field_12E;
-    /* 0x130 */ byte       pad_130[0x66];
-    /* 0x196 */ u16        field_196;
-    /* 0x198 */ byte       pad_198[0x58];
-    /* 0x1F0 */ GpEffArg   field_1F0;
-    /* 0x1F8 */ byte       pad_1F8[0x98];
-    /* 0x290 */ u16        field_290;
-} AcropolisBridgeEnemyWork;
 
 /// One entry of the patrol node table the walker task steers by. The three
 /// packed coordinates are copied straight into the scratch `SVECTOR3` the
@@ -83,16 +53,71 @@ typedef struct AcropolisBridgeNavRoute {
 /// Work block of the walker task this unit's second half drives (the task
 /// `func_acropolis_bridge_8018532C` ticks). `node` is the patrol node it is
 /// currently heading for and `field_62` / `field_64` the movement deltas that
-/// are cleared whenever it arrives.
+/// are cleared whenever it arrives. `scaleMtx` is the model matrix the spawn
+/// scale-up in `func_acropolis_bridge_801861A0` rebuilds every frame from
+/// `scale`, which ramps to 0x1000, and `state` is the step
+/// `func_acropolis_bridge_8018532C` dispatches on.
 typedef struct AcropolisBridgeWalkerWork {
     /* 0x00 */ AcropolisBridgeNavData*  nav;
     /* 0x04 */ AcropolisBridgeNavRoute* route;
-    /* 0x08 */ byte                     pad_8[0x5A];
+    /* 0x08 */ byte                     pad_8[0x2C];
+    /* 0x34 */ MATRIX                   scaleMtx;
+    /* 0x54 */ s16                      scale;
+    /* 0x56 */ byte                     pad_56[0x4];
+    /* 0x5A */ s16                      field_5A;
+    /* 0x5C */ s16                      field_5C;
+    /* 0x5E */ u16                      field_5E;
+    /* 0x60 */ s16                      field_60;
     /* 0x62 */ s16                      field_62;
     /* 0x64 */ s16                      field_64;
-    /* 0x66 */ byte                     pad_66[0x4];
+    /* 0x66 */ byte                     pad_66[0x2];
+    /* 0x68 */ u8                       state;
+    /* 0x69 */ byte                     pad_69[0x1];
     /* 0x6A */ u8                       node;
+    /* 0x6B */ byte                     pad_6B[0x29];
 } AcropolisBridgeWalkerWork;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkerWork, 0x94);
+
+/// Work block the bridge enemy's task keeps at `Task::idMap`. `field_4` is the
+/// live flag every state handler in this unit gates on, and `field_12E` /
+/// `field_196` are the two flag halfwords whose bit 15 the handlers toggle to
+/// enable one behaviour and disable the other. `field_1F0` is the `GpEffArg`
+/// the death effect is spawned with and `field_290` the death-sequence frame
+/// counter.
+typedef struct AcropolisBridgeEnemyWork {
+    /* 0x000 */ s16                       field_0;
+    /* 0x002 */ byte                      pad_2[0x2];
+    /* 0x004 */ s16                       field_4;
+    /* 0x006 */ byte                      pad_6[0x6];
+    /* 0x00C */ GpAnimCtx                 anim;
+    /* 0x020 */ GpAnimSlot                slots[4];
+    /* 0x0C0 */ byte                      pad_C0[0x40];
+    /* 0x100 */ s16                       field_100;
+    /* 0x102 */ s16                       field_102;
+    /* 0x104 */ s16                       field_104;
+    /* 0x106 */ u16                       field_106;
+    /* 0x108 */ s16                       field_108;
+    /* 0x10A */ byte                      pad_10A[0x2];
+    /* 0x10C */ s16                       field_10C;
+    /* 0x10E */ byte                      pad_10E[0x20];
+    /* 0x12E */ u16                       field_12E;
+    /* 0x130 */ byte                      pad_130[0x60];
+    /* 0x190 */ s32                       field_190;
+    /* 0x194 */ byte                      pad_194[0x2];
+    /* 0x196 */ u16                       field_196;
+    /* 0x198 */ byte                      pad_198[0x4];
+    /* 0x19C */ s32                       field_19C;
+    /* 0x1A0 */ byte                      pad_1A0[0x50];
+    /* 0x1F0 */ GpEffArg                  field_1F0;
+    /* 0x1F8 */ s16                       field_1F8;
+    /* 0x1FA */ s16                       field_1FA;
+    /* 0x1FC */ AcropolisBridgeWalkerWork walker;
+    /* 0x290 */ u16                       field_290;
+} AcropolisBridgeEnemyWork;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeEnemyWork, 0x294);
+
+/// Ticks the walker task: steps its patrol route and drives its animation.
+void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker);
 
 /// Reports whether the walker has reached the patrol node at `work->node`.
 s16 func_acropolis_bridge_80184024(AcropolisBridgeWalkerWork* work);
@@ -278,7 +303,108 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185F28);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801861A0);
+/// Rebuilds the bridge enemy's model matrix for the spawn scale-up. `scale`
+/// ramps 0x88 per frame until it reaches 0x1000, and until then the matrix is
+/// reset to identity and scaled uniformly by it through a `VECTOR` taken from
+/// the scratch stack.
+static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
+{
+    AcropolisBridgeWalkerWork* walker;
+    u8*                        head;
+    VECTOR*                    scale;
+    s32                        amount;
+
+    work->walker.scale      += 0x88;
+    walker                   = &work->walker;
+    head                     = *(u8**)G_SCRATCH_HEAD;
+    walker->scaleMtx.m[2][2] = 0x1000;
+    walker->scaleMtx.m[1][1] = 0x1000;
+    walker->scaleMtx.m[0][0] = 0x1000;
+    amount                   = walker->scale;
+    walker->scaleMtx.m[2][1] = 0;
+    walker->scaleMtx.m[2][0] = 0;
+    walker->scaleMtx.m[1][2] = 0;
+    walker->scaleMtx.m[1][0] = 0;
+    walker->scaleMtx.m[0][2] = 0;
+    walker->scaleMtx.m[0][1] = 0;
+    walker->scaleMtx.t[2]    = 0;
+    walker->scaleMtx.t[1]    = 0;
+    walker->scaleMtx.t[0]    = 0;
+    scale                    = (VECTOR*)(head - 0x10);
+
+    *(VECTOR**)G_SCRATCH_HEAD = scale;
+    if (amount != 0 && amount != 0x1000) {
+        scale->vz                    = amount;
+        scale->vy                    = amount;
+        ((VECTOR*)(head - 0x10))->vx = amount;
+        ScaleMatrix(&work->walker.scaleMtx, scale);
+    }
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Runs the bridge enemy's spawn state. On the first frame (work block still
+/// live) it tags the link node while `Gp_PackObjPair` rebuilds the enemy's
+/// pair table, sets bit 15 of both behaviour flag words, seeds the walker's
+/// first patrol step and starts the reset animation. Every frame after that it
+/// counts the entry delay at `field_1F8` down 0x3C at a time -- dropping the
+/// model root by it while it runs -- scales the model up until it reaches full
+/// size, ticks the walker and the animation slots, and finally advances to
+/// state 3 once the work block reports it is done, or resets to state 1 when
+/// the player has dropped below the bridge.
+void func_acropolis_bridge_801861A0(Task* task)
+{
+    AcropolisBridgeEnemyWork*  work;
+    AcropolisBridgeWalkerWork* walker;
+    GpEnemy*                   enemy;
+    WipSysConfig*              cfg;
+    s32                        done;
+    u16                        height;
+
+    cfg  = &Wip_SysConfig;
+    work = (AcropolisBridgeEnemyWork*)task->idMap;
+    if (work->field_4 != 0) {
+        enemy = (GpEnemy*)task->spawnArg2;
+        Gp_ArmStateF0(1);
+        enemy->node.field_4   = 1;
+        height                = work->walker.field_5E;
+        walker                = &work->walker;
+        work->walker.field_5A = 0x100;
+        walker->field_5C      = 0xA0;
+        walker->field_60      = 6;
+        walker->field_5E      = height;
+        work->walker.state    = 1;
+        work->field_196      |= 0x8000;
+        work->field_12E      |= 0x8000;
+        work->field_190       = Gp_PackObjPair((GpObj50*)enemy, 0);
+        enemy->node.field_4   = 0;
+        work->field_100       = 2;
+        work->field_104       = 2;
+        work->field_108       = 0x50;
+    }
+    if (work->field_1F8 > 0) {
+        work->field_1F8 -= 0x3C;
+        ((TmdObject*)task->extra)->field_8->coord.t[1] =
+            work->field_1FA + work->field_1F8;
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+    }
+    if (work->walker.scale < 0x1000) {
+        bridge_scale_up(work);
+    }
+    func_acropolis_bridge_8018532C(&work->walker);
+    func_acropolis_bridge_8018581C(task);
+    if (((AcropolisBridgeEnemyWork*)task->idMap)->field_19C == 0) {
+        done = 0;
+        SOFT_BARRIER();
+    } else {
+        done = 1;
+    }
+    if (done != 0) {
+        work->field_0 = 3;
+    }
+    if (cfg->field_4->t[1] < 0x321) {
+        work->field_0 = 1;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801863A8);
 

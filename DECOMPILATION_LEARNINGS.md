@@ -46289,3 +46289,78 @@ That is not a scheduling artefact — the source really writes `+ 0xF830` in one
 loop and `- 0x7D0` in the other. A positive `0x....` literal too large for
 `addiu` has to be hoisted into a register; a small negative one stays an
 immediate. Read the form off the asm and write the literal that produces it.
+
+## Keep the branch-form `0`/`1` boolean with an empty asm in the zero arm
+
+A predicate the target materialises as
+
+```
+bnez  v0, L
+ li   v0, 1
+move  v0, zero
+L:
+beqz  v0, skip
+ li   v0, 3
+sh    v0, 0(s1)
+```
+
+is a stored boolean, not `if (x != 0) { … }`. Every plain spelling collapses:
+`if (c) …` with `c = x != 0`, `c = x ? 1 : 0`, `!!x`, an `if`/`else` pair, the
+same shape through a `static __inline__` helper, and either polarity of
+`c = 1; if (x == 0) c = 0;` all fold to a single `beqz` — GCC threads the
+constant through the join. Reusing the *loaded* variable for the result
+(`c = p->field; if (c == 0) { c = 0; } else { c = 1; }`, the
+"load the predicate into the same `s32`" trick) keeps the `li 1` but drops the
+`move v0,zero`, because GCC knows `c` is already 0 in the `== 0` arm. Forcing
+the value with `TOUCH_REG(c)` materialises it as `sltu v0, zero, v0`, which is
+one instruction, not three.
+
+What produces the three-instruction form is blocking the diamond → `sltu`
+rewrite while leaving both arms as stores. An empty asm in the *zero* arm does
+it, with the condition written so the true arm is the one at the branch target
+(`== 0`, not `!= 0`):
+
+```c
+if (((Work*)task->idMap)->field_19C == 0) {
+    done = 0;
+    SOFT_BARRIER();
+} else {
+    done = 1;
+}
+if (done != 0) {
+    work->field_0 = 3;
+}
+```
+
+`SCHED_BARRIER()` works too; the barrier in the *other* arm does not.
+`func_acropolis_bridge_801861A0` is the example — this was the last three
+instructions at 97.7%. The `||` route in "Write a dead `||` as one expression"
+is the same mechanism with a real second operand.
+
+## A sub-struct base register (`addiu v1, s1, 0x1FC`) means a pointer local
+
+When a function writes some fields of a work block as `off($s1)` and others as
+`off($v1)` with `addiu $v1, $s1, N` — including two names for the *same*
+address, e.g. `lhu $a2, 0x25A($s1)` feeding `sh $a2, 0x5E($v1)` — the source has
+a local pointer to the nested struct and mixes `work->nested.field` with
+`p->field`. GCC folds `&work->nested` into the outer base wherever it can, so
+the base register only appears where the source really used the pointer:
+
+```c
+p = &work->walker;
+work->walker.field_5A = 0x100;   /* sh v0, 0x256(s1) */
+p->field_5C           = 0xA0;    /* sh v0, 0x5C(v1)  */
+p->field_5E           = work->walker.field_5E;
+```
+
+The pointer is assigned per block, not once at the top: three separate
+`addiu … 0x1FC` in the target means three blocks that each re-derive it, and a
+single function-scope local would be given a callee-saved register instead.
+Note `&p->m` for a call argument can still come out as `addiu $a0, $s1, 0x230`
+when the pointer's register has already been reused — that is rematerialisation,
+not evidence against the local.
+
+Which of the two competing caller-saved registers a constant lands in follows
+from *when the other value is born*: reading the halfword into a temp before
+`enemy->node.field_4 = 1` (rather than inline at its store) flipped `1` from
+`$a2` to `$a3` and took `func_acropolis_bridge_801861A0` from 94.0% to 97.7%.
