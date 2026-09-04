@@ -745,7 +745,7 @@ void           Snd_ClearBanks(void);
 void           AsyncCb_Poll(void);
 void           AsyncCb_Reset(void);
 void           Spu_InitVoices(void);
-void           AudioTick_Insert(void*, u32, u32, s32*);
+s32            AudioTick_Insert(void*, u32, u16, s32*);
 void           SndEvt_Reset(void);
 s32            Midi_InitSystem(u32);
 s32            Midi_Tick(void);
