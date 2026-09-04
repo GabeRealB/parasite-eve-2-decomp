@@ -45996,3 +45996,49 @@ s32 step = work->field_290;
 The rule generalizes past `switch`: when a value loaded with `lhu`/`lbu` is
 compared *and* stored back, declare the local at `int` width. Narrow locals
 buy nothing here — the load already zero-extended — and cost a mask.
+
+## A shared-store temp conflicts with the compare's constant register
+
+A tail that writes one of two constants to the same field from several arms
+looks like it wants a `val` temp plus one trailing store. GCC 2.8.1 gets there
+on its own by cross-jumping identical stores, and the temp version costs a
+register: writing the constants into a pseudo makes that pseudo live across the
+`li $x, K` the equality compare needs, so it conflicts with whatever hard
+register local-alloc gave that constant — usually `$v0` — and global-alloc
+pushes both the temp and the compared value one register along.
+
+`func_acropolis_bridge_801876A8` ends by stepping a state halfword: 4 and 8
+advance to 6, 5 and 6 stay put, anything else resets to 5. The temp spelling
+reaches 99.6% with control flow already exact and `regs=8`:
+
+```c
+if (state != 4) { work->field_0 = 5; return; }
+val = 6;
+} else {
+    val = 5;
+    if (state == 8) { val = 6; }
+}
+work->field_0 = val;
+/* li v0,8; bne a0,v0,...; li v1,5; li v1,6; sh v1,0(s0)   -- val in $v1 */
+```
+
+`.lreg` names the culprit directly: `86 conflicts: 82 86 125 2 29`, and the
+block dump shows `(set (reg/v:HI 86) (const_int 5))` sitting immediately before
+`(set (reg:SI 137) (const_int 8))`, the compare constant local-alloc had
+already put in hard register 2. Duplicating the store into every arm gives each
+constant its own short-lived pseudo, cross-jumping merges the identical
+`li 6; sh` blocks and the delay-slot pass steals the remaining `li 5` — 100%:
+
+```c
+if (state != 4) { work->field_0 = 5; return; }
+work->field_0 = 6;
+} else {
+    if (state != 8) { work->field_0 = 5; return; }
+    work->field_0 = 6;
+}
+/* li v0,8; bne v1,v0,184; li v0,5; li v0,6; sh v0,0(s0) */
+```
+
+The two spellings are indistinguishable in the source's intent, so read the
+penalty mix: a pure `regs` leftover on an otherwise exact tail of constant
+stores means the temp is real in your C and was never real in the original.

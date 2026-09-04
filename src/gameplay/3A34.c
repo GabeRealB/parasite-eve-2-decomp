@@ -2182,7 +2182,7 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
     return best;
 }
 
-void func_800DA6E8(void* arg0, s32 arg1)
+void func_800DA6E8(void* arg0, s32 arg1, s32 arg2)
 {
     GpSlot70* found;
     s32       i;
@@ -5291,7 +5291,7 @@ s32 Gp_PackPair(GpU16Pair* arg0, s32 arg1)
     return ret;
 }
 
-void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2)
+void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 val;
 

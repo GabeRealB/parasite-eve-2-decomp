@@ -9,6 +9,7 @@
 #include "main/tmd.h"
 
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
+extern u16                   D_801153F6;
 
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_acropolis_bridge_8018581C(Task* task);
@@ -20,9 +21,12 @@ void func_acropolis_bridge_8018581C(Task* task);
 /// the death effect is spawned with and `field_290` the death-sequence frame
 /// counter.
 typedef struct AcropolisBridgeEnemyWork {
-    /* 0x000 */ byte     pad_0[0x4];
+    /* 0x000 */ s16      field_0;
+    /* 0x002 */ byte     pad_2[0x2];
     /* 0x004 */ s16      field_4;
-    /* 0x006 */ byte     pad_6[0x128];
+    /* 0x006 */ byte     pad_6[0x106];
+    /* 0x10C */ s16      field_10C;
+    /* 0x10E */ byte     pad_10E[0x20];
     /* 0x12E */ u16      field_12E;
     /* 0x130 */ byte     pad_130[0x66];
     /* 0x196 */ u16      field_196;
@@ -124,7 +128,66 @@ void func_acropolis_bridge_801874DC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801876A8);
+/// Applies one hit to the bridge enemy. While the work block still has HP it
+/// rolls the damage for the incoming attack id, spawns the hit effect on the
+/// model's second part coordinate, quadruples the damage on a critical roll,
+/// credits it to the kill tally and the link node, and subtracts it from both
+/// the work block's and the enemy's HP; the pending `Gp_StateF0` request is
+/// armed once the HP runs out. When there is no HP left to take (before or
+/// after the hit) it steps the behaviour state instead: 5 and 6 are already
+/// reaction states and stay put, 4 and 8 advance to 6, everything else resets
+/// to 5.
+void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
+{
+    AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
+    s32                       damage;
+    s16                       state;
+
+    if (work->field_10C > 0) {
+        damage                  = Gp_ComputeDamage(attackId, 0, 0, 0x1000);
+        work->field_1F0.field_0 = &((TmdObject*)task->extra)->field_8[1];
+        work->field_1F0.field_4 = 0x80;
+        work->field_1F0.field_6 = 2;
+        func_800FDB18(Gp_GetIdParam1(attackId) & 0xFFFF, &((TmdObject*)task->extra)->field_8[1],
+                      NULL, &work->field_1F0);
+        if (Gp_RollEnemyChance(enemy, attackId, 0) != 0) {
+            damage *= 4;
+            Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->field_8[1], 0, NULL);
+        }
+        func_800E2C78((GpObj40*)enemy, attackId, damage, 0);
+        enemy->field_40 -= damage;
+        func_800DA6E8(&enemy->node, damage, 0);
+        work->field_10C -= damage;
+        enemy->field_40  = work->field_10C;
+        if (work->field_10C > 0) {
+            return;
+        }
+        if (D_801153F6 != 0) {
+            Gp_ReleaseStateF0Add((GpObj20E*)task, 0x29);
+        }
+        if (work->field_10C > 0) {
+            return;
+        }
+    }
+    state = work->field_0;
+    if (state < 7) {
+        if (state >= 5) {
+            return;
+        }
+        if (state != 4) {
+            work->field_0 = 5;
+            return;
+        }
+        work->field_0 = 6;
+    } else {
+        if (state != 8) {
+            work->field_0 = 5;
+            return;
+        }
+        work->field_0 = 6;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187850);
 
