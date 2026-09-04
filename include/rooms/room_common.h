@@ -246,6 +246,13 @@ void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// 0x11, queues four gouraud `POLY_G4` wedges around the projected centre.
 /// `arg1` is a signed half-extent; the on-screen radius is `arg1 * 64 / otz`.
 void Room_Draw25(SVECTOR* arg0, s16 arg1);
+/// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
+/// `arg0`'s world position (`workm.t` through `GsWSMATRIX`). `arg1` is the
+/// radius in world units (scaled by 64 and divided by the projected OTZ after
+/// it is incremented) and `arg2` the RGB triple, which only lights the ring's
+/// inner vertex so each `POLY_G4` fades to black. Dropped when `gte_stflg` is
+/// negative.
+void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
 /// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
 /// height. Left vertices take `arg5`, right vertices take `arg6`.
@@ -318,5 +325,21 @@ typedef struct _RoomDraw25Scratch {
     /* 0x0A */ u16 sy;
 } RoomDraw25Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
+
+/// 0x18-byte scratch block `Room_Draw10` takes from `G_SCRATCH_HEAD`. `vec` is
+/// the coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`. `otz`
+/// is `gte_stszotz` (then incremented so it can also be used as the divisor),
+/// `flag` is `gte_stflg` and `sx` / `sy` are the `gte_stsxy` of the single
+/// RTPS. `step` is the per-vertex radius `(arg1 * 64) / otz` swept around the
+/// ring by `rsin` / `rcos`.
+typedef struct _RoomDraw10Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     step;
+    /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
+} RoomDraw10Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw10Scratch, 0x18);
 
 #endif // ROOMS_ROOM_COMMON_H
