@@ -46078,3 +46078,21 @@ $LC0:
 Check `build/USA/src/<unit>.c.s` for `.align 3` before reaching for a `rodata`
 or `rodata_head` key: if the directive is `.align 2`, the placement is already
 correct and a cut would only renumber the overlay's units for nothing.
+
+## Sparse switch: case bodies come out in source order, not numeric order
+
+For a sparse `switch` GCC 2.8.1 builds a comparison tree for the *dispatch* but
+emits the case **bodies** in the order they appear in the C source. The two are
+independent, so a target whose bodies run out of numeric order is reproduced by
+writing the cases in that same out-of-order sequence.
+
+`func_acropolis_bridge_80187310` has cases 10, 22, 28, 34. Writing them in
+numeric order scored 98.4% with `branch=2 reorder=3`: the case-28 body (a
+`lw`/`li`/`sh` tail shared with case 34 by cross-jumping) landed after the
+case-22 `jal`, so the two `j`-to-common-tail edges pointed at the wrong blocks.
+Reordering the source to `10`, `28`, `22`, `34` — the body order in the target —
+was the whole fix and took it to 100%.
+
+This is the same rule as "Switch case order: fall-through-to-epilogue last",
+stated generally: read the case body order straight off the target's block
+layout and write the C in that order, rather than sorting the labels.

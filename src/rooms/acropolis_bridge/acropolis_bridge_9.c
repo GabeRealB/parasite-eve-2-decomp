@@ -4,12 +4,14 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 extern u16                   D_801153F6;
+extern s32                   Gp_LcgState;
 
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_acropolis_bridge_8018581C(Task* task);
@@ -24,7 +26,13 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x000 */ s16      field_0;
     /* 0x002 */ byte     pad_2[0x2];
     /* 0x004 */ s16      field_4;
-    /* 0x006 */ byte     pad_6[0x106];
+    /* 0x006 */ byte     pad_6[0xFA];
+    /* 0x100 */ s16      field_100;
+    /* 0x102 */ byte     pad_102[0x2];
+    /* 0x104 */ s16      field_104;
+    /* 0x106 */ byte     pad_106[0x2];
+    /* 0x108 */ s16      field_108;
+    /* 0x10A */ byte     pad_10A[0x2];
     /* 0x10C */ s16      field_10C;
     /* 0x10E */ byte     pad_10E[0x20];
     /* 0x12E */ u16      field_12E;
@@ -72,7 +80,58 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187078);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187310);
+/// Runs the bridge enemy's collapse sequence. On the first frame (work block
+/// still live) it allocates the model's aux buffers, clears bit 15 of both
+/// behaviour flag words, tags the link node, seeds the three behaviour
+/// parameters, gives the model root coordinate a random yaw from the shared
+/// LCG, drops the enemy's actor slots, arms the pending `Gp_StateF0` request
+/// and restarts the frame counter. Every frame after that it ticks the counter
+/// up to 100, runs `func_acropolis_bridge_8018581C` and, on frames 10, 22, 28
+/// and 34, steps the light mode and model flags through the fade-out.
+void func_acropolis_bridge_80187310(Task* task)
+{
+    AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
+    s32                       step;
+
+    if (work->field_4 != 0) {
+        Tmd_AllocBuffers((TmdObject*)task->extra);
+        work->field_196    &= 0x7FFF;
+        work->field_12E    &= 0x7FFF;
+        enemy->node.field_4 = 1;
+        work->field_100     = 1;
+        work->field_104     = 5;
+        work->field_108     = 0x10;
+        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, (u32)Gp_LcgState >> 16, 1);
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+        Gp_ClearNodeSlots(&enemy->node);
+        if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
+            Gp_ArmStateF0(1);
+        }
+        work->field_290 = 0;
+    }
+    if (work->field_290 < 0x65) {
+        work->field_290++;
+        func_acropolis_bridge_8018581C(task);
+        step = work->field_290;
+        switch (step) {
+            case 10:
+                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SpawnEff(0x600A5, &((TmdObject*)task->extra)->field_8[2], 1, NULL);
+                break;
+            case 28:
+                ((TmdObject*)task->extra)->field_C = 2;
+                break;
+            case 22:
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                break;
+            case 34:
+                ((TmdObject*)task->extra)->field_C = 0x80;
+                break;
+        }
+    }
+}
 
 /// Runs the bridge enemy's death sequence. On the first frame (work block still
 /// live) it clears bit 15 of both behaviour flag words, tags the link node and
