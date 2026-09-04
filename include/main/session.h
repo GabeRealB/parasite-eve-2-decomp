@@ -281,7 +281,7 @@ typedef struct _GameActor {
     /* 0x976 */ s8                  field_976;
     /* 0x977 */ s8                  field_977;
     /* 0x978 */ s8                  field_978;
-    /* 0x979 */ byte                pad_979;
+    /* 0x979 */ s8                  field_979; // countdown; `func_mongoose_8011D1D8` loads 0xB
     /* 0x97A */ u8                  field_97A;
     /* 0x97B */ s8                  field_97B;
     /* 0x97C */ s8                  field_97C;

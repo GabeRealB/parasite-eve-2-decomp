@@ -43488,3 +43488,23 @@ delay slot. Declaring the `$v1` pin *inside* the `if` creates a lexical block
 that `dbr` will not fill across, so `lui a3, 0xff` cannot take the second
 branch's delay (`nop` instead). Keep both pins at function scope. `Room_Draw22`
 is the example.
+
+## A scratch diff that is only a symbol *name* is already a match
+
+The scratch env scores by diffing object-dump text, so a relocation against a
+named struct field scores as a difference whenever the overlay's symbol map
+still calls that address `D_<addr>`:
+
+```
+-lui    v0,%hi(D_8007218A)          # target.o, from configs/USA/sym/weapons.imports.txt
+-lb     v0,%lo(D_8007218A)(v0)
++lui    v0,%hi(Mc_SaveData)         # ours, Mc_SaveData = 0x80072168, +0x22
++lb     v0,%lo(Mc_SaveData+0x22)(v0)
+```
+
+`Mc_SaveData + 0x22 == 0x8007218A`, so the linked words are identical and the
+residual `regs=2` is an artifact. Add the base address of the named symbol to
+the offset before rewriting C: if it lands on the `D_` address, stop matching
+and go straight to `./tools/build-and-verify.sh`, which links and checksums for
+real. `func_mongoose_8011D1D8` sat at 99.932% for exactly this reason and the
+full build passed unchanged.
