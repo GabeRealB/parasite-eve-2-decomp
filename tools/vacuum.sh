@@ -1431,18 +1431,39 @@ vacuum_orch_loop() {
     fi
 
     if [[ $did_fast -eq 0 ]]; then
+      # Hand the merge lock to the agent rather than holding it across the
+      # call. build_port_prompt tells the agent to take the lock itself, so
+      # holding it here deadlocks: func_p229_8011D860's port agent spent 14
+      # minutes polling merge-acquire against its own parent's lock before a
+      # human released it. vacuum_overlay.sh's drift path already hands over
+      # without the lock, and its agent takes and releases it correctly.
+      # Re-acquired below for the driver's own commit steps.
+      if [[ $ORCH_MERGE -eq 1 ]]; then
+        orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
+        ORCH_MERGE=0
+      fi
       if [[ "$status" == "matched" ]]; then
         echo "Starting port agent for $func ($status), model ${VACUUM_LAND_MODEL:-${VACUUM_MODEL:-default}}..." | tee -a "$LOG_FILE"
         AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" \
         AGENT_MODEL="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}" run_agent \
           "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint" "$siblings")" \
           "$ROOT" | tee -a "$LOG_FILE"
+        if [[ $ORCH_MERGE -eq 0 ]] \
+           && orch merge-acquire --session "$SESSION" --pid $$ \
+                --wait "${VACUUM_MERGE_WAIT:-3600}" >/dev/null 2>&1; then
+          ORCH_MERGE=1
+        fi
         if include_asm_present "$func" "$ROOT"; then
           :
         else
           ( cd "$ROOT" && commit_match_if_needed "$func" "$scratch" ) || true
         fi
       else
+        if [[ $ORCH_MERGE -eq 0 ]] \
+           && orch merge-acquire --session "$SESSION" --pid $$ \
+                --wait "${VACUUM_MERGE_WAIT:-3600}" >/dev/null 2>&1; then
+          ORCH_MERGE=1
+        fi
         echo "Recording give-up for $func on trunk (no port agent)" | tee -a "$LOG_FILE"
         ( cd "$ROOT" && record_difficult_if_needed "$func" "$scratch"
           commit_difficult_if_needed "$func" 1 ) || true
