@@ -1,3 +1,10 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/lib/room_util07", Room_Util07);
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
+
+void Room_Util07(void)
+{
+    Gp_PulseState1C();
+    Gp_StateC08.field_6 |= 1;
+}
