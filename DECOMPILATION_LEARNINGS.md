@@ -41855,3 +41855,42 @@ held an unrelated value earlier in the function. This is the `.lreg` case where
 the fix is to *merge* locals rather than the usual "split a reused local".
 Merging also re-orders the prologue's loads, so re-diff the whole function
 rather than just the loop.
+
+### `lh` and `lhu` of the *same* address before one branch: two temps, signed first
+
+A table entry that is both range-checked and stored is easy to under-emit. The
+target loads the halfword twice, then masks it a third time:
+
+```
+lh    $v0, 0x0($v1)
+lhu   $v1, 0x0($v1)      ; same address, pointer dies here
+bltz  $v0, .skip
+...
+andi  $v0, $v1, 0xFFFF   ; redundant after lhu — the value is a HImode pseudo
+sw    $v0, 0x2C($sp)
+```
+
+The obvious C — `if (*p >= 0) { rec.field_4 = (u16)*p; }` — puts the `lhu`
+*after* the branch, in the taken block, and drops the `andi`. Writing the
+signed read and the unsigned read as two separate locals ahead of the test
+puts both loads in the same block and keeps the mask:
+
+```c
+s16* p;
+s32  sv;   /* signed, drives the test    */
+u16  uv;   /* unsigned, drives the store */
+
+p  = &Table[work->step];
+sv = *p;
+uv = *p;
+if (sv >= 0) {
+    rec.field_4 = uv;   /* u16 local widened to s32 -> andi 0xFFFF */
+}
+```
+
+`sv` must be `s32`, not `s16`: a narrow temp makes GCC keep the HImode pseudo
+and the compare is then sign-extended from it, which changes nothing. The
+`u16` temp is what forces the `andi` — an `s32 uv = (u16)*p` folds the mask
+into the `lhu` and loses the instruction. CSE keeps only one `mem:HI` load
+insn, so the extend `lh` and the `lhu` end up on the same pointer, exactly as
+the target has them. `func_acropolis_observatory_8017E19C` is the example.
