@@ -43261,6 +43261,58 @@ final assembly — that is why the argument pointer has 13 refs for 11 visible
 uses. `func_acropolis_square_80181794` is the example; the permuter found the
 `do {} while (0)` after ~12 iterations from a 99.2% seed.
 
+## Duplicate the join store in every arm to win the lower callee-saved register
+
+**Problem.** `func_acropolis_bridge_8017F544` matched at 99.2% with every
+penalty but `regs` at zero: the target keeps the incoming `Task*` in `$s1` and
+the `&D_80114D28` pointer in `$s2`, and the build had them swapped. The other
+two saved registers (`$s0` for the work block, `$s3` for the hotspot table)
+were already right.
+
+**Symptom.** `.lreg` gives the two competing pointers nearly equal
+`allocno_compare` priority (`floor_log2(n_refs) * n_refs * size / live_length`):
+
+```
+Register 80 (Task*)   used 3 times across  84 insns  → 1*3/84  = 0.0357
+Register 81 (prompt)  used 5 times across 106 insns  → 2*5/106 = 0.0943
+```
+
+so the prompt pointer is served first and takes `$s1`. The `Task*` cannot get
+a shorter live range — it is the argument, live from the first insn — and the
+prompt pointer's range already runs to the last store, so neither
+`live_length` is a usable lever. The refs count is: `n_refs = 3` sits just
+below the `floor_log2` step at 4, where the multiplier doubles.
+
+**Fix.** Write the value that both arms of an `if` deposit at the join *as a
+store in each arm* instead of assigning a local the join stores once. Here the
+`task->state` write moved into both arms:
+
+```c
+if (work->field_4 != 0x561) {
+    SndEvt_EnqueueType6(0x510E0004, 0, 0);
+    work->field_8 = 0;
+    work->field_A = 0;
+    task->state   = 7;      /* was: state = 7; … task->state = state; */
+} else {
+    …
+    task->state = 6;
+}
+```
+
+That takes the `Task*` to 4 refs — `2*4/84 = 0.0952` — which just edges out the
+prompt pointer, and `jump2` cross-jumps the two identical `sw v0,0x30(s1)`
+insns back into one at the join, so the emitted code is unchanged. The counts
+that feed the priority are taken *before* `jump2`, which is what makes a store
+the source writes twice count twice.
+
+Two conditions matter. The duplicated store must be each arm's **last**
+statement, or the tails differ and the merge does not happen (one extra `sw`,
+`insert = 1`). And it is only worth trying when the loser's refs are about to
+cross a power of two; below that the doubled multiplier does not arrive and
+nothing moves. The dual failure — a repeated trailing store *blocking* a
+tail-merge — is the entry "Repeating a trailing constant store in every arm can
+block the tail-merge".
+
 ## Constant stores to an unused stack local are kept
 
 `func_acropolis_square_80181794` opens with

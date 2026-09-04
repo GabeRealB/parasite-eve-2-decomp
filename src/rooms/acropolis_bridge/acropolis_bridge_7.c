@@ -2,8 +2,10 @@
 
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
@@ -20,10 +22,39 @@ void func_acropolis_bridge_8017ED38(Task* task);
 typedef struct AcropolisBridgePromptWork {
     /* 0x00 */ byte pad_0[0x4];
     /* 0x04 */ s16  field_4;
-    /* 0x06 */ byte pad_6[0x8];
+    /* 0x06 */ byte pad_6[0x2];
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ byte pad_C[0x2];
     /* 0x0E */ s8   promptKind;
     /* 0x0F */ s8   promptBusy;
 } AcropolisBridgePromptWork;
+
+/// Payload this file passes as `Gp_DispatchMsg`'s `arg2` for message 0x7DA,
+/// the same record `func_acropolis_bridge_8017DC68` sends.
+typedef struct AcropolisBridgeMsg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} AcropolisBridgeMsg7DA;
+
+/// One entry of the bridge's -1-terminated hotspot table
+/// (`D_acropolis_bridge_8018983C`). `x` / `y` / `w` / `h` are the screen
+/// rectangle `func_acropolis_bridge_8017F6D4` tests the action cursor against;
+/// on a hit it raises `hit` on that entry and clears it on every other.
+typedef struct AcropolisBridgeHotspot {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id; // list terminator is -1
+    /* 0xA */ u8  promptKind;
+    /* 0xB */ s8  hit;
+} AcropolisBridgeHotspot;
+
+extern AcropolisBridgeHotspot D_acropolis_bridge_8018983C[];
+
+s32 func_acropolis_bridge_8017F6D4(AcropolisBridgeHotspot* table, s16 x, s16 y);
 
 /// Two-state dispatcher of this room's prompt script task: builds the handler
 /// table on the stack and tails into the entry named by `Task::state`.
@@ -89,7 +120,42 @@ void func_acropolis_bridge_8017F4CC(Task* task)
     task->state = 2;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F544);
+/// Waits ten frames on the prompt the script's current step put up, then closes
+/// it. Step 0x561 is the one the room answers with message 0x7DA before its
+/// confirmation sound and state 6; every other step just clears the step's
+/// counters, plays the cancel sound and goes to state 7. Either way the prompt
+/// is torn down and the cursor is re-hit-tested against the room's hotspot
+/// table, so `mode` reports whether it ended up over one.
+void func_acropolis_bridge_8017F544(Task* task)
+{
+    RoomActionPrompt*          prompt = &D_80114D28;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+
+    if (work->field_A < 0xA) {
+        work->field_A++;
+        return;
+    }
+
+    if (work->field_4 != 0x561) {
+        SndEvt_EnqueueType6(0x510E0004, 0, 0);
+        work->field_8 = 0;
+        work->field_A = 0;
+        task->state   = 7;
+    } else {
+        AcropolisBridgeMsg7DA msg = { 1, 0xE, 2 };
+
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        SndEvt_EnqueueType6(0x510E0009, 0, 0);
+        task->state = 6;
+    }
+    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+    } else {
+        prompt->mode = 1;
+    }
+}
 
 void func_acropolis_bridge_8017F658(Task* task)
 {
