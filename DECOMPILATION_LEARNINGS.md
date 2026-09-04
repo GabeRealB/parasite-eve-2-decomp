@@ -31667,6 +31667,48 @@ The variable must be unsigned (`u32`) or the divide becomes the signed
 `$a0` instead pushes the `srl`/`sll` intermediates onto `$a1`, so this is not
 a job for a register pin. `Gp_EffSprTask80` is the example (99.96% → 100%).
 
+## A `u16` temp keeps CSE from folding an even divisor's pre-shift into the `srl`
+
+For an unsigned `% N` with an even `N`, GCC 2.8.1 expands the divide as
+`(x >> 1) * magic`, so the dividend gets a pre-shift. When the dividend is
+itself a shift, CSE1 folds the two together and then has to re-materialise the
+unshifted value for the remainder:
+
+```c
+work->field_24 = ((u32)Gp_LcgState >> 16) % 90 + 0x1E;
+```
+
+```
+srl  v1, a1, 0x11        # (x >> 16) >> 1 folded to x >> 17
+...
+srl  a0, a1, 0x10        # dividend recomputed for the remainder
+```
+
+The target keeps one `srl` and shifts that register again:
+
+```
+srl  a3, a1, 0x10
+srl  v1, a3, 0x1
+```
+
+Routing the dividend through a `u16` temp gives CSE an equivalence
+(`(and reg 0xffff)`) it will not fold a shift through, while combine still
+drops the `andi` because `nonzero_bits` already proves the high half is zero:
+
+```c
+u16 rnd;
+
+rnd            = (u32)Gp_LcgState >> 16;
+work->field_24 = (u32)rnd % 90 + 0x1E;   /* srl; srl, no re-materialised srl */
+```
+
+The `(u32)` cast on the use is required: `(u16)` promotes to `int`, which turns
+the divide into the signed `mult 0x5B05B05B` sequence.
+`func_acropolis_promenade_8017E394` is the example (94.6% -> 99.6%). This is
+the same family as "Split an unsigned `%` across two statements to tie the
+remainder to the dividend", but that one only controls which register the
+remainder lands in; this one controls whether the dividend survives at all.
+
 ## Type a range-test temp `s16`, not `s32`, when the target has `lhu` + `andi 0xFFFF`
 
 `if (v < -0x1300 || v > 0x1300)` is folded by GCC 2.8.1 into an unsigned
