@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Live `lbu` into `$a0` so the next independent temp takes `$v1`
+
+A preheader that materialises `arg << 16` and then `lbu`s a blend byte wants
+
+```
+sll    v1, a2, 16
+lui    v0, %hi(Display_State)
+addiu  v0, v0, %lo(Display_State)
+move   s5, v0
+sra    v0, v1, 20
+...
+lbu    a0, 8(s5)
+```
+
+Naming `packed = arg2 << 16` first allocates that shift to `$a0` (first free
+arg-class temp) and the `lbu` to `$v1`. Computing the blend *before* `packed`
+in the C source makes blend live across the shift, so local-alloc gives blend
+`$a0` and packed `$v1`. sched1 still issues the independent `sll` first, so
+the instruction order matches even though the C order is reversed:
+
+```c
+blend  = (*(u8*)&ds->field_8 & 1) * 8;
+packed = arg2 << 16;
+tr     = (packed >> 20) & 0xF0;
+tg     = (packed >> 16) & 0xF0;
+r      = blend | tr;
+g      = blend | tg;
+```
+
+`Room_Draw13` is the example. Pair with a `$v0`-pinned scratch `tmp` reused
+for `&Display_State` plus `SOFT_TOUCH_REG(tmp)` before `ds = (DisplayState*)tmp`
+to get `addiu v0, %lo` / `move s5, v0`. Volatile `TOUCH_REG` here is the wrong
+barrier: it traps the hoisted `addPrim` masks (`0xFFFFFF` / `0xFF000000`) on
+the wrong side of the address materialisation.
+
+
+
 ## `x = y; x += 1` copy-props to `addiu dest, src, 1`; `SOFT_TOUCH_REG` keeps `move` + `addiu`
 
 A then-arm that must compile as

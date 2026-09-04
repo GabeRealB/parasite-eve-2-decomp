@@ -246,6 +246,12 @@ void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// 0x11, queues four gouraud `POLY_G4` wedges around the projected centre.
 /// `arg1` is a signed half-extent; the on-screen radius is `arg1 * 64 / otz`.
 void Room_Draw25(SVECTOR* arg0, s16 arg1);
+/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
+/// non-negative, queues four gouraud `POLY_G4` wedges around the projected
+/// centre. `arg1` is a signed half-extent; the on-screen radius is
+/// `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the lit inner
+/// vertex, OR'd with the frame-counter blend bit so each wedge fades to black.
+void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
 /// `arg0`'s world position (`workm.t` through `GsWSMATRIX`). `arg1` is the
 /// radius in world units (scaled by 64 and divided by the projected OTZ after
@@ -329,6 +335,19 @@ typedef struct _RoomDraw25Scratch {
     /* 0x0A */ u16 sy;
 } RoomDraw25Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
+
+/// 0x10-byte scratch block `Room_Draw13` takes from `G_SCRATCH_HEAD`. `otz` is
+/// the `gte_stszotz` of `arg0` through `Gfx_ViewWorldMtx`, `flag` is `gte_stflg`
+/// (the wedges are dropped when it is negative), `radius` is
+/// `(s16)arg1 * 64 / otz`, and `sx`/`sy` are the projected centre.
+typedef struct _RoomDraw13Scratch {
+    /* 0x00 */ s32 otz;
+    /* 0x04 */ s32 flag;
+    /* 0x08 */ s32 radius;
+    /* 0x0C */ u16 sx;
+    /* 0x0E */ u16 sy;
+} RoomDraw13Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw13Scratch, 0x10);
 
 /// 0x18-byte scratch block `Room_Draw10` takes from `G_SCRATCH_HEAD`. `vec` is
 /// the coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`. `otz`
