@@ -6,8 +6,10 @@
 
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
+#include "rooms/acropolis_sanctuary.h"
 #include "rooms/room_common.h"
 
 extern u8 D_80073BA9;
@@ -20,6 +22,7 @@ extern GpRec14       D_acropolis_sanctuary_80180A0C;
 extern s32           D_acropolis_sanctuary_80180AE8;
 extern u8            D_acropolis_sanctuary_80181814[];
 extern TaskDesc      D_acropolis_sanctuary_80182240;
+extern Task*         D_acropolis_sanctuary_80186C90;
 
 extern void func_acropolis_sanctuary_8017DD78(void);
 extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
@@ -91,7 +94,29 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DA40);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DCE0);
+/// Request entry point for the sanctuary cutscene task's work block: 0 and 1
+/// arm the script at phase 1 or 2 respectively, rewinding `step` so the driver
+/// runs the scene once, while 2 just plays the pair of sound events the scene
+/// is cued with.
+void func_acropolis_sanctuary_8017DCE0(s32 arg0)
+{
+    AcsCutsceneWork* work = (AcsCutsceneWork*)D_acropolis_sanctuary_80186C90->idMap;
+
+    switch (arg0) {
+        case 0:
+            work->phase = 1;
+            work->step  = 0;
+            return;
+        case 1:
+            work->phase = 2;
+            work->step  = 0;
+            return;
+        case 2:
+            SndEvt_EnqueueType7(0x510C0007, 0);
+            SndEvt_EnqueueType6(0x510C0008, 0, 0);
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017DD78);
 
