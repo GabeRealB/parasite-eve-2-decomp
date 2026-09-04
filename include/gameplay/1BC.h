@@ -451,26 +451,31 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// `Gpu_CurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
-void       Gp_FadeWorkTask(Task* arg0);
-void       Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
-                           GpAnimScratch80* arg3);
-void       Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
-void       Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
-void       Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
-void       Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void       Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
-void       Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
-void       Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void       Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void       Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void       func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
-void       func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
-void       Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
-void       func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
-void       Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2);
-void       Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void       func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
+void Gp_FadeWorkTask(Task* arg0);
+void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+                     GpAnimScratch80* arg3);
+void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
+void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
+void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
+void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
+void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
+void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+void func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2);
+void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// `func_800B4114` is deliberately not declared here. Its definition in
+/// `gameplay/1BC.c` takes `arg2` as `u16` — that is what makes the callee's
+/// own body match — but every caller passes a sign-extended `s16` animation
+/// id, so a `u16` prototype in scope adds a zero-extension the callers do not
+/// have. Callers declare it locally with a signed `arg2` instead (see
+/// `src/actors/lib/actor_1037*.c`, `src/rooms/acropolis_bridge/*.c`).
 void       Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                                  s32 arg5);
 void       Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,

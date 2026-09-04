@@ -10,11 +10,13 @@
 #include "main/tmd.h"
 #include "rooms/acropolis_bridge.h"
 
+extern s16                   D_acropolis_bridge_801915E4[][6];
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 extern u16                   D_acropolis_bridge_80190C60;
 extern u16                   D_801153F6;
 extern s32                   Gp_LcgState;
 
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_acropolis_bridge_8018581C(Task* task);
 
@@ -25,25 +27,28 @@ void func_acropolis_bridge_8018581C(Task* task);
 /// the death effect is spawned with and `field_290` the death-sequence frame
 /// counter.
 typedef struct AcropolisBridgeEnemyWork {
-    /* 0x000 */ s16      field_0;
-    /* 0x002 */ byte     pad_2[0x2];
-    /* 0x004 */ s16      field_4;
-    /* 0x006 */ byte     pad_6[0xFA];
-    /* 0x100 */ s16      field_100;
-    /* 0x102 */ byte     pad_102[0x2];
-    /* 0x104 */ s16      field_104;
-    /* 0x106 */ byte     pad_106[0x2];
-    /* 0x108 */ s16      field_108;
-    /* 0x10A */ byte     pad_10A[0x2];
-    /* 0x10C */ s16      field_10C;
-    /* 0x10E */ byte     pad_10E[0x20];
-    /* 0x12E */ u16      field_12E;
-    /* 0x130 */ byte     pad_130[0x66];
-    /* 0x196 */ u16      field_196;
-    /* 0x198 */ byte     pad_198[0x58];
-    /* 0x1F0 */ GpEffArg field_1F0;
-    /* 0x1F8 */ byte     pad_1F8[0x98];
-    /* 0x290 */ u16      field_290;
+    /* 0x000 */ s16        field_0;
+    /* 0x002 */ byte       pad_2[0x2];
+    /* 0x004 */ s16        field_4;
+    /* 0x006 */ byte       pad_6[0x6];
+    /* 0x00C */ GpAnimCtx  anim;
+    /* 0x020 */ GpAnimSlot slots[4];
+    /* 0x0C0 */ byte       pad_C0[0x40];
+    /* 0x100 */ s16        field_100;
+    /* 0x102 */ s16        field_102;
+    /* 0x104 */ s16        field_104;
+    /* 0x106 */ u16        field_106;
+    /* 0x108 */ s16        field_108;
+    /* 0x10A */ byte       pad_10A[0x2];
+    /* 0x10C */ s16        field_10C;
+    /* 0x10E */ byte       pad_10E[0x20];
+    /* 0x12E */ u16        field_12E;
+    /* 0x130 */ byte       pad_130[0x66];
+    /* 0x196 */ u16        field_196;
+    /* 0x198 */ byte       pad_198[0x58];
+    /* 0x1F0 */ GpEffArg   field_1F0;
+    /* 0x1F8 */ byte       pad_1F8[0x98];
+    /* 0x290 */ u16        field_290;
 } AcropolisBridgeEnemyWork;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
@@ -131,7 +136,56 @@ done:
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_8018581C);
+/// Drives the bridge enemy's three animation slots from the state word at
+/// `field_100`. State 1 restarts every slot on animation `field_104` with the
+/// blend value the room's `D_acropolis_bridge_801915E4` table holds for the
+/// (previous, next) animation pair, state 2 resets them without a blend, and
+/// both then latch `field_104` as the previous animation and hand over to
+/// state 3, which just ticks the slots once per frame and counts frames in
+/// `field_106`. Every path first copies `field_108` into each slot's
+/// `field_9` playback-rate byte.
+void func_acropolis_bridge_8018581C(Task* task)
+{
+    AcropolisBridgeEnemyWork* work;
+    AcropolisBridgeEnemyWork* start;
+    AcropolisBridgeEnemyWork* reset;
+    AcropolisBridgeEnemyWork* tick;
+    s32                       i;
+    s32                       j;
+    s32                       k;
+
+    work = (AcropolisBridgeEnemyWork*)task->idMap;
+    if (work->field_100 == 1) {
+        start = (AcropolisBridgeEnemyWork*)task->idMap;
+        for (i = 1; i < 4; i++) {
+            start->slots[i].field_9 = start->field_108;
+            func_800B4114(&start->anim, i, start->field_104, 0,
+                          D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
+        }
+        start->field_102 = start->field_104;
+        goto advance;
+    }
+    if (work->field_100 == 2) {
+        reset = (AcropolisBridgeEnemyWork*)task->idMap;
+        for (j = 1; j < 4; j++) {
+            reset->slots[j].field_9 = reset->field_108;
+            Gp_AnimResetSlot(&reset->anim, j, reset->field_104);
+        }
+        reset->field_102 = reset->field_104;
+    advance:
+        work->field_100 = 3;
+        work->field_106 = 0;
+        return;
+    }
+    if (work->field_100 == 3) {
+        work->field_106++;
+        tick = (AcropolisBridgeEnemyWork*)task->idMap;
+        for (k = 1; k < 4; k++) {
+            tick->slots[k].field_9 = tick->field_108;
+            Gp_AnimTickIndex(&tick->anim, k);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185988);
 

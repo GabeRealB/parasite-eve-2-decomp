@@ -46155,3 +46155,63 @@ hide:
 
 Writing case 2's store inline like cases 0 and 1 merged it backwards into an
 earlier copy and cost `branch=4 insert=1 delete=2`.
+
+## A `u16` parameter in the caller's prototype adds a zero-extension the target does not have
+
+`func_acropolis_bridge_8018581C` passes the same `s16` work field both as an
+argument and as an array index:
+
+```c
+func_800B4114(&start->anim, i, start->field_104, 0,
+              D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
+```
+
+The target loads it once with `lh` and uses that one register for both. With
+`gameplay/1BC.h`'s `void func_800B4114(GpAnimCtx*, s32, u16, s32, s32)` in
+scope, GCC has to convert the `s16` field to `unsigned short` for the argument,
+which is a real zero-extension, so it emits a second `lhu` beside the `lh` used
+for the index. Declaring the third parameter `s32` in the caller collapses the
+pair back to one `lh`.
+
+The callee's own definition still needs `u16`: that `andi $x,0xffff` before the
+`slot->field_20[arg2]` index is part of `func_800B4114`'s matched body, and
+rewriting the parameter as `s32` with a `(u16)` cast at the use restores the
+`andi` but reorders the two parameter-save pairs in the prologue. So the
+declaration and the definition genuinely disagree, which is why the four
+`src/actors/lib/actor_10*_text.c` TUs each declare this function locally with a
+signed `arg2`. The prototype has been removed from `gameplay/1BC.h` and each
+caller declares it, since a header cannot be right for both sides.
+
+Generally: when the target shows one `lh` feeding both a call argument and an
+index computation, the caller's declaration of that parameter was signed. An
+`lhu` alongside an `lh` of the same address is the signature of this mistake.
+
+## Distinct locals per branch stop `jump2` from merging identical tails
+
+The same function ends two of its three branches with the same store:
+
+```c
+if (work->field_100 == 1) { … start->field_102 = start->field_104; goto advance; }
+if (work->field_100 == 2) { … reset->field_102 = reset->field_104;
+advance:
+    work->field_100 = 3;
+    work->field_106 = 0;
+    return;
+}
+```
+
+Written with one shared `work` pointer and one shared loop counter, both tails
+compiled to the identical `lhu $v0,0x104($s1)` / `sh $v0,0x102($s1)` pair and
+cross-jumping merged them, deleting the first copy and costing
+`branch=4 insert=3 delete=3`. The target keeps both, because the two branches
+hold the pointer in different registers (`$s0` in the first, `$s1` in the
+second) — which only happens if they are different pseudos. Giving each branch
+its own pointer and counter local made `global_alloc` colour them differently,
+the tails stopped being identical, and the score went from 90.2% to 100%.
+
+Note the pointer copies themselves: each branch re-reads `task->idMap` rather
+than reusing the outer local. The first two re-reads CSE down to a `move` from
+the outer register, but the third follows a `sh` to the same object, so CSE has
+invalidated the memory and a real `lw $s2,0x1c($a0)` is re-emitted — which is
+exactly what the target does. A single shared local can never produce that
+reload.
