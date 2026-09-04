@@ -1,8 +1,20 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+
+#include "main/gameflag.h"
+
+extern u8 D_acropolis_sanctuary_80181814[];
+
 extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D810);
+s32 func_acropolis_sanctuary_8017D810(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0 && GameFlag_GetNibble(6) == 0) {
+        func_800E8614((s32)&D_acropolis_sanctuary_80181814, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017D848);
 
