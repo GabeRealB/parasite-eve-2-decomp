@@ -9,7 +9,19 @@ extern u8 D_801153F4;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017D7A0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017D868);
+s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 3:
+            SndEvt_EnqueueType6(0x510D0003, 0, 0);
+            break;
+        case 5:
+            break;
+        case 9:
+            break;
+    }
+    return 0;
+}
 
 s32 func_acropolis_roof_garden_8017D8AC(s32 arg0, s32 arg1, s32 arg2)
 {

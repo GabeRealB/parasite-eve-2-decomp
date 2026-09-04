@@ -41957,3 +41957,57 @@ are a duplicated tail — the same two or three instructions appearing once too
 often, with the surviving copy in the wrong arm — look for a register
 disagreement in the odd arm, and from there for a bare `extern` scalar next to
 struct traffic. Restructuring the `switch` cannot fix it.
+
+## A `switch` decision tree with a `slti` high-bound check needs a *third*, invisible case
+
+`func_acropolis_roof_garden_8017D868` is a room message handler whose entire
+body is one `SndEvt_EnqueueType6` call, yet the target opens with a three-test
+decision tree:
+
+```
+li    v0, 5
+beq   a2, v0, end      # case 5 -> the same address as default
+slti  v0, a2, 6
+beqz  v0, end          # index > 5 -> default
+li    v0, 3
+bne   a2, v0, end
+<the one call>
+```
+
+The obvious C — `switch (arg2) { case 3: call(); break; case 5: break; }` —
+scores 72% and emits only `bne a2, 3`. Two separate GCC 2.8.1 behaviours are at
+work, and both have to be satisfied at once.
+
+**The tree's *shape* counts the case labels, not the non-empty ones.**
+`balance_case_nodes` only splits a case list when it holds more than two nodes;
+with exactly two it leaves the list in order, so `{3, 5}` becomes root 3 with a
+right child 5 and emits `beq ==3` first. Three nodes are rebalanced around the
+middle one, which is what produces `root 5, left 3, right X` — and the root's
+missing high bound is exactly the `slti index, 6` test. So a `slti` bound one
+past a case value is evidence of a *further* case above it. The already-matched
+`func_acropolis_fountain_8017D7F4` (`{3, 4, 9}` -> root 4, `slti 5`, left 3) is
+the same tree with every arm populated.
+
+**Empty arms disappear later, in jump optimisation, and only where the branch
+becomes a no-op.** A `case N: break;` puts its label on the switch's end label,
+which is also the default label, so its comparison branches to the same place
+as the surrounding tests. `jump.c` deletes a conditional branch only when its
+target equals its own fall-through, so the *last* test in the tree collapses and
+takes the `li` of its constant with it, while a test followed by more of the
+tree survives with `end` as its target. That is why `case 5:` remains visible as
+`beq a2, 5, end` while the third case above it leaves no trace at all.
+
+The match is therefore
+
+```c
+switch (arg2) {
+    case 3:  SndEvt_EnqueueType6(0x510D0003, 0, 0); break;
+    case 5:  break;
+    case 9:  break;
+}
+```
+
+and the `9` is unobservable: any value greater than 5 gives byte-identical code,
+because everything the node generates is deleted. Pick one that fits the
+message ids the sibling handlers in the overlay use, and do not read the
+constant back out of the assembly — it is not there.
