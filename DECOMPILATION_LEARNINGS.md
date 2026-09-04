@@ -42292,3 +42292,45 @@ func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, (s16)work->field
 GCC keeps the pre-store register for the `sh` and sign-extends the *same*
 register for the argument rather than reloading, and the `lhu` is emitted with
 the compare's `lh` before the branch.
+
+## An explicit `p++` is ordered *ahead* of a loop-generated giv increment
+
+`func_acropolis_roof_garden_8017F560` fills a four-corner scratch quad from the
+unit table `D_80111E38`, and its matched gameplay sibling `Gp_DrawEffQuadT29`
+writes the table read as a walking pointer:
+
+```c
+v->vx = tbl->x * arg1;
+...
+tbl++;
+```
+
+Copied verbatim that stalls at 99.18% with `reorder=2`: the two increments come
+out swapped against the target.
+
+```
+                mine                        target
+    addiu  t0, t0, 4      # tbl++      addiu  t1, t1, 8     # giv
+    lhu    v0, 0x4(a3)                 lhu    v0, 0x4(a3)
+    lhu    v1, 0x38(t1)                lhu    v1, 0x38(t7)
+    addiu  t2, t2, 8      # giv        addiu  t0, t0, 4     # tbl++
+```
+
+`tbl++` is an ordinary statement, so it sits at its source position — before
+the first field group. The increment of the giv GCC made for the `gte_ldv0`
+operand (`&blk->v[i]`, i.e. `blk + 4 + 8i`) is emitted by `loop.c` *after* the
+giv's last use, which puts it later; the scheduler then has only the second one
+left to drop into the `lhu` load-delay slot. Subscripting the table instead,
+
+```c
+blk->v[i].vx = tbl[i].x * arg1;
+...
+sv->vz = tbl[i].y * arg1;
+```
+
+makes `tbl` a giv too, both increments are emitted by `loop.c` in giv order,
+and the pair lands the target's way round — 100%. This is the same lever as
+"Index the scratch arrays by the loop counter…", but note it applies to the
+*source* array as well: a sibling's `p++` is not evidence that the copy in
+front of you wants one, because the two forms only differ once a second,
+compiler-generated induction variable shares the loop.
