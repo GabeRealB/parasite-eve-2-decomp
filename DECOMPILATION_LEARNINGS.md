@@ -46096,3 +46096,62 @@ was the whole fix and took it to 100%.
 This is the same rule as "Switch case order: fall-through-to-epilogue last",
 stated generally: read the case body order straight off the target's block
 layout and write the C in that order, rather than sorting the labels.
+
+## Duplicating a store per switch case is how a pointer wins the lower register
+
+A 100%-shaped function can still miss on nothing but which hard register each
+pointer local got. `func_acropolis_bridge_801856E0` reached 99.2% with
+`branch=insert=delete=reorder=0` and only `regs=11`: the target put the work
+block in `$a1`, the enemy in `$a3` and the TMD in `$t0`, while the attempt
+produced `$t0`, `$a1`, `$a3` — the same three registers, rotated.
+
+`global_alloc` allocates in descending priority, and GCC 2.8.1 computes that
+priority as roughly `floor_log2(n_refs) * n_refs / live_length`. The `;; N regs
+to allocate:` line at the top of `<name>.i.greg` prints the resulting order, and
+`;; Register dispositions:` prints who got what, so the two lines together say
+exactly which pseudo needs to move up. Here the work pointer had 4 refs over 50
+insns (0.16) against the enemy's 4 over 41 (0.195), so it was allocated last and
+took the highest register. Its live range covers the whole function and cannot
+be shortened, so the only lever was the reference count: at 5+ refs its priority
+passes the enemy's and the order flips.
+
+The refs came from writing the shared reset store once per `switch` case instead
+of once after the switch:
+
+```c
+case 0:
+    if (D_801153F6 != 0) break;
+    work->field_0 = 0;      /* one ref per case … */
+    goto hide;
+case 1:
+    if (D_801153F6 >= 2) break;
+    work->field_0 = 0;
+    goto hide;
+…
+hide:
+    ((TmdObject*)task->extra)->field_C = 0x80;
+```
+
+`jump2` cross-jumps the copies back into one block *after* register allocation,
+so the emitted code is unchanged — but `global_alloc` counted them, and the
+score went from 99.2% to 96.2% with `regs=0`, then to 100% once the remaining
+control-flow detail was fixed. Reach for this before pins: it is a source-level
+way to bias allocation that leaves no trace in the output.
+
+One placement detail matters. The case whose reset block *falls through* into
+the shared tail must be written adjacent to that tail, or cross-jumping merges
+it with the copies that end in a jump:
+
+```c
+case 2:
+    if (D_801153F6 < 3) goto reset;   /* branches straight to the block … */
+    break;
+…
+reset:
+    work->field_0 = 0;                /* … that falls into `hide:` */
+hide:
+    ((TmdObject*)task->extra)->field_C = 0x80;
+```
+
+Writing case 2's store inline like cases 0 and 1 merged it backwards into an
+earlier copy and cost `branch=4 insert=1 delete=2`.

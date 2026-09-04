@@ -8,8 +8,10 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/acropolis_bridge.h"
 
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
+extern u16                   D_acropolis_bridge_80190C60;
 extern u16                   D_801153F6;
 extern s32                   Gp_LcgState;
 
@@ -62,7 +64,72 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_8018532C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801856E0);
+/// Handles the room's 0x7DB broadcast for the bridge enemy. Message 0x0B01/1
+/// (the bridge is being lowered) restores the model's default flag set while
+/// the enemy is still in one of its first three spawn variants, and message
+/// 0x0E01/2 (the bridge run has ended) decides whether the enemy is armed for
+/// this variant: variant 0 needs `D_801153F6` to be set at all, variant 1 needs
+/// it to be at least 2 and variant 2 at least 3. When it is, the enemy and the
+/// work block are given the stat block's starting HP and the behaviour state
+/// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
+/// the default flag set. Always reports success.
+s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB* msg)
+{
+    AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
+    TmdObject*                extra = (TmdObject*)task->extra;
+    s32                       variant;
+    u16                       sub;
+
+    if (msg->field_0 == 0xB01 && msg->field_2 == 1) {
+        variant = enemy->field_8 >> 12;
+        switch (variant) {
+            case 0:
+            case 1:
+            case 2:
+                extra->field_C = 0;
+                break;
+        }
+    }
+    if (msg->field_0 == 0xE01) {
+        sub = msg->field_2;
+        if (sub == 2) {
+            variant = enemy->field_8 >> 12;
+            switch (variant) {
+                case 0:
+                    if (D_801153F6 != 0) {
+                        break;
+                    }
+                    work->field_0 = 0;
+                    goto hide;
+                case 1:
+                    if (D_801153F6 >= 2) {
+                        break;
+                    }
+                    work->field_0 = 0;
+                    goto hide;
+                case 2:
+                    if (D_801153F6 < 3) {
+                        goto reset;
+                    }
+                    break;
+                default:
+                    work->field_0 = 0;
+                    goto hide;
+            }
+            enemy->field_40 = D_acropolis_bridge_80190C60;
+            work->field_10C = D_acropolis_bridge_80190C60;
+            work->field_0   = 4;
+            goto done;
+        reset:
+            work->field_0 = 0;
+        hide:
+            ((TmdObject*)task->extra)->field_C = 0x80;
+        }
+    }
+done:
+    return 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_8018581C);
 
