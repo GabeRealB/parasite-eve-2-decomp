@@ -45935,3 +45935,30 @@ the table base. This is the same shape `Gp_LinkViewSprts` in `gameplay/D4.c`
 already uses (`view = Gp_GetViewIndex();` … `recs[(u8)view - 1]`), so prefer
 that idiom for every view-index lookup. The reverse also holds: if the target
 masks right after the `jal`, fold the `& 0xFF` into the assignment.
+
+## Which if/else arm falls through decides where a cross-jumped call lands
+
+When one call is reachable from two places, GCC 2.8.1 cross-jumps them into a
+single tail block and reaches it with a `j`. Which arm of the local `if` gets
+that `j` — and therefore the branch polarity — follows the source: the *then*
+arm falls through, the *else* arm is the one merged into the shared tail.
+
+`func_acropolis_bridge_80182694` ends its state-1 case with a decrement or a
+`Gp_ReleaseState1CMem` that the early `Gp_State1C->field_4 >= 4` path also
+reaches. Writing the release as the *then* arm inlines the `jal` in the middle
+of the function (`branch=1 insert=6 delete=5`, 84%):
+
+```c
+/* jal Gp_ReleaseState1CMem emitted here, decrement pushed after it */
+if ((s16)work->field_24 < 3) { Gp_ReleaseState1CMem(work, task); }
+else                         { work->field_24 -= 2; }
+
+/* slti/bnez to the shared tail; decrement falls through, as the target has */
+if ((s16)work->field_24 >= 3) { work->field_24 -= 2; }
+else                          { Gp_ReleaseState1CMem(work, task); }
+```
+
+So read the target backwards: whichever block sits at the end of the function
+and is jumped to from more than one site is the `else`, and the straight-line
+code between the branch and that `j` is the `then`. Flipping the comparison is
+usually the whole fix — do it before touching registers or scheduling.
