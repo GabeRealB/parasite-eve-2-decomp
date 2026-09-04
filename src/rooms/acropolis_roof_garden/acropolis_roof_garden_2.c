@@ -4,10 +4,12 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
-extern s32 D_acropolis_roof_garden_80183C0C;
-extern s32 D_acropolis_roof_garden_80183D74;
-extern s32 D_acropolis_roof_garden_80184194;
-extern s32 D_acropolis_roof_garden_8018432C;
+extern s32      D_acropolis_roof_garden_80183BDC;
+extern TaskDesc D_acropolis_roof_garden_80183C10;
+extern s32      D_acropolis_roof_garden_80183C0C;
+extern s32      D_acropolis_roof_garden_80183D74;
+extern s32      D_acropolis_roof_garden_80184194;
+extern s32      D_acropolis_roof_garden_8018432C;
 
 extern u8 D_801153F4;
 
@@ -70,7 +72,16 @@ void func_acropolis_roof_garden_8017DA48(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DAD4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DB74);
+void func_acropolis_roof_garden_8017DB74(Task* arg0)
+{
+    arg0->field_24 = &D_acropolis_roof_garden_80183BDC;
+    Game_SetPtrSlot(arg0, 7);
+    if (Mc_SaveData.field_5C5 == 6) {
+        Mc_SaveData.field_5C5 = 5;
+    }
+    Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 0, 0, 0);
+    arg0->state += 1;
+}
 
 void func_acropolis_roof_garden_8017DBEC(void)
 {
