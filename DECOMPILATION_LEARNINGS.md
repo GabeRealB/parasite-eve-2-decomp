@@ -42058,3 +42058,61 @@ it in a branch delay slot — which is exactly the asymmetry the target shows
 `view < 5` branch carries its own `li` in the delay slot). So a range check
 written as *two* `slti`s is direct evidence that the source used separate
 statements rather than one `&&`/`||` condition.
+
+## A three-way constant select keeps its `j` only when the default is assigned *before* the inner test
+
+Picking one of three constants off one variable — the ambience-volume idiom the
+room overlays use — has two spellings that differ by exactly one instruction,
+and the target tells you which one it was.
+
+An `if` / `else if` / `else` chain (and equally a `switch` on the same value)
+lets the delay-slot pass fold the one-instruction arm into the first branch and
+drop the jump entirely:
+
+```c
+if (state == 5) { vol = 0x1E; } else if (state == 7) { vol = 0x64; } else { vol = 0; }
+```
+
+```
+beq  $v1, $v0, .Ljoin
+ li  $s0, 0x1E          # target block hoisted into the delay slot
+li   $v0, 7
+bne  $v1, $v0, .Ljoin
+ move $s0, $zero
+li   $s0, 0x64
+.Ljoin:
+```
+
+Assigning the default first and nesting the second test keeps `vol = 0x1E` as
+its own basic block at the bottom, so the middle arm needs a real `j` to skip
+over it:
+
+```c
+if (state != 5) {
+    vol = 0;
+    if (state == 7) { vol = 0x64; }
+} else {
+    vol = 0x1E;
+}
+```
+
+```
+beq  $v1, $v0, .L1E
+ li  $v0, 7
+bne  $v1, $v0, .Ljoin
+ move $s0, $zero        # the default fills this delay slot instead
+j    .Ljoin
+ li  $s0, 0x64
+.L1E:
+li   $s0, 0x1E
+.Ljoin:
+```
+
+So an extra `j` plus a trailing single-`li` block (penalties `branch`/`insert`,
+not `regs`) is the signature of the second shape: the tested value's *unequal*
+side carries the body, and the default is a plain assignment ahead of the
+nested `if`. Both shapes are one `%` apart, so this is worth trying before
+anything structural. Inverting the outer test the other way (`if (state == 5)
+{ vol = 0x1E; } else { vol = 0; if (state == 7) ... }`) does not work: GCC emits
+the *then* arm first, which puts the `li $s0, 0x1E` block above the compare
+against 7 rather than below it.
