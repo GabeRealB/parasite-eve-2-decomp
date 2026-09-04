@@ -43810,6 +43810,44 @@ Narrowing is only right when the local really is a halfword field's value —
 there `reload_cse` has to fold the constant, not avoid it. Splitting the
 second, unrelated 1 into its own `s32` local keeps that distinction visible.
 
+## Sweep one store's position when `$v0`/`$v1` are swapped in a block of struct stores
+
+A run of stores to *different* fields of one struct does not pin its own order.
+GCC 2.8.1 proves `actor->field_934` and `actor->field_95E` cannot alias, so
+`sched1` — which runs *before* `local_alloc` — reorders them freely, and the
+store order you read off the target is the schedule, not the source. What the
+source order still decides is the order the block's pseudos are born in, and
+that is what `local_alloc` walks when handing out `$v0`, `$v1`, `$a0`.
+
+`func_mp5a5_p1_8011DDA4` case 0 stalled at 98.56% with every instruction
+present and only `regs`/`reorder` left: the target loads `0x95E` into `$v0` and
+copies the `1` for `0x934` into `$v1`, and the build had them the other way
+round, which then dragged the `0x958` and `0x12A` loads to opposite ends of the
+block. Reordering the `anim` statement, splitting the condition into a temp,
+permuting the local declarations and hoisting the `0x95E` read into an explicit
+local all scored exactly 98.56% — none of them changed the RTL the allocator
+sees.
+
+Moving the *store* did. Sweeping `actor->field_934 = 1;` through the seven
+store positions of the block, one file per position, went 96.8 / 98.0 / 98.6 /
+98.6 / **100** / 100 / 100:
+
+```c
+actor->field_956  = 4;
+actor->field_95A  = 2;
+actor->field_954  = 0;
+actor->field_95C  = 0;
+actor->field_934  = 1;   /* not third, where the target's store order puts it */
+actor->field_95E += 1;
+actor->field_12A |= 0x400;
+```
+
+So when a block of struct stores is instruction-for-instruction correct but two
+caller-saved registers are transposed, do not reach for a pin: generate one
+attempt per position of the store that feeds the swapped pair and score them all.
+It is a seven-build sweep and it is mechanical, where reasoning about the
+scheduler from `.sched` is neither.
+
 ## Pin `G_SCRATCH_HEAD` to `$a1` so arg1 moves to `$a3` and `GsWSMATRIX` uses `$t0`
 
 A ring helper whose second argument arrives in `$a1` and then reuses `$a1`
