@@ -141,6 +141,20 @@ typedef struct AcsSprayScratch {
 } AcsSprayScratch;
 STATIC_ASSERT_SIZEOF(AcsSprayScratch, 0x14);
 
+/// Per-frame scratch the sanctuary's mosaic-shard task builds at
+/// `G_SCRATCH_HEAD`: `v` holds the three corners of the shard's triangle,
+/// first scaled by `GpEffWork::field_26` through the GTE's `gpf` interpolator
+/// and rotated by the task's own `workm`, then offset by that matrix's
+/// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
+/// taken from. The block is 0x20 bytes even though only 0x1C are used, because
+/// that is the amount the task reserves off the scratch head.
+typedef struct AcsMosaicScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR v[3];
+    /* 0x1C */ s32     pad;
+} AcsMosaicScratch;
+STATIC_ASSERT_SIZEOF(AcsMosaicScratch, 0x20);
+
 /// One grey level per sprite variant, indexed by the variant the flame task
 /// picked out of `Task::spawnArg1` (bits 8..9). The overlay holds two of these,
 /// the base level `D_acropolis_sanctuary_8017D5D8` and the per-frame flicker

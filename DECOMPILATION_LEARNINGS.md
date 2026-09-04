@@ -41775,3 +41775,49 @@ constant `0x4382` for the same page) says the original wrote.
 Generally: when a mask on a 16-bit field flips `lh` to `lhu` and the value is a
 packed hardware field, look for the Psy-Q packing macro (`getClut`, `getTPage`)
 before reaching for a cast. `func_acropolis_sanctuary_8017F4E8` is the example.
+
+## Two loop pointers to the same address need two different C spellings
+
+A loop that both writes struct fields and hands the same address to an inline
+`asm` operand can end up with *two* live pointers in the target:
+
+```
+  addiu $a0, $a1, 0x4        ; the field pointer, combined with the field giv
+  sh    $v0, 0x2($a0)
+  ...
+  addu  $v0, $t1, $a3        ; the asm operand, reduced on its own giv
+  lhu   $t4, 0x0($v0)
+```
+
+Both hold `blk + 4 + 8*i`. Writing both as `&blk->v[i]` cannot reproduce that:
+CSE runs before `loop`, sees one expression, and folds them into a single
+pseudo, which strength reduction then emits once as `addu $v0, $t1, $a3` and
+uses for everything. Dropping the pointer entirely (plain `blk->v[i].vy`) is the
+other failure mode -- every field access becomes a displacement off the one
+`blk + 8*i` giv (`4(a1)`, `6(a1)`, `8(a1)`), because a DEST_ADDR giv folds its
+constant into the memory operand and never materialises a register.
+
+The fix is to spell the field pointer as an offset from the block base, so CSE
+has nothing to match against the `&blk->v[i]` the asm operands use:
+
+```c
+for (i = 0; i < 3; i++) {
+    blk->v[i].vx = corner[i].vx;
+    sv = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(AcsMosaicScratch, v));
+    sv->vy = corner[i].vy;
+    sv->vz = corner[i].vz;
+    gte_ldsv(&blk->v[i]);       /* stays a separate pointer */
+    ...
+}
+```
+
+`sv` then survives to `loop` as its own DEST_REG giv, and `combine_givs`
+expresses it as `field_giv + 4` -- the `addiu $a0, $a1, 4` in the target -- while
+the asm operand keeps its own giv. Use `sizeof` / `OFFSET_OF` rather than raw
+`8` and `4`: the constants fold identically and the line stays readable.
+
+Symptom to recognise: the diff is a single `addiu $aN, $aM, k` you cannot
+produce, every other instruction matches, and the two registers involved hold
+the same value. `func_acropolis_sanctuary_8017EC90` is the worked example
+(99.3% -> 100%); an unpinned `TOUCH_REG(sv)` reaches 99.5% the same way but
+stops `combine_givs` from folding, so it is not the answer.
