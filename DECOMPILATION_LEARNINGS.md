@@ -49980,3 +49980,21 @@ level %= 0xC0;
 Written as one expression, `level = ((u32)Gp_LcgState >> 16) % 0xC0;`, the
 destination is a fresh quantity, the `subu` writes `v1`, and the scheduler
 hoists the next `lui` above the stores.
+## Saved-register coloring flipped by a parameter's width (AudioTick_Insert)
+
+Symptom: every instruction matched but a set of callee-saved regs (s0..s3) were
+assigned in a cyclic rotation vs the target — pure `regs=` penalty,
+`branch=insert=delete=0`. No C-level statement reorder or copy-direction swap
+moved it.
+
+Two independent tricks were needed:
+- The target kept two live copies of the same value (`sh` of the id early,
+  `andi id,0xffff` in the loop). Reproduce with two locals off the param,
+  `id16 = id; key = id16;` (store uses id16, loop uses key), plus a separate
+  walker pointer seeded after the alloc (`p = head;`) so the anchor `head` stays
+  in its own saved reg across the call.
+- The final coloring only matched once the priority tie was broken by narrowing
+  the parameter type (`u32 id` -> `u16 id`). Param width changes the entry
+  extension and the register the value first lands in, which reshuffles
+  local-alloc priorities. The permuter found this axis; it is worth trying
+  u16/s16 vs u32 on a value that is only ever used masked to 16 bits.

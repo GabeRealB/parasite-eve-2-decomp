@@ -400,7 +400,60 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/sndbank", AudioTick_Insert);
+s32 AudioTick_Insert(void* poll, u32 onRemove, u16 id, s32* arg)
+{
+    AudioTickNode* node;
+    AudioTickNode* head;
+    AudioTickNode* p;
+    AudioTickNode* next;
+    u16            id16;
+    u16            key;
+
+    id16 = id;
+    key  = id16;
+    head = &AudioTick_List;
+    if (head == NULL) {
+        return -1;
+    }
+    AudioTick_Enabled = 0;
+    node              = SndHeap_Malloc(sizeof(AudioTickNode));
+    if (node == NULL) {
+        AudioTick_Enabled = 1;
+        return -1;
+    }
+    node->poll     = (s32)poll;
+    node->onRemove = onRemove;
+    node->id       = id16;
+    node->arg      = (s32)arg;
+    node->prev     = 0;
+    node->next     = 0;
+
+    p = head;
+    for (;;) {
+        next = (AudioTickNode*)p->next;
+        if (next == NULL) {
+            p->next           = (s32)node;
+            node->prev        = (s32)p;
+            node->next        = 0;
+            AudioTick_Enabled = 1;
+            return 0;
+        }
+        if ((u16)next->id == key) {
+            SndHeap_Free(node);
+            AudioTick_Enabled = 1;
+            return -2;
+        }
+        if (key < (u16)next->id) {
+            node->next                      = (s32)next;
+            AudioTick_Enabled               = 1;
+            ((AudioTickNode*)p->next)->prev = (s32)node;
+            p->next                         = (s32)node;
+            node->prev                      = (s32)p;
+            return 0;
+        }
+        p = next;
+    }
+}
 
 void SndHeap_Reset(void)
 {
