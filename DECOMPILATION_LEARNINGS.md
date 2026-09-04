@@ -3,6 +3,40 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `x = y; x += 1` copy-props to `addiu dest, src, 1`; `SOFT_TOUCH_REG` keeps `move` + `addiu`
+
+A then-arm that must compile as
+
+```
+move   a1, v1
+addiu  a1, a1, 1
+```
+
+is written `x = y; x += 1;` in C, but CSE/copy-prop rewrites the increment off
+the still-live `y` and combine emits a single `addiu dest, src, 1`. An empty
+`SCHED_BARRIER()` between the two statements does not stop that: the barrier
+is not a data-flow clobber, so the copy of `y` is still proved equal to `x`
+and the first assignment becomes a dead store.
+
+`SOFT_TOUCH_REG(x)` after the copy makes the value of `x` unknown, so the
+increment cannot fold:
+
+```c
+if (len < decimals) {
+    decimals = len;
+    SOFT_TOUCH_REG(decimals);
+    decimals += 1;
+} else {
+    decimals += 1;
+}
+```
+
+The else `+ 1` still fills the `beqz` delay slot; only the then-arm keeps the
+two-instruction form. `Room_Util01` is the example. The same decimal-point
+shift inlined into a caller (`func_mist_parking_8018182C`) uses the merged
+`if (len < n) n = len; n++;` shape — that is a different target, not a
+failed fold.
+
 ## `getTPage` through an `s16` y: widen first, mask x with `0x3C0`
 
 `setDrawTPage` + `getTPage` is the right shape for a leaf `DR_TPAGE` insert
