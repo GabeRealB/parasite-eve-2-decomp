@@ -4,16 +4,34 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "rooms/room_common.h"
 extern s32      D_acropolis_roof_garden_80183BDC;
 extern TaskDesc D_acropolis_roof_garden_80183C10;
 extern Task*    D_acropolis_roof_garden_80183C0C;
 extern s32      D_acropolis_roof_garden_80183D74;
 extern s32      D_acropolis_roof_garden_80184194;
 extern s32      D_acropolis_roof_garden_8018432C;
+extern s32      D_acropolis_roof_garden_80184B08;
 
 extern u8 D_801153F4;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017D7A0);
+s32 func_acropolis_roof_garden_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    switch (in->field_2) {
+        case 1:
+            if (((Game_Session->field_9 == 1) || (Game_Session->field_9 == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
+                GameFlag_SetNibble(0xCB, 1);
+            }
+            break;
+        case 2:
+            if (((Game_Session->field_9 == 1) || (Game_Session->field_9 == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
+                func_800E8614((s32)&D_acropolis_roof_garden_80184B08, 1);
+                GameFlag_SetNibble(0xCB, 2);
+            }
+            break;
+    }
+    return 1;
+}
 
 s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
