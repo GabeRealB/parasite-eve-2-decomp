@@ -43942,3 +43942,87 @@ byte global will not stay put behind neighbouring struct stores, it was a
 struct member or an array in the original source. Here `D_80073BAA` is
 `Wip_SysConfig + 0x22`, and naming it that way is both the correct symbol and
 the thing that makes the block match.
+
+## Compute alias pointers before the early-return guards, not after
+
+**Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
+instruction matched except that the task argument and one alias pointer had
+swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
+`GpCoordTail*` view of `Gp_RoomCoords[1].coord`, ours used `s3` and `s2`.
+
+**Symptom.** Nothing in the C looked register-related; `.greg` showed the
+allocation order line
+
+```
+;; 11 regs to allocate: 88 87 170 213 204 82 81 84 80 85 83
+```
+
+with the alias pseudo (84) sorted *ahead* of the parameter pseudo (80), so it
+took `$s2` first. GCC 2.8.1's global allocator sorts allocnos by roughly
+`log2(n_refs) * n_refs / live_length`, so a pointer with a **short** live range
+outranks one with the same number of uses spread over the whole function.
+
+**Fix.** Initialise the alias pointers with the other prologue locals, above
+the guard clauses, instead of after them:
+
+```c
+work  = task->spawnArg2;
+coord = ((TmdObject*)task->extra)->field_8;
+base  = &Gp_RoomCoords[1];
+light = &base->coord;                 /* not after the two `return`s */
+slot  = (GpCoordTail*)light;
+if ((((GpActorWork*)Game_GetPtrSlot(3))->extra->field_C & 0x80) != 0) {
+    return;
+}
+if (Gp_State1C->field_4 >= 2) {
+    return;
+}
+```
+
+That lengthens `slot`'s live range, drops its priority below the parameter's,
+and the two saved registers fall into the ROM's order. It also moves
+`addiu s4, s5, 4` and `move s3, s4` up into the guards' delay slots, which is
+what the target does. 94.2% → 97.4% on this function.
+
+## Let the struct field hold the value instead of buffering it in a local
+
+**Problem.** The same function updates the LCG and derives an angle from it:
+
+```
+sll  v0, v1, 2
+addu v0, v0, v1
+addu v0, v0, t0
+sw   v0, %lo(Gp_LcgState)(a3)   <- target stores here
+srl  v0, v0, 0x10
+```
+
+Writing the result into a local first put the `sw` two instructions later,
+after the `srl` and `andi`, which also cost the value a second register:
+
+```c
+ang            = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState    = ang;
+ang            = ((ang >> 16) & 0x700) + 0x400;   /* store sinks */
+slot->field_50 = ang;
+slot->field_52 = ang >> 1;
+slot->field_54 = slot->field_50 >> 2;
+```
+
+**Cause.** `-fschedule-insns` runs before allocation and sinks a store with no
+data-dependent successors as far as the memory-ordering edges allow. The local
+`ang` gave the store nothing to sink *behind* until the first `sh` into the
+struct.
+
+**Fix.** Assign straight into the field and read it back for the derived
+values. The extra memory operation is an ordering edge the scheduler must
+respect, so the global store stays put and the LCG value dies into the `srl`:
+
+```c
+slot->field_50 = ((ang >> 16) & 0x700) + 0x400;
+slot->field_52 = (u16)slot->field_50 >> 1;
+slot->field_54 = slot->field_50 >> 2;
+```
+
+CSE still replaces both read-backs with the stored register, and the signedness
+of each read-back is what picks `srl` (from `u16`) versus the `sll 16` / `sra 18`
+pair (from the `s16` field). 97.4% → 100%.
