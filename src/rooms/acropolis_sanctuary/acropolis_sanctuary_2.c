@@ -406,7 +406,187 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017E338);
+/// Draws one frame of a whole mosaic tile: a semi-transparent textured quad
+/// whose four corners are the size class's own corner offsets, rotated by the
+/// task's own `workm` and then projected through `GsWSMATRIX` into an
+/// `AcsTileScratch` block taken from `G_SCRATCH_HEAD`. The first corner goes
+/// through `rtps` and the other three through `rtpt`; tiles inside `otz` 0x11
+/// are dropped. The texture window is the tile's own `row` / `col` origin
+/// stretched by its `field_0` / `field_2` extent, so the quad shows its own
+/// piece of the mosaic sheet at full size -- this is the intact tile,
+/// `func_acropolis_sanctuary_8017EC90` draws the shards it breaks into.
+///
+/// The drift (`field_10`..`field_14`) and spin (`field_18`..`field_1C`) are
+/// seeded from the LCG on the first drawn frame, in one of two strengths
+/// chosen by the tile's `field_8`: a fast, wide-tumbling one and a slow one
+/// whose life (`field_26`) also gets a random 0..7 bonus. Life is the tile's
+/// `field_A`, and `field_22` is the frame counter measured against it -- the
+/// tile drifts while it is still young, and the work block is released 0x3C
+/// frames past that.
+///
+/// While drifting, a tile of the fast kind (`field_24` zero) has a 1-in-60
+/// chance per frame -- or a certainty once past y = -0xBFF -- of shedding one
+/// to four 0x6007A shards, tagged 0x1000 so they spawn as the airborne
+/// variant. Crossing x = -0x2740 above y = -0xED7 either shatters a
+/// size-class-1 tile into two to four untagged shards or, for size class 0,
+/// bounces it by halving and inverting the vertical step. Either split costs
+/// 0x64 of life. Once the room flag is set and the session is not in mode
+/// 0x10, tiles past x = -0x28C0 also age by 0x3C, so they clear away.
+void func_acropolis_sanctuary_8017E338(Task* arg0)
+{
+    GpEffWork*      mem;
+    GsCOORDINATE2*  coord;
+    void**          scratch;
+    u8*             head;
+    AcsTileScratch* blk;
+    POLY_FT4*       prim;
+    SVECTOR*        sv;
+    s32             quad;
+    s32             i;
+    s32             n;
+
+    mem   = arg0->spawnArg2;
+    quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1].quad;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    Gp_UpdateCoord(coord);
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x28;
+    blk      = (AcsTileScratch*)(head - 0x28);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    for (i = 0; i < 4; i++) {
+        blk->v[i].vx = D_acropolis_sanctuary_80182710[quad].corner[i].vx;
+        // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
+        // pointer from the one the GTE macros below take; writing both the same
+        // way lets CSE fold them into one register and the loop stops matching.
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(AcsTileScratch, v));
+        sv->vy = D_acropolis_sanctuary_80182710[quad].corner[i].vy;
+        sv->vz = D_acropolis_sanctuary_80182710[quad].corner[i].vz;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&blk->v[i]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[i]);
+        blk->v[i].vx += coord->workm.t[0];
+        sv->vy       += coord->workm.t[1];
+        sv->vz       += coord->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    if (blk->otz >= 0x11) {
+        if (mem->field_22 == 0) {
+            mem->field_24 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_8;
+            if (mem->field_24 != 0) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_18 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_1A = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_1C = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                mem->field_26 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A;
+            } else {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -(((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = ((u32)Gp_LcgState >> 16) & 7;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 4 - (((u32)Gp_LcgState >> 16) & 7);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_18 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_1A = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_1C = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_26 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A +
+                                (((u32)Gp_LcgState >> 16) & 7);
+            }
+        }
+        prim->tpage = 0x8C;
+        prim->clut  = 0x4200;
+        prim->code |= 3;
+        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
+        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
+        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0;
+        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
+        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
+        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2;
+        prim->u3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0;
+        prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
+                   D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    if (mem->field_26 + 0x3C < mem->field_22) {
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    if (mem->field_26 < mem->field_22) {
+        coord->coord.t[0] += mem->field_10;
+        coord->coord.t[1] += mem->field_12;
+        coord->coord.t[2] += mem->field_14;
+        Gfx_RotMatrixYXZ(&coord->coord, (SVECTOR*)&mem->field_18, 0);
+        coord->flg    = 0;
+        mem->field_12 = mem->field_12 + 3;
+        if (mem->field_24 == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                n           = (((u32)Gp_LcgState >> 16) & 3) + 1;
+                for (i = 0; i < n; i++) {
+                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | 0x1000, NULL);
+                }
+                mem->field_22 = mem->field_22 + 0x64;
+            }
+        }
+    }
+    if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
+        if (quad != 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            // The size class is dead once it has been tested, so the shard
+            // count reuses its local -- keeping the two apart costs `$s5`.
+            quad = ((u32)Gp_LcgState >> 16) & 3;
+            if (quad != 0) {
+                quad = quad + 1;
+                for (i = 0; i < quad; i++) {
+                    Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1, NULL);
+                }
+                mem->field_22 = mem->field_22 + 0x64;
+            } else {
+                coord->coord.t[1] -= mem->field_12 * 2;
+                mem->field_12      = -(mem->field_12 >> 1);
+            }
+        } else {
+            coord->coord.t[1] -= mem->field_12 * 2;
+            mem->field_12      = -(mem->field_12 >> 1);
+        }
+    }
+    if ((u8)Game_Session->field_4 != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
+        (coord->coord.t[0] < -0x28C0 ||
+         (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
+        mem->field_22 = mem->field_22 + 0x3C;
+    }
+    mem->field_22 = mem->field_22 + 1;
+}
 
 /// Draws one frame of a mosaic shard: a semi-transparent textured triangle
 /// whose three corners come from the first three corners of

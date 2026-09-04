@@ -155,6 +155,21 @@ typedef struct AcsMosaicScratch {
 } AcsMosaicScratch;
 STATIC_ASSERT_SIZEOF(AcsMosaicScratch, 0x20);
 
+/// Per-frame scratch the sanctuary's mosaic-tile task builds at
+/// `G_SCRATCH_HEAD`: `v` holds the four corners of the tile's quad, each
+/// rotated by the task's own `workm` and then offset by that matrix's
+/// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
+/// taken from. Unlike `AcsMosaicScratch` the corners are not scaled, because a
+/// whole tile is always drawn at its size class's own dimensions. The block is
+/// 0x28 bytes even though only 0x24 are used, because that is the amount the
+/// task reserves off the scratch head.
+typedef struct AcsTileScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR v[4];
+    /* 0x24 */ s32     pad;
+} AcsTileScratch;
+STATIC_ASSERT_SIZEOF(AcsTileScratch, 0x28);
+
 /// One grey level per sprite variant, indexed by the variant the flame task
 /// picked out of `Task::spawnArg1` (bits 8..9). The overlay holds two of these,
 /// the base level `D_acropolis_sanctuary_8017D5D8` and the per-frame flicker

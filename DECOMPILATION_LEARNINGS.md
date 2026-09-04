@@ -41821,3 +41821,37 @@ produce, every other instruction matches, and the two registers involved hold
 the same value. `func_acropolis_sanctuary_8017EC90` is the worked example
 (99.3% -> 100%); an unpinned `TOUCH_REG(sv)` reaches 99.5% the same way but
 stops `combine_givs` from folding, so it is not the answer.
+
+## Merge a dead local into a later counter to claim its callee-saved register
+
+Two locals whose live ranges never overlap are free to share a register, and
+GCC 2.8.1 will not always pick the one the target picked. In
+`func_acropolis_sanctuary_8017E338` the tile's size class lives in `$s5` across
+the whole first half of the function; after the `beqz $s5` that tests it, the
+target reuses `$s5` for the shard-spawn count:
+
+```
+  beqz  $s5, .bounce          ; last use of the size class
+  ...
+  andi  $s5, $v1, 0x3         ; same register, now the spawn count
+  addiu $s5, $s5, 0x1
+```
+
+A separate `s32 n` for the count is correct C and compiles to `$s1` — the
+allocator has both registers free and no reason to prefer either. Assigning the
+count back into the *same* C local as the dead value is what pins it:
+
+```c
+if (quad != 0) {
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    quad = ((u32)Gp_LcgState >> 16) & 3;   /* size class is dead here */
+    if (quad != 0) { ... }
+}
+```
+
+Symptom to recognise: every instruction matches except one register name, the
+two registers are both callee-saved, and the target's choice is a register that
+held an unrelated value earlier in the function. This is the `.lreg` case where
+the fix is to *merge* locals rather than the usual "split a reused local".
+Merging also re-orders the prologue's loads, so re-diff the whole function
+rather than just the loop.
