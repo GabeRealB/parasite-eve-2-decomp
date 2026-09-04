@@ -8,15 +8,15 @@
 /// the script step handed to `func_acropolis_bridge_8017E60C` and
 /// `promptKind` the display mode forwarded to `func_800D4E78`.
 typedef struct AcropolisBridgePromptWork {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s16  field_4;
-    /* 0x06 */ s8   field_6;
-    /* 0x07 */ u8   retryCount;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ byte pad_C[0x2];
-    /* 0x0E */ s8   promptKind;
-    /* 0x0F */ s8   promptBusy;
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s16 field_4;
+    /* 0x06 */ u8  field_6;
+    /* 0x07 */ u8  retryCount;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ s8  promptKind;
+    /* 0x0F */ s8  promptBusy;
 } AcropolisBridgePromptWork;
 
 /// Payload this room passes as `Gp_DispatchMsg`'s `arg2` for message 0x7DA,

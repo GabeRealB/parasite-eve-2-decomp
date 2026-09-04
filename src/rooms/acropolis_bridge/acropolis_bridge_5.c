@@ -7,6 +7,7 @@
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "rooms/acropolis_bridge.h"
@@ -157,7 +158,67 @@ void func_acropolis_bridge_8017E04C(Task* task)
     func_acropolis_bridge_8017E60C(work->field_4, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E1D0);
+/// Runs one frame of the bridge's action prompt while the player is entering a
+/// code: the cursor is hit-tested against the room's hotspot table, and a
+/// confirm press on a hit hotspot either latches that hotspot for the caller
+/// (when the prompt is idle) or shifts its id into `field_4`'s low nibble and
+/// beeps. Hotspot id 0xA is the "clear" key, which re-arms the script at step
+/// 0xFFF. Three entered digits end the script in state 5, a cancel press ends
+/// it in state 8, and a busy cap suspends the whole scan for that frame.
+void func_acropolis_bridge_8017E1D0(Task* task)
+{
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    RoomActionPrompt*          prompt = &D_80114D28;
+
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+    } else {
+        prompt->targetId = 0x80;
+        if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+            prompt->mode = 2;
+            if (prompt->buttons[0].state == 2) {
+                while (hs->id != -1) {
+                    if (hs->hit != 0) {
+                        if (work->promptBusy == 0) {
+                            prompt->mode     = 0;
+                            prompt->targetId = 0;
+                            work->field_C    = hs->id;
+                            work->promptKind = hs->promptKind;
+                            task->state      = 3;
+                            return;
+                        }
+                        if (hs->id == 0xA) {
+                            work->field_4 = 0xFFF;
+                            work->field_6 = 0;
+                        } else {
+                            work->field_4 <<= 4;
+                            work->field_4   = (work->field_4 & 0xFF0) | hs->id;
+                            work->field_6++;
+                        }
+                        SndEvt_EnqueueType6(0x510E0003, 0, 0);
+                        break;
+                    }
+                    hs++;
+                }
+            }
+        } else {
+            prompt->mode = 1;
+        }
+        if (work->field_6 == 3) {
+            task->state   = 5;
+            work->field_A = 0;
+        }
+        if (prompt->buttons[1].state == 2) {
+            task->state                 = 8;
+            D_acropolis_bridge_801917A8 = 0;
+        }
+    }
+    func_acropolis_bridge_8017E60C(work->field_4, 0);
+}
 
 /// Winds the bridge prompt back down, the mirror of
 /// `func_acropolis_bridge_8017E04C`: it clears the "bridge is up" sprite
