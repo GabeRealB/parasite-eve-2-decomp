@@ -43202,3 +43202,42 @@ addends adding up to the same address) is a match. Confirm with the real build
 rather than chasing the score: `./tools/build-and-verify.sh` printed
 `✅ BUILD SUCCEEDED` on the 99.81% object. This is the array-indexing case of
 the `Gfx_ViewWorldMtx` versus `Gfx_ViewCoord.workm` entry above.
+
+## Where the unrelated store goes decides the scratch-head reserve's copy
+
+The `G_SCRATCH_HEAD` reserve idiom is three statements: read the head, publish
+`head - N`, and keep `head - N` as the typed block pointer. GCC 2.8.1 CSEs the
+two `head - N` occurrences into one pseudo, so the only degrees of freedom are
+whether that pseudo needs a copy into the long-lived block register and where
+any unrelated store nearby lands. Both are decided by which of the three
+statements an unrelated store is written between.
+
+`func_acropolis_promenade_8017ED44` reserves 0x24 bytes and also copies
+`task->spawnArg1` into `work->field_22`. The target is
+
+```
+lw    v0, 0(a0)      # head
+addiu v0, v0, -0x24
+move  t1, v0         # blk
+lhu   v0, 0x34(s1)
+move  a1, t1
+sh    v0, 0x22(s2)   # work->field_22, *before* the publish
+sw    t1, 0(a0)
+```
+
+Putting the `work->field_22` store after both pointer statements drops the
+`move` entirely (the `addiu` writes `$t1` directly, 97.69%, `insert`/`delete`
+non-zero); putting it after the publish but before the block pointer keeps the
+`move` but emits `sw` before `sh` (99.73%, `reorder=1`). Only
+
+```c
+head           = *scratch;
+work->field_22 = task->spawnArg1;
+*scratch       = head - 0x24;
+blk            = (ApmGlowScratch*)(head - 0x24);
+```
+
+gives both. The rule of thumb: the statement that reads the head last is the one
+that gets the temp register, so anything you want to see *before* the publish
+has to be written before it, and the block pointer has to be written last for
+the copy to survive.

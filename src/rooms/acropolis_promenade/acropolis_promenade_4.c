@@ -5,10 +5,24 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "rooms/acropolis_promenade.h"
 #include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+/// `rtps` / `rtpt` / `mvmva`. The `inline_c.h` macros of those names assemble
+/// to different words, so spell the instructions out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 Gp_LcgState;
+
+extern ApmGlowCorner D_acropolis_promenade_80181AE4[];
 
 extern SVECTOR D_acropolis_promenade_80181AFC[];
 extern SVECTOR D_acropolis_promenade_80181B0C[];
@@ -147,6 +161,95 @@ void func_acropolis_promenade_8017E394(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_4", func_acropolis_promenade_8017E634);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_4", func_acropolis_promenade_8017ED44);
+/// Draws one frame of the promenade's ground glow: a semi-transparent textured
+/// quad lying flat under the task's coordinate frame. The four corner signs in
+/// `D_acropolis_promenade_80181AE4` are scaled to +/-0x300 in `vx` / `vz` (with
+/// `vy` left at zero, so the quad is horizontal), rotated by the task's own
+/// `workm`, offset by that matrix's translation and then projected through
+/// `GsWSMATRIX` into an `ApmGlowScratch` block taken from `G_SCRATCH_HEAD`. The
+/// first corner goes through `rtps` and the other three through `rtpt`, the
+/// same split the sanctuary's mosaic tiles use.
+///
+/// The depth is biased by 0x20 before the near-plane test, so the glow survives
+/// a little closer to the camera than the 0x11 cutoff alone would allow. Its
+/// colour is a fresh random grey (0..0xF, equal on all three channels) every
+/// frame, which is what makes it flicker; the quad is drawn semi-transparent
+/// (`code |= 2`) from the 0x27x0x27 patch at v = 0x10 on tpage 0x2B.
+///
+/// The task is one-shot: the work block is released as soon as the quad has
+/// been queued, so the room respawns it each frame it wants the glow.
+void func_acropolis_promenade_8017ED44(Task* task)
+{
+    GsCOORDINATE2*  coord;
+    RoomEffWork*    work;
+    void**          scratch;
+    u8*             head;
+    ApmGlowScratch* blk;
+    POLY_FT4*       prim;
+    SVECTOR*        sv;
+    s32             i;
+    s32             grey;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = task->spawnArg2;
+    Gp_UpdateCoord(coord);
+    scratch        = (void**)G_SCRATCH_HEAD;
+    head           = *scratch;
+    work->field_22 = task->spawnArg1;
+    *scratch       = head - 0x24;
+    blk            = (ApmGlowScratch*)(head - 0x24);
+    for (i = 0; i < 4; i++) {
+        blk->v[i].vx = D_acropolis_promenade_80181AE4[i].x * 0x300;
+        // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
+        // pointer from the one the GTE macros below take; writing both the same
+        // way lets CSE fold them into one register and the loop stops matching.
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(ApmGlowScratch, v));
+        sv->vy = 0;
+        sv->vz = D_acropolis_promenade_80181AE4[i].y * 0x300;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&blk->v[i]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[i]);
+        blk->v[i].vx += coord->workm.t[0];
+        sv->vy       += coord->workm.t[1];
+        sv->vz       += coord->workm.t[2];
+    }
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    prim->u0 = 0;
+    prim->v0 = 0x10;
+    prim->u1 = 0x27;
+    prim->v1 = 0x10;
+    prim->u2 = 0;
+    prim->v2 = 0x37;
+    prim->u3 = 0x27;
+    prim->v3 = 0x37;
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    blk->otz += 0x20;
+    if (blk->otz >= 0x11) {
+        prim->tpage = 0x2B;
+        prim->clut  = 0x4381;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        grey        = ((u32)Gp_LcgState >> 16) & 0xF;
+        prim->r0    = grey;
+        prim->g0    = grey;
+        prim->b0    = grey;
+        prim->code |= 2;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x24;
+    Gp_ReleaseState1CMem(work, task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_4", func_acropolis_promenade_8017F0BC);

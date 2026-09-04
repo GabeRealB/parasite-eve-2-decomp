@@ -30,4 +30,27 @@ typedef struct ApmStreamWork {
 } ApmStreamWork;
 STATIC_ASSERT_SIZEOF(ApmStreamWork, 0x14);
 
+/// Sign pair for one corner of the promenade's ground-glow quad
+/// (`func_acropolis_promenade_8017ED44`). The four entries of
+/// `D_acropolis_promenade_80181AE4` are the +/-1 combinations, scaled by 0x300
+/// into the quad's `vx` / `vz`; the quad is flat, so there is no `y` component
+/// to sign.
+typedef struct ApmGlowCorner {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+} ApmGlowCorner;
+STATIC_ASSERT_SIZEOF(ApmGlowCorner, 0x4);
+
+/// Per-frame scratch the promenade's ground-glow task builds at
+/// `G_SCRATCH_HEAD`: `v` holds the four corners of the glow quad, each rotated
+/// by the task's own `workm` and then offset by that matrix's translation, and
+/// `otz` is the depth (`SZ3 >> 2`, biased by 0x20) the ordering-table slot is
+/// taken from. The block is exactly the 0x24 bytes the task reserves off the
+/// scratch head.
+typedef struct ApmGlowScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR v[4];
+} ApmGlowScratch;
+STATIC_ASSERT_SIZEOF(ApmGlowScratch, 0x24);
+
 #endif // ROOMS_ACROPOLIS_PROMENADE_H
