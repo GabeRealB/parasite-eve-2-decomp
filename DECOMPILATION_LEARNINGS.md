@@ -45665,3 +45665,36 @@ The scratch push still needs the sibling's scoped `$v0` pin so
 `addiu v0, v0, -0x3C` / `move s0, v0` does not coalesce into `addiu s0`.
 `func_gunblade_8011D70C`, `func_m4a1_bayonet_8011D69C` and
 `func_tonfa_baton_8011D6B0` are the two-arg copies.
+## A trailing global store takes `$v1` unless a temp is still live over it
+
+The `lui %hi` scratch pseudo of a store to a global has no suggested hard
+register, so `local_alloc` gives it the first free caller-saved one. After a
+call whose result is still in `$v0`, that is `$v1` — and `$v1` is exactly the
+register a preceding `p->field++` has just released.
+
+`func_acropolis_bridge_8017DD9C` is the whole pattern in five instructions: the
+target wants
+
+```
+lw    v1, 0x30(s0)   ; addiu v1, v1, 1 ; sw v1, 0x30(s0)
+lui   a0, %hi(D_...) ; sw    v0, %lo(D_...)(a0)
+```
+
+Written in the obvious m2c order — increment the field, then store the call
+result to the global — the increment's pseudo is dead by the `lui`, so the
+address lands in `$v1` and the score sticks at 99.5% with `regs=2`. Splitting
+the increment and moving the global store between its two halves keeps that
+pseudo live across the `lui`, which pushes the address to `$a0`:
+
+```c
+Task* task = Task_SpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
+s32   next = arg0->state + 1;
+
+D_acropolis_bridge_8019179C = task;
+arg0->state                 = next;
+```
+
+`sched2` puts the field store back before the global store, so the emitted order
+is unchanged — only the allocation moves. Same family as "Shape a live range by
+*where* a local is introduced": to *raise* a caller-saved register, overlap it
+with a value that is still live, rather than pinning it.
