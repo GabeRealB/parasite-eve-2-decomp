@@ -38,4 +38,42 @@ typedef union AcsMsgArg {
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
+/// One corner of an `AcsQuad`, laid out like an `SVECTOR` but read unsigned:
+/// every consumer either copies the component into an `SVECTOR` verbatim or
+/// subtracts it from a value that is truncated back to 16 bits, so the sign of
+/// the load never reaches the result.
+typedef struct AcsQuadCorner {
+    /* 0x0 */ u16 vx;
+    /* 0x2 */ u16 vy;
+    /* 0x4 */ u16 vz;
+    /* 0x6 */ u16 pad;
+} AcsQuadCorner;
+STATIC_ASSERT_SIZEOF(AcsQuadCorner, 8);
+
+/// A size class of the sanctuary's mosaic effect: the four corner offsets a
+/// tile of that class is drawn with. `D_acropolis_sanctuary_80182710` holds two
+/// of them, a small one and a double-sized one, and `AcsTile::quad` picks
+/// between them. `func_acropolis_sanctuary_8017E134` only needs `corner[0]`,
+/// the origin the tile's grid position is measured from.
+typedef struct AcsQuad {
+    /* 0x0 */ AcsQuadCorner corner[4];
+} AcsQuad;
+STATIC_ASSERT_SIZEOF(AcsQuad, 0x20);
+
+/// One tile of the sanctuary's mosaic, from the 72-entry table at
+/// `D_acropolis_sanctuary_80182320`. `row` and `col` are grid coordinates that
+/// `func_acropolis_sanctuary_8017E134` scales by 1145/128 and 2147/256 into the
+/// spawn offset, and `quad` selects the tile's size class in
+/// `D_acropolis_sanctuary_80182710`.
+typedef struct AcsTile {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 row;
+    /* 0x6 */ s16 col;
+    /* 0x8 */ s16 field_8;
+    /* 0xA */ s16 field_A;
+    /* 0xC */ s16 quad;
+} AcsTile;
+STATIC_ASSERT_SIZEOF(AcsTile, 0xE);
+
 #endif

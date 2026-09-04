@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 
@@ -34,6 +35,9 @@ extern s32           D_acropolis_sanctuary_80180AE8;
 extern u8            D_acropolis_sanctuary_80181814[];
 extern TaskDesc      D_acropolis_sanctuary_80182240;
 extern GpMsgEntry    D_acropolis_sanctuary_80182310[];
+extern AcsTile       D_acropolis_sanctuary_80182320[];
+extern AcsQuad       D_acropolis_sanctuary_80182710[];
+extern s16           D_acropolis_sanctuary_80182750[];
 extern s32           D_acropolis_sanctuary_80182770;
 extern SVECTOR       D_acropolis_sanctuary_80182774[];
 extern Task*         D_acropolis_sanctuary_80186C90;
@@ -295,7 +299,48 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017E134);
+/// State 0 of the sanctuary's mosaic task: spawns one 0x60079 effect per tile,
+/// first for all 72 entries of `D_acropolis_sanctuary_80182320` keyed by their
+/// own index, then a second pass over the 16 tiles listed in
+/// `D_acropolis_sanctuary_80182750` keyed by the tile index itself, so those
+/// sixteen get a second effect on top. Each spawn reuses the task's own
+/// `GpEffWork` offset triple: x is always 0, y and z come from the tile's grid
+/// position scaled by 1145/128 and 2147/256 and shifted by the origin corner of
+/// the size class in `quad`. Any state but 0 just releases the work block.
+void func_acropolis_sanctuary_8017E134(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    AcsTile*       tile;
+    s32            quad;
+    s32            i;
+    s32            idx;
+
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (arg0->state != 0) {
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    for (i = 0; i < 0x48; i++) {
+        tile          = &D_acropolis_sanctuary_80182320[i];
+        quad          = tile->quad;
+        mem->field_10 = 0;
+        mem->field_12 = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
+        mem->field_14 = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
+        Gp_SpawnEff(0x60079, coord, i, (SVECTOR*)&mem->field_10);
+    }
+    for (i = 0; i < 0x10; i++) {
+        idx           = D_acropolis_sanctuary_80182750[i];
+        tile          = &D_acropolis_sanctuary_80182320[idx];
+        quad          = tile->quad;
+        mem->field_10 = 0;
+        mem->field_12 = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
+        mem->field_14 = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
+        Gp_SpawnEff(0x60079, coord, idx, (SVECTOR*)&mem->field_10);
+    }
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017E338);
 

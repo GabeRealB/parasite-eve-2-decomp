@@ -41673,3 +41673,35 @@ shared default": there the recovered case is a single pivot value in the middle
 of the tree, here it is a run of low values that `group_case_nodes` folds into
 one node. Both say the same thing — cases whose body is empty leave a trace in
 the dispatch even though they leave none in the body.
+
+## …and the converse: a pointer local schedules the address *early*, inline indexing schedules it late
+
+The mirror of "Explicit pointer locals stop element offsets folding into the
+mem operand". A second-level index — load an index out of one table, use it to
+index a second table — has two shapes, and they schedule differently.
+
+```c
+org = &Tbl[cell->quad];               /* pointer local  */
+a   = ((cell->col * 1145) >> 7) - org->vy;
+b   = -((cell->row * 2147) >> 8) - org->vz;
+```
+
+emits `lh`/`sll 5`/`addu` back to back, right where the index is loaded,
+because the address is a pseudo whose definition is a statement of its own and
+the scheduler has nothing to sink it past. The target instead had the `sll`/
+`addu` pair sitting *after* the six-instruction multiply chain, immediately
+before the `lhu` that uses it. That ordering comes from indexing inline and
+letting CSE share the address between the two uses:
+
+```c
+quad = cell->quad;                    /* index local, not a pointer */
+a = ((cell->col * 1145) >> 7) - Tbl[quad].corner[0].vy;
+b = -((cell->row * 2147) >> 8) - Tbl[quad].corner[0].vz;
+```
+
+CSE materialises the shared address at the *first* use, which is inside the
+first expression and therefore after its operand chain. So: a pointer local
+pulls the address computation up to the index load, an index local pushes it
+down to first use. Pick whichever side of the operand chain the target puts it
+on. `func_acropolis_sanctuary_8017E134` is the worked example (89% -> 100%,
+`regs=22 reorder=1 insert=6 delete=6` -> all zero, from this single change).
