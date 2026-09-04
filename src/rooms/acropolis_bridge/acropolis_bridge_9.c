@@ -2,23 +2,34 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 
+void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void func_acropolis_bridge_8018581C(Task* task);
+
 /// Work block the bridge enemy's task keeps at `Task::idMap`. `field_4` is the
 /// live flag every state handler in this unit gates on, and `field_12E` /
 /// `field_196` are the two flag halfwords whose bit 15 the handlers toggle to
-/// enable one behaviour and disable the other.
+/// enable one behaviour and disable the other. `field_1F0` is the `GpEffArg`
+/// the death effect is spawned with and `field_290` the death-sequence frame
+/// counter.
 typedef struct AcropolisBridgeEnemyWork {
-    /* 0x000 */ byte pad_0[0x4];
-    /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[0x128];
-    /* 0x12E */ u16  field_12E;
-    /* 0x130 */ byte pad_130[0x66];
-    /* 0x196 */ u16  field_196;
+    /* 0x000 */ byte     pad_0[0x4];
+    /* 0x004 */ s16      field_4;
+    /* 0x006 */ byte     pad_6[0x128];
+    /* 0x12E */ u16      field_12E;
+    /* 0x130 */ byte     pad_130[0x66];
+    /* 0x196 */ u16      field_196;
+    /* 0x198 */ byte     pad_198[0x58];
+    /* 0x1F0 */ GpEffArg field_1F0;
+    /* 0x1F8 */ byte     pad_1F8[0x98];
+    /* 0x290 */ u16      field_290;
 } AcropolisBridgeEnemyWork;
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
@@ -59,7 +70,59 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187310);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801874DC);
+/// Runs the bridge enemy's death sequence. On the first frame (work block still
+/// live) it clears bit 15 of both behaviour flag words, tags the link node and
+/// drops its actor slots, arms the pending `Gp_StateF0` request, credits the
+/// kill if the enemy still had HP, spawns the death effect on the model's
+/// second part coordinate, switches the model to light mode 1, shakes the pad
+/// and restarts the frame counter. Every frame after that it ticks the counter
+/// up to 100, runs `func_acropolis_bridge_8018581C` and, on frames 2, 30 and
+/// 44, steps the model flags / light mode through the fade-out.
+void func_acropolis_bridge_801874DC(Task* task)
+{
+    AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
+    s32                       step;
+
+    if (work->field_4 != 0) {
+        work->field_196    &= 0x7FFF;
+        work->field_12E    &= 0x7FFF;
+        enemy->node.field_4 = 1;
+        Gp_ClearNodeSlots(&enemy->node);
+        if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
+            Gp_ArmStateF0(1);
+        }
+        if (enemy->field_40 > 0) {
+            Gp_ReleaseStateF0Add((GpObj20E*)task, 0x29);
+        }
+        work->field_1F0.field_0 = &((TmdObject*)task->extra)->field_8[1];
+        work->field_1F0.field_4 = 0xA0;
+        work->field_1F0.field_6 = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &((TmdObject*)task->extra)->field_8[1], NULL,
+                      &work->field_1F0);
+        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        Gp_SpawnEff(0x600A5, &((TmdObject*)task->extra)->field_8[1], 1, NULL);
+        ((TmdObject*)task->extra)->field_C = 2;
+        work->field_290                    = 0;
+        Gp_SpawnPadLerp(3, 0xFF, 8);
+    }
+    if (work->field_290 < 0x65) {
+        work->field_290++;
+        func_acropolis_bridge_8018581C(task);
+        step = work->field_290;
+        switch (step) {
+            case 2:
+                ((TmdObject*)task->extra)->field_C = step;
+                break;
+            case 30:
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                break;
+            case 44:
+                ((TmdObject*)task->extra)->field_C = 0x80;
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801876A8);
 

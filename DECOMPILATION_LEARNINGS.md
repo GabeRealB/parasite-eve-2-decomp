@@ -45962,3 +45962,37 @@ So read the target backwards: whichever block sits at the end of the function
 and is jumped to from more than one site is the `else`, and the straight-line
 code between the branch and that `j` is the `then`. Flipping the comparison is
 usually the whole fix — do it before touching registers or scheduling.
+
+## A `u16` switch value that is also stored back wants an `int` local
+
+`switch` on an unsigned-short expression needs an SImode zero-extension. GCC
+2.8.1 folds that into the `lhu` when the loaded pseudo has only the one use,
+but as soon as a second use wants the value at halfword width — a store back
+into another `u16` field — the load keeps its HImode type and the switch pays
+for an extra `andi $x, $x, 0xffff` before the comparison chain, shifting every
+branch target by 4.
+
+`func_acropolis_bridge_801874DC` reads a frame counter and echoes it into the
+model flags on one of the cases. With m2c's `u16` local (`insert=4 delete=2
+branch=6`, 93.8%):
+
+```c
+u16 step = work->field_290;
+switch (step) {
+case 2: ((TmdObject*)task->extra)->field_C = step; break;  /* forces HImode */
+...
+}
+/* lhu a3,0x290(s1); andi v1,a3,0xffff; beq v1,v0,... */
+```
+
+Widening the local is the whole fix — the store still truncates to `sh`, so
+nothing else changes:
+
+```c
+s32 step = work->field_290;
+/* lhu a3,0x290(s1); beq a3,v0,...   and later  sh a3,0xc(v0) */
+```
+
+The rule generalizes past `switch`: when a value loaded with `lhu`/`lbu` is
+compared *and* stored back, declare the local at `int` width. Narrow locals
+buy nothing here — the load already zero-extended — and cost a mask.
