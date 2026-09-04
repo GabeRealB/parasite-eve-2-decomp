@@ -6,7 +6,7 @@
 #include "main/gameflag.h"
 extern s32      D_acropolis_roof_garden_80183BDC;
 extern TaskDesc D_acropolis_roof_garden_80183C10;
-extern s32      D_acropolis_roof_garden_80183C0C;
+extern Task*    D_acropolis_roof_garden_80183C0C;
 extern s32      D_acropolis_roof_garden_80183D74;
 extern s32      D_acropolis_roof_garden_80184194;
 extern s32      D_acropolis_roof_garden_8018432C;
@@ -63,14 +63,30 @@ void func_acropolis_roof_garden_8017DA48(Task* arg0)
             break;
         case 0x64:
             SndEvt_EnqueueType6(0x510D0010, 0, 0);
-            D_acropolis_roof_garden_80183C0C = 0;
+            D_acropolis_roof_garden_80183C0C = NULL;
             Task_Kill(arg0);
             break;
     }
     arg0->state += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DAD4);
+void func_acropolis_roof_garden_8017DAD4(s32 arg0)
+{
+    switch (arg0) {
+        case 0:
+            D_acropolis_roof_garden_80183C0C = Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 1, 0, 0);
+            break;
+        case 1:
+            D_acropolis_roof_garden_80183C0C = Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 2, 0, 0);
+            break;
+        case 2:
+            if (D_acropolis_roof_garden_80183C0C != NULL) {
+                Task_Kill(D_acropolis_roof_garden_80183C0C);
+                D_acropolis_roof_garden_80183C0C = NULL;
+            }
+            break;
+    }
+}
 
 void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
