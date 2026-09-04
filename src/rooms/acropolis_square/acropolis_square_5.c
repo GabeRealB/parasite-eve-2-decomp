@@ -28,7 +28,75 @@ extern s32                     D_acropolis_square_801888A0;
 extern s32                     D_acropolis_square_801888A4;
 extern GsCOORDINATE2           D_acropolis_square_801888CC;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_5", func_acropolis_square_80181794);
+s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, RoomEventMsg* arg3)
+{
+    GpAreaKey key; // filled in but never used: the Gp_SetAreaObjId call the
+                   // sibling rooms make with it is absent here
+    u16 temp_s1;
+
+    key.field_3 = 1;
+    key.field_2 = 4;
+    *arg3       = *arg2;
+    if (arg2->msgId == 9) {
+        if ((D_acropolis_square_8018382C != 0) && (arg2->field_5 == 0)) {
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 2);
+        }
+        if (arg2->msgId == 9) {
+            if (GameFlag_GetNibble(9) & 1) {
+                arg3->field_3 = 2;
+            }
+        }
+        return 1;
+    }
+    if (arg2->msgId == 2) {
+        if ((D_acropolis_square_8018382C != 0) && (arg2->field_5 == 0)) {
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 2);
+        }
+        if (GameFlag_GetNibble(0) < 2) {
+            return 1;
+        }
+        if ((GameFlag_GetNibble(0) == 2) || (GameFlag_GetNibble(0) >= 3)) {
+            if (arg2->field_5 == 0) {
+                do {
+                    Gp_SetNibbleIf(arg2->field_6, 2);
+                    Gp_RunCapCmd1(1);
+                } while (0);
+            }
+            return 0;
+        }
+    }
+    if (arg2->msgId == 0x11) {
+        if (GameFlag_GetNibble(0) < 2) {
+            return 1;
+        }
+        if ((GameFlag_GetNibble(0) == 2) || (GameFlag_GetNibble(0) >= 3)) {
+            if (arg2->field_5 == 0) {
+                do {
+                    Gp_SetNibbleIf(arg2->field_6, 2);
+                    Gp_RunCapCmd1(1);
+                } while (0);
+            }
+            return 0;
+        }
+    }
+    temp_s1 = arg2->msgId;
+    if (temp_s1 == 3) {
+        if (arg2->field_5 == 0) {
+            if (GameFlag_GetNibble(0) < 2) {
+                if (GameFlag_GetNibble(0x21) < 2) {
+                    arg3->field_3 = 1;
+                } else {
+                    arg3->field_3 = 2;
+                }
+            } else {
+                arg3->field_3 = temp_s1;
+            }
+        }
+    }
+    return 1;
+}
 s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     s32 var_a0;
