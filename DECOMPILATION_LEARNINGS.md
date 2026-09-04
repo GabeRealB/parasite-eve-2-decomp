@@ -1200,6 +1200,35 @@ string literals.
 
 `func_acropolis_east_elevator_hall_8017F5B4` is the example.
 
+## Hoist the pointer chase out of a call when a block copy sits before it
+
+`func_acropolis_sanctuary_8017F918` is the minimal case: one 8-byte `SVECTOR`
+copy from rodata, one call. Written as the obvious two statements the copy
+comes out first and the argument setup after, which cost 5 `reorder` and a
+77.8% score:
+
+```c
+SVECTOR vec = D_acropolis_sanctuary_8017D5D0;
+Gp_SpawnEff(0x60078, ((TmdObject*)task->extra)->field_8, 0, &vec);
+```
+
+The target loads `0x2C(a0)` and `0x8(v0)` *before* the `lwl`/`lwr` quad. GCC
+2.8.1 emits the unrolled block move as one straight-line chunk and will not
+schedule an argument load into the middle of it, so the pointer chase has to
+already be a separate statement ahead of the copy:
+
+```c
+GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
+
+Gp_SpawnEff(0x60078, coord, 0, &vec);
+```
+
+That is 100%. Generally: when a `reorder` penalty straddles a block copy, the
+fix is a local in the C, not a scheduling pin - the copy is opaque to the
+scheduler and every load you want above it must be its own statement.
+
+
 ## 56-byte assign needs a word-aligned member, not just size `% 4 == 0`
 
 A 0x38-byte stack copy that the target does as three aligned 16-byte

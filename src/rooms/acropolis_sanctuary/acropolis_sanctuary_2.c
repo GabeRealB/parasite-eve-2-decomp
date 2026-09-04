@@ -9,6 +9,7 @@
 
 #include "rooms/room_common.h"
 
+extern SVECTOR       D_acropolis_sanctuary_8017D5D0;
 extern GpMsgEntry    D_acropolis_sanctuary_8018081C[];
 extern RoomPlacement D_acropolis_sanctuary_801808BC;
 extern s32           D_acropolis_sanctuary_80180AE8;
@@ -89,7 +90,17 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017F4E8);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017F918);
+/// Spawns effect 0x60078 on the room task's model coordinate, seeded with the
+/// fixed offset vector held in this unit's rodata. Always consumes the event
+/// (returns 0).
+s32 func_acropolis_sanctuary_8017F918(Task* task)
+{
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+    SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
+
+    Gp_SpawnEff(0x60078, coord, 0, &vec);
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017F974);
 
