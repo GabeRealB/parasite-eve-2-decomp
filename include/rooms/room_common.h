@@ -252,6 +252,9 @@ void Room_Draw25(SVECTOR* arg0, s16 arg1);
 /// `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the lit inner
 /// vertex, OR'd with the frame-counter blend bit so each wedge fades to black.
 void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// Same four-wedge gouraud disc as `Room_Draw13`, but the scratch block keeps
+/// `radius` at 0x4 and `flag` at 0x8.
+void Room_Draw31(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
 /// `arg0`'s world position (`workm.t` through `GsWSMATRIX`). `arg1` is the
 /// radius in world units (scaled by 64 and divided by the projected OTZ after
@@ -348,6 +351,20 @@ typedef struct _RoomDraw13Scratch {
     /* 0x0E */ u16 sy;
 } RoomDraw13Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw13Scratch, 0x10);
+
+/// 0x10-byte scratch block `Room_Draw31` takes from `G_SCRATCH_HEAD`. Same
+/// projection as `RoomDraw13Scratch` (`arg0` through `Gfx_ViewWorldMtx`, one
+/// `RTPS`) but `radius` sits at 0x4 and `flag` at 0x8. `radius` is
+/// `(s16)arg1 * 64 / otz`, the on-screen half-extent of the four `POLY_G4`
+/// wedges.
+typedef struct _RoomDraw31Scratch {
+    /* 0x00 */ s32 otz;
+    /* 0x04 */ s32 radius;
+    /* 0x08 */ s32 flag;
+    /* 0x0C */ u16 sx;
+    /* 0x0E */ u16 sy;
+} RoomDraw31Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw31Scratch, 0x10);
 
 /// 0x18-byte scratch block `Room_Draw10` takes from `G_SCRATCH_HEAD`. `vec` is
 /// the coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`. `otz`
