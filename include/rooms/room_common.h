@@ -237,6 +237,9 @@ void Room_SaveUi01(Task* task);
 /// half-extent divided by the projected depth and `arg2` packs the primitive's
 /// page/blend bits.
 void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
+/// slot 8.
+void Room_Draw42(s32 tpage, s16 arg1);
 void Room_Script10(Task* task);
 void Room_Script11(Task* task);
 void Room_Script21(Task* task);

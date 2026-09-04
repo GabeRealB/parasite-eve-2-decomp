@@ -3,6 +3,35 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `getTPage` through an `s16` y: widen first, mask x with `0x3C0`
+
+`setDrawTPage` + `getTPage` is the right shape for a leaf `DR_TPAGE` insert
+(see "Prefer Psy-Q GPU macros for OT prim insertion"), but two argument
+details decide whether the tpage word matches:
+
+1. **`s16` y used directly in the macro stays HImode.** Each
+   `(y & 0x100) >> 4` / `(y & 0x200) << 2` then emits `andi` plus a
+   `sll 16` / `sra 16` (or `sll 16` / `sra 20`) pair, and there is no
+   leading `sll a1,16` / `sra a1,16`. Assign `s32 y = arg1;` first so the
+   parameter is sign-extended once at entry and the bit ops are plain
+   `andi` / `sra 4` / `sll 2`.
+2. **Retail masks x with `0x3C0`, not the macro's `0x3FF`.**
+   `getTPage(2, 1, x, y)` is `andi a0, 0x3ff` / `sra 6`. Passing
+   `x & 0x3C0` lets combine drop the redundant `0x3FF` and matches
+   `andi a0, 0x3c0` / `sra 6` / `ori a0, 0x120`.
+
+```c
+y              = arg1;
+p              = Gpu_PrimCursor;
+Gpu_PrimCursor = p + 1;
+setDrawTPage(p, 1, 0, getTPage(2, 1, tpage & 0x3C0, y));
+addPrim(Gpu_CurrentOt + 8, p);
+```
+
+`Room_Draw42` is the example. The addPrim tail was already a match with
+the macros; only the tpage word was the leftover (`insert`/`delete` on
+the extra shift pairs).
+
 ## Name the indexed dest before an independent store through the same coord
 
 `coord->flg = 0; coord->sub = &parent->field_8[part];` lets sched1 issue the

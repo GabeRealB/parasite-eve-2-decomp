@@ -1,8 +1,7 @@
 #include "common.h"
 
 #include "main/display.h"
-
-void Room_Draw42(s32 tpage, s16 arg1);
+#include "rooms/room_common.h"
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
