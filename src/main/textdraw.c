@@ -650,7 +650,53 @@ u8* Text_ItoaHex(u8* arg0, u32 arg1)
     return ret;
 }
 
-INCLUDE_ASM("main/nonmatchings/textdraw", func_8002F44C);
+u8* func_8002F44C(u8* arg0, s32 arg1, s32 arg2)
+{
+    u8* p;
+    u32 place;
+    s32 val;
+    s32 count;
+    u32 limit;
+    u32 raw;
+    u32 digit;
+    s32 product;
+
+    val   = arg1;
+    count = arg2 - 1;
+    place = 1;
+    if (count > 0) {
+        do {
+            place *= 10;
+            count--;
+        } while (count > 0);
+    }
+    limit = place * 10 - 1;
+    if (limit < (u32)val) {
+        val = limit;
+    }
+    p = arg0;
+    if ((u32)val < place) {
+        do {
+            place /= 10;
+            *p     = 0x30;
+            p++;
+        } while ((u32)val < place);
+    }
+    if (place != 0) {
+        do {
+            raw     = (u32)val / place;
+            *p      = raw;
+            digit   = *p;
+            product = digit * place;
+            place  /= 10;
+            *p      = digit + 0x30;
+            p++;
+            val -= product;
+        } while (place != 0);
+    }
+    *p = 0;
+    return arg0;
+}
 
 u8* Text_SkipLines(u8* arg0, s32 arg1)
 {
