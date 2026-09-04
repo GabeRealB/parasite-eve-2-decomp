@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
 #include "main/mem.h"
@@ -12,7 +13,10 @@
 
 extern GsCOORDINATE2 Gfx_ViewCoord;
 
+extern SVECTOR    D_acropolis_west_elevator_hall_8017D5EC;
+extern SVECTOR    D_acropolis_west_elevator_hall_8017D5F4;
 extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
+extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
 extern Task*      D_acropolis_west_elevator_hall_80186AE4[];
 
@@ -66,6 +70,42 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F6F0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F7D4);
+/// Third state of the elevator task: on the two session phases that use it,
+/// spawns the lift's ambient effects around the room's coordinate system.
+void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
+{
+    SVECTOR        pos;
+    SVECTOR        altPos;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    switch (task->state) {
+        case 0:
+            task->field_24 = D_acropolis_west_elevator_hall_801849F4;
+            Game_SetPtrSlot(task, 5);
+            Task_Spawn(1, 0x25, 0, 0);
+            Task_Spawn(1, 0x25, 1, 0);
+            task->state = task->state + 1;
+            return;
+        case 1:
+            if ((u8)Game_Session->field_4 == 2) {
+                pos = D_acropolis_west_elevator_hall_8017D5EC;
+                Gp_SpawnEff(0x6001F, coord, 0x1804, &pos);
+                pos.vx = -0x1800;
+                pos.vy = -0x4F0;
+                pos.vz = -0x600;
+                Gp_SpawnEff(0x6001F, coord, 0x803, &pos);
+                pos.vx = -0x1800;
+                pos.vy = -0x4F0;
+                pos.vz = -0x2C0;
+                Gp_SpawnEff(0x6001F, coord, 0x803, &pos);
+            }
+            if ((u8)Game_Session->field_4 == 5) {
+                altPos = D_acropolis_west_elevator_hall_8017D5F4;
+                Gp_SpawnEff(0x60025, coord, 0, &altPos);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F990);
