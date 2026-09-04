@@ -43508,3 +43508,31 @@ the offset before rewriting C: if it lands on the `D_` address, stop matching
 and go straight to `./tools/build-and-verify.sh`, which links and checksums for
 real. `func_mongoose_8011D1D8` sat at 99.932% for exactly this reason and the
 full build passed unchanged.
+## A `reload_cse` copy in front of a struct-field store, not just a global
+
+`move v0, a3` / `sh v0, 0x95E(s0)` where `$a3` already holds the same
+constant is the struct-field form of the `GLOBAL = K` before `var = K`
+rule: the copy is `reload_cse` rewriting a redundant `li v0,K`, so it only
+survives when cse left two separate `(set reg K)` insns, which needs the
+*field* store to come before the variable's own assignment.
+
+```c
+/* sh a3 - cse folds the store into anim */
+anim             = 1;
+actor->field_956 = 4;
+actor->field_95E = anim;
+
+/* li a3,1 / move v0,a3 / sh v0 - target shape */
+actor->field_956 = 4;
+actor->field_95E = 1;
+anim             = 1;
+```
+
+`func_p08_8011D1D8` is the worked example, and the neighbouring statement
+still matters: with the `field_956` store *after* the pair the copy appears
+but `reorder=1` remains, so keep the unrelated store ahead of both.
+
+Narrowing the variable (`u8 anim`) is the false trail. It does split the
+store into `li v0,1` + `sh v0`, which looks like progress because the insn
+count is finally right, but a QImode `anim` is not in the HImode value class
+so `reload_cse` never turns that `li` into the copy - 98.6% and stuck.

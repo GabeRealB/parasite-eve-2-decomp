@@ -71,7 +71,7 @@ mongoose = { item = 0x88, weapon = "Mongoose", rodata_head = "0x4" }
 mp5a5 = { item = 0x9D, weapon = "MP5A5", rodata = [{ start = "0x4", unit = "mp5a5_2" }], shared = [{ start = "0x6A4", end = "0xBE4", unit = "weapons_shared_8011d864" }] }
 mp5a5_p1 = { item = 0x9E, weapon = "MP5A5(+1)", rodata = [{ start = "0x4", unit = "mp5a5_p1_2" }], shared = [{ start = "0x6A4", end = "0xBE4", unit = "weapons_shared_8011d864" }] }
 mp5a5_p2 = { item = 0x9F, weapon = "MP5A5(+2)", rodata = [{ start = "0x4", unit = "mp5a5_p2_2" }], shared = [{ start = "0x6A4", end = "0xBE4", unit = "weapons_shared_8011d864" }] }
-p08 = { item = 0x83, weapon = "P08" }
+p08 = { item = 0x83, weapon = "P08", rodata_head = "0x4" }
 p08_snail = { item = 0x80, weapon = "P08(S. Magazine)" }
 p229 = { item = 0x84, weapon = "P229", rodata = [{ start = "0x4", unit = "p229_2" }], shared = [{ start = "0x6A0", end = "0xBE0", unit = "weapons_shared_8011d864" }] }
 pa3 = { item = 0x8C, weapon = "PA3" }
