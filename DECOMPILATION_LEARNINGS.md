@@ -30653,6 +30653,34 @@ fails to reduce it and recomputes `addu`/`sll` every iteration; and a plain
 `for` inside the explicit `if` emits the guard twice, so the body must be a
 `do`/`while`.
 
+## A hoisted invariant sits *before* a giv init, but *after* an explicit pointer
+
+`func_acropolis_sanctuary_8017E00C` spawns twelve effects in two `do`/`while`
+loops, the second passing `i + 0xA00000` — too wide for `addiu`, so GCC hoists
+`lui $s4, 0xA0` into the loop preheader. Writing the array walk as its own local
+(`vec = &tbl[6]; ... vec++;`) reproduced every instruction but put the `lui`
+last:
+
+```
+li    s0, 6
+lui   v0, %hi(tbl)      # <- explicit statement, emitted here
+addiu v0, v0, %lo(tbl)
+addiu s1, v0, 0x30
+lui   s4, 0xa0          # <- invariant appended after it
+```
+
+The target has `lui $s4, 0xa0` immediately after `li $s0, 6`. The reason is
+*when* each insn enters the preheader. An ordinary C statement is emitted where
+you wrote it, so `loop_invariant_motion` — which appends before `loop_start` —
+can only land behind it. A giv initial value is not a statement: strength
+reduction creates it during the same pass and emits it after the invariants.
+
+Indexing the array instead of keeping a pointer (`&tbl[i]` in the call, no `vec`
+local) makes the walking pointer a giv, and the two swap: 97.2% → 100%.
+When one hoisted `lui`/`li` of a wide constant is the only instruction out of
+place in a loop preheader, stop hand-rolling the walking pointer and let the
+loop optimizer derive it.
+
 ## Distinct spill slots mean distinct locals, not one shared set
 
 Two sibling branches of the same `switch` case each moved an item between two

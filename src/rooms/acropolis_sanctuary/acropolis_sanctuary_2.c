@@ -22,6 +22,9 @@ extern GpRec14       D_acropolis_sanctuary_80180A0C;
 extern s32           D_acropolis_sanctuary_80180AE8;
 extern u8            D_acropolis_sanctuary_80181814[];
 extern TaskDesc      D_acropolis_sanctuary_80182240;
+extern GpMsgEntry    D_acropolis_sanctuary_80182310[];
+extern s32           D_acropolis_sanctuary_80182770;
+extern SVECTOR       D_acropolis_sanctuary_80182774[];
 extern Task*         D_acropolis_sanctuary_80186C90;
 
 extern void func_acropolis_sanctuary_8017DD78(void);
@@ -140,7 +143,40 @@ void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017E00C);
+/// State 0 of the sanctuary's effect task: spawns the twelve 0x6008B effects
+/// the room is decorated with, six with spawn arg `0x200 + i` and six with
+/// `0xA00000 + i`, each anchored to the task's own coordinate and offset by its
+/// entry in `D_acropolis_sanctuary_80182774`. It then publishes the task's
+/// handler table under pointer slot 5 and advances the state so the spawn runs
+/// once. Every frame after that it mirrors the session's stage byte into
+/// `D_acropolis_sanctuary_80182770`: 1 while the byte is 0x10, held while it is
+/// 0xC, 0 otherwise.
+void func_acropolis_sanctuary_8017E00C(Task* task)
+{
+    GsCOORDINATE2*    coord;
+    GameSessionFrom4* sess;
+    s32               i;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (task->state == 0) {
+        for (i = 0; i < 6; i++) {
+            Gp_SpawnEff(0x6008B, coord, i + 0x200, &D_acropolis_sanctuary_80182774[i]);
+        }
+        for (i = 6; i < 12; i++) {
+            Gp_SpawnEff(0x6008B, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
+        }
+        task->field_24 = D_acropolis_sanctuary_80182310;
+        Game_SetPtrSlot(task, 5);
+        D_acropolis_sanctuary_80182770 = 0;
+        task->state                    = task->state + 1;
+    }
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    if (sess->field_0 == 0x10) {
+        D_acropolis_sanctuary_80182770 = 1;
+    } else if (sess->field_0 != 0xC) {
+        D_acropolis_sanctuary_80182770 = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_8017E134);
 
