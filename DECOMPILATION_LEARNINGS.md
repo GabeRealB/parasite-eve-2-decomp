@@ -42116,3 +42116,91 @@ anything structural. Inverting the outer test the other way (`if (state == 5)
 { vol = 0x1E; } else { vol = 0; if (state == 7) ... }`) does not work: GCC emits
 the *then* arm first, which puts the `li $s0, 0x1E` block above the compare
 against 7 rather than below it.
+
+## Which address GCC picks as the base for a run of `&sym[k]` constants
+
+When a function touches several fixed elements of a file-scope array, GCC 2.8.1
+does not emit a `lui`/`addiu` pair per element: CSE loads one address into a
+pseudo and reaches the rest with `addiu`. *Which* address becomes that base is
+decided by the first `&sym[k]` expression the pass sees, and that is visible in
+the object dump.
+
+`func_acropolis_roof_garden_8017DCDC` spawns one effect from
+`D_acropolis_roof_garden_80184BF8[2]` and then loops over `[3]`..`[9]`. Writing
+both references against the symbol,
+
+```c
+Gp_SpawnEff(0x6008A, coord, 0x4000102, &D_acropolis_roof_garden_80184BF8[2]);
+for (i = 3; i < 10; i++) {
+    Gp_SpawnEff(0x6008A, coord, i + 0x200, &D_acropolis_roof_garden_80184BF8[i]);
+}
+```
+
+makes `sym + 0x10` the base, because it is the first constant address CSE
+records, and the loop's induction variable starts from it:
+
+```
+lui   $s0, %hi(sym)
+addiu $s0, $s0, %lo(sym + 0x10)
+jal   Gp_SpawnEff
+ move $a3, $s0                    # the element itself
+addiu $s0, $s0, 8                 # IV init = base + 8
+```
+
+The target instead keeps `sym` itself as the base and reaches both elements by
+offset:
+
+```
+lui   $s0, %hi(sym)
+addiu $s0, $s0, %lo(sym)
+jal   Gp_SpawnEff
+ addiu $a3, $s0, 0x10
+addiu $s0, $s0, 0x18              # IV init = base + 0x18
+```
+
+To get that, give the base its own local and assign it the *plain* symbol right
+before the first use, so `&sym` is what CSE sees first:
+
+```c
+vec = D_acropolis_roof_garden_80184BF8;
+Gp_SpawnEff(0x6008A, coord, 0x4000102, &vec[2]);
+for (i = 3; i < 10; i++) {
+    Gp_SpawnEff(0x6008A, coord, i + 0x200, &vec[i]);
+}
+```
+
+Placement of that assignment matters as much as its existence. Hoisting it
+above an *earlier* loop that also walks the array keeps `vec` live across the
+loop's calls, which costs a whole extra callee-saved register (`$s6` appears,
+the frame grows 8 bytes and every `sw`/`lw` slot shifts) — a 91% score, worse
+than the 97% the plain-symbol spelling scored. Assign it between the loops,
+where its live range is only the few instructions the two derived addresses
+need, and the pseudo shares a register with the earlier loop's own pointer.
+
+## Reusing one loop counter across two loops flips their callee-saved coloring
+
+Two `for` loops in sequence, each with its own counter and its own
+strength-reduced pointer, produce four pseudos, and global allocation orders
+them by refs-per-live-length. Those ratios come out nearly tied between a
+counter and a pointer (`9/14 = 0.643` against `7/11 = 0.636` in
+`func_acropolis_roof_garden_8017DCDC`), so the two loops can end up coloring
+their counter/pointer pairs *opposite* ways round: the second loop matched with
+counter in `$s1` and pointer in `$s0` while the first loop got the reverse, for
+a residual `regs=9` and nothing else.
+
+Declaring one counter and reusing it in both loops merges the two counter
+pseudos into one with a longer live range and more references, which reorders
+the whole allocation and colored both loops the same way — 99.6% to 100% with
+no other change:
+
+```c
+for (i = 0; i < 2; i++)  { ... }
+...
+for (i = 3; i < 10; i++) { ... }
+```
+
+This is worth trying whenever the only leftover is `regs` on sequential loops
+and the loops disagree with each other about which register holds the counter.
+The reverse edit — splitting a reused counter — is the same lever pulled the
+other way, and the existing "Merge a dead local into a later counter to claim
+its callee-saved register" entry is the neighbouring case.

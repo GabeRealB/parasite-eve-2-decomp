@@ -1,12 +1,62 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/268.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", func_acropolis_roof_garden_8017DCDC);
+/// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by the
+/// task's first-frame burst below.
+extern SVECTOR D_acropolis_roof_garden_80184BF8[10];
+
+/// Roof-garden ambient effect task. On its first frame it fires one effect per
+/// entry of `D_acropolis_roof_garden_80184BF8` - two with a 0x02000000 flavour,
+/// one flagged 0x04000102, then seven more - and every frame after that it adds
+/// the two view-dependent effects: one while the current view is 5 or 6 (the
+/// `0x30 >> view - 1` bit test) and one while it is 7.
+void func_acropolis_roof_garden_8017DCDC(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            i;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (task->state == 0) {
+        for (i = 0; i < 2; i++) {
+            Gp_SpawnEff(0x6008A, coord, i + 0x2000000, &D_acropolis_roof_garden_80184BF8[i]);
+        }
+        vec = D_acropolis_roof_garden_80184BF8;
+        Gp_SpawnEff(0x6008A, coord, 0x4000102, &vec[2]);
+        for (i = 3; i < 10; i++) {
+            Gp_SpawnEff(0x6008A, coord, i + 0x200, &vec[i]);
+        }
+        task->state = task->state + 1;
+    }
+    if (Gp_State1C->field_4 < 4) {
+        if ((0x30 >> ((u8)Game_Session->field_4 - 1)) & 1) {
+            work->field_10.vx = -0x12A2;
+            work->field_10.vy = -0xDC;
+            work->field_10.vz = -0xF19;
+            Gp_SpawnEff(0x60090, coord, 0x60E, &work->field_10);
+        }
+        if ((u8)Game_Session->field_4 == 7) {
+            work->field_10.vx = -0x12A2;
+            work->field_10.vy = -0xDC;
+            work->field_10.vz = -0xF19;
+            Gp_SpawnEff(0x60090, coord, 0x8000030E, &work->field_10);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", func_acropolis_roof_garden_8017DE90);
 
