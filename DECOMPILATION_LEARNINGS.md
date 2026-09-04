@@ -42363,3 +42363,50 @@ and the pair lands the target's way round — 100%. This is the same lever as
 *source* array as well: a sibling's `p++` is not evidence that the copy in
 front of you wants one, because the two forms only differ once a second,
 compiler-generated induction variable shares the loop.
+
+## maspsx drops the load-delay `nop` before `lw $r, %lo(sym)($base)`
+
+**Problem.** `uses_at()` in `tools/maspsx/maspsx/__init__.py` special-cases
+`%lo(sym)(reg)` for *stores* but not *loads*. A load in that form falls through
+to a later regex that parses the offset as the literal string `%lo`, concludes
+the instruction expands via `$at`, and therefore suppresses the load-delay
+`nop` in front of it. The emitted code is then one instruction short of what
+the real assembler produces.
+
+**Ground truth, and why the obvious test is not one.** The tempting check is
+"does the patched assembler score closer to the ROM?" — it does, by 9 branch
+penalties on `func_acropolis_roof_garden_8017E29C` — but that reasoning is
+circular. The ROM is the *target*; validating a toolchain change by whether it
+improves the match fits the assembler to the answer, and every later function
+is then assembled by a tool that is wrong in a way nothing will catch.
+
+The real oracle is what ASPSX 2.77 does. `tools/maspsx/aspsx/` has the harness:
+`download.sh` fetches the Psy-Q releases (2.77 is in **psyq4.3**, matching
+`MASPX_VERSION` in `ninja_config.py`), and `util.run_aspsx` + `read_text_section`
+return the emitted machine words. Assembling all three forms:
+
+```
+lw  $2,%lo(sym)($3)  ->  8C620000                      one instruction, no $at
+sw  $2,%lo(sym)($3)  ->  AC620000                      one instruction, no $at
+lw  $2,sym($3)       ->  3C010000 00230821 8C220000    lui/addu/lw via $at
+```
+
+The two controls are known-good (upstream issue #109/#110 for the store,
+`ASM/EXPND_LW.S` for the bare-symbol load), so the run is trustworthy. The
+`$at` expansion depends on the **addressing mode, not the opcode**: with `%hi`
+already in the base register, `%lo(sym)(base)` is a single instruction whatever
+the opcode. Upstream fixed only `sw` because that is what the reported issue
+contained.
+
+**Fix.** `tools/maspsx-lo-load-nop.patch` adds the mirror-image load case, plus
+a discriminating test in maspsx's own suite. `ninja_config.py` re-applies it on
+every run, because a submodule edit survives neither a fresh clone nor
+`git submodule update` — the same arrangement `permute.sh` uses for
+`tools/decomp-permuter-objdump.patch`. All 137 maspsx tests pass, and all 3413
+existing `%lo` loads in the build produce byte-identical objects, so the fix
+corrects the failing case without disturbing anything already matched.
+
+**Running ASPSX yourself.** It is a PE32 binary: Ubuntu's wow64-only `wine`
+crashes on it, so `wine32:i386` and `wine32-stable` are required. The source
+must have CRLF line endings and live in a short path next to `ASPSX.EXE`, or
+the DOS-era argument parsing mangles it.

@@ -37,3 +37,6 @@ tools/peassets/logs/
 configs/USA/generated/
 .bulk_m2c/
 .promote-logs/
+
+# Claude Code session state (agent worktrees, local settings)
+.claude/

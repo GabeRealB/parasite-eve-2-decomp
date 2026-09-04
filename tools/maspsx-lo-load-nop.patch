@@ -1,0 +1,54 @@
+diff --git a/maspsx/__init__.py b/maspsx/__init__.py
+index 4eba469..6d7f205 100644
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -155,6 +155,13 @@ def uses_at(line: str) -> bool:
+     if match := re.match(r"^s[wbh]\s+(\$[a-z0-9]+),\s*%lo\(([^(]+)\)\(([^)]+)\)", line):
+         return False
+ 
++    # lw	$2,%lo(s_attr)($3)
++    # Same addressing mode as the store above, so likewise no $at expansion.
++    # Verified against real ASPSX 2.77 (psyq4.3): this assembles to a single
++    # 0x8C620000, while `lw $2,sym($3)` expands to lui/addu/lw via $at.
++    if match := re.match(r"^l[a-z]+\s+(\$[a-z0-9]+),\s*%lo\(([^(]+)\)\(([^)]+)\)", line):
++        return False
++
+     # sw	$2,D_801813A4
+     # sw	$3,g_CurrentRoom+40
+     # sw	$2,D_us_8017863C.4
+diff --git a/tests/test_nop.py b/tests/test_nop.py
+index f6f3ef7..391a6f0 100644
+--- a/tests/test_nop.py
++++ b/tests/test_nop.py
+@@ -635,6 +635,31 @@ class TestNopMacro(unittest.TestCase):
+         clean_lines = strip_comments(res)
+         self.assertEqual(expected_lines, clean_lines)
+ 
++    def test_lw_lw_lo_macro(self):
++        """
++        Need a nop between the two lw as the second does not expand to use $at.
++        Mirrors test_lw_sw_lo_macro: the $at expansion depends on the addressing
++        mode, not the opcode.
++
++        Verified against real ASPSX 2.77 (psyq4.3): `lw $2,%lo(sym)($3)`
++        assembles to a single 0x8C620000, whereas `lw $2,sym($3)` expands to
++        lui/addu/lw via $at.
++        """
++        lines = [
++            "lw	$3,0($5)",
++            "#nop",
++            "lw	$2,%lo(s_attr)($3)",
++        ]
++        expected_lines = [
++            "lw	$3,0($5)",
++            "nop",
++            "lw	$2,%lo(s_attr)($3)",
++        ]
++        mp = MaspsxProcessor(lines)
++        res = mp.process_lines()
++        clean_lines = strip_comments(res)
++        self.assertEqual(expected_lines, clean_lines)
++
+     def test_lw_sw_no_lo_macro(self):
+         """
+         This doesn't a nop between the lw/sw as the sw does expand to use $at

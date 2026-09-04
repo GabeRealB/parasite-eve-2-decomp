@@ -1,6 +1,11 @@
 [submodule "tools/maspsx"]
 	path = tools/maspsx
 	url = https://github.com/mkst/maspsx.git
+	# ninja_config.py keeps tools/maspsx-lo-load-nop.patch applied here, so a
+	# dirty working tree is the expected steady state, not work in progress.
+	# "dirty" hides only file edits; a moved pointer still shows, which is the
+	# case that would actually need committing.
+	ignore = dirty
 [submodule "tools/m2c"]
 	path = tools/m2c
 	url = https://github.com/matt-kempster/m2c.git

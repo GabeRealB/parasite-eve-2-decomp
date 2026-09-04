@@ -238,6 +238,51 @@ OBJDIFF_DIR = TOOLS_DIR / "objdiff"
 # and a bare "python3" is whatever happens to be first on PATH.
 PYTHON = sys.executable or ("python" if PLATFORM == Platform.Windows else "python3")
 MASPSX = f"{PYTHON} {TOOLS_DIR / 'maspsx' / 'maspsx.py'}"
+
+
+def _ensure_maspsx_patch() -> None:
+    """Re-apply tools/maspsx-lo-load-nop.patch if the submodule is pristine.
+
+    maspsx classifies `lw $r,%lo(sym)($b)` as needing $at expansion and so
+    suppresses the load-delay nop before it. Real ASPSX 2.77 (psyq4.3)
+    assembles that form as a single instruction - verified by assembling it and
+    reading the emitted words - exactly like the `sw` form upstream already
+    special-cases. Without the fix the assembler drops a nop the real one emits.
+
+    The change lives in a submodule, so it does not survive `git submodule
+    update` or a fresh clone; keep it as a tracked patch and re-apply here, the
+    same way permute.sh does for decomp-permuter.
+    """
+    import subprocess
+
+    # TOOLS_DIR is relative, and `git -C <sub> apply` resolves its argument
+    # relative to the submodule, so the patch path has to be absolute.
+    sub = TOOLS_DIR / "maspsx"
+    patch = (TOOLS_DIR / "maspsx-lo-load-nop.patch").resolve()
+    marker = sub / "maspsx" / "__init__.py"
+    if not patch.is_file() or not marker.is_file():
+        return
+    try:
+        if "^l[a-z]+" in marker.read_text():
+            return  # already applied
+    except OSError:
+        return
+    r = subprocess.run(
+        ["git", "-C", str(sub), "apply", str(patch)],
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode == 0:
+        print(f"Applied {patch.name} to tools/maspsx")
+    else:
+        print(
+            f"Warning: could not apply {patch.name}; maspsx will drop the "
+            f"load-delay nop before %lo() loads",
+            file=sys.stderr,
+        )
+
+
+_ensure_maspsx_patch()
 match PLATFORM:
     case Platform.Windows:
         BINUTILS_DIR = OS_DIR / "binutils"
