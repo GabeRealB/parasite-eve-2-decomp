@@ -1,6 +1,7 @@
 # CAP dialogue files (`.pe2cap2`)
 
-The per-room dialogue container, magic `"CAP"`. 172 files on disc, one per room
+The per-room dialogue container, magic `"CAP2"` (the loader compares 3 bytes).
+172 files on disc, one per room
 that speaks.
 
 A CAP file is not a dialogue blob. It is a **small state machine that chooses
@@ -18,7 +19,7 @@ Everything below is read off the matched interpreter in
 ## 1. File header — `GpCapFile` (0x14)
 
 ```
-0x00  char magic[4]    "CAP" (strncmp, 3 bytes)
+0x00  char magic[4]    "CAP2" on disc; strncmp checks 3 bytes only
 0x04  s32  field_4     unread by the loader
 0x08  s32  → glyph table   published as Gp_CapGlyphs (GlyphUvwh*)
 0x0C  s32  → event table   GpCapEvtTable*
@@ -155,20 +156,73 @@ Variant is **how many** of a run of 2-bit flags are not in state 2 — a progres
 tally ("how many of these have you not finished"). With `flags & 4`, a zero
 tally branches instead of speaking.
 
-## 6. What is still open
+## 6. Checked against a real file
 
-- **Text encoding.** `field_8` is a relocated `u16*`. Whether those are glyph
-  indices into `Gp_CapGlyphs`, a codepage, or contain inline control codes is
-  not traced.
-- **`GpEvt12` fields 0-3 and 6.** Only `field_4`, `field_5`, `field_7` and
+`assets/USA/raw/pe2cap2/pe2cap2_4.pe2cap2`. `.pe2cap2` payloads are stored
+opaque (§3.6 of `ASSET_FORMATS.md` — no LZSS), so the extracted bytes are what
+the loader sees.
+
+**The magic on disc is `"CAP2"`, four characters.** `Gp_RelocCapFile` compares
+only three, so any `CAP*` passes. Do not write a 4-byte comparison.
+
+**One raw chunk holds several CAP2 blobs.** This file has headers at `0x1AA0`
+and `0x29F0`. The leading region before the first magic is a different
+structure containing already-absolute pointers (`0x80188920`, matching the
+per-room cap2 RAM address in `OVERLAYS.md` §2). What that leading region is has
+not been identified.
+
+Header at `0x1AA0`, matching §1 exactly:
+
+```
+"CAP2"  field_4=0x8  glyph=+0x14  evt=+0xB30  ptr=+0xF00
+```
+
+**The pointer table indexes into the event table.** Count 18; entries are
+file-relative offsets `0xB34`, `0xB64`, `0xB88`, `0xBA0`, … and `0xB34` is
+exactly `evt + 4`, the first `GpEvt12`. Entry gaps are whole multiples of 12
+(`0xB64-0xB34 = 4 records`, `0xB88-0xB64 = 3`, `0xBA0-0xB88 = 2`).
+
+That settles the aliasing question: **`GpCapCmd` and `GpEvt12` are the same
+records seen two ways.** `Gp_RunCapCmd` reads `Gp_CapCmds[i]` as a 9-byte
+command; `Gp_StartCap` stores the same pointer as `Gp_CapTable` and
+`Gp_FindCapEvt` walks it as 12-byte events. The command record is the head of
+its own event run.
+
+Run termination confirmed: within the first run the fourth record has
+`field_8 == -1`.
+
+**Text is glyph indices, not a character encoding.** Over `+0x14 .. +0xB30`:
+1422 `u16` values, only **107 distinct**, 1241 of them below `0x100`, most
+frequent `0x001B` (165x), then `0x0021` (104x), `0x0023` (80x). A dense small
+alphabet with a skewed frequency profile — indices into the glyph table at
+`field_8` (`Gp_CapGlyphs`), not ASCII or Shift-JIS. 108 values are `>= 0x8000`
+and are presumably control codes; `0xFFFE` / `0xFFFF` appear as terminators.
+
+## 7. What is still open
+
+- **Glyph index -> character.** The values are indices into `Gp_CapGlyphs`;
+  turning them into readable text needs that table plus the font image. The
+  mapping is not alphabetical by inspection (`0x21` as `A` does not produce
+  words).
+- **Control codes.** The 108 values `>= 0x8000` are undecoded.
+- **The event-table count word does not parse as `s32`.** At `evt` the bytes
+  are `41 00 0C 00`. `Gp_RelocCapFile` reads that as `s32 count` = `0x000C0041`
+  = 786497, which would walk far past the file. Read as `{u16 count = 0x41;
+  u16 stride = 0x0C}` it is sensible: 65 records of 12 bytes. The interpreter
+  is matched, so the ROM really does load a word there. **Unresolved** - either
+  `GpCapEvtTable` is mistyped in `include/gameplay/3CD8.h`, or the relocation
+  path is not reached for these files, or the base used here is not the base
+  the loader uses. Do not build a packer on the current struct until this is
+  settled.
+- **`GpEvt12` fields 0-3 and 6.** Only `field_4`, `field_5`, `field_7`,
   `field_8` have known roles.
-- **`GpCapFile.field_4`** is never read by the loader.
-- **Message `0x13F0`** (opcode 3) — the payload contract with slot 7's task is
-  not documented.
-- **`Gp_StartCapSlot`** itself: how `variant` selects among the records in a
-  slot's run, and what `mode` does.
+- **`GpCapFile.field_4`** is `8` in this file and never read by the loader.
+- **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
+- **What `mode` selects.** `Gp_StartCap` sets a text-box geometry
+  (`0x30`, `0xC0`, `0x140`, `7`) but the per-mode differences are untraced.
+- **The leading pre-magic region** of the raw chunk.
 
-## 7. Why this matters beyond extraction
+## 8. Why this matters beyond extraction
 
 CAP is the closest thing the game has to a room scripting language, and it is
 deliberately narrow: five opcodes over counters, game-flag nibbles and 2-bit
