@@ -37558,6 +37558,43 @@ block preceding the branch that the delay-slot filler can steal, and the live
 range now crosses every later call, so the allocator gives it `$s7` and the
 remaining values shift up one register each (`extra` ends in `$fp`).
 
+## The same scratch-pointer copy, but spanning a GTE `FLAG` test
+
+`func_m4a1_javelin_8011EE78` is the entry above without a `Mem_Calloc`: it
+carves 0x14 bytes off `G_SCRATCH_HEAD` for one projected `LINE_G2`, and the
+target keeps both `$a3` (the block, live for every later field access) and a
+`move t0, a3` used *only* as the `gte_stszotz` operand inside the
+`gte_stflg` / `bltz` guard. The rule generalises past `Mem_Calloc`: the extra
+copy has to be created in the block *before* the branch it must outlive.
+Taking the address at its use site — `gte_stszotz(&sc->otz0)` inside the
+`if` — folds back to `$a3` and loses the `move`; hoisting it to a plain local
+above the first GTE call keeps it:
+
+```c
+sc   = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
+*(M4a1JavelinLineScratch**)G_SCRATCH_HEAD = sc;
+otz0 = &sc->otz0;                 /* becomes `move t0, a3` */
+gte_SetTransMatrix(&GsWSMATRIX);
+...
+if (sc->flag >= 0) {
+    gte_stszotz(otz0);
+```
+
+The *second* `gte_stszotz(&sc->otz1)` must stay written at its use site:
+`head - 0x10` is not an already-computed expression, so it becomes the
+target's own `addiu v0, t1, -0x10` rather than a copy.
+
+## Write `G_SCRATCH_HEAD` out at both ends, never as a local
+
+The pair `head = *scratch; ... *scratch = ... ` reads naturally with a
+`void** scratch` local, but `0x1F8003FC` is a constant the compiler will happily
+rematerialise, and the ROM does: `lui/ori` at entry and a *second* `lui/ori`
+after the `jal` in the tail. A local forces one pseudo whose live range spans
+the call, so GCC spends a callee-saved register on it — `sw s0, 0x10(sp)`, `$ra`
+pushed to 0x14, and a `lw s0` in the epilogue, four instructions the target does
+not have. Spelling `*(u8**)G_SCRATCH_HEAD` at each use recovers it; adjacent
+uses in the entry block still share one `lui/ori` through CSE.
+
 ## `Gfx_ViewWorldMtx` versus `Gfx_ViewCoord.workm` is a relocation-name diff only
 
 `Gfx_ViewWorldMtx` (0x80070F34) *is* `Gfx_ViewCoord.workm` (0x80070F10 + 0x24).
