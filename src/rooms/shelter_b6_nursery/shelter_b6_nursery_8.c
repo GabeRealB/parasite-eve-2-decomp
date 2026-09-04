@@ -7,7 +7,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 extern void Room_Draw02(GsCOORDINATE2* coord, s32 arg1, s32 arg2, u8* rgb);
-extern void Room_Draw04(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
 extern void Room_DrawBillboard(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80181314);

@@ -43745,3 +43745,28 @@ Narrowing is only right when the local really is a halfword field's value —
 `func_p08_8011D1D8` is the case where a `u8` local is the false trail, because
 there `reload_cse` has to fold the constant, not avoid it. Splitting the
 second, unrelated 1 into its own `s32` local keeps that distinction visible.
+
+## Pin `G_SCRATCH_HEAD` to `$a1` so arg1 moves to `$a3` and `GsWSMATRIX` uses `$t0`
+
+A ring helper whose second argument arrives in `$a1` and then reuses `$a1`
+as the scratch-head pointer compiles as:
+
+```
+move  a3, a1
+lui   a1, 0x1F80
+ori   a1, a1, 0x3FC
+lw    a2, 0(a1)
+```
+
+Without a pin, GCC keeps arg1 in `$a1` (or never copies it) and loads the
+scratch address into `$v1`. `GsWSMATRIX` then lands in `$a3` instead of `$t0`,
+and each `mflo` of the ring radius uses `$a3` instead of `$t0`.
+`register void** scratch asm("a1")` is the lever that forces the copy.
+
+`USE_REG(head)` after `head = *scratch` keeps `lw a2, 0(a1)` before
+`lhu v0, 0x38(a0)` without pinning `head` to `$a2`. Nested
+`register … asm("v0")` for the vx load and the `head - 0x18` temp is still
+needed for `addiu v0, a2, -0x18` / `move s2, v0`. Unpinning those `$v0`
+temps drops the extra move and looks like a control-flow miss.
+`Room_Draw04` is the example; `Room_Draw10` already uses the `$v0` pair.
+

@@ -28,22 +28,10 @@ typedef struct _RoomBillboardScratch {
 } RoomBillboardScratch;
 STATIC_ASSERT_SIZEOF(RoomBillboardScratch, 0x1C);
 
-/// 0x18-byte scratch block taken from `G_SCRATCH_HEAD` by the room's radial
-/// glow helper (`func_dryfield_motel_balcony_8017E66C` and its twin
-/// `func_dryfield_motel_balcony_801809AC`).
-///
-/// Same projection sequence as `RoomBillboardScratch` - one `RTPS` of `vec`
-/// fills `sx`/`sy`, `flag` and `otz` - but only one radius is needed, because
-/// the fan is eight `POLY_G4` wedges of a single ring.
-typedef struct _RoomFanScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     radius;
-    /* 0x10 */ s32     flag;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} RoomFanScratch;
-STATIC_ASSERT_SIZEOF(RoomFanScratch, 0x18);
+/// Same 0x18-byte scratch block as `RoomDraw04Scratch`. This overlay holds two
+/// copies of that body (`func_dryfield_motel_balcony_8017E66C` and
+/// `func_dryfield_motel_balcony_801809AC`), so they cannot share one object.
+typedef RoomDraw04Scratch RoomFanScratch;
 
 /// 0x14-byte request record the room's event scripts build on the stack and
 /// hand to the gate at `func_dryfield_motel_balcony_8017D5E8`. `flagId` is a

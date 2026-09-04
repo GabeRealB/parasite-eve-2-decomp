@@ -253,6 +253,10 @@ void Room_Draw25(SVECTOR* arg0, s16 arg1);
 /// inner vertex so each `POLY_G4` fades to black. Dropped when `gte_stflg` is
 /// negative.
 void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
+/// Same eight-wedge gouraud ring as `Room_Draw10`, but the scratch block keeps
+/// `radius` at 0xC and `flag` at 0x10. `arg1` is still the signed half-extent
+/// `(s16)arg1 * 64 / (otz + 1)`, and `arg2` still tints only the inner vertex.
+void Room_Draw04(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
 /// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
 /// height. Left vertices take `arg5`, right vertices take `arg6`.
@@ -341,5 +345,20 @@ typedef struct _RoomDraw10Scratch {
     /* 0x16 */ s16     sy;
 } RoomDraw10Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw10Scratch, 0x18);
+
+/// 0x18-byte scratch block `Room_Draw04` takes from `G_SCRATCH_HEAD`. Same
+/// projection as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
+/// but `radius` sits at 0xC and `flag` at 0x10. `radius` is
+/// `(s16)arg1 * 64 / (otz + 1)`, the on-screen half-extent of the eight
+/// `POLY_G4` wedges.
+typedef struct _RoomDraw04Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     radius;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
+} RoomDraw04Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw04Scratch, 0x18);
 
 #endif // ROOMS_ROOM_COMMON_H
