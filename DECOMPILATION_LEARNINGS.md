@@ -16835,6 +16835,13 @@ evaluates right-to-left and matches:
 D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = arg0;
 ```
 
+Chaining also collapses the *loads*, which matters when the destination is a
+local array rather than a global. `rgb[0] = work->field_28; rgb[1] = …;
+rgb[2] = …;` reloads the field three times, because GCC cannot prove the `u8
+rgb[3]` stores do not alias it; `rgb[0] = rgb[1] = rgb[2] = work->field_28;` is
+one `lbu` and three `sb` in reverse index order. `func_mp5a5_8011D1E0` is the
+example.
+
 Write the `<= 0` clamp arm first so the compiler emits `bgtz` to the
 positive path (`slti` in the delay slot) instead of `blez` to the zero
 arm.
@@ -29111,6 +29118,26 @@ Gp_DrawArc(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
 That emits `lbu; sll 24; sra 17` (i.e. `(s8)field << 7`) while a plain
 `Gp_StateC08.field_2 != 0` elsewhere in the same function still uses `lb`, which
 is what the target does.
+
+## `(s16)(u16)` on an `s16` field *does* survive, unlike the `s8` case
+
+The halfword version of the note above behaves the opposite way. GCC 2.8.1
+folds `(s8)(u8)byte_field` back to `lb`, but it keeps `(s16)(u16)half_field`:
+the `(u16)` forces a zero-extended `lhu` and the `(s16)` becomes the
+sign-extension shift pair, which combine then merges with the following shift.
+
+```c
+/* lhu; sll 16; sra 17 — the ROM's shape */
+work->field_24 = (s16)(u16)work->field_24 >> 1;
+
+/* lh; sra 1 — what a plain >>= 1 on the s16 field gives */
+work->field_24 >>= 1;
+```
+
+So a `sll 16; sra 17` pair off an `lhu` does not require the non-volatile `+r`
+pin from the `(s16)x >> 1` entry above; that pin is only needed when combine
+already knows the value's range (e.g. it came from an `andi`) and would emit a
+bare `srl 1`. `func_mp5a5_8011D1E0` is the example.
 
 ## Recovering a switch's `slti … → default` with one dummy case below the tree root
 
