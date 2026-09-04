@@ -42558,3 +42558,40 @@ block unconditionally; there is no `volatile` or barrier that stops it).
 0x52-iteration `SetDrawMove` loop whose 70-insn body sits just under the cut,
 so the mask is hoisted, the `Task*` is spilled, and every callee-saved register
 from `$s5` up shifts by one. It stalls at 85% with the correct shape.
+
+## Naming an inline-asm pointer operand as its own local unblocks the delay-slot steal
+
+`fill_slots_from_thread` can only steal the join block's first instruction into
+a branch delay slot when that instruction clobbers nothing live on the
+fall-through path. If the stolen insn is the argument copy `move $a0, $sN` for
+the call after the `if`, and the `if` body still reads a pointer that landed in
+`$a0`, the steal is illegal and GCC falls back to filling from the fall-through
+side — one instruction short of the target, with the branch offset off by 8.
+
+`func_acropolis_west_elevator_hall_8017FFE4` is the worked example. The block
+pointer is used throughout the body, so it wants an early register, and the
+only other user of the value is a `gte_stszotz` operand that dies immediately:
+
+```c
+block = (AwehSpriteScratch*)(head - 0x14);
+...
+gte_stszotz(&block->otz);           /* no copy: operand *is* block, block -> $a0 */
+```
+
+Writing the operand as a separate local gives it its own pseudo, which local-alloc
+ranks first (short, dense range) and puts in `$a0`, pushing `block` out to `$a1`:
+
+```c
+otzp = &block->otz;                 /* emits `move $a0, $a1`, block -> $a1 */
+...
+gte_stszotz(otzp);
+```
+
+`$a0` is then dead at the branch and the `move $a0, $sN` steal goes through,
+duplicated in the delay slot and before the label as usual. Re-spelling the
+operand as `&((T*)(head - 0x14))->otz` does *not* work — CSE folds it back onto
+`block`'s pseudo and no copy is emitted. It has to be a named local.
+
+The general rule: an `asm` operand needs a hard register, so it is the one place
+where an "unnecessary" pointer local reliably survives copy-propagation and can
+be used to re-rank the allocation.
