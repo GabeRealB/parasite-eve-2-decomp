@@ -79,7 +79,7 @@ typedef struct RoomEffWork {
     /* 0x22 */ u16     field_22;
     /* 0x24 */ u16     field_24;
     /* 0x26 */ u16     field_26;
-    /* 0x28 */ byte    pad_28[2];
+    /* 0x28 */ u16     field_28;
     /* 0x2A */ u16     field_2A;
 } RoomEffWork;
 

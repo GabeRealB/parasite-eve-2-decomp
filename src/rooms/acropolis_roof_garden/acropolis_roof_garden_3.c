@@ -8,10 +8,15 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
+#include "main/gfx.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+
+extern s32 Gp_LcgState;
+
+void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 
 /// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by the
 /// task's first-frame burst below.
@@ -62,7 +67,113 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", 
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", func_acropolis_roof_garden_8017E29C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", func_acropolis_roof_garden_8017F10C);
+/// One drifting mote of the roof garden's ambient effect. State 0 seeds the
+/// mote from `Gp_LcgState`: a 0x20 brightness, a tilt pair (`field_28` /
+/// `field_2A`) and a per-frame drift vector in `field_10`. State 1 flies it -
+/// the drift is added to the coordinate's translation, the tilt drives
+/// `Gfx_RotMatrixX` / `Gfx_RotMatrixZ`, and each axis of the drift walks back
+/// towards zero one unit per frame, re-rolling to a fresh multiple of 8 once it
+/// reaches it, so the mote wanders instead of settling. Once it has risen past
+/// the origin (`t[1] > 0`) state 2 fades the mote in and state 3 fades it out,
+/// releasing the work block when the ramp runs out.
+void func_acropolis_roof_garden_8017F10C(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    s32            vy;
+    s32            vx;
+    s32            vz;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    Gp_UpdateCoord(coord);
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24    = 0x20;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_28    = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_2A    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            task->state       = 1;
+            /* fallthrough */
+        case 1:
+            coord->coord.t[0] += work->field_10.vx;
+            coord->coord.t[1] += work->field_10.vy;
+            coord->coord.t[2] += work->field_10.vz;
+            Gfx_RotMatrixX(&coord->coord, (s16)work->field_28, 0);
+            Gfx_RotMatrixZ(&coord->coord, (s16)work->field_2A, 0);
+            coord->flg = 0;
+
+            vy = work->field_10.vy;
+            if (vy >= 0x1D) {
+                vy = vy - 1;
+            } else {
+                vy = vy + 1;
+            }
+            work->field_10.vy = vy;
+
+            vx = work->field_10.vx;
+            if (vx == 0) {
+                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+            } else {
+                if (vx > 0) {
+                    vx = vx - 1;
+                } else {
+                    vx = vx + 1;
+                }
+                work->field_10.vx = vx;
+            }
+
+            vz = work->field_10.vz;
+            if (vz == 0) {
+                work->field_10.vz += (s16)work->field_2A % 32;
+                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+            } else {
+                if (vz > 0) {
+                    vz = vz - 1;
+                } else {
+                    vz = vz + 1;
+                }
+                work->field_10.vz = vz;
+            }
+
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_28 += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_2A += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+
+            if (coord->coord.t[1] > 0) {
+                task->state = 2;
+            }
+            func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, 0);
+            break;
+        case 2:
+            if ((s16)work->field_26 < 0x80) {
+                work->field_26 += 0x10;
+            } else {
+                task->state = 3;
+            }
+            func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, 0);
+            break;
+        case 3:
+            if ((s16)work->field_26 >= 0x11) {
+                work->field_26 -= 0x10;
+                func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, (s16)work->field_26);
+            } else {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", func_acropolis_roof_garden_8017F560);
 

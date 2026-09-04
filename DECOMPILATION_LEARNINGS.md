@@ -42204,3 +42204,91 @@ and the loops disagree with each other about which register holds the counter.
 The reverse edit — splitting a reused counter — is the same lever pulled the
 other way, and the existing "Merge a dead local into a later counter to claim
 its callee-saved register" entry is the neighbouring case.
+
+## Step an `s16` field toward zero through an `s32` local, one local per site
+
+A drift vector whose components each walk one unit back towards zero every
+frame compiles, in the target, to the cheapest possible shape: one `lh`, one
+`addiu` that rewrites the same register, one `sh`.
+
+```
+lh    $v0, 0x10($s1)
+bnez  $v0, .Lelse
+ sh   $v1, 0x12($s1)
+...
+.Lelse:
+blez  $v0, .Lplus
+ nop
+j     .Lstore
+ addiu $v0, $v0, -0x1
+.Lplus:
+addiu $v0, $v0, 0x1
+.Lstore:
+sh    $v0, 0x10($s1)
+```
+
+Three spellings of the same C give three different results, and only one of
+them is that:
+
+- **`s16` local** (`s16 v = w->field_10.vx; if (v > 0) v--; ...`) costs a second
+  load and a re-extension. The compare wants the sign-extended value (`lh`) and
+  the arithmetic wants the raw halfword (`lhu`), so both loads appear, plus a
+  `sll 16` / `sra 16` pair whenever the local is read again. Reusing *one* `s16`
+  local across several such sites also forces a `move` into a scratch register
+  at each site, because the arms then write a pseudo that is live into the next
+  site.
+- **Direct field access** (`if (w->field_10.vx > 0) w->field_10.vx--; else
+  w->field_10.vx++;`) is worse still: written as an `else if` chain it changes
+  the block layout outright and the score falls back into non-zero
+  `branch`/`insert`/`delete`.
+- **`s32` local, one per component** is the match. `lh` fills it once, the arms
+  do `addiu` in place, and the single store truncates:
+
+```c
+vx = work->field_10.vx;
+if (vx == 0) {
+    /* re-roll */
+} else {
+    if (vx > 0) { vx = vx - 1; } else { vx = vx + 1; }
+    work->field_10.vx = vx;
+}
+```
+
+Which arm the target puts *inline* tells you which way round to write the
+condition, since GCC always inverts and branches to the `else`: an inline `-1`
+with the `+1` at the branch target is `if (v >= K) v--; else v++;`, not
+`if (v < K) v++; else v--;`.
+
+## `field -= K` then `(s16)field` beats a temporary when the store keeps the raw value
+
+The tail of the same function decrements a `u16` field, passes it as an `s16`
+argument, and in the target the *store* uses the un-extended register while the
+*argument* is the sign-extended copy:
+
+```
+lh    $v0, 0x26($s1)
+lhu   $v1, 0x26($s1)        # hoisted above the branch
+slti  $v0, $v0, 0x11
+bnez  $v0, .Lrelease
+ move $a0, $s1
+addiu $v0, $v1, -0x10
+sll   $a2, $v0, 0x10
+sra   $a2, $a2, 0x10
+jal   func_...
+ sh   $v0, 0x26($s1)        # raw value, not $a2
+```
+
+A temporary gets one half of that or the other but not both. `t = (s16)(f -
+0x10); f = t; g(t)` hoists the `lhu` but stores the extended value; `t = f -
+0x10; f = t; g((s16)t)` stores the raw value but leaves the `lhu` stranded
+below the branch (a `nop` appears in the load-delay slot and the function grows
+four bytes). Writing it with no temporary at all gives both:
+
+```c
+work->field_26 -= 0x10;
+func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, (s16)work->field_26);
+```
+
+GCC keeps the pre-store register for the `sh` and sign-extends the *same*
+register for the argument rather than reloading, and the `lhu` is emitted with
+the compare's `lh` before the branch.
