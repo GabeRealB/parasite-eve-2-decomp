@@ -21731,6 +21731,34 @@ void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
 `Gp_RunDirAction` is the example. Index `(u16 >> 8) & 0x7F` is what produces
 `srl 6` / `andi 0x1FC` (plain `>> 8` is `andi 0x3FC`).
 
+## An oversized frame with dead stack slots is an unused local array
+
+`func_acropolis_west_elevator_hall_8017F354` opens with a 0x230 frame that only
+ever touches `0x10` and `0x14` (`sw $zero`, `sw 4`) and `$ra` at `0x228`; the
+rest is never read or written. The two live slots are leftover dispatch
+arguments in the style of `s32 args[2]` elsewhere in `rooms`, and the 0x210
+bytes above them are a scratch buffer whose consumer is gone.
+
+GCC 2.8.1 reserves frame space for a local array that is declared and never
+referenced, and it keeps stores to an array slot that is never read, so both
+halves are reproducible from C:
+
+```c
+s32 args[2] = { 0, 4 };
+u8  scratch[0x210];      /* never referenced; only reserves the frame */
+```
+
+Frame arithmetic: `args= 16` (outgoing) + `vars= 536` (0x218 of locals) + one
+saved register, rounded to 8, is 560 = 0x230, which the `.frame` comment in the
+kept `.s` states outright — read it rather than guessing the local sizes.
+
+The initializer matters for the same reason as the local jump table above:
+written as two assignments the scheduler sinks `sw $ra` below the first global
+load (98.8%, `reorder=1`); as an initializer the prologue save stays directly
+after `addiu $sp` and the function matches. The rule is not specific to
+function-pointer tables — it applies to any small local array whose stores
+compete with the prologue.
+
 ## Split `i + idx * 4` so the add is `addu v0, i, off`
 
 A byte walk `table[idx].field_1` at `table + i + (id - K) * 4` wants:
