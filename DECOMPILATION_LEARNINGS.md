@@ -43383,3 +43383,73 @@ value-grouped output on its own.
 Same rule as "Give sibling prim blocks the same field-store order to fix
 hoisted-constant registers", from the other side: source order is what
 `local_alloc` ranks, so keep it canonical and let the passes permute it.
+
+## A literal multiplier is strength-reduced; a local one keeps the ROM's `mult`
+
+`(rsin(ang) * 0x600) >> 12` written with the literal in place never emits a
+`mult`: `expand_mult` synthesises the constant multiply at RTL expansion time,
+so GCC 2.8.1 -O2 produces the shift-and-add chain instead.
+
+```
+sll   v1,v0,0x1
+addu  v1,v1,v0
+srl   v1,v1,0x3      /* (x * 3) >> 3, i.e. (x * 0x600) >> 12 */
+```
+
+The ROM's form is a real `mult` against a register holding the constant:
+
+```
+li    s1,0x600
+mult  v0,s1
+mflo  t1
+sra   v0,t1,0xc
+```
+
+Assign the constant to a local and multiply by that. Expansion then sees a
+pseudo and emits a genuine `mult`; CSE knows the value but cannot re-synthesise
+the multiply, and reload materialises the `li`.
+
+```c
+s32 len = 0x600;
+blk->v[1].vx = (rsin(ang) * len) >> 12;
+```
+
+**Where you assign it decides its register.** The assignment's position sets the
+live range, and that is what `global_alloc` ranks:
+
+- at the top of the function the constant outlives everything and lands in a
+  long-lived callee-saved register (it took `$s5` and pushed the *other*
+  constant out to a temp);
+- immediately before the multiply it is live only across the two `jal`s that
+  need it, which is the short callee-saved range the ROM has (`$s1`).
+
+`WeaponsShared8011d864` (`func_mp5a5_8011D864`) is the worked example: 94.1%
+with the literal, 99.0% with both constants assigned at the top, 100% with
+`len = 0x600` moved down to its first use and only the `-0x200` corner depth
+left at the top. Same reasoning applies to a `sh` of a constant that the ROM
+materialises in the prologue - that one *does* want the early assignment.
+
+## Promoting a body ahead of a jump-table user needs a `rodata` cut too
+
+Carving a shared span out of the middle of an overlay splits the code into
+`<name>` and `<name>_2`, and a trailing function that indexes a jump table from
+the leading rodata block suddenly lives in a different unit from the table:
+
+```
+undefined reference to `jtbl_mp5a5_8011D1C4'
+```
+
+The leading rodata is owned by the first code unit, so the table's `.s` is
+emitted under `<name>/<name>` where nothing includes it. Pair the manifest's
+`shared` key with a `rodata` cut naming the tail unit:
+
+```toml
+mp5a5 = { item = 0x9D, weapon = "MP5A5",
+          rodata = [{ start = "0x4", unit = "mp5a5_2" }],
+          shared = [{ start = "0x6A4", end = "0xBE4", unit = "weapons_shared_8011d864" }] }
+```
+
+Then delete the overlay's `src/` files and re-split: splat folds the table back
+into the referencing function's `.s`. `overlay_dup_index.py promote` writes the
+`shared` span but not this cut, so expect to add it by hand for every carrying
+overlay whenever the promoted body is not the last one in the file.

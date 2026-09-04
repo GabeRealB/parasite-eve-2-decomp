@@ -1,1 +1,2 @@
 // Overlay-local symbols for MP5A5(+1) (file 10331).
+WeaponsShared8011d864 = 0x8011D864; // shared body, see src/weapons/lib/
