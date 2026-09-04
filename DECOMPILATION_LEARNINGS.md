@@ -43536,3 +43536,27 @@ Narrowing the variable (`u8 anim`) is the false trail. It does split the
 store into `li v0,1` + `sh v0`, which looks like progress because the insn
 count is finally right, but a QImode `anim` is not in the HImode value class
 so `reload_cse` never turns that `li` into the copy - 98.6% and stuck.
+
+## `grep` silently skips `include/psyq/libgte.h`, so GTE prototypes look undeclared
+
+`include/psyq/libgte.h` is `C source, Non-ISO extended-ASCII text`, and the
+`grep` on this box is ugrep, which drops binary files from a search **without
+printing anything** — not a "Binary file … matches" note, not even a `0` from
+`-c`:
+
+```
+$ grep -c SVECTOR include/psyq/libgte.h      # no output, exit 1
+$ grep -ac SVECTOR include/psyq/libgte.h     # 151
+```
+
+Naming the file directly is *not* enough; only `-a` is. So `grep -rn rsin
+include/` returns only the doc comments in headers that *mention* it, and
+`grep -rln SVECTOR include/` lists 34 files with `libgte.h` missing from them.
+The conclusion "`rsin` / `rcos` / `SVECTOR` / `MATRIX` are undeclared, I need an
+`extern`" is an artifact of the search, and the `extern` then fights the real
+declaration.
+
+Use `grep -a`, or the Grep tool (ripgrep reads the file fine and reports all
+151 hits). `rsin` and `rcos` are declared at `include/psyq/libgte.h:440` as
+`int rsin(int)` — note the `int` return, so `>> 4` on the result is an `sra`
+and a target `srl` needs `(u32)rsin(x) >> 4`.
