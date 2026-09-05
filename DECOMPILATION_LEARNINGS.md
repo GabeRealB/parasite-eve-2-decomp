@@ -46364,3 +46364,39 @@ Which of the two competing caller-saved registers a constant lands in follows
 from *when the other value is born*: reading the halfword into a temp before
 `enemy->node.field_4 = 1` (rather than inline at its store) flipped `1` from
 `$a2` to `$a3` and took `func_acropolis_bridge_801861A0` from 94.0% to 97.7%.
+
+## `addiu s0, sp, 0x10` mid-block means the address of the local was taken *there*
+
+A stack local that is filled field-by-field, then passed to a call and to the
+`gte_*` macros, has two possible codegen shapes. Writing the plain local
+everywhere recomputes `addiu $reg, $sp, N` at each use that needs it as a value
+and stores the fields as `sh $v0, 0x12($sp)`:
+
+```c
+dir.vx = a - b;
+dir.vy = c - d;
+dir.vz = e - f;
+VectorNormalSS(&dir, &dir);      /* addiu a0,sp,0x10; move a1,a0 */
+gte_ldsv(&dir);                  /* addiu v0,sp,0x10 again       */
+```
+
+The target instead put `addiu $s0, $sp, 0x10` once, between the first and the
+second field store, and used `2($s0)` / `4($s0)` and `move $a0, $s0` from then
+on — a callee-saved register held across two calls. GCC 2.8.1 only does that
+when the source takes the address into a pointer local *partway through* the
+sequence:
+
+```c
+dir.vx = a - b;                  /* sh v0, 0x10(sp) */
+d      = &dir;
+d->vy  = c - d;                  /* sh v0, 2(s0)    */
+d->vz  = e - f;
+VectorNormalSS(d, d);
+gte_ldsv(d);
+```
+
+The split point matters: moving `d = &dir` above the `vx` store (so all three
+fields go through `d`) drops the score back, because the first store then also
+wants the register. m2c prints the tell — the first field as the bare local and
+the later ones as `M2C_FIELD(&local, T, 2)`. This took
+`func_acropolis_bridge_80187078` from 96.7% to 100%.

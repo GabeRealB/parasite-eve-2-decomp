@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -15,7 +17,11 @@ extern s16                   D_acropolis_bridge_801915E4[][6];
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 extern u16                   D_acropolis_bridge_80190C60;
 extern u16                   D_801153F6;
+extern s32                   D_80070F70;
+extern MATRIX*               D_80073B8C;
 extern s32                   Gp_LcgState;
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
@@ -81,9 +87,9 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkerWork, 0x94);
 /// Work block the bridge enemy's task keeps at `Task::idMap`. `field_4` is the
 /// live flag every state handler in this unit gates on, and `field_12E` /
 /// `field_196` are the two flag halfwords whose bit 15 the handlers toggle to
-/// enable one behaviour and disable the other. `field_1F0` is the `GpEffArg`
-/// the death effect is spawned with and `field_290` the death-sequence frame
-/// counter.
+/// enable one behaviour and disable the other. `recs` is the collision record
+/// table `Gp_ClearRec18Occupied` wipes, `field_1F0` is the `GpEffArg` the death
+/// effect is spawned with and `field_290` the death-sequence frame counter.
 typedef struct AcropolisBridgeEnemyWork {
     /* 0x000 */ s16                       field_0;
     /* 0x002 */ byte                      pad_2[0x2];
@@ -101,7 +107,7 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x10C */ s16                       field_10C;
     /* 0x10E */ byte                      pad_10E[0x20];
     /* 0x12E */ u16                       field_12E;
-    /* 0x130 */ byte                      pad_130[0x60];
+    /* 0x130 */ GpRec18                   recs[4];
     /* 0x190 */ s32                       field_190;
     /* 0x194 */ byte                      pad_194[0x2];
     /* 0x196 */ u16                       field_196;
@@ -412,7 +418,79 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80186BBC);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187078);
+/// Reports whether the bridge enemy is standing on a kind-1 surface: the first
+/// three collision records are scanned in order and the scan stops at the first
+/// empty one, so an occupied record whose `field_4` high halfword is 1 has to
+/// come before any gap in the table.
+static __inline__ s32 bridge_rec_kind1(GpRec18* recs)
+{
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        if (recs[i].field_4 == 0) {
+            return 0;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Runs the bridge enemy's fall. On the first frame (work block still live) it
+/// clears bit 15 of `field_196` and sets it in `field_12E`, tags the link node,
+/// seeds the three behaviour parameters and gives the model root coordinate a
+/// random yaw from the shared LCG. Every frame after that it eases the entry
+/// offset at `field_1F8` back to zero three units at a time, sets the model
+/// root height from it and adds an `rsin` bob driven by the frame counter. Once
+/// the enemy is resting on a kind-1 surface it also drifts the model root
+/// towards the camera position by a sixteenth of the normalized direction,
+/// yawing the root by 0x10 first.
+void func_acropolis_bridge_80187078(Task* task)
+{
+    AcropolisBridgeEnemyWork* work;
+    GpEnemy*                  enemy;
+    GsCOORDINATE2*            coord;
+    SVECTOR                   dir;
+    SVECTOR*                  d;
+
+    work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work->field_4 != 0) {
+        work->field_196    &= 0x7FFF;
+        work->field_12E    |= 0x8000;
+        enemy->node.field_4 = 1;
+        work->field_100     = 1;
+        work->field_104     = 3;
+        work->field_108     = 0x10;
+        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, (u32)Gp_LcgState >> 16, 1);
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+    }
+    if (work->field_1F8 > 0) {
+        work->field_1F8 -= 3;
+    }
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = work->field_1FA + work->field_1F8;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] +=
+        rsin((D_80070F70 << 5) + ((TmdObject*)task->extra)->field_8->coord.t[0]) >> 6;
+    if (bridge_rec_kind1(work->recs) != 0) {
+        coord  = ((TmdObject*)task->extra)->field_8;
+        dir.vx = D_80073B8C->t[0] - coord->coord.t[0];
+        d      = &dir;
+        d->vy  = D_80073B8C->t[1] - coord->coord.t[1];
+        d->vz  = D_80073B8C->t[2] - coord->coord.t[2];
+        Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, 0x10, 0);
+        VectorNormalSS(d, d);
+        gte_lddp(-0x10);
+        gte_ldsv(d);
+        gte_gpf12_real();
+        gte_stsv(d);
+        ((TmdObject*)task->extra)->field_8->coord.t[0] += dir.vx;
+        ((TmdObject*)task->extra)->field_8->coord.t[2] += dir.vz;
+    }
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    func_acropolis_bridge_8018581C(task);
+}
 
 /// Runs the bridge enemy's collapse sequence. On the first frame (work block
 /// still live) it allocates the model's aux buffers, clears bit 15 of both
