@@ -54,6 +54,22 @@ typedef struct HyperRecoil {
 } HyperRecoil;
 STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
 
+/// 0x1C-byte scratchpad block `func_hypervelocity_8011E494` reserves for one
+/// billboarded charge quad. `vec` is the coordinate's `workm` translation
+/// truncated to s16 and fed to `gte_ldv0`; the single `RTPS` fills `sx`/`sy`,
+/// `otz` and `flag`. `dx`/`dy` then cache the rotated half-extent for one pair
+/// of corners at a time. Same layout as the gameplay `GpFxQuadScratch`.
+typedef struct HyperQuadScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} HyperQuadScratch;
+STATIC_ASSERT_SIZEOF(HyperQuadScratch, 0x1C);
+
 /// 0x38 block the round's spawn state allocates with `Mem_Calloc` and parks in
 /// `Task::idMap`. It leads with the `GpObj` list node `WeaponsShared8011e4ac`
 /// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry

@@ -45100,3 +45100,34 @@ once:
 before an existing one does not renumber the surviving units (`mp5a5` and
 `mp5a5_2` keep their names and their `src/` files). A cut inserted in the
 middle of a run would.
+
+## `overlay_dup_index find` reporting no copies does not mean the body is novel
+
+`func_hypervelocity_8011E494` came back from `overlay_dup_index.py find` as its
+own only copy, yet it is the same function as the already-matched
+`Gp_DrawFxQuad` (gameplay `3CD8_9CC8.c`) and `func_m4a1_javelin_8011F0AC`: a
+0x1C scratchpad block, `gte_SetTransMatrix`/`gte_SetRotMatrix(&GsWSMATRIX)`,
+one `gte_ldv0` + `RTPS`, `gte_stsxy`/`gte_stflg`/`gte_stszotz`, then a
+`POLY_FT4` whose four corners are `sx/sy ± dx/dy` at `ang` and `ang + 0x400`,
+linked with `addPrim`. The index missed it because equality is decided on
+splat's disassembly *text*, and every differing constant — tpage `0x29` vs
+`0x2A`, clut, the UV columns, the `* 55` radius scale instead of `* 31` — is a
+different instruction word.
+
+So when the index says "1 copies", still ask what *kind* of function it is and
+grep `src/` for the idiom rather than for the body:
+
+- the scratch size (`- 0x1C`, `- 0x24`, `- 0x18`) is the strongest fingerprint;
+  each distinct size has one or two matched examples.
+- the prim opcode byte (`sb 0x2F, 7` → `POLY_FT4` semi-transparent + raw
+  texture) names the `setXXX` macro sequence: `setPolyFT4` + `setSemiTrans` +
+  `setShadeTex` collapse to that single `sb`.
+- the trailing `and`/`or` pair against `0xFF000000` / `0xFFFFFF`, twice, is
+  `addPrim` with a recomputed OT expression.
+
+Porting the sibling and substituting constants matched this on the first
+attempt, with no m2c input at all. Two constant details are worth copying
+verbatim: derive both UV columns from the same base (`u0 = col + 0x70;
+u1 = col - 0x59;`) so GCC emits two `addiu`s off one register rather than
+chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
+`*(u16*)&…` so the store is the `lhu`/`sh` pair the ROM uses.
