@@ -1,1 +1,4 @@
 // Overlay-local symbols for map_akropolis (file 900000).
+// "Key Item" heading plus the blob that follows it; referenced by the matched
+// func_map_akropolis_80179D78, so keep it out of that function's .s file.
+D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True

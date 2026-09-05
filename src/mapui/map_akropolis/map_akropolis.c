@@ -8,8 +8,10 @@
 #include "main/text.h"
 #include "main/ui.h"
 
+extern char     D_map_akropolis_8017997C[];
 extern s32      D_map_akropolis_8017A9A8;
 extern s32      D_map_akropolis_8017A9AC[4];
+extern UiList   D_map_akropolis_8017A9C0;
 extern TaskDesc D_map_akropolis_8017AA00;
 
 extern UiObjectDesc D_8010EFA0;
@@ -47,7 +49,48 @@ void func_map_akropolis_80179C50(DialogPrompt* arg0, UiObject* arg1)
 
 INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179950);
 
-INCLUDE_ASM("mapui/nonmatchings/map_akropolis/map_akropolis", func_map_akropolis_80179D78);
+INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_8017997C);
+
+/// Per-frame handler for the Akropolis key-item map panel: draws the "Key Item"
+/// heading, lays the key-item list out over the panel on the first frame, then
+/// updates it. Cancel/menu asks the parent to close (field_2E = -1); once the
+/// spawned item-detail child reports -1 or 6 the child tree is torn down and the
+/// panel goes back to its active state.
+void func_map_akropolis_80179D78(Task* task)
+{
+    UiObject* obj;
+    UiList*   list;
+    UiObject* child;
+    s32       result;
+
+    list          = &D_map_akropolis_8017A9C0;
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_map_akropolis_8017997C);
+    if (task->state == 0) {
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        list->field_A   = 1;
+        task->spawnArg1 = -1;
+        task->state    += 1;
+    }
+    Ui_UpdateListNoAnim(list, obj);
+    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        obj->field_2E = -1;
+    }
+    if (task->firstChild != NULL) {
+        child  = task->firstChild->spawnArg2;
+        result = child->field_2E;
+        switch (result) {
+            case 6:
+                Ui_TeardownTree(child, child->owner);
+                obj->status = 1;
+                break;
+            case -1:
+                obj->field_2E = result;
+                break;
+        }
+    }
+}
 
 /// Task driving the Akropolis key-item map screen: spawns the UI tree
 /// `D_map_akropolis_8017A9E4`, freezes the game's frame timing while it is up,

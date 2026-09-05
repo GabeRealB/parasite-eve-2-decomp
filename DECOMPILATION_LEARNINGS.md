@@ -38264,7 +38264,24 @@ re-split - it still considers the data migrated. (Cross-unit references are
 different: those *do* get a standalone `.s`, which is why
 `shelter_b6_nursery_4.c` can `INCLUDE_RODATA` a table used from unit 7.)
 
-The fix is to write the block in C and place the definition so the emitted
+Splat *will* create the standalone `.s` if you tell it the symbol is not
+migratable. Add the address to the overlay's `configs/USA/sym/<family>/<name>.txt`
+with the `force_not_migration` attribute and re-split:
+
+```
+D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True
+```
+
+The symbol then gets `asm/USA/<overlay>/nonmatchings/<unit>/D_..._<addr>.s` of
+its own and the decompiled C keeps it with an `INCLUDE_RODATA` line plus an
+`extern char D_..._<addr>[];`. This is the move when the block is *not*
+expressible as C - `func_map_akropolis_80179D78` references a 0x44-byte blob
+that starts with the string `"Key Item"` and continues into what disassembles
+as a jump-table dispatcher, so there is nothing sensible to write out by hand.
+Keep the `INCLUDE_RODATA` line where the block belongs in address order, the
+same rule as below.
+
+The other fix is to write the block in C and place the definition so the emitted
 `.rodata` stays in address order. GCC emits file-scope data where it is
 defined, and an `INCLUDE_RODATA` asm block where it appears, so a table that
 is *last* in the unit's `.rodata` goes at the end of the file:
