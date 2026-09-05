@@ -49837,3 +49837,64 @@ stores. `func_acropolis_patio_8017D5EC` went from 90.96%
 (`branch=9 regs=17 insert=5 delete=5`) to 100% on that one edit, so read a
 `&sp<N>` in an m2c seed whose neighbouring slots are written but never read as
 "this was one struct".
+
+## Let a nested loop write `&arr[i]`, not a walking pointer, when the outer loop head recomputes the address
+
+m2c turns every array walk into a walking pointer (`var_s1 += 8`), and for a
+single flat loop that is usually harmless — GCC's strength reduction produces
+the same pointer either way. It is *not* harmless when the same index also
+feeds a **nested** loop, because the two forms differ in how many values stay
+live across the inner loop.
+
+The target shape to look for is the address being re-derived at the head of the
+outer loop, with the symbol's `%hi`/`%lo` reloaded each time rather than
+hoisted:
+
+```asm
+.Louter:
+    lui   $v0, %hi(D_sym)
+    addiu $v0, $v0, %lo(D_sym)
+    sll   $v1, $s0, 3          # i * sizeof(SVECTOR)
+    addu  $s1, $v1, $v0
+.Linner:
+    ...
+```
+
+That `sll` + `addu` means `i` (`$s0`) and the derived pointer (`$s1`) are
+**both** live, so the function needs one more callee-saved register than a
+walking pointer would — often enough to push the incoming argument out to `$fp`
+and change every other `$sN` assignment with it. Writing the pointer by hand
+merges the two into one induction variable and the register file shifts down by
+one, which reads in the diff as a whole-function register renumbering plus a
+missing `sw $fp` in the prologue. Do not chase that with pins; it is a
+live-range count, not a coloring accident.
+
+The fix is to stop naming the pointer at all and index the array where it is
+used, in both the call arguments and the field reads:
+
+```c
+/* BAD — one induction variable, no $fp, whole register file shifted */
+offs = D_sym;
+for (i = 0; i < 3; i++) { Gp_SpawnEff(id, coord, i + K, offs); offs++; }
+...
+for (i = 0; i < 3; i++) {
+    offs = &D_sym[i];
+    for (j = 0; j < 3; j++) { ... work->field_10 += offs->vx; ... }
+}
+
+/* GOOD — GCC strength-reduces the flat loops itself and hoists &D_sym[i]
+   out of the inner loop only, keeping i and the pointer both live */
+for (i = 0; i < 3; i++) { Gp_SpawnEff(id, coord, i + K, &D_sym[i]); }
+...
+for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) { ... work->field_10 += D_sym[i].vx; ... }
+}
+```
+
+A cheap tell that the source indexed rather than walked, visible before you
+change anything: in the *flat* loops the target initialises the counter first
+and derives the pointer after it (`li $s0, 3` … `addiu $s1, $v0, 0x18`), which
+is the order strength reduction emits. A hand-written walking pointer is
+assigned in source order and comes out the other way round.
+`func_acropolis_patio_8017E100` went from 83.83%
+(`branch=5 regs=66 reorder=3 insert=7 delete=10`) to 100% on this one edit.
