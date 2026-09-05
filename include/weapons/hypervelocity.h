@@ -75,6 +75,26 @@ typedef struct HyperTrailScratch {
 } HyperTrailScratch;
 STATIC_ASSERT_SIZEOF(HyperTrailScratch, 0x118);
 
+/// 0x58-byte scratchpad block `func_hypervelocity_8011EC1C` reserves for the
+/// discharge cone. `hub` is the square collar sitting on the round itself and
+/// `rim` the flared mouth in front of it; both are the unit quad
+/// `D_80111E38` scaled in the round's own frame, rotated by its `workm` and
+/// shifted onto its world position. Two opposed walls are then projected a
+/// wall at a time - `sxy0`..`sxy3` are the four screen corners of the current
+/// wall, `flag` the `gte_stflg` that rejects a wall behind the eye and `otz`
+/// its `gte_stszotz` depth, which also picks the OT bucket.
+typedef struct HyperConeScratch {
+    /* 0x00 */ SVECTOR rim[4];
+    /* 0x20 */ SVECTOR hub[4];
+    /* 0x40 */ s32     otz;
+    /* 0x44 */ s32     flag;
+    /* 0x48 */ DVECTOR sxy0;
+    /* 0x4C */ DVECTOR sxy1;
+    /* 0x50 */ DVECTOR sxy2;
+    /* 0x54 */ DVECTOR sxy3;
+} HyperConeScratch;
+STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
+
 /// 0x1C-byte scratchpad block `func_hypervelocity_8011E494` reserves for one
 /// billboarded charge quad. `vec` is the coordinate's `workm` translation
 /// truncated to s16 and fed to `gte_ldv0`; the single `RTPS` fills `sx`/`sy`,

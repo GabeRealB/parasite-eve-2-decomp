@@ -688,4 +688,108 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(HyperGroundScratch);
 }
 
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011EC1C);
+/// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
+/// opposed `POLY_FT4` walls flaring out of `coord`, built in the scratchpad as
+/// a `HyperConeScratch`. The collar sits at y `0x700` and is `radius` wide,
+/// the mouth rises to `0x600 - age * 256 / 2` and flares to
+/// `radius + age * 128 + 0x200`, so the cone climbs and opens as the puff
+/// ages; both rings are `radius` deep in z. Wall `i` is therefore the quad
+/// `rim[i]`, `rim[i + 2]`, `hub[i]`, `hub[i + 2]` - the -x pair, then the +x
+/// pair. Each wall is a frame of the same six-frame strip at tpage 0x2A the
+/// trail uses, picked by the stored jitter `D_hypervelocity_8012EF0C[i]` plus
+/// `age`, tinted by `rgb` and linked into the OT bucket its own projected
+/// depth names. Walls the GTE flags as behind the eye are dropped.
+void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* rgb)
+{
+    HyperConeScratch* sc;
+    POLY_FT4*         prim;
+    GpQuadCorner*     tbl;
+    SVECTOR*          vert;
+    MATRIX*           rot;
+    s32               i;
+    s32               rise;
+    s32               top;
+    u16               flare;
+    s32               half;
+    s32               u0;
+
+    /* `rise` is built in two steps and then walked in place, and `half` is a
+       second spelling of `radius`, because the ROM keeps both copies the
+       folded forms would have coalesced away. `flare` is 16-bit on purpose:
+       it only ever feeds a halfword store, and widening it moves the whole
+       prologue's register assignment. `vert` reaches `hub[i]` through
+       `rim[i]` so the `gte_ldv0` / `gte_stsv` address stays a register of its
+       own instead of being shared with the field stores. */
+    sc    = (HyperConeScratch*)(SCRATCH_SP -= sizeof(HyperConeScratch));
+    rise  = age;
+    rise  = rise << 7;
+    top   = 0x600 - rise;
+    rise  = rise + 0x200;
+    flare = radius + rise;
+    half  = radius;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i   = 0;
+    rot = &coord->workm;
+    tbl = D_80111E38;
+    do {
+        sc->rim[i].vx = tbl[i].x * flare;
+        sc->rim[i].vy = top;
+        sc->rim[i].vz = tbl[i].y * half;
+        gte_SetRotMatrix(rot);
+        gte_ldv0(&sc->rim[i]);
+        gte_rtv0_real();
+        gte_stsv(&sc->rim[i]);
+        *(u16*)&sc->rim[i].vx = *(u16*)&sc->rim[i].vx + *(u16*)&coord->workm.t[0];
+        *(u16*)&sc->rim[i].vy = *(u16*)&sc->rim[i].vy + *(u16*)&coord->workm.t[1];
+        *(u16*)&sc->rim[i].vz = *(u16*)&sc->rim[i].vz + *(u16*)&coord->workm.t[2];
+        vert                  = &sc->rim[i] + 4;
+        vert->vx              = tbl[i].x * radius;
+        vert->vy              = 0x700;
+        vert->vz              = tbl[i].y * half;
+        gte_SetRotMatrix(rot);
+        gte_ldv0(&sc->hub[i]);
+        gte_rtv0_real();
+        gte_stsv(&sc->hub[i]);
+        *(u16*)&vert->vx = *(u16*)&vert->vx + *(u16*)&coord->workm.t[0];
+        i++;
+        *(u16*)&vert->vy = *(u16*)&vert->vy + *(u16*)&coord->workm.t[1];
+        *(u16*)&vert->vz = *(u16*)&vert->vz + *(u16*)&coord->workm.t[2];
+    } while (i < 4);
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    i = 0;
+    do {
+        gte_ldv0(&sc->rim[i]);
+        gte_rtps_real();
+        gte_stsxy(&sc->sxy0);
+        gte_ldv3(&sc->rim[i + 2], &sc->hub[i], &sc->hub[i + 2]);
+        gte_rtpt_real();
+        gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
+        gte_stflg(&sc->flag);
+        if (sc->flag >= 0) {
+            gte_stszotz(&sc->otz);
+            sc->otz++;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyFT4(prim);
+            setRGB0(prim, rgb[0], rgb[1], rgb[2]);
+            setSemiTrans(prim, 1);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x42C1;
+            u0          = (s16)((D_hypervelocity_8012EF0C[i] + age) % 6) * 40;
+            prim->u0    = u0;
+            prim->v0    = 0x60;
+            prim->u1    = u0 + 0x27;
+            prim->v1    = 0x60;
+            prim->u2    = u0;
+            prim->u3    = u0 + 0x27;
+            prim->v2    = 0x87;
+            prim->v3    = 0x87;
+            setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
+                   sc->sxy3.vy);
+            addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        }
+        i++;
+    } while (i < 2);
+    SCRATCH_SP += sizeof(HyperConeScratch);
+}

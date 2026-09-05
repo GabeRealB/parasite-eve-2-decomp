@@ -45507,3 +45507,83 @@ Read it as the general rule for byte-wide prim fields — if a `u8`/`s8` store i
 fed by arithmetic on anything wider, latch the arithmetic in an `s32` local
 first and only widen back to the inline expression if the ROM shows the
 narrowed form.
+
+## Local-alloc ranks quantities by refs-per-insn, so splitting a statement can swap `$v0`/`$v1`
+
+`func_hypervelocity_8011EC1C` reached 99.2% with a perfectly ordered
+instruction stream whose prologue used `$v0` and `$v1` the other way round from
+the ROM: the ROM keeps `age << 7` in `$v0` and the scratchpad pointer in `$v1`,
+the decompile did the opposite. No statement reordering moved it.
+
+GCC 2.8.1's `local-alloc` assigns hard registers to block-local quantities in
+descending order of `n_refs / (death - birth)` — references per live insn — and
+`find_free_reg` then walks the registers in numeric order, so whichever
+quantity sorts first takes `$v0`. `.lreg` prints exactly those two numbers per
+pseudo:
+
+```
+Register 91 used 5 times across 10 insns in block 0;   <- age << 7,   0.50
+Register 99 used 3 times across 4 insns in block 0;    <- scratch ptr, 0.75
+```
+
+The fix is to raise the loser's ratio rather than to pin. Writing
+
+```c
+depth = age;
+depth = depth << 7;
+```
+
+instead of `depth = age << 7;` gave the quantity two more references over the
+same range (5 → 7 refs), which put it ahead of the scratchpad chain and flipped
+both registers at once. The same split is what keeps `(depth + 0x200) + spin`
+from being folded to `(spin + 0x200) + depth`; GCC's tree folder reassociates a
+single expression but leaves two statements alone.
+
+## A prologue local that only ever feeds a halfword store may have to be `u16`
+
+The last register in the same function refused to settle until the flare width,
+computed once in the prologue and used only as `tbl[i].x * flare` into an
+`sh`, was declared `u16` rather than `s32`:
+
+```c
+u16 flare;
+...
+flare = radius + rise;
+```
+
+`PROMOTE_MODE` keeps it in an SImode register and no `andi` appears, so the
+emitted instructions are identical either way — but the narrower pseudo changes
+its quantity's cost, and with it the whole prologue's allocation. When a
+prologue value's only consumer is a halfword store or a 16-bit multiply and the
+leftover is `regs` with a correct instruction order, try narrowing the local
+before reaching for the permuter.
+
+## Loop-invariant `li` hoisting is decided by lifetime; reorder the stores to keep one inside
+
+Two constants used twice each in the same loop body do not have to be treated
+alike. `func_hypervelocity_8011EC1C` writes `setUV4(prim, u0, 0x60, u0 + 0x27,
+0x60, u0, 0x87, u0 + 0x27, 0x87)`, and the ROM hoists the `li 0x60` into the
+loop preheader but leaves `li 0x87` in the body. `.loop` shows why:
+
+```
+Insn 454: regno 254 (life 4), move-insn savings 1  moved to 615
+Insn 470: regno 258 (life 3), move-insn savings 1  moved to 617
+```
+
+`move_movables` moves an invariant when `threshold * savings * lifetime >=
+insn_count`, and lifetime is the luid distance from the constant's set to its
+last use. `setUV4`'s fixed `u0, v0, u1, v1, u2, v2, u3, v3` order puts the
+`u3` store between the two `0x87` stores, giving life 3 — just over the line.
+Writing the last four stores as `u2, u3, v2, v3` drops it to 2 and the `li`
+stays in the loop:
+
+```c
+prim->u2 = u0;
+prim->u3 = u0 + 0x27;
+prim->v2 = 0x87;
+prim->v3 = 0x87;
+```
+
+Read the `life N` numbers in `.loop` before guessing: a constant that is hoisted
+when the ROM's is not means its uses are one insn too far apart, and the cure is
+to move a neighbouring store, not to add register pressure.

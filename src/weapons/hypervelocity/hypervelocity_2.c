@@ -16,7 +16,7 @@
 #define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
 
 void WeaponsShared8011db78(Task* task);
-void func_hypervelocity_8011EC1C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
+void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* rgb);
 
 void func_hypervelocity_8011F168(Task* arg0)
 {
