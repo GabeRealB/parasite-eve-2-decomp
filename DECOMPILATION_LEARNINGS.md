@@ -25,6 +25,26 @@ column in `$v0`. Reuse the frame-index local for the column (`tex = (cell & 3)
 `u32 cell = (u16)tex` with two uses is the same hoist as
 `func_acropolis_bridge_801833A0`.
 
+## Reuse the UV `v1` local for the first y pair so `cell` lands in `$v0`
+
+`Room_Draw23` is `Room_Draw41`'s axis-aligned twin (same 0x18 scratch, same
+`(cell & 3) * 56` / `((cell & 7) >> 2) * 56` grid) except clut `0x43D2` and
+the row is stored as `v+0x70` / `v-0x59`. The Draw41 UV shape colors `cell`
+in `$v1` and `(cell & 3)` in `$v0`, so `v_plus` sits in `$v1` and has to be
+stored before the `(s16)arg2` extend (`sll v1, a3, 16`).
+
+Route the first y pair through the same `v1` local that held `vbase - 0x59`:
+
+```
+v1 = (sy - r) - (r >> 1);
+xy = v1;
+```
+
+That extra later reference flips the pair to `andi v0, a0, 0xFFFF` /
+`andi v1, v0, 3`, so `v_plus` stays in `$v0` across the extend. `TOUCH_REG(u1)`
+before the extend is still required so `u1` keeps `$a2` and `arg2` is copied
+to `$a3` at the prologue.
+
 ## `TOUCH_REG_USE(arg, scratch)` puts `G_SCRATCH_HEAD`'s `lui`/`ori` before the incoming `$a2` copy
 
 `Room_Draw27` and `Room_Draw19` share a body except the UV column is

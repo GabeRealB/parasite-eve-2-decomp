@@ -450,6 +450,11 @@ void Room_Draw40(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 /// (`y0 = sy - r - r/2`, `y2 = sy + r/2`). Same 0x18 scratch layout as
 /// `Room_Draw14` (`otz` is not incremented).
 void Room_Draw41(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+/// Same axis-aligned shade-tex `POLY_FT4` as `Room_Draw41` (same 0x18 scratch
+/// layout, tpage 0x2B, `(s16)arg2 * 55 / otz` radius, three-quarter-height
+/// shift), but clut is 0x43D2 and the 56-texel row is biased to v+0x70..v-0x59
+/// rather than v..v+0x37.
+void Room_Draw23(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
@@ -604,6 +609,11 @@ STATIC_ASSERT_SIZEOF(RoomDraw14Scratch, 0x18);
 /// layout as `RoomDraw14Scratch`. `radius` is `(s16)arg2 * 55 / otz` and
 /// `otz` is used as the divisor without being incremented.
 typedef RoomDraw14Scratch RoomDraw41Scratch;
+
+/// 0x18-byte scratch block `Room_Draw23` takes from `G_SCRATCH_HEAD`. Same
+/// layout as `RoomDraw14Scratch`. `radius` is `(s16)arg2 * 55 / otz` and
+/// `otz` is used as the divisor without being incremented.
+typedef RoomDraw14Scratch RoomDraw23Scratch;
 
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
