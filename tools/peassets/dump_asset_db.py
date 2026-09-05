@@ -334,7 +334,9 @@ def _fmt_record(rec: dict[str, Any]) -> str:
     extras = [(k, v) for k, v in rec.items() if k not in ("sha1", "type")]
     extras.sort(key=lambda kv: kv[0])
     for k, v in extras:
-        parts.append(f"{k!r}: {v!r}")
+        # An offset is read against a hex dump of the package, so print it that
+        # way; decimal here means converting by hand at every use.
+        parts.append(f"{k!r}: 0x{v:05X}" if k == "offset" and isinstance(v, int) else f"{k!r}: {v!r}")
     return "{" + ", ".join(parts) + "}"
 
 
@@ -385,7 +387,20 @@ def collect_models(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[st
             seen.add(digest)
             aid = known.get(digest) or f"{pkg.stem}_model_{off:05X}"
             rec = dict(old.get(aid) or {})
-            rec.update({"sha1": digest, "type": "model", "size": len(blob)})
+            # Locate it, the way EMBEDDED_ASSETS carries source+vram+size. A
+            # mesh with no location is inert: the catalog can name it but
+            # nothing can carve it out again. `source` is the first package
+            # carrying it - 129 meshes are shared, and dedup is by sha1, so one
+            # definite location is enough to find the bytes.
+            rec.update(
+                {
+                    "sha1": digest,
+                    "type": "model",
+                    "source": pkg.stem,
+                    "offset": off,
+                    "size": len(blob),
+                }
+            )
             out[aid] = rec
     return out
 
