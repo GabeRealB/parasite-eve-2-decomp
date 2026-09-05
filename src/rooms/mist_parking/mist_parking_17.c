@@ -1,99 +1,76 @@
 #include "common.h"
 
-#include "gameplay/D4.h"
+#include "gameplay/268.h"
+#include "gameplay/3CD8.h"
 
-#include <psyq/libgte.h>
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
 
-extern SVECTOR D_mist_parking_80191484[];
-extern SVECTOR D_mist_parking_801914A4[];
-extern SVECTOR D_mist_parking_801914B4[];
-extern SVECTOR D_mist_parking_801914C4[];
-extern SVECTOR D_mist_parking_801914D4[];
-extern SVECTOR D_mist_parking_801914E4[];
-extern SVECTOR D_mist_parking_80191554[];
-void           Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
-void           Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
-void           Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
+extern s16      D_80071076;
+extern s8       D_80073BAE;
+extern Task*    RoomsShared8018459cTask;
+extern TaskDesc RoomsShared8017daf0Desc;
 
-void func_mist_parking_80184728(void)
+void func_mist_parking_801845D0(s32 arg0)
 {
-    u8       view;
-    SVECTOR* p;
+    Task* t = RoomsShared8018459cTask;
 
-    view = Gp_GetViewIndex();
-    switch (view) {
+    if (t == NULL) {
+        return;
+    }
+    if (arg0 >= 2) {
+        goto kill;
+    }
+    if (arg0 < 0) {
+        goto kill;
+    }
+    t->spawnArg1 = arg0;
+    return;
+kill:
+    Task_Kill(RoomsShared8018459cTask);
+    RoomsShared8018459cTask = NULL;
+}
+
+void func_mist_parking_80184624(s32 arg0)
+{
+    Display_InitModeObj(Task_GetDescAt(&RoomsShared8017daf0Desc, 2U), arg0, 0, 0);
+}
+
+void func_mist_parking_80184668(Task* arg0)
+{
+    s32 temp_v0;
+
+    temp_v0         = arg0->spawnArg1 - 1;
+    arg0->spawnArg1 = temp_v0;
+    if (temp_v0 < 0) {
+        Task_Kill(arg0);
+        Stage_SetEndingFlag();
+    }
+}
+
+void func_mist_parking_801846A4(s32 arg0)
+{
+    Gp_ResetCap();
+    switch (arg0) {
+        case 1:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x140, 0x100);
+            break;
         case 2:
-            Room_Draw01(&D_mist_parking_80191484[0], 0x200, 0x444);
-            break;
-        case 18:
-            p = D_mist_parking_801914A4;
-            SOFT_TOUCH_REG(p);
-            Room_Draw01(p, 0x200, 0x444);
-            goto shared_8;
-        case 7:
-            Room_Draw01(&D_mist_parking_801914E4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914E4[2], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914E4[6], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914E4[8], 0x200, 0x444);
-            Room_Draw18(&D_mist_parking_801914E4[14], 0x60, 0xE0);
-            break;
-        case 20:
-            Room_Draw01(&D_mist_parking_801914B4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914B4[2], 0x200, 0x444);
-            break;
-        case 9:
-            Room_Draw05(&D_mist_parking_80191554[0], 0x60, 0x40);
-            break;
-        case 10:
-            Room_Draw01(&D_mist_parking_801914A4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914A4[2], 0x200, 0x444);
-            break;
-        case 11:
-            Room_Draw01(&D_mist_parking_801914A4[0], 0x200, 0x444);
-            break;
-        case 14:
-            Room_Draw01(&D_mist_parking_801914B4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914B4[2], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914B4[8], 0x200, 0x444);
-            break;
-        case 15:
-            Room_Draw01(&D_mist_parking_80191484[0], 0x200, 0x444);
-            break;
-        case 16:
-            Room_Draw01(&D_mist_parking_801914D4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[2], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[4], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[6], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[8], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[12], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[14], 0x200, 0x444);
-            break;
-        case 5:
-            Room_Draw01(&D_mist_parking_801914A4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914A4[2], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914A4[4], 0x200, 0x444);
-            break;
-        case 6:
-        case 19:
-            Room_Draw01(&D_mist_parking_801914D4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[2], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[4], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[6], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[8], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[10], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[12], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914D4[14], 0x200, 0x444);
-            Room_Draw18(&D_mist_parking_801914D4[16], 0x60, 0x100);
-            break;
-        case 8:
-            p = D_mist_parking_801914B4;
-            SOFT_TOUCH_REG(p);
-        shared_8:
-            TOUCH_REG(p);
-            Room_Draw01(&D_mist_parking_801914B4[0], 0x200, 0x444);
-            Room_Draw01(&D_mist_parking_801914C4[0], 0x200, 0x444);
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(2);
+            func_800E6D4C(0x2C0, 0);
             break;
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_17", func_mist_parking_8017D8F8);
+void func_mist_parking_8018471C(void)
+{
+    RoomsShared8018459cTask = NULL;
+}

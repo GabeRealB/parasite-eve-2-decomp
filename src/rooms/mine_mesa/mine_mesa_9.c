@@ -2,13 +2,13 @@
 
 #include "main/task.h"
 
-extern Task* D_mine_mesa_80189B54;
+extern Task* RoomsShared8018459cTask;
 extern Task* D_mine_mesa_80189B58;
 extern Task* RoomsShared8017e8a8Task;
 
 void func_mine_mesa_8017EB38(void)
 {
-    D_mine_mesa_80189B54    = NULL;
+    RoomsShared8018459cTask = NULL;
     D_mine_mesa_80189B58    = NULL;
     RoomsShared8017e8a8Task = NULL;
 }
