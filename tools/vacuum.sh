@@ -1147,6 +1147,18 @@ create_match_worktree() {
     remove_match_worktree "$func"
     return 1
   fi
+  # Under the merge lock: a build re-splits asm/, deleting and rewriting the
+  # files this copies. Room_Draw06's bootstrap read a directory another
+  # session's build had just cleaned, reported the .s missing, and ended a
+  # 73-iteration run with two functions still outstanding. merge-acquire is
+  # re-entrant per session, so this is a no-op when the driver already holds
+  # the lock; only one taken here is released again.
+  local took_lock=0
+  if [[ $ORCH -eq 1 && $ORCH_MERGE -eq 0 ]] \
+     && orch merge-acquire --session "$SESSION" --pid $$ \
+          --wait "${VACUUM_MERGE_WAIT:-3600}" >/dev/null 2>&1; then
+    took_lock=1
+  fi
   echo "Copying asm/ into $wt ..." | tee -a "$LOG_FILE"
   cp -a "$ROOT/asm" "$wt/asm"
   if [[ -d "$ROOT/build" ]]; then
@@ -1156,6 +1168,9 @@ create_match_worktree() {
     cp -a "$ROOT/linkers" "$wt/linkers"
   fi
   git -C "$ROOT" rev-parse HEAD >"$wt/.vacuum-base"
+  if [[ $took_lock -eq 1 ]]; then
+    orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
+  fi
 }
 
 worktree_hint_diff() {
@@ -1390,6 +1405,18 @@ vacuum_orch_loop() {
         echo "Error: failed to bootstrap scratch env for $func" | tee -a "$LOG_FILE"
         remove_match_worktree "$func"
         orch relinquish --session "$SESSION" --func "$func" >/dev/null 2>&1 || true
+        # Un-skip it. note_skip ran when the function was claimed, so without
+        # this a transient failure - a raced asm/ copy, a full disk - excludes
+        # the function for the rest of the session and the next claim reports
+        # the queue empty while work remains. That is how a run exited with
+        # Room_Draw06 and Room_Draw28 still unmatched.
+        if [[ -n "$SKIP_FILE" && -f "$SKIP_FILE" ]]; then
+          if grep -vxF "$func" "$SKIP_FILE" >"$SKIP_FILE.tmp" 2>/dev/null; then
+            mv "$SKIP_FILE.tmp" "$SKIP_FILE"
+          else
+            rm -f "$SKIP_FILE.tmp"
+          fi
+        fi
         ORCH_FUNC=""
         ORCH_WT=""
         ((consecutive_failures++)) || true
