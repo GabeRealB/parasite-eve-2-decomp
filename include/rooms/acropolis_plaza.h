@@ -26,8 +26,14 @@ typedef struct AcropolisPlazaSceneWork {
 /// entry 1 into `field_8`, handing it `&field_10` as its spawn argument. The
 /// halfwords from 0x1E on are the per-emitter "already playing" flags
 /// `func_acropolis_plaza_8017F770` tests and sets, one per ambience voice
-/// started by `func_acropolis_plaza_8017F9EC`; 0x14..0x1D belong to
-/// `func_acropolis_plaza_8017FB50` and are not identified yet.
+/// started by `func_acropolis_plaza_8017F9EC`.
+///
+/// 0x14..0x1D belong to `func_acropolis_plaza_8017FB50`, the scene stepper:
+/// `step` is its own state machine, `evtId`/`evtKind`/`evtSub` latch the
+/// pending `GpObj4C` event `Gp_TakePendingObj4C` hands it, `streamFrame`
+/// snapshots `CdCmd_Queue.field_1EE` when the event arrives, and `variant`
+/// counts how many times the entry-6 scene has run (capped at 2) so each pass
+/// spawns it with the next `Task_SpawnFromTable` arg2.
 typedef struct AcropolisPlazaWork {
     /* 0x00 */ byte  pad_0[0x4];
     /* 0x04 */ Task* slot3;
@@ -35,7 +41,12 @@ typedef struct AcropolisPlazaWork {
     /* 0x0C */ Task* field_C;
     /* 0x10 */ s16   field_10;
     /* 0x12 */ s16   field_12;
-    /* 0x14 */ byte  pad_14[0xA];
+    /* 0x14 */ u16   step;
+    /* 0x16 */ u16   evtId;
+    /* 0x18 */ u8    evtKind;
+    /* 0x19 */ u8    evtSub;
+    /* 0x1A */ u16   streamFrame;
+    /* 0x1C */ u16   variant;
     /* 0x1E */ u16   sfxState1E;
     /* 0x20 */ u16   sfxState20;
     /* 0x22 */ u16   sfxState22;

@@ -48860,3 +48860,128 @@ or in a callee-saved register is decided by the *call* that follows: passing
 ends the pointer's live range at its last store, so it stays in `$a1` and the
 argument is recomputed as `addiu $a2, $sp, 0x60`. That one substitution was the
 last 1% of `func_acropolis_plaza_8017E9A8`.
+
+## Ending a duplicated tail with `goto` instead of falling out of the switch flips which copy cross-jumping keeps
+
+"Duplicate a switch's shared tail" above says each duplicated copy merges with
+the *last* one. That holds when the copies live in the same case, and it is
+what `func_acropolis_plaza_8017FB50` does for its two `case 2` arms — but not
+when a copy sits in an *earlier* case. That function spawns from the same
+table in three places (`case 0` kind 1, `case 2` kind 0, `case 2` kind 2) and
+all three tails are identical from `move a2,zero` on. Written as three plain
+duplicates that fall out of the switch to its shared `return 0`, cross-jumping
+kept **case 0's** copy and pointed the two later ones backwards at it:
+
+```
+case 0:  lui a0 / addiu a0 / li a1,4 / [the whole call inline] / j <ret>
+case 2:  lui a0 / addiu a0 / j .text+0xd0 / li a1,2      <- backwards
+```
+
+The target has it the other way round: the two earlier copies jump *forwards*
+into the last one. Ending each duplicated arm with a `goto` to a label after
+the switch is what flips it:
+
+```c
+        case 0:
+            ...
+                    work->step = work->step + 1;
+                    goto running;      /* not: fall out of the switch */
+            ...
+    }
+running:
+    return 0;
+```
+
+`return 0;` in place of `goto running;` flips the direction too, but each arm
+then materialises its own `move v0,zero` before the jump instead of jumping to
+the shared zero-return block, which costs one instruction. Only the `goto`
+gives both the right merge direction and the shared return. Do not read this
+as "always use `goto`" — the note above is still right that a `goto` whose
+label is placed *before* the shared code lets cross-jumping eat the call and
+its argument setup. The distinction is where the label goes: a label at the
+function's return point only changes how each arm *leaves*, while a label in
+front of the shared work makes that work a single block.
+
+## Locals holding a symbol address across a `goto` cost the `lui`'s register
+
+The shape that first reproduced the layout above used variables for the two
+arguments that differ, with the whole call behind the label:
+
+```c
+    desc = &D_acropolis_plaza_80183824; entry = 4; goto spawn;
+    ...
+spawn:
+    work->field_C = Task_SpawnFromTable(desc, entry, 0, (s32)work);
+```
+
+`entry` is fine — an integer constant is materialised straight into the
+allocated hard register, so every site emits `li a1,4`. `desc` is not.
+GCC 2.8.1's `movsi` expander splits a `symbol_ref` into a `high` insn writing a
+fresh pseudo and a `lo_sum` insn writing the destination. When the destination
+is a call argument in the same block, both end up in `$a0` and the site reads
+`lui a0,%hi(X) / addiu a0,a0,%lo(X)`. When the destination is a variable live
+across the `goto`, only global-alloc can colour it, and the block-local `high`
+pseudo has already been given `$v0` by local-alloc, so the site reads
+`lui v0,%hi(X) / addiu a0,v0,%lo(X)` — two wrong registers per site and no way
+to fix it without a pin. Keep the address literal at the call and duplicate the
+call instead.
+
+## The emitted order of stores at distinct constant offsets is not the source order
+
+`func_acropolis_plaza_8017FB50` copies three fields out of one event into the
+work block, and the target emits `sb 0x18 / sh 0x16 / sb 0x19` with the second
+load hoisted into the first load's delay slot. Writing the assignments in that
+order compiles to `sb 0x18 / sh 0x16 / sb 0x19` too, but with a `nop`; the
+match wanted source order **`0x16`, `0x18`, `0x19`**:
+
+```c
+    work->evtId   = evtId;    /* 0x16 */
+    work->evtKind = evtKind;  /* 0x18 */
+    work->evtSub  = evtSub;   /* 0x19 */
+```
+
+Stores through the same base at different constant offsets are provably
+disjoint, so the scheduler reorders them freely and the store order you read in
+the assembly says nothing about the order they were written in. When a block of
+small stores is off by a delay slot, permute the source order — six orderings
+here scored 88%, 88%, 94%, and the winner was not the one that matched the
+emitted store order.
+
+## `(u16)(s8)x` on a `u8` field: fold it once and leave the second one raw
+
+`work->evtKind` is a `u8` compared twice as an unsigned short. Every honest
+spelling — `(u16)(s8)f`, `(s8)f & 0xFFFF`, `((f << 24) >> 24) & 0xFFFF`, via a
+`u8`/`u32`/`s32` temp, or a `switch` — folds the load and the sign extension
+into a single `lb` and then CSEs the `andi`, giving five instructions where the
+target has eight:
+
+```
+lbu  v0,0x18(s0)        # target: the byte is loaded *unsigned*,
+sll  v1,v0,0x18         # sign-extended from the register,
+sra  v0,v1,0x18         # and narrowed - twice, sharing only the sll
+andi v0,v0,0xffff
+bnez v0,L
+ sra v0,v1,0x18
+L:
+andi v0,v0,0xffff
+```
+
+The mix that reproduces it routes the *first* comparison through a `u16` local
+and leaves the second as the raw expression:
+
+```c
+    latchedKind   = work->evtKind;         /* u32 */
+    latchedKind16 = (s8)latchedKind;       /* u16 */
+    if (latchedKind16 == 0) {
+        ...
+    } else if ((u16)(s8)latchedKind == 2) {
+        ...
+    }
+```
+
+The `u32` temp stops combine from folding the load into the sign extension
+(`lbu`, then `sll`/`sra` on the register), the `u16` temp forces the first test
+onto the narrowed value rather than the sign-extended one, and writing the
+second test out again keeps its `sra`/`andi` out of the first block — the delay
+slot then steals the `sra` back from the branch target. Writing the second test
+as `latchedKind16 == 2` re-merges them and drops back to 98%.

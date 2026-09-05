@@ -18,6 +18,18 @@ extern s8       D_8007106B;
 extern s16      D_80071076;
 extern TaskDesc D_acropolis_plaza_80183824;
 
+/// Gate `func_acropolis_plaza_8017FB50` applies to a pending `GpObj4C` event
+/// whose id has the sign bit clear; a main-executable global with no module
+/// header yet.
+extern u8 D_80073BAC;
+
+/// The three scene `GpObj4A` nodes the plaza unlinks: `..._801991F0` when the
+/// opening stream hands over, and `..._801991A4` / `..._8019923C` depending on
+/// which event kind ended the scene.
+extern GpObj4A D_acropolis_plaza_801991A4;
+extern GpObj4A D_acropolis_plaza_801991F0;
+extern GpObj4A D_acropolis_plaza_8019923C;
+
 /// View the plaza's opening sequence applies before it spawns anything.
 extern GpViewRec D_acropolis_plaza_801838B8[][2];
 
@@ -373,9 +385,149 @@ void func_acropolis_plaza_8017F9EC(Task* task)
 }
 
 /// Steps the plaza's streamed scene, returning zero while it is still running.
-u16 func_acropolis_plaza_8017FB50(Task* task);
+///
+/// Seven steps driven by the pending `GpObj4C` event `Gp_TakePendingObj4C`
+/// reports. `ready` is that event's "take it" flag, qualified by `D_80073BAC`
+/// so an event that arrives with the id's sign bit clear is only acted on when
+/// that global is set. Steps 0 and 2 latch the event into the work block and
+/// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
+/// the previous step spawned (`Task_PollKill`) and respawn the entry-1 stream
+/// watcher over `field_10`. Step 3 is the only exit: it unlinks the scene's
+/// `GpObj4A` and returns 1 when the latched kind is 2.
+u16 func_acropolis_plaza_8017FB50(Task* task)
+{
+    CdCmdQueue*         q    = &CdCmd_Queue;
+    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->idMap;
+    u16                 evtId;
+    u8                  evtKind;
+    u8                  evtSub;
+    s32                 killed0;
+    s32                 killed1;
+    s32                 killed2;
+    s16                 ready;
+    u16                 step;
+    s32                 kind;
+    u32                 latchedKind;
+    u16                 latchedKind16;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017FB50);
+    ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
+    if (!((s16)evtId & 0x8000) && (ready != 0)) {
+        ready = D_80073BAC != 0;
+    }
+
+    switch (work->step) {
+        case 0:
+            if (ready != 0) {
+                work->evtId   = evtId;
+                work->evtKind = evtKind;
+                work->evtSub  = evtSub;
+                if ((s8)evtKind == 1) {
+                    work->field_C =
+                        Task_SpawnFromTable(&D_acropolis_plaza_80183824, 4, 0, (s32)work);
+                    work->step = work->step + 1;
+                    goto running;
+                } else if ((s8)evtKind >= 6) {
+                    work->field_C =
+                        Task_SpawnFromTable(&D_acropolis_plaza_80183824, 9, 0, (s32)work);
+                    work->step = 5;
+                }
+            }
+            return 0;
+        case 1:
+            if (Task_PollKill(work->field_C, &killed0) != 0) {
+                work->field_12 = 1;
+                work->field_10 = work->streamFrame;
+                work->field_8 =
+                    Task_SpawnFromTable(&D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+                Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991F0);
+                work->step = work->step + 1;
+            }
+            return 0;
+        case 2:
+            if (ready != 0) {
+                work->evtId       = evtId;
+                work->evtKind     = evtKind;
+                work->evtSub      = evtSub;
+                work->streamFrame = q->field_1EE;
+                kind              = (s8)evtKind;
+                if (kind == 0) {
+                    work->field_C =
+                        Task_SpawnFromTable(&D_acropolis_plaza_80183824, 2, 0, (s32)work);
+                    work->step = work->step + 1;
+                    goto running;
+                } else if (kind == 2) {
+                    work->field_C =
+                        Task_SpawnFromTable(&D_acropolis_plaza_80183824, 3, 0, (s32)work);
+                    work->step = work->step + 1;
+                    goto running;
+                } else if (kind == 3) {
+                    if (work->variant == 0) {
+                        work->field_C =
+                            Task_SpawnFromTable(&D_acropolis_plaza_80183824, 6, 0, (s32)work);
+                        work->step = 4;
+                    } else if (work->variant == 1) {
+                        work->field_C =
+                            Task_SpawnFromTable(&D_acropolis_plaza_80183824, 6, 1, (s32)work);
+                        work->step = 4;
+                    } else {
+                        work->field_C =
+                            Task_SpawnFromTable(&D_acropolis_plaza_80183824, 6, 2, (s32)work);
+                        work->step = 4;
+                    }
+                } else if (kind >= 6) {
+                    work->field_C =
+                        Task_SpawnFromTable(&D_acropolis_plaza_80183824, 9, 0, (s32)work);
+                    work->step = 6;
+                }
+            }
+            return 0;
+        case 3:
+            if (Task_PollKill(work->field_C, &killed1) != 0) {
+                /* The kind byte is tested as an unsigned short, so it is
+                   sign-extended and narrowed again at each comparison; routing
+                   both tests through one variable folds the pair away. */
+                latchedKind   = work->evtKind;
+                latchedKind16 = (s8)latchedKind;
+                if (latchedKind16 == 0) {
+                    Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991A4);
+                } else if ((u16)(s8)latchedKind == 2) {
+                    Gp_UnlinkObj4A(0, &D_acropolis_plaza_8019923C);
+                }
+                work->step = work->step - 1;
+                if ((s8)work->evtKind == 2) {
+                    return 1;
+                }
+                work->field_12 = 1;
+                work->field_10 = work->streamFrame;
+                work->field_8 =
+                    Task_SpawnFromTable(&D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+            }
+            return 0;
+        case 4:
+        case 5:
+        case 6:
+            if (Task_PollKill(work->field_C, &killed2) != 0) {
+                work->field_12 = 1;
+                work->field_10 = work->streamFrame;
+                work->field_8 =
+                    Task_SpawnFromTable(&D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+                step = work->step;
+                if (step == 5) {
+                    work->step = 0;
+                } else {
+                    if (step != 6) {
+                        if (work->variant < 2) {
+                            work->variant = work->variant + 1;
+                        }
+                    }
+                    work->step = 2;
+                }
+            }
+            return 0;
+    }
+running:
+    return 0;
+}
 
 /// Draws the cinematic letterbox: two black 0x140x0x18 `TILE` bars spanning the
 /// full screen width at the top (y -0x78) and bottom (y 0x60), linked into
