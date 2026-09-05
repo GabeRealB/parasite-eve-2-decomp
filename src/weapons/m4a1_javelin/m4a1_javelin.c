@@ -24,8 +24,6 @@
 
 extern u32 Gp_LcgState;
 
-void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3);
-
 INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011D1E4);
 
 INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011DAB0);
@@ -79,7 +77,69 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(M4a1JavelinLineScratch);
 }
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011F0AC);
+/// Links the billboarded muzzle-flare quad for one javelin launch frame into
+/// `Gpu_CurrentOt`, dropped entirely if the source point fails its `RTPS`
+/// `FLAG` check. `arg0` is the world-space point, `arg1` picks the 0x1F-wide
+/// animation column of the flare texture, `arg2` is the half-extent in world
+/// units and `arg3` the spin angle: the corners sit at `arg3` and
+/// `arg3 + 0x400`, a quarter turn apart, so the quad stays square as it spins.
+void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**                  scratch;
+    u8*                     head;
+    M4a1JavelinQuadScratch* block;
+    POLY_FT4*               prim;
+    SVECTOR*                vec;
+    s32                     u0;
+    s32                     u1;
+    s32                     ang2;
+    u16                     vz;
+
+    scratch                                                                    = (void**)G_SCRATCH_HEAD;
+    head                                                                       = *scratch;
+    ((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->vec.vx = arg0->vx;
+    block                                                                      = (M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch));
+    block->vec.vy                                                              = arg0->vy;
+    vz                                                                         = arg0->vz;
+    *scratch                                                                   = block;
+    block->vec.vz                                                              = vz;
+    vec                                                                        = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->sx);
+    gte_stflg(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyFT4(prim);
+        setSemiTrans(prim, 1);
+        setShadeTex(prim, 1);
+        prim->tpage = 0x2A;
+        setClut(prim, 0x30, 0x10B);
+        u0 = arg1 << 5;
+        u1 = u0 + 0x1F;
+        setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
+        block->dx = (((arg2 * 31) / block->otz) * rsin(arg3)) >> 12;
+        block->dy = (((arg2 * 31) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = arg3 + 0x400;
+        block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    }
+    *scratch = (u8*)*scratch + sizeof(M4a1JavelinQuadScratch);
+}
 
 void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
 {

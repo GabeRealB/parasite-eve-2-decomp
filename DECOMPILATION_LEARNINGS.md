@@ -45002,3 +45002,38 @@ and the port scored 100% on the first build. The argument types are worth
 copying verbatim: the size argument was `s16` (its `sll 16; sra 16` is delayed
 to the multiply) while the strip selector was `s32`, which is the opposite of
 what the placeholder header declared.
+
+## Grep `include/` doc comments for the twin, not just `src/` for the callee set
+
+The entry above finds a near-copy by its callee set. The complementary search is
+the *doc comments*, which are written when a function is matched and spell out
+its arithmetic in exactly the vocabulary the target asm gives you.
+
+`func_m4a1_javelin_8011F0AC` has an almost line-for-line twin in
+`src/gameplay/3CD8_9CC8.c` (`Gp_DrawFxQuad`) — same 0x1C `G_SCRATCH_HEAD` block,
+same single `RTPS`, same `POLY_FT4` — and `overlay_dup_index.py find` reported
+nothing, because the index compares disassembly text across *overlays* and
+cannot see a body living in the main `gameplay` unit. It would not have matched
+regardless: the overlay copy takes `s16` args and inlines a constant CLUT where
+the gameplay copy takes `u16` and indexes `Gp_QuadClutX`. Different text, same
+shape. What found it was one grep:
+
+```
+$ grep -rn "rsin" include/
+include/gameplay/3CD8.h:321:  ... `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` offsets that are ...
+```
+
+So before writing anything from m2c output, take the two or three most
+distinctive things in the listing — a `jal` pair like `rsin`/`rcos`, an odd
+constant such as `* 31` or `>> 12`, a scratch size, a primitive code byte — and
+grep `include/` as well as `src/`. Porting the twin took one attempt against a
+92.98% m2c baseline.
+
+Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
+`include/gameplay/3FB8.h` are a catalogue of `G_SCRATCH_HEAD` layouts
+(`GpRingScratch`, `GpFxQuadScratch`, `GpEffBeamScratch`, `GpEffFlareScratch`,
+`GpEffTileScratch`, …). Any overlay function whose prologue is `lw` from
+`0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
+and field offsets against that list first. Define the overlay's own copy of the
+type in its own header rather than including the gameplay one — the layouts are
+identical but the ownership is not.

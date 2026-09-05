@@ -30,6 +30,25 @@ typedef struct M4a1JavelinLineScratch {
 } M4a1JavelinLineScratch;
 STATIC_ASSERT_SIZEOF(M4a1JavelinLineScratch, 0x14);
 
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_javelin_8011F0AC`
+/// for one billboarded flare quad. `vec` is the source point pushed through
+/// `GsWSMATRIX` by a single `RTPS`; `otz` is its `gte_stszotz` (biased by 1 so
+/// it can also be the divisor), `flag` its `gte_stflg` and `sx` / `sy` its
+/// `gte_stsxy`. `dx` / `dy` hold the current
+/// `(size * 31 / otz) * rsin|rcos(angle) >> 12` half-extents that are added to
+/// and subtracted from `sx` / `sy` to build the four corners; only their low
+/// halves are read back. Same layout as the gameplay `GpFxQuadScratch`.
+typedef struct M4a1JavelinQuadScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} M4a1JavelinQuadScratch;
+STATIC_ASSERT_SIZEOF(M4a1JavelinQuadScratch, 0x1C);
+
 extern SVECTOR D_m4a1_javelin_8012EB68;
 extern s32     D_m4a1_javelin_8012EB70;
 
