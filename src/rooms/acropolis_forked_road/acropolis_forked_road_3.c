@@ -265,5 +265,3 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             break;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", D_acropolis_forked_road_8017D5E8);

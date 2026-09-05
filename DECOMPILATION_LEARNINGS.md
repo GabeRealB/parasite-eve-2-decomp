@@ -49585,3 +49585,163 @@ mirrored pairing scored a point lower, so try both. This is the lever to reach
 for when a target duplicates a selection that your source keeps merging — the
 sibling entry above ("A constant shared between a subtraction and a store")
 covers the opposite case, where the target merges and the source does not.
+
+## Keep every `return 0` guard in one shape so the branch keeps its own tail
+
+A message handler with several `if (guard) { side effects } return N;` blocks
+compiles two different ways depending on whether the guards are written as an
+early return or as a plain `if`. Mixing the two forms cost one instruction in
+`func_acropolis_forked_road_8017D5EC`:
+
+```c
+if (msg->field_5 != 0) {     /* early-return form */
+    return 0;
+}
+D_8007216C = 7;
+...
+return 0;
+```
+
+gives `bnez $v0, <epilogue>` with `move $v0, zero` **copied** into the delay
+slot, because at reorg time the branch has been redirected to a *different*
+`move $v0,0; j <ret>` block earlier in the function and
+`fill_slots_from_thread` steals its first insn. The target instead has
+
+```
+bnez  $v0, .L7F0
+ lui  $v0, %hi(D_8007216C)   # fall-through insn, dead on the taken path
+...
+.L7F0:
+j     .Lret
+ move $v0, zero
+```
+
+i.e. the branch still points at its *own* end-of-block tail, whose `j` already
+owns the `move`, so `stop_search_p` stops on the SEQUENCE and the slot is
+filled from the fall-through thread instead — one instruction shorter.
+
+Writing every guard in the same shape is what keeps the tails local:
+
+```c
+if (msg->field_5 == 0) {
+    D_8007216C = 7;
+    ...
+}
+return 0;
+```
+
+The lever is not the block in question — it kept the same source both times —
+but the *other* blocks in the function. Converting the earlier
+`if (guard != 0) return N;` guards to `if (guard == 0) { … } return N;` took
+the same function from 99.28% to 100%. When a function ends in a fan of
+identical `return <const>` tails and the only leftover is one extra `move
+$v0, <const>` in a branch delay slot, normalise the guard shape across the
+whole function before reaching for anything else.
+
+## A scalar global and a struct-member load reorder; the same address named as a struct field does not
+
+`func_acropolis_forked_road_8017DA24` stores a flag and then fills a work block
+from `Task::idMap`:
+
+```c
+D_801153F4 = 2;                                  /* extern u8 */
+((AfrStreamWork*)task->idMap)->mtx    = D_80073B8C;
+((AfrStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
+```
+
+The target keeps source order — `lui/li/sb` for the flag, *then* the
+`lw 0x1c($s1)` and the `lw %lo(D_80073B8C)` — but the compiler hoisted both
+`lui`s and the `lw`s above the `sb`, burning `$a1`/`$a2` and costing 12 register
+penalties at 97.8%.
+
+The cause is GCC 2.8.1 alias analysis, not scheduling luck. `true_dependence`
+compares `MEM_IN_STRUCT_P` on the two MEMs: `D_801153F4` is a bare scalar
+(`mem:QI`) while `task->idMap` is a struct reference (`mem/s:SI`), so the pair
+is declared independent and the scheduler is free to sink the store. The
+address 0x801153F4 is really `Gp_StateF0.field_4` (`Gp_StateF0 = 0x801153F0`),
+and writing it that way makes the store a `mem/s` too, which restores the
+dependence and with it the original order:
+
+```c
+Gp_StateF0.field_4 = 2;
+```
+
+That one change took the function from 97.78% to 99.81%. Both spellings assemble
+to the same `%hi`/`%lo` pair, so the scratch diff still shows
+`%lo(Gp_StateF0+4)` against the target's `%lo(D_801153F4)` while the linked
+bytes are identical — verify with `build-and-verify.sh`, not with the scratch
+score.
+
+Generally: when a store to an unnamed `D_8...` global sinks past nearby struct
+loads, check whether the symbol map has a named aggregate covering that address
+(`configs/USA/sym*/…`) and spell the access as a member of it. Adjacent
+`D_8...` symbols inside a known block are usually fields, and naming them is
+what pins the order.
+
+## A `lb`/`sb` byte triple out of `.rodata` is a local array initializer, and it needs its own rodata cut
+
+Three sign-extending byte loads from an overlay data symbol followed by three
+`sb` into the frame
+
+```
+lui   v0, %hi(D_acropolis_forked_road_8017D5E8)
+addiu t8, v0, %lo(D_acropolis_forked_road_8017D5E8)
+lb    t2, 0(t8)
+lb    t3, 1(t8)
+lb    t7, 2(t8)
+sb    t2, 0x10(sp)
+sb    t3, 0x11(sp)
+sb    t7, 0x12(sp)
+```
+
+is GCC 2.8.1 expanding a **block-scope array initializer**, not a copy you
+write out:
+
+```c
+u8 levels[3] = { 0x50, 0x30, 0x10 };
+```
+
+The three tells are the sign-extending `lb` (a QI-to-QI copy you write by hand
+emits `lbu`, and `-funsigned-char` is on), the address materialised into its
+own register instead of folded into the first load's `%lo`, and the odd
+register triple `$t2`/`$t3`/`$t7`/`$t8`. Writing the copy as `dst[i] = src[i]`
+gets the wrong load and the wrong base; going through `s32` temporaries fixes
+the `lb` but not the base register.
+
+The catch is placement: the constant is emitted into the *initializing unit's*
+`.rodata`, so the manifest needs a `rodata` cut for that unit, e.g.
+
+```toml
+rodata = [{ start = "0x10", unit = "acropolis_forked_road_2" },
+          { start = "0x28", unit = "acropolis_forked_road_3" }]
+```
+
+then re-split and delete the `INCLUDE_RODATA` line the earlier unit used to
+carry. `func_acropolis_forked_road_8017E410` is the worked example.
+
+## `lh` + `andi 0x3f` for a clut is `getClut(x * 16, y)`, not `(x & 0x3f) | base`
+
+`prim->clut = (work->frame & 0x3F) | 0x4380;` on an `s16` field compiles to
+`lhu` + `andi`: combine folds the sign extension into the load because the mask
+keeps only low bits. The target's
+
+```
+lh    v0, 0x26(s0)
+nop
+andi  v0, v0, 0x3f
+ori   v0, v0, 0x4380
+```
+
+keeps `lh`, which means the mask was not adjacent to the load in the RTL. The
+source is libgpu's macro over a scaled x:
+
+```c
+setClut(prim, work->frame * 16, 0x10E);   /* ((y) << 6) | (((x) >> 4) & 0x3f) */
+```
+
+The `(frame << 4) >> 4` pair sits between the load and the `andi`, so combine
+simplifies the shifts away but never gets to fold the load, and the extra insn
+also costs the load-delay slot the `lhu` form had filled. Suspect a `getClut`
+whenever a clut is built from a frame index and the load is `lh` where your
+`& 0x3f` gives `lhu` — the `x * 16` is the per-frame palette stride, so it is
+the natural source, not a trick.

@@ -29,4 +29,21 @@ typedef struct AfrStreamWork {
 } AfrStreamWork;
 STATIC_ASSERT_SIZEOF(AfrStreamWork, 0x14);
 
+/// The forked road's flickering wall-lamp work object, the `RoomEffWork` at
+/// `Task::spawnArg2` as `func_acropolis_forked_road_8017E410` reads it. The
+/// drawer wants all three ramps signed - it multiplies `width` and `frame` and
+/// divides by the projected `otz` - so it takes this view of the block rather
+/// than `RoomEffWork`'s unsigned one.
+///
+/// The task unpacks all three from `Task::spawnArg1` on its first frame:
+/// `width` is the sprite's half extent (bits 16-27, defaulting to 0x280),
+/// `frame` selects one of the four 40-texel animation columns (bits 8-9) and
+/// `color` is that column's grey level, taken from a three-entry table.
+typedef struct AfrLampWork {
+    /* 0x00 */ byte pad_0[0x24];
+    /* 0x24 */ s16  width;
+    /* 0x26 */ s16  frame;
+    /* 0x28 */ s16  color;
+} AfrLampWork;
+
 #endif
