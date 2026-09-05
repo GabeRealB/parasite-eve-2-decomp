@@ -44283,3 +44283,71 @@ Which spelling you want is decided by the ROM's delay slot, not by taste: a
 filled slot on the guard means write the decrement through a local, an empty one
 means re-read the field. Both readings are the same C semantics, so try the
 other one before reaching for the permuter.
+
+## A shared "keep" flag and a duplicated tail cross-jump the same, but schedule differently
+
+Two release blocks reached from two different conditions come out of GCC 2.8.1
+as one merged tail either way — write the block twice and let cross-jumping fold
+it, or compute a flag and test it once:
+
+```c
+/* duplicated */                      /* flag */
+if (state->field_4 != 0) {            if (state->field_4 != 0) {
+    if (state->field_4 >= 4) {            keep = state->field_4 < 4;
+        release();                    } else {
+    }                                     ...
+    return;                               keep = work->field_22 < 0xD;
+}                                     }
+...                                   if (!keep) {
+if (work->field_22 >= 0xD) {              release();
+    release();                        }
+}
+```
+
+Both emit `slti` into the entry branch's delay slot and one `bnez` at the shared
+label, so the tail itself is byte-identical. What differs is the schedule of an
+*earlier* block: with the duplicated form the ready list in the `Gp_SpawnEff`
+setup block puts `li $a0, <hi>` first, and the delayed-branch pass takes it for
+the preceding `bne`'s slot, splitting the `lui`/`ori` pair around the branch:
+
+```
+bne  $v0, $v1, .L         # duplicated tail
+ lui $a0, 0x6
+ori  $a0, $a0, 0x29a
+move $a1, $s5
+```
+
+The flag form reprioritises that list so the argument copy goes first, which is
+what the ROM has:
+
+```
+bne  $v0, $v1, .L         # flag
+ move $a1, $s5
+lui  $a0, 0x6
+ori  $a0, $a0, 0x29a
+```
+
+`func_gunblade_8011D1E4` sat at 99.8% with `reorder=1` on exactly that one swap
+and reached 100% on the flag rewrite alone. When a single delay slot is the last
+diff and the function ends in a merged tail, try the other spelling of the tail
+before blaming `dbr` — the effect is several blocks away from the edit.
+
+## Two adjacent `SVECTOR`s: array indexing and the second symbol are not the same code
+
+When splat emits two labels for what the source treated as one small array
+(`D_gunblade_8011E704` and `D_gunblade_8011E70C`, eight bytes apart), the two
+spellings generate different address code and the ROM can use *both*:
+
+- `D_gunblade_8011E704[1].vx` in a block where the array base is already in a
+  register gives `addiu $v0, $s0, 8` plus `lh ... 8($s0)` / `2($v0)` / `4($v0)` —
+  a register for the element, with the first field folded back onto the base.
+  A pointer local (`vec = &D_gunblade_8011E704[1]; vec->vx; …`) is what produces
+  that shape; writing `D_gunblade_8011E704[1].vy` directly folds every offset
+  into the base and drops the `addiu`.
+- `D_gunblade_8011E70C.vx` in a block with no live base gives its own
+  `lui`/`addiu` pair and `lh $v0, %lo(D_gunblade_8011E70C)($v0)`.
+
+Declare both (`extern SVECTOR D_gunblade_8011E704[2];` *and*
+`extern SVECTOR D_gunblade_8011E70C;`) and use whichever the block wants; they
+are the same bytes, so the link is unaffected. `func_gunblade_8011D1E4` needs
+the array form in state 0 and the standalone symbol in state 1.

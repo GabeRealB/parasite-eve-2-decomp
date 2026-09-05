@@ -3,25 +3,39 @@
 
 #include "common.h"
 
-/// The gunblade's work block, cached in `D_gunblade_8012E248` while the weapon
-/// task runs. Two 16-bit counters lead the region this overlay touches.
-typedef struct GunbladeWork {
-    /* 0x00 */ byte pad_0[0x20];
-    /* 0x20 */ u16  field_20;
-    /* 0x22 */ u16  field_22;
-} GunbladeWork;
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
-/// The overlay's view of the owning `Task`, cached in `D_gunblade_8012E244`:
-/// the work pointer it reads on entry and the field the callback writes back.
-typedef struct GunbladeTask {
-    /* 0x00 */ byte          pad_0[0x20];
-    /* 0x20 */ GunbladeWork* field_20;
-    /* 0x24 */ byte          pad_24[0x10];
-    /* 0x34 */ s32           field_34;
-} GunbladeTask;
+#include "gameplay/3FB8.h"
+#include "main/task.h"
 
-extern GunbladeTask* D_gunblade_8012E244;
-extern GunbladeWork* D_gunblade_8012E248;
+/// Translation of the gunblade beam's two coordinate frames inside the muzzle
+/// frame: `[0]` is the near end (`0, 0x60, 0x80`) and `[1]` the far end
+/// (`0, 0x60, 0x380`). `func_gunblade_8011D1E4` seeds the task's own coord
+/// from `[0]` and the stack coord from `[1]`.
+///
+/// `D_gunblade_8011E70C` is that same far-end vector under its own name. State
+/// 0 reaches it as `D_gunblade_8011E704[1]`, so the address is derived from the
+/// array base already in a register; state 1 loads the symbol on its own. Both
+/// spellings are needed to match.
+extern SVECTOR D_gunblade_8011E704[2];
+extern SVECTOR D_gunblade_8011E70C;
+
+/// The eight-segment beam trails, one array per end of the blade. Every entry
+/// is parented to `Gfx_ViewCoord`.
+extern GsCOORDINATE2 D_gunblade_8012E254[8];
+extern GsCOORDINATE2 D_gunblade_8012E4D4[8];
+
+/// The running beam task and its `GpEffWork`, cached on entry to state 0 so
+/// `func_gunblade_8011E008` can reach them from outside the task. The work
+/// pointer is cleared again when the `Gp_State1C` block is released.
+extern Task*      D_gunblade_8012E244;
+extern GpEffWork* D_gunblade_8012E248;
+
+/// Draws one segment of the beam: `slot` is the index into the trail arrays,
+/// `flags` the primitive/blend selector.
+void func_gunblade_8011D70C(s32 slot, s32 flags);
 
 void func_gunblade_8011E008(s32 arg0);
 
