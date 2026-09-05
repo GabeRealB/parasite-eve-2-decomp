@@ -256,6 +256,7 @@ def subsegments(
     units: list[str],
     data_cuts: list[dict],
     models: list[tuple[int, int]] | None = None,
+    rodata_code: list[dict] | None = None,
 ) -> str:
     """The package layout as splat subsegment lines.
 
@@ -281,6 +282,7 @@ def subsegments(
     """
     lines: list[str] = []
     models = models or []
+    rodata_code = rodata_code or []
     if span is None:
         if data_cuts:
             raise SystemExit(f"{name}: data cuts on a data-only package")
@@ -393,6 +395,24 @@ def subsegments(
                     f"outside the leading rodata (0x{head:X}..0x{start:X})"
                 )
             lines.append(f"      - [0x{cut_start:X}, .rodata, {unit_path(str(cut['unit']))}]")
+        # Code that links with the rodata rather than the text. `section_order`
+        # puts .rodata before .text, so a routine stored ahead of the text -
+        # map_akropolis' panel handlers, reached through the dispatch table at
+        # 0x0 - has to keep that ordering or every pointer to it shifts. splat
+        # parses `linker_section_order` on the base Segment, so a `c` unit can
+        # carry it: the bytes stay put and the routines become ordinary
+        # functions to match, rather than anonymous D_* blobs in a rodata blob.
+        for cut in sorted(rodata_code, key=lambda r: int(str(r["start"]), 16)):
+            cut_start = int(str(cut["start"]), 16)
+            if not head <= cut_start < start:
+                raise SystemExit(
+                    f"{name}: rodata-ordered code {cut['unit']} at 0x{cut_start:X} "
+                    f"is outside the leading rodata (0x{head:X}..0x{start:X})"
+                )
+            lines.append(
+                f"      - {{ start: 0x{cut_start:X}, type: c, "
+                f"name: {unit_path(str(cut['unit']))}, linker_section_order: .rodata }}"
+            )
     elif rodata or rodata_head:
         raise SystemExit(f"{name}: rodata cuts but the package has no leading rodata")
 
@@ -517,6 +537,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 entry.get("units", []),
                 entry.get("data", []),
                 model_spans(name, data, load),
+                entry.get("rodata_code", []),
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)

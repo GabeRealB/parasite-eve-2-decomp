@@ -125,5 +125,3 @@ s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
     }
     return volume;
 }
-
-INCLUDE_RODATA("mapui/nonmatchings/map_neo_ark/map_neo_ark", D_map_neo_ark_801799BC);

@@ -47,10 +47,6 @@ void func_map_akropolis_80179C50(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179950);
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_8017997C);
-
 /// Per-frame handler for the Akropolis key-item map panel: draws the "Key Item"
 /// heading, lays the key-item list out over the panel on the first frame, then
 /// updates it. Cancel/menu asks the parent to close (field_2E = -1); once the
@@ -157,15 +153,3 @@ s32 func_map_akropolis_8017A038(void)
 {
     return D_map_akropolis_8017A9A8;
 }
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_801799C0);
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179A34);
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179AC4);
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179B28);
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179B9C);
-
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179C08);

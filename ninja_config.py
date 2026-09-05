@@ -1117,11 +1117,19 @@ def split_one(job: tuple) -> YamlInfo:
         append_overlay_absolute_imports(basename, family_imports.get(family))
         fix_overlay_include_asm_paths(basename, f"src/{family}")
         seg = split.config["segments"][0]
-        text_sub = next(
-            (s for s in seg.get("subsegments", []) if len(s) > 2 and s[1] == "c"), None
-        )
+        # The first *text-ordered* `c` unit. A subsegment written in dict form
+        # carries `linker_section_order`, which is how a routine stored ahead of
+        # the text keeps linking with the rodata; it is code, but it is not
+        # where .text begins, and indexing it as a list raises KeyError.
+        def _text_c(sub) -> bool:
+            if isinstance(sub, dict):
+                return sub.get("type") == "c" and "linker_section_order" not in sub
+            return len(sub) > 2 and sub[1] == "c"
+
+        text_sub = next((s for s in seg.get("subsegments", []) if _text_c(s)), None)
         if text_sub is not None:
-            check_overlay_text_span(family, basename, seg["vram"], text_sub[0])
+            start = text_sub["start"] if isinstance(text_sub, dict) else text_sub[0]
+            check_overlay_text_span(family, basename, seg["vram"], start)
 
     entries = []
     for entry in split.linker_writer.entries:
