@@ -4,8 +4,6 @@
 
 #include <psyq/libgte.h>
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", func_shelter_b1_access_tunnel_8017D5FC);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", D_shelter_b1_access_tunnel_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", func_shelter_b1_access_tunnel_8017D760);

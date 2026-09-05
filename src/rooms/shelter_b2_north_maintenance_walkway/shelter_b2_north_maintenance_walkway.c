@@ -3,27 +3,3 @@
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", D_shelter_b2_north_maintenance_walkway_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017D61C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017D7B4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017D918);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017DA88);
-
-s32 func_shelter_b2_north_maintenance_walkway_8017DC44(void)
-{
-    return 0;
-}
-
-s32 func_shelter_b2_north_maintenance_walkway_8017DC4C(void)
-{
-    return 0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017DC54);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017DCE4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", func_shelter_b2_north_maintenance_walkway_8017DD18);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", RoomsShared8017d878Table);

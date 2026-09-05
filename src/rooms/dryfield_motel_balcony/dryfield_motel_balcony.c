@@ -11,62 +11,12 @@
 #include "rooms/dryfield_motel_balcony.h"
 #include "rooms/rooms_shared_8017db84.h"
 
-extern TaskDesc             D_dryfield_motel_balcony_80182270;
-extern RoomEventMsg         D_dryfield_motel_balcony_80186724;
-extern u8                   D_dryfield_motel_balcony_8018672C;
-extern RoomEventReq         D_dryfield_motel_balcony_80186730;
+extern TaskDesc             RoomsShared8017d638Desc;
+extern RoomEventMsg         RoomsShared8017d638Msg;
+extern u8                   RoomsShared8017d638Flag;
+extern RoomEventReq         RoomsShared8017d638Req;
 extern const TaskFuncTable3 RoomsShared8017d878Table;
 void                        func_dryfield_motel_balcony_8017DBC8(void);
-
-s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* arg0, RoomEventMsg* arg1)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                              = arg0->flagId;
-    D_dryfield_motel_balcony_8018672C = 0;
-    neg                               = flag < 0;
-    got                               = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(arg0->itemId) != 0 || arg0->itemId == 0) {
-            ret = 2;
-            if (arg1->field_5 == 0) {
-                D_dryfield_motel_balcony_80186724 = *arg1;
-                D_dryfield_motel_balcony_80186730 = *arg0;
-                id                                = arg0->flagId;
-                mode                              = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_motel_balcony_80182270, 0, 0, 0);
-                D_dryfield_motel_balcony_8018672C = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (arg1->field_5 == 0) {
-            Gp_RunCapCmd1(arg0->field_4);
-            Gp_SetNibbleIf(arg1->field_6, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", D_dryfield_motel_balcony_8017D5C0);
 

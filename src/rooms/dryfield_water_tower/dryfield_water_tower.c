@@ -18,8 +18,6 @@ extern Task* D_dryfield_water_tower_801876A0;
 
 void func_dryfield_water_tower_8017DCB4(void);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017D674);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", D_dryfield_water_tower_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017D7D8);

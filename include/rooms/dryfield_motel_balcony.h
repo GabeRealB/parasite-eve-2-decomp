@@ -12,21 +12,6 @@
 /// `func_dryfield_motel_balcony_801809AC`), so they cannot share one object.
 typedef RoomDraw04Scratch RoomFanScratch;
 
-/// 0x14-byte request record the room's event scripts build on the stack and
-/// hand to the gate at `func_dryfield_motel_balcony_8017D5E8`. `flagId` is a
-/// game-flag nibble index - negative means "fire when the nibble is *clear*" -
-/// and `itemId` is an optional collected-bit prerequisite (0 = none).
-/// `field_4` is the CAP command run when the prerequisite is missing.
-typedef struct _RoomEventReq {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s16 flagId;
-    /* 0x12 */ s16 itemId;
-} RoomEventReq;
-STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
-
 /// One row of `D_dryfield_motel_balcony_801822AC`, indexed by
 /// `GpEffWork.field_20` (the palette selector packed into the spawn arg).
 /// Each field is the right-shift applied to the effect's fade level to get

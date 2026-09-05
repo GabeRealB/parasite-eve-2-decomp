@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017D5FC);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parking_lot", D_dryfield_night_parking_lot_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_parking_lot/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017D760);

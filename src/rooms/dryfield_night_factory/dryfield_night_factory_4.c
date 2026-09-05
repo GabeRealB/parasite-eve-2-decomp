@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_80180164);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_801802C8);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_80180438);
