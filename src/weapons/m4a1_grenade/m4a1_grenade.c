@@ -2,9 +2,12 @@
 
 #include <psyq/inline_c.h>
 
+#include "gameplay/1BC.h"
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "weapons/m4a1_grenade.h"
@@ -14,11 +17,152 @@
 /// different word, so spell the instruction out.
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
+/// Equipped-weapon index; `Gp_GetItemSlot(D_80073BA9 + 0x7F)` is the slot the
+/// player is holding, and its `field_2` is the attachment id the sound bank is
+/// keyed on. A main-executable global with no module header yet.
+extern u8 D_80073BA9;
+
 void WeaponsShared8011de24(Task* task);
 
-INCLUDE_RODATA("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", D_m4a1_grenade_8011D1C0);
+/// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
+/// the shot and raises the weapon (clip 8 instead of 1 when it was already up),
+/// state 1 waits for that clip. State 2 branches on `field_97F`: a held trigger
+/// (bit 0) drops into the three-round burst of state 3, a tap (bit 1) fires the
+/// single 0x101 grenade of state 4, and anything else falls straight into the
+/// burst. State 3 counts `field_934` down to each round, spending one grenade,
+/// playing `0x201B0004` and spawning the muzzle flash, and picks the lock-on
+/// target on the frame after. States 4/5 pick the target once, then state 5
+/// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
+/// `field_3` has both 0x10 and 0x20, and hands back to `func_80106550` when the
+/// clip is done or the recoil timer has run out.
+void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* spot;
+    GpAnimRec*     rec;
+    GpItemSlot*    slot;
+    s32            anim;
+    s32            delay;
+    s32            sfx;
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", func_m4a1_grenade_8011D1EC);
+    actor = arg0->actor;
+    coord = arg0->extra->field_8;
+    slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
+    /* Reloaded rather than reused: the store leaves the block address in a
+       caller-saved register and the copy into `spot` is a second read of
+       `G_SCRATCH_HEAD` that CSE folds back onto it, which is what keeps the
+       two uses in separate registers. */
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
+    spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
+    sfx                     = slot->field_2 - 0x9F;
+    if (sfx < 0) {
+        sfx = 0xA;
+    }
+    switch (actor->field_95E) {
+        case 0:
+            anim              = 1;
+            actor->field_956  = 4;
+            actor->field_954  = 0;
+            actor->field_95A  = 0;
+            actor->field_95C  = 0;
+            actor->field_95E += anim;
+            actor->field_12A |= 0xC00;
+            if (((u16)actor->field_958 | actor->field_975) != 0) {
+                anim = 8;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            actor->field_958 = 0;
+            break;
+        case 1:
+            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1) !=
+                NULL) {
+                actor->field_95E++;
+            }
+            break;
+        case 2:
+            actor->field_981 = 0;
+            if (actor->field_97F & 1) {
+                actor->field_95E = 3;
+                actor->field_934 = 0;
+                actor->field_979 = 9;
+                actor->field_93E = 3;
+                func_80106238(arg0, 0, 1);
+            } else if (actor->field_97F & 2) {
+                actor->field_95E = 4;
+                actor->field_940 = 0x28;
+                actor->field_979 = 0x22;
+                Gp_ConsumeSlotQty(0x9A, 0x101);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                              ((sfx - 0xA) << 24) | 0x201B0006, 1);
+                Gp_SpawnEff(0x6006C,
+                            (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 0x1B,
+                            NULL);
+                func_80104490(arg0, 0, 0, sfx | 0x1B00);
+                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
+                break;
+            }
+            /* fallthrough */
+        case 3:
+            if (actor->field_93E != 0) {
+                delay = actor->field_934;
+                if (delay == 0) {
+                    actor->field_93E--;
+                    actor->field_934  = 3;
+                    actor->field_981  = 0;
+                    actor->field_12A |= 0xC000;
+                    Gp_ConsumeSlotQty(0x9A, 1);
+                    if (func_80106264(1) == 0) {
+                        actor->field_93E = 0;
+                    }
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                                  ((sfx - 0xA) << 24) | 0x201B0004, 1);
+                    Gp_SpawnEff(0x6006B,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                0x1B, NULL);
+                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                } else {
+                    actor->field_934 = delay - 1;
+                    if (delay - 1 == 2) {
+                        actor->field_12A &= 0x3FFF;
+                        if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                            Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                        }
+                    }
+                }
+                break;
+            }
+            /* fallthrough */
+        case 4:
+            actor->field_95E  = 5;
+            actor->field_93E  = 0;
+            actor->field_12A &= 0x3FFF;
+            if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+            }
+            /* fallthrough */
+        case 5:
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                                  (actor->field_93E + 0x201B0008) | ((sfx - 0xA) << 24), 0);
+                    actor->field_93E++;
+                }
+            }
+            if (actor->field_979 != 0) {
+                actor->field_979--;
+            }
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData.field_22][1], 0, 0) == 0 ||
+                ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
+                actor->field_940 = 0xC;
+                func_80106550(arg0);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 /// Spawn state: allocates the grenade's work block, places the projectile a
 /// little above and in front of the muzzle coordinate, parents it to world,
