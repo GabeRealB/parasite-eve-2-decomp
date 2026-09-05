@@ -43,5 +43,3 @@ void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
         arg0->state         = 1;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017DA0C);

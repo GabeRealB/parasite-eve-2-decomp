@@ -23,5 +23,3 @@ void func_neo_ark_pavilion_8017FC10(Task* arg0)
         arg0->state = 1;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion_3", func_neo_ark_pavilion_8017FCB0);

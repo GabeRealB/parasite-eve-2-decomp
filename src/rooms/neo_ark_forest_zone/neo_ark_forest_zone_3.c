@@ -16,5 +16,3 @@ void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
         arg0->state = 1;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_3", func_neo_ark_forest_zone_8017E420);

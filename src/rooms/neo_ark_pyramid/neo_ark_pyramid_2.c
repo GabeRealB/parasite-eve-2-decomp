@@ -56,5 +56,3 @@ void func_neo_ark_pyramid_8017DBF0(Task* arg0)
         arg0->state         = 1;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_2", func_neo_ark_pyramid_8017DC50);

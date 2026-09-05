@@ -33,5 +33,3 @@ void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
         arg0->state = 1;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", func_neo_ark_south_promenade_8017D720);

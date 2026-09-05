@@ -57,5 +57,3 @@ void func_dryfield_back_street_8017D970(Task* arg0)
     }
     Gp_State1C->field_A = 2;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D9D0);
