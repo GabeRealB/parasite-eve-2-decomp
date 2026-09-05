@@ -12,6 +12,10 @@
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
+/// Package header word 0: the overlay id, `item id - 0x78`
+/// (item 0x9F, MP5A5(+2)).
+const s32 D_mp5a5_p2_8011D1C0 = 0x27;
+
 extern s32 Gp_LcgState;
 
 /// Muzzle offset of the MP5A5(+2), in the firing hand's coordinate frame.
@@ -107,5 +111,3 @@ void func_mp5a5_p2_8011D1E0(Task* task)
         Gp_ReleaseState1CMem(work, task);
     }
 }
-
-INCLUDE_RODATA("weapons/nonmatchings/mp5a5_p2/mp5a5_p2", D_mp5a5_p2_8011D1C0);

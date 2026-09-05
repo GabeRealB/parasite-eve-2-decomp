@@ -12,6 +12,10 @@
 #include "main/session.h"
 #include "main/tmd.h"
 
+/// Package header word 0: the overlay id, `item id - 0x78`
+/// (item 0x81, M93R).
+const s32 D_m93r_8011D1C0 = 0x09;
+
 /// Per-frame firing state machine for the M93R burst pistol. Case 0 arms the
 /// shot (four-tick reload window, `field_979` grace of 10) and queues the
 /// ready animation, choosing the long variant when the weapon was left dirty
@@ -134,5 +138,3 @@ void func_m93r_8011D1C4(GpActorWork* arg0)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
 }
-
-INCLUDE_RODATA("weapons/nonmatchings/m93r/m93r", D_m93r_8011D1C0);

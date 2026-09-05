@@ -13,6 +13,10 @@
 #include "main/tmd.h"
 #include "weapons/tonfa_baton.h"
 
+/// Package header word 0: the overlay id, `item id - 0x78`
+/// (item 0x92, Tonfa Baton).
+const s32 D_tonfa_baton_8011D1C0 = 0x1A;
+
 void WeaponsShared8011db78(Task* task);
 
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
@@ -237,5 +241,3 @@ void func_tonfa_baton_8011DB6C(Task* arg0)
 {
     arg0->state = 3;
 }
-
-INCLUDE_RODATA("weapons/nonmatchings/tonfa_baton/tonfa_baton", D_tonfa_baton_8011D1C0);

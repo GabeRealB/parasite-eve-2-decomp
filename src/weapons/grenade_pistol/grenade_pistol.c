@@ -11,6 +11,10 @@
 #include "main/session.h"
 #include "main/wipsys.h"
 
+/// Package header word 0: the overlay id, `item id - 0x78`
+/// (item 0x8A, Grenade Pistol).
+const s32 D_grenade_pistol_8011D1C0 = 0x12;
+
 void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
 {
     GameActor* actor;
@@ -57,5 +61,3 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
             break;
     }
 }
-
-INCLUDE_RODATA("weapons/nonmatchings/grenade_pistol/grenade_pistol", D_grenade_pistol_8011D1C0);

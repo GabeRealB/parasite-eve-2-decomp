@@ -9,6 +9,10 @@
 #include "main/tmd.h"
 #include "weapons/gunblade.h"
 
+/// Package header word 0: the overlay id, `item id - 0x78`
+/// (item 0x96, Gunblade).
+const s32 D_gunblade_8011D1C0 = 0x1E;
+
 extern s32 Gp_LcgState;
 
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
@@ -340,5 +344,3 @@ void func_gunblade_8011E008(s32 arg0)
         work->field_20++;
     }
 }
-
-INCLUDE_RODATA("weapons/nonmatchings/gunblade/gunblade", D_gunblade_8011D1C0);
