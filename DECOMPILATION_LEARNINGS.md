@@ -47048,3 +47048,70 @@ Two smaller pieces of the same function, both about where a widening happens:
   `s16 r` fed `work->field_5C * 4`. Give the same helper an `s16` parameter for
   a value that is already a field and the conversion stops folding into the
   load, leaving `lhu` + `sll 16` + `sra 16` where the target has one `lh`.
+
+## `sh` of an `s16` field: `lhu` is a plain copy, `lh` means an `s32` temp
+
+Assigning one `s16` field straight to another stays in `HImode`, and GCC 2.8.1's
+`movhi` loads the source with `lhu`:
+
+```c
+s->move.vx = s->delta.vx.h.hi;   /* lhu $v0, 2($s0) ; sh $v0, 0x10($s0) */
+```
+
+The target's `lh` for the same store is not a signedness quirk of the source
+field — both fields are already `s16`. It means the value passed through an
+`int`-typed local, so the load became `extendhisi2` and the store a truncation:
+
+```c
+dx         = s->delta.vx.h.hi;   /* s32 dx: lh $v0, 2($s0) */
+s->move.vx = dx;                 /*         sh $v0, 0x10($s0) */
+```
+
+A cast alone (`(s32)s->delta.vx.h.hi`) does not do it — the C front end converts
+the RHS back to the LHS type and folds the pair away. The temp has to be a real
+local. This is also what fixes a mixed pair such as the target's `lh $v1, 6($s0)`
+next to `lhu $v0, 0x12($s0)` in one `addu`: the operand that came from an `s32`
+local is the `lh`, the one read and stored back in place is the `lhu`. Reading
+both fields directly gives `lhu` twice and swaps the `addu` operands.
+`func_acropolis_bridge_80184908` is the example.
+
+## CSE rewrites `a = -a` to read the copy's source; block it at the negate
+
+The abs idiom that keeps the raw value live,
+
+```c
+y = s->move.vy;
+a = y;
+if (y < 0) {
+    a = -a;
+}
+if (a < 0x20) {
+    coord->coord.t[1] += y;
+}
+```
+
+emits the right shape but the wrong operand: `.rtl` holds `(set 90 (neg 90))`,
+and by `.cse` it is `(set 90 (neg 89))`, i.e. `negu $v0, $a0` where the target
+has `negu $v0, $v0`. CSE substitutes the register the copy was made *from*,
+because both are in one equivalence class and the load's destination is that
+class's canonical member. Swapping which variable is declared first, negating
+`y` instead of `a`, `0 - a`, an explicit `goto`, and the `?:` form all produce
+the same substitution — the direction of the rewrite is fixed.
+
+Re-reading the field instead of keeping `y` is worse: CSE then keeps the value
+in `HImode` and the later `+=` picks up `sll`/`sra` around it.
+
+What works is one `SOFT_TOUCH_REG` on the copy, inside the branch and
+immediately before the negate, so the value CSE would substitute is no longer
+the one being negated:
+
+```c
+if (y < 0) {
+    SOFT_TOUCH_REG(a);
+    a = -a;
+}
+```
+
+Placing it after `a = y` instead — outside the branch, volatile or not — costs
+the delay-slot copy and drops the score. `func_acropolis_bridge_80184908` is the
+example; it was the last instruction between 99.97% and 100%.

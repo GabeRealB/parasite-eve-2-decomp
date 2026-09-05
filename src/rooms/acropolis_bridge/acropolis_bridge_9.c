@@ -85,7 +85,8 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x10 */ GpRec18*                 recs;
     /* 0x14 */ byte                     pad_14[0x8];
     /* 0x1C */ SVECTOR                  moveStep;
-    /* 0x24 */ byte                     pad_24[0x10];
+    /* 0x24 */ SVECTOR                  moveDelta;
+    /* 0x2C */ byte                     pad_2C[0x8];
     /* 0x34 */ MATRIX                   scaleMtx;
     /* 0x54 */ s16                      scale;
     /* 0x56 */ s16                      field_56;
@@ -111,7 +112,9 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x73 */ u8                       field_73;
     /* 0x74 */ byte                     pad_74[0x2];
     /* 0x76 */ u8                       cursor;
-    /* 0x77 */ byte                     pad_77[0x9];
+    /* 0x77 */ byte                     pad_77[0x1];
+    /* 0x78 */ u8                       moving;
+    /* 0x79 */ byte                     pad_79[0x7];
     /* 0x80 */ AcropolisBridgeNavData   navData;
     /* 0x8C */ AcropolisBridgeNavRoute  routeData;
 } AcropolisBridgeWalkerWork;
@@ -361,7 +364,107 @@ u8 func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184638);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184908);
+/// 0x18-byte scratch the walker's per-frame move carves off `G_SCRATCH_HEAD`:
+/// the `GpDeltaScratch` `func_800E0C10` fills with the 16.16 step toward the
+/// current patrol node, followed by the whole-unit step actually applied to
+/// the walker's coordinate this frame.
+typedef struct AcropolisBridgeMoveScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ SVECTOR        move;
+} AcropolisBridgeMoveScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeMoveScratch, 0x18);
+
+/// Steps the walker toward its current patrol node. `func_800E0C10` produces
+/// the 16.16 delta; the high half of each component becomes the whole-unit
+/// step, rounded away from zero whenever a fraction is left over. While
+/// `field_6B` is set the walker is pinned vertically, otherwise Y also carries
+/// a constant 0x10 fall. Y is applied in three bands: a +8 hop above 0x20, a
+/// -0x20 drop below -0x20, and the plain step in between. `moving` records
+/// whether the frame produced any XZ motion at all.
+void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work)
+{
+    u8*                         head;
+    AcropolisBridgeMoveScratch* s;
+    s32                         valx;
+    s32                         valy;
+    s32                         valz;
+    s32                         dx;
+    s32                         dy;
+    s32                         dz;
+    s32                         y;
+    s32                         mag;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x18;
+    s                     = (AcropolisBridgeMoveScratch*)(head - 0x18);
+    if (func_800E0C10((GpRec18*)work->field_C, &s->delta, work->field_56, NULL) != 0) {
+        dx         = ((AcropolisBridgeMoveScratch*)(head - 0x18))->delta.vx.h.hi;
+        dz         = s->delta.vz.h.hi;
+        s->move.vx = dx;
+        s->move.vz = dz;
+        valx       = ((AcropolisBridgeMoveScratch*)(head - 0x18))->delta.vx.w;
+        if ((valx & 0xFFFF) != 0) {
+            if (valx > 0) {
+                s->move.vx++;
+            } else {
+                s->move.vx--;
+            }
+        }
+        valz = s->delta.vz.w;
+        if ((valz & 0xFFFF) != 0) {
+            if (valz > 0) {
+                s->move.vz++;
+            } else {
+                s->move.vz--;
+            }
+        }
+        if (work->field_6B == 0) {
+            dy         = s->delta.vy.h.hi;
+            valy       = s->delta.vy.w;
+            s->move.vy = s->move.vy + dy;
+            if ((valy & 0xFFFF) != 0) {
+                if (valy > 0) {
+                    s->move.vy++;
+                } else {
+                    s->move.vy--;
+                }
+            }
+        } else {
+            s->move.vy = 0;
+        }
+    } else {
+        s->move.vx = 0;
+        s->move.vy = 0;
+        s->move.vz = 0;
+    }
+    if (work->field_6B == 0) {
+        s->move.vy += 0x10;
+    }
+    work->moveDelta          = s->move;
+    work->coord->coord.t[0] += s->move.vx;
+    if (s->move.vy >= 0x21) {
+        work->coord->coord.t[1] += 8;
+    }
+    if (s->move.vy < -0x20) {
+        work->coord->coord.t[1] -= 0x20;
+    }
+    y   = s->move.vy;
+    mag = y;
+    if (y < 0) {
+        SOFT_TOUCH_REG(mag);
+        mag = -mag;
+    }
+    if (mag < 0x20) {
+        work->coord->coord.t[1] += y;
+    }
+    work->coord->coord.t[2] += s->move.vz;
+    if (work->coord->coord.t[0] != 0 || work->coord->coord.t[2] != 0) {
+        work->moving = 1;
+    } else {
+        work->moving = 0;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184B94);
 
