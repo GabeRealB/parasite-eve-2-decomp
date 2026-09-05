@@ -139,34 +139,6 @@ def main() -> int:
     if git("status", "--porcelain", "--", "src", "include").strip():
         raise SystemExit("trunk has uncommitted src/include changes; refusing")
 
-    # Which trunk file holds each function, and where its final body lives.
-    src_dirs = [p for p in ROOT.glob(f"src/**/{args.overlay}") if p.is_dir()]
-    if len(src_dirs) != 1:
-        raise SystemExit(f"expected one src dir for {args.overlay}")
-    rel = src_dirs[0].relative_to(ROOT)
-
-    file_of, body_of = {}, {}
-    for trunk_c in sorted(src_dirs[0].glob("*.c")):
-        wt_c = wt / rel / trunk_c.name
-        if not wt_c.is_file():
-            continue
-        wt_bodies = bodies_of(wt_c.read_text())
-        for fn in funcs:
-            if fn in wt_bodies and ASM_LINE.search(trunk_c.read_text()) and \
-               re.search(rf'INCLUDE_ASM\("[^"]+",\s*{fn}\)', trunk_c.read_text()):
-                file_of[fn] = trunk_c
-                body_of[fn] = wt_bodies[fn]
-
-    missing = [f for f in funcs if f not in file_of]
-    if missing:
-        raise SystemExit(f"no INCLUDE_ASM slot on trunk for: {missing}")
-
-    # Stage 1: scaffolding (includes, statics, new types) plus any extra paths.
-    touched = set(file_of.values())
-    for trunk_c in touched:
-        wt_c = wt / rel / trunk_c.name
-        mine = {f for f in funcs if file_of[f] == trunk_c}
-        trunk_c.write_text(scaffold(trunk_c.read_text(), wt_c.read_text(), mine))
     base_rev = args.base
     extras = [e.strip() for e in args.extra.split(",") if e.strip()]
     for e in extras:
@@ -230,6 +202,50 @@ def main() -> int:
         else:
             dst.write_text(src.read_text())
 
+    # Re-split before mapping slots. A sweep may change the overlay's
+    # segmentation - acropolis_plaza's added a `units` cut, giving the worktree
+    # an acropolis_plaza_4.c that trunk had no counterpart for - and the mapping
+    # below walks *trunk's* files, so bodies in a unit trunk does not yet have
+    # were invisible and the landing died on "no INCLUDE_ASM slot". Applying the
+    # manifest first and re-splitting makes trunk's units match the worktree's.
+    # Sym files get the same treatment: a promotion adds aliases, and trunk's
+    # asm has to be regenerated under those names before bodies are applied.
+    if any(e.startswith("configs/") for e in extras):
+        print("  config changed; re-splitting trunk before mapping bodies")
+        r = subprocess.run([sys.executable, "ninja_config.py", "--only", args.overlay],
+                           cwd=ROOT, capture_output=True, text=True)
+        if r.returncode != 0:
+            raise SystemExit("re-split after the manifest merge failed:\n"
+                             + r.stderr[-2000:])
+
+    # Which trunk file holds each function, and where its final body lives.
+    src_dirs = [p for p in ROOT.glob(f"src/**/{args.overlay}") if p.is_dir()]
+    if len(src_dirs) != 1:
+        raise SystemExit(f"expected one src dir for {args.overlay}")
+    rel = src_dirs[0].relative_to(ROOT)
+
+    file_of, body_of = {}, {}
+    for trunk_c in sorted(src_dirs[0].glob("*.c")):
+        wt_c = wt / rel / trunk_c.name
+        if not wt_c.is_file():
+            continue
+        wt_bodies = bodies_of(wt_c.read_text())
+        for fn in funcs:
+            if fn in wt_bodies and ASM_LINE.search(trunk_c.read_text()) and \
+               re.search(rf'INCLUDE_ASM\("[^"]+",\s*{fn}\)', trunk_c.read_text()):
+                file_of[fn] = trunk_c
+                body_of[fn] = wt_bodies[fn]
+
+    missing = [f for f in funcs if f not in file_of]
+    if missing:
+        raise SystemExit(f"no INCLUDE_ASM slot on trunk for: {missing}")
+
+    # Stage 1: scaffolding (includes, statics, new types).
+    touched = set(file_of.values())
+    for trunk_c in touched:
+        wt_c = wt / rel / trunk_c.name
+        mine = {f for f in funcs if file_of[f] == trunk_c}
+        trunk_c.write_text(scaffold(trunk_c.read_text(), wt_c.read_text(), mine))
     # Stage 2: one function, one commit.
     for fn in funcs:
         trunk_c = file_of[fn]
@@ -238,7 +254,12 @@ def main() -> int:
         if not m:
             raise SystemExit(f"{fn}: INCLUDE_ASM line vanished from {trunk_c}")
         trunk_c.write_text(text.replace(m.group(0), body_of[fn].rstrip("\n"), 1))
-        paths = [str(trunk_c.relative_to(ROOT))] + (extras if fn == funcs[0] else [])
+        paths = [str(trunk_c.relative_to(ROOT))]
+        if fn == funcs[0]:
+            # The re-split above may have written unit files trunk did not have.
+            # They are part of this segmentation change, and leaving them
+            # untracked would trip the next landing's clean-tree check.
+            paths += extras + [str(rel)]
         git("add", *paths)
         n = args.attempts if args.attempts else (attempts_from_worktree(wt, fn) or 1)
         git("commit", "-q", "-m", f"matched {fn} {n}")
