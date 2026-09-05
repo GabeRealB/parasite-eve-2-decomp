@@ -19,6 +19,10 @@
 
 extern s32 Gp_LcgState;
 
+/// Translation of the Pyke's effect coordinate frame inside its parent frame
+/// (the muzzle), `(0, 0x200, 0x40)`.
+SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
+
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
 /// The `inline_c.h` macro of that name assembles to a different word, so spell
 /// the instruction out.

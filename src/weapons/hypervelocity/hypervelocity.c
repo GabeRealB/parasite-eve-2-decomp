@@ -17,6 +17,10 @@
 #include "main/tmd.h"
 #include "weapons/hypervelocity.h"
 
+/// Translation of the round's own coordinate frame inside its parent frame
+/// (the muzzle), `(0, 0x240, 0x80)`.
+SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
+
 extern s32 Gp_LcgState;
 
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.

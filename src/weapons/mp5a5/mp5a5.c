@@ -9,6 +9,7 @@
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "weapons/mp5a5.h"
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
@@ -19,12 +20,7 @@ const s32 D_mp5a5_8011D1C0 = 0x25;
 extern s32 Gp_LcgState;
 
 /// Muzzle offset of the MP5A5, in the firing hand's coordinate frame.
-extern SVECTOR D_mp5a5_8011E128;
-
-/// The four flash angles rolled on the frame the shot goes off, one per
-/// `WeaponsShared8011d864` quad. Each is a fixed quadrant (`i << 10`) plus a
-/// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
-extern s16 D_mp5a5_8012B508[4];
+SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
 
 /// Per-frame muzzle-flash task for the MP5A5. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own
