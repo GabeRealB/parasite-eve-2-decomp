@@ -44214,3 +44214,72 @@ multiply chain and dragged the `ori` of the LCG constant to the top of the
 block. Moving the one `sh $zero` past the draw took it to 100%. Writing the
 vector's components in `vx`, `vy`, `vz` order is also the reading the ROM
 supports, so prefer it over grouping the two constant stores.
+
+## The inverse: test the field itself when the ROM leaves the delay slot empty
+
+"Store the decremented counter through one local, do not spell `x - 1` twice"
+covers the case where the ROM *speculates* the `addiu` into the guard branch's
+delay slot. `func_tonfa_baton_8011DBFC` needs the opposite in two of its cases,
+and the same C shape that matched `func_m93r_8011D1C4` is what gets it wrong.
+
+Cached in a local, the guard's slot always gets filled:
+
+```c
+step = actor->field_934;
+if (step != 0) {
+    actor->field_973 = 1;
+    swinging         = 1;
+    step--;
+    actor->field_934 = step;
+    if (step == 3) { /* ... */ }
+}
+```
+
+```
+lw    v1, 0x934(s0)
+nop
+beqz  v1, .Lout
+ addiu v1, v1, -0x1     # hoisted; ROM has a nop here
+li    s4, 1
+```
+
+`step` is dead on the fall-through arm, so `addiu v1, v1, -1` is both the first
+instruction of the taken block and eligible for the slot, and the post-reload
+filler takes it. The ROM instead starts that block with `li s4, 1` — the swing
+flag, which is *live on the fall-through arm* because the epilogue multiplies by
+it — so nothing is eligible and the slot stays a `nop`.
+
+Reading the field directly in the guard and subtracting from the field again
+produces exactly that:
+
+```c
+if (actor->field_934 != 0) {
+    actor->field_973 = 1;
+    swinging         = 1;
+    step             = actor->field_934 - 1;
+    actor->field_934 = step;
+    if (step == 3) { /* ... */ }
+}
+```
+
+```
+lw    v0, 0x934(s0)
+nop
+beqz  v0, .Lout
+ nop
+li    s4, 1
+move  v1, s4
+sb    s4, 0x973(s0)
+addiu v1, v0, -0x1
+```
+
+CSE still folds the second read into the first `lw`, so there is only one load —
+but the loaded pseudo now stays live across the flag stores, the subtraction
+lands in a second register, and the scheduler no longer has the `addiu` at the
+head of the block for the filler to take. That flipped `$v0`/`$v1` back to the
+ROM's assignment in both cases and took the function from 97.8% to 98.9%.
+
+Which spelling you want is decided by the ROM's delay slot, not by taste: a
+filled slot on the guard means write the decrement through a local, an empty one
+means re-read the field. Both readings are the same C semantics, so try the
+other one before reaching for the permuter.

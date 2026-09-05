@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/gfx.h"
 
 /// The tonfa's coordinate node, reached through `TmdObject.field_8`. It is
@@ -21,5 +23,19 @@ typedef struct TonfaCoord {
     /* 0x4C */ s32*   sub;
 } TonfaCoord;
 STATIC_ASSERT_SIZEOF(TonfaCoord, 0x50);
+
+/// 0x18-byte scratchpad block `func_tonfa_baton_8011DBFC` reserves for one
+/// frame of the swing. `dir` receives the third column of the weapon's
+/// coordinate matrix from `Gfx_MatrixCol2`; each axis is then scaled to
+/// 1/84th and multiplied by the swing flag to give the per-frame translation
+/// added to the coordinate.
+typedef struct TonfaSwing {
+    /* 0x00 */ s32     vx;
+    /* 0x04 */ s32     vy;
+    /* 0x08 */ s32     vz;
+    /* 0x0C */ byte    pad_C[4];
+    /* 0x10 */ SVECTOR dir;
+} TonfaSwing;
+STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
 
 #endif
