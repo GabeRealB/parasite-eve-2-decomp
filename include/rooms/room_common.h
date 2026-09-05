@@ -296,6 +296,11 @@ void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// `(s16)arg1 * 64 / otz`. `arg2` is a signed angle offset. The first OTZ is
 /// clamped to 0x10.
 void Room_Draw11(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex is
+/// scaled by the frame-counter blend byte `((field_8 & 1) * 8 | 0x20)`: red
+/// is `blend * ((arg3 << 16) >> 24)`, green `blend * (((arg3 << 16) >> 20) & 1)`,
+/// blue `blend * (arg3 & 1)`. `arg2` is still the signed angle offset.
+void Room_Draw12(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex's RGB
 /// is `((field_8 & 1) * 16) | 0x20` rather than `* 8`.
 void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -450,8 +455,8 @@ typedef struct _RoomDraw10Scratch {
 } RoomDraw10Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw10Scratch, 0x18);
 
-/// 0x18-byte scratch block `Room_Draw11` and `Room_Draw34` take from
-/// `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
+/// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12` and `Room_Draw34` take
+/// from `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
 /// through `Gfx_ViewWorldMtx`.
 /// `otz0`/`otz1` are the `gte_stszotz` of those points, `r0`/`r1` are
 /// `(s16)arg1 * 64 / otz`, and `sx0`/`sy0` plus `sx1`/`sy1` are the two
