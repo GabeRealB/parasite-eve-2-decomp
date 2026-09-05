@@ -68,14 +68,21 @@ extern RoomActionPrompt D_80114D28;
 /// (released with `Gp_ReleaseState1CMem`). `field_10` is the `SVECTOR` handed to
 /// `Gp_SpawnEff`; `field_22` is the per-frame tick the task compares against its
 /// lifetime; `field_24` / `field_26` are the animated colour and size ramps and
-/// `field_2A` the per-frame step derived from `Task::spawnArg1`.
+/// `field_2A` the per-frame step derived from `Task::spawnArg1`. A task that
+/// drifts its own coordinate frame also uses `field_18` / `field_1A` /
+/// `field_1C` as the velocity the spawner staged for `field_10`, and `field_20`
+/// as the animation step it advances every `field_28` ticks.
 ///
 /// Shared by every room overlay that spawns effects this way
 /// (`shelter_b6_nursery`, `acropolis_fire_escape`, …).
 typedef struct RoomEffWork {
     /* 0x00 */ byte    pad_0[0x10];
     /* 0x10 */ SVECTOR field_10;
-    /* 0x18 */ byte    pad_18[0xA];
+    /* 0x18 */ u16     field_18;
+    /* 0x1A */ u16     field_1A;
+    /* 0x1C */ u16     field_1C;
+    /* 0x1E */ byte    pad_1E[0x2];
+    /* 0x20 */ u16     field_20;
     /* 0x22 */ u16     field_22;
     /* 0x24 */ u16     field_24;
     /* 0x26 */ u16     field_26;

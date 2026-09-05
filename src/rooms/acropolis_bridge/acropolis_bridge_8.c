@@ -14,14 +14,17 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those
-/// names assemble to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+/// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0` / `gpf 1`. The `inline_c.h` macros
+/// of those names assemble to different words, so spell the instructions out.
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32  Gp_LcgState;
 extern void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+extern void func_acropolis_bridge_80182F8C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+extern void func_acropolis_bridge_801833A0(GsCOORDINATE2* arg0, u16 arg1, s16 arg2);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_8017F868);
 
@@ -616,7 +619,142 @@ void func_acropolis_bridge_80182694(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_801827EC);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80182AF8);
+/// Controller for one piece of the bridge's blown debris: it drifts the task's
+/// coordinate frame by a velocity it rolls once, and hands the frame to
+/// `func_acropolis_bridge_80182F8C` (state 1) or `func_acropolis_bridge_801833A0`
+/// (state 2) to be drawn. Everything the piece needs is packed into
+/// `Task::spawnArg1`: bits 0-11 become `field_24`, bits 12-15 the number of
+/// ticks each animation step lasts (`field_28`, 1 if zero), bits 16-23 the
+/// speed the velocity is scaled to (`field_2A`, 0x40 if zero), bits 24-27 the
+/// launch pattern and bits 28-31 pick which of the two draw helpers runs. The
+/// first tick also rolls the 12-bit `field_26` out of `Gp_LcgState`; both it
+/// and `field_24` are passed to the draw helper every tick.
+///
+/// The launch pattern rolls `field_10` when the caller left it zero: 1 spreads
+/// X and Z evenly over +/-0x80 and biases Y to -0x40..-0xBF, 2 spreads all
+/// three evenly over +/-0x80, 3 keeps X and Z inside +/-0x10 and drives Y to
+/// 0..-0xFF, 5 copies the velocity the caller staged at `field_18`, and 0 stops
+/// the piece from drifting at all by zeroing `field_2A`. The rolled direction
+/// is then normalized and scaled back up to `field_2A` with one GTE `GPF`, so
+/// the pattern only picks a direction and the packed speed sets the length.
+///
+/// Once running, a piece with a non-zero `field_2A` adds its velocity onto the
+/// coordinate's translation each tick and bends Y by 6 as it goes, and every
+/// `field_28` ticks steps `field_20`; the eighth step releases the work block.
+/// While `Gp_State1C::field_4` is set the room is fading out, so the piece only
+/// keeps drawing, and releases itself once the fade reaches 4.
+void func_acropolis_bridge_80182AF8(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            kind;
+    s32            step;
+    s32            state;
+    s32            level;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (Gp_State1C->field_4 != 0) {
+        func_acropolis_bridge_80182F8C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+        if (Gp_State1C->field_4 >= 4) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+        return;
+    }
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 0xF;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            state          = 1;
+            if (task->spawnArg1 & 0xF0000000) {
+                state = 2;
+            }
+            task->state = state;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                switch (kind & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            return;
+        case 1:
+            func_acropolis_bridge_80182F8C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            break;
+        case 2:
+            func_acropolis_bridge_801833A0(coord, work->field_20, (s16)work->field_24);
+            break;
+        default:
+            return;
+    }
+    if ((s16)work->field_2A != 0) {
+        coord->coord.t[0] += work->field_10.vx;
+        coord->coord.t[1] += work->field_10.vy;
+        coord->coord.t[2] += work->field_10.vz;
+        coord->flg         = 0;
+        work->field_10.vy += 6;
+    }
+    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+        work->field_20++;
+        if ((s16)work->field_20 >= 8) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80182F8C);
 

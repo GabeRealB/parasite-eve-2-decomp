@@ -47450,3 +47450,29 @@ negu  v1, v1
 
 So when the target has an unexplained `nop` after an abs `bgez`, the source
 used `ABS()`, not an `if`.
+
+## Don't hoist a repeated constant into a local: `subu` publishes it and later `>> 16` becomes `srlv`
+
+A switch whose arms all end with `field = BASE - rnd;` and share a two-insn
+tail (`subu a1,a1,v0` / `sh a1,...`) looks like it needs a shared local for
+`BASE`, but it does not - post-reload cross-jumping merges the tail on the hard
+registers by itself. Writing the literal in each arm is what matters, because
+the *constant register* is a side effect of the reverse subtraction: MIPS has
+no reverse-subtract-immediate, so `0x10 - x` materialises `li a1,0x10` at the
+first `subu`, and everything after that sees a register that CSE knows holds
+16. Subsequent `(u32)x >> 16` then shift by that register:
+
+```
+addiu a1, $zero, 0x10
+srl   v0, a0, 0x10      /* first extraction: constant not in a reg yet */
+andi  v0, v0, 0x1F
+subu  v0, a1, v0        /* li a1,0x10 belongs to this insn */
+...
+srlv  v0, v1, a1        /* CSE substitutes the register from here on */
+```
+
+Only the arm whose base happens to equal the shift count (0x10 == 16) shows
+`srlv`; the `0x80` arms keep `srl`. A `s32 base = 0x10;` written above the
+first shift moves the `li` *before* it, so all three shifts stay `srl` and the
+match is two instructions off with no other symptom. `func_acropolis_bridge_80182AF8`
+is the worked example.
