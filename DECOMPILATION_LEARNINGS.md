@@ -38547,6 +38547,62 @@ take each declaration from *its own* unit: `D_acropolis_helicopter_landing_pad_8
 was `extern TaskDesc x;` in one unit and `extern TaskDesc x[];` in another, and
 merging the two files' preambles silently gave one of them the wrong form.
 
+## A promotion that cuts a unit in two renumbers every later unit
+
+`overlay_dup_index.py promote` writes the `shared` span and the symbol maps and
+stops there, but a span in the middle of a run splits that run, and `emit_run`
+numbers runs sequentially: every overlay-local unit after the cut moves up one
+(`mine_mesa_8` becomes `mine_mesa_9`), and a run the body occupied entirely
+disappears, moving everything after it *down* one. Two things follow.
+
+The manifest's `rodata` and `data` cuts name units by **name**, so they have to
+be renumbered in the same edit - simultaneously, since a room can carry both
+`_2` -> `_3` and `_3` -> `_4`. A cut left naming a unit that no longer exists is
+caught by checking each generated config for a `.rodata` subsegment whose unit
+path has no `c` sibling; a cut left naming a unit that still exists but now
+holds different code is *not* caught by anything, and the build stays green
+right up to the checksum.
+
+For the split unit itself the cut has to follow the half that holds the
+function, which is what makes a compiler-generated jump table land at its own
+address. Read the target bytes of the block, treat each word that falls in
+`.text` as a code address, and ask which unit contains it: five of six failing
+rooms had a cut naming the head while the table belonged to the tail
+(`acropolis_cafeteria` 0xB0 was `_5`'s and is `_6`'s). A block whose words point
+into several units is a plain data table, not a jump table, and can stay where
+it was.
+
+## Rebuild a re-split unit from the old .c, and never carry a definition twice
+
+The safe reconstruction after a promotion re-split is not "splat's fresh file
+plus the bodies": splat re-derives the `INCLUDE_RODATA` set from the *current*
+cuts, which drops the tables a matched body generates itself and adds ones it
+does not want. Rebuild each new file from the pre-promotion `.c` instead -
+distribute its chunks (a body, an `INCLUDE_ASM`, an `INCLUDE_RODATA`) over the
+new units and retarget the path strings - so the rodata set is preserved by
+construction.
+
+The head half keeps the file's non-chunk text; the tail half may take only its
+*declarations*. Carrying `static const char PowerSupplyMsg[16] = "power supply\n…"`
+into both halves of `acropolis_security_room` emitted the string twice, and the
+16 extra bytes moved the whole `.text` down: it compiled, it linked, and only
+the checksum said so. Classify by content, not by keyword - a top-level line
+holding `=`, or opening `__asm__(`, is a definition however it starts.
+
+## A promoted body takes its migrated rodata with it
+
+`migrate_rodata_to_functions` files a table inside the `.s` of the function that
+references it, so retiring a copy of a body also retires whatever rodata had
+been migrated into it - most obviously the very table the promotion aliases.
+The link then fails with `undefined reference to RoomsShared…Table` (44 rooms
+here) or to a `jtbl_` the neighbouring code still reads. The repair is a
+standalone `INCLUDE_RODATA` in whichever unit splat now files the symbol under:
+`find asm/USA/<family> -name '<sym>.s'` names the unit, and inserting the line
+in the same position splat would have chosen keeps the block's internal order.
+The converse happens too - move a cut onto the unit holding the referencing
+function and splat migrates the table back into the function's `.s`, so the
+`INCLUDE_RODATA` has to go again.
+
 ## Name the global as a local pointer to keep `%hi` above a call
 
 A global whose first *use* is after a call gets its address rebuilt after the
