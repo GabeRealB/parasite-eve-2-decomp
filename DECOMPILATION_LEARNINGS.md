@@ -47476,3 +47476,55 @@ Only the arm whose base happens to equal the shift count (0x10 == 16) shows
 first shift moves the `li` *before* it, so all three shifts stay `srl` and the
 match is two instructions off with no other symptom. `func_acropolis_bridge_80182AF8`
 is the worked example.
+
+## Hoisting a call-crossing subexpression into a local changes *which* value gets the callee-saved register
+
+A scale factor built from a parameter and reused by several expressions that
+each also call a function — `block->dx = (size * 31 / block->otz * rsin(a)) >> 12;`
+repeated four times — can be written two ways, and they schedule differently.
+
+Written as its own statement first:
+
+```c
+scale = size * 31;
+block->dx = (scale / block->otz * rsin(ang)) >> 12;
+```
+
+GCC computes the product *before* the first `jal`, so the product is what is
+live across the call and lands in `$s0`:
+
+```
+sll  v0, a2, 0x10
+sra  v0, v0, 0x10
+sll  s0, v0, 0x5
+jal  rsin
+subu s0, s0, v0        /* scale finished in the delay slot */
+```
+
+Written inline at every use site instead:
+
+```c
+block->dx = (size * 31 / block->otz * rsin(ang)) >> 12;
+```
+
+GCC expands the call operand first, so the *raw parameter* is what has to
+survive it. It is copied to a callee-saved register in the prologue and the
+multiply happens after the call returns; CSE still computes the product only
+once, and the remaining three uses read it out of `$s0`:
+
+```
+move s0, a2            /* in the prologue, next to sw s0,0x10(sp) */
+...
+jal  rsin
+sb   v0, 7(s3)
+sll  a0, s0, 0x10
+sra  a0, a0, 0x10
+sll  s0, a0, 0x5
+subu s0, s0, a0
+```
+
+So an unexplained `move $sN, $aX` in the prologue of a function that calls
+something is the signal to *inline* the subexpression rather than name it; the
+naming is what pulls the arithmetic in front of the call.
+`func_acropolis_bridge_80182F8C` is the worked example (97.3% -> 99.8% on that
+edit alone).

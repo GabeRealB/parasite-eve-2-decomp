@@ -756,7 +756,80 @@ void func_acropolis_bridge_80182AF8(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80182F8C);
+/// Draws one piece of the bridge's blown debris as a screen-facing quad. The
+/// piece's world position is copied out of `coord->workm.t` and projected
+/// through `GsWSMATRIX` with a single `RTPS`; a GTE error (`gte_stflg` sign
+/// bit) drops the piece rather than drawing it. The `POLY_FT4` is centred on
+/// the projected point, its two diagonals `size * 31 / otz` long and turned by
+/// `angle` and `angle + 0x400`, so the quad shrinks with distance and spins
+/// with the piece. `frame` picks the animation cell: the texture window is the
+/// 0x1F-wide column starting at `frame * 0x20` on rows 0xE0..0xFF of tpage
+/// 0x2B. The primitive is semi-transparent with texture blending off
+/// (`code |= 3`) and links into the OT at the projected depth.
+void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s16 angle)
+{
+    void**                        scratch;
+    u8*                           head;
+    AcropolisBridgeSpriteScratch* block;
+    POLY_FT4*                     prim;
+    s32                           ang;
+    AcropolisBridgeSpriteScratch* depth;
+    s32                           u;
+    s32                           uu;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    block   = (AcropolisBridgeSpriteScratch*)(head - sizeof(AcropolisBridgeSpriteScratch));
+    depth   = block;
+
+    block->vec.vx = *(u16*)&coord->workm.t[0];
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    block->vec.vz = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisBridgeSpriteScratch*)(head - 0x1C))->vec);
+    gte_rtps_real();
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&((AcropolisBridgeSpriteScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((AcropolisBridgeSpriteScratch*)(head - 0x1C))->flag);
+
+    if (block->flag >= 0) {
+        gte_stszotz(&depth->otz);
+        ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz++;
+        prim->tpage = 0x2B;
+        prim->clut  = 0x43D3;
+        u           = frame << 5;
+        uu          = u + 0x1F;
+        setUV4(prim, u, 0xE0, uu, 0xE0, u, 0xFF, uu, 0xFF);
+        setcode(prim, getcode(prim) | 3);
+
+        ang       = angle;
+        block->dx = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rsin(ang)) >> 12;
+        block->dy = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rcos(ang)) >> 12;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
+
+        ang      += 0x400;
+        block->dx = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rsin(ang)) >> 12;
+        block->dy = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rcos(ang)) >> 12;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
+
+        addPrim((u_long*)(((((u32)((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + sizeof(AcropolisBridgeSpriteScratch);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_801833A0);
 
