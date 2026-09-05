@@ -968,6 +968,11 @@ $(stale_build_warning "$ROOT")
 EOF
   if [[ "$status" == "matched" ]]; then
     cat <<EOF
+The orchestrator merge lock on trunk is already held for you, as session
+`${SESSION}`. Do **not** acquire or release it: trunk is yours for this run.
+If some step genuinely needs an orchestrator call, pass `--session ${SESSION}`
+so it reuses that hold rather than blocking on it.
+
 ${promote_block}
 
 Port the matched function onto **current** trunk:
@@ -1506,17 +1511,17 @@ vacuum_orch_loop() {
     fi
 
     if [[ $did_fast -eq 0 ]]; then
-      # Hand the merge lock to the agent rather than holding it across the
-      # call. build_port_prompt tells the agent to take the lock itself, so
-      # holding it here deadlocks: func_p229_8011D860's port agent spent 14
-      # minutes polling merge-acquire against its own parent's lock before a
-      # human released it. vacuum_overlay.sh's drift path already hands over
-      # without the lock, and its agent takes and releases it correctly.
-      # Re-acquired below for the driver's own commit steps.
-      if [[ $ORCH_MERGE -eq 1 ]]; then
-        orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
-        ORCH_MERGE=0
-      fi
+      # Hold the merge lock across the port agent. Releasing it here - which
+      # this used to do - leaves trunk unprotected for the agent's whole run,
+      # and two port agents then edit the same working tree at once: on
+      # 2026-09-05 a mapui port and a room-lib port interleaved, and the first
+      # commit carried the other's files under the wrong function's name.
+      #
+      # The deadlock that motivated the release came from an agent acquiring
+      # under its *own* session id and polling against its parent. Passing the
+      # parent's session is the fix instead: cmd_merge_acquire is re-entrant per
+      # session and returns reused=true immediately, so an agent that does take
+      # the lock never blocks, and one that does not is covered anyway.
       if [[ "$status" == "matched" ]]; then
         echo "Starting port agent for $func ($status), model ${VACUUM_LAND_MODEL:-${VACUUM_MODEL:-default}}..." | tee -a "$LOG_FILE"
         AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" \
