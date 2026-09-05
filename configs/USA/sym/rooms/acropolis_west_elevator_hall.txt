@@ -1,3 +1,5 @@
 // Overlay-local symbols for acropolis_west_elevator_hall.
 Room_Util06 = 0x8017F560; // shared body, see src/rooms/lib/
 RoomsShared8017f77c = 0x8017FAE8; // shared body, see src/rooms/lib/
+RoomsShared8017f470 = 0x8017F470; // shared body, see src/rooms/lib/
+RoomsShared8017f470Cars = 0x80186AE4; // shared body data, see src/rooms/lib/
