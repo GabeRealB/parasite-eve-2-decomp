@@ -19,6 +19,11 @@ extern SVECTOR  D_acropolis_bridge_80189240[];
 extern Task*    D_acropolis_bridge_8019179C;
 extern u16      D_acropolis_bridge_801917A4;
 
+/// Three 16-entry rows, one per digit of the bridge code, mapping a nibble to
+/// the SPRT command that renders it. Entries above 9 hold the row's blank
+/// sentinel.
+extern u8 D_acropolis_bridge_801898CC[3][16];
+
 /// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
 /// bridge cutscene starts.
 extern s32 D_acropolis_bridge_80190B8C;
@@ -320,7 +325,85 @@ void func_acropolis_bridge_8017E4FC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_5", func_acropolis_bridge_8017E60C);
+/// Draws the three-digit bridge code onto the current room's eighth SPRT
+/// record. Each nibble of `digits` indexes one row of
+/// `D_acropolis_bridge_801898CC`, which maps it to the single command left
+/// drawing in that digit's band - commands 1..10, 11..20 and 21..30 - while
+/// every other command in the band gets its skip-OT-link flag set. A nibble
+/// above 9 maps to the row's sentinel (0x1F / 0x20 / 0x21), which blanks the
+/// band and shows the placeholder at command 31, 32 or 33 instead, so
+/// `func_acropolis_bridge_8017E60C(0xFFF, 0)` clears the whole display.
+/// Command 34 is always hidden; `hidePrompt` also hides command 35.
+void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
+{
+    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+    GpSprtCmd*        cmd;
+    s32               i;
+    u8                hi;
+    u8                mid;
+    u8                lo;
+
+    Gp_GetViewIndex();
+    cmd = Gp_SprtTables[sess->field_3 - 1][Game_Session->field_74 - 1].field_0[sess->field_2 - 1][7].field_4;
+
+    if ((s16)hidePrompt != 0) {
+        cmd[35].field_4 = 1;
+    }
+
+    hi  = D_acropolis_bridge_801898CC[0][((u32)digits & 0xF00) >> 8];
+    mid = D_acropolis_bridge_801898CC[1][((u32)digits & 0xF0) >> 4];
+    lo  = D_acropolis_bridge_801898CC[2][digits & 0xF];
+
+    if (hi == 0x21) {
+        for (i = 0x15; i < 0x1F; i++) {
+            cmd[i].field_4 = 1;
+        }
+        cmd[33].field_4 = 0;
+    } else {
+        for (i = 0x15; i < 0x1F; i++) {
+            if (hi == i) {
+                cmd[i].field_4  = 0;
+                cmd[33].field_4 = 1;
+            } else {
+                cmd[i].field_4 = 1;
+            }
+        }
+    }
+
+    if (mid == 0x20) {
+        for (i = 0xB; i < 0x15; i++) {
+            cmd[i].field_4 = 1;
+        }
+        cmd[32].field_4 = 0;
+    } else {
+        for (i = 0xB; i < 0x15; i++) {
+            if (mid == i) {
+                cmd[i].field_4  = 0;
+                cmd[32].field_4 = 1;
+            } else {
+                cmd[i].field_4 = 1;
+            }
+        }
+    }
+
+    if (lo == 0x1F) {
+        for (i = 1; i < 0xB; i++) {
+            cmd[i].field_4 = 1;
+        }
+        cmd[31].field_4 = 0;
+    } else {
+        for (i = 1; i < 0xB; i++) {
+            if (lo == i) {
+                cmd[i].field_4  = 0;
+                cmd[31].field_4 = 1;
+            } else {
+                cmd[i].field_4 = 1;
+            }
+        }
+    }
+
+    cmd[34].field_4 = 1;
+}
 
 /// Shows one frame of the bridge prompt: in the current room's eighth SPRT
 /// record, every command from 1 to 33 gets its skip-OT-link flag set and only

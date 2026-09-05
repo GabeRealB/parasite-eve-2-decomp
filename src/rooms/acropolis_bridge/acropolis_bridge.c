@@ -10,7 +10,7 @@ extern TaskDesc D_acropolis_bridge_80188E7C[];
 extern s32      D_acropolis_bridge_80188EBC;
 extern s32      D_acropolis_bridge_8018912C;
 
-void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
+void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
 void func_acropolis_bridge_8017DB60(Task* task);
 void func_acropolis_bridge_8017DBA0(Task* task);

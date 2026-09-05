@@ -46965,3 +46965,30 @@ the three assignments in emitted order costs the hoist and the register split
 that follows from it (98.0% vs 99.4% on this function). When a load of a
 different object appears above stores it cannot legally cross, its statement
 belongs above them too.
+
+## A `u8` local's `andi 0xFF` appears only where the use is outside the load's block
+
+Combine folds a zero-extension into the `lbu` that produced it only inside a
+single basic block. So a `u8` local loaded once at the top of a function and
+compared several times downstream shows the split plainly:
+
+```
+lbu   $t0, 0x10($v0)     # loaded in the entry block
+lbu   $v0, 0x0($a1)
+lbu   $t1, 0x20($v1)
+bne   $v0, $a0, …        # same block → no andi, the lbu is the zero-extend
+…
+andi  $a0, $t0, 0xFF     # later block → the andi survives
+bne   $a0, $v0, …
+```
+
+Read it as source structure, not as noise: every one of those loads is a `u8`
+local initialised at the top of the function, before the first `if`. Writing
+the loads down at their point of use instead puts each `lbu` in its consumer's
+block, folds all three extensions away, and loses the three hoisted loads and
+the `$t0`/`$t1` allocation with them. The bare `lbu` marks the one whose use
+happens to sit in the entry block; the `andi`s mark the rest.
+
+While reading such a table index, remember the shift is signed unless you say
+otherwise: `(arg & 0xF00) >> 8` on an `s32` emits `andi` + `sra`, and the
+target's `srl` needs `((u32)arg & 0xF00) >> 8`.

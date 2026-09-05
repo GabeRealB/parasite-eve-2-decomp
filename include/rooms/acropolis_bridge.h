@@ -58,7 +58,7 @@ typedef struct AcropolisBridgeHotspot {
 extern AcropolisBridgeHotspot D_acropolis_bridge_8018983C[];
 extern s32                    D_acropolis_bridge_801917A8;
 
-void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
+void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
 /// One corner of the unit quad the bridge's dust-cloud task builds its
 /// billboard from (`D_acropolis_bridge_8018990C`): the signed XZ pair
