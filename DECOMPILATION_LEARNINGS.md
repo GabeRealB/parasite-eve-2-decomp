@@ -44879,3 +44879,38 @@ Both spellings produce one shared `sh` at the join, so the object dumps
 differ only in where it sits. When a store that should precede a `jal` keeps
 landing in its delay slot, check whether the value is joined from two arms
 and push the store back into them.
+
+## Do not hand-hoist an `s16` sub-expression out of a loop: it breaks the shared `sll 16`
+
+`func_gunblade_8011D70C(s16 slot, s16 flags)` picks three 2-bit colour
+channels out of `flags` inside its loop. The target keeps `flags << 16` in a
+callee-saved register across the whole loop and derives both signed uses from
+it, hoisting only one of them:
+
+```
+sll  s3,a1,0x10          # before the loop
+sra  v0,s3,0x14
+andi s2,v0,0x3
+...
+sra  a1,s3,0x18          # inside the loop
+andi a0,s6,0x3           # from the raw argument, low bits only
+```
+
+Lifting the middle channel into its own local before the loop —
+
+```c
+g = (flags >> 4) & 3;            /* hoisted by hand */
+for (i = 0; i < 7; i++) { ... hi * (flags >> 8) ... hi * g ... }
+```
+
+— cost 14 points (85.6% vs 99.5%). Each `(s16)` use expands to its own
+`sll 16; sra 16` pair, and CSE only unifies the `sll` when the uses sit in the
+same region. With `g` computed in the pre-loop block, nothing else there needs
+the shift, so combine folded that copy into a bare `srl a1,a1,0x4` and the
+loop body grew its own `sll v0,s4,0x10; sra v0,v0,0x18` every iteration.
+Writing all three channels inline in the loop lets CSE share one `sll`, and
+the loop optimiser then hoists exactly what the ROM hoists.
+
+The general rule: with a `short`/`s16` parameter, leave the derived
+expressions where the ROM uses them and let GCC place the shift. Hoisting one
+by hand does not just move code, it changes what combine is allowed to fold.
