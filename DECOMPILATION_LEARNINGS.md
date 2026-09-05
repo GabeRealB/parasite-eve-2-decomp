@@ -3,6 +3,76 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `SCHED_BARRIER` then `TOUCH_REG` on first-call `$a0`/`$a3` copies
+
+A prompt handler that zeroes a loop index *before* the first `Text_DrawPrompt`
+wants a tight save-all prologue, then
+
+```
+move  a0, s6
+lui   a3, %hi(title)
+addiu a3, a3, %lo(title)
+move  s2, zero          /* i = 0 */
+addiu s5, sp, 0x20
+move  s1, s2
+```
+
+`i = 0` as the first real statement lets `-fschedule-insns` sink unused `$s`
+saves into that init (interleaved `sw s2` / `move s2, zero`). `SCHED_BARRIER()`
+at the top of the body keeps the saves together, but then `i = 0` wins LUID
+and sits *before* the independent `move a0` / `lui a3`.
+
+Assign the first-call `$a0` (the object) and `$a3` (the title string) to
+temps, `TOUCH_REG` each, then init `i` / the stack-label pointer:
+
+```c
+s32 a0tmp;
+u8* title;
+
+SCHED_BARRIER();
+a0tmp = (s32)arg1;
+TOUCH_REG(a0tmp);
+title = D_options_801D5B90;
+TOUCH_REG(title);
+i = 0;
+p = labels;
+y = i;
+Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, ...);
+```
+
+Field loads stay through `arg1` (`lh 0x1C(s6)`), not the `$a0` copy. Without
+the touches, `title` CSEs into the call and the `lui a3` sinks back next to
+the `jal`. `func_options_801D4504` is the example.
+
+## Pre-loop `n2 = 2; two = n2` so a signed `/ 2` keeps `div $t0` not `$a1`
+
+`y / 2` strength-reduces to `srl`/`addu`/`sra`. A loop-local `two = 2`
+emits a real `div`, but when the quotient is the next call's `$a1` the
+divisor coalesces with it (`li a1, 2` / `div s1, a1` / `mflo a1`). The
+target rematerialises the 2 in `$t0`.
+
+Hoist the constant before the loop and copy it into the divisor each
+iteration; reuse the same local for the wrap compares so it stays live
+and does not fold back to an immediate 2:
+
+```c
+n2 = 2;
+do {
+    two = n2;
+    Text_DrawPrompt(..., x + y / two, ...);
+    ...
+} while (i < 2);
+if (selected >= n2) {
+    selected = 0;
+} else if (selected < 0) {
+    selected += n2;
+}
+```
+
+`USE_REG(two)` after the divide also splits the pair, but sched1 can park
+that asm after the `jal` and the 2 becomes callee-saved. The pre-loop copy
+does not. Same function as the previous entry.
+
 ## Compute the UV column into `$a0` before the row so `cell` stays in `$v1`
 
 A 4x2 tile grid whose column is `(cell & 3) * 56` and row is
