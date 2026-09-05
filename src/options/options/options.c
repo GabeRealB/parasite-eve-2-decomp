@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "main/fs.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/sound.h"
@@ -10,11 +11,15 @@
 
 extern s8           D_80072189;
 extern u8           D_8007218D;
+extern s8           D_80072311;
 extern s8           D_80072313;
 extern u8           D_options_801D5B2C[];
 extern u8           D_options_801D5B4C[];
 extern u8           D_options_801D5B58[];
 extern u8           D_options_801D5B5C[];
+extern u8           D_options_801D5B60[];
+extern u8           D_options_801D5B68[];
+extern u8           D_options_801D5B70[];
 extern u8           D_options_801D5B90[];
 extern u8           D_options_801D5B98[];
 extern u8           D_options_801D5BA4[];
@@ -22,6 +27,7 @@ extern u8           D_options_801D5BAC[];
 extern u8           D_options_801D5BB8[];
 extern u8           D_options_801D5BC4[];
 extern u8           D_options_801D5BCC[];
+extern u8           D_options_801D5C7C[];
 extern u8           D_options_801D5CE4[];
 extern u8           D_options_801D5D28[];
 extern u8           D_options_801D5D68[];
@@ -31,7 +37,96 @@ extern UiList       D_options_801D5EB0;
 extern UiList       D_options_801D5ED8;
 extern UiObjectDesc D_options_801D5EFC;
 
-INCLUDE_ASM("options/nonmatchings/options/options", func_options_801D404C);
+void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
+{
+    u8*          labels[2];
+    u8**         p;
+    u8*          title;
+    s32          a0tmp;
+    s32          i;
+    s32          y;
+    s32          x;
+    s32          span;
+    s32          selected;
+    s32          one;
+    s32          look;
+    s32          status;
+    s32          saved;
+    s32          cur;
+    s32          tmp;
+    register s32 two asm("t0");
+
+    SCHED_BARRIER();
+    a0tmp = (s32)arg1;
+    TOUCH_REG(a0tmp);
+    title = D_options_801D5B60;
+    TOUCH_REG(title);
+    i         = 0;
+    p         = labels;
+    labels[0] = D_options_801D5B68;
+    labels[1] = D_options_801D5B70;
+    Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    SCHED_BARRIER();
+    saved    = D_80072311;
+    y        = i;
+    selected = saved;
+    x        = arg1->field_1C + 0x78;
+    span     = (s16)arg1->field_1E - x;
+    do {
+        if (i != selected) {
+            look = Ui_LookupTable(arg1, 2);
+        } else {
+            look = Ui_LookupTable(arg1, 1);
+        }
+        one = 1;
+        two = 2;
+        Text_DrawPrompt(arg1, x + y / two, arg0->field_1A, *p, look, one, 0);
+        p++;
+        y += span;
+        i += one;
+    } while (i < 2);
+    if (arg0->field_C == one) {
+        if (Pad_CheckButtons(0, one, 0x2000) != 0) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            selected += one;
+            if (selected >= 2) {
+                selected = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            selected -= 1;
+            if (selected < 0) {
+                selected += 2;
+            }
+        }
+    }
+    D_80072311 = selected;
+    SOFT_BARRIER();
+    tmp = selected << 24;
+    SOFT_TOUCH_REG(tmp);
+    two = saved;
+    SOFT_TOUCH_REG(two);
+    cur = tmp >> 24;
+    if (two != cur) {
+        if (cur != 0) {
+            if (cur != 1) {
+                CdVol_SetMixMode(1);
+            } else {
+                CdVol_SetMixMode(0);
+            }
+        } else {
+            CdVol_SetMixMode(1);
+        }
+    }
+    SOFT_BARRIER();
+    SOFT_BARRIER();
+    SOFT_BARRIER();
+    SOFT_BARRIER();
+    status = arg1->status;
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+        Ui_SetHolderParam((s32)D_options_801D5C7C, 0, 0);
+    }
+}
 
 INCLUDE_RODATA("options/nonmatchings/options/options", D_options_801D4000);
 

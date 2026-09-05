@@ -73,6 +73,49 @@ if (selected >= n2) {
 that asm after the `jal` and the 2 becomes callee-saved. The pre-loop copy
 does not. Same function as the previous entry.
 
+## A `saved` copy live across the loop blocks `n2` rematerialising as `$t0`
+
+The stereo/mono options prompt (`func_options_801D404C`) is the 2-choice
+sibling plus a stack copy of the old selection so it can call
+`CdVol_SetMixMode` only on change. That extra allocno is enough to stop the
+`n2 = 2; two = n2` rematerialise-as-`$t0` trick above: `n2` steals `$s7`,
+`span` spills, wrap becomes `slt` against the register instead of `slti 2`.
+
+Three separate leftovers, three levers:
+
+1. **`$fp` / `$s7` swap of `arg0` vs `span`.** `arg0` is 8 refs / ~222 insns
+   (priority ~0.108), `span` is 3 / 28 (~0.107). Three extra `SOFT_BARRIER()`s
+   *after the loop* (span is already dead) lengthen only `arg0`, so `span`
+   wins `$s7` and `arg0` lands in `$fp`. `TOUCH_REG(span)` overshoots and
+   shifts `$s4`–`$s6` as well.
+
+2. **`div $a1` vs `div $t0`.** With `n2` unusable, `two = 2` inside the loop
+   coalesces with the `Text_DrawPrompt` `$a1` quotient. A function-scope
+   `register s32 two asm("t0")` is the leftover fix; an unpinned 99.87% seed
+   exists. The pin reserves `$t0` for the whole function, so the later
+   `lw $t0, saved` becomes `lw $t1` unless the same local is reused for the
+   reload (`two = saved`).
+
+3. **`sll $v0` / `lw $t0` / `sra $v1` order.** `(s8)selected` is one
+   operation, so the load sinks on either side of the pair. Split it and
+   `SOFT_TOUCH_REG` the pieces in source order:
+
+```c
+tmp = selected << 24;
+SOFT_TOUCH_REG(tmp);
+two = saved;
+SOFT_TOUCH_REG(two);
+cur = tmp >> 24;
+if (two != cur) { ... }
+```
+
+The mix-mode call itself is three `CdVol_SetMixMode` sites
+(`if (cur != 0) { if (cur != 1) f(1); else f(0); } else f(1);`) so
+cross-jumping produces `beqz` / `li a0,1` / `li v0,1` / `bne` / `move a0,0`
+into one `jal`. A `mix` local if-converts to `xor`/`sltu`.
+
+`func_options_801D42A8` is the 4-choice sibling of the same shape.
+
 ## Compute the UV column into `$a0` before the row so `cell` stays in `$v1`
 
 A 4x2 tile grid whose column is `(cell & 3) * 56` and row is
