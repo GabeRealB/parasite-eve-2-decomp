@@ -73,19 +73,29 @@ log "leased $OVERLAY, worktree $WT"
 # gitignored, so no landing path moves it, and it holds the best compiling C for
 # every function that stalled - the whole point being that a later retry does
 # not restart from m2c.
+# Copy give-up archives to trunk. Idempotent, and called as soon as the inner
+# vacuum returns rather than only from cleanup_worktree, because everything
+# between those two points can fail: acropolis_bridge died on a syntax error
+# after 70 matches, never reached cleanup, and its archives were then lost with
+# the worktree - 95 attempts at 98.783% and 32 at 99.406% thrown away, which is
+# exactly what the archive exists to prevent.
+migrate_giveups() {
+    [[ -d "$WT/tools/giveups" ]] || return 0
+    local carried=0 d name
+    for d in "$WT"/tools/giveups/*/; do
+        [[ -d "$d" ]] || continue
+        name=$(basename "$d")
+        if [[ ! -d "$ROOT/tools/giveups/$name" ]]; then
+            mkdir -p "$ROOT/tools/giveups"
+            cp -r "$d" "$ROOT/tools/giveups/$name" && carried=$((carried+1))
+        fi
+    done
+    [[ $carried -gt 0 ]] && log "carried $carried give-up archive(s) to trunk"
+    return 0
+}
+
 cleanup_worktree() {
-    if [[ -d "$WT/tools/giveups" ]]; then
-        local carried=0 d name
-        for d in "$WT"/tools/giveups/*/; do
-            [[ -d "$d" ]] || continue
-            name=$(basename "$d")
-            if [[ ! -d "$ROOT/tools/giveups/$name" ]]; then
-                mkdir -p "$ROOT/tools/giveups"
-                cp -r "$d" "$ROOT/tools/giveups/$name" && carried=$((carried+1))
-            fi
-        done
-        [[ $carried -gt 0 ]] && log "carried $carried give-up archive(s) to trunk"
-    fi
+    migrate_giveups
     if [[ "$KEEP" == false ]]; then
         "$ROOT/tools/overlay_batch.sh" --cleanup --overlay "$OVERLAY" --session "$SESSION" \
             >>"$LOG_FILE" 2>&1 || log "worktree cleanup refused; see $LOG_FILE"
@@ -164,6 +174,11 @@ BRANCH_NAME=$(git -C "$WT" rev-parse --abbrev-ref HEAD)
 # one burst when the function finishes. Piping as well would duplicate it.
 (cd "$WT" && VACUUM_LOG_FILE="$LOG_FILE" "${inner[@]}") 2>&1
 log "inner vacuum finished"
+
+# Before anything that can fail. The landing, the rebase and the cleanup are
+# all downstream of here, and a give-up archive is worth more than any of them:
+# it is the only copy of the best compiling C for a function that stalled.
+migrate_giveups
 
 # --- collect what it actually matched -----------------------------------------
 mapfile -t MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
