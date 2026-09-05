@@ -58,6 +58,12 @@ typedef struct AcropolisBridgeHotspot {
 extern AcropolisBridgeHotspot D_acropolis_bridge_8018983C[];
 extern s32                    D_acropolis_bridge_801917A8;
 
+/// Cursor into the packet buffer the bridge's screen-smear effects draw from.
+/// Every `DR_MOVE` task in `acropolis_bridge_8` takes the packet it points at
+/// and bumps it by one, the same way `Gpu_PrimCursor` works for the main
+/// primitive heap.
+extern DR_MOVE* D_acropolis_bridge_801917AC;
+
 void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
 /// One corner of the unit quad the bridge's dust-cloud task builds its

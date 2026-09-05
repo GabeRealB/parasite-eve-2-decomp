@@ -47260,3 +47260,48 @@ order when one of the stores is fed by a load. The target emits
 `sh 0x100`, `sh 0x104`, `sh 0x108` but hoists the `lhu` feeding `0x108` above
 all three; the source has the `0x108` assignment *first* and the scheduler sinks
 its store past the two constant stores.
+
+## A flag used twice becomes an extra `move`; re-test the expression instead
+
+`func_acropolis_bridge_80180FF0` guards a draw block on a screen-bounds test and
+then re-uses the same answer in the release check after the call, so the flag has
+to survive in a callee-saved register. Written the obvious way,
+
+```c
+onScreen = y < 0xEF;
+if (onScreen) { ... SetDrawMove(...) ... }
+work->field_22++;
+if ((s16)work->field_22 <= (s16)work->field_24 && onScreen) return;
+```
+
+GCC emitted `slti $v0, $a3, 0xEF` / `beqz $v0` / `move $s3, $v0` where the target
+has a bare `slti $s3, $a3, 0xEF` / `beqz $s3` — one extra instruction, and it also
+cost the branch its delay slot, which the target fills with the depth `subu`.
+
+The cause is visible in `.combine`: expanding `onScreen = y < 0xEF` produces a
+`store_flag` temp plus a copy into the variable's pseudo, and the branch keeps
+using the *temp*. The temp lives and dies inside one basic block, so `local_alloc`
+grabs a call-clobbered register for it before `global_alloc` ever sees that it is
+tied to the variable, and the copy survives. Whether that happens is sensitive to
+unrelated pressure elsewhere in the function — the same tail matched in
+`func_acropolis_promenade_8017E394`, and deleting an `if`/`else` diamond earlier in
+this function made it match too.
+
+The fix is to stop the variable from being read a second time: spell the second
+use as the comparison again.
+
+```c
+if (y < 0xEF) { ... }
+work->field_22++;
+if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) return;
+```
+
+CSE folds the second `lt` back onto the first, the flag is now a single pseudo
+that `global_alloc` places in `$s3` directly, and the copy disappears — 99.05% to
+100%, without pinning anything. Reach for this whenever the leftover is a lone
+`move` into a `$sN` feeding a value that is computed once and consumed on both
+sides of a call.
+
+Scratch-env note: `build.sh base_N.c` writes `base_N_object_dump.s`, not
+`base_object_dump.s`. Diffing the unsuffixed file silently compares against
+whatever `base.c` produced on the first run.
