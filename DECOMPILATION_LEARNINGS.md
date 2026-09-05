@@ -46451,3 +46451,111 @@ the other after; the scheduler reorders stores that share a register base and
 differ only in constant offset, so the emitted order is a register-pressure
 artifact and each site has to be written the way it came out. Sharing one
 helper between the two sites cost 2.5 points.
+
+## Anchor a `lui $v0, 0x1F80` with a non-volatile asm and an input operand
+
+The documented way to keep one `G_SCRATCH_HEAD` access in the absolute form
+when CSE wants to materialise `0x1F8003FC` into a register is
+
+```c
+register u8* h;
+__asm__ volatile("lui %0, 0x1F80" : "=r"(h));
+h = *(u8**)(h + 0x3FC);
+```
+
+`volatile` is doing two jobs there, and the second one is a liability. It
+blocks CSE, but it is also a scheduling barrier, so nothing may cross it. In
+`func_acropolis_bridge_80185988` the target loads the `Gp_UpdateCoord`
+argument *before* the `lui`:
+
+```
+lw    $v0, 0x2C($s6)
+nop
+lw    $a0, 0x8($v0)
+lui   $s0, 0x1F80
+lw    $s0, 0x3FC($s0)
+jal   Gp_UpdateCoord
+```
+
+With the `volatile` form the argument load cannot move above the barrier, so
+it stays after it and the scheduler compensates further down (there it swapped
+the `move $a1,$s0` / `move $a2,$zero` argument setup of the *next* call).
+Dropping `volatile` lets the argument load through, but then the `lui` floats
+up into the load-delay slot and eats a `nop`.
+
+Use the non-volatile form with the value that must precede it as a dummy
+input, the same shape `src/gameplay/3A34.c` already uses:
+
+```c
+coord = ((TmdObject*)task->extra)->field_8;
+__asm__("lui %0, 0x1F80" : "=r"(h) : "r"(coord));
+h   = *(u8**)(h + 0x3FC);
+vec = (VECTOR*)h;
+Gp_UpdateCoord(coord);
+```
+
+The input operand makes the `lui` depend on `coord`, so it cannot be hoisted
+above the load, and without `volatile` nothing else is pinned. That single
+change was 99.94% -> 100%.
+
+## A constant that must be live across a call has to be *used*, not just assigned
+
+`Gp_IncStateF0Ref` is called under an `if` and the `switch` after the join
+compares the spawn variant against 1 with `beq $v1, $s0`, i.e. against a
+callee-saved register:
+
+```
+beqz  $v0, .Ljoin
+ li   $s0, 1          ; delay slot, pulled out of the join block
+jal   Gp_IncStateF0Ref
+```
+
+A fresh `case 1` constant expanded inside the join block gets a call-clobbered
+register (`li $v0, 1`) because `REG_ALLOC_ORDER` reaches `$v0`..`$a3` and
+`$t0`..`$t9` long before `$s0`. Only a live range that crosses the call is
+forced into `$s0`, and CSE cannot carry a value into the join block because it
+has two predecessors — so the definition has to come from the source, before
+the `if`.
+
+An assignment alone is not enough: a dead `one = 1;` is deleted. The constant
+has to have a real use inside the switch, and the natural one is an array
+index:
+
+```c
+axisY = 1;
+if (D_801153F6 < 3) {
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+}
+...
+    case 1:
+        coord->coord.t[0]     = -0x270F;
+        coord->coord.t[axisY] = -0x3E8;
+        coord->coord.t[2]     = -0x7D0;
+```
+
+This is the cross-block form of the existing "assign the loop compare constant
+before the item-table switch" entry: same fix, but here the constant is the
+one the switch tree itself pivots on.
+
+## Two `li K` for one constant means the pseudo was spilled; route one use through a local
+
+`work->walker.field_58 = 3;` (an `s16`) followed by `work->walker.state = 3;`
+(a `u8`) is one CSE value: GCC keeps a single `HImode` pseudo and reaches the
+byte store with `(subreg:QI ...)`, so the constant is materialised once. The
+target materialised it twice, `li $v0, 3` for the halfword and `li $v1, 3` for
+the byte, which is what reload emits for a pseudo it could not colour.
+
+Writing the byte store through an `s32` local splits the value into two
+pseudos and reproduces both `li`s:
+
+```c
+work->walker.field_58 = 3;
+...
+step               = 3;
+work->walker.state = step;
+```
+
+Reading the same value back out of another field (`enemy->field_42 =
+work->field_10C;` after `work->field_10C = 1;`) is the mirror image: CSE
+substitutes the register it already knows holds the value but has to change
+mode, which is where a stray `move $v0, $s1` before two `sh`s comes from.

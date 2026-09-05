@@ -53,7 +53,7 @@ typedef struct AcropolisBridgeNavRoute {
     /* 0x0 */ u8*  nodes;
     /* 0x4 */ byte pad_4[0x1];
     /* 0x5 */ u8   cursor;
-    /* 0x6 */ s8   arrived;
+    /* 0x6 */ u8   arrived;
 } AcropolisBridgeNavRoute;
 
 /// Work block of the walker task this unit's second half drives (the task
@@ -62,17 +62,22 @@ typedef struct AcropolisBridgeNavRoute {
 /// are cleared whenever it arrives. `scaleMtx` is the model matrix the spawn
 /// scale-up in `func_acropolis_bridge_801861A0` rebuilds every frame from
 /// `scale`, which ramps to 0x1000, and `state` is the step
-/// `func_acropolis_bridge_8018532C` dispatches on. `field_91` is the flag the
-/// retreat state in `func_acropolis_bridge_801863A8` clears on its first frame
-/// and tests at the end of every frame to decide which behaviour state to hand
-/// over to; the death handlers clear it as well.
+/// `func_acropolis_bridge_8018532C` dispatches on. `nav` and `route` point at
+/// the `navData` / `routeData` copies embedded further down the same block,
+/// which `func_acropolis_bridge_80185988` seeds; that is why the retreat state
+/// in `func_acropolis_bridge_801863A8` reaches the route cursor and its
+/// arrived flag as plain walker fields.
 typedef struct AcropolisBridgeWalkerWork {
     /* 0x00 */ AcropolisBridgeNavData*  nav;
     /* 0x04 */ AcropolisBridgeNavRoute* route;
-    /* 0x08 */ byte                     pad_8[0x2C];
+    /* 0x08 */ GsCOORDINATE2*           coord;
+    /* 0x0C */ s32                      field_C;
+    /* 0x10 */ GpRec18*                 recs;
+    /* 0x14 */ byte                     pad_14[0x20];
     /* 0x34 */ MATRIX                   scaleMtx;
     /* 0x54 */ s16                      scale;
-    /* 0x56 */ byte                     pad_56[0x4];
+    /* 0x56 */ s16                      field_56;
+    /* 0x58 */ s16                      field_58;
     /* 0x5A */ s16                      field_5A;
     /* 0x5C */ s16                      field_5C;
     /* 0x5E */ u16                      field_5E;
@@ -83,24 +88,34 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x68 */ u8                       state;
     /* 0x69 */ byte                     pad_69[0x1];
     /* 0x6A */ u8                       node;
-    /* 0x6B */ byte                     pad_6B[0x26];
-    /* 0x91 */ u8                       field_91;
-    /* 0x92 */ u8                       field_92;
-    /* 0x93 */ byte                     pad_93[0x1];
+    /* 0x6B */ u8                       field_6B;
+    /* 0x6C */ u8                       field_6C;
+    /* 0x6D */ byte                     pad_6D[0x1];
+    /* 0x6E */ u8                       field_6E;
+    /* 0x6F */ byte                     pad_6F[0x11];
+    /* 0x80 */ AcropolisBridgeNavData   navData;
+    /* 0x88 */ u8                       field_88;
+    /* 0x89 */ u8                       field_89;
+    /* 0x8A */ byte                     pad_8A[0x2];
+    /* 0x8C */ AcropolisBridgeNavRoute  routeData;
 } AcropolisBridgeWalkerWork;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkerWork, 0x94);
 
 /// Work block the bridge enemy's task keeps at `Task::idMap`. `field_4` is the
-/// live flag every state handler in this unit gates on, and `field_12E` /
-/// `field_196` are the two flag halfwords whose bit 15 the handlers toggle to
-/// enable one behaviour and disable the other. `recs` is the collision record
-/// table `Gp_ClearRec18Occupied` wipes, `field_1F0` is the `GpEffArg` the death
-/// effect is spawned with and `field_290` the death-sequence frame counter.
+/// live flag every state handler in this unit gates on. `body` and `hit` are
+/// the two linked `GpObj`s -- kind 2 for the model and kind 3 for the hit box
+/// -- whose `flags` bit 15 the handlers toggle to enable one and disable the
+/// other, and `recs` / `hitRecs` are their collision record tables.
+/// `lightMtx` / `colorMtx` are the matrices the model's `TmdObject` is pointed
+/// at, `field_1F0` is the `GpEffArg` the death effect is spawned with and
+/// `field_290` the death-sequence frame counter.
 typedef struct AcropolisBridgeEnemyWork {
     /* 0x000 */ s16                       field_0;
-    /* 0x002 */ byte                      pad_2[0x2];
+    /* 0x002 */ s16                       field_2;
     /* 0x004 */ s16                       field_4;
-    /* 0x006 */ byte                      pad_6[0x6];
+    /* 0x006 */ byte                      pad_6[0x2];
+    /* 0x008 */ s16                       yaw;
+    /* 0x00A */ byte                      pad_A[0x2];
     /* 0x00C */ GpAnimCtx                 anim;
     /* 0x020 */ GpAnimSlot                slots[4];
     /* 0x0C0 */ byte                      pad_C0[0x40];
@@ -111,15 +126,13 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x108 */ s16                       field_108;
     /* 0x10A */ byte                      pad_10A[0x2];
     /* 0x10C */ s16                       field_10C;
-    /* 0x10E */ byte                      pad_10E[0x20];
-    /* 0x12E */ u16                       field_12E;
-    /* 0x130 */ GpRec18                   recs[4];
-    /* 0x190 */ s32                       field_190;
-    /* 0x194 */ byte                      pad_194[0x2];
-    /* 0x196 */ u16                       field_196;
-    /* 0x198 */ byte                      pad_198[0x4];
-    /* 0x19C */ s32                       field_19C;
-    /* 0x1A0 */ byte                      pad_1A0[0x50];
+    /* 0x10E */ s16                       field_10E;
+    /* 0x110 */ GpObj                     body;
+    /* 0x130 */ GpRec18                   recs[3];
+    /* 0x178 */ GpObj                     hit;
+    /* 0x198 */ GpRec18                   hitRecs[1];
+    /* 0x1B0 */ MATRIX                    lightMtx;
+    /* 0x1D0 */ MATRIX                    colorMtx;
     /* 0x1F0 */ GpEffArg                  field_1F0;
     /* 0x1F8 */ s16                       field_1F8;
     /* 0x1FA */ s16                       field_1FA;
@@ -311,7 +324,218 @@ void func_acropolis_bridge_8018581C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185988);
+extern u8                     D_8007218A;
+extern GpPairSrcE             D_acropolis_bridge_80190C5C;
+extern s32                    D_acropolis_bridge_801915C8;
+extern AcropolisBridgeNavNode D_acropolis_bridge_8019162C[];
+extern u8                     D_acropolis_bridge_801916CC[];
+extern u8*                    D_acropolis_bridge_80191720[];
+extern s32                    D_acropolis_bridge_80191744;
+
+/// Copies a scratch `SVECTOR3` onto a `GpObj`'s three position halfwords.
+static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)
+{
+    obj->field_10 = pos->vx;
+    obj->field_12 = pos->vy;
+    obj->field_14 = pos->vz;
+}
+
+/// One-time setup for the bridge enemy: allocates the 0x294-byte work block,
+/// points the model's light and colour matrices at it, hangs the enemy off the
+/// room's stat block, starts the animation context on three slots, and links
+/// the model and hit-box `GpObj`s (kinds 2 and 3) onto the part coordinates at
+/// `field_8[3]` and `field_8[1]`. The walker half is seeded next: its patrol
+/// tables are the copies embedded in the walker itself, the route is the entry
+/// `D_acropolis_bridge_80191720` holds for this spawn variant, and the scale
+/// matrix is rebuilt from `scale` through a `VECTOR` borrowed from the scratch
+/// arena -- the same block is then reused for the world position handed to
+/// `func_800D7A9C` before it is released. `field_1F8` is the 0x5DC entry
+/// offset the model root is raised by, remembered in `field_1FA`. In the
+/// third visit (`Game_Session->field_5 == 2`) the three known variants start
+/// in state 8 at a fixed position instead of state 1.
+void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
+{
+    TmdObject*                 obj;
+    TmdObject*                 obj2;
+    GsCOORDINATE2*             coord;
+    GsCOORDINATE2*             coord2;
+    GsCOORDINATE2*             coord3;
+    AcropolisBridgeEnemyWork*  work;
+    AcropolisBridgeWalkerWork* walker;
+    GpObj*                     link;
+    GpObj*                     link2;
+    register u8*               head;
+    register u8*               head2;
+    register u8*               head3;
+    VECTOR*                    scale;
+    VECTOR*                    vec;
+    s32                        amount;
+    s32                        variant;
+    s32                        step;
+    u16                        hp;
+    s32                        axisY;
+    SVECTOR3                   pos;
+
+    obj         = (TmdObject*)task->extra;
+    coord       = obj->field_8;
+    work        = (AcropolisBridgeEnemyWork*)Mem_Calloc(sizeof(AcropolisBridgeEnemyWork), 0);
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    obj2            = (TmdObject*)task->extra;
+    obj2->field_1C  = &work->lightMtx;
+    obj2->field_20  = &work->colorMtx;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    enemy->field_50 = &D_acropolis_bridge_80190C5C;
+    hp              = D_acropolis_bridge_80190C5C.field_4;
+    enemy->field_54 = (s32)work->recs;
+    enemy->field_40 = hp;
+    work->field_10C = 1;
+    work->field_10E = 1;
+    enemy->field_42 = work->field_10C;
+    enemy->field_40 = enemy->field_42;
+    func_800B3F84(&work->anim, &D_acropolis_bridge_801915C8, (GpAnimObj*)obj, work->pad_C0,
+                  work->slots);
+    work->field_108 = 0x10;
+    link            = &work->body;
+    link->field_8   = &((TmdObject*)task->extra)->field_8[3];
+    link->field_C   = work->recs;
+    link->field_10  = 0;
+    link->field_12  = 0;
+    link->field_14  = 0;
+    link->field_18  = 0x30029;
+    link->field_1C  = 0x100;
+    link->flags     = 1;
+    Gp_LinkObj(2, link);
+    link->flags |= 0x8000;
+    Gp_InitRec18Table(link->field_C, 3, 0);
+    pos.vx         = 0;
+    pos.vy         = 0;
+    pos.vz         = 0;
+    link2          = &work->hit;
+    link2->field_8 = &((TmdObject*)task->extra)->field_8[1];
+    link2->field_C = work->hitRecs;
+    bridge_set_obj_pos(link2, &pos);
+    link2->field_1C = 0x100;
+    link2->flags    = 1;
+    Gp_LinkObj(3, link2);
+    Gp_InitRec18Table(link2->field_C, 1, 0);
+    work->hit.field_18 = Gp_PackObjPair((GpObj50*)enemy, 0);
+    coord->sub         = &Gfx_ViewCoord;
+    work->yaw          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    work->field_100    = 2;
+    work->field_104    = 2;
+    func_acropolis_bridge_8018581C(task);
+    enemy->field_18    = &((TmdObject*)task->extra)->field_8[3];
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    task->field_24      = &D_acropolis_bridge_80191744;
+    work->field_2       = -1;
+    work->field_0       = 1;
+    work->field_1F8     = 0x5DC;
+    work->field_1FA     = coord->coord.t[1];
+    coord->coord.t[1]  += work->field_1F8;
+
+    work->walker.navData.nodes    = D_acropolis_bridge_8019162C;
+    work->walker.field_88         = 0xA;
+    work->walker.navData.field_4  = D_acropolis_bridge_801916CC;
+    work->walker.field_89         = 0xA;
+    work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->field_8 >> 12];
+    work->walker.nav              = &work->walker.navData;
+    work->walker.routeData.cursor = 0;
+    work->walker.route            = &work->walker.routeData;
+    coord2                        = ((TmdObject*)task->extra)->field_8;
+    work->walker.field_58         = 3;
+    walker                        = &work->walker;
+    work->walker.field_C          = 0;
+    work->walker.recs             = work->recs;
+    work->walker.scale            = 0x1000;
+    work->walker.field_56         = 0;
+    work->walker.field_5A         = 0x30;
+    work->walker.coord            = coord2;
+    walker->field_5C              = 0x30;
+    walker->field_5E              = 0;
+    walker->field_60              = 1;
+    step                          = 3;
+    work->walker.state            = step;
+    work->walker.field_6B         = 1;
+    work->walker.field_6C         = 1;
+    work->walker.field_6E         = D_8007218A;
+
+    __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+    head                      = *(u8**)(head + 0x3FC);
+    amount                    = walker->scale;
+    walker->scaleMtx.m[2][1]  = 0;
+    walker->scaleMtx.m[2][0]  = 0;
+    walker->scaleMtx.m[1][2]  = 0;
+    walker->scaleMtx.m[1][0]  = 0;
+    walker->scaleMtx.m[0][2]  = 0;
+    walker->scaleMtx.m[0][1]  = 0;
+    walker->scaleMtx.m[2][2]  = 0x1000;
+    walker->scaleMtx.m[1][1]  = 0x1000;
+    walker->scaleMtx.m[0][0]  = 0x1000;
+    walker->scaleMtx.t[2]     = 0;
+    walker->scaleMtx.t[1]     = 0;
+    walker->scaleMtx.t[0]     = 0;
+    scale                     = (VECTOR*)(head - 0x10);
+    *(VECTOR**)G_SCRATCH_HEAD = scale;
+    if (amount != 0 && amount != 0x1000) {
+        scale->vz                    = amount;
+        scale->vy                    = amount;
+        ((VECTOR*)(head - 0x10))->vx = amount;
+        ScaleMatrix(&work->walker.scaleMtx, scale);
+    }
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    coord3                                  = ((TmdObject*)task->extra)->field_8;
+    __asm__("lui %0, 0x1F80" : "=r"(head2) : "r"(coord3));
+    head2 = *(u8**)(head2 + 0x3FC);
+    vec   = (VECTOR*)head2;
+    Gp_UpdateCoord(coord3);
+    vec->vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
+    vec->vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    vec->vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    func_800D7A9C((TmdObject*)task->extra, vec, 0, 3);
+    __asm__ volatile("lui %0, 0x1F80" : "=r"(head3));
+    head3                 = *(u8**)(head3 + 0x3FC);
+    *(u8**)G_SCRATCH_HEAD = head3 + 0x10;
+    axisY                 = 1;
+    if (D_801153F6 < 3) {
+        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    }
+    if (Game_Session->field_5 == 2) {
+        variant = enemy->field_8 >> 12;
+        switch (variant) {
+            case 0:
+                work->field_0                                  = 8;
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0x22C4;
+                ((TmdObject*)task->extra)->field_8->coord.t[1] = -0x3E8;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x640;
+                break;
+            case 1:
+                work->field_0                                      = 8;
+                ((TmdObject*)task->extra)->field_8->coord.t[0]     = -0x270F;
+                ((TmdObject*)task->extra)->field_8->coord.t[axisY] = -0x3E8;
+                ((TmdObject*)task->extra)->field_8->coord.t[2]     = -0x7D0;
+                break;
+            case 2:
+                work->field_0                                  = 8;
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0x2EE0;
+                ((TmdObject*)task->extra)->field_8->coord.t[1] = -0x3E8;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x5DC;
+                break;
+            default:
+                work->field_0 = 0;
+                break;
+        }
+    }
+    task->state++;
+}
 
 /// Resets the walker's scale matrix to a uniform `walker->scale` scale, through
 /// a `VECTOR` borrowed from the scratch arena and released again. Identity is
@@ -413,10 +637,10 @@ void func_acropolis_bridge_80185F28(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->idMap;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
-        work->walker.state    = 3;
-        work->walker.field_91 = 0;
-        work->field_196      &= 0x7FFF;
-        work->field_12E      |= 0x8000;
+        work->walker.state            = 3;
+        work->walker.routeData.cursor = 0;
+        work->hit.flags              &= 0x7FFF;
+        work->body.flags             |= 0x8000;
         bridge_reset_scale_mtx_entry(work);
         work->walker.field_5A = 0x60;
         walker                = &work->walker;
@@ -427,7 +651,7 @@ void func_acropolis_bridge_80185F28(Task* task)
         work->field_104       = 1;
         work->field_108       = 0x10;
     }
-    if (work->walker.field_92 == 1) {
+    if (work->walker.routeData.arrived == 1) {
         walker2           = &work->walker;
         walker2->field_5C = 0x20;
         walker2->field_5E = 0x60;
@@ -522,9 +746,9 @@ void func_acropolis_bridge_801861A0(Task* task)
         walker->field_60      = 6;
         walker->field_5E      = height;
         work->walker.state    = 1;
-        work->field_196      |= 0x8000;
-        work->field_12E      |= 0x8000;
-        work->field_190       = Gp_PackObjPair((GpObj50*)enemy, 0);
+        work->hit.flags      |= 0x8000;
+        work->body.flags     |= 0x8000;
+        work->hit.field_18    = Gp_PackObjPair((GpObj50*)enemy, 0);
         enemy->node.field_4   = 0;
         work->field_100       = 2;
         work->field_104       = 2;
@@ -541,7 +765,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
-    if (((AcropolisBridgeEnemyWork*)task->idMap)->field_19C == 0) {
+    if (((AcropolisBridgeEnemyWork*)task->idMap)->hitRecs[0].field_4 == 0) {
         done = 0;
         SOFT_BARRIER();
     } else {
@@ -557,7 +781,7 @@ void func_acropolis_bridge_801861A0(Task* task)
 
 /// Runs the bridge enemy's retreat state. On the first frame (work block still
 /// live) it parks the walker in step 3, clears the hand-over flag, drops bit 15
-/// of `field_196`, rebuilds the scale matrix and restarts the animation slots
+/// of the hit box's flags, rebuilds the scale matrix and restarts the animation slots
 /// on animation 1. Every frame after that it raises the model root by 0x2D
 /// until the entry offset at `field_1F8` reaches 0x708, shrinks the walker by
 /// 0x46 a frame down to 0x500 -- rebuilding the scale matrix as it goes, and
@@ -576,9 +800,9 @@ void func_acropolis_bridge_801863A8(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->idMap;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
-        work->walker.state    = 3;
-        work->walker.field_91 = 0;
-        work->field_196      &= 0x7FFF;
+        work->walker.state            = 3;
+        work->walker.routeData.cursor = 0;
+        work->hit.flags              &= 0x7FFF;
         bridge_reset_scale_mtx_entry(work);
         work->walker.field_5A = 0x200;
         walker                = &work->walker;
@@ -603,7 +827,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
-    if (work->walker.field_91 != 0) {
+    if (work->walker.routeData.cursor != 0) {
         if (cfg->field_4->t[1] < 0x321) {
             work->field_0 = 1;
         } else {
@@ -636,7 +860,7 @@ static __inline__ s32 bridge_rec_kind1(GpRec18* recs)
 }
 
 /// Runs the bridge enemy's fall. On the first frame (work block still live) it
-/// clears bit 15 of `field_196` and sets it in `field_12E`, tags the link node,
+/// clears bit 15 of the hit box's flags and sets it in the model's, tags the link node,
 /// seeds the three behaviour parameters and gives the model root coordinate a
 /// random yaw from the shared LCG. Every frame after that it eases the entry
 /// offset at `field_1F8` back to zero three units at a time, sets the model
@@ -655,8 +879,8 @@ void func_acropolis_bridge_80187078(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->idMap;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
-        work->field_196    &= 0x7FFF;
-        work->field_12E    |= 0x8000;
+        work->hit.flags    &= 0x7FFF;
+        work->body.flags   |= 0x8000;
         enemy->node.field_4 = 1;
         work->field_100     = 1;
         work->field_104     = 3;
@@ -706,8 +930,8 @@ void func_acropolis_bridge_80187310(Task* task)
 
     if (work->field_4 != 0) {
         Tmd_AllocBuffers((TmdObject*)task->extra);
-        work->field_196    &= 0x7FFF;
-        work->field_12E    &= 0x7FFF;
+        work->hit.flags    &= 0x7FFF;
+        work->body.flags   &= 0x7FFF;
         enemy->node.field_4 = 1;
         work->field_100     = 1;
         work->field_104     = 5;
@@ -758,8 +982,8 @@ void func_acropolis_bridge_801874DC(Task* task)
     s32                       step;
 
     if (work->field_4 != 0) {
-        work->field_196    &= 0x7FFF;
-        work->field_12E    &= 0x7FFF;
+        work->hit.flags    &= 0x7FFF;
+        work->body.flags   &= 0x7FFF;
         enemy->node.field_4 = 1;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
@@ -919,8 +1143,8 @@ void func_acropolis_bridge_80187D04(Task* task)
 
         extra->field_C      = 0x80;
         enemy->node.field_4 = 1;
-        work->field_12E    &= 0x7FFF;
-        work->field_196    &= 0x7FFF;
+        work->body.flags   &= 0x7FFF;
+        work->hit.flags    &= 0x7FFF;
         return;
     }
     extra->field_C |= 4;

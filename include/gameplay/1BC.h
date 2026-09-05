@@ -38,7 +38,7 @@
 /// while it is positive.
 typedef struct _GpEnemy {
     /* 0x00 */ Task*          task;
-    /* 0x04 */ byte           pad_4[4];
+    /* 0x04 */ MATRIX*        field_4;
     /* 0x08 */ u16            field_8;
     /* 0x0A */ u16            field_A;
     /* 0x0C */ s32            field_C;
@@ -54,7 +54,9 @@ typedef struct _GpEnemy {
     /// `field_42`/4, `field_42`*3/8, `field_42`/8 and `field_42`/16 to pick a
     /// damage reaction, so this is the ceiling `field_40` is measured against.
     /* 0x42 */ u16         field_42;
-    /* 0x44 */ byte        pad_44[7];
+    /* 0x44 */ byte        pad_44[4];
+    /* 0x48 */ u8          field_48;
+    /* 0x49 */ byte        pad_49[2];
     /* 0x4B */ u8          field_4B;
     /* 0x4C */ u8          field_4C;
     /* 0x4D */ byte        pad_4D;
