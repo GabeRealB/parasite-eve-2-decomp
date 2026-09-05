@@ -1,5 +1,6 @@
 #include "common.h"
 #include "gameplay/1A8.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -9,9 +10,11 @@
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/acropolis_plaza.h"
 
 extern s8       D_8007106B;
@@ -34,6 +37,7 @@ extern GpObj4A D_acropolis_plaza_8019923C;
 extern GpViewRec D_acropolis_plaza_801838B8[][2];
 
 extern void Stage_RequestFromAreaTable(s32 arg0);
+extern void Stage_RequestMidiFromMap(s32 arg0);
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
@@ -56,6 +60,13 @@ extern void func_acropolis_plaza_8017DE24(s32 arg0);
 /// once the streamed scene it waits on has finished.
 extern u8 D_acropolis_plaza_80182734[];
 extern u8 D_acropolis_plaza_80182A34[];
+
+/// The pair of blocks the opening sequence hands to `func_800E8634` in state 4,
+/// and the two it runs on its own with `func_800E8614` in states 10 and 14.
+extern u8 D_acropolis_plaza_80182C90[];
+extern u8 D_acropolis_plaza_80182F18[];
+extern u8 D_acropolis_plaza_801830DC[];
+extern u8 D_acropolis_plaza_801834B4[];
 
 /// The three blocks `func_acropolis_plaza_8017F48C` picks between with
 /// `Task::spawnArg1` before handing one to `func_800E8614`.
@@ -247,7 +258,290 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     func_acropolis_plaza_8017DE24(4);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017ECF8);
+/// Sixteen-state opening sequence for the plaza's long streamed scene, and the
+/// counterpart to `func_acropolis_plaza_8017E9A8` for the rest of it. States 0
+/// to 2 allocate the work block, cache the slot-3 task in it, place the player
+/// at (0x3DE, 0, 0x33FE) with msg 0x3F2 and warp them with a 0x1000 heading
+/// (msg 0x3EE), waiting on msg 0x3F0 in between. State 3 kills the cutscene
+/// block's task and starts stream slot 4; state 4 runs
+/// `D_acropolis_plaza_80182C90` / `..._80182F18` once the CD queue reports in.
+/// State 5 waits out the session transition and starts stream slot 5, unless
+/// `GameSession::field_5F` says to skip the scene, in which case it blanks the
+/// display and jumps straight to state 8.
+///
+/// States 6 and 8 both look the room's own work object up by location: they
+/// build a `GpAreaKey` from `Game_Session`, walk the nested area records for
+/// the 0x6C entry and pack that index into the id `Gp_FindWorkById` matches.
+/// State 6 releases slot 3 (msg 0x3F1), re-places the player at
+/// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
+/// and rebuilds the graphics state (`Gpu_ResetGraphAndOt`, the aux heap from
+/// `GameSession::field_7` / `field_6`, `Tmd_AllocMissingBuffers`). State 7
+/// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
+/// 7 at the end.
+///
+/// States 9 to 12 restart stream slot 3, run `D_acropolis_plaza_801830DC`,
+/// spawn table entry 8 after 0xB frames and re-enable the display. State 13 is
+/// the exit: the start button (`Pad_CheckFlag800`) skips to state 15, otherwise
+/// it requests the map's own MIDI and starts the closing stream, state 14 runs
+/// `D_acropolis_plaza_801834B4`, and state 15 releases slot 3 and kills the
+/// task. Every state from 7 on also steps the room's per-frame work.
+void func_acropolis_plaza_8017ECF8(Task* task)
+{
+    GpMsg3EE                   place;
+    GpMsg3EE                   warp;
+    u8                         slot[4];
+    GpMsg3EE                   placeBack;
+    GpRec14                    roomRec;
+    AcropolisPlazaOpeningBuf   buf;
+    CdCmdQueue*                q    = &CdCmd_Queue;
+    AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->idMap;
+    AcropolisPlazaOpeningWork* newWork;
+    GameSessionFrom4*          sessionKey;
+    GpCdRec10*                 entry;
+    s32                        idx;
+
+    switch (task->state) {
+        case 0:
+            newWork     = Mem_Malloc(8, 0);
+            task->idMap = (TaskIdMap*)newWork;
+            if (newWork == NULL) {
+                Task_Kill(task);
+                return;
+            }
+            Mem_Set(newWork, 0, 8);
+            ((AcropolisPlazaOpeningWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
+            place.field_0                                    = 0x3DE;
+            place.field_4                                    = 0;
+            place.field_8                                    = 0x33FE;
+            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->idMap)->slot3, 0x3F2, (s32)&place, 0);
+            task->state = task->state + 1;
+            return;
+        case 1:
+            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+                return;
+            }
+            warp.field_12 = 0x1000;
+            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->idMap)->slot3, 0x3EE, (s32)&warp, 0);
+            task->state = task->state + 1;
+            return;
+        case 2:
+            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+                return;
+            }
+            task->state = task->state + 1;
+            return;
+        case 3:
+            if (CdCmd_IsIdle() == 0) {
+                return;
+            }
+            Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            q->field_1EE = 1;
+            q->field_1EA = 1;
+            q->field_1F8 = 4;
+            slot[0]      = Stream_FindSlot(&Game_Session->field_4, 4, 0);
+            slot[1]      = 0;
+            slot[2]      = 0;
+            CdCmd_Enqueue(0x72, 0, slot);
+            q->field_1E8 = 1;
+            task->state  = task->state + 1;
+            return;
+        case 4:
+            if (CdCmd_IsIdle() != 0) {
+                func_800E8634((s32)D_acropolis_plaza_80182C90, 1, (s32)D_acropolis_plaza_80182F18);
+                task->state = task->state + 1;
+                return;
+            }
+            func_acropolis_plaza_8017DE24(6);
+            return;
+        case 5:
+            if (Game_Session->field_1 != 0) {
+                return;
+            }
+            if (Game_Session->field_5F != 0) {
+                SetDispMask(0);
+                task->state = 8;
+                return;
+            }
+            q->field_1EE = 1;
+            q->field_1EA = 1;
+            q->field_1F8 = 5;
+            slot[0]      = Stream_FindSlot(&Game_Session->field_4, 5, 0);
+            slot[1]      = 0;
+            slot[2]      = 0;
+            CdCmd_Enqueue(0x72, 0, slot);
+            q->field_1E8 = 1;
+            task->state  = task->state + 1;
+            return;
+        case 6:
+            if (q->field_1FA == 0) {
+                return;
+            }
+            Gp_DispatchMsg(work->slot3, 0x3F1, 1, 0);
+            placeBack.field_0 = 0x3DE;
+            placeBack.field_4 = 0;
+            placeBack.field_8 = 0x439E;
+            Gp_DispatchMsg(
+                ((AcropolisPlazaOpeningWork*)task->idMap)->slot3, 0x3F2, (s32)&placeBack, 0);
+            roomRec.field_0  = 1;
+            roomRec.field_4  = 8;
+            roomRec.field_8  = 0;
+            roomRec.field_C  = 0xA;
+            roomRec.field_10 = 0;
+            sessionKey       = (GameSessionFrom4*)&Game_Session->field_4;
+            buf.key.field_3  = sessionKey->field_3;
+            buf.key.field_2  = sessionKey->field_2;
+            buf.key.field_1  = Game_Session->field_74;
+            buf.key.field_0  = Game_Session->field_4;
+            buf.key.field_5  = sessionKey->field_5;
+            entry            = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
+            idx              = 0;
+            /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
+               first exit test into the loop preheader and the walk stops
+               matching. */
+            if (entry->field_0 != 0xFF) {
+                for (;;) {
+                    if (entry->field_0 == 0x6C) {
+                        goto found6;
+                    }
+                    entry++;
+                    idx++;
+                    if (entry->field_0 == 0xFF) {
+                        goto found6;
+                    }
+                }
+            }
+        found6:
+            Gp_DispatchMsg(
+                (Task*)Gp_FindWorkById((idx << 12) | (sessionKey->field_3 << 8) |
+                                       sessionKey->field_2)
+                    ->field_0,
+                0x7D3, (s32)&roomRec, 0);
+            task->state = task->state + 1;
+            work->timer = 0;
+            return;
+        case 7:
+            if (work->timer == 0x1E) {
+                SndEvt_EnqueueType6(0x51050003, 0, 0);
+            }
+            work->timer = work->timer + 1;
+            if (work->timer >= 0x3D) {
+                Task_SpawnFromTable(&D_acropolis_plaza_80183824, 7, 9, 0);
+                task->state = task->state + 1;
+            }
+            func_acropolis_plaza_8017DE24(7);
+            return;
+        case 8:
+            if (CdCmd_IsIdle() != 0) {
+                sessionKey      = (GameSessionFrom4*)&Game_Session->field_4;
+                buf.key.field_3 = sessionKey->field_3;
+                buf.key.field_2 = sessionKey->field_2;
+                buf.key.field_1 = Game_Session->field_74;
+                buf.key.field_0 = Game_Session->field_4;
+                buf.key.field_5 = sessionKey->field_5;
+                entry           = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
+                idx             = 0;
+                if (entry->field_0 != 0xFF) {
+                    for (;;) {
+                        if (entry->field_0 == 0x6C) {
+                            goto found8;
+                        }
+                        entry++;
+                        idx++;
+                        if (entry->field_0 == 0xFF) {
+                            goto found8;
+                        }
+                    }
+                }
+            found8:
+                Gp_DispatchMsg(
+                    (Task*)Gp_FindWorkById((idx << 12) | (sessionKey->field_3 << 8) |
+                                           sessionKey->field_2)
+                        ->field_0,
+                    0x7D7, 1, 0);
+                Gp_DispatchMsg(work->slot3, 0x3F3, 2, 0);
+                Gpu_ResetGraphAndOt();
+                Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+                Mem_SetActiveAuxHeap(1);
+                Tmd_AllocMissingBuffers();
+                SndEvt_EnqueueTypeB(0x51050005, 0x26);
+                task->state = task->state + 1;
+                return;
+            }
+            func_acropolis_plaza_8017DE24(7);
+            return;
+        case 9:
+            q->field_1EE = 1;
+            q->field_1EA = 1;
+            q->field_1F8 = 3;
+            slot[0]      = Stream_FindSlot(&Game_Session->field_4, 3, 0);
+            slot[1]      = 0;
+            slot[2]      = 0;
+            CdCmd_Enqueue(0x72, 0, slot);
+            q->field_1E8 = 0;
+            task->state  = task->state + 1;
+            /* fallthrough */
+        case 10:
+            if (CdCmd_IsIdle() == 0) {
+                return;
+            }
+            func_800E8614((s32)D_acropolis_plaza_801830DC, 1);
+            work->timer = 0;
+            task->state = task->state + 1;
+            return;
+        case 11:
+            work->timer = work->timer + 1;
+            if (work->timer >= 0xB) {
+                SndEvt_EnqueueType6(0x5105000B, 0, 0);
+                Task_SpawnFromTable(&D_acropolis_plaza_80183824, 8, 8, 0);
+                work->timer = 0;
+                task->state = task->state + 1;
+            }
+            return;
+        case 12:
+            work->timer = work->timer + 1;
+            if (work->timer >= 2) {
+                SetDispMask(1);
+                task->state = task->state + 1;
+            }
+            return;
+        case 13:
+            if (Pad_CheckFlag800() != 0) {
+                Stage_RequestMidiFromMap(0xA);
+                CdCmd_ActivatePhase1();
+                task->state = 0xF;
+            } else if (Game_Session->field_1 == 0) {
+                Stage_RequestMidiFromMap(0x1E0);
+                q->field_1EE = 1;
+                q->field_1EA = 1;
+                q->field_1F8 = 3;
+                buf.slot[0]  = Stream_FindSlot(&Game_Session->field_4, 3, 0);
+                buf.slot[1]  = 0;
+                buf.slot[2]  = 0;
+                CdCmd_Enqueue(0x71, 0, buf.slot);
+                q->field_1E8 = 1;
+                task->state  = task->state + 1;
+            }
+            func_acropolis_plaza_8017DE24(5);
+            return;
+        case 14:
+            if (q->field_1FA != 0) {
+                func_800E8614((s32)D_acropolis_plaza_801834B4, 1);
+                task->state = task->state + 1;
+            }
+            func_acropolis_plaza_8017DE24(5);
+            return;
+        case 15:
+            if (CdCmd_IsIdle() != 0) {
+                SndEvt_EnqueueType7(0x51050002, 0xB4);
+                Gp_DispatchMsg(work->slot3, 0x3F1, 1, 0);
+                Task_RequestKill(task, 0);
+            }
+            func_acropolis_plaza_8017DE24(5);
+            return;
+        default:
+            return;
+    }
+}
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish -- latching

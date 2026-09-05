@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
@@ -71,6 +72,28 @@ typedef struct AcropolisPlazaFadeWork {
     /* 0x6 */ s16  b;
 } AcropolisPlazaFadeWork;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaFadeWork, 0x8);
+
+/// Work block the plaza's opening sequence (`func_acropolis_plaza_8017ECF8`)
+/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is
+/// not a `TaskIdMap` here. `slot3` caches the slot-3 task every message in the
+/// sequence is addressed to; `timer` is the frame counter the waiting states
+/// step (0x3D frames in state 7, 0xB in state 11, 2 in state 12).
+typedef struct AcropolisPlazaOpeningWork {
+    /* 0x0 */ Task* slot3;
+    /* 0x4 */ s16   timer;
+    /* 0x6 */ byte  pad_6[0x2];
+} AcropolisPlazaOpeningWork;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaOpeningWork, 0x8);
+
+/// The one scratch buffer the plaza's opening sequence shares between its area
+/// lookup and its last stream request. `key` is the location key states 6 and 8
+/// build from `Game_Session` before walking the nested area records for the
+/// 0x6C room, and `slot` is the CD stream-slot triple state 13 hands to
+/// `CdCmd_Enqueue(0x71, ...)`; the task only ever has one of them in flight.
+typedef union AcropolisPlazaOpeningBuf {
+    /* 0x0 */ GpAreaKey key;
+    /* 0x0 */ u8        slot[4];
+} AcropolisPlazaOpeningBuf;
 
 /// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
 /// with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is not a

@@ -48985,3 +48985,83 @@ onto the narrowed value rather than the sign-extended one, and writing the
 second test out again keeps its `sra`/`andi` out of the first block — the delay
 slot then steals the `sra` back from the branch target. Writing the second test
 as `latchedKind16 == 2` re-merges them and drops back to 98%.
+
+## A 0xFF-terminated table search: count the loads to pick the loop spelling
+
+`func_acropolis_plaza_8017ECF8` walks the nested area records looking for id
+`0x6C` and keeps the index it stopped at. The target loop is
+
+```
+lbu   v1, 0(a0)        # entry test
+li    v0, 0xFF
+beq   v1, v0, END
+ move a1, zero
+li    a2, 0x6C
+move  v1, v0
+lbu   v0, 0(a0)        # preheader copy of the body's load
+LOOP:
+ beq  v0, a2, END
+  addiu a0, a0, 0x10
+ lbu  v0, 0(a0)
+ nop
+ bne  v0, v1, LOOP
+  addiu a1, a1, 1
+```
+
+Three loads of the same byte, and *one* walking register. Neither obvious
+spelling gives both:
+
+* the pointer walk `while (p->id != 0xFF) { if (p->id == 0x6C) break; p++; i++; }`
+  has its `while` test copied in front of the loop at expand time, and cse then
+  merges that copy with the body's load — **two** loads, one register (98.3%).
+* the index walk `while (t[i].id != 0xFF) { if (t[i].id == 0x6C) break; i++; }`
+  keeps them apart, because the in-loop accesses become a giv (`base + i*16`),
+  a different pseudo from `base`, so the peeled test's `mem(base)` is not
+  merged — **three** loads, but loop.c emits `move giv, base` in the preheader.
+  Global-alloc has no pseudo-to-pseudo coalescing, so that copy only disappears
+  when `base` has a hard-register preference: it does when `base` is a
+  parameter, it does not when it comes from a load (`p = rec->list`), which is
+  the usual case (99.4%, one insn long per loop).
+
+What matches is an explicit guard plus `for (;;)` with a `goto` — not `break` —
+out of *both* exits, incrementing the pointer in the source so it stays a single
+biv:
+
+```c
+idx = 0;
+if (entry->field_0 != 0xFF) {
+    for (;;) {
+        if (entry->field_0 == 0x6C) {
+            goto found;
+        }
+        entry++;
+        idx++;
+        if (entry->field_0 == 0xFF) {
+            goto found;
+        }
+    }
+}
+found:
+```
+
+The `goto` stops GCC copying the first exit test into the preheader (see
+"`for (;;)` + `goto` out of the loop stops the exit-test duplication"), so the
+source guard *is* the entry test and there is no giv; the two in-loop loads then
+collapse to one per iteration with a peeled copy in the preheader, which is the
+third load. Swapping either `goto` for `break` drops it to 97.6%.
+
+So: count the loads of the terminator byte in the target. Two means a pointer
+`while`; three with one walking register means this shape; three with a spare
+`move` in front of the loop means the index form.
+
+## A switch whose cases end in the same call: repeat the call, don't hoist it
+
+Six of the sixteen cases in `func_acropolis_plaza_8017ECF8` end by calling
+`func_acropolis_plaza_8017DE24(n)` with three different `n`. Hoisting that into
+`arg = n; break;` plus one call after the switch looks like the same code and
+compiles to the same instruction count, but it cross-jumps differently: GCC
+merges the two `li a0, 7` blocks into one and the ROM keeps them apart, so the
+`j`/delay-slot layout of both cases is wrong. Writing `func_..._8017DE24(7);
+return;` out in each case reproduces it — jump2 merges the shared `jal` +
+epilogue tail, and the delay-slot pass then pulls each `li a0, n` into its own
+jump. Worth 99.03% → 99.27% here, with `reorder` going to zero.
