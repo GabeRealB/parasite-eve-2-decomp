@@ -45374,3 +45374,48 @@ The store consumes the first pseudo, CSE turns the second expression into a copy
 of it, and the copy survives because both are live at that point.
 `func_m4a1_javelin_8011EE78` reaches the same shape from the other direction,
 with an `s32* otz0 = &sc->otz0;` alias.
+
+## A default assigned before a call schedules ahead of the call's argument setup
+
+**Problem.** `func_m4a1_javelin_8011D1E4` sets a loop bound from a probe call:
+
+```c
+lim = 5;
+if (func_800DE7CC(&qb, &pb, &qb, NULL) == 1) {
+    lim = 6;
+}
+```
+
+Everything matched except one instruction: `li $s4, 5` landed *before* the
+`a1`/`a2`/`a3` setup instead of after it, for a lone `reorder=1`.
+
+```
+ sh    $t6, 0x4($a0)      sh    $t6, 0x4($a0)
+ addiu $a1, $sp, 0x18     li    $s4, 5          <- ours
+ move  $a2, $a0           addiu $a1, $sp, 0x18
+ move  $a3, $zero         move  $a2, $a0
+ li    $s4, 5             move  $a3, $zero      target on the left
+```
+
+**Symptom.** Moving the `lim = 5;` statement anywhere in the block — before the
+`gte_` sequence, between the vector adds, immediately before the `if` — changes
+nothing. The scheduler anchors the `li` right after the preceding `asm` insn
+(it picks up a `REG_DEP_OUTPUT` on it) and the argument setup, which is emitted
+later in RTL, is then free to sink below it.
+
+**Fix.** Write the default as the explicit `else` arm, so the constant is
+emitted after the call sequence rather than before it:
+
+```c
+if (func_800DE7CC(&qb, &pb, &qb, NULL) == 1) {
+    lim = 6;
+} else {
+    lim = 5;
+}
+```
+
+GCC still hoists the `li` above the branch (both arms are one `li` and the value
+is dead until the loop), but now it sorts after the argument moves. This is the
+mirror of the usual advice to fold an `if`/`else` into a pre-initialised
+default: when the leftover is a single `reorder` on a constant that sits next to
+a call, try the un-folded form first — it is one edit and needs no permuter run.
