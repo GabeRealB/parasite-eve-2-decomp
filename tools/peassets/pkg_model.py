@@ -159,6 +159,7 @@ SRC_VERTS = 0x14
 SRC_NORMS = 0x18
 SRC_SKELETON = 0x1C   # partCount x TmdBone (0x24): rest pose + parent index
 SRC_STREAM = 0x20
+TMD_BONE_SIZE = 0x24   # include/main/tmd.h: s16 m[3][3], pad, s32 t[3], s32 parent
 BONE_SIZE = 0x24
 
 
@@ -237,6 +238,65 @@ def _skip_leading_skips(data: bytes, base: int, va: int) -> int:
     return base + off
 
 
+SRC_INIT_FLAG = 0x00   # Tmd_InitSourceStream tests == 0, so 0 on disc
+MAX_PARTS = 128
+
+
+def find_sources_direct(data: bytes, base: int) -> dict[int, dict]:
+    """Every `TmdSource` in a package, found from the record itself.
+
+    `find_sources` needs the stream first and can only confirm what the opcode
+    walk already found. That inverts badly: `find_streams` demands MIN_PACKETS
+    packets to keep its false-positive rate down, so every single-packet model
+    was invisible - both of tonfa_baton's, and 61 across the disc.
+
+    Nothing here is inferred. The layout is `include/main/tmd.h`, decompiled:
+    `field_0` is the one-shot init flag `Tmd_InitSourceStream` tests against 0,
+    `partCount` sizes both `partVerts` (u32 each) and `skeleton` (`TmdBone`,
+    0x24 each), and the opcode set is the 61 cases of that function's switch.
+    Six independent constraints on one 0x24-byte record is far past what noise
+    supplies: across 407 packages all 597 hits walk to a terminator, and every
+    stream ends exactly on its own source's offset - the `[verts][norms][stream]
+    [source]` layout, predicted and then confirmed 597 times over.
+    """
+    n = len(data)
+    end = base + n
+    out: dict[int, dict] = {}
+    for off in range(0, max(0, n - TMD_SOURCE_SIZE), 4):
+        (flag,) = struct.unpack_from("<I", data, off + SRC_INIT_FLAG)
+        if flag != 0:
+            continue
+        (parts,) = struct.unpack_from("<I", data, off + SRC_PARTS)
+        if not 1 <= parts <= MAX_PARTS:
+            continue
+        partverts, verts, norms, skel, raw_va = struct.unpack_from(
+            "<5I", data, off + SRC_PARTVERTS
+        )
+        if not all(base <= p < end for p in (partverts, verts, norms, skel, raw_va)):
+            continue
+        if not verts < norms < raw_va:
+            continue
+        if skel - base + parts * TMD_BONE_SIZE > n or partverts - base + parts * 4 > n:
+            continue
+        stream_va = _skip_leading_skips(data, base, raw_va)
+        soff = stream_va - base
+        if soff + 4 > n:
+            continue
+        (idv,) = struct.unpack_from("<I", data, soff)
+        if idv not in TMD_OPCODES:
+            continue
+        out[stream_va] = {
+            "source_offset": f"0x{off:05X}",
+            "skeleton": read_skeleton(data, base, off),
+            "stream_declared": f"0x{raw_va - base:05X}",
+            "verts_offset": f"0x{verts - base:05X}",
+            "norms_offset": f"0x{norms - base:05X}",
+            "vertex_count": (norms - verts) // 8,
+            "normal_count": (stream_va - norms) // 8,
+        }
+    return out
+
+
 def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict]:
     """Locate the `TmdSource` record that owns each stream.
 
@@ -278,12 +338,20 @@ def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict
 
 
 def model_name(stream: bytes) -> str | None:
-    """Catalogued name for a model stream, keyed by its SHA-1."""
+    """Catalogued name for a model stream, keyed by its SHA-1.
+
+    Meshes are ordinary `ASSETS` entries of type "model", so this is the same
+    content-addressed lookup every other asset gets rather than a side table.
+    """
     try:
-        from asset_data import MODELS
+        from asset_data import ASSETS
     except Exception:
         return None
-    return MODELS.get(hashlib.sha1(stream).hexdigest())
+    digest = hashlib.sha1(stream).hexdigest()
+    for aid, rec in ASSETS.items():
+        if rec.get("type") == "model" and rec.get("sha1") == digest:
+            return aid
+    return None
 
 
 def extract_package_models(output_path: Path, store=None, *, limit: int | None = None) -> int:
@@ -310,18 +378,39 @@ def extract_package_models(output_path: Path, store=None, *, limit: int | None =
     located = 0
     for pkg in packages:
         data = pkg.read_bytes()
-        streams = find_streams(data)
         base = bases.get(pkg.stem)
-        srcs = (
-            find_sources(data, base, {base + int(s["offset"], 16) for s in streams})
-            if base is not None
-            else {}
-        )
+        # Sources first: a TmdSource is self-validating, so it finds models the
+        # opcode walk cannot - anything under MIN_PACKETS packets. The walk is
+        # kept for streams no source points at, which are the ones we are least
+        # sure about, so they stay behind its stricter guard.
+        srcs = find_sources_direct(data, base) if base is not None else {}
+        streams = []
+        seen: set[int] = set()
+        for stream_va, src in sorted(srcs.items()):
+            off = stream_va - base
+            walked = walk_stream(data, off)
+            if not walked:
+                continue
+            packets, end = walked
+            seen.add(off)
+            streams.append(
+                {
+                    "offset": f"0x{off:05X}",
+                    "end": f"0x{end:05X}",
+                    "packets": len(packets),
+                    "ops": sorted({p["op"] for p in packets}),
+                    "src": src,
+                }
+            )
+        for stream in find_streams(data):
+            if int(stream["offset"], 16) not in seen:
+                streams.append({**stream, "src": None})
+
         located += len(streams)
         for stream in streams:
             off = int(stream["offset"], 16)
             end = int(stream["end"], 16)
-            src = srcs.get(base + off) if base is not None else None
+            src = stream.get("src")
             if src:
                 sourced += 1
             # Prefer the catalogued name. Streams are deduped by SHA-1, so

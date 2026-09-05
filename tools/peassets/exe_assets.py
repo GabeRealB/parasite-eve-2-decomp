@@ -1,7 +1,7 @@
 """Assets baked into the executables rather than shipped as CDF chunks.
 
 Nothing on disc references these, so the chunk walker cannot reach them. They
-are located by address instead - `asset_db.EMBEDDED_ASSETS` holds the load-time
+are located by address instead - `asset_data.EMBEDDED_ASSETS` holds the load-time
 address and exact size of each - and then handed to the normal
 :class:`AssetStore`, so they land in ``raw/{type}/`` and inflate into the type
 directory like any other asset. There is no separate output tree for them.

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Rebuild ``asset_data.py`` (MODELS + ASSETS + TREE) from an extracted assets tree.
+"""Rebuild ``asset_data.py`` (ASSETS + EMBEDDED_ASSETS + TREE) from an extracted assets tree.
 
 Unique blobs come from ``raw/{type}/`` (SHA-1 of the on-disc payload).
 CDF placement comes from ``stages.json``. Extra ASSETS fields (``bpp``,
-``required``, …), the whole ``MODELS`` map and TREE folder/file **keys** are preserved across
+``required``, …), model names, the whole ``EMBEDDED_ASSETS`` map and TREE folder/file **keys** are preserved across
 regenerations (matched by sha1 / disc id). pe2img ``bpp`` is an int, or a
 list (one depth per work-entry column). Missing ``bpp`` is filled with
 ``guess_bpp()`` for every column.
@@ -54,14 +54,14 @@ RAW_TYPE_DIRS = (
 )
 
 
-def _load_old() -> tuple[dict[str, dict[str, Any]], dict[int, Any], dict[str, str]]:
+def _load_old() -> tuple[dict[str, dict[str, Any]], dict[int, Any], dict[str, dict[str, Any]]]:
     try:
         import asset_data
 
         assets = dict(getattr(asset_data, "ASSETS", {}) or {})
         tree = dict(getattr(asset_data, "TREE", {}) or {})
-        models = dict(getattr(asset_data, "MODELS", {}) or {})
-        return assets, tree, models
+        embedded = dict(getattr(asset_data, "EMBEDDED_ASSETS", {}) or {})
+        return assets, tree, embedded
     except Exception:
         return {}, {}, {}
 
@@ -343,9 +343,70 @@ def _fmt_chunks(chunks: dict[int, str]) -> str:
     return "{" + inner + "}"
 
 
+def collect_models(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Every mesh in every package, as ordinary ASSETS entries.
+
+    Meshes are found from their `TmdSource` record (`pkg_model.find_sources_direct`),
+    which is decided by the decompiled struct rather than by a scan heuristic, so
+    this does not need the extractor to have run - the packages themselves are the
+    source of truth. One entry per distinct mesh: 129 of them are shared between
+    packages, and dedup is by SHA-1 like every other asset.
+
+    Names are preserved across regeneration by SHA-1, the same contract as extra
+    ASSETS fields and TREE keys. Without that the generated name would follow
+    whichever package sorts first, so renaming a mesh would silently undo itself.
+    """
+    pkg_dir = assets_root / "pe2pkg"
+    if not pkg_dir.is_dir():
+        return {}
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import pkg_model
+
+    bases = pkg_model._load_addrs(assets_root)
+    known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "model"}
+    out: dict[str, dict[str, Any]] = {}
+    seen: set[str] = set()
+    for pkg in sorted(pkg_dir.glob("*.pe2pkg")):
+        if pkg.stem in ("gameplay", "title"):
+            continue
+        base = bases.get(pkg.stem)
+        if base is None:
+            continue
+        data = pkg.read_bytes()
+        for stream_va in sorted(pkg_model.find_sources_direct(data, base)):
+            off = stream_va - base
+            walked = pkg_model.walk_stream(data, off)
+            if not walked:
+                continue
+            blob = data[off : walked[1]]
+            digest = hashlib.sha1(blob).hexdigest()
+            if digest in seen:
+                continue
+            seen.add(digest)
+            aid = known.get(digest) or f"{pkg.stem}_model_{off:05X}"
+            rec = dict(old.get(aid) or {})
+            rec.update({"sha1": digest, "type": "model", "size": len(blob)})
+            out[aid] = rec
+    return out
+
+
+def _fmt_embedded(rec: dict[str, Any]) -> str:
+    """One EMBEDDED_ASSETS record. Located by address, so no sha1 to key on."""
+    order = ("source", "vram", "size", "ext", "type")
+    parts = []
+    for k in order:
+        if k not in rec:
+            continue
+        v = rec[k]
+        parts.append(f'"{k}": ' + (f"0x{v:08X}" if k == "vram" else f"0x{v:X}" if k == "size" else repr(v)))
+    for k in sorted(set(rec) - set(order)):
+        parts.append(f'"{k}": {rec[k]!r}')
+    return "{" + ", ".join(parts) + "}"
+
+
 def emit_module(
     assets: dict[str, dict[str, Any]], tree: dict[int, Any],
-    models: dict[str, str] | None = None,
+    embedded: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     lines: list[str] = [
         '"""Generated unique-asset table and CDF tree. See asset_db.py.',
@@ -361,17 +422,17 @@ def emit_module(
         "from __future__ import annotations",
         "",
     ]
-    # Hand-written and keyed by content, so it survives regeneration the same
-    # way extra ASSETS fields do.
-    if models:
-        lines.append("MODELS = {")
-        for digest in sorted(models, key=lambda d: models[d]):
-            lines.append(f"    {digest!r}: {models[digest]!r},")
-        lines.append("}")
-        lines.append("")
     lines.append("ASSETS = {")
     for aid in sorted(assets, key=asset_name_key):
         lines.append(f"    {aid!r}: {_fmt_record(assets[aid])},")
+    lines.append("}")
+    lines.append("")
+    # Baked into an executable rather than shipped as a CDF chunk, so the chunk
+    # walker cannot find them: located by address instead. Hand-written and
+    # preserved across regeneration, like the TREE keys.
+    lines.append("EMBEDDED_ASSETS = {")
+    for eid in sorted(embedded or {}, key=asset_name_key):
+        lines.append(f"    {eid!r}: {_fmt_embedded((embedded or {})[eid])},")
     lines.append("}")
     lines.append("")
     lines.append("TREE = {")
@@ -426,10 +487,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"missing raw/ under {assets_root}", file=sys.stderr)
         return 1
 
-    old_assets, old_tree, models = _load_old()
+    old_assets, old_tree, embedded = _load_old()
     assets = collect_assets(assets_root, old_assets)
+    assets.update(collect_models(assets_root, old_assets))
     tree = collect_tree(assets_root, old_tree)
-    text = emit_module(assets, tree, models)
+    text = emit_module(assets, tree, embedded)
     args.out.write_text(text, encoding="utf-8")
     n_chunks = 0
     for body in tree.values():

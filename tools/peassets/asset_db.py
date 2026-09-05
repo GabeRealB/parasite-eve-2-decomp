@@ -1,10 +1,16 @@
 """Asset database: unique blobs and CDF placement.
 
-Two tables (generated into :mod:`asset_data`, re-exported here):
+Three tables (generated into :mod:`asset_data`, re-exported here):
 
-* :data:`ASSETS` — unique on-disc payloads. Key is a stable id (type-store
-  stem). Value is ``sha1`` of the raw file plus optional attributes
-  (``type``, ``bpp`` as int or per-column list, ``required``, …).
+* :data:`ASSETS` — unique payloads, keyed by a stable name. Value is ``sha1``
+  of the raw file plus optional attributes (``type``, ``bpp`` as int or
+  per-column list, ``required``, …). Meshes live here too, as ``type``
+  ``"model"``: they are content-addressed like everything else, so a mesh
+  shared by twelve packages is one entry, and there is no side table.
+* :data:`EMBEDDED_ASSETS` — payloads baked into an executable rather than
+  shipped as a CDF chunk. Nothing on disc references them, so they carry a
+  ``vram`` address and exact ``size`` instead of a sha1, and are named the
+  same way ``TREE`` names a folder or file.
 * :data:`TREE` — the STAGE*.CDF file tree. Integer disc ids; chunk leaves
   are asset ids. Folder/file ``name`` is an optional path component.
 
@@ -36,30 +42,7 @@ _DIR = Path(__file__).resolve().parent
 if str(_DIR) not in sys.path:
     sys.path.insert(0, str(_DIR))
 
-from asset_data import ASSETS, TREE  # noqa: E402
-
-# Assets baked into the executables rather than shipped as CDF chunks. Nothing
-# on disc references them, so the chunk walker cannot find them - they are
-# located by address instead, and then flow through the normal store (raw/{type}
-# plus an inflated form in the type dir) like any other asset.
-#
-# ``vram`` is the load-time address; ``extract.py`` converts it to a file offset
-# using the PS-X EXE header for main.exe, or the overlay's load address.
-# ``size`` is exact - these are fixed-size structures, not walked.
-EMBEDDED_ASSETS: dict[str, dict[str, Any]] = {
-    # The memory-card entry the game writes when a card fails to validate:
-    # "SC" magic, Shift-JIS title, 16-entry CLUT, three 16x16 4bpp icon frames.
-    # Split across two symbols in the disassembly (Mc_DefaultChecksumSrc is the
-    # first 4 bytes, Mc_SaveHeaderBody the rest); one asset here.
-    "mc_save_header": {
-        "source": "main.exe",
-        "vram": 0x80060EFC,
-        "size": 0x200,
-        "ext": ".mcsave",
-        "type": "mcsave",
-    },
-}
-
+from asset_data import ASSETS, EMBEDDED_ASSETS, TREE  # noqa: E402
 
 def embedded_for_source(source: str) -> list[tuple[str, dict[str, Any]]]:
     """Catalogued embedded assets carried by one binary, in address order."""
