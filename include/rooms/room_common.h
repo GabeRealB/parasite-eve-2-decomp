@@ -94,6 +94,18 @@ typedef struct RoomPlacement {
     /* 0x10 */ SVECTOR rot;
 } RoomPlacement;
 
+/// Screen rectangle outlined by `Room_Draw26`: the corners it draws are
+/// (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are extents rather than a
+/// second corner. The fields are unsigned because the drawer loads every one
+/// of them with `lhu`.
+typedef struct RoomRect {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ u16 y;
+    /* 0x4 */ u16 w;
+    /* 0x6 */ u16 h;
+} RoomRect;
+STATIC_ASSERT_SIZEOF(RoomRect, 0x8);
+
 /// The `GsCOORDINATE2` at `TmdObject::field_8` as the room overlays see it: the
 /// game stores the placed object's Euler angles in the `SVECTOR` that overlays
 /// libgs's `param` / `super` slots (0x44-0x4B) and rebuilds `coord` from it
@@ -278,6 +290,10 @@ void Room_Draw04(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
 /// height. Left vertices take `arg5`, right vertices take `arg6`.
 void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
+/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
+/// `LINE_F2`s -- top, right, bottom and left -- each linked into
+/// `Gpu_CurrentOt[1]`.
+void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
