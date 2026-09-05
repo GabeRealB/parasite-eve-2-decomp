@@ -45037,3 +45037,66 @@ Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
 and field offsets against that list first. Define the overlay's own copy of the
 type in its own header rather than including the gameplay one — the layouts are
 identical but the ownership is not.
+
+## `setUV4` is not the same RTL as eight `prim->uN =` statements
+
+`func_mp5a5_8011D468` (a `POLY_FT4` muzzle flash) stalled at 98.9% with the
+whole prim set-up in the right *store* order but two instructions transposed:
+
+```
+ li    v0,0x428b
+-li    v1,0x70        <- target: the shared constant is materialised here
+ sh    v0,0xe(s3)
+ li    v0,0xc8
+ sb    v0,0xd(s3)
+ sb    v0,0x15(s3)
+-lbu   v0,7(s3)       <- target: the read-modify-write load lands here
++li    v0,0x70
+ li    a1,0xa7
+-sb    v1,0xc(s3)
+-sb    v1,0x1c(s3)
++sb    v0,0xc(s3)
++sb    v0,0x1c(s3)
++lbu   v0,7(s3)
+```
+
+Writing the eight UV bytes as separate statements — in any order, and with the
+`prim->code |= 3` moved anywhere in the block — always produced the second
+form. `setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF)` produced
+the first and matched immediately.
+
+The macro is one comma expression, so `0x70` (shared by `u0` and `u2`) gets its
+`li` at the *head* of the group's RTL instead of just before the first `sb`.
+That longer live range is what lets the allocator give it `$v1` and leaves the
+`lbu` of `code` a slot two positions earlier. Neither statement order nor
+`TOUCH_REG` reproduces it: `TOUCH_REG` pins the `li` exactly at the barrier
+(the volatile asm is a scheduling fence), and the target wants it *inside* the
+`li`/`sh` pair of the neighbouring `clut` store, where no statement boundary
+exists.
+
+So when a primitive's UV/RGB constants are shared between corners, reach for
+the `libgpu.h` `setXXX` macro before permuting assignments — it is a different
+RTL shape, not a spelling of the same one. `setRGB0`/`setUV3`/`setUVWH` have
+the same property.
+
+## Promote a shared `.pe2pkg` body while the C is still fresh
+
+`overlay_dup_index.py find func_mp5a5_8011D468` reported four byte-identical
+copies (`mp5a5`, `mp5a5_p1`, `mp5a5_p2`, `p229`), and each of those overlays
+already carried a `weapons_shared_8011d864` cut *immediately after* the span.
+Adding the second cut is four one-line edits and matches four functions at
+once:
+
+- `configs/USA/overlays.toml`: a `shared` entry per sharer. The offsets differ
+  per overlay (`0x2A8`/`0x2A4` here) because the overlays link at different
+  bases; derive each from `<address> - <text base>` in that overlay's own `.s`.
+- `configs/USA/sym/weapons/<overlay>.txt`: the shared symbol at that overlay's
+  address.
+- one `src/weapons/lib/<unit>.c` and one `include/weapons/<unit>.h`.
+- each host `.c` loses its `INCLUDE_ASM` line and its local forward
+  declaration, and calls the shared name.
+
+`gen_overlay_configs.py` numbers the runs *between* cuts, so inserting a cut
+before an existing one does not renumber the surviving units (`mp5a5` and
+`mp5a5_2` keep their names and their `src/` files). A cut inserted in the
+middle of a run would.

@@ -1,2 +1,3 @@
 // Overlay-local symbols for P229 (file 10305).
 WeaponsShared8011d864 = 0x8011D860; // shared body, see src/weapons/lib/
+WeaponsShared8011d468 = 0x8011D464; // shared body, see src/weapons/lib/

@@ -9,6 +9,7 @@
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
 extern s32 Gp_LcgState;
@@ -21,14 +22,12 @@ extern SVECTOR D_p229_8011E0F0;
 /// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
 extern s16 D_p229_8012B658[4];
 
-void func_p229_8011D464(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
-
 /// Per-frame muzzle-flash task for the P229. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own
 /// coordinate on the muzzle offset under the hand frame, and rolls the flash
 /// size (`field_24`), its spin (`field_26`) and the four quad angles; every
 /// later frame just halves the size and the brightness. Each frame then draws
-/// the core (`func_p229_8011D464`), a full-screen fade at the current
+/// the core (`WeaponsShared8011d468`), a full-screen fade at the current
 /// brightness and the four flash quads, decays the light's range by 0x190 and
 /// releases the pool block after seven frames. Nothing runs at all once
 /// `Gp_State1C` is fading out (`field_4 >= 2`).
@@ -92,7 +91,7 @@ void func_p229_8011D1DC(Task* task)
             break;
     }
 
-    func_p229_8011D464(coord, work->field_24, work->field_26);
+    WeaponsShared8011d468(coord, work->field_24, work->field_26);
     /* Chained on purpose: it is one `lbu` stored three times, in reverse index
        order. Three separate assignments reload the field each time, because the
        stores into `rgb` may alias it. */
@@ -108,7 +107,5 @@ void func_p229_8011D1DC(Task* task)
         Gp_ReleaseState1CMem(work, task);
     }
 }
-
-INCLUDE_ASM("weapons/nonmatchings/p229/p229", func_p229_8011D464);
 
 INCLUDE_RODATA("weapons/nonmatchings/p229/p229", D_p229_8011D1C0);
