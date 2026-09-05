@@ -47368,3 +47368,65 @@ work->field_10.vy = (u32)rnd % 144 + 0x60;
 Use a plain `s32` local instead when the target's divide *is* signed (a variable
 divisor compiled to a real `div`), and reuse one `u16` local for every unsigned
 roll in the function.
+
+## Declare a `±1` byte flag `s8` so `-1` does not share the loop's `0xFF`
+
+A byte field that a function sets to `1` or `-1` while also comparing other
+bytes against `0xFF` gives two different constants only if the field is signed.
+Declared `u8`, the tree converts `-1` to `(unsigned char)255`, GCC's constant
+CSE hands the store the register that already holds the hoisted `0xFF`, and one
+of the target's `li` disappears:
+
+```
+li    a1, 0xff        /* hoisted for the 0xFF terminator comparisons */
+...
+sb    a1, 0x73(s1)    /* wanted: sb a3, 0x73(s1) with li a3, -1 */
+```
+
+Declaring the field `s8` keeps `-1` a distinct rtx, so loop-invariant motion
+hoists `li a3, -1` and `li a2, 1` alongside the `0xFF`. If the field is later
+read back with `lbu` rather than `lb`, cast at the use site — `x += (u8)p->flag;`
+still compiles to a plain `lbu`. `func_acropolis_bridge_80184638` needs both
+halves of this.
+
+## `for (i = 0; i < p->n; i++)` keeps `p` cached; m2c's guarded `do`/`while` does not
+
+m2c prints a counted loop over a pointed-to bound as an `if` guard around a
+`do`/`while`, and that shape reloads the base pointer at the top of every
+iteration. The rotated `for` does not:
+
+```
+lw    a0, 0(s1)       /* work->nav, before the loop */
+lbu   v0, 9(a0)
+beqz  v0, end
+loop:
+lw    v0, 4(a0)       /* work->nav->field_4 — a0 still live */
+```
+
+Before the `loop` pass rotates the exit test to the bottom, the loop top and
+the fall-through body are one extended basic block, so CSE reuses the pointer
+the top test just loaded; rotation then duplicates that load into the preheader
+with the same register. The guarded `do`/`while` puts the body in a block with
+two predecessors, so CSE starts it fresh and emits `lw v0, 0(s1)` again. A
+store inside the body still kills the cache for anything after it, which is why
+a second use later in the same iteration legitimately reloads.
+
+## `ABS()` leaves the abs `bgez` delay slot empty; `if (x < 0)` fills it
+
+The complement of "`ABS()` / `>=` ternary delays the prologue": the PSY-Q
+`ABS()` macro folds to `ABS_EXPR`, which MIPS expands as the single `abssi2`
+insn `bgez %1,1f; neg %0,%1; 1:`, so `dbr` has no slot to fill and the `nop`
+stays. Written as a statement, `if (x < 0) { x = -x; }` is an ordinary branch
+and `dbr` pulls the preceding instruction in:
+
+```
+subu  v1, v1, v0
+lbu   v0, 8(s0)
+sh    v1, 0(s0)       /* wanted here */
+bgez  v1, join
+nop                   /* ABS() keeps this */
+negu  v1, v1
+```
+
+So when the target has an unexplained `nop` after an abs `bgez`, the source
+used `ABS()`, not an `if`.

@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 #include "gameplay/1BC.h"
@@ -15,6 +16,7 @@
 #include "rooms/acropolis_bridge.h"
 
 extern s16                   D_acropolis_bridge_801915E4[][6];
+extern char                  D_acropolis_bridge_8017D6CC[];
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 extern u16                   D_acropolis_bridge_80190C60;
 /// State handler table the per-frame tick dispatches through on
@@ -111,8 +113,9 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x70 */ u8                       field_70;
     /* 0x71 */ u8                       field_71;
     /* 0x72 */ u8                       field_72;
-    /* 0x73 */ u8                       field_73;
-    /* 0x74 */ byte                     pad_74[0x2];
+    /* 0x73 */ s8                       field_73;
+    /* 0x74 */ byte                     pad_74[0x1];
+    /* 0x75 */ u8                       field_75;
     /* 0x76 */ u8                       cursor;
     /* 0x77 */ byte                     pad_77[0x1];
     /* 0x78 */ u8                       moving;
@@ -214,7 +217,7 @@ u8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 actor);
 /// Returns the patrol node nearest the walker, by squared distance in the
 /// XZ plane between the node table and the walker's coordinate translation.
 u8   func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work);
-void func_acropolis_bridge_80184638(AcropolisBridgeWalkerWork* work, s32 arg1);
+void func_acropolis_bridge_80184638(AcropolisBridgeWalkerWork* work, s16 arg1);
 void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work);
 void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work);
 void func_acropolis_bridge_80185104(AcropolisBridgeWalkerWork* work, SVECTOR3* pos);
@@ -416,7 +419,101 @@ u8 func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work)
     return block->nearest;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184638);
+/// 0x1C-byte scratch block the route re-plan carves off `G_SCRATCH_HEAD`.
+/// `nodeA` is the patrol node nearest the actor the walker is reacting to and
+/// `nodeB` the node nearest the walker itself; `listA` / `listB` collect every
+/// position in the room's route byte table that names each of them --
+/// terminated by `0xFF`, which is also why each list is only filled to eight
+/// entries -- and `i` / `j` walk the two lists. `diff` is the signed step
+/// between the pair under test and `best` the smallest absolute step seen so
+/// far, starting at `0xFF` so the first pair always wins.
+typedef struct AcropolisBridgeRouteScratch {
+    /* 0x00 */ s16  diff;
+    /* 0x02 */ byte pad_2[0x2];
+    /* 0x04 */ u8   nodeA;
+    /* 0x05 */ u8   nodeB;
+    /* 0x06 */ u8   i;
+    /* 0x07 */ u8   j;
+    /* 0x08 */ u8   best;
+    /* 0x09 */ u8   countA;
+    /* 0x0A */ u8   countB;
+    /* 0x0B */ byte pad_B[0x1];
+    /* 0x0C */ u8   listB[8];
+    /* 0x14 */ u8   listA[8];
+} AcropolisBridgeRouteScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeRouteScratch, 0x1C);
+
+/// Re-plans the walker's position in the room's route byte table so that it
+/// heads towards actor `actor`. It collects every slot of that table naming
+/// the node nearest the actor and every slot naming the node nearest the
+/// walker, then picks the pair of slots that are closest together: the
+/// walker's cursor becomes the slot on its own side, `field_75` records the
+/// slot on the actor's side, and `field_73` becomes the +1 / -1 direction the
+/// cursor has to travel along the table to close the gap -- which the caller
+/// then applies, as does the last line here. Both lists hold at most eight
+/// slots, so a table with more matches than that is silently truncated; if no
+/// pair was found at all the routine only complains and leaves the cursor
+/// where it was.
+void func_acropolis_bridge_80184638(AcropolisBridgeWalkerWork* work, s16 actor)
+{
+    AcropolisBridgeRouteScratch* s;
+    u8*                          head;
+    s32                          diff;
+    s32                          best;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
+    s                     = (AcropolisBridgeRouteScratch*)(head - 0x1C);
+
+    s->nodeA  = func_acropolis_bridge_801843A0(work, actor);
+    s->nodeB  = func_acropolis_bridge_8018450C(work);
+    s->countA = 0;
+    s->countB = 0;
+    for (s->i = 0; s->i < work->nav->field_9; s->i++) {
+        if (work->nav->field_4[s->i] == s->nodeA && s->countA < 8) {
+            s->listA[s->countA] = s->i;
+            s->countA++;
+        }
+        if (work->nav->field_4[s->i] == s->nodeB && s->countB < 8) {
+            s->listB[s->countB] = s->i;
+            s->countB++;
+        }
+    }
+
+    s->listA[s->countA] = 0xFF;
+    s->listB[s->countB] = 0xFF;
+    s->best             = 0xFF;
+    for (s->i = 0; s->i < 8; s->i++) {
+        if (s->listA[s->i] == 0xFF) {
+            break;
+        }
+        for (s->j = 0; s->j < 8; s->j++) {
+            if (s->listB[s->j] == 0xFF) {
+                break;
+            }
+            diff    = s->listA[s->i] - s->listB[s->j];
+            best    = s->best;
+            s->diff = diff;
+            diff    = ABS(diff);
+            if (diff < best) {
+                s->best        = diff;
+                work->cursor   = s->listB[s->j];
+                work->field_75 = s->listA[s->i];
+                if (s->diff < 0) {
+                    work->field_73 = -1;
+                } else {
+                    work->field_73 = 1;
+                }
+            }
+        }
+    }
+
+    if (s->best == 0xFF) {
+        printf(D_acropolis_bridge_8017D6CC);
+    }
+    work->cursor         += (u8)work->field_73;
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+}
 
 /// 0x18-byte scratch the walker's per-frame move carves off `G_SCRATCH_HEAD`:
 /// the `GpDeltaScratch` `func_800E0C10` fills with the 16.16 step toward the
@@ -579,7 +676,7 @@ static __inline__ void walkerStep(AcropolisBridgeWalkerWork* walker, u8* head,
             walker->field_72 = walker->field_70;
             walker->field_71 = walker->field_6F;
             if (func_acropolis_bridge_80184024(walker) != 0) {
-                walker->cursor       += walker->field_73;
+                walker->cursor       += (u8)walker->field_73;
                 walker->node          = walker->nav->field_4[walker->cursor];
                 *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 4;
             }
