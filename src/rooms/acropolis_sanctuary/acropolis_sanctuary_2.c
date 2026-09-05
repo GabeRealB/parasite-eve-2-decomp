@@ -26,7 +26,6 @@
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `D_80071075` and `D_80114C12` gate the cutscene task's setup (the latter is
@@ -34,12 +33,11 @@
 /// weapon-id bases that record uses. `D_80071076` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
-extern u8  D_80073BA9;
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s8  D_8007218A;
-extern s8  D_80114C12;
-
+extern u8              D_80073BA9;
+extern u8              D_80071075;
+extern s16             D_80071076;
+extern s8              D_8007218A;
+extern s8              D_80114C12;
 extern SVECTOR         D_acropolis_sanctuary_8017D5D0;
 extern AcsSpriteLevels D_acropolis_sanctuary_8017D5D8;
 extern AcsSpriteLevels D_acropolis_sanctuary_8017D5DC;
@@ -60,17 +58,14 @@ extern SVECTOR         D_acropolis_sanctuary_80182774[];
 extern u16             D_acropolis_sanctuary_801827D4[];
 extern AcsBlockerSet   D_acropolis_sanctuary_80183568;
 extern Task*           D_acropolis_sanctuary_80186C90;
-
 /// Gameplay's LCG seed; it has no module header yet.
 extern s32 Gp_LcgState;
-
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
 /// `func_800E8634` is started on.
-extern s32 D_acropolis_sanctuary_801820E4;
-extern s32 D_acropolis_sanctuary_801820F0;
-extern s32 D_acropolis_sanctuary_801821C8;
-
+extern s32  D_acropolis_sanctuary_801820E4;
+extern s32  D_acropolis_sanctuary_801820F0;
+extern s32  D_acropolis_sanctuary_801821C8;
 extern void func_acropolis_sanctuary_8017DD78(void);
 extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
 
@@ -885,5 +880,3 @@ void func_acropolis_sanctuary_80180264(Task* task)
         tmd->field_E = 0;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_2", func_acropolis_sanctuary_801802E0);

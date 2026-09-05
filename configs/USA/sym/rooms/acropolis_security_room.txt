@@ -1,2 +1,3 @@
 // Overlay-local symbols for acropolis_security_room.
 Room_Draw26 = 0x8017EF78; // shared body, see src/rooms/lib/
+RoomsShared80182574 = 0x80182574; // shared body, see src/rooms/lib/

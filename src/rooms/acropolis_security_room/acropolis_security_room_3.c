@@ -8,6 +8,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
+
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -19,6 +20,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
 #include "rooms/acropolis_security_room.h"
 #include "rooms/room_common.h"
 
@@ -30,46 +32,135 @@
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
 /// vector added. Same reason as above for spelling out the word.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 /// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
 /// translation vector. Same reason as above for spelling out the word.
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-
 /// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 void func_acropolis_security_room_8017FD64(s32 flags);
 void func_acropolis_security_room_8017F480(Task* task);
 void func_acropolis_security_room_80180308(Task* task);
-
 /// The two `TaskDesc`s this room's script spawns from: index 0 is
 /// `func_acropolis_security_room_80180368`, index 1 is
 /// `func_acropolis_security_room_801804CC`.
 extern TaskDesc D_acropolis_security_room_80182700[];
-
 /// The single-entry `TaskDesc` table the script spawns its child task from:
 /// `func_acropolis_security_room_8017F9C8`.
 extern TaskDesc D_acropolis_security_room_801826C0[];
-
 /// The script's message table, parked in `Task::field_24`.
 extern GpMsgEntry D_acropolis_security_room_801826CC[];
-
 /// The cap script's 16 state handlers, dispatched by
 /// `func_acropolis_security_room_80180294`.
 extern const TaskFuncTable16 D_acropolis_security_room_8017D63C;
-
-extern s8  D_8007216C;
-extern s16 D_80114D08;
-
+extern s8                    D_8007216C;
+extern s16                   D_80114D08;
 /// 0xFF-terminated area-record lists applied as the script ends.
 extern GpAreaApplyRec D_acropolis_security_room_80184F50[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F78[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F7C[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F80[];
+/// Scratch state of the security-room ambience task, stored at `Task::idMap`.
+/// `func_acropolis_security_room_80180368` allocates it with `Mem_Calloc(4, 0)`,
+/// so the size below is the allocation and not a guess.
+typedef struct {
+    /* 0x0 */ u16  fadeStarted; // the looping ambience has already been faded out
+    /* 0x2 */ byte pad_2[0x2];
+} AsrAmbienceState;
+/// The 0x100-entry RGB555 palette every monitor-screen CLUT is blended
+/// towards: the "off" colours of the four security-camera feeds.
+extern u16 D_acropolis_security_room_80182718[];
+/// The four lit palettes, one per camera feed, blended against
+/// `D_acropolis_security_room_80182718` by the feed's own brightness.
+extern u16 D_acropolis_security_room_80182918[];
+extern u16 D_acropolis_security_room_80182B18[];
+extern u16 D_acropolis_security_room_80182D18[];
+extern u16 D_acropolis_security_room_80182F18[];
+/// The four blend results, uploaded to VRAM by
+/// `D_acropolis_security_room_80183918`.
+extern u16 D_acropolis_security_room_80183118[];
+extern u16 D_acropolis_security_room_80183318[];
+extern u16 D_acropolis_security_room_80183518[];
+extern u16 D_acropolis_security_room_80183718[];
+/// The upload records for the four blended CLUTs above.
+extern GpImgRec D_acropolis_security_room_80183918[];
+/// Camera-lit bitmask for each value of `GameFlag_GetNibble(9)`; bit N is set
+/// while feed N is showing something.
+extern u16 D_acropolis_security_room_80183968[];
+/// Spawn position and effect id of the flash each newly lit feed plays,
+/// indexed by feed.
+extern SVECTOR D_acropolis_security_room_80183998[];
+extern s16     D_acropolis_security_room_801839B8[];
+/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
+/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
+static __inline__ void Asr_LocalToWorld(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    AsrWalkScratch* blk;
+
+    {
+        register GsCOORDINATE2* parent asm("v0");
+        parent                                                                            = coord;
+        ((AsrWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch)))->coord = parent;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch);
+        blk = (AsrWalkScratch*)tmp;
+    }
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr_real();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrWalkScratch);
+}
+static __inline__ void Asr_LocalToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    AsrWalkScratch* blk;
+
+    blk         = (AsrWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch));
+    blk->coord  = coord;
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr_real();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrWalkScratch);
+}
 
 void func_acropolis_security_room_8017F1BC(Task* task)
 {
@@ -715,15 +806,6 @@ void func_acropolis_security_room_80180308(Task* task)
     task->state = task->state + 1;
 }
 
-/// Scratch state of the security-room ambience task, stored at `Task::idMap`.
-/// `func_acropolis_security_room_80180368` allocates it with `Mem_Calloc(4, 0)`,
-/// so the size below is the allocation and not a guess.
-typedef struct {
-    /* 0x0 */ u16  fadeStarted; // the looping ambience has already been faded out
-    /* 0x2 */ byte pad_2[0x2];
-} AsrAmbienceState;
-STATIC_ASSERT_SIZEOF(AsrAmbienceState, 0x4);
-
 /// First `TaskDesc` of `D_acropolis_security_room_80182700`: starts the room's
 /// looping ambience, then rides alongside the cutscene task
 /// (`func_acropolis_security_room_801804CC`) until the CD queue reaches its cue
@@ -824,36 +906,6 @@ advance:
 L_case2:
     Task_RequestKill(task, 0);
 }
-
-/// The 0x100-entry RGB555 palette every monitor-screen CLUT is blended
-/// towards: the "off" colours of the four security-camera feeds.
-extern u16 D_acropolis_security_room_80182718[];
-
-/// The four lit palettes, one per camera feed, blended against
-/// `D_acropolis_security_room_80182718` by the feed's own brightness.
-extern u16 D_acropolis_security_room_80182918[];
-extern u16 D_acropolis_security_room_80182B18[];
-extern u16 D_acropolis_security_room_80182D18[];
-extern u16 D_acropolis_security_room_80182F18[];
-
-/// The four blend results, uploaded to VRAM by
-/// `D_acropolis_security_room_80183918`.
-extern u16 D_acropolis_security_room_80183118[];
-extern u16 D_acropolis_security_room_80183318[];
-extern u16 D_acropolis_security_room_80183518[];
-extern u16 D_acropolis_security_room_80183718[];
-
-/// The upload records for the four blended CLUTs above.
-extern GpImgRec D_acropolis_security_room_80183918[];
-
-/// Camera-lit bitmask for each value of `GameFlag_GetNibble(9)`; bit N is set
-/// while feed N is showing something.
-extern u16 D_acropolis_security_room_80183968[];
-
-/// Spawn position and effect id of the flash each newly lit feed plays,
-/// indexed by feed.
-extern SVECTOR D_acropolis_security_room_80183998[];
-extern s16     D_acropolis_security_room_801839B8[];
 
 /// Per-frame update of the security-room's four monitor feeds: state 0 seeds
 /// the four screen CLUTs from the unlit palette, state 1 re-blends each of
@@ -1080,76 +1132,6 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", func_acropolis_security_room_80181C84);
 
-/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
-/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
-static __inline__ void Asr_LocalToWorld(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    AsrWalkScratch* blk;
-
-    {
-        register GsCOORDINATE2* parent asm("v0");
-        parent                                                                            = coord;
-        ((AsrWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch)))->coord = parent;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch);
-        blk = (AsrWalkScratch*)tmp;
-    }
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr_real();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrWalkScratch);
-}
-
-static __inline__ void Asr_LocalToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    AsrWalkScratch* blk;
-
-    blk         = (AsrWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrWalkScratch));
-    blk->coord  = coord;
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr_real();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrWalkScratch);
-}
-
 s32 func_acropolis_security_room_80181E28(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**           scratch;
@@ -1292,27 +1274,6 @@ s32 func_acropolis_security_room_80181E28(GsCOORDINATE2* coord, GpRec18* recs, s
     hit   = st->hit;
     *tail = (u8*)*tail + sizeof(AsrSightScratch);
     return hit;
-}
-
-/// Per-frame visibility hook for the security-room prop: the model is drawn
-/// (`field_C = 8`) until the item's 2-bit flag reaches 2, after which it is
-/// hidden (`field_C = 0x80`).
-void func_acropolis_security_room_80182574(Task* task)
-{
-    GpItemObj8* obj;
-    TmdObject*  tmd;
-    s32         flag;
-
-    obj  = (GpItemObj8*)task->spawnArg2;
-    tmd  = (TmdObject*)task->extra;
-    flag = Gp_GetCurBit2Flag(obj->field_8);
-    Gp_GetViewIndex();
-    if (flag == 2) {
-        tmd->field_C = 0x80;
-    } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
-    }
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", D_acropolis_security_room_8017D6AC);
