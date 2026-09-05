@@ -30,8 +30,9 @@ typedef struct M4a1JavelinLineScratch {
 } M4a1JavelinLineScratch;
 STATIC_ASSERT_SIZEOF(M4a1JavelinLineScratch, 0x14);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_javelin_8011E4A8`
-/// for the two ends of the javelin guide line. Each end is pushed through
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_m4a1_javelin_8011DAB0` and `func_m4a1_javelin_8011E4A8` for the two
+/// ends of the javelin guide line. Each end is pushed through
 /// `GsWSMATRIX` by its own `RTPS`: `otz0` / `otz1` are the two `gte_stszotz`
 /// results (each biased by 1 so they can also be divisors), `flag` is the
 /// shared `gte_stflg` of whichever projection just ran and `sx0` / `sy0` /
@@ -70,7 +71,9 @@ typedef struct M4a1JavelinQuadScratch {
 } M4a1JavelinQuadScratch;
 STATIC_ASSERT_SIZEOF(M4a1JavelinQuadScratch, 0x1C);
 
+extern u16     D_m4a1_javelin_8012EB60;
 extern u16     D_m4a1_javelin_8012EB62;
+extern s16     D_m4a1_javelin_8012EB64;
 extern s16     D_m4a1_javelin_8012EB66;
 extern SVECTOR D_m4a1_javelin_8012EB68;
 extern s32     D_m4a1_javelin_8012EB70;

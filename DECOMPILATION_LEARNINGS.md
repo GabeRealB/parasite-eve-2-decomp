@@ -30609,6 +30609,16 @@ The converse is just as useful: when the target reuses one register for the same
 role in two loops (`recs` in `a2` in both), assign to the *same* variable in both
 places instead of introducing a second one.
 
+The tell is not always a pairwise swap. In `func_m4a1_javelin_8011DAB0` one
+angle temp shared by three `POLY_G4` fans scored 98.95% with `regs` as the only
+non-zero penalty and the whole `$s0`/`$s1`/`$s2` assignment *rotated* by one:
+the shared temp is a single allocno live across all three loops, so its
+`n_refs * log2(n_refs) / live_length` priority falls below the long-lived
+`ratan2` result and it is coloured last. Three short locals with identical code,
+each dying at the end of its loop, each win `$s0` in turn. Whenever the leftover
+is `regs` alone and the diff is a rotation of the callee-saved set rather than
+one wrong pair, look for a temp whose scope is wider than its use.
+
 ## Split `&base[i]` into a base-pointer local to control the final `addu` dest
 
 The last two diffs in `func_800B3448` were `addu v0,v1,v0` vs `addu v1,v1,v0` —
@@ -45276,3 +45286,55 @@ whole sequence. Do not reach for `(u32)frame % 12` to explain the `multu`, and
 do not chase the trailing `andi` with an extra local — the shortening produces
 both on its own. The same rule covers `/`, and it is why a `u16` numerator can
 divide without the `bnez`/`break 7` trap pair that a signed `div` needs.
+
+## Keep an `andi $x, $x, 0xffff`: a `(u16)` inside an expression is folded away
+
+`func_m4a1_javelin_8011DAB0` widens an RGB444 argument, and the ROM has a real
+`andi $a2, $a2, 0xffff` feeding both `srl $t0, $a2, 4` / `andi $t0, $t0, 0xf0`
+and `andi $a2, $a2, 0xf0`. Neither spelling of the cast reproduces it:
+
+```c
+u16 color;  r = ((color >> 4) & 0xF0);      /* movhi copy, no andi   */
+s32 color;  r = (((u16)color >> 4) & 0xF0); /* fold() drops the cast */
+```
+
+`fold` removes a `(u16)` conversion as soon as the surrounding mask or shift
+proves the high half is dead, so the mask never reaches RTL. Assigning it to a
+wider local first makes it a statement GCC has to emit, and with two readers
+`combine` cannot delete it again:
+
+```c
+u32 rgb = color;              /* u16 param -> andi $a2, $a2, 0xffff */
+r = (rgb >> 4) & 0xF0;
+g = rgb & 0xF0;
+b = (color & 0xF) * 0x10;     /* raw param: andi $t1, $a3, 0xf      */
+```
+
+Use `u32`, not `s32`: with `s32` the shift comes out as `sra` and `force_to_mode`
+then rewrites `& 0xF0` into `li $v1, -0x10` + `and`, costing two extra
+instructions.
+
+## Getting the spare `move` after a `G_SCRATCH_HEAD` carve
+
+The carve preamble sometimes keeps a second copy of the block pointer:
+
+```
+addiu $v1, $s0, -0x1C
+addu  $s5, $v1, $zero      <- this
+sw    $v1, 0x0($v0)
+```
+
+Assigning the variable first and then storing it (`sc = head - N;
+*G_SCRATCH_HEAD = sc;`) gives one register and no copy. Store first, then
+assign, and the copy appears:
+
+```c
+head                  = *(u8**)G_SCRATCH_HEAD;
+*(u8**)G_SCRATCH_HEAD = head - sizeof(Scratch);
+sc                    = (Scratch*)(head - sizeof(Scratch));
+```
+
+The store consumes the first pseudo, CSE turns the second expression into a copy
+of it, and the copy survives because both are live at that point.
+`func_m4a1_javelin_8011EE78` reaches the same shape from the other direction,
+with an `s32* otz0 = &sc->otz0;` alias.

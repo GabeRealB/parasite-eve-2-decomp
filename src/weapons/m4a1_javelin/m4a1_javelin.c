@@ -26,7 +26,159 @@ extern u32 Gp_LcgState;
 
 INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011D1E4);
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011DAB0);
+/// Draws the javelin's aiming guide: a flat `LINE_F2` from `p0` to `p1` plus
+/// three fans of `POLY_G4` segments, all dropped if either endpoint fails its
+/// `RTPS` `FLAG` check (which also arms `D_m4a1_javelin_8012EB64` so the beam
+/// angle is recomputed on the next visible frame). `color` is an RGB444 word
+/// widened a nibble at a time, brightened by `Display_State.field_8`'s low bit
+/// so the beam flickers every other frame; the fans use two thirds of that.
+/// Bit 1 of `flags` forces the `ratan2` of the on-screen beam direction to be
+/// taken again, otherwise the cached `D_m4a1_javelin_8012EB60` is reused. The
+/// first fan caps the far end, the second (bit 0 of `flags`) caps the near end
+/// and the third sweeps at double rate to skin the beam between the two.
+void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
+{
+    u8*                     head;
+    M4a1JavelinRingScratch* sc;
+    LINE_F2*                line;
+    POLY_G4*                prim;
+    s32                     i;
+    s32                     tipAng;
+    s32                     baseAng;
+    s32                     bodyAng;
+    s32                     tint;
+    u32                     rgb;
+    u8                      r;
+    u8                      g;
+    u8                      b;
+    u16                     angle;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(M4a1JavelinRingScratch);
+    sc                    = (M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch));
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(p0);
+    gte_rtps_real();
+    gte_stsxy(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->sx0);
+    gte_stflg(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->flag);
+    if (sc->flag >= 0) {
+        gte_stszotz(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->otz0);
+        sc->otz0++;
+        gte_ldv0(p1);
+        gte_rtps_real();
+        gte_stsxy(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->sx1);
+        gte_stflg(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->flag);
+        if (sc->flag >= 0) {
+            gte_stszotz(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->otz1);
+            rgb = color;
+            r   = (rgb >> 4) & 0xF0;
+            g   = rgb & 0xF0;
+            b   = (color & 0xF) * 0x10;
+            sc->otz1++;
+            line           = (LINE_F2*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+            setLineF2(line);
+            tint = ((u8)Display_State.field_8 & 1) * 0x10;
+            r    = r + tint;
+            g    = g + tint;
+            b    = b + tint;
+            setRGB0(line, r, g, b);
+            line->x0 = sc->sx0;
+            line->y0 = sc->sy0;
+            line->x1 = sc->sx1;
+            line->y1 = sc->sy1;
+            addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
+            Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
+            sc->r0 = 0x4000 / sc->otz0;
+            sc->r1 = 0x4000 / sc->otz1;
+            r      = r * 2 / 3;
+            g      = g * 2 / 3;
+            b      = b * 2 / 3;
+            if ((flags & 2) || D_m4a1_javelin_8012EB64 != 0) {
+                angle                   = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+                D_m4a1_javelin_8012EB60 = angle;
+                D_m4a1_javelin_8012EB64 = 0;
+                for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
+                    prim           = (POLY_G4*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, r, g, b);
+                    setRGB3(prim, 0, 0, 0);
+                    tipAng   = i + 0x800;
+                    prim->x0 = *(u16*)&line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
+                    prim->y0 = *(u16*)&line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
+                    tipAng   = i + 0xA00;
+                    prim->x1 = *(u16*)&line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
+                    prim->y1 = *(u16*)&line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
+                    prim->x2 = *(u16*)&line->x1;
+                    prim->y2 = *(u16*)&line->y1;
+                    tipAng   = i + 0xC00;
+                    prim->x3 = *(u16*)&line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
+                    prim->y3 = *(u16*)&line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
+                    addPrim((u_long*)(((((u32)sc->otz1 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz1);
+                }
+            } else {
+                angle = D_m4a1_javelin_8012EB60;
+            }
+            if (flags & 1) {
+                for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
+                    prim           = (POLY_G4*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, r, g, b);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = *(u16*)&line->x0 + ((sc->r0 * rsin(i)) >> 12);
+                    prim->y0 = *(u16*)&line->y0 + ((sc->r0 * rcos(i)) >> 12);
+                    baseAng  = i + 0x200;
+                    prim->x1 = *(u16*)&line->x0 + ((sc->r0 * rsin(baseAng)) >> 12);
+                    prim->y1 = *(u16*)&line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
+                    prim->x2 = *(u16*)&line->x0;
+                    prim->y2 = *(u16*)&line->y0;
+                    baseAng  = i + 0x400;
+                    prim->x3 = *(u16*)&line->x0 + ((sc->r0 * rsin(baseAng)) >> 12);
+                    prim->y3 = *(u16*)&line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
+                    addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
+                }
+            }
+            for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                bodyAng        = (s16)angle + ((i - (s16)angle) * 2);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, r, g, b);
+                setRGB3(prim, r, g, b);
+                prim->x0 = *(u16*)&line->x0 + ((sc->r0 * rsin(bodyAng)) >> 12);
+                prim->y0 = *(u16*)&line->y0 + ((sc->r0 * rcos(bodyAng)) >> 12);
+                prim->x1 = *(u16*)&line->x1 + ((sc->r1 * rsin(bodyAng)) >> 12);
+                prim->y1 = *(u16*)&line->y1 + ((sc->r1 * rcos(bodyAng)) >> 12);
+                prim->x2 = *(u16*)&line->x0;
+                prim->y2 = *(u16*)&line->y0;
+                prim->x3 = *(u16*)&line->x1;
+                prim->y3 = *(u16*)&line->y1;
+                addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
+            }
+        } else {
+            D_m4a1_javelin_8012EB64 = 1;
+        }
+    } else {
+        D_m4a1_javelin_8012EB64 = 1;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(M4a1JavelinRingScratch);
+}
 
 /// Draws the javelin launcher's targeting reticle: a `LINE_F2` between the two
 /// world-space points `p0` and `p1` plus three fans of `POLY_G4` wedges, all
