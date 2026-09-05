@@ -47305,3 +47305,66 @@ sides of a call.
 Scratch-env note: `build.sh base_N.c` writes `base_N_object_dump.s`, not
 `base_object_dump.s`. Diffing the unsuffixed file silently compares against
 whatever `base.c` produced on the first run.
+
+## Two values in one hard register means one local in the C, not two
+
+`func_acropolis_bridge_80180320` sat at 99.80% with `regs=8` and every other
+penalty at zero: two live ranges were coloured `$a0`/`$t0` where the target used
+`$a3`/`$t4`. The permuter ran 12k iterations without improving on it, which is
+the tell that this is not a scheduling or shortening problem.
+
+Reading the target instead of the diff shows what happened. `$a3` holds the
+column half-width in the spawn block and then the row `y` in the draw block;
+`$t4` holds the `(vy - 0x60) / 3` drift and then the column `x`. Two disjoint
+values sharing one register in *both* halves of a function is not what the
+allocator does by accident — it is one C local reused for two roles, so there is
+one pseudo and one colour. Writing it with four separate locals gives four
+pseudos and the allocator is free to colour them differently, which is exactly
+the 8-point leftover.
+
+```c
+/* four locals: spread → $a0, drift → $t0 — 99.80% */
+spread = vy < 0xA0 ? (vy - 0x60) / 2 : 0x20;
+drift  = (vy - 0x60) / 3;
+...
+y = vy + tick / step;
+x = work->field_10.vx;
+
+/* two locals reused: spread/y share $a3, drift/x share $t4 — 100% */
+y = vy < 0xA0 ? (vy - 0x60) / 2 : 0x20;
+x = (vy - 0x60) / 3;
+...
+y = vy + tick / step;
+x = work->field_10.vx;
+```
+
+When the leftover is a handful of `regs` differences and the two halves of the
+function never overlap, look for a register that carries an unrelated value on
+each side and merge those two locals in the C.
+
+## `(u32)x >> 16 % k` folds into one wider divide; truncate through a `u16`
+
+The same function's first roll is `srl v1, a1, 16` followed by `multu`/`srl 5`
+— an unsigned divide by 144 of the shifted value. Writing that literally,
+
+```c
+work->field_10.vy = ((u32)Gp_LcgState >> 16) % 144 + 0x60;
+```
+
+gets a *signed* `mult` by `0x38E38E39` and `sra 21` instead: fold collapses the
+shift and the divide into a single division by `144 << 16 == 9437184`, and
+because `Gp_LcgState` is an `s32` that division is signed. m2c reports the same
+fold from the other direction, printing `x / 9437184` for a `multu`-based
+sequence, so the seed carries the wrong shape in.
+
+Assigning the shift to a `u16` local first blocks the fold — the truncation is
+free after `srl 16`, but the divide can no longer see through it:
+
+```c
+u16 rnd = (u32)Gp_LcgState >> 16;
+work->field_10.vy = (u32)rnd % 144 + 0x60;
+```
+
+Use a plain `s32` local instead when the target's divide *is* signed (a variable
+divisor compiled to a real `div`), and reuse one `u16` local for every unsigned
+roll in the function.
