@@ -46840,3 +46840,87 @@ let the first pass hoist `li $v1, 0x27` above the `0x10` stores so the
 allocator gave it its own register. Same store order, 96.1% vs 98.0%. When the
 only difference left is a constant living in a second register, try the libgpu
 setter macro rather than reordering assignments by hand.
+
+## An in-place accumulate chain is one variable, not one expression
+
+`func_acropolis_bridge_80186BBC` builds a sound id as
+`lhu $s0,8($s4); srl $s0,$s0,0xc; sll $s0,$s0,8; or $s0,$s0,$v1` — every
+instruction writes the same callee-saved register. The obvious C,
+
+```c
+id = ((enemy->field_8 >> 12) << 8) | 0x40290003;
+```
+
+gives `lhu $v0; srl $v0; sll $v0; or $s1,$v0,$a1` instead: each intermediate is
+its own short-lived pseudo, local-alloc puts them in `$v0`, and only the final
+value reaches a callee-saved register. Repeated assignment to the same variable
+makes every step `(set id (op id …))`, so the whole chain is one pseudo, and
+because it is live across the two calls it holds a callee-saved register from
+the `lhu` on:
+
+```c
+u32 id;
+id  = enemy->field_8;
+id >>= 12;
+id <<= 8;
+id |= 0x40290003;
+```
+
+`u32`, not `s32`: on a signed variable `id >>= 12` is `sra`, and the `lhu`'s
+zero-extension is a separate insn by then, so combine cannot rewrite it back to
+`srl`. The same rule covers narrowing a call result. `pan = (s8)Gp_GetObjPan(x)`
+emits `sll $v0,$v0,24; sra $s1,$v0,24` (temp, then the variable), while
+
+```c
+pan  = Gp_GetObjPan(x);
+pan <<= 24;
+pan >>= 24;
+```
+
+emits the target's `sll $s1,$v0,24; sra $s1,$s1,24`. Read the destination of the
+*first* instruction of a chain to tell the two apart.
+
+## Block-scope the local that has to win `$s0`
+
+Two values in `func_acropolis_bridge_80186BBC` are live across the same pair of
+calls in four sibling blocks: the sound id and the pan. The target puts the id
+in `$s0` and the pan in `$s1`; declaring both at function scope produced the
+reverse, and no rewrite of either expression changed it.
+
+With both at function scope each is a single pseudo used in four basic blocks,
+so both are global allocnos and global-alloc orders them by
+`floor_log2(n_refs) * n_refs / live_length` — the pan's shorter live range wins,
+and it takes `$s0`. Declaring `id` inside its `if` body makes it four pseudos,
+each confined to one basic block, which is what local-alloc handles; local-alloc
+runs *before* global-alloc, hands out `$s0` first, and global-alloc then has
+only `$s1` left for the pan.
+
+So the scope of a local is a register-allocation lever, not just style: give the
+narrower scope to the value that must take the lower callee-saved register.
+Trying to reorder declarations or split expressions does nothing here, because
+the ordering is priority-driven, not declaration-driven.
+
+## A load cannot cross a store; two stores through one base can
+
+GCC 2.8 cannot disambiguate two pointers that were both loaded from memory
+(`work = task->idMap`, `enemy = task->spawnArg2`), so a load through one may not
+be scheduled above a store through the other. Stores through the *same* base
+register at different constant offsets are provably disjoint and do get
+reordered. That asymmetry lets the source order be read off the target:
+
+```
+lhu   $v0, 8($s4)        # enemy->field_8, above the stores → its statement is first
+li    $v1, 2
+sh    $v1, 0x100($s2)
+sh    $v1, 0x104($s2)
+srl   $v0, $v0, 0xc
+…
+sh    $v0, 0x108($s2)    # the store sank instead
+```
+
+The emitted store order `0x100, 0x104, 0x108` is *not* the statement order here:
+the `field_108` assignment comes first and only its store moved down. Writing
+the three assignments in emitted order costs the hoist and the register split
+that follows from it (98.0% vs 99.4% on this function). When a load of a
+different object appears above stores it cannot legally cross, its statement
+belongs above them too.
