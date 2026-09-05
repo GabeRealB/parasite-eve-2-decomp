@@ -88,3 +88,8 @@ L_case6:
     Task_Kill(task);
     Display_ResetHeapWrapper();
 }
+
+/// Pad word that closes this unit's `.rodata`. The original object aligned its
+/// section to 8 after the jump table above, which is what puts the next unit's
+/// tables at 0x8017D5E4; nothing reads it.
+const u32 D_acropolis_plaza_8017D5E0 = 0;

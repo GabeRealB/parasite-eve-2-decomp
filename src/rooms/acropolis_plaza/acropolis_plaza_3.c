@@ -1,4 +1,6 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
+#include "main/fs.h"
 #include "main/task.h"
 #include "rooms/acropolis_plaza.h"
 
@@ -58,8 +60,77 @@ void func_acropolis_plaza_8017DD90(Task* arg0)
     D_acropolis_plaza_80198B90[7].vz = left;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", D_acropolis_plaza_8017D5E0);
+/// The plaza's view tables, one per camera set. Each entry is a *pair* of
+/// `GpViewRec`s -- the two shots the stream alternates between -- indexed by
+/// `CdCmd_Queue.field_1EE - 1`, so a table row is 0x48 bytes.
+extern GpViewRec D_acropolis_plaza_801838B8[][2];
+extern GpViewRec D_acropolis_plaza_8018A938[][2];
+extern GpViewRec D_acropolis_plaza_8018CAFC[][2];
+extern GpViewRec D_acropolis_plaza_8018F530[][2];
+extern GpViewRec D_acropolis_plaza_8018F9B4[][2];
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017DE24);
+/// Applies the plaza camera for view set `arg0`.
+///
+/// Sets 0..3 all share the opening table and pick within a row directly:
+/// while `field_1FA` is clear the row's first shot is used, otherwise
+/// `field_1F2` steps forward or back from it depending on `field_1F0`.
+/// Sets 4..7 (and any out-of-range value, which leaves the table whatever the
+/// caller left in place) instead index the table flat, one shot per step, and
+/// clamp the backwards walk at the start of the table.
+void func_acropolis_plaza_8017DE24(s32 arg0)
+{
+    CdCmdQueue* q = &CdCmd_Queue;
+    GpViewRec(*tbl)[2];
+    GpViewRec* view;
+    s16        idx;
+
+    switch ((u16)arg0) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            tbl = D_acropolis_plaza_801838B8;
+            if (q->field_1FA == 0) {
+                s32 pair = q->field_1EE - 1;
+                view     = tbl[pair];
+            } else if (q->field_1F0 == 0) {
+                s32 pair = q->field_1EE - 1;
+                view     = tbl[pair] + q->field_1F2;
+            } else {
+                s32 pair = q->field_1EE - 1;
+                view     = tbl[pair] - q->field_1F2;
+            }
+            break;
+        case 4:
+            tbl = D_acropolis_plaza_8018A938;
+            goto common;
+        case 5:
+            tbl = D_acropolis_plaza_8018CAFC;
+            goto common;
+        case 6:
+            tbl = D_acropolis_plaza_8018F530;
+            goto common;
+        case 7:
+            tbl = D_acropolis_plaza_8018F9B4;
+        default:
+        common:
+            if (q->field_1FA == 0) {
+                s32 pair = q->field_1EE - 1;
+                view     = tbl[pair];
+            } else {
+                if (q->field_1F0 == 0) {
+                    idx = ((q->field_1EE - 1) * 2) + q->field_1F2 + 1;
+                } else {
+                    idx = ((q->field_1EE - 1) * 2) - q->field_1F2 - 1;
+                    if (idx < 0) {
+                        idx = 0;
+                    }
+                }
+                view = *tbl + idx;
+            }
+            break;
+    }
+    Gp_ApplyView(view);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017DFE0);

@@ -34277,6 +34277,41 @@ Splat will not rewrite a `src/` file that already exists, and a stale
 `INCLUDE_RODATA` naming the old unit's directory shows up as
 `undefined reference to '.L<overlay>_<addr>'` at link time.
 
+## A trailing `.rodata` pad word goes in C, not `INCLUDE_RODATA`
+
+The cut that gives a compiler-generated jump table the start of its object
+(`A compiler-generated jump table needs to start its object's .rodata`) leaves
+the alignment pad word ahead of it with the *previous* unit. That works
+unmodified only when the previous unit emits no compiler rodata of its own —
+otherwise the pad has to come out of that unit's object, after its own tables,
+and neither obvious route gets it there:
+
+- `INCLUDE_RODATA(..., D_<seg>_<addr>)` in the previous unit's `.c` fails to
+  build. When that unit's tables are already compiler-generated, splat has no
+  `nonmatchings/<unit>/` directory to write into, and it folds the loose pad
+  word into the *preceding* `jtbl_*` symbol in the (unlinked) `<unit>.rodata.s`
+  instead of emitting `D_<seg>_<addr>.s`, so the include fails with
+  `can't open ... .s for reading`.
+- Dropping the pad entirely and letting GCC's `.align 3` recreate it does not
+  work either: gas does not pad the section out to its alignment, so the
+  previous unit's `.rodata` ends short and the next unit's table lands 4 bytes
+  early.
+
+Emit the word from C in the previous unit, at the end of the file so it follows
+that unit's tables:
+
+```c
+/* acropolis_plaza_2.c — closes this unit's .rodata so acropolis_plaza_3's
+   tables start at 0x8017D5E4. Nothing reads it. */
+const u32 D_acropolis_plaza_8017D5E0 = 0;
+```
+
+with the `rodata` cut moved past it (`{ start = "0x24", unit =
+"acropolis_plaza_3" }`, not `0x20`). A zero pad word is alignment, not game
+content, so writing it into C is fine. This avoids the `units` `.text` cut and
+the unit renumbering that comes with it.
+
+
 ## `if (f() == K) { x = K; }` reuses the returned register, so the store cross-jumps
 
 GCC 2.8.1's CSE records the equality implied by a taken conditional branch

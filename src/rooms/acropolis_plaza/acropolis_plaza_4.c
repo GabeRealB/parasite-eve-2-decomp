@@ -19,7 +19,7 @@ extern s16      D_80071076;
 extern TaskDesc D_acropolis_plaza_80183824;
 
 /// View the plaza's opening sequence applies before it spawns anything.
-extern GpViewRec D_acropolis_plaza_801838B8;
+extern GpViewRec D_acropolis_plaza_801838B8[][2];
 
 extern void Stage_RequestFromAreaTable(s32 arg0);
 
@@ -429,7 +429,7 @@ void func_acropolis_plaza_80180054(Task* task)
     switch (task->state) {
         case 0:
             func_800E9BDC(3, 0x9DF);
-            Gp_ApplyView(&D_acropolis_plaza_801838B8);
+            Gp_ApplyView(D_acropolis_plaza_801838B8[0]);
             newWork     = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
             task->idMap = (TaskIdMap*)newWork;
             if (newWork == NULL) {
