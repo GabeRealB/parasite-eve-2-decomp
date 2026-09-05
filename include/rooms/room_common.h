@@ -286,6 +286,10 @@ void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// `radius` at 0xC and `flag` at 0x10. `arg1` is still the signed half-extent
 /// `(s16)arg1 * 64 / (otz + 1)`, and `arg2` still tints only the inner vertex.
 void Room_Draw04(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
+/// Same sixteen-wedge gouraud ring as `Room_Draw09`, but the scratch block
+/// keeps `flag` at 0xC with `rOuter`/`rInner` at 0x10/0x14. `arg1` is the
+/// inner half-extent and `arg2` the extra outer width.
+void Room_Draw07(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 /// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
 /// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
 /// height. Left vertices take `arg5`, right vertices take `arg6`.
@@ -437,5 +441,21 @@ typedef struct _RoomDraw09Scratch {
     /* 0x1A */ s16     sy;
 } RoomDraw09Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
+
+/// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
+/// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at
+/// 0xC with `rOuter` at 0x10 and `rInner` at 0x14. `rOuter` is
+/// `(s16)arg1 * 64 / (otz + 1)` and `rInner` is
+/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`.
+typedef struct _RoomDraw07Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     rOuter;
+    /* 0x14 */ s32     rInner;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} RoomDraw07Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw07Scratch, 0x1C);
 
 #endif // ROOMS_ROOM_COMMON_H
