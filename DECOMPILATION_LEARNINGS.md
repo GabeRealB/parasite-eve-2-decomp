@@ -38504,6 +38504,49 @@ used to travel inside the body's own `.s` needs a standalone `INCLUDE_RODATA`
 put where the body's `INCLUDE_ASM` was, or the room links a `.rodata` short by
 those bytes and fails at the checksum, not the link.
 
+Add those aliases *after* running `promote`, never before. The tool skips a
+symbol map it thinks already has the shared name, and the test is
+`if sym not in sym_text` - a plain substring. Writing
+`RoomsShared8017db84Msgs` first therefore suppressed all 51
+`RoomsShared8017db84 = 0x...;` lines, and nothing said so: the body still
+built, and the failure came out of the *room's own* leading rodata, an
+`undefined reference to func_<overlay>_<vram>` from the task table that used to
+point at the copy. Run `promote`, then append the aliases.
+
+An `INCLUDE_ASM`'d `.s` is not a ninja dependency of the object that includes
+it, so a re-split that changes only `asm/` leaves every object stale. The
+symptom is a build that keeps reporting a name the tree no longer contains -
+`grep` finds no reference anywhere, and re-running changes nothing. Wipe
+`build/USA/src/<family>` after a re-split whose `.c` files did not change,
+which is exactly the shape a promotion has once the sources are already right.
+
+## A split run takes its jump tables with it
+
+A shared span that cuts a unit in two leaves the manifest's `rodata` cut naming
+the head half, because the head keeps the run's start offset and a rename
+derived by offset sees nothing to do. That is right for plain data - a `D_`
+symbol referenced from any unit is just bytes at an address - and wrong for a
+compiler-generated jump table, whose entries are `.L<overlay>_<vram>` labels
+local to the object that holds the function. Promoting into `mist_parking` put
+the three jtbls of `mist_parking_11`'s rodata in the head object while their
+functions landed in the new `mist_parking_12`, and the link failed on five
+undefined `.L` labels. Repoint the cut to the tail unit: for each symbol in the
+block, find the function that references it and compare its address with the
+shared span's end.
+
+## Re-splitting drops everything the .c held that has no asm symbol
+
+"Delete the affected `.c` files and re-split" restores every function, because
+splat writes an `INCLUDE_ASM` for each one and the matched bodies get pasted
+back over them. Nothing else survives: a `static __inline__` helper
+(`Asr_LocalToWorld` in `acropolis_security_room_3`), a file-local `#define`
+(`gte_rtps_real`), a `typedef` used only by that unit (`MistR18Coord`) have no
+symbol for splat to emit, so they simply vanish and the next build fails on an
+undefined reference or an unknown type. Carry them back with the functions, and
+take each declaration from *its own* unit: `D_acropolis_helicopter_landing_pad_80184DA0`
+was `extern TaskDesc x;` in one unit and `extern TaskDesc x[];` in another, and
+merging the two files' preambles silently gave one of them the wrong form.
+
 ## Name the global as a local pointer to keep `%hi` above a call
 
 A global whose first *use* is after a call gets its address rebuilt after the
