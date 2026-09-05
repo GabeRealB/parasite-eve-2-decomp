@@ -142,10 +142,10 @@ imports = "configs/USA/sym/mapui.imports.txt"
 # 900000 and 900001 are byte-identical. 900003 is the expanded Dryfield map:
 # same 26 names as 900002 plus Motel rooms 3/4/5, Motel lobby and Motel loft.
 [mapui.overlays]
-map_akropolis = { rodata_code = [{ start = "0x38", unit = "map_akropolis_handlers" }], rodata = [{ start = "0x0", unit = "map_akropolis_handlers" }], note = "the key-item panel handlers live at 0x38..0x300, ahead of the text and reached through the dispatch table at 0x0. section_order puts .rodata first, so they link with the rodata; as plain .text every pointer to them shifts by 0x128" }
+map_akropolis = { text = [0x38, 0x6F8], note = "code starts at 0x38; the span detector begins at 0x300, so func_map_akropolis_80179988 - the key-item panel body, a switch whose jump table is at 0x4 and whose cases converge on a returning tail - was emitted as anonymous rodata blobs. Genuine rodata is the header word and the \"Key Item\" string" }
 map_dryfield = { note = "26 names" }
 map_dryfield_full = { note = "31 names; adds the later motel rooms" }
-map_neo_ark = { rodata_code = [{ start = "0x6C", unit = "map_neo_ark_handlers" }], rodata_head = "0x4", note = "one routine at 0x6C..0x1C4 links with the rodata, after the header word and the jump table at 0x4" }
+map_neo_ark = { text = [0x6C, 0x468], rodata_head = "0x4", note = "code starts at 0x6C, after the header word and the jump table at 0x4; the span detector begins at 0x1C4 and buried func_map_neo_ark_801799BC" }
 map_shelter = { note = "Mesa, Cavern, Armory, Golem freezer, Pod", rodata_head = "0x4" }
 [mappic]
 description = "Map picture"

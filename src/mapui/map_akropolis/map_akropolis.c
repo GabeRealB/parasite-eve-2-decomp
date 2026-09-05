@@ -17,6 +17,10 @@ extern TaskDesc D_map_akropolis_8017AA00;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_map_akropolis_8017A9E4;
 
+INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179950);
+
+INCLUDE_ASM("mapui/nonmatchings/map_akropolis/map_akropolis", func_map_akropolis_80179988);
+
 /// Draws one row of the Akropolis map's key-item list: the item's name at the
 /// row's position, previewed while the row is highlighted. Confirming on the
 /// selected row opens the item-detail panel `D_8010EFA0`; picking the row whose
@@ -153,3 +157,5 @@ s32 func_map_akropolis_8017A038(void)
 {
     return D_map_akropolis_8017A9A8;
 }
+
+INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_8017997C);

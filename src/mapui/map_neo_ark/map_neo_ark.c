@@ -1,8 +1,14 @@
 #include "common.h"
 
+extern s32 D_800820E0;
+extern s16 D_800820E4;
+extern s16 D_800820E6;
+
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "mapui/map_neo_ark.h"
+
+INCLUDE_ASM("mapui/nonmatchings/map_neo_ark/map_neo_ark", func_map_neo_ark_801799BC);
 
 /// Fills in the marker state for one Neo Ark map room. Most rooms have no
 /// marker; the five that do read a GameFlag nibble, either straight (plus one,
@@ -64,12 +70,6 @@ s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1)
     }
     return 1;
 }
-
-/// Main-executable sound globals with no module header yet: the ducked music
-/// volume this overlay ramps, and the pair of ramp counters that pace it.
-extern s32 D_800820E0;
-extern s16 D_800820E4;
-extern s16 D_800820E6;
 
 /// Music-volume hook the Midi driver calls for the Neo Ark map (via
 /// `func_80179BE4`, see `Midi_UpdateVoiceVolumes`). `arg1` is the cue type:
