@@ -151,6 +151,119 @@ void func_acropolis_forked_road_8017DA24(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017DD60);
+/// The forked road's return ride: the same streamed scene played backwards
+/// along `D_acropolis_forked_road_80180F80`, whose entries this one walks from
+/// the far end (`0x3B - CdCmd_Queue::field_1EA`).
+///
+/// State 0 allocates the `AfrStreamWork` block, captures slot 3 and the
+/// camera-target matrix (`Wip_SysConfig::field_4`) in it, cues the stream
+/// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
+/// 0x3E8 record. State 1 waits for the stream to come up
+/// (`CdCmd_Queue::field_1FA`), moves the camera target to the head of the
+/// path, starts the script pair, reparents this task under it and blanks the
+/// display. State 2 drives the ride: it un-blanks after two frames, walks the
+/// camera target along the path, and lets the pad spawn the skip task. Once
+/// that task reports done it warps slot 3 to the path's end with a 0x3E9 and
+/// arms the ride's exit; otherwise the ride ends on its own when the path runs
+/// down to its last 11 entries, which is sent as a 0x3F2. State 3 waits for
+/// slot 3 to go idle (msg 0x3F0), releases it (0x3F1), restores the camera
+/// view and the session's ride flag and kills this task.
+void func_acropolis_forked_road_8017DD60(Task* task)
+{
+    GpRec14        rec;
+    RoomPlacement  place;
+    s32            sp40;
+    AfrStreamWork* work;
+    AfrStreamWork* blk;
+    CdCmdQueue*    queue;
+    s32            weaponId;
+
+    queue = &CdCmd_Queue;
+    work  = (AfrStreamWork*)task->idMap;
+    switch (task->state) {
+        case 0:
+            blk         = Mem_Calloc(0x14, 0);
+            task->idMap = (TaskIdMap*)blk;
+            if (blk == NULL) {
+                Task_Kill(task);
+                break;
+            }
+            ((AfrStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
+            ((AfrStreamWork*)task->idMap)->mtx    = Wip_SysConfig.field_4;
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            weaponId     = Wip_SysConfig.field_21;
+            rec.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4  = 1;
+            rec.field_8  = 0;
+            rec.field_C  = 0;
+            rec.field_10 = 0;
+            Gp_DispatchMsg(((AfrStreamWork*)task->idMap)->target, 0x3E8, (s32)&rec, 0);
+            func_800E9BDC(3, 0x9FF);
+            Gp_StateF0.field_4 = 2;
+            task->state        = task->state + 1;
+            break;
+
+        case 1:
+            if (queue->field_1FA != 0) {
+                work->mtx->t[0]          = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vx;
+                work->mtx->t[1]          = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vy;
+                work->mtx->t[2]          = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+                work->script             = Gp_SpawnScript18((s32)&D_acropolis_forked_road_80185038,
+                                                            (s32)&D_acropolis_forked_road_80185050);
+                Game_Session->field_13B |= 0x80;
+                Task_Reparent(task, work->script);
+                SetDispMask(0);
+                task->killCountdown = 0;
+                task->state         = task->state + 1;
+            }
+            break;
+
+        case 2:
+            task->killCountdown = task->killCountdown + 1;
+            if (task->killCountdown >= 3) {
+                SetDispMask(1);
+            }
+            work->mtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vx;
+            work->mtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vy;
+            work->mtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+            if (work->skipping != 0) {
+                if (Task_PollKill(work->skipper, &sp40) != 0) {
+                    place.pos.vx = -0x190;
+                    place.pos.vy = 1;
+                    place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+                    place.rot.vz = 0;
+                    place.rot.vx = 0;
+                    place.rot.vy = 0xC00;
+                    Gp_DispatchMsg(((AfrStreamWork*)task->idMap)->target, 0x3E9, (s32)&place, 0);
+                    Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 4, 0, 0);
+                    task->state = task->state + 1;
+                    break;
+                }
+            } else if (Pad_CheckFlag800() != 0) {
+                work->skipper  = Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 3, 0, 0);
+                work->skipping = 1;
+            }
+            if ((0x3B - queue->field_1EA) < 0xB) {
+                place.pos.vx = -0x190;
+                place.pos.vy = 1;
+                place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+                Gp_DispatchMsg(((AfrStreamWork*)task->idMap)->target, 0x3F2, (s32)&place, 0);
+                task->state = task->state + 1;
+            }
+            break;
+
+        case 3:
+            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
+                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+                D_8007216C = Gp_FindViewIndex(5);
+                Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+                func_800E9BDC(2, 0x9FF);
+                Gp_StateF0.field_4       = 0;
+                Game_Session->field_13B &= 0x7F;
+                Task_Kill(task);
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", D_acropolis_forked_road_8017D5E8);
