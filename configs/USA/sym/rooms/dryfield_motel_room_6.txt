@@ -26,3 +26,5 @@ RoomsShared8017d6d0Label6 = 0x80182A48; // shared body data, see src/rooms/lib/
 RoomsShared8017d6d0Label7 = 0x80182A50; // shared body data, see src/rooms/lib/
 RoomsShared8017d6d0Label8 = 0x80182A58; // shared body data, see src/rooms/lib/
 RoomsShared8017d6d0Unit = 0x80182A60; // shared body data, see src/rooms/lib/
+RoomsShared8017de9c = 0x8017DE8C; // shared body, see src/rooms/lib/
+RoomsShared8017de9cHundred = 0x8017D61C; // shared body data, see src/rooms/lib/

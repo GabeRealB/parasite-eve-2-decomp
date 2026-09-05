@@ -38483,6 +38483,27 @@ in the owning unit, which hand-editing will not reproduce: delete the affected
 `.c` files, re-split, and paste the matched bodies back into the stubs splat
 writes.
 
+Prefer aliasing that rodata away over cutting the block. A shared body's
+*string literal* is rodata it owns only because the C says so:
+`rooms_shared_8017de9c` - the usage-panel row, 255 instructions in 18 rooms -
+printed `"100.0%"`, and each room keeps its own copy of that string in the
+leading block, right between two other strings the same unit owns. No cut can
+express that, because an object's `.rodata` appears once per linker script.
+Declaring `extern u8 RoomsShared8017de9cHundred[]` and emitting the symbol at
+each carrier's own address costs one sym-map line per room, leaves every
+existing `rodata` cut untouched, and generates the same `lui %hi` / `addiu
+%lo` pair the literal did. The sibling `Room_Util38Percent` in the same
+function was already that shape - follow it rather than reaching for
+`rodata_head`.
+
+Two consequences of aliasing an in-rodata symbol. The alias *renames* it, so
+after the re-split the carrier emits `INCLUDE_RODATA(…, RoomsShared…Hundred)`
+and any `INCLUDE_RODATA(…, D_<overlay>_<vram>)` you wrote by hand for it no
+longer resolves. And the carrier still has to emit the bytes: the copy that
+used to travel inside the body's own `.s` needs a standalone `INCLUDE_RODATA`
+put where the body's `INCLUDE_ASM` was, or the room links a `.rodata` short by
+those bytes and fails at the checksum, not the link.
+
 ## Name the global as a local pointer to keep `%hi` above a call
 
 A global whose first *use* is after a call gets its address rebuilt after the

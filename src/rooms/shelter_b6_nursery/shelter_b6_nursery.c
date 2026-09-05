@@ -12,7 +12,7 @@ extern UiObjectDesc D_shelter_b6_nursery_80184F54;
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", D_shelter_b6_nursery_8017D610);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", func_shelter_b6_nursery_8017DEF8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017de9cHundred);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", func_shelter_b6_nursery_8017E2F4);
 

@@ -2,7 +2,7 @@
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", D_shelter_b3_incinerator_control_room_8017D610);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", func_shelter_b3_incinerator_control_room_8017DE98);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017de9cHundred);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", func_shelter_b3_incinerator_control_room_8017E294);
 

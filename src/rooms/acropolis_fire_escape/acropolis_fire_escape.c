@@ -25,7 +25,7 @@ extern UiObjectDesc D_acropolis_fire_escape_80181C90;
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", D_acropolis_fire_escape_8017D610);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017DE9C);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", RoomsShared8017de9cHundred);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", func_acropolis_fire_escape_8017E298);
 
