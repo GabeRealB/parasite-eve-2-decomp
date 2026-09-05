@@ -345,8 +345,15 @@ def _fmt_chunks(chunks: dict[int, str]) -> str:
     return "{" + inner + "}"
 
 
-def collect_models(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    """Every mesh in every package, as ordinary ASSETS entries.
+def collect_models(
+    assets_root: Path, old: dict[str, dict[str, Any]]
+) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    """Every mesh in every package: (ASSETS identity, EMBEDDED_ASSETS placement).
+
+    The split follows what each table is for. `ASSETS` says what a payload *is*
+    - content hash and type - and `TREE` says where a CDF chunk sits; a mesh has
+    no chunk, so its position goes in `EMBEDDED_ASSETS` beside the save header,
+    which is the table for things located by address inside a container.
 
     Meshes are found from their `TmdSource` record (`pkg_model.find_sources_direct`),
     which is decided by the decompiled struct rather than by a scan heuristic, so
@@ -367,6 +374,7 @@ def collect_models(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[st
     bases = pkg_model._load_addrs(assets_root)
     known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "model"}
     out: dict[str, dict[str, Any]] = {}
+    placed: dict[str, dict[str, Any]] = {}
     seen: set[str] = set()
     for pkg in sorted(pkg_dir.glob("*.pe2pkg")):
         if pkg.stem in ("gameplay", "title"):
@@ -387,22 +395,22 @@ def collect_models(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[st
             seen.add(digest)
             aid = known.get(digest) or f"{pkg.stem}_model_{off:05X}"
             rec = dict(old.get(aid) or {})
-            # Locate it, the way EMBEDDED_ASSETS carries source+vram+size. A
-            # mesh with no location is inert: the catalog can name it but
-            # nothing can carve it out again. `source` is the first package
-            # carrying it - 129 meshes are shared, and dedup is by sha1, so one
-            # definite location is enough to find the bytes.
-            rec.update(
-                {
-                    "sha1": digest,
-                    "type": "model",
-                    "source": pkg.stem,
-                    "offset": off,
-                    "size": len(blob),
-                }
-            )
+            rec.update({"sha1": digest, "type": "model"})
+            rec.pop("source", None)
+            rec.pop("offset", None)
+            rec.pop("size", None)
             out[aid] = rec
-    return out
+            # One placement per mesh: 129 are shared between packages, and the
+            # store dedups by sha1, so the first package carrying it is enough
+            # to carve the bytes back out.
+            placed[aid] = {
+                "source": pkg.name,
+                "vram": base + off,
+                "size": len(blob),
+                "ext": ".tmd",
+                "type": "model",
+            }
+    return out, placed
 
 
 def _fmt_embedded(rec: dict[str, Any]) -> str:
@@ -504,7 +512,9 @@ def main(argv: list[str] | None = None) -> int:
 
     old_assets, old_tree, embedded = _load_old()
     assets = collect_assets(assets_root, old_assets)
-    assets.update(collect_models(assets_root, old_assets))
+    models, placements = collect_models(assets_root, old_assets)
+    assets.update(models)
+    embedded = {**embedded, **placements}
     tree = collect_tree(assets_root, old_tree)
     text = emit_module(assets, tree, embedded)
     args.out.write_text(text, encoding="utf-8")

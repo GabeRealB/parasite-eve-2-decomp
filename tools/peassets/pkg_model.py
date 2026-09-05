@@ -355,12 +355,18 @@ def model_name(stream: bytes) -> str | None:
 
 
 def extract_package_models(output_path: Path, store=None, *, limit: int | None = None) -> int:
-    """Carve every located model stream into ``raw/model/``.
+    """Carve *uncatalogued* model streams into ``raw/model/``.
 
-    Streams are contiguous byte ranges, so each one is a self-contained asset:
-    it goes through the normal store, deduped by SHA-1 like any other. There is
-    no inflated form yet - ``.tmd`` is in ``RAW_ONLY_EXTS`` - because the packet
-    payloads are located but not interpreted (see ASSET_FORMATS §9.4).
+    Every mesh with a `TmdSource` is an `EMBEDDED_ASSETS` placement, so
+    `store_embedded_assets` already carves it on any extraction mode. What is
+    left is the 30 streams the opcode walk finds that no source points at:
+    either models whose source we cannot locate, or walk false positives. This
+    is therefore the discovery path, and re-carving the catalogued ones here
+    would only duplicate work the store would dedup away.
+
+    Streams are contiguous byte ranges, so each one is a self-contained asset.
+    There is no inflated form yet - ``.tmd`` is in ``RAW_ONLY_EXTS`` - because
+    the packet payloads are located but not interpreted (ASSET_FORMATS §9.4).
     """
     pkg_dir = output_path / "pe2pkg"
     if not pkg_dir.is_dir() or store is None:
@@ -384,28 +390,12 @@ def extract_package_models(output_path: Path, store=None, *, limit: int | None =
         # kept for streams no source points at, which are the ones we are least
         # sure about, so they stay behind its stricter guard.
         srcs = find_sources_direct(data, base) if base is not None else {}
-        streams = []
-        seen: set[int] = set()
-        for stream_va, src in sorted(srcs.items()):
-            off = stream_va - base
-            walked = walk_stream(data, off)
-            if not walked:
-                continue
-            packets, end = walked
-            seen.add(off)
-            streams.append(
-                {
-                    "offset": f"0x{off:05X}",
-                    "end": f"0x{end:05X}",
-                    "packets": len(packets),
-                    "ops": sorted({p["op"] for p in packets}),
-                    "src": src,
-                }
-            )
-        for stream in find_streams(data):
-            if int(stream["offset"], 16) not in seen:
-                streams.append({**stream, "src": None})
-
+        sourced = {va - base for va in srcs} if base is not None else set()
+        streams = [
+            {**stream, "src": None}
+            for stream in find_streams(data)
+            if int(stream["offset"], 16) not in sourced
+        ]
         located += len(streams)
         for stream in streams:
             off = int(stream["offset"], 16)

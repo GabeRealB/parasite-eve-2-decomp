@@ -1163,7 +1163,18 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
     targets: list[tuple[Path, int | None]] = [(output_path / "main.exe", None)]
     pkg_dir = output_path / "pe2pkg"
     if pkg_dir.is_dir():
-        targets += [(p, None) for p in sorted(pkg_dir.glob("*.pe2pkg"))]
+        # Overlays are flat and carry no PS-X EXE header, so `load_base` cannot
+        # derive one and `collect` bails. Passing the splat load address is what
+        # lets a package hold catalogued assets at all - every mesh does.
+        try:
+            from pkg_model import _load_addrs
+
+            bases = _load_addrs(output_path)
+        except Exception:
+            bases = {}
+        targets += [
+            (p, bases.get(p.stem)) for p in sorted(pkg_dir.glob("*.pe2pkg"))
+        ]
 
     total = 0
     for path, base in targets:
