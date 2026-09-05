@@ -45419,3 +45419,35 @@ is dead until the loop), but now it sorts after the argument moves. This is the
 mirror of the usual advice to fold an `if`/`else` into a pre-initialised
 default: when the leftover is a single `reorder` on a constant that sits next to
 a call, try the un-folded form first — it is one edit and needs no permuter run.
+
+## A `short` parameter costs a prologue `sll`/`sra`; put the truncation at the call site
+
+`func_m4a1_pyke_8011E168` is called with `sll $a1, 16` / `sra $a1, 16` in the
+delay slot, so the argument is plainly a `s16` — but the callee starts the loop
+with a bare `mult $v0, $a1` and no extension of its own. Declaring the parameter
+`s16` reproduces the caller and breaks the callee: GCC 2.8.1 treats a `short`
+parameter as a HImode value living in an SImode register, so the first use as an
+`int` emits
+
+```
+sll  a1, a1, 0x10
+sra  a1, a1, 0x10
+```
+
+and loop-invariant motion hoists it into the preheader, where `combine` can no
+longer notice that only the low 16 bits of the product are stored back.
+
+Give the *prototype* the promoted type and write the narrowing as an explicit
+cast in the caller:
+
+```c
+void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width);   /* header */
+
+func_m4a1_pyke_8011E168((VECTOR3*)ground.workm.t, (s16)((work->field_24 * 2) / 3));
+```
+
+The cast is the same conversion the prototype used to perform, so the caller is
+unchanged, and the callee now uses `$a1` raw. The matched gameplay sibling
+`Gp_DrawEffQuadT29` has the same loop with an `s32` parameter, which is the
+tell: when a sibling body matches with `s32` and yours only differs by the two
+extension instructions, move the truncation outwards rather than casting inside.

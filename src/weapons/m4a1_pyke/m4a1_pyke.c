@@ -28,6 +28,10 @@ extern s32 Gp_LcgState;
 /// that name assembles to a different word, so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+/// `rtpt`: project V0..V2 through the current matrices. The `inline_c.h` macro
+/// of that name assembles to a different word, so spell the instruction out.
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+
 /// Teardown callback shared with the other weapon overlays; it unlinks
 /// `Task::idMap` and releases the `Gp_State1C` work block.
 void WeaponsShared8011e4ac(Task* task);
@@ -336,8 +340,8 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             Gp_LcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->field_6 != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_m4a1_pyke_8011E168(
-                    (VECTOR3*)ground.workm.t, (work->field_24 * 2) / 3);
+                func_m4a1_pyke_8011E168((VECTOR3*)ground.workm.t,
+                                        (s16)((work->field_24 * 2) / 3));
             }
             if (Gp_CountRec18Hi(beam->obj.field_C, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
@@ -451,4 +455,81 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_pyke/m4a1_pyke", func_m4a1_pyke_8011E168);
+/// Draws the dart's ground splash: the unit quad `D_80111E38` scaled to
+/// `width` half-size, laid flat by `Gfx_ViewWorldMtx` and moved to the traced
+/// ground point `pos`, then projected through `GsWSMATRIX` into a 0x30-byte
+/// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
+/// three through one `rtpt`; a negative `gte_stflg` drops the quad.
+void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
+{
+    void**                 scratch;
+    u8*                    head;
+    M4a1PykeSplashScratch* block;
+    POLY_FT4*              prim;
+    GpQuadCorner*          tbl;
+    s32                    i;
+    s32                    flag;
+    s32                    otz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = (u8*)*scratch - 0x30;
+    /* The ROM stores the freshly computed head and keeps a *copy* of it in the
+       register the rest of the function walks; without the barrier GCC folds
+       the two together and stores the copy instead. */
+    SOFT_TOUCH_REG(head);
+    *scratch = head;
+    block    = (M4a1PykeSplashScratch*)head;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i   = 0;
+    tbl = D_80111E38;
+    do {
+        block->vec[i].vx = tbl[i].x * width;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = tbl[i].y * width;
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(&block->vec[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->vec[i]);
+        *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + *(u16*)&pos->vx;
+        *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + *(u16*)&pos->vy;
+        *(u16*)&block->vec[i].vz = *(u16*)&block->vec[i].vz + *(u16*)&pos->vz;
+        i++;
+    } while (i < 4);
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec[0]);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy[0]);
+    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&block->sxy[1], &block->sxy[2], &block->sxy[3]);
+    gte_stflg(&flag);
+    if (flag >= 0) {
+        /* Dead in the ROM too: `otz` is bumped before it is read back, so the
+           increment lands on garbage and `gte_stszotz` immediately overwrites
+           it. It still costs a `lw`/`addiu`/`sw` because the address escapes
+           into the asm below. */
+        otz++;
+        gte_stszotz(&otz);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2E);
+        setRGB0(prim, 0x40, 0x40, 0x40);
+        prim->tpage = 0x29;
+        prim->clut  = 0x430F;
+        setUV4(prim, 0xE0, 0xC8, 0xFF, 0xC8, 0xE0, 0xE7, 0xFF, 0xE7);
+        prim->x0 = block->sxy[0].vx;
+        prim->y0 = block->sxy[0].vy;
+        prim->x1 = block->sxy[1].vx;
+        prim->y1 = block->sxy[1].vy;
+        prim->x2 = block->sxy[2].vx;
+        prim->y2 = block->sxy[2].vy;
+        prim->x3 = block->sxy[3].vx;
+        prim->y3 = block->sxy[3].vy;
+        addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}

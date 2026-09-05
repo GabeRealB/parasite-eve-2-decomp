@@ -55,6 +55,19 @@ typedef struct M4a1PykeBeamScratch {
 } M4a1PykeBeamScratch;
 STATIC_ASSERT_SIZEOF(M4a1PykeBeamScratch, 0x18);
 
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011E168`
+/// for the dart's ground splash. `vec` holds the four corners of the unit quad
+/// `D_80111E38`, scaled to the splash half-size, rotated flat into view space
+/// by `Gfx_ViewWorldMtx` and translated to `pos`; `sxy` is where they project
+/// to on screen, `vec[0]` through a single `RTPS` and the rest through one
+/// `RTPT`. Same shape as the gameplay `GpQuadScratch`, but with `otz` and
+/// `flag` kept on the stack instead of in the block.
+typedef struct M4a1PykeSplashScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ DVECTOR sxy[4];
+} M4a1PykeSplashScratch;
+STATIC_ASSERT_SIZEOF(M4a1PykeSplashScratch, 0x30);
+
 /// Translation of the Pyke's effect coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x200, 0x40)`.
 extern SVECTOR D_m4a1_pyke_8011E90C;
@@ -69,6 +82,6 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness);
 void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang);
 
 /// Spawns the dart's ground splash at `pos`, scaled by `width`.
-void func_m4a1_pyke_8011E168(VECTOR3* pos, s16 width);
+void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width);
 
 #endif
