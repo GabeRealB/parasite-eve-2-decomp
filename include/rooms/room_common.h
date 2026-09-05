@@ -422,4 +422,20 @@ typedef struct _RoomDraw04Scratch {
 } RoomDraw04Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw04Scratch, 0x18);
 
+/// 0x1C-byte scratch block `Room_Draw09` takes from `G_SCRATCH_HEAD`. Same
+/// projection as `RoomDraw04Scratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
+/// plus a second radius: `rOuter` is `(s16)arg1 * 64 / (otz + 1)` and `rInner`
+/// is `(s16)(arg1 + arg2) * 64 / (otz + 1)`. `flag` is `gte_stflg` and
+/// `sx`/`sy` are the projected centre.
+typedef struct _RoomDraw09Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     rOuter;
+    /* 0x10 */ s32     rInner;
+    /* 0x14 */ s32     flag;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} RoomDraw09Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
+
 #endif // ROOMS_ROOM_COMMON_H
