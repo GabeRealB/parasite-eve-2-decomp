@@ -3,6 +3,28 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Compute the UV column into `$a0` before the row so `cell` stays in `$v1`
+
+A 4x2 tile grid whose column is `(cell & 3) * 56` and row is
+`((cell & 7) >> 2) * 56` has to land as
+
+```
+andi  v1, a0, 0xFFFF     /* u32 cell = (u16)tex */
+andi  v0, v1, 3
+sll   a0, v0, 3          /* u overwrites the frame index in $a0 */
+...
+andi  v1, v1, 7          /* cell still live in $v1 */
+srl   v1, v1, 2
+```
+
+even though the `POLY_FT4` stores `v` before `u`. Writing the stores in target
+order makes GCC compute the row first, keep `cell` in `$a0`, and put the
+column in `$v0`. Reuse the frame-index local for the column (`tex = (cell & 3)
+* 0x38`) and put `SOFT_BARRIER()` before the row multiply so the column owns
+`$a0` while `cell` stays in `$v1`. `Room_Draw41` is the worked example; the
+`u32 cell = (u16)tex` with two uses is the same hoist as
+`func_acropolis_bridge_801833A0`.
+
 ## `TOUCH_REG_USE(arg, scratch)` puts `G_SCRATCH_HEAD`'s `lui`/`ori` before the incoming `$a2` copy
 
 `Room_Draw27` and `Room_Draw19` share a body except the UV column is

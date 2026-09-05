@@ -432,6 +432,16 @@ void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `rsin`/`rcos`. The primitive is carved from `Gpu_PrimCursor` before the
 /// flag test.
 void Room_Draw39(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// `gte_stflg` is non-negative, queues one semi-transparent shade-tex
+/// `POLY_FT4` (tpage 0x2B, clut 0x4393). `arg1` selects a 56-texel UV tile in
+/// a 4-wide 2-row grid: u = `(arg1 & 3) * 56`, v = `((arg1 & 7) >> 2) * 56`.
+/// `arg2` is a signed half-extent; the on-screen radius is
+/// `(s16)arg2 * 55 / otz`. The quad is axis-aligned and 2*radius on a side,
+/// shifted up so the projected point sits at three-quarters height
+/// (`y0 = sy - r - r/2`, `y2 = sy + r/2`). Same 0x18 scratch layout as
+/// `Room_Draw14` (`otz` is not incremented).
+void Room_Draw41(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
@@ -581,6 +591,11 @@ typedef struct _RoomDraw14Scratch {
     /* 0x16 */ s16     sy;
 } RoomDraw14Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw14Scratch, 0x18);
+
+/// 0x18-byte scratch block `Room_Draw41` takes from `G_SCRATCH_HEAD`. Same
+/// layout as `RoomDraw14Scratch`. `radius` is `(s16)arg2 * 55 / otz` and
+/// `otz` is used as the divisor without being incremented.
+typedef RoomDraw14Scratch RoomDraw41Scratch;
 
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
