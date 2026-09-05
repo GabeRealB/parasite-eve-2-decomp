@@ -85,7 +85,8 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x6A */ u8                       node;
     /* 0x6B */ byte                     pad_6B[0x26];
     /* 0x91 */ u8                       field_91;
-    /* 0x92 */ byte                     pad_92[0x2];
+    /* 0x92 */ u8                       field_92;
+    /* 0x93 */ byte                     pad_93[0x1];
 } AcropolisBridgeWalkerWork;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkerWork, 0x94);
 
@@ -312,7 +313,144 @@ void func_acropolis_bridge_8018581C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185988);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185F28);
+/// Resets the walker's scale matrix to a uniform `walker->scale` scale, through
+/// a `VECTOR` borrowed from the scratch arena and released again. Identity is
+/// left in place at the two ends of the ramp (0 and full size), where scaling
+/// would be a no-op anyway. `func_acropolis_bridge_80185F28` and
+/// `func_acropolis_bridge_801863A8` both inline it on their first frame, where
+/// the scratch block is taken and released around the whole matrix reset, and
+/// the shrink variant below once per frame of the shrink, where the diagonal is
+/// written before the block is taken.
+static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work)
+{
+    AcropolisBridgeWalkerWork* walker;
+    u8*                        head;
+    VECTOR*                    scale;
+    s32                        amount;
+
+    head                      = *(u8**)G_SCRATCH_HEAD;
+    walker                    = &work->walker;
+    amount                    = walker->scale;
+    scale                     = (VECTOR*)(head - 0x10);
+    *(VECTOR**)G_SCRATCH_HEAD = scale;
+    walker->scaleMtx.m[2][1]  = 0;
+    walker->scaleMtx.m[2][0]  = 0;
+    walker->scaleMtx.m[1][2]  = 0;
+    walker->scaleMtx.m[1][0]  = 0;
+    walker->scaleMtx.m[0][2]  = 0;
+    walker->scaleMtx.m[0][1]  = 0;
+    walker->scaleMtx.m[2][2]  = 0x1000;
+    walker->scaleMtx.m[1][1]  = 0x1000;
+    walker->scaleMtx.m[0][0]  = 0x1000;
+    walker->scaleMtx.t[2]     = 0;
+    walker->scaleMtx.t[1]     = 0;
+    walker->scaleMtx.t[0]     = 0;
+    if (amount != 0 && amount != 0x1000) {
+        scale->vz                    = amount;
+        scale->vy                    = amount;
+        ((VECTOR*)(head - 0x10))->vx = amount;
+        ScaleMatrix(&work->walker.scaleMtx, scale);
+    }
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// The same matrix reset as `bridge_reset_scale_mtx_entry`, in the statement
+/// order the shrink halves of `func_acropolis_bridge_80185F28` and
+/// `func_acropolis_bridge_801863A8` use (and the one `bridge_scale_up` uses for
+/// the spawn ramp).
+static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work)
+{
+    AcropolisBridgeWalkerWork* walker;
+    u8*                        head;
+    VECTOR*                    scale;
+    s32                        amount;
+
+    walker                   = &work->walker;
+    head                     = *(u8**)G_SCRATCH_HEAD;
+    walker->scaleMtx.m[2][2] = 0x1000;
+    walker->scaleMtx.m[1][1] = 0x1000;
+    walker->scaleMtx.m[0][0] = 0x1000;
+    amount                   = walker->scale;
+    walker->scaleMtx.m[2][1] = 0;
+    walker->scaleMtx.m[2][0] = 0;
+    walker->scaleMtx.m[1][2] = 0;
+    walker->scaleMtx.m[1][0] = 0;
+    walker->scaleMtx.m[0][2] = 0;
+    walker->scaleMtx.m[0][1] = 0;
+    walker->scaleMtx.t[2]    = 0;
+    walker->scaleMtx.t[1]    = 0;
+    walker->scaleMtx.t[0]    = 0;
+    scale                    = (VECTOR*)(head - 0x10);
+
+    *(VECTOR**)G_SCRATCH_HEAD = scale;
+    if (amount != 0 && amount != 0x1000) {
+        scale->vz                    = amount;
+        scale->vy                    = amount;
+        ((VECTOR*)(head - 0x10))->vx = amount;
+        ScaleMatrix(&work->walker.scaleMtx, scale);
+    }
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Runs the bridge enemy's approach state. On the first frame (work block still
+/// live) it parks the walker in step 3, clears the hand-over flag, swaps bit 15
+/// between the two behaviour flag words, rebuilds the scale matrix and restarts
+/// the animation slots on animation 1. Every frame after that it raises the
+/// model root by 0x2D until the entry offset at `field_1F8` reaches 0x708, and
+/// shrinks the walker by 0x33 a frame down to 0x801 -- rebuilding the scale
+/// matrix as it goes -- tagging the enemy's link node on every frame it is
+/// already that small, then ticks the walker and the animation slots. The
+/// behaviour state becomes 2 once the player is at or above the bridge.
+void func_acropolis_bridge_80185F28(Task* task)
+{
+    AcropolisBridgeEnemyWork*  work;
+    AcropolisBridgeWalkerWork* walker;
+    AcropolisBridgeWalkerWork* walker2;
+    GpEnemy*                   enemy;
+    WipSysConfig*              cfg;
+
+    cfg   = &Wip_SysConfig;
+    work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work->field_4 != 0) {
+        work->walker.state    = 3;
+        work->walker.field_91 = 0;
+        work->field_196      &= 0x7FFF;
+        work->field_12E      |= 0x8000;
+        bridge_reset_scale_mtx_entry(work);
+        work->walker.field_5A = 0x60;
+        walker                = &work->walker;
+        walker->field_5C      = 0x20;
+        walker->field_5E      = 0;
+        walker->field_60      = 1;
+        work->field_100       = 2;
+        work->field_104       = 1;
+        work->field_108       = 0x10;
+    }
+    if (work->walker.field_92 == 1) {
+        walker2           = &work->walker;
+        walker2->field_5C = 0x20;
+        walker2->field_5E = 0x60;
+        walker2->field_60 = 2;
+    }
+    if (work->field_1F8 < 0x708) {
+        work->field_1F8 += 0x2D;
+        ((TmdObject*)task->extra)->field_8->coord.t[1] =
+            work->field_1FA + work->field_1F8;
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+    }
+    if (work->walker.scale >= 0x801) {
+        work->walker.scale -= 0x33;
+        bridge_reset_scale_mtx_shrink(work);
+    } else {
+        enemy->node.field_4 = 1;
+    }
+    func_acropolis_bridge_8018532C(&work->walker);
+    func_acropolis_bridge_8018581C(task);
+    if (cfg->field_4->t[1] >= 0x2BD) {
+        work->field_0 = 2;
+    }
+}
 
 /// Rebuilds the bridge enemy's model matrix for the spawn scale-up. `scale`
 /// ramps 0x88 per frame until it reaches 0x1000, and until then the matrix is
@@ -415,83 +553,6 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (cfg->field_4->t[1] < 0x321) {
         work->field_0 = 1;
     }
-}
-
-/// Resets the walker's scale matrix to a uniform `walker->scale` scale, through
-/// a `VECTOR` borrowed from the scratch arena and released again. Identity is
-/// left in place at the two ends of the ramp (0 and full size), where scaling
-/// would be a no-op anyway. `func_acropolis_bridge_801863A8` inlines this twice
-/// -- once on its first frame, where the scratch block is taken and released
-/// around the whole matrix reset, and once per frame of the shrink, where the
-/// diagonal is written before the block is taken.
-static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work)
-{
-    AcropolisBridgeWalkerWork* walker;
-    u8*                        head;
-    VECTOR*                    scale;
-    s32                        amount;
-
-    head                      = *(u8**)G_SCRATCH_HEAD;
-    walker                    = &work->walker;
-    amount                    = walker->scale;
-    scale                     = (VECTOR*)(head - 0x10);
-    *(VECTOR**)G_SCRATCH_HEAD = scale;
-    walker->scaleMtx.m[2][1]  = 0;
-    walker->scaleMtx.m[2][0]  = 0;
-    walker->scaleMtx.m[1][2]  = 0;
-    walker->scaleMtx.m[1][0]  = 0;
-    walker->scaleMtx.m[0][2]  = 0;
-    walker->scaleMtx.m[0][1]  = 0;
-    walker->scaleMtx.m[2][2]  = 0x1000;
-    walker->scaleMtx.m[1][1]  = 0x1000;
-    walker->scaleMtx.m[0][0]  = 0x1000;
-    walker->scaleMtx.t[2]     = 0;
-    walker->scaleMtx.t[1]     = 0;
-    walker->scaleMtx.t[0]     = 0;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz                    = amount;
-        scale->vy                    = amount;
-        ((VECTOR*)(head - 0x10))->vx = amount;
-        ScaleMatrix(&work->walker.scaleMtx, scale);
-    }
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
-}
-
-/// The same matrix reset as `bridge_reset_scale_mtx_entry`, in the statement
-/// order the shrink half of `func_acropolis_bridge_801863A8` uses (and the one
-/// `bridge_scale_up` uses for the spawn ramp).
-static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work)
-{
-    AcropolisBridgeWalkerWork* walker;
-    u8*                        head;
-    VECTOR*                    scale;
-    s32                        amount;
-
-    walker                   = &work->walker;
-    head                     = *(u8**)G_SCRATCH_HEAD;
-    walker->scaleMtx.m[2][2] = 0x1000;
-    walker->scaleMtx.m[1][1] = 0x1000;
-    walker->scaleMtx.m[0][0] = 0x1000;
-    amount                   = walker->scale;
-    walker->scaleMtx.m[2][1] = 0;
-    walker->scaleMtx.m[2][0] = 0;
-    walker->scaleMtx.m[1][2] = 0;
-    walker->scaleMtx.m[1][0] = 0;
-    walker->scaleMtx.m[0][2] = 0;
-    walker->scaleMtx.m[0][1] = 0;
-    walker->scaleMtx.t[2]    = 0;
-    walker->scaleMtx.t[1]    = 0;
-    walker->scaleMtx.t[0]    = 0;
-    scale                    = (VECTOR*)(head - 0x10);
-
-    *(VECTOR**)G_SCRATCH_HEAD = scale;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vz                    = amount;
-        scale->vy                    = amount;
-        ((VECTOR*)(head - 0x10))->vx = amount;
-        ScaleMatrix(&work->walker.scaleMtx, scale);
-    }
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
 /// Runs the bridge enemy's retreat state. On the first frame (work block still
