@@ -145,7 +145,7 @@ imports = "configs/USA/sym/mapui.imports.txt"
 map_akropolis = { note = "Square, Patio, Sanctuary, MIST parking" }
 map_dryfield = { note = "26 names" }
 map_dryfield_full = { note = "31 names; adds the later motel rooms" }
-map_neo_ark = { note = "Forest zone, Savanna zone, Pavilion, Island" }
+map_neo_ark = { note = "Forest zone, Savanna zone, Pavilion, Island", rodata_head = "0x4" }
 map_shelter = { note = "Mesa, Cavern, Armory, Golem freezer, Pod" }
 [mappic]
 description = "Map picture"
