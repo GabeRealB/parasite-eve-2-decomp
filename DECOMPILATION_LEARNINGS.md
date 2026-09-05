@@ -44373,3 +44373,36 @@ address of the base symbol to the offset before chasing it: if that equals the
 `D_` name, the hunk is cosmetic and `./tools/build-and-verify.sh` is the only
 verdict that counts. `func_hypervelocity_8011F724` stalled at 99.964% on
 exactly this and matched the ROM unchanged.
+
+## A merged tail that *carries a value* is still just three duplicated case bodies
+
+Cross-jumping does not stop at tails that are reachable with different values in
+a register. `func_gunblade_8011DAA4` is a three-way `switch` whose cases share
+two tails, and the merge point of the first one is a store of a value each case
+computed differently:
+
+```
+  # case 13                # case 14                # case 15
+  lbu  $v0, 0x28($s1)      lhu  $v0, 0x28($s1)      lhu  $v0, 0x28($s1)
+  li   $a2, 0x60           li   $a2, 0x60           lbu  $v0, 0x28($s1)
+  j    .Ltail              j    .Ltail              li   $a2, 0x60
+   srl $v0, $v0, 2          srl $v0, $v0, 2         # falls through
+.Ltail:
+  sb   $v0, 0x12($sp)      # <- merge point, $v0 live in from three blocks
+  lh   $v0, 0x2A($s1)
+  ...
+```
+
+m2c renders this as `goto block_27;` plus a `var_v0` assigned in each case, and
+the instinct is to reproduce it literally with labels. Don't: write each case's
+tail out in full, identically, and let the jump pass fold them. Here that is
+about twenty instructions duplicated three times, including a second merged tail
+(the shrink/release path) and a third merge with the function's early-out
+`release()`. The duplicated source scored 99.94% on the first attempt where the
+goto shape does not reach it at all.
+
+The corollary is that the *divergent* part is real source. Above, the three
+cases genuinely load the same `s16` field three different ways — `lbu` for the
+byte truncation, `lhu`+`srl` for `(u16)field >> n`, and `lhu`+`sll 16`/`sra 18`
+for `(s16)(u16)field >> 2`. Read each copy separately rather than assuming the
+cases that merge must have been written alike.
