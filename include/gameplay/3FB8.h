@@ -874,6 +874,11 @@ extern u8 D_80112F1C[][2];
 /// `GpActorD4Rec.field_C` when filling `field_4`.
 extern u16 D_80112F60[];
 
+/// `D_80112F60[0x1A]`, the row for attach id 0x1A. The weapons overlays import
+/// the entry under its own address rather than the table's, so it is spelled
+/// out here; `func_m4a1_bayonet_8011DA34` is the only user.
+extern u16 D_80112F94;
+
 /// 0x10-byte `VECTOR` rows indexed by `Gp_AttachActorObj` arg1. Copied through
 /// scratch; the low 16 bits of `vx`/`vy`/`vz` seed `GpActorD4Rec.field_8` /
 /// `field_A` / `field_C`.
