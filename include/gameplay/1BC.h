@@ -586,5 +586,12 @@ void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_800B2968(void);
 void  Gp_SetStreamBuf(void* arg0);
 void  func_800B1EFC(Task* arg0);
+/// Turns the slot-3 skeleton's head toward the world point in `arg1`'s
+/// translation (`coord.t`). Sums the first five `GpAnimMtxRec` transforms of
+/// `arg0->extra` to get the head's own position and orientation, takes the
+/// offset to the target through `ratan2` as a yaw/pitch pair, steps toward it
+/// by `arg4 / 0x1000` of the remaining angle and clamps the result to `arg2`
+/// yaw and `arg3` pitch before writing the rotation with `RotMatrix`.
+void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4);
 
 #endif // GAMEPLAY_1BC_H
