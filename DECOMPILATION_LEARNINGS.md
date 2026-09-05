@@ -46782,3 +46782,61 @@ The same block's *reads* still spell the address out as `(head - 0xC)`, which
 is what makes them `lw -0xC($s3)` off the saved head rather than a fourth
 register. Reserve the copy for values an inline-asm operand consumes; a plain
 extra assignment with no later use is coalesced away as usual.
+
+## `addiu $a0, $giv, 0xC` vs `addu $v0, $base, $offgiv`: the address expression's association
+
+When a loop touches `block->vec[i]` both through memory *and* through an
+inline-asm `"r"` operand, GCC 2.8.1 can reduce the same address two different
+ways in the same loop, and which one you get is decided by how the C
+expression associates the constant field offset — not by register pressure.
+
+`&block->vec[i]` (with `vec` at 0x0C) is `block + (8*i + 12)`: loop.c strength
+reduces the *inner* `8*i + 12`, so the giv is a bare byte offset initialised
+with `li $a3, 0xC` and every use pays an `addu` against the block pointer:
+
+```
+addu   $v0, $t1, $a3        # &block->vec[i] for gte_ldv0 / gte_stsv
+```
+
+Spelling the same address so the field offset is added *last* —
+`(block + 8*i) + 12` — makes the giv's `add_val` a `plus(block, 12)`, which
+`combine_givs` can express from the giv the `block->vec[i].vx` stores already
+use, so it becomes a one-instruction derivation inside the loop:
+
+```
+addiu  $a0, $a1, 0xC        # $a1 is the `block + 8*i` giv, disp 0xC
+```
+
+`func_acropolis_bridge_801819C8` needs *both* in one loop — `2($a0)`/`4($a0)`
+for the `vy`/`vz` stores and `addu $v0, $t1, $a3` for the GTE operands — which
+only happens if the two occurrences are separate expressions that CSE cannot
+merge. The associated form gives the first, plain `&block->vec[i]` the second:
+
+```c
+v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
+block->vec[i].vx = tbl[i].x * 0x300;
+v->vy            = 0;
+v->vz            = tbl[i].y * 0x300;
+gte_SetRotMatrix(m);
+gte_ldv0(&block->vec[i]);      /* separate giv: addu $v0, $t1, $a3 */
+gte_rtv0_real();
+gte_stsv(&block->vec[i]);
+```
+
+A walking `v++` is a third, distinct shape: GCC rebases the biv onto the last
+field it stores (`-0x2($a0)` / `0($a0)`) and gives it its own increment, so it
+never produces the derived `addiu`. Read the base register's *initial value* in
+the target to tell these apart — `move $a1, $t1` (the block itself, disp 0xC)
+means index form, an `addiu $a0, $v0, -0x20` preheader init means a pointer.
+
+## `setUV4` is not the same schedule as eight `prim->uN =` assignments
+
+`setUV4(p, u0,v0,u1,v1,u2,v2,u3,v3)` assigns in `u0,v0,u1,v1,…` order, and the
+scheduler then reorders the `sb`s freely because they are distinct MEMs. Eight
+hand-written assignments in the *emitted* order look equivalent and are not:
+in `func_acropolis_bridge_801819C8` the hand-written form serialised the two
+constants through `$v0` (`li 0x10` … `li 0x27` … `li 0x37`), while the macro
+let the first pass hoist `li $v1, 0x27` above the `0x10` stores so the
+allocator gave it its own register. Same store order, 96.1% vs 98.0%. When the
+only difference left is a constant living in a second register, try the libgpu
+setter macro rather than reordering assignments by hand.

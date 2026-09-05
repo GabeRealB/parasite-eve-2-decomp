@@ -14,9 +14,11 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
+/// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those
+/// names assemble to different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32  Gp_LcgState;
 extern void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
@@ -35,7 +37,84 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_801812F4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_801819C8);
+/// The bridge's dust cloud: one semi-transparent `POLY_FT4` billboard placed at
+/// the task's world position. The four corners are taken from the unit quad in
+/// `D_acropolis_bridge_8018990C`, scaled by 0x300 and rotated by the
+/// coordinate's `workm` - and then each rotated corner is overwritten with that
+/// same `workm` translation, so all four collapse onto the object origin. The
+/// quad is projected with one `RTPS` plus one `RTPT` directly into the
+/// primitive, tinted a random grey, and linked into the OT at the `RTPS` depth
+/// biased by 0x20; depths under 0x11 are dropped rather than drawn. The task
+/// releases its work block on every tick, so the puff lasts one frame.
+void func_acropolis_bridge_801819C8(Task* task)
+{
+    void**                      scratch;
+    u8*                         head;
+    AcropolisBridgeQuadScratch* block;
+    AcropolisBridgeQuadCorner*  tbl;
+    POLY_FT4*                   prim;
+    GsCOORDINATE2*              coord;
+    RoomEffWork*                work;
+    MATRIX*                     m;
+    SVECTOR*                    v;
+    s32                         i;
+    u8                          col;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = task->spawnArg2;
+    Gp_UpdateCoord(coord);
+
+    scratch        = (void**)G_SCRATCH_HEAD;
+    i              = 0;
+    m              = &coord->workm;
+    tbl            = D_acropolis_bridge_8018990C;
+    head           = (u8*)*scratch - sizeof(AcropolisBridgeQuadScratch);
+    work->field_22 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0;
+    *scratch       = head;
+    block          = (AcropolisBridgeQuadScratch*)*scratch;
+    do {
+        v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
+        block->vec[i].vx = tbl[i].x * 0x300;
+        v->vy            = 0;
+        v->vz            = tbl[i].y * 0x300;
+        gte_SetRotMatrix(m);
+        gte_ldv0(&block->vec[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->vec[i]);
+        *(u16*)&block->vec[i].vx = *(u16*)&coord->workm.t[0];
+        i++;
+        *(u16*)&v->vy = *(u16*)&coord->workm.t[1];
+        *(u16*)&v->vz = *(u16*)&coord->workm.t[2];
+    } while (i < 4);
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec[0]);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_rtpt_real();
+    setUV4(prim, 0, 0x10, 0x27, 0x10, 0, 0x37, 0x27, 0x37);
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&block->otz);
+    block->otz += 0x20;
+    if (block->otz >= 0x11) {
+        prim->tpage = 0x2B;
+        prim->clut  = 0x4381;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        col         = ((u32)Gp_LcgState >> 16) & 0xF;
+        setRGB0(prim, col, col, col);
+        setSemiTrans(prim, 1);
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeQuadScratch);
+    Gp_ReleaseState1CMem(work, task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80181D28);
 

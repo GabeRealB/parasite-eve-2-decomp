@@ -60,6 +60,33 @@ extern s32                    D_acropolis_bridge_801917A8;
 
 void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
 
+/// One corner of the unit quad the bridge's dust-cloud task builds its
+/// billboard from (`D_acropolis_bridge_8018990C`): the signed XZ pair
+/// `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`, scaled by 0x300 before being
+/// rotated into world space. Same shape as the gameplay overlay's
+/// `GpQuadCorner`, but signed - the overlay loads the components with `lh`.
+typedef struct AcropolisBridgeQuadCorner {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+} AcropolisBridgeQuadCorner;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadCorner, 0x4);
+
+extern AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4];
+
+/// 0x2C-byte scratch block the bridge's dust-cloud task takes from
+/// `G_SCRATCH_HEAD`. `vec` holds the four billboard corners, projected with
+/// one `RTPS` plus one `RTPT` straight into the `POLY_FT4`; `otz` is the
+/// `gte_stszotz` depth the primitive is linked into the OT at. `flag` and
+/// `sxy` are the `gte_stflg` / `gte_stsxy` slots of the same layout the
+/// gameplay overlay's `GpQuadScratch` uses, and this task leaves them unused.
+typedef struct AcropolisBridgeQuadScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     flag;
+    /* 0x08 */ DVECTOR sxy;
+    /* 0x0C */ SVECTOR vec[4];
+} AcropolisBridgeQuadScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
+
 /// 0xC-byte scratch block the bridge's falling-mote task takes from
 /// `G_SCRATCH_HEAD`. `vec` is the mote's world position copied out of the
 /// task's `GsCOORDINATE2` (`workm.t`) and projected with a single `RTPS`
