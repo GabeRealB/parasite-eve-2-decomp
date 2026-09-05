@@ -46559,3 +46559,69 @@ Reading the same value back out of another field (`enemy->field_42 =
 work->field_10C;` after `work->field_10C = 1;`) is the mirror image: CSE
 substitutes the register it already knows holds the value but has to change
 mode, which is where a stray `move $v0, $s1` before two `sh`s comes from.
+
+## Factor a store to the join so its value stays in a register
+
+`func_acropolis_bridge_80187850` scans three `GpRec18` records for a hit and
+stages the result in a scratch block. The target emits, on the miss path,
+
+```
+move  $a1, $zero
+sw    $a1, 0x8($a2)
+```
+
+but the obvious C emits `sw $zero, 0x8($a2)`:
+
+```c
+missed:
+    hit        = 0;
+    block->hit = hit;    /* cse2 folds hit back to 0 -> sw zero */
+```
+
+The store is only a register store when the block that contains it has two
+predecessors carrying different values, so GCC cannot constant-fold it. Write
+the store once, at the join:
+
+```c
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+            ...
+            hit = recs[i].field_4;
+            goto hitTaken;
+        }
+        ...
+missed:
+    hit = 0;
+hitTaken:
+    block->hit = hit;
+```
+
+The delay-slot pass then puts the *single* store back into the found arm's
+`j` delay slot and retargets the jump past it, which is what makes the target
+look like it has two stores:
+
+```
+    lw    $a1, 0x4($a1)
+    j     .Ljoin_plus_4
+     sw   $a1, 0x8($a2)     ; stolen from the join block
+```
+
+So "the same store appears in both arms" in the target asm is not evidence for
+two stores in the source — check whether one of them sits in a branch delay
+slot with the branch pointing past it.
+
+## A gameplay helper's overlay prototype can carry arguments its definition ignores
+
+`Gp_UpdateActorColor` is defined in `src/gameplay/3A34.c` with two parameters,
+but every overlay that calls it passes four (`Gp_UpdateActorColor(enemy, &pos,
+0, 0)`), and the two `addu $aN, $zero, $zero` that set up the extra arguments
+are part of the caller's match. Files under `src/actors/lib/` sidestep the
+mismatch by declaring their own four-argument prototype and not including
+`gameplay/3A34.h`; that is not available to a file that needs the rest of the
+header.
+
+The fix is to give the definition the two trailing parameters it never reads
+and update `include/gameplay/3A34.h` to match. Unused register parameters cost
+no instructions on MIPS o32, so `gameplay` still checksums, and the shared
+declaration then describes what the callers actually do. Prefer this over an
+`__asm__("Gp_UpdateActorColor")` alias on a second name — the alias works, but
+it hides the arity from every other reader of the header.

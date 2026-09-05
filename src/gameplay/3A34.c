@@ -1326,7 +1326,7 @@ def:
     }
 }
 
-void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
+void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 {
     TmdObject*      extra;
     MATRIX*         colorMtx;

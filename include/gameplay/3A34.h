@@ -1297,7 +1297,7 @@ void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `Game_Session->field_65 == 1` unless `TmdObject.field_C` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
-void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1);
+void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void            Gp_LightFalloff(GpObj44* arg0);
 void            Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
 s32             Gp_GetObjDepth(GpObj38* arg0);

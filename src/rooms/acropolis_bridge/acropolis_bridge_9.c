@@ -16,10 +16,14 @@
 extern s16                   D_acropolis_bridge_801915E4[][6];
 extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 extern u16                   D_acropolis_bridge_80190C60;
-extern u16                   D_801153F6;
-extern s32                   D_80070F70;
-extern MATRIX*               D_80073B8C;
-extern s32                   Gp_LcgState;
+/// State handler table the per-frame tick dispatches through on
+/// `AcropolisBridgeEnemyWork::field_0`.
+extern void    (*D_acropolis_bridge_8019175C[])(Task*);
+extern u8      D_801153F4;
+extern u16     D_801153F6;
+extern s32     D_80070F70;
+extern MATRIX* D_80073B8C;
+extern s32     Gp_LcgState;
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -138,8 +142,22 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x1FA */ s16                       field_1FA;
     /* 0x1FC */ AcropolisBridgeWalkerWork walker;
     /* 0x290 */ u16                       field_290;
+    /* 0x292 */ u16                       field_292;
 } AcropolisBridgeEnemyWork;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeEnemyWork, 0x294);
+
+/// 0xC-byte scratchpad block the per-frame tick carves off `G_SCRATCH_HEAD` to
+/// stage the collision record it hands to the damage path: the record's three
+/// packed coordinates followed by its `field_4` attack id, which is also the
+/// "was there a hit" flag.
+typedef struct AcropolisBridgeHitScratch {
+    /* 0x0 */ s16  x;
+    /* 0x2 */ s16  y;
+    /* 0x4 */ s16  z;
+    /* 0x6 */ byte pad_6[0x2];
+    /* 0x8 */ s32  hit;
+} AcropolisBridgeHitScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeHitScratch, 0xC);
 
 /// Ticks the walker task: steps its patrol route and drives its animation.
 void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker);
@@ -1082,7 +1100,150 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80187850);
+/// Ticks the bridge enemy once per frame. It refreshes the model's root
+/// coordinate and relights it, then branches on the global pause mode
+/// `D_801153F4`: mode 1 only releases the collision records, mode 2 also hides
+/// the mesh, and mode 0 keeps the model's visibility in step with the camera
+/// -- re-allocating or releasing the TMD's aux buffers when the view changes,
+/// and remembering the view it last synced to in `field_292`. Outside the
+/// death and cleanup states it then borrows a 0xC-byte scratch block, scans
+/// the body's three collision records for a hit (high halfword 0x2), applies
+/// it through `func_acropolis_bridge_801876A8`, raises `field_4` on the frame
+/// the behaviour state changes, runs the state's handler from
+/// `D_acropolis_bridge_8019175C`, clears both record tables and -- while no
+/// `Gp_StateF0` request is pending -- resets any state other than 5 or 6 back
+/// to 0.
+void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
+{
+    AcropolisBridgeEnemyWork*  work;
+    AcropolisBridgeEnemyWork*  cur;
+    AcropolisBridgeHitScratch* block;
+    TmdObject*                 extra;
+    GpRec18*                   recs;
+    VECTOR                     pos;
+    s32                        mode;
+    s32                        view;
+    s32                        hit;
+    u16                        state;
+    s16                        i;
+
+    work                                    = (AcropolisBridgeEnemyWork*)task->idMap;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+    pos.vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
+    pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    mode = D_801153F4;
+    if (mode == 1) {
+        goto paused;
+    }
+    if (mode >= 2) {
+        goto ge2;
+    }
+    if (mode == 0) {
+        goto running;
+    }
+    goto body;
+ge2:
+    if (mode == 2) {
+        goto hidden;
+    }
+    goto body;
+
+running:
+    state = (u16)work->field_0;
+    if ((u32)(state - 6) >= 2U) {
+        if (state != 0) {
+            view = Gp_GetViewIndex() & 0xFF;
+            switch (view) {
+                case 8:
+                    if ((s32)work->field_292 == view) {
+                        goto drop;
+                    }
+                    ((TmdObject*)task->extra)->field_C = 0x80;
+                    goto resync;
+                case 22:
+                    if (work->field_0 == 4) {
+                        goto draw;
+                    }
+                drop:
+                    ((TmdObject*)task->extra)->field_C |= 4;
+                    extra                               = (TmdObject*)task->extra;
+                    if (extra->field_18 != NULL) {
+                        Tmd_FreeBuffers(extra);
+                    }
+                    goto resync;
+                default:
+                    Tmd_AllocBuffers((TmdObject*)task->extra);
+                draw:
+                    ((TmdObject*)task->extra)->field_C = 0;
+                    break;
+            }
+        resync:
+            work->field_292 = Gp_GetViewIndex() & 0xFF;
+        }
+    }
+    goto body;
+
+paused:
+    state = (u16)work->field_0;
+    if ((u32)(state - 6) >= 2U && state != 0) {
+        Gp_ClearRec18Occupied(&work->recs[0]);
+        Gp_ClearRec18Occupied(&work->hitRecs[0]);
+    }
+    return;
+
+hidden:
+    ((TmdObject*)task->extra)->field_C = 0x80;
+    Gp_ClearRec18Occupied(&work->recs[0]);
+    Gp_ClearRec18Occupied(&work->hitRecs[0]);
+    return;
+
+body:
+    *(u8**)G_SCRATCH_HEAD -= 0xC;
+    block                  = (AcropolisBridgeHitScratch*)*(u8**)G_SCRATCH_HEAD;
+    recs                   = work->recs;
+    i                      = 0;
+    do {
+        if (recs[i].field_4 == 0) {
+            goto missed;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+            block->x = recs[i].field_8;
+            block->y = recs[i].field_A;
+            block->z = recs[i].field_C;
+            hit      = recs[i].field_4;
+            goto hitTaken;
+        }
+        i++;
+    } while (i < 3);
+missed:
+    hit = 0;
+hitTaken:
+    block->hit = hit;
+    if (hit != 0) {
+        func_acropolis_bridge_801876A8(task, hit);
+    }
+
+    cur = (AcropolisBridgeEnemyWork*)task->idMap;
+    if (cur->field_2 != cur->field_0) {
+        cur->field_4 = 1;
+    } else {
+        cur->field_4 = 0;
+    }
+    cur->field_2 = cur->field_0;
+    D_acropolis_bridge_8019175C[work->field_0](task);
+    Gp_ClearRec18Occupied(&work->recs[0]);
+    Gp_ClearRec18Occupied(&work->hitRecs[0]);
+    if (D_801153F6 == 0) {
+        if ((u32)((u16)work->field_0 - 5) >= 2U) {
+            work->field_0 = 0;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0xC;
+}
 
 /// Applies a visibility request to the bridge task's model flags: no request
 /// restores the default flag set, bit 0 hides the mesh outright and bit 1 adds
