@@ -13,6 +13,7 @@ extern s32      D_map_akropolis_8017A9AC[4];
 extern TaskDesc D_map_akropolis_8017AA00;
 
 extern UiObjectDesc D_8010EFA0;
+extern UiObjectDesc D_map_akropolis_8017A9E4;
 
 /// Draws one row of the Akropolis map's key-item list: the item's name at the
 /// row's position, previewed while the row is highlighted. Confirming on the
@@ -48,7 +49,48 @@ INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis
 
 INCLUDE_ASM("mapui/nonmatchings/map_akropolis/map_akropolis", func_map_akropolis_80179D78);
 
-INCLUDE_ASM("mapui/nonmatchings/map_akropolis/map_akropolis", func_map_akropolis_80179E8C);
+/// Task driving the Akropolis key-item map screen: spawns the UI tree
+/// `D_map_akropolis_8017A9E4`, freezes the game's frame timing while it is up,
+/// then tears it down and releases the screen once the tree reports -1 or 6.
+void func_map_akropolis_80179E8C(Task* task)
+{
+    UiObject* obj;
+    s16       result;
+
+    if (task->state == 0) {
+        Display_InitPrimBufOnce();
+        Gp_ClearPreviewItems();
+        obj = Ui_SpawnFromDesc(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
+        if (obj == NULL) {
+            return;
+        }
+        GameMain_SetFrameTiming(0);
+        Game_Session->field_2 = 1;
+        task->spawnArg2       = obj;
+        task->state          += 1;
+    }
+
+    if (task->state == 1) {
+        obj    = task->spawnArg2;
+        result = obj->field_2E;
+        if ((result == -1) || (result == 6)) {
+            Ui_TeardownTree(obj, obj->owner);
+            task->killCountdown = 0xA;
+            task->state         = 2;
+        }
+    }
+
+    if (task->state == 2) {
+        task->killCountdown -= 1;
+        if (task->killCountdown <= 0) {
+            GameMain_SetFrameTiming(1);
+            Game_Session->field_2 = 0;
+            Task_Kill(task);
+            Stage_ReleasePrimBuf();
+            Stage_SetEndingFlag();
+        }
+    }
+}
 
 s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
 {
