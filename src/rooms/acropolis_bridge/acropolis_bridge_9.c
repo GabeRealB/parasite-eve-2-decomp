@@ -18,12 +18,15 @@ extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
 extern u16                   D_acropolis_bridge_80190C60;
 /// State handler table the per-frame tick dispatches through on
 /// `AcropolisBridgeEnemyWork::field_0`.
-extern void    (*D_acropolis_bridge_8019175C[])(Task*);
-extern u8      D_801153F4;
-extern u16     D_801153F6;
-extern s32     D_80070F70;
-extern MATRIX* D_80073B8C;
-extern s32     Gp_LcgState;
+extern void (*D_acropolis_bridge_8019175C[])(Task*);
+extern u8   D_80072729;
+/// Table of 0x80-byte actor config blocks; `Wip_SysConfig` is entry 1.
+extern WipSysConfig D_80073B08[];
+extern u8           D_801153F4;
+extern u16          D_801153F6;
+extern s32          D_80070F70;
+extern MATRIX*      D_80073B8C;
+extern s32          Gp_LcgState;
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -43,7 +46,7 @@ typedef struct AcropolisBridgeNavNode {
 
 /// The room's patrol data for the walker: the node table every route indexes
 /// and the second byte table `func_acropolis_bridge_8018532C` walks with its
-/// own cursor at `field_76`.
+/// own `cursor`.
 typedef struct AcropolisBridgeNavData {
     /* 0x0 */ AcropolisBridgeNavNode* nodes;
     /* 0x4 */ u8*                     field_4;
@@ -77,26 +80,35 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x08 */ GsCOORDINATE2*           coord;
     /* 0x0C */ s32                      field_C;
     /* 0x10 */ GpRec18*                 recs;
-    /* 0x14 */ byte                     pad_14[0x20];
+    /* 0x14 */ byte                     pad_14[0x8];
+    /* 0x1C */ SVECTOR                  moveStep;
+    /* 0x24 */ byte                     pad_24[0x10];
     /* 0x34 */ MATRIX                   scaleMtx;
     /* 0x54 */ s16                      scale;
     /* 0x56 */ s16                      field_56;
     /* 0x58 */ s16                      field_58;
     /* 0x5A */ s16                      field_5A;
-    /* 0x5C */ s16                      field_5C;
+    /* 0x5C */ u16                      field_5C;
     /* 0x5E */ u16                      field_5E;
-    /* 0x60 */ s16                      field_60;
+    /* 0x60 */ u16                      field_60;
     /* 0x62 */ s16                      field_62;
     /* 0x64 */ s16                      field_64;
     /* 0x66 */ byte                     pad_66[0x2];
     /* 0x68 */ u8                       state;
-    /* 0x69 */ byte                     pad_69[0x1];
+    /* 0x69 */ u8                       field_69;
     /* 0x6A */ u8                       node;
     /* 0x6B */ u8                       field_6B;
     /* 0x6C */ u8                       field_6C;
-    /* 0x6D */ byte                     pad_6D[0x1];
+    /* 0x6D */ u8                       field_6D;
     /* 0x6E */ u8                       field_6E;
-    /* 0x6F */ byte                     pad_6F[0x11];
+    /* 0x6F */ u8                       field_6F;
+    /* 0x70 */ u8                       field_70;
+    /* 0x71 */ u8                       field_71;
+    /* 0x72 */ u8                       field_72;
+    /* 0x73 */ u8                       field_73;
+    /* 0x74 */ byte                     pad_74[0x2];
+    /* 0x76 */ u8                       cursor;
+    /* 0x77 */ byte                     pad_77[0x9];
     /* 0x80 */ AcropolisBridgeNavData   navData;
     /* 0x88 */ u8                       field_88;
     /* 0x89 */ u8                       field_89;
@@ -159,11 +171,29 @@ typedef struct AcropolisBridgeHitScratch {
 } AcropolisBridgeHitScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeHitScratch, 0xC);
 
+/// 0x28-byte scratchpad block the walker tick carves off `G_SCRATCH_HEAD`.
+/// Only the `SVECTOR3` at +4 is used here: every state writes the position the
+/// walker is steering for into it and hands it to
+/// `func_acropolis_bridge_80185104`.
+typedef struct AcropolisBridgeWalkScratch {
+    /* 0x00 */ s32      field_0;
+    /* 0x04 */ SVECTOR3 pos;
+    /* 0x0A */ byte     pad_A[0x1E];
+} AcropolisBridgeWalkScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkScratch, 0x28);
+
 /// Ticks the walker task: steps its patrol route and drives its animation.
 void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker);
 
 /// Reports whether the walker has reached the patrol node at `work->node`.
 s16 func_acropolis_bridge_80184024(AcropolisBridgeWalkerWork* work);
+
+s8   func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 arg1);
+s8   func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work);
+void func_acropolis_bridge_80184638(AcropolisBridgeWalkerWork* work, s32 arg1);
+void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work);
+void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work);
+void func_acropolis_bridge_80185104(AcropolisBridgeWalkerWork* work, SVECTOR3* pos);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
 
@@ -222,7 +252,136 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185104);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_8018532C);
+/// Runs the walker's per-frame step inside the 0x28-byte scratch frame
+/// `func_acropolis_bridge_8018532C` opened for it. `head` is the scratch head
+/// as it was before the frame was carved off, so the `SVECTOR3` the states
+/// steer towards is `head - 0x24` == `&block->pos`.
+///
+/// State 1 heads straight for the actor selected by the walker's spawn
+/// variant -- the low halfword of each translation component of that actor's
+/// coordinate matrix -- state 2 re-runs the patrol steering and re-reads the
+/// route's byte table at `cursor` whenever the step or the state changed, and
+/// state 3 follows the patrol route proper. The scalar at `field_5E` then
+/// ramps towards `field_5C` by `field_60` a frame; while it is non-zero it
+/// scales (`GPF`) the normalised facing column of the model matrix into the
+/// per-frame world step, which is added to the coordinate's translation and
+/// kept in `moveStep`. `D_80072729` (a global freeze flag) zeroes the step
+/// instead.
+static __inline__ void walkerStep(AcropolisBridgeWalkerWork* walker, u8* head,
+                                  AcropolisBridgeWalkScratch* block)
+{
+    u8*            head2;
+    SVECTOR3*      pos;
+    WipSysConfig*  cfg;
+    SVECTOR*       sv;
+    SVECTOR*       gsv;
+    SVECTOR*       step;
+    GsCOORDINATE2* coord;
+    s16            sdiff;
+    s32            diff;
+    s16            speed;
+    s32            cur;
+    s32            target;
+    s32            result;
+
+    switch (walker->state) {
+        case 0:
+            break;
+        case 1:
+            cfg                            = &D_80073B08[walker->field_6E];
+            pos                            = (SVECTOR3*)(head - 0x24);
+            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->field_4->t[0];
+            pos->vy                        = *(u16*)&cfg->field_4->t[1];
+            pos->vz                        = *(u16*)&cfg->field_4->t[2];
+            break;
+        case 2:
+            *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 4;
+            walker->field_6F      = func_acropolis_bridge_801843A0(walker, 1);
+            walker->field_70      = func_acropolis_bridge_8018450C(walker);
+            if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
+                walker->field_6F != walker->field_71) {
+                func_acropolis_bridge_80184638(walker, 1);
+                walker->node = walker->nav->field_4[walker->cursor];
+            }
+            walker->field_69 = walker->state;
+            walker->field_72 = walker->field_70;
+            walker->field_71 = walker->field_6F;
+            if (func_acropolis_bridge_80184024(walker) != 0) {
+                walker->cursor       += walker->field_73;
+                walker->node          = walker->nav->field_4[walker->cursor];
+                *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 4;
+            }
+            break;
+        case 3:
+            func_acropolis_bridge_80184208(walker, (SVECTOR3*)(head - 0x24));
+            break;
+    }
+    func_acropolis_bridge_80185104(walker, &block->pos);
+
+    cur    = walker->field_5C;
+    target = walker->field_5E;
+    if (cur != target) {
+        diff  = cur - target;
+        sdiff = diff;
+        if (sdiff > walker->field_60) {
+            result = target + walker->field_60;
+        } else if (sdiff < -walker->field_60) {
+            result = target - walker->field_60;
+        } else {
+            result = target + diff;
+        }
+        walker->field_5E = result;
+    }
+
+    coord = walker->coord;
+    speed = walker->field_5E;
+    step  = &walker->moveStep;
+    if (D_80072729 == 1) {
+        step->vz            = 0;
+        step->vy            = 0;
+        walker->moveStep.vx = 0;
+    } else {
+        head2                 = *(u8**)G_SCRATCH_HEAD;
+        sv                    = (SVECTOR*)(head2 - 8);
+        *(u8**)G_SCRATCH_HEAD = (u8*)sv;
+        /* The ROM keeps a second copy of the block address for the GTE
+           transfers; without it `sv` and the copy share one register. */
+        gsv = sv;
+        if (speed != 0) {
+            Gfx_MatrixCol2(&coord->coord, sv);
+            VectorNormalSS(sv, sv);
+            gte_lddp(speed);
+            gte_ldsv(gsv);
+            gte_gpf12_real();
+            gte_stsv(gsv);
+            coord->coord.t[0] += ((SVECTOR*)(head2 - 8))->vx;
+            coord->coord.t[1] += sv->vy;
+            coord->coord.t[2] += sv->vz;
+            walker->moveStep   = *(SVECTOR*)(head2 - 8);
+            coord->flg         = 0;
+        }
+        *(u8**)G_SCRATCH_HEAD += 8;
+    }
+    if (walker->field_6C == 0) {
+        func_acropolis_bridge_80184908(walker);
+    }
+    if (walker->field_6D == 0) {
+        func_acropolis_bridge_80184B94(walker);
+    }
+}
+
+void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker)
+{
+    u8*                         head;
+    AcropolisBridgeWalkScratch* block;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x28;
+    block                 = (AcropolisBridgeWalkScratch*)*(u8**)G_SCRATCH_HEAD;
+    walkerStep(walker, head, block);
+    walker->coord->flg    = 0;
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x28;
+}
 
 /// Handles the room's 0x7DB broadcast for the bridge enemy. Message 0x0B01/1
 /// (the bridge is being lowered) restores the model's default flag set while

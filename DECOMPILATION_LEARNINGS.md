@@ -46625,3 +46625,131 @@ no instructions on MIPS o32, so `gameplay` still checksums, and the shared
 declaration then describes what the callers actually do. Prefer this over an
 `__asm__("Gp_UpdateActorColor")` alias on a second name — the alias works, but
 it hides the arity from every other reader of the header.
+
+## Split the scratch frame: outer function hoists the head address, `static __inline__` body rematerialises it
+
+`G_SCRATCH_HEAD` accesses come out in two shapes, and a single function can
+need both. GCC 2.8.1 puts the constant address in a register as soon as a
+basic block references it twice (`lui`/`ori` + `lw|sw 0($reg)`); a block that
+references it once emits the absolute form the assembler expands
+(`lui $r,0x1f80` / `lw $r,0x3fc($r)`, and `lui $at` / `sw $v0,0x3fc($at)` for a
+store). Nothing about the C — `volatile`, compound `-=` versus a written-out
+`p = p - 4`, an intervening call or branch — changes that: two references in a
+block always hoist.
+
+Wrapping the *whole* body in a `static __inline__` helper rematerialises every
+access (see "`static __inline__` forces scratch-head rematerialisation"), which
+is wrong when the target keeps `lui`/`ori` for the frame's own open and close.
+The fix is to split at the frame boundary: the outer function opens and closes
+the scratch frame and passes `head` / `block` to the inlined body.
+
+```c
+static __inline__ void walkerStep(Work* w, u8* head, Scratch* block) { … }
+
+void func_…(Work* w)
+{
+    head                  = *(u8**)G_SCRATCH_HEAD;   /* lui/ori, 3 refs here */
+    *(u8**)G_SCRATCH_HEAD = head - 0x28;
+    block                 = (Scratch*)*(u8**)G_SCRATCH_HEAD;
+    walkerStep(w, head, block);                      /* every ref inside is absolute */
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x28;
+}
+```
+
+`func_acropolis_bridge_8018532C` went from 88% to 97% on that split alone. The
+third reference (`block = *G_SCRATCH_HEAD` after the store) is not redundant:
+CSE folds it to `move $s0, $v0`, which is the target's extra copy into the
+callee-saved register.
+
+## A `beq`/`slti low+1`/`beq`/`beq` switch dispatch means there is an empty `case 0`
+
+Three cases 1/2/3 do *not* produce that chain. `balance_case_nodes` splits a
+three-node list at the middle, so `switch (x) { case 1: case 2: case 3: }`
+roots the tree at 2 and emits `beq 2` / `slti 3` / `beq 1` / `beq 3`.
+
+The target's
+
+```
+beq  $v1, 1, case1
+ slti $v0, $v1, 2
+bnez $v0, default        # x <= 1 and x != 1
+ li  $v0, 2
+beq  $v1, 2, case2
+beq  $v1, 3, case3
+```
+
+is a *four*-node list whose root is the lowest value with no left child. All
+the case values are control characters, so `estimate_case_costs` turns on the
+cost table with a cost of -1 each and the bisection breaks on the first node.
+Add the missing case back as an empty arm — `case 0: break;` — and jump
+optimisation folds its label into the default, leaving exactly the ROM's chain.
+Read the `slti` constant as *low + 1*: it is the "`x <= low` and we already
+know `x != low`" test, so `slti 2` names case 1 as the tree root.
+
+## Hoist an address out of an `if` to stop the delay-slot pass stealing from the branch target
+
+`fill_slots_from_thread` will walk *past* the first insn of a branch target it
+owns and take a later one — a load can trap so it is skipped, but the next
+independent insn is fair game. That is how a condition's `sll` ends up in the
+delay slot of the `if`'s branch while the target block is left with a `nop` in
+its load-delay slot:
+
+```
+bne  $v0, $v1, .Lelse
+ sll $v0, $s5, 16        /* stolen from .Lelse */
+…
+.Lelse:
+lw   $s3, 0x1f8003fc
+nop                      /* the sll used to be here */
+```
+
+`fill_simple_delay_slots` runs first and prefers an insn from *before* the
+branch, so giving it one keeps the target thread intact. If the then-arm walks
+a struct through a pointer, compute that pointer above the `if`:
+
+```c
+step = &walker->moveStep;      /* addiu $a0, $s2, 0x1c — fills the delay slot */
+if (D_80072729 == 1) {
+    step->vz = 0;
+    step->vy = 0;
+    walker->moveStep.vx = 0;   /* first field still folds to 0x1c($s2) */
+} else {
+    …
+}
+```
+
+That was the last instruction between 99.2% and 100% on
+`func_acropolis_bridge_8018532C`.
+
+## Wrap-around interpolation needs the raw difference *and* an `s16` copy of it
+
+Angle/scalar ramps of the form "step towards `target`, but no further than
+`rate`" read as one subtraction, and m2c writes one variable for it. The ROM
+keeps two:
+
+```
+subu $a2, $v0, $a0      # raw 32-bit difference, still live at the end
+sll  $v0, $a2, 16
+sra  $a1, $v0, 16       # the wrapped s16 the comparisons use
+slt  $v0, $v1, $a1
+…
+addu $v0, $a0, $a2      # the last arm adds the *raw* one back
+```
+
+The comparisons need the wrapped `s16` (that is what makes the ramp take the
+short way round), while the final arm's store is an `sh`, so combine drops the
+sign extension there and reuses the raw `subu`. Writing one `s16 diff` gives
+the sign-extended value in the last arm and never matches; write
+
+```c
+diff  = cur - target;   /* s32 */
+sdiff = diff;           /* s16 */
+if (sdiff > walker->rate)       result = target + walker->rate;
+else if (sdiff < -walker->rate) result = target - walker->rate;
+else                            result = target + diff;
+```
+
+Read the rate straight out of the struct at each use rather than through a
+local: a local's `lhu` is emitted at the assignment, ahead of the `sll`/`sra`
+pair, and the scheduler then cannot reproduce the ROM's `sll` / `lhu` / `sra`
+order.
