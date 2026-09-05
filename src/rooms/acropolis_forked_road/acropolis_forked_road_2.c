@@ -39,7 +39,3 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF* arg2)
     }
     return 1;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_2", jtbl_acropolis_forked_road_8017D5D0);
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_2", D_acropolis_forked_road_8017D5E8);
