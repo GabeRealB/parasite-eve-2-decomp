@@ -4,11 +4,50 @@ extern s32 D_800820E0;
 extern s16 D_800820E4;
 extern s16 D_800820E6;
 
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
 #include "mapui/map_neo_ark.h"
 
-INCLUDE_ASM("mapui/nonmatchings/map_neo_ark/map_neo_ark", func_map_neo_ark_801799BC);
+/// MDEC buffer layout hook for the Neo Ark map, reached from
+/// `Mdec_SetupBuffers` (main) for stream kinds 6 and 9. Both kinds park the
+/// two decode buffers (`D_8006AC48`) and the two VLC buffers (`D_8006AC50`)
+/// around the frame allocation, differing only in how far apart the halves sit;
+/// kind 9 additionally rewinds the CD queue and asks for the 0x180 x 0x100
+/// display. `D_8006AC44` always ends up one full frame past the second decode
+/// buffer.
+void func_map_neo_ark_801799BC(u8* arg0)
+{
+    CdCmdQueue* q = &CdCmd_Queue;
+    s32         stride;
+
+    switch (arg0[2]) {
+        case 6:
+            stride        = D_8006AC5A * D_8006AC6C * 2;
+            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC50[1] = (u_long*)D_8006AC40;
+            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + stride);
+            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + stride);
+            break;
+        case 9:
+            q->field_22C           = 1;
+            q->field_230           = 0x180;
+            q->field_232           = 0x100;
+            D_8006AC5C             = 1;
+            D_8006AC50[0]          = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC48[1]          = (u_long*)D_8006AC40;
+            D_8006AC48[0]          = (u_long*)D_8006AC40;
+            D_8006AC50[1]          = (u_long*)((u8*)D_8006AC50[0] + D_8006AC5A * D_8006AC6C);
+            Game_Session->field_80 = 0;
+            q->field_24A           = 1;
+            break;
+    }
+    D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
+    Game_Session->field_7C = 0;
+    Game_Session->field_7E = 0;
+}
 
 /// Fills in the marker state for one Neo Ark map room. Most rooms have no
 /// marker; the five that do read a GameFlag nibble, either straight (plus one,

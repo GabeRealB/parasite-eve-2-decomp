@@ -48087,3 +48087,49 @@ is usually the scheduler's output, not the source. If a barrier is needed to
 hold a block in the order the target *emits*, suspect the source order and try
 the natural one — the barrier's cost usually shows up as a `reorder` penalty
 somewhere downstream of it, not inside the block it was added for.
+
+## `D_SYM[1]` and `D_SYM_PLUS_4` assemble the same but schedule differently
+
+splat names an address it cannot attribute to a known array with its own label,
+so `lw %lo(D_8006AC4C)` and `lw %lo(D_8006AC48+4)` look like two different
+symbols in the disassembly while linking to identical bytes. Which spelling you
+pick in C is therefore free for the checksum -- but it is *not* free for the
+scheduler, because GCC 2.8.1 sets `MEM_IN_STRUCT_P` on an array/struct
+reference and not on a plain scalar global.
+
+In `func_map_neo_ark_801799BC` the tail is
+
+```c
+D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
+Game_Session->field_7C = 0;
+Game_Session->field_7E = 0;
+```
+
+With `extern void* D_8006AC4C;` and `(u8*)D_8006AC4C`, the load is a scalar
+global: alias analysis proves it independent of the `Game_Session->field_*`
+stores, the list scheduler sinks it below them, and the score sticks at 94.5%
+with `insert`/`delete` = 2 no matter how the three statements are ordered. With
+`D_8006AC48[1]` -- the array declaration `include/main/stream.h` already has --
+the load is a struct reference, conflicts with the struct stores, and stays
+pinned above them: byte-identical after linking.
+
+So when a load and a nearby struct store keep swapping and statement order will
+not separate them, check whether the load can legitimately be written as an
+element of an already-declared array; that alone changes the dependence.
+
+## The literal that gets the low register is the one stored first
+
+Two constants live across the same block -- say `1` (stored to three places) and
+`0x10000` -- get their hard registers in the order their `li`/`lui` insns appear
+in RTL, which is the order of the *statements that first use them*. Ties in the
+scheduler's ready list break by insn UID, so a constant whose first store sits
+later in the source is materialised later and takes the higher-numbered
+register.
+
+In `func_map_neo_ark_801799BC` the target opens its case with `li $t0, 1` and
+assigns `$a3` to `0x10000`; writing the `= 1` stores after the `= 0x180` /
+`= 0x100` stores gave the opposite pairing and a `regs` penalty of 14 across the
+block. Moving the single statement `q->field_22C = 1;` to the top of the case
+hoisted the `li` and fixed all of it -- the emitted *store* order did not
+change, because the scheduler moved the store back down on its own. Reorder the
+statement that first mentions the constant, not the stores you can see.

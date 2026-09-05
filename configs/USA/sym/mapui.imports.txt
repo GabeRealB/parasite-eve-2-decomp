@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (21 symbols)
+// --- from main (22 symbols)
 GameMain_SetFrameTiming = 0x800280F4; // absolute:True
 Pad_CheckButtons = 0x8002C868; // absolute:True
 Task_Kill = 0x8002CCB8; // absolute:True
@@ -27,6 +27,7 @@ Game_Session = 0x8005ED64; // absolute:True
 Pad_MaskConfirm = 0x8005ED70; // absolute:True
 Pad_MaskCancel = 0x8005ED74; // absolute:True
 Pad_MaskMenu = 0x8005ED78; // absolute:True
+CdCmd_Queue = 0x80068FA0; // absolute:True
 
 // --- from gameplay (4 symbols)
 Gp_GetItemText = 0x800B8EB0; // absolute:True
@@ -34,7 +35,15 @@ Gp_SetCollectedBit = 0x800BAE5C; // absolute:True
 Gp_SetPreviewItem = 0x800CDE80; // absolute:True
 Gp_ClearPreviewItems = 0x800CDEF4; // absolute:True
 
-// --- still unnamed in their own overlay (4)
+// --- still unnamed in their own overlay (12)
+D_8006AC40 = 0x8006AC40; // absolute:True
+D_8006AC44 = 0x8006AC44; // absolute:True
+D_8006AC48 = 0x8006AC48; // absolute:True
+D_8006AC50 = 0x8006AC50; // absolute:True
+D_8006AC5A = 0x8006AC5A; // absolute:True
+D_8006AC5C = 0x8006AC5C; // absolute:True
+D_8006AC60 = 0x8006AC60; // absolute:True
+D_8006AC6C = 0x8006AC6C; // absolute:True
 D_800820E0 = 0x800820E0; // absolute:True
 D_800820E4 = 0x800820E4; // absolute:True
 D_800820E6 = 0x800820E6; // absolute:True
