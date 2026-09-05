@@ -44695,3 +44695,101 @@ plus `rodata = [{ start = "0x4", unit = "<name>_2" }]` and a `units` cut at the
 function's text offset — after which the overlay is 4 bytes shorter and matches.
 And re-splitting overwrites the unit's `src/` file, so save any already-matched
 functions in it first; splat regenerates them as `INCLUDE_ASM`.
+
+## Assign the shared pointer *after* the call, not before it
+
+`func_m4a1_grenade_8011D994` picks one of two `GpRec18` tables and hands the
+winner to a common block. Written the obvious way,
+
+```c
+rec = work->rec0;
+if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) goto check;
+```
+
+`rec` is live across the `jal`, so `global_alloc` has to give it a callee-saved
+register, and the copy is emitted ahead of the call:
+
+```
+move  s0,s4
+move  a0,s4
+jal   Gp_CountRec18Hi
+```
+
+Splitting the count into its own local so the assignment lands *after* the
+call —
+
+```c
+count = Gp_CountRec18Hi(work->rec0, 0x100000);
+rec   = work->rec0;
+if (count != 0) goto check;
+```
+
+— leaves `rec` with a live range that crosses nothing, so it stays in `$a0`
+(where the shared block wants it anyway) and `dbr` sinks the copy into the
+branch's delay slot:
+
+```
+move  a0,s2
+jal   Gp_CountRec18Hi
+lui   a1,0x10
+bnez  v0,check
+move  a0,s2
+```
+
+That removed a `move`, a `branch` penalty and a whole callee-saved-register
+permutation in one edit (94.9% → 97.6%). The tell is a `move sN,sM` sitting
+immediately *before* a `jal` where the target has the same `move` in the
+following branch's delay slot.
+
+## An extra reference is worth more than a shorter live range
+
+The `$sN` a local lands in is decided by `floor_log2(n_refs) * n_refs /
+live_length`, and the `floor_log2` step means going from 3 references to 4
+*doubles* the priority. In `func_m4a1_grenade_8011D994` the scratch head had 3
+references (`head`, `head - 0x34`, `head - 0x14`) and lost `$s3` to the block
+pointer; the target clearly ranked it higher. `build.sh`'s RTL summary prints
+the whole table, which is what makes this checkable rather than guesswork:
+
+```
+  r101  used 4/21  → $s2   rec0
+  r81   used 13/135 → $s3  blk     <- target has this in $s4
+  r90   used 4/31  → $s4   head    <- target has this in $s3
+```
+
+Compute `floor_log2(refs) * refs / length` for the mis-ranked pair and see how
+far apart they are before changing anything: 3/22 = 0.14 against 13*3/134 =
+0.29 is not a live-range problem, it is a reference-count problem. A single
+extra reference placed *next to the existing last use* (so the live range does
+not grow) moved it to 8/23 = 0.35 and put every callee-saved register in the
+right place. Placing the same reference nine insns later gave 8/31 = 0.26 and
+kept the wrong order, so where the reference goes matters as much as that it
+exists.
+
+## A store into an address-taken local is forwarded; the target's reload is a signal
+
+`func_800E1ACC` is called as `idx = func_800E1ACC((u8*)&idx)` — it both writes
+through the pointer and returns the value. GCC records the store into `idx`'s
+frame slot and forwards it to every later read, so the value stays in the
+return register:
+
+```
+move  a1,v0
+sw    a1,0x10(sp)
+...
+sll   v0,a1,0x2
+```
+
+The target instead stores `v0` and reloads:
+
+```
+sw    v0,0x10(sp)
+...
+lw    a0,0x10(sp)
+sll   v0,a0,0x2
+```
+
+Nothing between the two invalidates memory, so no rewriting of the C reproduces
+it; a `SOFT_COMPILER_BARRIER()` after the assignment is what drops the
+equivalence and gives the reload (98.5% → 99.6%). Instruction *counts* match
+either way, so this shows up as a `regs` penalty with `insert`/`delete` near
+zero, not as a missing instruction.

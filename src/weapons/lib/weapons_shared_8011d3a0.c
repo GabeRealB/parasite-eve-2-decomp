@@ -81,7 +81,7 @@ void WeaponsShared8011d3a0(Task* arg0)
     work->obj.field_10 = 0;
     work->obj.field_12 = 0;
     work->obj.field_14 = 0;
-    work->field_88     = speed << 16;
+    work->field_88.w   = speed << 16;
     flags              = (u16)arg0->spawnArg1 | 0x20000;
     work->obj.field_18 = flags;
     if (arg0->spawnArg1 & 0x100000) {
@@ -108,7 +108,7 @@ void WeaponsShared8011d3a0(Task* arg0)
     work->d4rec.field_10 = 1;
     work->d4rec.field_12 = 1;
     work->obj.flags     |= 0xC400;
-    work->d4rec.field_C  = -(work->field_88 >> 10);
+    work->d4rec.field_C  = -(work->field_88.w >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.field_14, 1, 0);
     work->obj2.flags       |= 0x4400;

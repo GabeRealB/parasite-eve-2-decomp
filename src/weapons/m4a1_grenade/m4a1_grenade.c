@@ -22,6 +22,9 @@
 /// keyed on. A main-executable global with no module header yet.
 extern u8 D_80073BA9;
 
+/// Impact clip id per attachment, indexed by `sfx - 0xA`: 0x1F4, 0x4B0, 0x7D0.
+extern u16 D_m4a1_grenade_8012E08C[];
+
 void WeaponsShared8011de24(Task* task);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
@@ -217,7 +220,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
-    work->field_88     = 0xA0000;
+    work->field_88.w   = 0xA0000;
     work->field_8C     = 1;
     work->field_90     = 0;
     work->obj.field_8  = coord;
@@ -247,11 +250,126 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     work->d4rec.field_10 = 1;
     work->d4rec.field_12 = 1;
     work->obj.flags     |= 0xC400;
-    work->d4rec.field_A  = -(work->field_88 >> 10);
+    work->d4rec.field_A  = -(work->field_88.w >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.field_14, 1, 0);
     work->obj2.flags       |= 0x4400;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
 }
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_grenade/m4a1_grenade", func_m4a1_grenade_8011D994);
+/// Flight state: steps the grenade along `dir`, and detonates when it hits
+/// something, when it crosses a room record that blocks it, or when the 16.16
+/// flight timer runs past 0xFFFFF. `rec0` collects the solid hits, `rec1` the
+/// room-boundary ones; whichever table has a `0x100000` record is handed to
+/// `func_800E0FEC` / `func_800E1ACC` to name the room parameter it crossed.
+/// A record with `field_1` set is a doorway, which only detonates the grenade
+/// in the one scripted case (room 0x14, floors 2 and 3); one with `field_1`
+/// clear detonates on `field_2` and otherwise hands the task to state 3.
+void func_m4a1_grenade_8011D994(Task* arg0)
+{
+    M4a1GrenadeScratch* blk;
+    M4a1GrenadeWork*    work;
+    GsCOORDINATE2*      coord;
+    GpItemSlot*         slot;
+    GpRec18*            rec;
+    GpRoomParamRec*     param;
+    u8*                 head;
+    s32                 idx;
+    s32                 count;
+    s32                 clip;
+    s32                 step;
+    s32                 sfxbase;
+    s32                 sfxarg;
+
+    work  = (M4a1GrenadeWork*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
+    head  = *(u8**)G_SCRATCH_HEAD;
+    /* Pushed and then re-derived rather than stored from `blk`: the scratch
+       head has to stay live in its own register, because the `GpDeltaScratch`
+       handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
+    *(void**)G_SCRATCH_HEAD = head - sizeof(M4a1GrenadeScratch);
+    blk                     = (M4a1GrenadeScratch*)(head - sizeof(M4a1GrenadeScratch));
+    coord->flg              = 0;
+    if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
+    explode:
+        blk->sfx = slot->field_2 - 0x9F;
+        if (blk->sfx < 0) {
+            blk->sfx = 0xA;
+        }
+        arg0->state = 2;
+        Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
+        sfxbase = D_80073BA9 << 16;
+        sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000007;
+        Gp_PlayObjSfx((GpObj38*)coord, sfxbase | sfxarg, 1);
+        clip = 8;
+        if (blk->sfx == 0xB) {
+            clip = 1;
+        }
+        work->field_88.w        = clip;
+        work->obj.flags        &= 0xBFFF;
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(M4a1GrenadeScratch);
+        work->obj.field_1C      = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
+        return;
+    }
+
+    /* `rec` is picked after each count, not before: assigning it first would
+       make it cross the call and cost a call-saved register. */
+    count = Gp_CountRec18Hi(work->rec1, 0x100000);
+    rec   = work->rec1;
+    if (count == 0) {
+        goto try_rec0;
+    }
+check:
+    /* `head - 0x14` is `&blk->delta`; spelling it off `head` is what keeps the
+       two scratch pointers apart, and the extra reference is what wins `head`
+       its call-saved register. */
+    SOFT_USE_REG(head);
+    func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x14), 1, &idx);
+    idx = func_800E1ACC((u8*)&idx);
+    /* `func_800E1ACC` writes through `&idx` as well as returning it, so the
+       index is re-read from the slot instead of kept in the return register. */
+    SOFT_COMPILER_BARRIER();
+    param = Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1][idx];
+    if (param->field_1 == 0) {
+        if (param->field_2 != 0) {
+            goto explode;
+        }
+        arg0->state = 3;
+        goto move;
+    }
+    if (idx == 1 && Mc_SaveData.field_6 == 0x14 && (u32)(Mc_SaveData.field_7 - 2) < 2U) {
+        goto explode;
+    }
+    goto move;
+try_rec0:
+    count = Gp_CountRec18Hi(work->rec0, 0x100000);
+    rec   = work->rec0;
+    if (count != 0) {
+        goto check;
+    }
+move:
+    blk->delta.vx.w     = work->dir.vx / work->field_88.h.hi;
+    blk->delta.vy.w     = work->dir.vy / work->field_88.h.hi;
+    blk->delta.vz.w     = work->dir.vz / work->field_88.h.hi;
+    coord->coord.t[0]  += blk->delta.vx.w;
+    coord->coord.t[1]  += blk->delta.vy.w;
+    coord->coord.t[2]  += blk->delta.vz.w;
+    work->d4rec.field_A = -(work->field_88.w >> 10);
+    work->field_88.w   += 0x1800;
+    if (work->field_88.w > 0xFFFFF) {
+        goto explode;
+    }
+    work->dir.vy   = work->dir.vy + 0x10;
+    step           = work->field_90 + 1;
+    work->field_90 = step;
+    if (work->field_8C < 4 && step % 7 == 0) {
+        work->field_8C = work->field_8C + 1;
+    }
+    if (work->field_90 % work->field_8C == 0) {
+        Gp_SpawnEff(0x60070, coord, 0, NULL);
+    }
+    Gp_ClearRec18Occupied(work->rec0);
+    Gp_ClearRec18Occupied(work->rec1);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(M4a1GrenadeScratch);
+}
