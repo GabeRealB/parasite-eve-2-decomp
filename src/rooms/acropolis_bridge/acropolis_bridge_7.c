@@ -9,11 +9,10 @@
 #include "main/task.h"
 #include "rooms/acropolis_bridge.h"
 #include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017ed38.h"
 
 extern s16            D_80114D08;
 extern TaskFuncTable9 D_acropolis_bridge_8017D614;
-
-void func_acropolis_bridge_8017ED38(Task* task);
 
 s32 func_acropolis_bridge_8017F6D4(AcropolisBridgeHotspot* table, s16 x, s16 y);
 
@@ -21,7 +20,7 @@ s32 func_acropolis_bridge_8017F6D4(AcropolisBridgeHotspot* table, s16 x, s16 y);
 /// table on the stack and tails into the entry named by `Task::state`.
 void func_acropolis_bridge_8017F280(Task* task)
 {
-    TaskFunc states[2] = { Room_Util04, func_acropolis_bridge_8017ED38 };
+    TaskFunc states[2] = { Room_Util04, RoomsShared8017ed38 };
 
     states[task->state](task);
 }
