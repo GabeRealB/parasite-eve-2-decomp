@@ -36,12 +36,12 @@ extern s16 D_8007A396;
 extern s8  D_80072176;
 extern s8  D_80072177;
 /// "SELECT" — the panel title, owned by `mist_shooting_gallery.c`'s rodata.
-extern char         D_mist_shooting_gallery_8017DB04[];
+extern char         RoomsShared8017e28cTitle[];
 extern void*        D_mist_shooting_gallery_801853C0;
 extern u32          D_mist_shooting_gallery_8018D1B4[];
 extern u32          D_mist_shooting_gallery_8018DF38[];
 extern UiObjectDesc D_mist_shooting_gallery_8018535C;
-extern UiList       D_mist_shooting_gallery_80185338;
+extern UiList       RoomsShared8017e28cMenu;
 extern TaskDesc     D_mist_shooting_gallery_80185378;
 extern TaskDesc     D_mist_shooting_gallery_80185384;
 extern SVECTOR      D_mist_shooting_gallery_80185550[];

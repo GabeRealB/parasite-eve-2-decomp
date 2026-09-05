@@ -1090,4 +1090,4 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery",
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", RoomsShared8018055cCourses);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017DB04);
+INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", RoomsShared8017e28cTitle);

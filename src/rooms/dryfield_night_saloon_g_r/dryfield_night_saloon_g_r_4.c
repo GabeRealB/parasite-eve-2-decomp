@@ -5,8 +5,6 @@
 
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_4", func_dryfield_night_saloon_g_r_8017E28C);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_4", func_dryfield_night_saloon_g_r_8017E564);
 
 s32 func_dryfield_night_saloon_g_r_8017E698(void)
