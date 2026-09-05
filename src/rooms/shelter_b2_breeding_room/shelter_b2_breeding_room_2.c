@@ -6,11 +6,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern u8  D_80115598;
-extern s32 D_shelter_b2_breeding_room_80180414;
-
 s32 func_800E3FCC(s32 arg0);
-
 /// Task table spawned by `func_shelter_b2_breeding_room_8017D6A4` once the
 /// breeding-room script has run.
 extern TaskDesc D_shelter_b2_breeding_room_80180444[];
@@ -54,18 +50,4 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
     }
 }
 
-void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
-{
-    arg0->field_24 = &D_shelter_b2_breeding_room_80180414;
-    Game_SetPtrSlot(arg0, 7);
-    arg0->state = (s32)(arg0->state + 1);
-    D_80115598  = 1;
-}
-
-void func_shelter_b2_breeding_room_8017D838(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D840);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D898);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", jtbl_shelter_b2_breeding_room_8017D5D0);
