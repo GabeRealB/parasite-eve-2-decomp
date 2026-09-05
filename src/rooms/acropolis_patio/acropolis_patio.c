@@ -17,9 +17,24 @@ typedef struct {
     /* 0x6 */ u16 field_6;
 } AcropolisPatioMsg8;
 
+/// Four-byte payload this room hands `Gp_DispatchMsg` as `arg2` for message
+/// 0x7DB once the session is on its second visit.
+typedef struct {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} AcropolisPatioSlotMsg;
+
 extern s8       D_8007272D;
 extern s16      D_80071076;
+extern u8       D_8007216D;
 extern TaskDesc D_acropolis_patio_801802BC;
+extern s32      D_acropolis_patio_8018028C;
+extern s32      D_acropolis_patio_80180428;
+extern s32      D_acropolis_patio_80180440;
+extern s32      D_acropolis_patio_8018044C;
+extern s32      D_acropolis_patio_8018046C;
+extern Task*    D_acropolis_patio_80187060;
 extern s32      D_acropolis_patio_80180DEC;
 extern s32      D_acropolis_patio_80180EDC;
 extern u8       D_acropolis_patio_80187064;
@@ -31,7 +46,46 @@ extern s32      D_acropolis_patio_80180C64;
 extern s32      D_acropolis_patio_8018280C;
 extern s32      D_acropolis_patio_80182BE4;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio", func_acropolis_patio_8017D5EC);
+/// Room entry task tick. Publishes the room's own record at
+/// `Task::field_24` / pointer slot 7, then re-issues the messages the room's
+/// actors need for the current point in the story: the first visit
+/// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
+/// cutscene, and the second-visit branches replace them according to
+/// `Game_Session::field_9`.
+void func_acropolis_patio_8017D5EC(Task* arg0)
+{
+    AcropolisPatioSlotMsg msg;
+    s32                   temp;
+
+    arg0->field_24 = &D_acropolis_patio_8018028C;
+    Game_SetPtrSlot(arg0, 7);
+    if (GameFlag_GetNibble(0) < 2) {
+        if (D_8007216D == 1) {
+            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_patio_80180428, 0);
+            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_acropolis_patio_8018044C, 0);
+            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D5, 1, 0);
+            D_acropolis_patio_80187060 = Task_SpawnFromTable(&D_acropolis_patio_801802BC, 2, 0, 0);
+        }
+        temp = Gp_LookupSlot4(1);
+        if (temp != 0) {
+            Gp_DispatchMsg((Task*)temp, 0x7D4, (s32)&D_acropolis_patio_8018046C, 0);
+        }
+    }
+    if ((Game_Session->field_9 == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
+        temp = Gp_LookupSlot4(1);
+        if (temp != 0) {
+            Gp_DispatchMsg((Task*)temp, 0x7DB, (s32)&D_acropolis_patio_80180440, 0);
+        }
+    }
+    if ((Game_Session->field_9 == 2) && (GameFlag_GetNibble(0x26) == 0)) {
+        msg.field_0 = 1;
+        msg.field_1 = 3;
+        msg.field_2 = 0;
+        Gp_DispatchMsg((Task*)Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
+        Gp_DispatchMsg((Task*)Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
+    }
+    arg0->state = arg0->state + 1;
+}
 
 s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, AcropolisPatioMsg8* arg3)
 {

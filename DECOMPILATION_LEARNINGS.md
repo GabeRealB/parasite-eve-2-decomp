@@ -49801,3 +49801,39 @@ also costs the load-delay slot the `lhu` form had filled. Suspect a `getClut`
 whenever a clut is built from a frame index and the load is `lh` where your
 `& 0x3f` gives `lhu` — the `x * 16` is the per-frame palette stride, so it is
 the natural source, not a trick.
+
+## `&local` on a scalar spills to a callee-saved register; on a struct it is recomputed
+
+m2c turns a small stack payload into one scalar local per store — `s8 sp10; s8
+sp11; s16 sp12;` — and passes `&sp10` as the argument. That costs three
+separate penalties at once, all of which the single struct fixes:
+
+- **the dead stores vanish.** `sp11` / `sp12` are never read, and GCC deletes
+  dead stores to *scalar* locals (unlike the aggregate case in "Immediate
+  stores to stack slots nothing reads are dead struct-field writes"), so
+  `sb v0,0x11(sp)` and `sh zero,0x12(sp)` are simply missing.
+- **the address gets CSE'd into a callee-saved register.** With two calls
+  taking `&sp10`, cse makes the address a pseudo; it is live across a `jal`, so
+  reg-alloc parks it in `$s0` and emits `move a2,s0` at each site. The target
+  instead recomputes `addiu a2,sp,0x10` before each call.
+- **the frame and the saved-register set grow** to hold that extra `$sN`
+  (`-0x28` and a second `sw sN` instead of `-0x20`), which also pushes `arg0`
+  from `$s0` to `$s1`.
+
+Declaring one struct and passing `&msg` is enough:
+
+```c
+typedef struct { u8 field_0; u8 field_1; u16 field_2; } SlotMsg;
+SlotMsg msg;
+msg.field_0 = 1; msg.field_1 = 3; msg.field_2 = 0;
+Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
+Gp_DispatchMsg(Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
+```
+
+The aggregation, not the store count, is what stops the CSE: an attempt that
+kept the struct but assigned only `field_0` still had the frame, the register
+choice and both `addiu a2,sp,0x10` right, and differed only by the two dropped
+stores. `func_acropolis_patio_8017D5EC` went from 90.96%
+(`branch=9 regs=17 insert=5 delete=5`) to 100% on that one edit, so read a
+`&sp<N>` in an m2c seed whose neighbouring slots are written but never read as
+"this was one struct".
