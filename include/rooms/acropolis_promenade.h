@@ -53,22 +53,6 @@ typedef struct ApmGlowScratch {
 } ApmGlowScratch;
 STATIC_ASSERT_SIZEOF(ApmGlowScratch, 0x24);
 
-/// Per-frame scratch the promenade's glow-sprite task
-/// (`func_acropolis_promenade_8017F0BC`) builds at `G_SCRATCH_HEAD`: `pos` is
-/// the task coordinate's translation, projected through `GsWSMATRIX` into
-/// `sxy`, `otz` is the resulting depth and `half` the half-extent
-/// (`0x6180 / otz`) the camera-facing quad is drawn at, so the sprite shrinks
-/// with distance. The block is exactly the 0x14 bytes the task reserves off
-/// the scratch head, and is laid out like the fountain's
-/// `AcropolisFountainSprayScratch`.
-typedef struct ApmGlowSpriteScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     half;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ DVECTOR sxy;
-} ApmGlowSpriteScratch;
-STATIC_ASSERT_SIZEOF(ApmGlowSpriteScratch, 0x14);
-
 /// Per-frame scratch the promenade's twinkle task
 /// (`func_acropolis_promenade_8017E634`) builds at `G_SCRATCH_HEAD`: `pos` is
 /// the task coordinate's translation, projected through `GsWSMATRIX` into
