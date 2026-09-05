@@ -418,6 +418,14 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b);
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
 void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Draws the tapered light beam between the two local-space points `arg1` and
+/// `arg2` of `arg0`: both are rotated by the coordinate's `workm`, offset by
+/// its translation and projected through `GsWSMATRIX`, then joined by three
+/// `POLY_G4`s per quarter turn -- a wedge on each end cap and a side quad
+/// between the two circles. `arg3` is a signed half-extent, giving the screen
+/// radii `(s16)arg3 * 64 / otz0` and `(s16)arg3 * 64 / otz1`. Nothing is drawn
+/// when the far end's `otz` is below 0x11.
+void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 /// Same rotated shade-tex `POLY_FT4` as `Room_Draw27` (same 0x1C scratch
 /// layout, tpage 0x2B, clut 0x43D3), but `arg1` selects the UV column
 /// `(arg1 & 0xFFFF) << 5` rather than `(s16)arg1 << 5`.
@@ -693,6 +701,27 @@ STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
 /// drawn with - `rOuter` for the eight outer `POLY_G4` wedges, `rInner` for
 /// the two inner ones.
 typedef RoomDraw09Scratch RoomBillboardScratch;
+
+/// 0x28-byte scratch block `Room_Draw24` takes from `G_SCRATCH_HEAD`. `vec0`
+/// and `vec1` are the beam's two endpoints, rotated out of the caller's local
+/// space by the coordinate's `workm` and offset by its translation; `sx0`/`sy0`
+/// and `sx1`/`sy1` are those two points projected through `GsWSMATRIX`, with
+/// `otz0` / `otz1` their `gte_stszotz`. `r0` and `r1` are the matching screen
+/// radii, `(s16)arg3 * 64` divided by each `otz`, so the beam narrows with
+/// distance.
+typedef struct _RoomDraw24Scratch {
+    /* 0x00 */ s32     otz0;
+    /* 0x04 */ s32     otz1;
+    /* 0x08 */ s32     r0;
+    /* 0x0C */ s32     r1;
+    /* 0x10 */ SVECTOR vec0;
+    /* 0x18 */ SVECTOR vec1;
+    /* 0x20 */ u16     sx0;
+    /* 0x22 */ u16     sy0;
+    /* 0x24 */ u16     sx1;
+    /* 0x26 */ u16     sy1;
+} RoomDraw24Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw24Scratch, 0x28);
 
 /// 0x1C-byte scratch block `Room_Draw27` takes from `G_SCRATCH_HEAD`. Same
 /// projection preamble as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`,

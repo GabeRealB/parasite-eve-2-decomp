@@ -3,8 +3,11 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/pad.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
 #include "main/text.h"
 #include "main/ui.h"
 
@@ -17,9 +20,79 @@ extern TaskDesc D_map_akropolis_8017AA00;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_map_akropolis_8017A9E4;
 
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179950);
+/// MDEC buffer layout hook for the Akropolis map, reached from
+/// `Mdec_SetupBuffers` (main) for the stream kinds this overlay plays. Every
+/// kind parks the two VLC buffers (`D_8006AC50`) and the two decode buffers
+/// (`D_8006AC48`) around the frame allocation; they differ in how far apart
+/// the halves sit — one frame (kinds 6/9/10), one and a half (11/14) — and in
+/// whether they also resize the display. `D_8006AC44` always ends up one full
+/// frame past the second decode buffer.
+void func_map_akropolis_80179988(u8* arg0)
+{
+    CdCmdQueue* q = &CdCmd_Queue;
+    s16         one;
+    s32         strideA;
+    s32         strideB;
+    s32         halfA;
+    s32         halfB;
 
-INCLUDE_ASM("mapui/nonmatchings/map_akropolis/map_akropolis", func_map_akropolis_80179988);
+    switch (arg0[2]) {
+        case 5:
+            q->field_22C  = 1;
+            q->field_230  = 0x2C0;
+            D_8006AC3C    = 0;
+            q->field_232  = 0;
+            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC50[1] = (u_long*)D_8006AC40;
+            D_8006AC48[1] = (u_long*)((u8*)D_8006AC40 + D_8006AC5A * D_8006AC6C);
+            D_8006AC48[0] = D_8006AC48[1];
+            break;
+        case 8:
+            /* The loop note pins `li 1` at the top of the block; without it the
+               scheduler sinks it past the two display-size stores. */
+            do {
+                one = 1;
+            } while (0);
+            q->field_230           = 0x180;
+            q->field_232           = 0x100;
+            D_8006AC5C             = one;
+            q->field_22C           = one;
+            strideA                = D_8006AC5A * D_8006AC6C * 2;
+            D_8006AC50[0]          = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC48[0]          = (u_long*)D_8006AC40;
+            D_8006AC50[1]          = (u_long*)((u8*)D_8006AC50[0] + strideA);
+            D_8006AC48[1]          = (u_long*)((u8*)D_8006AC48[0] + strideA);
+            Game_Session->field_80 = 0;
+            q->field_24A           = one;
+            break;
+        case 6:
+        case 9:
+        case 10:
+            strideB       = D_8006AC5A * D_8006AC6C * 2;
+            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC50[1] = (u_long*)D_8006AC40;
+            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + strideB);
+            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + strideB);
+            break;
+        case 11:
+            halfA         = D_8006AC5A * D_8006AC6C;
+            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC50[1] = (u_long*)D_8006AC40;
+            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + halfA * 3 / 2);
+            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + halfA * 2);
+            break;
+        case 14:
+            halfB         = D_8006AC5A * D_8006AC6C;
+            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC48[0] = (u_long*)D_8006AC40;
+            D_8006AC50[1] = (u_long*)((u8*)D_8006AC50[0] + halfB * 3 / 2);
+            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + halfB * 2);
+            break;
+    }
+    D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
+    Game_Session->field_7C = 0;
+    Game_Session->field_7E = 0;
+}
 
 /// Draws one row of the Akropolis map's key-item list: the item's name at the
 /// row's position, previewed while the row is highlighted. Confirming on the
