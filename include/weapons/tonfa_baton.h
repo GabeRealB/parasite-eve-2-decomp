@@ -60,8 +60,25 @@ extern GsCOORDINATE2 D_tonfa_baton_8012BE6C[8];
 /// `Task::spawnArg1` and passed to `func_tonfa_baton_8011D6B0` every frame.
 extern s16 D_tonfa_baton_8012C0EC;
 
-/// Draws one segment of the trail: `slot` is the index into the trail arrays,
-/// `flags` the primitive/blend selector.
-void func_tonfa_baton_8011D6B0(s32 slot, s32 flags);
+/// 0x2C-byte scratch `func_tonfa_baton_8011D6B0` carves off `G_SCRATCH_HEAD`
+/// for one trail segment: `v` is the quad's four corners, taken from the
+/// translation of the two trail coordinates at each end of the segment, `flag`
+/// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its
+/// `gte_stszotz`, which picks the OT bucket the `POLY_G4` is linked into.
+typedef struct _TonfaBeamScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     flag;
+    /* 0x28 */ s32     unused;
+} TonfaBeamScratch;
+STATIC_ASSERT_SIZEOF(TonfaBeamScratch, 0x2C);
+
+/// Draws the trail as seven Gouraud quads, one per trail slot, walking
+/// backwards from `slot`. Each quad spans the near and far trail coordinates
+/// of two adjacent slots and fades out along the trail: the leading edge is
+/// scaled by `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the
+/// trail colour, three 2-bit channels at bits 8, 4 and 0 that each multiply
+/// that fade.
+void func_tonfa_baton_8011D6B0(s16 slot, s16 flags);
 
 #endif
