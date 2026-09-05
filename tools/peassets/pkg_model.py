@@ -359,8 +359,8 @@ def extract_package_models(output_path: Path, store=None, *, limit: int | None =
 
     Every mesh with a `TmdSource` is an `EMBEDDED_ASSETS` placement, so
     `store_embedded_assets` already carves it on any extraction mode. What is
-    left is the 30 streams the opcode walk finds that no source points at:
-    either models whose source we cannot locate, or walk false positives. This
+    left is the 35 streams the opcode walk finds that no source overlaps:
+    either models drawn without a `TmdSource`, or walk false positives. This
     is therefore the discovery path, and re-carving the catalogued ones here
     would only duplicate work the store would dedup away.
 
@@ -390,11 +390,23 @@ def extract_package_models(output_path: Path, store=None, *, limit: int | None =
         # kept for streams no source points at, which are the ones we are least
         # sure about, so they stay behind its stricter guard.
         srcs = find_sources_direct(data, base) if base is not None else {}
-        sourced = {va - base for va in srcs} if base is not None else set()
+        # Overlap, not equality. A source names the stream's real start; the
+        # walk can latch onto a plausible opcode a few words earlier and report
+        # the same model from a different offset - actor_400600's 18-part mesh
+        # is sourced at 0x0C1EC and walked from 0x0C1DC. Comparing starts calls
+        # that orphaned and carves it twice.
+        spans = []
+        for stream_va in srcs:
+            walked = walk_stream(data, stream_va - base)
+            if walked:
+                spans.append((stream_va - base, walked[1]))
         streams = [
             {**stream, "src": None}
             for stream in find_streams(data)
-            if int(stream["offset"], 16) not in sourced
+            if not any(
+                int(stream["offset"], 16) < c_end and int(stream["end"], 16) > c_start
+                for c_start, c_end in spans
+            )
         ]
         located += len(streams)
         for stream in streams:
