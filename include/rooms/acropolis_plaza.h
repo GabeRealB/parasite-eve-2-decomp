@@ -48,7 +48,9 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 /// `Task::spawnArg1` every frame, but the semi-transparent full-screen `TILE`
 /// the task links into `Gpu_CurrentOt[-16]` takes its blue from `r`, so `b` is
 /// only ever stepped and never read. The task kills itself (and blanks the
-/// display) once `r` reaches 0x100.
+/// display) once `r` reaches 0x100. The fade-in counterpart at 0x8017DA58 is
+/// the shared `RoomsShared8017da58` body under `src/rooms/lib/`, which repeats
+/// this layout privately because the Dryfield water tank uses it too.
 typedef struct AcropolisPlazaFadeWork {
     /* 0x0 */ byte pad_0[0x2];
     /* 0x2 */ s16  r;

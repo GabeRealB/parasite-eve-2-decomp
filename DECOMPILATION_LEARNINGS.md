@@ -48742,3 +48742,36 @@ for p in itertools.permutations([5, 6, 7, 8]):
 Six of the 24 scored above 99.8% and two hit 100%, which is also the useful
 signal: if no permutation clears ~99%, the residual is not store order and the
 sweep costs a minute to rule it out.
+
+## Promoting a shared body re-cuts the *sharer's* units, and its rodata key
+
+`overlay_dup_index.py promote` writes a `shared` span into every overlay that
+carries the body. In the overlay you just matched the span usually lands on a
+cut that already existed, so its unit numbering is unchanged; in the *other*
+sharer it can fall in the middle of a unit and split it in two. That has two
+consequences the build reports only indirectly.
+
+Splat generates a `src/…/<unit>_N.c` for the new tail unit but leaves the old
+`<unit>_M.c` alone, so the old file still carries `INCLUDE_ASM` lines naming
+functions that moved. The error is `can't open asm/…/<unit>_M/func_….s`.
+Trim the old file to the functions still in its range and hand the rest to the
+new one — and note that any already-decompiled bodies in the old file belong to
+whichever unit now covers their address, so move them across by hand. Deleting
+the file to let splat re-emit it silently reverts those matches to
+`INCLUDE_ASM`; the build still succeeds, which is what makes it easy to miss.
+
+Then the manifest's `rodata` key can end up on the wrong side of the cut. It
+names the unit that *owns* the leading rodata block, and the jump tables in that
+block are referenced by whichever functions use them — if those functions moved
+to the new tail unit, the reference and the definition are now in different
+objects and the link fails with `undefined reference to jtbl_…`. Find the
+referencing functions and point the key at their unit:
+
+```
+grep -rl 'jtbl_<overlay>_<addr>' asm/USA/<family>/*matchings/<overlay>/ | grep -v jtbl_
+```
+
+`dryfield_water_tank` is the worked example: promoting
+`func_acropolis_plaza_8017DA58` split its unit 3 at `0x8017E220`, and the three
+jump-table users moved to unit 4, so `rodata = [{ start = "0x10", unit =
+"dryfield_water_tank_3" }]` had to become `…_4`.
