@@ -44968,3 +44968,37 @@ The general lever: when statement permutation and temporaries all collapse to
 one RTL, the remaining knob is the *induction variables*, not the statement
 order. Naming (or un-naming) an `i + K` subscript adds or removes a giv, and
 that is a live-range change the later schedulers will not undo.
+
+## A "handwritten" GTE draw routine is usually a near-copy of one already matched in another family
+
+`func_m4a1_hammer_8011E29C` (weapons) is byte-for-byte
+`func_mist_shooting_gallery_801826C4` (rooms) apart from two added
+`block->otz++` statements — same struct layout, same UV constants, same
+register allocation, same 0x20-byte `G_SCRATCH_HEAD` block. Yet
+`overlay_dup_index.py find` reported no copies: the index groups exact bodies,
+so a two-instruction delta hides the twin, and it never looks across families
+anyway.
+
+These routines (project one or two points with `RTPS`, divide a half-size by
+`otz`, spin it with `rsin`/`rcos`, then `addPrim` into the OT bucket) recur
+across gameplay, rooms, actors and weapons. Before matching one, find its twin
+by its callee set rather than by name:
+
+```
+grep -rn "ratan2(" src/            # or rsin(/gte_stszotz, whichever is rarer
+```
+
+then diff the two disassemblies with the addresses and labels stripped:
+
+```sh
+norm() { grep -oP '\*/\s+\K.*' "$1" \
+  | sed 's:/\*.*::; s/\s\+$//; s/\.L[A-Za-z0-9_]*/LBL/g; s/0x[0-9A-F]\{6,\}/ADDR/g'; }
+diff -u <(norm matched.s) <(norm target.s)
+```
+
+A diff of a handful of lines means the whole C body ports over, including the
+scratch struct and the argument types — here the diff was two four-line hunks
+and the port scored 100% on the first build. The argument types are worth
+copying verbatim: the size argument was `s16` (its `sll 16; sra 16` is delayed
+to the multiply) while the strip selector was `s32`, which is the opposite of
+what the placeholder header declared.
