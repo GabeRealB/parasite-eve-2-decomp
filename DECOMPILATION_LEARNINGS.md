@@ -48172,3 +48172,99 @@ pointer was coloured `$a1` instead of `$a2`, which in turn changed the jal's
 delay slot. 99.396% with `regs=3 reorder=3` became 100% by substituting the
 single macro call. When a primitive's initialisation nearly matches, spell it
 with the Psy-Q macro and let the scheduler produce the order you see.
+
+## A shared constant sinks to its first use; a loop note pins it at the block top
+
+GCC 2.8.1 does not keep `s16 one = 1;` where you wrote it. The pseudo carries a
+`REG_EQUIV (const_int 1)` note, and by the `.lreg` dump the `li` has been moved
+down to just before the first store that uses it — even when the assignment is
+the first statement of the block. Compare the `.combine` and `.lreg` dumps for
+the same file: in `.combine` the `const_int 1` insn precedes the other two
+constants, in `.lreg` it follows them.
+
+In `func_map_akropolis_80179988` (case 8 of an MDEC-setup switch) the target
+opens the block with `li $t0, 1` and only uses `$t0` eleven instructions later,
+for three separate `sh` stores. Every source order that keeps the two `sh $t0`
+stores in the target's order sank the `li` three slots, and no statement
+permutation recovered it — the position of the `li` is fixed by the pass, not by
+where the assignment sits.
+
+Wrapping just the assignment in a degenerate loop fixes it, because the
+`NOTE_INSN_LOOP_BEG` / `NOTE_INSN_LOOP_END` pair bounds how far the scheduler
+may move the insn:
+
+```c
+/* The loop note pins `li 1` at the top of the block. */
+do {
+    one = 1;
+} while (0);
+q->field_230 = 0x180;
+q->field_232 = 0x100;
+D_8006AC5C   = one;
+q->field_22C = one;
+```
+
+Two traps in getting there. Declare the shared constant `s16`/`u16`, not `s32`:
+an `SImode` `1` in a register is a CSE candidate for a shift count, and a later
+`x * 2` in the same block comes out as `sllv $a3, $t2, $t0` instead of
+`sll $a3, $t2, 1`. And split a helper local that several switch cases reuse
+(`stride`, `prod`) into one local per case — a single reused local is one pseudo
+with a whole-function live range, which costs a register everywhere and was
+worth 71.6% -> 97.5% here on its own.
+
+## A compiler-generated jump table needs `rodata_head` even when the head is one word
+
+`configs/USA/overlays.toml` documents the `rodata` / `units` cut for a generated
+jump table, but the case that actually bites is the smallest one: a flat overlay
+whose `.rodata` is a single header word followed by the table. `map_akropolis`
+starts with `D_map_akropolis_80179950` at 0x0 and `jtbl_map_akropolis_80179954`
+at 0x4, and while the function was `INCLUDE_ASM` the whole run sat in one
+`.rodata` subsegment owned by the C unit.
+
+Decompiling the function makes GCC emit its own table with `.align 3`. The
+object's `.rodata` then begins with the four bytes of `INCLUDE_RODATA(...,
+D_map_akropolis_80179950)`, the `.align 3` pads to eight, and every byte from
+0x80179954 on shifts by four — the overlay links and builds clean, and only the
+checksum fails. Give the header word its own subsegment and drop its
+`INCLUDE_RODATA` from the C file so the table starts the unit's `.rodata`:
+
+```toml
+map_akropolis = { text = [0x38, 0x6F8], rodata_head = "0x4", note = "..." }
+```
+
+`map_neo_ark` and `map_shelter` in the same family are already cut this way.
+
+## An empty-`asm` on the reused local hides the reused-local signature
+
+The give-up seed for `Room_Draw21` had already been round the loop described in
+"At a loop head the same reused local costs `dbr` the delay slot": the same
+`Room_Draw05`-family second loop, the same `u` assigned three times, the same
+`lui $t0, %hi(Gpu_PrimCursor)` fighting `addiu $s0, $s4, -0x400` for the loop's
+first slot. What it did about it was pin the loop variable:
+
+```c
+prim           = (POLY_G4*)Gpu_PrimCursor;
+TOUCH_REG(ang);
+u              = ang - 0x400;
+Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+```
+
+That reached 99.904% with `reorder=1` and nothing else -- the `lui` was sunk to
+the loop end and taken by the back-edge delay slot correctly, and the only
+leftover was the `addiu`/`lw` pair swapped at the loop head. The `branch=2
+insert=1` fingerprint the corpus tells you to look for was gone, so the entry
+that solves this function does not surface when you go looking by symptom.
+
+The barrier is doing real work, which is why it is misleading: moving the
+`TOUCH_REG` above the `addiu` restores the correct `addiu`/`lw` order but
+un-sinks the `lui` (`regs=2 insert=1 delete=1`), and removing it entirely gives
+`dbr` the `addiu` for the delay slot (`branch=2 reorder=1 insert=1`). Nine
+variants of statement order and barrier placement all landed in one of those
+two families. Splitting `u` into `ua`/`ub`/`uc` -- one local per assignment,
+with the barrier deleted -- matched on the first try.
+
+So when a seed contains an empty-`asm` macro on a loop variable, unpin it
+*and* apply the structural fix in the same attempt. Scoring the unpinned
+version alone reproduces the original failure and looks like a dead end, and
+scoring the pinned version alone reports a penalty mix that belongs to the
+workaround rather than to the bug.
