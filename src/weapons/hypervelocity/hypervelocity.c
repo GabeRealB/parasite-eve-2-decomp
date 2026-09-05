@@ -40,7 +40,7 @@ void WeaponsShared8011e4ac(Task* task);
 
 void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 side);
 void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang);
-void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s16 spin);
+void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
 /// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift
@@ -592,6 +592,100 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
     *scratch = (u8*)*scratch + sizeof(HyperQuadScratch);
 }
 
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011E8A0);
+/// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
+/// found under the flare. `ground`'s `workm` translation is the traced point
+/// and `spin` the quad's half-size: the unit quad `D_80111E38` is scaled by it
+/// in the ground plane (Y stays 0), rotated by `Gfx_ViewWorldMtx` so the quad
+/// lies flat in world space, and moved onto the ground point. One `RTPS` plus
+/// one `RTPT` project the four corners, and the whole quad is dropped if the
+/// first corner fails its `FLAG` check. The texture is the two-frame 0x28-page
+/// strip at rows 0x38..0x57, the frame picked by the low bit of
+/// `Display_State.field_8` so it flickers every other field.
+///
+/// `u` is latched before each pair of stores on purpose: writing the `POLY_FT4`
+/// byte straight from the expression lets GCC fold the store's truncation back
+/// into the `Display_State.field_8` load and the `+ 0xC0` / `+ 0xDF`, which the
+/// ROM does not do.
+void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
+{
+    void**              scratch;
+    register u8*        head asm("v1");
+    HyperGroundScratch* sc;
+    POLY_FT4*           prim;
+    GpQuadCorner*       tbl;
+    register SVECTOR*   v asm("a2");
+    s32                 i;
+    s32                 otz;
+    s32                 flag;
+    s32                 u;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch - sizeof(HyperGroundScratch);
+    sc       = (HyperGroundScratch*)head;
+    *scratch = head;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i   = 0;
+    v   = sc->vec;
+    tbl = D_80111E38;
+    do {
+        v->vx = tbl->x * spin;
+        v->vy = 0;
+        v->vz = tbl->y * spin;
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(v);
+        gte_rtv0_real();
+        gte_stsv(v);
+        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&ground->workm.t[0];
+        tbl++;
+        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&ground->workm.t[1];
+        i++;
+        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&ground->workm.t[2];
+        v++;
+    } while (i < 4);
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&sc->vec[0]);
+    gte_rtps_real();
+    gte_stsxy(&sc->sxy0);
+    gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
+    gte_stflg(&flag);
+    if (flag >= 0) {
+        gte_stszotz(&otz);
+        otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2E);
+        prim->r0    = 0x30;
+        prim->g0    = 0x30;
+        prim->b0    = 0x30;
+        prim->tpage = 0x28;
+        prim->clut  = 0x428B;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        prim->v0    = 0x38;
+        prim->u0    = u;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        prim->v1    = 0x38;
+        prim->u1    = u;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        prim->v2    = 0x57;
+        prim->u2    = u;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        prim->v3    = 0x57;
+        prim->u3    = u;
+        prim->x0    = sc->sxy0.vx;
+        prim->y0    = sc->sxy0.vy;
+        prim->x1    = sc->sxy1.vx;
+        prim->y1    = sc->sxy1.vy;
+        prim->x2    = sc->sxy2.vx;
+        prim->y2    = sc->sxy2.vy;
+        prim->x3    = sc->sxy3.vx;
+        prim->y3    = sc->sxy3.vy;
+        addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(HyperGroundScratch);
+}
 
 INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011EC1C);

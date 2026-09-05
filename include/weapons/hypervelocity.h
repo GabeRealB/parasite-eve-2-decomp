@@ -91,6 +91,23 @@ typedef struct HyperQuadScratch {
 } HyperQuadScratch;
 STATIC_ASSERT_SIZEOF(HyperQuadScratch, 0x1C);
 
+/// 0x30-byte scratchpad block `func_hypervelocity_8011E8A0` reserves for the
+/// scorch quad the round paints on the ground it is aimed at. `vec` holds the
+/// four corners of the unit quad `D_80111E38` scaled to the flare's radius in
+/// the ground plane (`vy` is always 0), rotated by `Gfx_ViewWorldMtx` and
+/// shifted onto the traced ground point; `sxy0`..`sxy3` are the four screen
+/// corners the single `RTPS` + `RTPT` pair projects them to. Unlike the other
+/// blocks in this overlay it carries no `otz` / `flag` - those are function
+/// locals here.
+typedef struct HyperGroundScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ DVECTOR sxy0;
+    /* 0x24 */ DVECTOR sxy1;
+    /* 0x28 */ DVECTOR sxy2;
+    /* 0x2C */ DVECTOR sxy3;
+} HyperGroundScratch;
+STATIC_ASSERT_SIZEOF(HyperGroundScratch, 0x30);
+
 /// 0x38 block the round's spawn state allocates with `Mem_Calloc` and parks in
 /// `Task::idMap`. It leads with the `GpObj` list node `WeaponsShared8011e4ac`
 /// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry

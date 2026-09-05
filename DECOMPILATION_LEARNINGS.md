@@ -45451,3 +45451,59 @@ unchanged, and the callee now uses `$a1` raw. The matched gameplay sibling
 `Gp_DrawEffQuadT29` has the same loop with an `s32` parameter, which is the
 tell: when a sibling body matches with `s32` and yours only differs by the two
 extension instructions, move the truncation outwards rather than casting inside.
+
+## Latch a byte-field value in an `s32` local, or combine narrows the global's `lw` to `lbu`
+
+**Problem.** `func_hypervelocity_8011E8A0` fills a `POLY_FT4`'s `u` coordinates
+from a global word:
+
+```
+lw     v0, 0x8(a2)        # Display_State.field_8, a2 = &Display_State
+li     v1, 0x38
+sb     v1, 0xD(a1)        # prim->v0
+andi   v0, v0, 0x1
+sll    v0, v0, 5
+addiu  v0, v0, 0xC0
+sb     v0, 0xC(a1)        # prim->u0
+```
+
+The obvious C
+
+```c
+prim->u0 = ((Display_State.field_8 & 1) << 5) + 0xC0;
+prim->v0 = 0x38;
+```
+
+gets the whole shape right — schedule, register allocation, the reused `$v1`
+holding `0x38` — but emits `lbu v0, 0x8(a2)` and `addiu v0, v0, -0x40`.
+
+**Symptom.** Two mismatches that always travel together: the global's load
+narrows from `lw` to `lbu`, and every additive constant wraps into its signed
+byte (`0xC0` → `-0x40`, `0xDF` → `-0x21`). Nothing about the surrounding code
+differs, so it reads like a struct-field-type problem — but `field_8` really is
+`s32`, and casting it (`(u8)Display_State.field_8`) only makes the `lbu`
+deliberate rather than fixing it.
+
+**Cause.** Combining the `+ 0xC0` into the `sb` gives combine a QImode
+destination for the whole expression. `force_to_mode` then pushes an 8-bit mask
+back down the chain: the constant becomes `-0x40`, the `sll`'s operand mask
+drops to `0x07`, the `andi`'s to `0x01`, and the load — still a `MEM` at that
+point — narrows to `(mem:QI)`.
+
+**Fix.** Give the sum its own `s32` local and store it *after* an unrelated
+store, so the value reaching the `sb` is a plain register and combine has
+nothing to narrow:
+
+```c
+u        = ((Display_State.field_8 & 1) << 5) + 0xC0;
+prim->v0 = 0x38;
+prim->u0 = u;
+```
+
+Order matters: the intervening `prim->v0` store is what stops combine from
+re-merging the add into the byte store. The scheduler still emits the pair in
+the ROM's `lw` / `li` / `sb v` / `andi` / … order, so this costs nothing else.
+Read it as the general rule for byte-wide prim fields — if a `u8`/`s8` store is
+fed by arithmetic on anything wider, latch the arithmetic in an `s32` local
+first and only widen back to the inline expression if the ROM shows the
+narrowed form.
