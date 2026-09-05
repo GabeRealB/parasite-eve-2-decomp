@@ -1,10 +1,13 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/acropolis_bridge.h"
@@ -21,12 +24,280 @@
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
-extern s32  Gp_LcgState;
+extern s32 Gp_LcgState;
+extern s32 D_80115738;
+extern s32 D_8011574C;
+
+extern GpMsgEntry D_acropolis_bridge_801898FC[];
+extern SVECTOR    D_acropolis_bridge_8018991C[7];
+extern SVECTOR    D_acropolis_bridge_80189954[7];
+extern SVECTOR    D_acropolis_bridge_8018998C[11];
+extern SVECTOR    D_acropolis_bridge_801899E4;
+extern u16        D_acropolis_bridge_801899EC[8];
+extern u16        D_acropolis_bridge_801899FC[16];
+extern u16        D_acropolis_bridge_80189A1C[11];
+extern u16        D_acropolis_bridge_80189A32;
+extern SVECTOR    D_acropolis_bridge_80189A34[2];
+extern SVECTOR    D_acropolis_bridge_80189A44;
+extern SVECTOR    D_acropolis_bridge_80189A4C;
+
 extern void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
 extern void func_acropolis_bridge_80182F8C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 extern void func_acropolis_bridge_801833A0(GsCOORDINATE2* arg0, u16 arg1, s16 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_8017F868);
+/// Per-frame driver for the bridge's ambient effect field, and the room's
+/// message-table owner. On the first frame it publishes
+/// `D_acropolis_bridge_801898FC` as slot 5's `Gp_DispatchMsg` table and seeds
+/// `D_acropolis_bridge_80189A34` with the two tracked cable joints' world
+/// positions.
+///
+/// Each frame it re-spawns the effects the current camera can see: the two
+/// per-view bitmask tables (`D_acropolis_bridge_801899EC` /
+/// `D_acropolis_bridge_80189A1C`) say which of the placed emitters are visible
+/// from view `Gp_GetViewIndex()`, and each visible entry spawns its dust
+/// (0x600B1 / 0x600B2) or spark (0x600B3) at the matching `SVECTOR`. View 9
+/// lifts the dust 0x240 above the placed point.
+///
+/// On views 2, 5 and 6 (`bit & 0x62`) it also trails debris off the two moving
+/// joints: `field_26` is the Manhattan distance the joint travelled since last
+/// frame, biased by 0x20, and two `Gp_LcgState` rolls against that distance
+/// decide whether this frame emits `D_8011574C` / `D_80115738`. The joint's
+/// new position is written back for the next frame's delta.
+///
+/// `D_acropolis_bridge_801899FC` finally maps the view onto one of five
+/// looping ambience effects (0x600B4..0x600B8): entering the view bursts 30
+/// copies at once, staying in it emits one per frame, or one in two / one in
+/// three while `Gp_State1C->field_16` says the scene is quiet.
+void func_acropolis_bridge_8017F868(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* part;
+    Task*          owner;
+    SVECTOR        pos;
+    u8             view;
+    s32            bit;
+    s32            i;
+    s32            delta;
+    s32            axis;
+    s32            dist;
+    s32            prev;
+    s16            lastView;
+    u16            rnd;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    owner = Game_GetPtrSlot(3);
+    part  = ((TmdObject*)owner->extra)->field_8;
+    view  = Gp_GetViewIndex();
+    if (Gp_State1C->field_4 >= 4) {
+        return;
+    }
+
+    if (task->state == 0) {
+        Game_Session->field_80 = 0;
+        task->field_24         = D_acropolis_bridge_801898FC;
+        Game_SetPtrSlot(task, 5);
+        D_8011574C  = 0x600B9;
+        D_80115738  = 0x600BA;
+        task->state = task->state + 1;
+        for (i = 0; i < 2; i++) {
+            part                              = &((TmdObject*)owner->extra)->field_8[14 + i * 3];
+            D_acropolis_bridge_80189A34[i].vx = part->workm.t[0];
+            D_acropolis_bridge_80189A34[i].vy = part->workm.t[1];
+            D_acropolis_bridge_80189A34[i].vz = part->workm.t[2];
+        }
+    }
+
+    work->field_22 = work->field_22 + 1;
+    switch (view) {
+        case 6:
+            Room_Draw21(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
+            break;
+        case 7:
+            Room_Draw21(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
+            break;
+        case 3:
+        case 4:
+        case 9:
+            Room_Draw21(&D_acropolis_bridge_80189A4C, 0x100, 0x50C2);
+            break;
+    }
+
+    bit = 1 << (view - 1);
+    if (view == 9) {
+        for (i = 0; i < 7; i++) {
+            if (D_acropolis_bridge_801899EC[i] & bit) {
+                pos.vx = 0;
+                pos.vy = -0x240;
+                pos.vz = 0;
+                pos.vx = D_acropolis_bridge_8018991C[i].vx;
+                pos.vy = D_acropolis_bridge_8018991C[i].vy - 0x240;
+                pos.vz = D_acropolis_bridge_8018991C[i].vz;
+                Gp_SpawnEff(0x800600B1, coord, (s16)work->field_22 + i, &pos);
+            }
+        }
+    } else {
+        for (i = 0; i < 7; i++) {
+            if (D_acropolis_bridge_801899EC[i] & bit) {
+                Gp_SpawnEff(0x800600B1, coord, (s16)work->field_22 + i, &D_acropolis_bridge_8018991C[i]);
+                Gp_SpawnEff(0x600B2, coord, (s16)work->field_22 + i, &D_acropolis_bridge_80189954[i]);
+            }
+        }
+    }
+
+    for (i = 0; i < 3; i++) {
+        if (D_acropolis_bridge_80189A1C[i] & bit) {
+            Gp_SpawnEff(0x600B3, coord, 0, &D_acropolis_bridge_8018998C[i]);
+        }
+    }
+    for (i = 3; i < 5; i++) {
+        if (D_acropolis_bridge_80189A1C[i] & bit) {
+            Gp_SpawnEff(0x600B3, coord, 1, &D_acropolis_bridge_8018998C[i]);
+        }
+        if (D_acropolis_bridge_80189A1C[i + 2] & bit) {
+            Gp_SpawnEff(0x600B3, coord, 2, &D_acropolis_bridge_8018998C[i + 2]);
+        }
+    }
+    if (D_acropolis_bridge_80189A32 & bit) {
+        Gp_SpawnEff(0x600B3, coord, 1, &D_acropolis_bridge_801899E4);
+    }
+
+    if ((bit & 0x62) && Gp_State1C->field_4 == 0 && part->coord.t[1] >= 0x201) {
+        for (i = 0; i < 2; i++) {
+            part  = &((TmdObject*)owner->extra)->field_8[14 + i * 3];
+            delta = D_acropolis_bridge_80189A34[i].vx - part->workm.t[0];
+            dist  = delta < 0;
+            if (dist) {
+                delta = part->workm.t[0] - D_acropolis_bridge_80189A34[i].vx;
+            }
+            prev = D_acropolis_bridge_80189A34[i].vy;
+            axis = prev - part->workm.t[1];
+            if (axis < 0) {
+                axis = part->workm.t[1] - prev;
+            }
+            dist           = delta + axis;
+            prev           = D_acropolis_bridge_80189A34[i].vz;
+            axis           = part->workm.t[2];
+            delta          = prev - axis;
+            delta          = ((delta >= 0) ? (dist + delta) : (dist + (axis - prev))) + 0x20;
+            work->field_26 = delta;
+
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            rnd         = (u32)Gp_LcgState >> 16;
+            if ((rnd & 0x1FF) < (s16)work->field_26) {
+                Gp_SpawnEff(D_8011574C, part, 0x40, NULL);
+            }
+            work->field_26 = work->field_26 - 0x20;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rnd            = (u32)Gp_LcgState >> 16;
+            if ((rnd & 0x1FF) < (s16)work->field_26) {
+                Gp_SpawnEff(D_80115738, part, 0x1202180, NULL);
+            }
+
+            D_acropolis_bridge_80189A34[i].vx = part->workm.t[0];
+            D_acropolis_bridge_80189A34[i].vy = part->workm.t[1];
+            D_acropolis_bridge_80189A34[i].vz = part->workm.t[2];
+        }
+    }
+
+    D_acropolis_bridge_801917AC =
+        (DR_MOVE*)((u8*)D_8005C374 + (Display_State.field_114 * 0x7000 + 0xA000));
+
+    switch (D_acropolis_bridge_801899FC[view - 1]) {
+        case 0:
+            break;
+        case 1:
+            lastView = work->field_24;
+            if (lastView != view) {
+                for (i = 0; i < 0x1E; i++) {
+                    Gp_SpawnEff(0x600B4, coord, view, NULL);
+                }
+            } else if (Gp_State1C->field_16 != 1) {
+                if (work->field_22 & 0x200) {
+                    Gp_SpawnEff(0x600B4, coord, lastView, NULL);
+                    Gp_SpawnEff(0x600B4, coord, lastView, NULL);
+                } else {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if ((((u32)Gp_LcgState >> 16) & 1) == 0) {
+                        Gp_SpawnEff(0x600B4, coord, lastView, NULL);
+                    }
+                }
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+                    Gp_SpawnEff(0x600B4, coord, lastView, NULL);
+                }
+            }
+            break;
+        case 2:
+            lastView = work->field_24;
+            if (lastView != view) {
+                for (i = 0; i < 0x1E; i++) {
+                    Gp_SpawnEff(0x600B5, coord, view, NULL);
+                }
+            } else if (Gp_State1C->field_16 != 1) {
+                Gp_SpawnEff(0x600B5, coord, lastView, NULL);
+                Gp_SpawnEff(0x600B5, coord, lastView, NULL);
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+                    Gp_SpawnEff(0x600B5, coord, lastView, NULL);
+                }
+            }
+            break;
+        case 3:
+            lastView = work->field_24;
+            if (lastView != view) {
+                for (i = 0; i < 0x1E; i++) {
+                    Gp_SpawnEff(0x600B6, coord, view, NULL);
+                }
+            } else if (Gp_State1C->field_16 != 1) {
+                Gp_SpawnEff(0x600B6, coord, lastView, NULL);
+                Gp_SpawnEff(0x600B6, coord, lastView, NULL);
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+                    Gp_SpawnEff(0x600B6, coord, lastView, NULL);
+                }
+            }
+            break;
+        case 5:
+            lastView = work->field_24;
+            if (lastView != view) {
+                for (i = 0; i < 0x1E; i++) {
+                    Gp_SpawnEff(0x600B7, coord, view, NULL);
+                }
+            } else if (Gp_State1C->field_16 != 1) {
+                Gp_SpawnEff(0x600B7, coord, lastView, NULL);
+                Gp_SpawnEff(0x600B7, coord, lastView, NULL);
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+                    Gp_SpawnEff(0x600B7, coord, lastView, NULL);
+                }
+            }
+            break;
+        case 6:
+            lastView = work->field_24;
+            if (lastView != view) {
+                for (i = 0; i < 0x1E; i++) {
+                    Gp_SpawnEff(0x600B8, coord, view, NULL);
+                }
+            } else if (Gp_State1C->field_16 != 1) {
+                Gp_SpawnEff(0x600B8, coord, lastView, NULL);
+                Gp_SpawnEff(0x600B8, coord, lastView, NULL);
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+                    Gp_SpawnEff(0x600B8, coord, lastView, NULL);
+                }
+            }
+            break;
+    }
+
+    work->field_24 = view;
+}
 
 /// The wide variant of the bridge's falling dust streak: same one-pixel `DR_MOVE`
 /// smear as `func_acropolis_bridge_80180FF0`, rolled over the whole drop height

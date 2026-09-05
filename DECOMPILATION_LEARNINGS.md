@@ -47714,3 +47714,60 @@ only the struct renamed and one dead `blk->dy` store dropped: 100% on the first
 attempt. Use the index for the *promotion* decision (is the body worth linking
 once?) and the constant grep for the *seed* decision (has someone already
 written this?) — they answer different questions.
+
+## `t = cond; if (t)` is a register-allocation nudge that costs no instruction
+
+`func_acropolis_bridge_8017F868` sat at 99.5% for a long time with `regs` as the
+only leftover: one basic block had `$a0` and `$a1` swapped between two
+temporaries, which then flipped `$v0` / `$v1` through the rest of the loop.
+No arrangement of the C statements moved it.
+
+What did move it was giving one of the competing variables an *extra
+reference*:
+
+```c
+delta = prev[i].vx - part->workm.t[0];
+dist  = delta < 0;          /* `dist` is the running sum, assigned here only
+                               to add a def/use pair to its allocno */
+if (dist) {
+    delta = part->workm.t[0] - prev[i].vx;
+}
+```
+
+GCC 2.8.1 folds the comparison straight back into the `bgez` — the emitted code
+is byte-identical to plain `if (delta < 0)` — but `global_alloc` now sees
+`dist` with more references. Its allocno priority is roughly
+`floor_log2(n_refs) * n_refs / live_length`, so a fourth reference outranks a
+rival with three and a shorter range, and `dist` takes `$a0` instead of `$a1`.
+
+This is the lever to reach for when `branch` / `insert` / `delete` are all zero,
+statement reordering does nothing, and a pin is not an option because the
+register is an argument register the function's own calls need. It is also what
+`decomp-permuter` discovers on its own (it found this exact edit as
+`f = d < 0; if (f)`), so a permuter run that improves the score but leaves an
+odd-looking assignment is worth reading rather than discarding.
+
+## Mirror the target's register reuse with one variable per hard register
+
+The same function needed `$a1` to hold `vy` and then `vz`, and `$v0` to hold
+`t[0]`, `dy`, `t[2]` and the result. Writing each of those groups as *one* C
+variable reused across its roles is what produced that allocation:
+
+```c
+prev = D_acropolis_bridge_80189A34[i].vy;      /* $a1 */
+axis = prev - part->workm.t[1];                /* $v0 */
+if (axis < 0) {
+    axis = part->workm.t[1] - prev;
+}
+dist = delta + axis;                           /* $a0 */
+prev = D_acropolis_bridge_80189A34[i].vz;      /* $a1 again */
+axis = part->workm.t[2];                       /* $v0 again */
+```
+
+Read the target's object dump as a register-to-role map first: every hard
+register that carries several unrelated values in sequence is a candidate for a
+single reused local, and every value that keeps its own register wants its own
+local. Assigning a loaded field to a named variable also creates an
+anti-dependency that pins the load after the insn that last read that variable,
+which is often the difference between `sched2` hoisting the load and leaving it
+where the target has it.
