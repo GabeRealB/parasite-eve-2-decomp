@@ -433,6 +433,14 @@ void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// flag test.
 void Room_Draw39(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// `gte_stflg` is non-negative, queues one semi-transparent raw-tex
+/// `POLY_FT4` (tpage 0x2C, clut 0x43D3) rotated about the projected centre.
+/// `arg1` selects a 32-texel UV column on the 0xE0..0xFF texture row:
+/// u = `arg1 * 32`. `arg2` is a signed half-extent; the on-screen radius is
+/// `arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
+/// `arg3 + 0x400` through `rsin`/`rcos`.
+void Room_Draw40(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
 /// `gte_stflg` is non-negative, queues one semi-transparent shade-tex
 /// `POLY_FT4` (tpage 0x2B, clut 0x4393). `arg1` selects a 56-texel UV tile in
 /// a 4-wide 2-row grid: u = `(arg1 & 3) * 56`, v = `((arg1 & 7) >> 2) * 56`.
@@ -697,6 +705,11 @@ STATIC_ASSERT_SIZEOF(RoomDraw27Scratch, 0x1C);
 /// 0x1C-byte scratch block `Room_Draw19` takes from `G_SCRATCH_HEAD`. Same
 /// layout as `RoomDraw27Scratch`.
 typedef RoomDraw27Scratch RoomDraw19Scratch;
+
+/// 0x1C-byte scratch block `Room_Draw40` takes from `G_SCRATCH_HEAD`. Same
+/// layout and same `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` half-extents
+/// as `RoomDraw27Scratch`.
+typedef RoomDraw27Scratch RoomDraw40Scratch;
 
 /// 0x1C-byte scratch block `Room_Draw39` takes from `G_SCRATCH_HEAD`. `vec`
 /// is the coordinate's `workm.t[]` at 0x10, projected through `GsWSMATRIX`

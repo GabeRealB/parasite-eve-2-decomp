@@ -48060,3 +48060,30 @@ trying early on a `regs`-heavy prologue:
   radius store, `SOFT_USE_REG(arg1)`) were all unnecessary. Re-test inherited
   pins after any change that moves the register allocation; a pin that was load
   bearing for the seed is usually noise for the match.
+
+## A `SOFT_BARRIER()` that pins a store block also pins the next `jal`'s argument move
+
+`Room_Draw40`'s give-up seed reproduced the target's *emitted* store order
+(`u0, u2, v0, u1, v1, v2, u3, v3`) and held it there with a `SOFT_BARRIER()`.
+That got the eight `sb`s right but cost `reorder=2`: `move a0, s2`, the
+argument setup for the following `jal rsin`, could no longer hoist above the
+barrier, and in the target it sits fifteen instructions earlier, right after
+the `lw` of `Gpu_PrimCursor`.
+
+Removing the barrier freed the `move` (that region matched) but let sched1
+sink `u1 = u0 + 0x1F` past the first two stores, so the allocator reused one
+register for `u0` and `u1` instead of keeping both live — `regs=11`.
+Neither half of the seed was wrong; the barrier was papering over a wrong
+statement order.
+
+The fix was to write the stores in **struct field order**
+(`u0, v0, u1, v1, u2, v2, u3, v3`, i.e. plain `setUV4(prim, ...)`) with no
+barrier at all. The scheduler then produces the target's shuffled order by
+itself, keeps `u1` live across the first stores, and hoists the argument
+move. 100%, no pins.
+
+Generalises: an emitted instruction order that looks like an odd source order
+is usually the scheduler's output, not the source. If a barrier is needed to
+hold a block in the order the target *emits*, suspect the source order and try
+the natural one — the barrier's cost usually shows up as a `reorder` penalty
+somewhere downstream of it, not inside the block it was added for.
