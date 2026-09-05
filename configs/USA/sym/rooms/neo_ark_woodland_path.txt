@@ -3,3 +3,5 @@ Room_Draw16 = 0x8017F5F4; // shared body, see src/rooms/lib/
 Room_Draw19 = 0x8017FDE4; // shared body, see src/rooms/lib/
 Room_Draw23 = 0x801801D0; // shared body, see src/rooms/lib/
 Room_Util03 = 0x8017E890; // shared body, see src/rooms/lib/
+RoomsShared8017f10c = 0x8017ED00; // shared body, see src/rooms/lib/
+RoomsShared8017f10cSub = 0x8017F154; // shared body's overlay-local callee, see src/rooms/lib/

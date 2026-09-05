@@ -38386,6 +38386,24 @@ carrier's `INCLUDE_ASM(..., func_<overlay>_<vram>);` has to be retargeted by
 hand or the assembler fails on a missing include. Do that rename and a scoped
 build *before* landing the body, so the two edits fail separately.
 
+The aliased callee does not even have to be the *same routine* in every
+carrier. `rooms_shared_8017f10c` - the ambient-mote task, 277 instructions in
+four rooms - ends with two `jal`s into the draw routine that sits immediately
+after it, and that draw routine is a 196-instruction body in the two acropolis
+rooms and a different 211-instruction one in the two neo_ark rooms. The shared
+object only needs a name it can relocate against, so
+`RoomsShared8017f10cSub = <that overlay's address>` in each of the four sym
+files is enough; every link resolves it to whatever its own overlay defines
+there. Say so in the shared unit's header, because the name otherwise reads as
+a promise that the bodies agree.
+
+Carving that span out of the *middle* of a unit is the awkward part: the unit
+splits in two, everything after it renumbers, and any already-matched body in
+the tail half has to be carried into the new file along with the `#include`s
+and `extern`s it needs - the regenerated file is `#include "common.h"` and
+`INCLUDE_ASM` lines only. Diff `asm/<ver>/<family>/matchings` before and after;
+a green build proves nothing, because an `INCLUDE_ASM` matches by definition.
+
 ## Name the global as a local pointer to keep `%hi` above a call
 
 A global whose first *use* is after a call gets its address rebuilt after the
