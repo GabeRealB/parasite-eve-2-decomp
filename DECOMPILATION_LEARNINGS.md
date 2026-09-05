@@ -47690,3 +47690,27 @@ Writing `*scratch = blk` instead makes GCC 2.8.1 copy-propagate `blk` into the
 store, so the `addiu` lands in `blk`'s register and the `move` runs the other
 way. Ordering the store before `blk = head` also matters: with the assignment
 first, copy propagation reaches the store anyway.
+
+## `overlay_dup_index find` misses near-twins; grep `src/` for a magic constant
+
+`tools/overlay_dup_index.py find` groups on exact disassembly-text equality, so
+a function that another overlay already has *almost* verbatim is reported as
+having no copies. `func_acropolis_bridge_801812F4` (437 insns) and the already
+matched `func_acropolis_promenade_8017E634` (452 insns) are the same task with
+the same scratch layout and the same two `POLY_FT4`s; they differ only by a
+handful of redundant stores, which is enough for the index to list each as
+unique.
+
+Before writing anything, grep `src/` for a distinctive constant out of the
+target's assembly — a texture `clut` / `tpage` pair, an LCG modulus, a scale
+factor:
+
+```
+grep -rn "0x3A80" src/rooms | head
+```
+
+`0x3A80` landed straight on the promenade twin, whose body ported over with
+only the struct renamed and one dead `blk->dy` store dropped: 100% on the first
+attempt. Use the index for the *promotion* decision (is the body worth linking
+once?) and the constant grep for the *seed* decision (has someone already
+written this?) — they answer different questions.
