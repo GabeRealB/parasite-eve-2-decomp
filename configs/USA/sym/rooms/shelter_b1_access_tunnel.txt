@@ -1,2 +1,4 @@
 // Overlay-local symbols for shelter_b1_access_tunnel.
 Room_Draw01 = 0x8017DEC0; // shared body, see src/rooms/lib/
+RoomsShared8017db84Msgs = 0x8017E71C; // shared body data, see src/rooms/lib/
+RoomsShared8017db84 = 0x8017DCBC; // shared body, see src/rooms/lib/

@@ -1,2 +1,4 @@
 // Overlay-local symbols for dryfield_night_g_r_kitchen.
 Room_Draw08 = 0x8017D9FC; // shared body, see src/rooms/lib/
+RoomsShared8017db84Msgs = 0x8017E254; // shared body data, see src/rooms/lib/
+RoomsShared8017db84 = 0x8017D958; // shared body, see src/rooms/lib/

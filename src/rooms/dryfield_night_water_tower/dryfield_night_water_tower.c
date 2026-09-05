@@ -22,12 +22,6 @@ s32 func_dryfield_night_water_tower_8017DAD4(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DADC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", D_dryfield_night_water_tower_8017D5DC);
 
-void func_dryfield_night_water_tower_8017DB20(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DB28);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017DB80);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", jtbl_dryfield_night_water_tower_8017D5E8);

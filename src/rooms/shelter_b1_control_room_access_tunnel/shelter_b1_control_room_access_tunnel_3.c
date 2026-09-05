@@ -1,7 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_3", func_shelter_b1_control_room_access_tunnel_8018026C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_3", func_shelter_b1_control_room_access_tunnel_801807C4);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_3", D_shelter_b1_control_room_access_tunnel_8017D5E4);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_3", func_shelter_b1_control_room_access_tunnel_8017E1BC);

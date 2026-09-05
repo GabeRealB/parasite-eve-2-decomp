@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+
 #include "main/task.h"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D608);
@@ -42,14 +43,8 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D83C);
-
-void func_shelter_b1_sleeping_quarters_8017D880(void)
-{
-}
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", D_shelter_b1_sleeping_quarters_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D888);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", D_shelter_b1_sleeping_quarters_8017D5C4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D8E0);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", jtbl_shelter_b1_sleeping_quarters_8017D5D0);

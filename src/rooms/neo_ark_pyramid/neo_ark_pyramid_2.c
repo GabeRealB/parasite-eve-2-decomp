@@ -5,15 +5,10 @@
 
 #include "main/gameflag.h"
 #include "main/task.h"
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
 
-extern s32 D_neo_ark_pyramid_801818A4;
-
+extern s32      D_neo_ark_pyramid_801818A4;
 extern TaskDesc D_neo_ark_pyramid_8017FC0C;
-
-void func_neo_ark_pyramid_8017DAC0(s32 arg0);
+void            func_neo_ark_pyramid_8017DAC0(s32 arg0);
 
 s32 func_neo_ark_pyramid_8017DA3C(void)
 {
@@ -38,21 +33,4 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF* arg2)
 void func_neo_ark_pyramid_8017DAC0(s32 arg0)
 {
     D_neo_ark_pyramid_801818A4 = (((GameFlag_GetNibble(0xEC) - 4) << 0xC) / 12) + arg0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_2", func_neo_ark_pyramid_8017DB18);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_2", func_neo_ark_pyramid_8017DB5C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_2", func_neo_ark_pyramid_8017DB98);
-
-void func_neo_ark_pyramid_8017DBF0(Task* arg0)
-{
-    if (arg0->state == 0) {
-        D_80115758          = 0x601E2;
-        D_8011572C          = 0x601FE;
-        D_80115750          = 0x6021A;
-        Gp_State1C->field_A = 2;
-        arg0->state         = 1;
-    }
 }

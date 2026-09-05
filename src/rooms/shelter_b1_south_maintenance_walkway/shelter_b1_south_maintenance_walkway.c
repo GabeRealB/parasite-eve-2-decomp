@@ -21,12 +21,4 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", func_shelter_b1_south_maintenance_walkway_8017D9E8);
-
-void func_shelter_b1_south_maintenance_walkway_8017DA2C(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", func_shelter_b1_south_maintenance_walkway_8017DA34);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", func_shelter_b1_south_maintenance_walkway_8017DA8C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", D_shelter_b1_south_maintenance_walkway_8017D5D8);

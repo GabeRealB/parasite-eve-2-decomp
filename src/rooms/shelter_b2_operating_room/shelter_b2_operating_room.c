@@ -1,8 +1,8 @@
 #include "common.h"
 
-#include "main/gameflag.h"
-
 #include "gameplay/3CD8.h"
+
+#include "main/gameflag.h"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", func_shelter_b2_operating_room_8017D628);
 
@@ -37,12 +37,6 @@ s32 func_shelter_b2_operating_room_8017DD0C(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD14);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", D_shelter_b2_operating_room_8017D5F0);
 
-void func_shelter_b2_operating_room_8017DD58(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD60);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DDB8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", jtbl_shelter_b2_operating_room_8017D5FC);

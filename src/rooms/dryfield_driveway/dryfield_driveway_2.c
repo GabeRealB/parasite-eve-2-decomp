@@ -13,5 +13,3 @@ s32 func_dryfield_driveway_8017DDB8(void)
 {
     return 0;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_driveway/dryfield_driveway_2", func_dryfield_driveway_8017DDC0);

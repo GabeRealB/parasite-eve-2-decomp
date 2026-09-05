@@ -1,15 +1,14 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
 
-#include "gameplay/3CD8.h"
-
-extern s16 D_80071076;
-extern u8  D_801153F4;
-
+extern s16      D_80071076;
+extern u8       D_801153F4;
 extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017D62C);
@@ -114,13 +113,3 @@ s32 func_shelter_b3_elevator_hall_8017DD90(void)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DD98);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DDCC);
-
-void func_shelter_b3_elevator_hall_8017DE10(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DE18);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DE70);

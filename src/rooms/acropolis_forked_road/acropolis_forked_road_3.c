@@ -1,5 +1,22 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017E298);
+#include "gameplay/gameplay.h"
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017E410);
+#include "main/fs.h"
+
+extern s32      D_acropolis_forked_road_80180F3C;
+extern TaskDesc D_acropolis_forked_road_80180F44;
+
+void func_acropolis_forked_road_8017D970(void)
+{
+    if ((D_acropolis_forked_road_80180F3C == 0) && (Game_Session->field_8 == 2)) {
+        D_acropolis_forked_road_80180F3C = 1;
+        Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 2, 0, 0);
+    }
+}
+
+INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017D9CC);
+
+INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017DA24);
+
+INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017DD60);

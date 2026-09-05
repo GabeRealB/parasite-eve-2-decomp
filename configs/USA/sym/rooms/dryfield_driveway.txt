@@ -4,3 +4,5 @@ Room_Util05 = 0x8017DE04; // shared body, see src/rooms/lib/
 Room_Util28 = 0x8017DC64; // shared body, see src/rooms/lib/
 Room_Util31 = 0x8017DC48; // shared body, see src/rooms/lib/
 Room_Util33 = 0x8017DC54; // shared body, see src/rooms/lib/
+RoomsShared8017db84Msgs = 0x8017E754; // shared body data, see src/rooms/lib/
+RoomsShared8017db84 = 0x8017DDC0; // shared body, see src/rooms/lib/

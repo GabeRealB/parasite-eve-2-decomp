@@ -12,7 +12,7 @@ extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_5", func_shelter_b2_laboratory_801800FC);
 
-/// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the
+/// Handler for slot-7 msg `0x13EF` in `RoomsShared8017db84Msgs`: the
 /// directed action on the laboratory console (`field_2` 1). Runs the scripted
 /// scene once, then replays cap script `6` on later visits.
 s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
@@ -37,5 +37,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_5", 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_5", func_shelter_b2_laboratory_80180290);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_5", func_shelter_b2_laboratory_80180350);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_5", func_shelter_b2_laboratory_80180450);

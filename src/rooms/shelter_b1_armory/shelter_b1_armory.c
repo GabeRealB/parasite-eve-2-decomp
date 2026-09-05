@@ -68,14 +68,6 @@ s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, GpMsg13EF* arg2, s32 
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_80180740);
-
-void func_shelter_b1_armory_80180784(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8018078C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_801807E4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", jtbl_shelter_b1_armory_8017D738);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017D768);
