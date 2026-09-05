@@ -266,5 +266,3 @@ void func_gunblade_8011E008(s32 arg0)
 }
 
 INCLUDE_RODATA("weapons/nonmatchings/gunblade/gunblade", D_gunblade_8011D1C0);
-
-INCLUDE_ASM("weapons/nonmatchings/gunblade/gunblade", func_gunblade_8011E040);

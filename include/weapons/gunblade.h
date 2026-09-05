@@ -10,6 +10,20 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
+/// 0x68-byte scratch `func_gunblade_8011E040` carves off `G_SCRATCH_HEAD`.
+/// `coord` is the sound source handed to `Gp_PickNearestRec18` and
+/// `Gp_PlayObjSfx` (the lock-on target's position is written into its
+/// `workm.t`), `dir` receives the blade's forward column from
+/// `Gfx_MatrixCol2`, and `step` is that column scaled down by 136 - the
+/// per-axis camera shake added to the muzzle coordinate while the slash's
+/// recoil timer runs.
+typedef struct _GunbladeScratch {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ VECTOR        step;
+    /* 0x60 */ SVECTOR       dir;
+} GunbladeScratch;
+STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
+
 /// Translation of the gunblade beam's two coordinate frames inside the muzzle
 /// frame: `[0]` is the near end (`0, 0x60, 0x80`) and `[1]` the far end
 /// (`0, 0x60, 0x380`). `func_gunblade_8011D1E4` seeds the task's own coord

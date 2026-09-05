@@ -44818,3 +44818,64 @@ it forces scores worse (99.79% against 100%). Introducing an explicit
 `rec0 = work->rec0;` local, or moving that assignment earlier to lengthen its
 range, changes neither number: `cse` re-derives the same pseudo with the same
 refs and the same length either way, so the ranking is unchanged.
+
+## A 0/1 flag that is `sb`-stored but also multiplied is `s32`, not `s8`
+
+`func_gunblade_8011E040` keeps a "recoil active" flag in a callee-saved
+register, stores it with `sb` into an `s8` field, and multiplies three
+values by it. Declaring the local `s8` to match the field it is stored into
+costs two instructions in two unrelated places:
+
+```
+-move  s3,s7        (clamp)          -mult v0,s7
++move  s3,zero                       +move a2,s7
+                                     +mult v0,a2
+```
+
+`s8 shake` is a **QImode** pseudo (`(reg/v:QI 92)` in the `.cse` dump;
+`PROMOTE_MODE` only promotes parameters and returns, not locals). Two things
+follow. The multiply needs an SImode operand, so GCC materialises a copy of
+the QI pseudo instead of using it directly. And a nearby `x = 0` cannot be
+CSE'd onto the QI pseudo, so the constant is emitted as `move reg,zero`
+rather than as a copy of the register that already holds zero.
+
+Declaring it `s32` fixes both at once — the `sb` narrows on store, which is
+free. The tell in the dumps is `(reg/v:QI n)` for a local you expected to be
+in a register the whole time; check the mode before reaching for a pin.
+
+## Cross-jumped stores stay ahead of the next call's argument setup
+
+Two arms writing the same flag word, joined and then followed by a call:
+
+```
+sh   v0,0x12a(s0)
+li   a0,0x96
+jal  Gp_ConsumeSlotQty
+ li  a1,1
+```
+
+Writing it with a joined local puts the store in the join block from the
+start, where `sched2` is free to sink it past the argument setup and `dbr`
+then eats it as the delay slot (`li a0; li a1; jal; sh` — a `reorder`
+penalty of 1):
+
+```c
+if (cond) { flags = actor->field_12A | 0x800; }
+else      { flags = actor->field_12A & 0xF7FF; }
+actor->field_12A = flags;
+```
+
+Writing the store into each arm instead leaves it at the end of its own
+basic block, where the scheduler cannot move it, and `jump2` cross-jumps the
+two copies into the join *after* scheduling has run — which is exactly the
+target's order:
+
+```c
+if (cond) { actor->field_12A |= 0x800; }
+else      { actor->field_12A &= 0xF7FF; }
+```
+
+Both spellings produce one shared `sh` at the join, so the object dumps
+differ only in where it sits. When a store that should precede a `jal` keeps
+landing in its delay slot, check whether the value is joined from two arms
+and push the store back into them.

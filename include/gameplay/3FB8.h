@@ -874,6 +874,10 @@ extern u8 D_80112F1C[][2];
 /// `GpActorD4Rec.field_C` when filling `field_4`.
 extern u16 D_80112F60[];
 
+/// `D_80112F60[0x17]`, the row for attach id 0x17. Spelled out for the same
+/// reason as `D_80112F94`; `func_gunblade_8011E040` is the only user.
+extern u16 D_80112F8E;
+
 /// `D_80112F60[0x1A]`, the row for attach id 0x1A. The weapons overlays import
 /// the entry under its own address rather than the table's, so it is spelled
 /// out here; `func_m4a1_bayonet_8011DA34` is the only user.
