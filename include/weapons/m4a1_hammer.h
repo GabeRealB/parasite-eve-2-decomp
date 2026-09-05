@@ -20,6 +20,26 @@ extern SVECTOR D_m4a1_hammer_8011EB60;
 /// from `Gp_LcgState` on the first charge frame and walked every other frame.
 extern s16 D_m4a1_hammer_8012D630[24];
 
+/// 0x1C-byte scratch block `func_m4a1_hammer_8011D904` carves off
+/// `G_SCRATCH_HEAD` for the hammer's charging flare.
+///
+/// The same layout as `M4a1HammerTrailScratch` without the second endpoint:
+/// `vec` is the flare's world position truncated to s16, projected by a single
+/// `RTPS` into `sxy0` with `flag` / `otz` from `gte_stflg` / `gte_stszotz`.
+/// `otz` is bumped once so it doubles as the divisor of the flare's radius and
+/// as the OT index. `dx` / `dy` are that radius rotated by
+/// `(size * 23 / otz) * rsin|rcos(angle) >> 12`, taken at the spin angle and
+/// again 90 degrees on, which gives the `POLY_FT4` its four corners.
+typedef struct _M4a1HammerFlareScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ DVECTOR sxy0;
+} M4a1HammerFlareScratch;
+STATIC_ASSERT_SIZEOF(M4a1HammerFlareScratch, 0x1C);
+
 /// Handwritten GTE routine. Draws the charging flare around the world position
 /// `arg0` (a `GsCOORDINATE2::workm` translation); `arg1` is the animation
 /// frame, `arg2` the radius and `arg3` the spin angle.
