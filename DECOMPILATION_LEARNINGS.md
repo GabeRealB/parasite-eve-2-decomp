@@ -29418,6 +29418,26 @@ uv -= (s16)ws->field_74;
 
 Seen while matching `func_8009AC58` (gameplay): 92.9% → 96.1% from this alone.
 
+Use a *fresh* local for the split, not the one holding `a`. Reusing the input
+variable makes both halves one pseudo, so the final `subu` has to write a new
+register; a separate local lets the `addiu`/`subu` pair update the same pseudo
+in place, which is what the target usually shows:
+
+```c
+/* 99.6%: srl and remainder share `rnd`, so subu needs a fresh dest register */
+rnd  = (u32)Gp_LcgState >> 16;
+rnd  = rnd % (drift + range) + 0x20;
+w->field_10.vx = rnd - drift;          /* subu v0, t3, t4 */
+
+/* 100%: `col` is its own pseudo, updated in place */
+rnd  = (u32)Gp_LcgState >> 16;
+col  = rnd % (drift + range) + 0x20;
+col -= drift;                          /* addiu t2,t2,0x20; subu t2,t2,t4 */
+w->field_10.vx = col;
+```
+
+Seen while matching `func_acropolis_bridge_8018099C` (rooms): 99.58% → 100%.
+
 ## Caching `p->field` in a local vs. repeating it changes the caller-save temp
 
 An expression like `ws->field_80->field_2C` read three times inside one `if`

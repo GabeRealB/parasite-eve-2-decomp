@@ -97,7 +97,79 @@ void func_acropolis_bridge_80180320(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_8018063C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_8018099C);
+/// The narrow variant of the bridge's falling dust streak: the same one-pixel
+/// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, but rolled over the
+/// lower part of the drop and sorted nearer the camera. The first frame rolls
+/// the streak out of `Gp_LcgState`: `field_10.vy` is the row it starts on
+/// (0x68..0xEF), `field_24` the lifetime in frames, `field_26` the width and
+/// `field_28` the number of frames each row of fall takes. The column window
+/// widens with the starting row - it runs from `0x20 - drift` to
+/// `0x60 + spread`, where `drift` is twice and `spread` nine times the drop
+/// from 0x68, both capped once the streak starts at 0x78 or below - so streaks
+/// that begin higher up stay nearer the middle of the screen.
+/// `Display_State.field_1f` picks the buffer half, and the OT slot is the row
+/// scaled into the 0x600-deep range so a streak sorts against the room behind
+/// it. The task releases itself once the camera turns away, the lifetime runs
+/// out, or the streak falls off the bottom of the screen.
+void func_acropolis_bridge_8018099C(Task* task)
+{
+    RoomEffWork* work;
+    RECT         rect;
+    DR_MOVE*     mv;
+    u16          rnd;
+    s32          rndx;
+    s32          col;
+    s32          range;
+    s32          bufferY;
+    s32          x;
+    s32          y;
+    s32          depth;
+
+    work    = task->spawnArg2;
+    bufferY = Display_State.field_1f * 0x110;
+    if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
+        if ((s16)work->field_22 == 0) {
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            rnd               = (u32)Gp_LcgState >> 16;
+            work->field_10.vy = (u32)rnd % 136 + 0x68;
+            /* x and y double as the drift and spread of the column window here */
+            x                 = work->field_10.vy < 0x78 ? (work->field_10.vy - 0x68) * 2 : 0x20;
+            y                 = work->field_10.vy < 0x78 ? (work->field_10.vy - 0x68) * 9 : 0x90;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            rndx              = (u32)Gp_LcgState >> 16;
+            range             = y + 0x40;
+            col               = rndx % (x + range) + 0x20;
+            col              -= x;
+            work->field_10.vx = col;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            rnd               = (u32)Gp_LcgState >> 16;
+            work->field_24    = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            task->state++;
+        }
+        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
+        x     = work->field_10.vx;
+        depth = 0x600 - (y - 0x68) * 8;
+        if (y < 0xEF) {
+            rect.x                      = x;
+            rect.y                      = y + bufferY;
+            rect.w                      = work->field_26;
+            rect.h                      = 1;
+            mv                          = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = mv + 1;
+            SetDrawMove(mv, &rect, x, y + bufferY + 1);
+            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+        }
+        work->field_22++;
+        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+            return;
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80180CC0);
 
