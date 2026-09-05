@@ -28,7 +28,151 @@ INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_
 
 INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011DAB0);
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011E4A8);
+/// Draws the javelin launcher's targeting reticle: a `LINE_F2` between the two
+/// world-space points `p0` and `p1` plus three fans of `POLY_G4` wedges, all
+/// dropped if either endpoint fails its `RTPS` `FLAG` check (which also arms
+/// `D_m4a1_javelin_8012EB66` so the next frame re-measures the angle). Bit 1 of
+/// `flags` forces that re-measurement: `ratan2` of the screen-space delta gives
+/// the reticle's roll, which is cached in `D_m4a1_javelin_8012EB62` and reused
+/// on the frames that do not. Bit 0 adds the near-end fan. `color` is a packed
+/// `0x0RGB` nibble triple; each nibble is widened to a byte, biased by the
+/// 8-unit dither of `Display_State.field_8` and halved. Each fan is four
+/// quarter-turn wedges of radius `0x4000 / otz`, so the reticle keeps a
+/// constant on-screen size as the target moves away.
+void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
+{
+    u8*                     head;
+    M4a1JavelinRingScratch* sc;
+    LINE_F2*                line;
+    POLY_G4*                poly;
+    u32                     dither;
+    u32                     c;
+    u8                      r;
+    u8                      g;
+    u8                      b;
+    u16                     ang;
+    s32                     i;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(M4a1JavelinRingScratch);
+    sc                    = (M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch));
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(p0);
+    gte_rtps_real();
+    gte_stsxy(&((M4a1JavelinRingScratch*)head)[-1].sx0);
+    gte_stflg(&((M4a1JavelinRingScratch*)head)[-1].flag);
+    if (sc->flag < 0) {
+        goto fail;
+    }
+    gte_stszotz(&((M4a1JavelinRingScratch*)head)[-1].otz0);
+    ((M4a1JavelinRingScratch*)head)[-1].otz0++;
+    gte_ldv0(p1);
+    gte_rtps_real();
+    gte_stsxy(&((M4a1JavelinRingScratch*)head)[-1].sx1);
+    gte_stflg(&((M4a1JavelinRingScratch*)head)[-1].flag);
+    if (sc->flag < 0) {
+        goto fail;
+    }
+    gte_stszotz(&((M4a1JavelinRingScratch*)head)[-1].otz1);
+
+    sc->otz1++;
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    dither = (Display_State.field_8 & 1) * 8;
+    c      = color & 0xFFFF;
+    r      = (((c >> 4) & 0xF0) + dither) >> 1;
+    g      = ((c & 0xF0) + dither) >> 1;
+    b      = (((color & 0xF) << 4) + dither) >> 1;
+    setRGB0(line, r, g, b);
+    line->x0 = sc->sx0;
+    line->y0 = sc->sy0;
+    line->x1 = sc->sx1;
+    line->y1 = sc->sy1;
+    addPrim((u_long*)(((((u32)((M4a1JavelinRingScratch*)head)[-1].otz0 << Display_State.field_128) >> 2) & 0xFFC) +
+                      (s32)Gpu_CurrentOt),
+            line);
+    Gp_AddTpageShift((P_TAG*)line, 1, ((M4a1JavelinRingScratch*)head)[-1].otz0);
+    sc->r0 = 0x4000 / ((M4a1JavelinRingScratch*)head)[-1].otz0;
+    sc->r1 = 0x4000 / sc->otz1;
+
+    if ((flags & 2) || D_m4a1_javelin_8012EB66 != 0) {
+        ang                     = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+        D_m4a1_javelin_8012EB62 = ang;
+        D_m4a1_javelin_8012EB66 = 0;
+        for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
+            poly           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+            setPolyG4(poly);
+            setRGB0(poly, 0, 0, 0);
+            setRGB1(poly, 0, 0, 0);
+            setRGB2(poly, r, g, b);
+            setRGB3(poly, 0, 0, 0);
+            poly->x0 = *(u16*)&line->x1 + ((sc->r1 * rsin(i + 0x800)) >> 12);
+            poly->y0 = *(u16*)&line->y1 + ((sc->r1 * rcos(i + 0x800)) >> 12);
+            poly->x1 = *(u16*)&line->x1 + ((sc->r1 * rsin(i + 0xA00)) >> 12);
+            poly->y1 = *(u16*)&line->y1 + ((sc->r1 * rcos(i + 0xA00)) >> 12);
+            poly->x2 = line->x1;
+            poly->y2 = line->y1;
+            poly->x3 = *(u16*)&line->x1 + ((sc->r1 * rsin(i + 0xC00)) >> 12);
+            poly->y3 = *(u16*)&line->y1 + ((sc->r1 * rcos(i + 0xC00)) >> 12);
+            addPrim((u_long*)(((((u32)sc->otz1 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
+            Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz1);
+        }
+    } else {
+        ang = D_m4a1_javelin_8012EB62;
+    }
+
+    if (flags & 1) {
+        for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
+            poly           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+            setPolyG4(poly);
+            setRGB0(poly, 0, 0, 0);
+            setRGB1(poly, 0, 0, 0);
+            setRGB2(poly, r, g, b);
+            setRGB3(poly, 0, 0, 0);
+            poly->x0 = *(u16*)&line->x0 + ((sc->r0 * rsin(i)) >> 12);
+            poly->y0 = *(u16*)&line->y0 + ((sc->r0 * rcos(i)) >> 12);
+            poly->x1 = *(u16*)&line->x0 + ((sc->r0 * rsin(i + 0x200)) >> 12);
+            poly->y1 = *(u16*)&line->y0 + ((sc->r0 * rcos(i + 0x200)) >> 12);
+            poly->x2 = line->x0;
+            poly->y2 = line->y0;
+            poly->x3 = *(u16*)&line->x0 + ((sc->r0 * rsin(i + 0x400)) >> 12);
+            poly->y3 = *(u16*)&line->y0 + ((sc->r0 * rcos(i + 0x400)) >> 12);
+            addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
+            Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
+        }
+    }
+
+    for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
+        poly           = (POLY_G4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setPolyG4(poly);
+        setRGB0(poly, 0, 0, 0);
+        setRGB1(poly, 0, 0, 0);
+        setRGB2(poly, r, g, b);
+        setRGB3(poly, r, g, b);
+        poly->x0 = *(u16*)&line->x0 + ((sc->r0 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->y0 = *(u16*)&line->y0 + ((sc->r0 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->x1 = *(u16*)&line->x1 + ((sc->r1 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->y1 = *(u16*)&line->y1 + ((sc->r1 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
+        poly->x2 = line->x0;
+        poly->y2 = line->y0;
+        poly->x3 = line->x1;
+        poly->y3 = line->y1;
+        addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
+        Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
+    }
+    goto done;
+
+fail:
+    D_m4a1_javelin_8012EB66 = 1;
+done:
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(M4a1JavelinRingScratch);
+}
 
 /* `otz0` is taken before the branch on purpose: the address is the same one
    already held for `sc`, so CSE turns it into the copy the ROM keeps, which a

@@ -45178,3 +45178,70 @@ verbatim: derive both UV columns from the same base (`u0 = col + 0x70;
 u1 = col - 0x59;`) so GCC emits two `addiu`s off one register rather than
 chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
 `*(u16*)&…` so the store is the `lhu`/`sh` pair the ROM uses.
+
+## A redundant `andi 0xFFFF` only survives as a multi-use local
+
+`func_m4a1_javelin_8011E4A8` unpacks a `0x0RGB` nibble triple and the ROM keeps
+a truncation GCC has no semantic need for:
+
+```
+move  t0, a3
+andi  t0, t0, 0xffff
+srl   t1, t0, 4
+andi  t1, t1, 0xf0
+andi  t0, t0, 0xf0
+andi  a3, a3, 0xf
+```
+
+`((x & 0xFFFF) >> 4) & 0xF0` and `(x & 0xFFFF) & 0xF0` are both equal to the
+same expression on the unmasked `x`, so GCC 2.8.1 deletes the mask in every
+spelling where each use owns its own `zero_extend` RTL:
+
+- `u16 color` parameter used directly — no mask at all (the arg register is
+  already known 16-bit).
+- `s16 color` with `(u16)color` written at each use — folded.
+- `s32 color` with `(color & 0xFFFF)` written at each use — folded.
+- `u16 c = color;` then `c >> 4` / `c & 0xF0` — folded.
+
+What keeps it is a single **`u32` local** holding the masked value, so CSE
+produces one `and` insn with two uses and combine refuses to substitute it
+(`can_combine_p` needs the source dead in the insn it is folded into):
+
+```c
+c = color & 0xFFFF;
+r = (((c >> 4) & 0xF0) + dither) >> 1;
+g = ((c & 0xF0) + dither) >> 1;
+b = (((color & 0xF) << 4) + dither) >> 1;   /* still off the raw parameter */
+```
+
+The `u16 c` variant fails because GCC re-expands the `HImode` local at each
+use, which puts the two `zero_extend`s in separate insns with one use each.
+Generally: when the ROM keeps a provably redundant mask or extension, the
+source held it in a variable that was read more than once.
+
+## A named temp for a repeated subexpression can cost the register allocation
+
+The same function draws three fans whose corner angles are `i + 0x800`,
+`i + 0xA00`, `i + 0xC00`. Hoisting those into one reused local
+
+```c
+a = i + 0x800;  /* … */  a = i + 0xA00;  /* … */  a = i + 0xC00;
+```
+
+built one long-lived allocno per loop, which outranked the `ang` variable in
+`global.c`'s priority order and rotated three callee-saved registers
+(`ang`/`poly`/`a` came out `s0`/`s1`/`s2` instead of the ROM's `s1`/`s2`/`s0`)
+— 123 register penalties and nothing else wrong. Writing the angles inline and
+letting CSE build the temps
+
+```c
+poly->x0 = *(u16*)&line->x1 + ((sc->r1 * rsin(i + 0x800)) >> 12);
+poly->y0 = *(u16*)&line->y1 + ((sc->r1 * rcos(i + 0x800)) >> 12);
+```
+
+gives one short two-reference allocno per angle instead, which is allocated
+first and lands on `s0`. That single change took the function from 97.1% to
+100%. So when the only leftover is a permutation of the `sN` registers, try
+deleting the scratch locals before touching anything else: CSE-created temps
+and hand-written ones have very different priorities even though they compile
+to the same arithmetic.
