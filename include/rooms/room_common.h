@@ -508,6 +508,14 @@ typedef struct _RoomShaftScratch {
 } RoomShaftScratch;
 STATIC_ASSERT_SIZEOF(RoomShaftScratch, 0x14);
 
+/// 0x14-byte scratch block `Room_Draw35` takes from `G_SCRATCH_HEAD`. Same
+/// layout as `RoomShaftScratch`: `vec` is the sprite's offset rotated out of
+/// the caller's local space by the coordinate's `workm` and translated by it,
+/// then projected through `GsWSMATRIX` with one `RTPS` into `sx` / `sy` and
+/// `otz`. `halfWidth` is `(s16)arg3 * 39 / otz`, the quad's on-screen half
+/// extent.
+typedef RoomShaftScratch RoomDraw35Scratch;
+
 /// Overlay of `Task::spawnArg1` for that task: `phase` steps the shaft's
 /// pulsing red channel off the global frame counter, `height` is the length
 /// the two halves are drawn at before the `1 / otz` divide.

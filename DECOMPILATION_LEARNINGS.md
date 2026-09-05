@@ -48304,3 +48304,55 @@ sh     t7, 0(a3)
 "Don't mirror an emitted store order that the `mult`/`mflo` gap created",
 except here the touch is load-bearing and the source has to create the gap
 explicitly.
+
+## Enumerate permutations of independent store groups before reaching for a barrier
+
+When a function fills a primitive with several *independent* groups of field
+stores -- a `POLY_FT4`'s four UV pairs, four RGB triples, four corner pairs --
+the emitted order is a scheduler permutation of the source order, not the
+source order itself. GCC 2.8.1's first scheduling pass runs before register
+allocation, so the group it decides to emit second is the one whose constant
+gets to reuse the register the first group just freed. Getting that wrong shows
+up as a `regs` + `insert`/`delete` mix on a block that is otherwise instruction-
+for-instruction correct, and no amount of local reasoning about the diff tells
+you which source order produces the target order.
+
+`Room_Draw35` writes four such pairs: `u0`/`u2` (both `su * 40`), `u1`/`u3`
+(both `+ 0x27`), `v2`/`v3` (both `0x27`) and `v0`/`v1` (both `0`). The obvious
+source order -- u0, u1, v2, v0, which is also the target's *store* order --
+scored 95.0%, with the `lbu` of `prim->code` for `setSemiTrans` hoisted ten
+instructions too early and the `addiu` for `u1` sunk below the `u0` stores.
+Generating all 24 permutations of the four groups and scoring each took one
+loop and one minute:
+
+```
+ABCD 95.000  ABDC 98.546  ACBD 93.240  ACDB 93.342  ADBC 98.546  ADCB 93.342
+BACD 94.974  BADC 99.464  BCAD 94.694  BCDA 94.694  BDAC 99.464  BDCA 94.439
+CABD 92.602  ...          DBAC 99.464  ...
+```
+
+`BADC` -- store `u1`/`u3` first, then `u0`/`u2`, then `v0`/`v1`, then `v2`/`v3`
+-- landed at 99.464% with `insert`/`delete` at zero, which is what the permuter
+then finished. Nothing about the target's own store order (`u0`, `u1`, `v2`,
+`v0`) hints at that source order.
+
+Two things follow. Enumerate mechanically rather than reasoning group by group:
+the search space is small, each build is about a second, and the sweep is
+strictly cheaper than reading `.sched` dumps to predict the list scheduler's
+tie-breaks. And do the sweep *before* adding a `SOFT_BARRIER()` to pin the
+load in place -- the barrier is a real instruction-scheduling constraint that
+will hide the fact that a plain reordering already matches.
+
+A related one-line lever, from the same function: splitting a constant fold
+into two statements can change the schedule. `rgb = ((flip & 1) << 4) + 0x20;`
+stalled at 99.464%, and
+
+```c
+rgb = (flip & 1) << 4;
+rgb += 0x20;
+```
+
+matched. The two forms are the same RTL after CSE, but they enter the
+scheduler as two insns with their own priorities rather than one, which was
+enough to move `ori $v0, $v0, 2` past the colour arithmetic. Worth trying on
+any leftover `reorder=1`.
