@@ -376,6 +376,9 @@ void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
+/// Queues the room's 16x24 action-prompt cursor icon at (`x`, `y`) into the head
+/// of the current OT; `variant` selects the palette and 0 draws nothing.
+void Room_Draw36(s32 x, s32 y, s32 variant);
 void Room_Script10(Task* task);
 void Room_Script11(Task* task);
 void Room_Script21(Task* task);
