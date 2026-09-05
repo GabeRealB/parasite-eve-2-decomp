@@ -41311,6 +41311,48 @@ scratch diff shows only symbol spelling once the order is right. When a
 `D_8007216x`/`D_800721xx` import sits in a room's callee list, check whether
 it is a `Mc_SaveData` offset before reaching for `SOFT_BARRIER()`.
 
+## `D_80073Bxx` in a weapon overlay is `Wip_SysConfig`; a bare extern floats its `lbu` above the struct stores
+
+The same fixed-scalar-vs-struct aliasing hole as the `Mc_SaveData` entry above,
+seen from the other end: not a store that sinks, but a *load* that rises past a
+run of struct stores.
+
+`func_m4a1_javelin_8011F5D4` state 2 writes five `actor->` fields and then packs
+a byte of `Wip_SysConfig` into `field_124`. The target keeps every store ahead
+of the load:
+
+```asm
+sb   v0,0x979(s0)
+lui  v0,%hi(D_80073BAA)
+sh   v1,0x95e(s0)
+sh   zero,0x95a(s0)
+sw   zero,0x934(s0)
+sh   v1,0x93e(s0)
+lbu  v0,%lo(D_80073BAA)(v0)   /* after all four stores */
+```
+
+Written as `extern u8 D_80073BAA;` the `lbu` is issued right after the `lui`,
+the stores shuffle in behind it, and the constant `3` shared by `field_95E` and
+`field_93E` lands in `$v0` instead of `$v1`. That block cost 1.35% and would not
+close: all 120 permutations of the five stores, every position for the
+`field_124` and `field_12A` statements, `register s32 asm("v1")` pins, and a
+6-minute permuter run all topped out at 98.6%.
+
+`0x80073BAA` is `Wip_SysConfig + 0x22`, already declared as
+`WipSysConfig::field_22` in `include/main/wipsys.h` with the comment "packed
+into GameActor.field_124 (`func_801061F0`)" — the very use being decompiled.
+Writing `Wip_SysConfig.field_22` restores the dependence and the block matched
+with no other change.
+
+The tell is a `reorder` leftover that survives *both* every statement
+permutation and every register pin, in a block that mixes `struct->field`
+stores with a bare-extern global. Before either, look the address up in
+`configs/USA/sym.main.txt`: for weapon and actor overlays the two bases worth
+checking are `Wip_SysConfig = 0x80073B88` (`D_80073Bxx`) and
+`Mc_SaveData = 0x80072168` (`D_800721xx`). Both spell the same `%hi`/`%lo`
+bytes, so the scratch diff shows only the symbol name once the order is right.
+
+
 ## Store the scratch push temp before naming it, or CSE folds the `move` into the block pointer
 
 `func_acropolis_helicopter_landing_pad_8017F010` pushes a 0x14 block and wants

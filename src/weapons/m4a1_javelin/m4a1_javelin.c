@@ -5,12 +5,17 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 #include "weapons/m4a1_javelin.h"
 
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
@@ -118,6 +123,168 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", D_m4a1_javelin_8011D1C0);
+/// Per-frame firing state machine for the M4A1 javelin launcher, the sibling of
+/// `func_m4a1_grenade_8011D1EC`. State 0 arms the shot and raises the weapon
+/// (clip 8 instead of 1 when it was already up), state 1 waits for that clip.
+/// State 2 branches on `field_97F`: a held trigger (bit 0) drops into the
+/// three-round burst of state 3, a tap (bit 1) fires the single 0x101 javelin
+/// of state 5, and anything else falls straight into the burst. State 3 counts
+/// `field_934` down to each round, spending one javelin, playing `0x201D0004`
+/// and spawning the muzzle flash; on the frame `field_934` reaches 2 it drops
+/// the aim lock and spawns the 0x6003B impact marker, which state 4 also does
+/// before parking in state 7. States 5 and 6 run the flight timer and feed the
+/// tracked point to `func_m4a1_javelin_8011F4A4` (or clear it when nothing is
+/// in range) so the guide line is drawn. State 7 runs the recoil timer down and
+/// hands back to `func_80106550` once `func_80105894` is done or the timer has
+/// run out.
+///
+/// `Wip_SysConfig.field_22` is the low byte `func_801061F0` packs into
+/// `GameActor::field_124`. Reading it through the struct rather than as a bare
+/// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
+/// the `actor->` stores: a scalar global and a struct field do not alias, so
+/// the scheduler is free to move the load, and the block comes out reordered.
+void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* spot;
+    GpEffWork*     eff;
+    s32            anim;
+    s32            delay;
+    s32            tick;
+    u16            count;
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_javelin/m4a1_javelin", func_m4a1_javelin_8011F5D4);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x58;
+    coord                   = arg0->extra->field_8;
+    actor                   = arg0->actor;
+    spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
+    spot->sub               = NULL;
+
+    switch (actor->field_95E) {
+        case 0:
+            anim              = 1;
+            actor->field_956  = 4;
+            actor->field_954  = 0;
+            actor->field_95C  = 0;
+            actor->field_95E += anim;
+            actor->field_12A |= 0x400;
+            if (((u16)actor->field_958 | actor->field_975) != 0) {
+                anim = 8;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
+            actor->field_958 = 0;
+            break;
+        case 1:
+            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1) !=
+                NULL) {
+                actor->field_95E++;
+            }
+            break;
+        case 2:
+            actor->field_981 = 0;
+            if (actor->field_97F & 1) {
+                actor->field_95E  = 3;
+                actor->field_979  = 9;
+                actor->field_95A  = 0;
+                actor->field_934  = 0;
+                actor->field_93E  = 3;
+                actor->field_124  = Wip_SysConfig.field_22 | 0x21D00;
+                actor->field_12A |= 0x800;
+                func_80106238(arg0, 0, 1);
+            } else if (actor->field_97F & 2) {
+                actor->field_95E  = 5;
+                actor->field_95A  = 2;
+                actor->field_979  = 0x1C;
+                actor->field_934  = 6;
+                actor->field_124  = 0x21D1F;
+                actor->field_12A &= 0xF7FF;
+                func_80106238(arg0, 0, 0);
+                Gp_ConsumeSlotQty(0x9C, 0x101);
+                eff = Gp_SpawnEff(0x6002F,
+                                  (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                  0x1D, NULL);
+                if (eff != NULL) {
+                    Task_Reparent(actor->field_91C, eff->field_0);
+                }
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201D0005, 1);
+                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
+                break;
+            }
+            /* fallthrough */
+        case 3:
+            count = actor->field_93E;
+            if (actor->field_93E != 0) {
+                delay = actor->field_934;
+                if (delay == 0) {
+                    actor->field_93E  = count - 1;
+                    actor->field_934  = 3;
+                    actor->field_981  = 0;
+                    actor->field_12A |= 0xC000;
+                    Gp_ConsumeSlotQty(0x9C, 1);
+                    if (func_80106264(1) == 0) {
+                        actor->field_93E = 0;
+                    }
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201D0004, 1);
+                    Gp_SpawnEff(0x6006B,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                0x1D, NULL);
+                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                } else {
+                    delay--;
+                    actor->field_934 = delay;
+                    if (delay == 2) {
+                        actor->field_12A &= 0x3FFF;
+                        if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                            Gp_SpawnEff(0x6003B, spot, 0, NULL);
+                            Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                        }
+                    }
+                }
+                break;
+            }
+            /* fallthrough */
+        case 4:
+            actor->field_95E  = 7;
+            actor->field_12A &= 0x3FFF;
+            if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                Gp_SpawnEff(0x6003B, spot, 0, NULL);
+                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+            }
+            break;
+        case 5:
+        case 6:
+            tick             = actor->field_934 - 1;
+            actor->field_934 = tick;
+            if (tick == 0) {
+                if (actor->field_95E == 5) {
+                    actor->field_95E  = 6;
+                    actor->field_934  = 0x1C;
+                    actor->field_12A |= 0xC000;
+                } else {
+                    actor->field_95E  = 7;
+                    actor->field_12A &= 0x3FFF;
+                }
+            }
+            if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                func_m4a1_javelin_8011F4A4((M4a1JavelinVecLo*)spot->workm.t);
+                eff = Gp_SpawnEff(0x60183, spot, 0, NULL);
+                if (eff != NULL) {
+                    Task_Reparent(actor->field_91C, eff->field_0);
+                }
+            } else {
+                func_m4a1_javelin_8011F4A4(NULL);
+            }
+            break;
+        case 7:
+            if (actor->field_979 != 0) {
+                actor->field_979--;
+            }
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData.field_22][1], 0, 0) == 0 ||
+                ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
+                actor->field_940 = 0xC;
+                func_80106550(arg0);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x58;
+}
