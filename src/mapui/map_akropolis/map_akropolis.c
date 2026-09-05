@@ -1,13 +1,48 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
 #include "main/display.h"
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 extern s32      D_map_akropolis_8017A9A8;
 extern s32      D_map_akropolis_8017A9AC[4];
 extern TaskDesc D_map_akropolis_8017AA00;
 
-INCLUDE_ASM("mapui/nonmatchings/map_akropolis/map_akropolis", func_map_akropolis_80179C50);
+extern UiObjectDesc D_8010EFA0;
+
+/// Draws one row of the Akropolis map's key-item list: the item's name at the
+/// row's position, previewed while the row is highlighted. Confirming on the
+/// selected row opens the item-detail panel `D_8010EFA0`; picking the row whose
+/// item is 0x10C also records that choice in `D_map_akropolis_8017A9A8`, which
+/// `func_map_akropolis_8017A038` reports back to the caller.
+void func_map_akropolis_80179C50(DialogPrompt* arg0, UiObject* arg1)
+{
+    s32 item;
+    s32 sel;
+
+    item = D_map_akropolis_8017A9AC[arg0->field_8];
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, (u8*)Gp_GetItemText(item, 0, 0), arg0->field_1C, 1, 0);
+    if (((arg1->status >> 16) == 1) || (arg1->status == 1)) {
+        if (arg0->field_10 == arg0->field_8) {
+            Gp_SetPreviewItem(item, 0);
+        }
+    }
+    sel = arg0->field_C;
+    if (sel == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            arg1->status = 0;
+            if (item == 0x10C) {
+                D_map_akropolis_8017A9A8 = sel;
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_80179950);
 
