@@ -3,6 +3,42 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A `u16` temp for the divide result, plus `setUV4` store order, decides `$a0` vs `$a1`
+
+`func_m4a1_pyke_8011D548` writes a `POLY_FT4` whose `u` coordinates come from
+`frame % 6`, with `frame` a `u16` parameter. The ROM's code is
+
+```
+subu   a0, a0, v0        # frame % 6
+andi   a0, a0, 0xFFFF
+sll    a0, a0, 5         # u0
+addiu  v0, a0, 0x1F      # u1
+sb     a0, 0xC(a1)       # prim in $a1, frame in $a0
+```
+
+and two independent choices are needed to reach it.
+
+**The remainder needs its own `u16` local.** Writing it back to the parameter
+(`frame %= 6; u0 = frame << 5;`) keeps the `andi` only while `u0` is 32-bit;
+declaring `u0` as `u16` lets combine fold `(u16)((u16)x << 5)` back to a single
+`sll` *and* turn `u1 = u0 + 0x1F` into `ori` (it can see the low five bits are
+zero). A separate `u16 uv = frame % 6; u0 = uv << 5;` with `u0`/`u1` as `s32`
+materialises the truncation and keeps the `addiu`, and — the reason it matters
+here — it also gives block 1 one more allocno, which pushes `prim` off `$a0`
+onto `$a1` so the parameter copy `move a0, a1` appears. Pinning
+`register POLY_FT4 *prim asm("a1")` reproduces the same allocation, so the temp
+is doing allocator work, not arithmetic work.
+
+**Write the `u` fields in `setUV4` order even when the ROM stores them
+`u0, u2, u1, u3`.** With the stores written `u0, u2, u1, u3`, `sched1` sinks
+`u1 = u0 + 0x1F` past both `u0` stores, so `u0` and `u1` never overlap and share
+one register. Writing them `u0, u1, u2, u3` shortens the memory-dependency
+chain in front of the add, the scheduler leaves it where it was, and it then
+re-emits the stores in the ROM's `0xC, 0x1C, 0x14, 0x24` order anyway. Same
+lesson as "A named temp for a repeated subexpression can cost the register
+allocation", but in the opposite direction: here the extra named temp is what
+buys the allocation.
+
 ## Pin the first div result so a `$t1` saved-arg does not shift in place
 
 A two-div ring that wants `$v1` for `otz` and then for `rInner`:

@@ -37,6 +37,24 @@ typedef struct M4a1PykeQuadScratch {
 } M4a1PykeQuadScratch;
 STATIC_ASSERT_SIZEOF(M4a1PykeQuadScratch, 0x1C);
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011D548`
+/// for one billboarded frame of the beam sprite. `vec` is the world point
+/// truncated to s16 and pushed through `GsWSMATRIX` by a single `RTPS`; `flag`
+/// is its `gte_stflg`, `otz` its `gte_stszotz` (biased by 1 so it can also be
+/// the divisor) and `sx` / `sy` its `gte_stsxy`. `size` is the half-extent
+/// `brightness * 31 / otz` added to and subtracted from `sx` / `sy` to build
+/// the quad's four corners; only its low half is read back. Same layout as the
+/// gameplay `GpEffFt4Scratch`.
+typedef struct M4a1PykeBeamScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     size;
+    /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
+} M4a1PykeBeamScratch;
+STATIC_ASSERT_SIZEOF(M4a1PykeBeamScratch, 0x18);
+
 /// Translation of the Pyke's effect coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x200, 0x40)`.
 extern SVECTOR D_m4a1_pyke_8011E90C;
