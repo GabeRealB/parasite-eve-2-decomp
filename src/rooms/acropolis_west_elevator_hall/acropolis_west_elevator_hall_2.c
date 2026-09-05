@@ -7,15 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s8    D_8007272D;
-extern Task* RoomsShared8017f470Cars[];
-
-s32 func_acropolis_west_elevator_hall_8017F498(void)
-{
-    RoomsShared8017f470Cars[0]->spawnArg1 = -1;
-    RoomsShared8017f470Cars[1]->spawnArg1 = -1;
-    return 0;
-}
+extern s8 D_8007272D;
 
 s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
