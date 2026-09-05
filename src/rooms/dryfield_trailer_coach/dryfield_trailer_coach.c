@@ -6,13 +6,9 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017E43C);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017E808);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017EA58);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D6D8);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017EC78);
 
@@ -34,18 +30,12 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017FE98);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017FFCC);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D748);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_80180798);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D754);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_80180B94);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D75C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_80180E90);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D768);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_801811B0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_80181364);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8018165C);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D770);
