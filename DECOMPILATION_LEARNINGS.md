@@ -46400,3 +46400,54 @@ fields go through `d`) drops the score back, because the first store then also
 wants the register. m2c prints the tell — the first field as the bare local and
 the later ones as `M2C_FIELD(&local, T, 2)`. This took
 `func_acropolis_bridge_80187078` from 96.7% to 100%.
+
+### Two `G_SCRATCH_HEAD` alloc/release pairs in one function: put each in its own `static __inline__` helper
+
+`G_SCRATCH_HEAD` is the constant address `0x1F8003FC`, and every access in a
+matching body is its own `lui` plus a `%lo` offset:
+
+```
+lui   $a3, 0x1F80
+lw    $a3, 0x3FC($a3)     ; head
+...
+lui   $at, 0x1F80
+sw    $a1, 0x3FC($at)     ; head -= 0x10
+```
+
+Write the alloc/release sequence straight into a large basic block and CSE
+materialises the *address* into a pseudo instead, so the whole block reads and
+writes through one register:
+
+```
+lui   $v1, 0x1F80
+ori   $v1, $v1, 0x3FC
+lw    $t0, 0($v1)
+...
+sw    $a1, 0($v1)
+```
+
+That is worth 10-15 points on its own and it drags the surrounding register
+allocation with it. It is not about how many accesses the function has — a
+block with the same two accesses as a known-good sibling still CSE'd. What
+stops it is putting the sequence in a `static __inline__` helper of its own:
+after inlining the accesses stay separate `mem`s with constant addresses and
+each one keeps its `lui`. `func_acropolis_bridge_801863A8` borrows a scratch
+`VECTOR` twice, in two different `if` arms, and went 80% -> 96% purely by
+moving each borrow into its own helper.
+
+The release (`*(u8**)G_SCRATCH_HEAD = *(void**)G_SCRATCH_HEAD + 0x10;`) has to
+go inside the helper too, even when the target emits it several statements
+later: left in the caller it is a lone read-modify-write of the constant
+address and CSE'd it back to `lui`/`ori`. Moving it into the helper — i.e.
+*before* the caller's remaining field stores in source order — still emits it
+after them, because GCC reorders stores to a register base against stores to a
+constant address freely. That last move was the difference between 96% and
+100%.
+
+Two inlined copies of the same helper can also need two different statement
+orders. Both scratch borrows in `func_acropolis_bridge_801863A8` reset the same
+matrix, but one writes the zeroed off-diagonal before the `0x1000` diagonal and
+the other after; the scheduler reorders stores that share a register base and
+differ only in constant offset, so the emitted order is a register-pressure
+artifact and each site has to be written the way it came out. Sharing one
+helper between the two sites cost 2.5 points.
