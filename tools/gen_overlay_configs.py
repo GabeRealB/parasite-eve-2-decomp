@@ -137,23 +137,7 @@ def data_run(
     mesh is 60,000 `.word` lines it understands. Everything between the carves
     stays ordinary `data`, because that is what we have *not* identified.
     """
-    picked = [(a, b) for a, b in models if a >= start and b <= stop and b > a]
-    if not picked:
-        return [f"      - [0x{start:X}, data, {name}_data]"]
-    out: list[str] = []
-    pos = start
-    idx = 0
-    for a, b in picked:
-        if a > pos:
-            suffix = "" if idx == 0 else f"_{idx + 1}"
-            out.append(f"      - [0x{pos:X}, data, {name}_data{suffix}]")
-            idx += 1
-        out.append(f"      - [0x{a:X}, databin, {name}_model_{a:05X}]")
-        pos = b
-    if pos < stop:
-        suffix = "" if idx == 0 else f"_{idx + 1}"
-        out.append(f"      - [0x{pos:X}, data, {name}_data{suffix}]")
-    return out
+    return data_subsegments(name, start, stop, [], models)
 
 
 def trailing_segment(name: str, data: bytes) -> list[str]:
@@ -179,7 +163,13 @@ def trailing_segment(name: str, data: bytes) -> list[str]:
     return [f"      - [{start}, databin, {name}_tail]"]
 
 
-def data_subsegments(name: str, start: int, size: int, cuts: list[dict]) -> list[str]:
+def data_subsegments(
+    name: str,
+    start: int,
+    size: int,
+    cuts: list[dict],
+    models: list[tuple[int, int]] | None = None,
+) -> list[str]:
     """The trailing data region as splat subsegment lines.
 
     The region is one `data` object by default: models, animation banks and
@@ -196,21 +186,45 @@ def data_subsegments(name: str, start: int, size: int, cuts: list[dict]) -> list
     its subsegment is declared after it. A run at the end of a package
     therefore needs its own unit rather than the overlay's first one.
     """
-    if not cuts:
-        return [f"      - [0x{start:X}, data, {name}_data]"]
-    ordered = sorted(cuts, key=lambda c: int(str(c["start"]), 16))
+    models = models or []
     lines: list[str] = []
     asm = 0
 
-    def emit_asm(off: int) -> None:
+    def emit_plain(off: int) -> None:
         nonlocal asm
         asm += 1
         suffix = "" if asm == 1 else f"_{asm}"
         lines.append(f"      - [0x{off:X}, data, {name}_data{suffix}]")
 
+    def emit_asm(off: int, stop: int) -> None:
+        """One assembly run, with any model in it carved out as `databin`.
+
+        The two mechanisms compose here rather than competing: a `data` cut
+        hands a run to C because the decompiled code references it, and a model
+        is content nothing references by name. Carving inside the runs the cuts
+        leave behind keeps both, and keeps the `<name>_data`, `_data_2`, ...
+        numbering continuous across them.
+        """
+        pos = off
+        for m_start, m_end in models:
+            if m_start < off or m_end > stop or m_end <= m_start:
+                continue
+            if m_start > pos:
+                emit_plain(pos)
+            lines.append(f"      - [0x{m_start:X}, databin, {name}_model_{m_start:05X}]")
+            pos = m_end
+        if pos < stop:
+            emit_plain(pos)
+
+    if not cuts:
+        emit_asm(start, size)
+        return lines
+    ordered = sorted(cuts, key=lambda c: int(str(c["start"]), 16))
+    bounds = [int(str(c["start"]), 16) for c in ordered] + [size]
+
     prev = -1
     if int(str(ordered[0]["start"]), 16) != start:
-        emit_asm(start)
+        emit_asm(start, bounds[0])
         prev = start
     for cut in ordered:
         off = int(str(cut["start"]), 16)
@@ -227,7 +241,7 @@ def data_subsegments(name: str, start: int, size: int, cuts: list[dict]) -> list
             path = unit if unit.startswith("lib/") else f"{name}/{unit}"
             lines.append(f"      - [0x{off:X}, .data, {path}]")
         else:
-            emit_asm(off)
+            emit_asm(off, bounds[ordered.index(cut) + 1])
         prev = off
     return lines
 
@@ -411,12 +425,13 @@ def subsegments(
 
     if end < len(data):
         # Trailing data: models, animation banks, scripts - not code, except
-        # for the runs a `data` cut hands to C.
-        lines.extend(data_subsegments(name, end, len(data), data_cuts))
+        # for the runs a `data` cut hands to C. Models are carved out of what
+        # is left. Rebasing the carve onto the data-cut work once left this
+        # call unreachable after the raise below, so every overlay with a text
+        # span silently kept its meshes as .word lines while the build passed.
+        lines.extend(data_subsegments(name, end, len(data), data_cuts, models))
     elif data_cuts:
         raise SystemExit(f"{name}: data cuts but the package has no trailing data")
-        # Trailing data: models, animation banks, scripts - not code.
-        lines.extend(data_run(name, data, end, len(data), models))
     lines.extend(trailing_segment(name, data))
     return "\n".join(lines)
 
