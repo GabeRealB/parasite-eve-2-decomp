@@ -44914,3 +44914,57 @@ the loop optimiser then hoists exactly what the ROM hoists.
 The general rule: with a `short`/`s16` parameter, leave the derived
 expressions where the ROM uses them and let GCC place the shift. Hoisting one
 by hand does not just move code, it changes what combine is allowed to fold.
+
+## Name a loop's `i + K` index in a local to break a local-alloc tie
+
+`func_m4a1_hammer_8011D1E0` reached "every one of 457 instructions identical,
+two registers permuted": in the spark loop, two chained LCG draws
+
+```c
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+D_m4a1_hammer_8012D630[i] -= ((Gp_LcgState >> 16) & 0x1FF) - 0x100;
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+D_m4a1_hammer_8012D630[i + 8] += (Gp_LcgState >> 16) & 0xFF;
+```
+
+put the first draw in `$a1` and the second in `$a2`, where the target has them
+the other way round. `.lreg` showed the classic inversion — the first draw
+`used 10 times across 20 insns`, the second `used 6 times across 12 insns`, so
+`floor_log2(refs) * refs / live_length` is 1.5 against 1.0 and the first draw
+is allocated first and takes the lower register.
+
+What did *not* work, and is worth not repeating: every semantically valid
+permutation of the four statements, hoisting either draw into an explicit
+`u32` temporary, moving either `Gp_LcgState` store earlier or later,
+reordering the declarations, hoisting `(SVECTOR*)&work->field_18` out of the
+loop, rewriting the `for` as a `do`/`while`, and `SOFT_USE_REG` /
+`SOFT_TOUCH_REG` on the second draw. All of them re-normalise to the same RTL
+and score identically, because `sched1` reschedules the block into the same
+order before `local_alloc` measures the ranges. Two rounds of decomp-permuter
+(~2000 iterations each) also never beat the baseline.
+
+What worked was giving the *index* a name:
+
+```c
+for (i = 0; i < 8; i++) {
+    j = i + 8;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    D_m4a1_hammer_8012D630[i] -= ((Gp_LcgState >> 16) & 0x1FF) - 0x100;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    D_m4a1_hammer_8012D630[j] += (Gp_LcgState >> 16) & 0xFF;
+    ...
+    work->field_1A = D_m4a1_hammer_8012D630[j];
+}
+```
+
+`j` becomes its own induction variable, so `loop` strength-reduces it
+separately and the `&arr[i + 8]` address is live from the top of the body
+rather than being rebuilt where it is used. That shifts `sched1`'s order by a
+couple of slots, which is enough to move the two draws' live ranges across the
+priority crossover — 99.83% to 100.00%, with the emitted instruction sequence
+unchanged. `sched2` and `dbr` put everything back in the target's order.
+
+The general lever: when statement permutation and temporaries all collapse to
+one RTL, the remaining knob is the *induction variables*, not the statement
+order. Naming (or un-naming) an `i + K` subscript adds or removes a giv, and
+that is a live-range change the later schedulers will not undo.
