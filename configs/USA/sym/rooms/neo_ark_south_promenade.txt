@@ -7,3 +7,4 @@ Room_Util03 = 0x8017D5D8; // shared body, see src/rooms/lib/
 RoomsShared8017f9e4 = 0x8017E184; // shared body, see src/rooms/lib/
 RoomsShared8017f9e4Pos = 0x8017F6DC; // shared body data, see src/rooms/lib/
 RoomsShared8017f9e4Pos2 = 0x8017F6E4; // shared body data, see src/rooms/lib/
+RoomsShared801802cc = 0x8017EA6C; // shared body, see src/rooms/lib/

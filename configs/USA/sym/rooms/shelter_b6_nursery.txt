@@ -35,3 +35,4 @@ RoomsShared8017d6d0Unit = 0x80184D34; // shared body data, see src/rooms/lib/
 RoomsShared8017f9e4 = 0x8018378C; // shared body, see src/rooms/lib/
 RoomsShared8017f9e4Pos = 0x801852F4; // shared body data, see src/rooms/lib/
 RoomsShared8017f9e4Pos2 = 0x801852FC; // shared body data, see src/rooms/lib/
+RoomsShared801802cc = 0x80184074; // shared body, see src/rooms/lib/
