@@ -48268,3 +48268,39 @@ So when a seed contains an empty-`asm` macro on a loop variable, unpin it
 version alone reproduces the original failure and looks like a dead end, and
 scoring the pinned version alone reports a penalty mix that belongs to the
 workaround rather than to the bug.
+
+## Split a `mult` from its store when `TOUCH_REG` has to sit between fields
+
+A walking `SVECTOR*` whose C stores of `vy`/`vz` would otherwise strength-reduce
+onto `&v->vz` (`sh zero, -2(a3)` plus an extra `addiu`) needs `TOUCH_REG(v)`
+between those stores so every access stays `0/2/4(v)`. That volatile `+r` is
+also a scheduling fence: `v->vy = 0; TOUCH_REG(v); v->vx = tbl->x * arg1;`
+emits `sh zero` *before* the `lhu`/`mult`, not in the `mult`→`mflo` gap the
+target uses.
+
+Keep the touch (the GIV comes back without it) and split the product into a
+temp *before* the zero store so the `mult` is already in flight when `sh zero`
+is emitted:
+
+```c
+prod  = tbl->x * arg1;
+v->vy = 0;
+TOUCH_REG(v);
+v->vx = prod;
+TOUCH_REG(v);
+v->vz = tbl->y * arg1;
+```
+
+```
+lhu    v0, 0(t0)
+nop
+mult   v0, a1
+sh     zero, 2(a3)   /* fills the mult delay */
+mflo   t7
+sh     t7, 0(a3)
+```
+
+`Room_Draw16` is the example: 99.7% `reorder=1` became 100%. Same lever as
+"Don't mirror an emitted store order that the `mult`/`mflo` gap created",
+except here the touch is load-bearing and the source has to create the gap
+explicitly.

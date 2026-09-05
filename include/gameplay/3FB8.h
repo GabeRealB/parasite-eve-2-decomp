@@ -397,11 +397,12 @@ STATIC_ASSERT_SIZEOF(GpQuadCorner, 0x4);
 /// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
 extern GpQuadCorner D_80111E38[4];
 
-/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite7C`.
-/// `vec[]` holds the four rotated + translated quad corners fed to the GTE;
-/// `otz` is `gte_stszotz` then incremented, `flag` is `gte_stflg`, and
-/// `sxy0` (RTPS of `vec[0]`) plus `sxy1`..`sxy3` (RTPT of the rest) are the
-/// projected screen positions copied into the `POLY_FT4`.
+/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite7C` and
+/// `Room_Draw16`. `vec[]` holds the four rotated + translated quad corners
+/// fed to the GTE; `otz` is `gte_stszotz` (then incremented by the sprite
+/// helpers, not by `Room_Draw16`), `flag` is `gte_stflg`, and `sxy0` (RTPS
+/// of `vec[0]`) plus `sxy1`..`sxy3` (RTPT of the rest) are the projected
+/// screen positions copied into the `POLY_FT4`.
 typedef struct _GpQuadScratch {
     /* 0x00 */ SVECTOR vec[4];
     /* 0x20 */ s32     otz;

@@ -350,6 +350,13 @@ void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// on-screen radius is `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the RGB on all
 /// three channels. Dropped when `gte_stflg` is negative.
 void Room_Draw14(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Scales the unit quad `D_80111E38` by `arg1`, rotates it by `arg0->workm`
+/// and adds `workm.t`, then projects the four corners through `GsWSMATRIX`.
+/// When `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4`
+/// (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F) coloured
+/// `(arg2, arg2, arg2)`. Same 0x38 scratch layout as `GpQuadScratch`
+/// (`otz` is not incremented).
+void Room_Draw16(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 /// Projects two world-space points (`arg0` and `arg0 + 1`) through
 /// `Gfx_ViewWorldMtx` and, when the second OTZ is at least 0x11, queues
 /// gouraud `POLY_G4` wedges: a half-disc at each projected centre plus
