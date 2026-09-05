@@ -270,9 +270,10 @@ def subsegments(
     if span is None:
         if data_cuts:
             raise SystemExit(f"{name}: data cuts on a data-only package")
-        lines.append(f"      - [0x0, data, {name}]")
-        # A data-only package - mappic, and the empty actor slots. Models get
-        # carved here too; there is no code to sit around them.
+        # A data-only package - mappic, and the empty actor slots. `data_run`
+        # emits the whole-file `data` subsegment when there is nothing to carve,
+        # so it replaces the plain append rather than following it: emitting
+        # both covers the region twice and the link fails on duplicate symbols.
         lines.extend(data_run(name, data, 0, len(data), models))
         lines.extend(trailing_segment(name, data))
         return "\n".join(lines)
