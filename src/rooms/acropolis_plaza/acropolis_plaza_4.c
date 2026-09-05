@@ -34,6 +34,12 @@ extern s8 D_8007218A;
 extern u8 D_acropolis_plaza_80182734[];
 extern u8 D_acropolis_plaza_80182A34[];
 
+/// The three blocks `func_acropolis_plaza_8017F48C` picks between with
+/// `Task::spawnArg1` before handing one to `func_800E8614`.
+extern u8 D_acropolis_plaza_80183554[];
+extern u8 D_acropolis_plaza_8018365C[];
+extern u8 D_acropolis_plaza_80183764[];
+
 /// Five-state warp sequence. State 0 allocates the work block, caches the
 /// slot-3 task in it and places the player at (0x3804, 0, 0xFC8) with msg
 /// 0x3F2; states 1 and 2 wait for slot 3 to go idle (msg 0x3F0), state 1
@@ -100,7 +106,57 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017ECF8);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017F48C);
+/// Three-state cutscene tail: state 0 republishes the player's weapon to slot
+/// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish -- latching
+/// `CdCmd_Queue.field_1EE` into the work block, killing the block's task and
+/// running the block `spawnArg1` names -- and state 2 kills this task once the
+/// session is out of its transition.
+void func_acropolis_plaza_8017F48C(Task* task)
+{
+    GpRec14     rec;
+    CdCmdQueue* q = &CdCmd_Queue;
+    s32         state;
+    s32         weaponId;
+    s32         id;
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            weaponId     = D_80073BA9;
+            id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_0  = id;
+            rec.field_4  = 1;
+            rec.field_8  = 0;
+            rec.field_C  = 0xA;
+            rec.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+            task->state = task->state + 1;
+            break;
+        case 1:
+            if (CdCmd_IsIdle() != 0) {
+                ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
+                Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+                switch (task->spawnArg1) {
+                    case 0:
+                        func_800E8614((s32)D_acropolis_plaza_80183554, 1);
+                        break;
+                    case 1:
+                        func_800E8614((s32)D_acropolis_plaza_8018365C, 1);
+                        break;
+                    case 2:
+                        func_800E8614((s32)D_acropolis_plaza_80183764, 1);
+                        break;
+                }
+                task->state = task->state + 1;
+            }
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                Task_RequestKill(task, 0);
+            }
+            break;
+    }
+}
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish and hands
