@@ -1,2 +1,6 @@
 // Overlay-local symbols for dryfield_r08.
 Room_Draw31 = 0x8017E7C8; // shared body, see src/rooms/lib/
+RoomsShared8017f438 = 0x8017F438; // shared body, see src/rooms/lib/
+RoomsShared8017f438Sel = 0x8017F708; // shared body data, see src/rooms/lib/
+RoomsShared8017f438Bank0 = 0x801809C0; // shared body data, see src/rooms/lib/
+RoomsShared8017f438Bank1 = 0x80180B58; // shared body data, see src/rooms/lib/

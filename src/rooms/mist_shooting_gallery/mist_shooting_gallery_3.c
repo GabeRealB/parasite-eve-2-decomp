@@ -37,9 +37,6 @@ extern s8  D_80072176;
 extern s8  D_80072177;
 /// "SELECT" — the panel title, owned by `mist_shooting_gallery.c`'s rodata.
 extern char         D_mist_shooting_gallery_8017DB04[];
-extern void*        D_mist_shooting_gallery_801853C0;
-extern u32          D_mist_shooting_gallery_8018D1B4[];
-extern u32          D_mist_shooting_gallery_8018DF38[];
 extern UiObjectDesc D_mist_shooting_gallery_8018535C;
 extern UiList       D_mist_shooting_gallery_80185338;
 extern TaskDesc     D_mist_shooting_gallery_80185378;
@@ -434,82 +431,3 @@ void func_mist_shooting_gallery_801810D8(Task* task)
             return;
     }
 }
-
-void func_mist_shooting_gallery_801811C0(s16 arg0)
-{
-    if (arg0 == 0) {
-        D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018D1B4;
-        return;
-    }
-    D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018DF38;
-}
-
-void func_mist_shooting_gallery_801811EC(void)
-{
-    u8 view;
-
-    view = Gp_GetViewIndex();
-    switch (view) {
-        case 2:
-            Room_Draw01(&D_mist_shooting_gallery_80185550[0], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_80185550[8], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_80185550[10], 0x200, 0x222);
-            break;
-        case 3:
-            Room_Draw01(&D_mist_shooting_gallery_80185570[0], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_80185570[2], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_80185570[10], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_80185570[12], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_80185570[14], 0x200, 0x222);
-            break;
-        case 7:
-            Room_Draw01(&D_mist_shooting_gallery_801855C0[0], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_801855C0[2], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_801855C0[4], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_801855C0[6], 0x200, 0x222);
-            break;
-        case 8:
-            Room_Draw01(&D_mist_shooting_gallery_80185610[0], 0x200, 0x222);
-            break;
-        case 9:
-        case 18:
-            Room_Draw01(&D_mist_shooting_gallery_801855F0[0], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_801855F0[2], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_801855F0[6], 0x200, 0x222);
-            Room_Draw01(&D_mist_shooting_gallery_801855F0[8], 0x200, 0x222);
-            Room_Draw31(&D_mist_shooting_gallery_801855F0[16], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
-            break;
-        case 10:
-            Room_Draw31(&D_mist_shooting_gallery_80185678[0], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185678[2], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185678[4], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185678[6], 0x300, 0x111);
-            break;
-        case 11:
-            Room_Draw31(&D_mist_shooting_gallery_80185680[0], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185680[1], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185680[3], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185680[4], 0x300, 0x111);
-            break;
-        case 12:
-            Room_Draw31(&D_mist_shooting_gallery_80185690[0], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185690[1], 0x300, 0x111);
-            break;
-        case 13:
-            Room_Draw31(&D_mist_shooting_gallery_80185688[0], 0x300, 0x111);
-            break;
-        case 14:
-            Room_Draw31(&D_mist_shooting_gallery_80185670[0], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185670[1], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185670[3], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185670[5], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_80185670[7], 0x300, 0x111);
-            Room_Draw31(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
-            break;
-    }
-}
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", D_mist_shooting_gallery_8017DB80);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_3", D_mist_shooting_gallery_8017DB8C);
