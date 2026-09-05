@@ -44161,3 +44161,56 @@ switch (actor->field_95E) {
 which link identically). Only the relative position of the pinned block matters:
 permuting `actor` / `coord` / `rec` among themselves changed nothing, because
 the pin, not source order, is what reprioritises the ready list.
+
+## One local per RNG draw, not one local reused for all of them
+
+**Problem.** `func_m4a1_pyke_8011D7D4` draws from `Gp_LcgState` four times, in
+four different basic blocks. Written the obvious way — one `u32 ang` declared
+at the top and assigned at each site — the function stalls at 95.5% with
+`regs=39`, and every one of the four `sw $v0, %lo(Gp_LcgState)($a2)` stores
+sinks several instructions past the `addu` that produced the value, exactly the
+symptom the "Assign the LCG back onto `Gp_LcgState`" entry above describes.
+
+**Cause.** The four assignments share one pseudo, so its live range spans the
+whole function instead of four short windows. `global_alloc` then hands it a
+temporary that stays live across each site, which both gives the scheduler a
+register to sink the store behind and pushes every *other* value in those
+blocks down the allocation order.
+
+**Fix.** Declare one local per draw (`ang0`, `ang1`, `ang2`, `ang3`). With
+nothing else changed, that alone was worth 95.5% → 100%. The four ranges no
+longer overlap, so the allocator is free to reuse the same hard register for
+them anyway — but it decides that per block, which is what the ROM's code does.
+
+The general rule: a value that is recomputed from scratch at several unrelated
+points is several variables, and writing it as one is a register-allocation
+pessimisation GCC 2.8.1 will not undo. This is the mirror image of the
+`Gp_LcgState` store-sinking entry above — there the remedy was to give the
+store an ordering edge, here it is to stop the pseudo from living long enough
+for the store to have anywhere to sink to.
+
+## Sweep the zero-store around an RNG statement, not only inside a store block
+
+The `Sweep one store's position` entry above sweeps a store through a *run of
+adjacent struct stores*. The same sweep is worth running when the stores are
+separated by an unrelated statement.
+
+`func_m4a1_pyke_8011D7D4` builds the `SVECTOR` that `gte_ApplyMatrixSV` rotates
+in place out of three halfword stores, with the LCG draw for the middle one
+sitting between them:
+
+```c
+work->field_10 = 0;
+ang0           = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState    = ang0;
+work->field_12 = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
+work->field_14 = 0;   /* after the draw, not next to field_10 */
+```
+
+Clearing `field_14` next to `field_10` — the grouping that reads better — held
+the score at 99.4% with `regs=3`: the `lw` of `Gp_LcgState` landed in `$v1`
+instead of `$a0`, which serialised the `lhu` of `task->spawnArg1` behind the
+multiply chain and dragged the `ori` of the LCG constant to the top of the
+block. Moving the one `sh $zero` past the draw took it to 100%. Writing the
+vector's components in `vx`, `vy`, `vz` order is also the reading the ROM
+supports, so prefer it over grouping the two constant stores.
