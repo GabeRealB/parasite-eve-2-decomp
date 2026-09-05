@@ -338,6 +338,10 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b);
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
 void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Same rotated shade-tex `POLY_FT4` as `Room_Draw27` (same 0x1C scratch
+/// layout, tpage 0x2B, clut 0x43D3), but `arg1` selects the UV column
+/// `(arg1 & 0xFFFF) << 5` rather than `(s16)arg1 << 5`.
+void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
@@ -543,6 +547,10 @@ typedef struct _RoomDraw27Scratch {
     /* 0x1A */ s16     sy;
 } RoomDraw27Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw27Scratch, 0x1C);
+
+/// 0x1C-byte scratch block `Room_Draw19` takes from `G_SCRATCH_HEAD`. Same
+/// layout as `RoomDraw27Scratch`.
+typedef RoomDraw27Scratch RoomDraw19Scratch;
 
 /// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at

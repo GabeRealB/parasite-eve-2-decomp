@@ -3,6 +3,22 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `TOUCH_REG_USE(arg, scratch)` puts `G_SCRATCH_HEAD`'s `lui`/`ori` before the incoming `$a2` copy
+
+`Room_Draw27` and `Room_Draw19` share a body except the UV column is
+`(s16)arg1 << 5` vs `(arg1 & 0xFFFF) << 5`. That delta lives after the flag
+branch, so it does not flip the prologue: both compile to
+
+```
+sw s0 / move s0, a2 / sw s4 / lui s4 / ori s4
+```
+
+`Room_Draw19` wants the `$s4` pair first. After `scratch = (void**)G_SCRATCH_HEAD`,
+`TOUCH_REG_USE(arg2, scratch)` makes the `$a2` copy take the address as an input,
+so `-fschedule-insns2` emits `sw s4` / `lui` / `ori` / `sw s0` / `move s0, a2`.
+Barriers on `scratch` alone, `USE_REG(arg2)`, and `TOUCH_REG_USE(scratch, arg2)`
+(operands swapped) leave the `$s0` pair first.
+
 ## Load `Gpu_PrimCursor` before the angle extend so `lui` precedes `sll`/`sra`
 
 `Room_Draw27` sign-extends `arg3` into `$s2` and loads `Gpu_PrimCursor` into
