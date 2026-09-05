@@ -2,9 +2,9 @@
 
 #include "main/task.h"
 
+#include "weapons/grenade_pistol.h"
 #include "weapons/weapons_shared_8011d3a0.h"
 
-void func_grenade_pistol_8011D6FC(Task* arg0);
 void WeaponsShared8011ddf8(Task* arg0);
 void WeaponsShared8011de24(Task* arg0);
 

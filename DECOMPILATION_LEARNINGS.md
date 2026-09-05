@@ -44793,3 +44793,28 @@ it; a `SOFT_COMPILER_BARRIER()` after the assignment is what drops the
 equivalence and gives the reload (98.5% → 99.6%). Instruction *counts* match
 either way, so this shows up as a `regs` penalty with `insert`/`delete` near
 zero, not as a missing instruction.
+
+## `SOFT_USE_REG2(x, x)` is how you add one reference without a second statement
+
+"An extra reference is worth more than a shorter live range" says *that* a
+pseudo sometimes needs one more reference to win the lower `$sN`; the idiom for
+spelling it is naming the same variable in both operands of one empty asm.
+
+`func_grenade_pistol_8011D6FC` is the grenade pistol's copy of
+`func_m4a1_grenade_8011D994`, and it needed the scratch head and the `rec0`
+pointer in the opposite order from its sibling: 4 refs across 22 insns
+(2*4/22 = 0.36) lost `$s2` to `rec0` at 4/21 (0.38). Both are already at
+`floor_log2(4) = 2`, so no boundary had to be crossed — one more reference,
+5/22 = 0.45, was enough:
+
+```c
+SOFT_USE_REG2(head, head);
+func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x18), 1, &idx);
+```
+
+Two things that do *not* work here. `SOFT_TOUCH_REG(head)` (`"+r"`) also adds
+references, but the write half starts a new live range at the asm and the copy
+it forces scores worse (99.79% against 100%). Introducing an explicit
+`rec0 = work->rec0;` local, or moving that assignment earlier to lengthen its
+range, changes neither number: `cse` re-derives the same pseudo with the same
+refs and the same length either way, so the ranking is unchanged.
