@@ -75,7 +75,7 @@ p08 = { item = 0x83, weapon = "P08", rodata_head = "0x4" }
 p08_snail = { item = 0x80, weapon = "P08(S. Magazine)", rodata_head = "0x4" }
 p229 = { item = 0x84, weapon = "P229", rodata = [{ start = "0x4", unit = "p229_2" }], shared = [{ start = "0x6A0", end = "0xBE0", unit = "weapons_shared_8011d864" }] }
 pa3 = { item = 0x8C, weapon = "PA3" }
-sp12 = { item = 0x8D, weapon = "SP12" }
+sp12 = { item = 0x8D, weapon = "SP12", rodata_head = "0x4" }
 tonfa_baton = { item = 0x92, weapon = "Tonfa Baton", rodata = [{ start = "0x4", unit = "tonfa_baton_2" }], shared = [{ start = "0x9B8", end = "0x9D8", unit = "weapons_shared_8011db78" }] }
 unused_85 = { item = 0x85, weapon = "", note = "unused weapon slot 0x85" }
 unused_86 = { item = 0x86, weapon = "", note = "unused weapon slot 0x86" }

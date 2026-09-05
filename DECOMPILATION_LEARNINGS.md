@@ -44536,3 +44536,31 @@ way to *test* this diagnosis in a minute (it scored 99.7%, losing only the delay
 slot it blocked); but the natural C that supplies the reference on its own is
 usually the real answer, and here it was already documented as the other
 spelling of the same tail.
+
+## A residual `regs` penalty can be pure symbol naming, not codegen
+
+`func_sp12_8011D1DC` sat at 99.867% with `regs=6` and every other penalty at
+zero. The whole diff was three `lui`/`lbu` pairs:
+
+```
+-lui    v0,%hi(D_80073BAA)          +lui    v0,%hi(Wip_SysConfig)
+-lbu    v1,%lo(D_80073BAA)(v0)      +lbu    v1,%lo(Wip_SysConfig+0x22)(v0)
+-lb     v0,%lo(D_8007218A)(v0)      +lb     v0,%lo(Mc_SaveData+0x22)(v0)
+```
+
+`Wip_SysConfig` is at `0x80073B88` and `Mc_SaveData` at `0x80072168`, so
+`D_80073BAA` *is* `Wip_SysConfig.field_22` and `D_8007218A` *is*
+`Mc_SaveData.field_22`. When a function reads a byte from the middle of a
+global struct, splat has no symbol at that address and invents a `D_ADDR` name;
+the C references the struct symbol plus an offset. Both encode to the same
+`%hi`/`%lo` relocation pair against the same address, but the scratch
+normalizer compares disassembly *text*, so each line scores as a difference and
+lands in the `regs` bucket.
+
+Diagnosis: take the `D_` address, subtract the nearest named global's address,
+and see whether the remainder is a field offset. If it is, stop editing C —
+the object is already correct. `./tools/build-and-verify.sh --only <family>` is
+the arbiter, and it linked clean here on the first try. This is the same class
+of cosmetic scratch residue as the `jtbl_XXXXXXXX` vs own-`.rodata` pair, and
+it is why a sub-100% scratch score is worth linking before it is worth
+permuting.
