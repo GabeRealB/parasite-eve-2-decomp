@@ -49898,3 +49898,85 @@ is the order strength reduction emits. A hand-written walking pointer is
 assigned in source order and comes out the other way round.
 `func_acropolis_patio_8017E100` went from 83.83%
 (`branch=5 regs=66 reorder=3 insert=7 delete=10`) to 100% on this one edit.
+
+## A named global array flips `addu` operands only when the field offset is non-zero
+
+Reading three fields of one element of a *named* global array,
+`D_sym[task->spawnArg1].vx/.vy/.vz`, does not emit the same address form for
+all three. The `.vx` read (offset 0) comes out as the target wants it,
+
+```
+sll   v0, v0, 0x3
+addu  v0, v0, a1      /* idx*8 + base */
+lhu   v0, 0(v0)
+```
+
+while `.vy` and `.vz` — the reads that carry a `+2` / `+4` into the load's
+displacement — come out base-first, `addu v0, a1, v0`, and the last one even
+clobbers the base (`addu a1, a1, v0; lhu v0, 4(a1)`) because it now looks dead.
+The extra constant is what drags the address through `simplify_plus_minus`,
+which re-sorts the operands around the `symbol_ref`; with no constant there is
+nothing to simplify and the original order survives.
+
+Copy the array base into a local pointer first and index *that*:
+
+```c
+/* BAD — addu v0, a1, v0 on the .vy / .vz reads only */
+work->field_10 = *(u16*)&D_sym[task->spawnArg1].vx - *(u16*)&coord->coord.t[0];
+work->field_12 = *(u16*)&D_sym[task->spawnArg1].vy - *(u16*)&coord->coord.t[1];
+
+/* GOOD — addu v0, v0, a1 on all three; the base is still CSE'd into one reg */
+anchors        = D_sym;
+work->field_10 = *(u16*)&anchors[task->spawnArg1].vx - *(u16*)&coord->coord.t[0];
+work->field_12 = *(u16*)&anchors[task->spawnArg1].vy - *(u16*)&coord->coord.t[1];
+```
+
+Note this is the *opposite* direction from "Array index vs intermediate pointer
+for `addu` operand order", which is about `p = base + idx` naming the whole
+element. Here the local names only the base, and the index stays at the use, so
+the `lui`/`addiu` pair is still emitted once inside the block. That single edit
+took `func_acropolis_patio_8017E730` from 99.918% to 100%.
+
+## `x % C == 0`: an inline cast beats a named 16-bit temp, and `%=` ties the `subu`
+
+Two spellings of the same unsigned-remainder test produce the same
+instructions and very different register allocation.
+
+A remainder whose result is stored in a named `u16` local gives the allocator a
+quantity that outlives the dividend, so the `subu` lands in whichever register
+held `q * C` and the whole surrounding block rotates:
+
+```c
+/* 99.564% — subu v0, a2, v0; and the else arm's three constants rotate */
+u16 tick;
+tick = ((u32)Gp_LcgState >> 16) % 0x3C;
+if (tick == 0) { … }
+```
+
+Dropping the local and casting in place keeps the dividend's quantity alive
+across the `subu`, so it is reused as the destination — `subu a2, a2, v0` —
+which is what the target does, and the rest of the block falls into place:
+
+```c
+/* 99.918% */
+if ((u16)(((u32)Gp_LcgState >> 16) % 0x3C) == 0) { … }
+```
+
+Keep the cast. It is not cosmetic: it is what forces the `andi $x, $x, 0xffff`
+between the `subu` and the branch. Widen the local to `u32` and GCC folds the
+truncation away and combines the compare into `bne a2, v0, …`, which is a
+control-flow miss, not a register one.
+
+When the remainder *is* consumed by later statements — here a grey level
+written to three `sb`s — a named local is unavoidable, and the same dest-tied
+`subu` comes from assigning first and reducing in place:
+
+```c
+/* subu a0, a0, v0; sb a0, 4(t0) …  (and the %hi(Display_State) lui stays after) */
+level  = (u32)Gp_LcgState >> 16;
+level %= 0xC0;
+```
+
+Written as one expression, `level = ((u32)Gp_LcgState >> 16) % 0xC0;`, the
+destination is a fresh quantity, the `subu` writes `v1`, and the scheduler
+hoists the next `lui` above the stores.
