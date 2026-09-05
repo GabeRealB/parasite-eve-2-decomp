@@ -9,3 +9,6 @@ Room_Draw14 = 0x80184E44; // shared body, see src/rooms/lib/
 Room_Draw16 = 0x8017EA0C; // shared body, see src/rooms/lib/
 Room_Draw27 = 0x8017F1FC; // shared body, see src/rooms/lib/
 Room_Draw28 = 0x8017F5E8; // shared body, see src/rooms/lib/
+RoomsShared8017f9e4 = 0x80183198; // shared body, see src/rooms/lib/
+RoomsShared8017f9e4Pos = 0x80186574; // shared body data, see src/rooms/lib/
+RoomsShared8017f9e4Pos2 = 0x8018657C; // shared body data, see src/rooms/lib/

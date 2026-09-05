@@ -1,3 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark_4", func_shelter_1f_bulwark_8017EDF0);
+INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark_4", func_shelter_1f_bulwark_8017F6D8);

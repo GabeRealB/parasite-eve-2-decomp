@@ -1,3 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_3", func_neo_ark_pyramid_8017E6B4);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_3", func_neo_ark_pyramid_8017EF9C);

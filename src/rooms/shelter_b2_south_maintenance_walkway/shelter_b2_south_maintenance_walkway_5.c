@@ -1,5 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway_5", func_shelter_b2_south_maintenance_walkway_80180930);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway_5", func_shelter_b2_south_maintenance_walkway_80181AE8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway_5", func_shelter_b2_south_maintenance_walkway_80180E88);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway_5", func_shelter_b2_south_maintenance_walkway_80181C94);

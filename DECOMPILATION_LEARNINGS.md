@@ -38404,6 +38404,27 @@ and `extern`s it needs - the regenerated file is `#include "common.h"` and
 `INCLUDE_ASM` lines only. Diff `asm/<ver>/<family>/matchings` before and after;
 a green build proves nothing, because an `INCLUDE_ASM` matches by definition.
 
+At 40 carriers that hand-carrying stops being viable, so work out the *unit
+renumbering* first and rename the `.c` files instead of re-splitting into
+regenerated stubs. The generated config (`configs/USA/generated/<overlay>.yaml`)
+lists every subsegment with its offset, so the new run list is a pure function
+of the old one plus the new span, and only two shapes ever occur:
+
+- the span **abuts a shared span on both sides**, so the run it replaces held
+  nothing but that body: the unit disappears and every later one shifts down by
+  one. Delete `src/<family>/<overlay>/<unit>.c`, `git mv` the tail down, and
+  rewrite the `"…/<overlay>/<unit>"` path string inside each moved file.
+- the span **ends exactly where the run ends**: the run only shrinks, no unit
+  is added or renumbered, and the single edit is deleting that one
+  `INCLUDE_ASM` line.
+
+`rooms_shared_8017f9e4` was 29 of the first and 11 of the second, and the
+matchings diff came out as the one deliberate rename. Two things renumbering
+silently breaks and a build will not: the manifest's `rodata` cuts name units
+*by number* (six of the 40 needed repointing), and a stale `asm/<ver>/<family>`
+tree keeps the deleted unit's directory, so the matchings diff shows phantom
+survivors - `rm -rf` the family's `asm/` before taking the "after" list.
+
 ## Name the global as a local pointer to keep `%hi` above a call
 
 A global whose first *use* is after a call gets its address rebuilt after the

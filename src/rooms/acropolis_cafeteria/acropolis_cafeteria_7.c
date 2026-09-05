@@ -3,105 +3,79 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
-#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
-extern SVECTOR D_acropolis_cafeteria_80184E80[];
-extern SVECTOR D_acropolis_cafeteria_80184E88;
+extern s32 Gp_LcgState;
 
-void func_acropolis_cafeteria_801803AC(Task* task)
+void Room_Draw02(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+
+void func_acropolis_cafeteria_80180C94(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
     GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
     GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    u8             rgb[4];
 
-    coords   = (GsCOORDINATE2*)task->idMap;
-    work     = (GpEffWork*)task->spawnArg2;
     objCoord = ((TmdObject*)task->extra)->field_8;
+    work     = (GpEffWork*)task->spawnArg2;
 
-    if (Gp_State1C->field_4 < 2) {
-        work->field_22++;
-        switch (task->state) {
-            case 0:
-                coords = (GsCOORDINATE2*)Mem_Calloc(0x500, 0);
-                if (coords == NULL) {
-                    work->field_22 = 0;
-                    return;
-                }
-                task->idMap          = (TaskIdMap*)coords;
-                objCoord->sub        = work->field_8;
-                objCoord->coord.t[0] = D_acropolis_cafeteria_80184E80[0].vx;
-                objCoord->coord.t[1] = D_acropolis_cafeteria_80184E80[0].vy;
-                objCoord->coord.t[2] = D_acropolis_cafeteria_80184E80[0].vz;
-                objCoord->flg        = 0;
-                Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->field_8;
-                vec              = &D_acropolis_cafeteria_80184E80[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
-                Gp_UpdateCoord(&coord);
-                for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &Gfx_ViewCoord;
-                    dst->workm = objCoord->workm;
-                    gte_SetRotMatrix(&objCoord->workm);
-                    gte_SetTransMatrix(&objCoord->workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &Gfx_ViewCoord;
-                    dst->workm = coord.workm;
-                    gte_SetRotMatrix(&coord.workm);
-                    gte_SetTransMatrix(&coord.workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
-                }
-                break;
-
-            case 1:
-                objCoord->flg = 0;
-                Gp_UpdateCoord(objCoord);
-                coord.sub        = work->field_8;
-                coord.coord.t[0] = D_acropolis_cafeteria_80184E88.vx;
-                coord.coord.t[1] = D_acropolis_cafeteria_80184E88.vy;
-                coord.coord.t[2] = D_acropolis_cafeteria_80184E88.vz;
-                coord.flg        = 0;
-                Gp_UpdateCoord(&coord);
-                dst        = &coords[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
-                dst->workm = objCoord->workm;
-                gte_SetRotMatrix(&objCoord->workm);
-                gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->field_22 & 7) + 8];
-                dst->sub   = &Gfx_ViewCoord;
-                dst->workm = coord.workm;
-                gte_SetRotMatrix(&coord.workm);
-                gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
-                for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
-                    Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
-                    Gp_UpdateCoord(dst);
-                }
-                Room_Draw03(coords, &coords[8], work->field_22 & 7, 0x123);
-                if (work->field_22 == task->spawnArg1 && work->field_22 != 0) {
-                    Gp_ReleaseState1CMem(work, task);
-                }
-                break;
+    if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->field_4 >= 4) {
+            Gp_ReleaseState1CMem(work, task);
         }
+        return;
+    }
+
+    Gp_UpdateCoord(objCoord);
+    work->field_22++;
+
+    switch (task->state) {
+        case 0:
+            Gp_SpawnEff(0x60076, objCoord, 0x400, NULL);
+            if (task->spawnArg1 != 0) {
+                Gp_SpawnEff(0x60070, objCoord, 0x80004600, NULL);
+                task->state = 1;
+            } else {
+                Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
+                Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
+                work->field_24 = 0x100;
+                work->field_26 = 0xC0;
+                task->state    = 2;
+            }
+            break;
+
+        case 1:
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x60070, objCoord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x82003400,
+                        (SVECTOR*)&work->field_10);
+            if (work->field_22 >= 7) {
+                task->state = 3;
+            }
+            break;
+
+        case 2:
+            work->field_26 -= 0x20;
+            work->field_24 += 0x30;
+            rgb[0]          = work->field_26;
+            rgb[1]          = (u16)work->field_26 >> 1;
+            rgb[2]          = (u16)work->field_26 >> 2;
+            Room_Draw02(objCoord, 0x100, 0x100, rgb);
+            Room_Draw02(objCoord, work->field_24, work->field_24, rgb);
+            if (work->field_22 >= 7) {
+                task->state = 3;
+            }
+            break;
+
+        case 3:
+            Gp_ReleaseState1CMem(work, task);
+            break;
     }
 }

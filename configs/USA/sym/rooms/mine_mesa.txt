@@ -17,3 +17,6 @@ Room_Util37 = 0x8017E93C; // shared body, see src/rooms/lib/
 RoomsShared8017da34 = 0x8017DE38; // shared body, see src/rooms/lib/
 RoomsShared8017daf0 = 0x8017E620; // shared body, see src/rooms/lib/
 RoomsShared8017daf0Desc = 0x801842F4; // shared body data, see src/rooms/lib/
+RoomsShared8017f9e4 = 0x8017FC94; // shared body, see src/rooms/lib/
+RoomsShared8017f9e4Pos = 0x80186528; // shared body data, see src/rooms/lib/
+RoomsShared8017f9e4Pos2 = 0x80186530; // shared body data, see src/rooms/lib/
