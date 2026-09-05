@@ -1062,6 +1062,4 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_4", func_acropolis_security_room_801817A4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_4", func_acropolis_security_room_80181C84);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_4", D_acropolis_security_room_8017D6AC);

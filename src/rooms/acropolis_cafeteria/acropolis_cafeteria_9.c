@@ -18,7 +18,7 @@ extern GsCOORDINATE2 Gfx_ViewCoord;
 
 void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
-extern SVECTOR D_acropolis_cafeteria_8018D6AC;
+extern SVECTOR RoomsShared8017d830Delta;
 
 extern MATRIX D_acropolis_cafeteria_8018D5A0;
 extern MATRIX D_acropolis_cafeteria_8018D5C0;

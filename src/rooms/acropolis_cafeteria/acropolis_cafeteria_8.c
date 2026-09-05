@@ -18,7 +18,7 @@ extern GsCOORDINATE2 Gfx_ViewCoord;
 
 void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
-extern SVECTOR D_acropolis_cafeteria_8018D6AC;
+extern SVECTOR RoomsShared8017d830Delta;
 
 extern MATRIX D_acropolis_cafeteria_8018D5A0;
 extern MATRIX D_acropolis_cafeteria_8018D5C0;
@@ -89,51 +89,4 @@ void func_acropolis_cafeteria_80181E70(Task* task)
 
     states = D_acropolis_cafeteria_8017D69C;
     states.funcs[task->state](task);
-}
-s32 func_acropolis_cafeteria_80181ED4(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
-{
-    void**                   scratch;
-    u8*                      head;
-    AcropolisCafeteriaDelta* s;
-    register void*           p asm("v1");
-    s32                      val;
-
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]                += ((AcropolisCafeteriaDelta*)(head - 0x14))->delta.vx.h.hi;
-        coord->coord.t[2]                += s->delta.vz.h.hi;
-        D_acropolis_cafeteria_8018D6AC.vx = ((AcropolisCafeteriaDelta*)(head - 0x14))->delta.vx.w >> 16;
-        D_acropolis_cafeteria_8018D6AC.vy = s->delta.vy.w >> 16;
-        D_acropolis_cafeteria_8018D6AC.vz = s->delta.vz.w >> 16;
-        val                               = ((AcropolisCafeteriaDelta*)(head - 0x14))->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_acropolis_cafeteria_8018D6AC.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_acropolis_cafeteria_8018D6AC.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_acropolis_cafeteria_8018D6AC.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_acropolis_cafeteria_8018D6AC.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
-    }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
 }

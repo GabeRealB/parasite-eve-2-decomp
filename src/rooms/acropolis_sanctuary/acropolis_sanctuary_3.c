@@ -790,5 +790,3 @@ s32 func_acropolis_sanctuary_8017F918(Task* task)
     Gp_SpawnEff(0x60078, coord, 0, &vec);
     return 0;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary_3", func_acropolis_sanctuary_8017F974);

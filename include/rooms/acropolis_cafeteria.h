@@ -36,13 +36,4 @@ typedef struct AcropolisCafeteriaDebris {
 } AcropolisCafeteriaDebris;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
 
-/// 0x14-byte scratch `func_acropolis_cafeteria_80181ED4` takes from
-/// `G_SCRATCH_HEAD`: the `GpDeltaScratch` handed to `func_800E0C10` plus the
-/// "did the object actually move" result the function returns.
-typedef struct AcropolisCafeteriaDelta {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} AcropolisCafeteriaDelta;
-STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDelta, 0x14);
-
 #endif // ROOMS_ACROPOLIS_CAFETERIA_H

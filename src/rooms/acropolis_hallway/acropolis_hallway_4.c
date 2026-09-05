@@ -11,5 +11,3 @@
 void func_acropolis_hallway_8017D828(void)
 {
 }
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway_4", func_acropolis_hallway_8017D830);
