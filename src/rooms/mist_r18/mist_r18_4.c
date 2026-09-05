@@ -1,89 +1,44 @@
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
-#include "gameplay/268.h"
-#include "main/fs.h"
-#include "main/mc.h"
+#include "main/display.h"
 #include "main/session.h"
-#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Coordinate node of a room prop's model (`TmdObject::field_8`). Same 0x50
-/// layout as `GsCOORDINATE2`, except +0x44 (libgs `param`) holds an inline
-/// `SVECTOR` of Euler angles that `RotMatrixZYX` composes into `mtx`.
-/// `GpDisp2dCoord` (gameplay) is the same shape for a different object.
-typedef struct {
-    /* 0x00 */ u32            flg;
-    /* 0x04 */ MATRIX         mtx;
-    /* 0x24 */ MATRIX         workm;
-    /* 0x44 */ SVECTOR        rot;
-    /* 0x4C */ GsCOORDINATE2* sub;
-} MistR18Coord;
+#include "rooms/mist_r18.h"
 
-extern Task* D_mist_r18_80186E98;
+void RoomsShared8017df80(s32 shade);
+void func_mist_r18_8017E144(s16 arg0);
 
-extern s16      D_80071076;
-extern s8       D_801156F9;
-extern TaskDesc D_mist_r18_80184F04;
+INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_4", func_mist_r18_8017E854);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_4", func_mist_r18_8017EA2C);
-
-void func_mist_r18_8017EA60(void)
+/// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
+void func_mist_r18_8017E8B8(Task* task)
 {
-    if (D_mist_r18_80186E98 != NULL) {
-        Task_Kill(D_mist_r18_80186E98);
+    u16 fade;
+
+    fade                = (u16)task->killCountdown + 8;
+    task->killCountdown = fade;
+    if ((s16)fade >= 0x40) {
+        task->killCountdown = 0x40;
     }
-    D_mist_r18_80186E98 = NULL;
-}
-
-void func_mist_r18_8017EA98(Task* task)
-{
-    MistR18Coord* coord;
-    TmdObject*    obj;
-
-    if (task->state == 0) {
-        coord           = (MistR18Coord*)((TmdObject*)task->extra)->field_8;
-        coord->mtx.t[0] = -0x1496;
-        coord->mtx.t[1] = -0x2DA;
-        coord->mtx.t[2] = 0xB90;
-        coord->rot.vx   = 0x6AA;
-        coord->rot.vy   = -0xF8E;
-        coord->rot.vz   = -0x333;
-        RotMatrixZYX(&coord->rot, &coord->mtx);
-        coord->flg    = 0;
-        obj           = (TmdObject*)task->extra;
-        obj->field_E  = -8;
-        obj->field_C &= 0xFF7F;
+    if ((Game_Session->field_4D != 0) || ((u8)Game_Session->field_4 != 2)) {
+        task->killCountdown = 0x80;
         task->state++;
     }
 }
 
-void func_mist_r18_8017EB48(void)
+/// Fade the room back out; see `func_mist_r18_8017E8B8` for the level field.
+void func_mist_r18_8017E92C(Task* task)
 {
-    Gp_InitStarterInv();
-    Mc_SaveData.field_7 = 1;
-    Mc_SaveData.field_6 = 0x13;
-    Mc_SaveData.field_8 = 3;
-    Mc_SaveData.field_5 = 3;
-    D_80071076          = 1;
-    SndEvt_EnqueueType7(0x80000000, 0);
-    Task_Spawn(0, 0x11, 0, 0);
-}
+    u16 fade;
 
-void func_mist_r18_8017EBB8(void)
-{
-    Game_Session->field_52 = 1;
-    CdCmd_StartOverlay(1U, 0x1EU, 0xBU);
-    CdCmd_EnqueueReplaceOverlay82();
-}
-
-void func_mist_r18_8017EBF8(void)
-{
-    if (Task_SpawnFromTable(&D_mist_r18_80184F04, 7, 0, 0) != NULL) {
-        D_801156F9 = 1;
+    fade                = (u16)task->killCountdown - 8;
+    task->killCountdown = fade;
+    if ((s16)fade <= 0) {
+        task->killCountdown = 0;
+        task->state++;
     }
+    func_mist_r18_8017E144(task->killCountdown);
+    RoomsShared8017df80(0x80 - task->killCountdown);
 }

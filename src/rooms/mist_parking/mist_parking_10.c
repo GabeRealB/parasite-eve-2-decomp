@@ -15,7 +15,7 @@ extern s16      D_80071076;
 extern u8*      D_mist_parking_8018DF24[4];
 extern Task*    D_mist_parking_80195320;
 extern TaskDesc RoomsShared8018397cDesc;
-extern TaskDesc D_mist_parking_8018D75C;
+extern TaskDesc RoomsShared8017e5b8Desc;
 
 void func_mist_parking_801830F8(void)
 {
@@ -59,7 +59,7 @@ void func_mist_parking_801831F0(s32 arg0)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&D_mist_parking_8018D75C, arg0, 0, 0);
+        task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, arg0, 0, 0);
         *slot = task;
         if (task != NULL) {
             obj           = (TmdObject*)task->extra;

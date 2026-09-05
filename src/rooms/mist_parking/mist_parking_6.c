@@ -25,7 +25,7 @@ extern Task*          D_mist_parking_80195318;
 
 extern TaskDesc D_mist_parking_801869B8;
 extern s32      D_mist_parking_80186EFC;
-extern TaskDesc D_mist_parking_8018D75C;
+extern TaskDesc RoomsShared8017e5b8Desc;
 extern s32      D_mist_parking_8018F0A4;
 extern s32      D_mist_parking_8018F194;
 extern TaskDesc RoomsShared8017daf0Desc;
@@ -250,7 +250,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
                     GameFlag_SetNibble(0xF1, 3);
                 } else if (GameFlag_GetNibble(0xF1) == 3) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(&D_mist_parking_8018D75C, 8, 0, 0);
+                    Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 8, 0, 0);
                 }
             } else if (GameFlag_GetNibble(0xED) == 1) {
                 Gp_MsgPlayerWeapon(0);
@@ -276,7 +276,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             if (Game_Session->field_9 == 1) {
                 Task_SpawnFromTable(&RoomsShared8017daf0Desc, 3, 0, 0);
             } else {
-                Task_SpawnFromTable(&D_mist_parking_8018D75C, 7, 0, 0);
+                Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 7, 0, 0);
             }
             break;
         case 1:

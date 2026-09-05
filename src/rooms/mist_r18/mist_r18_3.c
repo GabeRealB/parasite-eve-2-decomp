@@ -4,17 +4,14 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
 #include "rooms/mist_r18.h"
 
-void RoomsShared8017df80(s32 shade);
-void func_mist_r18_8017E144(s16 arg0);
 void func_mist_r18_8017E448(MistR18Sprite* sprite);
 void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
-
-/// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
+/// Spawn descriptor handed to entry 5 of `RoomsShared8017e5b8Desc`.
 extern s32      D_mist_r18_80184EE4;
-extern TaskDesc D_mist_r18_80184F04;
-
+extern TaskDesc RoomsShared8017e5b8Desc;
 /// The two prop tasks `func_mist_r18_8017E784` tears down, by index.
 extern Task* D_mist_r18_80186E90;
 extern Task* D_mist_r18_80186E94;
@@ -138,7 +135,7 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, (s32)Game_GetPtrSlot(3));
+        task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, idx, 8, (s32)Game_GetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
             ((TmdObject*)task->extra)->field_C &= 0xFF7F;
@@ -164,43 +161,5 @@ void func_mist_r18_8017E784(s32 idx)
 
 void func_mist_r18_8017E7F0(void)
 {
-    Task_SpawnFromTable(&D_mist_r18_80184F04, 5, 0, (s32)&D_mist_r18_80184EE4);
-}
-
-void func_mist_r18_8017E824(void)
-{
-    Task_SpawnFromTable(&D_mist_r18_80184F04, 3, 0, 0);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_3", func_mist_r18_8017E854);
-
-/// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
-void func_mist_r18_8017E8B8(Task* task)
-{
-    u16 fade;
-
-    fade                = (u16)task->killCountdown + 8;
-    task->killCountdown = fade;
-    if ((s16)fade >= 0x40) {
-        task->killCountdown = 0x40;
-    }
-    if ((Game_Session->field_4D != 0) || ((u8)Game_Session->field_4 != 2)) {
-        task->killCountdown = 0x80;
-        task->state++;
-    }
-}
-
-/// Fade the room back out; see `func_mist_r18_8017E8B8` for the level field.
-void func_mist_r18_8017E92C(Task* task)
-{
-    u16 fade;
-
-    fade                = (u16)task->killCountdown - 8;
-    task->killCountdown = fade;
-    if ((s16)fade <= 0) {
-        task->killCountdown = 0;
-        task->state++;
-    }
-    func_mist_r18_8017E144(task->killCountdown);
-    RoomsShared8017df80(0x80 - task->killCountdown);
+    Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 5, 0, (s32)&D_mist_r18_80184EE4);
 }
