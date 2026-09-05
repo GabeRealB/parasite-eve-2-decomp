@@ -49291,3 +49291,66 @@ b    = rnd;
 
 One def would still be coalesced away; it is the second assignment in the other
 arm of the `if` that keeps the temp distinct from both colours.
+
+## A local pointer copy of a global table folds `tbl[i + K]` into one base
+
+Six ring-vertex reads out of the same 16-entry sine table,
+
+```c
+prim->x0 = blk->sx + ((blk->rOuter * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+prim->y0 = blk->sy + ((blk->rOuter * D_acropolis_plaza_801987E0[i]) >> 12);
+prim->x1 = blk->sx + ((blk->rOuter * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+...
+```
+
+compile to the naive per-access address the target has —
+`addiu $v0,$s4,K; sll $v0,$v0,1; addu $v0,$v0,$s1; lh $v1,0($v0)` — with the
+table's `lui`/`addiu` hoisted into the loop preheader. Copy the symbol into a
+local first (`s16* tbl = D_acropolis_plaza_801987E0;`) and GCC 2.8.1 computes
+`i * 2 + tbl` once and folds every `+ K` into the load displacement
+(`lh $v1, 8($a0)`), rematerialising the symbol *inside* the loop. On
+`func_acropolis_plaza_801811D0` that one difference is 71.2% against 98.6%.
+
+The loop spelling does not matter here — `for (i = 0; i < 0x10; i += 2)` and
+`do { … i = i + 2; } while (i < 0x10)` both give the unfolded form as long as
+the array is named directly. So when a target recomputes `(i + K) * 2 + base`
+per access, look at how the table is *named* before reaching for an index
+temporary; a reused (multiply-set) `k` also blocks the fold, but it costs a
+long-lived pseudo the target does not have.
+
+## Opposite comparison polarity in two arms keeps a duplicated selection apart
+
+The plaza's angle→size selection runs the same two-way choice on both sides of
+a sign test:
+
+```c
+d = work->angle - 0x800;
+if (d >= 0) {
+    if (d < 0x301) size = 0x200; else size = 0x800;
+} else {
+    d = 0x800 - work->angle;
+    if (d < 0x301) size = 0x200; else size = 0x800;
+}
+```
+
+Written that way — same polarity in both arms — `jump_optimize` cross-jumps the
+two identical tails into a single `bnez`/`li`/`li`, and the whole `if` collapses
+to one `bgez` into shared code. The target keeps a `beqz` in one arm and a
+`bnez` in the other, four `li` and a `j`. Spelling the second arm's test the
+other way round is semantically identical and leaves the tails different, so
+neither merges:
+
+```c
+    if (d >= 0) {
+        if (d < 0x301)  size = 0x200; else size = 0x800;
+    } else {
+        d = 0x800 - work->angle;
+        if (d >= 0x301) size = 0x800; else size = 0x200;
+    }
+```
+
+93.1% -> 98.5%, `delete` 12 -> 4. Which arm gets which polarity matters: the
+mirrored pairing scored a point lower, so try both. This is the lever to reach
+for when a target duplicates a selection that your source keeps merging — the
+sibling entry above ("A constant shared between a subtraction and a store")
+covers the opposite case, where the target merges and the source does not.
