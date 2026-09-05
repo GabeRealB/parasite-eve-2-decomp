@@ -46992,3 +46992,59 @@ happens to sit in the entry block; the `andi`s mark the rest.
 While reading such a table index, remember the shift is signed unless you say
 otherwise: `(arg & 0xF00) >> 8` on an `s32` emits `andi` + `sra`, and the
 target's `srl` needs `((u32)arg & 0xF00) >> 8`.
+
+## Pass the scratch block, not its fields, when the target reloads with `lh`
+
+An inline helper's arguments are evaluated *before* its body, so the choice
+between passing `helper(d->x, d->z, r)` and `helper(d, r)` decides whether the
+field loads sit above or below the helper's own prologue. When the helper opens
+a nested scratch block, that prologue contains a store — and stores are what
+invalidate CSE's record of the value a field already holds.
+
+`func_acropolis_bridge_80184024` stages an XZ delta in an 8-byte scratchpad
+block and then hands it to a range test that carves off 0xC more bytes:
+
+```c
+d->z = d->z - *(u16*)&work->coord->coord.t[2];
+...
+acropolisBridgeOutOfRange(d, work->field_5C * 4)
+```
+
+Passing `d->x`/`d->z` by value, the loads happen while CSE still knows
+`mem:HI(4+d)` equals the `subu` result it stored one statement earlier, so it
+sign-extends that live register instead of reloading:
+
+```
+subu  $v0, $v0, $v1
+sh    $v0, 4($a3)
+sll   $v0, $v0, 16       # reuses the stored value…
+sra   $v0, $v0, 16
+```
+
+Passing `d` moves the loads below the helper's `*(u8**)G_SCRATCH_HEAD = head -
+0xC`, which kills the entry, and the target's plain reload comes back:
+
+```
+sh    $v0, 4($a3)
+…
+lh    $v1, 4($a3)        # …instead of reloading
+sw    $v1, 4($a1)
+```
+
+The tell is asymmetry between two reads of the same field: the one whose
+register was already clobbered by intervening work reloads, the one immediately
+after its own store does not. If the target reloads *both*, a store the
+compiler cannot see through sits between them, and on this codebase that store
+is almost always a nested scratch push. The same edit fixed the surrounding
+schedule, because the helper's `lw` of the scratch head then had a longer
+window to be hoisted into the delta computation's load-delay slots.
+
+Two smaller pieces of the same function, both about where a widening happens:
+
+- A field read once as `lhu` and once as `lh` is a signed/unsigned cast in the
+  source, not noise. Here the block's fields are `u16` — `d->x - t[0]` is the
+  `lhu` — and the helper casts, `(s16)d->x`, for the `lh`.
+- `lhu` + `sll 18` + `sra 16` is a 16-bit *parameter*, not a 16-bit field:
+  `s16 r` fed `work->field_5C * 4`. Give the same helper an `s16` parameter for
+  a value that is already a field and the conversion stops folding into the
+  load, leaving `lhu` + `sll 16` + `sra 16` where the target has one `lh`.

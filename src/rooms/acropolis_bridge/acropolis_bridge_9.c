@@ -203,9 +203,6 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeNearScratch, 0x14);
 /// Ticks the walker task: steps its patrol route and drives its animation.
 void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker);
 
-/// Reports whether the walker has reached the patrol node at `work->node`.
-s16 func_acropolis_bridge_80184024(AcropolisBridgeWalkerWork* work);
-
 s8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 arg1);
 /// Returns the patrol node nearest the walker, by squared distance in the
 /// XZ plane between the node table and the walker's coordinate translation.
@@ -215,7 +212,78 @@ void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work);
 void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work);
 void func_acropolis_bridge_80185104(AcropolisBridgeWalkerWork* work, SVECTOR3* pos);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184024);
+/// 8-byte scratch block the arrival test carves off `G_SCRATCH_HEAD` to stage
+/// the delta between the patrol node the walker is heading for and the walker
+/// itself. The node coordinates are copied over as raw halfwords and then have
+/// the coordinate translation subtracted from them in place; `y` is flattened
+/// to zero because the test only measures in the XZ plane.
+typedef struct AcropolisBridgeDeltaScratch {
+    /* 0x0 */ u16  x;
+    /* 0x2 */ u16  y;
+    /* 0x4 */ u16  z;
+    /* 0x6 */ byte pad_6[0x2];
+} AcropolisBridgeDeltaScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeDeltaScratch, 0x8);
+
+/// 0xC-byte scratch block the range test below squares its three operands in,
+/// nested inside the delta block its caller already holds.
+typedef struct AcropolisBridgeRangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} AcropolisBridgeRangeScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeRangeScratch, 0xC);
+
+/// Reports whether the XZ delta staged in `d` is at least `r` long, squaring
+/// both sides in a 0xC-byte scratch block of its own so no comparison is done
+/// on a square root.
+static __inline__ s32 acropolisBridgeOutOfRange(AcropolisBridgeDeltaScratch* d, s16 r)
+{
+    AcropolisBridgeRangeScratch* b;
+    u8*                          head;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0xC;
+    b                     = (AcropolisBridgeRangeScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    b->dx                 = (s16)d->x;
+    b->dz                 = (s16)d->z;
+    b->r                  = r;
+    b->dx                 = b->dx * b->dx;
+    b->dz                 = b->dz * b->dz;
+    b->r                  = b->r * b->r;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return b->dx + b->dz >= b->r;
+}
+
+/// Reports whether the walker has reached the patrol node at `work->node`. It
+/// stages the XZ delta between the node and the walker's coordinate
+/// translation in an 8-byte scratch block, then accepts the node if the walker
+/// is inside either of two radii: its own `field_5C * 4`, or a flat 300.
+s16 func_acropolis_bridge_80184024(AcropolisBridgeWalkerWork* work)
+{
+    AcropolisBridgeDeltaScratch* d;
+    u8*                          head;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x8;
+    d                     = (AcropolisBridgeDeltaScratch*)(head - 0x8);
+
+    d->x = work->nav->nodes[work->node].x;
+    d->y = work->nav->nodes[work->node].y;
+    d->z = work->nav->nodes[work->node].z;
+    d->x = d->x - *(u16*)&work->coord->coord.t[0];
+    d->y = 0;
+    d->z = d->z - *(u16*)&work->coord->coord.t[2];
+
+    if (!acropolisBridgeOutOfRange(d, work->field_5C * 4) ||
+        !acropolisBridgeOutOfRange(d, 300)) {
+        *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x8;
+        return 1;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x8;
+    return 0;
+}
 
 /// Steers the walker along its patrol route. `pos` receives the position of the
 /// node it is heading for; while it is still short of that node the route's
