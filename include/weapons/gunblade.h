@@ -45,7 +45,8 @@ STATIC_ASSERT_SIZEOF(GunbladeBeamScratch, 0x2C);
 /// `D_gunblade_8011E70C` is that same far-end vector under its own name. State
 /// 0 reaches it as `D_gunblade_8011E704[1]`, so the address is derived from the
 /// array base already in a register; state 1 loads the symbol on its own. Both
-/// spellings are needed to match.
+/// spellings are needed to match, and one object cannot carry two C names, so
+/// the pair stays in the split data.
 extern SVECTOR D_gunblade_8011E704[2];
 extern SVECTOR D_gunblade_8011E70C;
 

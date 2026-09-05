@@ -21,6 +21,9 @@ typedef struct GrenadePistolScratch {
 } GrenadePistolScratch;
 STATIC_ASSERT_SIZEOF(GrenadePistolScratch, 0x38);
 
+/// Impact clip id per attachment, indexed by `sfx - 0xA`.
+extern u16 D_grenade_pistol_8012B430[4];
+
 void func_grenade_pistol_8011D6FC(Task* arg0);
 
 #endif

@@ -28,6 +28,9 @@ typedef struct Mm1Task {
 
 typedef void (*Mm1StateFn)(Mm1Task* task);
 
+/// Impact clip id per attachment, indexed by `sfx - 0xA`.
+extern u16 D_mm1_8012D2D0[4];
+
 void func_mm1_8011D704(Task* arg0);
 void func_mm1_8011DBD8(Mm1Task* arg0);
 

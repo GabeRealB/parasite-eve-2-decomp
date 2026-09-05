@@ -17,9 +17,6 @@
 
 void WeaponsShared8011de24(Task* task);
 
-extern SVECTOR WeaponsShared8011d3a0Vecs[];
-extern u8      WeaponsShared8011d3a0Speeds[];
-
 void WeaponsShared8011d3a0(Task* arg0)
 {
     void**           scratch;

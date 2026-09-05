@@ -22,9 +22,6 @@
 /// keyed on. A main-executable global with no module header yet.
 extern u8 D_80073BA9;
 
-/// Impact clip id per attachment, indexed by `sfx - 0xA`: 0x1F4, 0x4B0, 0x7D0.
-extern u16 D_m4a1_grenade_8012E08C[];
-
 void WeaponsShared8011de24(Task* task);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms

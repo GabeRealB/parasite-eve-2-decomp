@@ -14,9 +14,6 @@
 #include "weapons/mm1.h"
 #include "weapons/m4a1_grenade.h"
 
-/// Impact clip id per attachment, indexed by `sfx - 0xA`.
-extern u16 D_mm1_8012D2D0[];
-
 /// Flight state of the MM1's projectile. Detonates when the shot
 /// has touched world geometry (`rec0` with 0x30000), when a wall record it hit
 /// is solid, or when the flight timer runs past 0xDFFFF; otherwise it steps
