@@ -17,6 +17,16 @@ typedef struct AcropolisPlazaWork {
     /* 0x0C */ VECTOR3 pos;
 } AcropolisPlazaWork;
 
+/// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
+/// with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is not a
+/// `TaskIdMap` here. It only caches the slot-3 task every message in the
+/// sequence (0x3F2 place, 0x3EE warp, 0x3F0 poll) is addressed to; the
+/// trailing four bytes are zeroed by `Mem_Set` and never read.
+typedef struct AcropolisPlazaWarpWork {
+    /* 0x0 */ Task* slot3;
+    /* 0x4 */ byte  pad_4[0x4];
+} AcropolisPlazaWarpWork;
+
 /// Work block the plaza's cutscene tasks reach through `Task::spawnArg2`.
 /// Every one of them (`func_acropolis_plaza_8017E7E4`, `..._8017E9A8`,
 /// `..._8017F48C`, `..._8017F620`) runs the same handoff once `CdCmd_IsIdle`

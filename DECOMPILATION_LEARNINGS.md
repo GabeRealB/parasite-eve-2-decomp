@@ -48563,3 +48563,88 @@ rematerialised at first use, which is where the ROM puts it. This is the
 opposite of the usual "hoist a repeated base into a local" advice, and it costs
 nothing in readability when the array name is already the subject of every
 statement. `func_acropolis_plaza_8017DD90` is the worked example.
+
+## Duplicate a switch's shared tail; a `goto` label lets cross-jumping eat the call
+
+A state machine whose cases all end with the same `task->state++` compiles to
+one shared increment block that every case jumps to, so the obvious C is a
+`goto`/label pair:
+
+```c
+case 0:
+    ...
+    Gp_DispatchMsg(work->slot3, 0x3F2, (s32)&place, 0);
+    goto advance;
+case 1:
+    ...
+    Gp_DispatchMsg(work->slot3, 0x3EE, (s32)&warp, 0);
+    goto advance;
+...
+case 3:
+    ...
+advance:
+    task->state = task->state + 1;
+    return;
+```
+
+That scores ~96% with `branch`/`delete` left over: case 0 collapses to
+
+```
+lw    v0,0x1c(s0)
+j     <into case 1>
+ addiu a2,sp,0x10
+```
+
+GCC 2.8.1's second jump pass cross-jumps *two jumps to the same label*. With
+an explicit label, cases 0 and 1 both end in `jump L_advance`, and the pass
+walks backwards merging every identical insn — the jump, the call to
+`Gp_DispatchMsg`, its `a3 = 0`, the `lw a0,0(v0)` — stopping only at the
+`addiu a2,sp,N` that differs. The result is one case branching into the middle
+of another's call sequence.
+
+Write the tail out in each case instead:
+
+```c
+case 0:
+    ...
+    task->state = task->state + 1;
+    return;
+```
+
+Now each case ends with its own copy of the increment. Cross-jumping matches a
+jump only against the insns preceding its target label, so each copy merges
+with the *last* one (the block that falls into it) and stops at the differing
+`jal` in front of the increment. That reproduces the original exactly: a
+shared increment block, reached by `j`, with each case keeping its own call.
+The same reasoning applies to any shared switch tail — prefer duplicated
+statements over `goto` when the merged prefix would be more than the tail
+itself.
+
+## A compiler-generated jump table needs its own `.text` cut, not just a `rodata` one
+
+Matching a `switch` in the middle of a room unit can move the unit's `.rodata`
+even when the function itself is 100%: the generated table is emitted with
+`.align 3`, so if anything precedes it in the object's `.rodata` and leaves the
+offset 4 mod 8, the table lands four bytes late and every later rodata symbol
+shifts with it. `acropolis_plaza` split as
+
+```
+- [0x20, .rodata, acropolis_plaza/acropolis_plaza_3]   # D_acropolis_plaza_8017D5E0, 0x20..0x64
+- [0x7D0, c,      acropolis_plaza/acropolis_plaza_3]
+```
+
+put the incbin'd `D_acropolis_plaza_8017D5E0` in front of the table at 0x64 and
+the overlay checksum failed while the function diffed clean. The fix is the
+`rodata` + `units` pair from CLAUDE.md: cut `.text` at the matched function so
+it starts a new unit, and cut `.rodata` at the table so the table starts that
+unit's `.rodata`.
+
+```toml
+acropolis_plaza = { units = ["0x63C", "0x7D0", "0x1224"], rodata = [..., { start = "0x64", unit = "acropolis_plaza_4" }] }
+```
+
+Then delete the affected `src/` file, re-split so splat writes the new
+`INCLUDE_ASM`/`INCLUDE_RODATA` lines itself, and move the already-matched
+bodies into the new unit. Symptom to watch for: `--only <family>` reports the
+overlay `FAILED` while `objdump -s` shows the rodata block shifted by exactly
+four bytes.
