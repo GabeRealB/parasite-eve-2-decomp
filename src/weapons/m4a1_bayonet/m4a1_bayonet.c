@@ -8,9 +8,16 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "weapons/m4a1_bayonet.h"
+
+/// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
+/// different words, so spell the instructions out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// Per-frame task for the M4A1 bayonet's blade trail. Nothing runs once the
 /// room is fading (`Gp_State1C->field_4` non-zero); the task is then released
@@ -122,4 +129,73 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
     }
 }
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_bayonet/m4a1_bayonet", func_m4a1_bayonet_8011D69C);
+void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
+{
+    M4a1BayonetBeamScratch* blk;
+    GsCOORDINATE2*          a;
+    GsCOORDINATE2*          b;
+    POLY_G4*                prim;
+    s32                     i;
+    s32                     j;
+    s32                     i0;
+    s32                     i1;
+    s32                     hi;
+    s32                     lo;
+    s32                     fade;
+
+    {
+        register u8* tmp asm("v0");
+
+        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(M4a1BayonetBeamScratch);
+        blk                     = (M4a1BayonetBeamScratch*)tmp;
+        *(void**)G_SCRATCH_HEAD = tmp;
+    }
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 7; i++) {
+        j            = slot - i;
+        i0           = j & 7;
+        i1           = (j - 1) & 7;
+        a            = &D_m4a1_bayonet_8012D398[i0];
+        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        b            = &D_m4a1_bayonet_8012D618[i0];
+        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[1].vx = *(u16*)&b->workm.t[0];
+        blk->v[1].vy = *(u16*)&b->workm.t[1];
+        a            = &D_m4a1_bayonet_8012D398[i1];
+        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[2].vx = *(u16*)&a->workm.t[0];
+        blk->v[2].vy = *(u16*)&a->workm.t[1];
+        b            = &D_m4a1_bayonet_8012D618[i1];
+        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[3].vx = *(u16*)&b->workm.t[0];
+        blk->v[3].vy = *(u16*)&b->workm.t[1];
+        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        gte_ldv0(&blk->v[0]);
+        gte_rtps_real();
+        prim           = (POLY_G4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyG4(prim);
+        gte_stsxy(&prim->x0);
+        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+        gte_stflg(&blk->flag);
+        if (blk->flag >= 0) {
+            gte_stszotz(&blk->otz);
+            fade = 0x40 - i * 9;
+            hi   = fade & 0xFF;
+            lo   = (fade - 9) & 0xFF;
+            setRGB0(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
+            setRGB1(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
+            setRGB2(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
+            setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
+            addPrim((u_long*)((((u32)(blk->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(M4a1BayonetBeamScratch);
+}

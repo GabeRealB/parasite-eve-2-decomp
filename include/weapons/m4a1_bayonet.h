@@ -22,8 +22,25 @@ extern SVECTOR D_m4a1_bayonet_8011DED0;
 extern GsCOORDINATE2 D_m4a1_bayonet_8012D398[8];
 extern GsCOORDINATE2 D_m4a1_bayonet_8012D618[8];
 
-/// Links the blade trail's polygons for the slot `index`, with `arg1` the
-/// packed colour/size the ribbon is drawn at.
-void func_m4a1_bayonet_8011D69C(s32 index, s32 arg1);
+/// 0x2C-byte scratch `func_m4a1_bayonet_8011D69C` carves off `G_SCRATCH_HEAD`
+/// for one ribbon segment: `v` is the quad's four corners, taken from the
+/// translation of the two trail coordinates at each end of the segment, `flag`
+/// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its
+/// `gte_stszotz`, which picks the OT bucket the `POLY_G4` is linked into.
+typedef struct _M4a1BayonetBeamScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     flag;
+    /* 0x28 */ s32     unused;
+} M4a1BayonetBeamScratch;
+STATIC_ASSERT_SIZEOF(M4a1BayonetBeamScratch, 0x2C);
+
+/// Draws the blade trail as seven Gouraud quads, one per trail slot, walking
+/// backwards from `slot`. Each quad spans the tip and hilt coordinates of two
+/// adjacent slots and fades out along the ribbon: the leading edge is scaled
+/// by `0x40 - 9 * i` and the trailing edge by nine less. `flags` is the trail
+/// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
+/// fade.
+void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
 
 #endif
