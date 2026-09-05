@@ -262,6 +262,14 @@ void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_Util19(Task* task, s32 arg1, s32 arg2);
 void Room_SaveUi01(Task* task);
+/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
+/// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
+/// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
+/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
+/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is
+/// `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0x10 scratch
+/// layout as `Room_Draw13`.
+void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the OTZ is at least
 /// 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
 /// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
@@ -477,11 +485,12 @@ typedef struct _RoomDraw25Scratch {
 } RoomDraw25Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
 
-/// 0x10-byte scratch block `Room_Draw13`, `Room_Draw18`, `Room_Draw32` and
-/// `Room_Draw38` take from `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of
-/// `arg0` through `Gfx_ViewWorldMtx`, `flag` is `gte_stflg` (the primitives
-/// are dropped when it is negative), `radius` is `(s16)arg1 * 64 / otz` for
-/// `Room_Draw13`, `(s16)arg2 * 32 / otz` for `Room_Draw18`/`Room_Draw38` and
+/// 0x10-byte scratch block `Room_Draw13`, `Room_Draw17`, `Room_Draw18`,
+/// `Room_Draw32` and `Room_Draw38` take from `G_SCRATCH_HEAD`. `otz` is the
+/// `gte_stszotz` of `arg0` through `Gfx_ViewWorldMtx`, `flag` is `gte_stflg`
+/// (the primitives are dropped when it is negative), `radius` is
+/// `(s16)arg1 * 64 / otz` for `Room_Draw13`, `(s16)arg2 * 39 / otz` for
+/// `Room_Draw17`, `(s16)arg2 * 32 / otz` for `Room_Draw18`/`Room_Draw38` and
 /// `(s16)arg2 * 48 / otz` for `Room_Draw32`, and `sx`/`sy` are the projected
 /// centre.
 typedef struct _RoomDraw13Scratch {
