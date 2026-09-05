@@ -46753,3 +46753,32 @@ Read the rate straight out of the struct at each use rather than through a
 local: a local's `lhu` is emitted at the assignment, ahead of the `sll`/`sra`
 pair, and the scheduler then cannot reproduce the ROM's `sll` / `lhu` / `sra`
 order.
+
+## An unexplained `move $sX, $sY` means the original kept *two* locals
+
+A target that saves one more callee-saved register than your version and
+copies between them — here `addu $s5, $s2, $zero`, landing in a branch delay
+slot far from either use — is not a colouring accident to be pinned away. GCC
+2.8.1 coalesces a pseudo-to-pseudo copy only when the two live ranges do not
+overlap, so a surviving `move` between two callee-saved registers means the
+source held the same value in two variables that are *both* live afterwards.
+
+`func_acropolis_bridge_80182394` takes a 0xC-byte block off the scratchpad and
+uses it twice: the `SVECTOR` stores go through one pointer and
+`gte_stszotz(&block->otz)` through another. One local scores 96.9% with
+`regs=26`; adding the second, assigned right where the copy appears, is 100%:
+
+```c
+block    = (AcropolisBridgeMoteScratch*)(head - 0xC);
+*scratch = block;
+depth    = block;          /* second live pointer -> the extra $sX + move */
+…
+block->vec.vx = *(u16*)&coord->workm.t[0];
+…
+gte_stszotz(&depth->otz);
+```
+
+The same block's *reads* still spell the address out as `(head - 0xC)`, which
+is what makes them `lw -0xC($s3)` off the saved head rather than a fourth
+register. Reserve the copy for values an inline-asm operand consumes; a plain
+extra assignment with no later use is coalesced away as usual.

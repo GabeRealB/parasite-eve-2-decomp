@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 /// Work block this room's script tasks keep at `Task::idMap`
 /// (`Mem_Calloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
 /// the script step handed to `func_acropolis_bridge_8017E60C` and
@@ -57,5 +59,17 @@ extern AcropolisBridgeHotspot D_acropolis_bridge_8018983C[];
 extern s32                    D_acropolis_bridge_801917A8;
 
 void func_acropolis_bridge_8017E60C(s32 arg0, s32 arg1);
+
+/// 0xC-byte scratch block the bridge's falling-mote task takes from
+/// `G_SCRATCH_HEAD`. `vec` is the mote's world position copied out of the
+/// task's `GsCOORDINATE2` (`workm.t`) and projected with a single `RTPS`
+/// through `GsWSMATRIX`; `otz` is the `gte_stszotz` depth the resulting
+/// `TILE_1` is linked into the OT at. Depths below 0x11 are dropped rather
+/// than drawn, so a mote in front of the near plane costs nothing.
+typedef struct AcropolisBridgeMoteScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR vec;
+} AcropolisBridgeMoteScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeMoteScratch, 0xC);
 
 #endif

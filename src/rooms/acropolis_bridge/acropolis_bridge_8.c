@@ -2,12 +2,21 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/acropolis_bridge.h"
 #include "rooms/room_common.h"
+#include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include <psyq/libgte.h>
+
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s32  Gp_LcgState;
 extern void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
@@ -77,7 +86,71 @@ s32 func_acropolis_bridge_801820A0(Task* task)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_80182394);
+/// One falling mote of the bridge's ambient dust: drifts the task's coordinate
+/// frame by the per-mote velocity in `RoomEffWork::field_10`, projects the
+/// result through `GsWSMATRIX` with a single `RTPS`, and links a 1x1 tile into
+/// the OT at the resulting depth. The velocity and the grey level are rolled
+/// once, on the first tick (`field_22 == 0`); the mote is released after 0x1F
+/// ticks or once it has fallen past y = -0x1D.
+void func_acropolis_bridge_80182394(Task* task)
+{
+    void**                      scratch;
+    u8*                         head;
+    AcropolisBridgeMoteScratch* block;
+    AcropolisBridgeMoteScratch* depth;
+    TILE_1*                     prim;
+    GsCOORDINATE2*              coord;
+    RoomEffWork*                work;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    coord    = ((TmdObject*)task->extra)->field_8;
+    head     = *scratch;
+    block    = (AcropolisBridgeMoteScratch*)(head - 0xC);
+    *scratch = block;
+    depth    = block;
+    work     = task->spawnArg2;
+    Gp_UpdateCoord(coord);
+
+    if ((s16)work->field_22 == 0) {
+        work->field_10.vz = 0;
+        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+        work->field_10.vx = ((u32)Gp_LcgState >> 16) & 0xF;
+        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+        work->field_10.vy = (((u32)Gp_LcgState >> 16) & 3) - 1;
+        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+        work->field_24    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x30;
+    }
+
+    coord->coord.t[0] += work->field_10.vx;
+    coord->coord.t[1] += work->field_10.vy;
+    coord->coord.t[2] += work->field_10.vz;
+    coord->flg         = 0;
+    block->vec.vx      = *(u16*)&coord->workm.t[0];
+    block->vec.vy      = *(u16*)&coord->workm.t[1];
+    block->vec.vz      = *(u16*)&coord->workm.t[2];
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisBridgeMoteScratch*)(head - 0xC))->vec);
+    gte_rtps_real();
+    prim           = (TILE_1*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setTile1(prim);
+    gte_stsxy(&prim->x0);
+    gte_stszotz(&depth->otz);
+    if (((AcropolisBridgeMoteScratch*)(head - 0xC))->otz >= 0x11) {
+        setRGB0(prim, work->field_24 >> 1, work->field_24, work->field_24);
+        addPrim((u_long*)(((((u32)((AcropolisBridgeMoteScratch*)(head - 0xC))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 0, ((AcropolisBridgeMoteScratch*)(head - 0xC))->otz);
+        work->field_10.vy += 6;
+    }
+    *scratch = (u8*)*scratch + 0xC;
+    work->field_22++;
+    if ((s16)work->field_22 >= 0x1F || coord->coord.t[1] >= -0x1D) {
+        Gp_ReleaseState1CMem(work, task);
+    }
+}
 
 void func_acropolis_bridge_80182694(Task* task)
 {
