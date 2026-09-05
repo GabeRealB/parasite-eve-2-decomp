@@ -11,7 +11,7 @@ void func_mm1_8011DBD8(Mm1Task* arg0)
 {
     Mm1StateFn states[4] = {
         (Mm1StateFn)WeaponsShared8011d3a0,
-        func_mm1_8011D704,
+        (Mm1StateFn)func_mm1_8011D704,
         (Mm1StateFn)WeaponsShared8011ddf8,
         (Mm1StateFn)WeaponsShared8011de24,
     };
