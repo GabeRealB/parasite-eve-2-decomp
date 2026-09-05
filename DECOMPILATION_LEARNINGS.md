@@ -48133,3 +48133,22 @@ block. Moving the single statement `q->field_22C = 1;` to the top of the case
 hoisted the `li` and fixed all of it -- the emitted *store* order did not
 change, because the scheduler moved the store back down on its own. Reorder the
 statement that first mentions the constant, not the stores you can see.
+
+## `setLineG3` writes four fields, and its order is the schedule
+
+`setLineG3(p)` in `include/psyq/libgpu.h` is not just `setlen` + `setcode`: it
+expands to `setlen(p,7), setcode(p,0x58), (p)->pad = 0x55555555, (p)->p2 = 0`
+(`setLineF3` / `setLineF4` / `setLineG4` are the same shape). Reconstructing
+those four writes by hand from the disassembly is tempting, because the emitted
+order is not the macro's: the scheduler moves the `sw` of `0x55555555` up
+between the `sb` of the length and the `sb` of the code, so the object reads
+len, pad, code, p2.
+
+Writing them in the order the object shows leaves the `li` for the code byte
+three insns lower than the target, and in `Room_Draw37` that one displacement
+cascaded: the `li $a1, 1` argument of the following `Gp_AddTpageShift` moved
+past the `Gpu_CurrentOt` load, so the two no longer overlapped and the OT
+pointer was coloured `$a1` instead of `$a2`, which in turn changed the jal's
+delay slot. 99.396% with `regs=3 reorder=3` became 100% by substituting the
+single macro call. When a primitive's initialisation nearly matches, spell it
+with the Psy-Q macro and let the scheduler produce the order you see.
