@@ -28,6 +28,12 @@ extern s32 Gp_LcgState;
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+/// `rtpt`. Likewise.
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+
+/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
+#define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
+
 /// Teardown callback shared with the other weapon overlays; it unlinks
 /// `Task::idMap` and releases the `Gp_State1C` work block.
 void WeaponsShared8011e4ac(Task* task);
@@ -416,7 +422,107 @@ void func_hypervelocity_8011D830(Task* task)
     }
 }
 
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011DF34);
+/// Draws one half of the hypervelocity round's trail: a 16-segment
+/// semi-transparent tube hanging off `coord`, built in the scratchpad as a
+/// `HyperTrailScratch`. `age` is the round's frame counter, `spin` its ring
+/// radius and `side` picks which half - `side` non-zero gives the short, fat
+/// half (rim 0x600, hub 0x80) trailing `spin * 2 + age * 256` behind, and
+/// `side` zero the long, thin one (rim 0x800, hub 0x40) trailing
+/// `spin + age * 16`. Each segment is a `POLY_FT4` from the six-frame strip at
+/// tpage 0x2A, the frame picked per segment by the stored jitter
+/// `D_hypervelocity_8012EF0C[i]` plus `age`, and is linked into the OT bucket
+/// its own projected depth names. Segments the GTE flags as behind the eye are
+/// dropped.
+void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 side)
+{
+    HyperTrailScratch* sc;
+    POLY_FT4*          prim;
+    SVECTOR*           vert;
+    s32                rimRad;
+    s32                hubRad;
+    s32                rimSize;
+    s32                hubSize;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s32                u0;
+    s16                back;
+    MATRIX*            rot;
+
+    /* `rimSize` / `hubSize` are latched into the loop's own `rimRad` /
+       `hubRad` on purpose: the ROM keeps the two copies the single pair would
+       have coalesced away, and `rot` is a second spelling of `&coord->workm`
+       for the same reason. `vert` reaches `hub[i]` through `rim[i]` rather
+       than off `sc`, so the `gte_ldv0` / `gte_stsv` address stays a register
+       of its own instead of being shared with the field stores. */
+    sc = (HyperTrailScratch*)(SCRATCH_SP -= sizeof(HyperTrailScratch));
+    if (side != 0) {
+        back    = (spin << 1) + (age << 8);
+        hubSize = 0x80;
+        rimSize = 0x600;
+    } else {
+        back    = spin + (age << 4);
+        hubSize = 0x40;
+        rimSize = 0x800;
+    }
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i      = 0;
+    rimRad = rimSize;
+    rot    = &coord->workm;
+    hubRad = hubSize;
+    for (; i < 0x10; i++) {
+        ang           = i << 8;
+        sc->rim[i].vx = (rsin(ang) * rimRad) >> 12;
+        sc->rim[i].vy = (rcos(ang) * rimRad) >> 12;
+        sc->rim[i].vz = -back;
+        gte_SetRotMatrix(rot);
+        gte_ldv0(&sc->rim[i]);
+        gte_rtv0_real();
+        gte_stsv(&sc->rim[i]);
+        sc->rim[i].vx += *(u16*)&coord->workm.t[0];
+        sc->rim[i].vy += *(u16*)&coord->workm.t[1];
+        sc->rim[i].vz += *(u16*)&coord->workm.t[2];
+        sc->hub[i].vx  = (rsin(ang) * hubRad) >> 12;
+        vert           = &sc->rim[i] + 16;
+        vert->vy       = (rcos(ang) * hubRad) >> 12;
+        vert->vz       = 0;
+        gte_SetRotMatrix(rot);
+        gte_ldv0(&sc->hub[i]);
+        gte_rtv0_real();
+        gte_stsv(&sc->hub[i]);
+        sc->hub[i].vx += *(u16*)&coord->workm.t[0];
+        vert->vy      += *(u16*)&coord->workm.t[1];
+        vert->vz      += *(u16*)&coord->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 0x10; i++) {
+        gte_ldv0(&sc->rim[i]);
+        gte_rtps_real();
+        gte_stsxy(&sc->sxy0);
+        next = (i + 1) & 0xF;
+        gte_ldv3(&sc->rim[next], &sc->hub[i], &sc->hub[next]);
+        gte_rtpt_real();
+        gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
+        gte_stflg(&sc->flag);
+        if (sc->flag >= 0) {
+            gte_stszotz(&sc->otz);
+            sc->otz++;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyFT4(prim);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x42C1;
+            setRGB0(prim, 0x30, 0x30, 0x30);
+            setSemiTrans(prim, 1);
+            u0 = (s16)((D_hypervelocity_8012EF0C[i] + age) % 6) * 40;
+            setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
+            setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
+                   sc->sxy3.vy);
+            addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        }
+    }
+    SCRATCH_SP += sizeof(HyperTrailScratch);
+}
 
 /// Links the billboarded charge quad into `Gpu_CurrentOt`, dropped entirely if
 /// the coordinate's origin fails its `RTPS` `FLAG` check. `coord` supplies the

@@ -54,6 +54,27 @@ typedef struct HyperRecoil {
 } HyperRecoil;
 STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
 
+/// 0x118-byte scratchpad block `func_hypervelocity_8011DF34` reserves for one
+/// half of the round's trail. The trail is a 16-segment tube: `rim` is the
+/// wide ring, pushed `back` along the round's own -Z so it trails behind, and
+/// `hub` the narrow ring sitting on the round itself. Both rings are built in
+/// the round's frame, rotated by its `workm` and shifted onto its world
+/// position, then projected a segment at a time - `sxy0`..`sxy3` are the four
+/// screen corners of the current quad, `flag` the `gte_stflg` that rejects a
+/// segment behind the eye and `otz` its `gte_stszotz` depth, which also picks
+/// the OT bucket.
+typedef struct HyperTrailScratch {
+    /* 0x000 */ SVECTOR rim[16];
+    /* 0x080 */ SVECTOR hub[16];
+    /* 0x100 */ s32     otz;
+    /* 0x104 */ s32     flag;
+    /* 0x108 */ DVECTOR sxy0;
+    /* 0x10C */ DVECTOR sxy1;
+    /* 0x110 */ DVECTOR sxy2;
+    /* 0x114 */ DVECTOR sxy3;
+} HyperTrailScratch;
+STATIC_ASSERT_SIZEOF(HyperTrailScratch, 0x118);
+
 /// 0x1C-byte scratchpad block `func_hypervelocity_8011E494` reserves for one
 /// billboarded charge quad. `vec` is the coordinate's `workm` translation
 /// truncated to s16 and fed to `gte_ldv0`; the single `RTPS` fills `sx`/`sy`,

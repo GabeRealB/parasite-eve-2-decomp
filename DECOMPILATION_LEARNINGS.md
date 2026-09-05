@@ -31440,6 +31440,53 @@ Two placement rules matter:
   them. That is what keeps `sll/addu … lui %hi(Gp_IdParamHi)` *inside* the loop,
   once per branch, instead of being hoisted and CSE'd with a pre-loop copy.
 
+## Branch-picked loop constants that appear as preheader `move`s want a second local
+
+`func_hypervelocity_8011DF34` picks two ring radii in an `if (side)` / `else`
+and then multiplies by them inside a 16-iteration loop. The target's preheader
+is
+
+```
+li    v1, 0x40          ; in the else arm
+li    v0, 0x800
+...                     ; the ctc2 block of gte_SetTransMatrix
+move  s4, zero          ; i = 0
+move  s8, v0            ; rimRad
+addiu s7, s5, 0x24      ; &coord->workm
+move  s6, v1            ; hubRad
+move  s2, s3            ; the rim[] giv init
+```
+
+Assigning the constants straight to the loop's own locals never produces those
+`move`s: one pseudo gets the callee-saved register and the arm collapses to
+`li s8, 0x600`. Recomputing them in fresh locals at the top of the loop body
+(the technique in "Preheader `move` copies of invariants") does not work here
+either - `loop.c` hoists them, but *after* the counter init and in the wrong
+order, worth only 99.1%.
+
+What matches is a **second pair of locals**. The arms write `rimSize` /
+`hubSize`; the loop's `rimRad` / `hubRad` are plain copies made before the loop.
+Each `li` sits in its own basic block, so global alloc cannot coalesce the copy
+away and it survives into the preheader. Order the copies by first use inside
+the loop, interleaving any named invariant address at its own use position
+(`rot = &coord->workm;` between them here - see "Hoist a GTE matrix argument
+into a local to order the loop preheader").
+
+The counter init is the last piece. `for (i = 0; ...)` expands its init after
+every preceding statement, so `move s4, zero` lands last; the target has it
+first. Splitting the init out is what reorders it:
+
+```c
+gte_SetTransMatrix(&GsWSMATRIX);
+i      = 0;
+rimRad = rimSize;
+rot    = &coord->workm;
+hubRad = hubSize;
+for (; i < 0x10; i++) { ... }
+```
+
+99.1% -> 100%.
+
 ## A variable field index keeps `+ K` as its own `addu`, out of the load displacement
 
 The target reads the second table column as
