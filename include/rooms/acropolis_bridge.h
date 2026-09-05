@@ -93,6 +93,20 @@ typedef struct AcropolisBridgeQuadScratch {
 } AcropolisBridgeQuadScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
+/// 0x28-byte scratch block `func_acropolis_bridge_801827EC` takes from
+/// `G_SCRATCH_HEAD`. `v` holds the four corners of the unit quad `D_80111E38`,
+/// scaled to the caller's half-size, rotated by the task's own `GsCOORDINATE2`
+/// (`workm`) and then projected through `GsWSMATRIX` - the first corner with
+/// `rtps` and the other three with `rtpt`. `flag` is the `gte_stflg` result the
+/// draw is gated on and `otz` the `gte_stszotz` depth the `POLY_FT4` is linked
+/// into the OT at, biased by 1.
+typedef struct AcropolisBridgeRotQuadScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     flag;
+    /* 0x08 */ SVECTOR v[4];
+} AcropolisBridgeRotQuadScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeRotQuadScratch, 0x28);
+
 /// 0xC-byte scratch block the bridge's falling-mote task takes from
 /// `G_SCRATCH_HEAD`. `vec` is the mote's world position copied out of the
 /// task's `GsCOORDINATE2` (`workm.t`) and projected with a single `RTPS`

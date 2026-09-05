@@ -47640,3 +47640,53 @@ sh $v0, 0x8($t0)    /* x0 */
 is `prim->x0 = prim->x2 = ...;`, not two separate statements in source order.
 Reach for this before blaming the scheduler for a `reorder` penalty on paired
 field writes; it is exact and costs nothing.
+
+## Anchor a pinned register variable's `move` with `SOFT_TOUCH_REG`
+
+A function whose first argument is copied into a hard-pinned local
+
+```c
+register GsCOORDINATE2* coord asm("t7");
+coord = arg0;
+```
+
+emits `move $t7, $a0`, but the scheduler is free to sink that copy behind the
+first real dependency chain - typically the `lui`/`ori` pair that materialises a
+constant address. That is a one-instruction `reorder` penalty with nothing else
+wrong, and no amount of statement reordering fixes it, because the copy has no
+data dependency to hold it in place. `SOFT_TOUCH_REG(coord)` immediately after
+the assignment gives it one and pins the `move` to the top of the function:
+
+```c
+coord = arg0;
+SOFT_TOUCH_REG(coord);
+scratch = (void**)G_SCRATCH_HEAD;
+```
+
+## Which of a split `head` / `blk` pair gets stored decides the copy direction
+
+The scratchpad-allocation prologue
+
+```
+lw    $v1, 0($v0)
+addiu $v1, $v1, -0x28
+move  $t1, $v1        /* blk = head */
+sw    $v1, 0($v0)     /* the *store* uses head, not blk */
+```
+
+needs the two pointers in separate registers, which `SOFT_TOUCH_REG` provides.
+But which register the `addiu` writes into, and hence the direction of the
+`move`, follows from which variable the store reads. Put the `SOFT_TOUCH_REG` on
+`head` and store `head`:
+
+```c
+head = (u8*)*scratch - sizeof(Scratch);
+SOFT_TOUCH_REG(head);
+*scratch = head;                  /* not `= blk` — that flips the move */
+blk = (Scratch*)head;
+```
+
+Writing `*scratch = blk` instead makes GCC 2.8.1 copy-propagate `blk` into the
+store, so the `addiu` lands in `blk`'s register and the `move` runs the other
+way. Ordering the store before `blk = head` also matters: with the assignment
+first, copy propagation reaches the store anyway.
