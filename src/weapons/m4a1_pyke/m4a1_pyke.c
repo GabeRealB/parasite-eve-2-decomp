@@ -9,6 +9,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -22,6 +23,10 @@ extern s32 Gp_LcgState;
 /// The `inline_c.h` macro of that name assembles to a different word, so spell
 /// the instruction out.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// `rtps`: project V0 through the current matrices. The `inline_c.h` macro of
+/// that name assembles to a different word, so spell the instruction out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Teardown callback shared with the other weapon overlays; it unlinks
 /// `Task::idMap` and releases the `Gp_State1C` work block.
@@ -296,6 +301,77 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     }
 }
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_pyke/m4a1_pyke", func_m4a1_pyke_8011DCEC);
+/// Draws one frame of the flying dart: a single semi-transparent, textured
+/// `POLY_FT4` billboarded on the world point `pos`. `frame` walks the twelve
+/// sprite frames of `D_80111E48`, `width` is the dart's flare width (divided
+/// down by the projected depth) and `ang` its spin, so the quad is a square
+/// rotated by `ang` rather than an axis-aligned sprite. `otz` is biased by one
+/// before it is used as the divisor so a point on the near plane cannot divide
+/// by zero.
+void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
+{
+    void**               scratch;
+    u8*                  head;
+    M4a1PykeQuadScratch* block;
+    M4a1PykeQuadScratch* vecp;
+    POLY_FT4*            prim;
+    GpEffUv8*            rec;
+    u16                  idx;
+    s32                  a;
+    u16                  vz;
+
+    scratch                                       = (void**)G_SCRATCH_HEAD;
+    head                                          = *scratch;
+    ((M4a1PykeQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
+    block                                         = (M4a1PykeQuadScratch*)(head - 0x1C);
+    block->vec.vy                                 = *(u16*)&pos->vy;
+    vz                                            = *(u16*)&pos->vz;
+    *scratch                                      = block;
+    block->vec.vz                                 = vz;
+    vecp                                          = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->vec);
+    gte_rtps_real();
+    idx = frame % 12;
+    gte_stsxy(&((M4a1PykeQuadScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((M4a1PykeQuadScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((M4a1PykeQuadScratch*)(head - 0x1C))->otz);
+        block->otz     = block->otz + 1;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x29;
+        rec         = &D_80111E48[idx];
+        prim->clut  = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
+        prim->u0    = rec->u;
+        prim->v0    = rec->v;
+        prim->u1    = rec->u + 0x27;
+        prim->v1    = rec->v;
+        prim->u2    = rec->u;
+        prim->v2    = rec->v + 0x27;
+        prim->u3    = rec->u + 0x27;
+        prim->v3    = rec->v + 0x27;
+        a           = ang;
+        block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
+        block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        a           = a + 0x400;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
+        block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 INCLUDE_ASM("weapons/nonmatchings/m4a1_pyke/m4a1_pyke", func_m4a1_pyke_8011E168);

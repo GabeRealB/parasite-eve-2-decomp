@@ -45245,3 +45245,34 @@ first and lands on `s0`. That single change took the function from 97.1% to
 deleting the scratch locals before touching anything else: CSE-created temps
 and hand-written ones have very different priorities even though they compile
 to the same arithmetic.
+
+## `u16 % const` compiles to an *unsigned* magic multiply, not a signed one
+
+`func_m4a1_pyke_8011DCEC` indexes a twelve-frame sprite table and the ROM
+divides with `multu` against `0xAAAAAAAB`:
+
+```
+andi  $a1, $a1, 0xFFFF        # narrow the u16 parameter
+lui   $v0, 0xAAAA ; ori 0xAAAB
+multu $a1, $v0 ; mfhi $t1 ; srl $v1, $t1, 3
+sll/addu/sll ; subu $a0, $a1, $v0   # a1 - (a1/12)*12
+andi  $a0, $a0, 0xFFFF        # zero-extend the remainder again
+```
+
+`unsigned short` promotes to `int`, so `frame % 12` looks like it should be a
+*signed* division (magic `0x2AAAAAAB` plus the sign-correction `srl 31`/`addu`
+tail). It is not, because `build_binary_op` shortens `TRUNC_DIV_EXPR` /
+`TRUNC_MOD_EXPR` when the left operand is unsigned or the right is a constant
+that is not `-1`: the operation is redone in the narrower `unsigned short`
+type. Two things fall out of that, and both show up in the object dump:
+
+- the divide is unsigned, so the magic constant is the `0xAAAAAAAB` one and
+  there is no sign correction after `mfhi`;
+- the *result* is `unsigned short`, so using it as an array subscript costs a
+  second `andi 0xFFFF` that looks redundant next to the first one.
+
+So plain `D_80111E48[frame % 12]` with a `u16 frame` parameter reproduces the
+whole sequence. Do not reach for `(u32)frame % 12` to explain the `multu`, and
+do not chase the trailing `andi` with an extra local — the shortening produces
+both on its own. The same rule covers `/`, and it is why a `u16` numerator can
+divide without the `bnez`/`break 7` trap pair that a signed `div` needs.
