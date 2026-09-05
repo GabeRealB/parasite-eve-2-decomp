@@ -1,12 +1,11 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32   D_dryfield_dilapidated_house_80189B6C;
-extern Task* D_dryfield_dilapidated_house_80189B78;
-
+extern s32  D_dryfield_dilapidated_house_80189B6C;
 extern void func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
@@ -89,13 +88,6 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E858);
-
-void func_dryfield_dilapidated_house_8017E8A8(s32 arg0)
-{
-    if (D_dryfield_dilapidated_house_80189B78 != NULL) {
-        D_dryfield_dilapidated_house_80189B78->state = arg0;
-    }
-}
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D61C);
 

@@ -9,7 +9,7 @@
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern TaskDesc   D_dryfield_dilapidated_house_80183EB4;
-extern Task*      D_dryfield_dilapidated_house_80189B78;
+extern Task*      RoomsShared8017e8a8Task;
 extern Task*      D_dryfield_dilapidated_house_80189B7C;
 extern s16        D_dryfield_dilapidated_house_80189C98;
 
@@ -18,7 +18,7 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     arg0->field_24 = D_dryfield_dilapidated_house_80183E8C;
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(1) != 0) {
-        D_dryfield_dilapidated_house_80189B78 =
+        RoomsShared8017e8a8Task =
             Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }
     D_dryfield_dilapidated_house_80189C98 = 2;

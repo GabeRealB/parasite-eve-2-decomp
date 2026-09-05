@@ -1,19 +1,10 @@
 #include "common.h"
-#include "main/task.h"
 
-extern Task* D_mine_mesa_80189B54;
-extern Task* D_mine_mesa_80189B58;
-extern Task* D_mine_mesa_80189B5C;
+#include "main/session.h"
 
-void func_mine_mesa_8017EB38(void)
+void func_mine_mesa_8017EAAC(void)
 {
-    D_mine_mesa_80189B54 = NULL;
-    D_mine_mesa_80189B58 = NULL;
-    D_mine_mesa_80189B5C = NULL;
+    Game_Session->field_52 = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_7", func_mine_mesa_8017EB54);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_7", func_mine_mesa_8017ED08);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa_7", D_mine_mesa_8017D624);
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_7", func_mine_mesa_8017EAC0);
