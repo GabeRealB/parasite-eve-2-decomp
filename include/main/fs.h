@@ -246,7 +246,7 @@ typedef struct _CdCmdQueue {
     u16          field_1F2;
     u16          field_1F4;
     u16          field_1F6;
-    byte         unknown_1F8[0x2];
+    u16          field_1F8; // 0x1F8 — plaza ambience state (0/1 emitters, 2 fade)
     u16          field_1FA;
     u16          field_1fc;
     u8           field_1FE; // load status (0xFF = idle/done in several paths)

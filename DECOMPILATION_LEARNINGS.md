@@ -48648,3 +48648,67 @@ Then delete the affected `src/` file, re-split so splat writes the new
 bodies into the new unit. Symptom to watch for: `--only <family>` reports the
 overlay `FAILED` while `objdump -s` shows the rodata block shifted by exactly
 four bytes.
+
+## A global re-read while still live in a register means `volatile` — but read the compare temp non-volatile
+
+`func_acropolis_plaza_8017F9EC` loads `CdCmd_Queue.field_1EE` once, uses it for
+two comparisons, and then **loads it again** in each arm of the inner
+`if`/`else`, even though the first load's register is untouched:
+
+```
+lhu   $v1, 0x1EE($a1)        # feeds both compares
+addiu $v0, $v1, -0x1F
+sltiu $v0, $v0, 0x36
+beqz  $v0, .Lelse
+ sltiu $v0, $v1, 0x1E        # still the first load
+.Lelse:
+beqz  $v0, .Lhigh
+ lui  $a0, 0x8888
+lhu   $v1, 0x1EE($a1)        # reload
+...
+lhu   $v0, 0x1EE($a1)        # reload
+```
+
+GCC 2.8.1's CSE does reach into both arms, so a plain non-volatile read is
+carried in a register and you get `move`/reuse instead of the reloads (85%
+here). The reloads only appear when the read is `volatile`. Sibling
+`func_acropolis_plaza_8017F770` shows the same tell — a reload on a
+*fall-through* path where the value is still live — so treat "re-read of a
+global that is provably still in a register" as a `volatile` marker, not as a
+register-allocation accident.
+
+The trap is that making *every* read volatile costs a `nop`-slot instruction on
+the read that feeds the comparisons:
+
+```
+lhu  $v0, 0x1EE($a1)
+andi $v1, $v0, 0xFFFF        # target has `nop` here
+```
+
+Assigning a `volatile u16` to an `s32` local emits an HImode load plus a
+separate `zero_extendhisi2` (`andi`), because combine will not fold a widening
+into a volatile MEM. The value uses inside the arms feed SImode arithmetic
+directly, so they stay a bare `lhu`. The shape that matched keeps both:
+
+```c
+CdCmdQueue*   q     = &CdCmd_Queue;              /* plain, for the compare temp */
+volatile u16* frame = &CdCmd_Queue.field_1EE;    /* volatile, for the arms */
+
+pos = q->field_1EE;                              /* one lhu, no andi */
+if ((u32)(pos - 0x1F) < 0x36U) {
+    vol = 0x7F;
+} else if (pos < 0x1EU) {
+    vol = ((*frame * 0x7F) / 120) + 0x5F;        /* reload */
+} else {
+    vol = (((0x73 - *frame) * 0x7F) / 120) + 0x5F; /* reload */
+}
+```
+
+Two other details fell out of the same function. Writing the arms as a flat
+`if / else if / else` with the divide **duplicated** in both tail arms is what
+produces the target's `j` into a shared `sll`/`mult` tail: cross-jumping merges
+the identical tails, and the merge point moves later (to `mult`) if the arms
+leave their value in different registers. And the branch that is *not* inverted
+— target `beqz` to the else with the `then` falling through — is what stops
+reorg from folding `li $v1, 0x7F` into the branch's delay slot; that follows
+from the register choice, so fix the reads first and the branch shape follows.

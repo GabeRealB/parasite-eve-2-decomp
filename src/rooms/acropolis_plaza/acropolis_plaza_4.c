@@ -7,6 +7,7 @@
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/acropolis_plaza.h"
 
@@ -131,9 +132,49 @@ void func_acropolis_plaza_8017F620(Task* task)
     }
 }
 
+/// Ambience voice driver: starts the voice named by `sndId` the first time
+/// `state` is clear, then tracks `CdCmd_Queue.field_1EE` between `fadeIn` and
+/// `fadeOut` to ramp its volume.
+void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode);
+
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017F770);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017F9EC);
+/// Ambience driver for the plaza's streamed scene, stepped by
+/// `CdCmd_Queue.field_1F8`. While the stream is at 0/1 it keeps the four
+/// looping voices alive (`func_acropolis_plaza_8017F770` starts a voice the
+/// first time its slot flag is clear and ramps it afterwards); at 2 it fades
+/// the crowd loop out against the stream frame counter, holding full volume
+/// (0x7F) over frames 0x1F..0x54 and sliding down over 127/120ths of the
+/// distance to the nearer end outside that window.
+void func_acropolis_plaza_8017F9EC(Task* task)
+{
+    CdCmdQueue*         q     = &CdCmd_Queue;
+    volatile u16*       frame = &CdCmd_Queue.field_1EE;
+    AcropolisPlazaWork* work  = (AcropolisPlazaWork*)task->idMap;
+    s32                 pos;
+    s32                 vol;
+
+    switch (CdCmd_Queue.field_1F8) {
+        case 0:
+        case 1:
+            func_acropolis_plaza_8017F770(1, 0x320, 1, &work->sfxState1E, 0x51050005, 0);
+            func_acropolis_plaza_8017F770(1, 0x82, 1, &work->sfxState22, 0x51050002, 2);
+            func_acropolis_plaza_8017F770(0xF, 0x8E, 0x50, &work->sfxState24, 0x51050004, 0);
+            func_acropolis_plaza_8017F770(0xC8, 0x172, 0x140, &work->sfxState20, 0x51050001, 1);
+            break;
+        case 2:
+            pos = q->field_1EE;
+            if ((u32)(pos - 0x1F) < 0x36U) {
+                vol = 0x7F;
+            } else if (pos < 0x1EU) {
+                vol = ((*frame * 0x7F) / 120) + 0x5F;
+            } else {
+                vol = (((0x73 - *frame) * 0x7F) / 120) + 0x5F;
+            }
+            SndEvt_EnqueueTypeB(0x51050001, vol & 0xFF);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017FB50);
 
