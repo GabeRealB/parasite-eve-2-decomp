@@ -47914,3 +47914,35 @@ Same root cause as "A pseudo set twice loses the scheduler's live-range boost",
 with a sharper symptom: when the leftover instruction has to sit *inside* a
 `high`/`%lo` pair, stop permuting statements and stop adding barriers — split
 the multiply-assigned local feeding it.
+
+## A fresh `lui %hi(SYM+N)` per access means two globals, not one array
+
+splat groups adjacent unreferenced bytes under a single BSS label, so a pair of
+`s16` globals shows up as one `D_800820E4, 0x4` and the disassembly of the
+*other* one reads `%lo(D_800820E4 + 0x2)`. Declaring that as `s16
+D_800820E4[2]` and writing `D_800820E4[1]` does not reproduce the target: GCC
+2.8.1 sees several references to `SYM` and `SYM+2` in the same function, so CSE
+materialises the base once and indexes off it.
+
+```
+# target: a fresh lui per access, no base register
+lui  v0,%hi(D_800820E4)
+sh   zero,%lo(D_800820E4+2)(v0)
+
+# array version: the base gets CSE'd into a register
+addiu a3,a2,%lo(D_800820E4)
+sh    zero,2(a3)
+```
+
+The base register also steals the branch's delay slot, so the score reads as a
+control-flow miss (`branch`/`insert`/`delete` non-zero) rather than an
+addressing one. Two separate `extern s16 D_800820E4; extern s16 D_800820E6;`
+restore the per-access `lui` and take `branch`/`insert`/`delete` to zero
+(88.2% -> 99.2% here).
+
+The cost is one config line: the second symbol has no name, so add
+`D_800820E6 = 0x800820E6; // absolute:True` to the family's
+`configs/USA/sym/<family>.imports.txt` or the link fails. That entry survives
+regeneration -- `gen_overlay_imports.py` scans `src/<family>` for bare
+`D_<VRAM>` tokens as well as `asm/`, so a symbol referenced only from
+decompiled C is still emitted.

@@ -34,7 +34,8 @@ Gp_SetCollectedBit = 0x800BAE5C; // absolute:True
 Gp_SetPreviewItem = 0x800CDE80; // absolute:True
 Gp_ClearPreviewItems = 0x800CDEF4; // absolute:True
 
-// --- still unnamed in their own overlay (3)
+// --- still unnamed in their own overlay (4)
 D_800820E0 = 0x800820E0; // absolute:True
 D_800820E4 = 0x800820E4; // absolute:True
+D_800820E6 = 0x800820E6; // absolute:True
 D_8010EFA0 = 0x8010EFA0; // absolute:True

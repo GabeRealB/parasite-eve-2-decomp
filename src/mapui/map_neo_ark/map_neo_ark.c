@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gameflag.h"
+#include "main/sound.h"
 #include "mapui/map_neo_ark.h"
 
 /// Fills in the marker state for one Neo Ark map room. Most rooms have no
@@ -64,6 +65,65 @@ s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1)
     return 1;
 }
 
-INCLUDE_ASM("mapui/nonmatchings/map_neo_ark/map_neo_ark", func_map_neo_ark_80179BE4);
+/// Main-executable sound globals with no module header yet: the ducked music
+/// volume this overlay ramps, and the pair of ramp counters that pace it.
+extern s32 D_800820E0;
+extern s16 D_800820E4;
+extern s16 D_800820E6;
+
+/// Music-volume hook the Midi driver calls for the Neo Ark map (via
+/// `func_80179BE4`, see `Midi_UpdateVoiceVolumes`). `arg1` is the cue type:
+/// 0x21 ducks the song down to half `arg0`, 0x10 brings it back up to `arg0`,
+/// and anything else plays at `arg0` with both ramps reset. Each ramp waits out
+/// its own counter (0x79 / 0xF1 frames), then walks `D_800820E0` by 0x300 a
+/// frame until it reaches the target and the counter is parked at 0xFF.
+s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
+{
+    s32 volume;
+    u32 temp;
+
+    if (arg1 == 0x21) {
+        if (D_800820E4 == 0) {
+            D_800820E4 = 1;
+            D_800820E6 = 0;
+            D_800820E0 = arg0;
+        } else if (D_800820E4 < 0x79) {
+            D_800820E4 = D_800820E4 + 1;
+        } else if ((arg0 >> 1) < (u32)D_800820E0) {
+            D_800820E0 = D_800820E0 - 0x300;
+        } else {
+            D_800820E4 = 0xFF;
+            D_800820E6 = 0;
+            D_800820E0 = arg0 >> 1;
+        }
+        temp   = Midi_GetMasterVolume() & 0xFF;
+        temp   = temp * D_800820E0;
+        volume = LinInterp_Apply(arg2, temp / 127U);
+    } else if (arg1 == 0x10) {
+        if (D_800820E6 == 0) {
+            D_800820E4 = 0;
+            D_800820E6 = 1;
+            D_800820E0 = arg0 >> 1;
+        } else if (D_800820E6 < 0xF1) {
+            D_800820E6 = D_800820E6 + 1;
+        } else if ((u32)D_800820E0 < arg0) {
+            D_800820E0 = D_800820E0 + 0x300;
+        } else {
+            D_800820E4 = 0;
+            D_800820E6 = 0xFF;
+            D_800820E0 = arg0;
+        }
+        temp   = Midi_GetMasterVolume() & 0xFF;
+        temp   = temp * D_800820E0;
+        volume = LinInterp_Apply(arg2, temp / 127U);
+    } else {
+        temp       = Midi_GetMasterVolume() & 0xFF;
+        temp       = temp * arg0;
+        volume     = LinInterp_Apply(arg2, temp / 127U);
+        D_800820E4 = 0;
+        D_800820E6 = 0;
+    }
+    return volume;
+}
 
 INCLUDE_RODATA("mapui/nonmatchings/map_neo_ark/map_neo_ark", D_map_neo_ark_801799BC);
