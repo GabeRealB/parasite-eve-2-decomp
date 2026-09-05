@@ -289,6 +289,13 @@ void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// inner vertex so each `POLY_G4` fades to black. Dropped when `gte_stflg` is
 /// negative.
 void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
+/// Projects two world-space points (`arg0` and `arg0 + 1`) through
+/// `Gfx_ViewWorldMtx` and, when the second OTZ is at least 0x11, queues
+/// gouraud `POLY_G4` wedges: a half-disc at each projected centre plus
+/// connecting slices. `arg1` is a signed half-extent; on-screen radii are
+/// `(s16)arg1 * 64 / otz`. `arg2` is a signed angle offset. The first OTZ is
+/// clamped to 0x10.
+void Room_Draw11(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Same eight-wedge gouraud ring as `Room_Draw10`, but the scratch block keeps
 /// `radius` at 0xC and `flag` at 0x10. `arg1` is still the signed half-extent
 /// `(s16)arg1 * 64 / (otz + 1)`, and `arg2` still tints only the inner vertex.
@@ -432,6 +439,23 @@ typedef struct _RoomDraw10Scratch {
     /* 0x16 */ s16     sy;
 } RoomDraw10Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw10Scratch, 0x18);
+
+/// 0x18-byte scratch block `Room_Draw11` takes from `G_SCRATCH_HEAD`. Two
+/// `SVECTOR`s (`arg0` and `arg0 + 1`) are projected through `Gfx_ViewWorldMtx`.
+/// `otz0`/`otz1` are the `gte_stszotz` of those points, `r0`/`r1` are
+/// `(s16)arg1 * 64 / otz`, and `sx0`/`sy0` plus `sx1`/`sy1` are the two
+/// `gte_stsxy` centres.
+typedef struct _RoomDraw11Scratch {
+    /* 0x00 */ s32 otz0;
+    /* 0x04 */ s32 otz1;
+    /* 0x08 */ s32 r0;
+    /* 0x0C */ s32 r1;
+    /* 0x10 */ u16 sx0;
+    /* 0x12 */ u16 sy0;
+    /* 0x14 */ u16 sx1;
+    /* 0x16 */ u16 sy1;
+} RoomDraw11Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
 
 /// 0x18-byte scratch block `Room_Draw04` takes from `G_SCRATCH_HEAD`. Same
 /// projection as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
