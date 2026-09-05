@@ -44654,3 +44654,44 @@ went 93.9% → 97.8% on this change alone.
 Corollary for the `sll 16` / `sra 17` pair: it comes from
 `(s16)(u16)field >> 1` whether the value is forwarded or reloaded, so the
 double cast is about the shift, not about the load.
+
+## A scalar `extern` lets GCC hoist a load over a struct store; the array it really belongs to does not
+
+`func_m4a1_hammer_8011E710` stalled at 97.3% with `regs`/`reorder` residue that
+no statement permutation and 8500 permuter iterations could shift. The block
+was one straight run of stores plus one global load:
+
+```c
+actor->field_124 = Wip_SysConfig.field_22 | 0x21900;
+rec->field_10    = 0x100;
+rec->field_12    = 0x100;
+rec->field_4     = rec->field_C + D_80112F92;   /* extern u16 D_80112F92; */
+```
+
+The target keeps source order. GCC instead hoisted both `lhu`s above the two
+`0x100` stores, which raised register pressure in the block by one, pushed the
+`rec` pointer out of `$a2` into `$a3`, and renamed registers through the *other*
+switch arm as well — a large diff from one scheduling decision.
+
+The lever is GCC 2.8.1's `MEM_IN_STRUCT_P`. `true_dependence` skips the address
+comparison entirely when one `MEM` is inside an aggregate and the other is not,
+so a store through `rec->` and a load of a *scalar* `extern` are declared
+independent and `sched1` is free to reorder them. Give the load an aggregate of
+its own — here the table row it actually is, `D_80112F60[0x19]` — and both
+`MEM`s are `MEM_IN_STRUCT_P`, the address check runs, a `symbol_ref` against a
+`reg + offset` is not provably distinct, and the load stays put. 97.3% → 99.9%,
+with the last 0.1% being the cosmetic `%lo(D_80112F60+0x32)` vs `%lo(D_80112F92)`
+spelling of the same relocation.
+
+`D_XXXXXXXX` for an interior address is splat inventing a name because it has no
+symbol there, exactly as for `Wip_SysConfig.field_22`. Writing the interior
+symbol back as a scalar `extern` is not neutral: it silently changes alias
+behaviour. When a load of some `D_` global will not stay below a nearby struct
+store, find the array or struct that address is *inside* and index it.
+
+Two knock-on notes. The generated jump table then wanted the head of the unit's
+`.rodata`; the manifest fix is the `m4a1_bayonet` shape — `rodata_head = "0x4"`
+plus `rodata = [{ start = "0x4", unit = "<name>_2" }]` and a `units` cut at the
+function's text offset — after which the overlay is 4 bytes shorter and matches.
+And re-splitting overwrites the unit's `src/` file, so save any already-matched
+functions in it first; splat regenerates them as `INCLUDE_ASM`.

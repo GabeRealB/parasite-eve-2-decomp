@@ -73,13 +73,14 @@ Gp_RoomParamTables = 0x8010CBB8; // absolute:True
 Gp_RoomCoords = 0x80114F30; // absolute:True
 Gp_State1C = 0x80115740; // absolute:True
 
-// --- still unnamed in their own overlay (11)
+// --- still unnamed in their own overlay (12)
 D_8007218A = 0x8007218A; // absolute:True
 D_80073BA9 = 0x80073BA9; // absolute:True
 D_80073BAA = 0x80073BAA; // absolute:True
 D_80111E38 = 0x80111E38; // absolute:True
 D_80111E48 = 0x80111E48; // absolute:True
 D_80112E04 = 0x80112E04; // absolute:True
+D_80112F60 = 0x80112F60; // absolute:True
 D_80112F8E = 0x80112F8E; // absolute:True
 D_80112F92 = 0x80112F92; // absolute:True
 D_80112F94 = 0x80112F94; // absolute:True
