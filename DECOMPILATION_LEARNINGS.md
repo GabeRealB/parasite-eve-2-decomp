@@ -44494,3 +44494,45 @@ The knock-on effect is worth knowing: those three loads only group ahead of the
 stores that consume them if they go through scalar temps. Assigning
 `tmp.coord.t[i]` straight from the pointer leaves the loads interleaved with the
 stores and every value in one register.
+
+## The duplicated tail is also worth an extra *reference* to the argument
+
+The companion of "A shared `keep` flag and a duplicated tail cross-jump the
+same": in `func_tonfa_baton_8011D1EC` the two spellings differ not in the
+schedule but in whether the `Task*` parameter gets a register at all. The flag
+form gives it 7 RTL references, the duplicated form 8, and the allocation
+priority in `global.c` is a step function of that count:
+
+```
+pri = floor_log2 (n_refs) * n_refs * size / live_length
+```
+
+7 refs over a 332-insn live range scores `2*7/332 = 0.042`; the loop-hoisted
+address of one trail array, 3 refs (a preheader `lo_sum` plus an in-loop use,
+which counts double for loop depth) over 62 insns, scores `1*3/62 = 0.048`. Ten
+pseudos crossed calls and only nine callee-saved registers existed, so the
+parameter came last in the `;; N regs to allocate:` list of `.greg` and spilled
+to its incoming argument slot, reloaded before each of its four uses:
+
+```
+sw   $a0, 0x88($sp)          # want: move $s7, $a0
+...
+lw   $a3, 0x88($sp)
+nop
+lw   $v1, 0x30($a3)
+```
+
+Calling `Gp_ReleaseState1CMem(work, task)` from both exits instead of computing
+one flag raises the count to 8, `floor_log2` steps from 2 to 3, and the score
+jumps to `3*8/332 = 0.072` — the parameter takes `$s7` and the array address
+loses instead, rematerialised as a `lui`/`addiu` pair inside the loop. 93.8% →
+100% with no other change.
+
+Two practical consequences. First, when a parameter is spilled and everything
+else matches, count its references and check whether a reference sits just under
+a power of two — one more use is worth more than a shorter live range. Second,
+an `__asm__("" :: "r"(x))` is a reference with no instruction, so it is a valid
+way to *test* this diagnosis in a minute (it scored 99.7%, losing only the delay
+slot it blocked); but the natural C that supplies the reference on its own is
+usually the real answer, and here it was already documented as the other
+spelling of the same tail.

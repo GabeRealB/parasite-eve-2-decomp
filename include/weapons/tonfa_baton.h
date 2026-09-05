@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgs.h>
 
 #include "main/gfx.h"
 
@@ -37,5 +38,30 @@ typedef struct TonfaSwing {
     /* 0x10 */ SVECTOR dir;
 } TonfaSwing;
 STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
+
+/// Translation of the baton trail's two coordinate frames inside the weapon
+/// frame: `[0]` is the near end and `[1]` the far end. State 0 of
+/// `func_tonfa_baton_8011D1EC` seeds the task's own coord from `[0]` and the
+/// stack coord from `[1]`.
+///
+/// `D_tonfa_baton_8011E0F8` is that same far-end vector under its own name.
+/// State 0 reaches it as `D_tonfa_baton_8011E0F0[1]`, so the address is derived
+/// from the array base already in a register; state 1 loads the symbol on its
+/// own. Both spellings are needed to match.
+extern SVECTOR D_tonfa_baton_8011E0F0[2];
+extern SVECTOR D_tonfa_baton_8011E0F8;
+
+/// The eight-segment swing trails, one array per end of the baton. Every entry
+/// is parented to `Gfx_ViewCoord`.
+extern GsCOORDINATE2 D_tonfa_baton_8012BBEC[8];
+extern GsCOORDINATE2 D_tonfa_baton_8012BE6C[8];
+
+/// Primitive/blend selector for the trail, seeded by state 0 from
+/// `Task::spawnArg1` and passed to `func_tonfa_baton_8011D6B0` every frame.
+extern s16 D_tonfa_baton_8012C0EC;
+
+/// Draws one segment of the trail: `slot` is the index into the trail arrays,
+/// `flags` the primitive/blend selector.
+void func_tonfa_baton_8011D6B0(s32 slot, s32 flags);
 
 #endif
