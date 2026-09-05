@@ -57,6 +57,105 @@ def text_span(data: bytes) -> tuple[int, int] | None:
     return min(starts) * 4, (max(ends) + 2) * 4
 
 
+def _u32(data: bytes, off: int) -> int:
+    return struct.unpack_from("<I", data, off)[0]
+
+
+_MODEL_SPAN_CACHE: dict[str, list[tuple[int, int]]] = {}
+
+
+def model_spans(name: str, data: bytes, load_addr: int | None) -> list[tuple[int, int]]:
+    """Byte ranges of this package's model streams, as (start, end).
+
+    Derived from the package, never declared: `find_sources_direct` reads each
+    `TmdSource` and `walk_stream` gives the exact end, so a span cannot drift
+    from the data it describes - the same rule the sha1 and the `.text` span
+    follow.
+
+    Per package, deliberately. 129 meshes are shared between overlays and the
+    asset catalog keeps one entry for each, but a *split* is about this file's
+    bytes: kyle_body is carved out of all twelve packages that carry it, at
+    each one's own offset.
+    """
+    if load_addr is None:
+        return []
+    key = f"{name}:{load_addr:08X}"
+    if key in _MODEL_SPAN_CACHE:
+        return _MODEL_SPAN_CACHE[key]
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "peassets"))
+        import pkg_model
+    except Exception:
+        return []
+    spans: list[tuple[int, int]] = []
+    try:
+        found = pkg_model.find_sources_direct(data, load_addr)
+        for stream_va, src in found.items():
+            off = stream_va - load_addr
+            walked = pkg_model.walk_stream(data, off)
+            if not walked:
+                continue
+            # The whole model, not just its display list. A `TmdSource` bounds
+            # every array it owns, and all 597 on disc are laid out
+            # `skeleton < partVerts < verts < norms < stream` with the record
+            # itself immediately after - one contiguous run. Carving only the
+            # stream would leave the vertex and normal arrays, which are just
+            # as opaque and 1.4x the bytes, sitting in the disassembly.
+            head = min(
+                int(src["verts_offset"], 16),
+                int(src["norms_offset"], 16),
+                _u32(data, int(src["source_offset"], 16) + 0x10) - load_addr,
+                _u32(data, int(src["source_offset"], 16) + 0x1C) - load_addr,
+                off,
+            )
+            # The record too: it is the model's own descriptor, not a
+            # neighbour, and every stream on disc ends exactly at its source's
+            # offset. Leaving it behind would strand 0x24 bytes of pointers
+            # between two opaque blobs for no gain.
+            src_off = int(src["source_offset"], 16)
+            spans.append((head, max(walked[1], src_off + 0x24)))
+    except Exception:
+        return []
+    spans.sort()
+    merged: list[tuple[int, int]] = []
+    for st, en in spans:
+        if merged and st < merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], en))
+        else:
+            merged.append((st, en))
+    _MODEL_SPAN_CACHE[key] = merged
+    return merged
+
+
+def data_run(
+    name: str, data: bytes, start: int, stop: int, models: list[tuple[int, int]]
+) -> list[str]:
+    """One trailing-data run, with model streams carved out as `databin`.
+
+    A `databin` writes the bytes to `assets/USA/incbin/` and `.incbin`s them
+    back, so the build still matches while the disassembly stops pretending a
+    mesh is 60,000 `.word` lines it understands. Everything between the carves
+    stays ordinary `data`, because that is what we have *not* identified.
+    """
+    picked = [(a, b) for a, b in models if a >= start and b <= stop and b > a]
+    if not picked:
+        return [f"      - [0x{start:X}, data, {name}_data]"]
+    out: list[str] = []
+    pos = start
+    idx = 0
+    for a, b in picked:
+        if a > pos:
+            suffix = "" if idx == 0 else f"_{idx + 1}"
+            out.append(f"      - [0x{pos:X}, data, {name}_data{suffix}]")
+            idx += 1
+        out.append(f"      - [0x{a:X}, databin, {name}_model_{a:05X}]")
+        pos = b
+    if pos < stop:
+        suffix = "" if idx == 0 else f"_{idx + 1}"
+        out.append(f"      - [0x{pos:X}, data, {name}_data{suffix}]")
+    return out
+
+
 def trailing_segment(name: str, data: bytes) -> list[str]:
     """Cover a package whose size is not word-aligned.
 
@@ -142,6 +241,7 @@ def subsegments(
     rodata_head: str | int | None,
     units: list[str],
     data_cuts: list[dict],
+    models: list[tuple[int, int]] | None = None,
 ) -> str:
     """The package layout as splat subsegment lines.
 
@@ -166,10 +266,14 @@ def subsegments(
     A data-only package still gets one `data` subsegment covering the file.
     """
     lines: list[str] = []
+    models = models or []
     if span is None:
         if data_cuts:
             raise SystemExit(f"{name}: data cuts on a data-only package")
         lines.append(f"      - [0x0, data, {name}]")
+        # A data-only package - mappic, and the empty actor slots. Models get
+        # carved here too; there is no code to sit around them.
+        lines.extend(data_run(name, data, 0, len(data), models))
         lines.extend(trailing_segment(name, data))
         return "\n".join(lines)
 
@@ -310,6 +414,8 @@ def subsegments(
         lines.extend(data_subsegments(name, end, len(data), data_cuts))
     elif data_cuts:
         raise SystemExit(f"{name}: data cuts but the package has no trailing data")
+        # Trailing data: models, animation banks, scripts - not code.
+        lines.extend(data_run(name, data, end, len(data), models))
     lines.extend(trailing_segment(name, data))
     return "\n".join(lines)
 
@@ -394,6 +500,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 entry.get("rodata_head"),
                 entry.get("units", []),
                 entry.get("data", []),
+                model_spans(name, data, load),
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)
