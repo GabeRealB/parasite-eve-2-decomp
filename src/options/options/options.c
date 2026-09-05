@@ -9,6 +9,7 @@
 #include "main/ui.h"
 
 extern s8           D_80072189;
+extern u8           D_8007218D;
 extern s8           D_80072313;
 extern u8           D_options_801D5B2C[];
 extern u8           D_options_801D5B4C[];
@@ -18,8 +19,12 @@ extern u8           D_options_801D5B90[];
 extern u8           D_options_801D5B98[];
 extern u8           D_options_801D5BA4[];
 extern u8           D_options_801D5BAC[];
+extern u8           D_options_801D5BB8[];
+extern u8           D_options_801D5BC4[];
+extern u8           D_options_801D5BCC[];
 extern u8           D_options_801D5CE4[];
 extern u8           D_options_801D5D28[];
+extern u8           D_options_801D5D68[];
 extern u8           D_options_801D5DA4[];
 extern u8           D_options_801D5DDC[];
 extern UiList       D_options_801D5EB0;
@@ -168,7 +173,73 @@ void func_options_801D4724(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("options/nonmatchings/options/options", func_options_801D4944);
+void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
+{
+    u8*  labels[2];
+    u8** p;
+    u8*  title;
+    s32  a0tmp;
+    s32  i;
+    s32  y;
+    s32  x;
+    s32  span;
+    s32  selected;
+    s32  one;
+    s32  two;
+    s32  look;
+    s32  n2;
+    s32  status;
+
+    SCHED_BARRIER();
+    a0tmp = (s32)arg1;
+    TOUCH_REG(a0tmp);
+    title = D_options_801D5BB8;
+    TOUCH_REG(title);
+    i         = 0;
+    p         = labels;
+    y         = i;
+    labels[0] = D_options_801D5BC4;
+    labels[1] = D_options_801D5BCC;
+    Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    selected = D_8007218D;
+    x        = arg1->field_1C + 0x78;
+    span     = (s16)arg1->field_1E - x;
+    n2       = 2;
+    do {
+        if (i != selected) {
+            look = Ui_LookupTable(arg1, 2);
+        } else {
+            look = Ui_LookupTable(arg1, 1);
+        }
+        one = 1;
+        two = n2;
+        Text_DrawPrompt(arg1, x + y / two, arg0->field_1A, *p, look, one, 0);
+        p++;
+        y += span;
+        i += one;
+    } while (i < 2);
+    if (arg0->field_C == one) {
+        if (Pad_CheckButtons(0, one, 0x2000) != 0) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            selected += one;
+            if (selected >= n2) {
+                selected = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            selected -= 1;
+            if (selected < 0) {
+                selected += n2;
+            }
+        }
+    }
+    D_8007218D = selected;
+    SOFT_BARRIER();
+    status = arg1->status;
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+        Ui_SetHolderParam((s32)D_options_801D5D68, 0, 0);
+    }
+}
 
 void func_options_801D4B64(Task* task)
 {
