@@ -296,7 +296,72 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     }
 }
 
-INCLUDE_ASM("weapons/nonmatchings/m4a1_hammer/m4a1_hammer", func_m4a1_hammer_8011DE60);
+/// Draws the hammer's expanding billboard: one `POLY_FT4` centred on `arg0`'s
+/// world translation, projected with a single `RTPS`. `arg1` picks the frame
+/// out of the texture page's six 40-pixel columns, `arg2` is the radius and
+/// `arg3` the spin angle. The quad's corners are the radius rotated by `arg3`
+/// and by `arg3 + 0x400`, so the sprite spins in screen space; nothing is
+/// drawn if the centre projects off-screen. Same shape as
+/// `func_m4a1_hammer_8011D904` on a wider, brighter page.
+void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**                  scratch;
+    u8*                     head;
+    M4a1HammerFlareScratch* block;
+    M4a1HammerFlareScratch* vecp;
+    POLY_FT4*               prim;
+    u16                     vz;
+    s32                     u;
+
+    scratch                                          = (void**)G_SCRATCH_HEAD;
+    head                                             = *scratch;
+    ((M4a1HammerFlareScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                            = (M4a1HammerFlareScratch*)(head - 0x1C);
+    block->vec.vy                                    = *(u16*)&arg0->workm.t[1];
+    vz                                               = *(u16*)&arg0->workm.t[2];
+    *scratch                                         = block;
+    block->vec.vz                                    = vz;
+    vecp                                             = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->vec);
+    gte_rtps_real();
+    gte_stsxy(&((M4a1HammerFlareScratch*)(head - 0x1C))->sxy0);
+    gte_stflg(&((M4a1HammerFlareScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((M4a1HammerFlareScratch*)(head - 0x1C))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2A;
+        prim->clut  = 0x4293;
+        u           = (s16)(arg1 % 6) * 40;
+        prim->u0    = u;
+        prim->v0    = 0x38;
+        prim->u1    = u + 0x27;
+        prim->v1    = 0x38;
+        prim->u2    = u;
+        prim->v2    = 0x5F;
+        prim->u3    = u + 0x27;
+        prim->v3    = 0x5F;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0    = *(u16*)&block->sxy0.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy0.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
 {
