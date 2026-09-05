@@ -9,8 +9,10 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "weapons/hypervelocity.h"
@@ -30,9 +32,192 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
 void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang);
 void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s16 spin);
 
-INCLUDE_RODATA("weapons/nonmatchings/hypervelocity/hypervelocity", D_hypervelocity_8011D1C0);
+/// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
+/// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift
+/// (`field_10` / `field_12` / `field_14`), its age (`field_22`), the ring
+/// brightness (`field_24`), the ring radius (`field_26`), the arc brightness
+/// (`field_28`) and the per-frame brightness step (`field_2A`);
+/// `Task::extra` reaches the coordinate it hangs on and `Task::spawnArg1` is
+/// the charge counter the firing code drives. Any room fade
+/// (`Gp_State1C->field_4`) freezes the task, and a fade of 4 or more restarts
+/// it at state 1.
+///
+/// - State 0 hangs the coordinate off `GpEffWork::field_8` at the fixed muzzle
+///   offset `D_hypervelocity_8011FB74` with an identity rotation, then falls
+///   through to state 1, which waits for `spawnArg1` to reach 1 before arming
+///   the charge at state 2.
+/// - State 2 charges: it jitters the drift, sparks every other frame, and
+///   claims room-light slot 1 as a narrow (`0x100` / `0x1000`) light at a
+///   random `0x400..0xB00` angle. A negative `spawnArg1` cancels back to state
+///   1; holding past frame 0x40 caps the charge at 0x18; once the charge is 2
+///   or more it seeds the ring and moves to state 3 with the brightness step
+///   scaled so the ring fills over `spawnArg1` frames.
+/// - State 3 fires: the light widens to `0x400` / `0x4000`, the ring brightens
+///   by `field_2A` and grows by 8 a frame, both ring halves are drawn, and past
+///   half brightness the arc is drawn too with a one-shot report. Running the
+///   charge out spawns the discharge effect as a child task and moves to state
+///   4; a negative charge cancels back to state 1 with the stop sound.
+/// - State 4 fades the ring out 0x20 a frame while spawning smoke off a random
+///   one of the player's two hand coordinates, and returns to state 1 once the
+///   flare is 0x6F frames old or the charge goes negative.
+void func_hypervelocity_8011D1E8(Task* task)
+{
+    u8             rgb[3];
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* light;
+    GsCOORDINATE2* player;
+    GpEffWork*     work;
+    GpEffWork*     eff;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    GpMtxWords*    dstm;
+    s32            pan;
 
-INCLUDE_ASM("weapons/nonmatchings/hypervelocity/hypervelocity", func_hypervelocity_8011D1E8);
+    work  = task->spawnArg2;
+    base  = &Gp_RoomCoords[1];
+    light = &base->coord;
+    slot  = (GpCoordTail*)light;
+    coord = ((TmdObject*)task->extra)->field_8;
+
+    if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->field_4 >= 4) {
+            task->state = 1;
+        }
+        return;
+    }
+
+    work->field_22 = (u16)work->field_22 + 1;
+    switch (task->state) {
+        case 0:
+            dstm              = (GpMtxWords*)&coord->coord;
+            coord->sub        = work->field_8;
+            dstm->w0          = 0x1000;
+            dstm->w1          = 0;
+            dstm->w2          = 0x1000;
+            dstm->w3          = 0;
+            dstm->h4          = 0x1000;
+            coord->coord.t[0] = D_hypervelocity_8011FB74.vx;
+            coord->coord.t[1] = D_hypervelocity_8011FB74.vy;
+            coord->coord.t[2] = D_hypervelocity_8011FB74.vz;
+            coord->flg        = 0;
+            task->state       = 1;
+            /* fallthrough */
+        case 1:
+            if (task->spawnArg1 == 1) {
+                task->state    = 2;
+                work->field_22 = 0;
+            }
+            return;
+        case 2:
+            Gp_UpdateCoord(coord);
+            work->field_12 = -((work->field_22 & 0xF) << 5);
+            if (work->field_22 & 1) {
+                Gp_SpawnEff(0x600E1, coord, 0x180, (SVECTOR*)&work->field_10);
+            }
+            base->field_0  = 4;
+            slot->field_58 = 0x100;
+            slot->field_5C = 0x1000;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x400;
+            slot->field_50 = (u16)slot->field_54 >> 1;
+            slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+            light->flg = 0;
+            if (task->spawnArg1 < 0) {
+                task->spawnArg1 = 0;
+                task->state     = 1;
+                return;
+            }
+            if (work->field_22 >= 0x41) {
+                task->spawnArg1 = 0x18;
+            }
+            if (task->spawnArg1 >= 2) {
+                work->field_24 = 0;
+                work->field_26 = 0x40;
+                work->field_28 = 0;
+                work->field_2A = 0x100 / task->spawnArg1;
+                task->state    = 3;
+            }
+            return;
+        case 3:
+            Gp_UpdateCoord(coord);
+            work->field_12 = -((work->field_22 & 0xF) << 6);
+            Gp_SpawnEff(0x600E0, coord, 0x180, (SVECTOR*)&work->field_10);
+            base->field_0  = 4;
+            slot->field_58 = 0x400;
+            slot->field_5C = 0x4000;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->field_50 = (u16)slot->field_54 >> 1;
+            slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+            light->flg      = 0;
+            work->field_24 += work->field_2A;
+            if (work->field_24 >= 0x100) {
+                work->field_24 = 0xFF;
+            }
+            work->field_26 += 8;
+            if (work->field_26 >= 0x201) {
+                work->field_26 = 0x200;
+            }
+            rgb[0] = (u16)work->field_24 >> 1;
+            rgb[1] = (u16)work->field_24 >> 1;
+            rgb[2] = work->field_24;
+            Gp_DrawRing(coord, work->field_26, rgb);
+            Gp_DrawRing(coord, (s16)((u16)work->field_26 * 2), rgb);
+            if (work->field_24 >= 0x81) {
+                if (work->field_28 == 0) {
+                    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(0x20160006, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+                work->field_28 += (u16)work->field_2A * 2;
+                if (work->field_28 >= 0x100) {
+                    work->field_28 = 0xFF;
+                }
+                rgb[0] = (u16)work->field_28 >> 1;
+                rgb[1] = (u16)work->field_28 >> 1;
+                rgb[2] = work->field_28;
+                Gp_DrawArc(coord, (s16)((u16)task->spawnArg1 * 128), 0x60, rgb);
+            }
+            if (task->spawnArg1 < 0) {
+                SndEvt_EnqueueType7(0x20160006, 1);
+                task->spawnArg1 = 0;
+                task->state     = 1;
+                return;
+            }
+            task->spawnArg1 = task->spawnArg1 - 1;
+            if (task->spawnArg1 == 0) {
+                task->state = 4;
+                eff         = Gp_SpawnEff(0x6000C, coord, 0, NULL);
+                if (eff != NULL) {
+                    Task_Reparent(task, eff->field_0);
+                }
+                work->field_24 = 0xFF;
+            }
+            return;
+        case 4:
+            Gp_UpdateCoord(coord);
+            work->field_12 = -((work->field_22 & 0xF) << 6);
+            Gp_SpawnEff(0x600E1, coord, 0x180, (SVECTOR*)&work->field_10);
+            if (work->field_26 > 0) {
+                rgb[0] = (u16)work->field_24 >> 1;
+                rgb[1] = (u16)work->field_24 >> 1;
+                rgb[2] = work->field_24;
+                Gp_DrawRing(coord, work->field_26, rgb);
+                Gp_DrawRing(coord, (s16)((u16)work->field_26 * 2), rgb);
+                Gp_DrawFadeQuad(rgb, 1);
+                work->field_24 = (u16)work->field_24 - 0x20;
+                work->field_26 = (u16)work->field_26 - 0x20;
+            }
+            player      = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x60054, &player[((((u32)Gp_LcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
+            if (work->field_22 >= 0x6F || task->spawnArg1 < 0) {
+                task->state = 1;
+            }
+            return;
+    }
+}
 
 /// Per-frame task for the hypervelocity round in flight. `Task::spawnArg2` is
 /// the `Gp_State1C` work block holding the round's velocity (`field_10` /

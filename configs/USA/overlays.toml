@@ -54,7 +54,7 @@ imports = "configs/USA/sym/weapons.imports.txt"
 as12 = { item = 0x8E, weapon = "AS12", rodata_head = "0x4" }
 grenade_pistol = { item = 0x8A, weapon = "Grenade Pistol", rodata = [{ start = "0x4", unit = "grenade_pistol_3" }], shared = [{ start = "0x1E0", end = "0x53C", unit = "weapons_shared_8011d3a0" }, { start = "0x9A0", end = "0x9CC", unit = "weapons_shared_8011ddf8" }, { start = "0x9CC", end = "0xA10", unit = "weapons_shared_8011de24" }] }
 gunblade = { item = 0x96, weapon = "Gunblade" }
-hypervelocity = { item = 0x95, weapon = "Hypervelocity", rodata = [{ start = "0x18", unit = "hypervelocity_3" }], shared = [{ start = "0x1F5C", end = "0x1FA8", unit = "weapons_shared_8011e4ac" }, { start = "0x24E0", end = "0x2500", unit = "weapons_shared_8011db78" }] }
+hypervelocity = { item = 0x95, weapon = "Hypervelocity", rodata_head = "0x4", rodata = [{ start = "0x18", unit = "hypervelocity_3" }], shared = [{ start = "0x1F5C", end = "0x1FA8", unit = "weapons_shared_8011e4ac" }, { start = "0x24E0", end = "0x2500", unit = "weapons_shared_8011db78" }] }
 m249 = { item = 0x90, weapon = "M249", rodata_head = "0x4" }
 m4a1 = { item = 0x8F, weapon = "M4A1 Rifle" }
 m4a1_bayonet = { item = 0x99, weapon = "M4A1 Bayonet", rodata_head = "0x4", rodata = [{ start = "0x4", unit = "m4a1_bayonet_2" }], units = ["0x874"] }

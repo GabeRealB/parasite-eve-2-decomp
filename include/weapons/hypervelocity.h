@@ -65,6 +65,10 @@ typedef struct HyperBeam {
 } HyperBeam;
 STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
 
+/// Translation of the round's own coordinate frame inside its parent frame
+/// (the muzzle), `(0, 0x240, 0x80)`.
+extern SVECTOR D_hypervelocity_8011FB74;
+
 /// Per-particle jitter of the hypervelocity trail, one 8-bit LCG roll each,
 /// re-rolled as a block when the round is fired.
 extern s16 D_hypervelocity_8012EF0C[16];
