@@ -124,4 +124,21 @@ typedef struct AcropolisBridgeSpriteScratch {
 } AcropolisBridgeSpriteScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeSpriteScratch, 0x1C);
 
+/// 0x18-byte scratch block the bridge's axis-aligned debris billboard
+/// (`func_acropolis_bridge_801833A0`) takes from `G_SCRATCH_HEAD`. Same
+/// projection as `AcropolisBridgeSpriteScratch` - `vec` is the piece's world
+/// position out of `workm.t`, `sx` / `sy` the projected centre, `flag` the
+/// `gte_stflg` gate and `otz` the `gte_stszotz` depth biased by 1 - but the
+/// quad is never turned, so one `d` (`size * 55 / otz`) sizes it instead of a
+/// pair of rotated half-diagonals.
+typedef struct AcropolisBridgeDebrisScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     d;
+    /* 0x08 */ s32     flag;
+    /* 0x0C */ SVECTOR vec;
+    /* 0x14 */ u16     sx;
+    /* 0x16 */ u16     sy;
+} AcropolisBridgeDebrisScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeDebrisScratch, 0x18);
+
 #endif

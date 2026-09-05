@@ -831,7 +831,77 @@ void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s
     *scratch = (u8*)*scratch + sizeof(AcropolisBridgeSpriteScratch);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_801833A0);
+/// Draws one piece of the bridge's blown debris as an upright screen-facing
+/// quad - the unrotated counterpart of `func_acropolis_bridge_80182F8C`. The
+/// piece's world position is copied out of `coord->workm.t` and projected
+/// through `GsWSMATRIX` with a single `RTPS`; a GTE error (`gte_stflg` sign
+/// bit) drops the piece rather than drawing it. The `POLY_FT4` is centred on
+/// the projected point and is `size * 55 / otz` wide, half that tall above the
+/// centre and half below, so it shrinks with distance without ever spinning.
+/// `frame` picks the animation cell out of a 4x2 grid of 0x38x0x38 cells on
+/// tpage 0x2B: bits 0-1 pick the column and bit 2 the row. The primitive is
+/// semi-transparent with texture blending off (`code |= 3`) and links into the
+/// OT at the projected depth.
+void func_acropolis_bridge_801833A0(GsCOORDINATE2* coord, u16 frame, s16 size)
+{
+    void**                        scratch;
+    u8*                           head;
+    AcropolisBridgeDebrisScratch* block;
+    POLY_FT4*                     prim;
+    AcropolisBridgeDebrisScratch* depth;
+    u32                           cell;
+    s32                           u;
+    s32                           v;
+    s8                            vTop;
+    s8                            vBot;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    block   = (AcropolisBridgeDebrisScratch*)(head - sizeof(AcropolisBridgeDebrisScratch));
+    depth   = block;
+
+    block->vec.vx = *(u16*)&coord->workm.t[0];
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    block->vec.vz = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->vec);
+    gte_rtps_real();
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->sx);
+    gte_stflg(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->flag);
+
+    if (block->flag >= 0) {
+        gte_stszotz(&depth->otz);
+        ((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz++;
+        prim->tpage = 0x2B;
+        prim->clut  = 0x43D2;
+        cell        = frame;
+        u           = (cell & 3) * 0x38;
+        v           = ((cell & 7) >> 2) * 0x38;
+        vTop        = v + 0x70;
+        vBot        = v + 0x70 + 0x37;
+        setUV4(prim, u, vTop, u + 0x37, vTop, u, vBot, u + 0x37, vBot);
+        setcode(prim, getcode(prim) | 3);
+
+        block->d = size * 55 / ((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz;
+
+        prim->x0 = prim->x2 = block->sx - *(u16*)&block->d;
+        prim->x1 = prim->x3 = block->sx + *(u16*)&block->d;
+        prim->y0 = prim->y1 = block->sy - *(u16*)&block->d - (block->d >> 1);
+        prim->y2 = prim->y3 = block->sy + (block->d >> 1);
+
+        addPrim((u_long*)(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + sizeof(AcropolisBridgeDebrisScratch);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", D_acropolis_bridge_8017D6CC);
 

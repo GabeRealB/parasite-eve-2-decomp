@@ -47571,3 +47571,72 @@ pointer parameter to hoist, which is where the target's otherwise unexplained
 `func_acropolis_bridge_80184B94` went 91.7% -> 99.5% on this change alone; the
 remaining 0.5% was a `SOFT_BARRIER()` keeping a `sh` out of the following
 branch's delay slot.
+
+## A `u16` parameter masked twice: hoist it into a `u32` local to get the standalone `andi 0xFFFF`
+
+When a `u16` parameter feeds two different masks, GCC 2.8.1 emits the
+zero-extension once and keeps it, because combine only folds a `zero_extend`
+into a consumer that has a single use:
+
+```
+andi $v0, $a1, 0xFFFF
+andi $v1, $v0, 0x3     /* column */
+andi $v0, $v0, 0x7     /* row    */
+srl  $v0, $v0, 2
+```
+
+Writing the two masks straight off the parameter does *not* reproduce that -
+each use gets its own `zero_extend` insn, and each one is folded away:
+
+```c
+u = (frame & 3) * 0x38;          /* andi $v0, $a1, 0x3 — the 0xFFFF is gone */
+v = ((frame & 7) >> 2) * 0x38;
+```
+
+Hoist the parameter into one local first, so there is a single `zero_extend`
+with two uses and nothing to combine into:
+
+```c
+u32 cell = frame;                /* andi $v0, $a1, 0xFFFF */
+u        = (cell & 3) * 0x38;
+v        = ((cell & 7) >> 2) * 0x38;
+```
+
+The local must be **unsigned**: a `s32` local makes `>> 2` an arithmetic shift
+and you get `sra` where the target has `srl`. This is the whole difference
+between 99.2% and 100% on `func_acropolis_bridge_801833A0`.
+
+## `addiu reg, 0xA7` vs `addiu reg, -0x59`: narrow the add with an `s8` local
+
+Two `addiu`s that differ only in whether the immediate is sign-extended are a
+mode difference, not a constant difference. When the result is only ever stored
+with `sb`, GCC narrows the `plus` to QImode and `trunc_int_for_mode` rewrites
+the constant, so `+0x37` on top of a `+0x70` base prints as `-0x59`:
+
+```
+addiu $v0, $v1, 0x70     /* row base — 0x70 is the same either way */
+addiu $v1, $v1, -0x59    /* base + 0x37, narrowed to QImode        */
+```
+
+An `s32` intermediate blocks the narrowing and emits `addiu $v1, $v1, 0xA7`.
+Give the value an `s8` local instead of folding it into the `setUV4` argument:
+
+```c
+s8 vTop = v + 0x70;
+s8 vBot = v + 0x70 + 0x37;       /* -> addiu -0x59, not 0xA7 */
+setUV4(prim, u, vTop, u + 0x37, vTop, u, vBot, u + 0x37, vBot);
+```
+
+## Chained assignment picks the store order for a value written to two fields
+
+When one value lands in two struct fields, GCC 2.8.1 emits the stores in the
+order the assignment chain evaluates them - right to left. The target's
+
+```
+sh $v0, 0x18($t0)   /* x2 */
+sh $v0, 0x8($t0)    /* x0 */
+```
+
+is `prim->x0 = prim->x2 = ...;`, not two separate statements in source order.
+Reach for this before blaming the scheduler for a `reorder` penalty on paired
+field writes; it is exact and costs nothing.
