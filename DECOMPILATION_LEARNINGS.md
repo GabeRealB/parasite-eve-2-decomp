@@ -47788,3 +47788,49 @@ local. Assigning a loaded field to a named variable also creates an
 anti-dependency that pins the load after the insn that last read that variable,
 which is often the difference between `sched2` hoisting the load and leaving it
 where the target has it.
+
+
+## A guard that tests a register but a loop that tests a stack slot is two locals
+
+`Room_Draw08` sat at 99.35% with one stubborn hunk in the loop preheader. The
+target computed the bound into a caller-saved register, branched on it, and only
+*then* stored it -- after the loop-invariant insns `loop.c` had hoisted:
+
+```
+addiu v1,s4,0x800     # guard block: bound in a register
+slt   v0,s4,v1
+beqz  v0,end
+ addu fp,a0,zero      # preheader: hoisted invariants
+lui   s6,0xff / ori s6,s6,0xffff / lui s7,0xff00
+sw    s4,0x14(sp)     # ...then the two stores
+sw    v1,0x10(sp)
+```
+
+The single-variable C (`end = i + N; if (i < end) do { ... } while (i < end);`)
+cannot produce that. Reload puts a memory-resident pseudo's store *immediately
+after its def*, so the store lands in the guard block, before the hoisted
+insns -- and `dbr` then pulls it into the branch's delay slot. No amount of
+statement reordering, barrier placement, `while`-vs-`do`/`while`, or writing the
+bound as an invariant expression moved it.
+
+The fix is to give the loop test its own local, copied from the bound inside the
+guarded region:
+
+```c
+end = i + N;
+if (i < end) {
+    start = i;
+    limit = end;                 /* copy, lives in memory */
+    do { ... } while (i < limit);
+}
+```
+
+Now `end` is a short-lived pseudo that keeps a hard register for the guard, and
+`limit` is the memory-resident one whose def -- the copy -- is already in the
+preheader, so its store lands after the hoisted invariants. 99.35% -> 99.96% in
+one edit. Read it as a rule: when the entry test reads a *register* and the
+back-edge test reads a *stack slot*, those are two locals, not one.
+
+The last 0.04% was the two slots being swapped (`0x10`/`0x14`); GCC assigns
+stack slots in declaration order, so moving `limit` above `start` in the
+declaration list finished the match.

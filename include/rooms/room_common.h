@@ -329,6 +329,12 @@ void Room_Draw11(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// is `blend * ((arg3 << 16) >> 24)`, green `blend * (((arg3 << 16) >> 20) & 1)`,
 /// blue `blend * (arg3 & 1)`. `arg2` is still the signed angle offset.
 void Room_Draw12(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Same two-point gouraud wedges as `Room_Draw11`, but the sweep is anchored to
+/// the screen-space angle between the two projected centres (`ratan2` of their
+/// delta) instead of an `arg2` offset, both `gte_stflg` results are tested and
+/// neither OTZ is clamped. The lit vertex takes the frame-counter blend byte
+/// `((field_8 & 1) * 16) | 0x20`.
+void Room_Draw08(SVECTOR* arg0, s32 arg1);
 /// Same two-point gouraud wedges as `Room_Draw12`, but the green/blue masks
 /// are `& 3` rather than `& 1`.
 void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -528,6 +534,24 @@ typedef struct _RoomDraw11Scratch {
     /* 0x16 */ u16 sy1;
 } RoomDraw11Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
+
+/// 0x1C-byte scratch block `Room_Draw08` takes from `G_SCRATCH_HEAD`. Same
+/// two-point projection as `RoomDraw11Scratch` -- `arg0` and `arg0 + 1` through
+/// `Gfx_ViewWorldMtx` -- but the two `gte_stflg` results share `flag` at 0x8,
+/// which pushes the radii to 0xC/0x10 and the projected coordinates to
+/// 0x14..0x1A. `r0` is `(s16)arg1 * 64 / otz0` and `r1` the same over `otz1`.
+typedef struct _RoomDraw08Scratch {
+    /* 0x00 */ s32 otz0;
+    /* 0x04 */ s32 otz1;
+    /* 0x08 */ s32 flag;
+    /* 0x0C */ s32 r0;
+    /* 0x10 */ s32 r1;
+    /* 0x14 */ u16 sx0;
+    /* 0x16 */ u16 sy0;
+    /* 0x18 */ u16 sx1;
+    /* 0x1A */ u16 sy1;
+} RoomDraw08Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw08Scratch, 0x1C);
 
 /// 0x18-byte scratch block `Room_Draw04` takes from `G_SCRATCH_HEAD`. Same
 /// projection as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
