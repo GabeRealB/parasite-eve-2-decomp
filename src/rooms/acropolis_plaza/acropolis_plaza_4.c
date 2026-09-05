@@ -29,6 +29,17 @@ extern void Stage_RequestFromAreaTable(s32 arg0);
 extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
+/// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
+/// the main executable, not in this overlay.
+extern s32 D_801797FC;
+
+/// The block `func_acropolis_plaza_8017E9A8` runs once its stream reports in.
+extern u8 D_acropolis_plaza_80182B24[];
+
+/// Per-frame room work stepped by the plaza's cutscene tails, in
+/// `acropolis_plaza_3`.
+extern void func_acropolis_plaza_8017DE24(s32 arg0);
+
 /// The pair of blocks `func_acropolis_plaza_8017E7E4` hands to `func_800E8634`
 /// once the streamed scene it waits on has finished.
 extern u8 D_acropolis_plaza_80182734[];
@@ -102,7 +113,127 @@ void func_acropolis_plaza_8017E7E4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017E9A8);
+/// Seven-state opening sequence for the plaza's streamed scene, and the only
+/// caller of every payload `AcropolisPlazaTailMsg` describes. State 0 allocates
+/// the work block, caches the slot-3 task in it and places the player at
+/// (0xF6E, 0, 0x2328) with msg 0x3F2; states 1 and 2 wait for slot 3 to go idle
+/// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
+/// `D_801797FC` script (msg 0x3F4). State 3 waits for the CD queue, latches
+/// `CdCmd_Queue.field_1EE` into the cutscene work block, kills the task it
+/// names and starts the scene's stream (`CdCmd_Enqueue(0x72, ...)`); state 4
+/// waits for the stream to report in and runs `D_acropolis_plaza_80182B24`.
+/// State 5 waits out 0x60 frames, republishes the player's weapon to slot 3
+/// (msg 0x3E8) and warps the player onto the slot-3 model's own coordinate
+/// frame with a 0x3E9 placement; state 6 releases slot 3 (msg 0x3F1) and asks
+/// to be killed. States 5 and 6 also step the room's per-frame work
+/// (`func_acropolis_plaza_8017DE24(4)`), which the earlier states skip.
+void func_acropolis_plaza_8017E9A8(Task* task)
+{
+    GpMsg3EE                place;
+    GpMsg3EE                warp;
+    GpRec14                 script;
+    AcropolisPlazaTailMsg   buf;
+    GpRec14*                rec;
+    CdCmdQueue*             q    = &CdCmd_Queue;
+    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->idMap;
+    AcropolisPlazaWarpWork* newWork;
+    GsCOORDINATE2*          coord;
+    s32                     weaponId;
+    s32                     id;
+
+    switch (task->state) {
+        case 0:
+            newWork     = Mem_Malloc(8, 0);
+            task->idMap = (TaskIdMap*)newWork;
+            if (newWork == NULL) {
+                Task_Kill(task);
+                return;
+            }
+            Mem_Set(newWork, 0, 8);
+            ((AcropolisPlazaWarpWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
+            place.field_0                                 = 0xF6E;
+            place.field_4                                 = 0;
+            place.field_8                                 = 0x2328;
+            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3F2, (s32)&place, 0);
+            task->state = task->state + 1;
+            return;
+        case 1:
+            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+                return;
+            }
+            warp.field_12 = 0xD55;
+            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3EE, (s32)&warp, 0);
+            task->state = task->state + 1;
+            return;
+        case 2:
+            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+                return;
+            }
+            script.field_0  = (s32)&D_801797FC;
+            script.field_4  = 0xB;
+            script.field_8  = 0;
+            script.field_C  = 0;
+            script.field_10 = 1;
+            Gp_DispatchMsg(work->slot3, 0x3F4, (s32)&script, 0);
+            task->state = task->state + 1;
+            return;
+        case 3:
+            if (CdCmd_IsIdle() == 0) {
+                return;
+            }
+            ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
+            Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            q->field_1EE = 1;
+            q->field_1EA = 1;
+            q->field_1F8 = 2;
+            buf.slot[0]  = Stream_FindSlot(&Game_Session->field_4, 2, 0);
+            buf.slot[1]  = 0;
+            buf.slot[2]  = 0;
+            CdCmd_Enqueue(0x72, 0, buf.slot);
+            q->field_1E8 = 1;
+            task->state  = task->state + 1;
+            return;
+        case 4:
+            if (q->field_1FA == 0) {
+                return;
+            }
+            func_800E8614((s32)D_acropolis_plaza_80182B24, 1);
+            task->state = task->state + 1;
+            return;
+        case 5:
+            if (q->field_1EA >= 0x60) {
+                rec                     = &buf.weapon.rec;
+                weaponId                = D_80073BA9;
+                id                      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                buf.weapon.rec.field_0  = id;
+                rec->field_4            = 1;
+                buf.weapon.rec.field_8  = 0;
+                rec->field_C            = 0xA;
+                buf.weapon.rec.field_10 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
+
+                coord            = ((TmdObject*)((AcropolisPlazaWarpWork*)task->idMap)->slot3->extra)->field_8;
+                buf.place.pos.vx = coord->coord.t[0];
+                buf.place.pos.vy = coord->coord.t[1];
+                buf.place.pos.vz = coord->coord.t[2];
+                buf.place.rot.vz = 0;
+                buf.place.rot.vx = 0;
+                buf.place.rot.vy = 0xEAA;
+                Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3E9, (s32)&buf.place, 0);
+                task->state = task->state + 1;
+            }
+            break;
+        case 6:
+            if (CdCmd_IsIdle() != 0) {
+                Gp_DispatchMsg(work->slot3, 0x3F1, 0, 0);
+                Task_RequestKill(task, 0);
+            }
+            break;
+        default:
+            return;
+    }
+    func_acropolis_plaza_8017DE24(4);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017ECF8);
 

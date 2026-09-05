@@ -3,7 +3,9 @@
 
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 #include <psyq/libgte.h>
 
@@ -84,5 +86,29 @@ typedef struct AcropolisPlazaCutWork {
     /* 0x19 */ byte  pad_19[0x1];
     /* 0x1A */ u16   field_1A;
 } AcropolisPlazaCutWork;
+
+/// The 0x14-byte weapon record msg 0x3E8 takes, seen at its offset inside
+/// `AcropolisPlazaTailMsg`: the plaza's opening tail builds it eight bytes into
+/// the shared buffer, which is what makes that buffer 0x1C rather than 0x18
+/// bytes long.
+typedef struct AcropolisPlazaWeaponMsg {
+    /* 0x00 */ byte    pad_0[0x8];
+    /* 0x08 */ GpRec14 rec;
+} AcropolisPlazaWeaponMsg;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
+
+/// The one scratch buffer `func_acropolis_plaza_8017E9A8` builds its late
+/// payloads in. The task only ever has one of them in flight, so all three
+/// views share a single frame slot, and the union is what makes that sharing
+/// explicit: `slot` is the CD stream-slot triple handed to
+/// `CdCmd_Enqueue(0x72, ...)` in state 3, `weapon.rec` the record msg 0x3E8
+/// takes in state 5, and `place` the position + Euler rotation the 0x3E9
+/// placement that follows it takes.
+typedef union AcropolisPlazaTailMsg {
+    /* 0x0 */ u8                      slot[4];
+    /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
+    /* 0x0 */ RoomPlacement           place;
+} AcropolisPlazaTailMsg;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
 #endif // ROOMS_ACROPOLIS_PLAZA_H

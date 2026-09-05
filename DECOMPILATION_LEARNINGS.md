@@ -48775,3 +48775,53 @@ grep -rl 'jtbl_<overlay>_<addr>' asm/USA/<family>/*matchings/<overlay>/ | grep -
 `func_acropolis_plaza_8017DA58` split its unit 3 at `0x8017E220`, and the three
 jump-table users moved to unit 4, so `rodata = [{ start = "0x10", unit =
 "dryfield_water_tank_3" }]` had to become `…_4`.
+
+## Overlapping stack payloads are one union local, not two block-scoped ones
+
+GCC 2.8.1 gives every user local its own frame slot for the whole function.
+Wrapping a declaration in `{ }` inside a `case` does *not* let a later block
+reuse the space — the slot is simply allocated when the block is expanded and
+never freed — so a target where two payload buffers overlap cannot be written
+as two locals, however disjoint their scopes are.
+
+`func_acropolis_plaza_8017E9A8` sends three payloads from the same frame
+region: a three-byte CD slot triple at `sp+0x58`, a `GpRec14` at `sp+0x60`, and
+a `RoomPlacement` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
+locals in three nested blocks scores 98.4% with `stack=0` but a 0xA0 frame
+instead of 0x88: each one got its own slot (`0x58`, `0x60`, `0x78`). The fix is
+to make the overlap explicit, with a wrapper struct for the view that does not
+start at offset 0:
+
+```c
+typedef struct AcropolisPlazaWeaponMsg {
+    /* 0x00 */ byte    pad_0[0x8];
+    /* 0x08 */ GpRec14 rec;
+} AcropolisPlazaWeaponMsg;          // 0x1C
+
+typedef union AcropolisPlazaTailMsg {
+    /* 0x0 */ u8                      slot[4];
+    /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
+    /* 0x0 */ RoomPlacement           place;
+} AcropolisPlazaTailMsg;            // 0x1C
+```
+
+Reading the frame backwards is what identifies the layout. Slot sizes are
+rounded up to 8, and function-scope locals are laid out bottom-up in
+declaration order from `STARTING_FRAME_OFFSET` (the outgoing-argument area,
+0x10 here) up to the saved-register block, so the offsets a payload is written
+at pin down both each buffer's size and the order the buffers are declared in.
+`acropolis_sanctuary`'s `AcsMsgArg` is the simpler form of the same idiom,
+where the two views do share offset 0 and no wrapper struct is needed.
+
+## Take the address expression, not the pointer variable, for the last use
+
+The observatory/plaza tails write a stack record through a mix of direct and
+pointer accesses (`rec.field_0 = id; p->field_4 = 1; …`), which is what makes
+the compiler materialise `addiu $a1, $sp, 0x60` early — in the delay slot of
+the preceding `bne`, in the plaza's case. Whether that pointer lives in `$a1`
+or in a callee-saved register is decided by the *call* that follows: passing
+`(s32)p` keeps the pointer live across `jal Game_GetPtrSlot`, so it is coloured
+`$s0` and the argument becomes `move $a2, $s0`; passing `(s32)&buf.weapon.rec`
+ends the pointer's live range at its last store, so it stays in `$a1` and the
+argument is recomputed as `addiu $a2, $sp, 0x60`. That one substitution was the
+last 1% of `func_acropolis_plaza_8017E9A8`.
