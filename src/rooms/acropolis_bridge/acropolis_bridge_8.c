@@ -95,7 +95,80 @@ void func_acropolis_bridge_80180320(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_8", func_acropolis_bridge_8018063C);
+/// The mid variant of the bridge's falling dust streak: the same one-pixel
+/// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, rolled over the whole
+/// drop height and sorted by a squared depth ramp like
+/// `func_acropolis_bridge_80180CC0`, but nearer the camera. The first frame
+/// rolls the streak out of `Gp_LcgState`: `field_10.vy` is the row it starts on
+/// (0x48..0xEF), `field_24` the lifetime in frames, `field_26` the width and
+/// `field_28` the number of frames each row of fall takes. The column window
+/// widens with the starting row - it runs from `0x58 - drift` to
+/// `0xA0 + spread`, where `drift` is the whole drop from 0x48 capped at 0x58
+/// and `spread` five thirds of it capped at 0x50 - so streaks that begin higher
+/// up stay nearer the middle of the screen. `Display_State.field_1f` picks the
+/// buffer half, and the OT slot grows with the *square* of the distance left to
+/// fall, so a streak near the bottom of the screen sorts sharply in front of
+/// one still high up. The task releases itself once the camera turns away, the
+/// lifetime runs out, or the streak falls off the bottom of the screen.
+void func_acropolis_bridge_8018063C(Task* task)
+{
+    RoomEffWork* work;
+    RECT         rect;
+    DR_MOVE*     mv;
+    u16          rnd;
+    s32          rndx;
+    s32          col;
+    s32          range;
+    s32          bufferY;
+    s32          x;
+    s32          y;
+    s32          depth;
+
+    work    = task->spawnArg2;
+    bufferY = Display_State.field_1f * 0x110;
+    if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
+        if ((s16)work->field_22 == 0) {
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            rnd               = (u32)Gp_LcgState >> 16;
+            work->field_10.vy = (u32)rnd % 168 + 0x48;
+            /* x and y double as the drift and spread of the column window here */
+            x                 = work->field_10.vy < 0xA0 ? work->field_10.vy - 0x48 : 0x58;
+            y                 = work->field_10.vy < 0x78 ? (work->field_10.vy - 0x48) * 5 / 3 : 0x50;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            rndx              = (u32)Gp_LcgState >> 16;
+            range             = y + 0x48;
+            col               = rndx % (x + range) + 0x58;
+            col              -= x;
+            work->field_10.vx = col;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            rnd               = (u32)Gp_LcgState >> 16;
+            work->field_24    = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            task->state++;
+        }
+        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
+        x     = work->field_10.vx;
+        depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x2C0;
+        if (y < 0xEF) {
+            rect.x                      = x;
+            rect.y                      = y + bufferY;
+            rect.w                      = work->field_26;
+            rect.h                      = 1;
+            mv                          = D_acropolis_bridge_801917AC;
+            D_acropolis_bridge_801917AC = mv + 1;
+            SetDrawMove(mv, &rect, x, y + bufferY + 1);
+            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+        }
+        work->field_22++;
+        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+            return;
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 /// The narrow variant of the bridge's falling dust streak: the same one-pixel
 /// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, but rolled over the
