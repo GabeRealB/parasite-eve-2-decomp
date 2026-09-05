@@ -49131,3 +49131,163 @@ must stay unmasked; masking both drops the score to 98.2%.
 The decomp-permuter finds this shape on its own (it invents
 `int new_var = 0xFF;`), which is a hint worth remembering when a single
 `andi`/`ori` in the target has no plausible source form.
+
+## `lhu` at +0 but `lh` at +2: the pair is one packed 32-bit word, not two `s16` fields
+
+A short-to-short copy always comes out as `lhu` on MIPS — `movhi` loads the
+half word zero-extended because only the low 16 bits reach the `sh`. So a
+struct pair copied field by field gives `lhu`/`lhu`:
+
+```c
+typedef struct { s16 x; s16 y; } Pt;    /* or {u16 x; s16 y;} — same output */
+prim->x0 = blk->sxy[i].x;               /* lhu 0(p) */
+prim->y0 = blk->sxy[i].y;               /* lhu 2(p)  <- target had lh */
+```
+
+When the target has `lhu` at +0 and `lh` at +2 for what looks like a plain
+copy, the field is a single `s32` and the source extracts the halves
+arithmetically:
+
+```c
+s32 sxy[7];                             /* the gte_stsxy destination */
+prim->x0 = blk->sxy[i];                 /* combine narrows the lw  -> lhu 0(p) */
+prim->y0 = blk->sxy[i] >> 16;           /* sign-extending extract -> lh  2(p) */
+```
+
+`>> 16` on a *signed* word is what produces `lh`; an unsigned word would give
+`lhu` again. This shape is common for `gte_stsxy` / `getScratchAddr` blocks,
+where the GTE writes one word and the C reads the two screen coordinates back
+out of it. In `func_acropolis_plaza_801802C0` this alone was worth ~1.5%.
+
+## Put the loop increment before the call, or `i` never reaches a callee-saved register
+
+A `for` loop whose body ends in a call, and whose body also uses `i + N`:
+
+```c
+for (i = 0; i < 2; i++) {
+    ...
+    quad->x0 = blk->sxy[i + 1];
+    addPrim(ot, quad);
+    Gp_AddTpageShift((P_TAG*)quad, 1, blk->otz);
+}
+```
+
+GCC folds the `i + 1` the body needs into the loop increment, and because the
+increment sits *after* the call, the value that has to survive the call is the
+`i + 1` temp, not `i`. `i` itself then never crosses a call, so it is allocated
+a caller-saved register (`$t0`) and stops competing for `$s0`-`$s8`. Writing
+the increment before the call instead:
+
+```c
+for (i = 0; i < 2;) {
+    ...
+    quad->x0 = blk->sxy[i + 1];
+    i++;
+    addPrim(ot, quad);
+    Gp_AddTpageShift((P_TAG*)quad, 1, blk->otz);
+}
+```
+
+leaves `i` live across the call, so it takes `$s1` and one more long-lived
+pointer gets spilled instead. That is not cosmetic: it decides *which* pseudo
+loses. In `func_acropolis_plaza_801802C0` the target spills the
+`&Gp_RoomCoords[n]` pointer to `0x10($sp)`; with the increment in the default
+place a colour component spilled instead and the whole `$s0`-`$s8` assignment
+came out shifted. The single edit moved the score 88.99% -> 90.57% and dropped
+the `regs` penalty from 384 to 160.
+
+## A constant shared between a subtraction and a store defeats cross-jumping
+
+Four arms that each store one of two constants:
+
+```c
+if (work->field_24 - 0x800 >= 0) {
+    if (work->field_24 - 0x800 < 0x201) work->field_26 = 0x200;
+    else                                work->field_26 = 0x800;
+} else {
+    if (0x800 - work->field_24 < 0x201) work->field_26 = 0x200;
+    else                                work->field_26 = 0x800;
+}
+```
+
+should tail-merge into two stores. It does not, because `0x800 - field_24`
+puts 2048 in a register that is still live at the `field_26 = 0x800` in the
+same arm; cse (and `reload_cse_regs` after reload) rewrites that arm's store as
+a bare `sh $a0, ...` while the other arm keeps `li $v0,0x800; sh $v0, ...`.
+The two tails are no longer identical, so `jump_optimize`'s cross-jump pass
+merges a different pair and an extra `j`/`sh` survives in every copy of the
+idiom.
+
+Diagnosis is one build: change the subtraction's constant to `0x7FF` and see
+the merge appear. The fix is to remove the duplicate stores from the source so
+the shared constant has nothing to bind to — a conditional expression works and
+stays readable:
+
+```c
+work->field_26 = ((work->field_24 - 0x800 >= 0) ? (work->field_24 - 0x800 < 0x201)
+                                                : (0x800 - work->field_24 < 0x201))
+                     ? 0x200
+                     : 0x800;
+```
+
+Four copies of that idiom cost six spurious `sh` to the same field, which
+inflated the work pointer's `reg_n_refs` enough to reorder the whole
+callee-saved assignment: 90.57% -> 93.27%, `regs` 160 -> 62.
+
+## Two shifts sharing one `sll 16` mean one subexpression, not two casts
+
+```
+sll  $v1, $a2, 16
+sra  $v0, $v1, 20     /* (s16)x >> 4  */
+srl  $s6, $v1, 18     /* (u16)x >> 2  */
+```
+
+Written as two independent casts, `(s16)rnd >> 4` and `(u16)rnd >> 2`, combine
+gets a single-use `sll` in each and folds both away — when `rnd` is a masked
+LCG byte it knows the value fits in 8 bits and emits a bare `srl $s6,$a2,4`.
+The target keeps the shifts precisely *because* the `x << 16` has two uses:
+combine will not substitute a def that is used twice, so it never gets the
+chance to simplify. Spelling the shared subexpression out reproduces it:
+
+```c
+n  = rnd << 16;
+r2 = n >> 20;
+g2 = n >> 20;
+b2 = (u32)n >> 18;
+```
+
+More generally, when a `sll`/`sra` pair survives on a value whose range GCC
+could have proved, look for a second consumer of the `sll` rather than for a
+cast that is "not being honoured".
+
+## Two `move`s out of one temp: the pair was assigned from a named intermediate
+
+`r = expr; g = expr;` or `r = g = expr;` both compile to one shift and one
+`move`, because GCC computes into whichever variable it allocates first and
+copies from there:
+
+```
+srl   $s7, $a2, 1
+move  $s8, $s7
+```
+
+The target's
+
+```
+srl   $v0, $a2, 1
+move  $s8, $v0
+move  $s7, $v0
+```
+
+needs the value to live in a pseudo that is neither `r` nor `g`, which happens
+when the source names it and assigns it in more than one place:
+
+```c
+half = rnd >> 1;    /* also assigned in the sibling branch */
+r    = half;
+g    = half;
+b    = rnd;
+```
+
+One def would still be coalesced away; it is the second assignment in the other
+arm of the `if` that keeps the temp distinct from both colours.
