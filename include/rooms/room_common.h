@@ -262,6 +262,14 @@ void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_Util19(Task* task, s32 arg1, s32 arg2);
 void Room_SaveUi01(Task* task);
+/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the OTZ is at least
+/// 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
+/// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
+/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
+/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is
+/// `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0xC scratch
+/// layout as `Room_Draw25`.
+void Room_Draw20(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Handwritten GTE routine. Projects the world-space point `arg0` through
 /// `Gfx_ViewWorldMtx` and emits screen-aligned quads there; `arg1` is a signed
 /// half-extent divided by the projected depth and `arg2` packs the primitive's
@@ -443,11 +451,11 @@ typedef struct _RoomQuadScratch {
 } RoomQuadScratch;
 STATIC_ASSERT_SIZEOF(RoomQuadScratch, 0x24);
 
-/// 0xC-byte scratch block `Room_Draw25`, `Room_Draw29` and `Room_Draw30` take
-/// from `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of `arg0` through
-/// `Gfx_ViewWorldMtx`; `sx`/`sy` are that screen point and `radius` is
-/// `(s16)arg1 * 64 / otz`, the on-screen half-extent of the four `POLY_G4`
-/// wedges.
+/// 0xC-byte scratch block `Room_Draw20`, `Room_Draw25`, `Room_Draw29` and
+/// `Room_Draw30` take from `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of
+/// `arg0` through `Gfx_ViewWorldMtx`; `sx`/`sy` are that screen point and
+/// `radius` is `(s16)arg2 * 39 / otz` for `Room_Draw20` or `(s16)arg1 * 64 /
+/// otz` for the gouraud discs, the on-screen half-extent of the primitive.
 typedef struct _RoomDraw25Scratch {
     /* 0x00 */ s32 otz;
     /* 0x04 */ s32 radius;

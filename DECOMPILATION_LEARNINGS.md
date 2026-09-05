@@ -47834,3 +47834,45 @@ back-edge test reads a *stack slot*, those are two locals, not one.
 The last 0.04% was the two slots being swapped (`0x10`/`0x14`); GCC assigns
 stack slots in declaration order, so moving `limit` above `start` in the
 declaration list finished the match.
+
+## Leaf scratch: `CLOBBER_REG(a1)` after `tex = arg1` for `move t7, a1`
+
+A no-frame GTE leaf that reuses `$a1` for the scratch block (`move a1, t1`
+after `addiu t1, head, -N`) must first save the second argument. `tex = arg1;`
+copy-props back onto `$a1`. `CLOBBER_REG(a1)` immediately after the copy forces
+the save:
+
+```c
+tex = arg1;
+CLOBBER_REG(a1);          /* move t7, a1; $a1 is free for the block */
+tmp = head - 0xC;
+block = (T*)tmp;
+SOFT_TOUCH_REG(block);    /* keep tmp in $t1, block copy in $a1 */
+*scratch = tmp;
+```
+
+`SOFT_TOUCH_REG(block)` after the copy is the same "store tmp, not block"
+shape as Room_Draw30's combined `*scratch = tmp` assignment. `Room_Draw20` is
+the example.
+
+## Split `(s16)arg` into `<< 16` then `>> 16` at the two delay-slot sites
+
+When the target sign-extends a later multiply's operand as `sll v1, a2, 16`
+between UV stores and `sra v1, v1, 16` in a following `lbu` delay, a single
+`(s16)arg2 * 40` hoists the pair as a unit (99.2% with `sll` two insns late).
+Naming the shift steps and pinning the temp to `$v1` places each insn:
+
+```c
+register s32 sarg asm("v1");
+sarg = arg2 << 16;        /* after u1/u3 stores */
+prim->v2 = v;
+prim->v3 = v;
+code = prim->code;        /* lbu */
+sarg = sarg >> 16;        /* fills the lbu delay */
+```
+
+A function-scope `$v1` pin is safe here because the earlier `$v1` roles (idx,
+`u0+0x27`) die before `sarg` is born. Unpinning puts `sarg` in `$a1` and
+cascades the OT masks. `SOFT_USE_REG(u0)` after storing `u0`/`u2` is what
+keeps `u1 = u0 + K` as `addiu v1, v0, K` rather than `addiu v0, v0, K`.
+
