@@ -47161,3 +47161,102 @@ took the function from 96.3% to 100%.
 
 Reach for this whenever a scratch-block field is read repeatedly in a loop and
 the target's preheader has a register copy that no local of yours explains.
+
+## A value defined before the compare can never be allocated `$v0`
+
+`func_acropolis_bridge_80186618` computes a scale from the model's fall depth.
+The target keeps the running value in `$v0` and the depth in `$v1`:
+
+```
+lw    $v1, 0x1C($v0)
+slti  $v0, $v1, 0x1F4
+beqz  $v0, .Lelse
+ li   $v0, 0x1000        /* delay slot, live on both paths */
+j     .Lmerge
+ sw   $v0, 0x18($sp)
+.Lelse:
+addiu $v1, $v1, -0x1F4
+sll   $v1, $v1, 2
+subu  $v0, $v0, $v1
+```
+
+The obvious source is one register off — the value lands in `$v1` and the depth
+in `$a0`:
+
+```c
+height = coord->coord.t[1];
+amount = 0x1000;                       /* wrong: defined before the compare */
+if (height < 0x1F4) {
+    scale.vx = scale.vy = scale.vz = amount;
+} else {
+    amount -= (height - 0x1F4) * 4;    /* wrong: needs a scratch pseudo */
+    scale.vx = scale.vy = scale.vz = amount;
+}
+```
+
+Two separate causes, and both have to go:
+
+- `amount`'s live range starts before `slti`, so the compare's result — a
+  block-local pseudo that `local_alloc` always hands `$v0` — sits inside it.
+  `.greg` records that as `hard-conf $v0`, and global allocation can then only
+  give `amount` `$v1`. Defining it inside *both* arms moves the definition after
+  the compare and the conflict disappears.
+- `(height - 0x1F4) * 4` is a second block-local pseudo, so it takes a hard
+  register of its own and pushes `height` out to `$a0`. Writing the arithmetic
+  in place on `height` reuses that register instead.
+
+```c
+height = coord->coord.t[1];
+if (height < 0x1F4) {
+    amount   = 0x1000;
+    scale.vx = scale.vy = scale.vz = amount;
+} else {
+    amount   = 0x1000;
+    height  -= 0x1F4;
+    height  *= 4;
+    amount  -= height;
+    scale.vx = scale.vy = scale.vz = amount;
+}
+```
+
+The single shared `li $v0, 0x1000` in the branch delay slot is not a hoisted
+constant — it is `reorg.c` filling the conditional branch's slot from the
+fallthrough thread and then deleting the taken thread's identical copy as
+redundant. So a constant that looks common-subexpressioned above the branch can
+be evidence that the source assigns it in *both* arms, not before them. This was
+the last mismatch, 99.8% to 100%.
+
+## Repeated call sequences want a `static __inline__`, not shared function locals
+
+The same function plays a positional sound in four places: build an event id
+from a field, call `Gp_GetObjPan`, then `SndEvt_EnqueueType6` with
+`Gp_GetObjDepth`. Written with two locals declared once at the top of the
+function, the id and the pan came out in `$s1` / `$s0` — swapped against the
+target's `$s0` / `$s1` — at all four sites, and no amount of reordering fixed it:
+the shared locals are one pseudo pair spanning the whole function, so their
+`used/live_length` priorities are computed from the union of four ranges.
+
+Moving the sequence into a `static __inline__` helper gave each call site its
+own short-lived pseudos, they dropped out of `.greg` into `local_alloc`
+entirely, and all four sites matched. Worth trying whenever the same
+call-and-argument shape repeats and the callee-saved registers are permuted.
+
+## The store order in a constant-fill block is the source order
+
+The same function loads a 3x3 colour matrix plus its translation with two
+constants. Written row-major ascending (`m[0][0]`, `m[0][1]`, `m[0][2]`,
+`m[1][0]`, …) GCC regrouped the stores by constant — every `0x5A0` first in
+ascending address order, then every `0xC0`, then the translation — which is not
+what the target does. Transcribing the target's store order into the source
+verbatim reproduced it exactly, with no regrouping at all.
+
+So for a run of independent constant stores to one object, copy the target's
+order literally before theorising about how the scheduler will permute it. The
+regrouping is what you get when the source order is *wrong*, not a transform to
+model.
+
+A related trap in the same function: an emitted store order is not the source
+order when one of the stores is fed by a load. The target emits
+`sh 0x100`, `sh 0x104`, `sh 0x108` but hoists the `lhu` feeding `0x108` above
+all three; the source has the `0x108` assignment *first* and the scheduler sinks
+its store past the two constant stores.

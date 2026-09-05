@@ -8,6 +8,7 @@
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
@@ -33,6 +34,7 @@ extern s32          Gp_LcgState;
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_acropolis_bridge_8018581C(Task* task);
+s16  func_acropolis_bridge_8017E024(void);
 
 /// One entry of the patrol node table the walker task steers by. The three
 /// packed coordinates are copied straight into the scratch `SVECTOR3` the
@@ -141,7 +143,7 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x100 */ s16                       field_100;
     /* 0x102 */ s16                       field_102;
     /* 0x104 */ s16                       field_104;
-    /* 0x106 */ u16                       field_106;
+    /* 0x106 */ s16                       field_106;
     /* 0x108 */ s16                       field_108;
     /* 0x10A */ byte                      pad_10A[0x2];
     /* 0x10C */ s16                       field_10C;
@@ -1283,10 +1285,6 @@ void func_acropolis_bridge_801863A8(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80186618);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80186BBC);
-
 /// Reports whether the bridge enemy is standing on a kind-1 surface: the first
 /// three collision records are scanned in order and the scan stops at the first
 /// empty one, so an occupied record whose `field_4` high halfword is 1 has to
@@ -1305,6 +1303,142 @@ static __inline__ s32 bridge_rec_kind1(GpRec18* recs)
     }
     return 0;
 }
+
+/// Plays one of the bridge enemy's positional sounds. The spawn variant in the
+/// enemy's `field_8` high nibble picks the bank, so the event id is that nibble
+/// shifted into byte 1 of `base`, and the pan and depth come from the model's
+/// root coordinate.
+static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base)
+{
+    s32 snd;
+    s32 pan;
+
+    snd = ((enemy->field_8 >> 12) << 8) | base;
+    pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+    SndEvt_EnqueueType6(snd, pan,
+                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+}
+
+/// Runs the bridge enemy's plunge into the gorge. On the first frame (work
+/// block still live) it disables the hit box, clears the enemy's link node tag,
+/// seeds the three behaviour parameters and moves the model root out over the
+/// gorge -- the X and Z it drops to depend on which of the three spawn variants
+/// this is -- then loads the light-blend colour matrix and gives the root a
+/// random yaw. Every frame after that the fall height comes from
+/// `func_acropolis_bridge_8017E024`, and the model is spun on its own yaw and
+/// scaled down once it is past 0x1F4, four units of scale per unit of depth.
+/// Three chances to restart the scream animation are rolled on the way down --
+/// on crossing 0x1F4, then one in sixteen frames while the animation has run
+/// long enough, then one in thirty-two frames below 0x320 with the second
+/// animation slot finished -- and the yaw is re-rolled while animation 4 is in
+/// its fifth playback step. Landing on a kind-1 surface plays the impact sound
+/// and hands over to state 7.
+void func_acropolis_bridge_80186618(Task* task)
+{
+    AcropolisBridgeEnemyWork* work;
+    AcropolisBridgeEnemyWork* anim;
+    GpEnemy*                  enemy;
+    VECTOR                    scale;
+    s32                       amount;
+    s32                       height;
+
+    work  = (AcropolisBridgeEnemyWork*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work->field_4 != 0) {
+        work->hit.flags    &= 0x7FFF;
+        enemy->node.field_4 = 0;
+        work->field_108     = 0x20;
+        work->field_100     = 2;
+        work->field_104     = 1;
+        switch (enemy->field_8 >> 12) {
+            case 0:
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0x22C4;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x640;
+                break;
+            case 1:
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0x270F;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x7D0;
+                break;
+            case 2:
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0x2EE0;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x5DC;
+                break;
+        }
+        work->colorMtx.t[1]    = 0x80;
+        work->colorMtx.t[0]    = 0x80;
+        work->colorMtx.t[2]    = 0x5A0;
+        work->colorMtx.m[2][1] = 0xC0;
+        work->colorMtx.m[2][0] = 0xC0;
+        work->colorMtx.m[2][2] = 0x5A0;
+        work->colorMtx.m[1][1] = 0xC0;
+        work->colorMtx.m[1][0] = 0xC0;
+        work->colorMtx.m[1][2] = 0x5A0;
+        work->colorMtx.m[0][1] = 0xC0;
+        work->colorMtx.m[0][0] = 0xC0;
+        work->colorMtx.m[0][2] = 0x5A0;
+        Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+        work->yaw              = (u32)Gp_LcgState >> 16;
+    }
+    ((TmdObject*)task->extra)->field_8->coord.t[1] =
+        func_acropolis_bridge_8017E024() - 0xC8;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    height                                  = ((TmdObject*)task->extra)->field_8->coord.t[1];
+    if (height < 0x1F4) {
+        amount   = 0x1000;
+        scale.vx = scale.vy = scale.vz = amount;
+    } else {
+        amount   = 0x1000;
+        height  -= 0x1F4;
+        height  *= 4;
+        amount  -= height;
+        scale.vx = scale.vy = scale.vz = amount;
+    }
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, work->yaw, 1);
+    ScaleMatrix(&((TmdObject*)task->extra)->field_8->coord, &scale);
+    if (((TmdObject*)task->extra)->field_8->coord.t[1] < 0x1F4 &&
+        work->field_104 != 4) {
+        work->field_100 = 2;
+        work->field_104 = 4;
+        bridge_play_snd(task, enemy, 0x40290003);
+    }
+    if (work->field_104 == 4) {
+        if (((TmdObject*)task->extra)->field_8->coord.t[1] >= -0x3DD &&
+            (s32)((enemy->field_8 >> 12) + 8) < work->field_106) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
+                work->field_108 = ((enemy->field_8 >> 12) * 2) + 0x10;
+                work->field_100 = 2;
+                work->field_104 = 4;
+                bridge_play_snd(task, enemy, 0x40290003);
+            }
+        }
+    }
+    if (((TmdObject*)task->extra)->field_8->coord.t[1] < 0x320) {
+        anim = (AcropolisBridgeEnemyWork*)task->idMap;
+        if (anim->slots[1].field_2 == anim->slots[1].field_6) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((((u32)Gp_LcgState >> 16) & 0x1F) == 0) {
+                work->field_108 = 0x10;
+                work->field_100 = 2;
+                work->field_104 = 4;
+                bridge_play_snd(task, enemy, 0x40290003);
+            }
+        }
+    }
+    if (*(s32*)&work->field_104 == 0x50004) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        work->yaw   = (u32)Gp_LcgState >> 16;
+    }
+    if (bridge_rec_kind1(work->recs) != 0) {
+        if (work->field_10C > 0) {
+            bridge_play_snd(task, enemy, 0x40290002);
+        }
+        work->field_0 = 7;
+    }
+    func_acropolis_bridge_8018581C(task);
+}
+
+INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80186BBC);
 
 /// Runs the bridge enemy's fall. On the first frame (work block still live) it
 /// clears bit 15 of the hit box's flags and sets it in the model's, tags the link node,
