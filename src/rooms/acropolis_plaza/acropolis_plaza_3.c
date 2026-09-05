@@ -30,7 +30,37 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017FB50);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017FF18);
+/// Draws the cinematic letterbox: two black 0x140x0x18 `TILE` bars spanning the
+/// full screen width at the top (y -0x78) and bottom (y 0x60), linked into
+/// `Gpu_CurrentOt[3]`.
+void func_acropolis_plaza_8017FF18(void)
+{
+    TILE* tile;
+
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    SetTile(tile);
+    tile->b0 = 0;
+    tile->g0 = 0;
+    tile->r0 = 0;
+    tile->x0 = -0xA0;
+    tile->y0 = -0x78;
+    tile->w  = 0x140;
+    tile->h  = 0x18;
+    addPrim(Gpu_CurrentOt + 3, tile);
+
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    SetTile(tile);
+    tile->b0 = 0;
+    tile->g0 = 0;
+    tile->r0 = 0;
+    tile->x0 = -0xA0;
+    tile->y0 = 0x60;
+    tile->w  = 0x140;
+    tile->h  = 0x18;
+    addPrim(Gpu_CurrentOt + 3, tile);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_80180054);
 
