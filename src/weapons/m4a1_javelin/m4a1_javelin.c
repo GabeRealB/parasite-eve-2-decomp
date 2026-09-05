@@ -19,6 +19,21 @@
 #include "main/wipsys.h"
 #include "weapons/m4a1_javelin.h"
 
+/// Fixed local offset the guide beam's coordinate hangs at.
+SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
+
+/// `(0, 0x800, 0)`: the probe offset `func_800DE7CC` traces each beam segment
+/// against, rotated into world space by `Gfx_ViewWorldMtx` first.
+SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
+
+/// Per-segment `flags` for `func_m4a1_javelin_8011DAB0`, walked from the far
+/// end (`[5]`, bit 1: retake the beam angle) to the muzzle (`[0]`, bit 0: cap
+/// the near end).
+u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
+
+/// The four RGB444 beam colours `GpEffWork::field_2A` fades through.
+u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
+
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")

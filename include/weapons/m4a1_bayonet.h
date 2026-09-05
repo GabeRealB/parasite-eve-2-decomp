@@ -12,7 +12,10 @@
 /// addresses it as a symbol of its own.
 extern SVECTOR D_m4a1_bayonet_8011DEC8[2];
 
-/// `D_m4a1_bayonet_8011DEC8[1]` under its own label.
+/// `D_m4a1_bayonet_8011DEC8[1]` under its own label. State 0 reaches the hilt
+/// through the array base already in a register, the sweep state loads this
+/// symbol on its own, and both spellings are needed to match - so the pair
+/// stays in the split data, where one address can carry two names.
 extern SVECTOR D_m4a1_bayonet_8011DED0;
 
 /// The blade's motion trail: eight tip and eight hilt coordinate frames,

@@ -16,6 +16,9 @@
 #include "weapons/m4a1_hammer.h"
 #include "main/tmd.h"
 
+/// Fixed offset from the parent coordinate that the hammer effect starts at.
+SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
+
 extern u32 Gp_LcgState;
 
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.

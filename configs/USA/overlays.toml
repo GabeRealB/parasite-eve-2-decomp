@@ -62,14 +62,14 @@ imports = "configs/USA/sym/weapons.imports.txt"
 [weapons.overlays]
 as12 = { item = 0x8E, weapon = "AS12", rodata_head = "0x4" }
 grenade_pistol = { item = 0x8A, weapon = "Grenade Pistol", rodata = [{ start = "0x4", unit = "grenade_pistol_3" }], shared = [{ start = "0x1E0", end = "0x53C", unit = "weapons_shared_8011d3a0" }, { start = "0x9A0", end = "0x9CC", unit = "weapons_shared_8011ddf8" }, { start = "0x9CC", end = "0xA10", unit = "weapons_shared_8011de24" }] }
-gunblade = { item = 0x96, weapon = "Gunblade", rodata = [{ start = "0x4", unit = "gunblade_2" }], units = ["0xE80"] }
+gunblade = { item = 0x96, weapon = "Gunblade", rodata = [{ start = "0x4", unit = "gunblade_2" }], units = ["0xE80"], data = [{ start = "0x11084", unit = "gunblade_work" }] }
 hypervelocity = { item = 0x95, weapon = "Hypervelocity", rodata_head = "0x4", rodata = [{ start = "0x18", unit = "hypervelocity_3" }], shared = [{ start = "0x1F5C", end = "0x1FA8", unit = "weapons_shared_8011e4ac" }, { start = "0x24E0", end = "0x2500", unit = "weapons_shared_8011db78" }], data = [{ start = "0x29B4", unit = "hypervelocity" }, { start = "0x29BC" }, { start = "0x11D4C", unit = "hypervelocity_work" }] }
 m249 = { item = 0x90, weapon = "M249", rodata_head = "0x4" }
 m4a1 = { item = 0x8F, weapon = "M4A1 Rifle" }
-m4a1_bayonet = { item = 0x99, weapon = "M4A1 Bayonet", rodata_head = "0x4", rodata = [{ start = "0x4", unit = "m4a1_bayonet_2" }], units = ["0x874"] }
+m4a1_bayonet = { item = 0x99, weapon = "M4A1 Bayonet", rodata_head = "0x4", rodata = [{ start = "0x4", unit = "m4a1_bayonet_2" }], units = ["0x874"], data = [{ start = "0x101D8", unit = "m4a1_bayonet_work" }] }
 m4a1_grenade = { item = 0x9A, weapon = "M4A1 Grenade", rodata_head = "0x4", rodata = [{ start = "0x1C", unit = "m4a1_grenade_2" }], shared = [{ start = "0xC38", end = "0xC64", unit = "weapons_shared_8011ddf8" }, { start = "0xC64", end = "0xCA8", unit = "weapons_shared_8011de24" }] }
-m4a1_hammer = { item = 0x98, weapon = "M4A1 Hammer", rodata_head = "0x4", rodata = [{ start = "0x4", unit = "m4a1_hammer_2" }], units = ["0x1550"] }
-m4a1_javelin = { item = 0x9C, weapon = "M4A1 Javelin", rodata_head = "0x4" }
+m4a1_hammer = { item = 0x98, weapon = "M4A1 Hammer", rodata_head = "0x4", rodata = [{ start = "0x4", unit = "m4a1_hammer_2" }], units = ["0x1550"], data = [{ start = "0x19A0", unit = "m4a1_hammer" }, { start = "0x19A8" }, { start = "0x10470", unit = "m4a1_hammer_work" }] }
+m4a1_javelin = { item = 0x9C, weapon = "M4A1 Javelin", rodata_head = "0x4", data = [{ start = "0x28D0", unit = "m4a1_javelin" }, { start = "0x28F4" }, { start = "0x119A0", unit = "m4a1_javelin_work" }] }
 m4a1_p1 = { item = 0x93, weapon = "M4A1(+1)" }
 m4a1_p2 = { item = 0x94, weapon = "M4A1(+2)" }
 m4a1_pyke = { item = 0x9B, weapon = "M4A1 Pyke", rodata_head = "0x4", rodata = [{ start = "0x1C", unit = "m4a1_pyke_2" }], shared = [{ start = "0x12EC", end = "0x1338", unit = "weapons_shared_8011e4ac" }], data = [{ start = "0x174C", unit = "m4a1_pyke" }, { start = "0x1754" }] }
@@ -85,7 +85,7 @@ p08_snail = { item = 0x80, weapon = "P08(S. Magazine)", rodata_head = "0x4" }
 p229 = { item = 0x84, weapon = "P229", rodata = [{ start = "0x4", unit = "p229_2" }], shared = [{ start = "0x2A4", end = "0x6A0", unit = "weapons_shared_8011d468" }, { start = "0x6A0", end = "0xBE0", unit = "weapons_shared_8011d864" }], data = [{ start = "0xF30", unit = "p229" }, { start = "0xF38" }, { start = "0xE498", unit = "p229_work" }] }
 pa3 = { item = 0x8C, weapon = "PA3", rodata_head = "0x4" }
 sp12 = { item = 0x8D, weapon = "SP12", rodata_head = "0x4" }
-tonfa_baton = { item = 0x92, weapon = "Tonfa Baton", rodata = [{ start = "0x4", unit = "tonfa_baton_2" }], shared = [{ start = "0x9B8", end = "0x9D8", unit = "weapons_shared_8011db78" }] }
+tonfa_baton = { item = 0x92, weapon = "Tonfa Baton", rodata = [{ start = "0x4", unit = "tonfa_baton_2" }], shared = [{ start = "0x9B8", end = "0x9D8", unit = "weapons_shared_8011db78" }], data = [{ start = "0xEA2C", unit = "tonfa_baton_work" }] }
 unused_85 = { item = 0x85, weapon = "", note = "unused weapon slot 0x85" }
 unused_86 = { item = 0x86, weapon = "", note = "unused weapon slot 0x86" }
 unused_87 = { item = 0x87, weapon = "", note = "unused weapon slot 0x87" }
