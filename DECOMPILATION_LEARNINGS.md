@@ -44351,3 +44351,25 @@ Declare both (`extern SVECTOR D_gunblade_8011E704[2];` *and*
 `extern SVECTOR D_gunblade_8011E70C;`) and use whichever the block wants; they
 are the same bytes, so the link is unaffected. `func_gunblade_8011D1E4` needs
 the array form in state 0 and the standalone symbol in state 1.
+
+## A target `D_8007xxxx` that is a named global's *interior* is not a real diff
+
+The scratch env compares symbol *names*, and splat names an interior reference
+by address: `Mc_SaveData` is imported at `0x80072168`, but a `%hi/%lo` pair
+reaching `Mc_SaveData.field_22` disassembles as `D_8007218A` because splat has
+no size for the absolute import. Writing the field access the way the rest of
+the overlay does leaves a permanent two-line hunk:
+
+```
+-lui    v0,%hi(D_8007218A)
+-lb     v0,%lo(D_8007218A)(v0)
++lui    v0,%hi(Mc_SaveData)
++lb     v0,%lo(Mc_SaveData+0x22)(v0)
+```
+
+Both relocations resolve to `0x8007218A`, so this scores as a `regs` penalty
+and caps `build.sh` just under 100% while the overlay still checksums. Add the
+address of the base symbol to the offset before chasing it: if that equals the
+`D_` name, the hunk is cosmetic and `./tools/build-and-verify.sh` is the only
+verdict that counts. `func_hypervelocity_8011F724` stalled at 99.964% on
+exactly this and matched the ROM unchanged.

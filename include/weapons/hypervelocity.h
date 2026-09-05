@@ -37,4 +37,18 @@ typedef struct HyperCoord {
 } HyperCoord;
 STATIC_ASSERT_SIZEOF(HyperCoord, 0x50);
 
+/// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
+/// frame of the barrel's recoil kick. `dir` receives the third column of the
+/// weapon coordinate matrix from `Gfx_MatrixCol2`; each axis is then scaled by
+/// the remaining recoil ticks over a per-tick divisor, negated, and added to
+/// the coordinate's translation so the gun rides back along its own barrel.
+typedef struct HyperRecoil {
+    /* 0x00 */ s32     vx;
+    /* 0x04 */ s32     vy;
+    /* 0x08 */ s32     vz;
+    /* 0x0C */ byte    pad_C[4];
+    /* 0x10 */ SVECTOR dir;
+} HyperRecoil;
+STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
+
 #endif
