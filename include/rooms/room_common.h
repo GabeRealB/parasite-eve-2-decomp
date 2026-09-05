@@ -458,4 +458,20 @@ typedef struct _RoomDraw07Scratch {
 } RoomDraw07Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw07Scratch, 0x1C);
 
+/// 0x1C-byte scratch block `Room_Draw02` takes from `G_SCRATCH_HEAD`. Same
+/// projection and two-radius ring as `RoomDraw09Scratch`, but `otz` sits at
+/// 0x0 with `rOuter` at 0x4, `rInner` at 0x8, `flag` at 0xC and `vec` at 0x10.
+/// `rOuter` is `(s16)arg1 * 64 / (otz + 1)` and `rInner` is
+/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`.
+typedef struct _RoomDraw02Scratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     rOuter;
+    /* 0x08 */ s32     rInner;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} RoomDraw02Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw02Scratch, 0x1C);
+
 #endif // ROOMS_ROOM_COMMON_H

@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Pin the first div result so a `$t1` saved-arg does not shift in place
+
+A two-div ring that wants `$v1` for `otz` and then for `rInner`:
+
+```
+sll    v0, t1, 16
+lw     v1, -0x1C(t0)
+sra    v0, v0, 10
+addiu  v1, v1, 1
+div    v0, v1
+mflo   v0
+sw     v1, -0x1C(t0)
+sll    v1, a1, 16
+```
+
+cannot pin `rInner` to `$v1`: the pin is function-scope and steals `$v1`
+from the first divisor. Pinning `saved` to `$t1` without pinning the first
+result makes the shift in-place (`sll t1, t1, 16`). Pin `rOuter` to `$v0`
+so the copy lands, leave `otz`/`rInner` unpinned so they share `$v1` after
+the store, and do not pin `sum` to `$a1` or it coalesces with `rInner`.
+
+`Room_Draw02` is the example. `Room_Draw09` keeps the three values in three
+registers (`rOuter=$a0`, `otz=$v0`, `rInner=$v1`) and does not need this.
+
 ## Combined `*scratch = tmp` assignment keeps the add in `$v0` without a pin
 
 A 0xC `G_SCRATCH_HEAD` bump that wants
