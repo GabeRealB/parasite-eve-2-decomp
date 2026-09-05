@@ -206,7 +206,9 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeNearScratch, 0x14);
 /// Ticks the walker task: steps its patrol route and drives its animation.
 void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker);
 
-s8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 arg1);
+/// Returns the patrol node nearest the given actor's coordinate, by squared
+/// distance in the XZ plane.
+u8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 actor);
 /// Returns the patrol node nearest the walker, by squared distance in the
 /// XZ plane between the node table and the walker's coordinate translation.
 u8   func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work);
@@ -331,7 +333,57 @@ void func_acropolis_bridge_80184208(AcropolisBridgeWalkerWork* work, SVECTOR3* p
     pos->vz    = work->nav->nodes[work->node].z;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801843A0);
+/// 0x18-byte scratch block the actor-relative nearest-node scan carves off
+/// `G_SCRATCH_HEAD`. `cfg` is the actor config entry whose coordinate the
+/// scan measures from, the three deltas are the per-axis distance to the node
+/// under test -- `dy` is staged but never enters the distance -- and `dist`
+/// is the squared XZ distance compared against the running `best`, which
+/// starts at `-1` so the first node always wins.
+typedef struct AcropolisBridgeNearCfgScratch {
+    /* 0x00 */ s16           dx;
+    /* 0x02 */ s16           dy;
+    /* 0x04 */ s16           dz;
+    /* 0x06 */ byte          pad_6[0x2];
+    /* 0x08 */ WipSysConfig* cfg;
+    /* 0x0C */ u32           best;
+    /* 0x10 */ u32           dist;
+    /* 0x14 */ u8            node;
+    /* 0x15 */ u8            nearest;
+    /* 0x16 */ byte          pad_16[0x2];
+} AcropolisBridgeNearCfgScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeNearCfgScratch, 0x18);
+
+/// Scans the room's patrol node table for the node nearest actor `actor` and
+/// returns its index. Same scan as `func_acropolis_bridge_8018450C`, but
+/// measured from the translation of the actor config's matrix rather than
+/// from the walker's own coordinate; the walker uses it with the player
+/// (entry 1) to pick the node it retreats to.
+u8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 actor)
+{
+    AcropolisBridgeNearCfgScratch* block;
+    u8*                            head;
+    s16                            dz;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x18;
+    block                 = (AcropolisBridgeNearCfgScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    block->cfg  = &D_80073B08[(s16)actor];
+    block->best = -1;
+    for (block->node = 0; block->node < work->nav->count; block->node++) {
+        block->dx   = *(u16*)&block->cfg->field_4->t[0] - work->nav->nodes[block->node].x;
+        block->dy   = *(u16*)&block->cfg->field_4->t[1] - work->nav->nodes[block->node].y;
+        dz          = *(u16*)&block->cfg->field_4->t[2] - work->nav->nodes[block->node].z;
+        block->dz   = dz;
+        block->dist = block->dx * block->dx + dz * dz;
+        if (block->dist < block->best || block->best == -1) {
+            block->best    = block->dist;
+            block->nearest = block->node;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+    return block->nearest;
+}
 
 /// Scans the room's patrol node table for the node nearest the walker and
 /// returns its index. Distance is the squared XZ distance between the node and

@@ -47115,3 +47115,49 @@ if (y < 0) {
 Placing it after `a = y` instead — outside the branch, volatile or not — costs
 the delay-slot copy and drops the score. `func_acropolis_bridge_80184908` is the
 example; it was the last instruction between 99.97% and 100%.
+
+## A `move` in the preheader can be a struct field re-read, not a second local
+
+`func_acropolis_bridge_801843A0` stages a pointer in its `G_SCRATCH_HEAD` block
+and then reads through it three times per loop iteration. The target hoists that
+pointer into the preheader as a plain register copy, sitting in the loop guard's
+delay slot:
+
+```
+beqz  $v0, .Lend
+ addu $a3, $a1, $zero    /* $a1 still holds the value stored to block->cfg */
+.Lloop:
+lw    $a0, 0x4($a3)
+```
+
+The obvious source — a local assigned before the loop and stored to the field —
+does not produce it:
+
+```c
+cfg        = &D_80073B08[(s16)actor];   /* wrong: no copy survives */
+block->cfg = cfg;
+for (...) { ... cfg->field_4 ... }
+```
+
+The local and the stored value are one pseudo, so the copy coalesces away, and
+the hoist slot it would have occupied is taken by some other invariant instead
+(here `li $t1, -1` for the `best == -1` test, which the target rematerialises
+inside the loop). Adding `cfg = block->cfg;` after the store does not help
+either: CSE folds the load straight back to the same pseudo.
+
+Drop the local and read the field inside the loop:
+
+```c
+block->cfg = &D_80073B08[(s16)actor];
+for (...) { ... block->cfg->field_4 ... }
+```
+
+`loop.c`'s `invariant_p` accepts the `MEM` because `true_dependence` clears it
+against the loop's own stores — they are different constant offsets off the same
+base — so the load is hoisted into the preheader, and `cse2` then rewrites it to
+a copy from the register that still holds the stored value. That is where the
+`move` comes from, and it is also what pushed the `-1` back into the loop. This
+took the function from 96.3% to 100%.
+
+Reach for this whenever a scratch-block field is read repeatedly in a loop and
+the target's preheader has a register copy that no local of yours explains.
