@@ -282,6 +282,10 @@ void Room_Draw31(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// `(s16)arg2 * 32 / otz`. `arg1` scales `Display_State.field_8` into `rsin`
 /// so the lit vertex pulses as `rsin(...) / 34 + 0x78` on red.
 void Room_Draw38(SVECTOR* arg0, s16 arg1, s32 arg2);
+/// Same two-diamond gouraud plus two `LINE_G3` diagonals as `Room_Draw38`
+/// (same 0x10 scratch layout), but the lit vertex pulses as
+/// `rsin(...) / 34 + 0x78` on green and blue rather than red.
+void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
 /// non-negative, queues a sixteen-wedge gouraud disc plus two inner cross
 /// wedges around the projected centre. `arg2` is a signed half-extent;
@@ -426,12 +430,12 @@ typedef struct _RoomDraw25Scratch {
 } RoomDraw25Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
 
-/// 0x10-byte scratch block `Room_Draw13` and `Room_Draw38` take from
-/// `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of `arg0` through
+/// 0x10-byte scratch block `Room_Draw13`, `Room_Draw18` and `Room_Draw38` take
+/// from `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of `arg0` through
 /// `Gfx_ViewWorldMtx`, `flag` is `gte_stflg` (the primitives are dropped when
 /// it is negative), `radius` is `(s16)arg1 * 64 / otz` for `Room_Draw13` and
-/// `(s16)arg2 * 32 / otz` for `Room_Draw38`, and `sx`/`sy` are the projected
-/// centre.
+/// `(s16)arg2 * 32 / otz` for `Room_Draw18`/`Room_Draw38`, and `sx`/`sy` are
+/// the projected centre.
 typedef struct _RoomDraw13Scratch {
     /* 0x00 */ s32 otz;
     /* 0x04 */ s32 flag;
