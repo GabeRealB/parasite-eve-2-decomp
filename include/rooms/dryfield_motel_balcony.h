@@ -7,27 +7,6 @@
 
 #include <psyq/libgte.h>
 
-/// 0x1C-byte scratch block taken from `G_SCRATCH_HEAD` by the room's billboard
-/// draw helper (`func_dryfield_motel_balcony_8017F7E8` and its twin
-/// `func_dryfield_motel_balcony_801818B0`).
-///
-/// `vec` is the world position copied out of the caller's `GsCOORDINATE2`
-/// (`workm.t`), projected with a single `RTPS`: `sx`/`sy` come from
-/// `gte_stsxy`, `flag` from `gte_stflg` and `otz` from `gte_stszotz`. `otz` is
-/// then incremented and used as the divisor that turns the caller's half-size
-/// into the two screen-space radii the fan is drawn with - `rOuter` for the
-/// eight outer `POLY_G4` wedges, `rInner` for the two inner ones.
-typedef struct _RoomBillboardScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     rOuter;
-    /* 0x10 */ s32     rInner;
-    /* 0x14 */ s32     flag;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} RoomBillboardScratch;
-STATIC_ASSERT_SIZEOF(RoomBillboardScratch, 0x1C);
-
 /// Same 0x18-byte scratch block as `RoomDraw04Scratch`. This overlay holds two
 /// copies of that body (`func_dryfield_motel_balcony_8017E66C` and
 /// `func_dryfield_motel_balcony_801809AC`), so they cannot share one object.

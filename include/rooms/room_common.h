@@ -307,6 +307,13 @@ void Room_Draw04(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// keeps `flag` at 0xC with `rOuter`/`rInner` at 0x10/0x14. `arg1` is the
 /// inner half-extent and `arg2` the extra outer width.
 void Room_Draw07(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// `gte_stflg` is non-negative, queues sixteen gouraud `POLY_G4` wedges that
+/// form a two-ring billboard. `arg1` is a signed half-extent; on-screen radii
+/// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
+/// (inner). The RGB triple tints the inner vertex of the inner ring at full
+/// brightness and the outer ring at half, so each wedge fades to a black rim.
+void Room_DrawBillboard(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 /// Queues a gouraud-shaded rectangle relative to a UI panel. Origin is
 /// `field_20`/`field_22` plus (`arg1`, `arg2`); `arg3`/`arg4` are width and
 /// height. Left vertices take `arg5`, right vertices take `arg6`.
@@ -491,6 +498,17 @@ typedef struct _RoomDraw09Scratch {
     /* 0x1A */ s16     sy;
 } RoomDraw09Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
+
+/// 0x1C-byte scratch block `Room_DrawBillboard` takes from `G_SCRATCH_HEAD`
+/// (and the motel-balcony copies of that body). Same layout as
+/// `RoomDraw09Scratch`. `vec` is the world position copied out of the
+/// caller's `GsCOORDINATE2` (`workm.t`), projected with a single `RTPS`:
+/// `sx`/`sy` come from `gte_stsxy`, `flag` from `gte_stflg` and `otz` from
+/// `gte_stszotz`. `otz` is then incremented and used as the divisor that
+/// turns the caller's half-size into the two screen-space radii the fan is
+/// drawn with - `rOuter` for the eight outer `POLY_G4` wedges, `rInner` for
+/// the two inner ones.
+typedef RoomDraw09Scratch RoomBillboardScratch;
 
 /// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at

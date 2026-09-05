@@ -20,7 +20,7 @@ extern GpMsgEntry D_acropolis_cafeteria_80184CEC[];
 
 void            Room_Draw02(GsCOORDINATE2* coord, s32 arg1, s32 arg2, u8* rgb);
 void            Room_Draw04(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
-void            Room_DrawBillboard(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
+void            Room_DrawBillboard(GsCOORDINATE2* coord, s16 arg1, u8* rgb);
 extern TaskDesc D_acropolis_cafeteria_80184178;
 extern s32      D_acropolis_cafeteria_80184CFC;
 
