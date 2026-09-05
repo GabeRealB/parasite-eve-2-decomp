@@ -917,5 +917,3 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_6", func_acropolis_helicopter_landing_pad_801819C0);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_6", func_acropolis_helicopter_landing_pad_80181B64);
