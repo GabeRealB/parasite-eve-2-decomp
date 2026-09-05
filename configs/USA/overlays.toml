@@ -26,6 +26,15 @@
 # `lib/<unit>`, pairing the compiler-generated jump table with the shared
 # C object rather than an overlay-local unit.
 #
+# The trailing data - models, animation banks, clip tables - stays as split
+# assembly. `data = [{ start = "<offset>", unit = "<unit>" }, ...]` hands one
+# run of it to a C unit, for the few symbols the decompiled code references:
+# muzzle offset vectors at the head of the region, the zeroed work arrays at
+# the end of a package. An entry with no `unit` hands the rest back to
+# assembly. splat lists an object in the linker script at its *first*
+# subsegment, so a run at the end of a package needs a unit of its own -
+# `<name>_work` by convention - rather than the overlay's first one.
+#
 # `duplicate_of = "<file id>"` marks an overlay whose package is byte-identical
 # to another's. It gets no config and is never split: splitting it a second time
 # would produce a second copy of the same disassembly and the same functions
@@ -73,7 +82,7 @@ mp5a5_p1 = { item = 0x9E, weapon = "MP5A5(+1)", rodata = [{ start = "0x4", unit 
 mp5a5_p2 = { item = 0x9F, weapon = "MP5A5(+2)", rodata = [{ start = "0x4", unit = "mp5a5_p2_2" }], shared = [{ start = "0x2A8", end = "0x6A4", unit = "weapons_shared_8011d468" }, { start = "0x6A4", end = "0xBE4", unit = "weapons_shared_8011d864" }] }
 p08 = { item = 0x83, weapon = "P08", rodata_head = "0x4" }
 p08_snail = { item = 0x80, weapon = "P08(S. Magazine)", rodata_head = "0x4" }
-p229 = { item = 0x84, weapon = "P229", rodata = [{ start = "0x4", unit = "p229_2" }], shared = [{ start = "0x2A4", end = "0x6A0", unit = "weapons_shared_8011d468" }, { start = "0x6A0", end = "0xBE0", unit = "weapons_shared_8011d864" }] }
+p229 = { item = 0x84, weapon = "P229", rodata = [{ start = "0x4", unit = "p229_2" }], shared = [{ start = "0x2A4", end = "0x6A0", unit = "weapons_shared_8011d468" }, { start = "0x6A0", end = "0xBE0", unit = "weapons_shared_8011d864" }], data = [{ start = "0xF30", unit = "p229" }, { start = "0xF38" }, { start = "0xE498", unit = "p229_work" }] }
 pa3 = { item = 0x8C, weapon = "PA3", rodata_head = "0x4" }
 sp12 = { item = 0x8D, weapon = "SP12", rodata_head = "0x4" }
 tonfa_baton = { item = 0x92, weapon = "Tonfa Baton", rodata = [{ start = "0x4", unit = "tonfa_baton_2" }], shared = [{ start = "0x9B8", end = "0x9D8", unit = "weapons_shared_8011db78" }] }

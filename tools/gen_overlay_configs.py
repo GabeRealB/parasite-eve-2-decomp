@@ -80,6 +80,59 @@ def trailing_segment(name: str, data: bytes) -> list[str]:
     return [f"      - [{start}, databin, {name}_tail]"]
 
 
+def data_subsegments(name: str, start: int, size: int, cuts: list[dict]) -> list[str]:
+    """The trailing data region as splat subsegment lines.
+
+    The region is one `data` object by default: models, animation banks and
+    scripts, which stay as split assembly. A `data` cut hands one run of it to
+    a C unit instead, for the handful of symbols the decompiled code actually
+    references - muzzle offset vectors, the zeroed trail/work arrays at the end
+    of a package. Entries are `{ start = "<offset>", unit = "<unit>" }` for a C
+    run and `{ start = "<offset>" }` to hand the rest back to assembly; the
+    asm runs keep the `<name>_data`, `<name>_data_2`, ... numbering.
+
+    Order matters and is the whole point. splat lists each object in the linker
+    script at the offset of its *first* subsegment, and concatenates a section's
+    contributions in that order, so a C unit only lands after the asm data if
+    its subsegment is declared after it. A run at the end of a package
+    therefore needs its own unit rather than the overlay's first one.
+    """
+    if not cuts:
+        return [f"      - [0x{start:X}, data, {name}_data]"]
+    ordered = sorted(cuts, key=lambda c: int(str(c["start"]), 16))
+    lines: list[str] = []
+    asm = 0
+
+    def emit_asm(off: int) -> None:
+        nonlocal asm
+        asm += 1
+        suffix = "" if asm == 1 else f"_{asm}"
+        lines.append(f"      - [0x{off:X}, data, {name}_data{suffix}]")
+
+    prev = -1
+    if int(str(ordered[0]["start"]), 16) != start:
+        emit_asm(start)
+        prev = start
+    for cut in ordered:
+        off = int(str(cut["start"]), 16)
+        if not start <= off < size:
+            raise SystemExit(
+                f"{name}: data cut 0x{off:X} is outside the trailing data "
+                f"(0x{start:X}..0x{size:X})"
+            )
+        if off <= prev:
+            raise SystemExit(f"{name}: data cuts must be strictly increasing")
+        unit = cut.get("unit")
+        if unit:
+            unit = str(unit)
+            path = unit if unit.startswith("lib/") else f"{name}/{unit}"
+            lines.append(f"      - [0x{off:X}, .data, {path}]")
+        else:
+            emit_asm(off)
+        prev = off
+    return lines
+
+
 def subsegments(
     name: str,
     data: bytes,
@@ -88,6 +141,7 @@ def subsegments(
     rodata: list[dict],
     rodata_head: str | int | None,
     units: list[str],
+    data_cuts: list[dict],
 ) -> str:
     """The package layout as splat subsegment lines.
 
@@ -113,6 +167,8 @@ def subsegments(
     """
     lines: list[str] = []
     if span is None:
+        if data_cuts:
+            raise SystemExit(f"{name}: data cuts on a data-only package")
         lines.append(f"      - [0x0, data, {name}]")
         lines.extend(trailing_segment(name, data))
         return "\n".join(lines)
@@ -249,8 +305,11 @@ def subsegments(
         emit_run(pos, end)
 
     if end < len(data):
-        # Trailing data: models, animation banks, scripts - not code.
-        lines.append(f"      - [0x{end:X}, data, {name}_data]")
+        # Trailing data: models, animation banks, scripts - not code, except
+        # for the runs a `data` cut hands to C.
+        lines.extend(data_subsegments(name, end, len(data), data_cuts))
+    elif data_cuts:
+        raise SystemExit(f"{name}: data cuts but the package has no trailing data")
     lines.extend(trailing_segment(name, data))
     return "\n".join(lines)
 
@@ -334,6 +393,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 entry.get("rodata", []),
                 entry.get("rodata_head"),
                 entry.get("units", []),
+                entry.get("data", []),
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)

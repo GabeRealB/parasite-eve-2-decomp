@@ -9,6 +9,7 @@
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "weapons/p229.h"
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
@@ -19,12 +20,7 @@ const s32 D_p229_8011D1C0 = 0x0C;
 extern s32 Gp_LcgState;
 
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
-extern SVECTOR D_p229_8011E0F0;
-
-/// The four flash angles rolled on the frame the shot goes off, one per
-/// `WeaponsShared8011d864` quad. Each is a fixed quadrant (`i << 10`) plus a
-/// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
-extern s16 D_p229_8012B658[4];
+SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
 
 /// Per-frame muzzle-flash task for the P229. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own

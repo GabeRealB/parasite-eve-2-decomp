@@ -76,6 +76,15 @@ pads it — pairs the `rodata` key with `units`, a list of extra `.text` cut
 offsets (`rooms/mist_parking`). See `DECOMPILATION_LEARNINGS.md`,
 "Compiler-generated jump tables".
 
+**The trailing data stays in assembly, with named exceptions.** It is models,
+animation banks and clip tables - game content, which never moves into `src/`.
+The few symbols decompiled code actually references are program structure, and
+the manifest's `data` key cuts them out of the blob and gives the run to a C
+unit (`weapons/p229`). splat lists an object in the linker script at its first
+subsegment, so a run at the *end* of a package - the zeroed work arrays - needs
+a unit of its own, conventionally `<name>_work`, declared after the `data`
+subsegment; a unit whose only subsegment is `.data` is compiled all the same.
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the

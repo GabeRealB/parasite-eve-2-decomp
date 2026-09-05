@@ -870,6 +870,19 @@ def ninja_build(
 
     # Build all the objects
     for split_config in split_entries:
+        # A `.`-prefixed subsegment is linker placement only - it says where a
+        # unit's .rodata/.data lands, and the unit's `c` subsegment is what
+        # gets compiled. A unit can be placement *only*, though: a C object
+        # that has to link after the trailing data (the zeroed work arrays at
+        # the end of a weapon package) owns no code, so it has a `.data`
+        # subsegment and no `c` one. Compile those too, or the link fails on a
+        # missing object the linker script still names.
+        compiled_objects = {
+            str(entry.object_path)
+            for split_entry in split_config.split_entries
+            for entry in split_entry
+            if entry.object_path is not None and entry.segment.type == "c"
+        }
         for split_entry in split_config.split_entries:
             for entry in split_entry:
                 seg = entry.segment
@@ -877,8 +890,15 @@ def ninja_build(
                 if entry.object_path is None:
                     continue
 
-                if seg.type[0] == ".":
-                    continue
+                seg_type = seg.type
+                if seg_type[0] == ".":
+                    if (
+                        str(entry.object_path) in compiled_objects
+                        or not entry.src_paths
+                        or not str(entry.src_paths[0]).endswith(".c")
+                    ):
+                        continue
+                    seg_type = "c"
 
                 source_path = str(entry.src_paths[0])
                 target_path = str(entry.object_path)
@@ -888,7 +908,7 @@ def ninja_build(
                     continue
                 emitted_objects.add(target_path)
 
-                match seg.type:
+                match seg_type:
                     case (
                         "asm"
                         | "hasm"  # handwritten permanent asm (same assemble rule as asm)
