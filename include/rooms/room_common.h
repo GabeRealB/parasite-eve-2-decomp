@@ -325,6 +325,13 @@ void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// inner vertex so each `POLY_G4` fades to black. Dropped when `gte_stflg` is
 /// negative.
 void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
+/// 0x2A, clut 0x42CB). `arg1` selects one of four 24-texel UV columns
+/// `(arg1 & 3) * 24 + 0x60` at v=0..0x17. `arg2` is a signed half-extent; the
+/// on-screen radius is `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the RGB on all
+/// three channels. Dropped when `gte_stflg` is negative.
+void Room_Draw14(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Projects two world-space points (`arg0` and `arg0 + 1`) through
 /// `Gfx_ViewWorldMtx` and, when the second OTZ is at least 0x11, queues
 /// gouraud `POLY_G4` wedges: a half-disc at each projected centre plus
@@ -530,6 +537,21 @@ typedef struct _RoomDraw10Scratch {
     /* 0x16 */ s16     sy;
 } RoomDraw10Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw10Scratch, 0x18);
+
+/// 0x18-byte scratch block `Room_Draw14` takes from `G_SCRATCH_HEAD`. Same
+/// projection preamble as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`,
+/// one `RTPS`) with `otz` incremented before it is used as the divisor.
+/// `radius` is `(s16)arg2 * 23 / otz`, the on-screen half-extent of the
+/// axis-aligned `POLY_FT4`.
+typedef struct _RoomDraw14Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     radius;
+    /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
+} RoomDraw14Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw14Scratch, 0x18);
 
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
