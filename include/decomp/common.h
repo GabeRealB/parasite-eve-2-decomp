@@ -65,6 +65,7 @@
 #define SOFT_TOUCH_REG4(a, b, c, d)   __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d))
 #define SOFT_TOUCH_REG5(a, b, c, d, e) \
     __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
+#define SOFT_TOUCH_REG_USE(x, y) __asm__("" : "+r"(x) : "r"(y))
 
 #define USE_REG(x)              __asm__ volatile("" :: "r"(x))
 #define USE_REG2(a, b)          __asm__ volatile("" :: "r"(a), "r"(b))

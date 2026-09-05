@@ -19,6 +19,23 @@ so `-fschedule-insns2` emits `sw s4` / `lui` / `ori` / `sw s0` / `move s0, a2`.
 Barriers on `scratch` alone, `USE_REG(arg2)`, and `TOUCH_REG_USE(scratch, arg2)`
 (operands swapped) leave the `$s0` pair first.
 
+## `SOFT_TOUCH_REG_USE(arg, scratch)` lets `%hi(GsWSMATRIX)` sit between the `$a2` copy and the remaining saves
+
+`TOUCH_REG_USE` is `asm volatile`, so it is a scheduling barrier. After it has
+put `G_SCRATCH_HEAD`'s `lui`/`ori` before `move s0, a2`, the barrier also stops
+an unrelated `lui %hi(GsWSMATRIX)` from moving *above* the remaining
+`sw ra`/`s4`/`s3`/`s2`/`s1`. The target wants
+
+```
+lui/ori scratch / sw s0 / move s0, a2 / lui %hi(GsWSMATRIX) / sw ra, s4..s1
+```
+
+The same `"+r"(arg2) : "r"(scratch)` dependency without `volatile`
+(`SOFT_TOUCH_REG_USE`) still orders the scratch address before the `$a2` copy,
+and `-fschedule-insns2` can then drop the matrix `lui` between that copy and
+the other saves. `Room_Draw39` is the worked example (99.79% `reorder=1` ->
+100%).
+
 ## Load `Gpu_PrimCursor` before the angle extend so `lui` precedes `sll`/`sra`
 
 `Room_Draw27` sign-extends `arg3` into `$s2` and loads `Gpu_PrimCursor` into

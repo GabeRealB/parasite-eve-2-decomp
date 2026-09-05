@@ -412,6 +412,16 @@ void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// layout, tpage 0x2B, clut 0x43D3), but `arg1` selects the UV column
 /// `(arg1 & 0xFFFF) << 5` rather than `(s16)arg1 << 5`.
 void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// `gte_stflg` is non-negative and `otz` is at least 0x41, queues one
+/// semi-transparent shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4383) rotated
+/// about the projected centre. `arg1` selects a 48-texel UV tile in a 5-wide
+/// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
+/// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
+/// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
+/// `rsin`/`rcos`. The primitive is carved from `Gpu_PrimCursor` before the
+/// flag test.
+void Room_Draw39(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
@@ -662,6 +672,24 @@ STATIC_ASSERT_SIZEOF(RoomDraw27Scratch, 0x1C);
 /// 0x1C-byte scratch block `Room_Draw19` takes from `G_SCRATCH_HEAD`. Same
 /// layout as `RoomDraw27Scratch`.
 typedef RoomDraw27Scratch RoomDraw19Scratch;
+
+/// 0x1C-byte scratch block `Room_Draw39` takes from `G_SCRATCH_HEAD`. `vec`
+/// is the coordinate's `workm.t[]` at 0x10, projected through `GsWSMATRIX`
+/// with one `RTPS`. `otz` is `gte_stszotz`, `flag` is `gte_stflg`, and
+/// `sx`/`sy` are `gte_stsxy`. `dx` / `dy` hold the current
+/// `(arg2 * 47 / otz) * rsin|rcos(angle) >> 12` half-extents added to and
+/// subtracted from `sx` / `sy` to build the four `POLY_FT4` corners. Only
+/// the low halves of `dx` / `dy` are read back.
+typedef struct _RoomDraw39Scratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     dx;
+    /* 0x08 */ s32     dy;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} RoomDraw39Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw39Scratch, 0x1C);
 
 /// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at
