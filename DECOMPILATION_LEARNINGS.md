@@ -48495,3 +48495,44 @@ order: `sched2` rotates a two-register software pipeline through these stores,
 and the source order that produces it is the one that keeps both minima live to
 the last store. When a whole-function register renaming traces back to one
 short block, permute the statement order in that block before touching pins.
+
+## Order a copy after a load with a data dependency, not a barrier, so the `%hi` still hoists
+
+`Room_Draw28`'s give-up seed sat at 99.68% with one `reorder`: the target
+schedules `lui %hi(GsWSMATRIX)` for the first `gte_SetTransMatrix` above the
+very first `lw` of the function, and the seed emitted it ten instructions
+later. The seed needed a second pointer to the scratch block (`p = block`,
+kept apart with `TOUCH_REG(p)`) and its `move v1,t1` had to land *after* the
+`lhu` of `vy` -- the target uses the copy as that load's delay-slot filler --
+so it fenced the copy with `SOFT_BARRIER()`:
+
+```c
+vy = *(u16*)&arg0->workm.t[1];
+SOFT_BARRIER();
+p = block;
+TOUCH_REG(p);
+```
+
+Both fences are scheduling barriers. `asm("")` with no operands is an
+`ASM_INPUT`, and `sched_analyze` treats every `ASM_INPUT` and every *volatile*
+`ASM_OPERANDS` as depending on everything before it and being depended on by
+everything after -- so the `lui`, which only feeds the GTE asm, could not
+cross it. Dropping the barrier freed the `lui` but let the copy float up to
+right after the block pointer, where it was a `nop` short of the load delay.
+
+The remedy is to express the order the target actually shows as a
+*dependency*: make the copy's source depend on the load with a non-volatile
+in/out asm that also reads the loaded value.
+
+```c
+vy = *(u16*)&arg0->workm.t[1];
+SOFT_TOUCH_REG_USE(block, vy);   /* copy must wait for the lhu */
+p = block;
+SOFT_TOUCH_REG(p);               /* but stays a separate pseudo */
+```
+
+Non-volatile `ASM_OPERANDS` only add edges for their operands, so the copy is
+ordered after the `lhu` and nothing else is fenced: the `lui` hoisted to the
+top and the seed went to 100%. When a barrier fixes one ordering and breaks
+an unrelated `%hi` or address hoist, replace it with `SOFT_TOUCH_REG_USE`
+on the two values whose order matters.

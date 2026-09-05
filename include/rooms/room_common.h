@@ -478,6 +478,9 @@ void Room_Draw41(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 /// shift), but clut is 0x43D2 and the 56-texel row is biased to v+0x70..v-0x59
 /// rather than v..v+0x37.
 void Room_Draw23(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+/// `Room_Draw23` with `s16` arguments: the tile index uses signed `% 4` /
+/// `% 8` rather than masks and the half-extent is already a halfword.
+void Room_Draw28(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
