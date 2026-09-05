@@ -12,15 +12,15 @@ extern SVECTOR D_acropolis_plaza_80198B90[8];
 /// scene work's world position.
 void func_acropolis_plaza_8017DD90(Task* arg0)
 {
-    AcropolisPlazaWork* work = (AcropolisPlazaWork*)arg0->idMap;
-    s32                 x    = work->pos.vx;
-    s32                 y    = work->pos.vy;
-    s32                 z    = work->pos.vz;
-    s16                 near = x - 0xBB8;
-    s16                 top;
-    s16                 left;
-    s16                 right;
-    s16                 far;
+    AcropolisPlazaSceneWork* work = (AcropolisPlazaSceneWork*)arg0->idMap;
+    s32                      x    = work->pos.vx;
+    s32                      y    = work->pos.vy;
+    s32                      z    = work->pos.vz;
+    s16                      near = x - 0xBB8;
+    s16                      top;
+    s16                      left;
+    s16                      right;
+    s16                      far;
 
     D_acropolis_plaza_80198B90[0].vx = near;
     D_acropolis_plaza_80198B90[1].vx = near;

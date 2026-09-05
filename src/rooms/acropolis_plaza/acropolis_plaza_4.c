@@ -1,10 +1,13 @@
 #include "common.h"
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -12,7 +15,13 @@
 #include "rooms/acropolis_plaza.h"
 
 extern s8       D_8007106B;
+extern s16      D_80071076;
 extern TaskDesc D_acropolis_plaza_80183824;
+
+/// View the plaza's opening sequence applies before it spawns anything.
+extern GpViewRec D_acropolis_plaza_801838B8;
+
+extern void Stage_RequestFromAreaTable(s32 arg0);
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
@@ -176,6 +185,9 @@ void func_acropolis_plaza_8017F9EC(Task* task)
     }
 }
 
+/// Steps the plaza's streamed scene, returning zero while it is still running.
+u16 func_acropolis_plaza_8017FB50(Task* task);
+
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017FB50);
 
 /// Draws the cinematic letterbox: two black 0x140x0x18 `TILE` bars spanning the
@@ -210,7 +222,80 @@ void func_acropolis_plaza_8017FF18(void)
     addPrim(Gpu_CurrentOt + 3, tile);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_80180054);
+/// Six-state opening sequence for the plaza. State 0 fades in the room
+/// (`func_800E9BDC`), applies the plaza view, allocates the sequence work block
+/// and spawns entries 5 and 0xB of the room's table around
+/// `Gp_KillPlayerEffs`; states 1 and 2 idle. State 3 pins the camera override
+/// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
+/// stream watcher (entry 1) and the entry-8 actor, and arms
+/// `CdCmd_Queue.field_244`. State 4 runs the ambience driver until
+/// `func_acropolis_plaza_8017FB50` reports the scene is over; state 5 records
+/// the next stage in the save block, disarms `field_244` and hands off to the
+/// stage-load task.
+void func_acropolis_plaza_80180054(Task* task)
+{
+    CdCmdQueue*         q    = &CdCmd_Queue;
+    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->idMap;
+    AcropolisPlazaWork* newWork;
+    SVECTOR             vec;
+
+    switch (task->state) {
+        case 0:
+            func_800E9BDC(3, 0x9DF);
+            Gp_ApplyView(&D_acropolis_plaza_801838B8);
+            newWork     = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
+            task->idMap = (TaskIdMap*)newWork;
+            if (newWork == NULL) {
+                Task_Kill(task);
+                return;
+            }
+            Mem_Set(newWork, 0, 0x28);
+            ((AcropolisPlazaWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
+            ((AcropolisPlazaWork*)task->idMap)->field_C =
+                Task_SpawnFromTable(&D_acropolis_plaza_80183824, 5, 0, 0);
+            Gp_KillPlayerEffs();
+            Task_SpawnFromTable(&D_acropolis_plaza_80183824, 0xB, 0, 0);
+            task->state = task->state + 1;
+            return;
+        case 1:
+        case 2:
+            task->state = task->state + 1;
+            return;
+        case 3:
+            vec.vx = 0x370;
+            vec.vy = 0x370;
+            vec.vz = 0x370;
+            Gp_SetOverrideVec(&vec);
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            work->field_12 = 0;
+            work->field_10 = 0;
+            work->field_8  = Task_SpawnFromTable(&D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);
+            Stage_RequestFromAreaTable(0);
+            Task_SpawnFromTable(&D_acropolis_plaza_80183824, 8, 6, 0);
+            q->field_244 = 1;
+            task->state  = task->state + 1;
+            return;
+        case 4:
+            func_acropolis_plaza_8017F9EC(task);
+            if (func_acropolis_plaza_8017FB50(task) == 0) {
+                return;
+            }
+            task->state = task->state + 1;
+            return;
+        case 5:
+            Mc_SaveData.field_7 = 1;
+            Mc_SaveData.field_8 = 1;
+            Mc_SaveData.field_6 = 0x11;
+            Mc_SaveData.field_5 = 1;
+            D_80071076          = 1;
+            Gp_EnqueueHeldWeaponCd();
+            SndEvt_EnqueueType7(0x80000000, 0);
+            Task_Spawn(0, 0x11, 0, 0);
+            q->field_244 = 0;
+            Task_Kill(task);
+            return;
+    }
+}
 
 void func_acropolis_plaza_80180270(Task* arg0)
 {

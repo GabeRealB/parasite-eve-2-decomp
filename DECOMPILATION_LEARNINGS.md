@@ -48712,3 +48712,33 @@ leave their value in different registers. And the branch that is *not* inverted
 — target `beqz` to the else with the `then` falling through — is what stops
 reorg from folding `li $v1, 0x7F` into the branch's delay slot; that follows
 from the register choice, so fix the reads first and the branch shape follows.
+
+## Brute-force the permutation of a small constant-store group
+
+When a basic block ends in a run of stores to adjacent byte fields of one
+global — the `Mc_SaveData.field_5/6/7/8` block that every room's stage-handoff
+writes — the offsets in the object dump are **not** the source order, for the
+reason "Primitive field store order: interleave vertices, do not group by
+constant" gives: `sched1` may reorder stores that provably do not alias. What
+the source order does decide is *which constant pseudo is born first*, and that
+is what the register allocation falls out of.
+
+`func_acropolis_plaza_80180054` state 5 stores `0x11` to `field_6` and `1` to
+`field_7`, `field_8` and `field_5`. Writing them in dump order (6, 7, 8, 5)
+scores 97.6% with `regs=13`: the `0x11` pseudo dies before the `1` pseudo is
+born, so both get `$v0` and the base address is pushed to `$v1`. The target has
+three live registers there — base `$v0`, `0x11` `$v1`, `1` `$a0` — which only
+happens if the `1` is created *before* the `0x11` store. Source order
+`7, 8, 6, 5` gives exactly that and matches; so does `7, 6, 8, 5`.
+
+A group of four stores is 24 permutations and each `./build.sh` is about two
+seconds, so scripting the sweep is faster than reasoning about the scheduler:
+
+```python
+for p in itertools.permutations([5, 6, 7, 8]):
+    write_variant(p); print(p, score(build(variant)))
+```
+
+Six of the 24 scored above 99.8% and two hit 100%, which is also the useful
+signal: if no permutation clears ~99%, the residual is not store order and the
+sweep costs a minute to rule it out.
