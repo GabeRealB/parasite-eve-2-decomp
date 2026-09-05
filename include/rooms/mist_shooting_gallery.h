@@ -92,15 +92,6 @@ typedef struct MistShootingGalleryGauges {
 } MistShootingGalleryGauges;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
 
-/// One selectable course in the gallery's SELECT menu: the id the controller
-/// task remembers in `Task::flags` (so re-picking the same course does not
-/// restart the load) and the title drawn beside it ("1. Crazy King", ...).
-typedef struct MistShootingGalleryCourse {
-    /* 0x0 */ s32 id;
-    /* 0x4 */ u8* name;
-} MistShootingGalleryCourse;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryCourse, 0x8);
-
 /// One row of the gallery's RESULT panel: the points one kill of that target
 /// is worth and the name printed beside it ("Red Target", "Crow", ...).
 /// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
@@ -111,18 +102,6 @@ typedef struct MistShootingGalleryTarget {
     /* 0x4 */ u8* name;
 } MistShootingGalleryTarget;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryTarget, 0x8);
-
-/// The ten course lists the SELECT menu can offer, indexed by
-/// `Mc_SaveData::field_F` (the difficulty the save runs at) plus 5 outside a
-/// debug attach. `func_mist_shooting_gallery_8018055C` stack-copies the whole
-/// table like the other gallery tables, but draws its row through the same
-/// 0x28-byte block: the text request overlays the first four list pointers,
-/// which is safe because the row is looked up before the request is filled in.
-typedef union MistShootingGalleryCourseMenu {
-    /* 0x00 */ MistShootingGalleryCourse* lists[10];
-    /* 0x00 */ TextDrawReq                req;
-} MistShootingGalleryCourseMenu;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryCourseMenu, 0x28);
 
 /// One position in a gallery course table: three halfwords plus the padding
 /// halfword that rounds the record up to an 8-byte stride.
