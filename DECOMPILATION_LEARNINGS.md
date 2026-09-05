@@ -34311,6 +34311,23 @@ with the `rodata` cut moved past it (`{ start = "0x24", unit =
 content, so writing it into C is fine. This avoids the `units` `.text` cut and
 the unit renumbering that comes with it.
 
+The same thing happens without any cut when you decompile the *last* function of
+a unit whose switch generates the unit's last jump table: the object's
+`.rodata` then ends on the table, gas does not round it up to the `.align 3`,
+and every later unit — and the whole overlay image — comes out 4 bytes short,
+which reads as an unrelated `nop` going missing early in the *first* unit when
+you byte-diff the overlay against the package. `func_acropolis_plaza_8017DFE0`
+is the worked example: its 7-entry table closes `acropolis_plaza_3.o`, so that
+unit needs its own
+
+```c
+const u32 D_acropolis_plaza_8017D620 = 0;
+```
+
+after the function. The tell is that the built overlay is exactly 4 (or 8, …)
+bytes shorter than `assets/USA/pe2pkg/<name>.pe2pkg`, and every jump-table entry
+in the image points 4 bytes low; check the sizes before hunting the code diff.
+
 
 ## `if (f() == K) { x = K; }` reuses the returned register, so the store cross-jumps
 
@@ -49065,3 +49082,52 @@ merges the two `li a0, 7` blocks into one and the ROM keeps them apart, so the
 return;` out in each case reproduces it — jump2 merges the shared `jal` +
 epilogue tail, and the delay-slot pass then pulls each `li a0, n` into its own
 jump. Worth 99.03% → 99.27% here, with `reorder` going to zero.
+
+
+## `byte = x & 0xFF` loses the `andi`: the mask has to reach RTL as a non-literal
+
+Splitting a 16-bit value into two bytes for a CD request,
+
+```c
+pos     = frameOfs & 0xFFFF;
+slot[1] = pos >> 8;
+slot[2] = pos & 0xFF;      /* the andi never appears */
+```
+
+compiles the second store to a bare `sb`, but the ROM has
+
+```
+andi  v0, s2, 0xffff
+srl   v1, v0, 0x8
+andi  v0, v0, 0xff
+sb    v1, 0x11(sp)
+sb    v0, 0x12(sp)
+```
+
+Nothing in the back end is responsible. `convert_to_integer` shortens
+`(u8)(x & 255)` to `(u8)x` in the *front end*, so no `and` insn is ever
+generated — `grep "const_int 255" base.i.rtl` comes back empty. Assigning the
+masked value to a wider temp first (`u32 lo = pos & 0xFF; slot[2] = lo;`) does
+get an `and` into RTL, but then combine folds `(and (and x 0xffff) 255)` into a
+single `andi ..., 0xff` and the 0xFFFF mask disappears instead. Either mask
+survives alone; neither pair survives.
+
+What works is keeping the byte mask in a local initialised at the **top** of the
+function:
+
+```c
+s32 loMask = 0xFF;      /* must be the declaration, not an assignment at use */
+...
+slot[2] = pos & loMask;
+```
+
+The tree sees a `VAR_DECL`, so no shortening; combine sees `(and reg reg)`, so
+no folding; `cse2` substitutes the constant afterwards and the `andi` reaches
+the output. Moving `loMask = 0xFF;` next to its use puts the constant in the
+same basic block and local CSE folds it again — 99.28% instead of 100%. Note
+that the sibling call site in the same function (`slot[2] = pos;`, no mask)
+must stay unmasked; masking both drops the score to 98.2%.
+
+The decomp-permuter finds this shape on its own (it invents
+`int new_var = 0xFF;`), which is a hint worth remembering when a single
+`andi`/`ori` in the target has no plausible source form.

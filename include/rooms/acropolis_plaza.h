@@ -5,20 +5,49 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
 #include <psyq/libgte.h>
 
+/// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
+/// reads once in state 0: `view` seeds both `CdCmd_Queue.field_1EE` and
+/// `field_1EA`, and a non-zero `noStream` skips the opening stream request
+/// altogether.
+typedef struct AcropolisPlazaSceneArg {
+    /* 0x0 */ u16 view;
+    /* 0x2 */ u16 noStream;
+} AcropolisPlazaSceneArg;
+
 /// Work block the plaza's scene task (`func_acropolis_plaza_8017DFE0`) keeps at
 /// `Task::idMap`; it is a 0x34 allocation, distinct from the sequence task's
 /// `AcropolisPlazaWork`. `pos` is the world position
-/// `func_acropolis_plaza_8017DD90` centres its vertex box on. Only that field
-/// is identified, so this declaration is deliberately partial.
+/// `func_acropolis_plaza_8017DD90` centres its vertex box on; it is refreshed
+/// every frame from the plaza's per-view position table, and `distX` is how far
+/// that point sits ahead of the camera in X. `fwd` / `back` are the two "the
+/// player has walked past the edge of this shot" flags the task recomputes each
+/// frame from `distX`, `prev*` their values from the previous frame, and
+/// `field_2E` selects the 10- or 40-frame stream step used when re-seeking.
 typedef struct AcropolisPlazaSceneWork {
-    /* 0x00 */ byte    pad_0[0xC];
-    /* 0x0C */ VECTOR3 pos;
+    /* 0x00 */ MATRIX*    mtx;
+    /* 0x04 */ Task*      slot3;
+    /* 0x08 */ GameActor* actor;
+    /* 0x0C */ VECTOR3    pos;
+    /* 0x18 */ s32        distX;
+    /* 0x1C */ byte       pad_1C[0x2];
+    /* 0x1E */ s16        prevSide;
+    /* 0x20 */ s16        streamLen;
+    /* 0x22 */ s16        fwd;
+    /* 0x24 */ s16        back;
+    /* 0x26 */ u16        baseView;
+    /* 0x28 */ byte       pad_28[0x2];
+    /* 0x2A */ s16        prevFwd;
+    /* 0x2C */ s16        prevBack;
+    /* 0x2E */ s16        field_2E;
+    /* 0x30 */ byte       pad_30[0x4];
 } AcropolisPlazaSceneWork;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 
 /// Work block the plaza's sequence task (`func_acropolis_plaza_80180054`)
 /// allocates with `Mem_Malloc(0x28, 0)` and parks in `Task::idMap` -- that slot
