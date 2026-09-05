@@ -5,7 +5,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// Spawn payload handed to `D_shelter_b1_underground_parking_8018720C` as
+/// Spawn payload handed to `RoomsShared80181228Desc` as
 /// `Task_SpawnFromTable` arg3 by the day-13 branch of
 /// `func_shelter_b1_underground_parking_80182A60`. `field_0` is the script id
 /// and `field_4`..`field_10` are the four cap keys it replays.
@@ -23,11 +23,9 @@ typedef struct {
 
 extern s32                    D_shelter_b1_underground_parking_8018D758;
 extern ShelterParkingSpawnArg D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc               D_shelter_b1_underground_parking_8018720C[];
+extern TaskDesc               RoomsShared80181228Desc[];
 extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80182154);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801826C0);
 
@@ -124,14 +122,14 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
                     st->field_1 = 1;
                     st->field_3 = 1;
                     st->field_2 = 0;
-                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018720C, 0, 9, (s32)st);
+                    Task_SpawnFromTable(RoomsShared80181228Desc, 0, 9, (s32)st);
                 }
             } else {
                 D_shelter_b1_underground_parking_8018D758 = 0;
                 st->field_1                               = 0x1F;
                 st->field_3                               = 0;
                 st->field_2                               = 1;
-                Task_SpawnFromTable(D_shelter_b1_underground_parking_8018720C, 0, arg2, (s32)st);
+                Task_SpawnFromTable(RoomsShared80181228Desc, 0, arg2, (s32)st);
             }
             break;
         case 22:

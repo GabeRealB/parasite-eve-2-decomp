@@ -31,3 +31,7 @@ RoomsShared8017db84Msgs = 0x801837C4; // shared body data, see src/rooms/lib/
 RoomsShared8017db84 = 0x80182260; // shared body, see src/rooms/lib/
 RoomsShared8017d878 = 0x80182308; // shared body, see src/rooms/lib/
 RoomsShared8017d878Table = 0x8017D6B4; // shared body data, see src/rooms/lib/
+RoomsShared80181228 = 0x80181228; // shared body, see src/rooms/lib/
+RoomsShared80181228Task = 0x801888A8; // shared body data, see src/rooms/lib/
+RoomsShared80181228Desc = 0x801837A0; // shared body data, see src/rooms/lib/
+RoomsShared80181228AreaRecs = 0x80188888; // shared body data, see src/rooms/lib/
