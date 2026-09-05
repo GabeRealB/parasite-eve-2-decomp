@@ -29,8 +29,4 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_2", fu
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_2", func_shelter_b4_reservoir_8017FADC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_2", func_shelter_b4_reservoir_8017FB44);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_2", func_shelter_b4_reservoir_8017FB84);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_2", func_shelter_b4_reservoir_801803DC);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_2", jtbl_shelter_b4_reservoir_8017D604);

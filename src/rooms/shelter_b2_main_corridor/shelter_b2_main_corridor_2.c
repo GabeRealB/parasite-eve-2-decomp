@@ -28,8 +28,4 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corrido
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017EB8C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017EBF4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017EC34);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017EF24);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", jtbl_shelter_b2_main_corridor_8017D67C);
