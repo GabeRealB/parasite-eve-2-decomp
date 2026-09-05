@@ -343,6 +343,12 @@ void Room_Draw12(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// neither OTZ is clamped. The lit vertex takes the frame-counter blend byte
 /// `((field_8 & 1) * 16) | 0x20`.
 void Room_Draw08(SVECTOR* arg0, s32 arg1);
+/// Same two-point gouraud wedges as `Room_Draw08` -- the sweep is anchored to
+/// the `ratan2` of the two projected centres and both `gte_stflg` results are
+/// tested -- but the lit vertex is coloured from `arg2` instead of a grey ramp:
+/// each of the three nibbles of `arg2` moves into the high nibble of a channel
+/// and is OR'd with the frame-counter blend bit `(field_8 & 1) * 8`.
+void Room_Draw01(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Same two-point gouraud wedges as `Room_Draw12`, but the green/blue masks
 /// are `& 3` rather than `& 1`.
 void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -543,7 +549,8 @@ typedef struct _RoomDraw11Scratch {
 } RoomDraw11Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
 
-/// 0x1C-byte scratch block `Room_Draw08` takes from `G_SCRATCH_HEAD`. Same
+/// 0x1C-byte scratch block `Room_Draw08` and `Room_Draw01` take from
+/// `G_SCRATCH_HEAD`. Same
 /// two-point projection as `RoomDraw11Scratch` -- `arg0` and `arg0 + 1` through
 /// `Gfx_ViewWorldMtx` -- but the two `gte_stflg` results share `flag` at 0x8,
 /// which pushes the radii to 0xC/0x10 and the projected coordinates to

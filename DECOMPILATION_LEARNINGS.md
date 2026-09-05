@@ -47876,3 +47876,41 @@ A function-scope `$v1` pin is safe here because the earlier `$v1` roles (idx,
 cascades the OT masks. `SOFT_USE_REG(u0)` after storing `u0`/`u2` is what
 keeps `u1 = u0 + K` as `addiu v1, v0, K` rather than `addiu v0, v0, K`.
 
+
+## An insn that has to land between a `lui` and its `%lo` load needs a fresh local, not a statement move
+
+`Room_Draw01` sat at 99.887% with `reorder=1` on a single pair:
+
+```
+lui   t0, %hi(Gpu_PrimCursor)      lui   t0, %hi(Gpu_PrimCursor)
+addiu s0, s4, 0x800        /* target */   lw    s2, %lo(Gpu_PrimCursor)(t0)
+lw    s2, %lo(Gpu_PrimCursor)(t0)  addiu s0, s4, 0x800
+```
+
+The `lui` is a separate `high` insn (`# 1161 high` in the kept `.s`), so the
+scheduler *can* put something between it and the `%lo` load — but nothing you
+write at statement level will. Moving `t = ang + 0x800;` above or below
+`prim = Gpu_PrimCursor;`, with or without `SCHED_BARRIER()` / `SOFT_BARRIER()`
+between them, only ever produced two outcomes: `addiu, lui, lw` (no barrier —
+the addu wins the slot outright) or `lui, lw, addiu` (any barrier — a barrier
+splits the block and cannot split the `high`/`%lo` pair). The in-between order
+is not reachable by reordering source statements.
+
+`.sched2` explained why: `high`, the load and the addu all had
+`priority = 141`, so the ready-list tie-break decided it, and the addu's
+priority came from a `t` pseudo that the loop body assigns five more times.
+Giving that one value its own local restored the tie-break and matched:
+
+```c
+SCHED_BARRIER();
+t3   = ang + 0x800;          /* not `t = ang + 0x800;` */
+prim = (POLY_G4*)Gpu_PrimCursor;
+SOFT_BARRIER();
+t              = t3;
+Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+```
+
+Same root cause as "A pseudo set twice loses the scheduler's live-range boost",
+with a sharper symptom: when the leftover instruction has to sit *inside* a
+`high`/`%lo` pair, stop permuting statements and stop adding barriers — split
+the multiply-assigned local feeding it.
