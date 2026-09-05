@@ -48356,3 +48356,47 @@ matched. The two forms are the same RTL after CSE, but they enter the
 scheduler as two insns with their own priorities rather than one, which was
 enough to move `ori $v0, $v0, 2` past the colour arithmetic. Worth trying on
 any leftover `reorder=1`.
+
+## An `s32` temp keeps a full `lw` and the positive `addiu` in a byte-field store
+
+`Room_Draw06` fills a `POLY_FT4`'s four `u` texcoords from the frame-parity bit
+of `Display_State.field_8` (an `s32`). The direct form
+
+```c
+prim->u0 = ((Display_State.field_8 & 1) << 5) + 0xC0;
+```
+
+compiled the whole expression in `QImode`, which cost two instructions at once:
+the `lw` narrowed to `lbu v0, 8(a1)` -- combine contracts `(and (subreg (mem:SI))
+1)` into a byte load whenever only the low byte survives -- and the addend was
+canonicalised to the signed-byte form `addiu v0, v0, -0x40` instead of the
+target's `addiu v0, v0, 0xC0`. Both are the same eight bits after the `sb`, so
+nothing warns; they are simply different instruction words. Routing the value
+through an `s32` local first fixes both, because the arithmetic then has to
+happen in `SImode`:
+
+```c
+u = ((Display_State.field_8 & 1) << 5) + 0xC0;
+prim->v0 = 0x38;
+prim->u0 = u;
+```
+
+That took 90.8% to 97.2%. Note also that the load is *not* CSE'd across the
+four texcoords even though `field_8` never changes: the intervening `sb`s go
+through a `char` lvalue and may alias anything, so the target's four separate
+`lw`s come out of writing the expression out four times, not from a barrier.
+
+The remaining 2.8% was purely which store fills each load-delay slot. Writing
+the `v` store before the `u` computation left the scheduler nothing local to
+hoist, so it pulled the *next* pair's `v` store up into the delay slot and
+ended with a trailing `nop`. Computing `u` first and storing `v` between the
+computation and the `u` store puts the current `v` store in the slot, which is
+what the target does:
+
+```c
+u = ...;            /* the lw happens here */
+prim->v0 = 0x38;    /* fills the load-delay slot */
+prim->u0 = u;
+```
+
+Same statements, same values, one reordering: 97.2% to 100%.
