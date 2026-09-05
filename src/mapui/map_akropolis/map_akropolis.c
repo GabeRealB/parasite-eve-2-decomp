@@ -11,11 +11,11 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-extern char     D_map_akropolis_8017997C[];
-extern s32      D_map_akropolis_8017A9A8;
-extern s32      D_map_akropolis_8017A9AC[4];
-extern UiList   D_map_akropolis_8017A9C0;
-extern TaskDesc D_map_akropolis_8017AA00;
+extern const char D_map_akropolis_8017997C[12];
+extern s32        D_map_akropolis_8017A9A8;
+extern s32        D_map_akropolis_8017A9AC[4];
+extern UiList     D_map_akropolis_8017A9C0;
+extern TaskDesc   D_map_akropolis_8017AA00;
 
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_map_akropolis_8017A9E4;
@@ -231,4 +231,6 @@ s32 func_map_akropolis_8017A038(void)
     return D_map_akropolis_8017A9A8;
 }
 
-INCLUDE_RODATA("mapui/nonmatchings/map_akropolis/map_akropolis", D_map_akropolis_8017997C);
+/// The key-item panel heading. Three bytes follow the terminator that
+/// nothing has been shown to read; they are reproduced so the block matches.
+const char D_map_akropolis_8017997C[12] = "Key Item\0L#\6";
