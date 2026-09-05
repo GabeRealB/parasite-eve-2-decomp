@@ -50,6 +50,9 @@ typedef struct AcropolisBridgeNavNode {
 typedef struct AcropolisBridgeNavData {
     /* 0x0 */ AcropolisBridgeNavNode* nodes;
     /* 0x4 */ u8*                     field_4;
+    /* 0x8 */ u8                      count;
+    /* 0x9 */ u8                      field_9;
+    /* 0xA */ byte                    pad_A[0x2];
 } AcropolisBridgeNavData;
 
 /// One patrol route: a 0xFF-terminated list of node indices plus the cursor
@@ -110,9 +113,6 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x76 */ u8                       cursor;
     /* 0x77 */ byte                     pad_77[0x9];
     /* 0x80 */ AcropolisBridgeNavData   navData;
-    /* 0x88 */ u8                       field_88;
-    /* 0x89 */ u8                       field_89;
-    /* 0x8A */ byte                     pad_8A[0x2];
     /* 0x8C */ AcropolisBridgeNavRoute  routeData;
 } AcropolisBridgeWalkerWork;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkerWork, 0x94);
@@ -182,14 +182,34 @@ typedef struct AcropolisBridgeWalkScratch {
 } AcropolisBridgeWalkScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeWalkScratch, 0x28);
 
+/// 0x14-byte scratchpad block `func_acropolis_bridge_8018450C` carves off
+/// `G_SCRATCH_HEAD` to pick the patrol node nearest the walker. `dx` / `dz` are
+/// the axis deltas for the node under test and `dist` their squared sum, which
+/// is compared against the running `best` -- initialised to `-1` so the first
+/// node always wins -- and `nearest` is the winning node's index.
+typedef struct AcropolisBridgeNearScratch {
+    /* 0x00 */ s16  dx;
+    /* 0x02 */ byte pad_2[0x2];
+    /* 0x04 */ s16  dz;
+    /* 0x06 */ byte pad_6[0x2];
+    /* 0x08 */ u32  best;
+    /* 0x0C */ u32  dist;
+    /* 0x10 */ u8   node;
+    /* 0x11 */ u8   nearest;
+    /* 0x12 */ byte pad_12[0x2];
+} AcropolisBridgeNearScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeNearScratch, 0x14);
+
 /// Ticks the walker task: steps its patrol route and drives its animation.
 void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker);
 
 /// Reports whether the walker has reached the patrol node at `work->node`.
 s16 func_acropolis_bridge_80184024(AcropolisBridgeWalkerWork* work);
 
-s8   func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 arg1);
-s8   func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work);
+s8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 arg1);
+/// Returns the patrol node nearest the walker, by squared distance in the
+/// XZ plane between the node table and the walker's coordinate translation.
+u8   func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work);
 void func_acropolis_bridge_80184638(AcropolisBridgeWalkerWork* work, s32 arg1);
 void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work);
 void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work);
@@ -242,7 +262,34 @@ void func_acropolis_bridge_80184208(AcropolisBridgeWalkerWork* work, SVECTOR3* p
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_801843A0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_8018450C);
+/// Scans the room's patrol node table for the node nearest the walker and
+/// returns its index. Distance is the squared XZ distance between the node and
+/// the low halfword of the walker coordinate's translation, staged in a 0x14
+/// byte scratch block along with the cursor and the running best.
+u8 func_acropolis_bridge_8018450C(AcropolisBridgeWalkerWork* work)
+{
+    AcropolisBridgeNearScratch* block;
+    u8*                         head;
+    s16                         dz;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x14;
+    block                 = (AcropolisBridgeNearScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    block->best = -1;
+    for (block->node = 0; block->node < work->nav->count; block->node++) {
+        block->dx   = *(u16*)&work->coord->coord.t[0] - work->nav->nodes[block->node].x;
+        dz          = *(u16*)&work->coord->coord.t[2] - work->nav->nodes[block->node].z;
+        block->dz   = dz;
+        block->dist = block->dx * block->dx + dz * dz;
+        if (block->dist < block->best || block->best == -1) {
+            block->best    = block->dist;
+            block->nearest = block->node;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;
+    return block->nearest;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184638);
 
@@ -620,9 +667,9 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     coord->coord.t[1]  += work->field_1F8;
 
     work->walker.navData.nodes    = D_acropolis_bridge_8019162C;
-    work->walker.field_88         = 0xA;
+    work->walker.navData.count    = 0xA;
     work->walker.navData.field_4  = D_acropolis_bridge_801916CC;
-    work->walker.field_89         = 0xA;
+    work->walker.navData.field_9  = 0xA;
     work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->field_8 >> 12];
     work->walker.nav              = &work->walker.navData;
     work->walker.routeData.cursor = 0;

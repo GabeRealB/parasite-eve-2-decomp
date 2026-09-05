@@ -8666,6 +8666,47 @@ GAuxHeapSize = size;
 setup). Sibling `Gfx_LoadImageSlot` is the matching `LoadImage` without heap work;
 note its `arg2` → `rect.y` polarity is the opposite of `Gfx_StoreImageSlot`.
 
+## `for (i = 0; i < p->count; i++)` shares one pseudo for `p` with the guard
+
+m2c always renders a counted loop as an explicit guard plus a `do {} while`,
+and reloading the container pointer in the guard, at the top of the body and in
+the latch is not the same code GCC emits from a `for`. GCC 2.8.1 duplicates the
+loop exit test into the preheader with the *same* pseudos, so the pointer the
+condition loads stays live across the back edge and the body's first use reads
+it out of that register instead of reloading it:
+
+```
+lw   a0, 0x0(a3)         /* preheader: work->nav */
+lbu  v0, 0x8(a0)
+beqz v0, end
+loop:
+lbu  v1, 0x10(a1)
+lw   v0, 0x0(a0)         /* nav->nodes — a0 still holds work->nav */
+...
+lw   a0, 0x0(a3)         /* latch: same pseudo, reloaded */
+lbu  v1, 0x8(a0)
+sltu v0, v0, v1
+bnez v0, loop
+```
+
+```c
+/* m2c shape: body reloads work->nav, two lw at the loop top */
+if (work->nav->count != 0) {
+    do { ... work->nav->nodes[i] ... } while (i < work->nav->count);
+}
+
+/* Emits the shared pseudo */
+for (block->node = 0; block->node < work->nav->count; block->node++) {
+    ... work->nav->nodes[block->node] ...
+}
+```
+
+Symptom is a small `insert`/`delete` pair with an extra `lw` at the loop head
+and a differently-coloured register in the latch, on a loop that is otherwise
+correct. `func_acropolis_bridge_8018450C` went 91% -> 100% on this rewrite
+alone. Reach for it whenever the target's loop body uses a register the
+preheader loaded.
+
 ## Goto-loop vs while: LICM of loop-invariant masks
 
 GCC 2.8.1's loop-invariant code motion hoists `arg & 0xFFFF` out of a
