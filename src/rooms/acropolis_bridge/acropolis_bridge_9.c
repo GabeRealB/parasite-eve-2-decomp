@@ -90,7 +90,8 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x14 */ byte                     pad_14[0x8];
     /* 0x1C */ SVECTOR                  moveStep;
     /* 0x24 */ SVECTOR                  moveDelta;
-    /* 0x2C */ byte                     pad_2C[0x8];
+    /* 0x2C */ SVECTOR3                 push;
+    /* 0x32 */ byte                     pad_32[0x2];
     /* 0x34 */ MATRIX                   scaleMtx;
     /* 0x54 */ s16                      scale;
     /* 0x56 */ s16                      field_56;
@@ -117,7 +118,7 @@ typedef struct AcropolisBridgeWalkerWork {
     /* 0x74 */ byte                     pad_74[0x1];
     /* 0x75 */ u8                       field_75;
     /* 0x76 */ u8                       cursor;
-    /* 0x77 */ byte                     pad_77[0x1];
+    /* 0x77 */ u8                       blocked;
     /* 0x78 */ u8                       moving;
     /* 0x79 */ byte                     pad_79[0x7];
     /* 0x80 */ AcropolisBridgeNavData   navData;
@@ -617,7 +618,200 @@ void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80184B94);
+/// 0x54-byte scratch block the walker's obstacle-avoidance pass carves off
+/// `G_SCRATCH_HEAD`. `m` is the working matrix handed to `Gfx_RotMatrixY` /
+/// `Gfx_MatrixCol2`, `dir` first the normalised facing column read out of the
+/// walker's `workm` (its `vz` decides which pair of matrix cells the facing
+/// angle is taken from) and later the GPF-scaled push actually applied.
+/// `eye` is the walker's world position, `kind` the record's `field_4` high
+/// halfword, `angle[]` the bearing of each obstacle relative to the facing
+/// direction and `ok[]` whether that obstacle still counts -- a pair whose
+/// bearings differ by less than 0x401 cancels out, so the walker only backs
+/// away from an obstacle it is not wedged between. `i` / `j` are the two loop
+/// cursors, `count` the number of records collected and `diff` the wrapped
+/// bearing difference (later the absolute bearing the push is built from).
+typedef struct AcropolisBridgeAvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ byte     pad_53[0x1];
+} AcropolisBridgeAvoidScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeAvoidScratch, 0x54);
+
+/// 0x10-byte scratch block the two bearing helpers below nest inside the
+/// avoidance block: the obstacle's offset from the walker, widened to words so
+/// `ratan2` can take two of its components directly.
+typedef struct AcropolisBridgeAvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} AcropolisBridgeAvoidDelta;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeAvoidDelta, 0x10);
+
+/// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
+/// own that is released before `ratan2` runs.
+static __inline__ s16 acropolisBridgeBearingXZ(SVECTOR3* p, SVECTOR3* eye)
+{
+    u8*                        head;
+    AcropolisBridgeAvoidDelta* d;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (AcropolisBridgeAvoidDelta*)(head - 0x10);
+    d->vx                 = p->vx - eye->vx;
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = p->vy - eye->vy;
+    d->vz                 = p->vz - eye->vz;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vz);
+}
+
+/// Bearing of `p` from `eye` in the XY plane; used instead of the XZ one when
+/// the walker's facing column is close to vertical.
+static __inline__ s16 acropolisBridgeBearingXY(SVECTOR3* p, SVECTOR3* eye)
+{
+    u8*                        head;
+    AcropolisBridgeAvoidDelta* d;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (AcropolisBridgeAvoidDelta*)(head - 0x10);
+    d->vx                 = p->vx - eye->vx;
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = p->vy - eye->vy;
+    d->vz                 = p->vz - eye->vz;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vy);
+}
+
+/// Pushes the walker away from the obstacles in its collision record table.
+/// Every occupied record is turned into a bearing relative to the direction
+/// the walker faces; records whose `field_4` kind is neither 0x10000 (which
+/// also raises `blocked`) nor 0x30000 only count while their low halfword is
+/// clear, and at most eight are collected. Any two bearings closer together
+/// than 0x401 cancel each other, since the walker is then wedged between them
+/// and has nowhere to go. Each surviving bearing becomes a unit vector 10
+/// units long (`GPF` by -10 of the normalised matrix column), which is added
+/// to both `push` and the walker's own translation.
+void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
+{
+    u8*                          head;
+    AcropolisBridgeAvoidScratch* s;
+    s16                          diff;
+    s16                          t;
+    s32                          mag;
+
+    if (D_80072729 == 1) {
+        return;
+    }
+
+    work->blocked = 0;
+    work->push.vz = 0;
+    work->push.vy = 0;
+    work->push.vx = 0;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(AcropolisBridgeAvoidScratch);
+    s                     = (AcropolisBridgeAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
+    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
+
+    if (ABS(s->dir.vz) < 0x818) {
+        s->face = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
+    } else {
+        s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
+    }
+
+    s->eye.vx = *(u16*)&work->coord->workm.t[0];
+    s->eye.vy = *(u16*)&work->coord->workm.t[1];
+    s->eye.vz = *(u16*)&work->coord->workm.t[2];
+    s->count  = 0;
+
+    for (s->i = 0; s->i < work->field_58; s->i++) {
+        if (work->recs[s->i].field_4 == 0) {
+            break;
+        }
+        s->kind = work->recs[s->i].field_4 & 0xFFFF0000;
+        if (s->kind != 0x10000) {
+            if (s->kind != 0x30000 && (u16)work->recs[s->i].field_4 != 0) {
+                continue;
+            }
+        } else {
+            work->blocked = 1;
+        }
+
+        if (ABS(s->dir.vz) < 0x818) {
+            s->angle[s->count] =
+                acropolisBridgeBearingXZ((SVECTOR3*)&work->recs[s->i].field_8, &s->eye);
+        } else {
+            s->angle[s->count] =
+                acropolisBridgeBearingXY((SVECTOR3*)&work->recs[s->i].field_8, &s->eye);
+        }
+        s->ok[s->count] = 1;
+        s->count++;
+        if (s->count >= 8) {
+            break;
+        }
+    }
+
+    for (s->i = 0; s->i < s->count; s->i++) {
+        for (s->j = s->i + 1; s->j < s->count; s->j++) {
+            diff = (u16)s->angle[s->i] - (u16)s->angle[s->j];
+            t    = diff;
+            if (diff < 0) {
+            wrapUp:
+                if (t < -0x800) {
+                    t += 0x1000;
+                    goto wrapUp;
+                }
+            } else {
+            wrapDown:
+                if (t > 0x800) {
+                    t -= 0x1000;
+                    goto wrapDown;
+                }
+            }
+            mag     = t;
+            s->diff = mag;
+            SOFT_BARRIER();
+            if (mag < 0) {
+                mag = -mag;
+            }
+            if (mag >= 0x401) {
+                s->ok[s->i] = 0;
+                s->ok[s->j] = 0;
+            }
+        }
+        if (s->ok[s->i] != 0) {
+            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+                   ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
+            s->diff = diff;
+            Gfx_RotMatrixY(&s->m, diff, 1);
+            Gfx_MatrixCol2(&s->m, &s->dir);
+            VectorNormalSS(&s->dir, &s->dir);
+            gte_lddp(-10);
+            gte_ldsv(&s->dir);
+            gte_gpf12_real();
+            gte_stsv(&s->dir);
+            work->push.vx           += s->dir.vx;
+            work->push.vz           += s->dir.vz;
+            work->coord->coord.t[0] += s->dir.vx;
+            work->coord->coord.t[2] += s->dir.vz;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD =
+        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeAvoidScratch);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_9", func_acropolis_bridge_80185104);
 

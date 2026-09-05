@@ -47528,3 +47528,46 @@ something is the signal to *inline* the subexpression rather than name it; the
 naming is what pulls the arithmetic in front of the call.
 `func_acropolis_bridge_80182F8C` is the worked example (97.3% -> 99.8% on that
 edit alone).
+
+## Two `static __inline__` helpers plus cross-jumping give one shared `jal`
+
+A branch whose two arms build the same scratch block and only differ in the
+last expression can look impossible: the target has the whole alloc/compute
+sequence *twice*, but only one `jal` at the join, with the fall-through arm
+walking straight into it and the other arm reaching it with a `j` whose delay
+slot loads the second argument.
+
+```
+.branchA:
+  ... build the delta block ...
+  lw   a0, -0x10(a3)
+  j    .join
+   move a1, v0          /* a1 = d->vz */
+.branchB:
+  ... build the same delta block ...
+  lw   a1, 4(a2)        /* a1 = d->vy */
+  lw   a0, -0x10(a3)
+.join:
+  jal  ratan2
+```
+
+That is two copies of one `static __inline__` helper, differing only in the
+returned expression, with GCC's cross-jumping merging the identical tails from
+the `jal` backwards. Write it as two helpers and call one per arm:
+
+```c
+static __inline__ s16 bearingXZ(SVECTOR3* p, SVECTOR3* eye) { /* … */ return ratan2(d->vx, d->vz); }
+static __inline__ s16 bearingXY(SVECTOR3* p, SVECTOR3* eye) { /* … */ return ratan2(d->vx, d->vy); }
+```
+
+Hoisting the shared part into the caller and selecting only the `ratan2`
+arguments with two locals produces the same instruction *count* but keeps the
+`G_SCRATCH_HEAD` constant in a callee-saved register, because the accesses then
+sit in one basic block (see "`static __inline__` keeps a constant scratch
+address out of a register"). The helper form is what restores the per-access
+`lui $a3, 0x1F80` / `lui $at, 0x1F80` macro expansion *and* hands the loop a
+pointer parameter to hoist, which is where the target's otherwise unexplained
+`addiu $s0, $s1, 0x28` in the loop-guard delay slot comes from.
+`func_acropolis_bridge_80184B94` went 91.7% -> 99.5% on this change alone; the
+remaining 0.5% was a `SOFT_BARRIER()` keeping a `sh` out of the following
+branch's delay slot.
