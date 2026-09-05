@@ -48400,3 +48400,98 @@ prim->u0 = u;
 ```
 
 Same statements, same values, one reordering: 97.2% to 100%.
+
+## A parameter you copy into a local pays for the copy in the prologue
+
+`func_800D4270` takes a mode and a GTE `dp` value in `$a2`/`$a3` and keeps both
+in callee-saved registers across the whole draw loop. The obvious decompilation
+gives them names:
+
+```c
+register s32 mode asm("s0");
+register s32 dp asm("s1");
+mode = arg2;
+dp = arg3;
+SOFT_TOUCH_REG(mode);   /* without this the copies fold away and s0/s1 go elsewhere */
+SOFT_TOUCH_REG(dp);
+```
+
+That reproduces `move $s0,$a2` / `move $s1,$a3` and the right allocation, but it
+stalls at 99.8%: two constant-materialising instructions (`ori $a3,$a3,0xffff`
+and `lui $t4,%hi(...)`) land eight and three slots too early. The prologue is
+the reason. Everything before `NOTE_INSN_PROLOGUE_END` is "not within a basic
+block" and is *never scheduled* -- the `.sched2` dump labels it so -- and the
+empty `asm` insns the touches emit sit in that region, dragging one of the
+constant loads in with them. No permutation of the surrounding statements moves
+it back out, because the region is not scheduled at all.
+
+Using the parameters directly removes the copies, the touches and the problem in
+one step:
+
+```c
+void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
+```
+
+GCC still spills `$a2`/`$a3` into `$s0`/`$s1` in the prologue, because both are
+live across the loop -- that is where `move $s0,$a2` comes from in the target --
+and now nothing extra is emitted before the prologue note. 99.8% to 100%.
+Reach for the parameter itself before inventing a local plus a barrier to hold
+it; the local is only worth it when the target keeps a *second* copy alive.
+
+## `while (cond)` and `for (;;) { if (cond) break; }` rotate differently
+
+The same loop written two ways gives two different numbers of loads at the head.
+For
+
+```c
+for (;;) {
+    type = *cur;
+    if (type == -2) { break; }
+    cur += 2;
+    ...
+}
+```
+
+`jump.c` moves the head `lw` and its test out of the loop as the entry guard and
+leaves the loop starting at `cur += 2`, so `*cur` is loaded exactly twice --
+once in the guard and once at the loop bottom. For
+
+```c
+while (*cur != -2) {
+    type = *cur;
+    cur += 2;
+    ...
+}
+```
+
+`loop.c` duplicates the *test* into a guard and keeps the head inside the loop,
+so the head `lw` survives in the preheader as a third, textually redundant load
+that `cse2` cannot remove. If the target has a `lw` between the hoisted loop
+invariants and the first `addiu` of the induction variable -- the giveaway is a
+trailing `addiu $t2,$t2,-0x8` undoing the increment on the exit path -- it was a
+`while`, not a `for` with a `break`. That one instruction was worth 0.2% here
+and, because every branch offset shifts with it, 26 branch penalties.
+
+## Alternate the two texcoord runs before blaming register allocation
+
+The map-marker draw writes `u0..u3` from a minimum X and `v0..v3` from a minimum
+Y. Written as the target *emits* them -- `u0, u1, v0, u2, v1, v2, u3, v3` -- the
+allocator put the two masked minima in `$t3`/`$a1` instead of the target's
+`$a1`/`$a0`, which pushed one loop-invariant constant into a fifth callee-saved
+register and renamed everything downstream (`regs=141`). Writing the source in
+strict alternation instead
+
+```c
+p4->u0 = mx + ((u8)p4->x0 - minX);
+p4->v0 = my + ((u8)p4->y0 - minY);
+p4->u1 = mx + ((u8)p4->x1 - minX);
+p4->v1 = my + ((u8)p4->y1 - minY);
+...
+```
+
+let `sched2` recover the target's emission order *and* dropped the extra
+register, taking 96.5% to 99.2% in one edit. The emitted order is not the source
+order: `sched2` rotates a two-register software pipeline through these stores,
+and the source order that produces it is the one that keeps both minima live to
+the last store. When a whole-function register renaming traces back to one
+short block, permute the statement order in that block before touching pins.

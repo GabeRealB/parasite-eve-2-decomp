@@ -241,7 +241,7 @@ void       Gp_DrawMapMarks(Task* arg0);
 s32        Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2);
 s32        func_800E3FCC(s32 arg0);
 void       func_800D15D0(Task* arg0);
-void       func_800D4270(UiObject* arg0, void* arg1, s32 arg2, s32 arg3);
+void       func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp);
 void       Gp_EnqueueMapRoomCd(void);
 void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void       Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
@@ -3569,7 +3569,253 @@ void Gp_MapScreenTask(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D4270);
+void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
+{
+    RECT                       tw;
+    DR_MODE*                   dr;
+    s32                        otz;
+    u8*                        verts;
+    register GpMapMarkScratch* scratch asm("t0");
+    u32*                       cur;
+    void**                     scratchHead;
+    s32                        type;
+    u32                        word;
+    s32                        count;
+    s32                        stride;
+    u16                        vz;
+    s32                        minX;
+    s32                        minY;
+
+    scratchHead    = (void**)G_SCRATCH_HEAD;
+    otz            = *(s16*)&obj->drawOrder;
+    verts          = mesh->verts;
+    cur            = (u32*)mesh->prims;
+    tw.y           = 0;
+    tw.x           = 0;
+    scratch        = (GpMapMarkScratch*)((u8*)*scratchHead - sizeof(GpMapMarkScratch));
+    *scratchHead   = scratch;
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    tw.h           = 0xFF;
+    tw.w           = 0xFF;
+    setTexWindow(dr, &tw);
+    addPrim(&Gpu_CurrentOt[otz], dr);
+    scratch->offX = 0;
+    scratch->offY = 0;
+    while (*cur != -2) {
+        type   = *cur;
+        cur   += 2;
+        word   = *cur;
+        count  = word >> 16;
+        stride = word & 0xFFFF;
+        cur   += 1;
+        if (type == 0x44) {
+            if (count > 0) {
+                do {
+                    POLY_FT4* p4;
+                    SVECTOR*  vert;
+
+                    vert           = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
+                    p4             = (POLY_FT4*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(p4 + 1);
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p4->x0 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p4->y0 = scratch->offY - vz;
+
+                    vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p4->x1 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p4->y1 = scratch->offY - vz;
+
+                    vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p4->x2 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p4->y2 = scratch->offY - vz;
+
+                    vert = (SVECTOR*)(verts + (((u16*)cur)[3] & 0xFFF8));
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p4->x3 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p4->y3 = scratch->offY - vz;
+                    if (mode == 0) {
+                        minX = p4->x0;
+                        if (p4->x1 < minX) {
+                            minX = p4->x1;
+                        }
+                        if (p4->x2 < minX) {
+                            minX = p4->x2;
+                        }
+                        if (p4->x3 < minX) {
+                            minX = p4->x3;
+                        }
+                        minY = p4->y0;
+                        if (p4->y1 < minY) {
+                            minY = p4->y1;
+                        }
+                        if (p4->y2 < minY) {
+                            minY = p4->y2;
+                        }
+                        if (p4->y3 < minY) {
+                            minY = p4->y3;
+                        }
+                        p4->clut = 0x3FC0;
+                        p4->u0   = (minX & 0x1F) + ((u8)p4->x0 - minX);
+                        p4->v0   = (minY & 0x1F) + ((u8)p4->y0 - minY);
+                        p4->u1   = (minX & 0x1F) + ((u8)p4->x1 - minX);
+                        p4->v1   = (minY & 0x1F) + ((u8)p4->y1 - minY);
+                        p4->u2   = (minX & 0x1F) + ((u8)p4->x2 - minX);
+                        p4->v2   = (minY & 0x1F) + ((u8)p4->y2 - minY);
+                        p4->u3   = (minX & 0x1F) + ((u8)p4->x3 - minX);
+                        p4->v3   = (minY & 0x1F) + ((u8)p4->y3 - minY);
+                    } else {
+                        p4->u0 = p4->x0 - 0x80;
+                        p4->u1 = p4->x1 - 0x80;
+                        p4->u2 = p4->x2 - 0x80;
+                        p4->u3 = p4->x3 - 0x80;
+                        p4->v0 = p4->y0 - 0x78;
+                        p4->v1 = p4->y1 - 0x78;
+                        p4->v2 = p4->y2 - 0x78;
+                        p4->v3 = p4->y3 - 0x78;
+                        if (mode == 1) {
+                            *(u32*)&p4->r0 = 0x202020;
+                        } else if (mode == 2) {
+                            *(u32*)&p4->r0 = 0xFF4040;
+                        } else {
+                            *(u32*)&p4->r0 = 0x4040FF;
+                        }
+                        p4->clut = 0x4000;
+                    }
+                    p4->tpage = 0xAE;
+                    setlen(p4, 9);
+                    setcode(p4, 0x2C);
+                    if (mode == 0) {
+                        setcode(p4, 0x2D);
+                        addPrim(&Gpu_CurrentOt[otz], p4);
+                    } else {
+                        addPrim(&Gpu_CurrentOt[otz] + 1, p4);
+                    }
+                    cur += stride;
+                    count--;
+                } while (count > 0);
+            }
+        } else if (type == 4) {
+            if (count > 0) {
+                do {
+                    POLY_FT3* p3;
+                    SVECTOR*  vert;
+
+                    vert           = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
+                    p3             = (POLY_FT3*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(p3 + 1);
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+
+                    vert = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p3->x0 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p3->y0 = scratch->offY - vz;
+
+                    vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p3->x1 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p3->y1 = scratch->offY - vz;
+
+                    vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
+                    gte_lddp(dp);
+                    gte_ldsv(vert);
+                    gte_gpf12_real();
+                    gte_stsv(scratch);
+                    p3->x2 = scratch->vx + scratch->offX;
+                    vz     = scratch->vz;
+                    p3->y2 = scratch->offY - vz;
+                    if (mode == 0) {
+                        minX = p3->x0;
+                        if (p3->x1 < minX) {
+                            minX = p3->x1;
+                        }
+                        if (p3->x2 < minX) {
+                            minX = p3->x2;
+                        }
+                        minY = p3->y0;
+                        if (p3->y1 < minY) {
+                            minY = p3->y1;
+                        }
+                        if (p3->y2 < minY) {
+                            minY = p3->y2;
+                        }
+                        p3->clut = 0x3FC0;
+                        p3->u0   = (minX & 0x1F) + ((u8)p3->x0 - minX);
+                        p3->v0   = (minY & 0x1F) + ((u8)p3->y0 - minY);
+                        p3->u1   = (minX & 0x1F) + ((u8)p3->x1 - minX);
+                        p3->v1   = (minY & 0x1F) + ((u8)p3->y1 - minY);
+                        p3->u2   = (minX & 0x1F) + ((u8)p3->x2 - minX);
+                        p3->v2   = (minY & 0x1F) + ((u8)p3->y2 - minY);
+                    } else {
+                        p3->u0 = p3->x0 - 0x80;
+                        p3->u1 = p3->x1 - 0x80;
+                        p3->u2 = p3->x2 - 0x80;
+                        p3->v0 = p3->y0 - 0x78;
+                        p3->v1 = p3->y1 - 0x78;
+                        p3->v2 = p3->y2 - 0x78;
+                        if (mode == 1) {
+                            *(u32*)&p3->r0 = 0x202020;
+                        } else if (mode == 2) {
+                            *(u32*)&p3->r0 = 0xFF4040;
+                        } else {
+                            *(u32*)&p3->r0 = 0x4040FF;
+                        }
+                        p3->clut = 0x4000;
+                    }
+                    p3->tpage = 0xAE;
+                    setlen(p3, 7);
+                    setcode(p3, 0x24);
+                    if (mode == 0) {
+                        setcode(p3, 0x25);
+                        addPrim(&Gpu_CurrentOt[otz], p3);
+                    } else {
+                        addPrim(&Gpu_CurrentOt[otz] + 1, p3);
+                    }
+                    cur += stride;
+                    count--;
+                } while (count > 0);
+            }
+        }
+    }
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    tw.x           = 0;
+    tw.y           = 0;
+    tw.w           = 0x20;
+    tw.h           = 0x20;
+    setTexWindow(dr, &tw);
+    addPrim(&Gpu_CurrentOt[otz], dr);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpMapMarkScratch);
+}
 
 s32 func_800D4D2C(s32 arg0)
 {

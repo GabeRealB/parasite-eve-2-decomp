@@ -64,15 +64,41 @@ STATIC_ASSERT_SIZEOF(GpMapName, 0x20);
 /// A NULL entry skips the name draw (`Gp_DrawMapName`).
 extern GpMapName* Gp_MapNameTables[];
 
+/// Flat mesh the map-marker draw (`func_800D4270`) walks: a vertex pool of
+/// `SVECTOR`s and a primitive stream of `{type, ?, count<<16 | stride, ...}`
+/// records terminated by a `-2` type word. Only quad (`0x44`) and triangle
+/// (`4`) records are drawn; each record's data words hold byte offsets into
+/// `verts` in their low halfwords.
+typedef struct _GpMapMarkMesh {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ u8*  verts;
+    /* 0x18 */ byte pad_18[8];
+    /* 0x20 */ s32* prims;
+} GpMapMarkMesh;
+
+/// 0x10-byte scratch block `func_800D4270` carves off `G_SCRATCH_HEAD` for the
+/// GTE round trip: `vx`/`vy`/`vz` receive the scaled vertex (`gte_stsv`) and
+/// `offX`/`offY` are the screen-space offsets added to it.
+typedef struct _GpMapMarkScratch {
+    /* 0x0 */ u16 vx;
+    /* 0x2 */ u16 vy;
+    /* 0x4 */ u16 vz;
+    /* 0x6 */ u16 pad_6;
+    /* 0x8 */ u16 offX;
+    /* 0xA */ u16 offY;
+    /* 0xC */ u16 pad_C[2];
+} GpMapMarkScratch;
+STATIC_ASSERT_SIZEOF(GpMapMarkScratch, 0x10);
+
 /// 8-byte map marker in tables pointed to by `Gp_MapMarkTables`.
-/// Indexed by loop `i` in `Gp_DrawMapMarks`. `field_0` is the icon object
+/// Indexed by loop `i` in `Gp_DrawMapMarks`. `field_0` is the icon mesh
 /// (`func_800D4270`); `field_4` is the room id (`Gp_MapRoomId`); `field_5`
 /// is an extra bit id (`0xFF` = none).
 typedef struct _GpMapMark {
-    /* 0x0 */ void* field_0;
-    /* 0x4 */ u8    field_4;
-    /* 0x5 */ u8    field_5;
-    /* 0x6 */ byte  pad_6[2];
+    /* 0x0 */ GpMapMarkMesh* field_0;
+    /* 0x4 */ u8             field_4;
+    /* 0x5 */ u8             field_5;
+    /* 0x6 */ byte           pad_6[2];
 } GpMapMark;
 STATIC_ASSERT_SIZEOF(GpMapMark, 8);
 
