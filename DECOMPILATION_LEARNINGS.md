@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Load `Gpu_PrimCursor` before the angle extend so `lui` precedes `sll`/`sra`
+
+`Room_Draw27` sign-extends `arg3` into `$s2` and loads `Gpu_PrimCursor` into
+`$s1` in the same block, then a later `rsin(ang)` hoists `move a0, s2`. Written
+
+```c
+ang  = (s16)arg3;
+prim = (POLY_FT4*)Gpu_PrimCursor;
+```
+
+the shifts win the ready list and `lui` lands two insns late (`sll`/`sra`/`lui`/
+`lw`/`move a0`). Swap them:
+
+```c
+prim = (POLY_FT4*)Gpu_PrimCursor;
+ang  = (s16)arg3;
+```
+
+`lui` issues first, both shifts fit between it and the `lw`, and the hoisted
+`move a0, s2` fills the load delay. A `USE_REG(u0)` later in the same block
+(to keep `u0` live across `u1 = u0 + 0x1F`) changes that ready list so `sra`
+takes the delay instead; `setUV4(prim, u0, ..., u0 + 0x1F, ...)` overlaps the
+UV live ranges without a volatile asm, which is what lets the swap stick.
+
 ## A `u16` temp for the divide result, plus `setUV4` store order, decides `$a0` vs `$a1`
 
 `func_m4a1_pyke_8011D548` writes a `POLY_FT4` whose `u` coordinates come from

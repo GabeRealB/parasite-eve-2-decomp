@@ -330,6 +330,14 @@ void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5
 /// `LINE_F2`s -- top, right, bottom and left -- each linked into
 /// `Gpu_CurrentOt[1]`.
 void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// `gte_stflg` is non-negative, queues one semi-transparent shade-tex
+/// `POLY_FT4` (tpage 0x2B, clut 0x43D3) rotated about the projected centre.
+/// `arg1` selects the 32-texel UV column `(s16)arg1 << 5` at v=0xE0..0xFF.
+/// `arg2` is a signed half-extent; the on-screen radius is
+/// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
+/// `arg3 + 0x400` through `rsin`/`rcos`.
+void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Append a 15-bit ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
 void Room_Draw42(s32 tpage, s16 arg1);
@@ -517,6 +525,24 @@ STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
 /// drawn with - `rOuter` for the eight outer `POLY_G4` wedges, `rInner` for
 /// the two inner ones.
 typedef RoomDraw09Scratch RoomBillboardScratch;
+
+/// 0x1C-byte scratch block `Room_Draw27` takes from `G_SCRATCH_HEAD`. Same
+/// projection preamble as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`,
+/// one `RTPS`) but `dx` / `dy` hold the current
+/// `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` half-extents added to and
+/// subtracted from `sx` / `sy` to build the four `POLY_FT4` corners. Only
+/// the low halves of `dx` / `dy` are read back. Same layout as the gameplay
+/// `GpFxQuadScratch`.
+typedef struct _RoomDraw27Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} RoomDraw27Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw27Scratch, 0x1C);
 
 /// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at
