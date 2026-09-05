@@ -5,6 +5,9 @@
 
 #include <psyq/libgs.h>
 
+#include "gameplay/3A34.h"
+#include "main/session.h"
+
 /// A `MATRIX` plus the word-wise view this overlay uses to splat an identity
 /// rotation before `RotMatrixX` overwrites it: five aligned stores instead of
 /// nine halfword ones, each word holding two adjacent `m[][]` entries.
@@ -50,5 +53,20 @@ typedef struct HyperRecoil {
     /* 0x10 */ SVECTOR dir;
 } HyperRecoil;
 STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
+
+/// 0x38 block the round's spawn state allocates with `Mem_Calloc` and parks in
+/// `Task::idMap`. It leads with the `GpObj` list node `WeaponsShared8011e4ac`
+/// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry
+/// `GpRec18` collision table `obj.field_C` points at, and its `field_0` is set
+/// to 2 (the last-element bit) instead of going through `Gp_InitRec18Table`.
+typedef struct HyperBeam {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[1];
+} HyperBeam;
+STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
+
+/// Per-particle jitter of the hypervelocity trail, one 8-bit LCG roll each,
+/// re-rolled as a block when the round is fired.
+extern s16 D_hypervelocity_8012EF0C[16];
 
 #endif

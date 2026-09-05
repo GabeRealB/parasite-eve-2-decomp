@@ -44606,3 +44606,51 @@ the arbiter, and it linked clean here on the first try. This is the same class
 of cosmetic scratch residue as the `jtbl_XXXXXXXX` vs own-`.rodata` pair, and
 it is why a sub-100% scratch score is worth linking before it is worth
 permuting.
+
+## Re-read the field you just stored instead of caching it in a local
+
+When one computed value feeds a struct-field store *and* two derived stores to
+neighbouring fields, spelling it as a local
+
+```c
+val            = ((ang >> 16) & 0x700) + 0x800;
+slot->field_54 = val;
+slot->field_50 = val >> 1;
+slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+```
+
+gives the value three uses and a live range that spans the surrounding stores,
+so GCC 2.8.1 parks it in a callee-temp (`$t2`) and the scheduler hoists the
+whole `lw`/`sll`/`addu` chain that produced it above unrelated stores. The
+target instead keeps everything in `$v0`:
+
+```
+sh    v0, 0x54(s5)
+move  v1, v0
+srl   v0, v0, 1
+sll   v1, v1, 0x10
+sra   v1, v1, 0x11
+sh    v0, 0x50(s5)
+sh    v1, 0x52(s5)
+```
+
+Dropping the local and reading the field back is what produces it:
+
+```c
+slot->field_54 = ((ang >> 16) & 0x700) + 0x800;
+slot->field_50 = (u16)slot->field_54 >> 1;
+slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+```
+
+CSE forwards the just-stored value to both reads — two MEMs on the same base
+register at different constant offsets are disambiguated, so an intervening
+`sh` to a sibling field does not kill the equivalence — and the value dies
+where the source says it does. A read of the same field through a *different*
+base register (here `light->flg = 0` on an aliasing pointer) does kill it, and
+then the target really does emit a `lhu` reload; that reload is the signal
+telling you which spelling the original used. `func_hypervelocity_8011D830`
+went 93.9% → 97.8% on this change alone.
+
+Corollary for the `sll 16` / `sra 17` pair: it comes from
+`(s16)(u16)field >> 1` whether the value is forwarded or reloaded, so the
+double cast is about the shift, not about the load.
