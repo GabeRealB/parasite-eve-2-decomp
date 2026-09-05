@@ -399,6 +399,40 @@ else
   LOG_FILE="$MAIN_LOG_FILE"
 fi
 
+# Has $func been promoted into a shared unit?
+#
+# A promotion moves one body to src/<family>/lib/ and gives every overlay that
+# carries it a sym alias at its own address, so the per-overlay name stops
+# existing in src entirely. func_defined_in_src therefore reports it missing,
+# which is how func_p229_8011D464 kept being re-ported after 1160f3d0 had
+# already landed it for all four MP5A5/P229 overlays.
+func_promoted_alias() {
+  local func=$1
+  local repo=${2:-$PWD}
+  [[ "$func" =~ ^func_(.+)_([0-9A-Fa-f]{8})$ ]] || return 1
+  local overlay=${BASH_REMATCH[1]}
+  local addr=${BASH_REMATCH[2]}
+  local f
+  for f in "$repo"/configs/*/sym/*/"$overlay".txt; do
+    [[ -f "$f" ]] || continue
+    grep -qiE "=[[:space:]]*0x0*${addr}[[:space:]]*;" "$f" && return 0
+  done
+  return 1
+}
+
+# Is $func actually defined in this repo's C sources?
+#
+# Absence of INCLUDE_ASM is not the same thing. A file can be mid-write, and a
+# passing build-and-verify proves nothing either: an unmatched function still
+# links and still matches the ROM through its .s. Only a definition proves the
+# body landed here.
+func_defined_in_src() {
+  local func=$1
+  local repo=${2:-$PWD}
+  grep -rE "^[A-Za-z_][A-Za-z0-9_ *]*[ *]${func}[[:space:]]*\\(" \
+    "$repo/src" --include='*.c' -l >/dev/null 2>&1
+}
+
 include_asm_present() {
   local func=$1
   local repo=${2:-$PWD}
@@ -584,13 +618,21 @@ try_permuter_poststep() {
 
   echo "Running permuter post-step for $func..." | tee -a "$LOG_FILE"
   local out st
+  # The redirection belongs to the python command. It used to sit on its own
+  # line after it, which bash parses as a second command - a bare "2>&1 | tee"
+  # with no input. The effect was that the permuter's entire output, stdout and
+  # stderr both, never reached the log, and st took the status of that empty
+  # pipeline instead of the permuter's, so a crash read as a clean no-hit.
+  # PERMUTER_HIT= still arrived via stdout, so no match was ever lost by this,
+  # but a give-up at 99.887% left no record of whether the permuter had run.
   out=$(
     cd "$repo" || exit 1
     python3 tools/vacuum_permute.py --func "$func" --scratch "$scratch" \
       --timeout "${VACUUM_PERMUTE_TIMEOUT:-360}" \
-      --jobs "${VACUUM_PERMUTE_JOBS:-0}"
-  2>&1 | tee -a "$LOG_FILE")
-  st=${PIPESTATUS[0]}
+      --jobs "${VACUUM_PERMUTE_JOBS:-0}" 2>&1
+  )
+  st=$?
+  printf '%s\n' "$out" >>"$LOG_FILE"
   if [[ $st -ne 0 ]]; then
     return 1
   fi
@@ -661,6 +703,24 @@ commit_match_if_needed() {
 
   git add -A -- "${MATCH_LAND_PATHS[@]}" 2>/dev/null || true
   if git diff --cached --quiet; then
+    # Nothing to stage. Two very different situations reach here, and calling
+    # both a failure cost a redundant port agent and a bogus give-up.
+    #
+    # Already landed: a shared body commits under one overlay's name, so the
+    # subject scan above cannot see it - a7162bb0 "matched func_mp5a5_8011D1E0"
+    # is what gave func_p229_8011D1DC its body. The port then "failed" twice on
+    # a function that was already matched.
+    #
+    # Nothing arrived: the fast-port checkout brought no content over. Here the
+    # caller must still run a port agent, which is what recovered Room_Draw29.
+    #
+    # A definition in src tells them apart; INCLUDE_ASM being absent does not.
+    if func_defined_in_src "$func" || func_promoted_alias "$func"; then
+      echo "$func is already matched here (landed by a sibling); nothing to commit" | tee -a "$LOG_FILE"
+      forget_difficult_entry "$func"
+      commit_difficult_list "cleared after $func matched"
+      return 2
+    fi
     echo "No staged match files to commit" | tee -a "$LOG_FILE"
     return 1
   fi
@@ -1147,7 +1207,22 @@ fast_port_from_worktree() {
     return 1
   fi
   echo "Fast-porting $func from worktree (trunk files unchanged since worktree base)" | tee -a "$LOG_FILE"
-  git -C "$ROOT" checkout "match/${func}" -- "${changed[@]}"
+  # Checked, because a silent failure here is indistinguishable downstream from
+  # a successful port: nothing lands, commit_match_if_needed finds nothing to
+  # stage, and the driver reports "no staged match files" with no hint that the
+  # copy itself never happened. Returning 1 is the existing "fast port skipped"
+  # contract, so the caller still falls back to a port agent.
+  #
+  # Not piped into tee: a pipeline reports the exit status of tee, so the test
+  # would always pass.
+  local co_out
+  if ! co_out=$(git -C "$ROOT" checkout "match/${func}" -- "${changed[@]}" 2>&1); then
+    echo "Fast port skipped: checkout of match/${func} failed: $co_out" | tee -a "$LOG_FILE"
+    return 1
+  fi
+  if [[ -n "$co_out" ]]; then
+    echo "$co_out" | tee -a "$LOG_FILE"
+  fi
   local st
   ( cd "$ROOT" && commit_match_if_needed "$func" "$scratch" )
   st=$?
