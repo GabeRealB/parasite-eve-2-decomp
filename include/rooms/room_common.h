@@ -326,6 +326,16 @@ void Room_Draw32(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// (inner). `arg1` scales `Display_State.field_8` into `rsin` so the lit vertex
 /// pulses as `rsin(...) / 34 + 0x78` on green and blue.
 void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// `Room_Draw05`'s tinted twin: same sixteen-wedge gouraud disc and two inner
+/// cross wedges, with the colour supplied instead of pulsed. `arg1` is the
+/// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
+/// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the tint into four nibbles,
+/// `[shift][r][g][b]`: each colour nibble is scaled to 8 bits by `<< 4`, and
+/// bit 0 of `Display_State.field_8` is added to all three channels shifted
+/// left by the top nibble, so the disc flickers on alternating frames. The
+/// outer ring draws at half brightness first and full brightness second; the
+/// inner cross uses the halved colour throughout.
+void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
 /// `arg0`'s world position (`workm.t` through `GsWSMATRIX`). `arg1` is the
 /// radius in world units (scaled by 64 and divided by the projected OTZ after

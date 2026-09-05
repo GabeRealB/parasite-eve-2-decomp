@@ -47963,3 +47963,78 @@ The cost is one config line: the second symbol has no name, so add
 regeneration -- `gen_overlay_imports.py` scans `src/<family>` for bare
 `D_<VRAM>` tokens as well as `asm/`, so a symbol referenced only from
 decompiled C is still emitted.
+
+## At a loop head the same reused local costs `dbr` the delay slot, and inlining it is the fix
+
+`Room_Draw15` is `Room_Draw05`'s tinted twin and its second loop is the same
+four-wedge body, so the seed carried `Room_Draw05`'s reused `u`:
+
+```c
+do {
+    u              = ang - 0x400;
+    prim           = (POLY_G4*)Gpu_PrimCursor;
+    ...
+    u        = ang + 0x400;   /* second use  */
+    ...
+    u        = ang + 0x800;   /* third use   */
+    ang      = u;
+} while (ang < 0x1000);
+```
+
+That stuck at 99.744% with `branch=2 insert=1` — the *only* remaining diff, one
+extra instruction:
+
+```
+/* target */                       /* ours */
+addiu s0, s4, -0x400        <loop  addiu s0, s4, -0x400   (leftover, preheader)
+lw    s2, %lo(Gpu_PrimCursor)(t1)  lui   t1, %hi(Gpu_PrimCursor)   <loop
+...                                lw    s2, %lo(Gpu_PrimCursor)(t1)
+bnez  v0, <loop>                   bnez  v0, <loop>
+lui   t1, %hi(Gpu_PrimCursor)      addiu s0, s4, -0x400
+```
+
+Both are `dbr` stealing the loop body's *first* insn into the back-edge delay
+slot and bumping the branch target by four, which leaves a copy of it above the
+label. Which insn that is decides everything. Steal the `addu` and its leftover
+is a real second instruction; steal the `lui` and the leftover is redundant with
+the `%hi` already loaded on the way in (here from loop 1's own delay slot), so
+`dbr` drops it and the count comes out even.
+
+So the goal is to get the `lui` scheduled ahead of the `addu` at the loop head,
+and — exactly as in "An insn that has to land between a `lui` and its `%lo`
+load needs a fresh local" — no amount of statement moving does it. `u = ang -
+0x400` before the fetch, after it, after `setRGB3`: `.sched2` lists `addu`,
+`high` and the load all at `priority = 1` and the tie-break puts the `addu`
+first every time, because `u` is assigned three times in the body and the
+scheduler credits the pseudo with the whole loop's worth of uses.
+
+`Room_Draw01` fixed its version by giving the offending value its own local.
+Here the opposite worked: drop `u` altogether and write the angles inline.
+
+```c
+prim->x0 = block->sx + ((block->rInner * rsin(ang - 0x400)) >> 13);
+prim->y0 = block->sy + ((block->rInner * rcos(ang - 0x400)) >> 13);
+...
+prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x400)) >> 13);
+...
+ang += 0x800;
+```
+
+CSE still materialises each offset once, but now as three single-assignment
+pseudos instead of one three-assignment local, the tie-break flips, and the
+function matches. When a sibling's local is inherited along with its loop body,
+try both directions: split it, and remove it.
+
+Two smaller pieces of the same match, both found by the permuter and both worth
+trying early on a `regs`-heavy prologue:
+
+- `blend = (blend & 1) << (packed >> 28);` as one statement kept 19 `regs`
+  penalties alive. Split into `blend = blend & 1;` then
+  `blend = blend << (packed >> 28);` and the whole prologue's allocation fell
+  into place (`regs=0`), including the `move t0, a2` that saves the third
+  argument out of `$a2` so `$a2` can be the scratch for `(s16)arg1`.
+- With that split in, three empty-`asm` pins the seed had inherited
+  (`SOFT_TOUCH_REG` on the scratch pointer, `SCHED_BARRIER()` before the first
+  radius store, `SOFT_USE_REG(arg1)`) were all unnecessary. Re-test inherited
+  pins after any change that moves the register allocation; a pin that was load
+  bearing for the seed is usually noise for the match.
