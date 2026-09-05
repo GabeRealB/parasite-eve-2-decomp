@@ -3,3 +3,5 @@ Room_Draw20 = 0x8017D714; // shared body, see src/rooms/lib/
 Room_Script02 = 0x8017D5D8; // shared body, see src/rooms/lib/
 RoomsShared8017db84Msgs = 0x8017DA1C; // shared body data, see src/rooms/lib/
 RoomsShared8017db84 = 0x8017D670; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017D6BC; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

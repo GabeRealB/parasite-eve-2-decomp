@@ -1,2 +1,4 @@
 // Overlay-local symbols for shelter_1f_guardroom.
 Room_Util03 = 0x8017D744; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017D880; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

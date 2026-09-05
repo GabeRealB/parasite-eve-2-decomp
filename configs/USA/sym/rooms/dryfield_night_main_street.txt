@@ -10,3 +10,5 @@ Room_Script14 = 0x8017DE78; // shared body, see src/rooms/lib/
 Room_Snd01 = 0x8017DEF0; // shared body, see src/rooms/lib/
 RoomsShared8017dfc8 = 0x8017DFC8; // shared body, see src/rooms/lib/
 Room_Script14Desc = 0x801820A4; // shared body data, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017E0C0; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5F4; // shared body data, see src/rooms/lib/

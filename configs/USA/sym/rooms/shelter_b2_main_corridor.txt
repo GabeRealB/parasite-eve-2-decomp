@@ -15,3 +15,5 @@ RoomsShared8017f9e4Pos2 = 0x801830C4; // shared body data, see src/rooms/lib/
 RoomsShared801802cc = 0x80181C98; // shared body, see src/rooms/lib/
 RoomsShared8017ef80 = 0x8018094C; // shared body, see src/rooms/lib/
 RoomsShared8017e690 = 0x8017EBF4; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017E338; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5F0; // shared body data, see src/rooms/lib/

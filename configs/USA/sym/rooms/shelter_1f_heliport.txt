@@ -1,2 +1,4 @@
 // Overlay-local symbols for shelter_1f_heliport.
 Room_Script23 = 0x80180594; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x80180768; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D710; // shared body data, see src/rooms/lib/

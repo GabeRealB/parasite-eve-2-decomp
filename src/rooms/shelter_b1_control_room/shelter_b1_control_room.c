@@ -22,4 +22,4 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room"
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", D_shelter_b1_control_room_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", D_shelter_b1_control_room_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", RoomsShared8017d878Table);

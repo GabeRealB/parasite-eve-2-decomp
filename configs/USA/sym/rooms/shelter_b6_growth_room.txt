@@ -1,3 +1,5 @@
 // Overlay-local symbols for shelter_b6_growth_room.
 Room_Draw13 = 0x8017E0A8; // shared body, see src/rooms/lib/
 Room_Util03 = 0x8017D5F0; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017D7D4; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

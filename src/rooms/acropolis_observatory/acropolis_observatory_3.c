@@ -1,266 +1,249 @@
 #include "common.h"
-
+#include "main/fs.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/wipsys.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
+#include "gameplay/gameplay.h"
 #include "rooms/acropolis_observatory.h"
+#include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
-/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `D_8007218A` picks which of the two weapon-id bases that record uses, and
-/// `D_80071075` / `D_80114C12` gate the scene's setup (the latter is the
-/// cutscene/among-us mode flag). `D_8007216D` is the field-actor mode byte the
-/// scene switches to 1 when it hands control back.
-extern u8 D_80073BA9;
-extern u8 D_80071075;
-extern u8 D_8007216D;
-extern s8 D_8007218A;
-extern s8 D_80114C12;
-
-/// One byte of gameplay state shared with the field actors; `Room_Util31` and
-/// `func_acropolis_observatory_8017D834` write it, and state 3 of the scene
-/// task below waits for it to reach 2.
+/// One byte of gameplay state shared with the field actors, latched here when
+/// the observatory task first runs during session phase 2 with nibble 0xCA
+/// still clear. See `Room_Util31`, which writes the same byte.
 extern s8 D_8011540A;
 
-/// Payloads the observatory scene task sends: `..._8017FE60` is the record
-/// slot-3 msg 0x3F4 takes, and `..._8017FE68` holds one `s16` per `step` -- the
-/// `field_4` the follow-up 0x3F4 record is sent with, or a negative value when
-/// that step sends nothing.
-extern s32 D_acropolis_observatory_8017FE60;
-extern s16 D_acropolis_observatory_8017FE68[];
+extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
+extern s32        D_acropolis_observatory_8017E7D8;
+extern TaskDesc   D_acropolis_observatory_8017E7DC;
+extern TaskDesc   D_acropolis_observatory_8017FE6C;
 
-/// Per-view spawn table for the observatory's ambient effect. Entry `i` of
-/// `D_acropolis_observatory_8017FEB8` is the bitmask of camera views that want
-/// effect `i`, tested against `1 << Gp_GetViewIndex()`; the matching entry of
-/// `D_acropolis_observatory_8017FE78` is the offset the effect is spawned at.
-extern SVECTOR D_acropolis_observatory_8017FE78[8];
-extern u16     D_acropolis_observatory_8017FEB8[8];
+/// Per-frame paths the two streamed scenes walk the player's matrix along,
+/// indexed by `CdCmd_Queue.field_1EA + 0xA8`, each with the script pair its
+/// scene runs.
+extern SVECTOR D_acropolis_observatory_8017E80C[];
+extern s32     D_acropolis_observatory_80183480;
+extern s32     D_acropolis_observatory_80183498;
 
-/// The observatory's scene task. State 0 allocates the `AobSceneWork` block,
-/// captures slot 3 in it and cues the scene with the 0x3F4 record at
-/// `D_acropolis_observatory_8017FE60`; it does nothing at all while the
-/// cutscene flag `D_80114C12` or `D_80071075` is set. States 1, 2 and 4 just
-/// tick, state 3 waits for the shared field-actor byte to reach 2 and arms
-/// `Gp_ArmStateF0`, state 5 republishes the player's weapon to slot 3 and puts
-/// the session back into field mode, and state 6 releases slot 3 (msg 0x3F1)
-/// and kills the task.
-///
-/// Every state then falls into the same tail: while slot 3 is idle (msg 0x3ED
-/// returns 0) the `step`th entry of `D_acropolis_observatory_8017FE68` is sent
-/// as a second 0x3F4 record, unless that entry is negative.
-void func_acropolis_observatory_8017E19C(Task* task)
+extern SVECTOR D_acropolis_observatory_8017F16C[];
+extern s32     D_acropolis_observatory_801834A0;
+extern s32     D_acropolis_observatory_801834B8;
+
+/// The observatory's second streamed-scene task: the same ride as
+/// `func_acropolis_observatory_8017DD3C`, walking the player's matrix along
+/// `D_acropolis_observatory_8017E80C` instead and ending on view index 2.
+/// State 0 allocates the `AobStreamWork` block, cues the stream (slot-6 msg
+/// 0xFA4), captures slot 3 and the player's coordinate matrix and republishes
+/// the player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the
+/// stream (`CdCmd_Queue::field_1FA`), starts the script pair and reparents
+/// this task under it. State 2 drives the ride, offering the pad prompt once
+/// and warping slot 3 when the prompt task reports back or frame 0xE6 passes.
+/// State 3 waits for slot 3 to go idle, releases it and records the view.
+/// State 4 stops the stream and kills the task.
+void func_acropolis_observatory_8017D9A8(Task* task)
 {
-    GpRec14       rec;
-    GpRec14       arg;
-    GpRec14*      msg;
-    AobSceneWork* work;
-    AobSceneWork* tail;
-    AobSceneWork* dest;
-    AobSceneWork* blk;
-    s16*          p;
-    u16           entry;
-    s32           temp;
-    s32           weaponId;
-    s32           id;
+    GpRec14        rec;
+    RoomPlacement  place;
+    s32            killed;
+    AobStreamWork* work;
+    AobStreamWork* blk;
+    AobStreamWork* dest;
+    CdCmdQueue*    queue;
+    s32            weaponId;
 
-    work = (AobSceneWork*)task->idMap;
+    queue = &CdCmd_Queue;
+    work  = (AobStreamWork*)task->idMap;
     switch (task->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
-                return;
-            }
-            blk         = Mem_Calloc(8, 0);
-            temp        = (blk == NULL);
+            blk         = Mem_Calloc(0x14, 0);
             task->idMap = (TaskIdMap*)blk;
-            if (temp) {
+            if (blk == NULL) {
                 Task_Kill(task);
-            } else {
-                Mem_Set(blk, 0, 8);
-                blk->target = Game_GetPtrSlot(3);
+                break;
             }
-            work = (AobSceneWork*)task->idMap;
-            if (work->target != NULL) {
-                rec.field_0  = (s32)&D_acropolis_observatory_8017FE60;
-                rec.field_4  = 1;
-                rec.field_8  = 0;
-                rec.field_C  = 0;
-                rec.field_10 = 1;
-                Gp_DispatchMsg(work->target, 0x3F4, (s32)&rec, 0);
-            }
-            D_8011540A = 0;
-            /* fallthrough */
-        case 1:
-        case 2:
-        case 4:
-            task->state = task->state + 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            ((AobStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
+            ((AobStreamWork*)task->idMap)->mtx    = Wip_SysConfig.field_4;
+            weaponId                              = Wip_SysConfig.field_21;
+            rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4                           = 1;
+            rec.field_8                           = 0;
+            rec.field_C                           = 0;
+            rec.field_10                          = 0;
+            Gp_DispatchMsg(((AobStreamWork*)task->idMap)->target, 0x3E8, (s32)&rec, 0);
+            func_800E9BDC(3, 0x9FF);
+            Gp_StateF0.field_4 = 1;
+            task->state        = task->state + 1;
             break;
-        case 3:
-            if (D_8011540A == 2) {
-                Gp_ArmStateF0(1);
+
+        case 1:
+            if (queue->field_1FA != 0) {
+                work->script             = Gp_SpawnScript18((s32)&D_acropolis_observatory_80183480,
+                                                            (s32)&D_acropolis_observatory_80183498);
+                Game_Session->field_13B |= 0x80;
+                Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
             break;
-        case 5:
-            weaponId     = D_80073BA9;
-            id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_0  = id;
-            rec.field_4  = 1;
-            rec.field_8  = 0;
-            rec.field_C  = 0;
-            rec.field_10 = 0;
-            Gp_DispatchMsg(work->target, 0x3E8, (s32)&rec, 0);
-            D_8007216D             = 1;
-            Game_Session->field_5  = 1;
-            Game_Session->field_76 = 1;
-            Game_Session->field_52 = 1;
-            task->state            = task->state + 1;
+
+        case 2:
+            work->mtx->t[0] = D_acropolis_observatory_8017E80C[queue->field_1EA + 0xA8].vx;
+            work->mtx->t[1] = D_acropolis_observatory_8017E80C[queue->field_1EA + 0xA8].vy;
+            work->mtx->t[2] = D_acropolis_observatory_8017E80C[queue->field_1EA + 0xA8].vz;
+            if (work->spawned != 0) {
+                if (Task_PollKill(work->child, &killed) != 0) {
+                    place.pos.vx = -0x968;
+                    place.pos.vy = -0xBAD;
+                    place.pos.vz = -0x6D4;
+                    place.rot.vz = 0;
+                    place.rot.vx = 0;
+                    place.rot.vy = 0x400;
+                    dest         = (AobStreamWork*)task->idMap;
+                    Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
+                    Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 3, 0, 0);
+                    task->state = task->state + 1;
+                    break;
+                }
+            } else if (Pad_CheckFlag800() != 0) {
+                work->child   = Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 2, 0, 0);
+                work->spawned = 1;
+            }
+            if ((queue->field_1EA + 0xA8) >= 0xE6) {
+                place.pos.vx = -0x968;
+                place.pos.vy = -0xBAD;
+                place.pos.vz = -0x6D4;
+                dest         = (AobStreamWork*)task->idMap;
+                Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
+                task->state = task->state + 1;
+            }
             break;
-        case 6:
-            Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+
+        case 3:
+            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
+                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+                Mc_SaveData.field_4 = Gp_FindViewIndex(2);
+                task->state         = task->state + 1;
+            }
+            break;
+
+        case 4:
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+            func_800E9BDC(2, 0x9FF);
+            Gp_StateF0.field_4       = 0;
+            Game_Session->field_13B &= 0x7F;
             Task_Kill(task);
             break;
     }
-
-    tail = (AobSceneWork*)task->idMap;
-    msg  = &arg;
-    if (tail->target != NULL && Gp_DispatchMsg(tail->target, 0x3ED, 0, 0) == 0) {
-        p     = &D_acropolis_observatory_8017FE68[tail->step];
-        temp  = *p;
-        entry = *p;
-        if (temp >= 0) {
-            dest = (AobSceneWork*)task->idMap;
-            if (dest->target != NULL) {
-                arg.field_0   = (s32)&D_acropolis_observatory_8017FE60;
-                arg.field_4   = entry;
-                msg->field_8  = 1;
-                msg->field_C  = 0xA;
-                msg->field_10 = 1;
-                Gp_DispatchMsg(dest->target, 0x3F4, (s32)msg, 0);
-            }
-        }
-    }
 }
 
-/// Draws the observatory's lens flare: the model's world position is projected
-/// through `GsWSMATRIX` into an `AobFlareScratch` block off `G_SCRATCH_HEAD`,
-/// and, when the `rtps` reports no error, the projected point becomes the
-/// centre of a semi-transparent `POLY_FT4` on tpage 0x2B. The depth used for
-/// both the size and the ordering-table slot is the raw `otz` pulled 0x40
-/// towards the camera and clamped to 0x10, so the flare stops growing once it
-/// is very close. The CLUT alternates between two palettes on odd and even
-/// frames, which is what makes the flare flicker.
-void func_acropolis_observatory_8017E424(Task* arg0)
+/// The observatory's streamed-scene task. State 0 allocates the
+/// `AobStreamWork` block, cues the stream (slot-6 msg 0xFA4), captures slot 3
+/// and the player's coordinate matrix in the block, and republishes the
+/// player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the stream
+/// to come up (`CdCmd_Queue::field_1FA`), then starts the script pair and
+/// reparents this task under it. State 2 drives the ride: every frame it moves
+/// the player's matrix to the `field_1EA`th entry of the path table, offers the
+/// pad prompt once (`Pad_CheckFlag800`, entry 2 of the room's task table) and,
+/// when the prompt task reports back, warps slot 3 with a 0x3E9 placement and
+/// spawns entry 3 instead; past frame 0xE6 it sends the same placement as a
+/// 0x3F2 and moves on either way. State 3 waits for slot 3 to go idle (msg
+/// 0x3F0), releases it (0x3F1) and records the view in the save. State 4 stops
+/// the stream (0xFA5), clears the scene flags and kills the task.
+void func_acropolis_observatory_8017DD3C(Task* task)
 {
-    void**           scratch;
-    u8*              head;
-    AobFlareScratch* blk;
-    POLY_FT4*        prim;
-    GsCOORDINATE2*   coord;
-    void*            mem;
-    u16              vz;
-    s16              x;
-    s16              y;
+    GpRec14        rec;
+    RoomPlacement  place;
+    s32            killed;
+    AobStreamWork* work;
+    AobStreamWork* blk;
+    AobStreamWork* dest;
+    CdCmdQueue*    queue;
+    s32            weaponId;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
-    mem   = arg0->spawnArg2;
-    Gp_UpdateCoord(coord);
-
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    blk         = (AobFlareScratch*)(head - sizeof(AobFlareScratch));
-    blk->pos.vx = *(u16*)&coord->workm.t[0];
-    blk->pos.vy = *(u16*)&coord->workm.t[1];
-    vz          = *(u16*)&coord->workm.t[2];
-    *scratch    = blk;
-    blk->pos.vz = vz;
-
-    {
-        SVECTOR* v = &blk->pos;
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(v);
-    }
-    gte_rtps_real();
-    gte_stsxy(&blk->sx);
-    gte_stflg(&blk->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(&blk->otz);
-        blk->otz -= 0x40;
-        if (blk->otz < 0x10) {
-            blk->otz = 0x10;
-        }
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = getClut(0xE0 + (u32)(Display_State.field_8 & 1) * 0x10, 0x10F);
-        prim->u0    = 0;
-        prim->v0    = 0xA0;
-        prim->u1    = 0x1F;
-        prim->v1    = 0xA0;
-        prim->u2    = 0;
-        prim->v2    = 0xBF;
-        prim->u3    = 0x1F;
-        prim->v3    = 0xBF;
-        blk->half   = 0x5D00 / blk->otz;
-        x           = blk->sx - (u16)blk->half;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = blk->sx + (u16)blk->half;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = blk->sy - (u16)blk->half;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = blk->sy + (u16)blk->half;
-        prim->y3    = y;
-        prim->y2    = y;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
-                prim);
-    }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AobFlareScratch);
-    Gp_ReleaseState1CMem(mem, arg0);
-}
-
-/// Re-spawns the observatory's ambient effects for the current camera view,
-/// one per entry whose view mask contains the active view. Skipped entirely
-/// once `Gp_State1C::field_4` has reached 4, i.e. once the room has faded out.
-void func_acropolis_observatory_8017E6F8(Task* task)
-{
-    GsCOORDINATE2* coord;
-    s32            mask;
-    s32            i;
-    SVECTOR*       vec;
-    u16*           flags;
-
-    coord = ((TmdObject*)task->extra)->field_8;
-    mask  = 1 << Gp_GetViewIndex();
-    if (Gp_State1C->field_4 < 4) {
-        i     = 0;
-        vec   = D_acropolis_observatory_8017FE78;
-        flags = D_acropolis_observatory_8017FEB8;
-        do {
-            if (*flags & mask) {
-                Gp_SpawnEff(0x60028, coord, 0, vec);
+    queue = &CdCmd_Queue;
+    work  = (AobStreamWork*)task->idMap;
+    switch (task->state) {
+        case 0:
+            blk         = Mem_Calloc(0x14, 0);
+            task->idMap = (TaskIdMap*)blk;
+            if (blk == NULL) {
+                Task_Kill(task);
+                break;
             }
-            vec++;
-            i++;
-            flags++;
-        } while (i < 8);
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            ((AobStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
+            ((AobStreamWork*)task->idMap)->mtx    = Wip_SysConfig.field_4;
+            weaponId                              = Wip_SysConfig.field_21;
+            rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4                           = 1;
+            rec.field_8                           = 0;
+            rec.field_C                           = 0;
+            rec.field_10                          = 0;
+            Gp_DispatchMsg(((AobStreamWork*)task->idMap)->target, 0x3E8, (s32)&rec, 0);
+            func_800E9BDC(3, 0x9FF);
+            Gp_StateF0.field_4 = 1;
+            task->state        = task->state + 1;
+            break;
+
+        case 1:
+            if (queue->field_1FA != 0) {
+                work->script             = Gp_SpawnScript18((s32)&D_acropolis_observatory_801834A0,
+                                                            (s32)&D_acropolis_observatory_801834B8);
+                Game_Session->field_13B |= 0x80;
+                Task_Reparent(task, work->script);
+                task->state = task->state + 1;
+            }
+            break;
+
+        case 2:
+            work->mtx->t[0] = D_acropolis_observatory_8017F16C[queue->field_1EA + 0xA8].vx;
+            work->mtx->t[1] = D_acropolis_observatory_8017F16C[queue->field_1EA + 0xA8].vy;
+            work->mtx->t[2] = D_acropolis_observatory_8017F16C[queue->field_1EA + 0xA8].vz + 0xC8;
+            if (work->spawned != 0) {
+                if (Task_PollKill(work->child, &killed) != 0) {
+                    place.pos.vx = -0x8F8;
+                    place.pos.vy = -0xBAD;
+                    place.pos.vz = -0x2936;
+                    place.rot.vz = 0;
+                    place.rot.vx = 0;
+                    place.rot.vy = 0x400;
+                    dest         = (AobStreamWork*)task->idMap;
+                    Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
+                    Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 3, 0, 0);
+                    task->state = task->state + 1;
+                    break;
+                }
+            } else if (Pad_CheckFlag800() != 0) {
+                work->child   = Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 2, 0, 0);
+                work->spawned = 1;
+            }
+            if ((queue->field_1EA + 0xA8) >= 0xE6) {
+                place.pos.vx = -0x8F8;
+                place.pos.vy = -0xBAD;
+                place.pos.vz = -0x2936;
+                dest         = (AobStreamWork*)task->idMap;
+                Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
+                task->state = task->state + 1;
+            }
+            break;
+
+        case 3:
+            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
+                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+                Mc_SaveData.field_4 = Gp_FindViewIndex(4);
+                task->state         = task->state + 1;
+            }
+            break;
+
+        case 4:
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+            func_800E9BDC(2, 0x9FF);
+            Gp_StateF0.field_4       = 0;
+            Game_Session->field_13B &= 0x7F;
+            Task_Kill(task);
+            break;
     }
 }

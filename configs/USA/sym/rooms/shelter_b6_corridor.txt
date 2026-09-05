@@ -1,3 +1,5 @@
 // Overlay-local symbols for shelter_b6_corridor.
 Room_Draw01 = 0x8017E360; // shared body, see src/rooms/lib/
 Room_Util15 = 0x8017E204; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017E144; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

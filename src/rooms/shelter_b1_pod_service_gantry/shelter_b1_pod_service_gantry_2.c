@@ -30,22 +30,6 @@ void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
     arg0->state += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017D89C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", jtbl_shelter_b1_pod_service_gantry_8017D5F0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017D8F4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017DF70);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017E400);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017E880);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017ED3C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017F160);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017F450);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017F8C8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", func_shelter_b1_pod_service_gantry_8017FA7C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", jtbl_shelter_b1_pod_service_gantry_8017D610);

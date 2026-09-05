@@ -21,4 +21,4 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", D_shelter_b1_south_maintenance_walkway_8017D5D8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", RoomsShared8017d878Table);

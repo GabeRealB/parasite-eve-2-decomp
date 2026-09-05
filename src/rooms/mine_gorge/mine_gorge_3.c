@@ -6,6 +6,4 @@ void func_mine_gorge_8017D998(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_gorge/mine_gorge_3", func_mine_gorge_8017D9A0);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_gorge/mine_gorge_3", func_mine_gorge_8017D9F8);
+INCLUDE_RODATA("rooms/nonmatchings/mine_gorge/mine_gorge_3", jtbl_mine_gorge_8017D5D0);

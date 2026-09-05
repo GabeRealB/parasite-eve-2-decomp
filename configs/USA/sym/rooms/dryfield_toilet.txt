@@ -11,3 +11,5 @@ Room_Util10 = 0x8017DC90; // shared body, see src/rooms/lib/
 Room_Util12 = 0x8017DC50; // shared body, see src/rooms/lib/
 Room_Util13 = 0x8017DCB0; // shared body, see src/rooms/lib/
 Room_Util24 = 0x8017DCD0; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017D9E4; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

@@ -23,4 +23,4 @@ s32 func_dryfield_g_r_kitchen_8017D950(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen", D_dryfield_g_r_kitchen_8017D5DC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen", RoomsShared8017d878Table);

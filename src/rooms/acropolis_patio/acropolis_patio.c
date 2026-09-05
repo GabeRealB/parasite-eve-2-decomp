@@ -191,4 +191,4 @@ s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)
 }
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", D_acropolis_patio_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", D_acropolis_patio_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", RoomsShared8017d878Table);

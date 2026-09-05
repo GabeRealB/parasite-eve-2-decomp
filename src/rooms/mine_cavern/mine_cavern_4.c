@@ -1,8 +1,8 @@
 #include "common.h"
+#include "gameplay/D4.h"
+extern GpAreaApplyRec D_mine_cavern_8018E32C;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_4", func_mine_cavern_8017E18C);
-
-void func_mine_cavern_8017E2D8(void)
+void func_mine_cavern_8017E15C(void)
 {
-    SndEvt_EnqueueType2(0, 0x64);
+    Gp_ApplyAreaRecs(&D_mine_cavern_8018E32C);
 }

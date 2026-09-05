@@ -1,47 +1,7 @@
 #include "common.h"
-extern void func_mine_cavern_80182454(void);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80181730);
+INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_8017FF88);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80181864);
+INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80180320);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80181CAC);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80181D80);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182184);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182454);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_8", D_mine_cavern_8017D65C);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801825C8);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182CEC);
-
-void func_mine_cavern_80182DA8(void)
-{
-    func_mine_cavern_80182454();
-}
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182DC8);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80182E34);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801830F0);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801836D0);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183860);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183890);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801838F4);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183A68);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183AD4);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_80183C10);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_8", jtbl_mine_cavern_8017D818);
+INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_801804CC);

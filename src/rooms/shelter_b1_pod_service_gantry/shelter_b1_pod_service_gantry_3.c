@@ -1,0 +1,22 @@
+#include "common.h"
+#include "main/fs.h"
+#include "gameplay/gameplay.h"
+extern void D_shelter_b1_pod_service_gantry_8017FAF4;
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017D8F4);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017DF70);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017E400);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017E880);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017ED3C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017F160);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017F450);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017F8C8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017FA7C);

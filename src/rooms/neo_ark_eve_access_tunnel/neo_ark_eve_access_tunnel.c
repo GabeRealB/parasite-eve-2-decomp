@@ -6,7 +6,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tun
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D810);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", D_neo_ark_eve_access_tunnel_8017D688);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D980);
 

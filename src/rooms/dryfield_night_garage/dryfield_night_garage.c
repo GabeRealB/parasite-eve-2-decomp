@@ -45,4 +45,4 @@ s32 func_dryfield_night_garage_80180358(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", D_dryfield_night_garage_8017D6FC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", RoomsShared8017d878Table);

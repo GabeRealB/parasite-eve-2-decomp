@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_8017F928);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", RoomsShared8017f10cSub);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", D_neo_ark_woodland_path_8017D638);
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", D_neo_ark_woodland_path_8017D648);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_4", func_neo_ark_woodland_path_8017F4A0);

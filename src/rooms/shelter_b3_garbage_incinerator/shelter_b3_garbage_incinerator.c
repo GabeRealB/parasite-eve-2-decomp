@@ -2,7 +2,7 @@
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", D_shelter_b3_garbage_incinerator_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", D_shelter_b3_garbage_incinerator_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017D6EC);
 
@@ -28,10 +28,4 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DC54);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DC7C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DCD4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DF24);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017E158);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", jtbl_shelter_b3_garbage_incinerator_8017D5E8);

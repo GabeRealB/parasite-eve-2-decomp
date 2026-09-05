@@ -45,4 +45,4 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", D_neo_ark_observatory_8017D698);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", RoomsShared8017d878Table);

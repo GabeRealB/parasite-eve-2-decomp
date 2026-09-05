@@ -41,7 +41,3 @@ void func_dryfield_night_motel_lobby_8017FDE8(void)
     }
     D_dryfield_night_motel_lobby_801844D4 = temp_v0;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_8017FE38);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_8017FE90);

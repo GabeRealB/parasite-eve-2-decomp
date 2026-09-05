@@ -22,6 +22,6 @@ s32 func_dryfield_night_water_tower_8017DAD4(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", D_dryfield_night_water_tower_8017D5DC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", jtbl_dryfield_night_water_tower_8017D5E8);

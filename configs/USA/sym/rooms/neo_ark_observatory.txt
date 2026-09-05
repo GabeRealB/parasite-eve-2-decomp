@@ -1,3 +1,5 @@
 // Overlay-local symbols for neo_ark_observatory.
 Room_Draw13 = 0x80180A0C; // shared body, see src/rooms/lib/
 Room_Util06 = 0x8017FBE0; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017FDDC; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D698; // shared body data, see src/rooms/lib/

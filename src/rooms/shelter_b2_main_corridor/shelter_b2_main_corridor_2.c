@@ -22,10 +22,4 @@ void func_shelter_b2_main_corridor_8017E330(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017E338);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017E390);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", func_shelter_b2_main_corridor_8017EB8C);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", jtbl_shelter_b2_main_corridor_8017D67C);

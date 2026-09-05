@@ -10,8 +10,6 @@ extern s32 D_mine_forked_tunnel_801834F4;
 
 void func_mine_forked_tunnel_8017E48C(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_4", func_mine_forked_tunnel_8017E25C);
-
 void func_mine_forked_tunnel_8017E2B4(void)
 {
     SndEvt_EnqueueTypeA(0x54070005, 0, 0);

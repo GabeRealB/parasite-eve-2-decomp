@@ -10,4 +10,4 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_gene
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DAF0);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", D_dryfield_night_general_store_8017D5F4);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", RoomsShared8017d878Table);

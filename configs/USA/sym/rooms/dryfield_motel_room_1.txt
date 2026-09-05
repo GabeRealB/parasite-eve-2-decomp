@@ -1,1 +1,3 @@
 // Overlay-local symbols for dryfield_motel_room_1.
+RoomsShared8017d878 = 0x8017D754; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

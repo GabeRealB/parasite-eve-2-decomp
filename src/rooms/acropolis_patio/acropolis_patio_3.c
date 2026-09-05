@@ -2,8 +2,6 @@
 
 extern u8 D_801153F4;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_3", func_acropolis_patio_8017DF8C);
-
 void func_acropolis_patio_8017DFE4(s32 arg0)
 {
     if (arg0 != 0) {

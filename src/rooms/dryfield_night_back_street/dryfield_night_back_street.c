@@ -24,4 +24,4 @@ s32 func_dryfield_night_back_street_8017D734(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", D_dryfield_night_back_street_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", D_dryfield_night_back_street_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_back_street/dryfield_night_back_street", RoomsShared8017d878Table);

@@ -15,9 +15,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_s
 void func_dryfield_night_main_street_8017E0B8(void)
 {
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_2", func_dryfield_night_main_street_8017E0C0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_2", func_dryfield_night_main_street_8017E118);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_2", func_dryfield_night_main_street_8017E484);

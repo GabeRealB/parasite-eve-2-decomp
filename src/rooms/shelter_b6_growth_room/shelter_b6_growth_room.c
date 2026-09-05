@@ -33,10 +33,8 @@ void func_shelter_b6_growth_room_8017D7CC(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", D_shelter_b6_growth_room_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", func_shelter_b6_growth_room_8017D7D4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", func_shelter_b6_growth_room_8017D82C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", func_shelter_b6_growth_room_8017D9D8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", jtbl_shelter_b6_growth_room_8017D5D0);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", D_shelter_b6_growth_room_8017D5E8);

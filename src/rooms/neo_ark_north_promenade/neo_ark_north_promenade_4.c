@@ -1,7 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017F2E0);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017E164);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017FCA0);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017E4F8);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017FDD4);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017E890);
+
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade_4", func_neo_ark_north_promenade_8017EA3C);

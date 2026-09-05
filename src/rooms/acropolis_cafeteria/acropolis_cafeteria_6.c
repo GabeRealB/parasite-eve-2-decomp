@@ -1,91 +1,104 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
-#include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gameflag.h"
+#include "main/fs.h"
+#include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
+#include "main/stream.h"
 #include "main/task.h"
-#include "main/tmd.h"
 
-#include <psyq/libgs.h>
+extern void Stage_RequestFromAreaTable(s32 arg0);
 
-extern s8  D_8007106B;
-extern s32 D_8011572C;
-extern s32 D_80115750;
-extern s32 D_80115758;
+extern GpMsgEntry D_acropolis_cafeteria_80182AA8[];
+extern GpObj4A    D_acropolis_cafeteria_80189490[];
+extern s32        D_acropolis_cafeteria_80182DDC;
 
-extern GpMsgEntry D_acropolis_cafeteria_80184CEC[];
+extern TaskFuncTable3 RoomsShared8017d878Table;
 
-extern TaskDesc D_acropolis_cafeteria_80184178;
-extern s32      D_acropolis_cafeteria_80184CFC;
-
-void func_acropolis_cafeteria_8017E6B8(Task* arg0)
+void func_acropolis_cafeteria_8017E47C(Task* arg0)
 {
-    Display_SpawnWithOt(&D_acropolis_cafeteria_80184178, 2, 0, 0);
-    D_8007106B = 1;
-    Gp_SpawnViewTasks();
-    Task_Kill(arg0);
-}
+    u8          slotParam[4];
+    GBytes8     key;
+    CdCmdQueue* queue;
+    Task*       task;
 
-void func_acropolis_cafeteria_8017E708(Task* task)
-{
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+        case 5:
+            goto L_case5;
+    }
+    return;
 
-    work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
-    if (task->state != 0) {
+L_case0:
+    SetDispMask(0);
+    Mem_AllocAuxWithImages(1);
+    goto advance;
+
+L_case1:
+    key          = ((SessionBytesAt4*)Game_Session)->field_4;
+    key.data[0]  = 0x64;
+    slotParam[0] = Stream_FindSlot(key.data, 0, 0);
+    CdCmd_Enqueue(0x61, 0, slotParam);
+    goto advance;
+
+L_case2:
+    if (queue->field_1FA == 0) {
         return;
     }
-    task->field_24 = D_acropolis_cafeteria_80184CEC;
-    Game_SetPtrSlot(task, 5);
-    vec                            = (SVECTOR*)&work->field_10;
-    D_acropolis_cafeteria_80184CFC = 0;
-    work->field_10                 = 0x220;
-    work->field_12                 = -0x12C;
-    work->field_14                 = -0x6A0;
-    Gp_SpawnEff(0x60064, coord, 0, vec);
-    work->field_10 = 0x400;
-    work->field_12 = -0x12C;
-    work->field_14 = -0x260;
-    Gp_SpawnEff(0x60064, coord, 0, vec);
-    work->field_10 = 0x370;
-    work->field_12 = -0x12C;
-    work->field_14 = -0x860;
-    Gp_SpawnEff(0x60064, coord, 0, vec);
-    task->state    = task->state + 1;
-    work->field_10 = 0xBB8;
-    work->field_12 = -0x834;
-    work->field_14 = -0x7D0;
-    Gp_SpawnEff(0x60064, coord, 1, vec);
-    work->field_10 = 0xB22;
-    work->field_12 = -0x834;
-    work->field_14 = -0x900;
-    Gp_SpawnEff(0x60064, coord, 1, vec);
-    D_80115758 = 0x6028D;
-    D_8011572C = 0x6028E;
-    D_80115750 = 0x6028F;
-}
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017E89C);
+    SetDispMask(1);
+    task->killCountdown = 0;
+    task->spawnArg1     = 0;
+    task->state         = task->state + 1;
+    return;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017EA90);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", func_acropolis_cafeteria_8017F390);
-
-s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    GsCOORDINATE2* coord;
-
-    coord                          = ((TmdObject*)task->extra)->field_8;
-    D_acropolis_cafeteria_80184CFC = arg2;
-    if (arg2 != 0) {
-        Gp_SpawnEff(0x6009D, coord, 0, NULL);
+L_case3:
+    if (++task->killCountdown == 0x443) {
+        Stage_RequestFromAreaTable(0);
+        task->spawnArg1 = 1;
     }
-    return 0;
-}
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", D_acropolis_cafeteria_8017D69C);
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        SetDispMask(0);
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    SetDispMask(0);
+    CdCmd_ActivatePhase1();
+    goto advance;
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_6", D_acropolis_cafeteria_8017D6AC);
+L_case4:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    Stream_ResetRestoreState();
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case5:
+    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+        return;
+    }
+    if (task->spawnArg1 == 0) {
+        Stage_RequestFromAreaTable(0);
+    }
+    Task_Kill(task);
+    Display_ResetHeapWrapper();
+}

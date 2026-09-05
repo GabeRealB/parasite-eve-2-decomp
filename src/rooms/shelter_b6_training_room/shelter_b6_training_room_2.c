@@ -5,11 +5,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D7D4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D874);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D8E8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D940);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D974);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D9C8);

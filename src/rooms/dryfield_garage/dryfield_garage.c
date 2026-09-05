@@ -8,4 +8,4 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage", func_dryfield_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage", func_dryfield_garage_8017D8BC);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_garage/dryfield_garage", D_dryfield_garage_8017D5DC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_garage/dryfield_garage", RoomsShared8017d878Table);

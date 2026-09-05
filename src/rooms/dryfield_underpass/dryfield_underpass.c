@@ -4,4 +4,4 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_underpass/dryfield_underpass", func_dry
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_underpass/dryfield_underpass", D_dryfield_underpass_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_underpass/dryfield_underpass", D_dryfield_underpass_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_underpass/dryfield_underpass", RoomsShared8017d878Table);

@@ -1,20 +1,10 @@
 #include "common.h"
 
-#include "main/task.h"
+#include "main/session.h"
 
-extern Task* D_mine_mesa_80189B54;
-extern Task* D_mine_mesa_80189B58;
-extern Task* RoomsShared8017e8a8Task;
-
-void func_mine_mesa_8017EB38(void)
+void func_mine_mesa_8017EAAC(void)
 {
-    D_mine_mesa_80189B54    = NULL;
-    D_mine_mesa_80189B58    = NULL;
-    RoomsShared8017e8a8Task = NULL;
+    Game_Session->field_52 = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_8", func_mine_mesa_8017EB54);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_8", func_mine_mesa_8017ED08);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa_8", D_mine_mesa_8017D624);
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_8", func_mine_mesa_8017EAC0);

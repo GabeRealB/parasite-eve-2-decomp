@@ -12,4 +12,4 @@ s32 func_shelter_r37_8017D624(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r37/shelter_r37", D_shelter_r37_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r37/shelter_r37", D_shelter_r37_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r37/shelter_r37", RoomsShared8017d878Table);

@@ -1,352 +1,112 @@
 #include "common.h"
 
+#include <psyq/stdio.h>
+
 #include "gameplay/1A8.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/mem.h"
-#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/acropolis_security_room.h"
 #include "rooms/room_common.h"
 
+extern Task* D_acropolis_security_room_801855A8;
+extern Task* D_acropolis_security_room_801855AC;
+
+extern GpMsgEntry D_acropolis_security_room_801825DC[];
+extern TaskDesc   D_acropolis_security_room_80182618;
+extern TaskDesc   D_acropolis_security_room_8018263C;
+
+/// The five camera ids the security monitor can display, in the order the
+/// `GameFlag_GetNibble(0x2A)` nibble indexes them (see
+/// `func_acropolis_security_room_8017D9DC`, which seeds `AsrMonitorWork::cameraId`
+/// from this table).
+extern s16 D_acropolis_security_room_801826B4[];
+
 /// The security monitor's own hotspot table, hit-tested by
 /// `func_acropolis_security_room_8017ECB4`.
 extern AsrHotspot D_acropolis_security_room_80182648[];
 
-/// The five camera ids the security monitor can display, in the order the
-/// `GameFlag_GetNibble(0x2A)` nibble indexes them.
-extern s16 D_acropolis_security_room_801826B4[];
+extern s8 D_8007216C;
 
-extern s8  D_8007216C;
-extern s16 D_80114D08;
+s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
 
-/// States of the security-monitor task, dispatched by
-/// `func_acropolis_security_room_8017ED68`. Defined in the previous unit,
-/// which owns the `.rodata` it sits in.
-extern const AsrMonitorStateTable AsrMonitorStates;
-
-void func_acropolis_security_room_8017E0C4(s16 id);
-void func_acropolis_security_room_8017E37C(Task* task);
-void func_acropolis_security_room_8017E490(Task* task);
-void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant);
-s32  func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
-void func_acropolis_security_room_8017EDE4(Task* task);
-
-/// Per-frame cursor driver of the security-room action prompt, run as state 1
-/// of `func_acropolis_security_room_8017E9D8`. Byte-for-byte the same body as
-/// `func_acropolis_security_room_8017F480` in the cap script.
-///
-/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
-/// 2 port 1 only, anything else both. For each port it integrates the analog
-/// stick (pad status 0x12 reads it linearly, 0x73 squares it for a dead-zone
-/// curve) and then the d-pad -- whose four bits select one of eight
-/// 1/16-of-a-turn headings fed to `rsin`/`rcos` -- into the prompt's
-/// 1/512-pixel position, clamps that to the screen, classifies the confirm
-/// (0x40) and cancel (0xA0) buttons into the prompt's two button slots, and
-/// finally hands the rounded position to `func_acropolis_security_room_8017E8F0`
-/// to draw the cursor. `RoomActionPrompt::targetId` doubles as the cursor speed
-/// here and `field_E` as the double-press window: a second press inside that
-/// many frames without the cursor having moved reports state 4 instead of 2.
-///
-/// `step` carries the analog delta first and the d-pad heading afterwards, and
-/// `idx` indexes the button slots in `u16` units so that `i` survives as the
-/// loop counter.
-void func_acropolis_security_room_8017E490(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               status;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
-
-    switch (task->spawnArg1) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt = &D_80114D28 + port;
-        pad    = (PadState*)&Pad_States[port];
-        status = pad->status;
-        if (status == 0x12) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->field_54 << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * Display_State.field_10a;
-            step             = ((u16)pad->field_56 << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * Display_State.field_10a;
-        } else if (status == 0x73) {
-            stick = pad->field_54;
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * Display_State.field_10a;
-            stick            = pad->field_56;
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * Display_State.field_10a;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * Display_State.field_10a) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * Display_State.field_10a) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons[0].state;
-        heldp  = &prompt->buttons[0].heldFrames;
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                           = 0;
-                    ((RoomActionPromptScreen*)(heldp + idx + 1))->packed = prompt->screen.packed;
-                    *statep                                              = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += Display_State.field_10a;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_acropolis_security_room_8017E8F0(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017E8F0);
-
-/// Two-state dispatcher whose handler table is built on the stack rather than
-/// read from `.data`: state 0 runs `func_acropolis_security_room_8017EDE4` and
-/// state 1 runs `func_acropolis_security_room_8017E490`.
-void func_acropolis_security_room_8017E9D8(Task* task)
-{
-    TaskFunc funcs[2] = {
-        func_acropolis_security_room_8017EDE4,
-        func_acropolis_security_room_8017E490,
-    };
-
-    funcs[task->state](task);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017EA28);
-
-/// Confirms the camera the player picked on the security monitor: clears the
-/// action prompt, redraws the panel for the selected camera plus its cursor
-/// overlay, spawns the prompt at the panel's coordinates and advances the task.
-void func_acropolis_security_room_8017EA5C(Task* task)
-{
-    RoomActionPrompt* prompt = &D_80114D28;
-    AsrMonitorWork*   work   = (AsrMonitorWork*)task->idMap;
-
-    prompt->mode     = 0;
-    prompt->targetId = 0;
-    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
-    func_acropolis_security_room_8017E37C(task);
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
-}
-
-/// Leaves the security monitor: records which camera was on screen as the
-/// `0x2A` nibble (index into `D_acropolis_security_room_801826B4`, 0 if the id
-/// is not in the table), restores the room's normal display state and kills the
-/// monitor task along with the child task it spawned.
-void func_acropolis_security_room_8017EADC(Task* task)
+/// Entry state of the security-monitor task: allocates the `AsrMonitorWork`
+/// block into the `Task::idMap` slot, spawns the monitor's companion task,
+/// seeds `cameraId` from the `GameFlag_GetNibble(0x2A)` camera table, and picks
+/// the next state from the `GameFlag_GetNibble(1)` progress nibble (state+1 and
+/// prompt kind 8 before chapter 3, state 6 and prompt kind 5 after). Finally it
+/// clears every hotspot's `hit` flag so the first hit test starts clean.
+void func_acropolis_security_room_8017D9DC(Task* task)
 {
     AsrMonitorWork* work;
-    s16*            camera;
-    s32             index;
-    s32             cameraId;
+    AsrHotspot*     hs;
+    s16             flag;
+    s32             state;
+    s16             stateElse;
 
-    index      = 0;
-    camera     = D_acropolis_security_room_801826B4;
-    work       = (AsrMonitorWork*)task->idMap;
-    D_80114D08 = 0xA;
-    cameraId   = (s16)work->cameraId;
-loop:
-    if (cameraId != *camera) {
-        index  += 1;
-        camera += 1;
-        if (index >= 5) {
-            GameFlag_SetNibble(0x2A, 0);
-            goto done;
-        }
-        goto loop;
-    }
-    GameFlag_SetNibble(0x2A, index);
-done:
-    D_8007216C = 4;
-    Display_ReleaseRef();
-    Game_Session->field_66 = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_1  = 0;
-    Task_Kill((Task*)task->spawnArg2);
-    Task_RequestKill(task, 0);
-}
-
-/// Idle state of the security monitor: hit-tests the action cursor against the
-/// monitor's hotspot table and mirrors the result into the room's action
-/// prompt. A hit that the player confirms (`buttons[0].state == 2`) on a raised hotspot
-/// clears the prompt and runs cap command 0xE; `buttons[1].state == 2` leaves the
-/// monitor by advancing to state 5.
-void func_acropolis_security_room_8017EB9C(Task* task)
-{
-    RoomActionPrompt* prompt  = &D_80114D28;
-    AsrHotspot*       hotspot = D_acropolis_security_room_80182648;
-
-    Game_Session->field_68 = 1;
-    Game_Session->field_1  = 1;
-    if (Gp_CapBusy() != 0) {
-        prompt->mode     = 0;
-        prompt->targetId = 0;
+    work = (AsrMonitorWork*)Mem_Calloc(sizeof(AsrMonitorWork), 0);
+    if (work == NULL) {
+        Task_Kill(task);
         return;
     }
-    prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
-            for (; hotspot->id != -1; hotspot++) {
-                if (hotspot->hit != 0) {
-                    prompt->mode     = 0;
-                    prompt->targetId = 0;
-                    Gp_RunCapCmd(0xE, 0);
-                    return;
-                }
-            }
-        }
+    task->spawnArg2  = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
+    task->idMap      = (TaskIdMap*)work;
+    work->blinkTimer = 0;
+    stateElse        = 6;
+    flag             = GameFlag_GetNibble(0x2A);
+    if ((u16)flag < 5) {
+        work->cameraId = D_acropolis_security_room_801826B4[flag];
     } else {
-        prompt->mode = 1;
+        work->cameraId = D_acropolis_security_room_801826B4[0];
     }
-    if (prompt->buttons[1].state == 2) {
-        task->state = 5;
+    if (GameFlag_GetNibble(1) < 3) {
+        D_8007216C = 8;
+        /* Without this the scheduler hoists the `task->state` load above the
+           `D_8007216C` byte store to fill its load-delay slot. */
+        SOFT_BARRIER();
+        state = task->state;
+        state++;
+    } else {
+        D_8007216C = 5;
+        state      = stateElse;
+    }
+    task->state = state;
+    Display_AcquireRef();
+    Game_Session->field_68 = 1;
+    Game_Session->field_66 = 1;
+    Game_Session->field_1  = 1;
+    hs                     = D_acropolis_security_room_80182648;
+    if (hs->id != -1) {
+        do {
+            hs->hit = 0;
+            hs++;
+        } while (hs->id != -1);
     }
 }
 
-/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
-/// hotspot table `table`, raising `hit` on every entry whose rectangle
-/// contains the point and clearing it on every other one. Returns non-zero if
-/// any entry was hit, so `func_acropolis_security_room_8017EB9C` can tell
-/// "cursor is over something" from "cursor is over nothing" without rescanning
-/// the table. Same body as `func_acropolis_security_room_8017FCB0`.
-s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y)
+/// Runs the hotspot-hit state of the security monitor: redraws the panel and
+/// cursor, then hit-tests the action cursor against the room's hotspot table.
+/// A miss leaves the prompt highlighted (`mode` 1); a hit with the prompt
+/// confirmed (`buttons[0].state` 2) scans the table for the raised entry and hands its
+/// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
+/// task advances to state 5 once the prompt has been dismissed.
+void func_acropolis_security_room_8017DB30(Task* task)
 {
-    s32 hit;
+    AsrMonitorWork*   work;
+    AsrHotspot*       hs;
+    RoomActionPrompt* prompt;
 
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
-
-/// Runs the security monitor's current state. The seven handlers are copied
-/// onto the stack first, so the call goes through a local table rather than
-/// through `.rodata`.
-void func_acropolis_security_room_8017ED68(Task* task)
-{
-    TaskFuncTable7 sp;
-
-    sp = AsrMonitorStates.states;
-    sp.funcs[task->state](task);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017EDE4);
-
-/// Idle state of the security room's cap script: the same hotspot scan
-/// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
-/// the script's own table and with the hit recorded in the script's state
-/// block instead of dispatched as a cap command. A confirmed
-/// (`buttons[0].state == 2`) hit copies the hotspot's `id` and `promptKind` into the
-/// state block and advances to state 3; with nothing under the cursor the
-/// pending sub-step is cleared and the prompt merely highlights (`mode` 1).
-/// `buttons[1].state == 2` leaves the scan by advancing to state 5.
-void func_acropolis_security_room_8017EE44(Task* task)
-{
-    RoomActionPrompt*           prompt = &D_80114D28;
-    AsrHotspot*                 hs     = D_acropolis_security_room_801826DC;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
-
+    hs     = D_acropolis_security_room_80182648;
+    prompt = &D_80114D28;
+    work   = (AsrMonitorWork*)task->idMap;
+    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E37C(task);
     Game_Session->field_68 = 1;
     Game_Session->field_1  = 1;
     if (Gp_CapBusy() != 0) {
@@ -355,22 +115,22 @@ void func_acropolis_security_room_8017EE44(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_acropolis_security_room_8017ECB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
-        if (prompt->buttons[0].state == 2) {
-            for (; hs->id != -1; hs++) {
+        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
+            do {
                 if (hs->hit != 0) {
                     prompt->mode     = 0;
                     prompt->targetId = 0;
-                    st->variant      = hs->id;
-                    st->promptKind   = hs->promptKind;
+                    work->selection  = hs->id;
+                    work->promptKind = hs->promptKind;
                     task->state      = 3;
                     return;
                 }
-            }
+                hs++;
+            } while (hs->id != -1);
         }
     } else {
-        st->field_0  = 0;
         prompt->mode = 1;
     }
     if (prompt->buttons[1].state == 2) {
@@ -378,4 +138,253 @@ void func_acropolis_security_room_8017EE44(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", D_acropolis_security_room_8017D63C);
+/// Runs the camera-list state of the security monitor: mirrors the highlighted
+/// row into `Mc_SaveData.field_4` (with a click), scrolls the panel by a page
+/// when the row is one of the two 0x8000/0x8001 scroll commands, and fires the
+/// two one-shot cap sequences the room gates on the `0xA` game-flag nibble.
+/// Then redraws the panel plus cursor overlay and advances to state 2.
+void func_acropolis_security_room_8017DC7C(Task* task)
+{
+    AsrMonitorWork* work;
+    McSaveData*     save;
+    s32             sfx;
+    s16             sel;
+    u16             usel;
+
+    work                = (AsrMonitorWork*)task->idMap;
+    D_80114D28.mode     = 0;
+    D_80114D28.targetId = 0;
+    if (func_800D4EC0() != 0) {
+        sel = work->selection;
+        if (sel >= 0) {
+            save = &Mc_SaveData;
+            if (save->field_4 != sel) {
+                save->field_4 = work->selection;
+                SndEvt_EnqueueType6(0x51060003, 0, 0);
+                if ((work->selection == 0xA) && !(GameFlag_GetNibble(0xA) & 2)) {
+                    work->field_7 = 1;
+                }
+            }
+        }
+        usel = work->selection;
+        if (usel == 0x8000) {
+            if (((s16)work->cameraId + 0x3E) < 0xFE) {
+                work->cameraId += 0x3E;
+                sfx             = 0x51060006;
+                goto play;
+            }
+        } else if (usel == 0x8001) {
+            if (((s16)work->cameraId - 0x3E) > 0) {
+                work->cameraId -= 0x3E;
+                sfx             = 0x51060007;
+            play:
+                SndEvt_EnqueueType6(sfx, 0, 0);
+            }
+        }
+        if (((u8)D_8007216C == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
+            Gp_StartCapSlot(0xD, 0, 0);
+            GameFlag_SetNibble(0xA, GameFlag_GetNibble(0xA) | 1);
+        }
+        if (((u8)D_8007216C == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
+            (work->field_8 == 0) && (GameFlag_GetNibble(0x102) == 0)) {
+            Gp_StartCapSlot(0xC, 0, 0);
+            work->field_8 = 1;
+        }
+    }
+    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E37C(task);
+    task->state = 2;
+}
+
+/// Outlines `rect` on screen in the colour (`r`, `g`, `b`) with four
+/// unconnected flat lines -- top, right, bottom and left edge of the rectangle
+/// spanning (`x`, `y`) to (`x + w`, `y + h`) -- each linked into
+/// `Gpu_CurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
+/// drawer for the hotspot rectangles.
+void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
+{
+    LINE_F2* line;
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 3, line);
+}
+
+/// Washes the security-monitor panel with the grey level `id` -- the work
+/// block's `cameraId` biased by -0x7F -- as a semi-transparent `POLY_F4`
+/// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `Gpu_CurrentOt[0xC]`, followed by
+/// the drawing-mode packet that restores the panel's texture page. A negative
+/// `id` uses its magnitude and the other semi-transparency rate (0xE100004A
+/// rather than 0xE100002A), which is what makes the "no signal" panel read
+/// differently from a live camera. The strip below the panel (y 0x3C to 0x38)
+/// is then blacked out with an opaque quad in `Gpu_CurrentOt[0xB]`.
+void func_acropolis_security_room_8017E0C4(s16 id)
+{
+    POLY_F4* poly;
+    DR_MODE* dr;
+    u16      c;
+
+    if (id >= 0) {
+        c              = id & 0x7F;
+        poly           = (POLY_F4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setlen(poly, 5);
+        setcode(poly, 0x2A);
+        poly->r0 = c;
+        poly->g0 = c;
+        poly->b0 = c;
+        poly->x0 = -0x66;
+        poly->y0 = -0x5F;
+        poly->x1 = 0x6C;
+        poly->y1 = -0x5F;
+        poly->x2 = -0x66;
+        poly->y2 = 0x3C;
+        poly->x3 = 0x6C;
+        poly->y3 = 0x3C;
+        addPrim(Gpu_CurrentOt + 0xC, poly);
+
+        dr             = (DR_MODE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+        setlen(dr, 1);
+        dr->code[0] = 0xE100002A;
+        addPrim(Gpu_CurrentOt + 0xC, dr);
+    } else {
+        c              = (~id + 1) & 0xFF;
+        poly           = (POLY_F4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setlen(poly, 5);
+        setcode(poly, 0x2A);
+        poly->r0 = c;
+        poly->g0 = c;
+        poly->b0 = c;
+        poly->x0 = -0x66;
+        poly->y0 = -0x5F;
+        poly->x1 = 0x6C;
+        poly->y1 = -0x5F;
+        poly->x2 = -0x66;
+        poly->y2 = 0x3C;
+        poly->x3 = 0x6C;
+        poly->y3 = 0x3C;
+        addPrim(Gpu_CurrentOt + 0xC, poly);
+
+        dr             = (DR_MODE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+        setlen(dr, 1);
+        dr->code[0] = 0xE100004A;
+        addPrim(Gpu_CurrentOt + 0xC, dr);
+    }
+
+    poly           = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    setlen(poly, 5);
+    setcode(poly, 0x28);
+    poly->r0 = 0;
+    poly->g0 = 0;
+    poly->b0 = 0;
+    poly->x0 = -0x66;
+    poly->y0 = 0x3C;
+    poly->x1 = 0x6C;
+    poly->y1 = 0x3C;
+    poly->x2 = -0x66;
+    poly->y2 = 0x38;
+    poly->x3 = 0x6C;
+    poly->y3 = 0x38;
+    addPrim(Gpu_CurrentOt + 0xB, poly);
+
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    setlen(dr, 1);
+    dr->code[0] = 0xE100000A;
+    addPrim(Gpu_CurrentOt + 0xB, dr);
+}
+
+/// Draws the blinking cursor overlay on top of the monitor panel: a 0x6C-wide
+/// grey `TILE` whose top edge and height both track `AsrMonitorWork::blinkTimer`,
+/// followed by the drawing-mode packet that restores the panel's texture page.
+/// The timer wraps at 0x97, which is what makes the bar sweep and restart.
+void func_acropolis_security_room_8017E37C(Task* task)
+{
+    AsrMonitorWork* work;
+    TILE*           tile;
+    DR_MODE*        dr;
+    s16             y;
+
+    tile           = (TILE*)Gpu_PrimCursor;
+    work           = (AsrMonitorWork*)task->idMap;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    setlen(tile, 3);
+    setcode(tile, 0x42);
+    tile->r0 = 0x60;
+    tile->g0 = 0x60;
+    tile->b0 = 0x60;
+    tile->x0 = -0x66;
+    tile->w  = 0x6C;
+    y        = work->blinkTimer - 0x5F;
+    tile->h  = y;
+    tile->y0 = y;
+    addPrim(Gpu_CurrentOt + 0xE, tile);
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    setlen(dr, 1);
+    dr->code[0] = 0xE100000A;
+    addPrim(Gpu_CurrentOt + 0xE, dr);
+    work->blinkTimer++;
+    if (work->blinkTimer >= 0x97) {
+        work->blinkTimer = 0;
+    }
+}
+
+void func_acropolis_security_room_8017DB30(Task* task);
+void func_acropolis_security_room_8017DC7C(Task* task);
+void func_acropolis_security_room_8017EA28(Task* task);
+void func_acropolis_security_room_8017EA5C(Task* task);
+void func_acropolis_security_room_8017EADC(Task* task);
+void func_acropolis_security_room_8017EB9C(Task* task);
+
+/// States of the security-monitor task, dispatched by
+/// `func_acropolis_security_room_8017ED68`: set up the work block, run the
+/// camera list, redraw the panel, confirm a camera, and leave the monitor.

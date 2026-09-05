@@ -10,7 +10,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corrido
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017DC88);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", D_shelter_b2_main_corridor_8017D5F0);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017DEB0);
 

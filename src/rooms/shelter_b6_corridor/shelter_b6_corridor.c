@@ -76,6 +76,4 @@ void func_shelter_b6_corridor_8017E12C(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", D_shelter_b6_corridor_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E144);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E19C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", RoomsShared8017d878Table);

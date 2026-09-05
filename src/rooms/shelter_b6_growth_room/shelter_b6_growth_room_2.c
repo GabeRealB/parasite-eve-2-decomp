@@ -1,11 +1,12 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017E448);
+#include "main/gameflag.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017E564);
+#include "gameplay/3CD8.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017E7F0);
+extern TaskDesc D_80135E78;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017EAC8);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017D82C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017ED28);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017D9D8);

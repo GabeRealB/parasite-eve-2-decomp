@@ -12,4 +12,4 @@ s32 func_shelter_1f_airlock_8017D624(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_airlock/shelter_1f_airlock", D_shelter_1f_airlock_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_airlock/shelter_1f_airlock", D_shelter_1f_airlock_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_airlock/shelter_1f_airlock", RoomsShared8017d878Table);

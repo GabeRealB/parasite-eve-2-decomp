@@ -11,8 +11,6 @@ extern SVECTOR D_shelter_b3_incinerator_control_room_80181868[];
 extern SVECTOR D_shelter_b3_incinerator_control_room_80181888[];
 extern SVECTOR D_shelter_b3_incinerator_control_room_801818E8[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_6", func_shelter_b3_incinerator_control_room_8017FCB8);
-
 void func_shelter_b3_incinerator_control_room_8017FD10(void)
 {
     u8 view;

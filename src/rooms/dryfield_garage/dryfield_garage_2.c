@@ -13,9 +13,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfiel
 void func_dryfield_garage_8017DC08(void)
 {
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017DC10);
-
-void func_dryfield_garage_8017DC68(void)
-{
-}

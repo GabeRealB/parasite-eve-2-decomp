@@ -9,4 +9,4 @@ s32 func_neo_ark_r26_8017D648(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_r26/neo_ark_r26", D_neo_ark_r26_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_r26/neo_ark_r26", D_neo_ark_r26_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_r26/neo_ark_r26", RoomsShared8017d878Table);

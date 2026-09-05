@@ -54,4 +54,4 @@ s32 func_acropolis_fountain_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_fountain/acropolis_fountain", D_acropolis_fountain_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_fountain/acropolis_fountain", D_acropolis_fountain_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_fountain/acropolis_fountain", RoomsShared8017d878Table);

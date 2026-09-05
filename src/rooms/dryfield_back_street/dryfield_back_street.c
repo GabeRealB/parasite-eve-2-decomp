@@ -45,15 +45,4 @@ void func_dryfield_back_street_8017D910(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", D_dryfield_back_street_8017D5C0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D918);
-
-void func_dryfield_back_street_8017D970(Task* arg0)
-{
-    if (arg0->state == 0) {
-        D_80115758  = 0x60296;
-        D_8011572C  = 0x60297;
-        D_80115750  = 0x60298;
-        arg0->state = 1;
-    }
-    Gp_State1C->field_A = 2;
-}
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", RoomsShared8017d878Table);

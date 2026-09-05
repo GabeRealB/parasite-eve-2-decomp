@@ -8,3 +8,5 @@ Room_Draw31 = 0x8017E3D4; // shared body, see src/rooms/lib/
 Room_Util02 = 0x8017D660; // shared body, see src/rooms/lib/
 RoomsShared8017d730 = 0x8017D7EC; // shared body, see src/rooms/lib/
 RoomsShared8017d730Msgs = 0x80180414; // shared body data, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017D840; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

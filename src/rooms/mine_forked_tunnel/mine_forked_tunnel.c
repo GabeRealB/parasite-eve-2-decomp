@@ -36,4 +36,4 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5D0);
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5DC);
+INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", RoomsShared8017d878Table);

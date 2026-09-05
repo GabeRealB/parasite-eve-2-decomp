@@ -14,4 +14,4 @@ s32 func_neo_ark_south_promenade_8017D624(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", D_neo_ark_south_promenade_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", D_neo_ark_south_promenade_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_south_promenade/neo_ark_south_promenade", RoomsShared8017d878Table);

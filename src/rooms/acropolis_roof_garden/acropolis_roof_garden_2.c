@@ -155,5 +155,3 @@ void func_acropolis_roof_garden_8017DBEC(void)
         Gp_SetAreaObjId(&key, 3, 1);
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_2", func_acropolis_roof_garden_8017DC74);

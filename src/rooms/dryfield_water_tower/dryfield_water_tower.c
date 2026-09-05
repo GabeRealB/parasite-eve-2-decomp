@@ -96,24 +96,10 @@ void func_dryfield_water_tower_8017DDD0(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DDD8);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DE30);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", jtbl_dryfield_water_tower_8017D5E8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DFAC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", jtbl_dryfield_water_tower_8017D618);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017E1DC);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017E428);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017E5B0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017E764);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017E93C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017EB7C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017F128);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017F700);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", jtbl_dryfield_water_tower_8017D630);

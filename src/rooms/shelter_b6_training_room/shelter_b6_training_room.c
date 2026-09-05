@@ -41,4 +41,4 @@ s32 func_shelter_b6_training_room_8017D684(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", D_shelter_b6_training_room_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", D_shelter_b6_training_room_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room", RoomsShared8017d878Table);

@@ -1,63 +1,99 @@
 #include "common.h"
 
-#include "gameplay/3CD8.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
+#include "main/stream.h"
 #include "main/task.h"
 
-extern TaskDesc RoomsShared8018397cDesc;
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017DC40);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017DF0C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017E148);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017E260);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017E658);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017E92C);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017EC34);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017ECE0);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017ED60);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017EDBC);
-
-void func_neo_ark_altar_8017EDF8(Task* arg0)
+void func_neo_ark_altar_8017DA40(Task* arg0)
 {
-    Gp_MsgPlayerWeapon(0);
-    arg0->killCountdown = 0;
-    arg0->state         = (s32)(arg0->state + 1);
-}
+    u8          slotParam[4];
+    GBytes8     key;
+    s16         slot;
+    CdCmdQueue* queue;
+    Task*       task;
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017EE30);
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+        case 5:
+            goto L_case5;
+    }
+    return;
 
-void func_neo_ark_altar_8017EE90(Task* arg0)
-{
-    Task** temp_s1;
+L_case0:
+    SetDispMask(0);
+    Mem_AllocAuxWithImages(1);
+    goto advance;
 
-    temp_s1 = arg0->idMap;
-    Gp_MsgPlayer3F3(0);
-    Game_Session->field_68 = 1;
-    *temp_s1               = Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 2, 0);
-    arg0->state            = (s32)(arg0->state + 1);
-}
+L_case1:
+    key = ((SessionBytesAt4*)Game_Session)->field_4;
+    if (task->spawnArg1 == 0) {
+        key.data[0] = 0x64;
+    } else if (task->spawnArg1 == 1) {
+        key.data[0] = 0x65;
+    } else {
+        key.data[0] = 0x66;
+    }
+    slot = Stream_FindSlot(key.data, 0, 0);
+    {
+        s32 cmd;
+        s32 zero;
+        u8* p;
+        cmd  = 0x61;
+        zero = 0;
+        p    = slotParam;
+        SOFT_TOUCH_REG4(cmd, zero, p, slot);
+        slotParam[0] = slot;
+        CdCmd_Enqueue(cmd, zero, p);
+    }
+    goto advance;
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_4", func_neo_ark_altar_8017EF00);
-
-void func_neo_ark_altar_8017EF34(Task* arg0)
-{
+L_case2:
+    if (queue->field_1FA == 0) {
+        return;
+    }
     SetDispMask(1);
-    Gp_MsgPlayer3F3(1);
-    Gp_MsgPlayerWeapon(1);
-    Game_Session->field_68 = 0;
-    arg0->state            = 2;
-}
+    goto advance;
 
-void func_neo_ark_altar_8017EF84(void)
-{
+L_case3:
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        SetDispMask(0);
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    SetDispMask(0);
+    CdCmd_ActivatePhase1();
+    goto advance;
+
+L_case4:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    Stream_ResetRestoreState();
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case5:
+    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+        return;
+    }
+    Task_Kill(task);
+    Display_ResetHeapWrapper();
 }

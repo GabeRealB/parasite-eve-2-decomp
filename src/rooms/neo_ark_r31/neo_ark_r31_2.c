@@ -18,5 +18,3 @@ void func_neo_ark_r31_8017D980(void)
 {
     D_800691CA = 2;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_r31/neo_ark_r31_2", func_neo_ark_r31_8017D990);

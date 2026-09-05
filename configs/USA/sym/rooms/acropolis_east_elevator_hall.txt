@@ -2,3 +2,5 @@
 Room_Util06 = 0x8017F370; // shared body, see src/rooms/lib/
 Room_Util11 = 0x8017F348; // shared body, see src/rooms/lib/
 RoomsShared8017f77c = 0x8017F77C; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017F55C; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5D4; // shared body data, see src/rooms/lib/

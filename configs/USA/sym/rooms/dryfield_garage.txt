@@ -1,2 +1,4 @@
 // Overlay-local symbols for dryfield_garage.
 Room_Util06 = 0x8017D914; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017DC10; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5DC; // shared body data, see src/rooms/lib/

@@ -1,5 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", func_shelter_b1_sleeping_quarters_8017E6DC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", func_shelter_b1_sleeping_quarters_8017EC34);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", func_shelter_b1_sleeping_quarters_8017D8E0);

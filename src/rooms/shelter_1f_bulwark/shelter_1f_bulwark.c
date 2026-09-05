@@ -11,7 +11,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_she
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017D7B4);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", D_shelter_1f_bulwark_8017D5D8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017DA60);
 

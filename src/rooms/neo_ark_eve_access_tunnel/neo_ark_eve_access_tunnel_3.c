@@ -4,8 +4,4 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tun
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017DFC0);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017E038);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017E090);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", func_neo_ark_eve_access_tunnel_8017E15C);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", jtbl_neo_ark_eve_access_tunnel_8017D6C0);

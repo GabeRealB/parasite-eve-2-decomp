@@ -40,7 +40,7 @@ void func_dryfield_junk_yard_8017D708(Task* arg0)
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", D_dryfield_junk_yard_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", D_dryfield_junk_yard_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", D_dryfield_junk_yard_8017D5D0);
 

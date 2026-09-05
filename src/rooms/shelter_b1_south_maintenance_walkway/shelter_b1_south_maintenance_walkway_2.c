@@ -3,7 +3,3 @@
 void func_shelter_b1_south_maintenance_walkway_8017DA2C(void)
 {
 }
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_2", func_shelter_b1_south_maintenance_walkway_8017DA34);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_2", func_shelter_b1_south_maintenance_walkway_8017DA8C);

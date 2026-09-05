@@ -100,7 +100,7 @@ s32 func_acropolis_sanctuary_8017D73C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", D_acropolis_sanctuary_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", D_acropolis_sanctuary_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", D_acropolis_sanctuary_8017D5D0);
 

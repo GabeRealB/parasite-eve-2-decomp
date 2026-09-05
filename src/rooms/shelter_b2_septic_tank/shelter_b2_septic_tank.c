@@ -43,12 +43,6 @@ void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017DA74);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017DB10);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017DB68);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017E2DC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017EA50);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", jtbl_shelter_b2_septic_tank_8017D5E4);

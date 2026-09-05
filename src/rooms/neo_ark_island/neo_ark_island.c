@@ -6,7 +6,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_isl
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E2A4);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", D_neo_ark_island_8017D614);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E844);
 
@@ -34,7 +34,3 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_isl
 void func_neo_ark_island_8017EB08(void)
 {
 }
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017EB10);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017EB68);

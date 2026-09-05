@@ -2,7 +2,7 @@
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", D_acropolis_cafeteria_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", D_acropolis_cafeteria_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", func_acropolis_cafeteria_8017D6B4);
 

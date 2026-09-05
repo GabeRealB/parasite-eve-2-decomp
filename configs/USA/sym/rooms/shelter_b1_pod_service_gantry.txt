@@ -1,2 +1,4 @@
 // Overlay-local symbols for shelter_b1_pod_service_gantry.
 Room_Util02 = 0x8017D7C8; // shared body, see src/rooms/lib/
+RoomsShared8017d878 = 0x8017D89C; // shared body, see src/rooms/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/

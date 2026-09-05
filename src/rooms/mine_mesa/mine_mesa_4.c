@@ -1,34 +1,23 @@
 #include "common.h"
-
+#include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/task.h"
 
-extern Task*    RoomsShared8017e8a8Task;
-extern TaskDesc RoomsShared8017daf0Desc;
-extern Task*    D_mine_mesa_80189B54;
+extern s8       D_8007106B;
+extern TaskDesc D_mine_mesa_80181990;
 
-void func_mine_mesa_8017E650(void)
+void func_mine_mesa_8017E024(Task* arg0)
 {
-    D_mine_mesa_80189B54 = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 1, 0, 0);
+    Display_SpawnWithOt(&D_mine_mesa_80181990, 1, 0, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E684);
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E074);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E6D8);
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E15C);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E70C);
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E2A4);
 
-void func_mine_mesa_8017E760(void)
-{
-    if (D_mine_mesa_80189B54 != NULL) {
-        Task_Kill(D_mine_mesa_80189B54);
-    }
-    D_mine_mesa_80189B54 = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 3, 0, 0);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E7B0);
-
-void func_mine_mesa_8017E8B0(s32 arg0)
-{
-    RoomsShared8017e8a8Task = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 4, arg0, 0);
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
-}
+INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E3E0);

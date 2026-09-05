@@ -1,7 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_80181138);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_8017FFBC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_80181AF8);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_80180350);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_80181C2C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_801806E8);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", func_shelter_b2_pod_access_tunnel_80180894);

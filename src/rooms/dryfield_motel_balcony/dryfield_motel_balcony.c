@@ -15,7 +15,7 @@ extern TaskDesc             D_dryfield_motel_balcony_80182270;
 extern RoomEventMsg         D_dryfield_motel_balcony_80186724;
 extern u8                   D_dryfield_motel_balcony_8018672C;
 extern RoomEventReq         D_dryfield_motel_balcony_80186730;
-extern const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC;
+extern const TaskFuncTable3 RoomsShared8017d878Table;
 void                        func_dryfield_motel_balcony_8017DBC8(void);
 
 s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* arg0, RoomEventMsg* arg1)
@@ -102,7 +102,7 @@ s32 func_dryfield_motel_balcony_8017DB7C(void)
     return 0;
 }
 
-const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
+const TaskFuncTable3 RoomsShared8017d878Table = {
     RoomsShared8017db84,
     (TaskFunc)func_dryfield_motel_balcony_8017DBC8,
     Task_Kill,

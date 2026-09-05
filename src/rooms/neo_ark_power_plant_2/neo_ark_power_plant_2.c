@@ -33,4 +33,4 @@ done:
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_power_plant_2/neo_ark_power_plant_2", D_neo_ark_power_plant_2_8017D5C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_power_plant_2/neo_ark_power_plant_2", D_neo_ark_power_plant_2_8017D5C4);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_power_plant_2/neo_ark_power_plant_2", RoomsShared8017d878Table);

@@ -19,7 +19,7 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supp
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D650);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", D_shelter_b4_water_supply_8017D5D8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D7C0);
 
@@ -77,15 +77,5 @@ void func_shelter_b4_water_supply_8017DD40(Task* arg0)
 void func_shelter_b4_water_supply_8017DD9C(void)
 {
 }
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DDA4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DDFC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DE74);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017E5D8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017ED28);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", jtbl_shelter_b4_water_supply_8017D5FC);
