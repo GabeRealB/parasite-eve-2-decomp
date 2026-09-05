@@ -307,6 +307,13 @@ void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex's RGB
 /// is `((field_8 & 1) * 16) | 0x20` rather than `* 8`.
 void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2);
+/// Draws seven gouraud `POLY_G4` quads connecting two eight-slot coordinate
+/// trails (`arg0` and `arg1`), walking backwards from `arg2`. Each quad is
+/// the `workm.t` of two adjacent slots on both trails, projected through
+/// `GsWSMATRIX`. The leading edge is scaled by `0x40 - 9 * i` and the
+/// trailing edge by nine less. `arg3` packs three 2-bit RGB channels at bits
+/// 8, 4 and 0. Dropped when `gte_stflg` is negative.
+void Room_Draw03(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
 /// Same eight-wedge gouraud ring as `Room_Draw10`, but the scratch block keeps
 /// `radius` at 0xC and `flag` at 0x10. `arg1` is still the signed half-extent
 /// `(s16)arg1 * 64 / (otz + 1)`, and `arg2` still tints only the inner vertex.
@@ -583,5 +590,27 @@ typedef struct _RoomDraw02Scratch {
     /* 0x1A */ s16     sy;
 } RoomDraw02Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw02Scratch, 0x1C);
+
+/// 0x3C-byte scratch block `Room_Draw03` takes from `G_SCRATCH_HEAD`. `v` is
+/// the quad's four corners, copied from `workm.t` of two adjacent slots on
+/// each trail. `flag` is `gte_stflg` (negative rejects the quad) and `otz` is
+/// `gte_stszotz` (then incremented). `sx0`..`sy3` are the `gte_stsxy` /
+/// `gte_stsxy3` of the four corners, copied onto the `POLY_G4` after it is
+/// allocated.
+typedef struct _RoomDraw03Scratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     flag;
+    /* 0x28 */ s32     unused;
+    /* 0x2C */ u16     sx0;
+    /* 0x2E */ u16     sy0;
+    /* 0x30 */ u16     sx1;
+    /* 0x32 */ u16     sy1;
+    /* 0x34 */ u16     sx2;
+    /* 0x36 */ u16     sy2;
+    /* 0x38 */ u16     sx3;
+    /* 0x3A */ u16     sy3;
+} RoomDraw03Scratch;
+STATIC_ASSERT_SIZEOF(RoomDraw03Scratch, 0x3C);
 
 #endif // ROOMS_ROOM_COMMON_H

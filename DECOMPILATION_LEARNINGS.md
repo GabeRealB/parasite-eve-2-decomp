@@ -45627,3 +45627,41 @@ prim->v3 = 0x87;
 Read the `life N` numbers in `.loop` before guessing: a constant that is hoisted
 when the ROM's is not means its uses are one insn too far apart, and the cure is
 to move a neighbouring store, not to add register pressure.
+
+## Four-arg beam trails: both slot and packed RGB must be `s16` parameters
+
+`Room_Draw03(GsCOORDINATE2 *arg0, GsCOORDINATE2 *arg1, s16 slot, s16 flags)`
+is the two-pointer form of `func_gunblade_8011D70C(s16 slot, s16 flags)`:
+seven `POLY_G4`s walking two 8-slot `workm.t` trails backwards from `slot`,
+fade `0x40 - 9 * i`, RGB as 2-bit channels at bits 8/4/0. The extra two
+pointer arguments change the prologue.
+
+Incoming `s32` copies are `movsi` and the MIPS prologue emitter groups them
+*before* the first scheduled body insn (the scratch `lui 0x1F80` / `ori 0x3FC`).
+Incoming `s16` copies are `movhi` and stay where scheduled, which is *after*
+that `lui`. The ROM wants:
+
+```
+move s5, a0          # arg0, movsi
+move s6, a1          # arg1, movsi
+lui  v1, 0x1F80
+ori  v1, 0x3FC
+move s8, a2          # slot,  movhi
+move s7, a3          # flags, movhi
+```
+
+Declaring `slot`/`flags` as `s32` (even with `(s16)` casts at the uses) emits
+four `movsi` copies and the `lui` lands two instructions late. A local
+`s16 flags = arg3` is also a scheduled `movhi`, but it is *not* an incoming
+copy, so `arg2`'s `movsi` still precedes the `lui`. Both integers have to be
+`s16` parameters.
+
+The same `s16` type is what keeps `flags & 3` from LICM (it rematerialises as
+`andi t0, s7, 3` each iteration) while CSE still hoists `flags << 16` and
+`(flags >> 4) & 3`. `s32 arg3` hoists `& 3` into a saved register and drops
+the `move s7, a3` entirely.
+
+The scratch push still needs the sibling's scoped `$v0` pin so
+`addiu v0, v0, -0x3C` / `move s0, v0` does not coalesce into `addiu s0`.
+`func_gunblade_8011D70C`, `func_m4a1_bayonet_8011D69C` and
+`func_tonfa_baton_8011D6B0` are the two-arg copies.

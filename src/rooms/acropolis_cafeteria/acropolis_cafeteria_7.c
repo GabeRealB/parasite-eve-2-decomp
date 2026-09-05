@@ -6,14 +6,13 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
 extern SVECTOR D_acropolis_cafeteria_80184E80[];
 extern SVECTOR D_acropolis_cafeteria_80184E88;
-
-void Room_Draw03(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
 
 void func_acropolis_cafeteria_801803AC(Task* task)
 {
