@@ -1,9 +1,5 @@
 #include "common.h"
 
-#include "rooms/dryfield_warehouse.h"
-
-extern Task* D_dryfield_warehouse_801821BC;
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D5E8);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D764);
@@ -31,17 +27,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dry
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017E22C);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017E308);
-
-void func_dryfield_warehouse_8017E3F4(s16 arg0)
-{
-    DwhWork* work = (DwhWork*)D_dryfield_warehouse_801821BC->idMap;
-
-    work->field_4 = arg0;
-    work->field_6 = 0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017E414);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017ED34);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017F494);

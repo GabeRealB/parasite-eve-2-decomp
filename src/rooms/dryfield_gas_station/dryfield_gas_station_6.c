@@ -1,7 +1,5 @@
 #include "common.h"
 
-#include "rooms/dryfield_gas_station.h"
-
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -10,9 +8,10 @@
 #include "main/stream.h"
 #include "main/task.h"
 
+#include "rooms/dryfield_gas_station.h"
+
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
-extern Task*    D_dryfield_gas_station_80184BD4;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_6", func_dryfield_gas_station_8017FD54);
 
@@ -125,11 +124,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_6", fu
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_6", func_dryfield_gas_station_80180984);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_6", func_dryfield_gas_station_80180A60);
-
-void func_dryfield_gas_station_80180B2C(s16 arg0)
-{
-    DgsWork* work = (DgsWork*)D_dryfield_gas_station_80184BD4->idMap;
-
-    work->field_4 = arg0;
-    work->field_6 = 0;
-}
