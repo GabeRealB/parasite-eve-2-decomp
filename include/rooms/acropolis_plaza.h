@@ -42,6 +42,21 @@ typedef struct AcropolisPlazaWork {
 } AcropolisPlazaWork;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 
+/// Colour ramp the plaza's fade-out task (`func_acropolis_plaza_8017D8AC`)
+/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is
+/// not a `TaskIdMap` here. All three channels start at 0 and step by
+/// `Task::spawnArg1` every frame, but the semi-transparent full-screen `TILE`
+/// the task links into `Gpu_CurrentOt[-16]` takes its blue from `r`, so `b` is
+/// only ever stepped and never read. The task kills itself (and blanks the
+/// display) once `r` reaches 0x100.
+typedef struct AcropolisPlazaFadeWork {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ s16  r;
+    /* 0x4 */ s16  g;
+    /* 0x6 */ s16  b;
+} AcropolisPlazaFadeWork;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaFadeWork, 0x8);
+
 /// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
 /// with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is not a
 /// `TaskIdMap` here. It only caches the slot-3 task every message in the
