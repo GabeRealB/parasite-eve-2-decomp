@@ -1,11 +1,20 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/task.h"
 #include "rooms/acropolis_plaza.h"
 
 extern s8       D_8007106B;
 extern TaskDesc D_acropolis_plaza_80183824;
+
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
+/// `D_8007218A` picks which of the two weapon-id bases that record uses.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
 
 /// Two four-vertex quads facing each other across the plaza's scene object:
 /// one at x - 0xBB8, one at x + 0x7D0, each spanning y .. y + 0x3E8 and
@@ -77,7 +86,44 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017F48C);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017F620);
+/// Three-state cutscene tail: state 0 republishes the player's weapon to slot
+/// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish and hands
+/// control back -- latching `CdCmd_Queue.field_1EE` into the work block, killing
+/// the block's task and running its capture command -- and state 2 releases
+/// slot 3 (msg 0x3F1) and kills itself.
+void func_acropolis_plaza_8017F620(Task* task)
+{
+    GpRec14     rec;
+    CdCmdQueue* q = &CdCmd_Queue;
+    s32         weaponId;
+    s32         id;
+
+    switch (task->state) {
+        case 0:
+            weaponId     = D_80073BA9;
+            id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_0  = id;
+            rec.field_4  = 1;
+            rec.field_8  = 0;
+            rec.field_C  = 0xA;
+            rec.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+            task->state = task->state + 1;
+            break;
+        case 1:
+            if (CdCmd_IsIdle() != 0) {
+                ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
+                Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+                Gp_RunCapCmd1(((AcropolisPlazaCutWork*)task->spawnArg2)->capCmd);
+                task->state = task->state + 1;
+            }
+            break;
+        case 2:
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 1, 0);
+            Task_RequestKill(task, 0);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_3", func_acropolis_plaza_8017F770);
 

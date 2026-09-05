@@ -241,7 +241,8 @@ typedef struct _CdCmdQueue {
     u16          field_1E8;
     u16          field_1EA;
     u16          field_1EC; // MDEC out strip active (cleared by DecDCTout callback)
-    byte         unknown_1EE[0x4];
+    u16          field_1EE; // 0x1EE — stream slot latched by the plaza cutscene tasks
+    byte         unknown_1F0[0x2];
     u16          field_1F2;
     u16          field_1F4;
     u16          field_1F6;
