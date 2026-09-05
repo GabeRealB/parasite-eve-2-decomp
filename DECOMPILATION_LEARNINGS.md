@@ -48536,3 +48536,30 @@ ordered after the `lhu` and nothing else is fenced: the `lui` hoisted to the
 top and the seed went to 100%. When a barrier fixes one ordering and breaks
 an unrelated `%hi` or address hoist, replace it with `SOFT_TOUCH_REG_USE`
 on the two values whose order matters.
+
+### A local pointer alias to a global array hoists `lui %hi` above the loads
+
+A function that reads a few fields through an argument and then stores into a
+static array wants its `%hi` *after* those loads, so the `lw` that feeds the
+first store gets the load-delay `nop`:
+
+```
+lw    v0, 0x1c(a0)
+nop
+lw    a0, 0xc(v0)
+lw    a3, 0x10(v0)
+lw    a1, 0x14(v0)
+lui   v0, %hi(D_sym)      # only here
+```
+
+Writing the array through a readable local alias — `SVECTOR* v = D_sym;` and
+then `v[0].vx = …` — makes the address a value with a live range that starts at
+the declaration, so the scheduler pulls `lui` up into the load-delay slot and
+the whole prologue shifts by one. Symptom: 95%, `regs=4 reorder=1 delete=1`,
+with a diff confined to the first six instructions.
+
+Fix: index the global directly (`D_sym[0].vx = …`). The address is then
+rematerialised at first use, which is where the ROM puts it. This is the
+opposite of the usual "hoist a repeated base into a local" advice, and it costs
+nothing in readability when the array name is already the subject of every
+statement. `func_acropolis_plaza_8017DD90` is the worked example.
