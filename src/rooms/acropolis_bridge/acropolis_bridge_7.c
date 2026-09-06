@@ -16,15 +16,6 @@ extern TaskFuncTable9 D_acropolis_bridge_8017D614;
 
 s32 RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 
-/// Two-state dispatcher of this room's prompt script task: builds the handler
-/// table on the stack and tails into the entry named by `Task::state`.
-void func_acropolis_bridge_8017F280(Task* task)
-{
-    TaskFunc states[2] = { Room_Util04, RoomsShared8017ed38 };
-
-    states[task->state](task);
-}
-
 /// Repaints the two bridge sprites that game flag nibble 0x10 governs: one
 /// sprite command in view 2 of this room's sprite record and one in view 5.
 /// `Gp_LinkViewSprts` reads `field_4` to decide whether to skip OT-linking a

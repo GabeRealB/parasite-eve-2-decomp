@@ -18,3 +18,4 @@ RoomsShared80180294States = 0x8017D5D0; // shared body data, see src/rooms/lib/
 RoomsShared80181e70 = 0x8017EB54; // shared body, see src/rooms/lib/
 RoomsShared80181e70Table = 0x8017D610; // shared body data, see src/rooms/lib/
 RoomsShared8017ecb4 = 0x8017EC10; // shared body, see src/rooms/lib/
+RoomsShared8017f280 = 0x8017EA70; // shared body, see src/rooms/lib/

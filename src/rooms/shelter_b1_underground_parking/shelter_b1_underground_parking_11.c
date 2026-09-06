@@ -6,8 +6,6 @@
 extern u8 D_shelter_b1_underground_parking_8018D788;
 extern u8 D_shelter_b1_underground_parking_8018D789;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_11", func_shelter_b1_underground_parking_80184234);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_11", func_shelter_b1_underground_parking_80184284);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_11", func_shelter_b1_underground_parking_80184304);
