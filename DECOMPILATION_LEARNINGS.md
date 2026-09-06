@@ -50701,3 +50701,63 @@ a local, not a spill. Reach for the explicit local whenever the instructions are
 all present but the frame store sits in the wrong place — the position of a
 parameter home store is not something the C can move, and the position of a
 store to a local is.
+
+## `lw` narrowed to `lhu`: write the scale as `* 32`, not `<< 5`
+
+`func_combustion_8012F2BC` stores a scaled `s32` task field into an `s16` field:
+
+```
+lw    v0,0x34(s2)       <- target
+nop
+sll   v0,v0,0x5
+addiu v0,v0,0x200
+sh    v0,0x24(s0)
+```
+
+Writing the obvious `mem->field_24 = (arg0->spawnArg1 << 5) + 0x200;` produces
+the same four instructions with `lhu` in place of the `lw`. Only the low 16 bits
+of the sum survive the `sh`, so combine walks the truncation back through the
+`addiu` and the `sll` and finally rewrites `(subreg:HI (mem:SI))` as a `mem:HI`
+— a legal narrowing that costs nothing but is one word different from the ROM.
+
+`* 32` stops it:
+
+```c
+mem->field_24 = arg0->spawnArg1 * 32 + 512;   /* lw */
+mem->field_24 = (arg0->spawnArg1 << 5) + 0x200;  /* lhu */
+```
+
+The two expressions are identical after `expand`, but the multiply reaches
+combine as a `mult` that `expand_mult` has already turned into a shift *plus*
+its own insn boundary, so the truncation chain runs out of insns before it gets
+back to the load. Assigning the field through an explicit `s32` local
+(`amt = arg0->spawnArg1; mem->field_24 = (amt << 5) + 0x200;`) works for the
+same reason, and is the fallback when the constant is not a power of two.
+
+The rule is worth remembering in reverse too: an `lhu`/`lbu` where the target
+has a `lw` is not a struct-field-width mistake, it is combine narrowing a load
+that only feeds a narrow store.
+
+## Split a local that is reused by more than one `switch` case
+
+`func_combustion_8012F2BC` runs the same LCG step in two of its three cases:
+
+```c
+rng         = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState = rng;
+```
+
+Declaring one `rng` and using it in `case 1` and `case 2` scored 94.7% with
+`regs=33`: every LCG value in the function landed one register off the target
+(`$a3`/`$v0` where the ROM has `$a1`/`$v1`), including the unrelated one in
+`case 0`. One C variable is one pseudo, so the live range spans all the cases
+even though no path uses it twice, and `global_alloc` colours it against
+everything in between.
+
+Giving each case its own local — `rng`, `spawnRng1`, `spawnRng1b`, `spawnRng2`,
+`spawnRng2b` — took the same function to 99.0% with `regs=0`, changing nothing
+else. Reach for this whenever `regs` is large and spread evenly over the whole
+function rather than concentrated in one block: that shape is a live range that
+is too long, and in a `switch` the usual cause is a scratch local shared by the
+arms. Cross-jumping still merges the identical tails afterwards, so the extra
+locals cost no instructions.
