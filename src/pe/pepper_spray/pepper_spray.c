@@ -33,6 +33,10 @@ extern s32 Gp_LcgState;
 /// screen at the current brightness and draws the six cone quads. The effect
 /// ends after nine frames, or immediately if the player is dying
 /// (`D_80114C0B`) or the room is fading (`Gp_State1C`).
+/// Scratch the nozzle spray walks while the cloud is alive.
+/// lists an object in the linker script at its first subsegment, and this has
+s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
+
 void func_pepper_spray_8012EF34(Task* arg0)
 {
     GpEffWork*     mem;

@@ -14,6 +14,15 @@
 #include "main/tmd.h"
 #include "pe/inferno.h"
 
+/// The two fan shapes the inferno wall sweeps through.
+InfernoFanParam D_inferno_801304E4[] = {
+    { 0x0100, 0x0800, 0x0200 },
+    { 0x0200, 0x0600, 0x0300 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each inferno stage.
+s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
+
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 

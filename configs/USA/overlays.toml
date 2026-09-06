@@ -619,18 +619,18 @@ global_vram_end   = 0x8012EF30
 imports = "configs/USA/sym/pe.imports.txt"
 
 [pe.overlays]
-pyrokinesis = { pe_level_ids = "50101-50103", rodata_head = "0x4", shared = [{ start = "0x1E90", end = "0x2288", unit = "pe_shared_8012fb14" }] }
-combustion = { pe_level_ids = "50104-50106", shared = [{ start = "0xBE4", end = "0xFDC", unit = "pe_shared_8012fb14" }] }
-inferno = { pe_level_ids = "50107-50109", rodata_head = "0x4" }
-necrosis = { pe_level_ids = "50110-50112" }
+pyrokinesis = { pe_level_ids = "50101-50103", rodata_head = "0x4", shared = [{ start = "0x1E90", end = "0x2288", unit = "pe_shared_8012fb14" }], data = [{ start = "0x2EA8", unit = "pyrokinesis" }] }
+combustion = { pe_level_ids = "50104-50106", shared = [{ start = "0xBE4", end = "0xFDC", unit = "pe_shared_8012fb14" }], data = [{ start = "0x1A50", unit = "combustion" }] }
+inferno = { pe_level_ids = "50107-50109", rodata_head = "0x4", data = [{ start = "0x15B4", unit = "inferno" }] }
+necrosis = { pe_level_ids = "50110-50112", data = [{ start = "0x178C", unit = "necrosis" }] }
 plasma = { pe_level_ids = "50113-50115" }
-apobiosis = { pe_level_ids = "50116-50118", rodata_head = "0x4" }
-metabolism = { pe_level_ids = "50119-50121" }
-healing = { pe_level_ids = "50122-50124", shared = [{ start = "0x564", end = "0x6B4", unit = "pe_shared_8012f9a8" }] }
-lifedrain = { pe_level_ids = "50125-50127", rodata_head = "0x4", shared = [{ start = "0xA78", end = "0xBC8", unit = "pe_shared_8012f9a8" }, { start = "0x1690", end = "0x1990", unit = "pe_shared_801305c0" }] }
-antibody = { pe_level_ids = "50128-50130", shared = [{ start = "0x19A4", end = "0x1CA4", unit = "pe_shared_801305c0" }] }
-energyshot = { pe_level_ids = "50131-50133", shared = [{ start = "0x820", end = "0xB20", unit = "pe_shared_801305c0" }] }
-energyball = { pe_level_ids = "50134-50136", rodata_head = "0x4" }
+apobiosis = { pe_level_ids = "50116-50118", rodata_head = "0x4", data = [{ start = "0x1C2C", unit = "apobiosis" }] }
+metabolism = { pe_level_ids = "50119-50121", data = [{ start = "0xC24", unit = "metabolism" }] }
+healing = { pe_level_ids = "50122-50124", shared = [{ start = "0x564", end = "0x6B4", unit = "pe_shared_8012f9a8" }], data = [{ start = "0xCEC", unit = "healing" }] }
+lifedrain = { pe_level_ids = "50125-50127", rodata_head = "0x4", shared = [{ start = "0xA78", end = "0xBC8", unit = "pe_shared_8012f9a8" }, { start = "0x1690", end = "0x1990", unit = "pe_shared_801305c0" }], data = [{ start = "0x1B84", unit = "lifedrain" }] }
+antibody = { pe_level_ids = "50128-50130", shared = [{ start = "0x19A4", end = "0x1CA4", unit = "pe_shared_801305c0" }], data = [{ start = "0x1CA4", unit = "antibody" }] }
+energyshot = { pe_level_ids = "50131-50133", shared = [{ start = "0x820", end = "0xB20", unit = "pe_shared_801305c0" }], data = [{ start = "0x11B4", unit = "energyshot" }] }
+energyball = { pe_level_ids = "50134-50136", rodata_head = "0x4", data = [{ start = "0x224C", unit = "energyball" }] }
 
 # The tail sits at the same stride-3 spacing (slots 15, 16, 17 of the same
 # enumeration), which lines up with the three items after the four passive
@@ -642,4 +642,4 @@ energyball = { pe_level_ids = "50134-50136", rodata_head = "0x4" }
 # (`Gp_AddTpageShift`) that suits a gas spray.
 ofuda        = { pe_slot = 15, ambiguous = true }
 flare        = { pe_slot = 16, ambiguous = true }
-pepper_spray = { pe_slot = 17, ambiguous = true }
+pepper_spray = { pe_slot = 17, ambiguous = true, data = [{ start = "0xC6C", unit = "pepper_spray" }] }

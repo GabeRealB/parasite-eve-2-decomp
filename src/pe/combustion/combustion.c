@@ -13,6 +13,16 @@
 #include "main/tmd.h"
 #include "pe/combustion.h"
 
+/// Per-level tuning for the combustion flame: rows are PE levels 1-3.
+CombustionStep D_combustion_80130980[] = {
+    { 0x0060, 0x0120, 0x0007, 0x0015 },
+    { 0x0055, 0x0187, 0x0008, 0x0017 },
+    { 0x004C, 0x01F3, 0x0009, 0x0019 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each `D_combustion_80130980` row.
+s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
+
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
@@ -28,6 +38,10 @@ void PeShared8012fb14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// the yaw the ignition applied, and either state ends as soon as the player
 /// is dying (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the
 /// row's `field_6` tick is reached.
+/// Live flame handle for the combustion effect.
+/// lists an object in the linker script at its first subsegment, and this has
+s32 D_combustion_801309A4 = 0;
+
 void func_combustion_8012EF34(Task* arg0)
 {
     GpEffWork*     mem;

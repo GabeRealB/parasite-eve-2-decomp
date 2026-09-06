@@ -10,6 +10,18 @@
 #include "main/tmd.h"
 #include "pe/healing.h"
 
+/// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
+/// `field_20`. `field_2` is the brightness ceiling, `field_4` the per-tick
+/// spin, `field_6` the radius the ring grows to before the effect ends.
+HealingScale D_healing_8012FC1C[] = {
+    { 0x0008, 0x0080, 0x0040, 0x0400 },
+    { 0x000C, 0x00B0, 0x0048, 0x0500 },
+    { 0x0010, 0x00E0, 0x0050, 0x0600 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
+s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
+
 extern s32 Gp_LcgState;
 
 /// Healing PE ring. Cancel (`Gp_StateC08.field_3 == -2` or

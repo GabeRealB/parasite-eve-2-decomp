@@ -13,6 +13,18 @@
 #include "main/tmd.h"
 #include "pe/necrosis.h"
 
+/// Per-level tuning for the necrosis burst: rows are PE levels 1-3, selected
+/// by `field_20`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is
+/// the last spawn-loop tick, and `field_2 + 0xC` the pad-rumble duration.
+NecrosisStep D_necrosis_801306BC[] = {
+    { 0x03C0, 0x000A },
+    { 0x0480, 0x000F },
+    { 0x0540, 0x0014 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each `D_necrosis_801306BC` row.
+s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
+
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
