@@ -13,18 +13,27 @@
 /// on later frames (doubled in state 3). The remaining fields belong to the
 /// draw helpers.
 typedef struct AntibodyStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
     /* 0x4 */ u16 field_4;
     /* 0x6 */ u16 field_6;
     /* 0x8 */ u16 field_8;
-    /* 0xA */ u16 field_A;
-    /* 0xC */ u16 field_C;
+    /* 0xA */ s16 field_A;
+    /* 0xC */ s16 field_C;
 } AntibodyStep;
 STATIC_ASSERT_SIZEOF(AntibodyStep, 0xE);
 
 /// Three antibody intensities, weakest first.
 extern AntibodyStep D_antibody_80130BD4[];
+
+/// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row, played
+/// once when `func_antibody_8012EF34` seeds the cast.
+extern s32 D_antibody_80130C00[];
+
+/// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
+/// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
+/// states 1 and 2 pass one yaw per frame to `PeShared801305c0`.
+extern s16 D_antibody_80130C0C[];
 
 /// 0x1C-byte scratch block `func_antibody_8012FFEC` takes from
 /// `G_SCRATCH_HEAD` to draw one antibody mote. `v0` is the effect

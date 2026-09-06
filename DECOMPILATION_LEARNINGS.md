@@ -51626,3 +51626,86 @@ pins around the scratch-block header stores were load-bearing.
 Rule of thumb: after porting a sibling body, delete each inherited pin one at a
 time and rescore. A pin narrows *every* allocation decision in the function, so
 the ones the sibling needed are as likely to hurt as to help.
+
+**Problem.** `func_antibody_8012EF34`'s state-0 loop divides `0x1000` by a
+table field and adds `Gp_LcgState * 5 + 0x71357911`. The target hoists
+`li $a3, 0x1000` and the table address into the preheader but recomputes
+`lui`/`ori 0x71357911` every iteration. Every natural ordering of the loop
+body hoisted the RNG constant too, so the function stayed exactly one
+instruction long — `insert`/`delete` never reached zero — at 98.8%.
+
+**Symptom.** `base_N.i.loop` lists every movable the loop pass considered with
+its verdict, which is faster than reasoning from the object dump:
+
+```
+Loop from 174 to 273: 43 real insns.
+Insn 179: regno 146 (life 39), move-insn savings 2  moved to 1261   ; %hi/%lo table
+Insn 198: regno 161 (life 1),  move-insn savings 1  moved to 1265   ; (const_int 4096)
+Insn 213: regno 168 (life 1),  move-insn savings 1  moved to 1269   ; (const_int 1899329809)
+Insn 217: regno 170 (life 3),  move-insn savings 2  moved to 1271   ; %hi D_..._80130C0C
+```
+
+`not desirable` is the rejection verdict. Grep the insn number out of
+`base_N.i.jump` to see which invariant it is — `1899329809` is `0x71357911`.
+
+**Fix.** See "`move_movables` by the numbers" for the arithmetic; the useful
+extra fact is that it does not always decide the outcome. Across orderings of
+this one 43-insn loop, `(life 1, savings 1)` constants were sometimes hoisted
+and sometimes rejected, and the rejected one was always the *last* movable in
+the list. Movables are listed in order of first use, so the lever is where in
+the body each symbol address and constant is first needed. Binding the
+destination array to a local base pointer before the arithmetic put its `%hi`
+movable ahead of the RNG constant, pushing the constant to the end of the list
+where it was rejected:
+
+```c
+do {
+    s16* dst;
+    s32  lo;
+    s32  rng;
+
+    dst = D_antibody_80130C0C;                       /* %hi movable first */
+    lo  = i * (0x1000 / D_antibody_80130BD4[mem->field_20].field_0);
+    rng = Gp_LcgState * 5 + 0x71357911;              /* now the last movable */
+    dst[i]      = lo + (((u32)rng >> 16) & 0x1FF);
+    Gp_LcgState = rng;
+} while (++i < D_antibody_80130BD4[mem->field_20].field_0);
+```
+
+This is not the walking dest pointer the `(&global)[i]` entry warns about:
+`dst` is re-assigned the *base* each iteration and indexed by `i`, so it stays
+an invariant and `-O2` still strength-reduces it to the `addiu a1, a1, 2` in
+the branch delay slot. Sweep orderings with `.i.loop` as the oracle rather than
+with the score — it names the moved movable before you read any assembly.
+
+**Related.** A loop containing a call gets half the threshold, so the same
+constant stays in place there with no help at all; that is why the state-1
+spawn loop of this same function matched on the first try while the call-free
+state-0 loop took a dozen attempts.
+
+## Re-reading `mem->field` in a loop beats a `count` / `level` pair when the target reloads it
+
+**Problem.** The sibling `func_energyshot_8012EF34` carries `count` and
+`level` locals across its seeding loop, so m2c-style code with the same pair
+looked obviously right. It scored 98.7% with a stubborn extra `move` and a
+`sll`/`sra` in the preheader.
+
+**Symptom.** The target reloads the index with one `lh $v1, 0x20($s1)` at the
+bottom of the loop and a matching `lh` in the preheader. The attempt instead
+CSE-forwarded the preheader copy from the value just stored by
+`sh $v1, 0x20($s1)`, then needed `move`/`sll`/`sra` to reconcile the two
+registers.
+
+```
+target                          attempt
+lh    v1,0x20(s1)               sll   v1,a0,0x10
+nop                             sra   v1,v1,0x10
+```
+
+**Fix.** Drop the locals and write `D_antibody_80130BD4[mem->field_20]` at
+every use, including the `do { } while` condition. The store into the loop's
+own output array invalidates the CSE entry for the `mem->field_20` load, so
+GCC reloads it once per iteration and the loop-carried copy disappears — which
+is exactly the one-load-at-the-bottom shape the target has. The `count`/`level`
+pair is right when the target has *two* loads (`lh` plus `lhu`), as
+`energyshot` does; one `lh` means no locals.
