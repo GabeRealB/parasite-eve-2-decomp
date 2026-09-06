@@ -50492,3 +50492,21 @@ So when the diff is a clean pairwise swap of two callee-saved registers with
 by reusing an existing local, before reaching for a pin. Merging two values
 into one local is what changes *which* allocator assigns them, and that is what
 picks the register number.
+
+## Read `<stem>_diff`, not `base_diff`, in a scratch env
+
+`build.sh base_N.c` names its outputs after the input stem:
+`base_N.s`, `base_N.o`, `base_N_annotated.s`, `base_N_object_dump.s` and
+`base_N_diff`. Only the score/penalty line printed on stdout comes from the
+attempt you just built; the `base.*` files sitting next to them are the m2c
+baseline's and are never rewritten.
+
+Symptom: after a promising `base_1.c`, `cat base_diff` showed a whole extra
+argument setup (`li a1,1` before `jal Gp_UpdateCoord`) that the attempt did not
+have, and chasing it through `base.s` and `base_annotated.s` produced insn uids
+(`# 191 movsi_internal2/3`) that appeared in *no* RTL dump — because the dumps
+were `base_1.i.*` and the asm was `base.s`. The real `base_1_diff` was two
+swapped `lhu` loads.
+
+If an insn uid from the `.s` is missing from every `<stem>.i.*` dump, you are
+reading two different compilations. Check the filenames before the codegen.
