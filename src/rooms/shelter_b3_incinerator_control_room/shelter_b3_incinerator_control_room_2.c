@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", func_shelter_b3_incinerator_control_room_8017F110);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", func_shelter_b3_incinerator_control_room_8017F1F4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", func_shelter_b3_incinerator_control_room_8017F2BC);
