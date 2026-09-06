@@ -23,7 +23,7 @@ void                RoomsShared80180f94(UiList* list, UiObject* obj);
 extern UiList       RoomsShared8017e8b4List;
 extern UiObjectDesc RoomsShared8017e8b4Desc;
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", D_acropolis_fire_escape_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", RoomsShared8017ef20Title);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape", RoomsShared8017de9cHundred);
 

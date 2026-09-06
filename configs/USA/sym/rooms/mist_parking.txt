@@ -37,3 +37,6 @@ RoomsShared8017e8b4WeaponTitle = 0x8017D75C; // shared body data, see src/rooms/
 RoomsShared8017e8b4PeTitle = 0x8017D768; // shared body data, see src/rooms/lib/
 RoomsShared8017e8b4List = 0x8018690C; // shared body data, see src/rooms/lib/
 RoomsShared8017e8b4Desc = 0x80186930; // shared body data, see src/rooms/lib/
+RoomsShared8017ef20 = 0x80181920; // shared body, see src/rooms/lib/
+RoomsShared8017ef20Title = 0x8017D748; // shared body data, see src/rooms/lib/
+RoomsShared8017ef20List = 0x801868E4; // shared body data, see src/rooms/lib/

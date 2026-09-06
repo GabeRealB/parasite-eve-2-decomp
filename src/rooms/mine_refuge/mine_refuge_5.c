@@ -1,7 +1,47 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FA08);
+#include "main/gameflag.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FB24);
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FBB4);
+extern u8 D_8007216C;
+extern u8 D_mine_refuge_80182ADC;
+
+void func_mine_refuge_8017FE78(u8 arg0);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FC2C);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FCD0);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FD48);
+
+void func_mine_refuge_8017FDBC(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            if (Gp_GetCapEventKey() == 5) {
+                arg0->state = arg0->state + 1;
+                return;
+            }
+            D_8007216C = D_mine_refuge_80182ADC;
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgPlayer3F3(1);
+            break;
+        case 1:
+            GameFlag_SetNibble(0x12B, 1);
+            func_mine_refuge_8017FE78(D_mine_refuge_80182ADC);
+            break;
+        default:
+            return;
+    }
+    Task_Kill(arg0);
+}
+
+INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FE78);
+
+INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8017FF4C);

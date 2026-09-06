@@ -1,6 +1,6 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", D_shelter_b1_sterilization_room_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017ef20Title);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017de9cHundred);
 

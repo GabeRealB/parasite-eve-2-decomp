@@ -1,6 +1,6 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", D_dryfield_motel_lobby_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", RoomsShared8017ef20Title);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", RoomsShared8017de9cHundred);
 

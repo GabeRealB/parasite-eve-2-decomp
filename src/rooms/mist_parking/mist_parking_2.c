@@ -890,7 +890,7 @@ void func_mist_parking_8017FF9C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_2", func_mist_parking_801800D0);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D748);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017ef20Title);
 
 /// One row of the "Play Data" item-usage list: the item's name, its share of
 /// all recorded uses as `NN.NN%` (or a flat `100.0%` once it is the only item

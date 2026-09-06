@@ -65,5 +65,3 @@ u8* func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals)
     Text_Strcat(buf, D_mist_parking_80186718);
     return buf;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_4", func_mist_parking_80181920);

@@ -1,17 +1,22 @@
 #include "common.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180974);
+#include "rooms/rooms_shared_801807d4.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180998);
+extern Task* RoomsShared8017e320Task;
+extern s32   D_dryfield_night_gas_station_801907AC;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180A00);
+void func_dryfield_night_gas_station_80180C20(void)
+{
+    RoomsShared801807d4Task               = 0;
+    RoomsShared8017e320Task               = 0;
+    D_dryfield_night_gas_station_801907AC = 0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180A34);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180C3C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180A60);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180D1C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180B04);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180DC8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180B38);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180B5C);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_8", func_dryfield_night_gas_station_80180E9C);
