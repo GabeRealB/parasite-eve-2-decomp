@@ -14,7 +14,7 @@ extern s32 D_mist_r18_8018522C;
 extern s32 D_mist_r18_8018639C;
 extern s32 D_mist_r18_80186E90;
 extern s32 D_mist_r18_80186E94;
-extern s32 D_mist_r18_80186E98;
+extern s32 RoomsShared8017ea2cTask;
 extern s32 D_mist_r18_80186E9C;
 
 void func_mist_r18_8017EC98(void)
@@ -36,9 +36,9 @@ void func_mist_r18_8017ECCC(void)
 
 void func_mist_r18_8017ECF4(Task* arg0)
 {
-    D_mist_r18_80186E90 = 0;
-    D_mist_r18_80186E94 = 0;
-    D_mist_r18_80186E98 = 0;
+    D_mist_r18_80186E90     = 0;
+    D_mist_r18_80186E94     = 0;
+    RoomsShared8017ea2cTask = 0;
     Game_SetPtrSlot(arg0, 7);
     func_800E8634((s32)&D_mist_r18_8018522C, 0, (s32)&D_mist_r18_8018639C);
     arg0->state         = (s32)(arg0->state + 1);

@@ -24,19 +24,17 @@ typedef struct {
     /* 0x44 */ SVECTOR        rot;
     /* 0x4C */ GsCOORDINATE2* sub;
 } MistR18Coord;
-extern Task*    D_mist_r18_80186E98;
+extern Task*    RoomsShared8017ea2cTask;
 extern s16      D_80071076;
 extern s8       D_801156F9;
 extern TaskDesc RoomsShared8017e5b8Desc;
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_5", func_mist_r18_8017EA2C);
-
 void func_mist_r18_8017EA60(void)
 {
-    if (D_mist_r18_80186E98 != NULL) {
-        Task_Kill(D_mist_r18_80186E98);
+    if (RoomsShared8017ea2cTask != NULL) {
+        Task_Kill(RoomsShared8017ea2cTask);
     }
-    D_mist_r18_80186E98 = NULL;
+    RoomsShared8017ea2cTask = NULL;
 }
 
 void func_mist_r18_8017EA98(Task* task)
