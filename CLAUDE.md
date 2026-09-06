@@ -163,6 +163,21 @@ running out of digits. Only the overlays with `rodata_head` split the id into a
 `<name>_hdr.rodata.s` - elsewhere it is folded into the first code unit's
 rodata, or, for rooms, sits as `D_<room>_8017D5C0`.
 
+**That id was almost certainly prepended by the packaging tool, not compiled.**
+The word at `0x4` is a pointer in overlay after overlay - a jump table, which
+GCC emits at the *start* of its object's `.rodata` - so the first translation
+unit begins at `0x4` and nothing owns `0x0..0x4`. A compiled id would mean 448
+generated one-line sources differing only by a constant, and that constant is a
+global packaging index (families in contiguous blocks) that a room's source
+could not know. The `u16`-in-a-`u32` shape fits a tool writing a `short` and
+padding for alignment.
+
+This matters for how to read `<name>_hdr.c`: those units reproduce the bytes,
+they do not reconstruct retail's file layout. A prepended header and a tiny
+first object are indistinguishable in the ROM, so the `_hdr.c` form is chosen
+because it matches, not because the original was split that way. Do not treat
+it as evidence about the original sources.
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the
