@@ -3,6 +3,36 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `SOFT_TOUCH_REG` the split-address pointer so `lui`/`addiu` share `$v1`
+
+`-msplit-addresses` expands `table = (s32)Gp_ItemDescs` as a HIGH pseudo plus
+a LO_SUM into `table`. HIGH is short-lived (dies at the `addiu`) so
+`global_alloc` colors it first and gives it `$v0`; `table` cannot be `$v0`
+because it is still live at the `j` delay `sll v0, item, 3`, so it gets `$v1`
+and the pair is `lui v0, %hi` / `addiu v1, v0, %lo`. The target wants both in
+`$v1` (`lui v1` / `addiu v1, v1, %lo`).
+
+An extra `SOFT_TOUCH_REG(table)` in each arm raises `table`'s ref count so it
+is allocated first, takes `$v1`, and HIGH then prefers that color through the
+lo_sum copy:
+
+```c
+if (item < 0x100) {
+    table = (s32)Gp_ItemDescs;
+    SOFT_TOUCH_REG(table);
+    off = item * 8; /* j delay: sll v0, item, 3 */
+} else {
+    table = (s32)D_8010DE38;
+    SOFT_TOUCH_REG(table);
+    off = (idx - 0x100) * 8;
+}
+price = *(u16*)(off + table);
+```
+
+`func_replay_bonus_801176A8` is the example. Pair with `SOFT_TOUCH_REG(idx)`
+as the first statement of the `< 0x100` arm so `idx = item` fills the `beqz`
+delay (`move s1, s0`) rather than sitting before `DrawItemLabel`.
+
 ## `bne a2, a0` / `addiu a2` is miss-path increment stolen into the delay, not `count++`
 
 When the target compares a loop counter in `$a2` and increments that same

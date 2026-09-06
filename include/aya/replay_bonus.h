@@ -28,6 +28,7 @@ typedef struct ReplayBonusCtx {
     /* 0x28 */ ReplayBonusItemList* itemList;
 } ReplayBonusCtx;
 
-s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);
+s16  func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);
+void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj);
 
 #endif

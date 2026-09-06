@@ -1,14 +1,19 @@
 #include "common.h"
 
 #include "aya/replay_bonus.h"
+#include "gameplay/268.h"
+#include "gameplay/3688.h"
+#include "gameplay/4CC.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/text.h"
 #include "psyq/libpress.h"
 extern UiObjectDesc D_replay_bonus_80119154;
 extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
+extern GpItemDesc   D_8010DE38[];
 
 s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
 
@@ -77,7 +82,36 @@ s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801175F0);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801176A8);
+void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
+{
+    u8   buf[0x20];
+    s32  item;
+    s32  idx;
+    s16* p;
+    s32  table;
+    s32  off;
+    s32  price;
+
+    p = ((ReplayBonusItemList*)obj->owner)->itemIds + prompt->field_8;
+    SOFT_BARRIER();
+    item = *p;
+    idx  = item;
+    Gp_SetItemSeenBit(item, 1);
+    Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, item, 0x606060, 0);
+    if (item < 0x100) {
+        SOFT_TOUCH_REG(idx);
+        table = (s32)Gp_ItemDescs;
+        SOFT_TOUCH_REG(table);
+        off = item * 8;
+    } else {
+        table = (s32)D_8010DE38;
+        SOFT_TOUCH_REG(table);
+        off = (idx - 0x100) * 8;
+    }
+    price = *(u16*)(off + table);
+    SOFT_TOUCH_REG(price);
+    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, price >> 1), 0x606060, 3, 2);
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801177A0);
 
