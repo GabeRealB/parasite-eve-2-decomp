@@ -34561,6 +34561,48 @@ bytes shorter than `assets/USA/pe2pkg/<name>.pe2pkg`, and every jump-table entry
 in the image points 4 bytes low; check the sizes before hunting the code diff.
 
 
+## Name the `.align 3` pad when an asm jump table follows a compiler one
+
+The pad word between two jump tables is only a problem when the unit boundary
+falls between them. When both tables stay in the *same* unit — the first
+belonging to a function you are decompiling, the second to a function that is
+still `INCLUDE_ASM` — there is nothing to cut and nothing to write into C: the
+pad already exists in the package, splat has simply swallowed it.
+
+`inferno` is the worked example. Its leading `.rodata` is the 4-byte `"2"`
+string at `0x8012EF30`, then `jtbl_inferno_8012EF34` (13 entries, ending at
+`0x8012EF68`), a zero word, then `jtbl_inferno_8012EF6C`. With no symbol at
+`0x8012EF68` splat folds that zero word into the *first* table's `dlabel`, so
+the moment `func_inferno_8012EF88` becomes C the pad disappears with the
+`INCLUDE_ASM` that carried it, and `jtbl_inferno_8012EF6C` lands 4 bytes early.
+In the original object the pad is GCC's `.align 3` ahead of the second table,
+which the compiler no longer emits because that table is assembly now.
+
+Give the pad a name in the overlay's symbol map:
+
+```
+// configs/USA/sym/pe/inferno.txt
+D_inferno_8012EF68 = 0x8012EF68; // size:0x4
+```
+
+Nothing references it, so `migrate_rodata_to_functions` cannot fold it into a
+function's `.s`; splat writes `D_inferno_8012EF68.s` and puts
+`INCLUDE_RODATA(..., D_inferno_8012EF68)` in the `.c` between the two functions,
+in address order — exactly where it has to be for the section to read
+compiler table, pad, assembly table. Pair it with `rodata_head` so the C
+table still starts the object:
+
+```toml
+inferno = { pe_level_ids = "50107-50109", rodata_head = "0x4" }
+```
+
+Delete the overlay's `src/` files and re-split so splat places the
+`INCLUDE_RODATA` line itself, then paste the matched body back. Prefer this to
+the `rodata` + `units` split: a `.rodata` cut only names where an *object*
+starts, and the linker script concatenates those objects with no address
+between them, so a cut cannot open a 4-byte hole that no object fills.
+
+
 ## `if (f() == K) { x = K; }` reuses the returned register, so the store cross-jumps
 
 GCC 2.8.1's CSE records the equality implied by a taken conditional branch

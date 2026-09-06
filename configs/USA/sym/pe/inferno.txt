@@ -1,0 +1,5 @@
+// Overlay-local symbols for inferno.
+// GCC's `.align 3` ahead of the second jump table. Naming it keeps it out of
+// `jtbl_inferno_8012EF34`, so the decompiled `func_inferno_8012EF88` can emit
+// that table itself and still leave the pad ahead of `jtbl_inferno_8012EF6C`.
+D_inferno_8012EF68 = 0x8012EF68; // size:0x4
