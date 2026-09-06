@@ -51395,3 +51395,57 @@ range it now sits inside. When the only leftover is a two-register permutation,
 read `used N times across M insns` for the two candidates out of `.lreg`, work
 out which way the ratio has to move, and hoist (or inline) a subexpression on
 the side that has to change.
+
+## The scheduler reorders byte stores, so the source store order is not fixed by the object dump
+
+`func_pyrokinesis_80130848` sets the eight UV bytes of a `POLY_FT4`, two of them
+computed from `(arg1 & 1) * 56`. The ROM stores them in the order
+`v0, v1, u0, u1, u2, v2, u3, v3` and keeps `u0`'s value (`t + 0x70`) in `$a1`,
+so the `0xFF` constant can take `$v1` immediately:
+
+```
+addiu   $a1, $v0, 0x70      # u0/u2
+li      $v1, 0xC8
+addiu   $v0, $v0, -0x59     # u1/u3
+sb      $v1, 0xD($s1)       # v0
+```
+
+Writing the C in exactly that order gives 97.35%: GCC hoists `li 0xC8` and its
+two `sb`s *above* the `andi`/`sll`/`subu`/`sll` chain, so `0xC8` dies before
+`u0` is defined, `u0` takes `$v1`, and `0xFF` then has to wait for `u0` to die —
+which the scheduler pays for by swapping the `u1` and `u2` stores.
+
+The fix is to move the **`u0` store one statement earlier**, ahead of the two
+`0xC8` stores it follows in the ROM:
+
+```c
+t        = (arg1 & 1) * 56;
+u70      = t + 0x70;
+prim->u0 = u70;          /* before v0/v1, even though the ROM stores it after */
+prim->v0 = 0xC8;
+prim->v1 = 0xC8;
+prim->u1 = t - 0x59;
+prim->u2 = u70;
+prim->v2 = 0xFF;
+prim->u3 = t - 0x59;
+prim->v3 = 0xFF;
+```
+
+`sched1` puts the three stores back in the ROM's order, but the `u0` statement
+now forces the `t + 0x70` chain to be scheduled before `li 0xC8`, `0xC8` is live
+across it, `u0` is pushed to `$a1`, and the function matches 100%.
+
+The general point: GCC 2.8.1 freely reorders stores through a single pointer
+when the offsets provably do not overlap, so a byte-store order read off the
+object dump is *not* evidence of the source order. Statement order still
+controls when the *values* are materialised, and that is what decides the
+register assignment. When a run of small stores is right except for two swapped
+registers, try sliding one store across its neighbours before reaching for a
+`register … asm("")` pin or a `SCHED_BARRIER()`. Both were tried here: the pin
+(`asm("a1")` on the `u0` value, copied from the matched sibling
+`Gp_DrawEffSprite6C`) dropped the score to 95.2% because a function-scope pin on
+`$a1` also breaks the `rsin`/`rcos` argument setup, and a `SCHED_BARRIER()`
+between `u0` and `v0` reached 99.77% but stranded the `move $a0, $s2` call-argument
+copy: a barrier ends the scheduling region, so the argument copy loses the call
+as a successor, its priority collapses and it sinks to the end of the region
+instead of being hoisted 30 instructions ahead of the `jal`.
