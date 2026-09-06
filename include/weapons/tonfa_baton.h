@@ -49,7 +49,7 @@ STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
 /// from the array base already in a register; state 1 loads the symbol on its
 /// own. Both spellings are needed to match, and one object cannot carry two C
 /// names, so the pair stays in the split data.
-extern SVECTOR D_tonfa_baton_8011E0F0[2];
+extern SVECTOR D_tonfa_baton_8011E0F0[1];
 extern SVECTOR D_tonfa_baton_8011E0F8;
 
 /// The eight-segment swing trails, one array per end of the baton. Every entry

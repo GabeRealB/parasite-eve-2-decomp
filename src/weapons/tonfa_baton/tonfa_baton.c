@@ -13,6 +13,15 @@
 #include "main/tmd.h"
 #include "weapons/tonfa_baton.h"
 
+/// Near vector for the baton's swing arc.
+SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
+
+/// The far end of that pair, immediately after it. Both forms appear in
+/// the original: one path reaches it as `D_tonfa_baton_8011E0F0[1]`, which compiles to the
+/// array's address plus 8, and another names it directly, which compiles
+/// to its own address - so it has to be a separate object, not element 1.
+SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
+
 /// Package header word 0: the overlay id, `item id - 0x78`
 /// (item 0x92, Tonfa Baton).
 const s32 D_tonfa_baton_8011D1C0 = 0x1A;

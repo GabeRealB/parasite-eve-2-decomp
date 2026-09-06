@@ -9,6 +9,15 @@
 #include "main/tmd.h"
 #include "weapons/gunblade.h"
 
+/// Muzzle vector for the gunblade's blade sweep.
+SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
+
+/// The far end of that pair, immediately after it. Both forms appear in
+/// the original: one path reaches it as `D_gunblade_8011E704[1]`, which compiles to the
+/// array's address plus 8, and another names it directly, which compiles
+/// to its own address - so it has to be a separate object, not element 1.
+SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
+
 /// Package header word 0: the overlay id, `item id - 0x78`
 /// (item 0x96, Gunblade).
 const s32 D_gunblade_8011D1C0 = 0x1E;
