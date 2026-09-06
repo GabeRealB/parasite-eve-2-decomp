@@ -623,7 +623,7 @@ pyrokinesis = { pe_level_ids = "50101-50103", rodata_head = "0x4", shared = [{ s
 combustion = { pe_level_ids = "50104-50106", shared = [{ start = "0xBE4", end = "0xFDC", unit = "pe_shared_8012fb14" }], data = [{ start = "0x1A50", unit = "combustion" }] }
 inferno = { pe_level_ids = "50107-50109", rodata_head = "0x4", data = [{ start = "0x15B4", unit = "inferno" }] }
 necrosis = { pe_level_ids = "50110-50112", data = [{ start = "0x178C", unit = "necrosis" }] }
-plasma = { pe_level_ids = "50113-50115" }
+plasma = { pe_level_ids = "50113-50115", data = [{ start = "0x1004", unit = "plasma" }] }
 apobiosis = { pe_level_ids = "50116-50118", rodata_head = "0x4", data = [{ start = "0x1C2C", unit = "apobiosis" }] }
 metabolism = { pe_level_ids = "50119-50121", data = [{ start = "0xC24", unit = "metabolism" }] }
 healing = { pe_level_ids = "50122-50124", shared = [{ start = "0x564", end = "0x6B4", unit = "pe_shared_8012f9a8" }], data = [{ start = "0xCEC", unit = "healing" }] }

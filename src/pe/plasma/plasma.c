@@ -16,6 +16,21 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+/// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
+/// the inner radius, `yOff` the height above the caster, `rExtra` how far the
+/// ring grows before it breaks up.
+PlasmaRingScale D_plasma_8012FF34[] = {
+    { 0x0100, 0x0800, 0x0200 },
+    { 0x0200, 0x0600, 0x0300 },
+    { 0x0300, 0x0400, 0x0400 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each `D_plasma_8012FF34` row.
+s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
+
+/// Per-vertex jitter the ring walks each frame; three banks of 16.
+PlasmaJitter D_plasma_8012FF54 = { 0 };
+
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
