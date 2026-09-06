@@ -96,4 +96,4 @@ void func_mist_parking_80184728(void)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_18", func_mist_parking_8017D8F8);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_18", RoomsShared8017eb5cIdList);

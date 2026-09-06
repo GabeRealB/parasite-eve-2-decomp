@@ -8,8 +8,6 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", D_s
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017E744);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017E994);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", RoomsShared8017f938Bp);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", RoomsShared8017ed7cTitle);
@@ -26,4 +24,4 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", Roo
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", jtbl_shelter_1f_heliport_8017D71C);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017D730);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", RoomsShared8017eb5cIdList);

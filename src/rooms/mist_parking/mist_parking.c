@@ -25,10 +25,10 @@ extern u8             D_80071072;
 extern u8             RoomsShared8017f938Bp[];
 extern u8             RoomsShared8017fdb8Msg[];
 extern u8             RoomsShared8017f108Msg[];
-extern u8             D_mist_parking_801864BC[];
-extern u8             D_mist_parking_801864C4[];
-extern u8             D_mist_parking_801864D0[];
-extern u8             D_mist_parking_801864D8[];
+extern u8             RoomsShared8017eb5cMode0[];
+extern u8             RoomsShared8017eb5cMode1[];
+extern u8             RoomsShared8017eb5cMode2[];
+extern u8             RoomsShared8017eb5cMode3[];
 extern u8             RoomsShared8017f31cMsg0[];
 extern u8             RoomsShared8017f31cMsg1[];
 extern u8             RoomsShared8017f31cMsg2[];
@@ -37,7 +37,7 @@ extern u8             RoomsShared8017f938Times[];
 extern u8             D_mist_parking_80186718[];
 extern UiListItemFunc D_mist_parking_80186538[];
 extern UiList         RoomsShared8017ed7cList;
-extern UiObjectDesc   D_mist_parking_801865AC;
+extern UiObjectDesc   RoomsShared8017eb5cListDesc;
 extern UiObjectDesc   D_mist_parking_80186654;
 extern UiObjectDesc   RoomsShared8017ed7cRowsDesc;
 extern UiObjectDesc   RoomsShared8017ff9cDesc;
@@ -49,7 +49,7 @@ extern GpItemMap*     RoomsShared8017f49cMap;
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D5C0);
 
-u16* func_mist_parking_8017D8F8(s32 arg0);
+u16* RoomsShared8017eb5cIdList(s32 arg0);
 
 /// One row of the vending machine's price ladder (`D_mist_parking_801863B0`,
 /// thirteen rows). `spendThreshold` is the running total the player has to have
@@ -72,7 +72,7 @@ extern s32                 RoomsShared8017df68Selected;
 /// them by `Gp_ItemSortKey` and caps the visible row count at 9.
 ///
 /// The upper halfword of the owning task's `spawnArg1` picks the machine's
-/// mode, which decides both the fixed id list (`func_mist_parking_8017D8F8`)
+/// mode, which decides both the fixed id list (`RoomsShared8017eb5cIdList`)
 /// and which of a price row's items the machine will stock: mode 0 takes tools
 /// (0x80-0x9F) plus a handful of key items, mode 1 armour (0xA0-0xBF), mode 2
 /// weapon parts (0x60-0x7F) and mode 3 everything up to 0x5F that the other
@@ -100,7 +100,7 @@ void func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj)
     u8            count;
 
     mode = obj->owner->spawnArg1;
-    ids  = func_mist_parking_8017D8F8(mode);
+    ids  = RoomsShared8017eb5cIdList(mode);
 
     shop->list.field_4 = 0;
     while (*ids != 0xFFFF) {
@@ -264,63 +264,6 @@ void func_mist_parking_8017E90C(Task* task)
             }
             child = next;
         } while (child != task->firstChild);
-    }
-}
-
-void func_mist_parking_8017EB5C(DialogPrompt* prompt, UiObject* obj)
-{
-    u8* text;
-    s32 status;
-    s32 one;
-    s32 one2;
-
-    if ((prompt->field_4 - 1) == prompt->field_8) {
-        one = 1;
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, RoomsShared8017fdb8Msg, prompt->field_1C, one, 0);
-        if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
-            obj->field_2E = 6;
-        }
-        return;
-    }
-
-    text                  = D_mist_parking_801864BC;
-    obj->owner->spawnArg1 = (u16)obj->owner->spawnArg1;
-    switch (prompt->field_8) {
-        case 0:
-            break;
-        case 1:
-            text                   = D_mist_parking_801864C4;
-            obj->owner->spawnArg1 |= 0x10000;
-            break;
-        case 2:
-            text                   = D_mist_parking_801864D0;
-            obj->owner->spawnArg1 |= 0x20000;
-            break;
-        case 3:
-            text                   = D_mist_parking_801864D8;
-            obj->owner->spawnArg1 |= 0x30000;
-            break;
-    }
-
-    if (*func_mist_parking_8017D8F8(obj->owner->spawnArg1) == 0xFFFF) {
-        prompt->field_1C = Ui_LookupTable(obj, 2);
-        prompt->field_C  = 0;
-    }
-
-    one2 = 1;
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, text, prompt->field_1C, one2, 0);
-
-    status = obj->status;
-    if (((status >> 16) == one2) || (status == one2)) {
-        if (prompt->field_10 == prompt->field_8) {
-            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
-        }
-    }
-
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_mist_parking_801865AC, obj->owner->spawnArg1, 1, 1, obj);
-        obj->status = 0;
     }
 }
 

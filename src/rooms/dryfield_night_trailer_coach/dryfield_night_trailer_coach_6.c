@@ -58,4 +58,4 @@ void func_dryfield_night_trailer_coach_80182924(void)
             break;
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", func_dryfield_night_trailer_coach_8017D81C);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_6", RoomsShared8017eb5cIdList);
