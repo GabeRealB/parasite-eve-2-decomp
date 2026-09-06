@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -9,6 +11,13 @@
 #include "main/tmd.h"
 
 extern s32 Gp_LcgState;
+
+/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
+/// The `inline_c.h` macro of that name assembles to a different word, so spell
+/// the instruction out.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+void func_flare_8012F304(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 void func_flare_8012EF34(Task* arg0)
 {
@@ -52,7 +61,76 @@ void func_flare_8012EF34(Task* arg0)
     }
 }
 
-INCLUDE_ASM("pe/nonmatchings/flare/flare", func_flare_8012F0B8);
+void func_flare_8012F0B8(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* player;
+    GpMtxWords*    dstm;
+    GpMtxWords*    srcm;
+    s32            rng;
+    s32            temp_lo;
+    s32            hi;
+    s32            ang;
+    s32            pitch;
+    s32            rsin_arg;
+
+    mem           = arg0->spawnArg2;
+    coord         = ((TmdObject*)arg0->extra)->field_8;
+    mem->field_22 = (u16)mem->field_22 + 1;
+    if (arg0->state == 0) {
+        player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+        dstm       = (GpMtxWords*)&coord->coord;
+        srcm       = (GpMtxWords*)&player->coord;
+        dstm->w0   = srcm->w0;
+        dstm->w1   = srcm->w1;
+        dstm->w2   = srcm->w2;
+        dstm->w3   = srcm->w3;
+        dstm->h4   = srcm->h4;
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        rng = Gp_LcgState * 5 + 0x71357911;
+        do {
+            hi = (u32)rng >> 16;
+            SCHED_BARRIER();
+            ang = (u16)arg0->spawnArg1;
+            TOUCH_REG(ang);
+            mem->field_24 = hi & 0xFFF;
+            SOFT_COMPILER_BARRIER();
+            rsin_arg = mem->field_24;
+            SCHED_BARRIER();
+        } while (0);
+        Gp_LcgState   = rng;
+        ang           = ang & 0xFFF;
+        mem->field_28 = ang;
+        SCHED_BARRIER();
+        pitch = ang;
+        TOUCH_REG(pitch);
+        mem->field_26 = (s32)(pitch << 16) >> 21;
+        mem->field_10 = (rsin(rsin_arg) * mem->field_26) >> 12;
+        temp_lo       = rcos(mem->field_24) * mem->field_26;
+        mem->field_14 = 0x100;
+        mem->field_12 = temp_lo >> 12;
+        gte_SetRotMatrix((MATRIX*)srcm);
+        gte_ldv0(&mem->field_10);
+        gte_rtv0_real();
+        gte_stsv(&mem->field_10);
+        arg0->state = 1;
+    }
+    coord->coord.t[0] += mem->field_10;
+    coord->coord.t[1] += mem->field_12;
+    coord->coord.t[2] += mem->field_14;
+    coord->flg         = 0;
+    Gp_UpdateCoord(coord);
+    if (!((u16)mem->field_22 & 1)) {
+        mem->field_20 = (u16)mem->field_20 + 1;
+    }
+    if (mem->field_20 < 8) {
+        func_flare_8012F304(coord, mem->field_20, mem->field_28, mem->field_24);
+        return;
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 INCLUDE_ASM("pe/nonmatchings/flare/flare", func_flare_8012F304);
 

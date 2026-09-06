@@ -3,6 +3,45 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `do { } while (0)` so a later store fills a load delay
+
+`fill_simple_delay_slots` takes the first *independent* insn after a load.
+A `lh` of a just-stored field (`rsin_arg = mem->field_24`) followed by
+`Gp_LcgState = rng` wants
+
+```
+lh    a0, 0x24(s1)
+sw    a1, %lo(Gp_LcgState)(a2)
+andi  v1, v1, 0xFFF
+```
+
+Written as consecutive statements, `-fschedule-insns2` slips an independent
+`andi` of another local into that delay and parks the store after it
+(`reorder=1` with every other penalty already 0). `SCHED_BARRIER()` between
+the load and the store blocks the store from the slot as well.
+
+Wrap the load (and the setup that must stay above it) in a one-shot loop so
+the store is the first insn of the *next* basic block. Delay-slot fill then
+walks into that block and takes the store; the `andi` stays after:
+
+```c
+do {
+    hi            = (u32)rng >> 16;
+    SCHED_BARRIER();
+    ang           = (u16)arg0->spawnArg1;
+    TOUCH_REG(ang);
+    mem->field_24 = hi & 0xFFF;
+    SOFT_COMPILER_BARRIER();
+    rsin_arg      = mem->field_24;
+    SCHED_BARRIER();
+} while (0);
+Gp_LcgState = rng;
+ang         = ang & 0xFFF;
+```
+
+This is a CFG fence, not a wrapper around `TOUCH_REG` / `SCHED_BARRIER`.
+`func_flare_8012F0B8` is the example.
+
 ## `SCHED_BARRIER` then `TOUCH_REG` on first-call `$a0`/`$a3` copies
 
 A prompt handler that zeroes a loop index *before* the first `Text_DrawPrompt`
