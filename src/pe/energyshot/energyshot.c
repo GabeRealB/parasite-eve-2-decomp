@@ -9,6 +9,10 @@
 #include "main/tmd.h"
 #include "pe/energyshot.h"
 
+/// This overlay's id. Every package opens with one: a u16 in a u32
+/// slot, distinct across all 448, with the families in contiguous blocks.
+const u32 D_energyshot_8012EF30 = 58;
+
 /// Per-level tuning for the energy shot: rows are PE levels 1-3. The last
 /// row's `field_6` was split into its own symbol by splat because the code
 /// reads it directly; it is `D_energyshot_801300E4[2].field_6` here.
@@ -242,5 +246,3 @@ void func_energyshot_8012EF34(Task* arg0)
 release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
-
-INCLUDE_RODATA("pe/nonmatchings/energyshot/energyshot", D_energyshot_8012EF30);

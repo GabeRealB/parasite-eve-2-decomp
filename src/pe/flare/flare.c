@@ -13,6 +13,10 @@
 #include "main/tmd.h"
 #include "pe/flare.h"
 
+/// This overlay's id. Every package opens with one: a u16 in a u32
+/// slot, distinct across all 448, with the families in contiguous blocks.
+const u32 D_flare_8012EF30 = 61;
+
 extern s32 Gp_LcgState;
 
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
@@ -195,5 +199,3 @@ void func_flare_8012F304(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     }
     *scratch = (u8*)*scratch + 0x1C;
 }
-
-INCLUDE_RODATA("pe/nonmatchings/flare/flare", D_flare_8012EF30);

@@ -16,6 +16,10 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+/// This overlay's id. Every package opens with one: a u16 in a u32
+/// slot, distinct across all 448, with the families in contiguous blocks.
+const u32 D_antibody_8012EF30 = 57;
+
 /// Per-level tuning for the antibody motes: rows are PE levels 1-3.
 AntibodyStep D_antibody_80130BD4[] = {
     { 0x0008, 0x0090, 0x0005, 0x0200, 0x0080, 0x0600, 0x0008 },
@@ -589,5 +593,3 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AntibodyArcScratch);
 }
-
-INCLUDE_RODATA("pe/nonmatchings/antibody/antibody", D_antibody_8012EF30);

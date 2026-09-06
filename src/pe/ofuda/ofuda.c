@@ -8,6 +8,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// This overlay's id. Every package opens with one: a u16 in a u32
+/// slot, distinct across all 448, with the families in contiguous blocks.
+const u32 D_ofuda_8012EF30 = 60;
+
 /// Ofuda PE flash. `Task::spawnArg2` is the `GpEffWork` block (`field_24`
 /// brightness, `field_26` ring radius, `field_2A` per-frame step);
 /// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`
@@ -112,5 +116,3 @@ void func_ofuda_8012EF34(Task* arg0)
 kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
-
-INCLUDE_RODATA("pe/nonmatchings/ofuda/ofuda", D_ofuda_8012EF30);

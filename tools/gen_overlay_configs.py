@@ -363,7 +363,17 @@ def subsegments(
                     f"{name}: rodata_head 0x{head:X} is outside the leading "
                     f"rodata (0x0..0x{start:X})"
                 )
-            lines.append(f"      - [0x0, rodata, {name}_hdr]")
+            # The head is the overlay id word. Hand it to a C unit when one
+            # exists (src/<family>/<name>/<name>_hdr.c), so the id can be a
+            # constant instead of an .incbin; otherwise leave it as asm. It
+            # cannot simply be folded into the main unit's .rodata: these
+            # overlays have a compiler-generated jump table that must start at
+            # the cut, and giving the unit the run from 0x0 reorders both.
+            hdr_c = next(Path("src").glob(f"*/{name}/{name}_hdr.c"), None)
+            if hdr_c is not None:
+                lines.append(f"      - [0x0, .rodata, {name}/{name}_hdr]")
+            else:
+                lines.append(f"      - [0x0, rodata, {name}_hdr]")
         shared_units = {s["unit"] for s in shared}
 
         def unit_path(unit: str) -> str:

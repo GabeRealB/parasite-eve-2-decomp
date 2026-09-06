@@ -186,7 +186,8 @@ void func_inferno_8012F3EC(s16 arg0)
     Gp_AddTpageShift((P_TAG*)p, 1, z);
 }
 
-INCLUDE_RODATA("pe/nonmatchings/inferno/inferno", D_inferno_8012EF68);
+/// Trailing zero word in this unit's rodata.
+const u32 D_inferno_8012EF68 = 0;
 
 /// Companion inferno-cast task: state 0 allocates a 12-byte `InfernoIdMap`
 /// of LCG jitter, scales `GpEffWork::field_18` by 0x80 (`gte_gpf12`) and
