@@ -63,7 +63,4 @@ typedef struct {
 extern MistParkingShopTier D_mist_parking_801863B0[13];
 extern s32                 D_mist_parking_8018644C;
 
-/// `main`'s rounded-rect panel fill (`Ui_LayoutWithMode0` / `Ui_LayoutWithMode1`
-/// are the two named wrappers): draws a `w` x `h` box at (`x`, `y`) relative to
-/// the object's base, `mode` selecting the fill style.
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_3", func_mist_parking_801812B4);
+INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_3", func_mist_parking_80181760);

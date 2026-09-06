@@ -1042,8 +1042,8 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D75C);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017e8b4WeaponTitle);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D768);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017e8b4PeTitle);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017ea68Title);

@@ -4,6 +4,9 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_und
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017de9cHundred);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", func_shelter_b1_underground_parking_8017EC34);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017e8b4WeaponTitle);
+
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017e8b4PeTitle);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017ea68Title);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", func_shelter_b1_underground_parking_8017F0E0);

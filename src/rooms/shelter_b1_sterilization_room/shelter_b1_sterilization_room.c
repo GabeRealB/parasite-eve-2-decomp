@@ -4,6 +4,9 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_ster
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017de9cHundred);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017E978);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017e8b4WeaponTitle);
+
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017e8b4PeTitle);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017ea68Title);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EE24);
