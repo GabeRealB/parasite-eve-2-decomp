@@ -38,3 +38,4 @@ RoomsShared80181228Task = 0x8018A68C; // shared body data, see src/rooms/lib/
 RoomsShared80181228Desc = 0x80186F08; // shared body data, see src/rooms/lib/
 RoomsShared80181228AreaRecs = 0x80188888; // shared body data, see src/rooms/lib/
 RoomsShared80180f94 = 0x8017E730; // shared body, see src/rooms/lib/
+RoomsShared80180c98 = 0x8017E434; // shared body, see src/rooms/lib/

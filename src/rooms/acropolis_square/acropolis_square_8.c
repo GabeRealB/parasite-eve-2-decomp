@@ -20,13 +20,72 @@ extern s32      D_acropolis_square_80183830;
 extern s32      D_acropolis_square_8018399C;
 extern s32      D_acropolis_square_80183A5C;
 
-void func_acropolis_square_801822A4(void)
+s32 func_acropolis_square_80182360(void)
 {
-    char pad[0x10];
+    GpAreaKey key;
 
-    if (Mc_SaveData.field_8 == 7 && D_acropolis_square_80183830 == 0) {
-        D_acropolis_square_80183830 = 1;
-        Mc_SaveData.field_5C5       = 2;
-        func_800E8634((s32)&D_acropolis_square_8018399C, 0, (s32)&D_acropolis_square_80183A5C);
+    if (GameFlag_GetNibble(0x1F) == 0) {
+        GameFlag_SetNibble(0x1F, 1);
+        key.field_3 = 1;
+        key.field_2 = 1;
+        Gp_SetAreaObjId(&key, 2, 1);
+        Game_Session->field_1 = 1;
+        Task_SpawnFromTable(&D_acropolis_square_80183808, 0, 0, 0);
+        return 0;
     }
+    return 1;
+}
+
+void func_acropolis_square_801823DC(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = task->spawnArg2;
+    switch (task->state) { /* irregular */
+        case 0:
+            task->field_24 = &D_acropolis_square_80183B58;
+            Game_SetPtrSlot(task, 5);
+            D_acropolis_square_80183B98 = 0;
+            Task_Spawn(1, 0x25, 0, 0);
+            Task_Spawn(1, 0x25, 1, 0);
+            task->state++;
+            return;
+        case 1:
+            if ((0x268 >> ((u8)Game_Session->field_4 - 1)) & 1) {
+                work->field_10.vx = 0x19AA;
+                work->field_10.vy = -0xF96;
+                work->field_10.vz = 0x8DE;
+                Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x10000218 + 0x10E08,
+                            &work->field_10);
+            }
+            if ((u8)Game_Session->field_4 == 0xE) {
+                work->field_10.vx = 0x18D2;
+                work->field_10.vy = -0x100B;
+                work->field_10.vz = 0x8AB;
+                Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x218 + 0x10010608,
+                            &work->field_10);
+            }
+            if ((u8)Game_Session->field_4 == 9) {
+                work->field_10.vx = 0x19AA;
+                work->field_10.vy = -0xF96;
+                work->field_10.vz = 0x8E8;
+                Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x118 + 0x80010308,
+                            &work->field_10);
+            }
+            return;
+    }
+}
+
+INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_8", func_acropolis_square_801825DC);
+
+s32 func_acropolis_square_8018344C(s32 arg0, s32 arg1, s32 arg2)
+{
+    D_acropolis_square_80183B98 = arg2;
+    return 0;
+}
+
+void func_acropolis_square_8018345C(void)
+{
 }

@@ -1,17 +1,26 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/task.h"
-extern TaskDesc       D_shelter_b6_nursery_80185000;
-extern s32            D_shelter_b6_nursery_8018797C;
-extern TaskFuncTable3 RoomsShared8017d878Table;
+#include "main/tmd.h"
+#include "rooms/shelter_b6_nursery.h"
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
-void func_shelter_b6_nursery_8017FFF4(void)
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80181314);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80181820);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80181EDC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80182330);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80182730);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_801829E4);
+
+void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
 {
-    if (D_shelter_b6_nursery_8018797C == 0) {
-        D_shelter_b6_nursery_8018797C = 1;
-        Task_SpawnFromTable(&D_shelter_b6_nursery_80185000, 0, 0, 0);
-    }
+    D_shelter_b6_nursery_801879F0.field_0 = arg0;
+    D_shelter_b6_nursery_801879F0.field_2 = arg1;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_80180038);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_8", func_shelter_b6_nursery_801800A0);
