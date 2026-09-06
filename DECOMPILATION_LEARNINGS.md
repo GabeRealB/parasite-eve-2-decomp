@@ -50023,3 +50023,89 @@ level %= 0xC0;
 Written as one expression, `level = ((u32)Gp_LcgState >> 16) % 0xC0;`, the
 destination is a fresh quantity, the `subu` writes `v1`, and the scheduler
 hoists the next `lui` above the stores.
+
+## A shared body's constants are part of the object, so copies that differ in one cannot share
+
+`overlay_dup_index.py` canonicalises an overlay-local `%hi`/`%lo` to a wildcard,
+so two copies that read *different* constant tables at the same instruction
+group as one body. That is right for a table the carriers each own - alias it -
+and wrong when the constants are a *local array initialiser*, because GCC
+materialises those on the stack from the function's own `.rodata`, which the
+shared object then owns for every carrier at once.
+
+`func_acropolis_patio_8017E324` is the worked refusal: the lamp task ends with
+
+```c
+u8 levels[3] = { 0x50, 0x30, 0x10 };
+work->color  = levels[work->frame];
+```
+
+and the two rooms disagree on the third level (`0x10` in the forked road,
+`0x40` in the patio). Aliasing the array away - `extern u8 …Levels[]`, one sym
+line per carrier - links and is 28 bytes short in *both* rooms: the local form
+copies the four bytes to the stack and indexes there, seven instructions more
+than the `lui`/`addu`/`lbu` an extern generates. So there is no way to keep the
+code and vary the data. Skip the promotion.
+
+The tell before you start is cheap: dump the bytes each carrier holds at the
+addresses in `find`'s local-reference list and compare them. Same code plus
+different data is only shareable when the data lives *outside* the body's own
+object.
+
+## Promotion: when the promoted body was a whole unit, two rodata cuts merge
+
+The cheap-looking shape - the shared span covers a run exactly, so the unit
+disappears and every later one shifts *down* - is the one that needs the most
+care, because the vanished unit's **name** passes to its successor. Both the
+cut that named the vanished unit and the cut that named the successor now read
+as the same unit, and a unit's `.rodata` may appear only once in a linker
+script. Keep the lower cut, drop the other, and move the vanished `.c`'s
+`INCLUDE_RODATA` lines into the successor's file - at the front, since they sit
+below its own rodata. `rooms_shared_80180c98` did this in all eighteen rooms it
+was extended to.
+
+Two follow-ons, both silent:
+
+* **Address order inside the merged object is not file order.** The rodata a
+  still-`INCLUDE_ASM` function owns is emitted where its `INCLUDE_ASM` sits, so
+  a standalone block that belongs *after* those functions has to be written
+  after them in the `.c`. Prepending the whole moved batch put a task table
+  0x20 bytes early in four rooms; the file compiles and links either way, and
+  only the checksum says so.
+* **Re-splitting can make a standalone block disappear.** Once the referencing
+  function lands in the unit that owns the rodata range, splat migrates the
+  block into that function's `.s` and stops emitting the standalone file - so
+  the `INCLUDE_RODATA` line that was correct before the promotion now names a
+  file that does not exist. Deleting the line is the fix, not restoring the
+  file.
+
+## A promoted callee needs a prototype in the file that still calls it
+
+Renaming an overlay-local callee to a `RoomsShared…` alias is how a shared body
+gets past `promote`'s local-reference refusal, but the alias also *unhooks* the
+declaration when the callee's definition and the caller end up in different
+files. `func_dryfield_motel_balcony_8017ED98` used to sit below the definition
+of `func_dryfield_motel_balcony_8017E66C` in one `.c`, so the call was
+prototyped; after the split the caller had no declaration at all and K&R
+promotion widened the argument:
+
+```
+sll $a1, $v0, 17 ; sra $a1, $a1, 16     ← target: (s16)step * 2
+sll $a1, $v0, 16 ; sra $a1, $a1, 15     ← no prototype
+```
+
+Eight bytes, no warning, checksum-only. After any promotion split, every file
+that still calls an aliased callee needs its `extern` - and the alias's
+argument types must match the *original* declaration, not a fresh guess: giving
+`…Fade`'s frame argument `u16` instead of `s16` cost the same two instructions
+in the shared object itself.
+
+## Splitting a `.c` by `func_` chunks silently duplicates a `RoomsShared` body
+
+Any unit-splitting pass that finds chunks by matching `func_\w+` definitions
+(the shape `land_overlay.bodies_of` uses) treats an already-aliased body -
+`void RoomsShared8017e4f8Halo(…)` - as *preamble*, and preamble is copied into
+both halves. The link then fails with `multiple definition`, which is the good
+case; a body that no longer matches the `func_` pattern and sits between two
+chunks is dropped instead. Chunk on the promoted names too, or re-check the
+function set of the two halves against the original before building.
