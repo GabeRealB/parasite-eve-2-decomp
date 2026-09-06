@@ -11,9 +11,7 @@ extern s32 D_acropolis_west_elevator_hall_80184620;
 extern s32 D_acropolis_west_elevator_hall_80184890;
 extern s32 D_acropolis_west_elevator_hall_801849C8;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", func_acropolis_west_elevator_hall_8017D5FC);
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", func_acropolis_west_elevator_hall_8017D7B0);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", RoomsShared8017d7a4);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", D_acropolis_west_elevator_hall_8017D5C0);
 

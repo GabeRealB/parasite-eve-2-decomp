@@ -7,3 +7,6 @@ RoomsShared8017d878Table = 0x8017D5D4; // shared body data, see src/rooms/lib/
 RoomsShared8017f128 = 0x8017F128; // shared body, see src/rooms/lib/
 RoomsShared8017f128Parts = 0x8017FC8C; // shared body data, see src/rooms/lib/
 RoomsShared8017f128Scale = 0x8017D5C4; // shared body data, see src/rooms/lib/
+RoomsShared8017d5f0 = 0x8017D5F0; // shared body, see src/rooms/lib/
+RoomsShared8017d5f0Desc = 0x8017FC90; // shared body data, see src/rooms/lib/
+RoomsShared8017d7a4 = 0x8017D7A4; // shared body callee, see src/rooms/lib/

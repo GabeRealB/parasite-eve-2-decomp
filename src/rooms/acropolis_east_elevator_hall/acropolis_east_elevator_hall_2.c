@@ -10,7 +10,7 @@
 
 #include "rooms/room_common.h"
 
-extern TaskDesc D_acropolis_east_elevator_hall_8017FC90;
+extern TaskDesc RoomsShared8017d5f0Desc;
 
 /// Part index in the mirrored player model each held-object reflection hangs
 /// off, indexed by `Task::spawnArg1` (the held-object slot).
