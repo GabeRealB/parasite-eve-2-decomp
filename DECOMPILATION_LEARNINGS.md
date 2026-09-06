@@ -50217,3 +50217,77 @@ The same rule catches C data. A `const` **definition** sitting at the end of a
 so when a split moves the code after it into a new unit the table must stay
 behind with the rodata subsegment, even though it is textually below the
 functions that moved.
+
+## A split's tail needs its own `rodata` cut only when its *C* owns rodata
+
+Splitting a unit at a promoted body strands whatever rodata
+`migrate_rodata_to_functions` had filed inside the functions that moved, and
+the repair depends on how the tail produces those bytes:
+
+* the tail function is still `INCLUDE_ASM` - splat re-files the block as a
+  standalone `.s` under the **head** unit, whose `.rodata` subsegment still
+  covers the address, and the head's `.c` needs an `INCLUDE_RODATA` line for
+  it. Nothing else changes.
+* the tail function is **matched C** - GCC emits its jump table and its string
+  literals into the *tail object's* `.rodata`, and that object has no
+  subsegment, so the bytes land wherever the linker script's trailing
+  `<obj>(.rodata)` entries fall. The tail needs a real `rodata` cut in the
+  manifest, and every standalone block above the cut stays in the head while
+  every one below it moves to the tail.
+
+`mist_parking` is the worked case: promoting `func_mist_parking_8017FF9C` split
+unit 2, and `func_mist_parking_801800D0` (asm, owns 0x13C and a jtbl at 0x164)
+and `func_mist_parking_8018089C` (C, owns the `"100.0%"` literal at 0x194) both
+moved. One `rodata` cut at 0x13C for the tail fixes both; putting the blocks
+back in the head instead links and is eight bytes long, because the C literal
+is emitted twice over - once by the head's `INCLUDE_RODATA`, once by the tail
+object with nowhere to go.
+
+The cheap check after any promotion split: every standalone `.s` splat wrote
+under `asm/.../<overlay>/<unit>/` must be named by exactly one
+`INCLUDE_RODATA`, and the addresses of a `.c`'s rodata contributions - its own
+lines plus the migrated blocks of the `INCLUDE_ASM` functions between them -
+must come out in increasing order.
+
+## A vanishing *first* unit collides with the implicit leading-rodata cut
+
+`gen_overlay_configs.py` gives the leading rodata block to `<overlay>/<overlay>`
+by default, without a `rodata` entry. So when the overlay's first unit is the
+one the promotion swallows, two things happen at once: the successor inherits
+the name (and with it the implicit lead), and any explicit cut that also
+renamed *to* that name is now a second `.rodata` subsegment for the same
+object. splat emits both, the assembler cannot find the block under the unit it
+now names, and the fix is to delete the lower explicit cut so the implicit lead
+covers the merged range.
+
+`mist_parking` again: `- [0x0, .rodata, mist_parking/mist_parking]` and
+`- [0x110, .rodata, mist_parking/mist_parking]` in the same yaml. Dropping the
+0x110 entry gives the lead `[0x0, 0x13C)` and the file that inherited the name
+carries both blocks, in address order.
+
+## Splitting a unit loses the declarations that sit *between* functions
+
+A chunker that attaches comments and declarations forward, to the function they
+introduce, keeps a mid-file `extern` with whichever half that function lands
+in - so the other half loses it. `extern SVECTOR D_shelter_r47_80187624[];`
+sat two thirds down `shelter_r47_4.c` and the split left it in the head while
+its only user moved to the tail. That one is a compile error, which is the good
+case; the same accident on a *prototype* is silent and costs the K&R argument
+widening documented above. Copy every top-level `extern` and prototype in the
+original file into the tail, not just the ones above the first function.
+
+## An array-initialiser dispatcher and a struct-copy dispatcher are the same code
+
+`TaskFunc states[14] = { a, b, ... }; states[task->state](task);` compiles to a
+block copy from an anonymous `.rodata` blob onto the stack, and
+`TaskFuncTable14 states = SomeTable; states.funcs[task->state](task);` compiles
+to the same copy from a *named* symbol. That equivalence is what makes such a
+dispatcher shareable: rewrite it in the struct form, alias the table per
+carrier, and the body is byte-identical while each room keeps its own handlers.
+
+It does not contradict the patio refusal above - there the differing data was
+three bytes GCC materialises with `lbu` out of the body's own blob, and naming
+it turned seven instructions into three. Here the body already loads the table
+through one `lui`/`addiu` pair, so naming it costs nothing. The question is
+still "address or contents", and a struct assignment from a named global reads
+the address first.
