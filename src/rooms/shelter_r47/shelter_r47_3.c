@@ -60,6 +60,12 @@ extern s16 Gp_MenuLockDelay;
 extern s16 D_80114D08;
 extern u8  D_8007216C;
 
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ef20Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017de9cHundred);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8b4WeaponTitle);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8b4PeTitle);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ea68Title);
+
 s32  func_shelter_r47_8018097C(Task* task);
 void func_shelter_r47_80181914(Task* task, s32 arg1);
 void func_shelter_r47_801832EC(Task* task);
@@ -80,75 +86,147 @@ void Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 void Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
 
-s32 func_shelter_r47_8018061C(s32 arg0, s32 arg1, s32 arg2)
+void func_shelter_r47_8018080C(Task* task)
 {
-    if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(0x542F0011, 0, 0);
-    }
-    return 0;
-}
+    s32 nibble;
 
-void func_shelter_r47_80180650(Task* task)
-{
     switch (task->state) {
         case 0:
+            Gp_ResetCap();
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             func_800E6D4C(0x240, 0x100);
-            Gp_RunCapCmd1(task->spawnArg1);
-            goto advance;
+            Gp_RunCapCmd1(8);
+            task->state++;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
-        advance:
-            task->state++;
-            break;
-        case 2:
-            Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
+            Gp_MsgPlayerWeapon(1);
+            nibble = GameFlag_GetNibble(0x165);
+            if (nibble < 3) {
+                GameFlag_SetNibble(0x165, nibble + 1);
+            }
+        default:
             Task_Kill(task);
             break;
     }
 }
 
-void func_shelter_r47_80180714(Task* task)
+void func_shelter_r47_801808D4(Task* task)
 {
-    s32 out;
-
-    if (Task_PollKill(D_shelter_r47_8018A690, &out) != 0) {
-        Gp_MsgPlayer3F3(1);
-        Gp_MsgPlayerWeapon(1);
-        if (Game_Session->field_9 == 1) {
-            Gp_MsgSlot4Chain(0, 1);
-        }
-        if (Game_GetPtrSlot(0xA) != NULL) {
-            Gp_MsgAlly3F3(1);
-            Gp_MsgAllyWeapon(1);
-        }
-        D_shelter_r47_8018A690 = NULL;
-        Task_Kill(task);
+    switch (task->state) {
+        case 0:
+            Gp_ResetCap();
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(2);
+            func_800E6D4C(0x140, 0x100);
+            Gp_RunCapCmd1(7);
+            task->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            Gp_ResetCap();
+            Gp_MsgPlayerWeapon(1);
+        default:
+            Task_Kill(task);
+            break;
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D700);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_8018097C);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D728);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80180C48);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D740);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80180F38);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D758);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181148);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D770);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_8018138C);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D7A0);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181568);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D7C8);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801816CC);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", D_shelter_r47_8017D7DC);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181914);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D80C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181F14);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D824);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801820C0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", jtbl_shelter_r47_8017D83C);
+void func_shelter_r47_80182348(Task* task)
+{
+    ShelterR47State* state;
+    ShelterR47State* done;
+    u16              fade;
+    u8               level;
+
+    state = (ShelterR47State*)task->idMap;
+    func_shelter_r47_80181914(task, 0);
+    fade        = state->fade + 0x10;
+    state->fade = fade;
+    if ((s16)fade >= 0x100) {
+        state->fade = 0xFF;
+        done        = (ShelterR47State*)task->idMap;
+        GameFlag_SetNibble(0xAC, done->field_18);
+        GameFlag_SetNibble(0xD5, done->field_1A);
+        GameFlag_SetNibble(0xAE, done->field_1C);
+        GameFlag_SetNibble(0xD6, done->field_1E);
+        GameFlag_SetNibble(0xD2, done->field_20);
+        Gp_MsgPlayerWeapon(1);
+        Gp_MsgPlayer3F3(1);
+        Gp_MenuLockDelay = 8;
+        D_80114D08       = 0xA;
+        Display_ReleaseRef();
+        Game_Session->field_1  = 0;
+        Game_Session->field_68 = 0;
+        Game_Session->field_66 = 0;
+        Task_Kill((Task*)task->spawnArg2);
+        Task_RequestKill(task, 0);
+    }
+    level = (u8)state->fade;
+    Fade_DrawOverlay(level, level, level, 2);
+}
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80182470);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801828D0);
+
+s32 func_shelter_r47_801829B8(Task* task, s16 arg1)
+{
+    ShelterR47State* state;
+    s8               step;
+
+    state = (ShelterR47State*)task->idMap;
+    step  = state->field_51;
+    switch (step) {
+        case 1:
+            if (arg1 != step) {
+                Gp_StartCapSlot(0x10, 0, 1);
+                return 0;
+            }
+            state->field_51 = 2;
+            return 1;
+        case 2:
+            if (arg1 != step) {
+                Gp_StartCapSlot(0x10, 0, 2);
+                return 0;
+            }
+            state->field_51 = 3;
+            return 1;
+        case 3:
+            if (arg1 != step) {
+                Gp_StartCapSlot(0x10, 0, 3);
+                return 0;
+            }
+            state->field_51 = 4;
+            return 1;
+    }
+    return 0;
+}
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80182AA0);

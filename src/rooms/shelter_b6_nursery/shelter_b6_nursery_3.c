@@ -1,64 +1,58 @@
 #include "common.h"
-#include "gameplay/268.h"
-#include "gameplay/3A34.h"
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
-#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
-#include "main/sound.h"
 #include "main/task.h"
-#include "rooms/shelter_b6_nursery.h"
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-extern TaskDesc      D_shelter_b6_nursery_80184FDC;
-extern s8            D_shelter_b6_nursery_80185034[];
-extern s32           D_shelter_b6_nursery_8018797C;
-extern GsCOORDINATE2 D_shelter_b6_nursery_801879A0;
-extern u8            D_8007216C;
-extern void          func_80132028(void);
-extern void          func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1);
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+extern void func_80131E2C(void);
+extern void func_80132000(void);
+extern s32  D_8013AF8C;
+extern s32  D_8013BA84;
+extern s32  D_80139964;
+extern s32  D_8013A33C;
+extern s32  D_8013A84C;
+extern s32  D_8013A8DC;
+extern s32  D_shelter_b6_nursery_8018500C;
 
-s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
-    s32 flag;
-
-    if (arg2 == 0xA) {
-        D_shelter_b6_nursery_8018797C          = 0;
-        D_shelter_b6_nursery_80187980.field_4  = 0x55160002;
-        D_shelter_b6_nursery_80187980.field_8  = 0x55160005;
-        D_shelter_b6_nursery_80187980.field_10 = 0x55160003;
-        D_shelter_b6_nursery_80187980.field_C  = 0x55160004;
-        flag                                   = GameFlag_GetNibble(0xC7);
-        if (flag == 1) {
-            if (GameFlag_GetNibble(0x83) != 0) {
-                Gp_SetBit2Flag(0x22, 1, 4);
-            }
-            func_800E3FAC(0xA2, 0x31);
-            GameFlag_SetNibble(0xC7, 2);
-            D_shelter_b6_nursery_80187980.field_0 = 6;
-            D_shelter_b6_nursery_80187980.field_1 = 0xB;
-            D_shelter_b6_nursery_80187980.field_3 = 0;
-            D_shelter_b6_nursery_80187980.field_2 = flag;
-            Task_SpawnFromTable(&D_shelter_b6_nursery_80184FDC, 0, 0x19,
-                                (s32)&D_shelter_b6_nursery_80187980);
-            func_80132028();
-            func_shelter_b6_nursery_80182D14(0, 0);
-            return 0;
-        }
-        if (GameFlag_GetNibble(0x160) == 0) {
-            Gp_SpawnIfCapIdle(0x17, 0);
-            GameFlag_SetNibble(0x160, 1);
-            return 0;
-        }
-        D_shelter_b6_nursery_80187980.field_0 = 6;
-        D_shelter_b6_nursery_80187980.field_1 = 0x16;
-        D_shelter_b6_nursery_80187980.field_3 = 0;
-        D_shelter_b6_nursery_80187980.field_2 = 0;
-        Task_SpawnFromTable(&D_shelter_b6_nursery_80184FDC, 0, 0xA,
-                            (s32)&D_shelter_b6_nursery_80187980);
+    *dst = *src;
+    func_80179B14(src, dst);
+    if (src->field_5 == 0) {
+        Gp_RunCapCmd1(0xC);
     }
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", func_shelter_b6_nursery_8017FBC0);
+s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+{
+    if (msg->field_2 == 1) {
+        func_80131E2C();
+    }
+    if (msg->field_2 == 2) {
+        func_80132000();
+    }
+    if (msg->field_2 == 3 && GameFlag_GetNibble(0xC8) != 0) {
+        func_800E8634((s32)&D_8013AF8C, 0, (s32)&D_8013BA84);
+    }
+    return 0;
+}
+
+void func_shelter_b6_nursery_8017FEC4(Task* arg0)
+{
+    arg0->field_24 = &D_shelter_b6_nursery_8018500C;
+    Game_SetPtrSlot(arg0, 7);
+    Gp_FillAllyHp();
+    if (GameFlag_GetNibble(0xC7) == 0) {
+        GameFlag_SetNibble(0xC7, 1);
+        func_800E8634((s32)&D_80139964, 0, (s32)&D_8013A33C);
+        GameFlag_SetNibble(3, 0);
+        func_800E3FAC(0xA2, 0x30);
+    } else if (GameFlag_GetNibble(0xC7) == 1) {
+        func_800E8614((s32)&D_8013A84C, 1);
+    } else {
+        func_800E8614((s32)&D_8013A8DC, 1);
+    }
+    arg0->state++;
+}

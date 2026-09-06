@@ -1,3 +1,7 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2", func_dryfield_night_trailer_coach_80181BE4);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2", RoomsShared8017d878Table);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2", func_dryfield_night_trailer_coach_8018231C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2", func_dryfield_night_trailer_coach_8018243C);

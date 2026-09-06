@@ -63,195 +63,81 @@ extern u8  D_8007216C;
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80182B9C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80185354);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80182C78);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80185450);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80182CA4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80182DAC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80182E78);
-
-void func_shelter_r47_80182F18(Task* task)
-{
-    s16 step;
-    s32 flag;
-    s32 value;
-
-    func_shelter_r47_80181914(task, 0);
-    if ((s16)func_shelter_r47_8018097C(task) != 0) {
-        func_shelter_r47_801832EC(task);
-        step = ((ShelterR47State*)task->idMap)->step;
-        switch (step) {
-            case 0:
-                flag  = 0x1C6;
-                value = 2;
-                break;
-            case 1:
-                flag  = 0x1C6;
-                value = 0;
-                break;
-            case 4:
-                flag  = 0x1C4;
-                value = 2;
-                break;
-            case 5:
-                flag  = 0x1C4;
-                value = 0;
-                break;
-            default:
-                task->state = 3;
-                return;
-        }
-        GameFlag_SetNibble(flag, value);
-        task->state = 3;
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80182FDC);
-
-void func_shelter_r47_80183068(Task* task)
-{
-    ShelterR47State* state;
-
-    state = (ShelterR47State*)task->idMap;
-    func_shelter_r47_80181914(task, 0);
-    state->field_48 = 0;
-    state->field_42 = 0x10;
-    task->state++;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801830B8);
-
-void func_shelter_r47_80183170(Task* task)
-{
-    ShelterR47State* state;
-
-    state = (ShelterR47State*)task->idMap;
-    func_shelter_r47_80181914(task, 0);
-    if ((state->field_42 == 0) && (Gp_CapBusy() == 0)) {
-        task->state = 3;
-    }
-}
-
-void func_shelter_r47_801831C8(Task* task)
-{
-    ShelterR47State* state;
-
-    state = (ShelterR47State*)task->idMap;
-    func_shelter_r47_80181914(task, 0);
-    state->fade = 0;
-    task->state++;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183210);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183234);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183284);
-
-void func_shelter_r47_801832E4(void)
-{
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801832EC);
-
-void func_shelter_r47_8018337C(Task* task)
-{
-    ShelterR47State* state;
-
-    state = (ShelterR47State*)task->idMap;
-    GameFlag_SetNibble(0xAC, state->field_18);
-    GameFlag_SetNibble(0xD5, state->field_1A);
-    GameFlag_SetNibble(0xAE, state->field_1C);
-    GameFlag_SetNibble(0xD6, state->field_1E);
-    GameFlag_SetNibble(0xD2, state->field_20);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801833DC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183484);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183B84);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183E24);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183F0C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80183FF4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80184124);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018431C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801844A0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80184658);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018489C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80184AE0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80184F40);
-
-void func_shelter_r47_80185028(Task* task)
+void func_shelter_r47_80185510(Task* task)
 {
     ShelterR47State2* state;
 
-    state = (ShelterR47State2*)task->idMap;
-    func_shelter_r47_80183B84(task);
-    func_shelter_r47_80183E24();
-    func_shelter_r47_80183F0C();
-    func_shelter_r47_80183FF4(task, state->field_1C);
-    func_shelter_r47_80184124(task, state->field_1C);
-    state->fade = 0;
-    task->state++;
-}
-
-void func_shelter_r47_80185098(Task* task)
-{
-    ShelterR47State2* state;
-    u16               fade;
-    u8                level;
-
-    state = (ShelterR47State2*)task->idMap;
-    func_shelter_r47_80183B84(task);
-    func_shelter_r47_80183E24();
-    func_shelter_r47_80183F0C();
-    func_shelter_r47_80183FF4(task, state->field_1C);
-    func_shelter_r47_80184124(task, state->field_1C);
-    fade        = state->fade + 0x10;
-    state->fade = fade;
-    if ((s16)fade >= 0x100) {
-        state->fade = 0xFF;
-        if (task->spawnArg1 != 1) {
-            Gp_MsgPlayerWeapon(1);
-        }
-        Gp_MsgPlayer3F3(1);
-        Display_ReleaseRef();
-        if (state->field_2A != 1) {
-            Game_Session->field_1 = 0;
-        }
-        Game_Session->field_66 = 0;
-        Task_Kill((Task*)task->spawnArg2);
-        Task_RequestKill(task, 0);
-    }
+    state      = (ShelterR47State2*)task->idMap;
+    D_80114D08 = 0xA;
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
     SndEvt_EnqueueType7(0x542F0005, 1);
-    level = (u8)state->fade;
-    Fade_DrawOverlay(level, level, level, 2);
+    Display_ReleaseRef();
+    D_8007216C             = state->field_29;
+    Game_Session->field_1  = 0;
+    Game_Session->field_68 = 0;
+    Game_Session->field_66 = 0;
+    Task_Kill((Task*)task->spawnArg2);
+    Task_RequestKill(task, 0);
 }
 
-void func_shelter_r47_801851B8(Task* task)
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801855B8);
+
+void func_shelter_r47_801856AC(Task* task)
 {
     ShelterR47State2* state;
 
     state = (ShelterR47State2*)task->idMap;
-    func_shelter_r47_80183B84(task);
-    func_shelter_r47_80183E24();
-    func_shelter_r47_80183F0C();
-    func_shelter_r47_80183FF4(task, state->field_1C);
-    func_shelter_r47_80184124(task, state->field_1C);
+    func_shelter_r47_801851B8(task);
+    if (state->field_A >= 0xB5) {
+        SndEvt_EnqueueType6(0x542F0003, 0, 0);
+        state->field_16 = 0x50;
+        state->field_18 = 0x60;
+        task->state     = 2;
+    }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80185214);
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018571C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018580C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018585C);
+
+void func_shelter_r47_801858BC(void)
+{
+    u8 view;
+
+    view = Gp_GetViewIndex();
+    switch (view) {
+        case 5:
+            Room_Draw18(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            Room_Draw13(&D_shelter_r47_80187624[1], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[2], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[3], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[4], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[5], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[7], 0x300, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[9], 0x180, 0x344);
+            break;
+        case 13:
+            Room_Draw13(&D_shelter_r47_80187664[0], 0x280, 0x344);
+            Room_Draw13(&D_shelter_r47_80187664[1], 0x180, 0x344);
+            break;
+        case 14:
+            Room_Draw18(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[9], 0x180, 0x344);
+            break;
+        case 44:
+            Room_Draw05(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            break;
+    }
+}
