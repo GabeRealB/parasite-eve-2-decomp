@@ -119,7 +119,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8013401C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8013405C);
+void func_actor_511000_8013405C(void* arg0, Task* arg1)
+{
+    ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000", func_actor_511000_8013409C);
 
