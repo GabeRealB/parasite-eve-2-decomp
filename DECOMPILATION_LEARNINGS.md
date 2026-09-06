@@ -52406,3 +52406,40 @@ substitute, and `color` keeps exactly its three references (`move` plus two
 confirms the width (`lh a1, 0x26(s1)` and a `sll`/`sra`-extended `lhu` of
 `0x24` into `a2`), so prefer `s16` parameters whenever a `sll 16` / `sra`
 pair re-extends an argument the prologue also copied.
+
+## `(p + i)[col * 16]` puts the row term first; `arr[col][i]` puts it second
+
+`func_plasma_8012F568` reads jitter column `arg2`, entry `i`, of a
+`s16 [3][16]` table. The target forms the address as
+
+```
+sll  v0, s4, 1        # i * 2 first
+sll  v1, t8, 5        # arg2 * 32 second
+addu v0, v0, v1
+addu v0, v0, t7       # + table
+```
+
+`((s16(*)[16])&table)[arg2][i]` scored 99.8% with the two `sll`s swapped, and
+`((s16*)&table)[i + arg2 * 16]` was worse (it folds to one `(arg2*16 + i) << 1`
+chain). GCC's `fold` splits a sum into its variable and constant parts and
+re-emits it as `vars + const`, so the `SYMBOL_REF` base always lands last and the
+variable terms keep their *source* order. `arr[col][i]` is `base + col*32 + i*2`;
+to get `i*2` first, add `i` to the base first and index the result by the row:
+
+```c
+idx = ((&D_plasma_8012FF54.a + i)[arg2 * 16] + arg0->field_22) % 6;
+```
+
+Same instructions, same `addu` operands, 100%. This is the array-index cousin
+of "`addu` load order and operand order are coupled": both terms are computed,
+not loaded, so only the fold order can be steered.
+
+The same function's prologue was then off by one local-alloc colouring
+(`head` in `$v0`/`r1` in `$a0` instead of `$a0`/`$a1`) that no reshaping of the
+three statements involved would move. What fixed it was hoisting the *unrelated*
+radius arithmetic (`r1 += row->rInner; r0 = r1 + …`) above the
+`G_SCRATCH_HEAD` load/store block. The instructions still schedule identically,
+but sched1 breaks its ties by source position, the `rInner` temp is born
+earlier relative to `head`, and local-alloc's priority order flips so `rInner`
+takes `$v0` before `head` is coloured. When a colouring diff resists every
+edit of the statements it names, move the neighbours instead.
