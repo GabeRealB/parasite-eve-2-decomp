@@ -125,6 +125,32 @@ subsegment, so a run at the *end* of a package - the zeroed work arrays - needs
 a unit of its own, conventionally `<name>_work`, declared after the `data`
 subsegment; a unit whose only subsegment is `.data` is compiled all the same.
 
+**`<name>_work` is for a *non-adjacent* run, not for zeroed data as such.** A
+unit appears once in the linker script, so it cannot span a hole: `p229` needs
+one because ~54KB of asm model data sits between its `0xF30` data run and its
+`0xE498` work array. Where the work array directly abuts the data run - every
+`pe` overlay - one unit covers both, with the objects declared in address order.
+
+**Those zeroed runs are bss by origin but must be `.data` in C, and the
+safe-looking alternative silently breaks the game.** An overlay is a flat LZSS
+image inflated straight to its load address (`doc/OVERLAYS.md` 4.2); the loader
+writes the image and zeroes nothing beyond it. So work state the code reads
+before writing has to be stored zeros *inside* the image - which is why the
+original build materialised its bss there, and why every package ends exactly at
+its last data byte. Declare such an array the natural way, `s16 work[16];`, and
+`-fcommon` turns it into a COMMON symbol that lands in the overlay's `.bss`; that
+section is `NOLOAD`, so it vanishes from the image and the overlay comes up
+reading whatever the previous overlay left at those addresses - with the build
+still green. Always write `= { 0 }`.
+
+`ld_bss_is_noload: True` in `configs/USA/overlay.template.yaml` cannot simply be
+turned off to avoid that. Setting it `False` fails the checksum on `tonfa_baton`,
+`acropolis_patio`, `dryfield_warehouse`, `dryfield_water_hole` and `mine_cavern`
+- none of which has a non-empty `.bss` or a single COMMON symbol. A loadable
+`.bss` output section participates in the image layout even when empty, and these
+images end flush against their last data byte with no slack for the alignment it
+introduces.
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the

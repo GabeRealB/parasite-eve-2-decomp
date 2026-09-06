@@ -14,6 +14,19 @@
 #include "main/tmd.h"
 #include "pe/pyrokinesis.h"
 
+/// The `SndEvt_EnqueueType6` id for each pyrokinesis stage, three per PE level.
+s32 D_pyrokinesis_80131DD8[] = {
+    0xE00B0002,
+    0xE00B0002,
+    0xE00B0002,
+    0xE00E0002,
+    0xE00E0002,
+    0xE00E0002,
+    0xE0110002,
+    0xE0110003,
+    0xE0110004,
+};
+
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
@@ -40,6 +53,10 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
 /// the two rings until they pass the combo radius, state 4 first stepping the
 /// brightness down by 8 a frame. Any state releases if the player is dying
 /// (`Gp_StateC08.field_3` / `D_80114C0B`) or the room is fading (`Gp_State1C`).
+/// Scratch for the flame column's vertex work.
+/// lists an object in the linker script at its first subsegment, and this has
+s16 D_pyrokinesis_80131DFC[16] = { 0 };
+
 void func_pyrokinesis_8012EF48(Task* arg0)
 {
     GpEffWork*     mem;

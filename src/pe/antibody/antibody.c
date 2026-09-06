@@ -16,6 +16,16 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+/// Per-level tuning for the antibody motes: rows are PE levels 1-3.
+AntibodyStep D_antibody_80130BD4[] = {
+    { 0x0008, 0x0090, 0x0005, 0x0200, 0x0080, 0x0600, 0x0008 },
+    { 0x000C, 0x00C0, 0x0006, 0x0300, 0x0100, 0x0700, 0x0006 },
+    { 0x0010, 0x00F0, 0x0007, 0x0400, 0x0180, 0x0800, 0x0004 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row.
+s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
+
 extern s32 Gp_LcgState;
 
 /// `gpf 1` / `rtps`. The `inline_c.h` macros of those names assemble to
@@ -43,6 +53,10 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 /// the row's `field_2` cap it spawns the `0x800600AC` burst, latches
 /// `field_28` and moves to state 2, which shrinks `field_24` by 0x10 a frame
 /// and redraws at the capped radius until it drops below 0x11.
+/// Scratch for the mote ring's per-frame vertex work.
+/// lists an object in the linker script at its first subsegment, and this has
+s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 void func_antibody_8012EF34(Task* arg0)
 {
     GpEffWork*     mem;

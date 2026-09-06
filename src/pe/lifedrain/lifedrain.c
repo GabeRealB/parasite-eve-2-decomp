@@ -15,6 +15,23 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+/// Per-level tuning for the life drain: rows are PE levels 1-3.
+LifeDrainScale D_lifedrain_80130AB4[] = {
+    { 0x0008, 0x0080, 0x0100, 0x0400, 0x0040 },
+    { 0x000C, 0x00B0, 0x0200, 0x0500, 0x0048 },
+    { 0x0010, 0x00E0, 0x0300, 0x0600, 0x0050 },
+};
+
+/// The `SndEvt_EnqueueType6` ids: three drain cues then three release cues.
+s32 D_lifedrain_80130AD4[] = {
+    0xE0210001,
+    0xE0240001,
+    0xE0270001,
+    0xE0210002,
+    0xE0240002,
+    0xE0270002,
+};
+
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
@@ -50,6 +67,11 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 /// `field_26` radius. Once `field_26` passes the row's `unk6` it moves to state
 /// 3, which shrinks `field_24` by 0x10 a frame and redraws the same funnel
 /// until it drops below 0x11, then releases through state 4.
+/// Scratch for the drain ribbon, plus the task handle it spawns.
+/// lists an object in the linker script at its first subsegment, and this has
+s16           D_lifedrain_80130AEC[16] = { 0 };
+struct _Task* D_lifedrain_80130B0C     = NULL;
+
 void func_lifedrain_8012EF48(Task* arg0)
 {
     GpEffWork*     mem;

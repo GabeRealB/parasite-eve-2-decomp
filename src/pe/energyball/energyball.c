@@ -15,6 +15,23 @@
 #include "main/tmd.h"
 #include "pe/energyball.h"
 
+/// The `SndEvt_EnqueueType6` ids: three charge cues then three release cues.
+s32 D_energyball_8013117C[] = {
+    0xE02B0002,
+    0xE02E0002,
+    0xE0310002,
+    0xE02B0001,
+    0xE02E0001,
+    0xE0310001,
+};
+
+/// Per-level radius/step pairs for the ball: rows are PE levels 1-3.
+EnergyBallStep D_energyball_80131194[] = {
+    { 0x0400, 0x0040 },
+    { 0x0480, 0x0048 },
+    { 0x0500, 0x0050 },
+};
+
 extern s32 D_80115724;
 extern s32 Gp_LcgState;
 
@@ -30,6 +47,10 @@ extern s32 Gp_LcgState;
 /// table and spawns one ball per charge level, fanning them out by 0x555 of
 /// yaw each while `D_80115724` (the number of balls already in flight) allows
 /// it. Every later frame just releases the work block.
+/// Scratch for the ball's per-frame vertex work.
+/// lists an object in the linker script at its first subsegment, and this has
+s16 D_energyball_801311A0[16] = { 0 };
+
 void func_energyball_8012EF48(Task* arg0)
 {
     GpEffWork*     mem;

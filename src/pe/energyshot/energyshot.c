@@ -9,6 +9,18 @@
 #include "main/tmd.h"
 #include "pe/energyshot.h"
 
+/// Per-level tuning for the energy shot: rows are PE levels 1-3. The last
+/// row's `field_6` was split into its own symbol by splat because the code
+/// reads it directly; it is `D_energyshot_801300E4[2].field_6` here.
+EnergyShotScale D_energyshot_801300E4[] = {
+    { 0x0008, 0x0090, 0x0005, 0x0400 },
+    { 0x000C, 0x00C0, 0x0006, 0x0500 },
+    { 0x0010, 0x00F0, 0x0007, 0x0600 },
+};
+
+/// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
+s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
+
 extern s32 Gp_LcgState;
 
 void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
@@ -23,6 +35,11 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 /// brightness / radius, draws three rings plus `field_0` wedges and the beam,
 /// and parents a `0x600F4` spark; once brightness exceeds the row cap it
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
+/// Two scratch rings the shot walks while in flight.
+/// lists an object in the linker script at its first subsegment, and this has
+s16 D_energyshot_80130108[16] = { 0 };
+s16 D_energyshot_80130128[16] = { 0 };
+
 void func_energyshot_8012EF34(Task* arg0)
 {
     GpEffWork*     mem;
@@ -143,7 +160,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 if (mem->field_20 != 0) {
                     if (mem->field_20 == 2) {
                         func_energyshot_8012FA50(coord, (s16)(mem->field_24 * 8),
-                                                 (s32)(D_energyshot_801300FA << 16) >> 17, rgb);
+                                                 (s32)((u16)D_energyshot_801300E4[2].field_6 << 16) >> 17, rgb);
                     }
                     func_energyshot_8012FA50(
                         coord, (s16)(mem->field_24 * 4),
