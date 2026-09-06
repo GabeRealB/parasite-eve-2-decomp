@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_5", func_dryfield_gas_station_8017FA20);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_5", func_dryfield_gas_station_8017F4B4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_5", func_dryfield_gas_station_8017FB94);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_5", func_dryfield_gas_station_8017FCBC);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_5", RoomsShared8017d878Table);

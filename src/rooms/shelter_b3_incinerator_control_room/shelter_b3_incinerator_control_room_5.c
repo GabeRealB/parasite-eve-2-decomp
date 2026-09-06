@@ -1,21 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017F9F4);
-
-s32 func_shelter_b3_incinerator_control_room_8017FA84(void)
-{
-    return 0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017FA8C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017FB20);
-
-s32 func_shelter_b3_incinerator_control_room_8017FBE0(void)
-{
-    return 0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017FBE8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017FC1C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", func_shelter_b3_incinerator_control_room_8017F488);
