@@ -7,10 +7,13 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/text.h"
 #include "psyq/libpress.h"
+extern u8           D_replay_bonus_801157C8[];
 extern UiObjectDesc D_replay_bonus_80119154;
+extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
@@ -72,7 +75,44 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116AC0);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116D68);
+void func_replay_bonus_80116D68(Task* arg0)
+{
+    u8          buf[0x20];
+    TextDrawReq req;
+    UiObject*   obj;
+    s32         xOff;
+    s32         bonus;
+    s32         color;
+    s32         remaining;
+    s32         ot;
+
+    obj   = arg0->spawnArg2;
+    bonus = D_replay_bonus_80119288;
+    Ui_DrawText((UiPanel*)obj, "EXTRA BONUS\0\0\0\0");
+    if (arg0->state == 0) {
+        arg0->killCountdown = 0xBC;
+        arg0->state         = arg0->state + 1;
+    }
+    color          = 0x606060;
+    xOff           = obj->field_1C + 2;
+    req.x          = obj->baseX + xOff;
+    req.y          = obj->baseY;
+    ot             = (s16)obj->drawOrder;
+    req.glyphTable = 5;
+    req.field_8    = color;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    req.otIndex    = ot + 1;
+    func_8002E53C(&req, D_replay_bonus_801157C8);
+    Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, 2);
+    remaining           = (u16)arg0->killCountdown - 1;
+    arg0->killCountdown = remaining;
+    if (obj->status == 1) {
+        if (((remaining << 0x10) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+            obj->field_2E = 6;
+        }
+    }
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116EC0);
 
