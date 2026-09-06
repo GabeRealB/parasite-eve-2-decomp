@@ -36,7 +36,10 @@ extern s16 D_lifedrain_80130AEC[];
 /// running total there.
 extern struct _Task* D_lifedrain_80130B0C;
 
-/// Draws one wedge of the drain funnel at frame `arg1` and radius `arg2`.
+/// Two axis-aligned `POLY_FT4`s at `arg0`'s world position, projected through
+/// `GsWSMATRIX` by one `RTPS`. A negative `gte_stflg` drops both. `arg1` picks
+/// the inner 0x18-wide frame on tpage 0x2A and the outer CLUT on tpage 0x29;
+/// `arg2` is the radius both sprites divide by `otz`.
 void func_lifedrain_801301AC(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
 #endif /* PE_LIFEDRAIN_H */
