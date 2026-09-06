@@ -2,12 +2,14 @@
 
 #include <psyq/inline_c.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -16,11 +18,12 @@
 extern s32 D_80115724;
 extern s32 Gp_LcgState;
 
-/// `rtps` / `rtpt` / `mvmva 1,0,0,3,0`. The `inline_c.h` macros of those names
+/// `rtps` / `rtpt` / `mvmva 1,0,0,3,0` / `gpf 12`. The `inline_c.h` macros of those names
 /// assemble to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Fires the energy ball: on the first frame it picks the charge level from the
 /// combo counter, plays the matching loop sound, refills the surface-jitter
@@ -71,9 +74,314 @@ void func_energyball_8012EF48(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("pe/nonmatchings/energyball/energyball", D_energyball_8012EF30);
+/// One ball of the energy ball cast; `spawnArg1` picks the `Gp_RoomCoords`
+/// slot it owns and `spawnArg2` the `GpEffWork` block. While the room is
+/// fading (`Gp_State1C->field_E`) it only redraws, and drops the ball once the
+/// fade passes 4. Otherwise it walks `Task::state`: 0 allocates the
+/// `EnergyBallWork` collision block, picks the charge row of
+/// `D_energyball_80131194` from the combo counter and seeds a random spin
+/// `field_28`; 1 grows the ball by the row's `field_2` per frame until it
+/// reaches `field_0`, then links it on list 1 with a random direction; 2
+/// flies it, re-aiming at the player every eighth frame and nudging each
+/// velocity component by 0x10 on odd frames, bursting into three 0x600F9
+/// effects on a hit (`Gp_CountRec18Hi`) or unlinking when the room's
+/// `field_16` drops; 3 and 4 fade the burst out, growing to twice the row's
+/// size or shrinking below one step. Cancel (`Gp_StateC08.field_3 == -2` or
+/// the fade at 4 or more) anywhere but combo 0x2B lets the ball go: the last
+/// ball in flight (`D_80115724`) queues the row's stop sound.
+void func_energyball_8012F180(Task* arg0)
+{
+    GpEffWork*      mem;
+    GsCOORDINATE2*  coord;
+    EnergyBallWork* work;
+    GpCoord64*      slot;
+    GsCOORDINATE2*  sc;
+    GpCoordTail*    tail;
+    GsCOORDINATE2   ground;
+    VECTOR          vec;
+    GsCOORDINATE2*  player;
+    GpEffWork*      spawned;
+    SVECTOR*        dir;
+    u16             r;
+    s32*            snd;
+    s16             fade;
+    s32             cur;
 
-INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_8012F180);
+    slot  = &Gp_RoomCoords[arg0->spawnArg1 + 4];
+    sc    = &slot->coord;
+    tail  = (GpCoordTail*)sc;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    fade  = Gp_State1C->field_E;
+    work  = (EnergyBallWork*)arg0->idMap;
+    mem   = arg0->spawnArg2;
+    if (fade != 0) {
+        if (fade >= 4) {
+            if (D_80115724 > 0) {
+                D_80115724 -= 1;
+                if (D_80115724 == 0) {
+                    SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                }
+            }
+            if (arg0->state != 0) {
+            unlink:
+                Gp_UnlinkObj(&work->obj);
+            }
+            goto release;
+        }
+        Gp_UpdateCoord(coord);
+        func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
+        func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+        if ((arg0->state < 3) && (Gp_State1C->field_6 != 0) &&
+            (Gp_TraceGroundCoord(coord, &ground) == 1)) {
+            func_energyball_801307D4(&ground, mem->field_26);
+        }
+        return;
+    }
+
+    mem->field_22 = (u16)mem->field_22 + 1;
+    switch (arg0->state) {
+        case 0:
+            work = Mem_Calloc(0x38, 0);
+            if (work == NULL) {
+                mem->field_22 = 0;
+                return;
+            }
+            arg0->idMap   = (TaskIdMap*)work;
+            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
+            mem->field_10 = 0;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = -(u16)D_energyball_80131194[mem->field_20].field_2;
+            mem->field_14 = 0;
+            mem->field_26 = 0;
+            mem->field_28 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            D_80115724   += 1;
+            mem->field_24 = 0xC0;
+            mem->field_2A = 0x20;
+            arg0->state   = 1;
+            /* fallthrough */
+        case 1:
+            if (mem->field_26 < D_energyball_80131194[mem->field_20].field_0) {
+                mem->field_26      = (u16)mem->field_26 + (u16)D_energyball_80131194[mem->field_20].field_2;
+                coord->coord.t[0] += mem->field_10;
+                coord->coord.t[1] += mem->field_12;
+                coord->coord.t[2] += mem->field_14;
+                coord->flg         = 0;
+                Gp_UpdateCoord(coord);
+            } else {
+                Gp_UpdateCoord(coord);
+                arg0->idMap        = (TaskIdMap*)work;
+                work->obj.field_C  = &work->rec;
+                work->obj.field_8  = coord;
+                work->obj.field_18 = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
+                                     ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
+                                     (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
+                work->obj.field_1C = (s16)(u16)mem->field_26 >> 1;
+                work->obj.flags    = 1;
+                Gp_LinkObj(1, &work->obj);
+                dir               = (SVECTOR*)&mem->field_10;
+                work->rec.field_0 = 2;
+                work->obj.flags  |= 0x8000;
+                arg0->state       = 2;
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                VectorNormalSS(dir, dir);
+                gte_lddp((u16)mem->field_2A);
+                gte_ldsv(dir);
+                gte_gpf12_real();
+                gte_stsv(dir);
+                mem->field_18 = 0;
+                mem->field_1A = -(u16)D_energyball_80131194[mem->field_20].field_2;
+                mem->field_1C = 0;
+            }
+            slot->field_0  = 2;
+            tail->field_58 = 0x100;
+            tail->field_5C = 0x1000;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            r              = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->field_52 = r;
+            tail->field_50 = (u16)tail->field_52 >> 1;
+            tail->field_54 = tail->field_52 >> 1;
+            sc->coord.t[0] = coord->coord.t[0];
+            sc->coord.t[1] = coord->coord.t[1];
+            sc->coord.t[2] = coord->coord.t[2];
+            sc->flg        = 0;
+            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+            if ((Gp_State1C->field_6 != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
+                func_energyball_801307D4(&ground, mem->field_26);
+            }
+            coord->workm.t[1] += D_energyball_80131194[mem->field_20].field_2 * mem->field_22;
+            func_energyball_80130B54(coord, mem->field_26,
+                                     (D_energyball_80131194[mem->field_20].field_0 - mem->field_26) / 5);
+            coord->workm.t[1] -= D_energyball_80131194[mem->field_20].field_2 * mem->field_22;
+            if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
+                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+                    if (D_80115724 > 0) {
+                        D_80115724 -= 1;
+                        if (D_80115724 == 0) {
+                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                        }
+                    }
+                    goto unlink;
+                }
+            }
+            return;
+        case 2:
+            if (((u16)mem->field_22 & 7) == 0) {
+                player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1];
+                vec.vx = player->workm.t[0] - coord->workm.t[0];
+                vec.vy = player->workm.t[1] - coord->workm.t[1];
+                vec.vz = player->workm.t[2] - coord->workm.t[2];
+                ApplyTransposeMatrixLV(&coord->workm, &vec, &vec);
+                mem->field_18 = vec.vx;
+                mem->field_1A = vec.vy;
+                mem->field_1C = vec.vz;
+                gte_SetRotMatrix(&coord->coord);
+                gte_ldv0(&mem->field_18);
+                gte_rtv0_real();
+                gte_stsv(&mem->field_18);
+                gte_lddp(mem->field_20 * 0x180 + 0xA00);
+                gte_ldsv(&mem->field_10);
+                gte_gpf12_real();
+                gte_stsv(&mem->field_10);
+            }
+            if ((u16)mem->field_22 & 1) {
+                cur           = mem->field_10;
+                mem->field_10 = (cur < mem->field_18) ? cur + 0x10 : cur - 0x10;
+                cur           = mem->field_12;
+                mem->field_12 = (cur < mem->field_1A) ? cur + 0x10 : cur - 0x10;
+                cur           = mem->field_14;
+                mem->field_14 = (cur < mem->field_1C) ? cur + 0x10 : cur - 0x10;
+            }
+            coord->coord.t[0] += mem->field_10;
+            coord->coord.t[1] += mem->field_12;
+            coord->coord.t[2] += mem->field_14;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            slot->field_0  = 2;
+            tail->field_58 = 0x100;
+            tail->field_5C = 0x1000;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            r              = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->field_52 = r;
+            tail->field_50 = (u16)tail->field_52 >> 1;
+            tail->field_54 = tail->field_52 >> 1;
+            sc->coord.t[0] = coord->coord.t[0];
+            sc->coord.t[1] = coord->coord.t[1];
+            sc->coord.t[2] = coord->coord.t[2];
+            sc->flg        = 0;
+            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+            if (Gp_State1C->field_6 != 0) {
+                if (Gp_TraceGroundCoord(coord, &ground) == 1) {
+                    func_energyball_801307D4(&ground, mem->field_26);
+                }
+            }
+            if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
+                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+                    if (D_80115724 > 0) {
+                        D_80115724 -= 1;
+                        if (D_80115724 == 0) {
+                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                            SCHED_BARRIER();
+                        }
+                    }
+                    goto unlink;
+                }
+            }
+            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+                spawned = Gp_SpawnEff(0x600F9, coord, 0, NULL);
+                if (spawned != NULL) {
+                    Task_Reparent(arg0, spawned->field_0);
+                }
+                spawned = Gp_SpawnEff(0x600F9, coord, 0x2AA, NULL);
+                if (spawned != NULL) {
+                    Task_Reparent(arg0, spawned->field_0);
+                }
+                spawned = Gp_SpawnEff(0x600F9, coord, 0x555, NULL);
+                if (spawned != NULL) {
+                    Task_Reparent(arg0, spawned->field_0);
+                }
+                snd = D_energyball_8013117C;
+                SndEvt_EnqueueType6(snd[mem->field_20 + 3], 0, 0);
+                Gp_UnlinkObj(&work->obj);
+                mem->field_26 = (u16)D_energyball_80131194[mem->field_20].field_0;
+                arg0->state   = 3;
+                return;
+            }
+            if (Gp_State1C->field_16 != 1) {
+                Gp_UnlinkObj(&work->obj);
+                arg0->state = 4;
+                return;
+            }
+            Gp_ClearRec18Occupied(&work->rec);
+            return;
+        case 3:
+            Gp_UpdateCoord(coord);
+            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+            func_energyball_8012FFD0(coord, (u16)mem->field_26 * 2, (s16)(u16)mem->field_24 >> 2);
+            mem->field_26 = (u16)mem->field_26 + (u16)D_energyball_80131194[mem->field_20].field_2;
+            if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
+                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4))) {
+                if (D_80115724 > 0) {
+                    D_80115724 -= 1;
+                    if (D_80115724 == 0) {
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                    }
+                }
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (D_energyball_80131194[mem->field_20].field_0 * 2 < mem->field_26) {
+                if (D_80115724 > 0) {
+                    D_80115724 -= 1;
+                    if (D_80115724 == 0) {
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                    }
+                }
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            return;
+        case 4:
+            Gp_UpdateCoord(coord);
+            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+            func_energyball_8012FFD0(coord, (u16)mem->field_26 * 2, (s16)(u16)mem->field_24 >> 2);
+            mem->field_26 = (u16)mem->field_26 - (u16)D_energyball_80131194[mem->field_20].field_2;
+            if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
+                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4))) {
+                if (D_80115724 > 0) {
+                    D_80115724 -= 1;
+                    if (D_80115724 == 0) {
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                    }
+                }
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (mem->field_26 < D_energyball_80131194[mem->field_20].field_2) {
+                if (D_80115724 > 0) {
+                    D_80115724 -= 1;
+                    if (D_80115724 == 0) {
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                    }
+                }
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            return;
+        default:
+            return;
+    }
+release:
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 /// Overlay copy of `Gp_DrawRing` with a flat tint: draws an eight-segment
 /// gouraud ring centred on `arg0`'s world position. The position is projected

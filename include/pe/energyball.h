@@ -6,12 +6,37 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+#include "gameplay/3A34.h"
+
 /// `SndEvt` ids for the energy ball, indexed by `GpEffWork.field_20`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the sound scales with the combo
 /// counter). The first three are the charge loop `func_energyball_8012EF48`
 /// starts with `SndEvt_EnqueueType6`; the last three are the matching `...0001`
 /// variants.
 extern s32 D_energyball_8013117C[];
+
+/// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.field_20`
+/// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
+/// to before it is launched (`GpEffWork.field_26`; half of it is the linked
+/// `GpObj.field_1C` radius, twice it the burst's final size) and `field_2` the
+/// per-frame growth step, also the initial upward speed while charging.
+typedef struct EnergyBallStep {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+} EnergyBallStep;
+STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
+
+/// Collision block allocated by `func_energyball_8012F180` (`Mem_Calloc(0x38)`)
+/// and stored in `Task::idMap`: `obj` is linked on list 1 with `field_C`
+/// pointing at the one-element `rec` table (terminator `field_0 = 2`).
+typedef struct EnergyBallWork {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec;
+} EnergyBallWork;
+STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
+
+/// Three energy ball charge levels, weakest first.
+extern EnergyBallStep D_energyball_80131194[];
 
 /// Sixteen 8-bit draws from `Gp_LcgState`, refilled once per cast by
 /// `func_energyball_8012EF48` and consumed by the GTE pass in
@@ -77,5 +102,12 @@ STATIC_ASSERT_SIZEOF(EnergyGroundScratch, 0x30);
 /// the frame picked by the low bit of `Display_State.field_8`, tinted
 /// `(0x20, 0x30, 0x20)`.
 void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1);
+
+/// Draws the energy ball's surface: two 16-vertex rings of the same radius
+/// sit `arg1 * 2` apart in `arg0`'s local Y, are rotated by its `workm` and
+/// offset by its translation, then each of the 16 segments is projected
+/// through `GsWSMATRIX` as one semi-transparent `POLY_FT4`, tinted
+/// `(arg2 >> 1, arg2, arg2 >> 1)`.
+void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
 #endif /* PE_ENERGYBALL_H */
