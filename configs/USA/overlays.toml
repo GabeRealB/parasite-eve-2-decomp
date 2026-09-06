@@ -184,7 +184,7 @@ global_vram_end   = 0x801D4000
 imports = "configs/USA/sym/options.imports.txt"
 
 [options.overlays]
-options = { note = "Option / Key Configuration" }
+options = { note = "Option / Key Configuration", data = [{ start = "0x1B2C", unit = "options" }] }
 stub_20200 = { note = "4-byte stub so the id still resolves" }
 
 [debug]

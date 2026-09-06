@@ -10,6 +10,105 @@
 #include "main/text.h"
 #include "main/ui.h"
 
+/// Menu labels and help text for the options screen.
+u8 D_options_801D5B2C[32] = "Restore default configuration";
+u8 D_options_801D5B4C[12] = "Vibration";
+u8 D_options_801D5B58[4]  = "On";
+u8 D_options_801D5B5C[4]  = "Off";
+u8 D_options_801D5B60[8]  = "Sound";
+u8 D_options_801D5B68[8]  = "Stereo";
+u8 D_options_801D5B70[8]  = "Mono";
+u8 D_options_801D5B78[8]  = "Music";
+u8 D_options_801D5B80[4]  = "3";
+u8 D_options_801D5B84[4]  = "2";
+u8 D_options_801D5B88[4]  = "1";
+u8 D_options_801D5B8C[4]  = "Off";
+u8 D_options_801D5B90[8]  = "Cursor";
+u8 D_options_801D5B98[12] = "Standard";
+u8 D_options_801D5BA4[8]  = "Memory";
+u8 D_options_801D5BAC[12] = "Key Config";
+u8 D_options_801D5BB8[12] = "Movement";
+u8 D_options_801D5BC4[8]  = "Walk";
+u8 D_options_801D5BCC[4]  = "Run";
+u8 D_options_801D5BD0[4]  = "OK";
+u8 D_options_801D5BD4[8]  = "Cancel";
+u8 D_options_801D5BDC[8]  = "Help";
+u8 D_options_801D5BE4[12] = "Scroll Down";
+u8 D_options_801D5BF0[12] = "Scroll Up";
+u8 D_options_801D5BFC[12] = "Draw Weapon";
+u8 D_options_801D5C08[8]  = "Examine";
+u8 D_options_801D5C10[4]  = "Run";
+u8 D_options_801D5C14[8]  = "Walk";
+u8 D_options_801D5C1C[16] = "Switch Targets";
+u8 D_options_801D5C2C[8]  = "PE Menu";
+u8 D_options_801D5C34[12] = "Main Weapon";
+u8 D_options_801D5C40[12] = "Sub Weapon";
+u8 D_options_801D5C4C[8]  = "MENU";
+u8 D_options_801D5C54[8]  = "NORMAL";
+u8 D_options_801D5C5C[8]  = "BATTLE";
+u8 D_options_801D5C64[8]  = "Type A";
+u8 D_options_801D5C6C[8]  = "Type B";
+u8 D_options_801D5C74[8]  = "Type C";
+u8 D_options_801D5C7C[44] = "Set sound output to match\nyour television.";
+u8 D_options_801D5CA8[60] = "Set music volume level.\nSet low for clearer sound effects.";
+u8 D_options_801D5CE4[68] = "Set menu cursor. You can have it\nremember the last position used.";
+u8 D_options_801D5D28[64] = "Set vibration mode ON/OFF.\nSelect ON for more realistic play.";
+u8 D_options_801D5D68[60] = "Set Aya's default movement.\nBeginners should use \"Walk.\"";
+u8 D_options_801D5DA4[56] = "Open key settings menu.\nPress the } button to proceed.";
+u8 D_options_801D5DDC[48] = "Restore default settings.\nPress the } button.";
+u8 D_options_801D5E0C[20] = "Default setting.";
+u8 D_options_801D5E20[56] = "The function of the { button\nand ~ button is switched.";
+u8 D_options_801D5E58[56] = "This mode uses the ~ button and\n | button for combat.";
+
+/// Forward declarations for the list-item tables below; these are defined
+/// later in this unit.
+void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D4724(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D5954(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D5A4C(DialogPrompt* arg0, UiObject* arg1);
+void func_options_801D4D0C(Task* task);
+
+/// Sits immediately before the list tables; zero on disc.
+u8 D_options_801D5E90[4] = { 0, 0, 0, 0 };
+
+/// The seven list-item renderers the main options list dispatches through.
+UiListItemFunc D_options_801D5E94[7] = {
+    func_options_801D404C,
+    func_options_801D42A8,
+    func_options_801D4504,
+    func_options_801D4724,
+    func_options_801D4944,
+    func_options_801D5954,
+    func_options_801D5A4C,
+};
+
+/// The main options list: seven rows of 0x12 pixels.
+UiList D_options_801D5EB0 = { D_options_801D5E94, 0x07, 0x07, 0x00, 0x12 };
+
+/// The key-config sub-list renders every row with the same function.
+UiListItemFunc D_options_801D5ED4[1] = { func_options_801D4724 };
+
+/// That sub-list: one row of 0x0F pixels.
+UiList D_options_801D5ED8 = { D_options_801D5ED4, 0x01, 0x01, 0x00, 0x0F };
+
+/// The options screen's own UI object, spawned by `Ui_SpawnFromDesc`.
+UiObjectDesc D_options_801D5EFC = {
+    2,
+    0xFF74,
+    0xFFA0,
+    0x0118,
+    0x0090,
+    0x0034,
+    0x0000,
+    0x0000,
+    0x00C0,
+    (s32)func_options_801D4D0C,
+    0,
+};
+
 extern s8           D_80072189;
 extern u8           D_8007218D;
 extern s8           D_80072311;
@@ -159,7 +258,8 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_RODATA("options/nonmatchings/options/options", D_options_801D4000);
+/// This overlay's id. Every package opens with one: a u16 in a u32 slot.
+const u32 D_options_801D4000 = 40;
 
 void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
 {
