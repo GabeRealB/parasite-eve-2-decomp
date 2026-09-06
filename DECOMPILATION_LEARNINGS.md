@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Split each LCG roll; divide the stored `s16` not the `andi` temp
+
+Three `Gp_LcgState = Gp_LcgState * 5 + 0x71357911` rolls in one case, written
+as one `rng` local, become one allocno. GCC then keeps the last result in
+`$a2` and parks `sw Gp_LcgState` in the following `beqz` delay (`insert` /
+`delete` = 1 with every other penalty already 0). The first roll also loads
+into `$v1`, so the `*5` dest cannot reuse the divide-magic `$v1`.
+
+Split the rolls so each live range can pick `$v0` / `$v1` on its own:
+
+```c
+rng1 = Gp_LcgState * 5 + 0x71357911;
+mem->field_24 = ((u32)rng1 >> 16) & 0xFFF;
+Gp_LcgState   = rng1;
+/* rsin / rcos */
+rng2 = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState   = rng2;
+/* rsin((rng2 >> 16) & 0xFFF) */
+rng3 = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState   = rng3;
+if ((s32)(((u32)rng3 >> 16) & 3) < combo)
+```
+
+The first and third then land in `$v1` (store, then `srl` the same reg) and
+the second in `$v0`.
+
+The `/ 20` of the same `andi 0xFFF` value is a related trap. `s16 ang =
+(u16)spawnArg1 & 0xFFF; ang / 20` is proven non-negative, so GCC multiplies
+the `andi` result by `0x66666667` and drops `sll 16` / `sra 16` / `sra 31` /
+`subu`. `TOUCH_REG(ang)` brings the sign sequence back but delays `sh
+field_28` and blocks `lui 0x7135` from the incoming switch delay. Store the
+mask, then divide the `s16` field:
+
+```c
+mem->field_28 = temp_v0 & 0xFFF;
+mem->field_26 = mem->field_28 / 20;
+```
+
+`func_necrosis_8012FAF8` is the example.
+
 ## Earlyclobber empty asm copies an SI value (`move`) instead of `andi` / in-place `sll`
 
 A value loaded `lhu` into an SI temp and reused for both `field += step` and
