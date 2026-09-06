@@ -1,20 +1,26 @@
 #include "common.h"
 
-#include <psyq/inline_c.h>
-
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "pe/antibody.h"
 
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/libgte.h>
+
 extern s32 Gp_LcgState;
 
-/// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
+/// `gpf 1` / `rtps`. The `inline_c.h` macros of those names assemble to
+/// different words, so spell the instructions out.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -158,6 +164,91 @@ INCLUDE_ASM("pe/nonmatchings/antibody/antibody", func_antibody_8012FBB0);
 
 INCLUDE_ASM("pe/nonmatchings/antibody/antibody", func_antibody_8012FFEC);
 
-INCLUDE_ASM("pe/nonmatchings/antibody/antibody", func_antibody_80130428);
+/// Draws the antibody arc between the effect and the player as one
+/// semi-transparent raw-tex `POLY_FT4` (tpage 0x28, clut 0x42C8). The effect
+/// coordinate's world position and the player's second part coordinate are
+/// each projected through `GsWSMATRIX` with one `RTPS`; the quad is laid
+/// along the line joining the two projected points, `ratan2` of their screen
+/// delta giving the spin applied at that angle and at `+ 0x400`. `arg1`
+/// selects the 128-texel UV tile: u = `(arg1 & 1) * 128`, v =
+/// `((arg1 & 3) >> 1) * 24 - 0x30`. `arg2` is a signed half-extent, so the
+/// on-screen half-width is `arg2 * 23 / otz`. Nothing is drawn if either
+/// projection sets a negative `gte_stflg`.
+void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+{
+    void**              scratch;
+    u8*                 head;
+    AntibodyArcScratch* block;
+    POLY_FT4*           prim;
+    SVECTOR*            vec;
+    GsCOORDINATE2*      player;
+    s32                 u0;
+    s32                 u1;
+    s32                 va;
+    s32                 vb;
+    s16                 ang;
+    s32                 ang2;
+    u16                 vz;
+
+    player                                      = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1];
+    scratch                                     = (void**)G_SCRATCH_HEAD;
+    head                                        = *scratch;
+    ((AntibodyArcScratch*)(head - 0x28))->v0.vx = *(u16*)&arg0->workm.t[0];
+    block                                       = (AntibodyArcScratch*)(head - 0x28);
+    block->v0.vy                                = *(u16*)&arg0->workm.t[1];
+    block->v0.vz                                = *(u16*)&arg0->workm.t[2];
+    block->v1.vx                                = *(u16*)&player->workm.t[0];
+    block->v1.vy                                = *(u16*)&player->workm.t[1];
+    vz                                          = *(u16*)&player->workm.t[2];
+    *scratch                                    = block;
+    block->v1.vz                                = vz;
+    vec                                         = &block->v0;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx0);
+    gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((AntibodyArcScratch*)(head - 0x28))->otz);
+        block->otz = block->otz + 1;
+        gte_ldv0(&((AntibodyArcScratch*)(head - 0x28))->v1);
+        gte_rtps_real();
+        gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx1);
+        gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
+        if (block->flag >= 0) {
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2F);
+            prim->tpage = 0x28;
+            prim->clut  = 0x42C8;
+            u0          = (arg1 & 1) << 7;
+            u1          = u0 + 0x7F;
+            va          = ((arg1 & 3) >> 1) * 24 - 0x30;
+            vb          = ((arg1 & 3) >> 1) * 24 - 0x19;
+            setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
+            ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
+            block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang)) >> 12;
+            block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang)) >> 12;
+            prim->x0  = *(u16*)&block->sx0 + *(u16*)&block->dx;
+            prim->x3  = *(u16*)&block->sx1 - *(u16*)&block->dx;
+            prim->y0  = *(u16*)&block->sy0 - *(u16*)&block->dy;
+            ang2      = ang + 0x400;
+            prim->y3  = *(u16*)&block->sy1 + *(u16*)&block->dy;
+            block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang2)) >> 12;
+            block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang2)) >> 12;
+            prim->x1  = *(u16*)&block->sx1 + *(u16*)&block->dx;
+            prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
+            prim->y1  = *(u16*)&block->sy1 - *(u16*)&block->dy;
+            prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AntibodyArcScratch);
+}
 
 INCLUDE_RODATA("pe/nonmatchings/antibody/antibody", D_antibody_8012EF30);
