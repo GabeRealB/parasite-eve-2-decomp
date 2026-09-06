@@ -50654,3 +50654,50 @@ compare and lands the `move` in the delay slot.
 Hoisting the `if` condition into its own local (`kind = ...;`) is part of the
 same fix: it puts the copy after the modulo in the RTL, which is where the
 delay-slot pass can reach it.
+
+## `sh aN, off($sp)` + `lbu` from the same slot is an address-taken narrow local
+
+`func_pyrokinesis_80130130` draws eight `POLY_G4` blades whose only coloured
+vertex is the `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)`, and the ROM spells the
+first component through memory:
+
+```
+sh    a2, 0x10(sp)      /* once, in the preamble */
+...
+lbu   t1, 0x10(sp)      /* every iteration */
+sb    t1, 0x14(s0)      /* prim->r2 */
+sb    v0, 0x15(s0)      /* (s16)arg2 >> 1 */
+sb    fp, 0x16(s0)      /* (s16)arg2 >> 2 */
+```
+
+The plain `setRGB2(prim, arg2, arg2 >> 1, arg2 >> 2)` on an `s16` parameter
+already produces this store-and-reload — GCC 2.8.1 gives the parameter a stack
+home because one use wants its low byte — so the instruction *sequence* matches
+on the first try. What it gets wrong is *where* the `sh` lands: as a parameter
+home store it belongs to the prologue, so the scheduler emits it immediately
+after the register saves, ahead of the nine instructions that fill the scratch
+`SVECTOR`.
+
+Give the byte its own address-taken local instead, assigned at the point the
+target stores it:
+
+```c
+u16 red;
+...
+block->vec.vz = vz;
+red           = arg2;                                   /* sh a2,0x10(sp) here */
+...
+setRGB2(prim, *(u8*)&red, arg2 >> 1, arg2 >> 2);        /* lbu 0x10(sp) */
+```
+
+Now the `sh` is an ordinary store to a local whose address escapes, so GCC's
+alias analysis will not float it past the stores through `block`, and it stays
+in source order. The shifted components keep reading the parameter register
+directly, which is what puts `(s16)arg2 >> 1` and `>> 2` in registers rather
+than re-loading the slot.
+
+The general rule: a narrow store to the frame *plus* a reload of part of it is
+a local, not a spill. Reach for the explicit local whenever the instructions are
+all present but the frame store sits in the wrong place — the position of a
+parameter home store is not something the C can move, and the position of a
+store to a local is.
