@@ -52443,3 +52443,32 @@ but sched1 breaks its ties by source position, the `rInner` temp is born
 earlier relative to `head`, and local-alloc's priority order flips so `rInner`
 takes `$v0` before `head` is coloured. When a colouring diff resists every
 edit of the statements it names, move the neighbours instead.
+
+### CSE only follows a branch whose target label has exactly one use
+
+Two reads of the same global inside one case arm, with a state check between
+them, came out with the `lui %hi` shared across the check and the just-stored
+halfword reused from its register (`sll/sra` instead of a fresh `lh`). The
+target re-emitted `lui / addiu` at the second read and reloaded the halfword,
+which looks like a barrier but is not one.
+
+`cse_end_of_basic_block` (GCC 2.8.1 `cse.c`) extends a block through a
+conditional jump - "follow" when a `BARRIER` precedes the target, "skip" when
+the jump goes around a label-free run - only when
+`LABEL_NUSES (JUMP_LABEL (p)) == 1`. `if (X != K) { if (A || B) goto dec; }`
+gives the compare block after the `}` one incoming jump, so the `X == K` test
+is skipped around and the second read lands in the first block's CSE table.
+Write the release body *inline* under `if (X != K && (A || B)) { ... return; }`
+instead: at cse time the block after it has two incoming jumps (`X == K` and
+`!B`), nothing follows it, and no sharing happens. Cross-jumping in jump2 then
+folds the inline copy into the shared tail and `jump_optimize` turns the
+leftover `if (B) goto next; j dec` back into `beqz ..., dec`, so the final
+layout is identical to the `goto` version except for the unshared `lui` and
+the reload. `func_energyball_8012F180` cases 3 and 4 are the example (99.19% →
+100% by this change alone). A `COMPILER_BARRIER()` gets the reload but not the
+`lui`; a `tbl = D_x; SOFT_TOUCH_REG(tbl)` guards the pointer, not its `high`
+pseudo, so neither reproduces it.
+
+Also from the same function: `&Gp_RoomCoords[arg0->spawnArg1 + 4]` assembles
+to the same bytes as the splat name `D_801150C0` (`%lo(Gp_RoomCoords+0x190)`),
+so a "slot base four entries in" needs no separate extern.
