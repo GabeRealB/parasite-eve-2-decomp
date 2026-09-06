@@ -15,7 +15,83 @@
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion_2", func_combustion_8012FF0C);
+/// Links one frame of the combustion flame at `arg0`'s world position. The
+/// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
+/// is dropped when that sets a negative `gte_stflg`. `arg1` picks one of the
+/// eight 0x18-wide texture frames on tpage 0x28 (CLUT 0x430D), and `arg2`
+/// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
+/// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
+/// quad as gameplay `Gp_EffSprTask8D`.
+void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+{
+    void**           scratch;
+    u8*              head;
+    GpEffFt4Scratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              u0;
+    s32              u1;
+    s32              va;
+    s16              x;
+    s16              y;
+    u16              vz;
+
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                     = (GpEffFt4Scratch*)(head - 0x18);
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vec                                       = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x28;
+        prim->clut  = 0x430D;
+        u0          = (arg1 & 7) * 0x18;
+        va          = 0xA0;
+        u1          = u0 + 0x17;
+        SCHED_BARRIER();
+        prim->u0 = u0;
+        prim->u2 = u0;
+        SCHED_BARRIER();
+        prim->v0    = va;
+        prim->v1    = va;
+        prim->v2    = 0xB7;
+        prim->v3    = 0xB7;
+        prim->u1    = u1;
+        prim->u3    = u1;
+        block->size = (arg2 * 0x17) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        prim->x2    = x;
+        prim->x0    = x;
+        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        prim->x3    = x;
+        prim->x1    = x;
+        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        prim->y1    = y;
+        prim->y0    = y;
+        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        prim->y3    = y;
+        prim->y2    = y;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x18;
+}
 
 /// Draws one billboard quad of a combustion flame. The coordinate's world
 /// position is projected through `GsWSMATRIX` with a single `RTPS`; a negative
