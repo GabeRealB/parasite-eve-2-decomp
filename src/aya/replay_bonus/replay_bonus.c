@@ -6,6 +6,7 @@
 #include "gameplay/4CC.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -19,6 +20,7 @@ extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
+extern s32          D_80072A9C;
 
 s32  func_replay_bonus_80118B6C(s32 arg0, s32 index);
 void func_replay_bonus_80117194(Task* arg0);
@@ -160,7 +162,56 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117194);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801173A8);
+s32 func_replay_bonus_801173A8(void)
+{
+    ReplayBonusShopTier* p;
+    u32                  spend;
+    s32                  idx;
+    s32                  i;
+    McSaveData*          save;
+    s32                  mask;
+    s32                  one;
+
+    spend = func_replay_bonus_80115CA4();
+    p     = D_replay_bonus_80118F78;
+    idx   = 0;
+    if (D_80072A9C == 0x1FFF) {
+        return -1;
+    }
+    i = 0;
+    do {
+    loop:
+        if (!(p->spendThreshold < spend)) {
+            idx = i;
+            break;
+        }
+        i++;
+        p++;
+        if (i < 0xD) {
+            goto loop;
+        }
+    } while (0);
+
+    save = &Mc_SaveData;
+    idx += save->field_F;
+    i    = 0;
+    if (idx >= 0xD) {
+        idx = 0xC;
+    }
+    one  = 1;
+    mask = save->field_934;
+    do {
+        if ((mask & (one << idx)) == 0) {
+            return idx;
+        }
+        idx += 1;
+        if (idx >= 0xD) {
+            idx -= 0xD;
+        }
+        i += 1;
+    } while (i < 0xD);
+    return idx;
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117484);
 

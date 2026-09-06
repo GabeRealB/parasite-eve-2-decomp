@@ -46,6 +46,22 @@ typedef struct ReplayBonusStream {
 } ReplayBonusStream;
 STATIC_ASSERT_SIZEOF(ReplayBonusStream, 0x10);
 
+/// One row of the replay-bonus price ladder (`D_replay_bonus_80118F78`,
+/// thirteen rows). `spendThreshold` is the running total
+/// `func_replay_bonus_80115CA4` has to reach for the row to be the starting
+/// index — the last row's is `S32_MAX`, so it never does on its own — and
+/// `items` are the three ids `func_replay_bonus_80117484` then offers.
+/// `Mc_SaveData.field_934` (also imported as `D_80072A9C`) holds one bit per
+/// row; all 13 bits set (`0x1FFF`) means every tier is taken.
+typedef struct ReplayBonusShopTier {
+    /* 0x0 */ u32  spendThreshold;
+    /* 0x4 */ s16  items[3];
+    /* 0xA */ byte pad_A[2];
+} ReplayBonusShopTier;
+STATIC_ASSERT_SIZEOF(ReplayBonusShopTier, 0xC);
+
+extern ReplayBonusShopTier D_replay_bonus_80118F78[13];
+
 /// TaskDesc for the MDEC stream worker (`func_replay_bonus_801159A0`).
 extern TaskDesc D_replay_bonus_80118F6C;
 /// Stream phase: 0 idle, 1 running, 2 finished. Spawn is skipped when
@@ -76,6 +92,8 @@ typedef struct ReplayBonusCtx {
     /* 0x28 */ ReplayBonusItemList* itemList;
 } ReplayBonusCtx;
 
+s32  func_replay_bonus_80115CA4(void);
+s32  func_replay_bonus_801173A8(void);
 s16  func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);
 void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj);
 
