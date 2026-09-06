@@ -51753,3 +51753,54 @@ Prefer this over a pin whenever the leftover is "right register early, blocks a
 reuse late". `USE_REG(head)` *before* the assignment expresses the same
 liveness but is a read of an uninitialised value and made GCC emit a stray
 `move $v0, $t1`; the dummy output has neither problem.
+
+## Two empty `SCHED_BARRIER()`s keep `u1 = u0 + N` in `$a0` across the `u0` stores
+
+`func_combustion_8012FF0C` is the axis-aligned cousin of `Gp_EffSprTask8D`:
+`(arg1 & 7) * 0x18` is `u0`/`u2`, `u0 + 0x17` is `u1`/`u3`, and `0xA0` is `v0`/`v1`.
+The ROM does:
+
+```
+sll     v0, v0, 3          # u0
+li      v1, 0xA0           # v-base, independent of u0
+addiu   a0, v0, 0x17       # u1, while u0 is still live in $v0
+sb      v0, 0xC(a1)        # u0
+sb      v0, 0x1C(a1)       # u2
+li      v0, 0xB7
+sb      v1, 0xD(a1)        # v0
+sb      v1, 0x15(a1)       # v1
+```
+
+Writing those stores in ROM order CSEs `u1` into `addiu v0, v0, 0x17` *after*
+the `u0`/`u2` stores (u0 is then dead, so the add reuses `$v0`) and hoists the
+`0xA0` stores above them. `TOUCH_REG(u1)` is the wrong lever: it is volatile and
+does not mention `prim`, so the UV math hoists above `Gpu_PrimCursor` and
+`$a1`/`$a2` swap. Keeping `u1` live across the later `div` spills.
+
+Two empty barriers, with the `0xA0` temp assigned *before* the first, split the
+region without emitting a nop:
+
+```c
+u0 = (arg1 & 7) * 0x18;
+va = 0xA0;
+u1 = u0 + 0x17;
+SCHED_BARRIER();
+prim->u0 = u0;
+prim->u2 = u0;
+SCHED_BARRIER();
+prim->v0 = va;
+prim->v1 = va;
+prim->v2 = 0xB7;
+prim->v3 = 0xB7;
+prim->u1 = u1;
+prim->u3 = u1;
+```
+
+Region 1 has to materialise `u0`, `va` and `u1` (all live across the first
+barrier) and still contains the clut store, so `andi` stays interleaved with
+`sh clut`. Region 2 is only the two `u0` stores, so they cannot wait until `u0`
+is dead. Region 3 stores `va` after `u0` is done, which is when the ROM writes
+`v0`/`v1`. Related to "The scheduler reorders byte stores, so the source store
+order is not fixed by the object dump": that entry moves one store earlier to
+force a *value* chain; this one uses barriers to stop an `addiu` gluing itself
+to a late use of the same register.
