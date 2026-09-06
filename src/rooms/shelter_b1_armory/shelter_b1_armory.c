@@ -17,7 +17,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelt
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017E9CC);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", D_shelter_b1_armory_8017D6D8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", RoomsShared8017f938Bp);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017EBEC);
 
@@ -30,5 +30,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelt
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017F30C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017F5D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017F7A8);
