@@ -25,6 +25,30 @@ typedef struct ApobiosisRingScratch {
 } ApobiosisRingScratch;
 STATIC_ASSERT_SIZEOF(ApobiosisRingScratch, 0x1C);
 
+/// 0x28-byte scratch block `func_apobiosis_80130630` takes from
+/// `G_SCRATCH_HEAD` to draw one burst shard. `v0` is the effect coordinate's
+/// world position and `v1` that position plus the three-halfword offset
+/// `arg1`; both are projected through `GsWSMATRIX` with one `RTPS` each,
+/// giving `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever
+/// projection ran last (a negative value drops the quad) and `otz` is the
+/// first projection's `gte_stszotz`, incremented by 1 before it becomes both
+/// the radius divisor and the OT bucket. `dx` / `dy` hold the current
+/// `(arg3 * 23 / otz) * rsin|rcos(angle) >> 12` half-extents; only their low
+/// halves are read back.
+typedef struct ApobiosisShardScratch {
+    /* 0x00 */ SVECTOR v0;
+    /* 0x08 */ SVECTOR v1;
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ s32     flag;
+    /* 0x18 */ s32     dx;
+    /* 0x1C */ s32     dy;
+    /* 0x20 */ s16     sx0;
+    /* 0x22 */ s16     sy0;
+    /* 0x24 */ s16     sx1;
+    /* 0x26 */ s16     sy1;
+} ApobiosisShardScratch;
+STATIC_ASSERT_SIZEOF(ApobiosisShardScratch, 0x28);
+
 /// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
 /// `GpEffWork.field_20` / `field_2A` (`Gp_StateC08.field_0 % 10 - 1`, so the
 /// burst scales with the combo counter). `field_0` is half the number of ring

@@ -3,6 +3,39 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Emit `move v0, v1` with `addu dst, src, $zero` when `COPY_REG_EC` recolors a long-lived source
+
+A world-position halfword kept live across several `sh`s (in `$v1`) and then
+added to `arg1[0]` wants
+
+```
+move  v0, v1
+lhu   v1, 0(a1)
+move  s0, a3
+addu  v0, v0, v1
+sh    v0, 8(s2)
+```
+
+`s32 t = vx; t += (u16)arg1[0]` coalesces, so the add is `addu v1, v1, v0` with
+no copy. `t = vx; COPY_REG_EC(t, vx)` does emit `move`, but the empty `+&r` /
+`"r"` pair is a hard conflict for the whole of `vx`'s live range and kicks the
+source out of `$v1` into `$t0`, cascading scratch-head / `head` coloring
+(`regs=32`). A function-scope `register s32 vx asm("v1")` puts `vx` back but
+steals `$v1` from the later `lhu arg1[0]` and from `mflo`.
+
+Write the copy as an instruction, not an empty constraint:
+
+```c
+asm volatile("addu %0, %1, $zero" : "=&r"(t) : "r"(vx));
+t += (u16)arg1[0];
+```
+
+`"=&r"` still forbids overlap, so GCC emits `move` and frees `vx`, but the
+explicit `addu` does not recolor the long-lived source. Non-volatile `addu`
+lets the copy float and wrecks coloring again. Related to "Earlyclobber empty
+asm copies an SI value": use that when the source is short-lived; use the
+emitting form when it is not. `func_apobiosis_80130630` is the example.
+
 ## A 16-segment `POLY_FT4` tube with `arg3` picking fat/thin radii is `func_hypervelocity_8011DF34`
 
 `func_pyrokinesis_80131784` is that function with three constants swapped:
