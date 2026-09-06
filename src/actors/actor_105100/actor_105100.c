@@ -2,6 +2,7 @@
 #include "gameplay/1BC.h"
 
 #include "actors/actor_105100.h"
+#include "actors/actors_shared_80134ff0.h"
 #include "main/sound.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
@@ -12,7 +13,6 @@ void func_actor_105100_80133CE4(Actor105100* arg0);
 void func_actor_105100_80134130(Actor105100* arg0);
 void func_actor_105100_80135E54(Actor105100* arg0);
 void func_actor_105100_80136408(Actor105100* arg0);
-void func_actor_105100_801364CC(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
 void func_actor_105100_80136574(Actor105100* arg0, s32* arg1, s16 arg2, s32 arg3);
 
@@ -61,7 +61,7 @@ case0:
     }
     goto default_body;
 case1:
-    func_actor_105100_801364CC(arg1);
+    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
     func_actor_105100_80136524(arg1);
     goto join_12;
 case2:
@@ -91,7 +91,7 @@ default_body:
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    func_actor_105100_801364CC(arg1);
+    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
     func_actor_105100_80136524(arg1);
 }
 
@@ -152,29 +152,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136318);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136408);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801364CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136524);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136574);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013667C);
-
-void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1)
-{
-    Actor105100Work* work;
-
-    work = (Actor105100Work*)arg1->idMap;
-    Gp_UnlinkObj(&work->obj0);
-    Gp_UnlinkObj(&work->obj38);
-    Gp_DestroyEnemy(arg0, arg1);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013672C);
-
-void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1)
-{
-    Gp_UnlinkObj(arg1->idMap);
-    Gp_DestroyEnemy(arg0, arg1);
-}

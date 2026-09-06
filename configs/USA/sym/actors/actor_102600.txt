@@ -9,3 +9,4 @@ ActorsShared801355a4_Fn3325C = 0x8013325C; // type:func absolute:True
 ActorsShared801355a4_Fn3382C = 0x8013382C; // type:func absolute:True
 ActorsShared801355a4_Fn3567C = 0x8013567C; // type:func absolute:True
 ActorsShared801355a4_Fn33950 = 0x80133950; // type:func absolute:True
+ActorsShared80134ff0 = 0x80135888; // shared body, see src/actors/lib/

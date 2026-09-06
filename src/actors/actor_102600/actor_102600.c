@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_102600.h"
+#include "actors/actors_shared_80134ff0.h"
 #include "actors/actors_shared_801355a4.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
@@ -10,7 +11,6 @@ void func_actor_102600_80133EF4(Actor102600* arg0);
 void func_actor_102600_80134034(Actor102600* arg0);
 void func_actor_102600_80135730(Actor102600* arg0);
 void func_actor_102600_801357C4(Actor102600* arg0);
-void func_actor_102600_80135888(Actor102600* arg0);
 void func_actor_102600_801358E0(Actor102600* arg0);
 
 extern u8 D_801153F4;
@@ -102,7 +102,7 @@ default_body:
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 case1:
-    func_actor_102600_80135888(arg1);
+    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
     func_actor_102600_801358E0(arg1);
 }
 

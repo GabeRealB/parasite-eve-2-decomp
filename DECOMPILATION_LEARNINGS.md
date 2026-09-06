@@ -52960,3 +52960,45 @@ things follow, and neither announces itself:
 Plain `INCLUDE_RODATA` in the new unit is not the fix: the cut rodata never
 gets its own object in the linker script, so the include has to come from the
 function `.s` splat generates after the cut.
+
+## `promote`'s auto-chosen shared unit can be a whole-overlay unit — pass `--unit`
+
+When a body already has a copy under `<family>/lib`, `overlay_dup_index.py
+promote` takes the shared unit name from whichever `src/<family>/lib/*.c`
+defines that copy, instead of minting `<family>_shared_<addr>`. That is right
+when the existing unit *is* the body — `actors_shared_80133468` — and wrong
+when the copy merely lives inside a unit that covers an entire overlay's text.
+`func_actor_102400_80134FF0` is 0x58 bytes; its `lib` copy is
+`Actor00300_Fn04FB0`, one function inside `actor_100300_text`, which spans
+`0x78..0x54B4`. `promote` happily wrote `{ start = "0x31D0", end = "0x3228",
+unit = "actor_100300_text" }` into eleven carriers, which would link a 0x543C
+object into a 0x58 hole. It also derives the symbol from the unit name, so the
+carriers got `Actor100300Text` while the object defines `Actor00300_Fn04FB0`.
+
+Check `grep '^<unit-owner> =' configs/USA/overlays.toml` against the body size
+before accepting the unit it picked. When the unit is bigger than the body,
+re-run with `--unit <family>_shared_<addr>` to get a body-sized unit; the
+oversized unit's own copy stays `INCLUDE_ASM` and is simply not deduped.
+
+## A promoted body's address is often already named as another shared unit's import
+
+splat refuses the promotion with
+
+```
+Duplicate symbol detected! ActorsShared80134ff0 clashes with
+ActorsShared80134c2c_Fn34FF0 defined at vram 0x80134FF0.
+```
+
+Those `<OtherShared>_Fn<offset> = 0x…; // type:func absolute:True` lines are how
+an *already* shared unit calls a body it does not contain: the call is resolved
+per overlay from its own sym map. Once that body becomes a shared object with a
+real definition, the alias is both redundant and a duplicate. Delete the alias
+line from every sym map that has it, and rewrite the other shared unit's call to
+the new symbol with the usual cast —
+`ActorsShared80134ff0((ActorShared80134ff0*)arg1)`.
+
+Before doing that, confirm the alias's carriers are a subset of the promotion's:
+`grep -l <alias> configs/USA/sym/<family>/*.txt`. The rewritten shared object
+now demands `ActorsShared80134ff0` from every overlay it links into, so a
+carrier that `promote` skipped — the "contains it twice" case — would fail to
+link.

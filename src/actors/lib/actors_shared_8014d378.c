@@ -1,7 +1,8 @@
 #include "common.h"
 
-#include "actors/actors_shared_8014d378.h"
+#include "actors/actors_shared_80134ff0.h"
 #include "actors/actors_shared_801355a4.h"
+#include "actors/actors_shared_8014d378.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
@@ -11,7 +12,6 @@ void ActorsShared8014d378_Fn4C034(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4D48C(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4D730(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4D7C4(ActorShared8014d378* arg0);
-void ActorsShared8014d378_Fn4D888(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4D8E0(ActorShared8014d378* arg0);
 
 extern u8 D_801153F4;
@@ -67,6 +67,6 @@ default_body:
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 case1:
-    ActorsShared8014d378_Fn4D888(arg1);
+    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
     ActorsShared8014d378_Fn4D8E0(arg1);
 }

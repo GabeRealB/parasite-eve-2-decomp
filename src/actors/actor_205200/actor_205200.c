@@ -1,13 +1,13 @@
 #include "common.h"
 
 #include "actors/actor_205200.h"
+#include "actors/actors_shared_80134ff0.h"
 #include "main/session.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_205200_8014BD4C(Actor205200* arg0);
 void func_actor_205200_8014C67C(Actor205200* arg0);
 void func_actor_205200_8014C7CC(Actor205200* arg0);
-void func_actor_205200_8014C87C(Actor205200* arg0);
 void func_actor_205200_8014C8D4(Actor205200* arg0);
 void Gp_DestroyEnemy(void* enemy, void* task);
 
@@ -101,7 +101,7 @@ default_body:
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 case1:
-    func_actor_205200_8014C87C(arg1);
+    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
     func_actor_205200_8014C8D4(arg1);
 }
 
@@ -110,22 +110,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014C748);
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014C7CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014C87C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014C8D4);
-
-void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1)
-{
-    Actor205200Work* work;
-
-    work = arg1->field_1C;
-    Gp_UnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->field_47C);
-    Gp_UnlinkObj(&work->field_4E4);
-    Gp_DestroyEnemy(arg0, arg1);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014C980);
-
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014C9A0);
