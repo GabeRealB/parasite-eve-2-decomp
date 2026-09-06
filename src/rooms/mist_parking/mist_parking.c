@@ -23,8 +23,8 @@ extern GpItemScan     D_80072724;
 extern RoomShopStock  D_8010E138[];
 extern u8             D_80071072;
 extern u8             D_mist_parking_8017D6D8[];
+extern u8             RoomsShared8017fdb8Msg[];
 extern u8             D_mist_parking_80186450[];
-extern u8             D_mist_parking_80186464[];
 extern u8             D_mist_parking_801864BC[];
 extern u8             D_mist_parking_801864C4[];
 extern u8             D_mist_parking_801864D0[];
@@ -276,7 +276,7 @@ void func_mist_parking_8017EB5C(DialogPrompt* prompt, UiObject* obj)
 
     if ((prompt->field_4 - 1) == prompt->field_8) {
         one = 1;
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_mist_parking_80186464, prompt->field_1C, one, 0);
+        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, RoomsShared8017fdb8Msg, prompt->field_1C, one, 0);
         if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
             obj->field_2E = 6;
         }
@@ -789,24 +789,5 @@ void func_mist_parking_8017F938(Task* task)
             SndEvt_EnqueueType6(4, 0, 0);
             parentObj->field_2E = 6;
         }
-    }
-}
-
-void func_mist_parking_8017FDB8(DialogPrompt* prompt, UiObject* obj)
-{
-    TextDrawReq req;
-
-    req.x          = obj->baseX + (u16)prompt->field_18;
-    req.y          = obj->baseY + (u16)prompt->field_1A;
-    req.otIndex    = (s16)obj->drawOrder + 1;
-    req.field_8    = prompt->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
-    func_8002E53C(&req, D_mist_parking_80186464);
-
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        obj->field_2E = 6;
     }
 }

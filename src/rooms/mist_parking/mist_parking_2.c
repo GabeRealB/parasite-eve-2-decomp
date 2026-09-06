@@ -24,7 +24,7 @@ extern RoomShopStock  D_8010E138[];
 extern u8             D_80071072;
 extern u8             D_mist_parking_8017D6D8[];
 extern u8             D_mist_parking_80186450[];
-extern u8             D_mist_parking_80186464[];
+extern u8             RoomsShared8017fdb8Msg[];
 extern u8             D_mist_parking_801864BC[];
 extern u8             D_mist_parking_801864C4[];
 extern u8             D_mist_parking_801864D0[];
