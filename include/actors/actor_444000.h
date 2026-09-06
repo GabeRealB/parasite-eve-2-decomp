@@ -30,6 +30,17 @@ typedef struct Actor444000Obj {
     /* 0x40 */ s16  field_40; // remaining HP
 } Actor444000Obj;
 
+/// Payload `func_actor_444000_801326DC` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
+/// The same four bytes as `AcropolisBridgeMsg7DA`: two id bytes followed by a
+/// halfword the receiver switches on.
+typedef struct Actor444000Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor444000Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor444000Msg7DA, 0x4);
+
 typedef struct Actor444000 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor444000Work* field_1C;

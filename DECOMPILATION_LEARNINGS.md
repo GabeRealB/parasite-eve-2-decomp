@@ -52859,3 +52859,48 @@ text requests and local-alloc gives that block-local value `$s1` before global
 alloc runs. A global variable skipping a callee-saved register is the sign of a
 block-local pseudo in it; merging `field_1E` and `field_1C` into one variable
 (as m2c does) made the value global and moved `obj` into `$s1`.
+
+## Field-by-field assignment lets `sw ra` float into a message payload's stores
+
+The converse of "Initialized local jump table keeps `sw ra` first". A local
+aggregate with a brace initializer expands to a `(clobber (mem/s:BLK ...))`
+covering the whole object, and every field store carries a `REG_DEP_OUTPUT` on
+it. The prologue's `sw $ra` in turn has an output dependency the clobber sees,
+so sched2 is forced to emit `addiu $sp` / `sw $ra` / clobber before any field
+store — `sw $ra` can never move past them.
+
+`func_actor_444000_801326DC` wants the opposite: the prologue save sits in the
+*middle* of the four-byte payload it builds.
+
+```
+addiu sp,sp,-0x20
+li    a0,4
+li    v0,0x2c
+sb    v0,0x11(sp)
+li    v0,3
+sw    ra,0x18(sp)      <- after two of the three payload stores
+sb    zero,0x10(sp)
+jal   Game_GetPtrSlot
+ sh   v0,0x12(sp)
+```
+
+`Msg msg = { 0, 0x2C, 3 };` scores 96.67% with `reorder=1`, `sw $ra` pinned
+directly after `addiu $sp`. Declaring the struct uninitialized and assigning
+the fields drops the BLK clobber, leaves the store insns depending only on the
+stack pointer, and the scheduler places `sw $ra` wherever its own priority puts
+it — here between the `0x11` and `0x10` stores:
+
+```c
+Actor444000Msg7DA msg;
+
+msg.field_0 = 0;
+msg.field_1 = 0x2C;
+msg.field_2 = 3;
+Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+```
+
+So the initializer / element-wise choice is a scheduling lever in both
+directions: use an initializer to nail the prologue saves to the top, use
+assignments to let them drift into the body. Read the block's `.sched2` dump
+for the clobber insn (`clobber (mem/s:BLK ...)`) before guessing which side a
+mismatch is on.

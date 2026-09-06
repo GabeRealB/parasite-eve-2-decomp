@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_444000.h"
+#include "gameplay/D4.h"
+#include "main/session.h"
 
 extern s16 D_actor_444000_80144A72;
 
@@ -18,7 +20,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132694);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801326DC);
+void func_actor_444000_801326DC(void)
+{
+    Actor444000Msg7DA msg;
+
+    msg.field_0 = 0;
+    msg.field_1 = 0x2C;
+    msg.field_2 = 3;
+    Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132724);
 
