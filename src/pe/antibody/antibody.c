@@ -349,7 +349,75 @@ void func_antibody_8012F734(Task* arg0)
     }
 }
 
-INCLUDE_ASM("pe/nonmatchings/antibody/antibody", func_antibody_8012FBB0);
+/// Draws one antibody mote as a semi-transparent raw-tex `POLY_FT4` (tpage
+/// 0x29, clut 0x42C6) centred on `arg0`'s world translation, projected with a
+/// single `RTPS`. `arg1` picks one of six 40-pixel columns, `arg2` is the
+/// radius and `arg3` the spin angle. The quad's corners are that radius
+/// rotated by `arg3` and by `arg3 + 0x400`; nothing is drawn if the centre
+/// projects off-screen.
+void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**               scratch;
+    u8*                  head;
+    AntibodyMoteScratch* block;
+    AntibodyMoteScratch* vecp;
+    POLY_FT4*            prim;
+    u16                  vz;
+    s32                  u;
+    s32                  ang2;
+
+    scratch                                      = (void**)G_SCRATCH_HEAD;
+    head                                         = *scratch;
+    ((AntibodyMoteScratch*)(head - 0x1C))->v0.vx = *(u16*)&arg0->workm.t[0];
+    block                                        = (AntibodyMoteScratch*)(head - 0x1C);
+    block->v0.vy                                 = *(u16*)&arg0->workm.t[1];
+    vz                                           = *(u16*)&arg0->workm.t[2];
+    *scratch                                     = block;
+    block->v0.vz                                 = vz;
+    vecp                                         = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->v0);
+    gte_rtps_real();
+    gte_stsxy(&((AntibodyMoteScratch*)(head - 0x1C))->sx0);
+    gte_stflg(&((AntibodyMoteScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((AntibodyMoteScratch*)(head - 0x1C))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x29;
+        prim->clut  = 0x42C6;
+        prim->v0    = 0x50;
+        prim->v1    = 0x50;
+        prim->v2    = 0x77;
+        prim->v3    = 0x77;
+        u           = (s16)(arg1 % 6) * 40;
+        prim->u0    = u;
+        prim->u1    = u + 0x27;
+        prim->u2    = u;
+        prim->u3    = u + 0x27;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0    = *(u16*)&block->sx0 + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sx0 - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sy0 - *(u16*)&block->dy;
+        ang2        = arg3 + 0x400;
+        prim->y3    = *(u16*)&block->sy0 + *(u16*)&block->dy;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1    = *(u16*)&block->sx0 + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sx0 - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sy0 - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sy0 + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 /// Draws one antibody mote as a semi-transparent raw-tex `POLY_FT4`
 /// (tpage 0x2A, clut 0x42C9). The effect coordinate's world position is
