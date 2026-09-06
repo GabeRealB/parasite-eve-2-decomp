@@ -1,12 +1,20 @@
 #include "common.h"
 
+#include "gameplay/gameplay.h"
+
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
+
+extern TaskDesc D_shelter_r49_8017DA00;
+
+extern s8  D_8007106B;
+extern s16 D_80071076;
 
 void func_shelter_r49_8017D71C(Task* arg0)
 {
@@ -92,7 +100,31 @@ L_case6:
     Display_ResetHeapWrapper();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r49/shelter_r49_2", func_shelter_r49_8017D8D8);
+void func_shelter_r49_8017D8D8(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            Display_SpawnWithOt(&D_shelter_r49_8017DA00, 1, 0, 0);
+            D_8007106B = 1;
+            Gp_SpawnViewTasks();
+            arg0->state = arg0->state + 1;
+            break;
+        case 1:
+        case 2:
+            arg0->state = arg0->state + 1;
+            break;
+        case 3:
+            SetDispMask(1);
+            Mc_SaveData.field_7 = 5;
+            Mc_SaveData.field_6 = 7;
+            Mc_SaveData.field_8 = 1;
+            Mc_SaveData.field_5 = 1;
+            D_80071076          = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 void func_shelter_r49_8017D9D0(void)
 {
