@@ -50878,3 +50878,52 @@ for the copy temp from that position, so the two placements that both keep the
 store scored 98.8% and 100%. When a `delete` penalty is one store to a global,
 look for an unrelated memory write the ROM has ordered between the two
 assignments rather than reaching for `SCHED_BARRIER()`.
+
+## Two loads that tie at the top of a block: `volatile` both, because a fence also pins the `lui`
+
+The scratch-ring prologue (`func_apobiosis_8012F9D0`, the same idiom as
+`Gp_DrawArc` / `func_plasma_8012FB10`) sat at 99.779% with `reorder=1` on one
+adjacent pair - the scratch-head load and the first `workm.t[]` halfword:
+
+```
+lw    t0, 0(a1)          /* target */    lhu   v0, 0x38(a0)
+lhu   v0, 0x38(a0)                       lw    t0, 0(a1)
+```
+
+Both loads sit at the top of the block, both feed the same `sh v0, -0x1c(t0)`,
+so `.sched` gives them the same `priority = 1` and they become ready in the
+same cycle. Nothing at statement level moves them: swapping the two
+assignments, moving the `*scratch = block` store, splitting locals and pinning
+`head` all produced the identical schedule, because `.sched` shows the tie is
+broken by the live-range boost (`priority = 7f000001`) the scheduler hands the
+setter of a *single-set pseudo* whose value the just-scheduled insn uses. The
+`lw` sets `head`, a single-set pseudo, and wins the boost; the `lhu` sets a
+`register u16 vx asm("v0")`, and because `v0` is also set by the `register u8*
+tmp asm("v0")` that produces the `move s2, v0`, its setter gets no boost. One
+boosted insn beats one unboosted one and lands *later* in the emitted order.
+
+The sibling functions fix this with `USE_REG(head)` after the load, and that
+does restore the order - but an empty `asm` splits the block for scheduling, so
+the `lui %hi(GsWSMATRIX)` that GCC emits for the *later* `gte_SetTransMatrix`
+can no longer hoist above the register saves, which this ROM does. Any fence
+anywhere before the first GTE macro has that effect; it is a straight trade of
+one `reorder` for another.
+
+What works is making **both** loads volatile, so their relative order is fixed
+by RTL order instead of by the boost, while the `lui` (not a memory insn) stays
+free to hoist:
+
+```c
+head = *(u8* volatile*)scratch;
+{
+    register u16 vx asm("v0");
+    vx                              = *(volatile u16*)&arg0->workm.t[0];
+    ((RingScratch*)(head - 0x1C))->vec.vx = vx;
+}
+```
+
+Only one of the two is not enough - a lone volatile load still gets hoisted
+past a non-volatile one, so both scored 99.779% on their own and 100% together.
+Also worth knowing for this family: making the boosted pseudo multi-set (the
+"pseudo set twice" trick) fixes the order too, but every free spot for a second
+write to `$t0` is gone, so it costs two register diffs elsewhere.
