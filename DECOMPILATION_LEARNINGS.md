@@ -52713,3 +52713,112 @@ pool is `t0, t1`, and the later `saved` reload rotates to `t1`, which is the
 last of the 11 register diffs. The lreg dump prints `used N times across M
 insns` *after* `update_equiv_regs`, so a constant's `M` is already the
 doubled figure when you compute its priority from the dump.
+
+## A per-iteration table copy: its `%hi` hoists on `threshold * lifetime >= loop insns`, and 2-D indexing buys the lifetime
+
+`func_options_801D4D0C` copies a 16-byte UV table onto the stack every
+iteration (`lwl/lwr` from `D_options_801D403C`, `swl/swr` to `0xE0($sp)`) and
+the target has `lui $t5, %hi(table)` hoisted out of the loop with the
+`addiu $t9, $t5, %lo(table)` left inside. The exact rule in `loop.c`'s
+`move_movables` is
+
+    (threshold * savings * lifetime) >= insn_count
+    threshold = 2 * (1 + n_non_fixed_regs) = 58 here, minus 3 per insn already moved
+
+with `lifetime` the LUID distance from the `(set r (high sym))` to the last
+insn using `r`, `savings` the number of uses, and `insn_count` the real insns
+between `NOTE_INSN_LOOP_BEG` and `_END` on the cse1 output. Line-number notes
+share the previous LUID; deleted insns leave nothing behind. Measured with this
+loop: 58 insns hoists the first candidate, 59 does not.
+
+The block copy is one `movstrsi` insn at that point, cse folds the `lo_sum` into
+its source address, and the `high` reg dies one LUID later — so with the copy
+first in the body the `%hi` hoists only if the whole loop is at most 58 insns.
+A walking `u8* uv` with `uv[0]`, `uv[1]`, `uv += 2` reaches that, but then the
+walker's init is source-ordered and lands ahead of the hoisted invariants (next
+entry). Indexing the copy as a 2-D array instead
+
+```c
+typedef union { TextDrawReq req; struct { u8 pairs[8][2]; } uvs; } KeyIconReq;
+...
+do {
+    last.uvs = Options_KeyIconUvs;        /* per-iteration copy: 1 insn + high */
+    ...
+    p->u0 = last.uvs.pairs[i][0];
+    p->v0 = last.uvs.pairs[i][1];         /* +1 folds into the mem offset */
+    ...
+} while (++i < 7);
+```
+
+materialises the array base `(plus fp 0xE0)` as its own insn *between* the
+`high` and the copy (cse shares it with the copy's destination), so the `high`
+gets lifetime 2 and `58 * 2` clears a 61-insn loop even with plain `addPrim`.
+`uv[i * 2]` through a pre-loop pointer does not do this (the base is the
+pointer, no new insn), and a walker never can.
+
+Two things that do *not* move the count: `(s16)` casts on a `u16` field and a
+plain `s16` field both expand to `lhu`/`lh` + two shifts (`extendhisi2` calls
+`force_not_mem` when optimising), and `setaddr(p, *ot)` versus
+`setaddr(p, getaddr(ot))` differs by one `and` that only decides borderline
+cases.
+
+## A preamble insn that sits *after* the hoisted invariants was emitted by loop.c, not by your source
+
+sched1 is a reverse list scheduler; among ready insns of equal priority it
+places the highest LUID latest. So the pre-loop block's final order is the
+original insn order with the load chain (`lh` + `addiu`) pushed to the end,
+and the insn chosen as the load-delay filler is the last one in RTL order. In
+this target that filler is `addiu $a3, $sp, 0xE0` — the UV walker's init —
+which therefore follows *every* hoisted `lui`/`li`. Source statements before
+the loop all precede `move_movables`' insertions (they go before
+`NOTE_INSN_LOOP_BEG`), so no ordering of `y = ; i = 0; uv = ...;` can produce
+that: every permutation scored 99.5% with the same two lines wrong.
+
+What lands after the movables is what loop.c itself emits at `loop_start`
+after moving them: strength-reduction giv inits and hoisted address bases.
+Indexing the copied table by the loop counter (`pairs[i][0]`) makes the walker
+a giv of `i` — its init `addiu $a3, $sp, 0xE0` and increment `addiu $a3, $a3, 2`
+are generated, the `i` counter stays for the `slti` tests, and the preamble
+order falls out. The same LUID rule fixes the `$t4`/`$t5` pair: `w = 0xF`
+written *inside* the loop is hoisted after the table's `%hi` and so is born
+later, has the shorter live range, and wins the lower register; written before
+the loop it is older than every invariant and gets the higher one.
+
+## `f(a - b)`: the operand born last takes the argument register
+
+For `Ui_DrawFlatCaret(obj, (fC + f10) - (baseX + 5), ...)` the target is
+
+```
+lh   $v0, 0xC($s2)
+lh   $v1, 0x10($s2)
+lh   $a1, 0x20($s2)
+addu $v0, $v0, $v1
+addiu $a1, $a1, 5
+subu $a1, $v0, $a1
+```
+
+with the *subtrahend* sharing `$a1`. combine folds the arg move into the
+`minus`, so `$a1` is the insn's output and both operands get it as a
+`qty_phys_sugg` in local-alloc; the qty with the higher priority
+(`refs / (death - birth)`) takes it. Written as one expression, `fold`
+reassociates `A - (B + 5)` into `(A - B) - 5` and the shape is gone; written as
+the seed's `left = fC; left += f10; right = baseX + 5;` reused for both carets,
+`left` dies twice, is not block-local, and global alloc hands it `$a1` first.
+Single-assignment locals per call, left computed before right, give `right`
+the shorter span and the register:
+
+```c
+l1 = (s16)obj->field_C + (s16)obj->field_10;
+r1 = (s16)obj->baseX + 5;
+Ui_DrawFlatCaret((UiPanel*)obj, l1 - r1, y1, 0x606060, 0);
+l2 = (s16)obj->field_C + (s16)obj->field_10;
+r2 = (s16)obj->baseX + 5;
+Ui_DrawFlatCaret((UiPanel*)obj, l2 - r2, y, 0x606060, one);
+```
+
+Related: `obj` here takes `$s2` although `$s1` is free at function entry,
+because `field_1C` is read and used only inside the one basic block of six
+text requests and local-alloc gives that block-local value `$s1` before global
+alloc runs. A global variable skipping a callee-saved register is the sign of a
+block-local pseudo in it; merging `field_1E` and `field_1C` into one variable
+(as m2c does) made the value global and moved `obj` into `$s1`.
