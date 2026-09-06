@@ -151,6 +151,14 @@ turned off to avoid that. Setting it `False` fails the checksum on `tonfa_baton`
 images end flush against their last data byte with no slack for the alignment it
 introduces.
 
+**The byte at offset 0 of a `pe` overlay is its spell index, as a character.**
+All twelve start with `'0' + index`, index being `(pe_level_ids - 50101) / 3` -
+`pyrokinesis` 0 through `energyball` 11. Indices 10 and 11 come out `:` and `;`
+rather than `10`/`11`, which is what proves it is computed as `'0' + n` and not
+a hand-written label. Only the five overlays with `rodata_head` split it into a
+`<name>_hdr.rodata.s`; the rest fold it into the first code unit's rodata, so an
+apparently-missing header string is not a difference in the data.
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the
