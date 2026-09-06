@@ -624,7 +624,7 @@ combustion = { pe_level_ids = "50104-50106" }
 inferno = { pe_level_ids = "50107-50109", rodata_head = "0x4" }
 necrosis = { pe_level_ids = "50110-50112" }
 plasma = { pe_level_ids = "50113-50115" }
-apobiosis = { pe_level_ids = "50116-50118" }
+apobiosis = { pe_level_ids = "50116-50118", rodata_head = "0x4" }
 metabolism = { pe_level_ids = "50119-50121" }
 healing = { pe_level_ids = "50122-50124", shared = [{ start = "0x564", end = "0x6B4", unit = "pe_shared_8012f9a8" }] }
 lifedrain = { pe_level_ids = "50125-50127", shared = [{ start = "0xA78", end = "0xBC8", unit = "pe_shared_8012f9a8" }, { start = "0x1690", end = "0x1990", unit = "pe_shared_801305c0" }] }

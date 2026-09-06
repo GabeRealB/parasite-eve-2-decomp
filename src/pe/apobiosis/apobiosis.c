@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
@@ -23,9 +24,182 @@ extern s32 Gp_LcgState;
 void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3);
 
-INCLUDE_RODATA("pe/nonmatchings/apobiosis/apobiosis", D_apobiosis_8012EF30);
+/// The apobiosis cast. Six states drive one screen flash plus a growing ring
+/// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
+/// so a longer combo casts a wider burst. State 0 parents the effect
+/// coordinate on `GpEffWork.field_8` at the origin, publishes the task in
+/// `D_apobiosis_80130BA0` so every shard can reparent onto it, plays the row's
+/// `SndEvt_EnqueueType6` id panned at the coordinate, and seeds
+/// `D_apobiosis_80130B80` with `field_0 * 2` angles - the ring's two rows of
+/// azimuths. State 1 flashes at `field_2A`, drags the coordinate down 0x400,
+/// grows `field_24` by the row's `field_4` each frame and redraws both the
+/// player's ring and the shard ring, jittering every angle by +-0x80 per frame.
+/// States 2..4 fade the flash out at 0x10 / 0xC / 8 a frame while spawning
+/// 0x600F7 sparks on random polar offsets - one in four frames in state 2, one
+/// a frame in state 3, two a frame in state 4 - and state 5 fades the last of
+/// the flash before releasing the work block. `Gp_SpawnPadLerp` rumbles at each
+/// state change, hardest on the widest row.
+void func_apobiosis_8012EF4C(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    s32            i;
+    s32            n;
+    s32            pan;
+    u8             rgb[3];
 
-INCLUDE_ASM("pe/nonmatchings/apobiosis/apobiosis", func_apobiosis_8012EF4C);
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((D_80114C0B != -2) && (Gp_State1C->field_E < 4)) {
+        mem->field_22 = (u16)mem->field_22 + 1;
+        switch (arg0->state) {
+            case 0:
+                D_apobiosis_80130BA0 = arg0;
+                rot                  = (GpMtxWords*)&coord->coord;
+                coord->sub           = mem->field_8;
+                rot->w0              = 0x1000;
+                rot->w1              = 0;
+                rot->w2              = 0x1000;
+                rot->w3              = 0;
+                rot->h4              = 0x1000;
+                coord->coord.t[0]    = 0;
+                coord->coord.t[1]    = 0;
+                coord->coord.t[2]    = 0;
+                coord->flg           = 0;
+                Gp_UpdateCoord(coord);
+                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                arg0->state   = 1;
+                mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
+                mem->field_24 = 0x200;
+                mem->field_28 = 0x80;
+                mem->field_2A = 0xF0;
+                for (i = 0; i < D_apobiosis_80130B5C[mem->field_20].field_0 * 2; i++) {
+                    Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
+                    D_apobiosis_80130B80[i] = (i << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
+                }
+                Gp_SpawnPadLerp(0xA, 0xFF, 8);
+                /* fallthrough */
+            case 1:
+                Gp_UpdateCoord(coord);
+                if (mem->field_22 == 4) {
+                    Gp_StateC08.field_6 |= 8;
+                }
+                func_apobiosis_8012F808(mem->field_2A);
+                rgb[0] = rgb[1]    = mem->field_2A >> 2;
+                rgb[2]             = (u16)mem->field_2A >> 1;
+                coord->workm.t[1] -= 0x400;
+                mem->field_24      = (u16)mem->field_24 + D_apobiosis_80130B5C[mem->field_20].field_4;
+                func_apobiosis_8013017C(
+                    &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1], mem->field_22,
+                    D_apobiosis_80130B5C[mem->field_20].field_2, 0);
+                func_apobiosis_8012F9D0(coord, mem->field_24, 0x80, rgb);
+                if (mem->field_22 & 1) {
+                    func_apobiosis_8012F9D0(coord, 0x80, mem->field_24, rgb);
+                }
+                for (i = 0; i < D_apobiosis_80130B5C[mem->field_20].field_0; i++) {
+                    Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
+                    D_apobiosis_80130B80[i] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
+                    n                        = i + D_apobiosis_80130B5C[mem->field_20].field_4;
+                    Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
+                    D_apobiosis_80130B80[n] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
+                    mem->field_18            = mem->field_24 * rsin(D_apobiosis_80130B80[i]) >> 12;
+                    mem->field_1A            = mem->field_24 * rcos(D_apobiosis_80130B80[i]) >> 12;
+                    mem->field_1C =
+                        mem->field_18 *
+                            rcos(D_apobiosis_80130B80
+                                     [i + D_apobiosis_80130B5C[mem->field_20].field_4]) >>
+                        12;
+                    func_apobiosis_80130630(coord, &mem->field_18, mem->field_22,
+                                            D_apobiosis_80130B5C[mem->field_20].field_6);
+                }
+                coord->workm.t[1] += 0x400;
+                if (mem->field_2A >= 0x19) {
+                    mem->field_2A = (u16)mem->field_2A - 0x18;
+                    return;
+                }
+                arg0->state = 2;
+                Gp_SpawnPadLerp(0x14, 0xFF, 8);
+                return;
+            case 2:
+                Gp_UpdateCoord(coord);
+                func_apobiosis_8012F808(mem->field_2A);
+                if (mem->field_2A >= 0x41) {
+                    mem->field_2A = (u16)mem->field_2A - 0x10;
+                }
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x3FF;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                    mem->field_10 = mem->field_24 * rsin(mem->field_26) >> 12;
+                    mem->field_14 = mem->field_24 * rcos(mem->field_26) >> 12;
+                    Gp_SpawnEff(0x600F7, coord, 0, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_2A = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x60;
+                }
+                if (mem->field_22 == 0x14) {
+                    mem->field_2A = 0xF0;
+                    arg0->state   = 3;
+                }
+                return;
+            case 3:
+                func_apobiosis_8012F808(mem->field_2A);
+                if (mem->field_2A >= 0x21) {
+                    mem->field_2A = (u16)mem->field_2A - 0xC;
+                }
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x7FF;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                mem->field_10 = mem->field_24 * rsin(mem->field_26) >> 12;
+                mem->field_14 = mem->field_24 * rcos(mem->field_26) >> 12;
+                Gp_SpawnEff(0x600F7, coord, 0, (SVECTOR*)&mem->field_10);
+                if (mem->field_22 == 0x1E) {
+                    if (mem->field_20 <= 0) {
+                        arg0->state = 5;
+                        Gp_SpawnPadLerp(mem->field_20 * 8 + 0x12, 0xFF, 8);
+                    } else {
+                        mem->field_2A = 0xF0;
+                        arg0->state   = 4;
+                        Gp_SpawnPadLerp(0x22, 0xFF, 8);
+                    }
+                }
+                return;
+            case 4:
+                func_apobiosis_8012F808(mem->field_2A);
+                if (mem->field_2A >= 9) {
+                    mem->field_2A = (u16)mem->field_2A - 8;
+                }
+                for (i = 0; i < 2; i++) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                    mem->field_10 = mem->field_24 * rsin(mem->field_26) >> 12;
+                    mem->field_14 = mem->field_24 * rcos(mem->field_26) >> 12;
+                    Gp_SpawnEff(0x600F7, coord, 0, (SVECTOR*)&mem->field_10);
+                }
+                if (mem->field_22 == 0x28) {
+                    arg0->state = 5;
+                }
+                return;
+            case 5:
+                func_apobiosis_8012F808(mem->field_2A);
+                if (mem->field_2A >= 9) {
+                    mem->field_2A = (u16)mem->field_2A - 8;
+                    return;
+                }
+                break;
+            default:
+                return;
+        }
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 /// Flashes a screen-filling `POLY_F4` over the whole 320x240 frame, offset by
 /// `Display_State.vramYOffset` so it tracks the active draw buffer. `bright`

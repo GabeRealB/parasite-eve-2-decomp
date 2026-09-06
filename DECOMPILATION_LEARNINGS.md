@@ -51300,3 +51300,45 @@ The prologue hunk is noise, not signal: the added term perturbs which of
 `$a0`/`$a1`/`$a2`/`$v1` each temporary lands in for the whole entry block, so a
 dozen lines move without meaning anything. Read the diff for *instructions that
 have no counterpart*, not for operand renames.
+
+## A named index temp can *win* the register allocation by shortening a live range
+
+`func_apobiosis_8012EF4C` reached 99.86% with `branch = insert = delete = 0` and
+16 register penalties, all in one loop: the two LCG temps came out swapped,
+`$a1`/`$a2` where the ROM has `$a2`/`$a1`. Every instruction was otherwise
+identical, so nothing in the schedule was wrong — only which of the two
+quantities `local_alloc` handed the lower register to.
+
+`local_alloc` sorts quantities by
+`floor_log2(n_refs) * n_refs * size / (death - birth)` and gives the winner the
+first free entry of `REG_ALLOC_ORDER` (`$v0`, `$v1`, `$a0`, `$a1`, `$a2`, …).
+The `.lreg` header prints both terms directly:
+
+```
+Register 274 used 10 times across 25 insns in block 15;   /* rngA: 3*10/25 = 1.20 */
+Register 305 used  6 times across 13 insns in block 15;   /* rngB: 2* 6/13 = 0.92 */
+```
+
+`rngA` wins, takes `$a1`, and `rngB` gets `$a2` — the reverse of the ROM. The
+ref counts are fixed by the arithmetic (`rngB = rngA * 5 + K` uses `rngA`
+twice), so the only lever is the span. Hoisting the *second* element's index out
+of its subscript, into a plain local computed before the second LCG step,
+
+```c
+n           = i + D_apobiosis_80130B5C[mem->field_20].field_4;
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+D_apobiosis_80130B80[n] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
+```
+
+moves seven insns of address arithmetic ahead of `rngB`'s definition. `rngB`'s
+span drops far enough to outrank `rngA`, the two registers swap, and the
+function matches 100%. The emitted code is unchanged — the scheduler puts the
+address math back where it was.
+
+This is the mirror image of "A named temp for a repeated subexpression can cost
+the register allocation": a temp that is *read once, right after it is written*
+does not lengthen its own allocno, but it does shorten every allocno whose live
+range it now sits inside. When the only leftover is a two-register permutation,
+read `used N times across M insns` for the two candidates out of `.lreg`, work
+out which way the ratio has to move, and hoist (or inline) a subexpression on
+the side that has to change.
