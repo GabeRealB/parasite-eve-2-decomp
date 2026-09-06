@@ -109,63 +109,11 @@ UiObjectDesc D_options_801D5EFC = {
     0,
 };
 
-extern s8           D_80072189;
-extern u8           D_8007218D;
-extern s8           D_80072311;
-extern s8           D_80072312;
-extern s8           D_80072313;
-extern u8           D_options_801D5B2C[];
-extern u8           D_options_801D5B4C[];
-extern u8           D_options_801D5B58[];
-extern u8           D_options_801D5B5C[];
-extern u8           D_options_801D5B60[];
-extern u8           D_options_801D5B68[];
-extern u8           D_options_801D5B70[];
-extern u8           D_options_801D5B78[];
-extern u8           D_options_801D5B80[];
-extern u8           D_options_801D5B84[];
-extern u8           D_options_801D5B88[];
-extern u8           D_options_801D5B8C[];
-extern u8           D_options_801D5B90[];
-extern u8           D_options_801D5B98[];
-extern u8           D_options_801D5BA4[];
-extern u8           D_options_801D5BAC[];
-extern u8           D_options_801D5BB8[];
-extern u8           D_options_801D5BC4[];
-extern u8           D_options_801D5BCC[];
-extern u8           D_options_801D5BD0[];
-extern u8           D_options_801D5BD4[];
-extern u8           D_options_801D5BDC[];
-extern u8           D_options_801D5BE4[];
-extern u8           D_options_801D5BF0[];
-extern u8           D_options_801D5BFC[];
-extern u8           D_options_801D5C08[];
-extern u8           D_options_801D5C10[];
-extern u8           D_options_801D5C14[];
-extern u8           D_options_801D5C1C[];
-extern u8           D_options_801D5C2C[];
-extern u8           D_options_801D5C34[];
-extern u8           D_options_801D5C40[];
-extern u8           D_options_801D5C4C[];
-extern u8           D_options_801D5C54[];
-extern u8           D_options_801D5C5C[];
-extern u8           D_options_801D5C64[];
-extern u8           D_options_801D5C6C[];
-extern u8           D_options_801D5C74[];
-extern u8           D_options_801D5C7C[];
-extern u8           D_options_801D5CA8[];
-extern u8           D_options_801D5CE4[];
-extern u8           D_options_801D5D28[];
-extern u8           D_options_801D5D68[];
-extern u8           D_options_801D5DA4[];
-extern u8           D_options_801D5DDC[];
-extern u8           D_options_801D5E0C[];
-extern u8           D_options_801D5E20[];
-extern u8           D_options_801D5E58[];
-extern u8           D_options_801D5E90[];
-extern UiList       D_options_801D5EB0;
-extern UiList       D_options_801D5ED8;
-extern UiObjectDesc D_options_801D5EFC;
+extern s8 D_80072189;
+extern u8 D_8007218D;
+extern s8 D_80072311;
+extern s8 D_80072312;
+extern s8 D_80072313;
 
 void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
 {
