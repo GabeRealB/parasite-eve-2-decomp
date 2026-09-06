@@ -1,16 +1,20 @@
 #include "common.h"
+
 #include "gameplay/1BC.h"
-
 #include "gameplay/3CD8.h"
-
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "gameplay/1A8.h"
+
 extern TaskDesc D_shelter_b1_sterilization_room_80188504;
 extern s32      D_shelter_b1_sterilization_room_8018C340;
+extern s32      D_shelter_b1_sterilization_room_80188C94;
+extern s32      D_shelter_b1_sterilization_room_80188E14;
 
-extern s32 D_shelter_b1_sterilization_room_80188C94;
-extern s32 D_shelter_b1_sterilization_room_80188E14;
+extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+extern s32  D_shelter_b1_sterilization_room_8018873C;
+extern s32  D_shelter_b1_sterilization_room_80188AB4;
 
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {
@@ -97,7 +101,45 @@ void func_shelter_b1_sterilization_room_80181698(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801816E0);
+void func_shelter_b1_sterilization_room_801816E0(Task* task)
+{
+    s32 cmd;
+    s32 flag;
+
+    switch (task->state) {
+        case 0:
+            Gp_ResetCap();
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x2C0, 0x100);
+            if (task->spawnArg1 != 0) {
+                flag = GameFlag_GetNibble(0x77);
+                cmd  = 8;
+                if (flag == 0) {
+                    cmd = 7;
+                }
+                Gp_RunCapCmd1(cmd);
+                GameFlag_SetNibble(0x149, 1);
+            } else {
+                flag = GameFlag_GetNibble(0x77);
+                cmd  = 6;
+                if (flag != 0) {
+                    GameFlag_SetNibble(0x14A, 1);
+                    GameFlag_SetNibble(0x151, 1);
+                    cmd = 9;
+                }
+                Gp_RunCapCmd1(cmd);
+            }
+            task->state++;
+            return;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                Gp_ResetCap();
+                Task_Kill(task);
+            }
+            return;
+    }
+}
 
 void func_shelter_b1_sterilization_room_801817EC(Task* task)
 {
