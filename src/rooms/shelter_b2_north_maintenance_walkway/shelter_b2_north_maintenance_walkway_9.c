@@ -1,3 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_9", func_shelter_b2_north_maintenance_walkway_80182284);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_9", RoomsShared8017fdd4Fade);

@@ -19,8 +19,8 @@ extern s32 D_80115728;
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 extern void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 extern void Room_Draw02(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
-extern void func_dryfield_motel_balcony_801809AC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-extern void func_dryfield_motel_balcony_801818B0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+extern void RoomsShared8017fdd4Ring(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+extern void RoomsShared8017fdd4Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 extern s32  Gp_LcgState;
 
 void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
