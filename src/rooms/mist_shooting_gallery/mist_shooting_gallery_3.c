@@ -37,7 +37,7 @@ extern s8  D_80072176;
 extern s8  D_80072177;
 /// "SELECT" — the panel title, owned by `mist_shooting_gallery.c`'s rodata.
 extern char         RoomsShared8017e28cTitle[];
-extern UiObjectDesc D_mist_shooting_gallery_8018535C;
+extern UiObjectDesc RoomsShared8017ff9cDesc;
 extern UiList       RoomsShared8017e28cMenu;
 extern TaskDesc     D_mist_shooting_gallery_80185378;
 extern TaskDesc     D_mist_shooting_gallery_80185384;
@@ -54,45 +54,6 @@ extern SVECTOR      D_mist_shooting_gallery_80185690[];
 extern SVECTOR      D_mist_shooting_gallery_801856B0[];
 void                Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 void                Room_Draw31(SVECTOR* v, s32 arg1, s32 arg2);
-
-void func_mist_shooting_gallery_80180A00(Task* task)
-{
-    UiObject* obj;
-    s16       result;
-
-    if (task->state == 0) {
-        Display_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018535C, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
-            return;
-        }
-        GameMain_SetFrameTiming(0);
-        Game_Session->field_2 = 1;
-        task->spawnArg2       = obj;
-        task->state          += 1;
-    }
-
-    if (task->state == 1) {
-        obj    = task->spawnArg2;
-        result = obj->field_2E;
-        if ((result == -1) || (result == 6)) {
-            Ui_TeardownTree(obj, obj->owner);
-            task->killCountdown = 0xA;
-            task->state         = 2;
-        }
-    }
-
-    if (task->state == 2) {
-        task->killCountdown -= 1;
-        if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
-            Game_Session->field_2 = 0;
-            Task_Kill(task);
-            Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
-        }
-    }
-}
 
 s32 func_mist_shooting_gallery_80180B34(void)
 {
