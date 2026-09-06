@@ -57,7 +57,13 @@ void func_actor_136100_80134838(s16 arg0)
     work->field_4C6 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80134858);
+void func_actor_136100_80134858(s16 arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+
+    work->field_4CC = arg0;
+    work->field_4CE = 0;
+}
 
 void func_actor_136100_80134878(s16 arg0)
 {
