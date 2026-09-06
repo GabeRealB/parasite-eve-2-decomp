@@ -14,32 +14,22 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern s32 D_mist_parking_8018F4AC;
-extern s32 D_mist_parking_8018F5E4;
-extern s32 D_mist_parking_8018FA4C;
-extern s32 D_mist_parking_8018FB3C;
-extern s32 D_mist_parking_8019531C;
+extern s16      D_80071076;
+extern s32      D_mist_parking_80195320;
+extern TaskDesc RoomsShared8017e5b8Desc;
+extern Task*    RoomsShared8017ea2cTask;
+extern void     Stage_RequestMidiFromMap(s32 arg0);
 
-void func_mist_parking_8018345C(Task* arg0)
+void func_mist_parking_8018357C(Task* arg0)
 {
-    if (Game_Session->field_1 == 0 && Gp_CapBusy() == 0) {
-        if (D_mist_parking_8019531C == 2) {
-            func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
-        } else {
-            func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
-        }
-        Task_Kill(arg0);
-    }
-}
-
-void func_mist_parking_801834D4(Task* arg0)
-{
-    if (Game_Session->field_1 == 0 && Gp_CapBusy() == 0) {
-        if (D_mist_parking_8019531C == 2) {
-            func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
-        } else {
-            func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
-        }
-        Task_Kill(arg0);
-    }
+    func_800BC4E4();
+    Mc_SaveData.field_7 = 2;
+    Mc_SaveData.field_6 = 1;
+    Mc_SaveData.field_8 = 1;
+    Mc_SaveData.field_5 = 1;
+    D_80071076          = 1;
+    Fs_BeginBootLoad(&Mc_SaveData.field_4, 1);
+    SndEvt_EnqueueType7(0x80000000, 0);
+    Task_Spawn(0, 0x11, 0, 0);
+    Task_Kill(arg0);
 }

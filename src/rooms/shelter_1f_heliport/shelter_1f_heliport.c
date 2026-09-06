@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017DDA0);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017E22C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017E378);

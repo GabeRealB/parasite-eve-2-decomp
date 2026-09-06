@@ -1,3 +1,27 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80181FE4);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80180308);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80180454);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80180820);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80180A70);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80180C90);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80180E38);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_8018101C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80181230);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_801813B0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80181678);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_8018184C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80181CCC);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_3", func_shelter_b1_underground_parking_80181D88);
