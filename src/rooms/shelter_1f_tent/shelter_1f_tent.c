@@ -6,6 +6,4 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", func_shelter_1f_tent_8017E8AC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", func_shelter_1f_tent_8017EA60);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", func_shelter_1f_tent_8017ED58);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017ea68Title);

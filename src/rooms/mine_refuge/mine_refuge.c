@@ -6,6 +6,4 @@ INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge", RoomsShared8017de9c
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017E8C4);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017EA78);
-
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge", func_mine_refuge_8017ED70);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge", RoomsShared8017ea68Title);

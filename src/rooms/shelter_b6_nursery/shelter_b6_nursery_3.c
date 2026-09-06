@@ -1,69 +1,31 @@
 #include "common.h"
 #include <psyq/libgte.h>
-#include "main/fs.h"
 #include "main/pad.h"
-#include "main/sound.h"
 #include "main/task.h"
-#include "main/text.h"
 #include "main/ui.h"
-extern u8           D_shelter_b6_nursery_80184CBC[];
-extern u8           D_shelter_b6_nursery_80184CC4[];
-extern u8           D_shelter_b6_nursery_80184CD0[];
-extern u8           D_shelter_b6_nursery_80184CDC[];
-extern UiObjectDesc D_800611E4;
-extern u8           D_80071086;
-extern UiObjectDesc D_shelter_b6_nursery_80184F70;
-extern UiObjectDesc D_shelter_b6_nursery_80184F8C;
+extern char         D_shelter_b6_nursery_8017D610[];
+extern UiList       D_shelter_b6_nursery_80184F08;
+extern UiObjectDesc D_shelter_b6_nursery_80184F54;
 
-void func_shelter_b6_nursery_8017F170(DialogPrompt* prompt, UiObject* obj)
+void func_shelter_b6_nursery_8017EF7C(Task* task)
 {
-    s32 sel;
+    UiObject* obj;
+    UiList*   list;
 
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CBC,
-                    prompt->field_1C, 1, 0);
-    sel = prompt->field_C;
-    if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        D_80071086 = 0xFF;
-        Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->status       = 0;
-        obj->field_2E     = 6;
-        obj->owner->state = sel;
+    list          = &D_shelter_b6_nursery_80184F08;
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_shelter_b6_nursery_8017D610);
+    if (task->state == 0) {
+        Ui_SpawnFromDesc(&D_shelter_b6_nursery_80184F54, 0, 0, 1, obj);
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        obj->field_12 += 5;
+        list->field_A  = 1;
+        Ui_SetListScrollFlag(list, 1);
+        task->state += 1;
     }
-}
-
-void func_shelter_b6_nursery_8017F254(DialogPrompt* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CC4, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b6_nursery_80184F70, 0, 1, 1, obj);
-        obj->field_2E     = 6;
-        obj->status       = 0;
-        obj->owner->state = 2;
-    }
-}
-
-void func_shelter_b6_nursery_8017F31C(DialogPrompt* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CD0, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b6_nursery_80184F8C, 0, 1, 1, obj);
-        obj->field_2E     = 6;
-        obj->status       = 0;
-        obj->owner->state = 2;
-    }
-}
-
-void func_shelter_b6_nursery_8017F3E4(DialogPrompt* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CDC, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b6_nursery_80184F8C, 1, 1, 1, obj);
-        obj->field_2E     = 6;
-        obj->status       = 0;
-        obj->owner->state = 2;
+    Ui_UpdateListNoAnim(list, obj);
+    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        obj->field_2E = 6;
     }
 }

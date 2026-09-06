@@ -38,4 +38,4 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D768);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", D_dryfield_trailer_coach_8017D770);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", RoomsShared8017ea68Title);

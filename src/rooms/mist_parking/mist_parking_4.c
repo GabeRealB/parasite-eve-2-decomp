@@ -1,69 +1,66 @@
 #include "common.h"
-
 #include <psyq/libgte.h>
-
+#include <psyq/libgpu.h>
+#include "main/display.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/task.h"
 #include "main/text.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
+#include "gameplay/268.h"
+#include "gameplay/3688.h"
+#include "gameplay/4CC.h"
+#include "rooms/room_common.h"
 
-extern u8 D_mist_parking_80186718[];
+extern UiObject*      D_80067634;
+extern UiObjectDesc   D_8010EFA0;
+extern GpItemScan     D_80072724;
+extern RoomShopStock  D_8010E138[];
+extern u8             D_80071072;
+extern u8             D_mist_parking_8017D6D8[];
+extern u8             D_mist_parking_80186450[];
+extern u8             D_mist_parking_80186464[];
+extern u8             D_mist_parking_801864BC[];
+extern u8             D_mist_parking_801864C4[];
+extern u8             D_mist_parking_801864D0[];
+extern u8             D_mist_parking_801864D8[];
+extern u8             D_mist_parking_801864E0[];
+extern u8             D_mist_parking_801864F4[];
+extern u8             D_mist_parking_80186504[];
+extern u8             D_mist_parking_80186530[];
+extern u8             D_mist_parking_80186718[];
+extern UiListItemFunc D_mist_parking_80186538[];
+extern UiList         D_mist_parking_80186540;
+extern UiObjectDesc   D_mist_parking_801865AC;
+extern UiObjectDesc   D_mist_parking_80186654;
+extern UiObjectDesc   D_mist_parking_801865C8;
+extern UiList         D_mist_parking_8018656C;
+extern UiObjectDesc   D_mist_parking_80186590;
+extern UiObjectDesc   D_mist_parking_80186600;
+extern UiObjectDesc   D_mist_parking_80186670;
+extern char           Gp_StrEmpty[];
+extern s32            D_mist_parking_80195310;
+extern GpItemMap*     D_mist_parking_80195314;
 
-/// Renders `value` into `buf` as a fixed-point number with `decimals` digits
-/// after the point, then appends the overlay's "%" suffix. The integer is
-/// printed first (zero-padded to `decimals + 1` digits when it is too small to
-/// fill them), then the last `decimals` characters are shifted one byte right
-/// to open a slot for the '.'.
+u16* func_mist_parking_8017D8F8(s32 arg0);
 
-u8* func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals)
-{
-    s32 remaining;
-    s32 len;
-    s32 shifted;
-    s32 count;
-    s32 scale;
-    u8* p;
+/// One row of the vending machine's price ladder (`D_mist_parking_801863B0`,
+/// thirteen rows). `spendThreshold` is the running total the player has to have
+/// spent for the row to unlock — the last row's is `S32_MAX`, so it never does
+/// on its own — and `items` are the three ids the row then offers.
+/// `Mc_SaveData.field_934` holds one bit per row and is what this builder reads.
+typedef struct {
+    /* 0x0 */ s32  spendThreshold;
+    /* 0x4 */ s16  items[3];
+    /* 0xA */ byte pad_A[2];
+} MistParkingShopTier;
 
-    scale     = 1;
-    remaining = decimals;
-    if (decimals > 0) {
-        do {
-            scale *= 10;
-            remaining--;
-        } while (remaining > 0);
-    }
+extern MistParkingShopTier D_mist_parking_801863B0[13];
+extern s32                 D_mist_parking_8018644C;
 
-    if (value < scale) {
-        func_8002F44C(buf, value, decimals + 1);
-    } else {
-        Text_ItoaUnsigned(buf, value);
-    }
-
-    count = decimals;
-    p     = buf;
-    len   = 0;
-    if (count > 0) {
-        if (*buf != 0) {
-            do {
-                p++;
-                len++;
-            } while (*p != 0);
-        }
-        if (len < count) {
-            count = len;
-        }
-        count++;
-
-        shifted = 0;
-        if (count > 0) {
-            do {
-                p[1] = p[0];
-                shifted++;
-                p--;
-            } while (shifted < count);
-        }
-        p[1] = '.';
-    }
-
-    Text_Strcat(buf, D_mist_parking_80186718);
-    return buf;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_4", func_mist_parking_80181920);
+INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_4", func_mist_parking_80181760);

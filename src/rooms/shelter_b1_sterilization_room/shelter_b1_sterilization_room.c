@@ -6,6 +6,4 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_ster
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017E978);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EB2C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017EE24);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017ea68Title);

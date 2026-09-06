@@ -1,5 +1,7 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180570);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180430);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180828);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180464);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_8018049C);

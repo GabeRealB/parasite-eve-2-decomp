@@ -67,7 +67,3 @@ extern s32                 D_mist_parking_8018644C;
 /// are the two named wrappers): draws a `w` x `h` box at (`x`, `y`) relative to
 /// the object's base, `mode` selecting the fill style.
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_3", func_mist_parking_801812B4);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_3", func_mist_parking_80181468);
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_3", func_mist_parking_80181760);

@@ -1,51 +1,65 @@
 #include "common.h"
 
-#include "gameplay/1BC.h"
+#include "gameplay/1A8.h"
+#include "gameplay/3CD8.h"
+
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 
-extern u8  D_801156F9;
-extern s32 D_mist_parking_8018D830;
-extern s8  D_mist_parking_8018DA28[];
+void func_mist_parking_801837A4(s32 arg0);
+void func_mist_parking_8018471C(s32 arg0);
 
-extern void func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern u8 D_8007216D;
+extern u8 D_80072170;
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_80182898);
+extern s32 D_mist_parking_80186BB8;
+extern s32 D_mist_parking_80186C5C;
+extern s32 D_mist_parking_80186DC4;
+extern s32 D_mist_parking_8018DF34;
+extern s32 D_mist_parking_8018EDBC;
+extern s32 D_mist_parking_8018EFE4;
 
-void func_mist_parking_801828F0(Task* task)
+s32 func_mist_parking_801826E8(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
-    GameActor* actor;
-    GpWorkObj* work;
-    s32        idx;
-    s32        flag;
-    u16        tick;
+    if (arg2->field_2 == 1) {
+        func_800E8614((s32)&D_mist_parking_80186C5C, 1);
+    }
+    if (arg2->field_2 == 2) {
+        func_800E8614((s32)&D_mist_parking_80186DC4, 1);
+        GameFlag_SetNibble(0xED, 1);
+    }
+    return 1;
+}
 
-    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
-    if (D_801156F9 == 0) {
-        idx = actor->field_438[1].field_4 - 0x2F;
-        if ((idx > 0) && (idx < D_mist_parking_8018D830)) {
-            flag = D_mist_parking_8018DA28[idx];
+void func_mist_parking_80182750(s32 arg0)
+{
+    if (GameFlag_GetNibble(0x7A) != 0) {
+        arg0 += 2;
+    }
+    D_8007216D             = arg0;
+    Game_Session->field_5  = arg0;
+    Game_Session->field_76 = 1;
+}
+
+void func_mist_parking_801827A0(s32 arg0)
+{
+    Gp_SpawnIfCapIdle(arg0, 0);
+}
+
+void func_mist_parking_801827C0(Task* arg0)
+{
+    arg0->field_24 = &D_mist_parking_80186BB8;
+    Game_SetPtrSlot(arg0, 7);
+    if ((Game_Session->field_9 == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
+        if (D_80072170 == 3) {
+            func_800E3FAC(0xA2, 0x3C);
+            func_mist_parking_801837A4(0);
+            func_800E8634((s32)&D_mist_parking_8018DF34, 0, (s32)&D_mist_parking_8018EDBC);
         } else {
-            flag = 0;
-        }
-        if (task->state == 0) {
-            if ((flag != 0) || (task->spawnArg1 != 0)) {
-                tick                = task->killCountdown + 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick >= 0x1001) {
-                    task->killCountdown = 0x1000;
-                }
-            } else {
-                tick                = task->killCountdown - 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick < 0) {
-                    task->killCountdown = 0;
-                }
-            }
-            work = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
-            func_800B0928(Game_GetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
-        } else {
-            Task_Kill(task);
+            func_mist_parking_8018471C(0);
+            func_800E8614((s32)&D_mist_parking_8018EFE4, 1);
         }
     }
+    arg0->state = arg0->state + 1;
 }
