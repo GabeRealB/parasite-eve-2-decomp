@@ -17,7 +17,34 @@ extern GpItemDesc   D_8010DE38[];
 
 s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801158C0);
+void func_replay_bonus_801158C0(void)
+{
+    RECT rect;
+    s32  height;
+    s32  next;
+    s32  row;
+    s32  xoff;
+
+    rect.w = 0x10;
+    row    = D_replay_bonus_8011926E;
+    xoff   = row * 0x10;
+    SOFT_TOUCH_REG(row);
+    rect.x = D_replay_bonus_80119268 + xoff;
+    rect.h = D_replay_bonus_80119266;
+    rect.y = D_replay_bonus_8011926A;
+    LoadImage(&rect, (u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << 5) * (s16)D_replay_bonus_80119266)));
+    height                  = D_replay_bonus_80119264;
+    D_replay_bonus_8011926C = 0;
+    D_replay_bonus_80119270 = D_replay_bonus_80119270 ^ 1;
+    next                    = (D_replay_bonus_8011926E = (u16)D_replay_bonus_8011926E + 1);
+    next                    = (s16)next;
+    if (height < 0) {
+        height += 0xF;
+    }
+    if (next == (height >> 4) - 1) {
+        DecDCToutCallback(NULL);
+    }
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801159A0);
 

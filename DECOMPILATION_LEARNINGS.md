@@ -3,6 +3,39 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Scale the IV before `SOFT_TOUCH_REG`, add the base after
+
+A stack `RECT` plus `LoadImage(&rect, buf + (flip << 5) * (s16)h)` wants the
+prologue `li v0, 0x10` / `sh rect.w` first, then a cluster of independent
+loads (`flip`, `h`, signed strip index, `buf`). Writing
+
+```c
+row = strip;                 /* s16 global, s32 local → lh */
+rect.x = vram_x + row * 16;  /* fused with the add */
+SOFT_TOUCH_REG(row);
+```
+
+either hoists `lh` above the `li` (touch too early) or fuses `lh` into the
+`vram_x` add and schedules it late (no touch). Split the scale from the add
+and touch only the loaded IV:
+
+```c
+rect.w = 0x10;
+row    = strip;
+xoff   = row * 0x10;     /* sll 4 while the value is still the load */
+SOFT_TOUCH_REG(row);     /* keeps lh independent of vram_x */
+rect.x = vram_x + xoff;  /* lhu vram_x, addu, sh — after the cluster */
+rect.h = h;
+rect.y = vram_y;
+LoadImage(&rect, (u_long*)(buf + ((flip << 5) * (s16)h)));
+```
+
+`func_replay_bonus_801158C0` is the example (MDEC strip callback). Pair with
+`next = (g = (u16)g + 1); next = (s16)next;` so the unsigned increment's
+`sh` is before `bgez` and the xor-store of the flip flag can fill that delay;
+a separate `g = next;` after the xor assignment lengthens `g`'s address live
+range and swaps the two `%hi` s-regs.
+
 ## `SOFT_TOUCH_REG` the split-address pointer so `lui`/`addiu` share `$v1`
 
 `-msplit-addresses` expands `table = (s32)Gp_ItemDescs` as a HIGH pseudo plus
