@@ -131,6 +131,17 @@ one because ~54KB of asm model data sits between its `0xF30` data run and its
 `0xE498` work array. Where the work array directly abuts the data run - every
 `pe` overlay - one unit covers both, with the objects declared in address order.
 
+**A second label on the same run is a second object, not `arr[1]`.** splat names
+an address the code references directly, so a two-vector run comes out as
+`D_x_A` plus `D_x_B`. Folding `D_x_B` into `D_x_A[1]` compiles and keeps the
+data bytes identical, and still fails: the original reaches that address both
+ways, and the two forms are different code. Indexing emits the array's address
+plus 8 (`addiu $v0,$v0,0xe704`), naming it emits its own (`addiu $v1,$v0,
+0xe70c`). Declare `SVECTOR D_x_A[1]` followed immediately by `SVECTOR D_x_B`,
+which reproduces both. `weapons/gunblade`, `m4a1_bayonet` and `tonfa_baton` are
+the worked examples; the same shape in `pe/energyshot` needed the opposite call,
+where a `(u16)` cast at the one use site was enough.
+
 **Those zeroed runs are bss by origin but must be `.data` in C, and the
 safe-looking alternative silently breaks the game.** An overlay is a flat LZSS
 image inflated straight to its load address (`doc/OVERLAYS.md` 4.2); the loader

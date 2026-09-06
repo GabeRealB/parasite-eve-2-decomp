@@ -14,6 +14,15 @@
 #include "main/tmd.h"
 #include "weapons/m4a1_bayonet.h"
 
+/// Muzzle vector for the bayonet's thrust.
+SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
+
+/// The far end of that pair, immediately after it. Both forms appear in
+/// the original: one path reaches it as `D_m4a1_bayonet_8011DEC8[1]`, which compiles to the
+/// array's address plus 8, and another names it directly, which compiles
+/// to its own address - so it has to be a separate object, not element 1.
+SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
+
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
 /// different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")

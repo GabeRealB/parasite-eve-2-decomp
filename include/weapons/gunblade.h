@@ -47,7 +47,7 @@ STATIC_ASSERT_SIZEOF(GunbladeBeamScratch, 0x2C);
 /// array base already in a register; state 1 loads the symbol on its own. Both
 /// spellings are needed to match, and one object cannot carry two C names, so
 /// the pair stays in the split data.
-extern SVECTOR D_gunblade_8011E704[2];
+extern SVECTOR D_gunblade_8011E704[1];
 extern SVECTOR D_gunblade_8011E70C;
 
 /// The eight-segment beam trails, one array per end of the blade. Every entry
