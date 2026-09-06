@@ -51015,3 +51015,45 @@ it. Besides the control flow, the extra edge changes branch prediction in
 `reorg`, so the fix can also flip a delay slot: here it restored the `nop`
 GCC leaves in the `beqz` of the case-dispatch tree, and took the function from
 99.4% to 100%.
+
+## `sll 16` + `srl 17` is an unsigned halving GCC will not build from a cast
+
+An `(u16)` cast applied to a value already in a register expands to
+`andi $x, 0xffff` at RTL-expand time, so combine folds the following shift into
+`andi` + `srl 1`. The target of `func_pyrokinesis_8012FC34` instead shares one
+`sll $v1, $a2, 16` between `srl $a3, $v1, 17` and `srl $v1, $v1, 18` - the
+zero-extension is done with shifts, which the cast form can never produce:
+
+```c
+grn = (u16)arg2 >> 1;   /* andi $v1,$a2,0xffff ; srl $a3,$v1,1  - wrong */
+```
+
+Write the shift up explicitly and let CSE share it. Only the halves need it;
+taking the low byte back out of the shifted value re-introduces a `srl 16`, so
+read the byte straight off the argument:
+
+```c
+ramp = (u32)arg2 << 16;
+red  = arg2;            /* NOT ramp >> 16 - that emits its own srl */
+grn  = ramp >> 17;
+blu  = ramp >> 18;
+```
+
+The signed sibling is unremarkable: a plain `s16 arg3` with `arg3 >> 1` already
+compiles to `sll 16` + `sra 17`, because the sign-extension of a `HImode`
+parameter has no single-instruction form to fold into. Only the *unsigned*
+halving needs to be written out.
+
+## Byte spill slots 8 bytes apart mean separate `u8` locals, not one packed value
+
+`sb` stores at `0x10($sp)`, `0x18($sp)`, `0x20($sp)` read back with `lbu` look
+like a `u8 rgb[3]` array, but a local array would be at consecutive addresses.
+The 8-byte spacing is `BIGGEST_ALIGNMENT` on MIPS: reload gives every spilled
+pseudo its own 64-bit-aligned slot regardless of mode, so three `QImode`
+spills land exactly 8 apart.
+
+Reading it as three separate `u8` locals, assigned before the first loop,
+matters beyond the naming - it is what puts them under enough pressure to be
+spilled at all. Passing the expressions inline to `setRGB0` / `setRGB1` let
+GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
+`s16` source as a halfword, which cost 8.5% of `func_pyrokinesis_8012FC34`.
