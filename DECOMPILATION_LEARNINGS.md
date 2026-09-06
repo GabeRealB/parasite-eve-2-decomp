@@ -51264,3 +51264,39 @@ into a copy from whichever register already holds `i` — which is what produces
 `move s5, s4` in that position. So an angle/offset whose preheader `move`
 *follows* the walking pointer's init is a multiply in the source, not a
 running total.
+
+
+## Instruction-diff an unmatched function against a *matched* sibling before writing any C
+
+`overlay_dup_index.py find` only reports bodies that are copies of each other.
+A function that is a near-twin of an already-matched one — same shape, one term
+different — is invisible to it, and m2c will happily hand you a fresh wall of
+`M2C_ERROR` GTE stubs instead.
+
+When BRIEF.md's "Nearby matched functions in this TU" list contains something
+that reads like the same routine, diff the two disassemblies with the
+addresses and encodings stripped first:
+
+```python
+def load(p):
+    out = []
+    for l in open(p):
+        m = re.match(r'\s*/\* \w+ \w+ \w+ \*/\s+(.*)', l)
+        if m:
+            out.append(re.sub(r'\s+', ' ', m.group(1).strip()))
+    return out
+difflib.unified_diff(load(nonmatching_s), load(matched_s), n=2)
+```
+
+`func_inferno_8012F978` against the matched `func_inferno_8012FF34` came back
+as a register-allocation shuffle in the prologue plus exactly one extra
+`lhu $a0, 0x28($a0)` / `addu` pair: the twin lifts the rim by `row->field_2`,
+this one by `mem->field_28 + row->field_2`. Every hunk after the prologue was
+label names only. Copying the sibling's C, adding that one term, and hoisting
+it to the statement position the `sh 0x18($sp)` sits at scored 100% on the
+first attempt.
+
+The prologue hunk is noise, not signal: the added term perturbs which of
+`$a0`/`$a1`/`$a2`/`$v1` each temporary lands in for the whole entry block, so a
+dozen lines move without meaning anything. Read the diff for *instructions that
+have no counterpart*, not for operand renames.
