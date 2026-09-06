@@ -14,7 +14,65 @@ INCLUDE_RODATA("pe/nonmatchings/pyrokinesis/pyrokinesis", D_pyrokinesis_8012EF30
 
 INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_8012EF48);
 
-INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_8012FAC8);
+void func_pyrokinesis_8012FAC8(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            scene;
+    s16            flag;
+    s32            state;
+
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (Gp_StateC08.field_3 != -2) {
+        scene = Gp_State1C->field_16;
+        if (scene == 1) {
+            flag = Gp_State1C->field_E;
+            if (flag < 4) {
+                if (flag != 0) {
+                    return;
+                }
+                mem->field_22 = (u16)mem->field_22 + 1;
+                Gp_UpdateCoord(coord);
+                state = arg0->state;
+                if (state == scene) {
+                    goto L_case1;
+                }
+                if (state < 2) {
+                    if (state == 0) {
+                        goto L_case0;
+                    }
+                    return;
+                }
+                if (state == 2) {
+                    goto L_case2;
+                }
+                if (state == 3) {
+                    goto L_release;
+                }
+                return;
+            L_case0:
+                Gp_SpawnEff(0x80060010, coord, 0, 0);
+                arg0->state = scene;
+                return;
+            L_case1:
+                if (mem->field_22 == 8) {
+                    Gp_SpawnEff(0x80060010, coord, 1, 0);
+                    arg0->state = 2;
+                }
+                return;
+            L_case2:
+                if (mem->field_22 == 0x10) {
+                    Gp_SpawnEff(0x80060000 | 0x10, coord, 2, 0);
+                    arg0->state = 3;
+                }
+                return;
+            }
+        }
+    }
+L_release:
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_8012FC34);
 
