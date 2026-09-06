@@ -76,6 +76,46 @@ pads it — pairs the `rodata` key with `units`, a list of extra `.text` cut
 offsets (`rooms/mist_parking`). See `DECOMPILATION_LEARNINGS.md`,
 "Compiler-generated jump tables".
 
+**Deleting those `src/` files discards every matched C body in them, and the
+build will not tell you.** splat regenerates the file as pure `INCLUDE_ASM`, and
+an `INCLUDE_ASM` assembles to exactly the bytes the C compiled to - so the
+checksum still matches, every overlay still links, and the only thing lost is
+decompiled source. This has already cost 39 functions - 37 of them to a single
+pass, `fee5f15b`, which replaced whole room `.c` files with freshly-split
+`INCLUDE_ASM` stubs instead of editing them - including one in `mine_cavern`,
+the overlay named above as the worked example. (Attributing these needs care:
+`git log -S` on the `INCLUDE_ASM` line reports whichever later promotion
+renumbered the unit, not the removal. Test when the *definition* disappeared.)
+
+**A `rodata` cut is state that belongs to a matched body.** While the function
+is `INCLUDE_ASM` its jump table is an `.incbin` and needs no cut, so a
+regenerating pass drops the cut along with the body. Restoring the body then
+puts a compiler-generated table mid-object, GCC pads it with `.align 3`, and the
+overlay builds 4 bytes too long with everything after it shifted - failing at
+the checksum with nothing pointing at rodata, while `diff.py` on the function
+says it matches. The function does match; the object does not. Re-add the cut at
+the jump-table offset and hand the run below it to a sibling unit.
+
+So the delete-and-re-split step is destructive, and needs bracketing:
+
+1. **Snapshot the bodies first.** `bodies_of()` in `tools/land_overlay.py` parses
+   every C definition out of a file; record what the affected files hold before
+   deleting them.
+2. **Prefer rebuilding over regenerating.** splat's fresh output is a correct
+   skeleton, not a correct file: reconstruct each `.c` from the pre-promotion
+   source, redistributing its chunks across the new units, rather than starting
+   from the regenerated version and adding bodies back. A promotion sweep that
+   did this rebuilt 595 carrier files without losing one.
+3. **Check before committing.** `python3 tools/check_lost_matches.py` fails when
+   a function with a `matched` commit is `INCLUDE_ASM` while its overlay still
+   owns a `.s` under `nonmatchings/` - the exact signature of a dropped body. A
+   genuine promotion cannot trip it, because a promoted body has neither a C
+   definition nor a `.s` of its own.
+
+The same hazard applies to any landing that writes whole files from a worktree
+cut before another lane's commit; that is a different cause with an identical
+symptom, and the same check catches both.
+
 **The trailing data stays in assembly, with named exceptions.** It is models,
 animation banks and clip tables - game content, which never moves into `src/`.
 The few symbols decompiled code actually references are program structure, and

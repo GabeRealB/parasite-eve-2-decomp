@@ -134,6 +134,17 @@ fi
 
 if [[ $ninja_failed -eq 0 ]]; then
     rm -f "$NINJA_LOG"
+    # A dropped C body is invisible to the build: an INCLUDE_ASM assembles to
+    # exactly the bytes the C compiled to, so the checksum still matches. Only a
+    # source-level check catches it. Unscoped only - it costs 0.3s, which is <1%
+    # here but ~12% of a 2.6s scoped run, and a scoped build says nothing about
+    # the overlays it skipped anyway, which is usually where the loss is.
+    if [[ ${#SCOPE_ARGS[@]} -eq 0 ]]; then
+        if ! "$PYTHON" tools/check_lost_matches.py; then
+            echo "BUILD HAS FAILED. Matched C bodies have reverted to INCLUDE_ASM - recover them from their matching commits before committing."
+            exit 1
+        fi
+    fi
     echo "$SUCCESS"
 else
     grep -E "^(FAILED|ninja:)|error:|Error:|undefined reference|multiple definition|cannot find|does not match" "$NINJA_LOG" | head -40

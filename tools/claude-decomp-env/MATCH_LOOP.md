@@ -84,3 +84,23 @@ Verify in two steps, both from the **repo / worktree root**:
 A scoped `✅ SCOPED BUILD SUCCEEDED` says **nothing** about the overlays it skipped, and it says so in the message. Only the bare `./tools/build-and-verify.sh` printing `✅ BUILD SUCCEEDED` counts as a match — run it before committing or reporting one. Struct changes are the case that bites: they reach every overlay that shares the type, and the scoped run cannot see it.
 
 If `python3 ninja_config.py` fails on splat/spimdisasm, use `venv/bin/python3`.
+
+## Never rewrite a whole `.c`
+
+Write the one function you matched. Do **not** replace a source file wholesale —
+not from splat's regenerated output, not from a copy your worktree made before
+another lane committed. Both drop every other matched body in that file, and the
+build cannot see it: an `INCLUDE_ASM` assembles to exactly the bytes the C
+compiled to, so the checksum still matches and every overlay still links. 39
+functions have been lost this way.
+
+If a step genuinely requires deleting and re-splitting a file — a `rodata` cut is
+the usual reason — snapshot what it holds first (`bodies_of()` in
+`tools/land_overlay.py` lists every C definition) and put those bodies back
+afterwards. Reconstructing from the pre-change source beats starting from the
+regenerated skeleton.
+
+The unscoped `./tools/build-and-verify.sh` now runs `tools/check_lost_matches.py`
+and fails if any function with a `matched` commit has reverted to `INCLUDE_ASM`
+while its overlay still owns a `.s`. Do not commit through that failure -
+recover the body from its matching commit.
