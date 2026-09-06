@@ -50381,3 +50381,40 @@ called room 6. `mist_parking_18`, `shelter_r47`, `dryfield_night_motel_lobby_12`
 all share the hazard from the other side. Strip the overlay name first:
 `1 if unit == ov else int(unit[len(ov) + 1:])`. Sorted wrongly, the `git mv`
 chain collides and one file is silently overwritten by another.
+
+## An `s8` local truncates at the *use*; an `s32` local truncates at the assignment
+
+`func_combustion_8012EF34` reads a pan value that is live across the next call:
+
+```c
+pan = (s8)Gp_GetObjPan(coord);
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(coord));
+```
+
+The ROM straddles the second call with the extension - `sll s0,v0,0x18` before
+the `jal` and `sra s0,s0,0x18` in its delay slot - so the narrowing happens
+where the value is produced. Declaring `pan` as `s8` does the opposite: GCC
+keeps the pseudo in QImode, emits a bare `move s0,v0`, and only expands the
+`sll`/`sra` pair at the use site, three instructions later and into the wrong
+register. Declare the local `s32` and put the cast on the assignment. The
+`(s8)` on the *inlined* second call is unaffected either way, because that
+value has no local to live in.
+
+This is the same `regs`-only, 6-penalty shape as a coloring miss and the dumps
+will point at the live range, but no pin fixes it - the extension is in the
+wrong place, not the wrong register.
+
+## `a > b` and `b < a` emit the same `slt`, in the opposite load order
+
+The final combustion tick check compiles from either spelling to
+`slt v0,<row>,<counter>`, but the operands are *loaded* in source order:
+
+```c
+if (D_combustion_80130980[mem->field_20].field_6 < mem->field_22)  /* lh row, then lh counter */
+if (mem->field_22 > D_combustion_80130980[mem->field_20].field_6)  /* lh counter, then lh row */
+```
+
+GCC canonicalises the comparison but not the two `lh`s feeding it, so when the
+diff shows a matching `slt` with its two loads swapped, flip the comparison
+rather than reordering statements around it. Costs 3 `insert` + 3 `delete` and
+nothing else.
