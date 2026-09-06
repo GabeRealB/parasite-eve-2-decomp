@@ -50458,3 +50458,37 @@ GCC canonicalises the comparison but not the two `lh`s feeding it, so when the
 diff shows a matching `slt` with its two loads swapped, flip the comparison
 rather than reordering statements around it. Costs 3 `insert` + 3 `delete` and
 nothing else.
+
+## Overwrite the angle local instead of taking a second one to un-swap `$s2`/`$s3`
+
+`PeShared801305c0` (the shared `func_lifedrain_801305C0` body) builds a fan
+wedge at `arg2 - 0x20` and `arg2 + 0x20`. Spelling the second offset as its own
+local left every instruction correct with `regs` as the only penalty, the
+scratch-block pointer and the offset trading `$s2` for `$s3` throughout:
+
+```c
+ang  = (s16)arg2;
+ang2 = ang - 0x20;   /* rsin/rcos */
+ang2 = ang + 0x20;   /* rsin/rcos - a second live value */
+```
+
+The fix is to consume `ang` rather than keep it alive next to `ang2`:
+
+```c
+ang  = (s16)arg2;
+ang2 = ang - 0x20;
+ang += 0x20;
+```
+
+`.greg` explains it. With two surviving angle values the `+ 0x20` one is a
+global allocno (`used 6/20`) that `global_alloc` colours *after* the block
+pointer, so the pointer takes `$s2` and it gets `$s3`. Folding the second value
+back into `ang` drops that allocno entirely: `local_alloc` now hands `$s2` to
+the short `ang - 0x20` value before `global_alloc` runs, the pointer sees `$s2`
+in its hard-conflict list and lands in `$s3`.
+
+So when the diff is a clean pairwise swap of two callee-saved registers with
+`branch`/`insert`/`delete` all zero, look for one live range you can end early
+by reusing an existing local, before reaching for a pin. Merging two values
+into one local is what changes *which* allocator assigns them, and that is what
+picks the register number.

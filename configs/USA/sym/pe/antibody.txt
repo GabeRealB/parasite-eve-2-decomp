@@ -1,0 +1,2 @@
+// Overlay-local symbols for antibody.
+PeShared801305c0 = 0x801308D4; // shared body, see src/pe/lib/
