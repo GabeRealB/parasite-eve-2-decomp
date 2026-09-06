@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017E2F0);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", RoomsShared8017e90cFillList);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", RoomsShared8017ef20Title);
