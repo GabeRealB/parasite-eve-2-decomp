@@ -51,7 +51,13 @@ void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
     Task_SpawnFromTable(&ActorsShared80136280Desc, 0xA, arg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80134250);
+void func_actor_121300_80134250(s16 arg0)
+{
+    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->idMap;
+
+    work->field_498 = arg0;
+    work->field_49A = 0;
+}
 
 void func_actor_121300_80134270(void)
 {

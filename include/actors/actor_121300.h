@@ -19,7 +19,10 @@ typedef struct Actor121300Work {
     /* 0x480 */ s16   field_480; // state index driven by func_actor_121300_80133854
     /* 0x482 */ byte  pad_482[0x6];
     /* 0x488 */ Task* field_488; // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
-    /* 0x48C */ byte  pad_48C[0x24];
+    /* 0x48C */ byte  pad_48C[0xC];
+    /* 0x498 */ s16   field_498; // set by func_actor_121300_80134250
+    /* 0x49A */ s16   field_49A; // cleared alongside field_498
+    /* 0x49C */ byte  pad_49C[0x14];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
 
