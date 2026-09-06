@@ -51477,3 +51477,34 @@ with those five constants swapped scored 100% on the first attempt.
 Reading the constants back out of the asm is mechanical: `sll 2; addu; sll 3` is
 `* 40`, the same with a trailing `subu` is `* 39`, and the `sb`/`sh` immediates at
 prim offsets `0x7` / `0xE` / `0x16` are the code byte, CLUT and tpage.
+
+## A reloaded `prim->code` byte means the `setPolyFT4` is far from the `setSemiTrans`
+
+`func_pepper_spray_8012F21C` sets up a `POLY_FT4` in two places: the tag length
+and code are written before the `gte_stflg` test, and the semi-transparent /
+raw-texture bits are only set inside the `if`, after the UVs. The object dump
+shows that split directly:
+
+```
+li    v0,0x2c
+sb    v0,7(s3)      ; setPolyFT4, before the test
+...
+lbu   v0,7(s3)      ; reloaded inside the if
+ori   v0,v0,0x3
+sb    v0,7(s3)
+```
+
+The matched sibling `func_flare_8012F304` has `setPolyFT4` / `setSemiTrans` /
+`setShadeTex` adjacent and compiles to a *single* `li 0x2F; sb`: GCC 2.8.1
+constant-folds `0x2C | 2 | 1` through the three `setcode` read-modify-writes
+when nothing intervenes, and emits one store. So the shape of the `code` byte
+in the target tells you where the calls sit relative to the rest of the
+function:
+
+- one `li` of the final code value → the `setXxx` macros are consecutive;
+- a `lbu` / `ori` / `sb` triple → an unrelated store to the primitive (or a
+  branch) separates them, and the source has to separate them too.
+
+A single `ori $v0, $v0, 3` is also one statement, not two: `setSemiTrans(p, 1)`
+followed by `setShadeTex(p, 1)` is two read-modify-writes and emits two `sb`s.
+Write `prim->code |= 3;` when the ROM has one.

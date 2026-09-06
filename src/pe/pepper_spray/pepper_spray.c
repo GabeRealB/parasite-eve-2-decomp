@@ -19,8 +19,6 @@
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
-void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
-
 /// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those
 /// names assemble to different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -108,7 +106,59 @@ void func_pepper_spray_8012EF34(Task* arg0)
     }
 }
 
-INCLUDE_ASM("pe/nonmatchings/pepper_spray/pepper_spray", func_pepper_spray_8012F21C);
+void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+{
+    void**                    scratch;
+    u8*                       head;
+    PepperSprayNozzleScratch* blk;
+    PepperSprayNozzleScratch* copy;
+    POLY_FT4*                 prim;
+    s32                       ang;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    blk         = (PepperSprayNozzleScratch*)(head - 0x1C);
+    copy        = blk;
+    blk->vec.vx = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy = *(u16*)&arg0->workm.t[1];
+    blk->vec.vz = *(u16*)&arg0->workm.t[2];
+    *scratch    = blk;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((PepperSprayNozzleScratch*)(head - 0x1C))->vec);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setPolyFT4(prim);
+    gte_stsxy(&((PepperSprayNozzleScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((PepperSprayNozzleScratch*)(head - 0x1C))->flag);
+    if (blk->flag >= 0) {
+        gte_stszotz(copy);
+        ((PepperSprayNozzleScratch*)(head - 0x1C))->otz++;
+        prim->tpage = 0x29;
+        prim->clut  = 0x428B;
+        setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
+        prim->code |= 3;
+        ang         = arg2;
+        blk->dx     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
+        blk->dz     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+        prim->x0    = *(u16*)&blk->sx + *(u16*)&blk->dx;
+        prim->x3    = *(u16*)&blk->sx - *(u16*)&blk->dx;
+        prim->y0    = *(u16*)&blk->sy - *(u16*)&blk->dz;
+        prim->y3    = *(u16*)&blk->sy + *(u16*)&blk->dz;
+        ang         = ang + 0x400;
+        blk->dx     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
+        blk->dz     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+        prim->x1    = *(u16*)&blk->sx + *(u16*)&blk->dx;
+        prim->x2    = *(u16*)&blk->sx - *(u16*)&blk->dx;
+        prim->y1    = *(u16*)&blk->sy - *(u16*)&blk->dz;
+        prim->y2    = *(u16*)&blk->sy + *(u16*)&blk->dz;
+        addPrim((u_long*)(((((u32)((PepperSprayNozzleScratch*)(head - 0x1C))->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 /* Every scratch vector address is computed off `head`, not off `blk`, so the
    loads and stores keep spelling the block out from `head` rather than reusing
