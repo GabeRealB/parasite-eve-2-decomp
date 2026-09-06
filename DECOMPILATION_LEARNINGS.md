@@ -50291,3 +50291,93 @@ it turned seven instructions into three. Here the body already loads the table
 through one `lui`/`addiu` pair, so naming it costs nothing. The question is
 still "address or contents", and a struct assignment from a named global reads
 the address first.
+
+## Promote a contiguous run of shared bodies from the top down
+
+The renumber table above says a body that is the *last* function in its unit
+costs nothing: the unit keeps its name, only its end moves. That turns a whole
+batch into the cheap case whenever the bodies are contiguous, which they often
+are - a room's shop UI is one run of task callbacks, laid out in the order the
+original translation unit declared them.
+
+`mist_parking` and its six shop siblings carried eleven promotable bodies from
+`0x8017E768` to `0x8017FDF8`, each one starting exactly where the previous
+ended, and the run ended flush against an already-shared span. Promoted in
+**descending address order** every one of the eleven was the unit's last
+function, so no `.c` was renamed, no `rodata` cut moved, and each promotion's
+whole source edit was deleting one `INCLUDE_ASM` line per carrier. Ascending
+order would have split the unit eleven times over.
+
+Find the run before planning the order: take each body's `vram` and
+`words * 4` out of the dup index and look for `end == next start`. A body that
+is *first* in its unit (the run's bottom, butted against the span below) is
+free in the same way, from either direction.
+
+## `promote` judges match state by the name you pass, not by the class
+
+`cmd_promote` reads `hit.get("state")` for the function named on the command
+line and refuses with "cannot be shared while unmatched - N different byte
+images" when that one copy is still asm - even when a *different* copy of the
+same body is matched, and even when the matched copy is already in
+`src/rooms/lib/`. Pass the matched name instead. Passing an existing
+`RoomsShared<addr>` extends that shared unit to the new carriers with no new
+`lib/` file at all, which is the cheapest promotion there is.
+
+## An overlay-local *callee* alias renames an `INCLUDE_RODATA`, not just an `INCLUDE_ASM`
+
+The documented function-alias trick assumes the callee is a normal
+`INCLUDE_ASM` site. It is often not. `gen_overlay_configs` derives `.text` from
+the first `addiu $sp, $sp, -N`, so an overlay whose first function opens with a
+hoisted global load has several hundred bytes of real code stranded at the end
+of the leading `.rodata`, emitted as one `dlabel func_<ov>_<addr>` blob that the
+first unit's `.c` pulls in with `INCLUDE_RODATA`. The shop rooms' id-list
+lookup is exactly that in six of its seven carriers and a plain
+`INCLUDE_ASM` in the seventh.
+
+Aliasing works the same in both shapes - the sym-map line renames the `dlabel`
+and splat re-emits the file under the new name - but any script that rewrites
+the old name in `src/` has to match `func_<ov>_<ADDR>` and `jtbl_<ov>_<ADDR>`,
+not only `D_<ov>_<ADDR>`. A `D_`-only rewrite leaves the `.c` naming a `.s`
+that no longer exists, and the assembler, not the compiler, is what complains.
+
+## Which end of the successor the vanished unit's rodata goes to
+
+"When the promoted body was a whole unit, two rodata cuts merge" says to keep
+the lower cut and move the vanished `.c`'s `INCLUDE_RODATA` lines to the
+**front** of the successor's file. That is right only when the vanished unit's
+cut is the lower of the two. The cut order does not have to follow the code
+order: `rodata` cuts are assigned by which unit *references* each block, so a
+unit late in `.text` routinely owns rodata early in the block and vice versa.
+
+Three of nineteen rooms had it the other way round - the vanished unit's cut at
+`0xE4`, the successor's at `0x84` - so the successor's own rodata sits *below*
+the inherited block and the carried line belongs at the **end** of the file,
+after the `INCLUDE_ASM` whose `.s` carries the migrated jump table at `0x84`.
+Prepending it there is a 12-byte shift that links cleanly and only the checksum
+catches. Read the two cut offsets before deciding; the lower one goes first.
+
+## Two cuts only merge when nothing sits between them
+
+The same collapse is not available at all when a third cut separates the
+vanished unit's range from its successor's. `acropolis_square` had
+`0x60` -> the vanished unit, `0x94` -> `lib/rooms_shared_80181228`, `0xF4` ->
+the successor: dropping the `0xF4` cut does not extend the successor down, it
+hands `0xF4..0x134` to the *shared* object at `0x94`, which cannot carry a
+room's own bytes. The build reports it as a missing `.s`, one indirection away
+from the real cause.
+
+Keep both cuts and give the lower one to any overlay-local unit that has no
+`rodata` cut and no compiler-generated rodata of its own - the first code unit
+is usually a pure-`INCLUDE_ASM` file and does fine - then put the carried
+`INCLUDE_RODATA` lines in *that* file instead of the successor's. A unit's
+`.rodata` may appear once; nothing says it has to be the unit whose code reads
+it.
+
+## Derive a unit's number from the overlay name, not from a trailing `_N`
+
+Any renumbering pass has to sort units by number, and `re.search(r"_(\d+)$")`
+reads `dryfield_motel_room_6` as unit 6 - it is unit 1, and the room is just
+called room 6. `mist_parking_18`, `shelter_r47`, `dryfield_night_motel_lobby_12`
+all share the hazard from the other side. Strip the overlay name first:
+`1 if unit == ov else int(unit[len(ov) + 1:])`. Sorted wrongly, the `git mv`
+chain collides and one file is silently overwritten by another.
