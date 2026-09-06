@@ -1,0 +1,2 @@
+// Overlay-local symbols for healing.
+PeShared8012f9a8 = 0x8012F494; // shared body, see src/pe/lib/

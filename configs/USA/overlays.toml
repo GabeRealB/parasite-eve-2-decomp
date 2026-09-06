@@ -626,8 +626,8 @@ necrosis = { pe_level_ids = "50110-50112" }
 plasma = { pe_level_ids = "50113-50115" }
 apobiosis = { pe_level_ids = "50116-50118" }
 metabolism = { pe_level_ids = "50119-50121" }
-healing = { pe_level_ids = "50122-50124" }
-lifedrain = { pe_level_ids = "50125-50127" }
+healing = { pe_level_ids = "50122-50124", shared = [{ start = "0x564", end = "0x6B4", unit = "pe_shared_8012f9a8" }] }
+lifedrain = { pe_level_ids = "50125-50127", shared = [{ start = "0xA78", end = "0xBC8", unit = "pe_shared_8012f9a8" }] }
 antibody = { pe_level_ids = "50128-50130" }
 energyshot = { pe_level_ids = "50131-50133" }
 energyball = { pe_level_ids = "50134-50136" }
