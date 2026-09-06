@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/room_common.h"
+#include "gameplay/D4.h"
 
 #include <psyq/libgte.h>
 
