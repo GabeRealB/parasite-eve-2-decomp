@@ -36,10 +36,10 @@ extern u8             RoomsShared8017f764Amount[];
 extern u8             RoomsShared8017f938Times[];
 extern u8             D_mist_parking_80186718[];
 extern UiListItemFunc D_mist_parking_80186538[];
-extern UiList         D_mist_parking_80186540;
+extern UiList         RoomsShared8017ed7cList;
 extern UiObjectDesc   D_mist_parking_801865AC;
 extern UiObjectDesc   D_mist_parking_80186654;
-extern UiObjectDesc   D_mist_parking_801865C8;
+extern UiObjectDesc   RoomsShared8017ed7cRowsDesc;
 extern UiObjectDesc   RoomsShared8017ff9cDesc;
 extern UiObjectDesc   RoomsShared8017f108NoticeDesc;
 extern UiObjectDesc   RoomsShared8017f108BuyDesc;
@@ -326,57 +326,7 @@ void func_mist_parking_8017EB5C(DialogPrompt* prompt, UiObject* obj)
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017f938Bp);
 
-void func_mist_parking_8017ED7C(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* childObj;
-    s32       code;
-
-    obj           = task->spawnArg2;
-    list          = &D_mist_parking_80186540;
-    obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, "List");
-    if (task->state == 0) {
-        Gp_ClearPreviewItems();
-        D_80067634 = NULL;
-        Ui_SpawnFromDesc(&D_mist_parking_801865C8, task->spawnArg1, 0, 1, obj);
-        Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
-        list->field_4 = 5;
-        list->field_5 = 5;
-        Ui_LayoutListPanel(list, (UiPanel*)obj);
-        list->field_A = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->status == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-        obj->field_2E = -1;
-    }
-
-    head = task->firstChild;
-    if (head != NULL) {
-        child = head;
-        do {
-            childObj = child->spawnArg2;
-            code     = childObj->field_2E;
-            next     = child->nextSibling;
-            if (code != -1) {
-                if (code == 6) {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    obj->status = 1;
-                }
-            } else {
-                Wip_UiHolder  = NULL;
-                obj->field_2E = code;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017ed7cTitle);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017ef24Total);
 

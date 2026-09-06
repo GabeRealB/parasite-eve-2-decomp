@@ -44,3 +44,7 @@ RoomsShared8017f108NoticeDesc = 0x80181BA0; // shared body data, see src/rooms/l
 RoomsShared8017f108BuyDesc = 0x80181C10; // shared body data, see src/rooms/lib/
 RoomsShared8017ef24 = 0x8017ED80; // shared body, see src/rooms/lib/
 RoomsShared8017ef24Total = 0x8017D6E4; // shared body data, see src/rooms/lib/
+RoomsShared8017ed7c = 0x8017EBD8; // shared body, see src/rooms/lib/
+RoomsShared8017ed7cTitle = 0x8017D6DC; // shared body data, see src/rooms/lib/
+RoomsShared8017ed7cList = 0x80181AE0; // shared body data, see src/rooms/lib/
+RoomsShared8017ed7cRowsDesc = 0x80181B68; // shared body data, see src/rooms/lib/

@@ -6,7 +6,7 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_und
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_2", RoomsShared8017f938Bp);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_2", D_shelter_b1_underground_parking_8017D75C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_2", RoomsShared8017ed7cTitle);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_2", RoomsShared8017ef24Total);
 
