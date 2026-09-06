@@ -151,13 +151,17 @@ turned off to avoid that. Setting it `False` fails the checksum on `tonfa_baton`
 images end flush against their last data byte with no slack for the alignment it
 introduces.
 
-**The byte at offset 0 of a `pe` overlay is its spell index, as a character.**
-All twelve start with `'0' + index`, index being `(pe_level_ids - 50101) / 3` -
-`pyrokinesis` 0 through `energyball` 11. Indices 10 and 11 come out `:` and `;`
-rather than `10`/`11`, which is what proves it is computed as `'0' + n` and not
-a hand-written label. Only the five overlays with `rodata_head` split it into a
-`<name>_hdr.rodata.s`; the rest fold it into the first code unit's rodata, so an
-apparently-missing header string is not a difference in the data.
+**Every overlay starts with its own id: a `u16` at offset 0, in a `u32` slot.**
+All 448 packages carry a distinct value there, and the families sit in
+contiguous blocks - weapons 8-39, options 40, aya 43-45, pe 48-62, actors
+81-278, mapui 280-284, rooms 285-452. The high half is always zero.
+
+Do not read it as text. pe's block is 48-62, which is `0x30`-`0x3E`, so splat
+renders those bytes as `.asciz "0"` … `";"` and the id looks like a character
+scheme; it is not, and ids 58/59 printing as `:` and `;` is just the ASCII table
+running out of digits. Only the overlays with `rodata_head` split the id into a
+`<name>_hdr.rodata.s` - elsewhere it is folded into the first code unit's
+rodata, or, for rooms, sits as `D_<room>_8017D5C0`.
 
 Two maintenance commands, neither run by the build:
 
