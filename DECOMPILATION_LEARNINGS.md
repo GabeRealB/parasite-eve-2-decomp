@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Write `setUVWH` before clut/tpage so the width `li` lands in the XY gap
+
+A constant `POLY_FT4` (shade-tex `0x2D`, `setXYWH`/`setUVWH` of the same
+`x,y,w,h`) wants `li v1, w` immediately after the `x1`/`x3` stores of `x+w`,
+with clut/tpage still in the *middle* of the object dump (after `v2`/`v3`,
+before the late `x0`/`x2`). Writing
+
+```c
+setXYWH(p, x, y, w, h);
+p->clut  = clut;
+p->tpage = tpage;
+setUVWH(p, 0, 0, w, h);
+```
+
+keeps `w` live until the trailing UV stores. sched2 walks the block
+backwards, so `w`'s last use is ready during the clut/tpage `li`/`sh` pair;
+the independent `li w` wins that gap (class 3 vs the data-dependent tpage
+`li`) and glues the `x+w` stores to it — `x1`/`x3` land next to tpage
+instead of between `y1` and `y2`.
+
+Put UV first:
+
+```c
+setlen(p, 9);
+setcode(p, 0x2D);
+setXYWH(p, x, y, w, h);
+setUVWH(p, 0, 0, w, h);
+p->clut  = clut;
+p->tpage = tpage;
+addPrim(Gpu_CurrentOt, p);
+```
+
+`w`'s last use is now *before* clut in the source. Backwards, clut/tpage
+are scheduled first, then UV, then `li w` becomes ready and inserts into
+the XY region — the target's `y0`/`y1` / `x1`/`x3` / `li w` / `y2`/`y3`
+interleave. clut/tpage stores still sink to the middle (they do not alias
+the XY/UV bytes tightly enough to stay last). `func_aya_20900_80115948`
+went 86% → 100% on this reorder alone; `setXYWH` is required so `x+w`
+keeps `x` live from the prologue (`li a1, -0x3C`).
+
 ## Scale the IV before `SOFT_TOUCH_REG`, add the base after
 
 A stack `RECT` plus `LoadImage(&rect, buf + (flip << 5) * (s16)h)` wants the
