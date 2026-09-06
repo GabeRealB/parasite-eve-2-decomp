@@ -81,5 +81,7 @@
 
 #define MOVE_ZERO(x)       __asm__ volatile("" : "=r"(x) : "0"(0))
 #define COPY_REG(dst, src) __asm__ volatile("" : "=r"(dst) : "r"(src))
+/* `+&r` / `"r"` cannot overlap, so GCC emits `move` and frees src. */
+#define COPY_REG_EC(dst, src) __asm__ volatile("" : "+&r"(dst) : "r"(src))
 
 #endif // COMMON_H

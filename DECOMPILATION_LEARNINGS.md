@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Earlyclobber empty asm copies an SI value (`move`) instead of `andi` / in-place `sll`
+
+A value loaded `lhu` into an SI temp and reused for both `field += step` and
+`field2 += step << 3` wants
+
+```
+addu  v0, v0, v1
+sh    v0, field
+move  v0, v1
+lhu   v1, field2
+sll   v0, v0, 3
+addu  v1, v1, v0
+```
+
+A second `(u16)` of the same location is `zero_extendhisi2` (`andi v0, v1,
+0xffff`) in that copy slot. A plain `s32 copy = addend` coalesces, so the
+shift is `sll v1` in place and `field2` loads into `$v0`.
+
+Force a same-mode copy that cannot share a hard register: assign, then
+`COPY_REG_EC` (earlyclobber empty asm whose input is the original):
+
+```c
+copy = addend;
+COPY_REG_EC(copy, addend);
+mem->field_26 = (u16)mem->field_26 + (copy << 3);
+```
+
+`+&r` / `"r"` overlap is forbidden, so reload emits `move` and frees the
+source register for the following load. `COPY_REG` / `TOUCH_REG` / `USE_REG`
+do not: empty `"=r"(dst) : "r"(src)` does not copy, and `+r` without `&`
+still coalesces. `func_ofuda_8012EF34` is the example.
+
+The same `COPY_REG_EC` is also how to emit `move a0, s1` *before* a
+`SOFT_COMPILER_BARRIER()` that is holding a later byte load in place (unsigned
+`rgb[0]` / `rgb[2]` / `rgb[1]` otherwise address-sorts to 0,1,2). Assign the
+call's dest copy, earlyclobber it against the source pointer, *then* assign
+and `TOUCH_REG` the rematerialisable `li a2, 0xC0` so it is not rebuilt after
+the barrier. Source order of those two assignments is the `move` / `li`
+order.
+
 ## `do { } while (0)` so a later store fills a load delay
 
 `fill_simple_delay_slots` takes the first *independent* insn after a load.
