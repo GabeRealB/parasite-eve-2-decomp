@@ -7,11 +7,16 @@
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
-
 #include "rooms/dryfield_gas_station.h"
 
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
+
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017ef20Title);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017de9cHundred);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017e8b4WeaponTitle);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017e8b4PeTitle);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017ea68Title);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FD54);
 
