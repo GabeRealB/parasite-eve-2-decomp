@@ -31,6 +31,22 @@ A 93% score with `branch`/`insert`/`delete` still non-zero is a **control-flow**
 `register T x asm("s4")` is function-scope in GCC 2.8.1: it reserves that hard register for the **whole function**. Do not add pins because `$s4` is wrong in the object dump.
 
 - Do not pin until dumps say a live range is the leftover **and** an unpinned attempt exists.
+
+## Compiler source
+
+`gcc/` in this directory is the **patched GCC 2.8.1** that built the target
+(stock 2.8.1 plus the decompals psx patches). Read it when a dump shows a
+decision you cannot explain - `local-alloc.c` / `global.c` for which pseudo gets
+which hard register, `reload1.c` for spills and why a pin misbehaves, `sched.c`
+for sched1 tie-breaking, `combine.c` and `cse.c` for folding and operand order.
+
+**Never fetch compiler source over the network, and never read another GCC
+version.** Nine such fetches in one sweep pulled 2.95.3 four times: seven years
+newer, different scheduler and CSE, and nothing here catches a conclusion drawn
+from it. If `gcc/` is missing, work from the dumps instead.
+
+Prefer the dumps first regardless: they say what the compiler did to *this*
+function, which is the question. The source only says what it does in general.
 - If the seed already has pins, **unpin and rescore** as its own `base_N.c`. Unpinning is often the 100% move.
 - Never treat a pinned ≥90% as the best seed. Leave an unpinned `base_N.c` in the scratch dir.
 

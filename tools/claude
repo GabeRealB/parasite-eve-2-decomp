@@ -477,6 +477,19 @@ ln -sfn "${CLAUDE_CONFIG}" "$created_dir/"
 ln -sfn "$ROOT/DECOMPILATION_LEARNINGS.md" "$created_dir/"
 ln -sfn "$ROOT/CODEGEN_MODEL.md" "$created_dir/"
 
+# The compiler's own source, as `gcc/`. Agents working a leftover in the high
+# 90s reach for it to check what a pass really does, and left to themselves they
+# fetch it: one sweep made nine requests over four URLs, four of which pulled
+# 2.95.3 - a different scheduler and CSE, so any conclusion from it is quietly
+# wrong. Fetch is best-effort and one-off; a matching run must still work
+# offline, it just loses the reference.
+if [[ ! -d "$ROOT/local/gcc/gcc-2.8.1-psx" && -x "$ROOT/tools/fetch_gcc_source.sh" ]]; then
+    echo "Fetching GCC 2.8.1 source for reference (one-off)..." >&2
+    "$ROOT/tools/fetch_gcc_source.sh" >/dev/null 2>&1 \
+        || echo "  could not fetch it; continuing without the compiler source" >&2
+fi
+[[ -d "$ROOT/local/gcc/gcc-2.8.1-psx" ]] && ln -sfn "$ROOT/local/gcc/gcc-2.8.1-psx" "$created_dir/gcc"
+
 # Carrying the host includes across makes the seed's types resolve, but it also
 # puts m2c's guessed prototypes next to the real ones. Let the compiler say
 # which pairs conflict and drop m2c's side. This has to run after build.sh is
