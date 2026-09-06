@@ -99,3 +99,6 @@ RoomsShared8017e90cRowFuncs = 0x80186538; // shared body data, see src/rooms/lib
 RoomsShared8017e90cBalanceDesc = 0x80186654; // shared body data, see src/rooms/lib/
 RoomsShared8017e90cFillList = 0x8017E540; // shared body data, see src/rooms/lib/
 RoomsShared801845d0 = 0x801845D0; // shared body, see src/rooms/lib/
+RoomsShared8017f1f8 = 0x80181BF8; // shared body, see src/rooms/lib/
+RoomsShared8017f1f8Msg = 0x801866A0; // shared body data, see src/rooms/lib/
+RoomsShared8017f1f8Desc = 0x8018694C; // shared body data, see src/rooms/lib/

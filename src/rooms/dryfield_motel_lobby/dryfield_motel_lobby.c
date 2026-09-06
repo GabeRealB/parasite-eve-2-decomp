@@ -7,6 +7,4 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", R
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", RoomsShared8017ea68Title);
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", func_dryfield_motel_lobby_8017F178);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_lobby/dryfield_motel_lobby", func_dryfield_motel_lobby_8017F240);

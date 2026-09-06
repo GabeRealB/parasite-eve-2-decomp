@@ -9,6 +9,4 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", D_dryfield_night_gas_station_8017D650);
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", D_dryfield_night_gas_station_8017D658);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017F188);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017F250);
