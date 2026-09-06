@@ -12,6 +12,7 @@
 extern s8           D_80072189;
 extern u8           D_8007218D;
 extern s8           D_80072311;
+extern s8           D_80072312;
 extern s8           D_80072313;
 extern u8           D_options_801D5B2C[];
 extern u8           D_options_801D5B4C[];
@@ -20,6 +21,11 @@ extern u8           D_options_801D5B5C[];
 extern u8           D_options_801D5B60[];
 extern u8           D_options_801D5B68[];
 extern u8           D_options_801D5B70[];
+extern u8           D_options_801D5B78[];
+extern u8           D_options_801D5B80[];
+extern u8           D_options_801D5B84[];
+extern u8           D_options_801D5B88[];
+extern u8           D_options_801D5B8C[];
 extern u8           D_options_801D5B90[];
 extern u8           D_options_801D5B98[];
 extern u8           D_options_801D5BA4[];
@@ -28,6 +34,7 @@ extern u8           D_options_801D5BB8[];
 extern u8           D_options_801D5BC4[];
 extern u8           D_options_801D5BCC[];
 extern u8           D_options_801D5C7C[];
+extern u8           D_options_801D5CA8[];
 extern u8           D_options_801D5CE4[];
 extern u8           D_options_801D5D28[];
 extern u8           D_options_801D5D68[];
@@ -130,7 +137,80 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
 
 INCLUDE_RODATA("options/nonmatchings/options/options", D_options_801D4000);
 
-INCLUDE_ASM("options/nonmatchings/options/options", func_options_801D42A8);
+void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
+{
+    u8* labels[4] = {
+        D_options_801D5B80,
+        D_options_801D5B84,
+        D_options_801D5B88,
+        D_options_801D5B8C,
+    };
+    u8** p;
+    u8*  title;
+    s32  a0tmp;
+    s32  i;
+    s32  y;
+    s32  x;
+    s32  span;
+    s32  selected;
+    s32  saved;
+    s32  one;
+    s32  look;
+    s32  count;
+    s32  stride;
+    s32  status;
+
+    count  = 4;
+    stride = 4;
+    a0tmp  = (s32)arg1;
+    SOFT_TOUCH_REG(a0tmp);
+    title = D_options_801D5B78;
+    SOFT_TOUCH_REG(title);
+    Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    i        = 0;
+    p        = labels;
+    saved    = D_80072312;
+    y        = i;
+    selected = saved;
+    x        = arg1->field_1C + 0x78;
+    span     = (s16)arg1->field_1E - x;
+    do {
+        if (i != selected) {
+            look = Ui_LookupTable(arg1, 2);
+        } else {
+            look = Ui_LookupTable(arg1, 1);
+        }
+        one = 1;
+        Text_DrawPrompt(arg1, x + y / count, arg0->field_1A, *p, look, one, 0);
+        p  = (u8**)((u8*)p + stride);
+        y += span;
+        i += one;
+    } while (i < 4);
+    if (arg0->field_C == one) {
+        if (Pad_CheckButtons(0, one, 0x2000) != 0) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            selected += one;
+            if (selected >= count) {
+                selected = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            selected -= 1;
+            if (selected < 0) {
+                selected += count;
+            }
+        }
+    }
+    D_80072312 = selected;
+    if (saved != (s8)selected) {
+        Snd_ApplyVolumeTable(0);
+    }
+    SOFT_BARRIER();
+    status = arg1->status;
+    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
+        Ui_SetHolderParam((s32)D_options_801D5CA8, 0, 0);
+    }
+}
 
 void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1)
 {

@@ -52577,3 +52577,66 @@ return 0;
 
 Indexing `table[i]` also inverts the branch and swaps the pointer/`i`
 registers. `func_replay_bonus_80117598` is the example.
+
+## `li t0, N` before a loop `div` reused by `addu p, p, t0` is two spilled constants, not one local
+
+`func_options_801D42A8` draws four labels the way its two-label sibling
+`func_options_801D4504` does, but where the sibling advances the label pointer
+with `addiu s5, s5, 4` the target reuses the divisor register:
+
+```
+move  v1, v0          # look
+li    t0, 4
+div   zero, s0, t0    # y / count
+...
+addu  s4, s4, t0      # p += 4, same register
+```
+
+The seed's `two = 4; SOFT_TOUCH_REG(two); p += two` reproduces the shape at
+99.6% and stalls on registers: `two` comes out in `v1`, `look` in `a3`, and
+the `saved` reload in `t0` instead of `t1`. That is local-alloc, and it cannot
+give `t0`: the unused `mod` half of `divmodsi4` is a one-insn qty with
+priority `1*2/1` that beats any longer-lived local in the block, so it takes
+`v0` and the constant gets `v1`. The prologue's block copy (`lw t0..t2`,
+`addiu t3`) is the tell - those are reload scratch registers, and they shift
+to `t1..t4` the moment any pseudo holds `t0` as a real hard register (the
+single-call and `two = 4`-in-both-arms variants all did this). In the target
+`t0` is a *spill* register: the divisor is a pseudo with `REG_EQUIV 4` that
+lost the callee-saved fight and reload rematerialises it at the `div`.
+
+Two conditions make that happen, and they need two variables:
+
+- **The divisor must lose to `span`.** `global.c` orders by
+  `floor_log2(n_refs) * n_refs / live_length`, `flow.c` weights refs inside
+  the loop `x2`, the `divmodsi4` parallel mentions the divisor twice, and
+  `update_equiv_regs` doubles the live length of a const-equivalent pseudo.
+  The sibling's `n2` has def + div/mod pair + two post-loop uses = 7 refs
+  (`floor_log2 = 2`) and spills; adding the pointer stride as a fifth use
+  makes 9 (`floor_log2 = 3`), the priority doubles, and the divisor takes
+  `s7` from `span`, which then reloads from `0x30(sp)` inside the loop.
+- **The stride must be its own const-equivalent pseudo.** `p += count`
+  would add those refs; `p += 4` folds to `addiu`. A second local
+  `stride = 4` set at function entry (3 refs over the whole function) spills
+  too, and reload does *not* substitute the constant into `addsi3` here: its
+  `find_equiv_reg` finds `t0` still holding 4 from the `div` reload and
+  emits `addu s4, s4, t0`.
+
+```c
+count  = 4;
+stride = 4;
+...
+do {
+    ...
+    Text_DrawPrompt(arg1, x + y / count, arg0->field_1A, *p, look, one, 0);
+    p = (u8**)((u8*)p + stride);
+    ...
+} while (i < 4);
+...
+if (selected >= count) ... selected += count;   /* post-loop uses stay on `count` */
+```
+
+With both spilled, `look` (global, two-call shape) takes `v1`, the spill
+pool is `t0, t1`, and the later `saved` reload rotates to `t1`, which is the
+last of the 11 register diffs. The lreg dump prints `used N times across M
+insns` *after* `update_equiv_regs`, so a constant's `M` is already the
+doubled figure when you compute its priority from the dump.
