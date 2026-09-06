@@ -6,8 +6,6 @@ extern Task*    RoomsShared8017e8a8Task;
 extern TaskDesc RoomsShared8017daf0Desc;
 extern Task*    RoomsShared8018459cTask;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E684);
-
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E6D8);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E70C);

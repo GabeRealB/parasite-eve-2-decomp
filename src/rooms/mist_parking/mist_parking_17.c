@@ -16,26 +16,6 @@ extern s8       D_80073BAE;
 extern Task*    RoomsShared8018459cTask;
 extern TaskDesc RoomsShared8017daf0Desc;
 
-void func_mist_parking_801845D0(s32 arg0)
-{
-    Task* t = RoomsShared8018459cTask;
-
-    if (t == NULL) {
-        return;
-    }
-    if (arg0 >= 2) {
-        goto kill;
-    }
-    if (arg0 < 0) {
-        goto kill;
-    }
-    t->spawnArg1 = arg0;
-    return;
-kill:
-    Task_Kill(RoomsShared8018459cTask);
-    RoomsShared8018459cTask = NULL;
-}
-
 void func_mist_parking_80184624(s32 arg0)
 {
     Display_InitModeObj(Task_GetDescAt(&RoomsShared8017daf0Desc, 2U), arg0, 0, 0);
