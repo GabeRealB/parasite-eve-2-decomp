@@ -46053,6 +46053,34 @@ u1 = col - 0x59;`) so GCC emits two `addiu`s off one register rather than
 chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
 `*(u16*)&…` so the store is the `lhu`/`sh` pair the ROM uses.
 
+## A 0x118 scratchpad block is `Gp_DrawBandEx`
+
+The previous entry's "scratch size is the strongest fingerprint" rule has one
+more entry worth writing down: a `- 0x118` off `G_SCRATCH_HEAD` is the
+`GpBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
+(gameplay `3CD8_9CC8.c`). `func_pyrokinesis_801312B4` is that function with the
+colour source swapped and the trailing `DR_TPAGE` replaced by
+`Gp_AddTpageShift`; porting the sibling and changing only those two things
+scored 100% on the first attempt, with the m2c seed never compiled.
+
+Recognise it from the shape rather than the size alone: two 16-iteration loops,
+the first building `inner[i]` / `outer[i]` from `rsin`/`rcos` with a
+`gte_SetRotMatrix(&arg0->workm)` + `mvmva 1,0,0,3,0` per vertex, the second
+doing one `RTPS` plus one `RTPT` per segment and emitting a `POLY_G4`
+(`sb 8, 3(prim)` / `sb 0x38, 7(prim)`).
+
+Two details from the sibling are load-bearing and must be copied verbatim:
+
+- `register u8* head asm("v0")` for the scratch pointer. Unpinned the body
+  still reaches 99.63%, but with `branch=3 regs=2 delete=1` — the pin is what
+  the ROM's allocation needs, and this is the documented exception to
+  "unpin first".
+- `op = &block->inner[i] + 16;` as a second alias for `&block->outer[i]`.
+  GCC 2.8.1 emits the `outer[i].vx` store off the `inner` base (`sh v0,
+  0x80($s2)`) and the `vy`/`vz` stores off `op`; writing all three through
+  `outer[i]` re-derives the pointer.
+
+
 ## A redundant `andi 0xFFFF` only survives as a multi-use local
 
 `func_m4a1_javelin_8011E4A8` unpacks a `0x0RGB` nibble triple and the ROM keeps
