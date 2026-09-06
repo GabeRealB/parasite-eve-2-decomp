@@ -17,10 +17,10 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 Gp_LcgState;
-
-void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2);
 
 /// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`field_24`
 /// brightness, `field_20` combo index, `field_22` tick / inner radius);
@@ -249,7 +249,97 @@ release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("pe/nonmatchings/plasma/plasma", func_plasma_8012F568);
+void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
+{
+    void**           scratch;
+    u8*              head;
+    GpBandScratch*   block;
+    SVECTOR*         op;
+    POLY_FT4*        prim;
+    PlasmaRingScale* row;
+    s32              i;
+    s32              next;
+    s32              ang;
+    s32              u;
+    s16              idx;
+    s16              r0;
+    s16              r1;
+    u16              y;
+    u16              f28;
+
+    row      = &D_plasma_8012FF34[arg2];
+    f28      = (u16)arg0->field_28;
+    r1       = (u16)arg0->field_26;
+    y        = f28 + (u16)row->yOff;
+    r1      += (u16)row->rInner;
+    r0       = r1 + (u16)arg0->field_2A + (u16)row->rExtra;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch;
+    *scratch = head - 0x118;
+    block    = (GpBandScratch*)(head - 0x118);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        ang                = i << 8;
+        block->inner[i].vx = (rsin(ang) * r0) >> 12;
+        block->inner[i].vy = -y;
+        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+        gte_SetRotMatrix(&arg1->workm);
+        gte_ldv0(&block->inner[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->inner[i]);
+        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg1->workm.t[0];
+        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg1->workm.t[1];
+        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&arg1->workm.t[2];
+        block->outer[i].vx = (rsin(ang) * r1) >> 12;
+        op                 = &block->inner[i] + 16;
+        op->vy             = 0;
+        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_SetRotMatrix(&arg1->workm);
+        gte_ldv0(&block->outer[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->outer[i]);
+        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg1->workm.t[0];
+        op->vy             = *(u16*)&op->vy + *(u16*)&arg1->workm.t[1];
+        op->vz             = *(u16*)&op->vz + *(u16*)&arg1->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        gte_ldv0(&block->inner[i]);
+        gte_rtps_real();
+        idx = ((&D_plasma_8012FF54.a + i)[arg2 * 16] + arg0->field_22) % 6;
+        gte_stsxy(&block->sxy0);
+        next = (i + 1) & 0xF;
+        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            block->otz++;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyFT4(prim);
+            setRGB0(prim, *(u8*)&arg0->field_24, *(u8*)&arg0->field_24, *(u8*)&arg0->field_24);
+            setSemiTrans(prim, 1);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x42C1;
+            u           = idx * 0x28;
+            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
+            prim->x0 = *(u16*)&block->sxy0.vx;
+            prim->y0 = *(u16*)&block->sxy0.vy;
+            prim->x1 = *(u16*)&block->sxy1.vx;
+            prim->y1 = *(u16*)&block->sxy1.vy;
+            prim->x2 = *(u16*)&block->sxy2.vx;
+            prim->y2 = *(u16*)&block->sxy2.vy;
+            prim->x3 = *(u16*)&block->sxy3.vx;
+            prim->y3 = *(u16*)&block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+}
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
 /// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
