@@ -6,8 +6,6 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_3", RoomsShared8017e8b4PeTitle);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_3", RoomsShared8017ea68Title);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_3", func_shelter_b3_incinerator_control_room_8017F9F4);
-
 s32 func_shelter_b3_incinerator_control_room_8017FA84(void)
 {
     return 0;

@@ -62,5 +62,3 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", func_shelter_b6_nursery_8017FBC0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", func_shelter_b6_nursery_8017FD3C);

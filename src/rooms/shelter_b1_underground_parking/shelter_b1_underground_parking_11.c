@@ -1,8 +1,3 @@
 #include "common.h"
 
-extern s16 D_shelter_b1_underground_parking_8018D78C;
-
-void func_shelter_b1_underground_parking_80186890(s16 arg0)
-{
-    D_shelter_b1_underground_parking_8018D78C = arg0;
-}
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_11", func_shelter_b1_underground_parking_801857E0);

@@ -60,3 +60,4 @@ RoomsShared8017f388 = 0x8017F3E4; // shared body, see src/rooms/lib/
 RoomsShared8017f388Msg = 0x80184CDC; // shared body data, see src/rooms/lib/
 RoomsShared8017f388Desc = 0x80184F8C; // shared body data, see src/rooms/lib/
 RoomsShared8017ed60 = 0x8017EDBC; // shared body, see src/rooms/lib/
+RoomsShared80182628 = 0x8017FD3C; // shared body, see src/rooms/lib/

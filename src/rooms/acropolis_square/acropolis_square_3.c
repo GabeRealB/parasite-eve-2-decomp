@@ -309,15 +309,6 @@ void func_acropolis_square_80181DD0(Task* task)
         x += 0x100;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square_3", func_acropolis_square_80182048);
-
-s32 func_acropolis_square_801820D8(Task* task, s32 msgId, GpMsg13EF* arg2)
-{
-    if (arg2->field_2 == 0) {
-        Gp_SpawnIfCapIdle(5, 0);
-    }
-    return 0;
-}
 /* The retail overlay has a zero word at 0x8017D6F0, right after this TU's
  * second jump table: aspsx rounded each object's `.rdata` up to the 8-byte
  * alignment GCC gives a jump table, and modern gas does not. Ask for the pad
