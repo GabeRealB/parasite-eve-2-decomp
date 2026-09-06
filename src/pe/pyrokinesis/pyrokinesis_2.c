@@ -12,6 +12,10 @@
 #include "main/tmd.h"
 
 extern s32 Gp_LcgState;
+/// Sixteen per-vertex texture-frame offsets consumed by
+/// `func_pyrokinesis_80131784`. Each is added to `arg1` and reduced mod 6 to
+/// pick one of the six 0x28-wide frames of the flame-tube texture.
+extern s16 D_pyrokinesis_80131DFC[];
 
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
@@ -147,7 +151,111 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
 }
 
-INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis_2", func_pyrokinesis_80131784);
+/// Draws the pyrokinesis flame tube: two 16-vertex rings in `arg0`'s local XY
+/// plane, the rim of radius 0x200 or 0x480 sunk `-back` along local Z and the
+/// hub of radius 0x80 or 0x40 at Z=0. `arg3` non-zero picks the short fat
+/// tube (`back = arg2 * 2 + arg1 * 256`); zero the long thin one
+/// (`back = arg2 + arg1 * 16`). Each of the 16 segments is projected through
+/// `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell is one of
+/// six 0x28-wide frames picked per vertex by `D_pyrokinesis_80131DFC[i]` plus
+/// `arg1`, and a negative `gte_stflg` drops the segment.
+void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3)
+{
+    void**         scratch;
+    register u8*   head asm("v0");
+    GpBandScratch* block;
+    SVECTOR*       op;
+    POLY_FT4*      prim;
+    s32            rimRad;
+    s32            hubRad;
+    s32            rimSize;
+    s32            hubSize;
+    s32            i;
+    s32            next;
+    s32            ang;
+    s32            u0;
+    u16            back;
+    MATRIX*        rot;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch - 0x118;
+    block    = (GpBandScratch*)head;
+    *scratch = head;
+    if (arg3 != 0) {
+        back    = (arg2 << 1) + (arg1 << 8);
+        hubSize = 0x80;
+        rimSize = 0x200;
+    } else {
+        back    = arg2 + (arg1 << 4);
+        hubSize = 0x40;
+        rimSize = 0x480;
+    }
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i      = 0;
+    rimRad = rimSize;
+    rot    = &arg0->workm;
+    hubRad = hubSize;
+    for (; i < 0x10; i++) {
+        ang                = i << 8;
+        block->inner[i].vx = (rsin(ang) * rimRad) >> 12;
+        block->inner[i].vy = (rcos(ang) * rimRad) >> 12;
+        block->inner[i].vz = -back;
+        gte_SetRotMatrix(rot);
+        gte_ldv0(&block->inner[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->inner[i]);
+        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
+        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
+        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&arg0->workm.t[2];
+        block->outer[i].vx = (rsin(ang) * hubRad) >> 12;
+        op                 = &block->inner[i] + 16;
+        op->vy             = (rcos(ang) * hubRad) >> 12;
+        op->vz             = 0;
+        gte_SetRotMatrix(rot);
+        gte_ldv0(&block->outer[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->outer[i]);
+        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
+        op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
+        op->vz             = *(u16*)&op->vz + *(u16*)&arg0->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 0x10; i++) {
+        gte_ldv0(&block->inner[i]);
+        gte_rtps_real();
+        gte_stsxy(&block->sxy0);
+        next = (i + 1) & 0xF;
+        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            block->otz++;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyFT4(prim);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x4282;
+            setRGB0(prim, 0x30, 0x30, 0x30);
+            setSemiTrans(prim, 1);
+            u0 = (s16)((D_pyrokinesis_80131DFC[i] + arg1) % 6) * 40;
+            setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
+            prim->x0 = *(u16*)&block->sxy0.vx;
+            prim->y0 = *(u16*)&block->sxy0.vy;
+            prim->x1 = *(u16*)&block->sxy1.vx;
+            prim->y1 = *(u16*)&block->sxy1.vy;
+            prim->x2 = *(u16*)&block->sxy2.vx;
+            prim->y2 = *(u16*)&block->sxy2.vy;
+            prim->x3 = *(u16*)&block->sxy3.vx;
+            prim->y3 = *(u16*)&block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+}
 
 void func_pyrokinesis_80131CE4(Task* arg0)
 {

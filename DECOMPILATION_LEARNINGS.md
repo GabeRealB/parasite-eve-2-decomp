@@ -3,6 +3,25 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A 16-segment `POLY_FT4` tube with `arg3` picking fat/thin radii is `func_hypervelocity_8011DF34`
+
+`func_pyrokinesis_80131784` is that function with three constants swapped:
+rim 0x200/0x480 instead of 0x600/0x800, clut 0x4282 instead of 0x42C1, and
+the jitter table `D_pyrokinesis_80131DFC`. Geometry, the `rimSize`/`hubSize`
+latch into `rimRad`/`hubRad`, `rot = &coord->workm`, and
+`op = &inner[i] + 16` copy verbatim.
+
+Two TU-local differences from the weapon original are load-bearing:
+
+- Allocate through `G_SCRATCH_HEAD` with `register u8* head asm("v0")` (the
+  same pin as `func_pyrokinesis_801312B4` in this TU). Unpinned coalesces to
+  `addiu s3, v0, -0x118` / `sw s3` and scores 99.67% with
+  `branch=4 regs=2 delete=1`. The hypervelocity original's
+  `SCRATCH_SP -= sizeof(...)` does not need the pin.
+- Translation adds are `*(u16*)&dst + *(u16*)&workm.t[n]`, not `+=`, so the
+  loads stay `lhu`. Screen copies are the same `*(u16*)&sxyN.vx` form as the
+  other pyrokinesis band drawers, not `setXY4`.
+
 ## First of two independent halfword updates becomes the shared switch tail
 
 Cases that all end with two independent `(u16)field += K` stores plus the same
