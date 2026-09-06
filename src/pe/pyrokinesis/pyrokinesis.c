@@ -7,7 +7,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+extern s32 Gp_LcgState;
+
 void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3);
 void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3);
 
 INCLUDE_RODATA("pe/nonmatchings/pyrokinesis/pyrokinesis", D_pyrokinesis_8012EF30);
@@ -82,7 +85,48 @@ INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_801304C4
 
 INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_80130848);
 
-INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_80130C54);
+void func_pyrokinesis_80130C54(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s16            temp_a1;
+    s32            y;
+
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (Gp_StateC08.field_3 != -2) {
+        flag = Gp_State1C->field_E;
+        if (flag < 4) {
+            if (flag != 0) {
+                return;
+            }
+            mem->field_22 = (u16)mem->field_22 + 1;
+            if (arg0->state == 0) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = -(((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                arg0->state   = 1;
+            }
+            y                 = coord->coord.t[1] + mem->field_12;
+            coord->flg        = 0;
+            coord->coord.t[1] = y;
+            Gp_UpdateCoord(coord);
+            if (!((u16)mem->field_22 & 1)) {
+                mem->field_20 = (u16)mem->field_20 + 1;
+            }
+            temp_a1 = mem->field_20;
+            if (temp_a1 < 8) {
+                if ((u16)mem->field_22 & 1) {
+                    func_pyrokinesis_80130DC0(coord, temp_a1, 0x300, mem->field_24);
+                }
+                return;
+            }
+        }
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_80130DC0);
 
