@@ -44,7 +44,7 @@ typedef struct _GameSession {
     s8    field_1;
     u8    field_2;
     byte  unknown_3;
-    byte  field_4; // address taken by CdCmd_BuildVlcIfStream
+    u8    field_4; // address taken by CdCmd_BuildVlcIfStream
     u8    field_5; // 1-based index into Gp_ViewCountTables / Gp_RoomCoordTables / Gp_RoomObjTables innermost tables; Gp_ViewIndexTables second level
     u8    field_6;
     u8    field_7;
