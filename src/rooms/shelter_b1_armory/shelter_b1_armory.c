@@ -21,7 +21,7 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", RoomsSh
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017EBEC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8017ED94);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", RoomsShared8017ef24Total);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", RoomsShared8017f31cNotice);
 
