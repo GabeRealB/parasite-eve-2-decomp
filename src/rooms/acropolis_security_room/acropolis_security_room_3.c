@@ -321,4 +321,4 @@ s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y)
     return hit;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", D_acropolis_security_room_8017D63C);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", RoomsShared80180294States);
