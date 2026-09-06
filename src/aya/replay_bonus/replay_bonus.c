@@ -20,7 +20,8 @@ extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
 
-s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
+s32  func_replay_bonus_80118B6C(s32 arg0, s32 index);
+void func_replay_bonus_80117194(Task* arg0);
 
 void func_replay_bonus_801158C0(void)
 {
@@ -258,7 +259,24 @@ void func_replay_bonus_80117924(Task* arg0)
     }
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011797C);
+void func_replay_bonus_8011797C(Task* arg0)
+{
+    TaskFunc states[11] = {
+        func_replay_bonus_80117848,
+        func_replay_bonus_801178C0,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117194,
+        func_replay_bonus_80117924,
+    };
+
+    states[arg0->state](arg0);
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117A08);
 
