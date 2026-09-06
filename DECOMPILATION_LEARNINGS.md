@@ -3,6 +3,42 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `SOFT_TOUCH_REG` the stack-arg pointer after `COPY_REG_EC` so `addiu a3` does not steal an RGB load-delay
+
+Ofuda / healing force an independent call arg (`span = 0xC0; TOUCH_REG(span)`)
+immediately after `COPY_REG_EC(c, coord)`, which emits `move a0, s0` then
+`li a2, 0xC0` and leaves the RGB-half's `srl` to fill `lbu 0x11`'s delay.
+`func_plasma_8012EF34` has no constant span on that path: the 4th arg is
+`&rgb` (`addiu a3, sp, 0x10`). Without an early use, `-fschedule-insns`
+parks that `addiu` in the RGB chain (after `lbu 0x11` / `srl v1`) and the
+leftover is pure `reorder=2`.
+
+A new `u8* color` assigned *before* `COPY_REG_EC`, or `USE_REG(rgb)`
+(volatile, input-only) after it, treats the empty asm as a call boundary
+and saves `&rgb` in a callee-saved (`addiu s2, sp, 0x10` / `move a3, s2`),
+stealing `$s2` from `%hi(Gp_State1C)`. Assign the pointer *after* the
+earlyclobber copy and pin it with the non-volatile form, then pass `color`
+to the call:
+
+```c
+c = coord;
+COPY_REG_EC(c, coord);
+color = rgb;
+SOFT_TOUCH_REG(color);
+r      = rgb[0];
+b      = rgb[2];
+rgb[0] = r >> 1;
+SOFT_COMPILER_BARRIER();
+g      = rgb[1];
+rgb[2] = b >> 1;
+rgb[1] = g >> 1;
+func(..., color);
+```
+
+`addiu a3` now sits next to `move a0, s0`. Case 2 of the same function
+already wanted the late `addiu` (paired with `lh a1`) and must not get
+this hoist.
+
 ## Independent `flags = 1` is hoisted into a long mul; put it after the jal-delay store
 
 `Gp_LinkObj` wants `sh flags, 0x1E` immediately before the `jal` and the

@@ -23,6 +23,24 @@ typedef struct PlasmaRingScratch {
 } PlasmaRingScratch;
 STATIC_ASSERT_SIZEOF(PlasmaRingScratch, 0x1C);
 
+/// Three 16-entry LCG columns used as per-vertex jitter. `func_plasma_8012EF34`
+/// refills them on state 0 by walking an `s16*` across the object so stores
+/// land at 0x00 / 0x20 / 0x40; `func_plasma_8012F568` consumes column `arg2`.
+typedef struct PlasmaJitter {
+    /* 0x00 */ s16 a;
+    /* 0x02 */ s16 pad_a[15];
+    /* 0x20 */ s16 b;
+    /* 0x22 */ s16 pad_b[15];
+    /* 0x40 */ s16 c;
+    /* 0x42 */ s16 pad_c[15];
+} PlasmaJitter;
+STATIC_ASSERT_SIZEOF(PlasmaJitter, 0x60);
+
+/// `SndEvt` ids for the plasma ring, indexed by `Gp_StateC08.field_0 % 10 - 1`.
+extern s32 D_plasma_8012FF48[];
+
+extern PlasmaJitter D_plasma_8012FF54;
+
 /// Projects `arg0`'s world position and queues sixteen gouraud `POLY_G4`
 /// wedges forming a ring around it. `arg1` is the inner half-extent and
 /// `arg2` the extra outer width; the on-screen radii are
