@@ -426,7 +426,93 @@ void func_apobiosis_8012FE10(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("pe/nonmatchings/apobiosis/apobiosis", func_apobiosis_8013017C);
+/// One textured shard of the apobiosis burst. Projects `arg0`'s world
+/// position through `GsWSMATRIX` with a single `RTPS` and, when the flag comes
+/// back non-negative, queues one semi-transparent `POLY_FT4` at the projected
+/// point. `arg1 % 6` picks one of the six 0x28-wide frames on tpage 0x2A - the
+/// caller passes the shard's life counter, so the sprite animates - and `arg2`
+/// sizes it: the corners sit `arg2 * 0x27 / otz` from the centre along `arg3`
+/// and `arg3 + 0x400`, so the shard shrinks with depth and spins with `arg3`.
+/// The CLUT is 0x4293 except on the widest combo row
+/// (`Gp_StateC08.field_0 % 10 - 1 == 2`), where one draw in four rolls the
+/// brighter 0x42C9 palette. Same shape as the shared `PeShared8012fb14` flame
+/// quad, which uses a fixed CLUT and 0x20-wide frames.
+void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s16              frame;
+    s32              u0;
+    s32              u1;
+    s32              ang2;
+    u16              vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *(u8* volatile*)scratch;
+    {
+        register u16 vx asm("v0");
+        vx                                        = *(volatile u16*)&arg0->workm.t[0];
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x1C;
+        block = (GpFxQuadScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyFT4(prim);
+        setSemiTrans(prim, 1);
+        setShadeTex(prim, 1);
+        prim->tpage = 0x2A;
+        if ((u16)(Gp_StateC08.field_0 % 10) - 1 == 2) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                prim->clut = 0x42C9;
+            } else {
+                prim->clut = 0x4293;
+            }
+        } else {
+            prim->clut = 0x4293;
+        }
+        frame = arg1 % 6;
+        u0    = frame * 0x28;
+        u1    = u0 + 0x27;
+        setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
+        block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
+        block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = arg3 + 0x400;
+        block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 /// Draws one apobiosis burst shard as a semi-transparent raw-tex `POLY_FT4`
 /// (tpage 0x28). The effect coordinate's world position and that position plus

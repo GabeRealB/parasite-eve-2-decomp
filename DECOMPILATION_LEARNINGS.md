@@ -52006,3 +52006,55 @@ one *unpinned* way to keep the copy — CSE forwards the stored register and
 `Actor02100_Fn00DCC` matches with. It only works when the target writes the
 scratch head back *before* the first field store; here the write-back comes
 after, and moving it earlier costs more than the copy is worth.
+
+## `if (c) x = A; else x = B;` hoists one constant above the branch: store into the field in each arm instead
+
+Two arms assigning different constants to the *same* local collapse into a
+"preset one value, conditionally override" shape. GCC emits `x = B` inside the
+predecessor block, so the else block disappears and reorg steals what is left
+into the branch's delay slot:
+
+```c
+if (rand & 3) { clut = 0x4293; } else { clut = 0x42C9; }
+prim->clut = clut;
+```
+
+```
+bne    v1,v0,MERGE
+ li    a2,0x4293       <- outer else, hoisted into the delay slot
+...
+beqz   v0,MERGE
+ li    a2,0x42c9
+li     a2,0x4293
+```
+
+The target instead keeps every arm as its own block, with the constant in the
+same register the branch just tested:
+
+```
+bne    v1,v0,L310
+ lui   a1,0x7135       <- delay slot filled from the fall-through instead
+...
+bnez   v0,MERGE
+ li    v0,0x4293
+j      MERGE
+ li    v0,0x42c9
+L310:
+li     v0,0x4293
+MERGE:
+sh     v0,0xe(s3)
+```
+
+Write the store into each arm rather than assigning a shared local:
+
+```c
+if (rand & 3) { prim->clut = 0x4293; } else { prim->clut = 0x42C9; }
+```
+
+With no common pseudo there is nothing to hoist, so the blocks stay distinct.
+The three `sh` insns become identical once reload has given each `li` the same
+hard register, and post-reload cross-jumping merges them back into the single
+store at the merge point - which is also why the store lands *first* in the
+merge block instead of being sunk by `sched2`. The constant now lives in the
+register the branch reads (`$v0`), so reorg cannot lift the else arm into the
+delay slot and fills it from the fall-through side, as the target does.
