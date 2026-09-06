@@ -18,3 +18,4 @@ RoomsShared8017d638Flag = 0x80185D34; // shared body data, see src/rooms/lib/
 RoomsShared8017d638Msg = 0x80185D2C; // shared body data, see src/rooms/lib/
 RoomsShared8017d638Req = 0x80185D48; // shared body data, see src/rooms/lib/
 RoomsShared8017d638Desc = 0x8018308C; // shared body data, see src/rooms/lib/
+RoomsShared80181f58 = 0x80180FC4; // shared body, see src/rooms/lib/
