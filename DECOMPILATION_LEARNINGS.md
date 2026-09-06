@@ -50927,3 +50927,63 @@ past a non-volatile one, so both scored 99.779% on their own and 100% together.
 Also worth knowing for this family: making the boosted pseudo multi-set (the
 "pseudo set twice" trick) fixes the order too, but every free spot for a second
 write to `$t0` is gone, so it costs two register diffs elsewhere.
+
+## Back-to-back stores to the same global: GCC deletes all but the last
+
+An LCG-style chain that advances a global two or three times in a row is the
+common case. Writing it the obvious way loses stores:
+
+```c
+rng2        = rng1 * 5 + 0x71357911;
+rng3        = rng2 * 5 + 0x71357911;
+Gp_LcgState = rng2;                 /* deleted */
+Gp_LcgState = rng3;
+```
+
+The target has one `sw %lo(Gp_LcgState)` per step, the compiled version one
+fewer, and the missing store shows up as a `delete` penalty in the middle of an
+otherwise register-perfect block. Interleaving the assignments is *not* enough
+either - `Gp_LcgState = rng2; rng3 = rng2 * 5 + …; Gp_LcgState = rng3;` still
+has nothing but register arithmetic between the two stores, so the first is
+still dead.
+
+What keeps a store alive is a **memory reference between it and the next store
+to the same location**. In practice the surrounding statement that consumes the
+intermediate value is that reference, so put it where it belongs:
+
+```c
+rng2          = rng1 * 5 + 0x71357911;
+Gp_LcgState   = rng2;
+mem->field_24 = Table[mem->field_20].field_8 + (((u32)rng2 >> 16) & 0x1FF);
+rng3          = rng2 * 5 + 0x71357911;
+Gp_LcgState   = rng3;
+mem->field_26 = ((u32)rng3 >> 16) & 0xFFF;
+```
+
+The scheduler then hoists both `sw`s back together ahead of the loads, which is
+what the target looks like, and the pair of `sh`s lands in source order.
+`func_antibody_8012F734` went 84% -> 88.5% on this one change; giving each
+`rng` value its own local (rather than reusing one `rng` across all switch
+arms) took the same function from 88.5% to 99.4%.
+
+## `break` in the last switch case makes `default` fall into the code after it
+
+A `switch` with no `default:` still has one, and it targets whatever follows the
+switch statement. If the target's dispatch jumps straight to the epilogue for
+an unhandled value, a shared tail written *after* the switch is wrong:
+
+```c
+switch (arg0->state) {
+    …
+    case 3: …; break;
+}
+if (mem->field_22 >= 0x15) {        /* default reaches this - the target's does not */
+    Gp_ReleaseState1CMem(mem, arg0);
+}
+```
+
+Move the tail inside the switch and `goto` it from the other arm that shares
+it. Besides the control flow, the extra edge changes branch prediction in
+`reorg`, so the fix can also flip a delay slot: here it restored the `nop`
+GCC leaves in the `beqz` of the case-dispatch tree, and took the function from
+99.4% to 100%.
