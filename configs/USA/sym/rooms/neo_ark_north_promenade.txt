@@ -19,3 +19,5 @@ RoomsShared8017e4f8Fade = 0x8017F2E0; // shared body callee, see src/rooms/lib/
 RoomsShared8017fdd4 = 0x8017FDD4; // shared body, see src/rooms/lib/
 RoomsShared8017fdd4Ring = 0x801804A4; // shared body callee, see src/rooms/lib/
 RoomsShared8017fdd4Fade = 0x801813A8; // shared body callee, see src/rooms/lib/
+RoomsShared8017e890 = 0x8017E890; // shared body, see src/rooms/lib/
+RoomsShared8017e890Draw = 0x8017EA3C; // shared body callee, see src/rooms/lib/

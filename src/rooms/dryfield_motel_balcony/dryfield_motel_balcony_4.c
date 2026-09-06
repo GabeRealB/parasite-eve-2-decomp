@@ -16,7 +16,7 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-extern void func_dryfield_motel_balcony_8017EF44(GsCOORDINATE2* arg0, s16 arg1);
+extern void RoomsShared8017e890Draw(GsCOORDINATE2* arg0, s16 arg1);
 extern void Room_Draw09(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 extern void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
