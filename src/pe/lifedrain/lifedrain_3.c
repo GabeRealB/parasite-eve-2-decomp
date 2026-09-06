@@ -6,20 +6,7 @@
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// Per-level band row. `field_2` is the starting inner radius (also the per-frame
-/// inner/outer step); `field_4` is the starting outer radius. Indexed by
-/// `(Gp_StateC08.field_0 % 10) - 1`.
-typedef struct LifeDrainScale {
-    /* 0x0 */ s16 unk0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ s16 unk6;
-    /* 0x8 */ s16 unk8;
-} LifeDrainScale;
-STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
-
-extern LifeDrainScale D_lifedrain_80130AB4[];
+#include "pe/lifedrain.h"
 
 void func_lifedrain_801308C0(Task* arg0)
 {

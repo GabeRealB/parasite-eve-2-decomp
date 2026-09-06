@@ -51146,3 +51146,47 @@ that keeping the address costs nothing. So when a copied state-machine body
 leaves `regs` spread over the prologue plus a couple of stray `lui`/`addiu`
 insert/delete penalties around a global's later field, try both spellings
 before looking anywhere else.
+
+
+## Repeated stores to a fixed-address global survive only if a struct store sits between them
+
+`func_lifedrain_8012FAF8` seeds three drift components from three LCG steps and
+the ROM keeps *all three* `sw $aN, %lo(Gp_LcgState)($t1)` back to back, right
+before the `sh` of the next field. Writing that literally,
+
+```c
+rng1 = Gp_LcgState * 5 + 0x71357911;
+rng2 = rng1 * 5 + 0x71357911;
+rng3 = rng2 * 5 + 0x71357911;
+mem->field_10 = 0x40   - (((u32)rng1 >> 16) & 0x7F);
+mem->field_12 = 0xFFE0 - (((u32)rng2 >> 16) & 0x3F);
+mem->field_14 = 0x40   - (((u32)rng3 >> 16) & 0x7F);
+Gp_LcgState = rng1;
+Gp_LcgState = rng2;
+Gp_LcgState = rng3;
+```
+
+emits only the last store. `flow.c` tracks `last_mem_set` and deletes a store
+when an identical store follows it with **no intervening memory reference at
+all**, so three adjacent writes to one global collapse to one.
+
+Interleaving them the way the source must have read keeps all three:
+
+```c
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_12 = 0xFFE0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+```
+
+The `sh` between each pair blocks the deletion, CSE still folds each reload
+into the previous step's register, and the scheduler then puts the three `sw`s
+back together anyway: a fixed-address scalar and a varying `MEM_IN_STRUCT_P`
+reference do not alias, so `sched` is free to sink them past the field stores.
+
+So a run of N identical stores to a global in the target is *not* evidence that
+the source grouped them — it is evidence that it did **not**. Spread the
+assignments across the statements that consume them and let the scheduler
+regroup.
