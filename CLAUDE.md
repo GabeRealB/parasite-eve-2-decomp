@@ -189,6 +189,14 @@ first object are indistinguishable in the ROM, so the `_hdr.c` form is chosen
 because it matches, not because the original was split that way. Do not treat
 it as evidence about the original sources.
 
+**A room's index in `Gp_AreaTables` is its folder order in `stages.json`.**
+`Gp_AreaTables[stage][room]` is resident in gameplay, but `field_0` points *into*
+the room overlay, so resolving it needs both images mapped at once - gameplay at
+`0x80093800` and the room at `0x8017D5C0`. The room index is 1-based and matches
+the order the folders appear under `stageN.folders`; checked against stage 1,
+all 8 sampled rooms resolve into their own package. `tools/find_models.py`
+documents the wider model-reference chain this belongs to.
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the
