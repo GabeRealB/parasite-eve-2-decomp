@@ -17,7 +17,7 @@
 
 extern s16                   D_acropolis_bridge_801915E4[][6];
 extern char                  D_acropolis_bridge_8017D6CC[];
-extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
+extern GpEnemyTaskFuncTable3 RoomsShared80183c10Table;
 extern u16                   D_acropolis_bridge_80190C60;
 /// State handler table the per-frame tick dispatches through on
 /// `AcropolisBridgeEnemyWork::field_0`.
@@ -2166,17 +2166,4 @@ void func_acropolis_bridge_80187D04(Task* task)
     if (extra->field_18 != NULL) {
         Tmd_FreeBuffers(extra);
     }
-}
-
-/// Runs the bridge enemy's current state handler: spawn/setup
-/// (`func_acropolis_bridge_80185988`), per-frame tick
-/// (`func_acropolis_bridge_80187850`) or teardown (`Gp_DestroyEnemy`). The
-/// table is copied onto the stack before the call, as everywhere else this
-/// dispatch shape appears.
-void func_acropolis_bridge_80187D80(Task* task)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_acropolis_bridge_8017D6E8;
-    sp.funcs[task->state](task->spawnArg2, task);
 }

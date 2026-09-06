@@ -355,4 +355,4 @@ void func_acropolis_bridge_801833A0(GsCOORDINATE2* coord, u16 frame, s16 size)
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_10", D_acropolis_bridge_8017D6CC);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_10", D_acropolis_bridge_8017D6E8);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_10", RoomsShared80183c10Table);

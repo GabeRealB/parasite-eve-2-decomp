@@ -40,6 +40,6 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183AD4);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183C10);
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", RoomsShared80183c10Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", jtbl_mine_cavern_8017D818);
