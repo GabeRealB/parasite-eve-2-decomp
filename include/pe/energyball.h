@@ -48,6 +48,12 @@ STATIC_ASSERT_SIZEOF(EnergyQuadScratch, 0x1C);
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
 void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 
+/// Overlay copy of `Gp_DrawRing` with a flat tint: an eight-segment gouraud
+/// ring at `arg0`'s world position, radius `arg1 * 64 / otz`, lit only at the
+/// centre with `(arg2 / 2, arg2, arg2 / 2)`, each wedge given the
+/// semi-transparent tpage of `Gp_AddTpageShift`.
+void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_energyball_801307D4`
 /// for the ground-plane quad. `vec` holds the four corners of the unit quad
 /// `D_80111E38`, scaled to the caller's half-size, rotated flat by

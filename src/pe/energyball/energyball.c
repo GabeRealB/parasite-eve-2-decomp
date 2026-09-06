@@ -75,7 +75,84 @@ INCLUDE_RODATA("pe/nonmatchings/energyball/energyball", D_energyball_8012EF30);
 
 INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_8012F180);
 
-INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_8012FFD0);
+/// Overlay copy of `Gp_DrawRing` with a flat tint: draws an eight-segment
+/// gouraud ring centred on `arg0`'s world position. The position is projected
+/// through `GsWSMATRIX` by one `RTPS` and the ring is dropped when that sets a
+/// negative `gte_stflg`. `arg1` is the radius in world units (scaled by 64 and
+/// divided by the projected OTZ) and `arg2` the brightness: only the inner
+/// vertex of each `POLY_G4` is lit, `(arg2 / 2, arg2, arg2 / 2)`, so every
+/// wedge fades from green at the centre to black at the rim. Each wedge gets
+/// the semi-transparent tpage of `Gp_AddTpageShift` at its OTZ.
+void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+{
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_G4*       prim;
+    s32            ang;
+    register s32   ang2 asm("s1");
+    s16            color;
+    s32            half;
+    u16            vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    color   = arg2;
+    head    = *scratch;
+    USE_REG(head);
+    {
+        register u16 vx asm("v0");
+        vx                                      = *(u16*)&arg0->workm.t[0];
+        ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x18;
+        block = (GpRingScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        USE_REG(head);
+        block->otz++;
+        block->step = (arg1 * 64) / block->otz;
+        half        = arg2 >> 1;
+        ang         = 0;
+        do {
+            prim           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, half, color, half);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+            ang2     = ang + 0x100;
+            prim->x1 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x2 = *(u16*)&block->sx;
+            prim->y2 = *(u16*)&block->sy;
+            ang2     = ang + 0x200;
+            prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            ang      = ang2;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        } while (ang < 0x1000);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 /// Links one frame of the energy ball's core sprite at `arg0`'s world
 /// position. The position is projected through `GsWSMATRIX` by a single `RTPS`
