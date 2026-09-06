@@ -141,7 +141,41 @@ release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("pe/nonmatchings/inferno/inferno", func_inferno_8012F3EC);
+/// Full-screen wash quad drawn by the inferno cast: an unshaded `POLY_F4`
+/// covering the 320x240 view in `arg0` / `arg0 >> 1` / `arg0 >> 2` red-amber,
+/// added to OT slot 0x30 and followed by a shifted-tpage semi-trans packet.
+void func_inferno_8012F3EC(s16 arg0)
+{
+    POLY_F4*      p;
+    DisplayState* ds;
+    s32           x0;
+    s32           x1;
+    s32           yTop;
+    s32           yBot;
+    s32           z;
+
+    ds   = &Display_State;
+    x0   = -0xA0;
+    x1   = 0xA0;
+    yTop = -0x78;
+    yBot = 0x78;
+    z    = 0x30;
+
+    p              = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    setPolyF4(p);
+    setRGB0(p, arg0, arg0 >> 1, arg0 >> 2);
+    p->x0 = x0;
+    p->y0 = yTop - ds->vramYOffset;
+    p->x1 = x1;
+    p->y1 = yTop - ds->vramYOffset;
+    p->x2 = x0;
+    p->y2 = yBot - ds->vramYOffset;
+    p->x3 = x1;
+    p->y3 = yBot - ds->vramYOffset;
+    addPrim((u_long*)(((((u32)z << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), p);
+    Gp_AddTpageShift((P_TAG*)p, 1, z);
+}
 
 INCLUDE_RODATA("pe/nonmatchings/inferno/inferno", D_inferno_8012EF68);
 

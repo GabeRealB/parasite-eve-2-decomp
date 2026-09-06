@@ -52312,3 +52312,27 @@ constants through CSE, so their `li`s are one pseudo each; placing the calls
 early sorts those `li`s ahead of the `andi` at the top of the block, while
 sched2 still sinks the `sb`s back to where the source puts them. That was the
 last 0.4%.
+
+## Strip a give-up seed's barriers and volatile casts before reading its dumps
+
+`func_inferno_8012F3EC`'s archived seed scored 98.5% with `reorder=2`: the
+target hoists the `lui a3, 0xFF` half of `0xFFFFFF` (`addPrim`'s address mask)
+to the second instruction of the function, and the seed emitted it right
+before the `ori`, twenty instructions down. The seed had fenced each
+`p->yN = -0x78 - Display_State.vramYOffset` store with a
+`SOFT_COMPILER_BARRIER()` and read the offset through
+`(s8) * (volatile u8*)&ds->vramYOffset`, presumably to stop the four `lbu`s
+from being CSE'd or the stores from floating.
+
+Neither was needed. `vramYOffset` is an `s8` field whose reloads survive on
+their own — every `sh` through `p` may alias it, so CSE cannot merge them —
+and the matched `Gp_DrawFadeQuad` in `gameplay/3CD8_9CC8.c` writes the same
+quad with plain loads. Written that way the function is one block, `lui` is
+ready at entry and list scheduling puts it there; 100% on the first attempt.
+
+The seed's scaffolding was the whole leftover. MATCH_LOOP says to unpin a
+pinned seed and rescore first; treat `SOFT_BARRIER` / `SOFT_COMPILER_BARRIER`
+and `volatile` casts the same way — each one is a scheduling fence
+(`sched_analyze` orders everything around an `ASM_INPUT`), so a `%hi` or
+split-constant `lui` that the target hoists to the prologue cannot cross it.
+Rewrite from the nearest matched sibling's shape, then look at dumps.
