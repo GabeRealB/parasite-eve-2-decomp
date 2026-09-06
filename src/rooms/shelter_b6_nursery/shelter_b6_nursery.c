@@ -1,34 +1,50 @@
 #include "common.h"
-#include "gameplay/3688.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/task.h"
-#include "main/ui.h"
-#include "rooms/room_common.h"
 #include <psyq/libgte.h>
+#include "main/fs.h"
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
 
-extern UiList       RoomsShared8017e8b4List;
+#include "rooms/rooms_shared_8017f388.h"
+
+extern u8           RoomsShared8017f114Msg[];
+extern u8           D_shelter_b6_nursery_80184CC4[];
+extern u8           D_shelter_b6_nursery_80184CD0[];
+extern UiObjectDesc D_800611E4;
+extern u8           D_80071086;
+extern UiObjectDesc D_shelter_b6_nursery_80184F70;
+extern char         RoomsShared8017ef20Title[];
+extern UiList       RoomsShared8017ef20List;
 extern UiObjectDesc RoomsShared8017e8b4Desc;
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017ef20Title);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017de9cHundred);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017e8b4WeaponTitle);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017e8b4PeTitle);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017ea68Title);
-void func_shelter_b6_nursery_8017EDBC(Task* task)
-{
-    UiObject* obj;
 
-    obj           = task->spawnArg2;
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Wip_UiHolder       = (WipUiHolder*)obj;
-        task->exitCallback = Room_SaveUi01;
-        task->state       += 1;
+void func_shelter_b6_nursery_8017F254(DialogPrompt* prompt, UiObject* obj)
+{
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CC4, prompt->field_1C, 1, 0);
+    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        SndEvt_EnqueueType6(0x16, 0, 0);
+        Ui_SpawnFromDesc(&D_shelter_b6_nursery_80184F70, 0, 1, 1, obj);
+        obj->field_2E     = 6;
+        obj->status       = 0;
+        obj->owner->state = 2;
     }
-    Gp_DrawPromptLines(obj, task);
+}
+
+void func_shelter_b6_nursery_8017F31C(DialogPrompt* prompt, UiObject* obj)
+{
+    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b6_nursery_80184CD0, prompt->field_1C, 1, 0);
+    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        SndEvt_EnqueueType6(0x16, 0, 0);
+        Ui_SpawnFromDesc(&RoomsShared8017f388Desc, 0, 1, 1, obj);
+        obj->field_2E     = 6;
+        obj->status       = 0;
+        obj->owner->state = 2;
+    }
 }

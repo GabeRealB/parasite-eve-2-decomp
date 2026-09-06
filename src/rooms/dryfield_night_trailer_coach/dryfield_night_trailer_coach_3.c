@@ -1,5 +1,14 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", func_dryfield_night_trailer_coach_80181B1C);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", func_dryfield_night_trailer_coach_80181BE4);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", func_dryfield_night_trailer_coach_8018231C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", func_dryfield_night_trailer_coach_8018243C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_3", func_dryfield_night_trailer_coach_80182610);
+
+s32 func_dryfield_night_trailer_coach_801826A0(void)
+{
+    return 0;
+}

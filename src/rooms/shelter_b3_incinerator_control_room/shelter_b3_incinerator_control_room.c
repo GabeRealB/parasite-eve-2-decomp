@@ -1,12 +1,7 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017ef20Title);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", func_shelter_b3_incinerator_control_room_8017F1F4);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017de9cHundred);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", func_shelter_b3_incinerator_control_room_8017F2BC);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017e8b4WeaponTitle);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017e8b4PeTitle);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017ea68Title);
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", func_shelter_b3_incinerator_control_room_8017ED5C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017d878Table);

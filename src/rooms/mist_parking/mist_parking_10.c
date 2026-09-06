@@ -1,127 +1,45 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
+#include "main/stream.h"
 #include "main/task.h"
-#include "main/tmd.h"
-#include "main/ui.h"
 
-#include "rooms/room_common.h"
+extern s32 D_mist_parking_8018F4AC;
+extern s32 D_mist_parking_8018F5E4;
+extern s32 D_mist_parking_8018FA4C;
+extern s32 D_mist_parking_8018FB3C;
+extern s32 D_mist_parking_8019531C;
 
-extern s16      D_80071076;
-extern u8*      D_mist_parking_8018DF24[4];
-extern Task*    D_mist_parking_80195320;
-extern TaskDesc RoomsShared8018397cDesc;
-extern TaskDesc RoomsShared8017e5b8Desc;
-
-void func_mist_parking_801830F8(void)
+void func_mist_parking_8018345C(Task* arg0)
 {
-}
-
-void func_mist_parking_80183100(s32 arg0)
-{
-    Gp_StartCapSlot(arg0 >> 16, 0, arg0);
-}
-
-void func_mist_parking_8018312C(s32 arg0)
-{
-    Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, arg0, 0);
-    Game_Session->field_64 = 1;
-}
-
-void func_mist_parking_8018316C(s32 arg0)
-{
-    Mc_SaveData.field_7 = 1;
-    Mc_SaveData.field_8 = 1;
-    Mc_SaveData.field_5 = 1;
-    Mc_SaveData.field_6 = arg0;
-    D_80071076          = 1;
-    SndEvt_EnqueueType7(0x80000000, 0);
-    Task_Spawn(0, 0x11, 0, 0);
-    if (arg0 == 5) {
-        Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
-    }
-}
-
-void func_mist_parking_801831F0(s32 arg0)
-{
-    Task**     slot;
-    Task*      task;
-    TmdObject* obj;
-
-    if (arg0 == 0) {
-        slot = &D_mist_parking_80195320;
-    } else {
-        slot = NULL;
-    }
-
-    if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, arg0, 0, 0);
-        *slot = task;
-        if (task != NULL) {
-            obj           = (TmdObject*)task->extra;
-            obj->field_C &= ~0x80;
-        }
-    }
-}
-
-void func_mist_parking_8018326C(s32 arg0)
-{
-    if (arg0 == 0) {
-        if (D_mist_parking_80195320 != NULL) {
-            Task_Kill(D_mist_parking_80195320);
-        }
-        D_mist_parking_80195320 = NULL;
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_10", func_mist_parking_801832AC);
-
-void func_mist_parking_80183304(Task* arg0)
-{
-    RoomTextBlock* block;
-    TextLineNode*  node;
-    u8**           line;
-    s32            table;
-    s32            off;
-    s32            mode;
-    s32            i;
-
-    block = Mem_Calloc(sizeof(RoomTextBlock), 0);
-    node  = block->lines;
-    if (block == NULL) {
-        Task_Kill(arg0);
-        return;
-    }
-
-    i                  = 0;
-    mode               = 1;
-    line               = D_mist_parking_8018DF24;
-    table              = (s32)D_mist_parking_8018DF24;
-    off                = 8;
-    arg0->idMap        = (TaskIdMap*)block;
-    arg0->exitCallback = Room_Script21;
-
-    for (; i < 2; i++) {
-        if (arg0->spawnArg1 == mode) {
-            node->text = *(u8**)(off + table);
+    if (Game_Session->field_1 == 0 && Gp_CapBusy() == 0) {
+        if (D_mist_parking_8019531C == 2) {
+            func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
         } else {
-            node->text = *line;
+            func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
         }
-        node->next = node + 1;
-        node++;
-        line++;
-        off += 4;
+        Task_Kill(arg0);
     }
-    node[-1].next = NULL;
+}
 
-    block->desc.count   = 2;
-    block->desc.lines   = block->lines;
-    block->desc.field_8 = 0;
-    block->field_C      = 0;
-    Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
-    arg0->state++;
+void func_mist_parking_801834D4(Task* arg0)
+{
+    if (Game_Session->field_1 == 0 && Gp_CapBusy() == 0) {
+        if (D_mist_parking_8019531C == 2) {
+            func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
+        } else {
+            func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
+        }
+        Task_Kill(arg0);
+    }
 }

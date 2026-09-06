@@ -1,12 +1,7 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017ef20Title);
+INCLUDE_ASM("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", func_shelter_1f_tent_8017F1F0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017de9cHundred);
+INCLUDE_ASM("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", func_shelter_1f_tent_8017F2B8);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017e8b4WeaponTitle);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017e8b4PeTitle);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017ea68Title);
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", func_shelter_1f_tent_8017ED58);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017d878Table);

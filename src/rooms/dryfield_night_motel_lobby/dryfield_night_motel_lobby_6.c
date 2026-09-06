@@ -1,12 +1,7 @@
 #include "common.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/3CD8.h"
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_801802A8);
 
-#include "main/gameflag.h"
-#include "main/task.h"
-extern s32 D_dryfield_night_motel_lobby_801844D4;
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_80180440);
 
-extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_8017FE90);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_6", func_dryfield_night_motel_lobby_80180734);
