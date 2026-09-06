@@ -273,7 +273,32 @@ void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, price >> 1), 0x606060, 3, 2);
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801177A0);
+s32 func_replay_bonus_801177A0(void)
+{
+    ReplayBonusShopTier* tier;
+    s16*                 p;
+    s32                  j;
+    s32                  sum;
+    s32                  i;
+
+    sum  = 0;
+    tier = D_replay_bonus_80118F78;
+    i    = sum;
+    do {
+        j = 0;
+        p = (s16*)tier;
+        do {
+            sum += Gp_ItemDescs[p[2]].price;
+            p++;
+            j++;
+        } while (j < 3);
+        i++;
+        tier++;
+    } while (i < 0xD);
+    sum += 0x1869F;
+    sum  = sum / 100000;
+    return sum * 0x186A0;
+}
 
 void func_replay_bonus_80117848(Task* arg0)
 {
