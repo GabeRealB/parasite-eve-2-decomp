@@ -204,27 +204,4 @@ INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_8012F5EC);
 
 INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_8012F888);
 
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_8012FB14);
-
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_8012FF0C);
-
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_80130184);
-
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_801305F8);
-
-void func_combustion_801308E0(Task* arg0)
-{
-    GsCOORDINATE2* coord;
-
-    if (arg0->state != 0) {
-        Gp_ReleaseState1CMem(arg0->spawnArg2, arg0);
-        return;
-    }
-    coord = ((TmdObject*)arg0->extra)->field_8;
-    Gp_UpdateCoord(coord);
-    Gp_SpawnEff(0x8006001B, coord, 1, 0);
-    Gp_SpawnEff(0x8006001B, coord, -1, 0);
-    arg0->state = arg0->state + 1;
-}
-
 INCLUDE_RODATA("pe/nonmatchings/combustion/combustion", D_combustion_8012EF30);

@@ -3851,6 +3851,17 @@ overlays holding it two or three times each, plus the already-promoted
 `ActorsShared801366fc`. Run `promote` before believing the brief; when it
 refuses, land the body in the overlay's own `.c`.
 
+**`promote` assumes every carrier already has a symbol map, and dies with a
+bare `FileNotFoundError` when one does not.** `configs/USA/sym/<family>/<name>.txt`
+exists only for overlays that already carry a shared body, so the *first*
+promotion into a pair of untouched overlays (`pe/combustion` and
+`pe/pyrokinesis`) aborts on `read_text` before it writes anything. Create the
+file for each carrier with just its header comment - `// Overlay-local symbols
+for <name>.` - and re-run; `promote` appends the `PeShared<addr> = 0x...;` line
+itself. The template lists `symbol_addrs_path` unconditionally and splat
+tolerates the file being absent, which is why the gap goes unnoticed until a
+promotion needs it.
+
 **`promote` picks the shared unit name from whichever already-promoted copy
 sorts first, and only finds the file by looking for a *call-shaped* occurrence
 of that symbol.** A copy under `<family>/lib` that is still `INCLUDE_ASM`

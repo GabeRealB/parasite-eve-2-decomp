@@ -1,0 +1,2 @@
+// Overlay-local symbols for pyrokinesis.
+PeShared8012fb14 = 0x80130DC0; // shared body, see src/pe/lib/

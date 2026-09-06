@@ -1,0 +1,2 @@
+// Overlay-local symbols for combustion.
+PeShared8012fb14 = 0x8012FB14; // shared body, see src/pe/lib/
