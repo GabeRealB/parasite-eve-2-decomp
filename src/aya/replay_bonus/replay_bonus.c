@@ -191,7 +191,27 @@ void func_replay_bonus_80118D7C(Task* arg0)
     func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1) & 0xFF);
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118E3C);
+void func_replay_bonus_80118E3C(Task* arg0)
+{
+    s32 temp_v1;
+    u16 temp_v0;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            arg0->killCountdown = 0;
+            arg0->state        += 1;
+            break;
+        case 1:
+            temp_v0             = arg0->killCountdown + 1;
+            arg0->killCountdown = temp_v0;
+            if ((s16)temp_v0 >= arg0->spawnArg1) {
+                Task_Kill(arg0);
+            }
+            break;
+    }
+    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1) & 0xFF);
+}
 
 void func_replay_bonus_80118F00(s32 arg0)
 {
