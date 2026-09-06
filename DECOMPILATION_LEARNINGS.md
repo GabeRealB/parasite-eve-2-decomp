@@ -52904,3 +52904,59 @@ directions: use an initializer to nail the prologue saves to the top, use
 assignments to let them drift into the body. Read the block's `.sched2` dump
 for the clobber insn (`clobber (mem/s:BLK ...)`) before guessing which side a
 mismatch is on.
+
+## A `Gp_DispatchMsg` handler takes four arguments even when it reads two
+
+Overlay message handlers are reached through a `{ u32 msgId, TaskFunc }` table
+in the overlay's data (`D_actor_323000_801739D0`), and `Gp_DispatchMsg(Task*,
+s32 msgId, s32 payload, s32)` calls the entry with all four registers live. A
+handler that only touches the task and the payload therefore reads `$a0` and
+`$a2` with nothing in between, and m2c — which names parameters by the
+registers it sees — emits a two-parameter function, putting the payload in
+`$a1`:
+
+```c
+s32 handler(void *arg0, void *arg2) { ... }   /* lhu v0,4(a1) */
+```
+
+That scores 99.9% with `stack=1` and one wrong register, and no amount of
+reshaping the body fixes it. Write the declared ABI instead, leaving the
+unread arguments in place:
+
+```c
+s32 handler(Task* arg0, s32 arg1, MsgPayload* arg2, s32 arg3)
+```
+
+`func_actor_335800_8016354C` and `ActorsShared80164af0` are both this shape.
+When the object dump differs from the target only by an argument register —
+`$a1` where the target has `$a2`, or `$a2` where it has `$a3` — check the
+caller's arity before touching the body: the fix is usually a parameter the
+function never reads.
+
+## Promoting a body from mid-text splits the unit, and the tail keeps its jump table
+
+`overlay_dup_index.py promote` carves the shared span out of every carrier's
+`.text`. When the span sits at the *end* of a carrier's code the split is
+invisible, but when it sits in the middle — `actor_421600`'s copy of
+`ActorsShared80164af0` at file offset `0xC80C`, with 14 functions after it —
+splat cuts a second unit (`actor_421600_2.c`) for the run below the span. Two
+things follow, and neither announces itself:
+
+* splat writes the new unit but **never rewrites the old one**, so both files
+  now declare the tail's functions. The old `.c` still holds whatever bodies
+  were already matched down there, so redistribute the tail by hand — move the
+  matched C definitions into the new unit and truncate the old file — rather
+  than keeping splat's fresh `INCLUDE_ASM`-only skeleton, which silently
+  discards them.
+* the leading `.rodata` is one subsegment owned by the *first* unit, so a
+  compiler-generated jump table belonging to a tail function is suddenly in the
+  wrong object. splat emits it as a standalone `jtbl_*.s` that nothing
+  includes, and the link fails with `undefined reference to jtbl_…`. Add a
+  manifest `rodata` cut at the table's offset naming the new unit
+  (`rodata = [{ start = "0x19C", unit = "actor_421600_2" }]`); splat then
+  embeds the table at the head of its referencing function's `.s`, where the
+  `.L…` targets it points at are also defined.
+
+Plain `INCLUDE_RODATA` in the new unit is not the fix: the cut rodata never
+gets its own object in the linker script, so the include has to come from the
+function `.s` splat generates after the cut.
