@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
-
 #include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80131E2C);
@@ -70,7 +69,10 @@ INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_801332B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_8013332C);
+s32 func_actor_535700_8013332C(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133334);
 
