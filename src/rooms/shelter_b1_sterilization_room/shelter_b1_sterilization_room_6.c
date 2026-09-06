@@ -16,9 +16,3 @@ void func_shelter_b1_sterilization_room_8018118C(s32 arg0)
         Task_SpawnFromTable(&D_shelter_b1_sterilization_room_80188504, arg0, 0, 0);
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_801811E0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80181244);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_801812A0);

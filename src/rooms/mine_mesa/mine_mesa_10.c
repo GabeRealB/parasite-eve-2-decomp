@@ -10,4 +10,4 @@ INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_10", func_mine_mesa_80181800
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_10", func_mine_mesa_80181848);
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa_10", D_mine_mesa_8017D660);
+INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa_10", RoomsShared80181e70Table);

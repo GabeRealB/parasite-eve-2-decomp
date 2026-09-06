@@ -58,4 +58,4 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_2", D_shelter_b1_sterilization_room_8017D700);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_2", RoomsShared80181e70Table);

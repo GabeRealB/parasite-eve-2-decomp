@@ -86,6 +86,6 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
     }
     return 0;
 }
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", D_acropolis_cafeteria_8017D69C);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", RoomsShared80181e70Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", D_acropolis_cafeteria_8017D6AC);

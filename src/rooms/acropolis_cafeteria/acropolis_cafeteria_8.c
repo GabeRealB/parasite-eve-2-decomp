@@ -78,15 +78,3 @@ void func_acropolis_cafeteria_80181E3C(Task* arg0)
     Gp_UnlinkObj(arg0->idMap);
     Task_Kill(arg0);
 }
-
-extern TaskFuncTable4 D_acropolis_cafeteria_8017D69C;
-
-/// Per-frame entry point: runs the task's current state. The table is a local,
-/// so GCC copies it from `.rodata` onto the stack every frame.
-void func_acropolis_cafeteria_80181E70(Task* task)
-{
-    TaskFuncTable4 states;
-
-    states = D_acropolis_cafeteria_8017D69C;
-    states.funcs[task->state](task);
-}

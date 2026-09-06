@@ -306,4 +306,4 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5C4);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5D0);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5DC);
+INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", RoomsShared80181e70Table);

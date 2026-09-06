@@ -10,8 +10,6 @@
 void RoomsShared8017df80(s32 shade);
 void func_mist_r18_8017E144(s16 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_4", func_mist_r18_8017E854);
-
 /// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
 void func_mist_r18_8017E8B8(Task* task)
 {
