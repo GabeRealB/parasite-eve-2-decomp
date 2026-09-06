@@ -18,8 +18,6 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017F398);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", func_dryfield_trailer_coach_8017F660);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", RoomsShared8017ef20Title);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach", RoomsShared8017de9cHundred);

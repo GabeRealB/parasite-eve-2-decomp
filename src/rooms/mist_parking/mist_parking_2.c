@@ -32,7 +32,7 @@ extern u8             D_mist_parking_801864D8[];
 extern u8             D_mist_parking_801864E0[];
 extern u8             D_mist_parking_801864F4[];
 extern u8             D_mist_parking_80186504[];
-extern u8             D_mist_parking_80186524[];
+extern u8             RoomsShared8017f764Amount[];
 extern u8             RoomsShared8017f938Times[];
 extern u8             D_mist_parking_80186718[];
 extern UiListItemFunc D_mist_parking_80186538[];
