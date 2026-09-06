@@ -24,8 +24,6 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trai
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_8017FCDC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", func_dryfield_night_trailer_coach_8017FD98);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", RoomsShared8017ef20Title);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach", RoomsShared8017de9cHundred);

@@ -40,7 +40,7 @@ extern UiList         D_mist_parking_80186540;
 extern UiObjectDesc   D_mist_parking_801865AC;
 extern UiObjectDesc   D_mist_parking_80186654;
 extern UiObjectDesc   D_mist_parking_801865C8;
-extern UiList         D_mist_parking_8018656C;
+extern UiList         RoomsShared8017fe74List;
 extern UiObjectDesc   RoomsShared8017ff9cDesc;
 extern UiObjectDesc   D_mist_parking_80186600;
 extern UiObjectDesc   D_mist_parking_80186670;

@@ -64,3 +64,5 @@ RoomsShared8017df68MapMsg = 0x801844B0; // shared body data, see src/rooms/lib/
 RoomsShared8017df68MapDesc = 0x8018467C; // shared body data, see src/rooms/lib/
 RoomsShared8017df68RowMsg = 0x801844C0; // shared body data, see src/rooms/lib/
 RoomsShared8017df68BuyDesc = 0x80184628; // shared body data, see src/rooms/lib/
+RoomsShared8017fe74 = 0x8017FD98; // shared body, see src/rooms/lib/
+RoomsShared8017fe74List = 0x801845B0; // shared body data, see src/rooms/lib/
