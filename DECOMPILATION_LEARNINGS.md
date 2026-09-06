@@ -50109,3 +50109,72 @@ both halves. The link then fails with `multiple definition`, which is the good
 case; a body that no longer matches the `func_` pattern and sits between two
 chunks is dropped instead. Chunk on the promoted names too, or re-check the
 function set of the two halves against the original before building.
+
+## A body's own string literal is shareable; a stack-materialised initialiser is not
+
+The refusal recorded above ("A shared body's constants are part of the object")
+is right about `func_acropolis_patio_8017E324` and too strong as a rule. What
+decides it is not where the data sits but **how the body reaches it**. A
+`const char*` handed to a callee compiles to `lui %hi(sym)` / `addiu %lo(sym)`,
+and an `extern` array compiles to exactly the same two instructions, so
+replacing the literal with an alias is byte-for-byte free:
+
+```c
+Ui_DrawText((UiPanel*)obj, "Telephone\000\001");   /* one room's bytes  */
+Ui_DrawText((UiPanel*)obj, RoomsShared8017ea68Title);  /* every room's */
+```
+
+`RoomsShared8017ea68` is the worked case: nineteen rooms hold "Telephone\0"
+followed by two bytes of unrelated room rodata, so the literal differs in every
+one of them - and the promotion still went through, because each room keeps its
+own twelve bytes as an `INCLUDE_RODATA` blob and the shared object only names
+them. The patio lamp could not do that because its three levels are a *local
+array*, which GCC copies onto the stack; an extern turns seven instructions
+into three and the length changes.
+
+So the question to ask of a differing constant is "does the body load its
+address, or its contents?". Address: alias it. Contents materialised on the
+stack: skip the promotion.
+
+## Which way a promotion renumbers an overlay depends on where the body sat
+
+`promote` splits `.text` at the body, and the four positions give four different
+edits to `src/<family>/<ov>/`:
+
+| body's place in its unit | effect |
+|---|---|
+| first function | unit keeps its name and start moves; **nothing renumbers** |
+| last function | unit keeps its name and end moves; **nothing renumbers** |
+| middle | unit splits; the tail becomes `<name>_<n+1>` and every later unit shifts **up** |
+| the whole unit | the unit disappears and every later unit shifts **down**, the base name passing to its successor |
+
+All four came up in one batch of eight promotions over the same nineteen rooms,
+because each promotion changes where the *next* one's body sits. Do not carry a
+rename map from one promotion to the next; derive it fresh each time by diffing
+the `c` subsegment lists of `configs/USA/generated/<ov>.yaml` before and after
+`gen_overlay_configs.py`, matching entries by **file offset** - the offsets of
+the surviving units never move, only their names.
+
+The manifest's `rodata` cuts name units by name, so every cut naming a shifted
+unit has to move with it, in the same direction, or the leading rodata is
+emitted into the wrong object. Nothing warns: the yaml generates, splat splits,
+the build links, and only the checksum fails. Run the rename over the manifest
+in the same pass that renames the files.
+
+## Where the promoted body's rodata line goes is not always its own file
+
+Retiring a copy retires the rodata `migrate_rodata_to_functions` had filed
+inside it, so each carrier needs an `INCLUDE_RODATA` line put back - but in the
+unit whose `.rodata` **subsegment** covers that address, which is not always the
+unit that held the body. Of the nineteen rooms sharing `RoomsShared8017ea68`,
+sixteen owned the string in the same unit as the body and three (both trailer
+coaches and `mist_parking`) owned it two units earlier, where it was already a
+standalone `INCLUDE_RODATA` and only needed renaming. Compute the owner from the
+yaml rather than assuming; the symptom otherwise is
+`can't open .../<unit>/<sym>.s` at assembly time.
+
+The same rule catches C data. A `const` **definition** sitting at the end of a
+`.c` - `const TaskFuncTable3 RoomsShared8017d878Table = {...}` - is `.rodata`,
+so when a split moves the code after it into a new unit the table must stay
+behind with the rodata subsegment, even though it is textually below the
+functions that moved.
