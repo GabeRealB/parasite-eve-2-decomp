@@ -51527,3 +51527,61 @@ function:
 A single `ori $v0, $v0, 3` is also one statement, not two: `setSemiTrans(p, 1)`
 followed by `setShadeTex(p, 1)` is two read-modify-writes and emits two `sb`s.
 Write `prim->code |= 3;` when the ROM has one.
+
+
+## Place a stranded `move $a0, $sN` with an `asm("a0")` local, not with a barrier
+
+`func_necrosis_8012FE64` is the dark twin of `func_necrosis_8012F6EC`, so the
+body came straight from the sibling, but its `$a1` prologue needed the
+`func_apobiosis_8012F9D0` pin set (`register void** scratch asm("a1")`, the
+`register u16 vx asm("v0")` / `register u8* tmp asm("v0")` blocks, `USE_REG(head)`
+after `gte_stszotz`). Those pins buy the registers and cost the schedule: the
+`rsin` argument copy `addu $a0, $s1, $zero`, which the ROM hoists ten
+instructions ahead of the `jal` to sit *before* the UV nibble `andi`, sank below
+it, and the score stalled at 99.55% with `reorder=2` and every other penalty
+zero.
+
+A `SCHED_BARRIER()` / `SOFT_BARRIER()` after the angle copy only halves the
+problem (99.77%, `reorder=1`): it stops the `andi` from being hoisted, but it
+cannot pull the argument copy *up*, because the copy is expanded at the call
+site and its position is the scheduler's alone. Give it a statement instead:
+
+```c
+register s32 sinArg asm("a0");
+...
+ang    = arg3;
+sinArg = ang;                 /* the ROM's addu $a0, $s1, $zero, right here */
+...
+block->dx = (((arg2 * 31) / block->otz) * rsin(sinArg)) >> 12;
+block->dy = (((arg2 * 31) / block->otz) * rcos(ang)) >> 12;   /* copies again */
+```
+
+Only the *first* call takes the pinned name; the later `rsin`/`rcos` calls take
+the plain `ang` and get their own `addu $a0, $s1, $zero` next to each `jal`, as
+the ROM does. That was the last instruction: 100% with no permuter run.
+
+Related to "Which call-argument copy sits next to the `jal` is decided by
+hard-register set counts" — same mechanism, opposite direction. There the pin
+gave a hard register a second set and *demoted* a copy; here an explicit
+assignment gives the copy an early home the scheduler will not move.
+
+## Two function-scope `asm("a1")` locals can share the register when their ranges are disjoint
+
+Contrary to "Only one `register ... asm(\"rN\")` variable per hard register per
+function", `func_necrosis_8012FE64` needs two, and GCC 2.8.1 honours both:
+
+```c
+register void** scratch asm("a1");   /* lui/ori $a1, lw $t0, 0($a1), sw $s2, 0($a1) */
+register s16    frame   asm("a1");   /* addu $a1, $t1, $zero, then andi $v0, $a1, 0xF */
+...
+*scratch = block;
+frame    = arg1;                     /* placed exactly where the ROM restores $a1 */
+```
+
+The ROM copies `arg1` to `$t1` in the prologue so `$a1` can hold `0x1F8003FC`,
+then copies it back once the scratch pointer is dead. One variable cannot
+express that — the types differ and, more to the point, the second range must
+*start* after the first ends. The earlier entry's failure case is two pins whose
+ranges overlap, or whose values are still live; with a clean hand-off the later
+declaration does not displace the earlier one. Check the object dump: if the
+first pin's register is still the one you asked for, the split is fine.
