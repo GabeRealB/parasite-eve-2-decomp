@@ -13,6 +13,10 @@
 #include "main/tmd.h"
 #include "pe/necrosis.h"
 
+/// This overlay's id. Every package opens with one: a u16 in a u32
+/// slot, distinct across all 448, with the families in contiguous blocks.
+const u32 D_necrosis_8012EF30 = 51;
+
 /// Per-level tuning for the necrosis burst: rows are PE levels 1-3, selected
 /// by `field_20`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is
 /// the last spawn-loop tick, and `field_2 + 0xC` the pad-rumble duration.
@@ -548,5 +552,3 @@ void func_necrosis_80130288(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
-
-INCLUDE_RODATA("pe/nonmatchings/necrosis/necrosis", D_necrosis_8012EF30);

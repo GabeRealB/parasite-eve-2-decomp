@@ -16,6 +16,10 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+/// This overlay's id. Every package opens with one: a u16 in a u32
+/// slot, distinct across all 448, with the families in contiguous blocks.
+const u32 D_plasma_8012EF30 = 52;
+
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
 /// the inner radius, `yOff` the height above the caster, `rExtra` how far the
 /// ring grows before it breaks up.
@@ -452,5 +456,3 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
-
-INCLUDE_RODATA("pe/nonmatchings/plasma/plasma", D_plasma_8012EF30);
