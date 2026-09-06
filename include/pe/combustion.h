@@ -46,6 +46,14 @@ extern s32 D_combustion_80130998[];
 /// `func_combustion_8012EF34` before it re-bases the coordinate on the player.
 extern s32 D_combustion_801309A4;
 
+/// Links one frame of the small combustion flame at `arg0`'s world position.
+/// The position is projected through `GsWSMATRIX` by a single `RTPS` and the
+/// quad is dropped when that sets a negative `gte_stflg`. `arg1 % 6` picks one
+/// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
+/// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre.
+/// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
+void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+
 /// Links one frame of the combustion flame at `arg0`'s world position. The
 /// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
 /// is dropped when that sets a negative `gte_stflg`. `arg1` picks one of the
