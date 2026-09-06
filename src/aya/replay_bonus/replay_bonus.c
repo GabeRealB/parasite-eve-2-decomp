@@ -169,7 +169,27 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118C64);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118D7C);
+void func_replay_bonus_80118D7C(Task* arg0)
+{
+    s32 temp_v1;
+    u16 temp_v0;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            arg0->killCountdown = (u16)arg0->spawnArg1;
+            arg0->state        += 1;
+            break;
+        case 1:
+            temp_v0             = arg0->killCountdown - 1;
+            arg0->killCountdown = temp_v0;
+            if ((temp_v0 << 0x10) <= 0) {
+                Task_Kill(arg0);
+            }
+            break;
+    }
+    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1) & 0xFF);
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118E3C);
 
