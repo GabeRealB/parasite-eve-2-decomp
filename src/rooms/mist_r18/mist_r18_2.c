@@ -5,7 +5,7 @@
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-void func_mist_r18_8017E144(s16 shade)
+void RoomsShared8017e144(s16 shade)
 {
     SPRT* p;
 

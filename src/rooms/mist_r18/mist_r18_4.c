@@ -8,7 +8,7 @@
 #include "rooms/mist_r18.h"
 
 void RoomsShared8017df80(s32 shade);
-void func_mist_r18_8017E144(s16 arg0);
+void RoomsShared8017e144(s16 arg0);
 
 /// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
 void func_mist_r18_8017E8B8(Task* task)
@@ -24,19 +24,4 @@ void func_mist_r18_8017E8B8(Task* task)
         task->killCountdown = 0x80;
         task->state++;
     }
-}
-
-/// Fade the room back out; see `func_mist_r18_8017E8B8` for the level field.
-void func_mist_r18_8017E92C(Task* task)
-{
-    u16 fade;
-
-    fade                = (u16)task->killCountdown - 8;
-    task->killCountdown = fade;
-    if ((s16)fade <= 0) {
-        task->killCountdown = 0;
-        task->state++;
-    }
-    func_mist_r18_8017E144(task->killCountdown);
-    RoomsShared8017df80(0x80 - task->killCountdown);
 }

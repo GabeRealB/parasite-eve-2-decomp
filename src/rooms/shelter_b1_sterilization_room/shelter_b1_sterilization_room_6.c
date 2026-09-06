@@ -3,7 +3,7 @@
 extern TaskDesc D_shelter_b1_sterilization_room_80188504;
 extern s32      D_shelter_b1_sterilization_room_8018C340;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180BF0);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", RoomsShared8017e144);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_6", func_shelter_b1_sterilization_room_80180D74);
 
