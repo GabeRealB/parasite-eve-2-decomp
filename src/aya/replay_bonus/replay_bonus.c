@@ -11,6 +11,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/text.h"
+#include "main/wipsys.h"
 #include "psyq/libpress.h"
 extern u8           D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
@@ -240,7 +241,56 @@ s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
     return *p;
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801175F0);
+s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
+{
+    WipSysConfig* cfg;
+    s32           i;
+    s32           n;
+    s32           sum;
+    s32           limit;
+    s16*          p;
+    s32           item;
+    s32           idx;
+    s32           lo;
+    s32           hi;
+    s32           ptr;
+    s32           price;
+    s32           ids;
+    s32           off;
+
+    cfg = &Wip_SysConfig;
+    i   = *(s8*)&list->field_9;
+    n   = list->field_4;
+    sum = 0;
+    if (i < n) {
+        lo    = (s32)Gp_ItemDescs;
+        hi    = (s32)D_8010DE38;
+        limit = n;
+        ids   = (s32)ctx->itemList->itemIds;
+        off   = i * 2;
+        p     = (s16*)(off + ids);
+        do {
+            item = *p;
+            idx  = item;
+            if (item < 0x100) {
+                SOFT_TOUCH_REG(idx);
+                ptr = (item * 8) + lo;
+            } else {
+                ptr = ((idx - 0x100) * 8) + hi;
+            }
+            price = *(u16*)ptr;
+            SOFT_TOUCH_REG(price);
+            sum += price >> 1;
+            i++;
+            p++;
+        } while (i < limit);
+    }
+    sum += cfg->field_C;
+    if (sum > 0x05F5E0FF) {
+        sum = 0x05F5E0FF;
+    }
+    return sum;
+}
 
 void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
 {
