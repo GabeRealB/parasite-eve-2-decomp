@@ -50605,3 +50605,52 @@ So when a loop body scales the induction variable by a constant, write the
 multiply and let GCC create the accumulator. The give-away is a preheader whose
 instructions all match but appear in the wrong order around the loop guard,
 with a `move` between two registers you initialised independently.
+
+## `SOFT_TOUCH_REG` in every branch to keep a narrow copy of a wide parameter
+
+`func_apobiosis_8012F808` writes a `POLY_F4`'s RGB from one `u32` parameter and
+the ROM keeps *two* copies of it alive:
+
+```
+move  a3, a0            /* the parameter */
+...
+bne   v1, v0, .Lelse
+ move a2, a3            /* a narrow copy, in the delay slot */
+...
+srl   v0, a3, 1         /* the wide value */
+sll   v0, a2, 0x10      /* the narrow one, sign-extended */
+sra   v0, v0, 0x11
+```
+
+The natural `u16 arg0` parameter gives one register: every use is the same
+pseudo, so there is nothing to copy. Declaring the parameter `u32` and
+truncating into a `u16` local produces the right *pair* of pseudos — the local
+is the `sll 16` / `sb` operand, the parameter is the `srl` operand — but GCC
+then notices the local is just `(subreg:HI param)` and substitutes the
+parameter back into `(s16)local >> 1`, so the `sll` reads the wrong register
+and the copy disappears again.
+
+`SOFT_TOUCH_REG(local)` blocks that substitution, and it has to appear in
+**every branch that reads the local**, not once before the `if`:
+
+```c
+level = bright;                       /* u16 level, u32 bright */
+if (kind == 2) {
+    SOFT_TOUCH_REG(level);
+    ...
+    setRGB0(prim, level, level, bright >> 1);   /* srl on the parameter */
+} else {
+    SOFT_TOUCH_REG(level);
+    setRGB0(prim, (s16)level >> 1, (s16)level >> 1, level);
+}
+```
+
+A single touch ahead of the `if` leaves the branch GCC can still see through at
+`a3` and, worse, raises the copy's scheduling priority so it is hoisted into the
+`multu`/`mfhi` window instead of staying next to the branch where the delay-slot
+pass can take it. Touching inside each arm keeps the copy adjacent to the
+compare and lands the `move` in the delay slot.
+
+Hoisting the `if` condition into its own local (`kind = ...;`) is part of the
+same fix: it puts the copy after the modulo in the RTL, which is where the
+delay-slot pass can reach it.
