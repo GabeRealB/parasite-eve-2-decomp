@@ -4,8 +4,6 @@
 
 #include <psyq/libgte.h>
 
-#include "gameplay/D4.h"
-
 /// Ambient effect emitter positions for the airlock, selected by view index.
 /// `D_shelter_1f_airlock_8017E4BC` / `_8017E4C4` / `_8017E4D4` are successive
 /// labels into one contiguous run of `SVECTOR`s, so the per-view lists overlap.
