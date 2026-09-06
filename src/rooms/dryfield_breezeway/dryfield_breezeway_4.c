@@ -20,13 +20,3 @@ s16 func_dryfield_breezeway_8017FBEC(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     VectorNormalSS(&vec, &vec);
     return ratan2(vec.vx, vec.vy);
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FC38);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FCB4);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FD68);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FD9C);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FE08);

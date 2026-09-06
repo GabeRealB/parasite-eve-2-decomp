@@ -148,7 +148,7 @@ void func_acropolis_security_room_8017EB9C(Task* task);
 /// States of the security-monitor task, dispatched by
 /// `func_acropolis_security_room_8017ED68`: set up the work block, run the
 /// camera list, redraw the panel, confirm a camera, and leave the monitor.
-const AsrMonitorStateTable AsrMonitorStates = {
+const AsrMonitorStateTable RoomsShared8017fc38Table = {
     { {
         func_acropolis_security_room_8017D9DC,
         func_acropolis_security_room_8017EA28,
