@@ -51449,3 +51449,31 @@ between `u0` and `v0` reached 99.77% but stranded the `move $a0, $s2` call-argum
 copy: a barrier ends the scheduling region, so the argument copy loses the call
 as a successor, its priority collapses and it sinks to the end of the region
 instead of being hoisted 30 instructions ahead of the `jal`.
+
+## Identify a `G_SCRATCH_HEAD` draw helper by its scratch-block layout, then grep `include/` for that struct
+
+The GTE draw helpers all open the same way: load `*(void**)0x1F8003FC`, back the
+pointer up by the block size, write the coordinate's `workm.t[]` low halves as an
+`SVECTOR`, `RTPS`, then `gte_stsxy` / `gte_stflg` / `gte_stszotz` into fixed slots
+of that block. m2c renders the whole thing as a wall of `M2C_ERROR` GTE stubs and
+`M2C_FIELD(temp_s3, …)`, and `overlay_dup_index.py find` reports nothing, because
+these twins live in *different* overlays and differ by a constant or two.
+
+The block layout is the fingerprint. Read it straight off the store offsets — for
+`func_necrosis_8012F6EC`, `addiu $s3, $v1, -0x1C` with `stszotz` → `+0x8`,
+`stflg` → `+0xC`, two s32 scratch words at `+0x10` / `+0x14` and `stsxy` → `+0x18`
+— then grep the headers for a struct of that size and shape:
+
+```
+grep -n "STATIC_ASSERT_SIZEOF(Gp.*Scratch, 0x1C)" include/gameplay/3CD8.h
+```
+
+That named `GpFxQuadScratch`, whose doc comment names `Gp_DrawFxQuad`, whose
+already-matched near-twin `PeShared8012fb14` differed only in the CLUT (0x428F vs
+0x42C2), the texture cell width (`arg1 * 0x28` / `+0x27` vs `arg1 << 5` / `+0x1F`),
+the V rows and the radius scale (`arg2 * 39` vs `arg2 * 31`). Copying that body
+with those five constants swapped scored 100% on the first attempt.
+
+Reading the constants back out of the asm is mechanical: `sll 2; addu; sll 3` is
+`* 40`, the same with a trailing `subu` is `* 39`, and the `sb`/`sh` immediates at
+prim offsets `0x7` / `0xE` / `0x16` are the code byte, CLUT and tpage.
