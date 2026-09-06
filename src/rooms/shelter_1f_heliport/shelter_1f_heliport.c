@@ -20,7 +20,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_s
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017F154);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", func_shelter_1f_heliport_8017F2D4);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", RoomsShared8017f49cCharge);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", jtbl_shelter_1f_heliport_8017D6FC);
 

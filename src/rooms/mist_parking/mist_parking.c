@@ -44,8 +44,8 @@ extern UiObjectDesc   RoomsShared8017ff9cDesc;
 extern UiObjectDesc   D_mist_parking_80186600;
 extern UiObjectDesc   D_mist_parking_80186670;
 extern char           Gp_StrEmpty[];
-extern s32            D_mist_parking_80195310;
-extern GpItemMap*     D_mist_parking_80195314;
+extern s32            RoomsShared8017f49cQty;
+extern GpItemMap*     RoomsShared8017f49cMap;
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D5C0);
 
@@ -530,85 +530,4 @@ void func_mist_parking_8017F31C(Task* task)
     }
 }
 
-/* "Charge" plus the non-zero byte the original object left in the alignment
-   pad; sized to the whole 8-byte block so it is emitted byte for byte. */
-static const char ChargeMsg[8] = "Charge\0\342";
-
-void func_mist_parking_8017F49C(Task* task)
-{
-    UiObject*   obj;
-    GpItemMap*  map;
-    GpItemSlot* slot;
-    s32         slotId;
-    s32         itemId;
-    s32         curItem;
-    s32         relItem;
-    s32         qty;
-    s32         y;
-    s32         h;
-    s32         status;
-    s16         countdown;
-
-    obj           = task->spawnArg2;
-    obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, (char*)ChargeMsg);
-
-    if (task->state == 0) {
-        task->spawnArg1 = 0;
-        task->state     = task->state + 1;
-    }
-    if (task->state == 1) {
-        slotId          = Gp_NextMappedSlot(task->spawnArg1);
-        task->spawnArg1 = slotId;
-        if (slotId < 0) {
-            obj->field_2E = 6;
-        } else {
-            map                     = Gp_GetItemMap(slotId);
-            D_mist_parking_80195314 = map;
-            itemId                  = map->field_1;
-            slot                    = Gp_GetItemSlot(itemId);
-            if (D_mist_parking_80195314->field_0 == 0) {
-                D_mist_parking_80195310 = slot->field_1;
-                slot->field_1           = Gp_GetRelatedQty(itemId, 0);
-            } else {
-                D_mist_parking_80195310 = slot->field_3;
-                slot->field_3           = Gp_GetRelatedQty(itemId, 1);
-            }
-            task->killCountdown       = 0xBC;
-            D_mist_parking_80195310 <<= 8;
-            task->state               = task->state + 1;
-        }
-    }
-
-    curItem = D_mist_parking_80195314->field_1;
-    relItem = D_mist_parking_80195314->field_2;
-    if (D_mist_parking_80195314->field_0 == 0) {
-        qty = Gp_GetRelatedQty(curItem, 0);
-    } else {
-        qty = Gp_GetRelatedQty(curItem, 1);
-    }
-    qty                    <<= 8;
-    D_mist_parking_80195310 += 0x40;
-    if (qty < D_mist_parking_80195310) {
-        D_mist_parking_80195310 = qty;
-    }
-
-    y = (s16)obj->field_18;
-    Gp_DrawItemLabel(obj, (s16)obj->field_1C + 2, y + 0xF, curItem, 0x606060, 0);
-    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, y + 0x12);
-    Gp_DrawItemLabel(obj, (s16)obj->field_1C + 2, y + 0x23, relItem, 0x606060, 0);
-    Gp_DrawQty(obj, (s16)obj->field_1C + 2, y + 0x23, D_mist_parking_80195310 >> 8, 0x606060);
-    h = (s16)obj->field_1A;
-    func_800C0E20((UiPanel*)obj, (s16)obj->field_1C + 2, (s16)obj->field_1E - 2, h - 6, qty,
-                  D_mist_parking_80195310, 0x1741F);
-
-    if (task->state == 2) {
-        countdown           = task->killCountdown - 1;
-        task->killCountdown = countdown;
-        status              = obj->status;
-        if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
-            task->state     = status;
-            task->spawnArg1 = task->spawnArg1 + 1;
-        }
-    }
-}
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017f49cCharge);

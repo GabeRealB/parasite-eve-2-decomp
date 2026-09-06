@@ -45,8 +45,8 @@ extern UiObjectDesc   RoomsShared8017ff9cDesc;
 extern UiObjectDesc   D_mist_parking_80186600;
 extern UiObjectDesc   D_mist_parking_80186670;
 extern char           Gp_StrEmpty[];
-extern s32            D_mist_parking_80195310;
-extern GpItemMap*     D_mist_parking_80195314;
+extern s32            RoomsShared8017f49cQty;
+extern GpItemMap*     RoomsShared8017f49cMap;
 
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_2", func_mist_parking_801800D0);
 

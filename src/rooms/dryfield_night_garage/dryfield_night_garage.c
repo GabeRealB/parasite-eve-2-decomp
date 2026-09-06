@@ -20,6 +20,6 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", fu
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", func_dryfield_night_garage_8017F178);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", func_dryfield_night_garage_8017F2F8);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", RoomsShared8017f49cCharge);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", RoomsShared8017d878Table);

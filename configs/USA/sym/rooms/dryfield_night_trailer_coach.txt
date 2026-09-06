@@ -73,3 +73,7 @@ RoomsShared8017f938Bp = 0x8017D6D8; // shared body data, see src/rooms/lib/
 RoomsShared8017f938Times = 0x80184574; // shared body data, see src/rooms/lib/
 RoomsShared8017f764 = 0x8017F688; // shared body, see src/rooms/lib/
 RoomsShared8017f764Amount = 0x80184568; // shared body data, see src/rooms/lib/
+RoomsShared8017f49c = 0x8017F3C0; // shared body, see src/rooms/lib/
+RoomsShared8017f49cCharge = 0x8017D6F4; // shared body data, see src/rooms/lib/
+RoomsShared8017f49cQty = 0x8018C210; // shared body data, see src/rooms/lib/
+RoomsShared8017f49cMap = 0x8018C214; // shared body data, see src/rooms/lib/
