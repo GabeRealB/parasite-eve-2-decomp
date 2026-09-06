@@ -3,6 +3,44 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `bne a2, a0` / `addiu a2` is miss-path increment stolen into the delay, not `count++`
+
+When the target compares a loop counter in `$a2` and increments that same
+register in the delay slot:
+
+```
+bne   a2, a0, skip
+ addiu a2, a2, 1
+```
+
+`if (count++ == arg0)` is the wrong expansion. Post-increment needs the old
+value across the add, so GCC copies (`move v0, a2` / `bne v0, a0`) — `$a2` and
+the temp conflict, and they cannot share a register. Filling from the previous
+insn is also blocked: `addiu a2` *sets* a register the branch *references*, so
+`fill_simple_delay_slots` will not take it.
+
+dbr *will* steal the increment from the taken (miss) thread into that delay
+slot when `count` is **dead on the match/return path**. Passing `count` as a
+call argument keeps it live there and blocks the steal. Leave it out of the
+call (the delay slot still bumps `$a2` on the way into `jal`, which is why
+the extra arg looked live):
+
+```c
+if (slot->field_0 == type) {
+    if (count == arg0) {
+        temp = slot->field_4;
+        dest = temp;
+        func(temp, i); /* not count — dead on this path */
+        return;
+    }
+    count++;
+}
+```
+
+Index the table (`slot = &arr[i]`) rather than a walking pointer so the
+store's `%hi` is hoisted before the array address. `func_replay_bonus_80118F00`
+is the example.
+
 ## Write `prim->r0` first so a reused RGB constant loads next to `setcode`
 
 When `r0` and `b0` share a value the target loads into `$v1` immediately after

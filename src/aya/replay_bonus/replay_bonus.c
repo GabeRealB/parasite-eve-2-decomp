@@ -2,11 +2,15 @@
 
 #include "aya/replay_bonus.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "psyq/libpress.h"
 extern UiObjectDesc D_replay_bonus_80119154;
+extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
+
+s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801158C0);
 
@@ -135,4 +139,28 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118E3C);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118F00);
+void func_replay_bonus_80118F00(s32 arg0)
+{
+    FsFolderSlot* slot;
+    s32           count;
+    s32           i;
+    s32           type;
+    s32           temp;
+
+    count = 0;
+    i     = count;
+    type  = 3;
+    do {
+        slot = &D_8006C338[i];
+        if (slot->field_0 == type) {
+            if (count == arg0) {
+                temp                    = slot->field_4;
+                D_replay_bonus_8011928C = temp;
+                func_replay_bonus_80118B6C(temp, i);
+                return;
+            }
+            count++;
+        }
+        i++;
+    } while (i < 0x32);
+}
