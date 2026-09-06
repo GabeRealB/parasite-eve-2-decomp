@@ -2,13 +2,18 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
-
 #include "main/gameflag.h"
 #include "main/task.h"
 
 /// Task table spawned by `func_shelter_b2_laboratory_801801D0` the first time
 /// the laboratory console is used.
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
+
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017ef20Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017de9cHundred);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017e8b4WeaponTitle);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017e8b4PeTitle);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017ea68Title);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_801800FC);
 
