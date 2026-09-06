@@ -90,3 +90,7 @@ RoomsShared8017f31cNotice = 0x8017D76C; // shared body data, see src/rooms/lib/
 RoomsShared8017f31cMsg0 = 0x80187044; // shared body data, see src/rooms/lib/
 RoomsShared8017f31cMsg1 = 0x80187058; // shared body data, see src/rooms/lib/
 RoomsShared8017f31cMsg2 = 0x80187068; // shared body data, see src/rooms/lib/
+RoomsShared8017f108 = 0x8018101C; // shared body, see src/rooms/lib/
+RoomsShared8017f108Msg = 0x80186FB4; // shared body data, see src/rooms/lib/
+RoomsShared8017f108NoticeDesc = 0x80187164; // shared body data, see src/rooms/lib/
+RoomsShared8017f108BuyDesc = 0x801871D4; // shared body data, see src/rooms/lib/

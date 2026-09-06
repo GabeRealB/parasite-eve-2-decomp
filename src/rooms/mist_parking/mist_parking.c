@@ -24,7 +24,7 @@ extern RoomShopStock  D_8010E138[];
 extern u8             D_80071072;
 extern u8             RoomsShared8017f938Bp[];
 extern u8             RoomsShared8017fdb8Msg[];
-extern u8             D_mist_parking_80186450[];
+extern u8             RoomsShared8017f108Msg[];
 extern u8             D_mist_parking_801864BC[];
 extern u8             D_mist_parking_801864C4[];
 extern u8             D_mist_parking_801864D0[];
@@ -41,8 +41,8 @@ extern UiObjectDesc   D_mist_parking_801865AC;
 extern UiObjectDesc   D_mist_parking_80186654;
 extern UiObjectDesc   D_mist_parking_801865C8;
 extern UiObjectDesc   RoomsShared8017ff9cDesc;
-extern UiObjectDesc   D_mist_parking_80186600;
-extern UiObjectDesc   D_mist_parking_80186670;
+extern UiObjectDesc   RoomsShared8017f108NoticeDesc;
+extern UiObjectDesc   RoomsShared8017f108BuyDesc;
 extern char           Gp_StrEmpty[];
 extern s32            RoomsShared8017f49cQty;
 extern GpItemMap*     RoomsShared8017f49cMap;
@@ -434,59 +434,6 @@ void func_mist_parking_8017EF24(Task* task)
     *p = '/';
     Text_ItoaUnsigned((u8*)(p + 1), capacity);
     Text_DrawPrompt(obj, col, y2 + 0xA, (u8*)total, 0x606060, 3, 2);
-}
-
-void func_mist_parking_8017F108(DialogPrompt* prompt, UiObject* obj)
-{
-    TextDrawReq   req;
-    UiObject*     child;
-    WipSysConfig* cfg;
-    GpItemScan*   scan;
-    s32           itemId;
-    s32           mode;
-    s32           price;
-
-    itemId = obj->owner->spawnArg1;
-
-    req.x          = obj->baseX + (u16)prompt->field_18;
-    req.y          = obj->baseY + (u16)prompt->field_1A;
-    req.otIndex    = (s16)obj->drawOrder + 1;
-    req.field_8    = prompt->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
-    func_8002E53C(&req, D_mist_parking_80186450);
-
-    mode = prompt->field_C;
-    if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        cfg   = &Wip_SysConfig;
-        price = Gp_ItemDescs[itemId].price;
-        scan  = &D_80072724;
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        if (cfg->field_C >= price) {
-            if (Gp_CanAddItem(scan, itemId) == 0) {
-                if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
-                    Ui_SpawnFromDesc(&D_mist_parking_80186600, 2, 1, 1, obj);
-                } else {
-                    Ui_SpawnFromDesc(&D_mist_parking_80186600, 1, 1, 1, obj);
-                }
-                obj->status = 0;
-            } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
-                child = Ui_SpawnFromDesc(&D_mist_parking_80186670, itemId, 1, 1, obj);
-                if (child != NULL) {
-                    Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);
-                    obj->status = 0;
-                }
-            } else {
-                cfg->field_C -= price;
-                Gp_GiveItem(scan, itemId, -1);
-                obj->field_2E = 6;
-            }
-        } else {
-            Ui_SpawnFromDesc(&D_mist_parking_80186600, 0, 1, 1, obj);
-            obj->status = 0;
-        }
-    }
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017f31cNotice);
