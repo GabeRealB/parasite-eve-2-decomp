@@ -5,13 +5,16 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern s32 D_actor_161500_80135668;
 extern s32 D_actor_161500_801357E8;
 extern s32 D_actor_161500_80135968;
 extern s32 D_actor_161500_80135AE8;
 extern s32 D_actor_161500_80135C68;
+extern s16 D_actor_161500_801376F2;
 extern s32 D_actor_161500_80137AB8;
 
 void func_actor_161500_80131E38(void)
@@ -77,7 +80,18 @@ void func_actor_161500_801321B4(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132210);
+void func_actor_161500_80132210(void)
+{
+    GsCOORDINATE2* target;
+    GsCOORDINATE2* player;
+
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+    player = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    Gp_UpdateCoord(target);
+    Gp_UpdateCoord(player);
+    D_actor_161500_801376F2 =
+        ratan2(target->coord.t[0] - player->coord.t[0], target->coord.t[2] - player->coord.t[2]) & 0xFFF;
+}
 
 void func_actor_161500_80132294(u8 arg0)
 {
