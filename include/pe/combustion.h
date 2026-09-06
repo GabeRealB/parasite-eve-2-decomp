@@ -46,15 +46,6 @@ extern s32 D_combustion_80130998[];
 /// `func_combustion_8012EF34` before it re-bases the coordinate on the player.
 extern s32 D_combustion_801309A4;
 
-/// Links one frame of the combustion flame at `arg0`'s world position. The
-/// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
-/// is dropped when that sets a negative `gte_stflg`. `arg1` picks one of the
-/// eight 0x18-wide texture frames on tpage 0x28 (CLUT 0x430D), and `arg2`
-/// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
-/// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
-/// quad as gameplay `Gp_EffSprTask8D`.
-void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
-
 /// Projects `arg0`'s world position and queues one textured `POLY_FT4` billboard
 /// quad around it: a square of half-diagonal `arg2 * 0x37 / (otz + 1)` rotated by
 /// `arg3`, with the two diagonals a quarter turn apart. `arg1`'s low bit picks

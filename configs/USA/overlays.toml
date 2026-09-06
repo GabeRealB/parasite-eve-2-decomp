@@ -619,7 +619,7 @@ global_vram_end   = 0x8012EF30
 imports = "configs/USA/sym/pe.imports.txt"
 
 [pe.overlays]
-pyrokinesis = { pe_level_ids = "50101-50103", shared = [{ start = "0x1E90", end = "0x2288", unit = "pe_shared_8012fb14" }] }
+pyrokinesis = { pe_level_ids = "50101-50103", rodata_head = "0x4", shared = [{ start = "0x1E90", end = "0x2288", unit = "pe_shared_8012fb14" }] }
 combustion = { pe_level_ids = "50104-50106", shared = [{ start = "0xBE4", end = "0xFDC", unit = "pe_shared_8012fb14" }] }
 inferno = { pe_level_ids = "50107-50109", rodata_head = "0x4" }
 necrosis = { pe_level_ids = "50110-50112" }

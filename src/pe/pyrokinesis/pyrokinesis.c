@@ -2,15 +2,19 @@
 
 #include <psyq/inline_c.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "pe/pyrokinesis.h"
 
+extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
@@ -22,9 +26,347 @@ extern s32 Gp_LcgState;
 void PeShared8012fb14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3);
 
-INCLUDE_RODATA("pe/nonmatchings/pyrokinesis/pyrokinesis", D_pyrokinesis_8012EF30);
+/// Runs one frame of the pyrokinesis cast: a five-state machine driven by
+/// `Task::state`. State 0 copies the player rotation onto the effect
+/// coordinate, rotates the combo-scaled launch offset into that frame, rolls
+/// the 16 per-flame jitters, plays the roar picked by combo level and cast
+/// variant, and links a `PyroWork` collision pair (list 1 + list 7) whose
+/// packed id is the combo digits plus `0x28000`. State 1 walks the coordinate
+/// by that offset each frame, redraws the cone and ring, parks the room light
+/// slot on it and burns until the `D_80113D40` budget for the combo level runs
+/// out. A `0x30000` hit on `obj` bursts into three `0x600F6` flames and moves
+/// to state 3 (or 4 for cast variant 2); a `0x100000` hit on `obj2` means a
+/// wall, which drops to state 2 and fades the cone out. States 3 and 4 grow
+/// the two rings until they pass the combo radius, state 4 first stepping the
+/// brightness down by 8 a frame. Any state releases if the player is dying
+/// (`Gp_StateC08.field_3` / `D_80114C0B`) or the room is fading (`Gp_State1C`).
+void func_pyrokinesis_8012EF48(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    PyroWork*      work;
+    TmdObject*     tmdo;
+    GsCOORDINATE2* player;
+    GpCoord64*     base;
+    GsCOORDINATE2* slotc;
+    GpCoordTail*   slot;
+    GpMtxWords*    dstm;
+    GpMtxWords*    srcm;
+    GpEffWork*     spawned;
+    GsCOORDINATE2  ground;
+    u8             rgb[3];
+    s32            i;
+    s32            pan;
+    s16            fade;
+    s32            tick;
+    s32            radius;
+    s32            next;
+    s16            amp;
+    s32            tz;
 
-INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_8012EF48);
+    work          = (PyroWork*)arg0->idMap;
+    mem           = arg0->spawnArg2;
+    tmdo          = arg0->extra;
+    coord         = tmdo->field_8;
+    mem->field_22 = (u16)mem->field_22 + 1;
+    base          = Gp_RoomCoords;
+    slotc         = &base->coord;
+    slot          = (GpCoordTail*)slotc;
+    switch (arg0->state) {
+        case 0:
+            if (Gp_StateC08.field_3 == -2) {
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            fade = Gp_State1C->field_E;
+            if (fade >= 4) {
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (fade != 0) {
+                mem->field_22 = (u16)mem->field_22 - 1;
+                return;
+            }
+            work = Mem_Calloc(0x58, 0);
+            if (work == NULL) {
+                mem->field_22 = 0;
+                return;
+            }
+            player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            dstm       = (GpMtxWords*)&coord->coord;
+            srcm       = (GpMtxWords*)&player->coord;
+            dstm->w0   = srcm->w0;
+            dstm->w1   = srcm->w1;
+            dstm->w2   = srcm->w2;
+            dstm->w3   = srcm->w3;
+            dstm->h4   = srcm->h4;
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            mem->field_10 = 0;
+            mem->field_12 = 0;
+            mem->field_14 = (Gp_StateC08.field_0 % 10) * 64 + 0x1C0;
+            gte_SetRotMatrix((MATRIX*)srcm);
+            gte_ldv0(&mem->field_10);
+            gte_rtv0_real();
+            gte_stsv(&mem->field_10);
+            for (i = 0; i < 16; i++) {
+                Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+                D_pyrokinesis_80131DFC[i] = ((u32)Gp_LcgState >> 16) & 0xFF;
+            }
+            mem->field_24 = 0xC0;
+            mem->field_26 = 0x500;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_28 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
+            pan           = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->field_20 * 3 + arg0->spawnArg1], pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)coord));
+            Gp_SpawnPadLerp((s16)(mem->field_20 * 2 + 8), 0xFF, 8);
+            if (mem->field_20 == 1) {
+                arg0->spawnArg1 = 1;
+            } else if (arg0->spawnArg1 == 1) {
+                arg0->spawnArg1 = 0;
+            }
+            arg0->idMap        = (TaskIdMap*)work;
+            work->obj.field_8  = coord;
+            work->obj.field_C  = &work->rec;
+            work->obj.field_18 = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
+                                 ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
+                                 (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
+            work->obj.field_1C = mem->field_26;
+            work->obj.flags    = 1;
+            Gp_LinkObj(1, &work->obj);
+            work->rec.field_0   = 2;
+            work->obj2.field_8  = coord;
+            work->obj2.field_C  = &work->rec;
+            work->obj2.field_18 = 0;
+            work->obj.flags    |= 0x8000;
+            work->obj2.field_1C = (s16)((u16)mem->field_26 << 16 >> 19);
+            work->obj2.flags    = 1;
+            Gp_LinkObj(7, &work->obj2);
+            work->obj2.flags = (work->obj2.flags & 0x7FFF) | 0x4400;
+            Gp_SpawnEff(0x60011, coord, 0, NULL);
+            rgb[0] = 0xFF;
+            rgb[1] = 0x7F;
+            rgb[2] = 0x3F;
+            Gp_DrawFadeQuad(rgb, 1);
+            arg0->state = 1;
+            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+                Gp_UnlinkObj(&work->obj);
+                radius        = (mem->field_20 << 9) + 0x380;
+                mem->field_26 = radius;
+                for (i = 0; i < 0x556; i += 0x2AA) {
+                    spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
+                    if (spawned != NULL) {
+                        Task_Reparent(arg0, spawned->field_0);
+                    }
+                }
+                next = 3;
+                if (arg0->spawnArg1 == 2) {
+                    next = 4;
+                }
+                arg0->state = next;
+                return;
+            }
+            if (Gp_FindRec18(work->obj2.field_C, 0x100000) != 0) {
+                Gp_UnlinkObj(&work->obj2);
+                arg0->state = 2;
+                return;
+            }
+            Gp_ClearRec18Occupied(&work->rec);
+            return;
+        case 1:
+            if ((D_80114C0B == -2) || ((fade = Gp_State1C->field_E), fade >= 4)) {
+                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (fade != 0) {
+                mem->field_22 = (u16)mem->field_22 - 1;
+                return;
+            }
+            radius             = (mem->field_20 << 9) + 0x380;
+            mem->field_26      = radius;
+            work->obj.field_1C = radius;
+            coord->coord.t[0] += mem->field_10;
+            coord->coord.t[1] += mem->field_12;
+            coord->coord.t[2] += mem->field_14;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            SOFT_USE_REG(coord);
+            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            if (arg0->spawnArg1 != 0) {
+                func_pyrokinesis_80131784(coord, mem->field_22, mem->field_26, 0);
+                func_pyrokinesis_80131784(coord, mem->field_22, mem->field_26, 1);
+            }
+            if (mem->field_22 < 0x1E) {
+                spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
+                if (spawned != NULL) {
+                    Task_Reparent(arg0, spawned->field_0);
+                }
+            }
+            if (Gp_State1C->field_6 != 0) {
+                if (Gp_TraceGroundCoord(coord, &ground) == 1) {
+                    func_pyrokinesis_801304C4(&ground, mem->field_26);
+                }
+            }
+            base->field_0     = 4;
+            slot->field_58    = (mem->field_20 << 9) + 0x200;
+            slot->field_5C    = slot->field_58 * 16;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            amp               = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->field_50    = amp;
+            slot->field_52    = (u16)slot->field_50 >> 1;
+            slot->field_54    = slot->field_50 >> 2;
+            slotc->coord.t[0] = coord->coord.t[0];
+            slotc->coord.t[1] = coord->coord.t[1];
+            tz                = coord->coord.t[2];
+            slotc->flg        = 0;
+            slotc->coord.t[2] = tz;
+            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+                Gp_UnlinkObj(&work->obj);
+                for (i = 0; i < 0x556; i += 0x2AA) {
+                    spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
+                    if (spawned != NULL) {
+                        Task_Reparent(arg0, spawned->field_0);
+                    }
+                }
+                next = 3;
+                if (arg0->spawnArg1 == 2) {
+                    next = 4;
+                }
+                arg0->state = next;
+                return;
+            }
+            if (Gp_FindRec18(work->obj2.field_C, 0x100000) != 0) {
+                Gp_UnlinkObj(&work->obj2);
+                arg0->state = 2;
+                return;
+            }
+            tick = mem->field_22;
+            if (tick * 6 > D_80113D40[mem->field_20].field_4) {
+                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->obj2);
+                arg0->state = 2;
+                return;
+            }
+            if (tick < 0x1F) {
+                Gp_ClearRec18Occupied(&work->rec);
+                return;
+            }
+            Gp_UnlinkObj(&work->obj);
+            Gp_UnlinkObj(&work->obj2);
+            Gp_ReleaseState1CMem(mem, arg0);
+            return;
+        case 2:
+            if ((D_80114C0B == -2) || ((fade = Gp_State1C->field_E), fade >= 4)) {
+                Gp_UnlinkObj(&work->obj);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (fade != 0) {
+                mem->field_22 = (u16)mem->field_22 - 1;
+                return;
+            }
+            Gp_UpdateCoord(coord);
+            radius             = (u16)mem->field_26 - 0x40;
+            mem->field_26      = radius;
+            work->obj.field_1C = radius;
+            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            if (mem->field_26 >= 0x81) {
+                spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
+                if (spawned != NULL) {
+                    Task_Reparent(arg0, spawned->field_0);
+                }
+            }
+            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+                Gp_UnlinkObj(&work->obj);
+                for (i = 0; i < 0x556; i += 0x2AA) {
+                    spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
+                    if (spawned != NULL) {
+                        Task_Reparent(arg0, spawned->field_0);
+                    }
+                }
+                next = 3;
+                if (arg0->spawnArg1 == 2) {
+                    next = 4;
+                }
+                arg0->state = next;
+                return;
+            }
+            if (mem->field_26 < 0x80) {
+                Gp_UnlinkObj(&work->obj);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            Gp_ClearRec18Occupied(&work->rec);
+            return;
+        case 3:
+            if (D_80114C0B == -2) {
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            fade = Gp_State1C->field_E;
+            if (fade >= 4) {
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (fade != 0) {
+                mem->field_22 = (u16)mem->field_22 - 1;
+                return;
+            }
+            Gp_UpdateCoord(coord);
+            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            func_pyrokinesis_80130130(coord, (s16)((u16)mem->field_26 * 2),
+                                      (s16)((u16)mem->field_24 << 16 >> 17));
+            mem->field_26 = (u16)mem->field_26 + 0x40;
+            if (mem->field_26 > ((mem->field_20 << 9) + 0x580)) {
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            return;
+        case 4:
+            if (D_80114C0B == -2) {
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            fade = Gp_State1C->field_E;
+            if (fade >= 4) {
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            if (fade != 0) {
+                mem->field_22 = (u16)mem->field_22 - 1;
+                return;
+            }
+            Gp_UpdateCoord(coord);
+            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
+            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            func_pyrokinesis_80130130(coord, (s16)((u16)mem->field_26 * 2),
+                                      (s16)((u16)mem->field_24 << 16 >> 17));
+            mem->field_26 = (u16)mem->field_26 + 0x40;
+            if (mem->field_26 > ((mem->field_20 << 9) + 0x580)) {
+                if (mem->field_24 >= 9) {
+                    mem->field_24 = (u16)mem->field_24 - 8;
+                    return;
+                }
+                Gp_UnlinkObj(&work->obj2);
+                Gp_ReleaseState1CMem(mem, arg0);
+            }
+            return;
+    }
+}
 
 void func_pyrokinesis_8012FAC8(Task* arg0)
 {

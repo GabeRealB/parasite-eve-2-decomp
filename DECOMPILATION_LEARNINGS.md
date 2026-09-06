@@ -51754,53 +51754,83 @@ reuse late". `USE_REG(head)` *before* the assignment expresses the same
 liveness but is a read of an uninitialised value and made GCC emit a stray
 `move $v0, $t1`; the dummy output has neither problem.
 
-## Two empty `SCHED_BARRIER()`s keep `u1 = u0 + N` in `$a0` across the `u0` stores
+## Two pointer locals swap `$sN`: add one *reference*, not a pin
 
-`func_combustion_8012FF0C` is the axis-aligned cousin of `Gp_EffSprTask8D`:
-`(arg1 & 7) * 0x18` is `u0`/`u2`, `u0 + 0x17` is `u1`/`u3`, and `0xA0` is `v0`/`v1`.
-The ROM does:
+`func_pyrokinesis_8012EF48` reached 99.395% with `branch=insert=delete=reorder=0`
+and every single diff line being `s2`/`s3` interchanged: the coordinate pointer
+wanted `$s2` and the work-block pointer `$s3`, and GCC gave them the other way
+round. The instruction stream was already byte-identical, so no statement
+reorder can fix it — the two allocnos are simply queued in the wrong order.
+
+GCC 2.8.1 sorts allocnos in `global.c:allocno_compare` by
 
 ```
-sll     v0, v0, 3          # u0
-li      v1, 0xA0           # v-base, independent of u0
-addiu   a0, v0, 0x17       # u1, while u0 is still live in $v0
-sb      v0, 0xC(a1)        # u0
-sb      v0, 0x1C(a1)       # u2
-li      v0, 0xB7
-sb      v1, 0xD(a1)        # v0
-sb      v1, 0x15(a1)       # v1
+pri = (int)((double)(floor_log2(n_refs) * n_refs) / live_length * 10000)
 ```
 
-Writing those stores in ROM order CSEs `u1` into `addiu v0, v0, 0x17` *after*
-the `u0`/`u2` stores (u0 is then dead, so the add reuses `$v0`) and hoists the
-`0xA0` stores above them. `TOUCH_REG(u1)` is the wrong lever: it is volatile and
-does not mention `prim`, so the UV math hoists above `Gpu_PrimCursor` and
-`$a1`/`$a2` swap. Keeping `u1` live across the later `div` spills.
+highest first, ties broken by allocno number (= declaration order). The first
+of the two to be allocated takes the lower-numbered free callee-saved register.
+`file.i.lreg` prints both inputs directly:
 
-Two empty barriers, with the `0xA0` temp assigned *before* the first, split the
-region without emitting a nop:
+```
+Register 82 used 47 times across 518 insns;   <- coord, pri 4536
+Register 83 used 49 times across 535 insns;   <- work,  pri 4579
+```
+
+4536 < 4579, so `work` went first. One extra reference on the loser flips it
+(5*48/518 = 4633), and `SOFT_USE_REG(coord)` is exactly one reference that
+emits no instruction. Placed next to an existing use of the variable it costs
+nothing else; 99.395% -> 100.00%.
+
+Two things about the mechanism are worth remembering:
+
+- `n_refs` is **loop-weighted** (`flow.c` adds `loop_depth`, not 1). The
+  permuter found this match first by wrapping one call in `do { } while (0)`,
+  whose loop notes doubled the weight of the `coord` reference inside it.
+  `SOFT_USE_REG` is the same lever spelled honestly.
+- Placement matters because it also perturbs the schedule. The same
+  `SOFT_USE_REG(coord)` before the `switch` scored 99.918% with `reorder=1`;
+  after the `Gp_UpdateCoord(coord)` in the arm that uses it, 100.00%.
+
+Reach for this before `register T x asm("s2")`: a pin is function-scope and
+will cost you a register elsewhere, and here the two live ranges are both
+function-wide so a pin on either one just moves the problem.
+
+## `(s16)x >> 2` keeps its `sll 16 / sra 18` only when `x` came back from memory
+
+Target:
+
+```
+addiu  v0, v0, 0x800
+sh     v0, 0x50(s0)
+move   v1, v0
+srl    v0, v0, 0x1     <- field_52
+sll    v1, v1, 0x10
+sra    v1, v1, 0x12    <- field_54
+```
+
+Written against a local, the sign extension disappears:
 
 ```c
-u0 = (arg1 & 7) * 0x18;
-va = 0xA0;
-u1 = u0 + 0x17;
-SCHED_BARRIER();
-prim->u0 = u0;
-prim->u2 = u0;
-SCHED_BARRIER();
-prim->v0 = va;
-prim->v1 = va;
-prim->v2 = 0xB7;
-prim->v3 = 0xB7;
-prim->u1 = u1;
-prim->u3 = u1;
+s16 amp = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+slot->field_50 = amp;
+slot->field_52 = (u16)amp >> 1;   /* srl 1  - correct */
+slot->field_54 = amp >> 2;        /* srl 2  - WRONG, wanted sll 16 / sra 18 */
 ```
 
-Region 1 has to materialise `u0`, `va` and `u1` (all live across the first
-barrier) and still contains the clut store, so `andi` stays interleaved with
-`sh clut`. Region 2 is only the two `u0` stores, so they cannot wait until `u0`
-is dead. Region 3 stores `va` after `u0` is done, which is when the ROM writes
-`v0`/`v1`. Related to "The scheduler reorders byte stores, so the source store
-order is not fixed by the object dump": that entry moves one store earlier to
-force a *value* chain; this one uses barriers to stop an `addiu` gluing itself
-to a late use of the same register.
+`nonzero_bits` on `(x & 0x700) + 0x800` proves the sign bit is clear, so
+combine folds `(sign_extend (subreg:HI x))` away and an arithmetic shift
+becomes a logical one. Store the value and read the `s16` field back instead:
+
+```c
+slot->field_50 = amp;
+slot->field_52 = (u16)slot->field_50 >> 1;
+slot->field_54 = slot->field_50 >> 2;
+```
+
+CSE substitutes the register for the load but has to re-materialise the
+extension as its own `ashift`/`ashiftrt` pair, which combine then merges into
+`sll 16 / sra 18` without revisiting the range. The `zero_extend` on the
+neighbouring `>> 1` *is* dropped the same way it was before, which is why the
+two shifts look inconsistent in the target — that asymmetry is the tell that
+the value is being reloaded, not held.
