@@ -67,6 +67,13 @@
     __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
 #define SOFT_TOUCH_REG_USE(x, y) __asm__("" : "+r"(x) : "r"(y))
 
+/* Output-only: gives `x` a definition that emits no MIPS. It is the third
+ * form alongside TOUCH_REG ("+r") and USE_REG ("r"): the value `x` held
+ * before is dead from here on, so the allocator and the scheduler stop
+ * treating the variable as one range. */
+#define DEF_REG(x)              __asm__ volatile("" : "=r"(x))
+#define SOFT_DEF_REG(x)         __asm__("" : "=r"(x))
+
 #define USE_REG(x)              __asm__ volatile("" :: "r"(x))
 #define USE_REG2(a, b)          __asm__ volatile("" :: "r"(a), "r"(b))
 #define USE_REG3(a, b, c)       __asm__ volatile("" :: "r"(a), "r"(b), "r"(c))

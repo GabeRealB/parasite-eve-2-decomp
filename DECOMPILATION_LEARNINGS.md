@@ -51918,3 +51918,91 @@ is dead. Region 3 stores `va` after `u0` is done, which is when the ROM writes
 order is not fixed by the object dump": that entry moves one store earlier to
 force a *value* chain; this one uses barriers to stop an `addiu` gluing itself
 to a late use of the same register.
+
+## A code-free `"=r"` def can flip a list-scheduler tie in an *earlier* block
+
+**Problem.** `func_energyball_8013035C` reached 99.79% with a single leftover:
+the two loads that open the function came out in the wrong order.
+
+```
+target                          attempt
+lw    t0,0(a1)     ; *scratch    lhu   v0,0x38(a0)  ; workm.t[0]
+lhu   v0,0x38(a0)                lw    t0,0(a1)
+```
+
+**Symptom.** `.i.sched` for block 0 shows both insns ready at the same cycle
+with `priority = 1`; the ready list is `29 (1) 26 (7f000001)` — the load that
+should come first still carried the `0x7f000001` "launched to cover a stall"
+boost, so the sort put it on the wrong end. Nothing in the C statement order
+moves it: swapping the two assignments, adding `SCHED_BARRIER()` at nine
+different points in the block, and every barrier variant all scored the same.
+
+**Fix.** Give the variable that the first load defines one more *definition*
+after its last use, at the end of the function:
+
+```c
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    DEF_REG(head);   /* __asm__ volatile("" : "=r"(head)) — emits nothing */
+}
+```
+
+`DEF_REG` is output-only, so it emits no MIPS and leaves `head` holding
+garbage that nothing reads; what it changes is that `head` now has a second
+def, and block 0's schedule comes out in the target's order. The permuter
+found the same effect first as `head = *(void**)G_SCRATCH_HEAD;` in the tail
+statement — that is a real load and reaches 99.965%, but it pins the tail's
+loaded value to `head`'s register (`t0`) where the target uses `v0`. The
+empty-asm def gives the def without the register.
+
+Only the volatile form works here; `__asm__("" : "=r"(head))` scored the same
+as no asm at all. `TOUCH_REG` (`"+r"`) and `USE_REG` (`"r"`) are both *worse*
+than doing nothing, because they are uses as well: they extend the live range
+back across the calls and push the variable to a callee-saved register.
+
+## Two locals pinned to the same hard register reproduce a reused-register anti-dependence
+
+**Problem.** The scratch-block prologue that `func_flare_8012F304` matches with
+
+```c
+((FlareQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+block                                      = (FlareQuadScratch*)(head - 0x1C);
+```
+
+compiles to one `addiu $s3, $v1, -0x1C`. The energy-ball twin of the same
+routine wants two insns instead — `addiu $v0, $t0, -0x1C` then
+`addu $s3, $v0, $zero` — and no spelling of the C produces that copy. A
+separate local (`p = head - 0x1C; block = p;`), a cast through another pointer
+type, `block = (X*)vec`, `head[-1]` on a struct pointer: `regmove` collapses
+every one of them, because `p` dies at the copy.
+
+**Symptom.** Beyond the missing copy, the *scratch* pointer lands in `$v1`
+instead of `$a1`, so `arg1` keeps `$a1` and the target's `move $t1, $a1`
+parameter copy is missing too. That second difference is downstream of the
+first: `$v0` holding `head - 0x1C` is what pushes the `workm.t[1]` load into
+`$v1` and leaves the constant `0x1F8003FC` nothing below `$a1` to take.
+
+**Fix.** Pin *two* locals to the same register — the value the store consumes
+and the pointer that overwrites it:
+
+```c
+register EnergyQuadScratch* p  asm("v0");
+register u16                vx asm("v0");
+...
+vx                                          = *(u16*)&arg0->workm.t[0];
+((EnergyQuadScratch*)(head - 0x1C))->vec.vx = vx;
+p                                           = (EnergyQuadScratch*)(head - 0x1C);
+block                                       = p;
+```
+
+Pinning `p` alone keeps the copy but lets the scheduler hoist the `addiu`
+above the `sh`, because at `sched1` nothing says the two share a register.
+Pinning `vx` as well states the reuse the target's allocation implies, and the
+resulting `$v0` anti-dependence pins the `addiu` after the store. Both pins
+are needed: dropping either costs about 0.9%.
+
+A store-then-reload (`*scratch = head - 0x1C; block = (X*)*scratch;`) is the
+one *unpinned* way to keep the copy — CSE forwards the stored register and
+`p` no longer dies at the copy — and it is what
+`Actor02100_Fn00DCC` matches with. It only works when the target writes the
+scratch head back *before* the first field store; here the write-back comes
+after, and moving it earlier costs more than the copy is worth.

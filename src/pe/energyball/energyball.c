@@ -77,7 +77,80 @@ INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_8012F180);
 
 INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_8012FFD0);
 
-INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_8013035C);
+/// Links one frame of the energy ball's core sprite at `arg0`'s world
+/// position. The position is projected through `GsWSMATRIX` by a single `RTPS`
+/// and the quad is dropped when that sets a negative `gte_stflg`. `arg1` is the
+/// effect's frame counter and its low bit alternates the two looks: odd frames
+/// draw the raw, semi-transparent 0x428B cell, even frames the 0x428C cell
+/// tinted `(0x40, 0xC0, 0x60)`. `arg3` spins the quad and `arg2` sizes it: the
+/// corners sit `arg2 * 55 / otz` from the projected centre along `arg3` and
+/// `arg3 + 0x400`, so the sprite shrinks with depth.
+void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**                      scratch;
+    u8*                         head;
+    EnergyQuadScratch*          block;
+    register EnergyQuadScratch* p asm("v0");
+    register u16                vx asm("v0");
+    POLY_FT4*                   prim;
+    s32                         ang2;
+    u16                         vz;
+
+    scratch                                     = (void**)G_SCRATCH_HEAD;
+    head                                        = *scratch;
+    vx                                          = *(u16*)&arg0->workm.t[0];
+    ((EnergyQuadScratch*)(head - 0x1C))->vec.vx = vx;
+    p                                           = (EnergyQuadScratch*)(head - 0x1C);
+    block                                       = p;
+    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
+    vz                                          = *(u16*)&arg0->workm.t[2];
+    block->vec.vz                               = vz;
+    *scratch                                    = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((EnergyQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((EnergyQuadScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((EnergyQuadScratch*)(head - 0x1C))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyFT4(prim);
+        if (arg1 & 1) {
+            setSemiTrans(prim, 1);
+            setShadeTex(prim, 1);
+            prim->tpage = 0x29;
+            prim->clut  = 0x428B;
+            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
+        } else {
+            setRGB0(prim, 0x40, 0xC0, 0x60);
+            prim->tpage = 0x29;
+            prim->clut  = 0x428C;
+            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
+            setSemiTrans(prim, 1);
+        }
+        block->dx = (((arg2 * 55) / block->otz) * rsin(arg3)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = arg3 + 0x400;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    DEF_REG(head);
+}
 
 INCLUDE_ASM("pe/nonmatchings/energyball/energyball", func_energyball_801307D4);
 
