@@ -21,6 +21,16 @@ STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
 
 extern LifeDrainScale D_lifedrain_80130AB4[];
 
+/// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.field_20`
+/// when the cast has drained nothing yet and by `field_20 + 3` once there is
+/// health banked in `D_80115404`.
+extern s32 D_lifedrain_80130AD4[];
+
+/// One yaw per funnel wedge, `LifeDrainScale.unk0` of them, re-rolled as a
+/// block when the cast starts and replayed every frame by
+/// `PeShared801305c0`.
+extern s16 D_lifedrain_80130AEC[];
+
 /// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
 /// drain mote reparents itself onto it and adds its own `spawnArg1` to the
 /// running total there.

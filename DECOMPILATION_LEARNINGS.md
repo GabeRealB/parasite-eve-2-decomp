@@ -52142,3 +52142,47 @@ row        = cell / 6;
 0xAAAAAAAB` division survives. Note `frame & 0xFFFF` with a `u32` local does
 *not* work: two nested `and`s merge their constants and you are back to
 `idx & 0x3F`. The cast has to be to the narrow *type*, not a mask.
+
+## Where a preheader `move` sits relative to the hoisted invariants says whether it is a source local
+
+`move_movables` appends hoisted loop invariants at the end of the preheader and
+`strength_reduce` emits giv initialisations after those, so a preheader reads in
+three bands: source-level statements, then movables, then giv inits. A `move
+rD, rS` that copies an address already live before the loop can come from either
+of the outer two bands, and picking the wrong one is a three-instruction reorder
+that no amount of statement shuffling fixes.
+
+`func_lifedrain_8012EF48` has the same table-walking loop three times. In state
+0 the target preheader is
+
+```
+blez  v0, ...
+move  s0, zero          ; i = 0
+lui   a2, %hi(Gp_LcgState)   ; movable
+lui   a3, 0x7135             ; movable
+ori   a3, a3, 0x7911         ;   (the LCG constant)
+move  t0, a1                 ; movable: the table address, used by the exit test
+lui   v0, %hi(D_lifedrain_80130AEC)   ; giv init, emitted last
+addiu a1, v0, %lo(D_lifedrain_80130AEC)
+```
+
+so *both* the table copy and the walking pointer are compiler-derived, and the
+source indexes the array and re-reads the global:
+
+```c
+do {
+    rng                     = Gp_LcgState * 5 + 0x71357911;
+    D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
+    Gp_LcgState             = rng;
+} while (++i < D_lifedrain_80130AB4[mem->field_20].unk0);
+```
+
+Writing the idiomatic `t2 = D_lifedrain_80130AB4; p = D_lifedrain_80130AEC;`
+pair instead puts both in the first band, ahead of the movables — 99.7% with
+`reorder=3` and every register already correct.
+
+States 2 and 3 run the same walk with a call in the body, and there the target's
+preheader is `move s5, a1` *then* the `lui`/`addiu` for the array, with no
+movables at all (the body hoists nothing). Both bands are the first one, so both
+*are* source locals and the explicit `t2` / `p` pair is what matches. Same loop,
+opposite answer: read the band, not the loop.
