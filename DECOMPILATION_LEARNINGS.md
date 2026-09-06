@@ -3,6 +3,33 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Write `prim->r0` first so a reused RGB constant loads next to `setcode`
+
+When `r0` and `b0` share a value the target loads into `$v1` immediately after
+`li v0, 0x2E`, assigning `rb = 0x20` next to the later stores lets GCC sink the
+`li` to the use (`li v0, 0x20` / `sb 4` / `sb 6`). An empty `USE_REG(rb)` /
+`SOFT_USE_REG(rb)` after `setcode` does pin the load, but the asm is a
+scheduling fence: `&Display_State` stops hoisting next to `Gpu_PrimCursor`,
+and `Gpu_CurrentOt` fills the last UV delay instead of `lhu 0x2A`.
+
+The store itself is the early use. Write `prim->r0 = rb` right after `setcode`;
+`-fschedule-insns` delays that `sb` until after `g0`/`tpage` (independent
+offsets) while leaving `li v1, 0x20` in the `li v0, 0x2E` window:
+
+```c
+setcode(prim, 0x2E);
+rb          = 0x20;
+prim->r0    = rb; /* early use; sb schedules after tpage */
+prim->g0    = 0x30;
+prim->tpage = 0x28;
+prim->b0    = rb;
+prim->clut  = 0x428C;
+```
+
+`func_energyball_801307D4` is the example. Same lever as Room_Draw16's "split a
+`mult` from its store": the def has to be in flight before the independent op
+that fills its delay, and the actual store can land later.
+
 ## Emit `move v0, v1` with `addu dst, src, $zero` when `COPY_REG_EC` recolors a long-lived source
 
 A world-position halfword kept live across several `sh`s (in `$v1`) and then

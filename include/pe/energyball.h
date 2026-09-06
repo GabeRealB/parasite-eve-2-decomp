@@ -48,4 +48,28 @@ STATIC_ASSERT_SIZEOF(EnergyQuadScratch, 0x1C);
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
 void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_energyball_801307D4`
+/// for the ground-plane quad. `vec` holds the four corners of the unit quad
+/// `D_80111E38`, scaled to the caller's half-size, rotated flat by
+/// `Gfx_ViewWorldMtx` and shifted onto `arg0->workm.t`; `sxy0`..`sxy3` are the
+/// four screen corners the single `RTPS` + `RTPT` pair projects them to.
+/// `otz` and `flag` are function locals, not fields of this block.
+typedef struct EnergyGroundScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ DVECTOR sxy0;
+    /* 0x24 */ DVECTOR sxy1;
+    /* 0x28 */ DVECTOR sxy2;
+    /* 0x2C */ DVECTOR sxy3;
+} EnergyGroundScratch;
+STATIC_ASSERT_SIZEOF(EnergyGroundScratch, 0x30);
+
+/// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
+/// `D_80111E38` is scaled to `arg1` half-size (Y stays 0), rotated flat by
+/// `Gfx_ViewWorldMtx`, then projected through `GsWSMATRIX`. One `RTPS` plus
+/// one `RTPT` project the four corners; a negative `gte_stflg` drops the
+/// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
+/// the frame picked by the low bit of `Display_State.field_8`, tinted
+/// `(0x20, 0x30, 0x20)`.
+void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1);
+
 #endif /* PE_ENERGYBALL_H */
