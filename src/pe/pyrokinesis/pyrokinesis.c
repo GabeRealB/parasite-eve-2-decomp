@@ -601,7 +601,93 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("pe/nonmatchings/pyrokinesis/pyrokinesis", func_pyrokinesis_801304C4);
+/// Draws the scorch mark the cone leaves on the floor: the unit quad
+/// `D_80111E38` is scaled to `arg1` half-size, laid flat into view space with
+/// `Gfx_ViewWorldMtx` (rotation only, translation from `GsWSMATRIX`) and
+/// offset by `arg0->workm.t`, then its four corners are projected through
+/// `GsWSMATRIX`. On a non-negative `gte_stflg` it queues one semi-transparent
+/// `POLY_FT4` (tpage 0x28, clut 0x428C) tinted `(0x30, 0x20, 0x20)`; the frame
+/// counter's low bit picks between two 0x1F-wide UV columns at v = 0x38..0x57.
+/// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
+void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
+{
+    void**            scratch;
+    register u8*      head asm("v1");
+    GpQuadScratch*    block;
+    register SVECTOR* v asm("a2");
+    s32               i;
+    GpQuadCorner*     tbl;
+    POLY_FT4*         prim;
+    s32               u;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch - 0x38;
+    block    = (GpQuadScratch*)head;
+    *scratch = head;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i   = 0;
+    v   = block->vec;
+    tbl = D_80111E38;
+    do {
+        v->vx = tbl->x * arg1;
+        v->vy = 0;
+        v->vz = tbl->y * arg1;
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(v);
+        gte_rtv0_real();
+        gte_stsv(v);
+        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        tbl++;
+        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        i++;
+        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        v++;
+    } while (i < 4);
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec[0]);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy0);
+    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2E);
+        setRGB0(prim, 0x30, 0x20, 0x20);
+        prim->tpage = 0x28;
+        prim->clut  = 0x428C;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        prim->v0    = 0x38;
+        prim->u0    = u;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        prim->v1    = 0x38;
+        prim->u1    = u;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        prim->v2    = 0x57;
+        prim->u2    = u;
+        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        prim->v3    = 0x57;
+        prim->u3    = u;
+        prim->x0    = *(u16*)&block->sxy0.vx;
+        prim->y0    = *(u16*)&block->sxy0.vy;
+        prim->x1    = *(u16*)&block->sxy1.vx;
+        prim->y1    = *(u16*)&block->sxy1.vy;
+        prim->x2    = *(u16*)&block->sxy2.vx;
+        prim->y2    = *(u16*)&block->sxy2.vy;
+        prim->x3    = *(u16*)&block->sxy3.vx;
+        prim->y3    = *(u16*)&block->sxy3.vy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+}
 
 /// Draws one billboard flame quad: `arg0`'s origin is projected once through
 /// `GsWSMATRIX` and a single semi-transparent `POLY_FT4` (tpage 0x29, clut

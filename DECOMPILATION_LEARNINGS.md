@@ -52213,3 +52213,28 @@ preheader is `move s5, a1` *then* the `lui`/`addiu` for the array, with no
 movables at all (the body hoists nothing). Both bands are the first one, so both
 *are* source locals and the explicit `t2` / `p` pair is what matches. Same loop,
 opposite answer: read the band, not the loop.
+
+
+## Grep a distinctive data symbol before trusting `overlay_dup_index.py find`
+
+`overlay_dup_index.py find func_pyrokinesis_801304C4` reported one copy — the
+function itself — yet the body was already matched several times over, as
+`Gp_DrawEffSprite7C` in gameplay, `Room_Draw16` in `src/rooms/lib`, and again
+in the `m4a1_pyke`, `hypervelocity` and `energyball` overlays. The index
+compares whole disassembly texts, so a body that differs only in its texture
+constants, its `setcode`, or by a single extra statement (here `block->otz++`)
+is not a duplicate by its measure even though it is the same routine.
+
+When the target reads a named global that only a family of routines touches —
+`D_80111E38`, the unit quad, is the example — grep `src/` for that symbol
+first. Every hit is a matched instance of the same shape, and the closest one
+is a finished seed. `func_pyrokinesis_801304C4` matched 100% on the first
+attempt as `Gp_DrawEffSprite7C`'s body with the tpage, `setcode` and UVs of the
+room-side sibling.
+
+That also carries the register pins across. This body needs both
+`register u8* head asm("v1")` and `register SVECTOR* v asm("a2")`: unpinned it
+scores 96.4% (regs=40, stack=7), `head` alone 96.4%, `v` alone 99.5%. The pins
+are the established idiom for the routine rather than an ad-hoc fix, so a
+sibling that carries them is worth copying verbatim — only the loop pointer's
+register changes between instances.
