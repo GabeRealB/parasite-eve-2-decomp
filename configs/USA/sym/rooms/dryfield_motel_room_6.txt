@@ -58,3 +58,4 @@ RoomsShared8017f128Scale = 0x8017D644; // shared body data, see src/rooms/lib/
 RoomsShared8017d5f0 = 0x8017F47C; // shared body, see src/rooms/lib/
 RoomsShared8017d5f0Desc = 0x80182D0C; // shared body data, see src/rooms/lib/
 RoomsShared8017d7a4 = 0x8017F630; // shared body callee, see src/rooms/lib/
+RoomsShared8017f2f8 = 0x80181184; // shared body, see src/rooms/lib/

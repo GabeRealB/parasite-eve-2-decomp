@@ -11,8 +11,6 @@ extern s32 D_acropolis_west_elevator_hall_80184620;
 extern s32 D_acropolis_west_elevator_hall_80184890;
 extern s32 D_acropolis_west_elevator_hall_801849C8;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F304);
-
 /// Runs the one-shot cutscene hand-off for the west elevator hall: once the
 /// session reports state 8 == 1 the room spawns its scripted task pair, opens
 /// the story flags for the elevator and marks the sequence as running; the

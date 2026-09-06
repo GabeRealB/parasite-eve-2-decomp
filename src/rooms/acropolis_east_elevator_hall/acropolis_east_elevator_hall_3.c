@@ -26,48 +26,43 @@ extern s32     D_acropolis_east_elevator_hall_8018621C;
 extern s32     D_acropolis_east_elevator_hall_801862F4;
 extern s32     D_acropolis_east_elevator_hall_8018631C;
 
-s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 {
-    if (arg2->field_2 == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
-        func_800E8634((s32)&D_acropolis_east_elevator_hall_80185D54, 0, (s32)&D_acropolis_east_elevator_hall_801860B4);
-        D_acropolis_east_elevator_hall_8018631C = 1;
-        GameFlag_SetNibble(0, 1);
-        GameFlag_SetNibble(3, 0);
-        GameFlag_SetNibble(0x155, 3);
-        GameFlag_SetNibble(8, 2);
-        func_800E3FAC(0xA2, 2);
-    }
-    return 0;
-}
+    GsCOORDINATE2* coord;
 
-s32 func_acropolis_east_elevator_hall_8017F420(s32 arg0, s32 arg1, s32 arg2)
-{
-    if (arg2 == 2) {
-        func_800E8614((s32)&D_acropolis_east_elevator_hall_8018621C, 0);
-    }
-    return 0;
-}
+    coord = ((TmdObject*)task->extra)->field_8;
+    switch (task->state) {
+        case 0:
+            Task_Spawn(1, 0x25, 0, 0);
+            Task_Spawn(1, 0x25, 1, 0);
+            task->state++;
+            /* fallthrough */
+        case 1:
+            if ((u8)Game_Session->field_4 == 2) {
+                SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
 
-void func_acropolis_east_elevator_hall_8017F450(void)
-{
-    Gp_StartCapSlot(0x10, 1, 0);
-}
-
-void func_acropolis_east_elevator_hall_8017F478(Task* task)
-{
-    task->field_24 = &D_acropolis_east_elevator_hall_801862F4;
-    Game_SetPtrSlot(task, 7);
-    Gp_MsgSlot4Chain(0, 1);
-    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_acropolis_east_elevator_hall_80185C8C, 0);
-    task->state++;
-}
-
-void func_acropolis_east_elevator_hall_8017F4E8(void)
-{
-    if (Display_State.field_112 != 0) {
-        func_807245E4(Game_GetPtrSlot(3));
-        if (Display_State.field_112 != 0) {
-            func_80724608(Game_GetPtrSlot(3), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
-        }
+                Gp_SpawnEff(0x60022, coord, 0xC03, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x985;
+                vec.vz = 0x55;
+                Gp_SpawnEff(0x60022, coord, 0xC03, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0xA81;
+                vec.vz = -0x1CA;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0xA93;
+                vec.vz = -0x61C;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x460;
+                vec.vz = -0x1A1;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x449;
+                vec.vz = -0x635;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+            }
+            break;
     }
 }
