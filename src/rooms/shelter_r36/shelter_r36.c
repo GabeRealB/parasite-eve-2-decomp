@@ -1,7 +1,9 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -9,6 +11,9 @@ extern s32 D_shelter_r36_8017DF2C;
 extern s32 D_shelter_r36_8017E5A4;
 extern s32 D_shelter_r36_8017E664;
 extern s32 D_shelter_r36_8017E8BC;
+
+extern s16      D_80071076;
+extern TaskDesc RoomsShared8018397cDesc;
 
 void func_shelter_r36_8017D5E8(Task* task)
 {
@@ -49,9 +54,38 @@ void func_shelter_r36_8017D5E8(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D738);
+void func_shelter_r36_8017D738(void)
+{
+    if (Mc_SaveData.field_23 != 9) {
+        Mc_SaveData.field_7 = 4;
+        Mc_SaveData.field_6 = 0x24;
+        Mc_SaveData.field_8 = 2;
+        Mc_SaveData.field_5 = 1;
+        D_80071076          = 1;
+        Task_Spawn(0, 0x11, 0, 0);
+        Fs_BeginBootLoad(&Mc_SaveData.field_4, 1);
+    }
+}
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r36/shelter_r36", func_shelter_r36_8017D7B4);
+void func_shelter_r36_8017D7B4(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 0, 0);
+            task->state++;
+            break;
+        case 1:
+            Gp_MsgPlayerWeapon(0);
+            task->state++;
+            break;
+        case 2:
+            Game_Session->field_128 = 0xFF;
+            Game_Session->field_12E = 1;
+            Task_Kill(task);
+            break;
+    }
+}
 
 void func_shelter_r36_8017D870(s32 arg0)
 {
