@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Independent `flags = 1` is hoisted into a long mul; put it after the jal-delay store
+
+`Gp_LinkObj` wants `sh flags, 0x1E` immediately before the `jal` and the
+`field_1C` store in the delay. Written as
+
+```c
+obj->field_18 = long_div_expr;
+obj->flags    = 1;
+obj->field_1C = table[i].field_0;
+Gp_LinkObj(1, obj);
+```
+
+the constant `flags = 1` is independent of the `% 100` / `% 10` muls, so
+`-fschedule-insns` plants `sh $fp, 0x1E` in a `multu` delay. `field_1C`
+still owns the jal delay, and the leftover is pure `reorder` (often with
+`mfhi` / `li a0, 1` swapped around that stolen slot). Barriers after
+`field_18` spill a mul temp and reopen `branch`.
+
+Move the independent store *after* the load that should fill the jal
+delay:
+
+```c
+obj->field_18 = long_div_expr;
+obj->field_1C = table[i].field_0;
+obj->flags    = 1;
+Gp_LinkObj(1, obj);
+```
+
+`field_1C` still lands in the `jal` delay; `flags` stays next to the call.
+`func_necrosis_8012EF34` is the example.
+
+A related tick-register swap on the same function: `lhu a1` (old) /
+`addiu a0, a1, 1` (new) needs the incremented value to outrank the
+pre-increment copy. Both at 3 refs, the shorter live range (restore
+path) wins `$a0`. `SOFT_USE_REG(tick)` after the store is a fourth ref
+with no extra insn, so `tick` takes `$a0` and the restore keeps `$a1`.
+
 ## Split each LCG roll; divide the stored `s16` not the `andi` temp
 
 Three `Gp_LcgState = Gp_LcgState * 5 + 0x71357911` rolls in one case, written
