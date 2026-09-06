@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Split a shared `Task_Kill` so the kill-arg can occupy `$a0`
+
+A two-case switch that shares one `Task_Kill(arg0)` via `goto kill` makes
+the kill-arg a global-alloc pseudo. local-alloc then hands `$a0` to a
+short-lived global address in the case-1 body (`lui a0, %hi(flag)`), so
+the kill-arg lands in `$a2` and `jal Task_Kill` takes `move a0, a2` in
+its delay — both incoming branches then fill with `move a2, s0` instead
+of the target's `move a0, s0` / `jal`+`nop`.
+
+Write a `Task_Kill` on each path instead of the goto. Case 0 can pass
+`arg0` directly; case 1 needs a block-local copy live across the stores
+so local-alloc puts *it* in `$a0` and the flag address drops to `$a2`:
+
+```c
+case 0:
+    if (already_running) {
+        Task_Kill(arg0);
+        break;
+    }
+    /* spawn ... */
+    break;
+case 1:
+    if (Task_PollKill(child, &poll) != 0) {
+        t     = arg0;
+        flag ^= 1;
+        Task_Kill(t);
+    }
+    break;
+```
+
+GCC still cross-jumps the two calls into one `jal` (shared tail after
+case 1). The two `t = arg0` / `Task_Kill(arg0)` copies fill the `bnez` /
+`beqz` delays as `move a0, s0`, and the merged `jal` keeps a `nop`.
+`func_replay_bonus_80118C64` is the example. A function-scope
+`register Task *t asm("a0")` pin is the wrong fix: it reserves `$a0`
+through the spawn call as well.
+
 ## Write `setUVWH` before clut/tpage so the width `li` lands in the XY gap
 
 A constant `POLY_FT4` (shade-tex `0x2D`, `setXYWH`/`setUVWH` of the same

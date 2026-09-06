@@ -194,7 +194,41 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118B6C);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80118C64);
+void func_replay_bonus_80118C64(Task* arg0)
+{
+    s32                poll;
+    s32                temp_v1;
+    ReplayBonusStream* stream;
+    Task*              t;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            if ((u32)(D_replay_bonus_80119225 - 1) < 2U) {
+                Task_Kill(arg0);
+                break;
+            }
+            stream                  = D_replay_bonus_801192BC;
+            stream->fileId          = (u16)arg0->spawnArg1;
+            stream->x               = 0x280;
+            stream->y               = (D_replay_bonus_80119226 ^ 1) << 8;
+            stream->w               = 0xF0;
+            stream->h               = 0xB0;
+            D_replay_bonus_80119228 = Task_SpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, (s32)stream);
+            D_replay_bonus_80119225 = 1;
+            arg0->state            += 1;
+            break;
+        case 1:
+            if (Task_PollKill(D_replay_bonus_80119228, &poll) != 0) {
+                t                        = arg0;
+                D_replay_bonus_80119227  = 0x78;
+                D_replay_bonus_80119226 ^= 1;
+                D_replay_bonus_80119225  = 2;
+                Task_Kill(t);
+            }
+            break;
+    }
+}
 
 void func_replay_bonus_80118D7C(Task* arg0)
 {
