@@ -12,6 +12,8 @@
 #include "main/text.h"
 #include "psyq/libpress.h"
 extern u8           D_replay_bonus_801157C8[];
+extern u8           D_replay_bonus_80119014[];
+extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
@@ -71,7 +73,46 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_RODATA("aya/nonmatchings/replay_bonus/replay_bonus", D_replay_bonus_801157C8);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116964);
+void func_replay_bonus_80116964(Task* arg0)
+{
+    UiObject* obj;
+    UiObject* spawned;
+    Task*     child;
+    UiObject* childObj;
+    s16       flag;
+    u16       copied;
+    s32       color;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawTitle((UiPanel*)obj, "WARNING");
+    if (arg0->state == 0) {
+        obj->field_2C = 0x34;
+        Ui_SizeFromText((UiPanel*)obj, D_replay_bonus_8011906C, 0, 0);
+        SOFT_BARRIER();
+        Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(3) + 4);
+        arg0->state = arg0->state + 1;
+    } else if (arg0->state == 1) {
+        spawned = func_800CD89C(obj);
+        if (spawned != NULL) {
+            spawned->owner->spawnArg1 |= 0x10;
+            spawned->field_E          += 0x10;
+            arg0->state                = arg0->state + 1;
+        }
+    }
+    color = 0x606060;
+    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_replay_bonus_80119014, color, 1, 0);
+    child = arg0->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        flag     = childObj->field_2E;
+        if ((flag == -1) || (flag == 6)) {
+            copied        = childObj->field_2C;
+            obj->field_2E = 6;
+            obj->field_2C = copied;
+        }
+    }
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116AC0);
 
