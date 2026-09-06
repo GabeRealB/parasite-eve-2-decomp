@@ -14,7 +14,7 @@
 extern s16            D_80114D08;
 extern TaskFuncTable9 D_acropolis_bridge_8017D614;
 
-s32 func_acropolis_bridge_8017F6D4(AcropolisBridgeHotspot* table, s16 x, s16 y);
+s32 RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 
 /// Two-state dispatcher of this room's prompt script task: builds the handler
 /// table on the stack and tails into the entry named by `Task::state`.
@@ -149,7 +149,7 @@ void func_acropolis_bridge_8017F544(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
-    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
 
     if (work->field_A < 0xA) {
         work->field_A++;
@@ -169,7 +169,7 @@ void func_acropolis_bridge_8017F544(Task* task)
         task->state = 6;
     }
     func_acropolis_bridge_8017E60C(work->field_4, 0);
-    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
@@ -186,17 +186,4 @@ void func_acropolis_bridge_8017F658(Task* task)
     Game_Session->field_68 = 0;
     Game_Session->field_66 = 0;
     D_80114D08             = 0xA;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_7", func_acropolis_bridge_8017F6D4);
-
-/// Nine-state dispatcher of this room's script task: copies the handler table
-/// out of the overlay's rodata onto the stack and tails into the entry named by
-/// `Task::state`.
-void func_acropolis_bridge_8017F788(Task* task)
-{
-    TaskFuncTable9 states;
-
-    states = D_acropolis_bridge_8017D614;
-    states.funcs[task->state](task);
 }

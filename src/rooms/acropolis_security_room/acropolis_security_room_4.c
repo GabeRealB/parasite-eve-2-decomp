@@ -15,7 +15,7 @@
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `func_acropolis_security_room_8017ECB4`.
-extern AsrHotspot D_acropolis_security_room_80182648[];
+extern RoomHotspot D_acropolis_security_room_80182648[];
 
 /// The five camera ids the security monitor can display, in the order the
 /// `GameFlag_GetNibble(0x2A)` nibble indexes them.
@@ -33,8 +33,8 @@ void func_acropolis_security_room_8017E0C4(s16 id);
 void func_acropolis_security_room_8017E37C(Task* task);
 void func_acropolis_security_room_8017E490(Task* task);
 void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant);
-s32  func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
-s32  func_acropolis_security_room_8017FCB0(AsrHotspot* table, s16 x, s16 y);
+s32  func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
+s32  func_acropolis_security_room_8017FCB0(RoomHotspot* table, s16 x, s16 y);
 void func_acropolis_security_room_8017EDE4(Task* task);
 
 /// Per-frame cursor driver of the security-room action prompt, run as state 1
@@ -70,7 +70,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 void func_acropolis_security_room_8017EE44(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
-    AsrHotspot*                 hs     = D_acropolis_security_room_801826DC;
+    RoomHotspot*                hs     = D_acropolis_security_room_801826DC;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
 
     Game_Session->field_68 = 1;

@@ -30,11 +30,11 @@ extern s16 D_acropolis_security_room_801826B4[];
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `func_acropolis_security_room_8017ECB4`.
-extern AsrHotspot D_acropolis_security_room_80182648[];
+extern RoomHotspot D_acropolis_security_room_80182648[];
 
 extern s8 D_8007216C;
 
-s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
+s32 func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
 
 /// Entry state of the security-monitor task: allocates the `AsrMonitorWork`
 /// block into the `Task::idMap` slot, spawns the monitor's companion task,
@@ -45,7 +45,7 @@ s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
 void func_acropolis_security_room_8017D9DC(Task* task)
 {
     AsrMonitorWork* work;
-    AsrHotspot*     hs;
+    RoomHotspot*    hs;
     s16             flag;
     s32             state;
     s16             stateElse;
@@ -99,7 +99,7 @@ void func_acropolis_security_room_8017D9DC(Task* task)
 void func_acropolis_security_room_8017DB30(Task* task)
 {
     AsrMonitorWork*   work;
-    AsrHotspot*       hs;
+    RoomHotspot*      hs;
     RoomActionPrompt* prompt;
 
     hs     = D_acropolis_security_room_80182648;

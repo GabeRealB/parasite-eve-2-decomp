@@ -30,7 +30,7 @@ extern s16 D_acropolis_security_room_801826B4[];
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `func_acropolis_security_room_8017ECB4`.
-extern AsrHotspot D_acropolis_security_room_80182648[];
+extern RoomHotspot D_acropolis_security_room_80182648[];
 
 /// State 0 of the security-monitor task, in the next unit: it seeds
 /// `AsrMonitorWork::cameraId` from the camera table above.
@@ -38,7 +38,7 @@ void func_acropolis_security_room_8017D9DC(Task* task);
 
 extern s8 D_8007216C;
 
-s32 func_acropolis_security_room_8017ECB4(AsrHotspot* table, s16 x, s16 y);
+s32 func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
 
 s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

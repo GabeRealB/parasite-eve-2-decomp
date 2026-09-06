@@ -392,7 +392,7 @@ void func_acropolis_security_room_8017F9C8(Task* task)
 void func_acropolis_security_room_8017FA18(Task* task)
 {
     AcropolisSecurityRoomState* st;
-    AsrHotspot*                 hs;
+    RoomHotspot*                hs;
 
     st = Mem_Calloc(sizeof(AcropolisSecurityRoomState), 0);
     if (st == NULL) {
@@ -493,7 +493,7 @@ void func_acropolis_security_room_8017FC30(Task* task)
 /// contains the point and clearing it on every other one. Returns non-zero if
 /// any entry was hit, so the caller can tell "cursor is over something" from
 /// "cursor is over nothing" without rescanning the table.
-s32 func_acropolis_security_room_8017FCB0(AsrHotspot* table, s16 x, s16 y)
+s32 func_acropolis_security_room_8017FCB0(RoomHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

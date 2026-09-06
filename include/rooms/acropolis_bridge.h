@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "rooms/room_common.h"
+
 #include <psyq/libgte.h>
 
 /// Work block this room's script tasks keep at `Task::idMap`
@@ -41,22 +43,8 @@ typedef struct AcropolisBridgeMsg7DB {
     /* 0x2 */ u16 field_2;
 } AcropolisBridgeMsg7DB;
 
-/// One entry of the bridge's -1-terminated hotspot table
-/// (`D_acropolis_bridge_8018983C`). `x` / `y` / `w` / `h` are the screen
-/// rectangle `func_acropolis_bridge_8017F6D4` tests the action cursor against;
-/// on a hit it raises `hit` on that entry and clears it on every other.
-typedef struct AcropolisBridgeHotspot {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s16 id; // list terminator is -1
-    /* 0xA */ u8  promptKind;
-    /* 0xB */ s8  hit;
-} AcropolisBridgeHotspot;
-
-extern AcropolisBridgeHotspot D_acropolis_bridge_8018983C[];
-extern s32                    D_acropolis_bridge_801917A8;
+extern RoomHotspot D_acropolis_bridge_8018983C[];
+extern s32         D_acropolis_bridge_801917A8;
 
 /// Cursor into the packet buffer the bridge's screen-smear effects draw from.
 /// Every `DR_MOVE` task in `acropolis_bridge_8` takes the packet it points at

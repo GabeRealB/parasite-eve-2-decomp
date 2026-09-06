@@ -2,8 +2,6 @@
 
 #include <psyq/libgte.h>
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_5", func_dryfield_breezeway_8017FCB4);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_5", func_dryfield_breezeway_8017FD68);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_5", func_dryfield_breezeway_8017FD9C);

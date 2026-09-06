@@ -863,4 +863,21 @@ typedef struct _RoomDraw03Scratch {
 } RoomDraw03Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw03Scratch, 0x3C);
 
+/// One entry of a room's 0xFFFF-terminated hotspot table. `x` / `y` / `w` / `h`
+/// are the screen rectangle `RoomsShared8017ecb4` tests the action cursor
+/// against; on a hit it raises `hit` on that entry and clears it on every other.
+/// The room then scans for the raised entry and reads `id` and `promptKind` out
+/// of it, so `id` is the script variant the hotspot selects rather than an
+/// on-screen target id.
+typedef struct RoomHotspot {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id; // list terminator is -1
+    /* 0xA */ u8  promptKind;
+    /* 0xB */ s8  hit;
+} RoomHotspot;
+STATIC_ASSERT_SIZEOF(RoomHotspot, 0xC);
+
 #endif // ROOMS_ROOM_COMMON_H

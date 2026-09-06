@@ -31,7 +31,7 @@ extern s32 D_acropolis_bridge_80190BA4;
 
 void func_acropolis_bridge_8017F2D0(s32 arg0);
 void func_acropolis_bridge_8017E81C(void);
-s32  func_acropolis_bridge_8017F6D4(AcropolisBridgeHotspot* table, s16 x, s16 y);
+s32  RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 
 void func_acropolis_bridge_8017DD9C(Task* arg0)
 {
@@ -133,7 +133,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
 {
     AcropolisBridgePromptWork* work;
     GameSessionFrom4*          sess;
-    AcropolisBridgeHotspot*    hs;
+    RoomHotspot*               hs;
     GpSprtRec*                 rec;
     s32                        view;
 
@@ -173,7 +173,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
 void func_acropolis_bridge_8017E1D0(Task* task)
 {
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
-    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
     RoomActionPrompt*          prompt = &D_80114D28;
 
     Game_Session->field_68 = 1;
@@ -183,7 +183,7 @@ void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->targetId = 0;
     } else {
         prompt->targetId = 0x80;
-        if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
             if (prompt->buttons[0].state == 2) {
                 while (hs->id != -1) {
@@ -237,7 +237,7 @@ void func_acropolis_bridge_8017E1D0(Task* task)
 void func_acropolis_bridge_8017E3A0(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
     GameSessionFrom4*          sess   = (GameSessionFrom4*)&Game_Session->field_4;
     GpSprtRec*                 rec;
@@ -266,7 +266,7 @@ reset:
     work->field_8++;
 
 after:
-    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
@@ -288,7 +288,7 @@ after:
 void func_acropolis_bridge_8017E4FC(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    AcropolisBridgeHotspot*    hs     = D_acropolis_bridge_8018983C;
+    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
     s16                        tick;
     u8                         retry;
@@ -306,7 +306,7 @@ void func_acropolis_bridge_8017E4FC(Task* task)
         work->field_8++;
     }
 
-    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
