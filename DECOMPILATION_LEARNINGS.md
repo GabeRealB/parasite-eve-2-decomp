@@ -52058,3 +52058,87 @@ store at the merge point - which is also why the store lands *first* in the
 merge block instead of being sunk by `sched2`. The constant now lives in the
 register the branch reads (`$v0`), so reorg cannot lift the else arm into the
 delay slot and fills it from the fall-through side, as the target does.
+
+## `s16 % 12` shortens to `HImode`: a stray `sll 16 / sra 16` on the *remainder*
+
+`func_combustion_801305F8(GsCOORDINATE2*, s16 arg1, s16 arg2)` picks a sprite
+cell with `arg1 % 12`. Writing that literally emits one instruction pair more
+than the target:
+
+```
+subu   a0,a0,v0        <- a0 = arg1 % 12
+sll    a0,a0,0x10      <- not in the target
+sra    a3,a0,0x10
+```
+
+The C front end's `shorten` path in `build_binary_op` applies to `*`, `/` and
+`%` as well as the additive operators: with both operands narrower than `int`
+it does the arithmetic in the narrow type, so `arg1 % 12` is `(short)arg1 %
+(short)12` yielding a `short`, which then has to be sign-extended back to fill
+the `SImode` pseudo. `.rtl` shows it plainly:
+
+```
+(set (reg/v:SI 90) (ashiftrt:SI (reg:SI 115) (const_int 16)))
+  (expr_list:REG_EQUAL (sign_extend:SI (subreg:HI (reg:SI 114) 0)))
+```
+
+`get_narrower` looks straight through a `NOP_EXPR`, so `(s32)arg1 % 12` and
+`(int)arg1 % 12` shorten exactly the same way and change nothing. What does
+work is giving the value a real `int` home first, because a `VAR_DECL` of type
+`int` is not narrower than `int`:
+
+```c
+s32 frame;
+
+frame = arg1;
+frame = frame % 12;
+```
+
+Two statements, not `s32 frame = arg1 % 12;` - the initialiser is still one
+expression and shortens. A separate temp (`t = arg1; frame = t % 12;`) also
+removes the extension but leaves `t` as its own pseudo, which cost the
+allocation of `$a0` here; reassigning the same variable is both shorter and the
+one that matched.
+
+## `(u16)x & 0x3F` folds back to `x & 0x3F` and keeps `x` alive: name the zero-extend `u32`
+
+The same function truncates the cell index once and then uses it three ways -
+a CLUT nibble, `/ 6` and `% 6`:
+
+```
+andi   a0,a0,0xffff     <- idx dies here, a0 is now the truncated value
+multu  a0,v0
+andi   v0,a0,0x3f
+```
+
+`((u16)idx & 0x3F)` and `u16 cell = idx; ... cell & 0x3F` both give the wrong
+thing: `cell` lands in an `HImode` pseudo, the AND is expanded as
+`(and:SI (subreg:SI (reg:HI cell)) 63)`, and *cse* rewrites that paradoxical
+subreg back to the `SImode` original because they share their low half:
+
+```
+(insn (set (reg:SI 128) (and:SI (reg/v:SI 90) (const_int 63))))
+```
+
+`idx` is then still live past the truncation, so it and the truncated value
+need two registers instead of one, and every later allocation shifts by one -
+here `prim` lost `$a2` (which the target shares with the dead scratch-head
+pointer) and took `$a1`, for 43 register penalties on an otherwise
+instruction-identical body.
+
+Declaring the truncated value `u32` makes the cast a real `zero_extend` insn
+into an `SImode` pseudo, which cse has nothing to rewrite it to:
+
+```c
+u32 cell;
+
+cell       = (u16)frame;
+prim->clut = (cell & 0x3F) | 0x4300;
+col        = cell % 6;
+row        = cell / 6;
+```
+
+`cell` still promotes to unsigned for `/ 6` and `% 6`, so the `multu
+0xAAAAAAAB` division survives. Note `frame & 0xFFFF` with a `u32` local does
+*not* work: two nested `and`s merge their constants and you are back to
+`idx & 0x3F`. The cast has to be to the narrow *type*, not a mask.

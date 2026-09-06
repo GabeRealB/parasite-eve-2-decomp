@@ -70,4 +70,9 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
 /// additive outer flame.
 void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 
+/// Projects `arg0`'s world position and queues one textured `POLY_FT4` billboard
+/// quad around it: a square of half-size `arg2 * 39 / (otz + 1)`, textured with
+/// cell `arg1 % 12` of the 6x2 sheet of 0x28-pixel flame frames on tpage 0x2A.
+void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+
 #endif /* PE_COMBUSTION_H */

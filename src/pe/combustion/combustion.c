@@ -16,8 +16,6 @@
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
-void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
-
 /// `rtps`: project V0 through the loaded rotation and translation matrices.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 

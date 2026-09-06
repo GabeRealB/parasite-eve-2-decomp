@@ -181,7 +181,86 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion_2", func_combustion_801305F8);
+/// Links one frame of the large combustion flame at `arg0`'s world position,
+/// the same way `func_combustion_8012F5EC` does the small one: the position is
+/// projected through `GsWSMATRIX` by a single `RTPS` and the quad is dropped
+/// when that sets a negative `gte_stflg`. `arg1 % 12` picks a cell of the
+/// 6x2 sheet of 0x28-pixel frames on tpage 0x2A, each with its own CLUT
+/// (`0x4300` plus the cell index), and `arg2` sizes it: the corners sit
+/// `arg2 * 39 / otz` from the projected centre, so the sprite shrinks with
+/// depth.
+void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+{
+    void**           scratch;
+    u8*              head;
+    GpEffFt4Scratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              frame;
+    u32              cell;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              u1;
+    s32              v0;
+    s32              v2;
+    s16              x;
+    s16              y;
+    u16              vz;
+
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                     = (GpEffFt4Scratch*)(head - 0x18);
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vec                                       = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    frame = arg1;
+    frame = frame % 12;
+    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2A;
+        cell        = (u16)frame;
+        prim->clut  = (cell & 0x3F) | 0x4300;
+        col         = cell % 6;
+        row         = cell / 6;
+        u0          = col * 0x28;
+        u1          = u0 + 0x27;
+        v0          = row * 0x28 - 0x78;
+        v2          = row * 0x28 - 0x51;
+        setUV4(prim, u0, v0, u1, v0, u0, v2, u1, v2);
+        block->size = (arg2 * 0x27) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        prim->x2    = x;
+        prim->x0    = x;
+        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        prim->x3    = x;
+        prim->x1    = x;
+        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        prim->y1    = y;
+        prim->y0    = y;
+        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        prim->y3    = y;
+        prim->y2    = y;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x18;
+}
 
 void func_combustion_801308E0(Task* arg0)
 {
