@@ -50510,3 +50510,58 @@ swapped `lhu` loads.
 
 If an insn uid from the `.s` is missing from every `<stem>.i.*` dump, you are
 reading two different compilations. Check the filenames before the codegen.
+
+## `s16 field = (s16_field << 8) + K` loses the load's sign extension
+
+`func_energyball_8012EF48` derives the ball radius from the charge level it
+just stored:
+
+```c
+mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
+mem->field_26 = (mem->field_20 << 8) + 0x300;   /* sll 8 */
+```
+
+The ROM has `sll v1,v1,0x10; sra v1,v1,0x8` — the sign extension of the
+`field_20` load, merged with the `<< 8`. The one-liner above emits a bare
+`sll 8` instead, and so does a version through an `s16` local. The C front end
+narrows an arithmetic expression to the mode of the object it is assigned to
+(`convert_to_integer` shortens `PLUS` / `MULT` / `LSHIFT` when the shift count
+is under the narrow precision), so the whole `(x << 8) + 0x300` is computed in
+`HImode`; the upper bits are then dead and CSE forwards the stored register
+without extending it. The `andi 0xffff` from an explicit `(u16)` cast is folded
+away for the same reason and does not bring the extension back.
+
+Route the value through an `s32` local so the shift has to happen in `SImode`:
+
+```c
+level         = mem->field_20;                  /* sll 16 / sra 8 */
+mem->field_26 = (level << 8) + 0x300;
+```
+
+Assign the plain field to it, not the shifted expression: `s32 t = field << 8;`
+also extends, but the extension no longer depends on the `sh` that stores
+`field_20`, so the scheduler hoists it above the store and it lands in a second
+register instead of overwriting `$v1`.
+
+## Let strength reduction build the fan angle: `i * K`, not an accumulator
+
+The same function spawns one ball per charge level, each `0x555` further round:
+
+```c
+mem->field_24 = i * 0x555 - (s16)(u16)mem->field_20 * 0x2AA;
+```
+
+Written with a hand-rolled accumulator (`angle` initialised to 0 before the
+loop and `angle += 0x555` in the body) every instruction is right and the loop
+preheader is wrong: the ROM zeroes the counter first and copies it into the
+angle (`move s0,zero` in the `blez` delay slot, then `move s2,s0` after the
+guard), while the accumulator version zeroes the angle first and copies it into
+the counter. The ROM's copy is a *giv initialisation*: `loop` strength-reduces
+`i * 0x555` into exactly the `addiu s2,s2,0x555` accumulator, and seeds it from
+the biv's own register. Two zeroed locals in the source cannot produce that
+ordering, because neither one is derived from the other.
+
+So when a loop body scales the induction variable by a constant, write the
+multiply and let GCC create the accumulator. The give-away is a preheader whose
+instructions all match but appear in the wrong order around the loop guard,
+with a `move` between two registers you initialised independently.
