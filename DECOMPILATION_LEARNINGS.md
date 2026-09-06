@@ -52256,3 +52256,59 @@ Two independent tricks were needed:
   extension and the register the value first lands in, which reshuffles
   local-alloc priorities. The permuter found this axis; it is worth trying
   u16/s16 vs u32 on a value that is only ever used masked to 16 bits.
+
+
+## Two prims in one function: reassign the parameter, and interleave the stores
+
+`func_healing_8012F7FC` links two `POLY_FT4`s from one `RTPS`, so every value
+the second quad needs is the first quad's value transformed: the tint is `arg3`
+then `arg3 >> 1`, the half-size `arg2 * 23` then `(arg2 >> 1) * 55`. The
+seed that spells both out —
+
+```c
+setRGB0(prim, arg3, arg3, arg3);            /* quad 1 */
+setRGB0(prim, arg3 >> 1, arg3 >> 1, arg3 >> 1);  /* quad 2 */
+```
+
+scores 85.5% with `regs=49`: GCC makes two pseudos with disjoint live ranges,
+the first one dies before the first `div` and lands in `$a0`, and every later
+allocation shifts with it. The target keeps one pseudo in `$t8` live from the
+prologue to the second quad's `sb`, which is what makes `$a0`, `$a1` and the
+whole `$t0`-`$t7` band unavailable to it.
+
+Writing a fresh local (`s16 c = arg3;`, or `u8 c`) does **not** produce that:
+copy propagation folds `c` back onto the parameter and the range splits again.
+What does is assigning back to the parameter itself:
+
+```c
+arg3 = arg3 >> 1;
+setRGB0(prim, arg3, arg3, arg3);
+```
+
+A `s16` parameter already has two pseudos — the incoming `SI` copy (`move t2,
+a3`) and the `HI` variable read by the body (`move t8, t2`). Reassigning the
+variable keeps that second pseudo as one live range across both uses, and CSE
+still sources the shift from the incoming copy, so `sll v1, t2, 16; sra t8, v1,
+17` falls out. 85.5% → 95.6%, with every hard register correct.
+
+The remaining 4% was store order inside each UV group. Grouping stores by
+equal value —
+
+```c
+prim->u0 = u0; prim->u2 = u0; prim->u1 = u1; prim->u3 = u1;
+```
+
+lets local-alloc give `u0` and `u1` the same register, because `u1` is not
+computed until `u0`'s last store; the `addiu` then sinks below the first two
+`sb`s. Interleaving them (`u0, u1, u2, u3`) keeps both live at once, which is
+the two-register form the target uses. The second quad's constant pair
+(`0x38`/`0x6F`) needs the same treatment, and plain `setUV4` supplies it: its
+expansion is `u0, v0, u1, v1, …`, so the two constants are materialised early
+and the four `sb`s stay in ascending order.
+
+Last, `setlen` / `setcode` immediately after the cursor bump rather than next to
+the `setRGB0` they precede in the output. Both quads share the `9` and `0x2E`
+constants through CSE, so their `li`s are one pseudo each; placing the calls
+early sorts those `li`s ahead of the `andi` at the top of the block, while
+sched2 still sinks the `sb`s back to where the source puts them. That was the
+last 0.4%.
