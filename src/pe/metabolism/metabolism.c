@@ -2,22 +2,210 @@
 
 #include <psyq/inline_c.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "pe/metabolism.h"
 
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
+/// different word, so spell the instruction out.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 extern s32 Gp_LcgState;
 
-INCLUDE_ASM("pe/nonmatchings/metabolism/metabolism", func_metabolism_8012EF34);
+void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
+/// or `Gp_State1C->field_E >= 4`) releases the work block. State 0 parents the
+/// coordinate to the player with an identity rotation lifted 0x400 above it,
+/// picks the intensity row from the combo counter, seeds one random angle per
+/// fan wedge into `D_metabolism_8012FB78`, and plays the combo-indexed cue.
+/// State 1 grows brightness and radius, and each frame spins the coordinate to
+/// three random yaws, rotating `GpEffWork.field_10` through the new frame and
+/// then overwriting it with the `field_26` circle at `field_2A`, to parent
+/// three `0x60013` sparks; it hands over to state 2 once the radius reaches
+/// the row's `field_6`. State 2 shrinks brightness by 0x10 a frame and drops
+/// to state 3 - release - below 0x11. States 1 and 2 both draw the fan wedges,
+/// two rings and two or three arcs, each arc on a colour halved again from the
+/// last.
+void func_metabolism_8012EF34(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    GpEffWork*     spawned;
+    s32            pan;
+    s32            bright;
+    s32            i;
+    s32            temp_lo;
+    u8             rgb[3];
+
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+
+    mem->field_22 = (u16)mem->field_22 + 1;
+    switch (arg0->state) {
+        case 0:
+            rot               = (GpMtxWords*)&coord->coord;
+            coord->sub        = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            rot->w0           = 0x1000;
+            rot->w1           = 0;
+            rot->w2           = 0x1000;
+            rot->w3           = 0;
+            rot->h4           = 0x1000;
+            coord->coord.t[0] = 0;
+            coord->coord.t[1] = -0x400;
+            coord->coord.t[2] = 0;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            arg0->state   = 1;
+            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
+            mem->field_26 = 0x80;
+            {
+                s32 rng;
+
+                for (i = 0; i < D_metabolism_8012FB54[mem->field_20].field_0; i++) {
+                    rng                      = Gp_LcgState * 5 + 0x71357911;
+                    D_metabolism_8012FB78[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
+                    Gp_LcgState              = rng;
+                }
+            }
+            Gp_StateC08.field_6 |= 8;
+            pan                  = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->field_20], pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)coord));
+            /* fallthrough */
+        case 1:
+            Gp_UpdateCoord(coord);
+            bright = mem->field_24;
+            if (bright < D_metabolism_8012FB54[mem->field_20].field_2) {
+                bright += 0x10;
+            }
+            mem->field_24 = bright;
+            mem->field_26 = (u16)mem->field_26 + D_metabolism_8012FB54[mem->field_20].field_4;
+            {
+                s32 rng;
+                s32 rng2;
+
+                for (i = 0; i < 3; i++) {
+                    rng           = Gp_LcgState * 5 + 0x71357911;
+                    rng2          = rng * 5 + 0x71357911;
+                    Gp_LcgState   = rng;
+                    mem->field_2A = ((u32)rng >> 16) & 0xFFF;
+                    Gp_LcgState   = rng2;
+                    Gfx_RotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
+                    gte_SetRotMatrix(&coord->coord);
+                    gte_ldv0(&mem->field_10);
+                    gte_rtv0_real();
+                    gte_stsv(&mem->field_10);
+                    mem->field_10 = (rcos(mem->field_2A) * mem->field_26) >> 12;
+                    temp_lo       = rsin(mem->field_2A) * mem->field_26;
+                    mem->field_14 = 0;
+                    mem->field_12 = temp_lo >> 12;
+                    spawned       = Gp_SpawnEff(0x60013, coord,
+                                                D_metabolism_8012FB54[mem->field_20].field_6,
+                                                (SVECTOR*)&mem->field_10);
+                    if (spawned != NULL) {
+                        Task_Reparent(arg0, spawned->field_0);
+                    }
+                }
+            }
+            if (mem->field_26 >= D_metabolism_8012FB54[mem->field_20].field_6) {
+                arg0->state = 2;
+            }
+            for (i = 0; i < D_metabolism_8012FB54[mem->field_20].field_0; i++) {
+                func_metabolism_8012F840(coord, mem->field_26, D_metabolism_8012FB78[i],
+                                         mem->field_24);
+            }
+            goto draw;
+        case 2:
+            Gp_UpdateCoord(coord);
+            for (i = 0; i < D_metabolism_8012FB54[mem->field_20].field_0; i++) {
+                func_metabolism_8012F840(coord, mem->field_26, D_metabolism_8012FB78[i],
+                                         mem->field_24);
+            }
+            mem->field_24 = (u16)mem->field_24 - 0x10;
+            mem->field_26 = (u16)mem->field_26 + D_metabolism_8012FB54[mem->field_20].field_4;
+            if (mem->field_24 < 0x11) {
+                arg0->state = 3;
+            }
+        draw:
+            rgb[0] = (u16)mem->field_24 >> 2;
+            rgb[1] = *(u8*)&mem->field_24;
+            rgb[2] = (u16)mem->field_24 >> 1;
+            Gp_DrawRing(coord, (s32)((u16)mem->field_26 << 16) >> 17, rgb);
+            Gp_DrawRing(coord, (s32)((u16)mem->field_26 << 16) >> 17, rgb);
+            {
+                GsCOORDINATE2* c;
+                s32            span;
+                unsigned int   r;
+                unsigned int   g;
+                unsigned int   b;
+
+                c = coord;
+                COPY_REG_EC(c, coord);
+                span = 0x80;
+                TOUCH_REG(span);
+                r      = rgb[0];
+                b      = rgb[2];
+                rgb[0] = r >> 1;
+                SOFT_COMPILER_BARRIER();
+                g      = rgb[1];
+                rgb[2] = b >> 1;
+                rgb[1] = g >> 1;
+                Gp_DrawArc(c, mem->field_26, span, rgb);
+            }
+            if ((u16)mem->field_22 & 1) {
+                unsigned int g;
+                unsigned int b;
+
+                g      = rgb[1];
+                b      = rgb[2];
+                rgb[1] = g >> 1;
+                rgb[2] = b << 1;
+                Gp_DrawArc(coord, 0x80, mem->field_26, rgb);
+            }
+            if (mem->field_20 != 0) {
+                GsCOORDINATE2* c;
+                s32            span;
+                unsigned int   r;
+                unsigned int   g;
+                unsigned int   b;
+
+                c = coord;
+                COPY_REG_EC(c, coord);
+                span = 0x80;
+                TOUCH_REG(span);
+                r      = rgb[0];
+                b      = rgb[2];
+                rgb[0] = r >> 1;
+                SOFT_COMPILER_BARRIER();
+                g      = rgb[1];
+                rgb[2] = b >> 1;
+                rgb[1] = g >> 1;
+                Gp_DrawArc(c, (s16)((u16)mem->field_26 + 0x200), span, rgb);
+            }
+            return;
+        case 3:
+            Gp_ReleaseState1CMem(mem, arg0);
+            return;
+    }
+}
 
 /// Metabolism billboard. State 0 seeds the spin from the spawn argument and
 /// picks the draw path: the plain additive quad (state 1), or, one roll in

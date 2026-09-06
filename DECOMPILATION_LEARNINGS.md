@@ -51093,3 +51093,32 @@ matters beyond the naming - it is what puts them under enough pressure to be
 spilled at all. Passing the expressions inline to `setRGB0` / `setRGB1` let
 GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
 `s16` source as a halfword, which cost 8.5% of `func_pyrokinesis_8012FC34`.
+
+
+## A `&Global` pointer local pins the whole address; plain member access shares only the `%hi`
+
+`func_metabolism_8012EF34` touches `Gp_StateC08` three times: `field_3` in the
+cancel test, `field_0` in `case 0`, and `field_6` a few statements later.
+Copying its sibling `func_healing_8012EF34` and opening with
+
+```c
+GpStateC08* state = &Gp_StateC08;
+```
+
+scored 95.2%. The pointer is one pseudo with a live range covering the whole
+prologue-to-`case 0` span, so `global_alloc` parked the *complete* address
+(`lui` + `addiu`) in `$s2` and the bare `%hi` in `$s4`, and both stayed live
+across the LCG loop.
+
+Writing `Gp_StateC08.field_3` / `Gp_StateC08.field_6` directly took it to
+98.0%. Each reference is then its own address rtx: CSE keeps only the shared
+`%hi` in `$s2` — which is what feeds the `lhu $a0, %lo(Gp_StateC08)($s2)` for
+`field_0` — and rematerialises `lui` + `addiu` at the `field_6` read, which is
+exactly the ROM's two "extra" instructions.
+
+The trap is that the sibling is not wrong: `func_healing_8012EF34` matches
+*with* the pointer local, because there the `field_6` use sits close enough
+that keeping the address costs nothing. So when a copied state-machine body
+leaves `regs` spread over the prologue plus a couple of stray `lui`/`addiu`
+insert/delete penalties around a global's later field, try both spellings
+before looking anywhere else.
