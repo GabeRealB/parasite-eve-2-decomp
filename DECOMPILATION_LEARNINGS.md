@@ -51585,3 +51585,44 @@ express that — the types differ and, more to the point, the second range must
 ranges overlap, or whose values are still live; with a clean hand-off the later
 declaration does not displace the earlier one. Check the object dump: if the
 first pin's register is still the one you asked for, the split is fine.
+
+## A copied pin makes an ALU result land in the pinned register: drop the pin
+
+When you port a matched sibling's body onto a near-identical function, the
+sibling's `register T x asm("aN")` locals come along with it — and a pin that
+was load-bearing there can be the one thing that blocks the new match.
+
+`func_necrosis_80130288` is `func_necrosis_8012FE64` with different constants;
+the only real change is the texture cell width, `<< 5` (32) becoming `* 40`.
+The sibling needed `register s16 frame asm("a1")` to keep `arg1` in `$a1`, and
+the ported body scored 99.944% with `regs=3` on exactly the multiply:
+
+```
+target:  andi $v1, $a1, 0xF ; sll $v0,$v1,2 ; addu $v0,$v0,$v1 ; sll $v0,$v0,3
+ours:    andi $a1, $a1, 0xF ; sll $v0,$a1,2 ; addu $v0,$v0,$a1 ; sll $v0,$v0,3
+```
+
+`$a1` dies at the `andi`, and GCC 2.8.1's local-alloc suggests a dying *hard*
+register to the pseudo the insn sets. With `frame` pinned, `$a1` **is** a hard
+register at local-alloc time, so the mask result is tied to it. The sibling
+never showed this because `<< 5` is one insn with no intermediate to allocate.
+
+The fix is not another pin — `register s32 idx asm("v1")` is function-scope and
+cost 4 more registers elsewhere (99.870%). Unpin instead:
+
+```c
+s16 frame;          /* was: register s16 frame asm("a1") */
+frame = arg1;
+```
+
+Now the `andi` source is a pseudo at local-alloc time, so there is no hard-reg
+suggestion and the mask gets `$v1`; global alloc still puts `frame` in `$a1`
+afterwards. 100%. With the pin gone, `frame` turned out to be unnecessary
+altogether (`arg1 & 0xF` matches), as did the sibling's `sinArg asm("a0")`,
+`ang`, `scratch asm("a1")` and `USE_REG(head)` — four of the six pins were
+scaffolding the sibling needed and this function did not. Only the two `$v0`
+pins around the scratch-block header stores were load-bearing.
+
+Rule of thumb: after porting a sibling body, delete each inherited pin one at a
+time and rescore. A pin narrows *every* allocation decision in the function, so
+the ones the sibling needed are as likely to hurt as to help.

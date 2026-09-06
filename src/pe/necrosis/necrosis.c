@@ -454,6 +454,87 @@ void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-INCLUDE_ASM("pe/nonmatchings/necrosis/necrosis", func_necrosis_80130288);
+/// Draws one frame of the necrosis spore cloud. Same shape as
+/// `func_necrosis_8012FE64`: `arg0`'s world position is projected through
+/// `GsWSMATRIX` by a single `RTPS` and the quad is dropped when that sets a
+/// negative `gte_stflg`. `arg1` is packed by the caller: the low nibble picks
+/// one of the 0x28-wide texture cells on row 0x50..0x77, and bit 0x1000 swaps
+/// the dark tpage/CLUT pair (0x49 / 0x42C2) for the pale one (0x29 / 0x428F).
+/// `arg3` spins the quad and `arg2` sizes it: the corners sit `arg2 * 39 / otz`
+/// from the projected centre along `arg3` and `arg3 + 0x400`, so the cloud
+/// shrinks with depth.
+void func_necrosis_80130288(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    void**           scratch;
+    u8*              head;
+    s32              u1;
+    s32              ang2;
+    u16              vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *(u8* volatile*)scratch;
+    {
+        register u16 vx asm("v0");
+        vx                                        = *(volatile u16*)&arg0->workm.t[0];
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x1C;
+        block = (GpFxQuadScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyFT4(prim);
+        if (arg1 & 0x1000) {
+            prim->tpage = 0x29;
+            prim->clut  = 0x428F;
+        } else {
+            prim->tpage = 0x49;
+            prim->clut  = 0x42C2;
+        }
+        setSemiTrans(prim, 1);
+        setShadeTex(prim, 1);
+        {
+            s32 cell;
+            cell = (arg1 & 0xF) * 40;
+            u1   = cell + 0x27;
+            setUV4(prim, cell, 0x50, u1, 0x50, cell, 0x77, u1, 0x77);
+        }
+        block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
+        block->dy = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = arg3 + 0x400;
+        block->dx = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 INCLUDE_RODATA("pe/nonmatchings/necrosis/necrosis", D_necrosis_8012EF30);
