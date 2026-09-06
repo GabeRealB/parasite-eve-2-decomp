@@ -24045,6 +24045,48 @@ blk->pos.vz = vz;
 `func_acropolis_observatory_8017E424` is the example: with the alias at the
 `gte_ldv0` the only diff is that one `move`, scheduled ~15 instructions late.
 
+The scratch store itself then floats: once the alias is in place, the only
+leftover can be the position of `sw <blk>, 0(<scratchptr>)` among the three
+`vec` field stores, because the scheduler uses it to fill a load-delay slot.
+Writing `*scratch = block` before the last field store puts it in the *first*
+free slot,
+
+```
+addiu  s3, v1, -0x1c
+sw     s3, 0(s4)          <- one slot too early
+sh     v0, 2(s3)
+```
+
+while writing it after the last field store leaves it for the second load's
+delay:
+
+```c
+block->vec.vy = *(u16*)&arg0->workm.t[1];
+vz            = *(u16*)&arg0->workm.t[2];
+block->vec.vz = vz;
+*scratch      = block;        /* after the last vec store, not before */
+vec           = &block->vec;
+```
+
+```
+sh     v0, 2(s3)
+lhu    v0, 0x40(a0)
+addiu  t0, t0, %lo(GsWSMATRIX)
+sw     s3, 0(s4)
+sh     v0, 4(s3)
+move   v0, s3
+```
+
+Which of the two orders a given function wants is decided by how much else is
+ready to schedule there, so try both before reaching for a pin -
+`func_flare_8012F304` needed the store last where the otherwise identical
+`Gp_DrawFxQuad` wants it before the `vz` store. Note that a
+`register SVECTOR* v asm("v0")` pin *does* produce the `move`, but only lands
+it correctly when declared between the two `gte_Set*Matrix` calls, and any
+earlier pin reserves `$v0` across the prologue and re-colours `head` and the
+`GsWSMATRIX` base (99.5% with `regs=29`). The plain alias has none of that
+cost.
+
 ## `if (flag >= 0) { work } else { ret = 0 }` keeps the jump / else block
 
 Inverting that test (`if (flag < 0) ret = 0; else work`) lets GCC put
