@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## First of two independent halfword updates becomes the shared switch tail
+
+Cases that all end with two independent `(u16)field += K` stores plus the same
+calls get those stores address-sorted in the RTL, but cross-jump + delayed
+branch pick the **first** of the two in *source* as the shared tail: its add
+fills the `j` delay and its store sits at the join, while the second is fully
+completed in each case body.
+
+`func_inferno_8012F530` needs `sh field_2A` in the case and `addiu; sh field_28`
+at the join. Writing `field_2A` then `field_28` (offset order, and the order
+the stores *appear* in the target) made `field_2A` the tail. Writing the
+join-store first is what matches:
+
+```c
+mem->field_28 = (u16)mem->field_28 + 0xC0; /* first → j delay + join sh */
+mem->field_2A = (u16)mem->field_2A + 0x18; /* second → completed in the case */
+func_...(mem, coord, 0, map);
+func_...(mem, coord, 1, map);
+```
+
+Empty `asm` / `SOFT_COMPILER_BARRIER` between them forces the in-case order
+but also stops arg-setup hoisting into the `bnez` delay and blocks the
+cross-jump. Do not reach for a barrier here.
+
 ## `SOFT_TOUCH_REG` the stack-arg pointer after `COPY_REG_EC` so `addiu a3` does not steal an RGB load-delay
 
 Ofuda / healing force an independent call arg (`span = 0xC0; TOUCH_REG(span)`)
