@@ -5,10 +5,21 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "pe/pepper_spray.h"
+
+extern s8  D_80114C0B;
+extern s32 Gp_LcgState;
+
+void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
 /// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those
 /// names assemble to different words, so spell the instructions out.
@@ -16,7 +27,86 @@
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-INCLUDE_ASM("pe/nonmatchings/pepper_spray/pepper_spray", func_pepper_spray_8012EF34);
+/// Runs one frame of the pepper spray. State 0 parks the room light slot on
+/// the nozzle coordinate, seeds the spray yaw / spread / brightness from
+/// `Gp_LcgState`, refills the six cone yaws and plays the spray sound; state 1
+/// just decays the yaw and the brightness by a sixteenth each, scaled by how
+/// long the spray has run. Either state then redraws the nozzle, flashes the
+/// screen at the current brightness and draws the six cone quads. The effect
+/// ends after nine frames, or immediately if the player is dying
+/// (`D_80114C0B`) or the room is fading (`Gp_State1C`).
+void func_pepper_spray_8012EF34(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    s32            i;
+    s32            age;
+    s32            tz;
+    s32            yaw;
+    s32            spread;
+    s32            pan;
+    u8             rgb[3];
+
+    base  = Gp_RoomCoords;
+    slot  = (GpCoordTail*)&base->coord;
+    mem   = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((D_80114C0B == -2) || (Gp_State1C->field_E != 0)) {
+        SndEvt_EnqueueType7(0xE03F0001, 1);
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    age           = (u16)mem->field_22 + 1;
+    mem->field_22 = age;
+    switch (arg0->state) {
+        case 0:
+            slot->coord.coord.t[0] = coord->coord.t[0];
+            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+            yaw                    = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
+            slot->coord.coord.t[1] = coord->coord.t[1];
+            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+            spread                 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            tz                     = coord->coord.t[2];
+            base->coord.flg        = 0;
+            slot->field_50         = 0x1000;
+            slot->field_52         = 0x1000;
+            slot->field_54         = 0x1000;
+            slot->field_58         = 0xFA0;
+            slot->field_5C         = 0x12C0;
+            base->field_0          = 6;
+            slot->coord.coord.t[2] = tz;
+            mem->field_28          = 0xE0;
+            mem->field_24          = yaw;
+            mem->field_26          = spread;
+            arg0->state            = 1;
+            for (i = 0; i < 6; i++) {
+                Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
+                D_pepper_spray_8012FB9C[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
+            }
+            Gp_StateC08.field_6 |= 8;
+            pan                  = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0xE03F0001, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            break;
+        case 1:
+            mem->field_24 = (u16)mem->field_24 - age * ((s16)mem->field_24 >> 4);
+            mem->field_28 = (u16)mem->field_28 - (u16)mem->field_22 * ((s16)mem->field_28 >> 4);
+            break;
+    }
+    func_pepper_spray_8012F21C(coord, mem->field_24, mem->field_26);
+    rgb[0] = rgb[1] = rgb[2] = mem->field_28;
+    Gp_DrawFadeQuad(rgb, 1);
+    for (i = 0; i < 6; i++) {
+        func_pepper_spray_8012F634(coord, D_pepper_spray_8012FB9C[i], mem->field_28);
+    }
+    if (slot->field_58 >= 0x191) {
+        slot->field_58 -= 0x190;
+    }
+    if (mem->field_22 >= 9) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 INCLUDE_ASM("pe/nonmatchings/pepper_spray/pepper_spray", func_pepper_spray_8012F21C);
 

@@ -19,6 +19,12 @@ typedef struct PepperSprayScratch {
 } PepperSprayScratch;
 STATIC_ASSERT_SIZEOF(PepperSprayScratch, 0x28);
 
+/// The six spray-cone yaws, refilled once per cast by
+/// `func_pepper_spray_8012EF34` from `Gp_LcgState`: entry `i` is a 0x400-wide
+/// draw offset into the quadrant `i & 3`, so the six quads fan around the
+/// nozzle. `func_pepper_spray_8012F634` draws one quad per entry every frame.
+extern s16 D_pepper_spray_8012FB9C[6];
+
 /// Draws the pepper-spray cone as one Gouraud quad: three corners on a 0x100
 /// circle around `arg1` (at `-0xC0`, `0`, `+0xC0`) and one tip twice as far
 /// out and 0x200 towards the camera, all in `arg0`'s `workm` frame. `arg2` is

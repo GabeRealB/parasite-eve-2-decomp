@@ -50761,3 +50761,41 @@ function rather than concentrated in one block: that shape is a live range that
 is too long, and in a `switch` the usual cause is a scratch local shared by the
 arms. Cross-jumping still merges the identical tails afterwards, so the extra
 locals cost no instructions.
+
+## Back-to-back writes to the same global lose the first store unless a pointer store separates them
+
+`func_pepper_spray_8012EF34` draws twice from the LCG before it uses either
+value:
+
+```c
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+yaw         = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+spread      = ((u32)Gp_LcgState >> 16) & 0xFFF;
+```
+
+That compiled with only *one* `sw ..., %lo(Gp_LcgState)`: the second assignment
+kills the first, and with nothing in between GCC 2.8.1 deletes the dead store
+even though the destination is a global. The ROM has both stores, so the
+`delete` penalty is the giveaway — a missing `sw` to a global, not a wrong
+register.
+
+The fix is to notice what the ROM interleaves. The same block copies the
+coordinate translation into the room light slot, and moving one of those copies
+between the two LCG steps restores the store, because a write through a pointer
+may alias the global and blocks the elimination:
+
+```c
+slot->coord.coord.t[0] = coord->coord.t[0];
+Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+yaw                    = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
+slot->coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
+Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+spread                 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+```
+
+Which copy goes in the gap is not free: the scheduler picks the hard register
+for the copy temp from that position, so the two placements that both keep the
+store scored 98.8% and 100%. When a `delete` penalty is one store to a global,
+look for an unrelated memory write the ROM has ordered between the two
+assignments rather than reaching for `SCHED_BARRIER()`.
