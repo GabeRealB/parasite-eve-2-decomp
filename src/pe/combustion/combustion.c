@@ -16,6 +16,8 @@
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
+void PeShared8012fb14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+
 /// `rtps`: project V0 through the loaded rotation and translation matrices.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -276,6 +278,107 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     *scratch = (u8*)*scratch + 0x18;
 }
 
-INCLUDE_ASM("pe/nonmatchings/combustion/combustion", func_combustion_8012F888);
+/// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
+/// the kind from `Gp_StateC08.field_0 % 10 - 1` into `field_2A`, two
+/// `Gp_LcgState` draws into the spin `field_24` and the per-frame rise
+/// `field_12` (`-(rand & 0xFF) - kind * 64`, so bigger embers climb faster),
+/// sizes the sprite as `kind * 0x100 + 0x300` in `field_26`, and enters
+/// `spawnArg1 + 1` - or one state later on a coin flip when `kind >= 2`. Every
+/// later state lifts the coordinate by `field_12` and redraws: state 1 steps
+/// `field_20` every other frame and draws the shared `PeShared8012fb14` flame
+/// on the odd frames, state 2 draws `func_combustion_8012FF0C` and state 3 the
+/// small `func_combustion_8012F5EC`, each releasing the ember after eight (six
+/// for state 3) frames.
+void func_combustion_8012F888(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s32            rng;
+    s32            rng2;
+    s32            y;
+    s16            step;
+    s16            kind;
+    s16            frame;
+    s32            state;
+    s32            tmp;
+    s32            hi;
+    s32            tmp2;
+
+    mem           = arg0->spawnArg2;
+    coord         = ((TmdObject*)arg0->extra)->field_8;
+    mem->field_22 = (u16)mem->field_22 + 1;
+    state         = arg0->state;
+    switch (state) {
+        case 0:
+            kind          = (Gp_StateC08.field_0 % 10U) - 1;
+            rng           = Gp_LcgState * 5 + 0x71357911;
+            rng2          = rng * 5 + 0x71357911;
+            mem->field_24 = ((u32)rng2 >> 16) & 0xFFF;
+            hi            = ((u32)rng >> 16) & 0xFF;
+            mem->field_2A = kind;
+            /* The global store between the `field_2A` store and its reload keeps
+             * GCC from forwarding `kind` into the `lh`. */
+            Gp_LcgState   = rng;
+            tmp           = mem->field_2A;
+            mem->field_12 = -hi - (tmp << 6);
+            Gp_LcgState   = rng2;
+            arg0->state   = arg0->spawnArg1 + 1;
+            tmp2          = mem->field_2A;
+            mem->field_26 = (tmp2 << 8) + 0x300;
+            if (mem->field_2A >= 2) {
+                Gp_LcgState  = rng2 * 5 + 0x71357911;
+                arg0->state += ((u32)Gp_LcgState >> 16) & 1;
+            }
+            /* fallthrough */
+        case 1:
+            step              = mem->field_12;
+            y                 = coord->coord.t[1] + step;
+            coord->flg        = 0;
+            coord->coord.t[1] = y;
+            Gp_UpdateCoord(coord);
+            if (!((u16)mem->field_22 & 1)) {
+                mem->field_20 = (u16)mem->field_20 + 1;
+            }
+            frame = mem->field_20;
+            if (frame < 8) {
+                if ((u16)mem->field_22 & 1) {
+                    PeShared8012fb14(coord, frame, mem->field_26, mem->field_24);
+                    return;
+                }
+            } else {
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            break;
+        case 2:
+            step              = mem->field_12;
+            y                 = coord->coord.t[1] + step;
+            coord->flg        = 0;
+            coord->coord.t[1] = y;
+            Gp_UpdateCoord(coord);
+            frame         = (u16)mem->field_20 + 1;
+            mem->field_20 = frame;
+            if (frame < 8) {
+                func_combustion_8012FF0C(coord, frame, mem->field_26);
+                return;
+            }
+            Gp_ReleaseState1CMem(mem, arg0);
+            return;
+        case 3:
+            step              = mem->field_12;
+            y                 = coord->coord.t[1] + step;
+            coord->flg        = 0;
+            coord->coord.t[1] = y;
+            Gp_UpdateCoord(coord);
+            frame         = (u16)mem->field_20 + 1;
+            mem->field_20 = frame;
+            if (frame < 6) {
+                func_combustion_8012F5EC(coord, frame, mem->field_26);
+                return;
+            }
+            Gp_ReleaseState1CMem(mem, arg0);
+            return;
+    }
+}
 
 INCLUDE_RODATA("pe/nonmatchings/combustion/combustion", D_combustion_8012EF30);

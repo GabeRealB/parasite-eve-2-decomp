@@ -52336,3 +52336,40 @@ and `volatile` casts the same way — each one is a scheduling fence
 (`sched_analyze` orders everything around an `ASM_INPUT`), so a `%hi` or
 split-constant `lui` that the target hoists to the prologue cannot cross it.
 Rewrite from the nearest matched sibling's shape, then look at dumps.
+
+## A volatile halfword reload is `lhu` + `sll`/`sra`, never `lh`; separate it from the store with an unrelated global store instead
+
+`func_combustion_8012F888`'s archived seed stored `mem->field_2A = kind` and
+read it straight back through `((volatile GpEffWork*)mem)->field_2A` so the
+reload would not be forwarded from `kind`. That reload can only ever be
+`lhu; sll 16; sra 10`: MIPS `extendhisi2` expands an optimised `sign_extend
+(mem:HI)` as a plain `movhi` load plus two shifts, and it is *combine* that
+folds the pair back into one `lh` - which it refuses to do for a volatile
+`mem`. The target had `lh v1; sll v1, 6`, so the volatile was the whole 2%.
+
+Non-volatile, CSE turns the reload into `sll/sra` of the stored register (or a
+bare `move` when the store operand is already `HImode`). A memory clobber
+between the two keeps the `lh` but also fences the block, and the target
+sinks both `Gp_LcgState = rng; Gp_LcgState = rng2;` stores below the reload.
+What matches is putting one of those global stores between the field store and
+the field reload in the source:
+
+```c
+mem->field_2A = kind;
+Gp_LcgState   = rng;        /* any store CSE cannot prove disjoint */
+tmp           = mem->field_2A;   /* s32 tmp: keeps the sign_extend → lh */
+mem->field_12 = -hi - (tmp << 6);
+Gp_LcgState   = rng2;
+```
+
+A `sw` to a symbol invalidates every register-based `mem` in the hash table,
+so the reload survives, and sched2 still floats both `sw`s down to where the
+target has them. Keep the `s32 tmp`: `-hi - (mem->field_2A << 6)` stored into
+an `s16` narrows the shift to `HImode` and the load becomes `lhu`.
+
+The last instruction was a second reload of the same field after
+`arg0->state = …` that the target keeps as two loads (`lh v0; lh v1`). Both
+survive CSE - the `sw` through `arg0` invalidates them - but when both reads
+use one `tmp` local they colour to the same hard register and `reload_cse`
+deletes the second `lh` as a self-copy. Give the second read its own local
+(`tmp2`) so it lands in `$v1` and the load is emitted.
