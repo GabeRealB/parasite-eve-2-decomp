@@ -52472,3 +52472,40 @@ pseudo, so neither reproduces it.
 Also from the same function: `&Gp_RoomCoords[arg0->spawnArg1 + 4]` assembles
 to the same bytes as the splat name `D_801150C0` (`%lo(Gp_RoomCoords+0x190)`),
 so a "slot base four entries in" needs no separate extern.
+
+## `if (*p != x) p++; else return 1` keeps `bne` and a mid-loop `return 1`
+
+A membership walk of a `u16` table written as the natural
+
+```c
+do {
+    if (*p == arg0) {
+        return 1;
+    }
+    p++;
+    i++;
+} while (i < N);
+```
+
+inverts to `beq` plus a `jr ra; li v0, 1` *after* the miss `return 0`. The
+target falls through to `return 1` and takes `bne` to the miss path (`slti` /
+`bnez` loop-back, pointer increment in that delay). Invert the test and put
+the walker in the true arm; increment `i` *before* the `if` so it fills the
+`bne` delay (the `lhu` delay stays a `nop`):
+
+```c
+p = table;
+i = 0;
+do {
+    i++;
+    if (*p != arg0) {
+        p++;
+    } else {
+        return 1;
+    }
+} while (i < N);
+return 0;
+```
+
+Indexing `table[i]` also inverts the branch and swaps the pointer/`i`
+registers. `func_replay_bonus_80117598` is the example.

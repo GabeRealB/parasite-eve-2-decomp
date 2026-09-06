@@ -46,7 +46,23 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_8011
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117484);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117598);
+s32 func_replay_bonus_80117598(s32 arg0)
+{
+    u16* p;
+    s32  i;
+
+    p = D_replay_bonus_8011908C;
+    i = 0;
+    do {
+        i++;
+        if (*p != arg0) {
+            p++;
+        } else {
+            return 1;
+        }
+    } while (i < 0x4E);
+    return 0;
+}
 
 s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
 {
