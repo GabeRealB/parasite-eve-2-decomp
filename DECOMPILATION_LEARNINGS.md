@@ -51709,3 +51709,47 @@ GCC reloads it once per iteration and the loop-carried copy disappears — which
 is exactly the one-load-at-the-bottom shape the target has. The `count`/`level`
 pair is right when the target has *two* loads (`lh` plus `lhu`), as
 `energyshot` does; one `lh` means no locals.
+
+## Give a local an argument-register conflict with a dummy `asm` output, not a pin
+
+The `G_SCRATCH_HEAD` draw helpers (`func_plasma_8012FB10`,
+`func_combustion_80130184`) all open the same way: save `arg1`, materialise
+`0x1F8003FC` into `$a1`, then `lw` the scratch head. The head pointer wants to
+be in `$t0`, and the obvious way to get it there — `register u8* head
+asm("t0")` — is a trap. A pin is function-scope, so it also stops **reload**
+from reusing `$t0` for a short temp later on. In `func_combustion_80130184`
+that cost exactly two instructions' register field, `mflo $t1` where the target
+has `mflo $t0`, and no amount of further pinning recovers it.
+
+Unpinned, `head` instead lands in `$a2` (99.614%). The `.greg` conflict lists
+say why:
+
+```
+;; 94 conflicts: ... 2 3 4 5 12 13 14 29        <- head: no 6/7
+;; 82 conflicts: ... 2 3 4 5 6 7 12 13 14 29    <- arg1: has 6/7
+```
+
+`arg1`'s live range starts at function entry, where `$a2`/`$a3` are still live
+incoming argument hard registers, so it conflicts with them and is pushed to
+`$t0`. `head` is defined after the parameter copies, so nothing stops it taking
+the lower-numbered `$a2` — GCC 2.8.1 allocates in hard-register order, and
+`head`'s reference density puts it ahead of `arg1` in the queue.
+
+The fix is to start `head`'s live range at entry too, by naming it as an extra
+output of the `lui` statement-asm that is already there:
+
+```c
+u8* head;
+asm("lui %0, 0x1F80" : "=r"(hi), "=r"(head) : "r"(saved));
+head = *scratch;
+```
+
+The asm emits nothing for `head` and the value is overwritten on the next line,
+but the def sits above the parameter copies, so `head` now conflicts with
+`$a2`/`$a3` and takes `$t0` — while staying a pseudo, so reload can still hand
+`$t0` to the later `mflo`. 99.614% -> 100.00%, zero penalties.
+
+Prefer this over a pin whenever the leftover is "right register early, blocks a
+reuse late". `USE_REG(head)` *before* the assignment expresses the same
+liveness but is a read of an uninitialised value and made GCC emit a stray
+`move $v0, $t1`; the dummy output has neither problem.

@@ -14,7 +14,6 @@ extern s32 Gp_LcgState;
 
 void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
-void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Burns the player: parents an effect coordinate to the player model, plays
 /// the ignition sound and fades the screen, then spawns a flame every frame
