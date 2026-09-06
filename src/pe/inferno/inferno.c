@@ -6,6 +6,8 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -15,9 +17,11 @@
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
-/// `gpf 12` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those names
-/// assemble to different words, so spell the instructions out.
+/// `gpf 12` / `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros
+/// of those names assemble to different words, so spell the instructions out.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 
 void func_inferno_8012F3EC(s16 arg0);
@@ -154,7 +158,7 @@ void func_inferno_8012F530(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     InfernoIdMap*  map;
-    s8*            p;
+    u8*            p;
     s32            i;
     s32            rng;
     s32            tz;
@@ -179,7 +183,7 @@ void func_inferno_8012F530(Task* arg0)
             mem->field_24 = 0x80;
             i             = 0;
             do {
-                p           = &map->field_0[i];
+                p           = &map->field_0[0][i];
                 rng         = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState = rng;
                 p[0]        = (u32)rng >> 16;
@@ -281,4 +285,103 @@ release:
 
 INCLUDE_ASM("pe/nonmatchings/inferno/inferno", func_inferno_8012F978);
 
-INCLUDE_ASM("pe/nonmatchings/inferno/inferno", func_inferno_8012FF34);
+/// Draws one ring of the inferno's ground fan. `kind` picks the row of
+/// `D_inferno_801304E4` that sizes it: six inner rim points of radius
+/// `field_26 + field_0` lifted `field_2` along local Y and six outer rim
+/// points of radius `field_26 + field_0 + field_2A + field_4` in the local XY
+/// plane are built by `rsin` / `rcos` a sixth of a turn apart, rotated by
+/// `coord`'s `workm` and offset by its translation. Each of the six segments
+/// is then projected through `GsWSMATRIX` and linked as one semi-transparent
+/// `POLY_FT4`; `map` and `GpEffWork::field_22` pick which of the six 0x28-wide
+/// texture frames it uses, and a negative `gte_stflg` drops the segment.
+void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
+{
+    void**             scratch;
+    u8*                head;
+    InfernoFanScratch* block;
+    InfernoFanParam*   row;
+    InfernoFanParam*   tbl;
+    SVECTOR*           op;
+    POLY_FT4*          prim;
+    s32                flag;
+    s32                otz;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s32                u;
+    s16                inner;
+    s16                outer;
+    u16                h;
+    u16                frame;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    tbl      = D_inferno_801304E4;
+    row      = &tbl[kind];
+    inner    = (u16)mem->field_26 + row->field_0;
+    outer    = row->field_4 + (inner + (u16)mem->field_2A);
+    h        = row->field_2;
+    head     = (u8*)*scratch;
+    *scratch = head - 0x70;
+    block    = (InfernoFanScratch*)(head - 0x70);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    for (i = 0; i < 6; i++) {
+        ang                = i * 0x2AA;
+        block->inner[i].vx = (rsin(ang) * outer) >> 12;
+        block->inner[i].vy = -h;
+        block->inner[i].vz = (rcos(ang) * outer) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->inner[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->inner[i]);
+        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
+        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
+        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (rsin(ang) * inner) >> 12;
+        op                 = &block->inner[i] + 6;
+        op->vy             = 0;
+        op->vz             = (rcos(ang) * inner) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->outer[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->outer[i]);
+        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
+        op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
+        op->vz             = *(u16*)&op->vz + *(u16*)&coord->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 6; i++) {
+        gte_ldv0(&block->inner[i]);
+        gte_rtps_real();
+        frame = (map->field_0[kind][i] + mem->field_22) % 6;
+        gte_stsxy(&block->sxy0);
+        next = i + 1;
+        gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&flag);
+        if (flag >= 0) {
+            gte_stszotz(&otz);
+            otz++;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2E);
+            setRGB0(prim, mem->field_24, mem->field_24, mem->field_24);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x4282;
+            u           = frame * 0x28;
+            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
+            prim->x0 = block->sxy0;
+            prim->y0 = block->sxy0 >> 16;
+            prim->x1 = block->sxy1;
+            prim->y1 = block->sxy1 >> 16;
+            prim->x2 = block->sxy2;
+            prim->y2 = block->sxy2 >> 16;
+            prim->x3 = block->sxy3;
+            prim->y3 = block->sxy3 >> 16;
+            addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x70;
+}

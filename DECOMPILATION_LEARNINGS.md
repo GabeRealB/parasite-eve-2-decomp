@@ -51190,3 +51190,77 @@ So a run of N identical stores to a global in the target is *not* evidence that
 the source grouped them — it is evidence that it did **not**. Spread the
 assignments across the statements that consume them and let the scheduler
 regroup.
+
+
+## `lui %hi` ahead of the index math means the table base is staged in its own local
+
+`func_inferno_8012FF34` opens by selecting a row of a 6-byte table:
+
+```
+lui   a0, 0x1f80          # the scratch head address
+ori   a0, a0, 0x3fc
+lui   v0, %hi(D_inferno_801304E4)
+addiu v0, v0, %lo(D_inferno_801304E4)
+sw    a2, 0x58(sp)
+sll   v1, a2, 0x1         # kind * 6
+addu  v1, v1, a2
+sll   v1, v1, 0x1
+addu  v1, v1, v0
+```
+
+`row = &D_inferno_801304E4[kind];` gets the final `addu` right but emits the
+`lui`/`addiu` pair *after* the `sll`/`addu`/`sll` chain, because `fold` sorts a
+`PLUS_EXPR`'s operands by complexity and an `ADDR_EXPR` of a static is the
+simpler one, so it ends up as op1 and is expanded second. `sched2` then has no
+reason to lift a two-insn chain over a three-insn one, and the two halves of
+the address stay put. That was the whole remaining diff at 99.67%.
+
+Staging the base in its own local first fixes the order:
+
+```c
+tbl = D_inferno_801304E4;
+row = &tbl[kind];
+```
+
+The assignment is its own statement, so the symbol is materialised where it is
+written, and only the index arithmetic follows. Note this is the opposite move
+from "A `&Global` pointer local pins the whole address": there an extra pointer
+local made GCC *keep* an address it should have rematerialised. The
+distinguishing symptom is a `reorder` penalty with `regs` already at zero — the
+instructions are all correct and only the `%hi`/`%lo` pair sits on the wrong
+side of the index computation.
+
+
+## A preheader `move` of the loop counter into a stepped register is `i * K`, not `k += K`
+
+The inferno and energy-shot fan routines walk a ring by angle. The target's
+loop-1 preheader ends
+
+```
+move  s4, zero            # i = 0
+...
+move  s2, s3              # the address giv's init
+move  s5, s4              # the angle
+```
+
+and the body carries `addiu s5, s5, 0x2aa`. Writing that as an accumulator —
+`ang = 0;` before the loop and `ang += 0x2AA;` in the body — puts `move s5, s4`
+immediately after `move s4, zero`, ahead of the hoisted invariants and the giv
+initialisations, because it is an ordinary preheader statement.
+
+Writing it as a product of the counter instead,
+
+```c
+for (i = 0; i < 6; i++) {
+    ang = i * 0x2AA;
+    ...
+}
+```
+
+makes `ang` a giv of `i`. Strength reduction turns it into the same
+`addiu s5, s5, 0x2aa` in the body but emits its initialisation with the other
+giv inits at the end of the preheader, and `cse2` rewrites the constant zero
+into a copy from whichever register already holds `i` — which is what produces
+`move s5, s4` in that position. So an angle/offset whose preheader `move`
+*follows* the walking pointer's init is a multiply in the source, not a
+running total.
