@@ -183,7 +183,17 @@ void func_actor_503500_80136A80(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136A88);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136AEC);
+/// Copies the actor's attach-coordinate world position into a stack `VECTOR`
+/// and hands it to `Gp_UpdateActorColor` with no blend parameters.
+void func_actor_503500_80136AEC(Actor503500* arg0)
+{
+    VECTOR vec;
+
+    vec.vx = arg0->extra->field_8->workm.t[0];
+    vec.vy = arg0->extra->field_8->workm.t[1];
+    vec.vz = arg0->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136B64);
 
