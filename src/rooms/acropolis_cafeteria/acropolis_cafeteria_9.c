@@ -26,6 +26,8 @@ extern MATRIX D_acropolis_cafeteria_8018D5E0;
 extern MATRIX D_acropolis_cafeteria_8018D600;
 extern MATRIX D_acropolis_cafeteria_8018D620;
 extern MATRIX D_acropolis_cafeteria_8018D640;
+extern MATRIX D_acropolis_cafeteria_8018D660;
+extern MATRIX D_acropolis_cafeteria_8018D680;
 
 void func_acropolis_cafeteria_801827C4(Task* task)
 {
@@ -100,4 +102,28 @@ void func_acropolis_cafeteria_80182954(Task* task)
     }
     Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, 0x400, 1);
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_9", func_acropolis_cafeteria_80182A08);
+void func_acropolis_cafeteria_80182A08(Task* task)
+{
+    TmdObject* tmd;
+
+    tmd = (TmdObject*)task->extra;
+    switch (Gp_GetViewIndex() & 0xFF) {
+        case 6:
+        case 7:
+        case 0xA:
+            tmd->field_C  = 8;
+            tmd->field_1C = &D_acropolis_cafeteria_8018D680;
+            tmd->field_20 = &D_acropolis_cafeteria_8018D660;
+            break;
+        default:
+            tmd->field_C |= 0x80;
+            return;
+    }
+    if (Gp_GetCurBit2Flag(0xB) == 2) {
+        tmd->field_C |= 0x80;
+    } else {
+        tmd->field_C = 8;
+        tmd->field_E = 0;
+        Tmd_AllocBuffers(tmd);
+    }
+}
