@@ -96,6 +96,7 @@ typedef struct ReplayBonusCtx {
 
 s32  func_replay_bonus_80115CA4(void);
 s32  func_replay_bonus_801173A8(void);
+s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);
 s16  func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);
 s32  func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx);
 void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj);

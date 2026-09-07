@@ -292,7 +292,66 @@ s32 func_replay_bonus_801173A8(void)
     return idx;
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80117484);
+s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
+{
+    ReplayBonusShopTier* p;
+    u32                  spend;
+    s32                  idx;
+    s32                  i;
+    McSaveData*          save;
+    s32                  mask;
+    s32                  one;
+    s32                  result;
+
+    spend = func_replay_bonus_80115CA4();
+    p     = D_replay_bonus_80118F78;
+    idx   = 0;
+    if (D_80072A9C == 0x1FFF) {
+        result = -1;
+    } else {
+        i = 0;
+        do {
+        loop:
+            if (!(p->spendThreshold < spend)) {
+                idx = i;
+                break;
+            }
+            i++;
+            p++;
+            if (i < 0xD) {
+                goto loop;
+            }
+        } while (0);
+
+        save = &Mc_SaveData;
+        idx += save->field_F;
+        i    = 0;
+        if (idx >= 0xD) {
+            idx = 0xC;
+        }
+        one  = 1;
+        mask = save->field_934;
+        do {
+        loop2:
+            if ((mask & (one << idx)) == 0) {
+                break;
+            }
+            idx += 1;
+            if (idx >= 0xD) {
+                idx -= 0xD;
+            }
+            i += 1;
+            if (i < 0xD) {
+                goto loop2;
+            }
+        } while (0);
+        result = idx;
+    }
+    if (result < 0) {
+        return 0;
+    }
+    return D_replay_bonus_80118F78[result].items[arg1];
+}
 
 s32 func_replay_bonus_80117598(s32 arg0)
 {
