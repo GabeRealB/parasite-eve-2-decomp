@@ -98,7 +98,18 @@ void func_actor_341700_801686AC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_801686C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_80168748);
+/// The five sub-state handlers this branch of the actor dispatches through.
+extern TaskFuncTable5 D_actor_341700_80161EA8;
+
+void func_actor_341700_80168748(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable5   sp;
+
+    work = (Actor341700Work*)arg0->idMap;
+    sp   = D_actor_341700_80161EA8;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_801687B4);
 
