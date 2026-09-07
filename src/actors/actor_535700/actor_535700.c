@@ -57,25 +57,4 @@ void func_actor_535700_80132FF8(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133020);
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_801330BC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133108);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133180);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_801331E4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133250);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_801332B4);
-
-s32 func_actor_535700_8013332C(void)
-{
-    return 0;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133334);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_801333FC);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_535700/actor_535700", D_actor_535700_80131E20);
