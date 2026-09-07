@@ -1,8 +1,64 @@
 #include "common.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/task.h"
 
-INCLUDE_ASM("aya/nonmatchings/aya_20900/aya_20900", func_aya_20900_8011578C);
+void func_aya_20900_8011578C(Task* arg0)
+{
+    TILE*     p;
+    DR_TPAGE* dr;
+    u32*      buf;
+    u32       i;
+    u32       val;
+    u8        color;
+    char      pad[8];
+
+    switch (arg0->state) {
+        case 0:
+            arg0->killCountdown = 0;
+        case 1:
+            arg0->state += 1;
+            break;
+        case 2:
+            buf = (u32*)Fs_ImgBuffers;
+            val = 0x1F001F;
+            i   = 0;
+            do {
+                *buf++ = val;
+                i++;
+            } while ((i & 0xFFFF) <= 0x95FFU);
+            arg0->state += 1;
+            break;
+        case 3:
+            arg0->killCountdown += 8;
+            break;
+    }
+
+    if (arg0->killCountdown >= 0x100) {
+        Task_Kill(arg0);
+        return;
+    }
+
+    p              = (TILE*)Gpu_PrimCursor;
+    color          = ~(u8)arg0->killCountdown;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    setlen(p, 3);
+    setcode(p, 0x62);
+    p->r0 = color;
+    p->g0 = color;
+    p->b0 = color;
+    p->x0 = -0xA0;
+    p->y0 = -0x78;
+    p->w  = 0x140;
+    p->h  = 0xF0;
+    addPrim(Gpu_CurrentOt - 0x10, p);
+
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000000 | 0x220;
+    addPrim(Gpu_CurrentOt - 0x10, dr);
+}
 
 void func_aya_20900_80115948(void)
 {
