@@ -10,7 +10,16 @@
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_204600_80149E5C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_204600/actor_204600_3", func_actor_204600_8014CA8C);
+/// The enemy's four main-body handlers, dispatched through by state.
+extern GpEnemyTaskFuncTable4 D_actor_204600_80149E30;
+
+void func_actor_204600_8014CA8C(Task* arg0)
+{
+    GpEnemyTaskFuncTable4 sp;
+
+    sp = D_actor_204600_80149E30;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_204600/actor_204600_3", func_actor_204600_8014CAF4);
 

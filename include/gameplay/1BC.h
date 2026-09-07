@@ -77,6 +77,12 @@ typedef struct {
     GpEnemyTaskFunc funcs[3];
 } GpEnemyTaskFuncTable3;
 
+/// Four-entry form of `GpEnemyTaskFuncTable3`, for actors whose dispatcher has
+/// an extra state beyond spawn/tick/teardown.
+typedef struct {
+    GpEnemyTaskFunc funcs[4];
+} GpEnemyTaskFuncTable4;
+
 /// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `Gp_DestroyEnemy`.
 extern GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
