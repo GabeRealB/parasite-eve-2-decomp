@@ -22,6 +22,7 @@ extern u16                   D_acropolis_bridge_80190C60;
 /// State handler table the per-frame tick dispatches through on
 /// `AcropolisBridgeEnemyWork::field_0`.
 extern void (*D_acropolis_bridge_8019175C[])(Task*);
+extern u8   D_80072728;
 extern u8   D_80072729;
 /// Table of 0x80-byte actor config blocks; `Wip_SysConfig` is entry 1.
 extern WipSysConfig D_80073B08[];
@@ -813,7 +814,79 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
         (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeAvoidScratch);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_12", func_acropolis_bridge_80185104);
+/// Bearing of `pos` from the walker's full-width coordinate translation in
+/// the XZ plane. The temporary delta frame is released before `ratan2` runs.
+static __inline__ s32 acropolisBridgeCoordBearingXZ(SVECTOR3* pos, GsCOORDINATE2* coord)
+{
+    u8*                        head;
+    AcropolisBridgeAvoidDelta* d;
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (AcropolisBridgeAvoidDelta*)(head - 0x10);
+    d->vx                 = pos->vx - coord->coord.t[0];
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = pos->vy - coord->coord.t[1];
+    d->vz                 = pos->vz - coord->coord.t[2];
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vz);
+}
+
+/// Turns the walker toward `pos` by at most `field_5A` angle units per frame.
+/// The wrapped relative bearing drives the consecutive-turn counter, then
+/// becomes an absolute yaw applied to the model's saved scale matrix.
+void func_acropolis_bridge_80185104(AcropolisBridgeWalkerWork* work, SVECTOR3* pos)
+{
+    AcropolisBridgeTurnScratch* s;
+    GsCOORDINATE2*              coord;
+    u8*                         head;
+    s16                         diff, t;
+    s32                         angle;
+    u16                         frames;
+
+    if (D_80072728 == 1)
+        return;
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
+    s                     = (AcropolisBridgeTurnScratch*)(head - 0x1C);
+    coord                 = work->coord;
+    diff                  = acropolisBridgeCoordBearingXZ(pos, coord) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    t                     = diff;
+    if (diff < 0) {
+    wrapUp:
+        if (t < -0x800) {
+            t += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (t > 0x800) {
+            t -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    angle    = t;
+    s->angle = angle;
+    if (angle != 0)
+        work->field_62++;
+    else
+        work->field_62 = 0;
+    // Preserve the original's discarded counter read and reload of the
+    // cleared turn adjustment; the read occupies v1 while v0 stays free.
+    frames = (u16)work->field_62;
+    CLOBBER_REG(v0);
+    SOFT_USE_REG(frames);
+    work->field_64 = 0;
+    SOFT_COMPILER_BARRIER();
+    if ((u16)work->field_5A + (u16)work->field_64 < s->angle)
+        s->angle = (u16)work->field_5A + (u16)work->field_64;
+    if (s->angle < -((u16)work->field_5A + (u16)work->field_64))
+        s->angle = -((u16)work->field_5A + (u16)work->field_64);
+    if ((u16)work->field_5A == 0)
+        s->angle = 0;
+    s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
+    __builtin_memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
+    Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+}
 
 /// Runs the walker's per-frame step inside the 0x28-byte scratch frame
 /// `func_acropolis_bridge_8018532C` opened for it. `head` is the scratch head

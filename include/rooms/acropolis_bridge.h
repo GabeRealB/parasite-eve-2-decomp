@@ -159,4 +159,14 @@ typedef struct AcropolisBridgeDebrisScratch {
 } AcropolisBridgeDebrisScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeDebrisScratch, 0x18);
 
+/// 0x1C-byte scratch frame used when steering the walker toward a position.
+/// Only the halfword at +0x18 is used: first the relative yaw, then the
+/// limited turn and finally the absolute yaw passed to `Gfx_RotMatrixY`.
+typedef struct AcropolisBridgeTurnScratch {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ s16  angle;
+    /* 0x1A */ byte pad_1A[0x2];
+} AcropolisBridgeTurnScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeTurnScratch, 0x1C);
+
 #endif
