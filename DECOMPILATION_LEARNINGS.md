@@ -53741,3 +53741,41 @@ range test unless they are separate `if` statements": there the fix is to keep
 the two tests in separate statements (which is also why the `!= 0` test is
 nested here rather than `&&`-joined), here it is to keep the load and the test
 in separate statements.
+
+## Promoting a body adjacent to an existing shared span does not renumber units
+
+The companion note above - "A second promotion into the same overlay renumbers
+the units after it" - is about a promotion that *opens a gap*: a shared span
+carved out of the middle of a plain unit splits it in two, and the tail half
+takes the next number. When the body being promoted sits directly against an
+existing shared span, nothing is split and nothing is renumbered.
+
+`func_actor_105600_80136930` is the first function of `actor_105600_2`, which
+starts at 0x4B10, exactly where the `actors_shared_801368ec` span ends. Adding
+`{ start = "0x4B10", end = "0x4BAC", unit = "actors_shared_80136930" }` moves the
+boundary of `actor_105600_2` forward and leaves its name, its `rodata` cut and
+every later unit alone. The four carriers needed only the span, the
+`ActorsShared80136930 = 0x…;` line in each sym file, and the one `INCLUDE_ASM`
+deleted from each `_2.c`.
+
+So the question to ask before a promotion is not "is there already a shared span
+in this overlay" but "does the span I am adding leave a plain-unit remainder on
+either side". Adjacent-to-existing and start-of-overlay promotions are free;
+mid-unit ones cost a rename and a re-check of the `rodata` cuts.
+
+## An already-promoted shared body can turn up inlined inside a larger one
+
+The tail of `func_actor_105600_80136930` - copy `field_24` / `field_25` from one
+`TmdObject` to another, then call `Tmd_ProcessStream` twice if `field_18` is
+non-NULL - is `ActorsShared8013851c` verbatim, a body promoted to
+`src/actors/lib/` days earlier. It is not a call here; the original inlined it,
+so the C has to write it out again.
+
+That is still worth spotting, because a promoted body comes with its header
+comment and its field types already worked out. Reading
+`include/actors/actors_shared_8013851c.h` settled what the two pointers were and
+why the stream is processed twice, which was most of the function. `grep -rn
+Tmd_ProcessStream include/actors/` found it in one step - grepping the *callee
+list* from the brief against the family's existing shared headers is a cheap
+first move on any actor function, and it finds inlined copies that
+`overlay_dup_index.py find` cannot, since that compares whole functions.
