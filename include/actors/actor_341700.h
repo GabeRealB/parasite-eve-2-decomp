@@ -22,34 +22,35 @@ typedef struct Actor341700 {
 /// table walks; `field_412` is the per-state frame counter. `field_414` ..
 /// `field_426` are the animation request the actor hands to its player.
 typedef struct Actor341700Work {
-    /* 0x000 */ byte  pad_0[0x2AC];
-    /* 0x2AC */ GpObj obj_2AC;
-    /* 0x2CC */ GpObj obj_2CC;
-    /* 0x2EC */ byte  pad_2EC[0xC0];
-    /* 0x3AC */ GpObj obj_3AC;
-    /* 0x3CC */ byte  pad_3CC[0x46];
-    /* 0x412 */ u16   field_412; // per-state frame counter
-    /* 0x414 */ s16   field_414; // animation request kind
-    /* 0x416 */ byte  pad_416[0x2];
-    /* 0x418 */ s16   field_418; // animation id
-    /* 0x41A */ byte  pad_41A[0x2];
-    /* 0x41C */ s16   field_41C; // animation speed / step scale
-    /* 0x41E */ byte  pad_41E[0x2];
-    /* 0x420 */ u16   field_420; // state index
-    /* 0x422 */ u16   field_422; // sub-state index
-    /* 0x424 */ byte  pad_424[0x2];
-    /* 0x426 */ s16   field_426;
-    /* 0x428 */ byte  pad_428[0xA];
-    /* 0x432 */ s16   field_432;
-    /* 0x434 */ byte  pad_434[0x4];
-    /* 0x438 */ s16   field_438;
-    /* 0x43A */ byte  pad_43A[0xE];
-    /* 0x448 */ s16   field_448;
-    /* 0x44A */ byte  pad_44A[0x5];
-    /* 0x44F */ u8    field_44F;
-    /* 0x450 */ byte  pad_450[0x1];
-    /* 0x451 */ s8    field_451;
-    /* 0x452 */ byte  pad_452[0x2];
+    /* 0x000 */ byte    pad_0[0x2AC];
+    /* 0x2AC */ GpObj   obj_2AC;
+    /* 0x2CC */ GpObj   obj_2CC;
+    /* 0x2EC */ GpRec18 rec_2EC[8];
+    /* 0x3AC */ GpObj   obj_3AC;
+    /* 0x3CC */ GpRec18 rec_3CC[2];
+    /* 0x3FC */ byte    pad_3FC[0x16];
+    /* 0x412 */ u16     field_412; // per-state frame counter
+    /* 0x414 */ s16     field_414; // animation request kind
+    /* 0x416 */ byte    pad_416[0x2];
+    /* 0x418 */ s16     field_418; // animation id
+    /* 0x41A */ byte    pad_41A[0x2];
+    /* 0x41C */ s16     field_41C; // animation speed / step scale
+    /* 0x41E */ byte    pad_41E[0x2];
+    /* 0x420 */ u16     field_420; // state index
+    /* 0x422 */ u16     field_422; // sub-state index
+    /* 0x424 */ byte    pad_424[0x2];
+    /* 0x426 */ s16     field_426;
+    /* 0x428 */ byte    pad_428[0xA];
+    /* 0x432 */ s16     field_432;
+    /* 0x434 */ byte    pad_434[0x4];
+    /* 0x438 */ s16     field_438;
+    /* 0x43A */ byte    pad_43A[0xE];
+    /* 0x448 */ s16     field_448;
+    /* 0x44A */ byte    pad_44A[0x5];
+    /* 0x44F */ u8      field_44F;
+    /* 0x450 */ byte    pad_450[0x1];
+    /* 0x451 */ s8      field_451;
+    /* 0x452 */ byte    pad_452[0x2];
 } Actor341700Work;
 STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 

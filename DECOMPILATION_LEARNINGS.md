@@ -54069,3 +54069,66 @@ Rule: when the prologue's saved-reg copy/order is the only diff and a parameter
 is aliased to a local, delete the alias and use the parameter directly. The
 extra copy gives the scheduler a second placement it can defer; the direct use
 does not.
+
+## In a run of struct-field stores, a two-load field goes *first* in the C
+
+`ActorsShared80164b68` (matched as `func_actor_341700_80164B68`) initialises
+three `GpObj`s in a row, each a block of eight constant stores plus one field
+whose value walks a pointer chain:
+`obj.field_8 = &((TmdObject*)task->extra)->field_8[1]`. Writing that assignment
+last in each block - the position m2c emits it in, because the store is the
+last one the target executes - scored 78% with `reorder=12 insert=6 delete=6`.
+
+The tell is in the target: the *loads* sit at the top of the block, above every
+constant store, while their `sw` lands in the delay slot of the following `jal`:
+
+```
+lw    $v0, 0x2C($s1)        # task->extra          <- top of block
+addiu $a1, $s0, 0x2AC
+lw    $v0, 0x8($v0)         # ->field_8
+addiu $s4, $s0, 0x2EC
+sw    $s4, 0x2B8($s0)       # field_C  = rec table
+sh    $zero, 0x2BC($s0)     # ...the constant stores
+...
+addiu $v0, $v0, 0x50
+jal   Gp_LinkObj
+ sw   $v0, 0x2B4($s0)       # field_8            <- bottom of block
+```
+
+`sched1` hoists a load chain to cover its own latency and sinks the independent
+store, so the same source order produces a *split* schedule: chain at the top,
+store at the bottom. Reading only the store's position and writing the
+assignment last leaves the loads stranded low, and the constant stores shuffle
+around them. Moving the line to the head of each block - before `field_C`, in
+the order the loads appear - matched all three blocks at once, 78% -> 100%.
+
+Rule: order a struct-init block by where each value's *computation* appears, not
+by where its store appears. A field fed by a multi-load chain is written first
+even when its `sw` is the last instruction in the block.
+
+## Promoting a body mid-overlay un-migrates rodata splat had folded into a function
+
+`overlay_dup_index.py promote` carves the shared span out of each carrier, which
+cuts the unit that held the body in two and renumbers every unit after it. Two
+things break that the build does not explain well.
+
+First, a `rodata` cut in `configs/USA/overlays.toml` names its owning unit by
+number (`unit = "actor_341700_5"`). The renumbering does not update it, so the
+trailing rodata block silently moves to the wrong object. Bump it by hand.
+
+Second - and this is the confusing one - spimdisasm migrates a rodata symbol
+*into* the `.s` of the single function that references it, but only when the
+function and the rodata subsegment belong to the same unit. Splitting the unit
+puts the referencing function in the new tail unit while the rodata subsegment
+stays with the head, so the symbol is un-migrated into its own
+`D_<overlay>_<vram>.s` that needs an `INCLUDE_RODATA` line. splat never rewrites
+an existing `.c`, so the line is not added and the link fails with
+`undefined reference to D_…` / `jtbl_…` for symbols that were fine a moment ago.
+
+Hand-splitting the `.c` cannot fix that, because the missing lines were never in
+any source file. Delete the two `.c` files on either side of the new span,
+re-split so splat writes their `INCLUDE_RODATA` set from scratch, then put the
+matched bodies back by name (`bodies_of()` in `tools/land_overlay.py`), together
+with the include block and any forward declarations, which splat's skeleton does
+not carry. `tools/check_lost_matches.py`, run by `build-and-verify.sh`, confirms
+nothing was dropped.
