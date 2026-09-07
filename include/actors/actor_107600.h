@@ -31,6 +31,7 @@ typedef struct Actor107600 {
     /* 0x1C */ Actor107600Work* field_1C;
 } Actor107600;
 
+void func_actor_107600_801328CC(Task* arg0);
 void func_actor_107600_80132CB8(Actor107600* arg0);
 void func_actor_107600_80134904(Task* arg0);
 void func_actor_107600_80134920(Task* arg0);

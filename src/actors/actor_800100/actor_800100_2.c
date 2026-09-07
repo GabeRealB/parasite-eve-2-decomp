@@ -1,0 +1,196 @@
+#include "common.h"
+#include "actors/actor_800100.h"
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80163D54);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100_2", D_actor_800100_80161E4C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80163F04);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164184);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801643F4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164580);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164710);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164940);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164B9C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164E60);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165010);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801652B0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165528);
+
+void func_actor_800100_801655C0(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor                      = arg0->actor;
+    actor->field_956           = 3;
+    actor->field_954           = 0;
+    actor->field_95C           = 0;
+    actor->field_95E           = 0;
+    actor->field_910->field_CC = 0;
+    actor->field_97E           = 2;
+    actor->field_90C           = Gp_FindLockNode(arg0);
+    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+}
+
+void func_actor_800100_80165630(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 7;
+    actor->field_954 = 0;
+    actor->field_95A = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_93E = 0;
+    actor->field_97E = 1;
+    actor->field_973 = 0;
+    actor->field_975 = 0;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165664);
+
+void func_actor_800100_801656C8(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 1;
+    actor->field_95A = 1;
+    actor->field_954 = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
+    actor->field_93E = 0x3C;
+}
+
+void func_actor_800100_801656F4(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 2;
+    actor->field_954 = 0;
+    actor->field_958 = 0;
+    actor->field_95A = 1;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
+}
+
+void func_actor_800100_80165720(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 0xB;
+    actor->field_954 = 0;
+    actor->field_95A = 1;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
+}
+
+void func_actor_800100_80165748(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    if (Gp_StateF0.field_0 == 1) {
+        actor                      = arg0->actor;
+        actor->field_956           = 3;
+        actor->field_954           = 0;
+        actor->field_95C           = 0;
+        actor->field_95E           = 0;
+        actor->field_910->field_CC = 0;
+        actor->field_97E           = 2;
+        actor->field_90C           = Gp_FindLockNode(arg0);
+        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+        return;
+    }
+    func_actor_800100_80163D54(arg0);
+}
+
+void func_actor_800100_801657D8(GpActorWork* arg0)
+{
+    if (Gp_StateF0.field_0 != 1) {
+        func_actor_800100_80166E14(arg0);
+        return;
+    }
+    func_actor_800100_801659EC(arg0);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165818);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165850);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801658E8);
+
+void func_actor_800100_80165928(void)
+{
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165930);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801659EC);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165C38);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165DE8);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100_2", D_actor_800100_80161EC8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165F50);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166190);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166514);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_8016666C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801668C0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166B40);
+
+void func_actor_800100_80166DD0(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_954 = 0;
+    actor->field_956 = 5;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_960 = 0;
+}
+
+void func_actor_800100_80166DF0(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 6;
+    actor->field_954 = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_97E = 1;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166E14);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166E94);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166EE8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166F50);
+
+INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_8016709C);

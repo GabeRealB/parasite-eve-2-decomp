@@ -1,8 +1,14 @@
 #include "common.h"
 
+#include "main/task.h"
+
 #include "gameplay/1BC.h"
 
 #include "actors/actor_107600.h"
+
+/* Leading-rodata state table. A local initializer would emit the pool at this
+ * function's .rodata instead of at D_actor_107600_80131E24. */
+extern const TaskFuncTable4 D_actor_107600_80131E24;
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
@@ -16,7 +22,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132514);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801328CC);
+void func_actor_107600_801328CC(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_actor_107600_80131E24;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132930);
 
