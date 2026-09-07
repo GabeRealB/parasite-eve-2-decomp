@@ -2,7 +2,10 @@
 
 #include "main/unknown_syms.h"
 #include "main/fs.h"
+#include "main/loadui.h"
 #include "main/text.h"
+#include "main/wipsys.h"
+#include "psyq/libetc.h"
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -69,7 +72,102 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("main/nonmatchings/loadui", func_80042500);
+s32 func_80042500(void)
+{
+    CdCmdQueue* queue = &CdCmd_Queue;
+
+    switch (D_8007A394) {
+        case 0:
+            D_8007A393 = Fs_GetStageDiskKind();
+            if (D_8007A393 == 0) {
+                break;
+            }
+            SndEvt_EnqueueType2(0, 8);
+            SndEvt_EnqueueType7(0x80000000, 0x78);
+            SndEvt_EnqueueType7(0x60010001, 0x78);
+            Display_State.field_11e = 0xFF;
+            Display_State.field_100 = 0;
+            if (D_8007A393 == 1) {
+                CdCmd_EnqueueLoadFile(1, 0x3C, 3);
+                D_8007A392 = 0;
+            }
+            if (D_8007A393 == 2) {
+                CdCmd_EnqueueLoadFile(1, 0x3D, 3);
+                D_8007A392 = 1;
+            }
+            D_8007A390       = 5;
+            queue->field_244 = 1;
+            D_8007A394++;
+            return 0xFF;
+        case 1:
+            if (CdCmd_IsIdle()) {
+                Fs_StopCd();
+                Display_State.field_100 = 1;
+                D_8007A394++;
+            }
+            return 0xFF;
+        case 2:
+            Prim_DrawLoadingSprt();
+            D_8007A390--;
+            if ((D_8007A390 & 0x7FFF) == 0) {
+                if (D_8007A390 & 0x8000) {
+                    if (D_8007A393 == 1) {
+                        D_8007A392 = 0;
+                    } else if (D_8007A393 == 2) {
+                        D_8007A392 = 1;
+                    }
+                    D_8007A390 = 5;
+                    return 0xFF;
+                } else {
+                    D_8007A394++;
+                }
+            }
+            return 0xFF;
+        case 3:
+            if ((u8)Fs_WaitDiskSwap() == 0xFF) {
+                Fs_ClearDiskError();
+                D_8007A392 = 2;
+                D_8007A390 = 0x8080;
+                D_8007A394 = 1;
+                return 0xFF;
+            } else {
+                Fs_ClearDiskError();
+                D_8007A394++;
+                return 0xFF;
+            }
+        case 4:
+            Fs_ScanIsoDirectory(0);
+            if (Wip_SysFlags.field_0 != 0) {
+                while (Fs_CdOpStatus != 0xFF) {
+                    if (Fs_CdOpStatus == 0x80) {
+                        return 0xFF;
+                    }
+                    VSync(0);
+                }
+                Fs_ClearDiskError();
+            }
+            if (Wip_SysFlags.field_0 != D_8007A393) {
+                D_8007A392 = 2;
+                D_8007A390 = 0x8080;
+                D_8007A394 = 1;
+                return 0xFF;
+            } else {
+                D_8007A390 = 5;
+                D_8007A394++;
+                return 0xFF;
+            }
+        case 5:
+            D_8007A390--;
+            if (D_8007A390 == 0) {
+                Display_State.field_100 = 0;
+                Display_State.field_11e = 0;
+                queue->field_244        = 0;
+                break;
+            }
+            return 0xFF;
+    }
+    return 0;
+}
 
 void Prim_DrawLoadingSprt(void)
 {

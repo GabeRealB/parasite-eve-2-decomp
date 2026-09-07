@@ -54530,3 +54530,27 @@ TOUCH_REG(slotTask); slot = 7; TOUCH_REG(slot);` before the store let allocation
 coalesce them into a0/a1 early and put the store in the jal delay slot. Assigning
 both locals before either touch reversed the two argument instructions; touching
 each immediately after its assignment matched. No hard-register pins were needed.
+
+## func_80042500: an early return chooses the shared state-machine tail
+
+The minimally repaired m2c seed scored 82.330%. A function-local
+`CdCmdQueue* queue = &CdCmd_Queue` reproduced the target's entry-time queue
+address and its lifetime across case 0's calls. A structured polling loop,
+duplicated retry stores, and returns inside each arm of cases 3 and 4 reached
+97.150% (`branch=7 regs=0 reorder=3 insert=2 delete=2`). Sharing one return
+outside those arms had cross-jumped only the final state store, rather than
+all three retry stores, and changed the return-register scheduling.
+
+At 97.150%, `.jump2` sent the case 1 and case 2 tails to the last case's
+`return 0xFF`, while `.dbr` filled the disk-kind comparison delay slot with
+`li v0,2`. Adding `return 0xFF` immediately after case 2's high-bit timer reset
+(`D_8007A390 = 5`) reached 100%. The earlier return became the shared tail,
+case 5 recovered its direct branch to the epilogue, and the disk-kind delay
+slot used the target's address load. This was a control-flow fix with no pins
+or barriers; inverting case 5's condition alone produced identical code.
+
+Both jump tables belong in loadui's generated `.rodata`: the five-entry table
+at file offset 0x46E8, four bytes of compiler alignment, and the six-entry
+table at 0x4700. Extend that subsegment through 0x4718 and keep D_80013F18 in
+its existing raw-rodata unit. An explicit pad subsegment between the tables
+would split a single compiler-generated section.

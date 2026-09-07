@@ -432,6 +432,7 @@ void Fs_SeekToPos(s32 sector);
 void Fs_SeekToPosCb(u8 status, u8* result);
 void Fs_ContinueDrawing(u_long* ot);
 void Fs_StopCd(void);
+s32  Fs_GetStageDiskKind(void);
 bool Fs_StageCdfIsAvailable(u32 stageIdx);
 void Fs_ScanIsoDirectory(s32 mode);
 
