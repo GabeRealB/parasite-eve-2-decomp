@@ -4,13 +4,13 @@
 # scratch env, pack a brief, and hand it to an agent CLI.
 #
 # Usage:
-#   ./tools/vacuum.sh [--cli claude|grok] [--claude] [--grok] [--times N]
+#   ./tools/vacuum.sh [--profile NAME] [--cli claude|grok|codex] [--times N]
 #                     [--dry-run] [--keep-scratch] [--no-permute]
 #                     [--orchestrator] [--difficult] [--overlay NAME]
 #
 # Environment:
-#   VACUUM_CLI   Default CLI when no --cli/--claude/--grok flag is given
-#                (claude | grok). Defaults to claude.
+#   VACUUM_CLI   Default CLI when no --cli/--claude/--grok/--codex flag is
+#                given (claude | grok | codex). Defaults to claude.
 
 set -uo pipefail
 
@@ -37,6 +37,62 @@ MATCH_LAND_PATHS=(
   NAMING.md
 )
 CLI="${VACUUM_CLI:-claude}"
+CLI_EXPLICIT=0
+PROFILE="${VACUUM_PROFILE:-}"
+PROFILES_FILE="${VACUUM_PROFILES_FILE:-$ROOT/local/vacuum_profiles}"
+# Which knobs the caller set before we touch them. A profile must not clobber
+# an explicit `VACUUM_MODEL=... ./tools/vacuum.sh`, so record the difference
+# between "unset" and "set to empty" now, while it is still observable.
+_SET_MODEL=${VACUUM_MODEL+1}
+_SET_LAND_MODEL=${VACUUM_LAND_MODEL+1}
+_SET_GROK_EFFORT=${VACUUM_GROK_EFFORT+1}
+_SET_CODEX_EFFORT=${VACUUM_CODEX_EFFORT+1}
+
+# One row of the profiles table, comments and blank lines skipped.
+profile_row() {
+  [[ -f "$PROFILES_FILE" ]] || return 1
+  awk -v n="$1" '$0 !~ /^[[:space:]]*#/ && NF && $1 == n { print; found = 1; exit }
+                 END { exit !found }' "$PROFILES_FILE"
+}
+
+list_profiles() {
+  if [[ ! -f "$PROFILES_FILE" ]]; then
+    echo "No profiles file at $PROFILES_FILE"
+    return
+  fi
+  printf '%-10s %-7s %-18s %-7s %s\n' NAME CLI MODEL EFFORT LAND_MODEL
+  awk '$0 !~ /^[[:space:]]*#/ && NF { printf "%-10s %-7s %-18s %-7s %s\n", $1, $2, $3, $4, ($5 == "" ? "-" : $5) }' \
+    "$PROFILES_FILE"
+}
+
+# Fill in only what the caller left unspecified: flags and environment win.
+apply_profile() {
+  local name=$1 row _n cli model effort land
+  if ! row=$(profile_row "$name"); then
+    echo "Error: no profile '$name' in $PROFILES_FILE"
+    echo "Known profiles:"
+    list_profiles
+    exit 1
+  fi
+  read -r _n cli model effort land <<<"$row"
+  if [[ "$cli" != "-" && $CLI_EXPLICIT -eq 0 ]]; then
+    CLI="$cli"
+  fi
+  if [[ "$model" != "-" && -z "$_SET_MODEL" ]]; then
+    export VACUUM_MODEL="$model"
+  fi
+  if [[ -n "${land:-}" && "$land" != "-" && -z "$_SET_LAND_MODEL" ]]; then
+    export VACUUM_LAND_MODEL="$land"
+  fi
+  # One effort column, routed to whichever knob this CLI actually reads.
+  if [[ "$effort" != "-" ]]; then
+    case "$CLI" in
+      grok)  [[ -z "$_SET_GROK_EFFORT" ]]  && export VACUUM_GROK_EFFORT="$effort" ;;
+      codex) [[ -z "$_SET_CODEX_EFFORT" ]] && export VACUUM_CODEX_EFFORT="$effort" ;;
+    esac
+  fi
+  PROFILE="$name"
+}
 LOG_FILE=""
 OVERLAY_PY="tools/decomp_overlay.py"
 ORCH=0
@@ -59,9 +115,13 @@ usage() {
 Usage: $0 [options]
 
 Options:
-  --cli NAME        Agent CLI: claude or grok (default: ${VACUUM_CLI:-claude})
+  --cli NAME        Agent CLI: claude, grok or codex (default: ${VACUUM_CLI:-claude})
   --claude          Shorthand for --cli claude
   --grok            Shorthand for --cli grok
+  --codex           Shorthand for --cli codex
+  --profile NAME    Named cli/model/effort set from the profiles table
+  --profiles PATH   Profiles table to read (default: local/vacuum_profiles)
+  --list-profiles   Print the profiles table and exit
   --times N         Stop after N loop iterations
   --dry-run         Score, bootstrap, pack the prompt; do not launch the agent
   --keep-scratch    Leave nonmatchings/<func> in place after the iteration
@@ -87,11 +147,14 @@ Options:
   -h, --help        Show this help
 
 Environment:
-  VACUUM_CLI               Default CLI when no flag is given (claude | grok)
+  VACUUM_CLI               Default CLI when no flag is given (claude | grok | codex)
+  VACUUM_PROFILE           Default --profile when no flag is given
+  VACUUM_PROFILES_FILE     Profiles table (default local/vacuum_profiles)
   VACUUM_PERMUTE_TIMEOUT   Permuter cap in seconds (default 360)
   VACUUM_PERMUTE_JOBS      Permuter threads (default: min(nproc, 8))
   VACUUM_STREAM            0 disables claude's streamed per-step logging
   VACUUM_STREAM_QUIET      Non-empty: log tool calls only, no commentary
+  VACUUM_CODEX_EFFORT      codex reasoning effort (default: xhigh)
   VACUUM_WORKTREE_PARENT   Directory for pe2-wt-<func> worktrees
                            (default: parent of this repo)
   VACUUM_ORCH_STATE        Override orchestrator JSON path
@@ -129,20 +192,48 @@ while [[ $# -gt 0 ]]; do
       ;;
     --cli)
       if [[ $# -lt 2 ]]; then
-        echo "Error: --cli requires a value (claude or grok)"
+        echo "Error: --cli requires a value (claude, grok or codex)"
         usage
         exit 1
       fi
       CLI="$2"
+      CLI_EXPLICIT=1
       shift 2
       ;;
     --claude)
       CLI="claude"
+      CLI_EXPLICIT=1
       shift
       ;;
     --grok)
       CLI="grok"
+      CLI_EXPLICIT=1
       shift
+      ;;
+    --codex)
+      CLI="codex"
+      CLI_EXPLICIT=1
+      shift
+      ;;
+    --profile)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --profile requires a name (see --list-profiles)"
+        exit 1
+      fi
+      PROFILE="$2"
+      shift 2
+      ;;
+    --profiles)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --profiles requires a path"
+        exit 1
+      fi
+      PROFILES_FILE="$2"
+      shift 2
+      ;;
+    --list-profiles)
+      list_profiles
+      exit 0
       ;;
     --dry-run)
       DRY_RUN=1
@@ -190,10 +281,18 @@ if [[ -n "$MAX_TIMES" ]] && ! [[ "$MAX_TIMES" =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
+# A profile fills in cli/model/effort; with no --profile and no CLI flag the
+# `default` row does, when the table has one.
+if [[ -n "$PROFILE" ]]; then
+  apply_profile "$PROFILE"
+elif [[ $CLI_EXPLICIT -eq 0 ]] && profile_row default >/dev/null 2>&1; then
+  apply_profile default
+fi
+
 case "$CLI" in
-  claude|grok) ;;
+  claude|grok|codex) ;;
   *)
-    echo "Error: unsupported CLI '$CLI' (expected claude or grok)"
+    echo "Error: unsupported CLI '$CLI' (expected claude, grok or codex)"
     usage
     exit 1
     ;;
@@ -519,6 +618,35 @@ run_agent() {
           extra+=(--rules "$grok_rules")
         fi
         grok --always-approve "${extra[@]}" -p "$prompt"
+        ;;
+      codex)
+        # codex exec is the headless form. Three defaults have to be overridden
+        # or the lane stalls on its first iteration:
+        #  - the sandbox restricts the filesystem and the network, and the
+        #    worktree bootstrap clones four submodules;
+        #  - the approval policy is OnRequest, which blocks waiting for a human
+        #    who is not there;
+        #  - reasoning effort defaults to none, which is not a matching model.
+        # codex reads AGENTS.md from its working root, but the vacuum runs from
+        # the worktree root rather than the scratch dir, so the match loop
+        # reaches the agent through the prompt (build_prompt step 2), the same
+        # way it does for grok.
+        # inherit=all passes the activated venv through: codex runs tool
+        # commands via `zsh -lc`, and a login shell rebuilds PATH - the same
+        # trap noted above for grok, where ninja_config.py then dies on splat
+        # and the agent "verifies" against leftover build/USA/out binaries.
+        # stdin must be closed: `codex exec` folds piped stdin into the prompt
+        # ("Reading additional input from stdin..."), so an inherited pipe
+        # silently appends noise to the brief.
+        codex exec \
+          --skip-git-repo-check \
+          -s danger-full-access \
+          -c approval_policy='"never"' \
+          -c shell_environment_policy.inherit='"all"' \
+          -c model_reasoning_effort="\"${VACUUM_CODEX_EFFORT:-xhigh}\"" \
+          ${model:+-m "$model"} \
+          -C "$cwd" \
+          "$prompt" </dev/null
         ;;
     esac
   )
@@ -1292,7 +1420,7 @@ reset_trunk_to() {
 }
 
 vacuum_orch_loop() {
-  echo "Vacuum using CLI: $CLI, model ${VACUUM_MODEL:-default} (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
+  echo "Vacuum using CLI: $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE} (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
   vacuum_filter_desc | tee -a "$LOG_FILE"
   echo "Session log: $LOG_FILE" | tee -a "$LOG_FILE"
   echo "Shared log:  $MAIN_LOG_FILE (flock-appended per function)" | tee -a "$LOG_FILE"
@@ -1667,7 +1795,7 @@ if [[ $ORCH -eq 1 ]]; then
   exit $?
 fi
 
-echo "Vacuum using CLI: $CLI, model ${VACUUM_MODEL:-default}" | tee -a "$LOG_FILE"
+echo "Vacuum using CLI: $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE}" | tee -a "$LOG_FILE"
 vacuum_filter_desc | tee -a "$LOG_FILE"
 
 count=0

@@ -21,7 +21,7 @@ ARG=""
 CLI="claude"
 
 usage() {
-    echo "Usage: $0 [--bootstrap] [--bootstrap-only] [--cli claude|grok|glaude] [--id ID] <function_name_or_path_or_scratch_id>"
+    echo "Usage: $0 [--bootstrap] [--bootstrap-only] [--cli claude|grok|codex|glaude] [--id ID] <function_name_or_path_or_scratch_id>"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -45,6 +45,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --grok)
             CLI="grok"
+            shift
+            ;;
+        --codex)
+            CLI="codex"
             shift
             ;;
         --claude)
@@ -219,6 +223,16 @@ if [[ -n "$ID" ]]; then
                 grok --always-approve --effort "${GROK_MATCH_EFFORT:-xhigh}" \
                     --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
                     "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
+            elif [[ "$CLI" == codex ]]; then
+                # cwd is the scratch dir here, so codex loads the AGENTS.md written
+                # beside CLAUDE.md above and needs no --rules equivalent. Sandbox,
+                # approval and effort defaults still have to be overridden, and stdin
+                # closed so codex does not fold a pipe into the prompt.
+                codex exec --skip-git-repo-check -s danger-full-access \
+                    -c approval_policy='"never"' \
+                    -c shell_environment_policy.inherit='"all"' \
+                    -c model_reasoning_effort="\"${CODEX_MATCH_EFFORT:-xhigh}\"" \
+                    "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md." </dev/null
             else
                 $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
             fi
@@ -511,6 +525,16 @@ elif command -v "$CLI" &>/dev/null; then
         grok --always-approve --effort "${GROK_MATCH_EFFORT:-xhigh}" \
             --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
             "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
+    elif [[ "$CLI" == codex ]]; then
+        # cwd is the scratch dir here, so codex loads the AGENTS.md written
+        # beside CLAUDE.md above and needs no --rules equivalent. Sandbox,
+        # approval and effort defaults still have to be overridden, and stdin
+        # closed so codex does not fold a pipe into the prompt.
+        codex exec --skip-git-repo-check -s danger-full-access \
+            -c approval_policy='"never"' \
+            -c shell_environment_policy.inherit='"all"' \
+            -c model_reasoning_effort="\"${CODEX_MATCH_EFFORT:-xhigh}\"" \
+            "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md." </dev/null
     else
         $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
     fi
