@@ -2400,7 +2400,63 @@ noDir:
     *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0614);
+void func_800D0614(Task* arg0)
+{
+    UiObject*       obj;
+    GpMapCursorPos* pos;
+    POLY_FT4*       p;
+    SPRT*           sprt;
+    DR_TPAGE*       dr;
+    s32             one;
+    u16             tpage;
+
+    obj                               = arg0->spawnArg2;
+    p                                 = (POLY_FT4*)Gpu_PrimCursor;
+    pos                               = (GpMapCursorPos*)((u8*)*(void**)G_SCRATCH_HEAD - 0x1C);
+    *(GpMapCursorPos**)G_SCRATCH_HEAD = pos;
+    Gpu_PrimCursor                    = (DR_TPAGE*)(p + 1);
+    pos->field_14                     = 0;
+    pos->field_12                     = 0;
+    pos->field_10                     = 0;
+    pos->y                            = 0;
+    pos->x                            = 0;
+    setPolyFT4(p);
+    setRGB0(p, 0x80, 0x80, 0x80);
+    p->clut = 0x4000;
+    setSemiTrans(p, 1);
+    tpage = GetTPage(1, 0, 0x380, 0x20);
+    one   = 1;
+    /* Keep the shared constant initialization before the texture-page store. */
+    SCHED_BARRIER();
+    p->tpage = tpage;
+    p->v0 = p->v1 = 0x20;
+    p->u3 = p->u1 = 0xFF;
+    p->u0 = p->u2 = one;
+    p->v3 = p->v2 = 0xF0;
+    p->x0 = p->x2 = pos->x - 0x7F;
+    p->y0 = p->y1 = pos->y - 0x68;
+    p->x1 = p->x3 = pos->x + 0x7F;
+    p->y2 = p->y3 = pos->y + 0x68;
+    addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder + 2], p);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    setlen(sprt, 4);
+    setcode(sprt, 0x67);
+    sprt->clut = GetClut(0x70, 0x101);
+    sprt->u0   = 0xC0;
+    sprt->w    = 0x20;
+    sprt->h    = 0x18;
+    sprt->x0   = 0x7E;
+    sprt->v0   = 0;
+    sprt->y0   = -0x64;
+    addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x19], sprt);
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setDrawTPage(dr, 0, 0, 0xE);
+    addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x19], dr);
+}
 
 void Gp_DrawMapMarks(Task* arg0)
 {
