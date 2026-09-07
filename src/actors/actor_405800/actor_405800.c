@@ -34,6 +34,8 @@ s32  func_actor_405800_80136A1C(Task* arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_801383CC(Task* arg0, SVECTOR* arg1, s16 arg2);
 s32  func_actor_405800_801385F4(Task* arg0);
+void func_actor_405800_801390FC(Task* arg0);
+void func_actor_405800_80139188(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
@@ -265,7 +267,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80137A60);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80137B34);
+/// Per-frame entry point for one of this actor's states: clears the animation
+/// request flags, then runs the sub-state handler `field_848` selects. The
+/// two-entry table is small enough that GCC materialises each callback with its
+/// own `lui`/`addiu` pair instead of copying a `.rodata` pool.
+void func_actor_405800_80137B34(Task* task)
+{
+    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    TaskFunc         states[2] = { func_actor_405800_801390FC, func_actor_405800_80139188 };
+
+    func_actor_405800_80137948(task);
+    states[(s16)work->field_848](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80137B9C);
 

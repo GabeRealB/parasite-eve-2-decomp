@@ -53155,3 +53155,19 @@ assignment of function pointers": there the table is copied from a global and
 the fix is a struct assignment; here there is no global, and the fix is the
 initializer. `func_actor_400600_80139218` is the example. The `(s16)` cast is
 what turns the `u16` field into the target's `lh`.
+
+The initializer only works if the *work pointer* is initialized at its
+declaration too. Leaving `work = arg0->idMap;` as a statement in the body and
+brace-initializing just the table pushes the two callbacks into `.rodata` and
+GCC copies them onto the stack — 85% with `regs=7`, a worse miss than the
+element-wise stores it replaced. Both declarations carry initializers, table
+second:
+
+```c
+Actor405800Work* work      = (Actor405800Work*)task->idMap;
+TaskFunc         states[2] = { handler0, handler1 };
+```
+
+`func_actor_405800_80137B34` is the second example. A `SOFT_BARRIER()` after an
+element-wise `work` load also reaches 100% there, by pinning the load ahead of
+the first `lui`; prefer the initializer, which needs no barrier.
