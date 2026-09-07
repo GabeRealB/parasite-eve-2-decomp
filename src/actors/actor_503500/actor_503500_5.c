@@ -60,6 +60,7 @@ void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
 void func_actor_503500_801374BC(Actor503500* arg0);
 void func_actor_503500_80137678(Actor503500* arg0);
 void func_actor_503500_80138454(Actor503500* arg0);
+void func_actor_503500_80138490(Actor503500* arg0, s32 arg1);
 void func_actor_503500_8013B460(Actor503500* arg0);
 void func_actor_503500_8013B8D0(Actor503500* arg0);
 void func_actor_503500_8013BE0C(Actor503500* arg0);
@@ -280,7 +281,13 @@ void func_actor_503500_801383D0(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80138454);
+void func_actor_503500_80138454(Actor503500* arg0)
+{
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_80138490(arg0, 1);
+        arg0->killCountdown = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80138490);
 
