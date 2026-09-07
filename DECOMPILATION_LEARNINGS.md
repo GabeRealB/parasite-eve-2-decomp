@@ -4367,6 +4367,24 @@ only the functions between the two spans. Rename the file and retarget every
 writes the missing `<name>_3.c` but leaves the stale `<name>_2.c` naming the
 wrong asm dir.
 
+**Carry a matched body across that renumbering by hand; do not let splat
+regenerate the file.** The shifted unit is often a tiny tail unit, and a tiny
+tail unit is exactly the kind that is already decompiled - promoting
+`ActorsShared801324c8` shifted `actor_160700_5.c` and `actor_215100_5.c`, each
+holding nothing but a matched two-instruction `return 0`, into `_6`. splat
+writes the new `_6.c` only for units whose functions it still owns a `.s` for,
+so the matched body has no regenerated home: write `_6.c` yourself with the body
+copied out of the old `_5.c`, then rewrite `_5.c` with the `INCLUDE_ASM` lines
+for the range between the two shared spans. Deleting the stale file and
+re-splitting instead loses the body to a fresh `INCLUDE_ASM` stub with the
+checksum still green - `tools/check_lost_matches.py`, which `build-and-verify.sh`
+runs, is what catches that.
+
+Work out the new ranges from the regenerated
+`configs/USA/generated/<overlay>.yaml` rather than by eye: each own-unit
+subsegment now runs from its offset to the next subsegment's, and
+`overlay_vram + offset` names the first function in it.
+
 **Delete the promoted body's own `INCLUDE_ASM` from the sharers, not just the
 tail lines.** The sharer whose C you edited loses it naturally (you replaced it
 with the body, then moved the body to `lib/`), but the other overlays still
