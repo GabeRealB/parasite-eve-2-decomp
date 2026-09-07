@@ -22,8 +22,6 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", func_dryfield_motel_balcony_8017D74C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony", func_dryfield_motel_balcony_8017D8BC);
-
 const TaskFuncTable3 RoomsShared8017d878Table = {
     RoomsShared8017db84,
     (TaskFunc)func_dryfield_motel_balcony_8017DBC8,
