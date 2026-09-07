@@ -95,6 +95,8 @@ void      func_actor_503500_80142980(Actor503500* arg0);
 void      func_actor_503500_8014418C(Actor503500* arg0);
 void      func_actor_503500_801441E8(Actor503500* arg0);
 void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
+void      func_actor_503500_80144520(Actor503500* arg0);
+void      func_actor_503500_80144778(Actor503500* arg0);
 
 void func_actor_503500_80136304(Actor503500* arg0)
 {
@@ -842,7 +844,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80144520);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801446E4);
+void func_actor_503500_801446E4(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
+
+    coord = arg0->extra->field_8;
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord->flg = 0;
+    func_actor_503500_80144778(arg0);
+    func_actor_503500_80144520(arg0);
+}
 
 void func_actor_503500_8014473C(Task* arg0)
 {

@@ -53703,3 +53703,41 @@ lines took it to 100% with no pin and no empty `asm`.
 Worth trying first whenever a ≥99% diff is exactly "target keeps the loaded
 pointer in a scratch, we reuse the argument register": there is no register to
 shorten and nothing to split, only two statements to reorder.
+
+## A `u8` global compared in place gives `sltiu`; copy it into an `s32` local for `slti`
+
+`func_actor_503500_801446E4` gates its body on the frozen-mode byte
+`D_801153F4` (`extern u8`). The target loads it with `lbu` and then compares it
+*signed*:
+
+```
+lbu   $a0, %lo(D_801153F4)($v0)
+slti  $v1, $a0, 0x3
+```
+
+Comparing the global directly — `if (D_801153F4 < 3)` — emits `sltiu` instead,
+even though the integer promotion of a `u8` is a plain `int`. Combine sees the
+`zero_extend` feeding the compare in one insn chain, proves the value is
+non-negative, and rewrites `lt` to `ltu`. A cast does not help: `(s32)D_801153F4`
+is already the promoted type, so it changes nothing.
+
+Copying the byte into an `s32` local first splits the `zero_extend` into its own
+insn, combine no longer has the extension and the comparison together, and the
+signed form survives:
+
+```c
+s32 state;
+
+state = D_801153F4;
+if (state < 3) {
+    if (state != 0) {
+        return;
+    }
+}
+```
+
+This is the mirror image of "Two bounds on one variable fold into a `sltiu`
+range test unless they are separate `if` statements": there the fix is to keep
+the two tests in separate statements (which is also why the `!= 0` test is
+nested here rather than `&&`-joined), here it is to keep the load and the test
+in separate statements.
