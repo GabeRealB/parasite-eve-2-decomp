@@ -20,12 +20,56 @@
 
 extern TaskFuncTable3 RoomsShared8017d878Table;
 extern s8             D_8007272D;
+extern TaskDesc       D_acropolis_fire_escape_80181D18;
 extern GpMsgEntry     D_acropolis_fire_escape_80181D3C[];
 extern TaskDesc       D_acropolis_fire_escape_80181D64;
 extern GpObj4A        D_acropolis_fire_escape_801826A8;
 extern s32            D_acropolis_fire_escape_80183040;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_2", func_acropolis_fire_escape_8017F9F8);
+s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 arg3)
+{
+    Task* slot;
+    s32   cap;
+    s32   result;
+
+    if (event == 4) {
+        if (GameFlag_GetNibble(0x16A) == 0) {
+            GameFlag_SetNibble(0x16A, 1);
+            Gp_RunCapCmd1(0xB);
+            return 0;
+        }
+        D_acropolis_fire_escape_80183048.field_0  = 9;
+        D_acropolis_fire_escape_80183048.field_1  = 1;
+        D_acropolis_fire_escape_80183048.field_3  = 1;
+        D_acropolis_fire_escape_80183048.field_2  = 0;
+        D_acropolis_fire_escape_80183048.field_4  = 0x510F0001;
+        D_acropolis_fire_escape_80183048.field_8  = 0x510F0004;
+        D_acropolis_fire_escape_80183048.field_10 = 0x510F0007;
+        D_acropolis_fire_escape_80183048.field_C  = 0x510F0008;
+        Task_SpawnFromTable(&D_acropolis_fire_escape_80181D18, 0, 3, (s32)&D_acropolis_fire_escape_80183048);
+    }
+    if (event == 3) {
+        if (GameFlag_GetNibble(0x155) < 6) {
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 6);
+        }
+        Gp_SpawnIfCapIdle(3, 1);
+        func_800E3FAC(0xA2, 7);
+    }
+    if (event == 1) {
+        slot = (Task*)Gp_LookupSlot4(0);
+        cap  = 1;
+        if (slot != NULL) {
+            result = Gp_DispatchMsg(slot, 0x7D6, 0, 0);
+            cap    = 9;
+            if (result == 0) {
+                cap = 1;
+            }
+        }
+        Gp_SpawnIfCapIdle(cap, 1);
+    }
+    return 0;
+}
 
 void func_acropolis_fire_escape_8017FB40(Task* task)
 {

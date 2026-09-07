@@ -54372,3 +54372,23 @@ so the new object gets a unique name. Here the actor_160700 copy sits at
 input object once). Those copies stay overlay-local: write the same C body
 under each leftover name rather than leaving `INCLUDE_ASM`. `actor_460200`
 has this function three times.
+
+
+## Assign the fallback after a call result to avoid preserving it across the call
+
+`func_acropolis_fire_escape_8017F9F8` matched with an initial `cap = 1`,
+then, inside a non-null task check, `result = Gp_DispatchMsg(...)`,
+`cap = 9`, and `if (result == 0) cap = 1`. Both assignments after the call
+kill the earlier value, leaving `cap` in `$a0`. The target places the initial
+`li a0,1` in the null-check delay slot and `li a0,9` in the result-check delay
+slot.
+
+Writing the inner selection as `cap = Gp_DispatchMsg(...) != 0 ? 9 : 1`
+produced a `.jump` assignment of 1 before the result branch; subsequent
+optimization removed that redundant assignment. The `.lreg` dump then showed
+`cap` crossing one call, and `.greg` allocated `$s0`, adding moves and changing
+the branch direction (93.843%). An explicit result temporary followed by
+`cap = 9` and the conditional fallback matched 100% without pins or barriers.
+Combining the null check and dispatch into one `&&` expression instead removed
+the initial load of 1 (98.744%, `branch=3 delete=1`); it was still a control-flow
+miss, not a permuter candidate.
