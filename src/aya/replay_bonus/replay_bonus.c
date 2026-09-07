@@ -3,6 +3,7 @@
 #include "aya/replay_bonus.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -149,7 +150,42 @@ u16* func_replay_bonus_80115C68(void)
     return table;
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80115CA4);
+s32 func_replay_bonus_80115CA4(void)
+{
+    u8* levels;
+    s32 spend;
+    s32 i;
+    s32 idx;
+    s32 j;
+    s32 base;
+    s32 val;
+    s32 flag;
+
+    levels = Mc_SaveData.unknown_850;
+    spend  = Wip_SysConfig.field_8;
+    SOFT_USE_REG(spend);
+    i = 0;
+    do {
+        idx = i * 3;
+        if (*levels != 0) {
+            for (j = 0; j < *levels; ++j) {
+                base = idx;
+                SOFT_TOUCH_REG(base);
+                val  = Gp_IdParamHi[base + j + 1].field[0];
+                flag = Mc_SaveData.field_F;
+                if (flag > 0) {
+                    val = (val * 4) / 5;
+                } else if (Mc_SaveData.field_E > 0) {
+                    val = (val * 2) / 5;
+                }
+                spend += val;
+            }
+        }
+        i      += 1;
+        levels += 1;
+    } while (i < 0xC);
+    return spend;
+}
 
 void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
 {
