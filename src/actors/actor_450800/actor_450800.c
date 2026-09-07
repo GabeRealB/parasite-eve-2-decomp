@@ -107,27 +107,3 @@ void func_actor_450800_80132868(Task* task)
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801328BC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132958);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132A1C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132A68);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132AE0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132B44);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132BB0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132C68);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132CE0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132D74);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132E9C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801330AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80133264);
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801332B8);
