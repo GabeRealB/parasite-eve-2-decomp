@@ -53119,3 +53119,39 @@ return;
 
 Jump cross-jumps that store onto the later case's tail. Pulling `next` up into
 the earlier case, or using one function-scope temp for both, is the miss.
+
+## A two-entry stack dispatch table wants a brace initializer, not element stores
+
+A dispatcher small enough that GCC materialises each callback with its own
+`lui`/`addiu` pair — no `.rodata` pool at all — still cares which C form builds
+the local table. Target:
+
+```
+move  s0,a0
+sw    ra,0x20(sp)
+sw    s1,0x1c(sp)
+lw    s1,0x1c(s0)          # the work pointer
+lui   v0,%hi(handler0)
+```
+
+Element-wise stores (`fns[0] = handler0; fns[1] = handler1;` after
+`work = arg0->idMap;`) score 97.7% with `reorder=1`: sched1 hoists the first
+`lui` above the prologue's `sw ra` / `sw s1` and above the `lw` of the work
+pointer, because the address constant has no dependence on anything and its
+chain to `sw v0,0x10(sp)` is the longest in the block.
+
+A brace initializer on the declaration matches:
+
+```c
+Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+void (*fns[2])(Task*) = { handler0, handler1 };
+
+func_actor_400600_80138AA4(arg0);
+fns[(s16)work->field_71E](arg0);
+```
+
+This is the immediate-materialised counterpart of "Local jump table via struct
+assignment of function pointers": there the table is copied from a global and
+the fix is a struct assignment; here there is no global, and the fix is the
+initializer. `func_actor_400600_80139218` is the example. The `(s16)` cast is
+what turns the `u16` field into the target's `lh`.
