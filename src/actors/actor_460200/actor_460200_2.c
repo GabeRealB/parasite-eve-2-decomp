@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
@@ -53,7 +54,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80133B3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80133B88);
+void func_actor_460200_80133B88(Task* task)
+{
+    ActorsShared80132514Work* work;
+    s32                       i;
+
+    work = (ActorsShared80132514Work*)task->idMap;
+    i    = 1;
+    do {
+        work->slots[i].field_9 = 1;
+        Gp_AnimResetSlot(&work->anim, i, work->field_4B8);
+        i++;
+    } while (i < 0x14);
+    work->field_4B6 = work->field_4B8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80133C00);
 

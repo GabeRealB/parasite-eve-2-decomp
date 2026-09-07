@@ -7,3 +7,4 @@ ActorsShared80131e24 = 0x8013233C; // shared body, see src/actors/lib/
 ActorsShared80131e24Sub0 = 0x80131F70; // shared body's overlay-local callee, see src/actors/lib/
 ActorsShared80131e24Sub1 = 0x80132390; // shared body's overlay-local callee, see src/actors/lib/
 ActorsShared801324c8 = 0x8013258C; // shared body, see src/actors/lib/
+ActorsShared80132514 = 0x80132514; // shared body, see src/actors/lib/

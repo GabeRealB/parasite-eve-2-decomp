@@ -54351,3 +54351,24 @@ Nothing about that resembles the target, and no alignment attribute turns one
 form into the other. Nine straight-line C assignments are the only shape that
 produces nine `lhu`/`sh` pairs — a loop is not it either, since nothing unrolls
 at `-O2` without `-funroll-loops`.
+
+## `promote`'s auto-chosen unit name can already be a different shared body
+
+`overlay_dup_index.py promote` names the new unit `<family>_shared_<addr>` from
+the function being promoted. That address is often already a *different*
+shared object: `func_actor_160600_80132450` would have become
+`actors_shared_80132450`, but that unit is the skeleton-attach body
+(`Room_Script13` / `ActorsShared80132450`). Using the default name would
+carve the new span and then link the wrong object into it.
+
+`find` is not enough to catch this — it only lists copies of *this* body.
+`ls src/<family>/lib/<proposed-unit>.c` (or grep the proposed symbol in
+`configs/USA/sym/<family>/`) is the check. When the file already exists and
+defines a different function, pass `--unit <family>_shared_<other-copy-addr>`
+so the new object gets a unique name. Here the actor_160700 copy sits at
+`0x80132514`, so `--unit actors_shared_80132514`.
+
+`promote` still skips any overlay that holds the body twice (ld includes an
+input object once). Those copies stay overlay-local: write the same C body
+under each leftover name rather than leaving `INCLUDE_ASM`. `actor_460200`
+has this function three times.

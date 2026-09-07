@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
@@ -109,7 +110,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132A04);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132A50);
+void func_actor_460200_80132A50(Task* task)
+{
+    ActorsShared80132514Work* work;
+    s32                       i;
+
+    work = (ActorsShared80132514Work*)task->idMap;
+    i    = 1;
+    do {
+        work->slots[i].field_9 = 1;
+        Gp_AnimResetSlot(&work->anim, i, work->field_4B8);
+        i++;
+    } while (i < 0x14);
+    work->field_4B6 = work->field_4B8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132AC8);
 
@@ -148,7 +162,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801332E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8013332C);
+void func_actor_460200_8013332C(Task* task)
+{
+    ActorsShared80132514Work* work;
+    s32                       i;
+
+    work = (ActorsShared80132514Work*)task->idMap;
+    i    = 1;
+    do {
+        work->slots[i].field_9 = 1;
+        Gp_AnimResetSlot(&work->anim, i, work->field_4B8);
+        i++;
+    } while (i < 0x14);
+    work->field_4B6 = work->field_4B8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801333A4);
 
