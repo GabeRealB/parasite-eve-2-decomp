@@ -57,7 +57,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_801684A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_8016852C);
+/// The actor's six top-level state handlers.
+extern TaskFuncTable6 D_actor_341700_80161E24;
+
+void func_actor_341700_8016852C(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_actor_341700_80161E24;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_actor_341700_8016859C(Task* arg0)
 {
