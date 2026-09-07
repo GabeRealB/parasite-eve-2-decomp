@@ -1,8 +1,20 @@
 #include "common.h"
 
+#include "actors/actor_143900.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_2", func_actor_143900_8013242C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_2", func_actor_143900_801324C8);
+/// Ticks animation slots 1..0x13 of the actor's animation context.
+void func_actor_143900_801324C8(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&D_actor_143900_801496B8->anim, i);
+        i++;
+    } while (i < 0x14);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_2", func_actor_143900_80132514);
 
