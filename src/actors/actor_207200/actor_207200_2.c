@@ -45,22 +45,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014D8DC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014D97C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014DAF8);
-
-void func_actor_207200_8014DB4C(Actor207200* arg0)
-{
-    Actor207200Ctx*  ctx;
-    Actor207200Work* work;
-
-    ctx           = arg0->field_20;
-    work          = arg0->field_1C;
-    ctx->field_54 = 0;
-    Gp_UnlinkNode(&ctx->node);
-    Gp_UnlinkObj(&work->field_1DC);
-    Gp_UnlinkObj(&work->field_214);
-    Gp_UnlinkObj(&work->field_2C4);
-    Gp_UnlinkObj(&work->field_374);
-    Gp_UnlinkObj(&work->field_3AC);
-    Gp_EnemyTaskExit(arg0);
-}
