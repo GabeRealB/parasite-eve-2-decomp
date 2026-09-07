@@ -41,6 +41,7 @@ s32         Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
 void        Mdec_UploadSlice(void);
 void        Mdec_KickStrip(void);
 void        Stream_ResetRestoreState(void);
+void        func_80020058(void);
 s16         Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2);
 s16         Stream_FindSlotByKey(u8* arg0);
 StreamSlot* Stream_GetSlot(u32 arg0);

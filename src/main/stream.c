@@ -707,7 +707,79 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/stream", func_80020058);
+static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 useDisplayBuffer)
+{
+    s16 stripWidth;
+    s32 bufferY;
+    s32 stride;
+    u16 i;
+    u8* data;
+    u32 frameWidth;
+
+    stripWidth = 0x10;
+    if (D_8006AC14 == 1) {
+        stripWidth = 0x18;
+    }
+    if (useDisplayBuffer & 0xFFFF) {
+        bufferY = y & 0xFFFF;
+        if (Display_State.field_1f != 0) {
+            bufferY += 0x110;
+        }
+        rect->y = bufferY;
+    } else {
+        rect->y = y;
+    }
+    rect->w    = stripWidth;
+    rect->x    = x;
+    rect->h    = (s16)D_8006AC6C;
+    stride     = stripWidth * D_8006AC6C * 2;
+    data       = (u8*)D_8006AC48[D_8005EAEE];
+    frameWidth = D_8006AC5A;
+    for (i = 0; (u32)(i & 0xFFFF) < (frameWidth >> 4); i++) {
+        LoadImage(rect, (u_long*)data);
+        rect->x = (u16)rect->x + stripWidth;
+        data   += stride;
+    }
+}
+
+void func_80020058(void)
+{
+    RECT        rect;
+    s32         yOffset;
+    CdCmdQueue* queue;
+    s32         useDisplayBuffer;
+    s32         x;
+    s32         y;
+
+    queue = &CdCmd_Queue;
+    if ((queue->field_20A == 0) && (queue->field_1E6 != 0)) {
+        if (queue->field_1EA == D_8006AC0C) {
+            queue->field_1F2 = 0;
+        } else if (queue->field_1F4 != 0) {
+            queue->field_1F4 = 0;
+            queue->field_1F2 = 0;
+        } else {
+            queue->field_1F2 = 1;
+        }
+        if (queue->field_22C == 0) {
+            useDisplayBuffer = D_8006AC18 != 1;
+            x                = D_8006AC0E;
+            y                = D_8006AC10;
+            Stream_UploadFrameStrips(&rect, x, y, useDisplayBuffer);
+        } else {
+            rect.x = queue->field_230;
+            rect.y = queue->field_232;
+            rect.w = (s16)D_8006AC5A;
+            rect.h = (s16)D_8006AC6C;
+            if (D_8006AC18 == 1) {
+                yOffset = 0;
+            } else {
+                yOffset = Display_State.field_1f != 0 ? 0x110 : 0;
+            }
+            MoveImage(&rect, (s32)D_8006AC0E, yOffset + D_8006AC10);
+        }
+    }
+}
 
 StreamSlot* Stream_GetSlot(u32 arg0)
 {

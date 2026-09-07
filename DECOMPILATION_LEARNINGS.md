@@ -54622,3 +54622,25 @@ then storing that local, gave `lb; sh` without changing shared field types.
 The same function needed `coord->flg = 0` after the translation update so
 its store could fill a load delay. Together these moved the structured,
 unpinned attempt from 94.391% to 100% (all penalties zero).
+
+## Stream frame upload: inline arguments, loop bound, and RECT store order
+
+`func_80020058` matches with a `static __inline__` strip-upload helper taking
+`RECT*`, two `u32` coordinates, and a `u16` display-buffer flag. Materialize
+`flag = D_8006AC18 != 1`, then load both coordinates into separate `s32`
+locals before calling the helper. Passing the globals directly changed load
+order and register lifetimes. The inline boundary preserves the boolean's
+`xori; sltu; move`, its later `andi 0xffff`, and the rectangle pointer across
+`LoadImage` without pins or empty asm.
+
+Cache the raw frame width, then compare a `u16` loop index against
+`frameWidth >> 4` in a `for` condition. The `.loop` pass hoists the shift,
+leaving the guard in `$v0` and a copy to `$s3` before the loop. Caching the
+already-shifted bound instead loses that copy; an `s32` index increases its
+reference count and swaps the index and rectangle registers.
+
+The final 99.632% miss was the other path's rectangle initialization. C stores
+in `x, y, w, h` order produced the target's interleaved coordinate/dimension
+loads followed by stores in `w, h, x, y` order. Writing the target's store
+order directly in C produced the wrong load order. Do not infer source store
+order from the scheduled assembly.
