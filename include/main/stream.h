@@ -35,6 +35,8 @@ extern StreamSlot Stream_Slots[15];
 // --- APIs ---
 void        Mdec_SetupBuffers(u8* arg0);
 void        Mdec_ResolveStreamBuffer(u8* arg0);
+void        Stream_InitFromSlot(u32 arg0);
+u32         func_8001F180(u32 arg0);
 s32         Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
 void        Mdec_UploadSlice(void);
 void        Mdec_KickStrip(void);

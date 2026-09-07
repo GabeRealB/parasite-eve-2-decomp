@@ -269,7 +269,62 @@ ret_zero:
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/stream", func_8001F180);
+u32 func_8001F180(u32 arg0)
+{
+    u8          params[8];
+    RECT        clearRect;
+    RECT*       rect;
+    RECT*       firstImage;
+    RECT*       secondImage;
+    CdCmdQueue* queue;
+    u32         slot;
+
+    slot             = arg0 & 0xFFFF;
+    queue            = &CdCmd_Queue;
+    queue->field_1F2 = 0;
+    queue->field_1E4 = 0;
+    queue->field_1F6 = 0;
+    queue->field_1F4 = 0;
+    Stream_InitFromSlot(slot);
+    if (D_8006AC58 != 0) {
+        if (D_8006AC30.sector == 0) {
+            return 1U;
+        }
+        D_8006AC08 = Stream_Slots[slot].field_8 + D_8006AC30.sector;
+    }
+    if (D_8006AC14 != 0) {
+        params[3] = 0xFF;
+        Mdec_SetupBuffers(params);
+        rect             = &clearRect;
+        queue->field_1EA = 1;
+        clearRect.y      = 0;
+        clearRect.x      = 0;
+        if (D_8006AC14 == 1) {
+            rect->w = 0x1E0;
+        } else {
+            rect->w = 0x140;
+        }
+        /* Keep each call argument as a fresh stack-address calculation. */
+        firstImage = &clearRect;
+        TOUCH_REG(firstImage);
+        rect->h = 0xF0;
+        ClearImage(firstImage, 0U, 0U, 0U);
+        secondImage = &clearRect;
+        TOUCH_REG(secondImage);
+        rect->y = 0x110;
+        ClearImage(secondImage, 0U, 0U, 0U);
+        if (D_8006AC14 == 1) {
+            Display_SetMode(0xF010);
+        } else {
+            Display_SetMode(0xD010);
+        }
+        Display_State.field_106 = 1;
+        DecDCTvlcBuild(D_8006AC38);
+        return 0U;
+    }
+    Mdec_SetupBuffers(&Game_Session->field_4);
+    return 0U;
+}
 
 s32 CdCmd_StopMdec(s32 arg0)
 {
