@@ -78,6 +78,37 @@ extern Task* D_replay_bonus_80119228;
 /// Heap pointer to the current `ReplayBonusStream`.
 extern ReplayBonusStream* D_replay_bonus_801192BC;
 
+/// STF credits header (`D_replay_bonus_80119294`). `speed` is the 8.8
+/// increment added to the fractional accumulator each frame; `hold0` /
+/// `hold1` are multiplied by 6 for `Task::killCountdown`.
+typedef struct ReplayBonusStfHdr {
+    /* 0x0 */ u16 speed;
+    /* 0x2 */ u8  hold0;
+    /* 0x3 */ u8  hold1;
+} ReplayBonusStfHdr;
+
+/// One STF credits row (`D_replay_bonus_80119298`). `y` is the line's
+/// vertical position; the last row's `y - 0x1E0` is the scroll stop.
+typedef struct ReplayBonusStfLine {
+    /* 0x0 */ void* unk0;
+    /* 0x4 */ s32   y;
+} ReplayBonusStfLine;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
+
+/// TaskDesc table spawned from the credits task (hold / fade / stream workers).
+extern TaskDesc D_replay_bonus_8011922C;
+/// Relocated STF header.
+extern ReplayBonusStfHdr* D_replay_bonus_80119294;
+/// Relocated STF row array; `D_replay_bonus_801192A0` is the count.
+extern ReplayBonusStfLine* D_replay_bonus_80119298;
+extern s32                 D_replay_bonus_801192A0;
+/// Integer scroll Y; starts at `-0x1E0`.
+extern s32 D_replay_bonus_801192A4;
+/// 8.8 fractional accumulator for the scroll.
+extern s32 D_replay_bonus_801192A8;
+/// Frame counter incremented while the credits draw.
+extern s32 D_replay_bonus_801192B0;
+
 /// The list of item ids the replay-bonus screen offers. `func_replay_bonus_80115D60`
 /// fills `itemIds` (one `s16` per unlocked item); `func_replay_bonus_801175D0` and
 /// `func_replay_bonus_801175F0` read it back, treating an id below 0x100 as an index
@@ -107,8 +138,11 @@ typedef struct ReplayBonusTotals {
 extern ReplayBonusTotals D_replay_bonus_80119274;
 extern s32               D_replay_bonus_8011927C;
 
+u16* func_replay_bonus_80115C68(void);
 s32  func_replay_bonus_80115CA4(void);
 s32  func_replay_bonus_801173A8(void);
+void func_replay_bonus_80117E04(void);
+void func_replay_bonus_80118F00(s32 arg0);
 s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);
 s16  func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);
 s32  func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx);

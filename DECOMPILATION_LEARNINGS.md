@@ -3,6 +3,44 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Join the increment half of a shared `state += 1` tail without `goto`
+
+Several switch cases share
+
+```
+lw    v0, 0x30(s1)    /* DA8: load state */
+addiu v0, v0, 1       /* DAC */
+j     epilogue
+sw    v0, 0x30(s1)
+```
+
+and the jump table points those slots at DA8. `goto advance` with
+`advance: task->state += 1` is the right join for them (put the labels on
+the tail, after the fallthrough case — see "A shared switch tail belongs
+where the target puts it").
+
+A case that instead does
+
+```
+lw    v0, 0x30(s1)
+li    v1, K
+j     DAC
+sh    v1, 0x2A(s1)
+```
+
+must emit the `lw` itself so the extra store can fill the delay slot of a
+jump to the *addiu*. `goto advance` jumps to DA8 and drops that `lw`
+(99.5%, `delete=1`). Write the extra store, then a local `state += 1;
+return`, and let cross-jumping pick DAC:
+
+```c
+arg0->killCountdown = 0x1E;
+arg0->state += 1;
+return;
+```
+
+`func_replay_bonus_80117A08` case 10 is the example.
+
 ## Two identical calls, not a pointer temp, for if/else string args
 
 A shared `char *title` assigned in both arms of `if (x == 0)` then passed

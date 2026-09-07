@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "aya/replay_bonus.h"
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/4CC.h"
@@ -35,6 +36,7 @@ extern UiObjectDesc D_replay_bonus_801191C4;
 extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
 extern s32          D_replay_bonus_80119284;
+extern s8           D_80071068;
 
 s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
 
@@ -400,7 +402,130 @@ void func_replay_bonus_8011797C(Task* arg0)
     states[arg0->state](arg0);
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_80117A08);
+void func_replay_bonus_80117A08(Task* arg0)
+{
+    RECT               rect;
+    s32                temp_a1;
+    s32                temp_v1_2;
+    s32                temp_v1_3;
+    u16*               temp_v0;
+    u16                temp_v0_2;
+    u16                temp_v0_3;
+    u32                temp_v1;
+    ReplayBonusStfHdr* hdr;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            D_replay_bonus_80119226        = 0;
+            D_replay_bonus_80119227        = 0;
+            D_replay_bonus_801192AC        = 0;
+            D_replay_bonus_801192BC        = Mem_Calloc(0x10U, false);
+            temp_v0                        = func_replay_bonus_80115C68();
+            D_replay_bonus_80119228        = NULL;
+            D_replay_bonus_80119225        = 0;
+            D_replay_bonus_801192BC->table = temp_v0;
+            func_replay_bonus_80118F00(0);
+            GameMain_SetFrameTiming(0);
+            SetDispMask(1);
+            Display_SetMode(0x1141);
+            rect.x = 0x280;
+            rect.w = 0xF0;
+            rect.y = 0;
+            rect.h = 0xB0;
+            ClearImage(&rect, 0, 0, 0);
+            rect.y = 0x100;
+            ClearImage(&rect, 0, 0, 0);
+            D_replay_bonus_801192A4 = -0x1E0;
+            D_80071068              = 0;
+            D_replay_bonus_801192B0 = 0;
+            arg0->killCountdown     = D_replay_bonus_80119294->hold0 * 6;
+            CdCmd_StartOverlay(0U, 1U, 0xBU);
+            CdCmd_EnqueueOverlay82();
+            goto advance;
+        case 1:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                CdCmd_EnqueueOverlay81();
+                goto advance;
+            }
+            return;
+        case 2:
+            D_replay_bonus_801192B0 += 1;
+            func_replay_bonus_80117E04();
+            temp_v0_2           = arg0->killCountdown - 1;
+            arg0->killCountdown = temp_v0_2;
+            if ((temp_v0_2 << 0x10) <= 0) {
+                Task_SpawnFromTable(&D_replay_bonus_8011922C, 1, 0xB4, 0);
+                arg0->state = 0xA;
+            }
+            if (Pad_CheckFlag800() != 0) {
+                Task_SpawnFromTable(&D_replay_bonus_8011922C, 2, 0x1E, 0);
+                CdCmd_CancelReplaceAndActivate();
+                arg0->state         = 0xB;
+                arg0->killCountdown = 0x1E;
+                return;
+            }
+            break;
+        case 10:
+            D_replay_bonus_801192B0 += 1;
+            func_replay_bonus_80117E04();
+            hdr                     = D_replay_bonus_80119294;
+            temp_v1_2               = D_replay_bonus_801192A8 + hdr->speed;
+            temp_a1                 = D_replay_bonus_801192A4 + (temp_v1_2 >> 8);
+            D_replay_bonus_801192A8 = temp_v1_2;
+            D_replay_bonus_801192A4 = temp_a1;
+            D_replay_bonus_801192A8 = temp_v1_2 & 0xFF;
+            temp_v1_3               = D_replay_bonus_80119298[D_replay_bonus_801192A0 - 1].y - 0x1E0;
+            if (temp_v1_3 < temp_a1) {
+                D_replay_bonus_801192A4 = temp_v1_3;
+                arg0->state            += 1;
+                arg0->killCountdown     = hdr->hold1 * 6;
+            }
+            if (Pad_CheckFlag800() != 0) {
+                CdCmd_CancelReplaceAndActivate();
+                Task_SpawnFromTable(&D_replay_bonus_8011922C, 2, 0x1E, 0);
+                arg0->killCountdown = 0x1E;
+                arg0->state        += 1;
+                return;
+            }
+            break;
+        case 11:
+            D_replay_bonus_801192B0 += 1;
+            func_replay_bonus_80117E04();
+            temp_v0_3           = arg0->killCountdown - 1;
+            arg0->killCountdown = temp_v0_3;
+            if ((s16)temp_v0_3 == 0xB4) {
+                Task_SpawnFromTable(&D_replay_bonus_8011922C, 2, 0xB4, 0);
+            }
+            if ((s16)arg0->killCountdown <= 0) {
+                arg0->state = 0x14;
+                return;
+            }
+            break;
+        case 20:
+            if (D_replay_bonus_80119225 != 1) {
+                SetDispMask(0);
+                goto advance;
+            }
+            break;
+        case 21:
+            Gp_RestoreStreamRng();
+            Mem_Free(D_replay_bonus_801192BC);
+            Display_SetMode(0x1010);
+            goto advance;
+        case 24:
+            func_800B2968();
+        case 22:
+        case 23:
+        advance:
+            arg0->state += 1;
+            return;
+        case 25:
+            SetDispMask(1);
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 void func_replay_bonus_80117DE0(u8 arg0)
 {
