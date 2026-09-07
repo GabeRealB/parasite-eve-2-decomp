@@ -110,7 +110,7 @@ aya_10300 = { note = "7 bones - too few for a full costume" }
 aya_10400 = { note = "44 bones" }
 aya_10500 = { note = "41 bones" }
 aya_20900 = { note = "1.6 KB, 3 functions; role unknown" }
-replay_bonus = { note = "Complete Bonus / GET ITEM / BONUS BP" }
+replay_bonus = { note = "Complete Bonus / GET ITEM / BONUS BP", units = ["0x1A24"], rodata = [{ start = "0x74", unit = "replay_bonus_2" }] }
 # Kyle, laid out like `aya`: one family per character, its packages being that
 # character's variants. The four are not four people - they carry the same
 # byte-identical 300-vertex body, the same four small meshes and the same
