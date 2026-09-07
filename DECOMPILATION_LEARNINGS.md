@@ -54475,3 +54475,20 @@ Its base score was 885 instead of the scratch score 205, with a non-scalar
 conversion diagnostic. Using the equivalent `partCount * 0x50 + 0x34` made the
 base scores agree. The final C restores `(partCount * sizeof(GsCOORDINATE2)) +
 sizeof(TmdObject)` and still matches. Always check the permuter's base score.
+
+## func_800CCDC8: reuse the clearing pointer for the preview loop
+
+After clearing `Gp_PreviewItems` through a local pointer, keep that same
+pointer as the loop's walking pointer. Write the fixed first-slot arm as
+`Gp_PreviewItems[0] = item`, and the other arm as `*table = -1`.
+Using `table[0] = item` while walking a separate `p` kept the full table
+address live across the loop (99.068%). Naming the global first slot fixed
+the `%lo` store but retained an extra `move a1,v1` for `p = table`
+(98.203%, `insert=1` and shifted branch offsets). Removing that copy by
+walking `table` itself reached 100% without pins or empty asm.
+
+The `.jump2` dump identified the extra pointer copy; `.lreg` and `.greg`
+showed the separate initialization and loop pseudos. Nonzero branch penalties
+here came from changed instruction offsets, with the same branch topology.
+Cache `Gp_PubItemLoc` in an `s32` before the state check: directly comparing
+the declared `u16` global against `-1U` removes the target's comparison.

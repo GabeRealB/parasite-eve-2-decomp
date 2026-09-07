@@ -808,7 +808,49 @@ void Gp_PickupTask(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800CCDC8);
+void func_800CCDC8(Task* arg0)
+{
+    UiObject*   obj;
+    CdCmdQueue* queue;
+    s32         item;
+    s32         flags;
+    s32*        table;
+    s32         i;
+
+    item          = Gp_PubItemLoc;
+    obj           = arg0->spawnArg2;
+    queue         = &CdCmd_Queue;
+    obj->field_2E = 0;
+    flags         = 0x10;
+    if (arg0->state == 0) {
+        table    = Gp_PreviewItems;
+        table[2] = -1;
+        table[1] = -1;
+        table[0] = -1;
+        table[3] = -1;
+        table[4] = -1;
+        if (item != -1) {
+            for (i = 0; i < 3; i++, table++) {
+                if (i == 0) {
+                    Gp_PreviewItems[0] = item;
+                } else {
+                    *table = -1;
+                }
+            }
+            Gp_EnqueueItemPreviewCd(item, 0);
+        }
+        arg0->state = 2;
+    }
+    if (arg0->state == 2) {
+        if ((queue->field_214 != 0) || (CdCmd_IsIdle() & 0xFFFF)) {
+            arg0->state = 1;
+        }
+    }
+    if (arg0->state != 1) {
+        flags |= 0x100;
+    }
+    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+}
 
 typedef struct {
     u8          buf[0x20];

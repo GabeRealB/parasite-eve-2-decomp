@@ -192,6 +192,7 @@ s32  func_800D4D2C(s32 arg0);
 // largest cause of unusable seeds in the bulk m2c pass.
 
 void      Gp_ClearPreviewItems(void);
+void      func_800CCDC8(Task* arg0);
 void      Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void      func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void      Gp_DrawPromptLines(UiObject* arg0, Task* arg1);
