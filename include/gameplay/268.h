@@ -355,6 +355,7 @@ void             Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
 s32              Gp_GetBit2Flag(GameSessionFrom4* arg0, s32 arg1);
 void             Gp_SavePlayerPos(void);
 struct _GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1);
+void             func_800BBB54(Task* arg0);
 void             Gp_WaitItemFlag2(Task* arg0);
 s32              Gp_NextMappedSlot(s32 arg0);
 GpItemMap*       Gp_GetItemMap(s32 arg0);

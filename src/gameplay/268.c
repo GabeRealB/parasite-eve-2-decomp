@@ -2941,7 +2941,37 @@ GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
     return enemy;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBB54);
+void func_800BBB54(Task* arg0)
+{
+    TmdObject* extra;
+
+    extra = arg0->extra;
+    if (arg0->state == 0) {
+        extra->field_C = 0x88;
+        arg0->state   += 1;
+    }
+    if (arg0->state == 1) {
+        GpBit2Bank*  banks;
+        u32*         p;
+        u32*         indexed;
+        GameSession* sess;
+        s32          id;
+        s32          shift;
+        u32          word;
+
+        sess    = Game_Session;
+        banks   = Gp_Bit2Banks;
+        id      = ((GpItemObj8*)arg0->spawnArg2)->field_8;
+        p       = banks[sess->field_7].field_4;
+        indexed = p + (id >> 4);
+        shift   = (id & 0xF) * 2;
+        word    = *indexed;
+        if (((word & (3 << shift)) >> shift) == 2) {
+            extra->field_C &= 0xFFF7;
+            Task_CallExit(arg0);
+        }
+    }
+}
 
 void Gp_WaitItemFlag2(Task* arg0)
 {

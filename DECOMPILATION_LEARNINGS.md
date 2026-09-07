@@ -54408,3 +54408,21 @@ passes reduced the selection to the same `beqz` with a default in its delay
 slot, but the global-address reload survived. When an apparent redundant
 address load is missing, compare the early control-flow and CSE dumps before
 trying to force a hard register or insert an asm barrier.
+
+
+## Split a bank pointer from its indexed address before pinning the lookup
+
+`func_800BBB54` shares the `Gp_WaitItemFlag2` lookup shape, with initial
+`field_C = 0x88` instead of 8. Copying that sibling without its pointer pin
+scored 94.362% (`regs=13 insert=1 delete=1`, other penalties zero). The
+`.jump`/`.jump2` dumps retained the expected conditional blocks; the bank
+load occurred earlier, with the session and table address registers swapped.
+
+Changing only `p += id >> 4; word = *p;` to
+`indexed = p + (id >> 4); word = *indexed;`, with a separate `u32* indexed`,
+matched 100% without pins or barriers. In `.lreg`, the reused pointer had
+four references across eight insns; the split pointers had two references
+across three and five insns. The table base moved from `$v1` to `$v0`,
+and the session/address chain moved to `$v1`, also restoring the bank-load
+position. A matched sibling's pin need not carry over: first split a reused
+pointer and rescore.
