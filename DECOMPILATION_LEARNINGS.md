@@ -53042,6 +53042,32 @@ before accepting the unit it picked. When the unit is bigger than the body,
 re-run with `--unit <family>_shared_<addr>` to get a body-sized unit; the
 oversized unit's own copy stays `INCLUDE_ASM` and is simply not deduped.
 
+## "already shared as X, but no file in lib defines it" is still the `--unit` case
+
+`overlay_dup_index.py promote` refuses outright when the `lib` copy it would
+adopt is itself still `INCLUDE_ASM`: it cannot find a `src/<family>/lib/*.c`
+defining that symbol, so it prints `already shared as <sym>, but no file in
+src/<family>/lib defines it` and stops. The tempting reading is "define it
+there first, then re-run" — but if that owner is a whole-overlay text unit,
+re-running is exactly the oversized-span mistake the previous entry describes.
+
+`func_actor_104600_80134690` hit this: its `lib` copy is `Actor01600_Fn06810`
+inside `actor_101600_text`, which spans `0x1F4..0x7114` for a 0x70-byte body.
+The fix is the same `--unit actors_shared_<addr>`, which serves the carriers
+that hold the body once. Filling the oversized unit's own stub is then a
+separate, independent edit in the same commit — it deduplicates that unit's own
+overlays (here 101600/201600/301600) without touching any span.
+
+Two other things fall out of a promotion like this. `promote` silently skips
+any overlay that carries the body *twice* — ld includes an input object once,
+so the second slot would go unfilled — and `find` is what tells you: the port
+brief listed seven copies, `find` listed nine, and the two it added were the
+second copies inside overlays the brief named once. Those overlays need plain C
+definitions of both copies instead. And when the new span is adjacent to an
+existing one — `0x2914..0x2984` butting against `actors_shared_80134700` at
+`0x2984` — no later unit is renumbered, so the carriers' `.c` files only lose
+the one `INCLUDE_ASM` line and need no re-split reconciliation.
+
 ## A promoted body's address is often already named as another shared unit's import
 
 splat refuses the promotion with
