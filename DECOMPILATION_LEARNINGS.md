@@ -54492,3 +54492,22 @@ showed the separate initialization and loop pseudos. Nonzero branch penalties
 here came from changed instruction offsets, with the same branch topology.
 Cache `Gp_PubItemLoc` in an `s32` before the state check: directly comparing
 the declared `u16` global against `-1U` removes the target's comparison.
+
+## SndVoice_KeyOffMatching: split branch-local type checks to constrain delay slots
+
+The minimally typed seed scored 86.615%. Replacing its explicit walking
+`SndScript*` with the sibling pattern `p = &SndScript_Slots[i]` inside a
+`for` loop, and duplicating the status/ID stores instead of the m2c shared-tail
+`goto`, reached 97.954%. These edits were tested together. The baseline
+`.loop` dump had strength-reduced `p + 0x16` into an extra walking pointer;
+the indexed version retained only the slot pointer.
+
+The remaining penalties were `branch=3 regs=3 reorder=1 delete=1`. Reusing
+`type` in both the populated-slot and empty-slot arms allocated both masked
+IDs to `$v1` (`.lreg`: 14 uses over 9 insns; `.greg`: r84 in `$v1`). The
+`.dbr` dump then moved `li $v0,-1` into the empty-slot arm's first comparison
+delay slot, removing a target nop and shifting branch offsets. Splitting the
+empty-slot check into `emptyType` put that check in `$v0` and prevented the
+early constant load: 100% without pins or barriers. Nonzero branch penalties
+can therefore accompany a register-dependent delay-slot difference even when
+the branch topology already agrees; inspect `.jump2` and `.dbr` together.

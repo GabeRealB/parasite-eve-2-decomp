@@ -1036,7 +1036,45 @@ void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/sndscript", SndVoice_KeyOffMatching);
+void SndVoice_KeyOffMatching(void)
+{
+    SpuVoiceRef ref;
+    s32         i;
+    SndScript*  p;
+    SndVoice*   head;
+    SndVoice*   node;
+    s32         type;
+    s32         emptyType;
+
+    for (i = 0; i < 8; i++) {
+        p    = &SndScript_Slots[i];
+        head = p->field_40;
+        if (head != NULL) {
+            type = p->field_0 & 0xF0000000;
+            if (type != 0x60000000) {
+                node = head;
+                if ((type == 0x10000000) || (type == 0x50000000)) {
+                    do {
+                        Spu_GetVoiceRef(p->field_40->field_0, &ref);
+                        ref.field_4->adsr2  = (ref.field_4->adsr2 & 0xFFE0) | 0xB;
+                        ref.field_4->adsr2 |= 0x20;
+                        ref.field_4->mask  |= SPU_VOICE_ADSR_ADSR2;
+                        Spu_KeyOff(node->field_0);
+                        node = node->field_3C;
+                    } while (node != NULL);
+                    p->field_16 = 0;
+                    p->field_0  = -1;
+                }
+            }
+        } else {
+            emptyType = p->field_0 & 0xF0000000;
+            if ((emptyType == 0x50000000) || (emptyType == 0x10000000)) {
+                p->field_16 = 0;
+                p->field_0  = -1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
 
