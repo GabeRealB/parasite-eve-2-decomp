@@ -528,7 +528,150 @@ void Gp_InitStarterInv(void)
     Gp_SetCollectedBit(0x109);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8014);
+void func_800B8014(void)
+{
+    GpItemRec*    rec;
+    McSaveData*   initSave;
+    McSaveData*   playerSave;
+    McSaveData*   p;
+    McSaveData*   save;
+    GpItemDesc*   desc;
+    u8*           str;
+    GpItemSlot*   slots;
+    GpItemScan*   scan;
+    GpItemScan**  scans;
+    WipSysConfig* cfg;
+    s32*          header;
+    s32           word;
+    s32           i;
+    s32           j;
+    s32           count;
+    s32           row;
+    s32           col;
+    s32           off;
+    s32           k;
+    u16           hp;
+    u16           mp;
+
+    j   = 0;
+    rec = Mc_SaveData.field_1AC;
+    for (; j < 0x100; j++, rec++) {
+        rec->field_0 = 0;
+        rec->field_2 = 0;
+        SCHED_BARRIER();
+    }
+    initSave = &Mc_SaveData;
+    for (i = 0x5F; i >= 0; i--) {
+        initSave->field_6D0[i] = 0;
+    }
+
+    i = 0;
+    do {
+        count = 3;
+        if (i < 0x100) {
+            desc = &Gp_ItemDescs[i];
+        } else {
+            desc = &Gp_ItemDescsHi[i];
+        }
+        str = desc->field_4;
+        while (count > 0) {
+            if (*str == 0 || *str == 0xA) {
+                count--;
+            }
+            str++;
+        }
+        if (*str == 0xA) {
+            Gp_SetItemSeenBit(i, 1);
+        }
+        i++;
+    } while (i < 0x180);
+    Gp_ClearCollectedBits();
+    slots = Mc_SaveData.field_5C8;
+    for (j = 0; j < 0x20; j++) {
+        slots->field_0 = 0;
+        slots->field_1 = 0;
+        slots->field_2 = 0xFF;
+        slots->field_3 = 0;
+        if (j == 0x1A) {
+            slots->field_2 = 0;
+            slots->field_3 = 0;
+        }
+        slots->field_4 = 0;
+        slots++;
+    }
+    Gp_ApplyItemMap();
+    row  = 0;
+    p    = &Mc_SaveData;
+    save = p;
+    TOUCH_REG(p);
+    off                     = row;
+    save->field_5BC.field_0 = 0;
+    save->field_5BC.field_1 = 0x14;
+    save->field_5BC.field_2 = 0;
+    for (; row < 4; row++, off += 3) {
+        col = 0;
+        k   = off;
+        TOUCH_REG(k);
+        do {
+            ((McSaveData*)((col + k) + (s32)save))->unknown_850[0] = 0;
+            col++;
+        } while (col < 3);
+    }
+    playerSave = &Mc_SaveData;
+    SOFT_TOUCH_REG(playerSave);
+    scan = &playerSave->field_5BC;
+    SOFT_TOUCH_REG(p);
+    playerSave->unknown_850[0] = 1;
+    cfg                        = &Wip_SysConfig;
+    if (playerSave->field_E == 0) {
+        cfg->field_C = 0xC8;
+    }
+    Gp_ClearScanItems(scan);
+    Gp_GiveItem(scan, 0x60, 1);
+    Gp_EquipMod(0x60);
+    hp            = cfg->field_1a;
+    mp            = cfg->field_1e;
+    cfg->field_18 = hp;
+    cfg->field_1c = mp;
+    Gp_GiveItem(scan, 0x92, 1);
+    Gp_GiveItem(scan, 0x40, 1)->field_1    = 1;
+    Gp_GiveItem(scan, 0xA0, 0x64)->field_1 = 2;
+    SCHED_BARRIER();
+    Gp_GiveItem(scan, 0x81, 1);
+    Gp_EquipRelatedItem(scan, 0x81, 0xA0, -1);
+    Gp_GiveItem(scan, 2, 1)->field_1 = 3;
+    scans                            = Gp_ScanPtrs;
+    scan                             = scans[1];
+    Gp_ClearScanItems(scan);
+    Gp_GiveItem(scan, 1, 1);
+    Gp_GiveItem(scan, 1, 1);
+    Gp_GiveItem(scan, 4, 1);
+    scan = scans[2];
+    Gp_ClearScanItems(scan);
+    Gp_GiveItem(scan, 1, 1);
+    Gp_GiveItem(scan, 1, 1);
+    Gp_ClearScanItems(scans[3]);
+    scan = scans[4];
+    Gp_ClearScanItems(scan);
+    Gp_GiveItem(scan, 0xA0, -1);
+    Gp_GiveItem(scan, 4, 1);
+    Gp_GiveItem(scan, 4, 1);
+    Gp_ClearScanItems(scans[6]);
+    Gp_ClearScanItems(scans[5]);
+    scan = scans[8];
+    Gp_ClearScanItems(scan);
+    Gp_GiveItem(scan, 0xAC, 0x14);
+    Gp_GiveItem(scan, 0xA9, 8);
+    Gp_SetCollectedBit(0x106);
+    header = (s32*)&Mc_SaveData.field_4;
+    word   = *header;
+    word  &= 0xFFFF0000;
+    if (word == 0x01140000) {
+        Gp_ResetInventory();
+        Gp_GiveItem((GpItemScan*)((u8*)header + 0x5B8), 0x81, 1);
+        Gp_EquipHeld(0x81);
+    }
+}
 
 void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
