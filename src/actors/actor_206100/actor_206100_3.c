@@ -6,8 +6,6 @@
 
 void func_actor_206100_8014DEAC(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014F4B8);
-
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014F524);
 
 void func_actor_206100_8014F59C(void)

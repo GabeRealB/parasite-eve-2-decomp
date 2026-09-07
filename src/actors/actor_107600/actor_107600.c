@@ -40,7 +40,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132B7C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132C4C);
+/// Copies the 3x3 rotation of the scratch matrix `func_actor_107600_80132B7C`
+/// just built into the part's `GsCOORDINATE2::coord`, leaving the translation
+/// row of the destination alone.
+void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst)
+{
+    dst->m[0][0] = src->m[0][0];
+    dst->m[0][1] = src->m[0][1];
+    dst->m[0][2] = src->m[0][2];
+    dst->m[1][0] = src->m[1][0];
+    dst->m[1][1] = src->m[1][1];
+    dst->m[1][2] = src->m[1][2];
+    dst->m[2][0] = src->m[2][0];
+    dst->m[2][1] = src->m[2][1];
+    dst->m[2][2] = src->m[2][2];
+}
 
 void func_actor_107600_80132CB8(Actor107600* arg0)
 {

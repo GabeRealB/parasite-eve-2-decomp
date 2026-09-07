@@ -395,7 +395,20 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08948);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn089C8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08A1C);
+/// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
+/// alone. Same body as src/actors/lib/actors_shared_80132c4c.c.
+void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst)
+{
+    dst->m[0][0] = src->m[0][0];
+    dst->m[0][1] = src->m[0][1];
+    dst->m[0][2] = src->m[0][2];
+    dst->m[1][0] = src->m[1][0];
+    dst->m[1][1] = src->m[1][1];
+    dst->m[1][2] = src->m[1][2];
+    dst->m[2][0] = src->m[2][0];
+    dst->m[2][1] = src->m[2][1];
+    dst->m[2][2] = src->m[2][2];
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08A88);
 

@@ -54304,3 +54304,50 @@ one basic block, so dbr fills the `blez` delay slot with the else-constant and
 drops both the `j` and the `nop` — `branch=2 delete=3`. Two constants stored to
 one lvalue is the cheapest cross-jumping case, and it is worth trying the
 if/else form first whenever the target spends a `j` to reach a shared store.
+
+## `lhu` in a field-to-field copy says nothing about signedness — a `short` copy uses it too
+
+`func_actor_107600_80132C4C` copies the 3x3 rotation of a matrix and reads every
+element with `lhu`:
+
+```
+lhu   v0, 0x0(a0)
+nop
+sh    v0, 0x0(a1)
+lhu   v0, 0x2(a0)
+...
+```
+
+The unsigned load is easy to read as evidence that the source fields are `u16`,
+and m2c does exactly that — its output casts each element through `u16 *`. They
+are not: the arguments are Psy-Q `MATRIX*`, whose `m[3][3]` is `short`.
+
+The reason is that `dst->m[i][j] = src->m[i][j]` between two `short` lvalues is a
+plain HImode move. No value ever widens to SImode, so GCC 2.8.1 selects `movhi`,
+whose load half is `lhu` — the zero-extension is free and the high bits are dead
+before the `sh`. `lh` appears only where the loaded `short` is *used* at word
+width: as an operand of arithmetic, a comparison, or a call argument, as in the
+same overlay's caller `func_actor_107600_80132B7C`, which does
+`lh $a0, 0x40($s1)` to pass an angle to `RotMatrixX`.
+
+So when reading a run of loads: `lhu` next to an `sh` of the same value is a copy
+and carries no type information, while `lhu` feeding an `andi`/`addu`/`jal` does
+mean the field is unsigned.
+
+The alternating one-register `lhu` / `nop` / `sh` shape also rules out a struct
+assignment, which is worth knowing because `*dst = *src;` is the tempting short
+way to write a fixed-size copy. GCC 2.8.1 expands a struct copy as a block move,
+and for an 18-byte struct of alignment 2 that is unaligned *word* moves batched
+four registers at a time, loads first and stores after:
+
+```
+lwl v0,3(a0) / lwr v0,0(a0) / lwl v1,7(a0) / lwr v1,4(a0)
+lwl a2,11(a0) / lwr a2,8(a0) / lwl a3,15(a0) / lwr a3,12(a0)
+swl v0,3(a1) / swr v0,0(a1) / ... / swr a3,12(a1)
+lh  v0,16(a0) / jr ra / sh v0,16(a1)
+```
+
+Nothing about that resembles the target, and no alignment attribute turns one
+form into the other. Nine straight-line C assignments are the only shape that
+produces nine `lhu`/`sh` pairs — a loop is not it either, since nothing unrolls
+at `-O2` without `-funroll-loops`.
