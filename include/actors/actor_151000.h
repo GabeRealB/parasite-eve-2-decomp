@@ -3,6 +3,9 @@
 
 #include "common.h"
 #include "gameplay/1BC.h"
+#include "main/task.h"
+
+#include <psyq/libgte.h>
 
 /// Per-actor work block for the `actor_151000` overlay.
 ///
@@ -15,12 +18,25 @@
 typedef struct Actor151000Work {
     /* 0x000 */ byte      pad_0[0x40];
     /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x46C];
+    /* 0x054 */ byte      pad_54[0x45A];
+    /* 0x4AE */ u16       yaw; // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4B0 */ byte      pad_4B0[0x10];
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 
 extern Actor151000Work* D_actor_151000_8013D37C;
 
+/// Position + Y rotation for `func_actor_151000_80132810`, laid out like
+/// `ActorShared8013411cPlacement` but with only the yaw read.
+typedef struct Actor151000Placement {
+    /* 0x00 */ VECTOR pos;
+    /* 0x10 */ byte   pad_10[2];
+    /* 0x12 */ u16    yaw;
+    /* 0x14 */ byte   pad_14[2];
+} Actor151000Placement;
+STATIC_ASSERT_SIZEOF(Actor151000Placement, 0x18);
+
 void func_actor_151000_801325C4(void);
+s32  func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* placement);
 
 #endif

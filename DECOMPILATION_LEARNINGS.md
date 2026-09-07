@@ -53565,3 +53565,35 @@ Re-splitting for this deletes the overlay's `.c`, so snapshot the bodies first
 (`bodies_of()` in `tools/land_overlay.py`) and rebuild the new units from the
 old source rather than from splat's skeleton - here 25 matched bodies had to be
 redistributed across three files.
+
+## `g->f = x = expr;` orders the global's address ahead of the RHS load
+
+`func_actor_151000_80132810` reads a placement's yaw, stashes it in a global
+work block and then passes the same value to `Gfx_RotMatrixY`. Written as two
+statements the value load ran first and filled the load-delay slot of the
+preceding pointer chase, leaving the global's `%lo` load one slot too late
+(98%, `reorder=1`):
+
+```c
+coord = ((TmdObject*)task->extra)->field_8;
+yaw   = placement->yaw;             /* lhu scheduled into the delay slot */
+D_actor_151000_8013D37C->yaw = yaw; /* lui/lw %lo pushed after it */
+```
+
+Hoisting the global into its own local (`work = D_...;`) is the obvious fix and
+is worse - the `lui`/`lw %lo` pair then floats to the very top of the function
+and takes the `$v0`/`$v1` assignment with it (91%). What the target wants is
+both effects inside *one* statement, which a chained assignment gives: GCC
+expands the store's destination address before it expands the RHS, so the
+global deref lands between the chase and the value load and fills the delay
+slot itself.
+
+```c
+coord                        = ((TmdObject*)task->extra)->field_8;
+D_actor_151000_8013D37C->yaw = yaw = placement->yaw;
+Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+```
+
+That is 100%. Reach for the chained form whenever a value is both stored to a
+global and reused, and the target's `lw %lo` sits *before* the load of the
+value being stored.
