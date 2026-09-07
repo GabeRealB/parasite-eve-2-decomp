@@ -14,8 +14,14 @@
 
 #include "actors/actor_341700.h"
 
+void func_actor_341700_801651E0(Task* arg0);
+void func_actor_341700_80168A14(Task* arg0);
+void func_actor_341700_80168A48(Task* arg0);
 void func_actor_341700_801697B8(Task* arg0);
 void func_actor_341700_801697D4(Task* arg0);
+void func_actor_341700_80169888(Task* arg0);
+void func_actor_341700_8016999C(Task* arg0);
+void func_actor_341700_80169AB0(Task* arg0);
 
 /* Both are called with no argument: the caller's own `Task*` is already in
  * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
@@ -96,11 +102,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_801687B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80168820);
+void func_actor_341700_80168820(Task* arg0)
+{
+    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_341700_80169888,
+        func_actor_341700_801651E0,
+    };
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80168874);
+    states[(s16)work->field_422](arg0);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_801688C8);
+void func_actor_341700_80168874(Task* arg0)
+{
+    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_341700_8016999C,
+        func_actor_341700_80169AB0,
+    };
+
+    states[(s16)work->field_422](arg0);
+}
+
+void func_actor_341700_801688C8(Task* arg0)
+{
+    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_341700_80168A14,
+        func_actor_341700_80168A48,
+    };
+
+    states[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_8016891C);
 
