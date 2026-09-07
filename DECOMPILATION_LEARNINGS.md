@@ -53388,3 +53388,56 @@ The `rodata` cut is only needed where the *referencing* function landed. A
 symbol splat migrates into a function's `.s` is emitted with `dlabel`, which is
 `.global`, so earlier units can still reach it from their own objects; what
 cannot happen is a subsegment with no owner.
+
+## `.rodata` unit order does not have to follow `.text` unit order
+
+`actor_405800` has a local-array initializer at `func_actor_405800_80137C04`
+(`TaskFunc states[3] = { … }`), which GCC 2.8.1 turns into a `.rdata` constant
+pool the prologue block-copies onto the stack:
+
+```
+lui   $v0, %hi(pool)
+addiu $t0, $v0, %lo(pool)
+lw    $a1, 0x0($t0) ; lw $a2, 0x4($t0) ; lw $a3, 0x8($t0)
+sw    $a1, 0x10($sp) ; sw $a2, 0x14($sp) ; sw $a3, 0x18($sp)
+```
+
+(Two entries stay inline as `lui`/`addiu` pairs — see the sibling
+`func_actor_405800_80137B34`. Three is where the pool appears.)
+
+The pool has to land at rodata `0x8C`, but the overlay's rodata reads
+`id, tables …, pools 0x8C-0xF4, jump tables 0xF4-0x1A8` while the *text* order
+is the other way round: the jump tables belong to `func_…_80136388` and
+friends, which sit **before** the pool's owners. No single translation unit can
+produce that — cc1 emits both pools and jump tables into `.rdata` in source
+order, verified by compiling a switch/pool/switch file — and neither can a cut
+that keeps rodata and text in the same unit order.
+
+It works anyway, because splat's linker script lists each section's
+subsegments independently. A unit appears once in `.rodata`, at the offset its
+rodata subsegment names, and once in `.text`, at the offset its `c` subsegment
+names, and those two positions are unrelated. So a `units` + `rodata` pair in
+`configs/USA/overlays.toml` can hand a *later* text unit an *earlier* rodata
+run:
+
+```toml
+actor_405800 = { units = ["0x4568", "0x5DE4"],
+                 rodata = [{ start = "0x8C", unit = "actor_405800_3" },
+                           { start = "0xF4", unit = "actor_405800_2" }] }
+```
+
+`actor_405800_2` owns text `0x4568-0x5DE4` (the jump-table functions) and
+rodata `0xF4-0x1A8`; `actor_405800_3` owns text `0x5DE4-0x83F4` and rodata
+`0x8C-0xF4`. Do not assume a non-monotone cut is impossible because every
+worked example so far happens to be monotone.
+
+Two conveniences fall out once the cut is right. splat migrates each pool into
+its own function's `.s`, so the six pools that are still `INCLUDE_ASM` stop
+needing `INCLUDE_RODATA` lines at all, and the one being decompiled is the
+unit's *first* rodata contribution, which is exactly what a compiler-generated
+constant needs.
+
+Re-splitting for this deletes the overlay's `.c`, so snapshot the bodies first
+(`bodies_of()` in `tools/land_overlay.py`) and rebuild the new units from the
+old source rather than from splat's skeleton - here 25 matched bodies had to be
+redistributed across three files.
