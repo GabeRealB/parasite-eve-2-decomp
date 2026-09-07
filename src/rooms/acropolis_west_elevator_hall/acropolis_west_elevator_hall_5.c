@@ -17,7 +17,75 @@
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_5", func_acropolis_west_elevator_hall_8017FE18);
+/// Copies 82 scanlines through DR_MOVE packets, applying a horizontal cosine
+/// distortion to a 120-pixel-wide strip of the current frame buffer. During
+/// alternate 128-frame intervals, each row uses a random divisor for the
+/// displacement. The packets share OT slot 0x72, then the task retires.
+void func_acropolis_west_elevator_hall_8017FE18(Task* task)
+{
+    RECT         rect;
+    DR_MOVE*     mv;
+    void*        mem;
+    unsigned int tagMask;
+    s32          otOfs;
+    s32          byteOfs;
+    s32          i;
+    s32          base;
+    s32          y;
+    s32          t;
+    s32          v;
+    s32          rng;
+    s32          phase;
+    s32          frame;
+
+    mem  = task->spawnArg2;
+    base = Display_State.field_1f * 0x110 + 0x50;
+
+    otOfs = 0x72;
+    for (i = 0; i < 0x52; i++) {
+        phase = i * 2;
+        frame = Display_State.field_8;
+        USE_REG2(frame, phase);
+        y = i + base;
+        SOFT_TOUCH_REG(y);
+        t = 0x800 - rcos((frame + phase) * 16);
+        if (Display_State.field_8 & 0x80) {
+            rng = Gp_LcgState * 5 + 0x71357911;
+            {
+                s32 quotient = t / (s32)((((u32)rng >> 16) & 0x3F) + 0xC0);
+                SOFT_USE_REG(quotient);
+                v           = quotient;
+                Gp_LcgState = rng;
+            }
+        } else {
+            v = t / 0x100;
+        }
+
+        byteOfs        = otOfs << 2;
+        v             += 0x50;
+        rect.x         = v;
+        rect.y         = y;
+        rect.w         = 0x78;
+        rect.h         = 1;
+        tagMask        = 0xFF000000;
+        mv             = (DR_MOVE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+        SetDrawMove(mv, &rect, 0x50, i + base);
+        {
+            u_long* ot;
+            u_long  mask;
+            u_long  addrMask = 0xFFFFFF;
+            SOFT_USE_REG(addrMask);
+            ot   = (u_long*)(byteOfs + (s32)Gpu_CurrentOt);
+            mask = tagMask;
+            SOFT_TOUCH_REG_USE(mask, mv);
+            mv->tag = (mv->tag & mask) | getaddr(ot);
+            *ot     = (*ot & mask) | ((u_long)mv & addrMask);
+        }
+    }
+
+    Gp_ReleaseState1CMem(mem, task);
+}
 
 /// Draws one frame of the hall's soft light billboard and then retires the
 /// task. The effect coordinate is projected through the identity world matrix

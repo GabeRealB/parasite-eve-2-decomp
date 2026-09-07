@@ -5,6 +5,8 @@
 
 #include <psyq/libgte.h>
 
+extern s32 Gp_LcgState;
+
 /// 0x14 scratch block `func_acropolis_west_elevator_hall_8017FFE4` takes from
 /// `G_SCRATCH_HEAD` to project one billboard sprite. `pos` is the effect
 /// coordinate's `workm` translation truncated to s16 and fed to the `RTPS`,
