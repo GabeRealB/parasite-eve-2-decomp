@@ -149,6 +149,26 @@ if (arg0->spawnArg1 == 0) {
 
 A ternary argument and a `UiPanel *panel` hoist both kept the `$v0` form.
 `func_replay_bonus_801166AC` is the example.
+## A stack byte-descriptor passed by pointer must be one function-scope array
+
+A room draw builds a 3-byte descriptor on the stack and hands its address to
+two drawers (`Room_Draw10` from one field, `Room_Draw07` from another), both
+reusing the same slot `sp+0x10`. Three ways to write it, only one matches:
+
+- **Three separate scalars** (`u8 b0; u8 b1; u8 b2;`) + `&b0`: `&b0` escapes
+  only `b0`; `b1`/`b2` are never address-taken, so GCC dead-store-eliminates
+  their writes, and it GCSE-hoists `&b0` into a callee-saved reg (`$s3`) across
+  the intervening call. Two bugs at once.
+- **Two block-scoped arrays** (one per `if` branch): all stores survive and no
+  address hoist, but GCC gives each array its own slot (`0x10` and `0x18`), so
+  the frame grows 8 bytes — checksum-fatal.
+- **One function-scope `u8 desc[3]`** reused for both calls: single slot, every
+  store kept (whole array escapes), and GCC rematerialises `addiu a2,sp,0x10`
+  at each call instead of parking it in a saved reg. This is the match.
+
+`func_shelter_b1_control_room_access_tunnel_80181424`. The array-vs-scalars
+point generalises: any packed stack struct/descriptor passed by pointer wants a
+single addressable aggregate, not sibling scalars.
 
 ## Split a shared `Task_Kill` so the kill-arg can occupy `$a0`
 
