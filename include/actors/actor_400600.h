@@ -41,7 +41,13 @@ typedef struct Actor400600Work {
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
     /* 0x092 */ u16                field_92;  // seeds field_73E on state entry
-    /* 0x094 */ byte               pad_94[0x58E];
+    /* 0x094 */ byte               pad_94[0x43E];
+    /* 0x4D2 */ u16                field_4D2; // flags; bit 0x8000 cleared
+    /* 0x4D4 */ byte               pad_4D4[0xDE];
+    /* 0x5B2 */ u16                field_5B2; // flags; bit 0x8000 cleared
+    /* 0x5B4 */ byte               pad_5B4[0x36];
+    /* 0x5EA */ u16                field_5EA; // flags; bit 0x8000 cleared
+    /* 0x5EC */ byte               pad_5EC[0x36];
     /* 0x622 */ u16                field_622; // flags; bit 0x4000 cleared
     /* 0x624 */ byte               pad_624[0xE0];
     /* 0x704 */ Task*              field_704; // child task, killed on death
