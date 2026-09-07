@@ -53033,3 +53033,33 @@ rm -f build/USA/src/actors/actor_521100/actor_521100_3.*
 
 `objdump -h` on the object is the quick confirmation: the stale one has no
 `.rodata` section at all, while its sibling units do.
+
+## A mid-text promotion renumbers every later unit, and splat only writes the last one
+
+The unit split that `overlay_dup_index.py promote` causes is positional, not by
+name: units are numbered in address order, so carving a span out of the middle
+of `actor_120300`'s text inserted a unit at `0x1EE4` and pushed the two existing
+ones down. What was `actor_120300_2` became `actor_120300_3`, and `_3` became
+`_4`.
+
+splat only ever writes the file that has no counterpart on disk — here
+`actor_120300_4.c`, a fresh `INCLUDE_ASM` skeleton holding what `_3.c` used to
+hold. `_2.c` and `_3.c` are left untouched and are now *wrong*: their
+`INCLUDE_ASM("…/actor_120300_2", …)` lines name a unit that no longer contains
+those functions. Nothing fails loudly, because splat generates no `.s` for the
+new `_2` unit's functions (they are not `INCLUDE_ASM`'d anywhere), so a missing
+`asm/…/actor_120300_2/` directory is the only visible symptom.
+
+Work out the new boundaries from the promoted span before splitting, and shift
+the files down from the bottom up: `_3.c` gets the old `_2.c` with its paths
+rewritten, `_4.c` gets the old `_3.c`, and the new `_2.c` is built from the tail
+the promoted span cut off the first file — including any matched C bodies that
+were down there. Do that first and splat writes nothing at all on the next
+`ninja_config.py`, which is the confirmation that the boundaries were right.
+Taking splat's skeleton for a renamed file instead would drop those bodies with
+the checksum still green, which is the loss `tools/check_lost_matches.py` exists
+to catch.
+
+Carriers of one promotion differ here: `actor_120500`'s copy was the last code
+in the overlay, so its promotion needed nothing beyond deleting the
+`INCLUDE_ASM` line, while `actor_120300` and `actor_136100` both renumbered.

@@ -110,5 +110,3 @@ void func_actor_120500_80132900(s16 arg0)
 INCLUDE_ASM("actors/nonmatchings/actor_120500/actor_120500", func_actor_120500_80132920);
 
 INCLUDE_ASM("actors/nonmatchings/actor_120500/actor_120500", func_actor_120500_80132A04);
-
-INCLUDE_ASM("actors/nonmatchings/actor_120500/actor_120500", func_actor_120500_80132A74);
