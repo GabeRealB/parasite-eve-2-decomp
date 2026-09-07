@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_400100.h"
+#include "actors/actors_shared_80169f74.h"
 #include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -338,7 +339,27 @@ void Actor00100_L0B2AC(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B2B4);
+s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+{
+    GsCOORDINATE2*            coord;
+    s32                       mx;
+    s32                       mz;
+    ActorsShared80169f74Work* work;
+
+    work                                           = (ActorsShared80169f74Work*)task->idMap;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vx, 1);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vy, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vz, 0);
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    coord                                   = ((TmdObject*)task->extra)->field_8;
+    mx                                      = coord->coord.m[2][0];
+    mz                                      = coord->coord.m[2][2];
+    work->yaw                               = ratan2(-mx, mz);
+    return 1;
+}
 
 void Actor00100_Fn0B3B4(Task* task)
 {
