@@ -22,7 +22,9 @@ typedef struct Actor341700 {
 /// table walks; `field_412` is the per-state frame counter. `field_414` ..
 /// `field_426` are the animation request the actor hands to its player.
 typedef struct Actor341700Work {
-    /* 0x000 */ byte    pad_0[0x2AC];
+    /* 0x000 */ byte    pad_0[0x92];
+    /* 0x092 */ u16     field_92; // low half of root coord.t[1]
+    /* 0x094 */ byte    pad_94[0x218];
     /* 0x2AC */ GpObj   obj_2AC;
     /* 0x2CC */ GpObj   obj_2CC;
     /* 0x2EC */ GpRec18 rec_2EC[8];
@@ -40,11 +42,15 @@ typedef struct Actor341700Work {
     /* 0x422 */ u16     field_422; // sub-state index
     /* 0x424 */ byte    pad_424[0x2];
     /* 0x426 */ s16     field_426;
-    /* 0x428 */ byte    pad_428[0xA];
+    /* 0x428 */ s16     field_428;
+    /* 0x42A */ s16     field_42A;
+    /* 0x42C */ byte    pad_42C[0x6];
     /* 0x432 */ s16     field_432;
     /* 0x434 */ byte    pad_434[0x4];
     /* 0x438 */ s16     field_438;
-    /* 0x43A */ byte    pad_43A[0xE];
+    /* 0x43A */ byte    pad_43A[0x6];
+    /* 0x440 */ s16     field_440;
+    /* 0x442 */ byte    pad_442[0x6];
     /* 0x448 */ s16     field_448;
     /* 0x44A */ byte    pad_44A[0x5];
     /* 0x44F */ u8      field_44F;

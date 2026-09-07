@@ -3,6 +3,47 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## One local, assigned twice, so two immediates share `$a1`
+
+A run of `sh` that the target emits as
+
+```
+li    a1, 8
+sh    a1, field_426
+sh    a1, field_418
+li    v0, 0x10
+li    a1, 1
+sh    v0, field_41C
+sh    a1, field_414
+...
+sh    a1, field_440
+```
+
+does **not** come from two literal `8`s and two literal `1`s. CSE keeps `1`
+(two uses, long live range: `field_414` then later `field_440`) in `$a1` for
+the whole block and rematerialises `8` in `$v0`, so the first pair of stores
+is `li v0, 8` / `sh v0` and `$a1` is already `1` (`regs` only).
+
+Force the overwrite by putting both immediates through one `s16`:
+
+```c
+s16 tmp;
+
+tmp = 8;
+work2->field_426 = tmp;
+work2->field_418 = tmp;
+work2->field_41C = 0x10;
+tmp = 1;
+work2->field_414 = tmp;
+...
+work->field_440 = tmp;
+```
+
+`$a1` now holds `8` for the adjacent pair and is then set to `1` for the
+later pair. `ActorsShared80168d3c` (`func_actor_341700_80168D3C`) is the
+example. This is the inverse of splitting a reused local: merge the two
+constants onto one name so they cannot live in two registers at once.
+
 ## Two literal stores cross-jump to `j` / `li v0, N` / shared `sb`; a phi cannot
 
 A replay-rank byte that the target writes as
