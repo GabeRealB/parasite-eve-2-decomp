@@ -2380,7 +2380,150 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
     prompt->field_1A = (u16)prompt->field_1A + 0xA;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", Gp_DrawWeaponSlotRow2);
+void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
+{
+    union {
+        struct {
+            u8          buf[0x20];
+            TextDrawReq req;
+        } qty;
+        TextDrawReq name;
+    } draw;
+    s32         item;
+    s32         count;
+    s32         weapon;
+    s32         status;
+    s32         rowState;
+    s32         mode;
+    McItemSlot* slot;
+    McItemRec*  rec;
+    UiObject*   child;
+    Task*       parent;
+    UiObject*   parentObj;
+
+    item   = 0;
+    count  = 0;
+    weapon = Wip_SysConfig.field_21 + 0x7F;
+    if (weapon >= 0x80) {
+        slot = Gp_GetItemSlot(weapon);
+        if (prompt->field_8 == 1) {
+            item  = slot->field_0;
+            count = slot->field_1;
+        } else {
+            item  = slot->field_2;
+            count = slot->field_3;
+        }
+    }
+    status = obj->status;
+    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+        if (Gp_ItemOrderMode == 0) {
+            if (item != 0) {
+                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Gp_SetPreviewItem(item, 0);
+            } else {
+                Ui_SetHolderParam((s32)Gp_StrAmmoNone, 0, 0);
+            }
+        } else {
+            Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+        }
+    }
+    if (item != 0) {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        x                       = prompt->field_18;
+        y                       = prompt->field_1A;
+        color                   = prompt->field_1C;
+        draw.qty.req.x          = obj->baseX + 0x84 + x;
+        off                     = obj->baseY - 3;
+        draw.qty.req.y          = off + y;
+        draw.qty.req.otIndex    = (s16)obj->drawOrder + 1;
+        draw.qty.req.field_8    = color;
+        draw.qty.req.glyphTable = 5;
+        draw.qty.req.centerMode = 2;
+        draw.qty.req.field_E    = 0;
+        func_8002E53C(&draw.qty.req, Text_ItoaSigned(draw.qty.buf, count));
+        Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+    }
+    {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        s32 temp;
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        if (item == 0) {
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
+        } else {
+            if (obj->mode != 5) {
+                draw.name.x          = obj->baseX + 0x11 + x;
+                off                  = obj->baseY - 6;
+                draw.name.y          = off + y;
+                draw.name.otIndex    = (s16)obj->drawOrder + 1;
+                draw.name.field_8    = color;
+                draw.name.glyphTable = 0;
+                draw.name.centerMode = 0;
+                draw.name.field_E    = 1;
+                func_8002E53C(&draw.name, Gp_GetItemText(item, 0, 0));
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                }
+                Gp_DrawItemIcon(obj, x, y, item, 0);
+            }
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0);
+        }
+    }
+    rowState = prompt->field_C;
+    if (rowState == 1) {
+        Gp_ReloadMode = prompt->field_8;
+        mode          = Gp_ItemOrderMode;
+        if (mode == 0) {
+            rec = NULL;
+            if (item != 0) {
+                rec = Gp_FindItemById(item);
+            }
+            Gp_SelItemRec = (u8*)rec;
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                s32 currentWeapon;
+                s32 yOffset;
+                s32 xOffset;
+                currentWeapon = Wip_SysConfig.field_21 + 0x7F;
+                SndEvt_EnqueueType6(3, 0, 0);
+                child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
+                if (child != NULL) {
+                    yOffset        = -0x5C;
+                    child->field_E = yOffset;
+                    xOffset        = -8;
+                    child->field_C = xOffset;
+                }
+                obj->status = 0;
+            } else {
+                Gp_CheckItemInfoButton(obj);
+            }
+        } else if (mode == rowState) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                if (Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, weapon, *Gp_SelItemRec, -1) >= 0) {
+                    Gp_SetItemSeenBit(*Gp_SelItemRec, 1);
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    Gp_ItemOrderMode = 0;
+                } else {
+                    parent = obj->owner->parent;
+                    if (parent != NULL) {
+                        parentObj = parent->spawnArg2;
+                        SndEvt_EnqueueType6(3, 0, 0);
+                        Gp_ItemOrderMode  = 0;
+                        parentObj->status = mode;
+                        obj->status       = 0;
+                    }
+                }
+            }
+        }
+    }
+}
 
 void Gp_WeaponMenuTask(Task* arg0)
 {
