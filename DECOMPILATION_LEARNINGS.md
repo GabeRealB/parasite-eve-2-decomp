@@ -53330,3 +53330,61 @@ four carriers of this body needed one (0x78 for `actor_102300` / `actor_202300`,
 0xA4 for `actor_105700` / `actor_205700`), so budget the cut per carrier, not
 per promotion: the offset is the symbol's, and slot siblings of the same actor
 share it while different actors do not.
+
+## A body the dup index calls unique can still be a one-immediate variant of a solved one
+
+`overlay_dup_index.py find` compares splat's disassembly text, so two functions
+that differ in a single immediate are *not* copies and it will not connect them.
+`func_actor_105600_801368EC` came up as a 4-copy body shared only with
+`actor_105700` / `actor_205600` / `actor_205700` - none of them matched. It is in
+fact `ActorsShared80135b64`, matched the day before, with one word changed:
+
+```
+addiu $v0, $v0, 0x230      /* here   */
+addiu $v0, $v0, 0x370      /* shared */
+```
+
+`GsCOORDINATE2` is 0x50 bytes, so those are `&parentCoords[7]` and
+`&parentCoords[11]` - the same "parent my model to part N of my spawner's model"
+state handler, pointed at a different bone. Copying the matched source and
+changing the index was 100% on the first attempt.
+
+So before writing C for a short overlay function, check the *neighbourhood* of
+the address as well as the dup index: `asm/USA/<family>/matchings/lib/` holds
+every promoted body, and a `diff` of the target `.s` against a same-length one
+finds these in seconds. The families that differ by an immediate are exactly the
+ones a per-actor tuning constant (a bone index, a state id, a timer) would
+produce, which is most of what an actor slot varies.
+
+The variant does *not* join the solved body's shared object - they do not
+assemble to the same bytes. It gets a shared unit of its own,
+`actors_shared_801368ec` next to `actors_shared_80135b64`, carrying its own
+three identical siblings, with its own header and its own `Work` struct even
+though that struct is field-for-field the same. Each `src/<family>/lib/` unit is
+self-contained by convention; sharing the type across two unrelated shared
+bodies would tie them together for nothing.
+
+## A second promotion into the same overlay renumbers the units after it
+
+Units between shared spans are numbered by position, so promoting a body that
+sits *before* an existing shared span pushes every later unit down one:
+`actor_105700` went from `actor_105700` / `lib/actors_shared_80135b64` /
+`actor_105700_2` to `actor_105700` / `lib/actors_shared_801368ec` /
+`actor_105700_2` / `lib/actors_shared_80135b64` / `actor_105700_3`. Two things
+follow, and neither announces itself:
+
+* The existing tail `.c` is now the *middle* unit's filename. Rename it to
+  `_3` and rewrite its `INCLUDE_ASM` paths before splitting, then hand-write the
+  new `_2` from the run the promotion opened up. splat will happily create a
+  fresh `_2` full of the functions your `_3` already has, and the duplicate
+  definitions only surface at link time.
+* The manifest `rodata` cut names a unit, not an offset range, so a cut written
+  for the old tail now points at the middle unit. Re-check which unit actually
+  references each symbol in the leading block - here the tail needed 0xA4 as
+  before, but the new middle unit needed a second cut at 0x8C, and both carriers
+  of each actor needed the pair.
+
+The `rodata` cut is only needed where the *referencing* function landed. A
+symbol splat migrates into a function's `.s` is emitted with `dlabel`, which is
+`.global`, so earlier units can still reach it from their own objects; what
+cannot happen is a subsegment with no owner.

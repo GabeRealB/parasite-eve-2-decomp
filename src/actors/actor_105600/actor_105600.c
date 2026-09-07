@@ -57,13 +57,3 @@ void func_actor_105600_80136888(void)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80136890);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_801368EC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80136930);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_801369CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80136A28);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80136AC0);
