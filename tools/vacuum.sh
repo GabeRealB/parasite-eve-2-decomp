@@ -638,15 +638,31 @@ run_agent() {
         # stdin must be closed: `codex exec` folds piped stdin into the prompt
         # ("Reading additional input from stdin..."), so an inherited pipe
         # silently appends noise to the brief.
-        codex exec \
-          --skip-git-repo-check \
-          -s danger-full-access \
-          -c approval_policy='"never"' \
-          -c shell_environment_policy.inherit='"all"' \
-          -c model_reasoning_effort="\"${VACUUM_CODEX_EFFORT:-xhigh}\"" \
-          ${model:+-m "$model"} \
-          -C "$cwd" \
-          "$prompt" </dev/null
+        # Plain `codex exec` echoes each command *and its whole stdout*. A
+        # matching agent dumps RTL and register-allocation traces to reason
+        # about scheduling, so one function wrote a 355KB log that was 91%
+        # dump. --json plus the formatter keeps one line per command and names
+        # the volume instead of printing it, the way stream_format.py does for
+        # claude. VACUUM_STREAM=0 restores the raw output.
+        # The formatter is addressed through $ROOT because this runs inside a
+        # throwaway worktree, which only contains committed files.
+        codex_args=(
+          --skip-git-repo-check
+          -s danger-full-access
+          -c 'approval_policy="never"'
+          -c 'shell_environment_policy.inherit="all"'
+          -c "model_reasoning_effort=\"${VACUUM_CODEX_EFFORT:-xhigh}\""
+          -C "$cwd"
+        )
+        if [[ -n "$model" ]]; then
+          codex_args+=(-m "$model")
+        fi
+        if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+          codex exec --json "${codex_args[@]}" "$prompt" </dev/null \
+            | python3 "$ROOT/tools/codex_format.py" ${VACUUM_STREAM_QUIET:+--quiet-text}
+        else
+          codex exec "${codex_args[@]}" "$prompt" </dev/null
+        fi
         ;;
     esac
   )
