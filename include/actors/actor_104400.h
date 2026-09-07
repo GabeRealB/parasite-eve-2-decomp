@@ -20,22 +20,25 @@
 /// `GpObj` nodes are the display objects `Actor04400_Fn08A40` hands back to
 /// `Gp_UnlinkObj`.
 typedef struct Actor104400Work {
-    /* 0x000 */ byte  pad_0[0x2AC];
-    /* 0x2AC */ GpObj obj_2AC;
-    /* 0x2CC */ GpObj obj_2CC;
-    /* 0x2EC */ byte  pad_2EC[0xC0];
-    /* 0x3AC */ GpObj obj_3AC;
-    /* 0x3CC */ byte  pad_3CC[0x46];
-    /* 0x412 */ u16   field_412; // per-state frame counter
-    /* 0x414 */ byte  pad_414[0xA];
-    /* 0x41E */ s16   field_41E;
-    /* 0x420 */ u16   field_420; // state index
-    /* 0x422 */ u16   field_422; // sub-state index
-    /* 0x424 */ byte  pad_424[0x24];
-    /* 0x448 */ s16   field_448;
-    /* 0x44A */ byte  pad_44A[0x5];
-    /* 0x44F */ u8    field_44F;
-    /* 0x450 */ byte  pad_450[0x4];
+    /* 0x000 */ MATRIX matrix_0; // model root coord, copied out on the kill path
+    /* 0x020 */ byte   pad_20[0x28C];
+    /* 0x2AC */ GpObj  obj_2AC;
+    /* 0x2CC */ GpObj  obj_2CC;
+    /* 0x2EC */ byte   pad_2EC[0xC0];
+    /* 0x3AC */ GpObj  obj_3AC;
+    /* 0x3CC */ byte   pad_3CC[0x46];
+    /* 0x412 */ u16    field_412; // per-state frame counter
+    /* 0x414 */ byte   pad_414[0xA];
+    /* 0x41E */ s16    field_41E;
+    /* 0x420 */ u16    field_420; // state index
+    /* 0x422 */ u16    field_422; // sub-state index
+    /* 0x424 */ byte   pad_424[0xC];
+    /* 0x430 */ s16    field_430;
+    /* 0x432 */ byte   pad_432[0x16];
+    /* 0x448 */ s16    field_448;
+    /* 0x44A */ byte   pad_44A[0x5];
+    /* 0x44F */ u8     field_44F;
+    /* 0x450 */ byte   pad_450[0x4];
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 

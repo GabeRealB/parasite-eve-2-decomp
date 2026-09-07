@@ -236,7 +236,28 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn075F0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn076D0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07750);
+void Actor04400_Fn07750(Task* arg0)
+{
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* objWork;
+
+    enemy->field_54 = 0;
+
+    objWork = (Actor104400Work*)arg0->idMap;
+    Gp_UnlinkObj(&objWork->obj_2AC);
+    Gp_UnlinkObj(&objWork->obj_2CC);
+    Gp_UnlinkObj(&objWork->obj_3AC);
+
+    work->field_430 = 0x1000;
+    work->matrix_0  = coord->coord;
+
+    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+
+    work->field_412 = 0;
+    work->field_420++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0781C);
 
