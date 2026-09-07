@@ -53597,3 +53597,34 @@ Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
 That is 100%. Reach for the chained form whenever a value is both stored to a
 global and reused, and the target's `lw %lo` sits *before* the load of the
 value being stored.
+
+## A promotion un-migrates leading-`.rodata` symbols, and the fix is `INCLUDE_RODATA` in address order
+
+`migrate_rodata_to_functions` folds a leading-`.rodata` symbol into the `.s` of
+the function that references it, but only while both sit in the same unit.
+Promoting a body from mid-text moves every function below the span into a new
+unit, so any of them that reference the first unit's `.rodata` lose that
+migration: splat emits a standalone `D_<seg>_<vram>.s` under the *rodata
+owner's* directory and expects an `INCLUDE_RODATA` line in that unit's `.c`,
+which it will not write into an existing file. Promoting `ActorsShared80132450`
+did this to five of its six carriers, e.g.
+
+```
+build/USA/src/actors/actor_135600/actor_135600_2.i:(.text+0xc):
+    undefined reference to `D_actor_135600_80131E30'
+```
+
+The manifest `rodata` cut documented elsewhere is the fix when the *whole run*
+below a point belongs to the tail unit. It is not the fix here, because the
+un-migrated symbols interleave with ones still migrated into functions that
+stayed put: `actor_213100` needs `D_…E20` (standalone), `D_…E24` (still inside
+`func_actor_213100_80149FE4.s`), `D_…E30` (standalone) in that order.
+
+An object's `.rodata` is emitted in file order, so add the standalone lines to
+the owning unit's `.c` interleaved with the `INCLUDE_ASM` lines such that the
+combined sequence — standalone includes plus the tables migrated inside each
+function's `.s` — is in address order. `.text` order is fixed by the functions
+being address-sorted, so the only freedom is where the `INCLUDE_RODATA` lines
+go, and there is exactly one placement that works. Getting it wrong builds
+cleanly and fails the checksum at the overlay's first rodata byte, not at a
+function, so `diff.py` on every function will say everything matches.

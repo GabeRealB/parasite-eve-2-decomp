@@ -1,2 +1,3 @@
 // Overlay-local symbols for actor_213000.
 ActorsShared8013231c = 0x8014A828; // shared body, see src/actors/lib/
+ActorsShared80132450 = 0x8014A0DC; // shared body, see src/actors/lib/
