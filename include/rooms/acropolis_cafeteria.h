@@ -43,6 +43,11 @@ void func_80724608(void*, s32, s32, void*);
 void func_acropolis_cafeteria_8017D6AC(void);
 s32  func_acropolis_cafeteria_8017D700(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 
+/// Spawns 40 effects on entry to session mode 9, then two per tick while it
+/// remains active. Releases the work block when the room effect gate clears.
+void func_acropolis_cafeteria_8017E89C(Task* task);
+
+extern s32 Gp_LcgState;
 extern s32 D_acropolis_cafeteria_80184164;
 
 #endif // ROOMS_ACROPOLIS_CAFETERIA_H

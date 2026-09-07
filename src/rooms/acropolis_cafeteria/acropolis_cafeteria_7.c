@@ -8,6 +8,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/acropolis_cafeteria.h"
 
 #include <psyq/libgs.h>
 
@@ -69,7 +70,50 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     D_8011572C = 0x6028E;
     D_80115750 = 0x6028F;
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", func_acropolis_cafeteria_8017E89C);
+void func_acropolis_cafeteria_8017E89C(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    s32            i;
+    u16            count;
+    s32            flags;
+    s32            spawnArg;
+    u8             mode;
+    u16            rnd;
+
+    work  = (GpEffWork*)task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (D_acropolis_cafeteria_80184CFC == 0) {
+        Gp_ReleaseState1CMem(work, task);
+        return;
+    }
+    mode = Game_Session->field_4;
+    if (mode == 9) {
+        count = 0x28;
+        if (work->field_24 != mode) {
+            flags = 0x1000;
+        } else {
+            count = 2;
+            flags = 0;
+        }
+        for (i = 0; i < count; i++) {
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rnd            = (u32)Gp_LcgState >> 16;
+            work->field_10 = (u32)rnd % 2620 + 0x230;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rnd            = (u32)Gp_LcgState >> 16;
+            work->field_12 = -0x12C - (u16)((u32)rnd % 5) * 0x190;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rnd            = (u32)Gp_LcgState >> 16;
+            work->field_14 = (rnd & 0x3FF) + 0xB00;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            rnd            = (u32)Gp_LcgState >> 16;
+            spawnArg       = flags + 0x180;
+            Gp_SpawnEff(0x60061, coord, (rnd & 0xFF) + spawnArg, (SVECTOR*)&work->field_10);
+        }
+    }
+    work->field_24 = Game_Session->field_4;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", func_acropolis_cafeteria_8017EA90);
 
