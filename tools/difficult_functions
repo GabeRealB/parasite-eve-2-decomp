@@ -89,8 +89,6 @@ func_acropolis_square_8017D8C8 60 99.753
 func_acropolis_square_801825DC 27 90.71
 func_acropolis_west_elevator_hall_8017D7B0 45 99.716
 func_acropolis_west_elevator_hall_8017FE18 25 88.97
-func_actor_103700_801326F0 25 99.024
-func_actor_203700_8014A6F0 38 99.512
 func_dryfield_motel_balcony_8017DCB8 1 84.461
 func_dryfield_motel_balcony_8017DF84 1 92.090
 func_dryfield_motel_balcony_8017EF44 1 97.810

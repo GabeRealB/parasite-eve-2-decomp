@@ -2,3 +2,15 @@
 ActorsShared80134ff0 = 0x801352C0; // shared body, see src/actors/lib/
 ActorsShared80135df4Table = 0x80131E24; // shared body data, see src/actors/lib/
 ActorsShared80135df4 = 0x80134DC8; // shared body, see src/actors/lib/
+ActorsShared801326f0 = 0x801326F0; // shared body, see src/actors/lib/
+ActorsShared801326f0_Fn328DC = 0x801328DC; // type:func absolute:True
+ActorsShared801326f0_Fn32B7C = 0x80132B7C; // type:func absolute:True
+ActorsShared801326f0_Fn32DA8 = 0x80132DA8; // type:func absolute:True
+ActorsShared801326f0_Fn32FD4 = 0x80132FD4; // type:func absolute:True
+ActorsShared801326f0_Fn33370 = 0x80133370; // type:func absolute:True
+ActorsShared801326f0_Fn336E8 = 0x801336E8; // type:func absolute:True
+ActorsShared801326f0_Fn33AB4 = 0x80133AB4; // type:func absolute:True
+ActorsShared801326f0_Fn343E8 = 0x801343E8; // type:func absolute:True
+ActorsShared801326f0_Fn345FC = 0x801345FC; // type:func absolute:True
+ActorsShared801326f0_Fn347E0 = 0x801347E0; // type:func absolute:True
+ActorsShared801326f0_Fn3537C = 0x8013537C; // type:func absolute:True
