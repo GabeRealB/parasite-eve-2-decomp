@@ -53842,3 +53842,53 @@ so `overlay_dup_index.py promote` refuses it: a shared unit appears once per
 linker script, and every carrier here holds it twice. When promotion reports
 "every overlay carrying it contains it twice", land the body as plain C in each
 carrying unit instead of leaving the copies for a later pass.
+
+## Split a shifted load into two locals to move the shift to its use site — and make the intermediate `u32`
+
+`func_actor_102600_80135A6C` computes `idx = actor->field_20->field_8 >> 12`
+from a `u16` field, then uses `idx` only after four byte stores and a call
+argument setup. The target keeps the `lhu` early but parks the `srl` right
+before the `jal`:
+
+```
+lhu   s0,8(v0)          <- with the other loads
+...
+lbu   v0,1(v1)
+addiu a0,sp,0x10        <- fills the load-delay slot
+sb    v0,0x11(sp)
+lbu   v0,4(a2)
+srl   s0,s0,0xc         <- immediately before the call
+```
+
+Written as one statement, GCC 2.8.1 emits load and shift adjacently and lets the
+`srl` win the load-delay slot that the target gives to the argument `addiu`
+(reorder=2). Splitting it into two locals — the load where the target loads, the
+shift where the target shifts — schedules both correctly:
+
+```c
+u32 raw;
+...
+raw = actor->field_20->field_8;   /* lhu, with the other loads   */
+...
+idx = raw >> 12;                  /* srl, just before the call   */
+```
+
+The intermediate must be `u32`, not `u16`. Declaring `u16 raw;` makes GCC
+materialise the truncation and an extra `andi raw,raw,0xffff` appears in the
+delay slot (88%, insert=3 delete=3). A `u32` fed by a `u16` field needs no
+truncation because `lhu` already zero-extends.
+
+Related warning: this function is a near-copy of `Actor02000_Fn0251C` in
+`actors/lib/actor_102000_text.c`, which needs `SOFT_BARRIER()` plus
+`TOUCH_REG(keyPtr)` to stop GCC CSE-ing the two `&key` call arguments into one
+long-lived pseudo. Copying those hacks over cost three attempts here: with the
+load/shift split in place, plain `Gp_SyncAreaKeyIndex(&key)` and
+`Gp_GetNestedAreaRec(&key)` match at 100%. Score the sibling's *shape* first and
+add its scheduling hacks only if a penalty asks for them.
+
+The same shape blocks promotion here for the other documented reason: all three
+carriers (`actor_102600`, `actor_202600`, `actor_302600`) reach their own
+`D_actor_<slot>_...37D30` model stream, so `overlay_dup_index.py promote`
+refuses on the overlay-local reference. The remedy is the same as for the
+carried-twice case - land the body as plain C in each carrying unit, with each
+overlay's own minimal header, rather than leaving the copies for a later pass.

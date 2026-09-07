@@ -19,19 +19,22 @@ typedef struct Actor102600Work {
     /* 0x3B0 */ s16  field_3B0;
 } Actor102600Work;
 
-typedef struct Actor102600 {
-    /* 0x00 */ byte              pad_0[0x1C];
-    /* 0x1C */ Actor102600Work*  field_1C;
-    /* 0x20 */ byte              pad_20[0xC];
-    /* 0x2C */ Actor102600Obj2C* field_2C;
-} Actor102600;
-
 typedef struct Actor102600Ctx {
-    /* 0x00 */ byte pad_0[0x14];
+    /* 0x00 */ byte pad_0[8];
+    /* 0x08 */ u16  field_8;
+    /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ u8   field_14;
     /* 0x15 */ byte pad_15[0x37];
     /* 0x4C */ u8   field_4C;
 } Actor102600Ctx;
+
+typedef struct Actor102600 {
+    /* 0x00 */ byte              pad_0[0x1C];
+    /* 0x1C */ Actor102600Work*  field_1C;
+    /* 0x20 */ Actor102600Ctx*   field_20;
+    /* 0x24 */ byte              pad_24[8];
+    /* 0x2C */ Actor102600Obj2C* field_2C;
+} Actor102600;
 
 void func_actor_102600_80135378(Actor102600Ctx* arg0, Actor102600* arg1);
 
