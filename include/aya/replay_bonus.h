@@ -95,6 +95,23 @@ typedef struct ReplayBonusStfLine {
 } ReplayBonusStfLine;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
 
+/// STF row-table header, followed immediately by `count` credits rows.
+typedef struct ReplayBonusStfTable {
+    /* 0x0 */ s32 count;
+} ReplayBonusStfTable;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfTable, 0x4);
+
+/// STF file offsets are relocated in place when `field_C` is positive.
+typedef struct ReplayBonusStfFile {
+    /* 0x00 */ char magic[4];
+    /* 0x04 */ s32  unk4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ s32  field_C;
+    /* 0x10 */ s32  field_10;
+    /* 0x14 */ s32  field_14;
+} ReplayBonusStfFile;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfFile, 0x18);
+
 /// TaskDesc table spawned from the credits task (hold / fade / stream workers).
 extern TaskDesc D_replay_bonus_8011922C;
 /// Relocated STF header.
@@ -148,6 +165,7 @@ s32  func_replay_bonus_80115CA4(void);
 void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx);
 s32  func_replay_bonus_801173A8(void);
 void func_replay_bonus_80117E04(void);
+s32  func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
 void func_replay_bonus_80118F00(s32 arg0);
 s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);
 s16  func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);

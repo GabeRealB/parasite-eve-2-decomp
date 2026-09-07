@@ -14,6 +14,7 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
+#include "psyq/strings.h"
 extern u8           D_replay_bonus_801157A8[];
 extern u8           D_replay_bonus_801157B0[];
 extern u8           D_replay_bonus_801157C4[];
@@ -38,7 +39,8 @@ extern UiObjectDesc D_replay_bonus_801191FC;
 extern s32          D_replay_bonus_80119284;
 extern s8           D_80071068;
 
-s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
+extern s32 D_replay_bonus_80119290;
+extern s32 D_replay_bonus_8011929C;
 
 void func_replay_bonus_80116EC0(void);
 
@@ -538,7 +540,49 @@ INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_80
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_801183B8);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_80118B6C);
+s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
+{
+    ReplayBonusStfLine*  rec;
+    ReplayBonusStfLine** slot;
+    ReplayBonusStfTable* table;
+    s32                  count;
+    s32                  i;
+    s32                  val;
+
+    if (strncmp(file->magic, "STF", 3) != 0) {
+        return 0;
+    }
+
+    if (file->field_C > 0) {
+        i               = 0;
+        slot            = &D_replay_bonus_80119298;
+        file->field_C  += (s32)file;
+        file->field_8  += (s32)file;
+        file->field_10 += (s32)file;
+        file->field_14 += (s32)file;
+        SCHED_BARRIER();
+        table = (ReplayBonusStfTable*)file->field_10;
+        TOUCH_REG_USE(table, i);
+        *slot                   = (ReplayBonusStfLine*)(file->field_10 + 4);
+        count                   = table->count;
+        D_replay_bonus_801192A0 = count;
+        if (count > 0) {
+            do {
+                rec                     = D_replay_bonus_80119298;
+                i                      += 1;
+                val                     = (s32)rec->unk0;
+                D_replay_bonus_80119298 = rec + 1;
+                rec->unk0               = (void*)(val + (s32)file);
+            } while (i < D_replay_bonus_801192A0);
+        }
+    }
+
+    D_replay_bonus_80119290 = file->field_C;
+    D_replay_bonus_80119294 = (ReplayBonusStfHdr*)file->field_8;
+    D_replay_bonus_80119298 = (ReplayBonusStfLine*)((ReplayBonusStfTable*)file->field_10 + 1);
+    D_replay_bonus_8011929C = file->field_14;
+    return 1;
+}
 
 void func_replay_bonus_80118C64(Task* arg0)
 {
@@ -637,7 +681,7 @@ void func_replay_bonus_80118F00(s32 arg0)
             if (count == arg0) {
                 temp                    = slot->field_4;
                 D_replay_bonus_8011928C = temp;
-                func_replay_bonus_80118B6C(temp, i);
+                func_replay_bonus_80118B6C((ReplayBonusStfFile*)temp, i);
                 return;
             }
             count++;
