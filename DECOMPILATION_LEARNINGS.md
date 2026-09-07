@@ -38897,6 +38897,27 @@ same three-statement body over blocks whose matrices sit at 0x440/0x460 and
 The dup index already tells you this — it only grouped the six that are
 `identical bytes`.
 
+## One carrier, several copies: only one span can wear the shared symbol
+
+`overlay_dup_index.py find` counts *bodies*, not overlays, so a carrier can
+appear more than once. `func_actor_160600_80132614` has eight identical copies
+across six overlays, three of them in `actor_460200` alone (0x80132C14,
+0x801334F0, 0x80133D4C). A shared unit is linked into an overlay once, at the
+one address its `configs/USA/sym/<family>/<overlay>.txt` line names, so only one
+of those three can be carved into the shared object; the other two keep their
+own `INCLUDE_ASM` and their own `.s`. That is not a defect - the bytes have to
+exist at all three addresses either way - and `check_lost_matches.py` does not
+trip on them, because they were never in a `matched` commit under their own
+names.
+
+Which copy to pick is therefore free, so pick the cheapest: the one whose span
+splits the fewest live units. In `actor_460200` the first two copies sit inside
+`actor_460200.c` and `actor_460200_2.c` around several already-matched C bodies,
+while the last one is two functions from the end of the text, so carving it left
+`actor_460200.c` untouched and split only `actor_460200_2.c` into a two-line
+`_3.c`. Combined with the adjacency rule above, that is the difference between
+one new file and a family-wide renumber.
+
 ## A function's own rodata lives in its `.s`; a jump table elsewhere blocks the decomp
 
 splat emits the rodata a function *owns* — its string literals and its
