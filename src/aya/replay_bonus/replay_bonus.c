@@ -26,6 +26,7 @@ extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
 extern s32          D_80072A9C;
+extern McItemRec    D_80072314[];
 
 s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
 
@@ -148,7 +149,91 @@ u16* func_replay_bonus_80115C68(void)
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80115CA4);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80115D60);
+void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
+{
+    McItemRec* rec;
+    s16*       ids;
+    s16*       dest;
+    s32        count;
+    s32        i;
+    s32        found;
+    s32        j;
+    u16*       p;
+    u8         item;
+    u8         id;
+    s32        vis;
+    s8         tmp;
+
+    rec   = D_80072314;
+    count = 0;
+    ids   = ctx->itemList->itemIds;
+    dest  = ids;
+    i     = count;
+    do {
+        item = rec->field_0;
+        if (item != 0) {
+            item += 0x60;
+            if ((u8)item >= 0x20U) {
+                found = 1;
+                id    = rec->field_0;
+                p     = D_replay_bonus_8011908C;
+                j     = 0;
+            loop_4:
+                if (*p != id) {
+                    j += 1;
+                    p += 1;
+                    if (j >= 0x4E) {
+                        found = 0;
+                    } else {
+                        goto loop_4;
+                    }
+                }
+                if (found != 0) {
+                    count += 1;
+                    *dest  = rec->field_0;
+                    dest  += 1;
+                }
+            }
+        }
+        i   += 1;
+        rec += 1;
+    } while (i < 0x100);
+
+    i = 0x101;
+    do {
+        if (Gp_HasCollectedBit(i) != 0) {
+            found = 1;
+            p     = D_replay_bonus_8011908C;
+            j     = 0;
+        loop_13:
+            if (*p != i) {
+                j += 1;
+                p += 1;
+                if (j >= 0x4E) {
+                    found = 0;
+                } else {
+                    goto loop_13;
+                }
+            }
+            if (found != 0) {
+                ids[count] = i;
+                count     += 1;
+            }
+        }
+        i += 1;
+    } while (i < 0x200);
+
+    vis           = 9;
+    list->field_5 = vis;
+    TOUCH_REG(vis);
+    tmp           = count - vis;
+    list->field_9 = tmp;
+    list->field_4 = count;
+    if (tmp < 0) {
+        list->field_9 = 0;
+    }
+    list->field_10 = (s8)list->field_9;
+}
 
 INCLUDE_RODATA("aya/nonmatchings/replay_bonus/replay_bonus", D_replay_bonus_80115770);
 

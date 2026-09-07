@@ -140,6 +140,7 @@ extern s32               D_replay_bonus_8011927C;
 
 u16* func_replay_bonus_80115C68(void);
 s32  func_replay_bonus_80115CA4(void);
+void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx);
 s32  func_replay_bonus_801173A8(void);
 void func_replay_bonus_80117E04(void);
 void func_replay_bonus_80118F00(s32 arg0);
