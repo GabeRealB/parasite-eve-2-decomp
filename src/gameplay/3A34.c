@@ -7,6 +7,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -5478,7 +5479,62 @@ s32 Gp_GetIdParam2(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E31E8);
+void func_800E31E8(Task* arg0)
+{
+    s32         flag;
+    s32         index;
+    s32         area;
+    s32         room;
+    s32         base;
+    s32         kind;
+    GpTaskDesc* table;
+    GpTaskDesc* desc;
+    Task*       slotTask;
+    s32         slot;
+
+    Game_Session->field_1  = 0;
+    Game_Session->field_68 = 0;
+    D_80115598             = 0;
+    Game_Session->field_69 = 0;
+    flag                   = GameFlag_GetNibble(0x11F);
+    switch (flag) {
+        case 1:
+            if (Game_Session->field_7 == 3) {
+                D_80062735 = 1;
+            } else {
+                Game_Session->field_69 = 3;
+            }
+            break;
+        case 2:
+            D_80062735 = 9;
+            break;
+    }
+    index = 0;
+    base  = Game_Session->field_7 * 10000 + Game_Session->field_6 * 100;
+    room  = base + Game_Session->field_5;
+    table = D_8010FABC[Game_Session->field_7];
+    area  = base;
+    desc  = table;
+    kind  = 0x200000;
+loop:
+    if (desc->flagsAndPriority == kind &&
+        (desc->task.setupArg == room || desc->task.setupArg == area)) {
+        Task_SpawnFromTable(&table->task, index, 0, 0);
+        goto done;
+    }
+    if ((u16)(desc++)->flagsAndPriority != 0xFFFF) {
+        index++;
+        goto loop;
+    }
+    slotTask = arg0;
+    TOUCH_REG(slotTask);
+    slot = 7;
+    TOUCH_REG(slot);
+    arg0->field_24 = D_8010FAD4;
+    Game_SetPtrSlot(slotTask, slot);
+done:
+    arg0->state++;
+}
 
 void Gp_EvtCapTask(Task* arg0)
 {

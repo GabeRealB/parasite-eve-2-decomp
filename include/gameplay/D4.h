@@ -27,6 +27,9 @@ typedef struct _GpMsgEntry {
 } GpMsgEntry;
 STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
 
+/// Fallback message handlers installed by `func_800E31E8` for pointer slot 7.
+extern GpMsgEntry D_8010FAD4[];
+
 /// Per-index flag object pointed to by `Gp_FlagBanks`. `field_4[0]` / `[1]` are
 /// bitmasks (ids 1–32 and 33–64) cleared by `Gp_ClearFlagBank` and set by
 /// `Gp_MarkAreaVisited`.

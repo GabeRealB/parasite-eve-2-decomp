@@ -13,6 +13,18 @@
 #include "main/session.h"
 #include "main/task.h"
 
+/// Task descriptor view used by `func_800E31E8` to compare flags and priority
+/// as one word. The setup argument encodes a stage/area or stage/area/room key.
+typedef union _GpTaskDesc {
+    TaskDesc task;
+    s32      flagsAndPriority;
+} GpTaskDesc;
+STATIC_ASSERT_SIZEOF(GpTaskDesc, 0xC);
+
+/// Per-stage task descriptor tables searched by `func_800E31E8`.
+extern GpTaskDesc* D_8010FABC[];
+extern u8          D_80062735;
+
 /// Singly-linked node unlinked by `Gp_UnlinkNode` / linked by `Gp_LinkNode`.
 /// `field_6 == 1` means the node is on the `Gp_LinkList` list.
 /// `Gp_NodeSlotMask` returns a 2-bit mask of `Gp_ActorSlots[]` slots whose
@@ -1453,6 +1465,7 @@ void Gp_SetObjFlag1(GpObj4C* arg0);
 void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1);
 s32  Gp_TickObjFlag2(GpObj5D* arg0);
 s32  Gp_GetIdParam2(s32 arg0);
+void func_800E31E8(Task* arg0);
 void Gp_EvtCapTask(Task* arg0);
 void Gp_UpdatePlayerMove(void);
 

@@ -54511,3 +54511,22 @@ empty-slot check into `emptyType` put that check in `$v0` and prevented the
 early constant load: 100% without pins or barriers. Nonzero branch penalties
 can therefore accompany a register-dependent delay-slot difference even when
 the branch topology already agrees; inspect `.jump2` and `.dbr` together.
+
+
+## func_800E31E8: split a computed key from the loop invariant
+
+For this task-table search, `area = stage * 10000 + zone * 100; room = area + view;`
+kept the sum in the loop's global pseudo and scheduled the table load too early.
+Writing `base = ...; room = base + view; table = tables[stage]; area = base;`
+made `base` local to the preheader. The `.lreg` dump gave it three references
+across seven insns; `area` had two across thirteen. This restored the target's
+`move a1,v1` after the table load and raised the score from 87.960% to 98.218%.
+Copy placement matters even when CSE can prove both scalar values equal.
+
+The remaining three scheduling differences were a pointer store immediately
+before `Game_SetPtrSlot`. `.sched` and `.sched2` put both call-argument moves
+after the store. Separate argument locals with `slotTask = arg0;
+TOUCH_REG(slotTask); slot = 7; TOUCH_REG(slot);` before the store let allocation
+coalesce them into a0/a1 early and put the store in the jal delay slot. Assigning
+both locals before either touch reversed the two argument instructions; touching
+each immediately after its assignment matched. No hard-register pins were needed.
