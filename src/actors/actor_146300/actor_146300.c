@@ -177,8 +177,4 @@ void func_actor_146300_80132418(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_801324AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_801326CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_80132728);
+INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", ActorsShared80131f9cSub0);

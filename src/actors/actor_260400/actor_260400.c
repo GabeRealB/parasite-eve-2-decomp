@@ -58,38 +58,6 @@ void func_actor_260400_80149F5C(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_80149FA4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_80149FE0);
+INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", ActorsShared80131f9cSub0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A200);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A550);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A5AC);
-
-void func_actor_260400_8014A630(Task* task)
-{
-    Actor260400Work* work = (Actor260400Work*)task->idMap;
-
-    Gp_DestroyEnemy(task->spawnArg2, task);
-    Task_Kill(work->field_4F0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A66C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A6F8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A7AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A7F8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A888);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A908);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A998);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014AA28);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014AAA4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014AB50);

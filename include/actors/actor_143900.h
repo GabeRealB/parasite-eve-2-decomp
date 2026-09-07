@@ -8,8 +8,9 @@
 
 /// Per-actor work block for the `actor_143900` overlay.
 ///
-/// `func_actor_143900_80131E70` allocates it with `Mem_Calloc(0x4F0, 0)` and
-/// stores the pointer both in `D_actor_143900_801496B8` and in the task's
+/// The overlay's state-0 handler (`ActorsShared80131f9cSub0`, here at
+/// 0x80131E70) allocates it with `Mem_Calloc(0x4F0, 0)` and
+/// stores the pointer both in `ActorsShared80131f9cWork` and in the task's
 /// 0x1C slot, so the size below is the allocation and not a guess. Every
 /// other function in the overlay reaches the block through the global.
 ///
@@ -23,7 +24,7 @@ typedef struct Actor143900Work {
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
-extern Actor143900Work* D_actor_143900_801496B8;
+extern Actor143900Work* ActorsShared80131f9cWork;
 
 void func_actor_143900_801324C8(void);
 s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);

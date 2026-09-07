@@ -9,8 +9,9 @@
 
 /// Per-actor work block for the `actor_151000` overlay.
 ///
-/// `func_actor_151000_80131F1C` allocates it with `Mem_Calloc(0x4C0, 0)` and
-/// stores the pointer both in `D_actor_151000_8013D37C` and in the task's
+/// The overlay's state-0 handler (`ActorsShared80131f9cSub0`, here at
+/// 0x80131F1C) allocates it with `Mem_Calloc(0x4C0, 0)` and
+/// stores the pointer both in `ActorsShared80131f9cWork` and in the task's
 /// 0x1C slot, so the size below is the allocation and not a guess. Every
 /// other function in the overlay reaches the block through the global.
 ///
@@ -24,7 +25,7 @@ typedef struct Actor151000Work {
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 
-extern Actor151000Work* D_actor_151000_8013D37C;
+extern Actor151000Work* ActorsShared80131f9cWork;
 
 /// Position + Y rotation for `func_actor_151000_80132810`, laid out like
 /// `ActorShared8013411cPlacement` but with only the yaw read.

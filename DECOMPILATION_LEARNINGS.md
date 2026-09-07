@@ -53809,6 +53809,40 @@ Pair each `%hi`/`%lo` with the `sw` offset that follows it. A swapped pair
 still builds and links — both symbols exist, only their values are exchanged —
 and fails the checksum inside the shared span, four bytes into the first `lui`.
 
+## A shared body that touches overlay-local *data* is promotable too - alias the data
+
+`overlay_dup_index.py promote` refuses any body whose refs start with
+`func_<unit>_`, `D_<unit>_` or `jtbl_<unit>_`, and its docstring reads that as
+"cannot be shared". For *code* refs the workaround is the `<Sym>Sub0` aliasing
+above; the same trick works on data. `func_actor_110300_80131F9C` is the
+`ActorsShared80131e24` dispatcher plus one store of `Task::idMap` into an
+overlay-local global, and all eleven carriers were promoted by adding a third
+alias to each `configs/USA/sym/actors/<overlay>.txt`:
+
+```
+ActorsShared80131f9cWork = 0x8013A0A0; // shared body data, see src/actors/lib/
+```
+
+Each carrier defines that symbol at its own address in its own `.data.s`, so
+one shared object links into all of them. Declare it `void*` in the shared
+header; a carrier that reads the block from C declares the same symbol again
+with its own work type in its own header (`include/actors/actor_143900.h`) -
+different translation units, so the types never meet.
+
+Two things to get right around it:
+
+* **Promotion renumbers the carriers' source units.** The new `shared` span cuts
+  the unit it lands in, so `<overlay>_2.c` becomes `<overlay>_3.c` and so on. Do
+  that by *moving* the files and re-pointing each `INCLUDE_ASM` unit string at
+  its own file's stem - never by deleting and re-splitting, which silently drops
+  every matched body. Pin `INCLUDE_RODATA` to the unit that owns the `.rodata`
+  subsegment (usually the first) instead of letting it drift into the new file.
+* **`promote` used to skip the body symbol when the callees were already
+  aliased.** It guarded with `if sym not in sym_text`, and `ActorsShared80131f9c`
+  is a substring of `ActorsShared80131f9cSub0`, so the shared symbol was never
+  written and every carrier failed at link with an undefined reference from its
+  data segment. Fixed to match the whole assignment.
+
 ## A stack dispatch table indexed through a pointer needs the pointer in its own local
 
 The stack-built handler table (`ActorsShared80131e24` and friends) usually

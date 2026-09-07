@@ -376,7 +376,11 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
 
         sym_path = Path(f"configs/USA/sym/{family}/{room}.txt")
         sym_text = sym_path.read_text(encoding="utf-8")
-        if sym not in sym_text:
+        # Match the whole assignment, not the bare name: a carrier that already
+        # aliases this body's overlay-local callees holds `<Sym>Sub0`, which
+        # contains `<Sym>` as a substring - so a plain `in` test decided the
+        # shared symbol was already there and the body went undefined at link.
+        if not re.search(rf"^{re.escape(sym)} = ", sym_text, re.M):
             pending_syms.append((sym_path, sym_text.rstrip()
                                  + f"\n{sym} = 0x{int(f['vram'], 16):08X};"
                                  f" // shared body, see src/{family}/lib/\n"))

@@ -6,7 +6,8 @@
 #include "main/task.h"
 
 /// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
-/// which is not a `TaskIdMap` here. `func_actor_260400_80149FE0` allocates it
+/// which is not a `TaskIdMap` here. The overlay's state-0 handler
+/// (`ActorsShared80131f9cSub0`, here at 0x80149FE0) allocates it
 /// with `Mem_Calloc(0x4F8, 0)` and stores it straight into that field, so the
 /// size below is the allocation and not a guess. Reach it with
 /// `(Actor260400Work*)task->idMap`.
