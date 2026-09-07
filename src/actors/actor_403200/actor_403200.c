@@ -1,5 +1,12 @@
 #include "common.h"
 #include "actors/actor_403200.h"
+#include "gameplay/1BC.h"
+#include "main/task.h"
+
+/// The enemy's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern GpEnemyTaskFuncTable3 D_actor_403200_80131E84;
+
 extern s32 D_actor_403200_80141C54;
 
 extern s16 D_actor_403200_80141C5A;
@@ -180,9 +187,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_8014139C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_80141430);
+void func_actor_403200_80141430(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_8014148C);
+    sp = D_actor_403200_80131E84;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
+
+void func_actor_403200_8014148C(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_403200_80131E84;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801414E8);
 

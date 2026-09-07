@@ -24,7 +24,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_123200/actor_123200", D_actor_123200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133BA0);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_123200/actor_123200", D_actor_123200_80131E30);
+INCLUDE_RODATA("actors/nonmatchings/actor_123200/actor_123200", ActorsShared80135df4Table);
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133E30);
 

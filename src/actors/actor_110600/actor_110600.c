@@ -82,7 +82,7 @@ void func_actor_110600_80138394(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", D_actor_110600_80131FA0);
+INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", ActorsShared80135df4Table);
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8013839C);
 
@@ -121,5 +121,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80138CA4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80138D7C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80138EA8);

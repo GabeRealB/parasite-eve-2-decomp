@@ -5,6 +5,12 @@
 #include "actors/actors_shared_80134ff0.h"
 #include "main/sound.h"
 
+#include "main/task.h"
+
+/// The enemy's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern GpEnemyTaskFuncTable3 D_actor_105100_80131E24;
+
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_8018294C(Actor105100* arg0);
 void func_actor_105100_80132C2C(Actor105100* arg0);
@@ -135,7 +141,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135CEC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135DF8);
+void func_actor_105100_80135DF8(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_105100_80131E24;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135E54);
 

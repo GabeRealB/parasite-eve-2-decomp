@@ -27,4 +27,4 @@ INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000_2", D_actor_511000
 
 INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000_2", D_actor_511000_80131E60);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000_2", D_actor_511000_80131E6C);
+INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000_2", ActorsShared80135df4Table);

@@ -2,6 +2,14 @@
 
 #include "actors/actor_300700.h"
 
+#include "gameplay/1BC.h"
+#include "main/task.h"
+
+/// Each enemy task's three state handlers - spawn/setup, per-frame tick
+/// and teardown - dispatched through by state.
+extern GpEnemyTaskFuncTable3 D_actor_300700_80161E24;
+extern GpEnemyTaskFuncTable3 D_actor_300700_80161E30;
+
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_300700_801637E4(Actor300700* arg0);
 void func_actor_300700_80164794(Actor300700* arg0);
@@ -31,7 +39,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8016335C);
+INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E24);
+
+void func_actor_300700_8016335C(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_300700_80161E24;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801633B8);
 
@@ -55,7 +71,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801648E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164CE0);
+void func_actor_300700_80164CE0(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_300700_80161E30;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 void func_actor_300700_80164D3C(Actor300700Ctx* arg0, Actor300700* arg1)
 {

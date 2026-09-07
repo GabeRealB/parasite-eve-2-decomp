@@ -3,3 +3,7 @@ ActorsShared80135b64 = 0x8014F0EC; // shared body, see src/actors/lib/
 ActorsShared801368ec = 0x8014EEBC; // shared body, see src/actors/lib/
 ActorsShared80136930 = 0x8014EF00; // shared body, see src/actors/lib/
 ActorsShared80136a28 = 0x8014EFF8; // shared body, see src/actors/lib/
+D_actor_205700_80149EA0 = 0x80149EA0; // force_not_migration:True enemy state table, read from C
+D_actor_205700_80149EAC = 0x80149EAC; // force_not_migration:True enemy state table, read from C
+D_actor_205700_80149EB8 = 0x80149EB8; // force_not_migration:True enemy state table, read from C
+D_actor_205700_80149EC4 = 0x80149EC4; // force_not_migration:True enemy state table, read from C

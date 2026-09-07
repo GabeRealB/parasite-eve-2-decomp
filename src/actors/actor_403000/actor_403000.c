@@ -78,6 +78,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013C864);
 
+INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", ActorsShared80135df4Table);
+
 void func_actor_403000_8013D260(void)
 {
 }
@@ -95,17 +97,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D4F4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D564);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D59C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D5F8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D648);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D72C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D850);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D910);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D98C);

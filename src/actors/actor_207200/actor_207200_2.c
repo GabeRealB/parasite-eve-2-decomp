@@ -4,7 +4,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+#include "gameplay/1BC.h"
+
+/// The enemy's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern GpEnemyTaskFuncTable3 D_actor_207200_80149E30;
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014B278);
 
@@ -24,7 +28,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014D128);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014D280);
+void func_actor_207200_8014D280(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_207200_80149E30;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_2", func_actor_207200_8014D2DC);
 

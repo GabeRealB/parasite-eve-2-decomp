@@ -6,3 +6,5 @@ ActorsShared80138570 = 0x80150570; // shared body, see src/actors/lib/
 ActorsShared8013851c = 0x8015051C; // shared body, see src/actors/lib/
 ActorsShared80134700 = 0x8014C7A4; // shared body, see src/actors/lib/
 ActorsShared80134690 = 0x8014C734; // shared body, see src/actors/lib/
+ActorsShared80135df4Table = 0x80149E24; // shared body data, see src/actors/lib/
+ActorsShared80135df4 = 0x8014C368; // shared body, see src/actors/lib/

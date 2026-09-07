@@ -53926,3 +53926,51 @@ carriers (`actor_102600`, `actor_202600`, `actor_302600`) reach their own
 refuses on the overlay-local reference. The remedy is the same as for the
 carried-twice case - land the body as plain C in each carrying unit, with each
 overlay's own minimal header, rather than leaving the copies for a later pass.
+
+## An un-migrated table's `INCLUDE_RODATA` is ordered against *migrated* blocks too
+
+`force_not_migration:True` is the clean way to keep a table that a body reads
+once the body stops being `INCLUDE_ASM` - splat gives the symbol its own `.s`
+and the `.c` pulls it back with an `INCLUDE_RODATA`. The trap is deciding where
+that line goes. GAS lays `.rodata` down in file order, and the blocks either
+side of the new one are usually *not* other `INCLUDE_RODATA` lines: they are
+rodata splat migrated into some *other* function's `.s`, which reaches the
+object through that function's `INCLUDE_ASM`. Putting the line next to the
+neighbouring `INCLUDE_RODATA` therefore writes the block at the wrong offset
+and shifts everything after it, failing the checksum with nothing pointing at
+rodata. `actor_403000`'s table is at `0x1E4` with six migrated `jtbl_`s below
+it, so its line belongs after `INCLUDE_ASM(..., func_actor_403000_8013C864)`,
+not after the leading `D_actor_403000_80131E20`.
+
+List the unit's real rodata order before placing the line - every `.s` in the
+unit directory that contains a `.section .rodata`, keyed by the first offset in
+it - and insert after whichever entity carries the block below:
+
+```
+0x00000 D_actor_403000_80131E20      D_actor_403000_80131E20.s
+0x00004 jtbl_actor_403000_80131E24   func_actor_403000_801324EC.s
+...
+0x001E4 ActorsShared80135df4Table    ActorsShared80135df4Table.s   <- new line here
+0x001F4 jtbl_actor_403000_80132014   func_actor_403000_8013D98C.s
+```
+
+That last row is the other half of the lesson. A promotion had just cut this
+unit in two, and `func_actor_403000_8013D98C` landed in the tail while the
+overlay had no `rodata` cut at all, so its jump table stayed behind in the head
+object and the link failed on the *table* rather than on its `.L` labels. A
+compiler-generated table cannot be re-homed with an `INCLUDE_RODATA` in another
+unit, because its entries are labels local to the object holding the function;
+give the tail its own cut (`rodata = [{ start = "0x1F4", unit = "actor_403000_2" }]`)
+and splat migrates the table back into the function that owns it.
+
+## Aliasing a shared body's data moves it to a different dup-index class
+
+`overlay_dup_index.py` canonicalises a body by wildcarding *local* symbol
+identity - names matching `(func|D|jtbl)_<overlay>_<hex>`. A shared alias like
+`ActorsShared80135df4Table` does not match that, so it is kept verbatim: the
+aliased copies still hash equal to each other, but they no longer hash equal to
+the copies that still read `D_<overlay>_<addr>`. Aliasing part of a cluster
+therefore splits it in two, and `find`/`promote` on a name from the unaliased
+half will report the wrong group. Alias every carrier you intend to promote,
+then run `promote` against a name from the aliased half - and remember it needs
+that name to be `matched`, so land the body in its own overlay first.

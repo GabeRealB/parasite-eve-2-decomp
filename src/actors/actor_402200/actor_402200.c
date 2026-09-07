@@ -46,4 +46,4 @@ INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_80137444);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200", D_actor_402200_80131F18);
+INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200", ActorsShared80135df4Table);

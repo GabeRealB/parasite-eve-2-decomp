@@ -4,6 +4,14 @@
 #include "actors/actors_shared_80134ff0.h"
 #include "main/session.h"
 
+#include "gameplay/1BC.h"
+#include "main/task.h"
+
+/// Each enemy task's three state handlers - spawn/setup, per-frame tick
+/// and teardown - dispatched through by state.
+extern GpEnemyTaskFuncTable3 D_actor_205200_80149E24;
+extern GpEnemyTaskFuncTable3 D_actor_205200_80149E30;
+
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_205200_8014BD4C(Actor205200* arg0);
 void func_actor_205200_8014C67C(Actor205200* arg0);
@@ -16,7 +24,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014B94C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014B978);
+void func_actor_205200_8014B978(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_205200_80149E24;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014B9D4);
 
@@ -30,7 +44,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C0C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C540);
+void func_actor_205200_8014C540(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_205200_80149E30;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1)
 {

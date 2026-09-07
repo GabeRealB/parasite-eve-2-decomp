@@ -18,3 +18,5 @@ ActorsShared801342a4_Fn3483C = 0x8014C83C; // type:func absolute:True
 ActorsShared801342a4_Fn34990 = 0x8014C990; // type:func absolute:True
 ActorsShared801346ac = 0x8014C6AC; // shared body, see src/actors/lib/
 ActorsShared80134934 = 0x8014C934; // shared body, see src/actors/lib/
+ActorsShared80135df4Table = 0x80149E24; // shared body data, see src/actors/lib/
+ActorsShared80135df4 = 0x8014C248; // shared body, see src/actors/lib/

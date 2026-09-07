@@ -31,5 +31,3 @@ void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
         Tmd_AllocBuffers(model);
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_6", func_actor_341700_8016D32C);
