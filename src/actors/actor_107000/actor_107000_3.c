@@ -12,4 +12,4 @@ INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000_3", jtbl_actor_107
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000_3", jtbl_actor_107000_80131EDC);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000_3", D_actor_107000_80131F00);
+INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000_3", ActorsShared80138404Table);

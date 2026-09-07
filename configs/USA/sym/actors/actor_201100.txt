@@ -5,3 +5,5 @@ ActorsShared801511c8 = 0x801511C8; // shared body, see src/actors/lib/
 ActorsShared8013845cSub0 = 0x801501AC; // shared body's overlay-local callee, see src/actors/lib/
 ActorsShared8013845cSub1 = 0x801511FC; // shared body's overlay-local callee, see src/actors/lib/
 ActorsShared801384ac = 0x801504AC; // shared body, see src/actors/lib/
+ActorsShared80138404Table = 0x80149EFC; // force_not_migration:True shared body data, see src/actors/lib/
+ActorsShared80138404 = 0x80150404; // shared body, see src/actors/lib/

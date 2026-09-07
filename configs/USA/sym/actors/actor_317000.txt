@@ -1,3 +1,5 @@
 // Overlay-local symbols for actor_317000.
 ActorsShared801327b4 = 0x80162724; // shared body, see src/actors/lib/
 ActorsShared8013231c = 0x80162B48; // shared body, see src/actors/lib/
+ActorsShared80138404Table = 0x80161E24; // force_not_migration:True shared body data, see src/actors/lib/
+ActorsShared80138404 = 0x80162624; // shared body, see src/actors/lib/

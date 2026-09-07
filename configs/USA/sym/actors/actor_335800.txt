@@ -6,3 +6,5 @@ ActorsShared80132bd8 = 0x801620A0; // shared body, see src/actors/lib/
 ActorsShared80132860 = 0x80163064; // shared body, see src/actors/lib/
 ActorsShared80132920 = 0x80163124; // shared body, see src/actors/lib/
 ActorsShared80132920Offset = 0x80161E4C; // shared body data, see src/actors/lib/
+ActorsShared80138404Table = 0x80161E24; // force_not_migration:True shared body data, see src/actors/lib/
+ActorsShared80138404 = 0x80162E34; // shared body, see src/actors/lib/
