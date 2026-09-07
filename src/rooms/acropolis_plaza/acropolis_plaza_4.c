@@ -637,9 +637,47 @@ void func_acropolis_plaza_8017F620(Task* task)
 /// Ambience voice driver: starts the voice named by `sndId` the first time
 /// `state` is clear, then tracks `CdCmd_Queue.field_1EE` between `fadeIn` and
 /// `fadeOut` to ramp its volume.
-void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode);
+void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode)
+{
+    CdCmdQueue* q     = &CdCmd_Queue;
+    u16*        frame = &CdCmd_Queue.field_1EE;
+    u32         pos;
+    u8          vol;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_8017F770);
+    pos = q->field_1EE;
+    if (pos >= fadeIn && pos <= fadeOut) {
+        COMPILER_BARRIER();
+        if (*state == 0) {
+            SndEvt_EnqueueType6(sndId, 0, 0x7F);
+            SndEvt_EnqueueTypeB(sndId, 0);
+            *state = 1;
+            return;
+        }
+        if (mode == 0) {
+            if (pos < hold) {
+                vol = ((*frame - fadeIn) * 0x7F) / (hold - fadeIn);
+            } else {
+                vol = ((fadeOut - *frame) * 0x7F) / (fadeOut - hold);
+            }
+        } else if (mode == 1) {
+            if (pos < hold) {
+                vol = ((*frame - fadeIn) * 0x17D) / ((hold - fadeIn) * 4);
+            } else {
+                vol = ((fadeOut - *frame) * 0x17D) / ((fadeOut - hold) * 4);
+            }
+        } else if (pos < 0x54U) {
+            vol = (((0x54 - *frame) * 0x7F) / 332) + 0x5F;
+        } else {
+            vol = ((0x82 - *frame) * 0x17D) / 184;
+        }
+        SndEvt_EnqueueTypeB(sndId, vol);
+        return;
+    }
+    if (*state != 0) {
+        SndEvt_EnqueueType7(sndId, 0);
+        *state = 0;
+    }
+}
 
 /// Ambience driver for the plaza's streamed scene, stepped by
 /// `CdCmd_Queue.field_1F8`. While the stream is at 0/1 it keeps the four

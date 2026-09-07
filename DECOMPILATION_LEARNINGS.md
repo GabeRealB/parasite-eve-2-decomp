@@ -54644,3 +54644,29 @@ in `x, y, w, h` order produced the target's interleaved coordinate/dimension
 loads followed by stores in `w, h, x, y` order. Writing the target's store
 order directly in C produced the wrong load order. Do not infer source store
 order from the scheduled assembly.
+
+
+## Cached frame comparisons with fresh arithmetic reads: barrier placement matters
+
+`func_acropolis_plaza_8017F770` uses one `u32 pos` loaded from
+`CdCmd_Queue.field_1EE` for every comparison, then reloads the same field for
+volume arithmetic. An `u8 vol` local and complete division expressions in
+each arm reproduce the target's register allocation and the mode-1 shared
+division tail; the m2c numerator/denominator temporaries did not.
+
+A `COMPILER_BARRIER()` after the frame-range check invalidates the cached
+memory expression while preserving `pos`. Place it **before** the
+`if (*state == 0)` test: GCC can then put the mode's `andi 0xffff` in that
+branch's delay slot. Putting it after the initialization arm left the mask
+below the barrier and inserted an extra instruction (98.894%, branch=17,
+insert=1). Moving the barrier before the state test matched at 100% without
+register pins. The branch penalties here were displaced destinations caused
+by the extra instruction; the `.jump`/`.jump2` dumps showed the same graph.
+
+The volatile-read alternative also needs care with scratch `-dp` output:
+GCC prints the RTL uid on the `#.set novolatile` comment after `lhu`.
+The local maspsx `is_instruction()` ignores that marker only on an exact
+string match, so the annotated comment can hide a load-use hazard from its
+lookahead. In this attempt four required load-delay nops disappeared in the
+object. Check the kept `.s` and assembler comment handling when a volatile
+load has `#nop` in GCC output but no delay in the object.
