@@ -6,7 +6,6 @@ Fs_LoadImageStrip 22 91.134
 Gp_DrawWeaponSlotRow2 56 99.964
 Gp_MapTaskState2 18 97.642
 Gp_PairHandler3 19 82.686
-Gp_PlayerMode2StateA 25 98.010
 Gp_ScriptTaskState1 110 98.986
 Midi_Event1 25 90.532
 SndScript_Exec 13 86.61

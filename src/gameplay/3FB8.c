@@ -6986,7 +6986,50 @@ void Gp_PlayerMode2State4(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", Gp_PlayerMode2StateA);
+void Gp_PlayerMode2StateA(GpActorWork* arg0)
+{
+    s32        variant;
+    GameActor* actor;
+    s32        res;
+    s32        dir;
+    u8         item;
+    s32        base;
+    s32        val;
+
+    actor = arg0->actor;
+    if (Wip_SysConfig.field_18 > 0) {
+        if (Gp_StateF0.field_0 != 1) {
+            actor->field_956 = 3;
+            actor->field_95A = 2;
+            actor->field_954 = 0;
+            actor->field_958 = 0;
+            actor->field_95C = 4;
+            actor->field_95E = 0;
+            Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 6);
+            Gp_DetachLinkNode(arg0);
+        } else if ((s8)func_801060E0(arg0) != 0 &&
+                   Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                                 (GpAnimSlot*)actor->field_438 + 1) != NULL &&
+                   actor->field_940 == 0) {
+            dir = D_80112EF8[Wip_SysConfig.field_21] != 0 ? (s8)actor->field_97F : 1;
+            res = func_80106264(dir);
+            if (res > 0 ||
+                (item = actor->field_97F,
+                 D_80112F1C[Wip_SysConfig.field_21][(u8)(item - 1)] != 0)) {
+                actor->field_97D = 4;
+                actor->field_95E = 0;
+                func_8010615C(arg0);
+            } else if (res == 0) {
+                func_801095BC(&variant);
+                actor->field_940 = 0x14;
+                base             = Wip_SysConfig.field_21 << 16;
+                val              = variant | 0x20000001;
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | val, 0);
+            }
+        }
+    }
+    Gp_AnimTickChildSlots(arg0);
+}
 
 void Gp_PlayerMode2StateB(GpActorWork* arg0)
 {

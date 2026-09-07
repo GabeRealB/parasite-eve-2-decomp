@@ -54392,3 +54392,19 @@ the branch direction (93.843%). An explicit result temporary followed by
 Combining the null check and dispatch into one `&&` expression instead removed
 the initial load of 1 (98.744%, `branch=3 delete=1`); it was still a control-flow
 miss, not a permuter candidate.
+
+## A ternary can stop global-address CSE even when its final branch matches an if
+
+`Gp_PlayerMode2StateA` reached 98.010% with `dir = 1; if (flag) dir =
+(s8)actor->field_97F;`. The only missing instructions were a second
+`lui`/`addiu` for `Wip_SysConfig`; the branch penalties were displaced targets.
+The `.cse` dump reused the initial address pseudo throughout the function.
+
+Changing that selection to `dir = flag ? (s8)actor->field_97F : 1;` matched
+100% without pins or barriers. In `.jump` and `.cse`, the ternary retained
+separate arms and a join, and the later global access kept its own address
+pseudo. `.greg` assigned both disjoint address lifetimes to `$s2`. Later
+passes reduced the selection to the same `beqz` with a default in its delay
+slot, but the global-address reload survived. When an apparent redundant
+address load is missing, compare the early control-flow and CSE dumps before
+trying to force a hard register or insert an asm barrier.
