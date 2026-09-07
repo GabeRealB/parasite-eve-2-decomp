@@ -1,6 +1,8 @@
 #include "common.h"
 #include "main/task.h"
 
+extern TaskFunc D_actor_104000_8013E50C[];
+
 INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000", func_actor_104000_80132074);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000", func_actor_104000_801325B8);
@@ -86,6 +88,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000", func_actor_104000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000", func_actor_104000_80138D74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000", func_actor_104000_80138E5C);
+/// Per-frame entry point: runs the actor task's current state from the
+/// dispatch table in the overlay's trailing data.
+void func_actor_104000_80138E5C(Task* arg0)
+{
+    D_actor_104000_8013E50C[arg0->state](arg0);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_104000/actor_104000", func_actor_104000_8013206C);
