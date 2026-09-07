@@ -603,7 +603,105 @@ s32 Gp_PollAreaCdLoads(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA120);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA548);
+void func_800AA548(s32 arg0)
+{
+    GpWarpRec         rec;
+    GpActorFlags      flags;
+    TmdObject*        model;
+    GameSessionFrom4* sess;
+    GameSession*      session;
+    GpSavedActorPos*  pos;
+    s32               stage;
+    s32               warp;
+    u32               playerId;
+
+    session                 = Game_Session;
+    session->field_0        = 0;
+    Display_State.field_128 = 0;
+    sess                    = (GameSessionFrom4*)&session->field_4;
+    if (Wip_SysConfig.field_18 <= 0) {
+        Wip_SysConfig.field_18 = 1;
+    }
+    if ((Mc_SaveData.field_13 != 0) && ((s16)Mc_SaveData.field_6C8 <= 0)) {
+        Mc_SaveData.field_6C8 = 1;
+    }
+    Gp_LoadRoomParams();
+    Game_Session->field_66 = 0;
+    Gp_ResetMenuLock();
+    Display_ClampField126(0);
+    Task_Spawn(0, 0x1D, 0, 0);
+    Task_Spawn(0, 0x1A, 0, 0);
+    Game_SetPtrSlot(Task_Spawn(4, 5, 0, 0), 9);
+    Task_Spawn(0, 0x14, 0, 0);
+    if ((arg0 & 0xFFFF) != 1) {
+        Game_SetPtrSlot(Task_Spawn(0, 0x16, 0, 0), 1);
+    }
+    Game_SetPtrSlot(Task_Spawn(0, 0x10, 0, 0), 2);
+    stage = sess->field_3;
+    warp  = sess->field_4;
+    rec   = Gp_WarpTables[stage - 1][sess->field_2 - 1][warp - 1];
+    if (!(((GpDisplayFlagsWord*)&Display_State)->field_100 & 0xFFFF00)) {
+        if (((*(s32*)&Game_Session->field_4 & ~0xFF) == 0x03180200) && (Game_Session->field_8 == 2)) {
+            Mc_SaveData.field_4 = Game_Session->field_4 = 2;
+        } else {
+            Mc_SaveData.field_4 = Game_Session->field_4 = rec.field_34;
+        }
+    }
+    Gp_ActorSlots[0] = NULL;
+    Gp_ActorSlots[1] = NULL;
+    if (Display_State.field_101 == 1) {
+        pos                = &D_80073B18[Mc_SaveData.field_22];
+        D_80114CB0.field_0 = (s32)pos->field_6;
+        D_80114CB0.field_4 = (s32)pos->field_0;
+        D_80114CB0.field_8 = (s32)pos->field_2;
+        D_80114CB0.field_C = (s32)pos->field_4;
+        flags.field_0      = 0x23;
+        flags.field_2      = 0;
+        Gp_SpawnPlayer((GpActorArg*)&D_80114CB0, Mc_SaveData.field_22 & 0xFFFF, 0, &flags);
+        Gp_SetupCompanionActor((GpActorArg*)&rec.field_14, &flags.field_0);
+        Display_State.field_101 = 0;
+    } else {
+        playerId      = (u8)Mc_SaveData.field_22;
+        flags.field_0 = 1;
+        flags.field_2 = rec.field_35 & 1;
+        Gp_SpawnPlayer((GpActorArg*)&rec, (s8)playerId & 0xFFFF, 0, &flags);
+        flags.field_2 = 0;
+        Gp_SetupCompanionActor((GpActorArg*)&rec.field_14, &flags.field_0);
+    }
+    model           = ((Task*)Game_GetPtrSlot(3))->extra;
+    model->field_24 = 6;
+    model->field_25 = 0;
+    Tmd_ProcessStream(model);
+    Tmd_ProcessStream(model);
+    Gp_LoadStageView();
+    Game_SetPtrSlot(Task_Spawn(1, 0x23, 0, 0), 4);
+    Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), 5);
+    Task_Spawn(9, 6, 0, 0);
+    Task_Spawn(9, 0x11, 0, 0);
+    if ((Mc_SaveData.field_23 != 0) && (Mc_SaveData.field_23 != 0xB)) {
+        Task_Spawn((s32)Mc_SaveData.field_23, 1, 0, 0);
+    }
+    Gp_SpawnPlaces(sess);
+    Gp_SpawnArea((GpAreaKey*)sess);
+    Gp_InitStateF0();
+    Task_Spawn(1, 0xF, 0, 0);
+    Task_Spawn(1, 0x10, 0, 0);
+    stage = sess->field_3;
+    warp  = sess->field_4;
+    rec   = Gp_WarpTables[stage - 1][sess->field_2 - 1][warp - 1];
+    if ((u8)Game_Session->unknown_67 != 0) {
+        if (rec.field_28 != 0) {
+            SndEvt_EnqueueType6(rec.field_28, 0, 0);
+        }
+        if (rec.field_36 != 0) {
+            GameFlag_SetNibble((s32)rec.field_36, 1);
+        }
+    } else {
+        Game_Session->unknown_67 = 1;
+    }
+    CdCmd_Queue.field_210  = 0;
+    Game_Session->field_64 = 0;
+}
 
 void Gp_BeginSessionTask(Task* arg0)
 {

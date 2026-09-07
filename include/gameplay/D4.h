@@ -136,12 +136,17 @@ extern GpRoomObjTbl* Gp_RoomObjTables[];
 /// `(Gp_DirNibble >> 4)`. `Gp_CommitWarp` copies one record onto the
 /// stack and writes `field_36` into `GpSaveLoc.field_6`. Leading `s32`
 /// keeps the type 4-aligned so the 56-byte assign is `lw`/`sw`.
+/// func_800AA548 uses the transforms at 0x00 / 0x14 to spawn the player /
+/// companion, field_28 as a sound event, and field_34 as the initial view.
 typedef struct _GpWarpRec {
     /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x28];
+    /* 0x04 */ byte pad_4[0x10];
+    /* 0x14 */ s32  field_14;
+    /* 0x18 */ byte pad_18[0x10];
+    /* 0x28 */ s32  field_28;
     /* 0x2C */ s32  field_2C;
     /* 0x30 */ s32  field_30;
-    /* 0x34 */ byte pad_34[1];
+    /* 0x34 */ u8   field_34;
     /* 0x35 */ u8   field_35;
     /* 0x36 */ u16  field_36;
 } GpWarpRec;
@@ -151,6 +156,39 @@ STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);
 /// entry is an array of `GpWarpRec*`, indexed 1-based by
 /// `GameSession.field_6` / `GameSessionFrom4.field_2`.
 extern GpWarpRec** Gp_WarpTables[];
+
+/// Word view of Display_State's bytes 0x100..0x103, tested together when
+/// choosing the initial view. Keep the load as a struct member so it stays
+/// after the preceding warp-record copy in GCC 2.8.1's scheduler.
+typedef struct _GpDisplayFlagsWord {
+    /* 0x000 */ byte pad_0[0x100];
+    /* 0x100 */ u32  field_100;
+} GpDisplayFlagsWord;
+STATIC_ASSERT_SIZEOF(GpDisplayFlagsWord, 0x104);
+
+/// Sparse position view with the 0x80-byte stride used by func_800AA548.
+/// Index 1 is Wip_SysConfig.field_10 (X/Y/Z and yaw).
+typedef struct _GpSavedActorPos {
+    /* 0x00 */ s16  field_0;
+    /* 0x02 */ s16  field_2;
+    /* 0x04 */ s16  field_4;
+    /* 0x06 */ s16  field_6;
+    /* 0x08 */ byte pad_8[0x78];
+} GpSavedActorPos;
+STATIC_ASSERT_SIZEOF(GpSavedActorPos, 0x80);
+
+/// Spawn transform with a full-word yaw followed by X/Y/Z. Passed to
+/// Gp_SpawnPlayer as GpActorArg, whose yaw reader uses the low halfword.
+typedef struct _GpSpawnTransform {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+} GpSpawnTransform;
+STATIC_ASSERT_SIZEOF(GpSpawnTransform, 0x10);
+
+extern GpSavedActorPos  D_80073B18[];
+extern GpSpawnTransform D_80114CB0;
 
 /// 0x1C-byte primitive slot in the `Gp_SprtLists` lists. `Gp_LinkSprtCmd`
 /// OT-links each slot and advances `Gp_SprtCursor` by one. `Gp_SetSprtShadeBits`
