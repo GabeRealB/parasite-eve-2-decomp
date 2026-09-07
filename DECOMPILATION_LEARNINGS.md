@@ -53270,3 +53270,63 @@ coord` at 0x4, `MATRIX` is 0x20). `ActorsShared8016a98c` (the promoted body of
 into a `MATRIX` at offset 0 of the actor's work block; declaring that field as
 `MATRIX` instead of leaving it inside a `pad_0[...]` is what turns m2c's eight
 assignments into one.
+
+## Name a two-step pointer chase used inside a store's RHS, or it schedules after the store
+
+`ActorsShared80135b64` (`func_actor_102300_80135B64`) is a 17-instruction leaf
+that opens with six `lw` back to back and only then starts storing. Written the
+obvious way - the chase left inline in the assignment that consumes it - the
+store to `coord->flg` migrated up between the loads and the two dependent loads
+picked up a load-delay `nop` each, for 19 instructions and 66%:
+
+```c
+coord->flg = 0;
+coord->sub = &((TmdObject*)parent->extra)->field_8[11];  /* two chained lw, scheduled late */
+```
+
+`lw v0,0x2c(v0)` / `lw v0,8(v0)` are a dependent pair, so the scheduler needs
+other work between them; leaving them inside the RHS of the *second* store means
+the only candidate it can hoist is the first store, and it moves that instead.
+Giving the chase its own statement ahead of the stores puts both loads in the
+opening run, where the other four loads separate them:
+
+```c
+parentCoords = ((TmdObject*)parent->extra)->field_8;
+coord        = obj->field_8;
+work         = (ActorsShared80135b64Work*)parent->idMap;
+
+coord->flg = 0;
+coord->sub = &parentCoords[11];
+```
+
+That is 100%. Same rule as "Hoist the pointer chase out of a call when a block
+copy sits before it", without the call: whenever the target's loads are batched
+at the top of a leaf function and yours are interleaved with stores, the chase
+has to be its own statement. Note the locals also have to be declared and
+assigned in the order the target loads them - moving `parentCoords` after
+`coord` and `work` here re-ordered the loads and cost the register assignment as
+well.
+
+## Promoting a body out of the middle of a unit can need a `rodata` cut for the new tail
+
+`overlay_dup_index.py promote` carves the shared span out of the carrier's code
+subsegment, so splat splits what follows into a fresh `<name>_2` unit. If a
+function that moved into that tail references a symbol in the overlay's leading
+`.rodata` block, the reference goes undefined: the whole block is one subsegment
+owned by the *first* code unit, splat emits the symbol as a standalone
+`INCLUDE_RODATA` file expecting a line in that unit's `.c`, and it never rewrites
+an existing `.c`. The failure is a link error naming the tail object, which is
+the useful part of it:
+
+```
+build/USA/src/actors/actor_102300/actor_102300_2.i:(.text+0x168):
+    undefined reference to `D_actor_102300_80131E98'
+```
+
+The fix is the manifest `rodata` key at the symbol's offset, handing the run to
+the tail unit - `rodata = [{ start = "0x78", unit = "actor_102300_2" }]` - after
+which splat folds the table back inside the referencing function's `.s`. All
+four carriers of this body needed one (0x78 for `actor_102300` / `actor_202300`,
+0xA4 for `actor_105700` / `actor_205700`), so budget the cut per carrier, not
+per promotion: the offset is the symbol's, and slot siblings of the same actor
+share it while different actors do not.

@@ -57,9 +57,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_8
 INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135A70);
 
 INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135B08);
-
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135B64);
-
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135BA8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135D08);
