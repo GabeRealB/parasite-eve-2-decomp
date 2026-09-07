@@ -590,6 +590,29 @@ mem->field_26 = mem->field_28 / 20;
 
 `func_necrosis_8012FAF8` is the example.
 
+## Roll the LCG through the global, not an m2c temp, to hoist its `lw`
+
+m2c writes a single roll as `temp = Gp_LcgState * 5 + K; Gp_LcgState = temp;`
+and then uses `temp`. That form makes the load one allocno feeding the whole
+tail, and sched1 sinks `lw %lo(Gp_LcgState)` *below* the unrelated field stores
+that precede it (`reorder` = 4, every other penalty 0). Writing the roll
+straight through the global and re-reading it,
+
+```c
+work->field_414 = 1;
+Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+work->field_446 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+```
+
+splits it into a load and a separate CSE'd use, and the load hoists to the top
+of the block next to `lui %hi` / `ori` of the constant - which is where the
+target has it. The re-read costs nothing: CSE reuses the stored value, so only
+the scheduling changes. Note this is the opposite call from "Split each LCG
+roll" above, which is about *several* rolls in one block needing distinct
+locals; with a single roll the local is what hurts.
+`ActorsShared80169dbc` (`src/actors/lib/actors_shared_80169dbc.c`) is the
+example.
+
 ## Earlyclobber empty asm copies an SI value (`move`) instead of `andi` / in-place `sll`
 
 A value loaded `lhu` into an SI temp and reused for both `field += step` and
