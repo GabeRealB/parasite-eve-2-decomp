@@ -154,6 +154,12 @@ STATIC_ASSERT_SIZEOF(GpMapCursorPos, 0x1C);
 /// Index is `GameSession.field_7 - 1`.
 extern u8* Gp_MapFlagIds[];
 
+/// Highest selectable map room id per stage. Index is `GameSession.field_7 - 1`.
+extern u8 D_8010F130[];
+
+/// Map-screen child prompt spawned by `Gp_MapTaskState2`.
+extern UiObjectDesc D_8010F15C;
+
 /// Per-stage `GpMapMark` counts. Index is `GameSession.field_7 - 1`.
 extern u8 Gp_MapMarkCounts[];
 
@@ -208,6 +214,7 @@ void      Gp_CheckItemInfoButton(UiObject* arg0);
 void      Gp_NoticePanelTask(Task* arg0);
 void      Gp_DrawMapCursor(Task* arg0);
 void      Gp_DrawMapMarks(Task* arg0);
+s8        func_800D1434(u32 arg0, u8 arg1);
 void      func_800D1F90(Task* arg0);
 void      Gp_EquipHeld(s32 arg0);
 void      Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);

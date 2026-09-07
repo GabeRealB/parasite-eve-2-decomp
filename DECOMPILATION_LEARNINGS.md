@@ -54554,3 +54554,21 @@ at file offset 0x46E8, four bytes of compiler alignment, and the six-entry
 table at 0x4700. Extend that subsegment through 0x4718 and keep D_80013F18 in
 its existing raw-rodata unit. An explicit pad subsegment between the tables
 would split a single compiler-generated section.
+
+
+## Gp_MapTaskState2: reconstruct independent button checks and duplicated loop exits
+
+The untouched m2c seed scored 68.957% (`branch=17 regs=93 reorder=12
+insert=28 delete=32`). Replacing its label-driven flow with independent button
+checks, `u8` room `for` loops, and duplicated successful-room/close-menu tails
+matched 100% on the first structured attempt, without pins or barriers.
+The forward loop falls through to the backward-button check on exhaustion;
+a successful room test returns even when the selected room is unchanged.
+Write `if (func_800D1434(room, flags[room]) == 1)` and `task->state = 1`
+inside that arm: CSE keeps the sign-extended result across calls and reuses it
+for the store. A separate m2c `s8` result local added moves and conversions.
+Likewise, preserve `if (displayFlag) Display_SetDrawMode(1); else
+Display_SetDrawMode(0);`: building a 0/1 temporary before one call instead
+produced `sltu`, where the target has a branch and a shared call.
+Use a byte-array declaration for the per-stage room limit (`D_8010F130`);
+m2c's unknown-type pointer arithmetic incorrectly scaled the index by four.

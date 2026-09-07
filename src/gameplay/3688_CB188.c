@@ -2342,7 +2342,102 @@ void Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", Gp_MapTaskState2);
+void Gp_MapTaskState2(Task* arg0)
+{
+    UiObject* obj;
+    UiObject* child;
+    u8*       flags;
+    u8        room;
+
+    obj   = arg0->spawnArg2;
+    flags = Gp_MapFlagIds[Game_Session->field_7 - 1];
+    Gp_DrawMapCursor(arg0);
+    func_800D0C34(arg0);
+    func_800D0614(arg0);
+    Gp_DrawMapMarks(arg0);
+    func_800D15D0(arg0);
+    if ((s8)Display_State.field_122 != 0) {
+        Display_SetDrawMode(1);
+    } else {
+        Display_SetDrawMode(0);
+    }
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskCancel | 0x100) != 0) {
+            obj->field_2C = 0x101;
+            func_800D1F90(arg0);
+            obj->field_2E = 6;
+            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04280000) {
+                Gp_LoadViewAndCd(1);
+            }
+            arg0->state = 3;
+            return;
+        }
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            func_800D1F90(arg0);
+            obj->field_2E = -1;
+            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04280000) {
+                Gp_LoadViewAndCd(1);
+            }
+            arg0->state = 3;
+            return;
+        }
+        if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+            if (flags[Gp_MapRoomId] == 0xFF) {
+                return;
+            }
+            for (room = Gp_MapRoomId + 1; room <= D_8010F130[Game_Session->field_7 - 1]; room++) {
+                if (func_800D1434(room, flags[room]) == 1) {
+                    if ((s8)Gp_MapRoomId != room) {
+                        Gp_MapRoomId = room;
+                        Display_SetDrawMode(3);
+                        SndEvt_EnqueueType6(0x15, 0, 0);
+                        Gp_EnqueueMapRoomCd();
+                        arg0->state = 1;
+                    }
+                    return;
+                }
+            }
+        }
+        if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            if (flags[Gp_MapRoomId] == 0xFF) {
+                return;
+            }
+            for (room = Gp_MapRoomId - 1; room != 0; room--) {
+                if (func_800D1434(room, flags[room]) == 1) {
+                    if ((s8)Gp_MapRoomId != room) {
+                        Gp_MapRoomId = room;
+                        Display_SetDrawMode(3);
+                        SndEvt_EnqueueType6(0x15, 0, 0);
+                        Gp_EnqueueMapRoomCd();
+                        arg0->state = 1;
+                    }
+                    return;
+                }
+            }
+        }
+        if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            D_8010F13D = func_800E3FCC(0xA2);
+            SndEvt_EnqueueType6(3, 0, 0);
+            Ui_SpawnFromDesc(&D_8010F15C, 0, 1, 1, obj);
+            obj->status = 0;
+        }
+    }
+    if (arg0->firstChild != NULL) {
+        child = arg0->firstChild->spawnArg2;
+        if (child->field_2E == 6) {
+            obj->status = 1;
+            Ui_TeardownTree(child, child->owner);
+        }
+        if (child->field_2E == -1) {
+            func_800D1F90(arg0);
+            obj->field_2E = -1;
+            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04280000) {
+                Gp_LoadViewAndCd(1);
+            }
+            arg0->state = 3;
+        }
+    }
+}
 
 void Gp_DrawMapCursor(Task* arg0)
 {
