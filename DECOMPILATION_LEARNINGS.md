@@ -54247,3 +54247,60 @@ right hard registers, and the diff was only `%hi/%lo(.rodata)` versus a named
 string symbol. An extern string reference eliminated it without allocation
 changes. For integration, a 12-byte static const `"Player"` array preserved
 the complete string block, including the trailing zero words.
+
+## A *single* global-field read can still want the shared-base form — `Type* p = &Global;` at function scope
+
+"Ternary/if-else for the guarded init keeps a global's `%hi(sym+off)` folded"
+covers the common direction: several references to one global collapse into a
+shared `addiu` base and you want them folded apart. The opposite shows up when
+there is only **one** reference and the target still materialises the base.
+
+`ActorsShared8016a074` (matched as `func_actor_356100_8016A074`) reads
+`Wip_SysConfig.field_18` once, guarded by a state check, and the target computes
+the address unconditionally in the entry block — ahead of the `bne` that can
+skip the read entirely:
+
+```asm
+lui   v0, %hi(Wip_SysConfig)
+lw    a0, 0x1c(a0)
+addiu a1, v0, %lo(Wip_SysConfig)
+lh    v1, 0x0(a0)
+li    v0, 0xd
+bne   v1, v0, .Lret
+...
+lh    v0, 0x18(a1)
+```
+
+Written as `Wip_SysConfig.field_18` the single reference folds to a
+`lui`/`lh %lo(Wip_SysConfig+0x18)` pair *inside* the guarded block, which is one
+instruction shorter and cost `delete=3`. GCC 2.8.1 does not sink an explicit
+address-of assignment, so hoisting is exactly what a pointer local buys:
+
+```c
+WipSysConfig* cfg = &Wip_SysConfig;
+...
+if (cfg->field_18 > 0) { ... }
+```
+
+The tell is a `delete` penalty (not `reorder`) with the missing instructions
+being an `addiu` of `%lo(sym)` in the entry block. Note this is the case where
+the earlier entry found `cfg = &Wip_SysConfig` useless — there the local was
+written *inside* the guarded block, where it has nothing to hoist past. Put it
+at function scope, before the guard.
+
+The same function's inner `if/else` writes the same lvalue in both arms:
+
+```c
+if (cfg->field_18 > 0) {
+    work->field_0 = 0xE;
+} else {
+    work->field_0 = 0x16;
+}
+```
+
+Cross-jumping merges the two `sh` tails and leaves the `j`/`nop` shape the
+target has. The ternary `work->field_0 = cfg->field_18 > 0 ? 0xE : 0x16;` is
+one basic block, so dbr fills the `blez` delay slot with the else-constant and
+drops both the `j` and the `nop` — `branch=2 delete=3`. Two constants stored to
+one lvalue is the cheapest cross-jumping case, and it is worth trying the
+if/else form first whenever the target spends a `j` to reach a shared store.
