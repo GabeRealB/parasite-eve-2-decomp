@@ -620,6 +620,7 @@ void           AudioTick_Process(void);
 AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);
 void           AudioTick_Reset(void);
 void           AsyncCb_Cancel(s32 arg0);
+s16            func_8004DE18(void* arg0);
 s32            Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2);
 void           Spu_SetVoiceCallbacks(u32 voiceIdx, s32 arg1, s32 arg2);
 s32            Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);

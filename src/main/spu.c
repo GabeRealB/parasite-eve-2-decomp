@@ -56,7 +56,37 @@ void AsyncCb_Reset(void)
     } while (i < 0x15U);
 }
 
-INCLUDE_ASM("main/nonmatchings/spu", func_8004DE18);
+s16 func_8004DE18(void* arg0)
+{
+    AsyncCbEntry* entry;
+    s32           next;
+    s32           current;
+    s8            writeIdx;
+
+    writeIdx = AsyncCb_Queue.field_1;
+    current  = AsyncCb_Queue.field_0;
+    next     = writeIdx;
+    next++;
+    if (next >= 4) {
+        next = 0;
+    }
+    if (next == current) {
+        return 0;
+    } else {
+        entry                 = &AsyncCb_Queue.entries[writeIdx];
+        entry->field_8        = ((AsyncCbEntry*)arg0)->field_8;
+        entry->field_C        = ((AsyncCbEntry*)arg0)->field_C;
+        entry->field_10       = ((AsyncCbEntry*)arg0)->field_10;
+        entry->field_0       |= 1;
+        entry->field_0       &= ~4;
+        entry->field_0       &= ~8;
+        entry->field_0       &= ~0xFF0;
+        entry->field_0       |= 2;
+        current               = AsyncCb_Queue.field_1;
+        AsyncCb_Queue.field_1 = next;
+        return current + 1;
+    }
+}
 
 void AsyncCb_Cancel(s32 arg0)
 {

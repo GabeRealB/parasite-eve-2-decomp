@@ -54426,3 +54426,27 @@ across three and five insns. The table base moved from `$v1` to `$v0`,
 and the session/address chain moved to `$v1`, also restoring the bank-load
 position. A matched sibling's pin need not carry over: first split a reused
 pointer and rescore.
+
+
+## func_8004DE18: signed ring index and callback-copy scheduling
+
+The callback enqueue matched without pins using the existing `AsyncCbEntry` and
+`AsyncCbQueue` layouts. Separate `entry->field_0 |= 1`, `&= ~4`, `&= ~8`,
+`&= ~0xFF0`, and `|= 2` statements retain the individual masks; one nested
+expression folds the three AND masks before RTL optimization.
+
+For a signed byte used both to compute a wrapped next index and to select the
+current slot, `next = writeIdx; next++;` retains the shared left shift and two
+right shifts. `next = writeIdx + 1` instead kept one sign-extended value live.
+The matching source uses an early full-queue return with an `else` success arm.
+
+At 86.262%, moving all three callback copies before the flag updates and reusing
+the read-index local for the final write-index reload together reached 100%.
+This schedules the third callback load among the last mask operations and puts
+the final index reload in `$a0`. These two changes were tested together.
+
+Preserving the existing `void*` API with casts at the three member accesses also
+matched. Introducing a separate typed pointer local changed sched1, allocation,
+and delay-slot filling (94.098%); the `.lreg` dump shows its live length became
+24 instructions, compared with the parameter's longer lifetime. A cast alone
+does not introduce that local. The final source is scratch `base_6.c`.
