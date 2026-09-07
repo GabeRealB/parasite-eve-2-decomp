@@ -54228,3 +54228,22 @@ in its matched sibling, and splitting the item-walking pointers between
 initial totals, the bonus sum, and the draw-time sum. Initializing the text
 color after `Ui_DrawHBar` also let the common `a0 = obj` move fill both
 state-exit branch delay slots. The final unpinned seed is `base_12.c`.
+
+
+## A 100% truncated match can still hide a hoisted load in leading rodata
+
+`func_acropolis_cafeteria_8017D6B4` matched its 19-instruction scratch target
+with an uninitialized local for the incoming `$v0`. The actual callback entry
+was eight bytes earlier: the words at `8017D6AC` were `lui v0,0x8007` /
+`lh v0,0x107A(v0)`, reading `Display_State.field_112`. The room task table
+pointed at that earlier address. Restore those instructions to `.text` with
+`text = [0xEC, 0x54E8]`; ordinary C using the existing display field then
+matches the full 21-instruction body. Remove only the obsolete instruction
+`INCLUDE_RODATA` from the preceding rodata owner, preserving its matched C
+definitions; regenerating an entire source file is unnecessary.
+
+The initial `regs=2` penalty was also misleading: `.lreg`/`.greg` showed the
+right hard registers, and the diff was only `%hi/%lo(.rodata)` versus a named
+string symbol. An extern string reference eliminated it without allocation
+changes. For integration, a 12-byte static const `"Player"` array preserved
+the complete string block, including the trailing zero words.

@@ -36,4 +36,9 @@ typedef struct AcropolisCafeteriaDebris {
 } AcropolisCafeteriaDebris;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
 
+void func_807245E4(void*);
+void func_80724608(void*, s32, s32, void*);
+
+void func_acropolis_cafeteria_8017D6AC(void);
+
 #endif // ROOMS_ACROPOLIS_CAFETERIA_H
