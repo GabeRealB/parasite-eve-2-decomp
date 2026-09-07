@@ -42,6 +42,9 @@ STATIC_ASSERT_SIZEOF(GpFlagBank, 0xC);
 /// Main-executable table of `GpFlagBank*`, indexed by slot / session field_7.
 extern GpFlagBank* Gp_FlagBanks[];
 
+/// Alias for `Gp_FlagBanks[2]`, combined with stage 3 flags for map visibility.
+extern GpFlagBank* D_80060A38;
+
 /// Per-stage wrapper. `field_0` is a 3-level table of bytes, indexed
 /// 1-based by `GameSession.field_6` / `field_5` / `field_4`.
 /// `Gp_GetViewIndex` returns the innermost byte (camera / view index).

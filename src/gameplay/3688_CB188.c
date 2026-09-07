@@ -2841,7 +2841,62 @@ void Gp_EnqueueMapRoomCd(void)
     D_800626E8 = 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D1434);
+s8 func_800D1434(u32 roomId, u8 flagId)
+{
+    GpFlagBank* bank;
+    GpMapRec*   recs;
+    s32         flags[2];
+    s32         i;
+    s32         which;
+    s32         bit;
+    s32         one;
+    s32         skip;
+
+    bank = Gp_FlagBanks[Game_Session->field_7];
+    if (Game_Session->field_7 != 5) {
+        if (flagId != 0xFF) {
+            if (flagId == 0x80) {
+                return 0;
+            }
+            which = flagId != 0;
+            if (which && (GameFlag_GetNibble(flagId) != 0)) {
+                return 1;
+            }
+            recs     = Gp_MapRecTables[Game_Session->field_7 - 1];
+            flags[0] = bank->field_4[0];
+            flags[1] = bank->field_4[1];
+            i        = 0;
+            if (Game_Session->field_7 == 3) {
+                bank      = D_80060A38;
+                flags[0] |= bank->field_4[0];
+                flags[1] |= bank->field_4[1];
+            }
+            if (recs->field_C != 0xFFFF) {
+                skip = 0xF000;
+                one  = 1;
+                do {
+                    recs++;
+                    i++;
+                    if (recs->field_C != skip) {
+                        which = 0;
+                        if ((u8)i >= 0x21U) {
+                            which = 1;
+                            bit   = one << ((u8)i - 0x21);
+                        } else {
+                            bit = one << ((u8)i - 1);
+                        }
+                        if (bit & flags[which]) {
+                            if (recs->field_C == (u8)roomId) {
+                                return 1;
+                            }
+                        }
+                    }
+                } while (recs->field_C != 0xFFFF);
+            }
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D15D0);
 
