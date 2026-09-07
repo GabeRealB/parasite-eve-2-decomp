@@ -2,7 +2,9 @@
 #define ACTOR_143900_H
 
 #include "common.h"
+#include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
+#include "main/task.h"
 
 /// Per-actor work block for the `actor_143900` overlay.
 ///
@@ -15,12 +17,15 @@
 typedef struct Actor143900Work {
     /* 0x000 */ byte      pad_0[0x40];
     /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x49C];
+    /* 0x054 */ byte      pad_54[0x492];
+    /* 0x4E6 */ u16       yaw; // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4E8 */ byte      pad_4E8[8];
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
 extern Actor143900Work* D_actor_143900_801496B8;
 
 void func_actor_143900_801324C8(void);
+s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 
 #endif
