@@ -6,6 +6,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include "main/session.h"
+#include "rooms/room_common.h"
 
 #include <psyq/libgte.h>
 
@@ -40,5 +41,8 @@ void func_807245E4(void*);
 void func_80724608(void*, s32, s32, void*);
 
 void func_acropolis_cafeteria_8017D6AC(void);
+s32  func_acropolis_cafeteria_8017D700(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+
+extern s32 D_acropolis_cafeteria_80184164;
 
 #endif // ROOMS_ACROPOLIS_CAFETERIA_H
