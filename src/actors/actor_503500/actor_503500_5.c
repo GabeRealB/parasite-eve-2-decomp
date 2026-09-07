@@ -61,6 +61,10 @@ void func_actor_503500_801374BC(Actor503500* arg0);
 void func_actor_503500_80137678(Actor503500* arg0);
 void func_actor_503500_80138454(Actor503500* arg0);
 void func_actor_503500_80138490(Actor503500* arg0, s32 arg1);
+/// Defined as `s8` in actor_503500_4.c; an `s8` prototype makes the caller
+/// sign-extend with `sll 24` before the zero test.
+s32  func_actor_503500_80136208(void);
+void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
 void func_actor_503500_8013B460(Actor503500* arg0);
 void func_actor_503500_8013B8D0(Actor503500* arg0);
 void func_actor_503500_8013BE0C(Actor503500* arg0);
@@ -434,7 +438,24 @@ void func_actor_503500_8013BC54(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013BCB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013BD0C);
+void func_actor_503500_8013BD0C(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_E8 != 0) {
+        timer          = (u16)work->field_E8 - 1;
+        work->field_E8 = timer;
+        if (timer < 0) {
+            work->field_E8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_8013AF60(arg0, work, &work->rec, 8);
+    }
+    Gp_ClearRec18Occupied(&work->rec);
+}
 
 void func_actor_503500_8013BD88(Actor503500* arg0)
 {
