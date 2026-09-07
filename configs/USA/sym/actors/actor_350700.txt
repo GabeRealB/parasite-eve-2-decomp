@@ -2,3 +2,5 @@
 ActorsShared80132f24 = 0x801633DC; // shared body, see src/actors/lib/
 ActorsShared80132860 = 0x80163468; // shared body, see src/actors/lib/
 ActorsShared80132450 = 0x801632CC; // shared body, see src/actors/lib/
+ActorsShared80132920 = 0x80163528; // shared body, see src/actors/lib/
+ActorsShared80132920Offset = 0x80161E78; // shared body data, see src/actors/lib/

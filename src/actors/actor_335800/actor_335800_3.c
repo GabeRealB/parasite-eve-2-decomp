@@ -8,8 +8,6 @@
 
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_3", func_actor_335800_80163124);
-
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_3", func_actor_335800_801631A4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_3", func_actor_335800_801632A4);

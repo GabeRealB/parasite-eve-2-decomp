@@ -17,4 +17,4 @@ void func_actor_350700_801633BC(Task* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_2", D_actor_350700_80161E68);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_2", D_actor_350700_80161E78);
+INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_2", ActorsShared80132920Offset);

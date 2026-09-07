@@ -16,4 +16,4 @@ INCLUDE_ASM("actors/nonmatchings/actor_135600/actor_135600_2", func_actor_135600
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135600/actor_135600_2", D_actor_135600_80131E48);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_135600/actor_135600_2", D_actor_135600_80131E58);
+INCLUDE_RODATA("actors/nonmatchings/actor_135600/actor_135600_2", ActorsShared80132920Offset);

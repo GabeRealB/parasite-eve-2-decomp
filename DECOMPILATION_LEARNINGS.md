@@ -53662,3 +53662,44 @@ being address-sorted, so the only freedom is where the `INCLUDE_RODATA` lines
 go, and there is exactly one placement that works. Getting it wrong builds
 cleanly and fails the checksum at the overlay's first rodata byte, not at a
 function, so `diff.py` on every function will say everything matches.
+
+## Two independent pointer locals: their assignment order decides whether `p + 4` fuses into `$a0`
+
+`ActorsShared80132920` loads two unrelated pointers out of its `Task*` and only
+uses one of them to build the first argument of a call:
+
+```c
+coord = ((TmdObject*)task->extra)->field_8;   /* -> a0 = coord + 4 */
+work  = (ActorsShared80132920Work*)task->idMap;
+```
+
+Written the other way round — `work` first, `coord` second — the body scored
+99.7% with a single register difference and no reordering, insert or delete:
+the ROM loads the pointer into a scratch and adds in the delay slot,
+
+```
+lw    $v1, 8($v0)
+jal   ApplyMatrixLV
+ addiu $a0, $v1, 4
+```
+
+while the decompile fused the two,
+
+```
+lw    $a0, 8($v0)
+jal   ApplyMatrixLV
+ addiu $a0, $a0, 4
+```
+
+`.lreg` shows why: the pseudo holding `coord` is used twice and dies in the
+`addsi3` whose destination is the hard register `$a0`, so `local-alloc` takes
+`$a0` as its preferred register and the add becomes in-place. Whether that
+preference wins depends on how far the pseudo's birth sits from the argument
+setup, and the *source* order of the two independent assignments is what moves
+it — scheduling leaves the two loads where they are relative to each other, but
+the pseudo numbering and therefore the quantity order change. Swapping the two
+lines took it to 100% with no pin and no empty `asm`.
+
+Worth trying first whenever a ≥99% diff is exactly "target keeps the loaded
+pointer in a scratch, we reuse the argument register": there is no register to
+shorten and nothing to split, only two statements to reorder.
