@@ -34,8 +34,4 @@ INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000", func_actor_323000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000", func_actor_323000_80164904);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000", func_actor_323000_80164954);
-
-INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000", func_actor_323000_80164A54);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_323000/actor_323000", D_actor_323000_80161E34);
