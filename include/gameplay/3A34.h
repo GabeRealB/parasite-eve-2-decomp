@@ -369,15 +369,16 @@ STATIC_ASSERT_SIZEOF(GpCoord64View, 0x64);
 /// Record in the 8-entry arrays pointed to by `Gp_RoomParamTables`.
 /// `Gp_LoadRoomParams` copies `field_3` into `Gp_RoomParams[]`. Nearby helpers
 /// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`
-/// (`Gp_PickNearestRec18` keeps a slot only when this is nonzero). `func_80105ED4`
-/// loads a pointer at +0x4.
+/// (`Gp_PickNearestRec18` keeps a slot only when this is nonzero). `field_4`
+/// points to three base sound ids used by `func_80105ED4`, or is NULL.
 typedef struct _GpRoomParamRec {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
+    /* 0x0 */ u8   field_0;
+    /* 0x1 */ u8   field_1;
+    /* 0x2 */ u8   field_2;
+    /* 0x3 */ u8   field_3;
+    /* 0x4 */ s32* field_4;
 } GpRoomParamRec;
-STATIC_ASSERT_SIZEOF(GpRoomParamRec, 4);
+STATIC_ASSERT_SIZEOF(GpRoomParamRec, 8);
 
 /// Three packed `SVECTOR3`s filled by `Gp_FillSVec3x3`. Each vector's
 /// components are set to the same s16 argument.

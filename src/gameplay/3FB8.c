@@ -5854,7 +5854,62 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105ED4);
+s32 func_80105ED4(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpAnimRec* rec;
+    GpObj38*   obj;
+    s32        sound;
+    s8         flags;
+    s32        pan;
+    s32        index;
+    s32*       sounds;
+
+    sound = 0;
+    actor = arg0->actor;
+    obj   = (GpObj38*)(arg0->extra->field_8 + 1);
+    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
+    if (rec != NULL && rec != actor->field_92C) {
+        actor->field_92C = rec;
+        switch (flags = rec->field_3 & 0x30) {
+            case 0x10:
+            case 0x20:
+                sounds = Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1][actor->field_930]->field_4;
+                if (sounds != NULL) {
+                    if (*(s32*)&actor->field_954 == 0x30002) {
+                        sound = sounds[2];
+                    } else if ((u16)actor->field_958 == 3) {
+                        sound = sounds[1];
+                        Gp_SetStateF0Bit(5);
+                    } else {
+                        sound = sounds[0];
+                    }
+                    if (sound != 0) {
+                        if (flags == 0x10) {
+                            sound++;
+                        }
+                        if (actor->field_910 != NULL) {
+                            sound += 0x64;
+                        }
+                        pan = (s8)Gp_GetObjPan(obj);
+                        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(obj));
+                    }
+                    if (Gp_State1C->field_A == 2) {
+                        index = 0x12;
+                        if (actor->field_910 != NULL) {
+                            index = 0x13;
+                        }
+                        if (flags == 0x10) {
+                            index -= 3;
+                        }
+                        Gp_SpawnEff(0x60054, &arg0->extra->field_8[index], 0x80002300, NULL);
+                    }
+                }
+                break;
+        }
+    }
+    return sound;
+}
 
 s32 func_801060E0(GpActorWork* arg0)
 {
