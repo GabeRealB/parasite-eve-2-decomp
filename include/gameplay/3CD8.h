@@ -478,6 +478,10 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+/// Grayscale fade task controlled by `Wip_SysConfig.field_25` bit 0.
+/// Alternates LCG-selected brightness targets, then fades out and releases
+/// its `GpEffWork` when the flag stays clear.
+void func_800EC47C(Task* arg0);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
 void Gp_KillState1CTask(Task* arg0);
 void Gp_PulseState1C(void);

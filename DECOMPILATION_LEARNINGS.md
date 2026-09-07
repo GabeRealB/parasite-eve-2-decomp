@@ -54572,3 +54572,19 @@ Display_SetDrawMode(0);`: building a 0/1 temporary before one call instead
 produced `sltu`, where the target has a branch and a shared call.
 Use a byte-array declaration for the per-stage room limit (`D_8010F130`);
 m2c's unknown-type pointer arithmetic incorrectly scaled the index by four.
+
+## func_800EC47C: put duplicated draw tails inside the final state's active arms
+
+The unchanged m2c seed scored 83.000% (`branch=7 regs=11 reorder=8
+insert=3 delete=13`). Its separate RGB byte locals lost two stores because
+only the first byte's address escaped; use the neighboring fade task's
+`u8 rgb[3]`. Signed halfword loads reused in comparisons and arithmetic
+need `s32` locals here: `s16` locals kept an extra unsigned halfword load.
+
+Typed fields and duplicated draws after each case reached only 83.437%.
+In `.jump2`, the final state's early cleanup exit placed cleanup before its
+draw, and cross-jumping merged the earlier states' configuration checks.
+Writing the RGB assignment and draw separately inside both active arms of
+the final `if / else if / else` restored the target's draw-before-cleanup
+order and preserved both checks. That single structural edit reached 100%
+with all-zero penalties, without pins, barriers, or a permuter run.

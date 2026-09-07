@@ -13,6 +13,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/wipsys.h"
 
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()   __asm__ volatile("nop; nop; .word 0x4A280030")
@@ -20,6 +21,7 @@
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 extern TaskFuncTable3 D_80097678;
+extern s32            Gp_LcgState;
 extern s32            D_80115720;
 extern s32            D_80115724;
 extern s32            D_80115728;
@@ -826,7 +828,73 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EC47C);
+void func_800EC47C(Task* arg0)
+{
+    GpEffWork* mem;
+    u8         rgb[3];
+    s32        current;
+    s32        target;
+    u16        count;
+    u32        random;
+
+    mem = arg0->spawnArg2;
+    switch (arg0->state) {
+        case 0:
+            Gp_State1C->field_10 |= 1;
+            arg0->state           = 1;
+            mem->field_26         = 0x10;
+        case 1:
+            if (mem->field_24 < mem->field_26) {
+                mem->field_24 += 8;
+            } else {
+                arg0->state = 2;
+            }
+            if (!(Wip_SysConfig.field_25 & 1)) {
+                arg0->state = 3;
+            }
+            rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+            Gp_DrawFadeQuad(rgb, 2);
+            break;
+        case 2:
+            current = mem->field_24;
+            target  = mem->field_26;
+            if (current == target) {
+                count         = (u16)mem->field_28 + 1;
+                random        = Gp_LcgState * 5 + 0x71357911;
+                mem->field_28 = count;
+                Gp_LcgState   = random;
+                mem->field_26 = ((count & 1) << (((random >> 16) & 1) + 4)) + 0x10;
+            } else {
+                if (current < target) {
+                    mem->field_24 = current + 8;
+                } else {
+                    mem->field_24 = current - 8;
+                }
+            }
+            if (!(Wip_SysConfig.field_25 & 1)) {
+                arg0->state = 3;
+            }
+            rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+            Gp_DrawFadeQuad(rgb, 2);
+            break;
+        case 3:
+            if (Wip_SysConfig.field_25 & 1) {
+                arg0->state = 0;
+                rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+                Gp_DrawFadeQuad(rgb, 2);
+            } else if (mem->field_24 >= 9) {
+                mem->field_24 -= 8;
+                rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+                Gp_DrawFadeQuad(rgb, 2);
+            } else {
+                Gp_State1C->field_10 &= 0xFFFE;
+                Gp_State1C->field_0--;
+                Mem_Free(mem);
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 void Gp_FadeWaveTask(Task* arg0)
 {
