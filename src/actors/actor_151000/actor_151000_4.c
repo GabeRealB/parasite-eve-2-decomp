@@ -22,9 +22,3 @@ s32 func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* place
     coord->flg        = 0;
     return 0;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000_4", func_actor_151000_8013288C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000_4", func_actor_151000_801328DC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000_4", func_actor_151000_80132A38);
