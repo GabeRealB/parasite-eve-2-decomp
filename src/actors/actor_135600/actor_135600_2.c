@@ -33,6 +33,6 @@ void func_actor_135600_80132D64(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_135600/actor_135600_2", D_actor_135600_80131E48);
+INCLUDE_RODATA("actors/nonmatchings/actor_135600/actor_135600_2", ActorsShared801327f8Table);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135600/actor_135600_2", ActorsShared80132920Offset);
