@@ -44,6 +44,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016CC9C);
 
+INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700_5", D_actor_341700_80162064);
+
 s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* obj = arg0->field_2C;
@@ -68,25 +70,3 @@ s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016CEB4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016CF48);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016D018);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016D130);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016D2B8);
-
-void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
-{
-    TmdObject* model;
-
-    if (((Actor341700SubWork*)arg1->idMap)->field_4 != 0) {
-        model              = (TmdObject*)arg1->extra;
-        arg0->node.field_4 = 1;
-        model->field_C     = 0;
-        Tmd_AllocBuffers(model);
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016D32C);

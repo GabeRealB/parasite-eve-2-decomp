@@ -24,14 +24,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CA00);
 
+INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600", D_actor_223600_80149E58);
+
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CC04);
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CCD4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CD54);
-
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CE24);
-
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CF3C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CF6C);

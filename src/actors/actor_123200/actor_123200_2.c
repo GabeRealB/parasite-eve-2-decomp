@@ -1,0 +1,7 @@
+#include "common.h"
+
+INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200_2", func_actor_123200_80134060);
+
+INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200_2", func_actor_123200_80134178);
+
+INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200_2", func_actor_123200_801341A8);
