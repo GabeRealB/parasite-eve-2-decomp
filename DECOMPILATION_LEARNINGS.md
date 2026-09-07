@@ -52904,3 +52904,35 @@ directions: use an initializer to nail the prologue saves to the top, use
 assignments to let them drift into the body. Read the block's `.sched2` dump
 for the clobber insn (`clobber (mem/s:BLK ...)`) before guessing which side a
 mismatch is on.
+
+## A redundant `Type* local = arg0;` copy defers the callee-saved-reg spill
+
+Room state machine `func_shelter_1f_bulwark_8017DE04`: `arg0` (a `Task*`) is
+live across a call in `case 0` and reused in `case 3`, so it must live in a
+callee-saved reg. Target copies it in the prologue —
+
+```
+addiu $sp, $sp, -0x20
+sw    $s1, 0x14($sp)
+addu  $s1, $a0, $zero      # s1 = arg0, before the other saves
+sw    $ra, 0x18($sp)
+sw    $s0, 0x10($sp)
+lw    $v1, 0x30($s1)       # state read via s1
+```
+
+Writing the body over an explicit alias —
+
+```c
+Task* task = arg0;
+switch (task->state) { ... Task_Kill(task); }
+```
+
+made GCC read state via `a0` and slip the `move $s1, $a0` into the delay slot
+of the first `beqz`, and reordered the register saves to `ra, s1, s0`. Dropping
+the local and using `arg0` throughout (`switch (arg0->state)`, `Task_Kill(arg0)`)
+forced the early prologue copy and the `s1, ra, s0` save order — instant match.
+
+Rule: when the prologue's saved-reg copy/order is the only diff and a parameter
+is aliased to a local, delete the alias and use the parameter directly. The
+extra copy gives the scheduler a second placement it can defer; the direct use
+does not.
