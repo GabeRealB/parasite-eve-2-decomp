@@ -53002,3 +53002,34 @@ Before doing that, confirm the alias's carriers are a subset of the promotion's:
 now demands `ActorsShared80134ff0` from every overlay it links into, so a
 carrier that `promote` skipped — the "contains it twice" case — would fail to
 link.
+
+## A re-split that only moves `.s` content leaves a stale `.o` that ninja will not rebuild
+
+Symptom, after adding a `rodata` cut and re-splitting an overlay:
+
+```
+build/USA/src/actors/actor_521100/actor_521100_3.i:(.text+0xb7c):
+undefined reference to `D_actor_521100_80131E68'
+```
+
+while the very symbol is right there in the function's own
+`asm/.../actor_521100_3/func_actor_521100_80136604.s`, under a
+`.section .rodata` block that `migrate_rodata_to_functions` put there. Re-running
+`build-and-verify.sh` reproduces the error byte for byte.
+
+The dependency is invisible to ninja. A unit's depfile comes from `cpp`, so it
+lists headers only; the `.s` that `INCLUDE_ASM` pulls in is read by the
+*assembler*, long after the dependency scan. When a re-split changes only the
+content of those `.s` files — which is exactly what moving a rodata run between
+units does, since the `.c` file and its `INCLUDE_ASM` lines are untouched — ninja
+sees no reason to rebuild the object and links the previous one.
+
+Delete the unit's build artifacts and rebuild:
+
+```
+rm -f build/USA/src/actors/actor_521100/actor_521100_3.*
+./tools/build-and-verify.sh --only actors
+```
+
+`objdump -h` on the object is the quick confirmation: the stale one has no
+`.rodata` section at all, while its sibling units do.

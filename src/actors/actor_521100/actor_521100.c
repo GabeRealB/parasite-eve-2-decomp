@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_521100.h"
+#include "actors/actors_shared_80134934.h"
 
 void      Gp_UpdateCoord(Actor521100Coord* arg0);
 void      func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
@@ -10,7 +11,6 @@ void      func_actor_521100_80134EDC(Actor521100* arg0);
 void      func_actor_521100_80135024(Actor521100* arg0);
 void      func_actor_521100_801358D4(Actor521100* arg0);
 void      func_actor_521100_80135964(Actor521100* arg0);
-void      func_actor_521100_80135A34(Actor521100* arg0);
 void      func_actor_521100_80135A90(Actor521100* arg0);
 extern u8 D_801153F4;
 void      func_actor_521100_80132958(void);
@@ -118,7 +118,7 @@ default_body:
     arg1->field_2C->field_8->field_50 = 0;
     Gp_UpdateCoord(temp_s2);
 case1:
-    func_actor_521100_80135A34(arg1);
+    ActorsShared80134934((ActorShared80134934*)arg1);
     func_actor_521100_80135A90(arg1);
 }
 
