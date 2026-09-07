@@ -15,6 +15,8 @@ extern u16 D_replay_bonus_8011908C[];
 /// Double-buffered MDEC strip pixels. `func_replay_bonus_801158C0` LoadImage's
 /// one 16-pixel-wide column from `buf[(flip << 5) * (s16)height]`.
 extern u8* D_replay_bonus_8011925C;
+/// VLC-decoded MDEC bitstream; `DecDCTin` source and `DecDCTvlc2` dest.
+extern u_long* D_replay_bonus_80119260;
 /// Full image width in pixels; strip count is `width / 16`.
 extern s16 D_replay_bonus_80119264;
 /// Image height in pixels, also RECT.h of each uploaded strip.
@@ -39,10 +41,10 @@ typedef struct ReplayBonusStream {
     /* 0x00 */ u16* table;
     /* 0x04 */ u16  fileId;
     /* 0x06 */ u16  unk6;
-    /* 0x08 */ s16  x;
-    /* 0x0A */ s16  y;
-    /* 0x0C */ s16  w;
-    /* 0x0E */ s16  h;
+    /* 0x08 */ u16  x;
+    /* 0x0A */ u16  y;
+    /* 0x0C */ u16  w;
+    /* 0x0E */ u16  h;
 } ReplayBonusStream;
 STATIC_ASSERT_SIZEOF(ReplayBonusStream, 0x10);
 

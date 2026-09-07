@@ -55,7 +55,85 @@ void func_replay_bonus_801158C0(void)
     }
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_801159A0);
+void func_replay_bonus_801159A0(Task* arg0)
+{
+    ReplayBonusStream* stream;
+    s32                state;
+    s32                width;
+    s32                bufSize;
+    s32                imgWidth;
+    s32                strip;
+    s32                next;
+    u16                w;
+    u16                x;
+    u16                h;
+    u16                y;
+    void*              vlcBuf;
+    u_long*            bs;
+
+    state  = arg0->state;
+    stream = arg0->spawnArg2;
+    switch (state) {
+        case 0:
+            D_replay_bonus_80119270 = 0;
+            w                       = stream->w;
+            x                       = stream->x;
+            D_replay_bonus_80119264 = w;
+            h                       = stream->h;
+            D_replay_bonus_80119266 = h;
+            D_replay_bonus_80119268 = x;
+            y                       = stream->y;
+            D_replay_bonus_8011926A = y;
+            DecDCTReset(0);
+            D_replay_bonus_8011925C = Mem_Malloc((s16)D_replay_bonus_80119266 << 6, 1);
+            vlcBuf                  = Mem_Malloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * 2, 1);
+            bs                      = (u_long*)D_8006C338[stream->fileId].field_4;
+            D_replay_bonus_80119260 = vlcBuf;
+            bufSize                 = DecDCTBufSize(bs);
+            width                   = D_replay_bonus_80119264;
+            if (width < 0) {
+                width += 0xF;
+            }
+            DecDCTvlcSize2((bufSize / (width >> 4)) + 2);
+            if ((DecDCTvlc2((u_long*)D_8006C338[stream->fileId].field_4, D_replay_bonus_80119260, stream->table) << 0x10) == 0) {
+                arg0->state = 2;
+                return;
+            }
+            arg0->state = arg0->state + 1;
+            return;
+        case 1:
+            if (DecDCTvlc2(NULL, NULL, stream->table) != 0) {
+                return;
+            }
+            arg0->state = arg0->state + 1;
+        case 2:
+            DecDCToutCallback(func_replay_bonus_801158C0);
+            DecDCTin(D_replay_bonus_80119260, 2);
+            DecDCTout((u_long*)D_replay_bonus_8011925C, (s16)D_replay_bonus_80119266 * 8);
+            D_replay_bonus_8011926E = 0;
+            next                    = arg0->state;
+            D_replay_bonus_8011926C = 1;
+            arg0->state             = next + 1;
+            return;
+        case 3:
+            if (D_replay_bonus_8011926C == 0) {
+                imgWidth = D_replay_bonus_80119264;
+                strip    = D_replay_bonus_8011926E;
+                if (imgWidth < 0) {
+                    imgWidth += 0xF;
+                }
+                if (strip == (imgWidth >> 4) - 1) {
+                    Mem_Free2(D_replay_bonus_8011925C, 1);
+                    Mem_Free2(D_replay_bonus_80119260, 1);
+                    Task_RequestKill(arg0, 0);
+                    return;
+                }
+                DecDCTout((u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << 5) * (s16)D_replay_bonus_80119266)), (s16)D_replay_bonus_80119266 * 8);
+                D_replay_bonus_8011926C = 1;
+            }
+            break;
+    }
+}
 
 u16* func_replay_bonus_80115C68(void)
 {

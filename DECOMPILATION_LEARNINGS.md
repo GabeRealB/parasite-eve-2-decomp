@@ -53063,3 +53063,35 @@ to catch.
 Carriers of one promotion differ here: `actor_120500`'s copy was the last code
 in the overlay, so its promotion needed nothing beyond deleting the
 `INCLUDE_ASM` line, while `actor_120300` and `actor_136100` both renumbered.
+
+## Case-local `next` beats `li 1` for `$v0`; a goto-shared one does not
+
+A task switch whose later case does
+
+```
+D_flag = 0;
+next = arg0->state;
+D_busy = 1;
+arg0->state = next + 1;
+```
+
+and whose earlier case ends with the same increment wants `lw v0, state` *between*
+the two stores, `li v1, 1` for the busy flag, and the earlier case to
+`j` at the `sw v0, state` with `addiu v0, v0, 1` in the delay.
+
+Sharing `next` through `goto advance_inc` / `state = next + 1` makes it a
+global allocno. local-alloc then gives `$v0` to the same-block `li 1` and the
+`%hi(D_busy)`, so `next` lands in `$a0`, the `lw` hoists above the `lui`, and
+the leftover is `regs` plus one insert/delete. `func_replay_bonus_801159A0` is
+the example.
+
+Keep `next` in the later case only so it competes in local-alloc and wins `$v0`
+from the `li 1`. Write the earlier case as a plain
+
+```c
+arg0->state = arg0->state + 1;
+return;
+```
+
+Jump cross-jumps that store onto the later case's tail. Pulling `next` up into
+the earlier case, or using one function-scope temp for both, is the miss.
