@@ -15,5 +15,3 @@ void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_3", func_neo_ark_submarine_tunnel_8017F4DC);
-
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_3", func_neo_ark_submarine_tunnel_8017FA34);
