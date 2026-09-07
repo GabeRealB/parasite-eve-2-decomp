@@ -29,6 +29,15 @@ extern s8    D_80115417;
 
 extern s32 Gp_LcgState;
 
+/* One of the sub-state tables in this unit's leading rodata. The original wrote
+ * it as a local array initializer, so GCC 2.8.1 put the four constant pointers
+ * in the constant pool and had the dispatcher copy them onto the stack. Writing
+ * that initializer here instead would emit the pool where the *function* sits in
+ * the file, which is after every `INCLUDE_RODATA` above and so at the wrong
+ * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
+ * same copy while leaving the rodata where it is. */
+extern const TaskFuncTable4 D_actor_400600_80131F60;
+
 extern u8 D_actor_400600_8014220C[];
 extern u8 D_actor_400600_80143604[];
 extern u8 D_actor_400600_80143B24[];
@@ -328,7 +337,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139444);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801394E0);
+void func_actor_400600_801394E0(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable4   fns  = D_actor_400600_80131F60;
+
+    func_actor_400600_80138AA4(arg0);
+    fns.funcs[(s16)work->field_71E](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139560);
 

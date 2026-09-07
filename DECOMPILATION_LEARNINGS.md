@@ -6474,6 +6474,40 @@ The anonymous table has to start the TU's `.rodata`, so pair it with a manifest
 its shared bodies. Cast the entries when the overlay types its states as
 something other than `TaskFunc` (`mm1_2.c`).
 
+**But not when the unit carries a whole run of such tables.** The initializer
+form only places the table correctly if the function that owns it is the first
+`.text` of a unit whose `.rodata` starts at that table. A big actor TU has one
+table per dispatcher — `actor_400600` has thirteen, interleaved with
+`jtbl_*` — sitting in one leading `.rodata` block that is still entirely
+`INCLUDE_RODATA` near the top of the `.c`. GCC 2.8.1 emits a local aggregate
+initializer's constant pool immediately before the *function*, so writing the
+initializer at the dispatcher's own place in the file puts the four words after
+every `INCLUDE_RODATA` above it and grows `.rodata` at the wrong end; giving one
+dispatcher its own unit would mean thirteen cuts and a destructive re-split of a
+file holding fifty matched bodies.
+
+Read the splat-owned table as an extern instead — the instructions are identical
+and only the symbol in the `%hi`/`%lo` pair differs, which is what the scratch
+diff shows as a two-line `regs` penalty on an otherwise perfect body:
+
+```c
+extern const TaskFuncTable4 D_actor_400600_80131F60;
+
+void func_actor_400600_801394E0(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable4   fns  = D_actor_400600_80131F60;
+
+    func_actor_400600_80138AA4(arg0);
+    fns.funcs[(s16)work->field_71E](arg0);
+}
+```
+
+Note the entry-count threshold while reading such a unit: two entries are built
+in place with `lui`/`addiu` and never reach `.rodata` at all
+(`func_actor_400600_80139218`), so only tables of three or more constrain
+placement.
+
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
 A byte-copy loop that increments both a counter and a destination pointer can
