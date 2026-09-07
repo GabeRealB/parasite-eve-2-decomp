@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 #include "actors/actor_450800.h"
 #include "gameplay/1BC.h"
@@ -90,7 +91,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132448);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132790);
+void func_actor_450800_80132160(void* enemy, Task* task);
+void func_actor_450800_801327E4(void* enemy, Task* task);
+
+void func_actor_450800_80132790(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_450800_80132160, func_actor_450800_801327E4 };
+
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801327E4);
 

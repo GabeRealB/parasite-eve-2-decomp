@@ -82,9 +82,9 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138DCC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138EF8);
+INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", ActorsShared80131e24Sub0);
 
-void func_actor_403600_8013938C(Actor403600Ctx* arg0, Actor403600* arg1)
+void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1)
 {
     s16              temp_a1;
     s16              temp_v0;
@@ -216,59 +216,4 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80140B4C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141180);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801411D4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801412D0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141338);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801414FC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141598);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8014161C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8014174C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801417A8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141840);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141954);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801419E8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141A34);
-
-void func_actor_403600_80141B24(Actor403600* arg0)
-{
-    Actor403600Work* work = arg0->field_1C;
-
-    Gp_HaltPadScripts();
-    SndEvt_EnqueueType7(0x54160001, 1);
-    work->field_708 = 0;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141B60);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141BE0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141C3C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141C7C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141CD4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141D30);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141E78);
-
-void func_actor_403600_80141F28(Actor403600* arg0)
-{
-    arg0->field_2C->field_8->sub = &Gfx_ViewCoord;
-    Gp_EnemyTaskExit((Task*)arg0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80141F58);
+INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_801320EC);

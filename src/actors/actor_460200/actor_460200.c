@@ -88,7 +88,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801325FC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801327B4);
+void func_actor_460200_80132808(void* enemy, Task* task);
+void func_actor_460200_80132468(void* enemy, Task* task);
+
+void func_actor_460200_801327B4(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_460200_80132808, func_actor_460200_80132468 };
+
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132808);
 
@@ -119,7 +127,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132F0C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801330C8);
+void func_actor_460200_80132D74(void* enemy, Task* task);
+void func_actor_460200_8013311C(void* enemy, Task* task);
+
+void func_actor_460200_801330C8(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_460200_80132D74, func_actor_460200_8013311C };
+
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8013311C);
 

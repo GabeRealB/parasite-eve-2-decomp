@@ -240,10 +240,6 @@ void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C5E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C660);
+INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", ActorsShared80131e24Sub0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C874);
-
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014CA2C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014CA80);

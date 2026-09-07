@@ -53779,3 +53779,32 @@ Tmd_ProcessStream include/actors/` found it in one step - grepping the *callee
 list* from the brief against the family's existing shared headers is a cheap
 first move on any actor function, and it finds inlined copies that
 `overlay_dup_index.py find` cannot, since that compares whole functions.
+
+## Aliasing a shared dispatcher's overlay-local callees: read the slot order out of the code, not the symbol list
+
+`overlay_dup_index.py promote` refuses a body that references its own overlay's
+code, but a *dispatcher* is promotable anyway: the callees differ per overlay
+only in address, so each carrier's symbol map can name them with the same
+shared alias. `ActorsShared8013845c` and `ActorsShared80131e24` are both built
+this way — the shared `.c` declares `<Sym>Sub0` / `<Sym>Sub1`, and every
+carrier's `configs/USA/sym/<family>/<overlay>.txt` points those names at its own
+two handlers while its `.c` renames the matching `INCLUDE_ASM` lines.
+
+The trap is deciding which handler is `Sub0`. Collecting the callees with
+something like `grep -o '%hi(func_[a-z0-9_]*)' … | sort -u` returns them in
+*name* order, which is address order, and the table is not always in address
+order. Of the eleven carriers of `ActorsShared80131e24`, ten store the
+lower-addressed handler into slot 0 and `actor_160600` stores the higher one:
+
+```
+/* 80131E30 */  lui   $v0, %hi(handler_slot0)
+/* 80131E34 */  addiu $v0, $v0, %lo(handler_slot0)
+/* 80131E38 */  sw    $v0, 0x10($sp)      <- slot 0
+/* 80131E3C */  lui   $v0, %hi(handler_slot1)
+/* 80131E40 */  addiu $v0, $v0, %lo(handler_slot1)
+/* 80131E44 */  sw    $v0, 0x14($sp)      <- slot 1
+```
+
+Pair each `%hi`/`%lo` with the `sw` offset that follows it. A swapped pair
+still builds and links — both symbols exist, only their values are exchanged —
+and fails the checksum inside the shared span, four bytes into the first `lui`.

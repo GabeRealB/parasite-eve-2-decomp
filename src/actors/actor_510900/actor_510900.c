@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/task.h"
 
 #include "actors/actor_510900.h"
 
@@ -111,7 +112,15 @@ INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900", D_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B0D8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B3D0);
+void func_actor_510900_801350F8(void* enemy, Task* task);
+void func_actor_510900_8013B658(void* enemy, Task* task);
+
+void func_actor_510900_8013B3D0(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_510900_801350F8, func_actor_510900_8013B658 };
+
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B424);
 

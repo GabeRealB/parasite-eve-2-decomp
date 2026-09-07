@@ -41,6 +41,6 @@ typedef struct Actor403600Ctx {
     /* 0x14 */ u8   field_14;
 } Actor403600Ctx;
 
-void func_actor_403600_8013938C(Actor403600Ctx* arg0, Actor403600* arg1);
+void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
 
 #endif

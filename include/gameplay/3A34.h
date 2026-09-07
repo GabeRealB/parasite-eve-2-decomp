@@ -379,7 +379,7 @@ STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 /// Object whose pointers at 0x1C / 0x20 are `MATRIX*`s. `Gp_SetObjTrans`
 /// writes translation `t[0]/t[1]/t[2]` through `field_20`. `Gp_BindDefaultMtx`
 /// installs the default matrices `Gp_DefaultMtx` / `Gp_DefaultMtx2` here (same
-/// overlay as `TmdObject`). `func_actor_403600_8013938C` stores 0x80 into
+/// overlay as `TmdObject`). `ActorsShared80131e24Sub1` stores 0x80 into
 /// `field_C` on the object it later hands to `Gp_SetObjTrans`.
 typedef struct _GpObj20 {
     /* 0x00 */ byte    pad_0[0xC];

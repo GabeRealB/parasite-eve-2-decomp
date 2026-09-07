@@ -42,19 +42,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132ABC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132B58);
+INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", ActorsShared80131e24Sub0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132D68);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132F20);
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80132F74);
-
-void func_actor_535700_80132FF8(Task* task)
-{
-    Gp_DestroyEnemy(task->spawnArg2, task);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80133020);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_535700/actor_535700", D_actor_535700_80131E20);

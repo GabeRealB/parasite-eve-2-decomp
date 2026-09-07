@@ -1,1 +1,4 @@
 // Overlay-local symbols for actor_403600.
+ActorsShared80131e24 = 0x80141180; // shared body, see src/actors/lib/
+ActorsShared80131e24Sub0 = 0x80138EF8; // shared body's overlay-local callee, see src/actors/lib/
+ActorsShared80131e24Sub1 = 0x8013938C; // shared body's overlay-local callee, see src/actors/lib/

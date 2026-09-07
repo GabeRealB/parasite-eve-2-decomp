@@ -1,10 +1,8 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", func_actor_110700_80131E24);
+INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", ActorsShared80131e24Sub0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", func_actor_110700_80131E78);
-
-INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", func_actor_110700_80131F44);
+INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", ActorsShared80131e24Sub1);
 
 INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", func_actor_110700_8013201C);
 

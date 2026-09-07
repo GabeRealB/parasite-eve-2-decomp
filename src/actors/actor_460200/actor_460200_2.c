@@ -15,7 +15,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_801336B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_8013386C);
+void func_actor_460200_801338C0(void* enemy, Task* task);
+void func_actor_460200_80133A04(void* enemy, Task* task);
+
+void func_actor_460200_8013386C(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
+
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_801338C0);
 

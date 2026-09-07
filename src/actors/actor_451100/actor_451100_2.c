@@ -1,9 +1,14 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_80132DBC);
+#include "gameplay/1BC.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_80132E34);
+#include "main/task.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_80132E98);
+INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", ActorsShared80131e24Sub1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_80132F04);
+void func_actor_451100_80132CAC(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_80132CD4);

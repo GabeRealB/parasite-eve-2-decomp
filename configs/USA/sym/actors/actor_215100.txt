@@ -3,3 +3,6 @@ ActorsShared801366fc = 0x8014CB04; // shared body, see src/actors/lib/
 ActorsShared80132404 = 0x8014CBB8; // shared body, see src/actors/lib/
 ActorsShared80132614 = 0x8014CDB0; // shared body, see src/actors/lib/
 ActorsShared801326ac = 0x8014CE30; // shared body, see src/actors/lib/
+ActorsShared80131e24 = 0x8014CA2C; // shared body, see src/actors/lib/
+ActorsShared80131e24Sub0 = 0x8014C660; // shared body's overlay-local callee, see src/actors/lib/
+ActorsShared80131e24Sub1 = 0x8014CA80; // shared body's overlay-local callee, see src/actors/lib/
