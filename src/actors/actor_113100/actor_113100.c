@@ -6,6 +6,12 @@
 
 #include "gameplay/1BC.h"
 
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_113100_80131E24;
+extern TaskFuncTable3 D_actor_113100_80131E30;
+extern TaskFuncTable3 D_actor_113100_80131E3C;
+
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80131E58);
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132104);
@@ -20,19 +26,43 @@ INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132AD8);
+INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E24);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E30);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E3C);
+
+void func_actor_113100_80132AD8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_113100_80131E24;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132B30);
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132BDC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132C9C);
+void func_actor_113100_80132C9C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_113100_80131E30;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132CF4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132E00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132E98);
+void func_actor_113100_80132E98(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_113100_80131E3C;
+    sp.funcs[task->state](task);
+}
 
 void func_actor_113100_80132EF0(Task* arg0)
 {

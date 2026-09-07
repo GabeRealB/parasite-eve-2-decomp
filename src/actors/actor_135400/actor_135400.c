@@ -5,6 +5,11 @@
 
 #include "gameplay/1BC.h"
 
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_135400_80131E24;
+extern TaskFuncTable3 D_actor_135400_80131E30;
+
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80131EB4);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E20);
@@ -19,7 +24,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_801322A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_801323F8);
+void func_actor_135400_801323F8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_135400_80131E24;
+    sp.funcs[task->state](task);
+}
 
 void func_actor_135400_80132450(Task* task)
 {
@@ -48,7 +59,13 @@ void func_actor_135400_801324CC(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_801324D4);
+void func_actor_135400_801324D4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_135400_80131E30;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_8013252C);
 

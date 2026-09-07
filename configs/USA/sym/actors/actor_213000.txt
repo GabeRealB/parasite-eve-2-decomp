@@ -1,3 +1,4 @@
 // Overlay-local symbols for actor_213000.
 ActorsShared8013231c = 0x8014A828; // shared body, see src/actors/lib/
 ActorsShared80132450 = 0x8014A0DC; // shared body, see src/actors/lib/
+D_actor_213000_80149E24 = 0x80149E24; // force_not_migration:True actor state table, read from C

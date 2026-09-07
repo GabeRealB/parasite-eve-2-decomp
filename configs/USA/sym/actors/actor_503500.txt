@@ -6,3 +6,7 @@ ActorsShared80162080 = 0x80132BB8; // shared body, see src/actors/lib/
 ActorsShared80132ca4 = 0x80132CA4; // shared body, see src/actors/lib/
 ActorsShared80132bd8 = 0x80132BD8; // shared body, see src/actors/lib/
 ActorsShared801366fc = 0x801324C4; // shared body, see src/actors/lib/
+D_actor_503500_801321DC = 0x801321DC; // force_not_migration:True actor state table, read from C
+D_actor_503500_801321E8 = 0x801321E8; // force_not_migration:True actor state table, read from C
+D_actor_503500_80132218 = 0x80132218; // force_not_migration:True actor state table, read from C
+D_actor_503500_80132224 = 0x80132224; // force_not_migration:True actor state table, read from C

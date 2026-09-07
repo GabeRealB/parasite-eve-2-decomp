@@ -5,6 +5,12 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/task.h"
+
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_141000_80131E24;
+
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132E24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132EB0);
@@ -29,7 +35,13 @@ void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801330C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801331AC);
+void func_actor_141000_801331AC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_141000_80131E24;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80133204);
 

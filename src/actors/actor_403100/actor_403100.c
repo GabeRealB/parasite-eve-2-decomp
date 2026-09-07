@@ -8,6 +8,11 @@
 
 #include "actors/actor_403100.h"
 
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_403100_80131E70;
+extern TaskFuncTable3 D_actor_403100_80131E7C;
+
 /// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `field_8` is
 /// this actor's `GsCOORDINATE2`.
 extern Actor403100Work* D_actor_403100_80155808;
@@ -425,9 +430,21 @@ void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
     D_actor_403100_80155808->field_5DA = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E04C);
+void func_actor_403100_8013E04C(Task* task)
+{
+    TaskFuncTable3 sp;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E0A4);
+    sp = D_actor_403100_80131E70;
+    sp.funcs[task->state](task);
+}
+
+void func_actor_403100_8013E0A4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131E7C;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013E0FC);
 

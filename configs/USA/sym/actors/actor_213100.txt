@@ -2,3 +2,4 @@
 ActorsShared801327b4 = 0x8014A21C; // shared body, see src/actors/lib/
 ActorsShared8013231c = 0x8014A390; // shared body, see src/actors/lib/
 ActorsShared80132450 = 0x8014A03C; // shared body, see src/actors/lib/
+D_actor_213100_80149E24 = 0x80149E24; // force_not_migration:True actor state table, read from C

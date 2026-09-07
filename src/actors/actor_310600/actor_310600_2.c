@@ -4,11 +4,21 @@
 #include "actors/actor_310600.h"
 #include "gameplay/1BC.h"
 
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_310600_80161E3C;
+
 void func_actor_310600_801629C4(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600_2", func_actor_310600_801629CC);
+void func_actor_310600_801629CC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_310600_80161E3C;
+    sp.funcs[task->state](task);
+}
 
 void func_actor_310600_80162A24(Task* arg0)
 {
