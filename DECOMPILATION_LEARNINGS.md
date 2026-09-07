@@ -3,6 +3,39 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Two literal stores cross-jump to `j` / `li v0, N` / shared `sb`; a phi cannot
+
+A replay-rank byte that the target writes as
+
+```
+bnez  v1, else
+ sw    field_18
+j     store
+ li    v0, 2
+else:
+ ...
+ beqz  v0, skip
+ li    v0, 1
+store:
+ sb    v0, field_92A
+```
+
+does **not** match from a `rank` local. `rank = 2; goto store;` plus `rank = 1` *before* the second compare keeps the `j`, but `rank` is then live across `lui`/`ori`/`slt` of `0x10D88` and cannot be `$v0` (`li a0, 2` / `sb a0`). Moving `rank = 1` *into* the true branch frees `$v0` and drops the `j` (`sw field_18; beqz; li v0, 2`).
+
+Write the two stores as literals and let GCC cross-jump them:
+
+```c
+if (copy.field_F >= 2) {
+    save->field_92A = 2;
+} else if (save->field_92A <= 0) {
+    if (totals.unk0 > 0x10D88) {
+        save->field_92A = 1;
+    }
+}
+```
+
+`func_replay_bonus_80116EC0` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `save->field_92B = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
+
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 
 A matched sibling (`func_replay_bonus_80117484`) does

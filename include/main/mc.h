@@ -177,7 +177,10 @@ typedef struct _McSaveData {
     /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (Gp_GetModLevel)
     /* 0x928 */ byte       unknown_928[0x1];
     /* 0x929 */ s8         field_929;
-    /* 0x92A */ byte       unknown_92A[0xA];
+    /* 0x92A */ s8         field_92A; // replay rank; 2 if field_F >= 2, else 1 if ReplayBonusTotals.unk0 > 0x10D88
+    /* 0x92B */ u8         field_92B; // set to 0xFF by replay-bonus carry-over
+    /* 0x92C */ s32        field_92C; // max'd against ReplayBonusTotals.unk0
+    /* 0x930 */ s32        field_930; // max'd against ReplayBonusTotals.field_4
     /* 0x934 */ s32        field_934; // parking-lot shop: bitmask of the 13 price tiers whose stock is offered
     /* 0x938 */ u32        field_938; // parking-lot shop: 12 two-bit per-slot stock levels
     /* 0x93C */ u16        field_93C;

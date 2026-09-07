@@ -579,4 +579,113 @@ void func_replay_bonus_80116D68(Task* arg0)
     }
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116EC0);
+void func_replay_bonus_80116EC0(void)
+{
+    McSaveData    copy;
+    McSaveData*   dst;
+    McSaveData*   save;
+    WipSysConfig* cfg;
+    u8*           p;
+    s32           i;
+    s32           j;
+    s32           val92c;
+    s32           val930;
+    s32           val934;
+    u32           val938;
+    u8            val92a;
+    s32           sum;
+    s32           shift;
+    s8            tmp;
+    s32           exp;
+    u32           bits;
+    u32           masked;
+    s32           n;
+
+    cfg  = &Wip_SysConfig;
+    copy = Mc_SaveData;
+    Mc_InitBufferSlots();
+    dst            = &Mc_SaveData;
+    dst->field_E   = (u8)copy.field_E;
+    dst->field_21  = (u8)copy.field_21;
+    dst->field_23  = (u8)copy.field_23;
+    dst->field_25  = copy.field_25;
+    dst->field_1a8 = (u8)copy.field_1a8;
+    dst->field_1aa = copy.field_1aa;
+    dst->field_1ab = (u8)copy.field_1ab;
+    dst->field_1a9 = (u8)copy.field_1a9;
+    i              = 0;
+    do {
+        dst->field_6D0[i] = copy.field_6D0[i];
+        i                += 1;
+    } while (i < 0x60);
+    i = 0;
+    do {
+        Mc_SaveData.field_862[i] = (u16)copy.field_862[i];
+        i                       += 1;
+    } while (i < 0x12);
+    i = 0;
+    do {
+        Mc_SaveData.field_888[i] = copy.field_888[i];
+        i                       += 1;
+    } while (i < 0x20);
+
+    save   = &Mc_SaveData;
+    val92c = copy.field_92C;
+    val930 = copy.field_930;
+    val934 = copy.field_934;
+    val938 = copy.field_938;
+    val92a = (u8)copy.field_92A;
+    SOFT_BARRIER();
+    tmp             = (u8)save->field_E;
+    save->field_92B = 0xFF;
+    tmp             = tmp + 1;
+    save->field_E   = tmp;
+    save->field_92C = val92c;
+    save->field_930 = val930;
+    save->field_934 = val934;
+    save->field_938 = val938;
+    save->field_92A = val92a;
+    if (tmp >= 0x64) {
+        save->field_E = 0x63;
+    }
+    if (val92c < D_replay_bonus_80119274.unk0) {
+        save->field_92C = D_replay_bonus_80119274.unk0;
+    }
+    if (val930 < D_replay_bonus_80119274.field_4) {
+        save->field_930 = D_replay_bonus_80119274.field_4;
+    }
+    sum = D_replay_bonus_80119274.field_C + D_replay_bonus_80119274.field_14;
+    if (sum > 0x98967F) {
+        sum = 0x98967F;
+    }
+    cfg->field_C   = sum;
+    save->field_12 = 0xF;
+    exp            = D_replay_bonus_80119274.field_8;
+    cfg->field_8   = exp;
+    save->field_14 = exp;
+    save->field_18 = cfg->field_C;
+    if (copy.field_F >= 2) {
+        save->field_92A = 2;
+    } else if (save->field_92A <= 0) {
+        if (D_replay_bonus_80119274.unk0 > 0x10D88) {
+            save->field_92A = 1;
+        }
+    }
+    p = copy.unknown_850;
+    j = 0;
+    do {
+        shift = j * 2;
+        bits  = Mc_SaveData.field_938;
+        n     = *p;
+        if ((s32)((bits >> shift) & 3) < n) {
+            masked                = bits & ~(3 << shift);
+            Mc_SaveData.field_938 = masked;
+            Mc_SaveData.field_938 = masked | (*p << shift);
+        }
+        j += 1;
+        p += 1;
+    } while (j < 0xC);
+    if (D_replay_bonus_80119284 >= 0) {
+        Mc_SaveData.field_934 |= 1 << D_replay_bonus_80119284;
+    }
+}
