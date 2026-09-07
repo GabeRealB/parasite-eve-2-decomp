@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
@@ -275,7 +276,364 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
 
 INCLUDE_RODATA("aya/nonmatchings/replay_bonus/replay_bonus", D_replay_bonus_80115770);
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80115ED0);
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_replay_bonus_80115774\n"
+        "D_replay_bonus_80115774:\n"
+        "\t.asciz \"Complete Bonus\"\n"
+        "\t.align 2\n"
+        "\t.globl D_replay_bonus_80115784\n"
+        "D_replay_bonus_80115784:\n"
+        "\t.asciz \"GET ITEM\"\n"
+        "\t.align 2\n"
+        "\t.globl D_replay_bonus_80115790\n"
+        "D_replay_bonus_80115790:\n"
+        "\t.asciz \"BONUS BP\"\n"
+        "\t.align 2\n"
+        "\t.globl D_replay_bonus_8011579C\n"
+        "D_replay_bonus_8011579C:\n"
+        "\t.asciz \"TOTAL BP\"\n"
+        "\t.align 2\n"
+        ".section .text\n");
+#endif
+
+void func_replay_bonus_80115ED0(Task* arg0)
+{
+    u8                   buf[0x20];
+    TextDrawReq          req;
+    TextDrawReq          req2;
+    TextDrawReq          req3;
+    UiObject*            obj;
+    UiList*              list;
+    WipSysConfig*        cfg;
+    WipSysConfig*        cfg2;
+    WipSysConfig*        cfgDraw;
+    ReplayBonusTotals*   totals;
+    ReplayBonusShopTier* p;
+    ReplayBonusShopTier* row;
+    McSaveData*          save;
+    s16*                 ip;
+    void*                mem;
+    s32                  status;
+    s32                  state;
+    s32                  i;
+    s32                  n;
+    s32                  sum;
+    s32                  item;
+    s32                  idx;
+    s32                  result;
+    u32                  spend;
+    s32                  mask;
+    s32                  one;
+    s32                  j;
+    s32                  remaining;
+    s32                  xOff;
+    s32                  yOff;
+    s32                  ot;
+    s32                  ot2;
+    s32                  ot3;
+    s32                  color;
+    s32                  lo;
+    s32                  hi;
+    s32                  ptr;
+    s32                  price;
+    s32                  exp;
+    s32                  tmp;
+    s32                  off;
+    s32                  t;
+    s32                  ids32;
+    s32                  acc;
+    s32                  shop_i;
+    s32                  bonus_i;
+    s16*                 ipInit;
+    s32                  itemInit;
+    s32                  idxInit;
+    s32                  limitInit;
+    s16*                 ipBonus;
+    s32                  iInit, loInit, hiInit, nDraw, idxDraw;
+    u8                   nxt;
+
+    list          = &D_replay_bonus_80119130;
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_replay_bonus_80115774);
+    if (arg0->state == 0) {
+        cfg         = &Wip_SysConfig;
+        mem         = Mem_Malloc(0x258, 0);
+        arg0->idMap = mem;
+        if (mem == NULL) {
+            obj->field_2E = 6;
+            return;
+        }
+        Gp_ClearPreviewItems();
+        D_80067634 = 0;
+        func_replay_bonus_80115D60(list, (ReplayBonusCtx*)obj);
+        Ui_LayoutListPanel(list, (UiPanel*)obj);
+        iInit = 0;
+        USE_REG(iInit);
+        acc            = iInit;
+        list->field_A  = 1;
+        list->field_17 = 0xF;
+        obj->field_12  = obj->field_12 + 0x22;
+        SOFT_USE_REG(acc);
+        arg0->killCountdown = 0x3C;
+        arg0->state         = arg0->state + 1;
+        n                   = list->field_4;
+        cfg2                = cfg;
+        list->field_9       = 0;
+        if (n != 0) {
+            loInit    = (s32)Gp_ItemDescs;
+            hiInit    = (s32)D_8010DE38;
+            limitInit = n;
+            ids32     = (s32)((ReplayBonusCtx*)obj)->itemList->itemIds;
+            ipInit    = (s16*)ids32;
+            do {
+                itemInit = *ipInit;
+                idxInit  = itemInit;
+                if (itemInit < 0x100) {
+                    SOFT_TOUCH_REG(idxInit);
+                    ptr = (itemInit * 8) + loInit;
+                } else {
+                    ptr = ((idxInit - 0x100) * 8) + hiInit;
+                }
+                price = ((GpItemDesc*)ptr)->price;
+                SOFT_TOUCH_REG(price);
+                acc += price >> 1;
+                iInit++;
+                SOFT_USE_REG(ipInit);
+                ipInit++;
+            } while (iInit < limitInit);
+        }
+        acc = acc + cfg2->field_C;
+        if (acc > 0x05F5E0FF) {
+            acc = 0x05F5E0FF;
+        }
+        totals                           = &D_replay_bonus_80119274;
+        totals->field_4                  = acc;
+        totals->field_C                  = acc;
+        list->field_9                    = list->field_4 - list->field_5;
+        tmp                              = func_replay_bonus_80115CA4();
+        exp                              = cfg->field_8;
+        D_replay_bonus_80119274.unk0     = tmp;
+        *(volatile s32*)&totals->field_8 = exp;
+        SOFT_TOUCH_REG(exp);
+        switch (D_80072177) {
+            case 3:
+                totals->field_8 = exp * 10;
+                totals->field_C = totals->field_C * 10;
+                break;
+            case 2:
+                totals->field_8 = exp * 5;
+                totals->field_C = totals->field_C * 5;
+                break;
+            case 1:
+                totals->field_8 = exp * 3;
+                totals->field_C = totals->field_C * 3;
+                break;
+        }
+        if (D_replay_bonus_80119274.field_C > 0x98967F) {
+            D_replay_bonus_80119274.field_C = 0x98967F;
+        }
+        if (D_replay_bonus_80119274.field_8 > 0x98967F) {
+            D_replay_bonus_80119274.field_8 = 0x98967F;
+        }
+        tmp   = func_replay_bonus_80115CA4();
+        p     = D_replay_bonus_80118F78;
+        spend = tmp;
+        idx   = 0;
+        if (D_80072A9C == 0x1FFF) {
+            result = -1;
+        } else {
+            shop_i = 0;
+            do {
+            loop:
+                if (!(p->spendThreshold < spend)) {
+                    idx = shop_i;
+                    break;
+                }
+                shop_i++;
+                p++;
+                if (shop_i < 0xD) {
+                    goto loop;
+                }
+            } while (0);
+            save   = &Mc_SaveData;
+            idx   += save->field_F;
+            shop_i = 0;
+            if (idx >= 0xD) {
+                idx = 0xC;
+            }
+            one  = 1;
+            mask = save->field_934;
+            do {
+            loop2:
+                if ((mask & (one << idx)) == 0) {
+                    break;
+                }
+                idx += 1;
+                if (idx >= 0xD) {
+                    idx -= 0xD;
+                }
+                shop_i += 1;
+                if (shop_i < 0xD) {
+                    goto loop2;
+                }
+            } while (0);
+            result = idx;
+        }
+        D_replay_bonus_80119274.field_10 = result;
+        if (result < 0) {
+            sum     = 0;
+            row     = D_replay_bonus_80118F78;
+            bonus_i = sum;
+            do {
+                j       = 0;
+                ipBonus = (s16*)row;
+                do {
+                    sum += Gp_ItemDescs[ipBonus[2]].price;
+                    ipBonus++;
+                    j++;
+                } while (j < 3);
+                bonus_i++;
+                row++;
+            } while (bonus_i < 0xD);
+            sum += 0x1869F;
+            sum  = sum / 100000;
+            sum *= 0x186A0;
+            SOFT_TOUCH_REG(sum);
+            D_replay_bonus_80119288 = sum;
+        } else {
+            D_replay_bonus_80119274.field_14 = 0;
+        }
+    }
+
+    status         = obj->status;
+    obj->status    = 0;
+    obj->field_1A -= 0x13;
+    Ui_UpdateListNoAnim(list, obj);
+    obj->status    = status;
+    obj->field_1A += 0x13;
+
+    state = arg0->state;
+    if (state == 1) {
+        remaining           = (u16)arg0->killCountdown - 1;
+        arg0->killCountdown = remaining;
+        if ((remaining << 0x10) <= 0) {
+            arg0->killCountdown = 0;
+            tmp                 = state;
+            SOFT_TOUCH_REG(tmp);
+            tmp         = tmp + 1;
+            arg0->state = tmp;
+        }
+    } else if (state == 2) {
+        n = list->field_4;
+        if ((s8)list->field_5 < n) {
+            if (list->field_14 <= 0) {
+                nxt           = list->field_9 - 1;
+                list->field_9 = nxt;
+                if ((s8)nxt < 0) {
+                    list->field_9       = 0;
+                    arg0->killCountdown = 0xBC;
+                    arg0->state         = arg0->state + 1;
+                } else {
+                    SndEvt_EnqueueType6(2, 0, 0);
+                    list->field_16 = -1;
+                    list->field_14 = (s8)(u8)list->field_7;
+                }
+                list->field_10 = (s8)list->field_9;
+            }
+            list->field_14 = (u16)list->field_14 - 1;
+        } else {
+            arg0->killCountdown = 0xBC;
+            arg0->state         = arg0->state + 1;
+        }
+    } else {
+        remaining           = (u16)arg0->killCountdown - 1;
+        arg0->killCountdown = remaining;
+        if ((remaining << 0x10) <= 0) {
+            obj->field_2E = 6;
+        }
+    }
+
+    yOff = (s16)obj->field_18 + 0xC;
+    xOff = (s16)obj->field_1C + 2;
+    Ui_DrawHBar((UiPanel*)obj, xOff, (s16)obj->field_1E - 2, yOff);
+    color = 0x606060;
+
+    req.x          = obj->baseX + xOff;
+    req.y          = obj->baseY - 4;
+    req.y         += yOff;
+    ot             = (s16)obj->drawOrder;
+    req.field_8    = color;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    req.otIndex    = ot + 1;
+    func_8002E53C(&req, D_replay_bonus_80115784);
+
+    req2.x          = obj->baseX - xOff;
+    req2.y          = obj->baseY - 4;
+    req2.y         += yOff;
+    ot2             = (s16)obj->drawOrder;
+    req2.field_8    = color;
+    req2.glyphTable = 5;
+    req2.centerMode = 2;
+    req2.field_E    = 1;
+    req2.otIndex    = ot2 + 1;
+    func_8002E53C(&req2, D_replay_bonus_80115790);
+
+    t    = (s16)obj->field_1A;
+    yOff = t - 1;
+    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C + 2, (s16)obj->field_1E - 2, t - 0x10);
+
+    req3.x          = obj->baseX + 0x70 + xOff;
+    req3.y          = obj->baseY - 6;
+    req3.y         += yOff;
+    ot3             = (s16)obj->drawOrder;
+    req3.field_8    = color;
+    req3.glyphTable = 5;
+    req3.centerMode = 2;
+    req3.field_E    = 1;
+    req3.otIndex    = ot3 + 1;
+    func_8002E53C(&req3, D_replay_bonus_8011579C);
+
+    cfgDraw = &Wip_SysConfig;
+    i       = (s8)list->field_9;
+    nDraw   = list->field_4;
+    sum     = 0;
+    if (i < nDraw) {
+        lo = (s32)Gp_ItemDescs;
+        hi = (s32)D_8010DE38;
+        SOFT_BARRIER();
+        ids32 = (s32)((ReplayBonusCtx*)obj)->itemList->itemIds;
+        off   = i * 2;
+        ip    = (s16*)(off + ids32);
+        do {
+            item    = *ip;
+            idxDraw = item;
+            if (item < 0x100) {
+                SOFT_TOUCH_REG(idxDraw);
+                ptr = (item * 8) + lo;
+            } else {
+                ptr = ((idxDraw - 0x100) * 8) + hi;
+            }
+            price = ((GpItemDesc*)ptr)->price;
+            SOFT_TOUCH_REG(price);
+            sum += price >> 1;
+            i++;
+            ip++;
+        } while (i < nDraw);
+    }
+    sum += cfgDraw->field_C;
+    if (sum > 0x05F5E0FF) {
+        sum = 0x05F5E0FF;
+    }
+    Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
+    if ((obj->status == 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        obj->field_2E = 6;
+    }
+}
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"

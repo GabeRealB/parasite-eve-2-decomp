@@ -54132,3 +54132,35 @@ matched bodies back by name (`bodies_of()` in `tools/land_overlay.py`), together
 with the include block and any forward declarations, which splat's skeleton does
 not carry. `tools/check_lost_matches.py`, run by `build-and-verify.sh`, confirms
 nothing was dropped.
+
+
+## A volatile scalar member store can order memory while allowing an independent `lui`
+
+`func_replay_bonus_80115ED0` reached 99.881% with only `reorder=1`: the
+`D_80072177` address high half came after the EXP store instead of before it.
+A `SCHED_BARRIER` or `TOUCH_REG_MEM(exp)` held the high half back too: patched
+GCC 2.8.1 `sched.c`, `sched_analyze_2`, treats volatile asm as using and
+clobbering every register as well as memory. The `.sched` dump showed the
+resulting `REG_DEP_OUTPUT` from the asm to the `high` insn.
+
+The matching sequence came from a volatile scalar view of the member plus
+a nonvolatile register touch:
+
+```c
+*(volatile s32*)&totals->field_8 = exp;
+SOFT_TOUCH_REG(exp);
+switch (D_80072177) { /* multipliers use exp */ }
+```
+
+This emits `lw a0` / `sw v0` / `lui v0` / `sw a0` / `lb v1`. Casting the
+entire aggregate to `volatile ReplayBonusTotals*` instead lost the match:
+the `.sched2` dump put `lb` and its following `li` before the EXP store.
+Keep the scalar view when this exact memory ordering is needed; volatile
+aggregate access is not interchangeable in this compiler.
+
+The same function improved from 90.686% by loading each text request's
+`otIndex` source into a separate temporary before its attribute stores, as
+in its matched sibling, and splitting the item-walking pointers between
+initial totals, the bonus sum, and the draw-time sum. Initializing the text
+color after `Ui_DrawHBar` also let the common `a0 = obj` move fill both
+state-exit branch delay slots. The final unpinned seed is `base_12.c`.

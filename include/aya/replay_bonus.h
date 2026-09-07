@@ -160,9 +160,18 @@ typedef struct ReplayBonusTotals {
 extern ReplayBonusTotals D_replay_bonus_80119274;
 extern s32               D_replay_bonus_8011927C;
 
+extern UiList D_replay_bonus_80119130;
+extern s32    D_80067634;
+extern s8     D_80072177;
+extern u8     D_replay_bonus_80115774[];
+extern u8     D_replay_bonus_80115784[];
+extern u8     D_replay_bonus_80115790[];
+extern u8     D_replay_bonus_8011579C[];
+
 u16* func_replay_bonus_80115C68(void);
 s32  func_replay_bonus_80115CA4(void);
 void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx);
+void func_replay_bonus_80115ED0(Task* arg0);
 s32  func_replay_bonus_801173A8(void);
 void func_replay_bonus_80117E04(void);
 s32  func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
