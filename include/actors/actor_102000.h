@@ -107,7 +107,7 @@ typedef struct Actor02000Work {
     /* 0x6CC */ byte                pad_6CC[8];
     /* 0x6D4 */ s16                 field_6D4;
     /* 0x6D6 */ s16                 field_6D6;
-    /* 0x6D8 */ byte                pad_6D8[2];
+    /* 0x6D8 */ s16                 field_6D8;
     /* 0x6DA */ s16                 field_6DA;
     /* 0x6DC */ byte                pad_6DC[2];
     /* 0x6DE */ s16                 field_6DE;

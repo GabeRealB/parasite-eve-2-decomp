@@ -51,9 +51,3 @@ void func_actor_102300_801359C0(void)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_801359C8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135A24);
-
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135A70);
-
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_80135B08);
