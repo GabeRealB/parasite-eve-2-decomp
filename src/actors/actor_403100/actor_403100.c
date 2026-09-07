@@ -19,10 +19,12 @@ void func_8017E128(s32 arg0);
 
 /* Still `INCLUDE_ASM` in this unit. */
 void func_actor_403100_801327CC(void);
+void func_actor_403100_8013712C(void);
 s32  func_actor_403100_80133928(void);
 void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
 void func_actor_403100_8013E6F0(Task* arg0);
+void func_actor_403100_8013F12C(void);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132064);
 
@@ -388,7 +390,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013D9C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013DA6C);
+void func_actor_403100_8013DA6C(void)
+{
+    void (*fns[2])(void) = { func_actor_403100_8013712C, func_actor_403100_8013F12C };
+
+    fns[(s16)D_actor_403100_80155808->field_5FA]();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013DAC4);
 
