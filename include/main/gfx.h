@@ -73,6 +73,7 @@ extern GsCOORDINATE2 D_80070E40;
 extern MATRIX Gfx_ViewRotMtx;
 /// GsCOORDINATE2 whose `.coord` is `D_80070E94`.
 extern GsCOORDINATE2 Gfx_ViewOffsetCoord;
+extern GsCOORDINATE2 Gfx_ViewCoord;
 extern MATRIX        D_80070E94;
 extern MATRIX        D_80070F14;
 /// Translation of `D_80070F14` / `Gfx_ViewCoord.coord.t`.

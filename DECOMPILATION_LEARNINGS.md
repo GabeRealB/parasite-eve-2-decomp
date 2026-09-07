@@ -54450,3 +54450,28 @@ matched. Introducing a separate typed pointer local changed sched1, allocation,
 and delay-slot filling (94.098%); the `.lreg` dump shows its live length became
 24 instructions, compared with the parameter's longer lifetime. A cast alone
 does not introduce that local. The final source is scratch `base_6.c`.
+
+
+## Tmd_Create: an intervening field store changes pointer CSE and scheduling
+
+The unpinned typed implementation reached 98.170% with only `regs=5` and
+`reorder=3`. The permuter found that moving `obj->field_14 = 0` between
+`obj->field_8 = (GsCOORDINATE2*)(obj + 1)` and `coord = obj->field_8` fixes both.
+In `.cse2`, the derived loop pointer changes from `obj + 0x80` to
+`coord + 0x4C`; initialization also keeps the field store before the pointer
+copy and gives the source part count `$v1`. No pins or empty asm are needed.
+The permuter's additional unused assignment in a call argument was removable.
+
+Initializing the later auxiliary-buffer local as `void* mem = NULL` before
+`Tmd_InitSourceStream` is also significant. Compared with the uninitialized
+local, `.lreg` records two call crossings and `.greg` assigns it `$s1`. GCC
+reuses its known zero for the first allocation's second argument and the loop
+index initialization, then reuses `$s1` for the auxiliary allocation result.
+The otherwise dead-looking initializer must remain.
+
+The permuter parser misread an unparenthesized product-plus-size expression
+containing `sizeof(GsCOORDINATE2) + sizeof(TmdObject)` as a cast inside `sizeof`.
+Its base score was 885 instead of the scratch score 205, with a non-scalar
+conversion diagnostic. Using the equivalent `partCount * 0x50 + 0x34` made the
+base scores agree. The final C restores `(partCount * sizeof(GsCOORDINATE2)) +
+sizeof(TmdObject)` and still matches. Always check the permuter's base score.

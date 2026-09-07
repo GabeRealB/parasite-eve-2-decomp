@@ -491,7 +491,54 @@ done:
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
 }
 
-INCLUDE_ASM("main/nonmatchings/tmd", Tmd_Create);
+TmdObject* Tmd_Create(TmdSource* src, s32 flags)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    TmdBone*       bone;
+    u32            i;
+    void*          mem = NULL;
+
+    Tmd_InitSourceStream(src);
+    obj = Mem_Calloc((src->partCount * sizeof(GsCOORDINATE2)) + sizeof(TmdObject), 0);
+    if (obj != NULL) {
+        obj->field_C  = 0x80;
+        obj->field_30 = src->partCount;
+        obj->field_8  = (GsCOORDINATE2*)(obj + 1);
+        obj->field_14 = 0;
+        coord         = obj->field_8;
+        obj->field_16 = src->field_4;
+        obj->field_1C = &GsLIGHTWSMATRIX;
+        obj->field_20 = &D_80074080;
+        obj->field_24 = 0;
+        obj->field_25 = 0;
+        obj->field_10 = src;
+        bone          = src->skeleton;
+        for (i = 0; i < (u32)obj->field_30; i++) {
+            coord->coord = *(MATRIX*)bone;
+            if (bone->parent != i) {
+                coord->sub = &obj->field_8[bone->parent];
+            } else {
+                coord->sub = &Gfx_ViewCoord;
+            }
+            coord->flg = 0;
+            coord++;
+            bone++;
+        }
+        obj->field_18 = NULL;
+        if (flags == 0) {
+            mem = Mem_Calloc(src->field_4 * 2, 1);
+            if (mem != NULL) {
+                obj->field_18 = mem;
+                Tmd_ProcessStream(obj);
+                Tmd_ProcessStream(obj);
+            }
+        } else if (flags & 1) {
+            obj->field_C |= 4;
+        }
+    }
+    return obj;
+}
 
 void Tmd_SetupDraw(TmdObject* arg0)
 {
