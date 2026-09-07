@@ -26,9 +26,12 @@ extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
 extern s32          D_80072A9C;
+extern u8           D_80071072;
 extern McItemRec    D_80072314[];
+extern s32          D_replay_bonus_80119284;
 
-s32 func_replay_bonus_80118B6C(s32 arg0, s32 index);
+s32  func_replay_bonus_80118B6C(s32 arg0, s32 index);
+void func_800C5F70(Task* arg0);
 
 void func_replay_bonus_801158C0(void)
 {
@@ -389,7 +392,153 @@ void func_replay_bonus_80116964(Task* arg0)
     }
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus", func_replay_bonus_80116AC0);
+void func_replay_bonus_80116AC0(Task* arg0)
+{
+    ReplayBonusShopTier* p;
+    u32                  spend;
+    s32                  idx;
+    s32                  i;
+    McSaveData*          save;
+    s32                  mask;
+    s32                  one;
+    s32                  result;
+    s32                  col;
+    s32                  col2;
+    s32                  item;
+    s32                  item2;
+    s32                  remaining;
+    s32                  dt;
+    s32                  temp;
+    s32                  tmp;
+    UiObject*            obj;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        if (D_replay_bonus_80119284 < 0) {
+            obj->field_2E = 6;
+            return;
+        }
+        arg0->killCountdown = 0xBC;
+        temp                = arg0->spawnArg1;
+        arg0->extraState    = temp;
+        SCHED_BARRIER();
+        col = temp;
+        tmp = func_replay_bonus_80115CA4();
+        SCHED_BARRIER();
+        p     = D_replay_bonus_80118F78;
+        spend = tmp;
+        idx   = 0;
+        if (D_80072A9C == 0x1FFF) {
+            result = -1;
+        } else {
+            i = 0;
+            do {
+            loop:
+                if (!(p->spendThreshold < spend)) {
+                    idx = i;
+                    break;
+                }
+                i++;
+                p++;
+                if (i < 0xD) {
+                    goto loop;
+                }
+            } while (0);
+
+            save = &Mc_SaveData;
+            idx += save->field_F;
+            i    = 0;
+            if (idx >= 0xD) {
+                idx = 0xC;
+            }
+            one  = 1;
+            mask = save->field_934;
+            do {
+            loop2:
+                if ((mask & (one << idx)) == 0) {
+                    break;
+                }
+                idx += 1;
+                if (idx >= 0xD) {
+                    idx -= 0xD;
+                }
+                i += 1;
+                if (i < 0xD) {
+                    goto loop2;
+                }
+            } while (0);
+            result = idx;
+        }
+        item = 0;
+        if (result >= 0) {
+            item = D_replay_bonus_80118F78[result].items[col];
+        }
+        Gp_SetPreviewItem(item, 0);
+
+        col2 = arg0->extraState;
+        tmp  = func_replay_bonus_80115CA4();
+        SCHED_BARRIER();
+        p     = D_replay_bonus_80118F78;
+        spend = tmp;
+        idx   = 0;
+        if (D_80072A9C == 0x1FFF) {
+            result = -1;
+        } else {
+            i = 0;
+            do {
+            loop3:
+                if (!(p->spendThreshold < spend)) {
+                    idx = i;
+                    break;
+                }
+                i++;
+                p++;
+                if (i < 0xD) {
+                    goto loop3;
+                }
+            } while (0);
+
+            save = &Mc_SaveData;
+            idx += save->field_F;
+            i    = 0;
+            if (idx >= 0xD) {
+                idx = 0xC;
+            }
+            one  = 1;
+            mask = save->field_934;
+            do {
+            loop4:
+                if ((mask & (one << idx)) == 0) {
+                    break;
+                }
+                idx += 1;
+                if (idx >= 0xD) {
+                    idx -= 0xD;
+                }
+                i += 1;
+                if (i < 0xD) {
+                    goto loop4;
+                }
+            } while (0);
+            result = idx;
+        }
+        if (result < 0) {
+            item2 = 0;
+        } else {
+            item2 = D_replay_bonus_80118F78[result].items[col2];
+        }
+        arg0->spawnArg1 = item2 + 0x20000;
+    }
+    func_800C5F70(arg0);
+    dt                  = D_80071072;
+    remaining           = (u16)arg0->killCountdown - dt;
+    arg0->killCountdown = remaining;
+    if ((remaining << 0x10) <= 0) {
+        obj->field_2E       = 6;
+        arg0->killCountdown = 0x7FFF;
+    }
+}
 
 void func_replay_bonus_80116D68(Task* arg0)
 {

@@ -3,6 +3,58 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
+
+A matched sibling (`func_replay_bonus_80117484`) does
+
+```
+jal   func_replay_bonus_80115CA4
+move  s0, a1
+lui   v1, %hi(table)
+addiu a1, v1, %lo(table)
+move  a2, v0
+```
+
+Copying that lookup twice into a larger task callback keeps the loops identical
+and still schedules `move a2, v0` *before* the table `lui` (99.3%, `reorder=2`).
+`-fschedule-insns` reverse-schedules the whole block from the `bne` against
+`D_80072A9C`, so the live-out copy of the return value sits next to the `jal`
+and frees `$v0` for the `lui`.
+
+The standalone helper does not have that `bne` in the same block. Split it
+with `SCHED_BARRIER()` after the call, then assign the table pointer *before*
+copying the result into `spend`:
+
+```c
+tmp = func_replay_bonus_80115CA4();
+SCHED_BARRIER();
+p     = D_replay_bonus_80118F78;
+spend = tmp;
+```
+
+The barrier is a new block, so the `lui` runs while `$v0` still holds the
+return and uses `$v1`, matching the sibling.
+
+A second barrier *before* the `jal` keeps a related delay-slot pair in order.
+`lw v1, spawnArg1` / `sw extraState` / `jal` / `move s2, v1` needs the store
+emitted before the call so the s-reg copy can fill the slot. `col = spawnArg1;
+extraState = col` coalesces the load into `$s2` and sinks the store into the
+delay instead. Write through a temp, barrier, then the copy:
+
+```c
+temp             = arg0->spawnArg1;
+arg0->extraState = temp;
+SCHED_BARRIER();
+col = temp;
+tmp = func_replay_bonus_80115CA4();
+```
+
+Split the column index across the two inlined copies (`col` / `col2`) so the
+`UiObject*` (live across every call) outranks it for `$s1`. The first item
+fetch is `item = 0; if (result >= 0) item = table[result].items[col]` (`bltz`);
+the second is `if (result < 0) item2 = 0; else item2 = …` (`bgez` with `lui`
+in the delay). `func_replay_bonus_80116AC0` is the example.
+
 ## Join the increment half of a shared `state += 1` tail without `goto`
 
 Several switch cases share
