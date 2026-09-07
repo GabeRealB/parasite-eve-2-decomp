@@ -398,7 +398,28 @@ void Actor01600_L06808(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06810);
+/// Colours the actor from the *second* attach coordinate of its model: takes a
+/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
+/// world position and hands it to `Gp_UpdateActorColor` with no blend
+/// parameters.
+void Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+
+    coord     = &arg1->field_2C->field_8[1];
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    Gp_UpdateActorColor(arg0, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06880);
 
