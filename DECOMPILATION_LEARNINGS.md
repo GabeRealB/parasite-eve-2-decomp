@@ -149,6 +149,32 @@ if (arg0->spawnArg1 == 0) {
 
 A ternary argument and a `UiPanel *panel` hoist both kept the `$v0` form.
 `func_replay_bonus_801166AC` is the example.
+## Handwritten-GTE `mvmva`/`gpf` need the full COP2 word, not the psyq macro
+
+The psyq `gte_mvmva(sf,mx,v,cv,lm)` and `gte_gpf12()` macros emit the *short*
+command word (`gte_mvmva` = `.word 0x000013bf | fields`, `gte_gpf12` =
+`.word 0x000012bf`), which maspsx assembles verbatim — it does **not** add the
+COP2 opcode prefix. A "Handwritten function" (splat marks these; they carry raw
+`ctc2`/`lwc2`/`mvmva`/`mfc2`/`gpf`) uses the *full* instruction word, e.g.
+`mvmva 1,0,0,3,0` = `0x4A486012` and `gpf 1` = `0x4B98003D`. So the psyq macro
+gives the wrong bytes for those two ops. Emit the exact word instead, matching
+`src/pe/inferno`'s local `gte_gpf12_real()`:
+
+```c
+#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+```
+
+The two leading `nop`s reproduce the load-delay padding the real GTE macros
+carry (`gte_mvmva_core`/`gte_gpf12` both start `nop; nop`). The *data-movement*
+GTE macros are fine as-is — `gte_SetRotMatrix`, `gte_ldv0`, `gte_ldsv`,
+`gte_stsv`, `gte_lddp` are plain `lw`/`lwc2`/`mtc2`/`mfc2`/`sh` sequences with no
+COP2 command word, and they matched byte-for-byte. Only the command ops
+(`mvmva`, `gpf`, and by extension `rtps`/`rtv0`/… if hit) need the explicit
+word. Seen on `func_shelter_b1_control_room_access_tunnel_801807C4` (a local
+light-vector transform: `ApplyTransposeMatrixLV` then `SetRotMatrix`+`ldv0`+
+`mvmva`+`stsv`, then `lddp(0xCC)`+`ldsv`+`gpf12`+`stsv`).
+
 ## A stack byte-descriptor passed by pointer must be one function-scope array
 
 A room draw builds a 3-byte descriptor on the stack and hands its address to
