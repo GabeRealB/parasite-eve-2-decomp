@@ -7,6 +7,9 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b3_incinerator_control_room.h"
+
+extern s8 D_80072170;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -44,7 +47,27 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(s32 arg0, s32 arg1, RoomEv
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", func_shelter_b3_incinerator_control_room_8017FB20);
+s32 func_shelter_b3_incinerator_control_room_8017FB20(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        if (GameFlag_GetNibble(0x138) != 0) {
+            D_80072170                                              = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.field_0  = 8;
+            D_shelter_b3_incinerator_control_room_80182A58.field_1  = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.field_3  = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.field_2  = 0;
+            D_shelter_b3_incinerator_control_room_80182A58.field_4  = 0x54290001;
+            D_shelter_b3_incinerator_control_room_80182A58.field_8  = 0x54290004;
+            D_shelter_b3_incinerator_control_room_80182A58.field_10 = 0x54290002;
+            D_shelter_b3_incinerator_control_room_80182A58.field_C  = 0x54290003;
+            Task_SpawnFromTable(&D_shelter_b3_incinerator_control_room_80181814, 0, 7, (s32)&D_shelter_b3_incinerator_control_room_80182A58);
+        } else {
+            GameFlag_SetNibble(0x138, 1);
+            Gp_SpawnIfCapIdle(6, 1);
+        }
+    }
+    return 0;
+}
 
 s32 func_shelter_b3_incinerator_control_room_8017FBE0(void)
 {
