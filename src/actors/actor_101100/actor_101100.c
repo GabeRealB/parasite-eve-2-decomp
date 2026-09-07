@@ -1,5 +1,4 @@
 #include "common.h"
-#include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80131F08);
 
@@ -49,38 +48,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80137FB8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801381AC);
+INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", ActorsShared8013845cSub0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138374);
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138404);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_8013845C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801384AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_8013852C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801385E0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138774);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801388E8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_8013898C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138A2C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138B5C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138C6C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138D58);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138E34);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138EFC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80138F68);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801390D8);
