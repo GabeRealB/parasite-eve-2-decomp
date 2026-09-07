@@ -94,6 +94,8 @@ extern GpItemMoveState* Gp_ItemMoveWork;
 extern UiObjectDesc D_8010D6F4[];
 /// Popup spawned by `Gp_ItemMoveRow` on confirm when `owner->state == 1`.
 extern UiObjectDesc D_8010D764;
+/// Quantity-selection popup opened by `func_800BD6DC` when moving ammo stacks.
+extern UiObjectDesc D_8010D780;
 /// "Move items" confirmation popup spawned by `Gp_ItemMoveChild` when the
 /// pane is closed with items still selected (`Gp_CanMoveItems` result as arg1).
 extern UiObjectDesc D_8010D7F0;
@@ -115,6 +117,7 @@ extern u8                  Gp_StrAll[];         // "All"
 extern u8                  Gp_StrSelect[];      // "Select"
 extern u8                  Gp_StrDiscard[];     // "Discard"
 extern u8                  Gp_StrEnd[];         // "End"
+extern u8                  Gp_StrMove2[];       // "Move"
 extern char                Gp_StrBullet[];      // "Bullet"
 extern const GpPromptTexts Gp_ItemPromptTexts;
 /// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
@@ -143,6 +146,9 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1);
 /// `0x24`. Circle (src) / Square (dest) / mask 3 switch panes (`0xA`)
 /// and play type-6 sound 2. Walks children through `Gp_CloseItemPane`.
 void Gp_ItemPaneTask(Task* arg0);
+/// Move action in `Gp_ItemActionFns`. Draws `Gp_StrMove2`, checks destination
+/// capacity and item/equipment restrictions, then opens a prompt or quantity
+/// selector, or transfers the selected stack and sets `field_2E = 6`.
 void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
 /// List-item confirm for `Gp_ItemActionFns`. Draws `Gp_StrSwitch`, then on confirm
 /// looks up the selected inventory row and inlines `Gp_ItemUseRestricted` against

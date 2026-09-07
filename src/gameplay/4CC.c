@@ -511,7 +511,91 @@ children:
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD6DC);
+void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    s32         flags;
+    GpItemRec*  rec;
+    Task*       scanOwner;
+    Task*       owner;
+    s32         idx;
+    s32         selected;
+    s32         restricted;
+    s32         prompt;
+    s32         chooseQty;
+    s32         qty;
+    s32         item;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, Gp_StrMove2);
+    selected = arg0->field_C;
+    if ((selected == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+        prompt    = -1;
+        chooseQty = 0;
+        idx       = arg1->owner->spawnArg1;
+        rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].field_10, 0);
+        item      = rec->field_0;
+        qty       = rec->field_2;
+        SndEvt_EnqueueType6(3, 0, 0);
+        if ((u32)(item - 0xA0) < 0x20U) {
+            scanOwner = arg1->owner;
+            if (scanOwner->flags != 0) {
+                if ((Gp_FindItemInScan(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1 ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) == 0)) {
+                    prompt = 6;
+                }
+            } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1 ^ 1)), item) != 0) || (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) != 0)) {
+                chooseQty = 1;
+            } else {
+                prompt = 6;
+            }
+        } else if (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) != 0) {
+            owner      = arg1->owner;
+            flags      = owner->parent->flags;
+            restricted = 0;
+            if (Gp_ItemDescs[item].field_3 & 1) {
+                restricted = flags == 1;
+            }
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.field_7 == selected)) {
+                restricted = 1;
+            }
+            if (restricted != 0) {
+                prompt = 0x1E;
+            } else if ((u32)(item - 0x80) < 0x20U) {
+                if ((arg1->owner->spawnArg1 != 1) || (item != (Wip_SysConfig.field_21 + 0x7F))) {
+                    if (prompt == -1) {
+                        Gp_ClearEquipSlot(item);
+                    }
+                } else {
+                    prompt = 7;
+                }
+            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1 == 1) && (item == (Wip_SysConfig.field_23 + 0x5F))) {
+                prompt = 7;
+            }
+        } else {
+            prompt = 6;
+        }
+        if (prompt >= 0) {
+            Gp_SpawnItemPrompt(arg1, prompt, 0, 0);
+            arg1->status = 0;
+            return;
+        }
+        if (chooseQty == 1) {
+            if (Ui_SpawnFromDesc(&D_8010D780, item, 1, 1, arg1) != NULL) {
+                arg1->status = 0;
+            }
+        } else {
+            Gp_RemoveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1)), rec, qty);
+            Gp_GiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item, qty);
+            arg1->field_2E = 6;
+        }
+    }
+}
 
 void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
 {
