@@ -1,9 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", D_dryfield_night_g_r_kitchen_8017D5C0);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", func_dryfield_night_g_r_kitchen_8017D74C);
-
 s32 func_dryfield_night_g_r_kitchen_8017D8BC(void)
 {
     return 0;

@@ -1,9 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", D_shelter_b2_elevator_hall_8017D5C0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", func_shelter_b2_elevator_hall_8017D774);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", func_shelter_b2_elevator_hall_8017D8E4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", func_shelter_b2_elevator_hall_8017DAD4);

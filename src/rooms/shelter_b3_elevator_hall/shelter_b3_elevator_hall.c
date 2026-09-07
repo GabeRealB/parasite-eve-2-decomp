@@ -11,9 +11,9 @@ extern s16      D_80071076;
 extern u8       D_801153F4;
 extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017D790);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017D900);
+
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", RoomsShared8017d878Table);
 
 void func_shelter_b3_elevator_hall_8017DAF0(Task* arg0)
 {

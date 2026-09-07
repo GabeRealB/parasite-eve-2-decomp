@@ -7,8 +7,6 @@
 
 extern TaskDesc D_shelter_b1_armory_801824E8[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_801800A4);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180214);
