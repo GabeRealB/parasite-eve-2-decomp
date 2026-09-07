@@ -86,6 +86,9 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* work, GpRec1
 void func_actor_503500_8013B460(Actor503500* arg0);
 void func_actor_503500_8013B8D0(Actor503500* arg0);
 void func_actor_503500_8013BE0C(Actor503500* arg0);
+void func_actor_503500_8013BCB4(Actor503500* arg0);
+void func_actor_503500_8013BD0C(Actor503500* arg0);
+void func_actor_503500_8013BD88(Actor503500* arg0);
 void func_actor_503500_8013E384(Actor503500* arg0);
 void func_actor_503500_8013E740(Actor503500* arg0);
 void func_actor_503500_8013EBE4(Actor503500* arg0);
@@ -458,7 +461,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013B8D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_8013BBCC);
+void func_actor_503500_8013BBCC(Actor503500* arg0)
+{
+    GpEnemy*       enemy;
+    GsCOORDINATE2* coord;
+
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+    if (D_801153F4 == 1) {
+        return;
+    }
+    if (D_801153F4 == 2) {
+        enemy->node.field_4 |= 1;
+        return;
+    }
+    coord->flg = 0;
+    if (enemy->field_4C != 0) {
+        func_actor_503500_8013BCB4(arg0);
+    }
+    func_actor_503500_8013BD0C(arg0);
+    func_actor_503500_8013BD88(arg0);
+}
 
 void func_actor_503500_8013BC54(Actor503500* arg0)
 {
