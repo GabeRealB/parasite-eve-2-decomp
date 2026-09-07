@@ -3,8 +3,6 @@
 
 extern TaskFunc D_actor_104000_8013E50C[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000_3", func_actor_104000_80138580);
-
 INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000_3", func_actor_104000_80138698);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104000/actor_104000_3", func_actor_104000_801387B4);

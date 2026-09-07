@@ -2,3 +2,4 @@
 ActorsShared80135990 = 0x80135990; // shared body, see src/actors/lib/
 ActorsShared80135df4Table = 0x80131F2C; // shared body data, see src/actors/lib/
 ActorsShared80135df4 = 0x80135DF4; // shared body, see src/actors/lib/
+ActorsShared80135a60 = 0x80135A60; // shared body, see src/actors/lib/
