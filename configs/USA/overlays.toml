@@ -438,7 +438,7 @@ actor_107600 = { }
 actor_109300 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_110300 = { }
 actor_110600 = { }
-actor_110700 = { }
+actor_110700 = { shared = [{ start = "0x254", end = "0x2B8", unit = "actors_shared_80132074" }] }
 actor_110800 = { }
 actor_111800 = { }
 actor_113000 = { }
@@ -495,9 +495,9 @@ actor_451100 = { }
 actor_460200 = { shared = [{ start = "0x1748", end = "0x1760", unit = "actors_shared_80132b88" }] }
 actor_461800 = { shared = [{ start = "0xC70", end = "0xCB8", unit = "actors_shared_80132ecc" }, { start = "0x1814", end = "0x183C", unit = "actors_shared_801366fc" }] }
 actor_503500 = { units = ["0x44E4"], rodata = [{ start = "0x10", unit = "actor_503500_2" }, { start = "0x34", unit = "actor_503500_4" }, { start = "0x10C", unit = "actor_503500_5" }], shared = [{ start = "0x6A4", end = "0x6CC", unit = "actors_shared_801366fc" }, { start = "0xD58", end = "0xD78", unit = "actors_shared_8016447c" }, { start = "0xD78", end = "0xD98", unit = "actors_shared_8016449c" }, { start = "0xD98", end = "0xDB8", unit = "actors_shared_80162080" }, { start = "0xDB8", end = "0xDD8", unit = "actors_shared_80132bd8" }, { start = "0xE84", end = "0xEA4", unit = "actors_shared_80132ca4" }, { start = "0x146C8", end = "0x146E8", unit = "actors_shared_801327b4" }] }
-actor_510900 = { units = ["0x9A50", "0x9B68"], rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
-actor_511000 = { }
-actor_521100 = { units = ["0x37A8"], rodata = [{ start = "0x2C", unit = "actor_521100_2" }, { start = "0x48", unit = "actor_521100_3" }, { start = "0x58", unit = "actor_521100_4" }], shared = [{ start = "0x3C14", end = "0x3C70", unit = "actors_shared_80134934" }, { start = "0x48DC", end = "0x4904", unit = "actors_shared_801366fc" }] }
+actor_510900 = { units = ["0x9A50", "0x9B68"], rodata = [{ start = "0xD0", unit = "actor_510900_2" }], shared = [{ start = "0x9FE0", end = "0xA044", unit = "actors_shared_80132074" }] }
+actor_511000 = { shared = [{ start = "0x2028", end = "0x208C", unit = "actors_shared_80132074" }] }
+actor_521100 = { units = ["0x37A8"], rodata = [{ start = "0x2C", unit = "actor_521100_2" }, { start = "0x48", unit = "actor_521100_4" }, { start = "0x58", unit = "actor_521100_5" }], shared = [{ start = "0x3C14", end = "0x3C70", unit = "actors_shared_80134934" }, { start = "0x3E8C", end = "0x3EF0", unit = "actors_shared_80132074" }, { start = "0x48DC", end = "0x4904", unit = "actors_shared_801366fc" }] }
 actor_535700 = { }
 actor_548100 = { }
 actor_560800 = { rodata_head = "0x4", rodata = [{ start = "0x2EC", unit = "actor_560800_4" }], shared = [{ start = "0x4460", end = "0x4490", unit = "actors_shared_80136280" }, { start = "0x4AF0", end = "0x4B10", unit = "actors_shared_8016447c" }, { start = "0x4C68", end = "0x4C88", unit = "actors_shared_80162850" }] }

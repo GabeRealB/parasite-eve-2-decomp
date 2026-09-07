@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_100300.h"
+#include "actors/actors_shared_80132074.h"
 
 void Actor00300_Fn00E54(Actor100300* arg0);
 void Actor00300_Fn01678(Actor100300* arg0);
@@ -172,7 +173,17 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05278);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05304);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05388);
+s32 Actor00300_Fn05388(Actor100300* arg0, s32 arg1, ActorsShared80132074Args* args)
+{
+    GsCOORDINATE2* coord = arg0->field_2C->field_8;
+
+    RotMatrix(&args->rot, &coord->coord);
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn053EC);
 
