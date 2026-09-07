@@ -53808,3 +53808,37 @@ lower-addressed handler into slot 0 and `actor_160600` stores the higher one:
 Pair each `%hi`/`%lo` with the `sw` offset that follows it. A swapped pair
 still builds and links — both symbols exist, only their values are exchanged —
 and fails the checksum inside the shared span, four bytes into the first `lui`.
+
+## A stack dispatch table indexed through a pointer needs the pointer in its own local
+
+The stack-built handler table (`ActorsShared80131e24` and friends) usually
+indexes a field of the task itself, so the table stores come first and the index
+load last. When the index lives behind another load — `func_actor_341700_80168124`
+reads `((Actor341700Work*)arg0->idMap)->field_420` — the target hoists that load
+*above* the `lui`/`addiu`/`sw` pairs and parks it in `$v1`:
+
+```
+lw    v1,0x1c(a0)          <- before the table stores
+lui   v0,%hi(handler0)
+...
+lh    v0,0x420(v1)
+```
+
+Writing the whole chain inside the subscript keeps the load after the stores and
+in `$v0` (86%, `insert`=2 `delete`=1 `regs`=1). Declaring the intermediate
+pointer as its own local *before* the array declaration is the whole fix:
+
+```c
+Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+void (*states[2])(Task*) = { handler0, handler1 };
+states[(s16)work->field_420](arg0);
+```
+
+Note the `(s16)` too: the field is `u16` in the header, but the target uses `lh`,
+so the index has to be read signed.
+
+Four copies of this body exist, two in `actor_341700` and two in `actor_342400`,
+so `overlay_dup_index.py promote` refuses it: a shared unit appears once per
+linker script, and every carrier here holds it twice. When promotion reports
+"every overlay carrying it contains it twice", land the body as plain C in each
+carrying unit instead of leaving the copies for a later pass.

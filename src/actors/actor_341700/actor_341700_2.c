@@ -14,6 +14,9 @@
 
 #include "actors/actor_341700.h"
 
+void func_actor_341700_801697B8(Task* arg0);
+void func_actor_341700_801697D4(Task* arg0);
+
 /* Both are called with no argument: the caller's own `Task*` is already in
  * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
  * has no register copy.  A real prototype would make GCC emit one, so these
@@ -50,7 +53,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_8016852C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_8016859C);
+void func_actor_341700_8016859C(Task* arg0)
+{
+    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_341700_801697B8,
+        func_actor_341700_801697D4,
+    };
+
+    states[(s16)work->field_420](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_801685F0);
 
