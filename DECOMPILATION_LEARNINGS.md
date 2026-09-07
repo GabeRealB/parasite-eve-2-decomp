@@ -53171,3 +53171,38 @@ TaskFunc         states[2] = { handler0, handler1 };
 `func_actor_405800_80137B34` is the second example. A `SOFT_BARRIER()` after an
 element-wise `work` load also reaches 100% there, by pinning the load ahead of
 the first `lui`; prefer the initializer, which needs no barrier.
+
+## Four `lw` then four `sw` is a struct assignment, not a hand-written copy
+
+A run of loads into `$a2/$a3/$t0/$t1` followed by four stores, repeated, is
+GCC's block move, not eight copy statements. m2c always renders it as
+element-wise `M2C_FIELD` assignments, and writing those back out gives the
+wrong shape: `move_by_pieces` emits interleaved `lw`/`nop`/`sw` pairs through
+one register, which is what the target is *not* doing.
+
+```
+lw    a2,4(s3)      # target: batched by 4
+lw    a3,8(s3)
+lw    t0,0xc(s3)
+lw    t1,0x10(s3)
+sw    a2,0(s2)
+...
+lw    v0,4(s2)      # element-wise C: one register, load-delay nops
+nop
+sw    v0,0(s1)
+```
+
+`mips.c` picks the batched form (`movstrsi_internal`, `MAX_MOVE_REGS 4`) only
+for a *constant* size `<= 2*MAX_MOVE_BYTES`, i.e. **32 bytes or fewer** with an
+aligned BLKmode copy; above that it becomes a loop, below the `MOVE_RATIO`
+threshold it becomes `move_by_pieces`. So the batched shape pins the copy at
+one or two groups of four words and tells you the source had a struct
+assignment of that exact size.
+
+Eight words moved out of offset `+4` of a pointer is almost always
+`dest->matrix = coord->coord` on a `GsCOORDINATE2` (`flg` at 0x0, `MATRIX
+coord` at 0x4, `MATRIX` is 0x20). `ActorsShared8016a98c` (the promoted body of
+`func_actor_341700_8016A98C`) copies `((TmdObject*)task->extra)->field_8->coord`
+into a `MATRIX` at offset 0 of the actor's work block; declaring that field as
+`MATRIX` instead of leaving it inside a `pad_0[...]` is what turns m2c's eight
+assignments into one.
