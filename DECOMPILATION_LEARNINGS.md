@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Two identical calls, not a pointer temp, for if/else string args
+
+A shared `char *title` assigned in both arms of `if (x == 0)` then passed
+to one call emits `lui v0, %hi(str)` / `addiu a1, v0, %lo(str)`: `high` is
+its own pseudo and the delay-slot filler parks the else-arm `lui` in the
+`bnez`, leaving `move a0, obj` on the `jal`. The target wants each arm to
+own a fused `lui a1` / `addiu a1, a1, %lo` pair and `move a0, obj` in the
+`bnez` delay.
+
+Write the call twice. GCC cross-jumps the identical `jal` into one shared
+tail, coalesces `high`+`lo_sum` into `$a1` in each arm, and the independent
+`a0 = obj` copy fills the branch:
+
+```c
+if (arg0->spawnArg1 == 0) {
+    Ui_DrawText((UiPanel*)obj, D_replay_bonus_801157A8);
+} else {
+    Ui_DrawText((UiPanel*)obj, D_replay_bonus_801157B0);
+}
+```
+
+A ternary argument and a `UiPanel *panel` hoist both kept the `$v0` form.
+`func_replay_bonus_801166AC` is the example.
+
 ## Split a shared `Task_Kill` so the kill-arg can occupy `$a0`
 
 A two-case switch that shares one `Task_Kill(arg0)` via `goto kill` makes

@@ -94,6 +94,19 @@ typedef struct ReplayBonusCtx {
     /* 0x28 */ ReplayBonusItemList* itemList;
 } ReplayBonusCtx;
 
+/// Totals block at `D_replay_bonus_80119274`. `field_4` is the BP drawn on the
+/// Balance screen; `field_C` is the BP drawn for NEXT REPLAY BONUS. Offset 8 is
+/// also `D_replay_bonus_8011927C`, the EXP override for that preview.
+typedef struct ReplayBonusTotals {
+    /* 0x00 */ s32 unk0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+} ReplayBonusTotals;
+
+extern ReplayBonusTotals D_replay_bonus_80119274;
+extern s32               D_replay_bonus_8011927C;
+
 s32  func_replay_bonus_80115CA4(void);
 s32  func_replay_bonus_801173A8(void);
 s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);
