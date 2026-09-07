@@ -33,7 +33,3 @@ void func_dryfield_motel_balcony_8017DC28(Task* arg0)
         arg0->state = 1;
     }
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony_3", func_dryfield_motel_balcony_8017DCB8);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_balcony/dryfield_motel_balcony_3", func_dryfield_motel_balcony_8017DF84);

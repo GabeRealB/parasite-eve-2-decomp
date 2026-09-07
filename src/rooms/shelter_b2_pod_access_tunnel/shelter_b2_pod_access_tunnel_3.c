@@ -5,7 +5,3 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_acce
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_3", func_shelter_b2_pod_access_tunnel_8017ED5C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_3", func_shelter_b2_pod_access_tunnel_8017F1BC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_3", func_shelter_b2_pod_access_tunnel_8017F608);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_3", func_shelter_b2_pod_access_tunnel_8017F8D4);

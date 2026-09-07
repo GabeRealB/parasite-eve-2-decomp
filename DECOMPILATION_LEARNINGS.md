@@ -54610,3 +54610,15 @@ both CSE dumps before blaming register allocation. Here the final match uses
 a symbolic two-instruction `lui`/`lbu` asm at the reload site, with independent
 outputs and no hard-register constraints. The surrounding stores remain C;
 placing the load before them reproduces the target schedule.
+
+## Signed byte stored to a halfword: route through an `s32` local for `lb`
+
+`func_dryfield_motel_balcony_8017DCB8` (shared as `RoomsShared8017dcb8`)
+loads a signed lifetime byte from `Task::spawnArg1 + 3` and stores it in
+`RoomEffWork::field_2A`. Direct `s8`-field assignment to the `u16` field
+produced `lbu; sll 24; sra 24; sh`: the `.combine` dump retained a QI load
+and shifts into an HI subreg. Assigning the byte to an `s32 lifetime` first,
+then storing that local, gave `lb; sh` without changing shared field types.
+The same function needed `coord->flg = 0` after the translation update so
+its store could fill a load delay. Together these moved the structured,
+unpinned attempt from 94.391% to 100% (all penalties zero).
