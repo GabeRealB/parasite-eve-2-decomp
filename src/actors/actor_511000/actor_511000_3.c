@@ -1,0 +1,33 @@
+#include "common.h"
+#include "main/task.h"
+#include "main/tmd.h"
+
+#include "gameplay/gameplay.h"
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133EAC);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133EF4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133F48);
+
+void func_actor_511000_80133F88(void* arg0, Task* arg1)
+{
+    ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133FC8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_8013401C);
+
+void func_actor_511000_8013405C(void* arg0, Task* arg1)
+{
+    ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_8013409C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801340F0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80134130);

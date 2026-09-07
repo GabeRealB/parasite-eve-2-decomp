@@ -4,30 +4,69 @@
 
 #include "gameplay/gameplay.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133EAC);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801327A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133EF4);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_8013287C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133F48);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80132904);
 
-void func_actor_511000_80133F88(void* arg0, Task* arg1)
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801329C4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80132B14);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80132E6C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133034);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801330F0);
+
+void func_actor_511000_80133220(Task* task)
 {
-    ((TmdObject*)arg1->extra)->field_8->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+    Task_Kill(task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133FC8);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133240);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_8013401C);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801332E4);
 
-void func_actor_511000_8013405C(void* arg0, Task* arg1)
+void func_actor_511000_801333A4(Task* task)
 {
-    ((TmdObject*)arg1->extra)->field_8->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+    Task_Kill(task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_8013409C);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801333C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801340F0);
+void func_actor_511000_80133498(Task* task)
+{
+    Task_Kill(task);
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80134130);
+s32 func_actor_511000_801334B8(Task* arg0)
+{
+    arg0->killCountdown = 0;
+    return 0;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801334C4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133554);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801336E0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133760);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801337F0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133850);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_801338A8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133900);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133958);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133B80);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133D90);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80133DEC);

@@ -50974,6 +50974,24 @@ under `asm/.../<overlay>/<unit>/` must be named by exactly one
 lines plus the migrated blocks of the `INCLUDE_ASM` functions between them -
 must come out in increasing order.
 
+## An asm tail can take the `rodata` cut instead of an `INCLUDE_RODATA` in the head
+
+The entry above repairs an `INCLUDE_ASM` tail by naming the stranded block with
+an `INCLUDE_RODATA` in the head unit's `.c`. Giving the *tail* a `rodata` cut at
+the block's offset works just as well and needs no hand-written line: splat then
+files the block under the tail unit, `migrate_rodata_to_functions` puts it back
+inside the `.s` of the function that references it, and the standalone `.s`
+disappears. It is also the form the tail will need anyway the day that function
+is matched, when GCC emits the same bytes into the tail object's `.rodata`.
+
+Promoting `ActorsShared8013231c` split thirteen actor units and stranded three
+blocks that way - a jump table in `actor_141000`, two `.asciz` strings in
+`actor_317000` and four function-pointer words in `actor_511000`. One `rodata`
+cut per overlay, at the first stranded offset (`0x5C`, `0x30`, `0x28`), cleared
+all of them, and the check from the previous entry - every standalone `.s` under
+`asm/.../<overlay>/<unit>/` named by exactly one `INCLUDE_RODATA` - passes
+because there are no standalone blocks left at all.
+
 ## A vanishing *first* unit collides with the implicit leading-rodata cut
 
 `gen_overlay_configs.py` gives the leading rodata block to `<overlay>/<overlay>`
