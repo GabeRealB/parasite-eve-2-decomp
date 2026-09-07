@@ -54588,3 +54588,25 @@ Writing the RGB assignment and draw separately inside both active arms of
 the final `if / else if / else` restored the target's draw-before-cleanup
 order and preserved both checks. That single structural edit reached 100%
 with all-zero penalties, without pins, barriers, or a permuter run.
+
+## A narrow argument can fix the prologue without pinning saved registers
+
+In `func_8001FAE0`, an `s32` first argument used only through `& 0xffff`
+produced the right instructions but put the two incoming arguments and setup
+queue pointer in the wrong saved registers. Declaring that argument `u16`
+changed its pseudo to HImode in `.lreg` and recovered the target allocation
+without pins. The mask still appeared in the generated code. Inspect the
+argument's width and uses before constraining registers; update its declaration
+consistently, then rebuild all callers.
+
+## Global high-half reuse can first appear in the second CSE pass
+
+`func_8001FAE0` reached 99.609% with only a missing `lui` and its resulting
+register/branch-offset differences. `.cse` still contained independent high-half
+definitions for a global before and after several calls; `.cse2` merged them,
+and `.lreg` kept the address in a saved register. A volatile final memory read
+and memory/scheduling barriers do not invalidate an address constant. Compare
+both CSE dumps before blaming register allocation. Here the final match uses
+a symbolic two-instruction `lui`/`lbu` asm at the reload site, with independent
+outputs and no hard-register constraints. The surrounding stores remain C;
+placing the load before them reproduces the target schedule.

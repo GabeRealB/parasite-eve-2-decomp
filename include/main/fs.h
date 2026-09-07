@@ -288,8 +288,10 @@ typedef struct _CdCmdQueue {
     u16          field_246;
     u16          field_248;
     u16          field_24A;
-    byte         unknown_24C[0x6];
-    s16          busy; // 0x252 — non-zero while a blocking load is active
+    u16          field_24C; // 0x24C
+    u16          field_24E; // 0x24E
+    byte         unknown_250[0x2];
+    s16          busy;      // 0x252 — non-zero while a blocking load is active
 } CdCmdQueue;
 STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
 
@@ -384,6 +386,7 @@ void        CdCmd_HandleStreamDecode(void);
 u16         CdCmd_EnqueueFollowUp(void);
 void        CdCmd_RequestVlcRebuild(void);
 s32         CdCmd_SeekL(u8* loc);
+s16         CdSync_IsShellOpenBitSet(void);
 s32         CdCmd_PausePoll(void);
 s16         CdCmd_RecoverDisk(void);
 s32         CdCmd_PollStatus(s32 arg0, s32 arg1);

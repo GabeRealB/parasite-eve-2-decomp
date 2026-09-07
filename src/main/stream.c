@@ -514,7 +514,198 @@ void Mdec_DecodeFrame(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/stream", func_8001FAE0);
+static __inline__ u16 Stream_SeekPosition(u8* loc)
+{
+    if (((s32 (*)())CdCmd_SeekL)(loc, 0) & 0xFFFF) {
+        return 1;
+    }
+    return 0;
+}
+
+s32 func_8001FAE0(u16 arg0, s32 arg1)
+{
+    RECT        rect;
+    CdCmdQueue* state;
+    CdCmdQueue* setup;
+    CdCmdQueue* stop;
+    CdCmdQueue* restart;
+    s32         sector;
+    u16         ready;
+    u32         volumeAddress;
+    u32         volume;
+    s32         mode;
+    s32         videoMode;
+    s32         displayMode;
+
+    state = &CdCmd_Queue;
+    switch (state->field_1E4) {
+        case 0:
+            if (*(u16*)&D_8006AC5C == 0) {
+                state->field_248 = 0;
+                state->field_244 = 1;
+            }
+            state->field_24C = 0;
+            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                case 0:
+                    break;
+                case 2:
+                    CdFlush();
+                case 1:
+                    state->field_1E4++;
+                    break;
+            }
+            break;
+        case 1:
+            setup = &CdCmd_Queue;
+            DecDCTReset(0);
+            StSetStream(D_8006AC14 == 2 ? 0 : D_8006AC14, 0, -1, NULL, NULL);
+            StSetRing((u_long*)D_8006AC60, D_8006AC24);
+            StClearRing();
+            Wip_SysFlags.field_6 = 1;
+            DecDCToutCallback(Mdec_UploadSlice);
+            CdVol_ApplyFromTable(0);
+            setup->field_1EC = 0;
+            D_8006AC1A       = 0;
+            state->field_1D6 = 0;
+            state->field_1E4++;
+        case 2:
+            if ((arg0 & 0xFFFF) == 0) {
+                sector = D_8006AC08 + arg1;
+            } else {
+                sector = arg1;
+            }
+            state->field_242 = 1;
+            state->field_24E = 1;
+            CdIntToPos(sector, (CdlLOC*)&rect);
+            ready = Stream_SeekPosition((u8*)&rect);
+            TOUCH_REG(ready);
+            if (ready & 0xFFFF) {
+                CdVol_ApplyFromTable((u8)D_8006AC58);
+                mode = D_8006AC58 != 0 ? 0x1E0 : 0x1A0;
+                if (!(CdRead2(mode) & 0xFFFF)) {
+                    D_8006AC20       = 1;
+                    state->field_1E4 = 9;
+                    return 0;
+                }
+                state->field_242 = 0;
+                state->field_24E = 0;
+                state->field_1E4++;
+                if (*(u16*)&D_8006AC5C != 0) {
+                    CdCmd_ClearBusy();
+                }
+            }
+            break;
+        case 3:
+            Mdec_DecodeFrame();
+            if (CdSync_IsShellOpenBitSet() != 0) {
+                state->field_24C = 1;
+                CdCmd_SetBusy();
+                state->field_1E4 = 6;
+            }
+            break;
+        case 4:
+            Mdec_DecodeFrame();
+            state->field_242 = 1;
+            if (CdCmd_PausePoll() & 0xFFFF) {
+                state->field_1E4++;
+            }
+            break;
+        case 5:
+            if (D_8006AC16 == 1) {
+                CdCmd_SetBusy();
+                state->field_1EA = 1;
+                state->field_1E4 = 1;
+                return 0;
+            }
+            state->field_242 = 0;
+            stop             = &CdCmd_Queue;
+            DecDCToutCallback(NULL);
+            DecDCTReset(0);
+            StClearRing();
+            StUnSetRing();
+            videoMode            = D_8006AC14;
+            Wip_SysFlags.field_6 = 0;
+            stop->field_24A      = 0;
+            stop->field_1FA      = 0;
+            stop->field_1F4      = 0;
+            stop->field_1E2      = 0;
+            stop->field_1E4      = 0;
+            if (videoMode != 0) {
+                displayMode = Display_State.field_12a;
+                if (displayMode == 1) {
+                    rect.y = 0;
+                    rect.x = 0;
+                    if (videoMode == displayMode) {
+                        rect.w = 0x1E0;
+                    } else {
+                        rect.w = 0x140;
+                    }
+                    rect.h = 0xF0;
+                    ClearImage(&rect, 0, 0, 0);
+                    rect.y = 0x110;
+                    ClearImage(&rect, 0, 0, 0);
+                    Display_SetMode(0xD010);
+                }
+                stop->field_1E6         = 0;
+                Display_State.field_106 = 0;
+            } else if (D_8006AC3C != 0) {
+                stop->field_244 = 0;
+            }
+            return 1;
+        case 6:
+            if (CdCmd_RecoverDisk() != 0) {
+                state->field_1E4++;
+            }
+            break;
+        case 7:
+            if ((s16)CdCmd_StopMdec(0) != 0) {
+                if (D_8006AC14 != 0) {
+                    if (D_8006AC14 == 1) {
+                        Display_SetMode(0xF010);
+                    }
+                    Display_State.field_106 = 1;
+                }
+                state->field_242 = 1;
+                state->field_1E4 = 8;
+            }
+            break;
+        case 8:
+            CdIntToPos(D_8006AC08 + (state->field_1EA - 1) * 10, (CdlLOC*)&rect);
+            ready = Stream_SeekPosition((u8*)&rect);
+            TOUCH_REG(ready);
+            if (ready & 0xFFFF) {
+                mode = D_8006AC58 != 0 ? 0x1E0 : 0x1A0;
+                if (!(CdRead2(mode) & 0xFFFF)) {
+                    D_8006AC20       = 8;
+                    state->field_1E4 = 9;
+                    return 0;
+                }
+                restart = &CdCmd_Queue;
+                DecDCTReset(0);
+                StSetStream(D_8006AC14 == 2 ? 0 : D_8006AC14, 0, -1, NULL, NULL);
+                StSetRing((u_long*)D_8006AC60, D_8006AC24);
+                StClearRing();
+                Wip_SysFlags.field_6 = 1;
+                DecDCToutCallback(Mdec_UploadSlice);
+                CdVol_ApplyFromTable(0);
+                __asm__("lui %0, %%hi(D_8006AC58)\n\tlbu %1, %%lo(D_8006AC58)(%0)"
+                        : "=&r"(volumeAddress), "=r"(volume) : : "memory");
+                restart->field_1EC = 0;
+                D_8006AC1A         = 0;
+                ((void (*)())CdVol_ApplyFromTable)(volume);
+                state->field_24C = 0;
+                state->field_242 = 0;
+                state->field_1E4 = 3;
+            }
+            break;
+        case 9:
+            if ((s16)CdCmd_StopMdec(0) != 0) {
+                state->field_1E4 = D_8006AC20;
+            }
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/stream", func_80020058);
 
