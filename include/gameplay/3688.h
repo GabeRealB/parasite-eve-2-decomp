@@ -186,7 +186,10 @@ extern GpEnergyIcon D_8010E844[4];
 /// Holder text for a weapon slot with no ammunition loaded.
 extern char Gp_StrAmmoNone[];
 
+extern char Gp_StrAttachNone[];
+
 void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj);
+void func_800C41A4(DialogPrompt* prompt, UiObject* obj);
 void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void Gp_SetPreviewItem(s32 arg0, s32 arg1);

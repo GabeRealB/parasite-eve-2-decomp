@@ -2725,7 +2725,181 @@ void Gp_WeaponMenuTask(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C41A4);
+void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
+{
+    union {
+        struct {
+            u8          buf[0x20];
+            TextDrawReq req;
+        } qty;
+        TextDrawReq name;
+    } draw;
+    s32        item;
+    s32        status;
+    s32        rowState;
+    s32        mode;
+    McItemRec* rec;
+    UiObject*  child;
+    UiObject*  dialog;
+    Task*      parent;
+    UiObject*  parentObj;
+    {
+        McItemScan* scan;
+        McItemRec*  table;
+        McItemRec*  found;
+        s32         row;
+        s32         i;
+        row   = prompt->field_8;
+        scan  = &Mc_SaveData.field_5BC;
+        table = Gp_GetItemTable(scan);
+        found = NULL;
+        i     = 0;
+        item  = 0;
+        table = &table[scan->field_0];
+        for (; i < scan->field_1; i++, table++) {
+            if ((s8)table->field_1 == row + 1) {
+                found = table;
+                break;
+            }
+        }
+        rec = found;
+    }
+    if (rec != NULL) {
+        item = rec->field_0;
+    }
+    status = obj->status;
+    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+        if (Gp_ItemOrderMode == 0) {
+            if (item != 0) {
+                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
+                Gp_SetPreviewItem(item, 0);
+            } else {
+                Ui_SetHolderParam((s32)Gp_StrAttachNone, 0, 0);
+            }
+        } else {
+            Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+        }
+    }
+    if (rec != NULL) {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        s32 id;
+        s32 count;
+        id    = rec->field_0;
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        if ((u32)(id - 0xA0) < 0x20U) {
+            count                   = rec->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, id);
+            draw.qty.req.x          = obj->baseX + 0x84 + x;
+            off                     = obj->baseY - 3;
+            draw.qty.req.y          = off + y;
+            draw.qty.req.otIndex    = (s16)obj->drawOrder + 1;
+            draw.qty.req.field_8    = color;
+            draw.qty.req.glyphTable = 5;
+            draw.qty.req.centerMode = 2;
+            draw.qty.req.field_E    = 0;
+            func_8002E53C(&draw.qty.req, Text_ItoaSigned(draw.qty.buf, count));
+            Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+        }
+    }
+    {
+        s32 x;
+        s32 y;
+        s32 color;
+        s32 off;
+        s32 temp;
+        s32 one;
+        one   = 1;
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        if (item == 0) {
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0x102010);
+        } else {
+            if (obj->mode != 5) {
+                draw.name.x          = obj->baseX + 0x11 + x;
+                off                  = obj->baseY - 6;
+                draw.name.y          = off + y;
+                draw.name.otIndex    = (s16)obj->drawOrder + 1;
+                draw.name.field_8    = color;
+                draw.name.glyphTable = 0;
+                draw.name.centerMode = 0;
+                draw.name.field_E    = one;
+                func_8002E53C(&draw.name, Gp_GetItemText(item, 0, 0));
+                func_800C22D8(obj, x, y, item, one);
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                }
+                Gp_DrawItemIcon(obj, x, y, item, 0);
+            }
+            Ui_LayoutWithMode0(obj, x, y - 0xE, 0xE, 0xE, 0);
+        }
+    }
+    rowState = prompt->field_C;
+    if (rowState == 1) {
+        mode = Gp_ItemOrderMode;
+        if (mode == rowState) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                s32 selected;
+                u8* selectedRec;
+                selectedRec = Gp_SelItemRec;
+                selected    = *selectedRec;
+                USE_REG(selectedRec);
+                if (!(Gp_ItemDescs[selected].field_3 & 4)) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    if (*Gp_SelItemRec != 0) {
+                        Gp_SelItemRec[1] = prompt->field_8 + 1;
+                    }
+                    if (item != 0) {
+                        Gp_RefreshItemRow(rec);
+                    }
+                    Gp_ItemOrderMode = 0;
+                } else {
+                    parent = obj->owner->parent;
+                    if (parent != NULL) {
+                        parentObj         = parent->spawnArg2;
+                        Gp_ItemOrderMode  = 0;
+                        parentObj->status = mode;
+                        obj->status       = 0;
+                    }
+                }
+            }
+        } else {
+            if (rec == NULL) {
+                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    child = Ui_SpawnFromDesc(&D_8010ED00, 0, 1, 0x10, obj);
+                    if (child != NULL) {
+                        s32 yOffset;
+                        s32 xOffset;
+                        yOffset        = -0x5C;
+                        child->field_E = yOffset;
+                        xOffset        = -8;
+                        child->field_C = xOffset;
+                    }
+                    obj->status = 0;
+                }
+                Gp_SelItemRec = (u8*)rec;
+            } else {
+                Gp_SelItemRec = (u8*)rec;
+                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
+                    if (dialog != NULL) {
+                        Ui_ClampDialogRect((UiPanel*)dialog, (UiPanel*)prompt, (UiPanel*)obj);
+                        obj->status = 0;
+                    }
+                } else {
+                    Gp_CheckItemInfoButton(obj);
+                }
+            }
+        }
+    }
+}
 
 void Gp_ArmorMenuTask(Task* arg0)
 {

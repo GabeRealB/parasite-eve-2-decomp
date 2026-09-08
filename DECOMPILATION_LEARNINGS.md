@@ -54746,3 +54746,28 @@ m2c's byte offsets. Reusing the adjacent `Gp_GetViewSprtExtra` lookup and
 PsyQ `addPrim` macros matched on the first corrected attempt (100.000%,
 all penalties zero). Ordinary `rect.x`, `rect.w`, `rect.h` source order
 scheduled to the target's different store order.
+
+
+## Keep the source pointer live to preserve a byte-load delay before a table address
+
+`func_800C41A4` reached 98.898% after adapting the matched
+`Gp_DrawWeaponSlotRow2` drawing blocks. Its remaining mismatch was the item
+descriptor lookup: sched1 moved the descriptor `lui` between the selected-record
+`lw` and its `lbu`, and local allocation reused `$v0` for the byte. The target
+keeps the record pointer in `$v0` through a `nop`, loads the byte into `$v1`,
+then materialises the descriptor address in `$v0`.
+
+```c
+selectedRec = Gp_SelItemRec;
+selected = *selectedRec;
+USE_REG(selectedRec);
+if (!(Gp_ItemDescs[selected].field_3 & 4)) { /* ... */ }
+```
+
+This input-only keep-live restores the target sequence without register pins.
+The same function also needs separate locals for its two child-spawn results:
+sharing one gave it an `$a0` preference from the later layout call. An explicit
+`s32 one = 1` before the item drawing branch, used for both the byte field and
+the later call argument, keeps that constant across calls in `$s7`; literal
+ones at the two uses were rematerialised. `base_3.c` scored 100% with zero
+penalties after these changes.
