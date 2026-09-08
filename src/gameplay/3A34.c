@@ -4531,8 +4531,6 @@ done_search:
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DEF80);
-
 static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
 {
     u8*     h;
@@ -4548,6 +4546,220 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     pos->vy                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[1] + vec->vy;
     pos->vz                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[2] + vec->vz;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}
+
+void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
+{
+    GpObj*            node;
+    void**            scratch;
+    GpObj4C*          other;
+    GpQuadHitScratch* block;
+    u8*               head;
+    s32               distSq;
+    s32               kind;
+    s32               dot;
+    s32               m0;
+    s32               m1;
+    s32               m2;
+    s16               faceDot;
+    s32               dist;
+    s32               nodeRadius;
+    s32               rad;
+    s32               i, off, tmp2, tmp5;
+    VECTOR *          va, *vb, *vec4;
+    GpU16Pair*        pair;
+    u8*               t;
+    void**            sp;
+
+    node    = arg0;
+    scratch = (void**)G_SCRATCH_HEAD;
+    TOUCH_REG2(node, scratch);
+    /* Preserve the scratch pointer priority across the four early exits. */
+    SOFT_USE_REG2(scratch, scratch);
+    head     = *scratch;
+    other    = arg1;
+    *scratch = (void*)(head - 0x98);
+    block    = *scratch;
+    Gp_ObjWorldPosInline(node, (VECTOR*)(head - 0x18));
+    gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
+    gte_ldv0(&other->field_C);
+    gte_rtv0_real();
+    gte_stlvnl((VECTOR*)(head - 0x58));
+    block->world.vx += ((GsCOORDINATE2*)other->field_8)->workm.t[0];
+    block->world.vy += ((GsCOORDINATE2*)other->field_8)->workm.t[1];
+    block->world.vz += ((GsCOORDINATE2*)other->field_8)->workm.t[2];
+
+    block->delta.vx = block->world.vx - block->nodePos.vx;
+    block->delta.vy = block->world.vy - block->nodePos.vy;
+    block->delta.vz = block->world.vz - block->nodePos.vz;
+    distSq          = block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy +
+             block->delta.vz * block->delta.vz;
+    nodeRadius = (u16)node->field_1C;
+    /* Keep the node radius in a separate allocation from the radius sum. */
+    SOFT_TOUCH_REG(nodeRadius);
+    SOFT_TOUCH_REG(nodeRadius);
+    SOFT_TOUCH_REG(nodeRadius);
+    rad = (u16)other->field_44 + nodeRadius;
+    if (rad * rad < distSq) {
+        *scratch = (u8*)*scratch + 0x98;
+        return;
+    }
+
+    kind = other->field_4A & 7;
+    if (kind == 2) {
+        {
+            GsCOORDINATE2* c;
+            s32            a;
+            c   = (GsCOORDINATE2*)node->field_8;
+            a   = other->field_3C.vx;
+            m0  = a * c->coord.m[0][2];
+            a   = other->field_3C.vy;
+            m1  = a * c->coord.m[1][2];
+            a   = other->field_3C.vz;
+            m2  = a * c->coord.m[2][2];
+            dot = m0 + m1;
+            SOFT_TOUCH_REG(dot);
+            dot += m2;
+        }
+        if (dot <= -0xC00000) {
+            goto collide;
+        }
+        *scratch = (u8*)*scratch + 0x98;
+        return;
+    }
+    if (kind != 4) {
+        goto collide;
+    }
+    if (0x3D08F < distSq) {
+        goto case4_far;
+    }
+    other->field_4B = 1;
+    *scratch        = (u8*)*scratch + 0x98;
+    return;
+
+case4_far:
+    block->local.vx = *(u16*)&other->field_C.vx;
+    block->local.vy =
+        *(u16*)&((GsCOORDINATE2*)node->field_8)->coord.t[1] + (u16)node->field_12;
+    block->local.vz = *(u16*)&other->field_C.vz;
+    gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
+    gte_ldv0((SVECTOR*)(head - 8));
+    gte_rtv0_real();
+    gte_stlvnl((VECTOR*)(head - 0x38));
+    block->delta.vx =
+        block->nodePos.vx - (block->delta.vx + ((GsCOORDINATE2*)other->field_8)->workm.t[0]);
+    block->delta.vy =
+        block->nodePos.vy - (block->delta.vy + ((GsCOORDINATE2*)other->field_8)->workm.t[1]);
+    block->delta.vz =
+        block->nodePos.vz - (block->delta.vz + ((GsCOORDINATE2*)other->field_8)->workm.t[2]);
+    VectorNormal((VECTOR*)(head - 0x38), (VECTOR*)(head - 0x38));
+    {
+        GsCOORDINATE2* c;
+        s32            n0, n1, n2;
+        c   = (GsCOORDINATE2*)node->field_8;
+        n0  = block->delta.vx * c->workm.m[0][2];
+        n1  = block->delta.vy * c->workm.m[1][2];
+        n2  = block->delta.vz * c->workm.m[2][2];
+        dot = n0 + n1;
+        SOFT_TOUCH_REG(dot);
+        dot += n2;
+    }
+    if (dot <= -0xC00000) {
+        goto collide;
+    }
+
+    *scratch = (u8*)*scratch + 0x98;
+    return;
+
+collide:
+    gte_ldv0(&other->field_14[0]);
+    gte_rtv0_real();
+    gte_stlvnl(&block->verts[0]);
+    block->verts[0].vx += block->world.vx;
+    block->verts[0].vy += block->world.vy;
+    block->verts[0].vz += block->world.vz;
+
+    gte_ldv0(&other->field_34);
+    gte_rtv0_real();
+    gte_stlvnl(&block->normal);
+
+    faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
+               block->normal.vz * block->verts[0].vz) >>
+              12;
+    dist = ((block->normal.vx * block->nodePos.vx + block->normal.vy * block->nodePos.vy +
+             block->normal.vz * block->nodePos.vz) >>
+            12) -
+           faceDot;
+    if (dist >= 0) {
+        goto fail;
+    }
+    if (dist >= -(s32)(u16)node->field_1C) {
+        goto do_edges;
+    }
+fail:
+    sp = (void**)0x1F800000;
+    /* Keep the two scratch-release paths distinct during cross-jumping. */
+    SOFT_TOUCH_REG(sp);
+    sp = (void**)((s32)sp | 0x3FC);
+    goto do_restore;
+
+restore_reload:
+    sp = (void**)G_SCRATCH_HEAD;
+    goto do_restore;
+
+do_edges:
+    i    = 1;
+    vec4 = &block->verts[1];
+    off  = 0x1C;
+    do {
+        gte_ldv0((SVECTOR*)((u8*)other + off));
+        gte_rtv0_real();
+        gte_stlvnl(vec4);
+        vec4->vx += block->world.vx;
+        TOUCH_REG(vec4);
+        off      += 8;
+        vec4->vy += block->world.vy;
+        i++;
+        vec4->vz += block->world.vz;
+        vec4++;
+    } while (i < 4);
+
+    i    = 1;
+    t    = (u8*)Gp_FaceEdgePairs;
+    pair = (GpU16Pair*)(t + 4);
+    do {
+        TOUCH_REG(block);
+        {
+            s32 ia;
+            s32 ib;
+            ia = pair->field_0;
+            ib = pair->field_2;
+            va = (VECTOR*)((u8*)block + (ia << 4));
+            vb = (VECTOR*)((u8*)block + (ib << 4));
+        }
+        block->delta.vx = va->vx - vb->vx;
+        block->delta.vy = va->vy - vb->vy;
+        block->delta.vz = va->vz - vb->vz;
+        gte_ldopv1(&block->normal);
+        gte_ldopv2(&block->delta);
+        gte_op12_real();
+        gte_stlvnl(&block->cross);
+        tmp2   = (block->cross.vx * block->nodePos.vx) + (block->cross.vy * block->nodePos.vy);
+        tmp2  += block->cross.vz * block->nodePos.vz;
+        tmp2 >>= 12;
+        tmp5   = (block->cross.vx * va->vx) + (block->cross.vy * va->vy) + (block->cross.vz * va->vz);
+        i++;
+        tmp2 -= tmp5 >> 12;
+        if (tmp2 >= 0) {
+            goto restore_reload;
+        }
+        pair++;
+    } while (i < 5);
+
+    sp              = (void**)G_SCRATCH_HEAD;
+    other->field_4B = 1;
+do_restore:
+    *sp = (u8*)*sp + 0x98;
 }
 
 void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)

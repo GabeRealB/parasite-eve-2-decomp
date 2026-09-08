@@ -508,6 +508,8 @@ STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 /// `func_800DF6AC` tests an object against the quad at `field_14`, using
 /// `field_C` as its local origin, `field_34` as its normal, and `field_44`
 /// as its bounding radius. `field_8` supplies the coordinate matrices.
+/// `func_800DEF80` also tests `field_3C` against the object's forward axis
+/// when the low three bits of `field_4A` are 2.
 typedef struct _GpObj4C {
     /* 0x00 */ struct _GpObj4C* next;
     /* 0x04 */ byte             pad_4[4];
@@ -515,7 +517,7 @@ typedef struct _GpObj4C {
     /* 0x0C */ SVECTOR          field_C;
     /* 0x14 */ SVECTOR          field_14[4];
     /* 0x34 */ SVECTOR          field_34;
-    /* 0x3C */ byte             pad_3C[8];
+    /* 0x3C */ SVECTOR          field_3C;
     /* 0x44 */ u16              field_44;
     /* 0x46 */ u16              field_46;
     /* 0x48 */ u8               field_48;
@@ -963,6 +965,20 @@ typedef struct _GpNormScratch {
     /* 0x10 */ SVECTOR local;
 } GpNormScratch;
 STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
+
+/// 0x98-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEF80`.
+/// Transformed quad corners and normal are tested against `nodePos`;
+/// `delta` and `cross` hold each edge's separating-plane calculation.
+typedef struct _GpQuadHitScratch {
+    /* 0x00 */ VECTOR  verts[4];
+    /* 0x40 */ VECTOR  world;
+    /* 0x50 */ VECTOR  normal;
+    /* 0x60 */ VECTOR  delta;
+    /* 0x70 */ VECTOR  cross;
+    /* 0x80 */ VECTOR  nodePos;
+    /* 0x90 */ SVECTOR local;
+} GpQuadHitScratch;
+STATIC_ASSERT_SIZEOF(GpQuadHitScratch, 0x98);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0994`.
 /// `local[0]` / `local[1]` are `(0, field_12 +/- field_1C, 0)` in the
