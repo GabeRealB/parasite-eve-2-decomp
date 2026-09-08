@@ -54711,3 +54711,23 @@ when retry is enabled, otherwise call `ContinueDraw` and return. Nested `if`s
 stole a duplicate `li v0,1` into the retry branch's delay slot; the enclosing
 loop put `move a0,zero` there and preserved the preceding `%hi(flag)` delay
 slot. Wrapping only the retry test did not have this effect.
+
+
+## Reusing a pointer across disjoint blocks can inherit a call-argument register preference
+
+`func_800A5574` reached 99.580% with only `regs=12`: a local scratch-head
+address took `$v0`, its loaded head took `$v1`, and `Gp_LinkList`'s high address
+took `$a0`. The target wanted `$a0`, `$v0`, `$v1`, respectively. Inlining the
+scratch address did not change the allocation.
+
+A `void* work` first holding `G_SCRATCH_HEAD`, then reassigned to the enemy
+base before the `Gp_ClaimSlot18` call, matched without pins or empty asm.
+The `.lreg` dump changed the scratch pointer from a block-local pseudo
+(3 uses / 7 insns) to a reused pseudo (11 uses / 30 insns, three deaths).
+The `.greg` dump gave it `preferences: 4` and allocated `$a0`; the other two
+temporaries then naturally took `$v0` and `$v1`. The pointer is overwritten
+before the call, so this does not keep the scratch address live across it.
+
+Splitting reused locals is often useful, but the inverse can be necessary
+when the target carries an argument-register preference between disjoint
+uses. Check `.lreg` block locality and `.greg` preferences before adding pins.

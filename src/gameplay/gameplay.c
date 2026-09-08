@@ -6854,7 +6854,69 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A5574);
+void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    SVECTOR*     vec;
+    GpLinkXform* node;
+    GpEnemy*     enemy;
+    GpObj54*     obj54;
+    u16          val;
+    s32          idx;
+    s32          t;
+    void*        work;
+    u8*          head;
+
+    if (arg0 == 0) {
+        if (arg3 == 0) {
+            Gp_DrawAimCircle(0, arg1, arg2, 1);
+        } else {
+            Gp_DrawAimCircle(0, arg1, arg2, 3);
+        }
+    }
+
+    arg1         += 0x64;
+    arg2         += 0x64;
+    work          = G_SCRATCH_HEAD;
+    head          = *(void**)work;
+    node          = (GpLinkXform*)Gp_LinkList;
+    head         -= 8;
+    *(void**)work = head;
+    vec           = (SVECTOR*)head;
+
+    if (node != NULL) {
+        do {
+            if ((node->field_4 & 5) != 1) {
+                vec->vx = *(u16*)&node->dst.vx;
+                vec->vy = *(u16*)&node->dst.vy;
+                vec->vz = *(u16*)&node->dst.vz;
+                if (arg3 != 0) {
+                    vec->vz -= arg1;
+                }
+                t = vec->vy;
+                if (t < 0x65 && t >= -arg2) {
+                    if ((u32)(vec->vx * vec->vx + vec->vz * vec->vz) <= (u32)(arg1 * arg1)) {
+                        work  = (u8*)node - OFFSET_OF(GpEnemy, node);
+                        enemy = (GpEnemy*)work;
+                        obj54 = (GpObj54*)work;
+                        if (arg0 == 0) {
+                            enemy->field_4E |= 0x80;
+                        } else {
+                            val  = Gp_StateC08.field_0;
+                            idx  = (val / 100U - 1) * 9;
+                            idx += ((val % 100U) / 10U - 1) * 3;
+                            idx += val % 10U;
+                            idx += 0x28000;
+                            Gp_ClaimSlot18(obj54, (void*)idx);
+                        }
+                    }
+                }
+            }
+            node = node->next;
+        } while (node != NULL);
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A57B0);
 
