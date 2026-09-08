@@ -54808,3 +54808,24 @@ make the selected-item pointer a list. Using the real array changes only eight
 symbolic operands in the scratch diff (`99.856%, regs=8`), while the rebuilt
 and linked gameplay overlay checksums exactly. Inspect operands before treating
 that penalty as register allocation.
+
+
+## func_8004E200: inline voice lookup matches in C with an s32 slot/count
+
+The inlined `Spu_GetVoiceRef` body reached 100% without pins or asm. Use one
+`s32 slot` for both `(s8)table->field_664[voiceIdx]` and `table->count`.
+In the allocation arm, write `slot = table->count; table->count++;` as
+separate statements. The `s16 count = table->count++` version emitted an
+`lhu` followed by sign-extension shifts; the s32 version emits the target's
+separate `lhu` and `lh`. Keep `SpuLVoiceTable* table = &Spu_LVoiceTable`
+local to the inline helper. In the existing-slot arm, stage
+`entry = &table->attrs[slot]` then use `&(entry - 1)->attr`; direct
+`&Spu_LVoiceTable.attrs[slot - 1].attr` hoisted extra base addresses across
+the outer loop and grew the saved-register set.
+
+Pass the outer s32 index directly into the inline release helper, whose
+local s8 is checked as `(u8)sVoiceIdx > 24U` before indexing. Casting the
+argument to s8 at the call inserted an extra sign extension before the
+unsigned range check. Explicit s8 casts remain on the external key calls
+and the voice-reference helper call. Verified by the full build in the
+func_8004E200 worktree; the standalone Spu_GetVoiceRef leaf was not changed.

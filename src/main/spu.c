@@ -252,7 +252,103 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
     return bestVoice;
 }
 
-INCLUDE_ASM("main/nonmatchings/spu", func_8004E200);
+static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx)
+{
+    s8 sVoiceIdx = (s8)voiceIdx;
+    if ((u8)sVoiceIdx > 24U) {
+        return -1;
+    }
+    Spu_VoiceState.field_94[sVoiceIdx] = 0;
+    Spu_VoiceState.field_ac[sVoiceIdx] = 0;
+    Spu_VoiceState.field_4[sVoiceIdx]  = 0;
+    return 0;
+}
+
+static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
+{
+    s32             slot;
+    SpuLVoiceTable* table;
+    SpuLVoiceAttr*  entry;
+    table = &Spu_LVoiceTable;
+    slot  = (s8)table->field_664[voiceIdx];
+    if (slot != 0) {
+        entry        = &table->attrs[slot];
+        ref->field_0 = voiceIdx;
+        ref->field_4 = &(entry - 1)->attr;
+        return 1;
+    } else {
+        slot = table->count;
+        table->count++;
+        table->attrs[slot].voiceNum = voiceIdx;
+        table->field_664[voiceIdx]  = slot + 1;
+        ref->field_0                = voiceIdx;
+        ref->field_4                = &table->attrs[slot].attr;
+        ref->field_4->mask          = 0;
+        ref->field_1                = 0;
+        ref->field_3                = 0;
+        ref->field_2                = 0;
+        return 0;
+    }
+}
+
+void func_8004E200(void)
+{
+    SpuVoiceRef    ref;
+    SpuVoiceState* base;
+    s32            i;
+    s32            age;
+    s8             status;
+    s32            (*callback)(s32);
+    s32            arg;
+
+    base = &Spu_VoiceState;
+    SpuGetAllKeysStatus((char*)base->field_64);
+    for (i = 0; i < 24; i++) {
+        if ((s8)base->field_7c[i] != 0) {
+            base->field_7c[i]--;
+        }
+        age = base->field_4[i];
+        if (age < 0x7FFFFFFF) {
+            base->field_4[i] = age + 1;
+        }
+        status = base->field_64[i];
+        if (status != 0) {
+            if (status != 3 || (s8)base->field_7c[i] != 0) {
+                continue;
+            }
+            if (((s32)base->field_1cc >> i) & 1) {
+                Spu_KeyOff((s8)i);
+            }
+        }
+        Spu_ReleaseVoiceSlotInline(i);
+        callback = (s32 (*)(s32))base->field_10c[i];
+        if (callback != NULL) {
+            arg = base->field_16c[i];
+            if (arg != 0) {
+                callback(arg);
+                base->field_10c[i] = 0;
+                base->field_16c[i] = 0;
+            }
+        }
+        if (((s32)base->field_1cc >> i) & 1) {
+            Spu_GetVoiceRefInline((s8)i, &ref);
+            {
+                SpuVoiceAttr* attr = ref.field_4;
+                attr->loop_addr    = 0x7B440;
+                attr->addr         = 0x7B440;
+            }
+            {
+                SpuVoiceAttr* attr = ref.field_4;
+                attr->volume.right = 0;
+                attr->volume.left  = 0;
+            }
+            ref.field_4->adsr1 = 0x80FF;
+            ref.field_4->adsr2 = 0xFFE0;
+            ref.field_4->mask |= 0x70083;
+            Spu_KeyOnClearOff((s8)i);
+        }
+    }
+}
 
 void Spu_FlushVoiceUpdates(void)
 {

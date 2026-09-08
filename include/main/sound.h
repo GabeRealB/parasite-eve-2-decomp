@@ -628,6 +628,7 @@ s32            Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1);
 u8             Spu_GetVoiceStatus(u32 voiceIdx);
 void           Spu_ClearVoiceCallbacks(u32 voiceIdx);
 void           Spu_KeyOff(u32 voiceIdx);
+void           Spu_KeyOnClearOff(u32 voiceIdx);
 u16            Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 SndNote*       Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2);
 void           Spu_FlushVoiceUpdates(void);
