@@ -1026,7 +1026,133 @@ after_volume:
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("main/nonmatchings/sndevt", Midi_Event1);
+u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
+{
+    s16           priorities[2];
+    SpuVoiceRef   ref;
+    u8            channel;
+    u8            program;
+    u8            key;
+    u8            velocity;
+    u8            layer;
+    s8            voice;
+    u16           priority;
+    s32           i;
+    s32           pan;
+    s32           panValue;
+    s8            panByte;
+    s32           reverb;
+    s32           bend;
+    s32           product;
+    s32           scale;
+    SndBankGroup* group;
+    SndNote*      note;
+    MidiNoteSlot* slot;
+    SpuVoiceAttr* attr;
+    u8*           cursor;
+    u8*           offResult;
+    u8            offChannel;
+    u8            offKey;
+
+    velocity = arg1[2];
+    if (velocity == 0) {
+        cursor = arg1;
+        SOFT_USE_REG(cursor);
+        offChannel = arg0 & 0xF;
+        offKey     = cursor[1];
+        if ((arg0 & 0xF0) == 0x90) {
+            cursor++;
+        }
+        if (arg2->field_484[offChannel].field_0 == 0) {
+            for (i = 0; i < 0x12; i++) {
+                if (arg2->voiceSlots[i].field_2 == offKey && arg2->voiceSlots[i].field_1 == offChannel) {
+                    Spu_KeyOff(arg2->voiceSlots[i].field_0);
+                }
+            }
+        }
+        offResult = cursor + 2;
+        SOFT_USE_REG(offResult);
+        arg1 = offResult;
+    } else {
+        channel = arg0 & 0xF;
+        if (arg2->field_484[channel].field_0 != 0) {
+            return arg1 + 3;
+        }
+        program = arg2->field_484[channel].field_4;
+        group   = &arg2->field_44[program];
+        key     = arg1[1];
+        note    = Snd_GetNote(arg2->field_40, program, 0);
+        for (layer = 0; layer < group->field_0; layer++, note++) {
+            priority = note->field_6;
+            if (key >= note->field_8 && note->field_9 >= key) {
+                if (priority == 0) {
+                    priorities[0] = 2;
+                    priorities[1] = 0;
+                } else {
+                    priorities[0] = 0;
+                    priorities[1] = 2;
+                }
+                voice = Spu_AllocVoice(priorities, 2, priority);
+                if (voice >= 0) {
+                    slot           = &arg2->voiceSlots[voice];
+                    arg2->field_C |= 1 << channel;
+                    Spu_SetVoiceCallbacks(voice, (s32)Midi_ClearVoiceEntry, (s32)slot);
+                    Spu_GetVoiceRef(voice, &ref);
+                    slot->field_0 = voice;
+                    slot->field_1 = channel;
+                    slot->field_3 = velocity;
+                    slot->field_2 = key;
+                    slot->field_4 = (group->field_2 * note->field_3) >> 7;
+                    pan           = group->field_3 + note->field_1 - 0x40;
+                    panByte       = pan;
+                    TOUCH_REG(panByte);
+                    panValue = pan;
+                    TOUCH_REG(panValue);
+                    TOUCH_REG(panValue);
+                    if (panValue < 0x80) {
+                        if (panValue >= 0) {
+                            slot->field_5 = panByte;
+                        } else {
+                            slot->field_5 = 0;
+                        }
+                    } else {
+                        slot->field_5 = 0x7F;
+                    }
+                    slot->field_6 = program;
+                    slot->field_7 = layer;
+                    reverb        = note->field_0;
+                    if (reverb == 1) {
+                        Spu_EnableReverbVoice(slot->field_0);
+                        slot->field_A = reverb;
+                    } else {
+                        Spu_DisableReverbVoice(slot->field_0);
+                        slot->field_A = 0;
+                    }
+                    bend = arg2->field_484[channel].field_6;
+                    if (bend != 0) {
+                        if (bend > 0) {
+                            scale = note->field_B;
+                        } else {
+                            scale = note->field_A;
+                        }
+                        product       = (scale << 8) * bend;
+                        slot->field_8 = product / 8191;
+                    }
+                    attr        = ref.field_4;
+                    attr->addr  = note->field_10;
+                    attr->adsr1 = note->field_C;
+                    attr->adsr2 = note->field_E;
+                    attr->pitch = Spu_CalcVolume(key, slot->field_8, note->field_4, note->field_5);
+                    attr->mask  = 0x60090;
+                    Spu_KeyOn(slot->field_0);
+                }
+            }
+        }
+        arg1 += 3;
+    }
+    SOFT_BARRIER();
+    return arg1;
+}
 
 u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {

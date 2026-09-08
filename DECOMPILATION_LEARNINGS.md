@@ -55117,3 +55117,21 @@ the `0xFF` comparison and reused as the table index. Two direct byte
 expressions retained an extra move before the shift. Its seven-entry
 stack table has `void (*)(void)` handlers: m2c's apparent extra call
 arguments were stale argument-register values, not parameters.
+
+
+## Midi_Event1: shift the selected bend range after the branch
+
+When two arms select `scale = note->field_B << 8` /
+`scale = note->field_A << 8`, GCC 2.8.1 allocates the short-lived scale before
+the bend value: the scale takes `$v0`, bend takes `$v1`. The scratch was
+99.778% with `regs=11` and every other penalty zero. Selecting the unshifted
+byte in each arm, then computing `product = (scale << 8) * bend` at the join,
+reverses those assignments and matches. The delay-slot pass still places the
+shift in the first arm's jump slot and duplicates it for the other arm.
+
+The `.lreg` / `.greg` dumps exposed the competing live ranges; the final
+change needed no register pins. Reusing `scale` for the product instead had
+changed its allocation to `$v1` but pushed bend to `$a0`, so keep the product
+separate. `Midi_Event1` matched from the minimally typed 73.949% baseline in
+seven numbered attempts, with the permuter started on the 99.778% unpinned
+seed before the final manual change.
