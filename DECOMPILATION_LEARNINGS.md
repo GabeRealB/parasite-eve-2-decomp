@@ -56253,3 +56253,37 @@ Two things then have to be fixed by hand, and neither fails loudly:
 Promoting one 35-instruction body across six `actors` overlays this way turned
 one match into six, touching 27 files. Check the delta afterwards: each carrier
 should lose exactly one `INCLUDE_ASM` and keep its C definition count.
+
+## When the promoted body *is* the whole unit, the later units renumber downward
+
+The mirror of the case above. `overlay_dup_index.py promote` splits a carrier's
+text unit in two when the shared span falls mid-unit, but when the span covers a
+numbered unit *exactly* - the promoted function was that unit's only content -
+the unit disappears and every later unit shifts **down** one index instead of up:
+
+```
+before: actor_160600 [0..0x394]  _2 [0x3E8..0x530]  _3 [0x558..0x5E4]
+                                 _4 [0x70C..0x7F4]  _5 [0x86C..0x88C]
+after:  actor_160600 [0..0x394]  _2 [0x3E8..0x530]  shared [0x558..0x5E4]
+                                 _3 [0x70C..0x7F4]  _4 [0x86C..0x88C]
+```
+
+So the fix runs the other way: delete the promoted unit's `.c`, then move each
+`_k+1.c` **down** to `_k.c`, rewriting the unit string inside. The highest file
+goes away rather than being created, which is why splat writes no new skeleton
+here and `git status` after the re-split looks clean - the damage is entirely in
+files that already existed.
+
+The symptom if you skip it is misleading. splat classifies a function as matched
+when the unit's `.c` exists and has no `INCLUDE_ASM` naming it. A stale `_3.c`
+still holding the promoted function's line satisfies that test for the *other*
+functions now in unit 3, so their `.s` lands under `asm/.../matchings/` and
+vanishes from `nonmatchings/` - the functions look decompiled, and the only hard
+failure is the assembler not finding the path the stale `INCLUDE_ASM` names.
+Cross-check the new unit dirs against the `.c` files before building: every
+`nonmatchings/<unit>/*.s` should have exactly one `INCLUDE_ASM` in `<unit>.c`,
+and a function under `matchings/` should have a real C definition.
+
+A span at the very end of a carrier's text needs neither shift - it just drops
+the last `INCLUDE_ASM` from the final unit (`actor_260500`) - and a span that
+splits the last unit only appends a new one (`actor_260400`).
