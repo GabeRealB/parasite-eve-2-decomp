@@ -55443,3 +55443,29 @@ before the bank. This matched 100% without pins. Splitting the masked radius
 into a fresh local instead changed the preamble and fell to 97.079%.
 When a keep-live helper is needed only for instruction order, compare a
 barrier without operands before compensating for its allocation side effects.
+
+## func_800D3660: scalar spills, coordinate temporaries, and load-delay ordering
+
+The archived pinned seed scored 86.160%; the final unpinned body matched
+100.000%. Keep a bar's reusable span as a scalar, separate from the address-taken
+text-buffer/request struct: the struct member generated ordinary `lw v0` loads,
+whereas the scalar was spilled by reload and used the target's `lw t4` loads.
+
+For text coordinates, write `req.x` first, compute `textY = obj->baseY - 6`,
+then store `req.y = textY + y` and `req.otIndex` before the color/font fields.
+Computing textY before req.x reordered the stores. Inlining the subtraction into
+the halfword assignment instead produced `li 0xfffa; addu`, costing an extra
+instruction for each request.
+
+The width-load block needed `width = (s16)obj->field_1E; SOFT_USE_REG(width);`
+followed by copying the x argument and calculating the span. Without the helper,
+sched2 put the x copy before the load; dbr duplicated the copy into an earlier
+branch slot and left a load-delay nop. Reading sched2 and dbr exposed this:
+fixing it cleared all branch penalties without changing the branch conditions.
+
+Compute `spriteX = obj->baseX + x` before writing the sprite size/UV/tag fields,
+then store `p->x0 = spriteX + 0x14` afterwards. This hoists the baseX load and
+keeps the arithmetic in the target position. The final seed's `do { ... }
+while (0)` around the decreasing-value draw arm is also significant: removing
+it retained instruction/control-flow shape but introduced 117 register
+penalties (98.734%). Keep this form when cleaning up the matched body.

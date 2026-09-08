@@ -4256,7 +4256,175 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D3660);
+void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+{
+    struct
+    {
+        u8          buf[0x20];
+        TextDrawReq req;
+        TextDrawReq req2;
+    } loc;
+    s32   span;
+    s32   width;
+    s32   raw;
+    s32   val;
+    s32   max;
+    s32   x;
+    SPRT* p;
+    s32   rawPrev;
+    s32   prev;
+    s32   color;
+    s32   y;
+    s32   textY;
+    s32   u0;
+    s32   prevId;
+    s32   spriteX;
+    s32   a;
+    s32   b;
+    s32   c;
+    s32   aPrev;
+    s32   bPrev;
+    s32   cPrev;
+    s32   textY2;
+    u8*   text;
+    {
+        a   = (arg1 & 0x30) >> 4;
+        b   = (arg1 & 0xC) >> 2;
+        c   = arg1 & 3;
+        raw = Gp_IdParamHi[(((a * 3) + b) * 3) + c].field[arg5];
+    }
+    if (arg5 == 0) {
+        if (Mc_SaveData.field_F > 0) {
+            raw = (raw * 4) / 5;
+        } else if (Mc_SaveData.field_E > 0) {
+            raw = (raw * 2) / 5;
+        }
+    }
+    width = ((s16)arg0->field_1E);
+    SOFT_USE_REG(width);
+    x    = arg3;
+    span = width - x;
+    val  = raw & 0xFFFF;
+    switch (arg5) {
+        case 2:
+            max = 0x3C;
+            break;
+
+        case 3:
+            max = 0x5F;
+            break;
+
+        case 1:
+            max  = 0x14;
+            arg2 = 0;
+            break;
+
+        default:
+            max = val;
+            break;
+    }
+
+    if (arg2 == 1) {
+        prevId = arg1 - 1;
+        {
+            aPrev   = (prevId & 0x30) >> 4;
+            bPrev   = (prevId & 0xC) >> 2;
+            cPrev   = prevId & 3;
+            rawPrev = Gp_IdParamHi[(((aPrev * 3) + bPrev) * 3) + cPrev].field[arg5];
+        }
+        if (arg5 == 0) {
+            if (Mc_SaveData.field_F > 0) {
+                rawPrev = (rawPrev * 4) / 5;
+            } else if (Mc_SaveData.field_E > 0) {
+                rawPrev = (rawPrev * 2) / 5;
+            }
+        }
+        color              = 0x606060;
+        p                  = (SPRT*)Gpu_PrimCursor;
+        p->y0              = (arg0->baseY + arg4) - 0xC;
+        prev               = rawPrev & 0xFFFF;
+        loc.req.x          = arg0->baseX + x;
+        textY              = arg0->baseY - 6;
+        loc.req.y          = textY + arg4;
+        Gpu_PrimCursor     = (DR_TPAGE*)(p + 1);
+        loc.req.otIndex    = ((s16)arg0->drawOrder) + 1;
+        loc.req.field_8    = color;
+        loc.req.glyphTable = 0;
+        loc.req.centerMode = 0;
+        loc.req.field_E    = 3;
+        func_8002E53C(&loc.req, Text_ItoaSigned(loc.buf, prev));
+        if (prev < val) {
+            y = arg4 - 3;
+            Ui_AllocTile((UiPanel*)arg0, x, y, (span * prev) / max, 3, 0x1741FU);
+            color = 0xD287F;
+            Ui_LayoutWithMode1(arg0, (void*)x, (void*)y, (void*)((span * val) / max), (void*)3, (void*)0x1A50FE);
+            p->u0         = 0xA0;
+            *(u32*)&p->r0 = color;
+            p->y0         = p->y0 - 1;
+        } else {
+            if (val < prev) {
+                do {
+                    y = arg4 - 3;
+                    Ui_AllocTile((UiPanel*)arg0, x, y, (span * val) / max, 3, 0x1741FU);
+                    color = 0x1741F;
+                    Ui_LayoutWithMode1(arg0, (void*)x, (void*)y, (void*)((span * prev) / max), (void*)3, (void*)1);
+                    u0 = 0x30;
+                } while (0);
+            } else {
+                if (val > 0) {
+                    Ui_LayoutWithMode1(arg0, (void*)x, (void*)(arg4 - 3), (void*)((span * val) / max), (void*)3, (void*)0x1741F);
+                }
+                u0 = 0x78;
+            }
+            p->u0         = u0;
+            *(u32*)&p->r0 = color;
+        }
+        spriteX = arg0->baseX + x;
+        p->w    = 8;
+        p->h    = 8;
+        p->v0   = 0x60;
+        p->clut = 0x3C09;
+        setSprt(p);
+        p->x0 = spriteX + 0x14;
+        addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+        Ui_InsertDrawTPage(((s16)arg0->drawOrder) + 1, 0);
+        loc.req2.x          = (arg0->baseX + 0x1E) + x;
+        textY               = arg0->baseY - 6;
+        loc.req2.y          = textY + arg4;
+        loc.req2.otIndex    = ((s16)arg0->drawOrder) + 1;
+        loc.req2.field_8    = color;
+        loc.req2.glyphTable = 0;
+        loc.req2.centerMode = 0;
+        loc.req2.field_E    = 3;
+        func_8002E53C(&loc.req2, Text_ItoaSigned(loc.buf, val));
+    } else {
+        if (arg5 == 1) {
+            loc.req2.x          = arg0->baseX + x;
+            textY2              = arg0->baseY - 6;
+            loc.req2.y          = textY2 + arg4;
+            loc.req2.otIndex    = ((s16)arg0->drawOrder) + 1;
+            loc.req2.field_8    = 0x606060;
+            loc.req2.glyphTable = 0;
+            loc.req2.centerMode = 0;
+            loc.req2.field_E    = 3;
+            text                = Text_ItoaSignedPlus(loc.buf, val);
+        } else {
+            loc.req2.x          = arg0->baseX + x;
+            textY2              = arg0->baseY - 6;
+            loc.req2.y          = textY2 + arg4;
+            loc.req2.otIndex    = ((s16)arg0->drawOrder) + 1;
+            loc.req2.field_8    = 0x606060;
+            loc.req2.glyphTable = 0;
+            loc.req2.centerMode = 0;
+            loc.req2.field_E    = 3;
+            text                = Text_ItoaSigned(loc.buf, val);
+        }
+        func_8002E53C(&loc.req2, text);
+        if (val > 0) {
+            Ui_LayoutWithMode1(arg0, (void*)x, (void*)(arg4 - 3), (void*)((span * val) / max), (void*)3, (void*)0x1741F);
+        }
+    }
+}
 
 void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
 {
