@@ -387,6 +387,22 @@ extern GpAreaRec* Gp_AreaTables[];
 /// 0-terminated `GpSndMaskRec` table walked by `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks`.
 extern GpSndMaskRec Gp_SndMaskTable[];
 
+/// 0x3C-byte stream header read before the sector payload and copied into
+/// `CdCmdQueue.field_58`. The payload uses `field_30` sectors and buffer kind
+/// `field_34`; `field_36` controls whether an already-loaded part is skipped.
+typedef struct _GpSectorHeader {
+    /* 0x00 */ u8    pad_0[0x20];
+    /* 0x20 */ void* field_20;
+    /* 0x24 */ u8    pad_24[0xC];
+    /* 0x30 */ s16   field_30;
+    /* 0x32 */ u16   field_32;
+    /* 0x34 */ s16   field_34;
+    /* 0x36 */ s16   field_36;
+    /* 0x38 */ u8    pad_38[4];
+} GpSectorHeader;
+STATIC_ASSERT_SIZEOF(GpSectorHeader, 0x3C);
+
+s32      func_800AF590(void);
 s16      Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
 void     Gp_StepCdAudioCmd(void);
 void     Gp_ApplySndMasks(u16 arg0);

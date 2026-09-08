@@ -58,7 +58,6 @@ extern s32   CdAudio_DriveNull(void);
 extern void  func_8001F430(void);
 extern s32   func_8001FAE0(u16 arg0, s32 arg1);
 extern void  func_80059EE0(void);
-extern s32   func_800AF590(s32 arg0, s32 arg1);
 extern s32   func_800B0118(s32 arg0, s32 arg1);
 
 extern GBytes4       D_80013F18;

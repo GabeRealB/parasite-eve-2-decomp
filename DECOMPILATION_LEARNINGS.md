@@ -54910,3 +54910,32 @@ from the target. Clamp calculations and limits are `s32`; only the stored
 and a typed `GsCOORDINATE2` array index reproduce the bias, negation, and
 0x50-byte induction variable. The first baseline was 79.313%; the real project
 headers preserved the 100% result.
+
+
+## Constant array subscript vs pointer dereference can change a cross-call address
+
+`func_800AF590` (GCC 2.8.1, gameplay) accesses the second halfword of
+`extern u16 D_80114D14[2]` before and after `Mem_CopyUnaligned`. Writing
+`D_80114D14[1]` made GCC retain the full array base across the call and emit
+`lui a0,hi(array); addiu s0,a0,lo(array); sh v1,2(s0)`.
+Writing `*(D_80114D14 + 1)` instead folded the offset into the symbol and kept
+only its high half in `s0`: `lui s0,hi(array+2); sh v1,lo(array+2)(s0)`.
+The later `lhu` used the same folded address. Both forms stay within the
+correctly declared two-element array; no split symbol or asm alias is needed.
+
+The scratch progression was 98.347% with subscripting (branch/insert/delete
+penalties from the extra address instruction), 99.923% with a separate scalar
+symbol (only equivalent relocation names differed), then 100% with the
+pointer expression. The ordinary case bodies let GCC cross-jump their common
+tails; keeping m2c's explicit shared-tail goto placed that tail too early.
+
+Loading the copy index back from the just-written global, rather than reading
+the header member again, also let CSE reuse the halfword and retain the target
+`andi`. Use the `.jump`/`.cse2` address expressions and `.lreg`/`.greg` live
+ranges to distinguish these effects from register coloring.
+
+Changing the shared state declaration from scalar to array also changed
+`Gp_FindStreamSlot`: its reset could now alias the subsequent slot/RNG reads.
+Explicitly loading `slot->field_18` and `Gp_LcgState` into locals before the
+reset restored that already-matched sibling's scheduling without new pins.
+The scoped rebuild then matched every byte of the gameplay overlay.

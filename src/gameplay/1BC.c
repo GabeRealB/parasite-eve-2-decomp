@@ -79,10 +79,101 @@ extern char           Gp_StrNewEnemyNull[];
 extern GsCOORDINATE2  Gfx_ViewCoord;
 extern s32            Gp_LcgState;
 extern u8             D_800626E8;
-extern u16            D_80114D14;
+extern u8*            D_80114D10;
+extern u16            D_80114D14[2];
+extern s16            D_80114D18;
+extern s16            D_80114D1A;
+extern s16            D_80114D1C;
 extern s32            D_80114D20;
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
+s32 func_800AF590(void)
+{
+    GpSectorHeader header;
+    CdCmdQueue*    p;
+
+    p = &CdCmd_Queue;
+    switch (D_80114D14[0]) {
+        case 0:
+            CdGetSector(&header, 0xF);
+            D_80114D1A = 1;
+            D_80114D1C = (s16)header.field_36;
+            if ((D_80114D1C == 0) && ((s16)p->field_246 != 0)) {
+                D_80114D1A = 0;
+            }
+            if (header.field_30 != 0) {
+                p->field_218        = 1;
+                (*(D_80114D14 + 1)) = header.field_34;
+                if (D_80114D1A != 0) {
+                    Mem_CopyUnaligned(&header, &p->field_58[(*(D_80114D14 + 1))], 0x3C);
+                }
+                switch ((*(D_80114D14 + 1))) {
+                    case 0:
+                        D_80114D10   = p->field_184;
+                        p->field_194 = header.field_20;
+                    default:
+                        break;
+                    case 1:
+                        D_80114D10 = (u8*)D_8005C36C;
+                        if (p->field_190->field_1A == 1) {
+                            D_80114D10 = (u8*)D_8005C36C + 0x11000;
+                        }
+                        if (p->field_190->field_3 == 2) {
+                            D_80114D10 += p->field_190->field_1E;
+                        }
+                        break;
+                    case 2:
+                        D_80114D10 = (u8*)D_8005C370;
+                        if (p->field_190->field_1A == 2) {
+                            D_80114D10 = (u8*)D_8005C370 + 0x11000;
+                        }
+                        if (p->field_190->field_3 == 3) {
+                            D_80114D10 += p->field_190->field_1E;
+                        }
+                        break;
+                    case 3:
+                        D_80114D10 = (u8*)D_8005C374;
+                        if (p->field_190->field_1A == 3) {
+                            D_80114D10 = (u8*)D_8005C374 + 0x11000;
+                        }
+                        if (p->field_190->field_3 == 4) {
+                            D_80114D10 += p->field_190->field_1E;
+                        }
+                        break;
+                    case 4:
+                        D_80114D10 = p->field_198;
+                        break;
+                }
+                if (D_80114D1A != 0) {
+                    CdGetSector(D_80114D10, 0x1F1);
+                }
+                D_80114D10   += 0x7C4;
+                D_80114D14[0] = 1U;
+                D_80114D18    = (u16)header.field_30 - 1;
+            }
+            break;
+        case 1:
+            if (D_80114D18 > 0) {
+                if (D_80114D1A != 0) {
+                    CdGetSector(D_80114D10, 0x200);
+                }
+                D_80114D10 += 0x800;
+                D_80114D18  = (u16)D_80114D18 - 1;
+            }
+            if (D_80114D18 == 0) {
+                D_80114D18 = (u16)D_80114D18 - 1;
+                if (CdCmd_Queue.field_23A == 0) {
+                    CdCmd_Queue.field_214 = 1;
+                }
+                CdCmd_Queue.field_218 = 0;
+                if (D_80114D1C == 0) {
+                    CdCmd_Queue.field_246 = 1;
+                }
+                D_80114D14[0] = 0U;
+            }
+            break;
+    }
+    return 0;
+}
 
 s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
 {
@@ -92,6 +183,8 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     register s32 i asm("s2");
     register s32 found asm("t1");
     s32          temp;
+    u16          streamType;
+    s32          seed;
 
     p = &CdCmd_Queue;
     if (arg0 == 0) {
@@ -142,9 +235,11 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     p->field_21E = 0;
     p->field_218 = 0;
     p->field_21C = 0;
-    D_80114D14   = 0;
-    p->field_238 = slot->field_18;
-    p->field_1A8 = Gp_LcgState;
+    streamType   = slot->field_18;
+    seed         = Gp_LcgState;
+    *D_80114D14  = 0;
+    p->field_238 = streamType;
+    p->field_1A8 = seed;
     p->field_1AC = rand();
     Gp_LcgState  = 0;
     srand(1);
