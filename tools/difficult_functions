@@ -2,7 +2,6 @@ Actor02000_L01B90 1 67.107
 AudioTick_Insert 54 97.38
 CdStream_Drive 22 96.5
 CdStream_ReadyMts 8 83.988
-Fs_LoadImageStrip 22 91.134
 Gp_PairHandler3 19 82.686
 Gp_ScriptTaskState1 110 98.986
 Midi_Event1 25 90.532

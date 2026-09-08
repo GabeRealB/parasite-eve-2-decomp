@@ -54670,3 +54670,44 @@ string match, so the annotated comment can hide a load-use hazard from its
 lookahead. In this attempt four required load-delay nops disappeared in the
 object. Check the kept `.s` and assembler comment handling when a volatile
 load has `#nop` in GCC output but no delay in the object.
+
+
+## A scoped byte test preserves a scan loop while LICM hoists its buffer addresses
+
+`Fs_LoadImageStrip` matched without pins or inline asm by keeping the scan's
+return paths inside a structured loop, with the byte test in its own local
+scope:
+
+```c
+do {
+    {
+        u8 value = *scan++;
+        if (value != 0) {
+            goto next_strip;
+        }
+    }
+    Fs_ChunkReadPtr++;
+    count++;
+    if (Fs_ChunkReadPtr >= D_8006CCD8 || count >= 6U) {
+        Fs_ContinueDrawing(ot);
+        /* Conditional rewind and return remain inside this loop. */
+    }
+} while (1);
+```
+
+The patched GCC 2.8.1 `jump.c:duplicate_loop_exit_test` explicitly refuses to
+copy `NOTE_INSN_BLOCK_BEG` / `NOTE_INSN_BLOCK_END`. Without the local scope,
+`.jump` duplicated the byte test at entry and at the bottom. A goto-only scan
+avoided the duplicate but lost loop-invariant motion of `%hi(Fs_ChunkReadPtr)`.
+The scoped structured loop retained one test and let `.loop` hoist both the
+read-pointer address and the buffer-end / rewind-address expressions. Explicit
+pre-loop rewind locals instead reversed the address derivation (start + 0x800
+rather than end - 0x800), leaving a 99.890% attempt with `regs=5` despite the
+underlying cause being constant expression placement.
+
+The GPU timeout path also needed the idle wait and both escape tests inside
+one `do { ... } while (0)`: break when the timer is below the limit, then break
+when retry is enabled, otherwise call `ContinueDraw` and return. Nested `if`s
+stole a duplicate `li v0,1` into the retry branch's delay slot; the enclosing
+loop put `move a0,zero` there and preserved the preceding `%hi(flag)` delay
+slot. Wrapping only the retry test did not have this effect.

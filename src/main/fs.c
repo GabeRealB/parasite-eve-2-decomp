@@ -1724,7 +1724,128 @@ loop:
     D5B498_8006D4E0[D5B498_8006ADF4] = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", Fs_LoadImageStrip);
+s32 Fs_LoadImageStrip(s32 mode)
+{
+    u_long*      ot;
+    s32          none;
+    s32          retry;
+    u8           count;
+    u8*          scan;
+    FsWorkEntry* entry;
+    RECT*        rect;
+
+    if (ResetRCnt(RCntCNT2) == 0) {
+        return 0xFF;
+    }
+    none  = -1;
+    retry = (u8)mode;
+    for (;;) {
+        ot = BreakDraw();
+        if ((s32)ot != none) {
+            break;
+        }
+        if (GetRCnt(RCntCNT2) >= 0x6E40) {
+            if (retry == 0) {
+                Fs_ContinueDrawing((u_long*)-1);
+                return 0x7F;
+            }
+        }
+    }
+
+    for (;;) {
+        if (D5B498_8006ADE1 != 0) {
+            Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
+            D5B498_8006D748  = 0;
+            D5B498_8006EA1A  = 0;
+            D5B498_8006EBB0  = 0;
+            D5B498_8006D850  = 0;
+            D5B498_8006D85A  = 0;
+            D5B498_8006D858  = 1;
+            D5B498_8006ADE1  = 0;
+        }
+        Fs_DecompressChunk();
+        if (D5B498_8006D748 == 0xFFFF) {
+            Fs_ContinueDrawing(ot);
+            return 0x7F;
+        }
+        if (D5B498_8006D748 == 0) {
+            Fs_ContinueDrawing(ot);
+            if ((u8)mode == 0) {
+                Fs_ChunkReadPtr = (u8*)&Fs_CdSector;
+                if (GetRCnt(RCntCNT2) >= 0x6E40) {
+                    return 0x7F;
+                }
+            }
+            return 0;
+        }
+        LoadImage2(&Fs_ImageRect, D5B498_8006D870);
+        retry = (u8)mode;
+        do {
+            while (IsIdleGPU(-1) != 0) {
+            }
+            if (GetRCnt(RCntCNT2) < 0x6E40) {
+                break;
+            }
+            if (retry != 0) {
+                break;
+            }
+            ContinueDraw(0, ot);
+            return 0x7F;
+        } while (0);
+        D5B498_8006ADE1  = 1;
+        Fs_ImageRect.y  += 0x20;
+        D5B498_8006ACD4 -= 0x20;
+        if ((s16)D5B498_8006ACD4 <= 0) {
+            if (Fs_WorkEntries[D5B498_8006ADE0].field_0 == 0xFFFF) {
+                Fs_ContinueDrawing(ot);
+                if ((u8)mode == 0) {
+                    Fs_ChunkReadPtr = (u8*)&Fs_CdSector;
+                    if (GetRCnt(RCntCNT2) >= 0x6E40) {
+                        return 0x7F;
+                    }
+                }
+                return 1;
+            }
+            D5B498_8006D4E0[D5B498_8006ADF4]++;
+            entry = &Fs_WorkEntries[D5B498_8006ADE0];
+            if (entry->field_2 >= 0x100U || Fs_ChunkMode == 2) {
+                Fs_ImageRect.x = entry->field_0 + (s8)D5B498_8006C233 * 64;
+            } else {
+                Fs_ImageRect.x = entry->field_0;
+            }
+            D5B498_8006ACD4 = 0x100;
+            rect            = &Fs_ImageRect;
+            rect->y         = Fs_WorkEntries[D5B498_8006ADE0].field_2;
+            rect->w         = 0x40;
+            rect->h         = 0x20;
+            D5B498_8006ADE0++;
+        }
+        count = 0;
+        scan  = Fs_ChunkReadPtr;
+        do {
+            {
+                u8 value = *scan++;
+                if (value != 0) {
+                    goto strip_done;
+                }
+            }
+            Fs_ChunkReadPtr++;
+            count++;
+            if (Fs_ChunkReadPtr >= D_8006CCD8 || count >= 6U) {
+                Fs_ContinueDrawing(ot);
+                if ((u8)mode == 0) {
+                    Fs_ChunkReadPtr = D_8006CCD8 - 0x800;
+                    if (GetRCnt(RCntCNT2) >= 0x6E40) {
+                        return 0x7F;
+                    }
+                }
+                return 0;
+            }
+        } while (1);
+    strip_done:
+        D5B498_8006D748 = 0;
+    }
+}
 
 void Fs_ClearDiskError(void)
 {
