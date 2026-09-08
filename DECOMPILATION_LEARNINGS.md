@@ -55372,3 +55372,24 @@ Keep the original annotated `.s` for RTL UIDs. On the assembler input alone,
 strip the trailing annotation from commented `novolatile` directives. The
 scratch build uses `sed -E 's/(#\.set[[:space:]]+novolatile)[[:space:]]+#.*$/\1/'`
 for this. The project build does not pass `-dp` and needs no tooling change.
+
+## Halfword shifts and loop initialization can replace a give-up seed's barriers
+
+`func_800ED42C`'s archived seed scored 95.091%. Separate `sh`/`add` locals
+and empty asm forwarded the random halfword into the spawn argument, losing
+the target's separate `lh` and `lhu`. Plain field stores with
+`-((s32)((u16)mem->field_24 << 16) >> 18)` (or `>> 17`) and a direct
+`mem->field_24 + offset` call argument preserved both loads and the full
+`lhu; sll; sra; negu` sequence without barriers or volatile accesses.
+
+The last four scheduling penalties came from initializing the loop counter
+before `Gp_SpawnEff`. `.sched` and `.sched2` placed that zero before argument
+setup, leaving the vector address to fill the halfword load delay. Putting
+`i = 0` after the call, naturally as the following `for` initializer, let GCC
+schedule the zero into that delay and move the vector address earlier. This
+reached 100% without pins. The analogous rotated-vector arm initializes `i`
+between `Gp_SpawnEff` and `Gfx_RotMatrixX`, which also consumes that zero.
+
+This caller supplies only three arguments to `Gp_DrawEffSprite6C`; its fourth
+formal is unused. An unprototyped forward declaration preserves these calls
+and the sibling's existing four-argument call without extra `$a3` setup.
