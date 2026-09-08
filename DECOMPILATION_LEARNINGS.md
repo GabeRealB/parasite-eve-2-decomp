@@ -54829,3 +54829,22 @@ argument to s8 at the call inserted an extra sign extension before the
 unsigned range check. Explicit s8 casts remain on the external key calls
 and the voice-reference helper call. Verified by the full build in the
 func_8004E200 worktree; the standalone Spu_GetVoiceRef leaf was not changed.
+
+## A dead scan-pointer initialization can prevent loop-invariant hoisting
+
+`func_800D6334` assigns a scan pointer to `&Mc_SaveData.field_5BC` inside an
+attachment-icon loop. With only that assignment, GCC 2.8.1's `.loop` hoisted
+both the `%hi` and full pointer, extending its lifetime across four calls and
+eventually spilling the armor id. Initializing this otherwise local pointer
+to `NULL` before the outer loop leaves another definition visible to `.loop`.
+The dead initialization vanishes later, but the full address now stays inside
+the loop: `%hi` is kept in `$s6`, `addiu s0,s6,%lo` fills the slot-selection
+branch delay, and the pointer dies after the count load. This took the
+unpinned attempt from 95.025% to 99.803%, with branch/insert/delete all zero.
+
+The final register difference was the inner search count: a named `s32 count`
+gave counter/count/slot-plus-one `$a0/$a2/$a1`. The permuter replaced the
+assignment and `i < count` with `i < scan->field_1`; GCC still hoisted the
+byte load out of the inner search, but assigned `$a1/$a0/$a2`, matching.
+Check `.loop`, `.lreg`, and `.greg` before using this pattern; the dead
+initialization matters to optimization even though it emits no instructions.

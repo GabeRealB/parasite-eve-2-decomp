@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/268.h"
 #include "main/task.h"
 #include "main/ui.h"
 
@@ -200,6 +201,8 @@ void func_800D29B0(Task* arg0);
 void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj);
 void func_800C41A4(DialogPrompt* prompt, UiObject* obj);
 void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+/// `arg5` is supplied by the attachment menu but unused by this renderer.
+void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 arg4, s32 arg5);
 void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void Gp_SetPreviewItem(s32 arg0, s32 arg1);
 void Gp_SetHolderItemText(s32 arg0);

@@ -12,6 +12,7 @@
 #include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/ui.h"
 
 /// Task descriptor view used by `func_800E31E8` to compare flags and priority
 /// as one word. The setup argument encodes a stage/area or stage/area/room key.
@@ -1053,6 +1054,13 @@ STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
 /// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
 /// `Gp_HealPending == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 Gp_HealPending;
+
+/// Attachment slot selected by `func_800D6334` and its child UI descriptor.
+extern s32          D_8010F884;
+extern UiObjectDesc D_8010F8B4;
+extern const char   D_80097440[];
+extern const char   D_80097448[];
+void                func_800D6334(Task* arg0);
 
 /// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
 /// stores the id, or its negation for the second `GpItemSlot` pair.

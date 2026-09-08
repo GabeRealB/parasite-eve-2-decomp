@@ -1206,7 +1206,7 @@ void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
 
-void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 arg4)
+void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 arg4, s32 arg5)
 {
     u8          buf[0x20];
     TextDrawReq req;

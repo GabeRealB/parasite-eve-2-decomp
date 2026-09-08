@@ -3,6 +3,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -389,7 +390,176 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6334);
+const char D_80097440[] = { 'A', 'r', 'm', 'o', 'r', 0, 0, 0 };
+const char D_80097448[] = { 'A', 't', 't', 'a', 'c', 'h', 'm', 'e', 'n', 't', 's', 0 };
+
+void func_800D6334(Task* task)
+{
+    TextDrawReq name;
+    TextDrawReq label;
+    UiObject*   panel;
+    GpItemRec*  selected;
+    GpItemRec*  table;
+    GpItemScan* scan;
+    GpItemRec*  firstRec;
+    GpItemRec*  firstTable;
+    GpItemRec*  useRec;
+    GpItemRec*  useTable;
+    GpItemScan* firstScan;
+    GpItemScan* useScan;
+    s32         firstI;
+    s32         firstCount;
+    s32         useI;
+    s32         useCount;
+    s32         useSlot;
+    s32         usable;
+    s32         armor;
+    s32         x;
+    s32         y;
+    s32         selectedX;
+    s32         item;
+    s32         flags;
+    s32         slot;
+    s32         i;
+    s32         selectedSlot;
+    s32         labelX;
+    s32         labelY;
+
+    scan            = NULL;
+    armor           = Wip_SysConfig.field_23 + 0x5F;
+    panel           = task->spawnArg2;
+    panel->field_2E = 0;
+    panel->field_E  = 0x1C - Display_State.vramYOffset;
+    Ui_InsetLayout((UiPanel*)panel, 0, 0, 0);
+    Ui_DrawText((UiPanel*)panel, (char*)D_80097440);
+    usable = 1;
+    if (task->state == 0) {
+        Gp_HealPending = 0;
+        Gp_UsedItemId  = 0;
+        if (D_8010F884 >= Gp_GetModLevel(armor)) {
+            D_8010F884 = 0;
+        }
+        Ui_SpawnFromDesc(&D_8010F8B4, 0, 0, 0, panel);
+        task->state++;
+    }
+    x = (s16)panel->field_1C + 4;
+    y = (s16)panel->field_18 + 0x2B;
+    if (task->state == 1) {
+        selectedSlot = D_8010F884;
+        selectedX    = x + selectedSlot * 13;
+        firstRec     = NULL;
+        firstScan    = &Mc_SaveData.field_5BC;
+        firstTable   = Gp_GetItemTable(firstScan);
+        firstI       = 0;
+        firstTable   = &firstTable[firstScan->field_0];
+        firstCount   = firstScan->field_1;
+        for (; firstI < firstCount; firstI++) {
+            if ((s8)firstTable->field_1 == selectedSlot + 1) {
+                firstRec = firstTable;
+                break;
+            }
+            firstTable++;
+        }
+        selected = firstRec;
+        if (selected != NULL) {
+            item            = selected->field_0;
+            name.x          = panel->baseX + x;
+            name.y          = panel->baseY + 10 + y;
+            name.otIndex    = (s16)panel->drawOrder + 1;
+            name.field_8    = 0x606060;
+            name.glyphTable = 0;
+            name.centerMode = 0;
+            name.field_E    = 1;
+            func_8002E53C(&name, (u8*)Gp_GetItemText(item, 0, 0));
+            Gp_DrawStackLeft(panel, x - 15, y + 16, selected, 0x606060, 0);
+        } else {
+            item = 0;
+        }
+        flags  = 2;
+        usable = 1;
+        if (Gp_ItemIsUnusable(item, selected)) {
+            flags  = 6;
+            usable = 0;
+        }
+        Gp_DrawItemIcon(panel, selectedX, y, item, flags);
+        selectedX = x;
+        for (slot = 0; slot < Gp_GetModLevel(armor); slot++, selectedX += 13) {
+            if (slot != D_8010F884) {
+                selected = NULL;
+                scan     = &Mc_SaveData.field_5BC;
+                table    = Gp_GetItemTable(scan);
+                i        = 0;
+                table    = &table[scan->field_0];
+                for (; i < scan->field_1; i++) {
+                    if ((s8)table->field_1 == slot + 1) {
+                        selected = table;
+                        break;
+                    }
+                    table++;
+                }
+                item = 0;
+                if (selected != NULL) {
+                    item = selected->field_0;
+                }
+                flags = (Gp_ItemIsUnusable(item, selected) != 0) * 4;
+                Gp_DrawItemIcon(panel, selectedX, y, item, flags);
+            }
+        }
+    }
+    labelX = (s16)panel->field_1C + 2;
+    labelY = (s16)panel->field_18;
+    Gp_DrawItemLabel(panel, labelX, labelY + 15, armor, 0x606060, 0);
+    Ui_DrawHBar((UiPanel*)panel, (s16)panel->field_1C, (s16)panel->field_1E, (s16)panel->field_18 + 17);
+    label.x          = panel->baseX + labelX;
+    label.y          = panel->baseY + labelY + 24;
+    label.otIndex    = (s16)panel->drawOrder + 1;
+    label.field_8    = 0x606060;
+    label.glyphTable = 5;
+    label.centerMode = 0;
+    label.field_E    = 1;
+    func_8002E53C(&label, (u8*)D_80097448);
+    if (panel->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
+            if (usable == 1) {
+                useSlot  = D_8010F884;
+                useRec   = NULL;
+                useScan  = &Mc_SaveData.field_5BC;
+                useTable = Gp_GetItemTable(useScan);
+                useI     = 0;
+                useTable = &useTable[useScan->field_0];
+                useCount = useScan->field_1;
+                for (; useI < useCount; useI++) {
+                    if ((s8)useTable->field_1 == useSlot + 1) {
+                        useRec = useTable;
+                        break;
+                    }
+                    useTable++;
+                }
+                if (Gp_ApplyItemUse(useRec)) {
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    panel->field_2E = -1;
+                    task->state     = 2;
+                }
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x8000)) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            D_8010F884--;
+            if (D_8010F884 < 0) {
+                D_8010F884 += Gp_GetModLevel(armor);
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x2000)) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            D_8010F884++;
+            if (D_8010F884 >= Gp_GetModLevel(armor)) {
+                D_8010F884 = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu)) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            panel->field_2E = -1;
+            task->state     = 2;
+        }
+    }
+}
 
 /* After Armor/Attachments from func_800D6334 so overlay .rodata stays packed. */
 const char Gp_StrWeapon[] = {
