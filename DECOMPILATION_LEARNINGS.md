@@ -56494,3 +56494,61 @@ confused with this one:
   If the ROM has both in the same register, it is not a ternary.
 - A `li` before the branch cannot be the source when it targets the condition
   register: the backward scan marks the condition as `needed` and refuses.
+
+## A dropped `arg0` argument changes which `$sN` every local gets
+
+`func_actor_341700_801686C0` copies a 3-entry function table onto the stack,
+calls a guard, and dispatches. Written with the "unprototyped call" idiom this
+overlay already uses for `func_actor_341700_80168178` — call it with no
+arguments, because `$a0` still holds the caller's own `Task*` and the target has
+no `move $a0, $s0` — it scored 98.09% with `regs=13` and nothing else:
+
+```
+-move    s0,a0          +move    s2,a0
+-lw      s2,0x1c(s0)    +lw      s1,0x1c(s2)
+-addiu   s1,sp,0x10     +addiu   s0,sp,0x10
+```
+
+A clean three-way rotation of `$s0`/`$s1`/`$s2`: every live range is right, only
+the colours are permuted. That is `global.c`'s priority sort, and `.greg` prints
+the inputs:
+
+```
+r84   used 2/7      → $s0    (the `addiu $sN, $sp, 0x10` table base)
+r81   used 2/8      → $s1    (`work`)
+r80   used 3/24     → $s2    (`arg0`)
+```
+
+`allocno_compare` sorts by `floor_log2(n_refs) * n_refs / live_length`, and
+`find_reg` then hands out `$s0`, `$s1`, `$s2` in that order. With three
+references `arg0` scores `1*3/24 = 0.125`, behind both short-lived locals, so
+the long-lived parameter is coloured *last*. The target gives `arg0` `$s0`, so
+in the original it must have sorted first — and `floor_log2` is a step function,
+so one more reference is enough to jump it: `2*4/24 = 0.333`, ahead of
+`2/7 = 0.286`.
+
+The missing reference is the argument the idiom threw away. Prototyping the
+guard properly and passing `arg0` matched at 100%:
+
+```c
+s32 func_actor_341700_80168234(Task* arg0);
+...
+if ((func_actor_341700_80168234(arg0) << 0x10) == 0) {
+    sp.funcs[(s16)work->field_422](arg0);
+}
+```
+
+The `move $a0, $s0` this "should" have added never appears: `reload_cse_regs`
+deletes the copy because `$a0` still holds that value from entry. So the
+argument is free — it costs no instruction and buys the reference that fixes the
+colouring.
+
+Read that as a limit on the unprototyped-call idiom. Dropping the argument is
+not a neutral way to suppress a copy that the compiler was going to delete
+anyway; it also removes a reference, and the reference is an input to register
+allocation. Reach for it only when the call is genuinely argumentless in the
+original. When a function is at ≥95% with `regs` as the only penalty and the
+diff is a *rotation* of callee-saved registers rather than a swap of two, count
+references in `.greg` before touching live ranges or adding pins: the pseudo the
+target puts in `$s0` needs to top that quotient, and crossing a `floor_log2`
+boundary — 3 refs to 4, 7 to 8 — is usually the whole fix.

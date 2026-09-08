@@ -30,6 +30,11 @@ void func_actor_341700_80169AB0(Task* arg0);
 s32 func_actor_341700_80168178();
 s32 func_actor_341700_80168468();
 
+/* This one, by contrast, is a normal prototyped call: the redundant
+ * `move $a0, $s0` is deleted again after reload because `$a0` still holds the
+ * caller's own `arg0`. */
+s32 func_actor_341700_80168234(Task* arg0);
+
 void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
 {
     MATRIX         local;
@@ -105,7 +110,20 @@ void func_actor_341700_801686AC(Task* arg0)
     work->field_422 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_801686C0);
+/// The three sub-state handlers guarded by `func_actor_341700_80168234`.
+extern TaskFuncTable3 D_actor_341700_80161E9C;
+
+void func_actor_341700_801686C0(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor341700Work*)arg0->idMap;
+    sp   = D_actor_341700_80161E9C;
+    if ((func_actor_341700_80168234(arg0) << 0x10) == 0) {
+        sp.funcs[(s16)work->field_422](arg0);
+    }
+}
 
 /// The five sub-state handlers this branch of the actor dispatches through.
 extern TaskFuncTable5 D_actor_341700_80161EA8;
