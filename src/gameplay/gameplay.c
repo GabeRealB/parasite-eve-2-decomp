@@ -2061,7 +2061,98 @@ u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009AC58);
+u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+{
+    s32      prev;
+    s32      count;
+    u32      idx;
+    u16*     rec;
+    CVECTOR  col;
+    CVECTOR  col2;
+    u8*      dest;
+    u8*      cptr;
+    DVECTOR* xy;
+    SVECTOR* sv;
+    s32      page;
+    s32      uv;
+
+    col  = Gp_ColorWhite;
+    col2 = Gp_ColorGrey;
+    gte_ldrgb(&col);
+    count = ws->field_1C;
+    if (count == 0) {
+        return arg2;
+    }
+    prev         = -1;
+    ws->field_1C = count + prev;
+    if (count > 0) {
+        do {
+            rec = (u16*)arg2;
+            idx = rec[0];
+            if (idx != prev) {
+                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_rtps_real();
+                gte_stsz(&ws->field_28);
+                gte_stflg(&ws->field_24);
+                if (ws->field_24 & 0x80000000) {
+                    ws->field_28 |= 0x80000000;
+                }
+                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+            }
+            prev = rec[0];
+            gte_stsxy(ws->field_4 + rec[2]);
+            gte_stsxy(&ws->field_7C);
+            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_nccs_real();
+            gte_rtv0_real();
+            gte_stsv(&ws->field_74);
+            arg2 += ws->field_18;
+            gte_strgb(ws->field_4 + rec[3]);
+            if (ws->field_80->field_2C < 0x1000) {
+                gte_lddp(ws->field_80->field_2C);
+                cptr = ws->field_4 + rec[3];
+                gte_ldcv(cptr);
+                gte_gpf12_real();
+                gte_lddp(0x1000 - ws->field_80->field_2C);
+                gte_ldcv(&col2);
+                gte_gpl12_real();
+                gte_stcv(cptr);
+            }
+            xy = (DVECTOR*)&ws->field_7C;
+            TOUCH_REG(xy);
+            page = 0;
+            dest = ws->field_4 + rec[2] + 4;
+            sv   = (SVECTOR*)&ws->field_74;
+            gte_lddp(ws->field_80->field_2C >> 9);
+            gte_ldsv(sv);
+            gte_gpf12_real();
+            gte_stsv(sv);
+            uv  = (s16)ws->field_7C + 0xA0;
+            uv -= (s16)ws->field_74;
+            if (uv < 0) {
+                uv = page;
+            } else if (uv >= 0x100) {
+                uv  -= 0x80;
+                page = 1;
+                if (uv >= 0xC0) {
+                    uv = 0xBF;
+                }
+            }
+            *dest = uv;
+            uv    = xy->vy + 0x78;
+            uv   -= sv->vy;
+            dest++;
+            if (uv < 0) {
+                uv = 0;
+            } else if (uv >= 0xF0) {
+                uv = 0xEF;
+            }
+            *dest    = uv;
+            dest[-6] = page;
+        } while (ws->field_1C-- > 0);
+    }
+    return arg2;
+}
 
 u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 {
