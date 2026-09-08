@@ -182,7 +182,7 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 }
 
 /* Kept next to Gp_ItemMoveChild's jump table so the overlay .rodata stays packed;
-   Gp_StrBullet follows from func_800BDF6C's still-assembled .rodata. */
+   Gp_StrBullet follows before func_800BDF6C. */
 const char Gp_StrBattleField[] = "Battle Field";
 const char Gp_StrItemBox[]     = "Item Box";
 const char Gp_StrPlayerItem[]  = "Player Item";
@@ -747,7 +747,292 @@ void Gp_ItemActionListTask(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDF6C);
+const char Gp_StrBullet[] = "Bullet";
+
+void func_800BDF6C(Task* task)
+{
+    u8                buf[0x20];
+    s32               color;
+    s32               width;
+    s32               widthM2;
+    s32               half;
+    GpItemScan*       consumeScan;
+    LINE_F2*          line;
+    UiObject*         obj;
+    s16               panelY;
+    s16               coord;
+    s32               equippedFloor;
+    s32               srcLimit;
+    s32               remaining;
+    s32               dstLimit;
+    s32               moveAllLimit;
+    s32               sourceQty;
+    s32               equippedWidth;
+    s32               textY;
+    s32               splitWidth;
+    s32               caretX;
+    s32               status;
+    s32               caretY;
+    s32               usableWidth;
+    s32               srcTotal;
+    s32               dstTotal;
+    s32               destAfterStep;
+    s32               negWidth;
+    s32               halfWidth;
+    s32               qty;
+    s32               totalQty;
+    s32               equipped;
+    s32               destAfterMove;
+    s32               srcAfterMove;
+    s32               destAfterClamp;
+    s32               sourceToMove;
+    s32               combinedQty;
+    s32               destQty;
+    s32               repeatStep;
+    s32               transferQty;
+    s32               stepToSource;
+    u8                message;
+    s16               result;
+    PadState*         pad;
+    GpItemScan*       sourceScan;
+    GpItemScan*       initScan;
+    GpItemScan*       dstScan;
+    GpAmmoSplitState* state;
+
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    width         = ((s16)obj->field_1E - obj->field_1C) - 0x50;
+    Ui_DrawText((UiPanel*)obj, (char*)Gp_StrBullet);
+    if (task->state == 0) {
+        state = (GpAmmoSplitState*)Mem_Calloc(0x18U, 0);
+        if (state == NULL) {
+            obj->field_2E = 9;
+            return;
+        }
+        initScan    = &Gp_MoveScanSrc;
+        task->idMap = (TaskIdMap*)state;
+        srcTotal    = Gp_ScanStackQty(initScan, task->spawnArg1);
+        TOUCH_REG(initScan);
+        initScan       += 1;
+        state->srcQty   = srcTotal;
+        state->srcOrig  = srcTotal;
+        dstTotal        = Gp_ScanStackQty(initScan, task->spawnArg1);
+        state->dstQty   = dstTotal;
+        state->dstOrig  = dstTotal;
+        state->equipped = Gp_CountEquippedRelated(initScan, task->spawnArg1);
+        Ui_SetHolderParam((s32)Gp_StrSetAmmoHelp, 0, 0);
+        state->limit = Gp_StackLimits[task->spawnArg1 - 0xA0].field_2;
+        task->state  = task->state + 1;
+    }
+    state = (GpAmmoSplitState*)task->idMap;
+    Gp_DrawItemLabel(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, task->spawnArg1, 0x606060, 0);
+    task->flags = 0;
+    totalQty    = state->srcQty + state->dstQty;
+    color       = 0x606060;
+    if (width < totalQty) {
+        repeatStep = totalQty / width;
+    } else {
+        repeatStep = 1;
+    }
+    pad = (PadState*)Pad_States;
+    if (pad->autoRepeat != 0) {
+        pad->autoRepeat += Display_State.field_10a * 2;
+    }
+    status = obj->status;
+    if (status == 1) {
+        if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
+            if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                qty      = state->dstQty;
+                equipped = state->equipped;
+                if (equipped < qty) {
+                    stepToSource = 1;
+                    if ((u8)pad->autoRepeat >= 0x14U) {
+                        stepToSource = repeatStep;
+                    }
+                    state->srcQty = state->srcQty + stepToSource;
+                    equippedFloor = state->equipped;
+                    destAfterMove = state->dstQty - stepToSource;
+                    state->dstQty = destAfterMove;
+                    if (destAfterMove < equippedFloor) {
+                        s32 adjustment = destAfterMove - equippedFloor;
+                        SOFT_TOUCH_REG(adjustment);
+                        state->dstQty  = equippedFloor;
+                        state->srcQty += adjustment;
+                    }
+                    srcAfterMove = state->srcQty;
+                    srcLimit     = state->limit;
+                    if (srcLimit < srcAfterMove) {
+                        state->srcQty = srcLimit;
+                        state->dstQty = state->dstQty + (srcAfterMove - srcLimit);
+                        goto step_at_capacity;
+                    }
+                } else if (equipped > 0) {
+                    task->flags = (u8)status;
+                }
+            } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                {
+                    s32 step;
+
+                    step = 1;
+                    if ((u8)pad->autoRepeat >= 0x14U) {
+                        step = repeatStep;
+                    }
+                    state->srcQty = state->srcQty - step;
+                    destAfterStep = state->dstQty + step;
+                    state->dstQty = destAfterStep;
+                    remaining     = state->srcQty;
+                    if (remaining < 0) {
+                        state->dstQty = destAfterStep + remaining;
+                        state->srcQty = 0;
+                    }
+                }
+                destAfterClamp = state->dstQty;
+                dstLimit       = state->limit;
+                if (dstLimit < destAfterClamp) {
+                    state->dstQty = dstLimit;
+                    state->srcQty = state->srcQty + (destAfterClamp - dstLimit);
+                step_at_capacity:
+                    task->flags = 2U;
+                }
+            }
+        }
+        if (Pad_CheckButtons(0, 0, 0xA000) == 0) {
+            if (Pad_CheckButtons(0, 1, 0x1005) != 0) {
+                {
+                    s32 destination;
+                    s32 total;
+                    s32 equippedQty;
+                    s32 limit;
+
+                    destination = state->dstQty;
+                    SCHED_BARRIER();
+                    equippedQty = state->equipped;
+                    if (equippedQty < destination) {
+                        limit = state->limit;
+                        total = state->srcQty + destination;
+                        total = total - equippedQty;
+                        if (total < limit) {
+                            state->dstQty = equippedQty;
+                            state->srcQty = total;
+                        } else {
+                            s32 excess;
+
+                            state->srcQty = limit;
+                            excess        = total - state->limit;
+                            equippedQty   = equippedQty + excess;
+                            state->dstQty = equippedQty;
+                            task->flags   = 2;
+                        }
+                    } else if (equippedQty > 0) {
+                        task->flags = 1U;
+                    }
+                }
+            } else if (Pad_CheckButtons(0, 1, 0x400A) != 0) {
+                sourceToMove = state->srcQty;
+                if (sourceToMove > 0) {
+                    moveAllLimit = state->limit;
+                    combinedQty  = sourceToMove + state->dstQty;
+                    if (combinedQty < moveAllLimit) {
+                        state->dstQty = combinedQty;
+                        state->srcQty = 0;
+                    } else {
+                        state->dstQty = moveAllLimit;
+                        state->srcQty = combinedQty - state->limit;
+                        task->flags   = 2U;
+                    }
+                }
+            }
+        }
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            transferQty = state->srcQty - state->srcOrig;
+            if (transferQty > 0) {
+                sourceScan = &Gp_MoveScanSrc;
+                Gp_GiveItem(sourceScan, task->spawnArg1, transferQty);
+                consumeScan = sourceScan + 1;
+                goto consume_transfer;
+            }
+            result = 9;
+            if (transferQty < 0) {
+                transferQty = -transferQty;
+                dstScan     = &Gp_MoveScanDst;
+                Gp_GiveItem(dstScan, task->spawnArg1, transferQty);
+                consumeScan = dstScan - 1;
+            consume_transfer:
+                Gp_ConsumeScanQty(consumeScan, task->spawnArg1, transferQty);
+                result = 9;
+            }
+            goto set_result;
+        }
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            result      = -1;
+            obj->status = 0;
+            goto set_result;
+        }
+        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            result = 9;
+        set_result:
+            obj->field_2E = result;
+        }
+    }
+    destQty = state->dstQty;
+    if ((destQty == state->equipped) && (destQty > 0)) {
+        color = 0x37A78;
+    }
+    sourceQty   = state->srcQty;
+    usableWidth = width - 2;
+    widthM2     = usableWidth;
+    panelY      = (s16)obj->field_18;
+    splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + state->dstQty)) + 1;
+    textY       = panelY + 0x20;
+    Text_DrawPrompt(obj, obj->field_1C + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1, 2);
+    Text_DrawPrompt(obj, (s16)obj->field_1E - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
+                    2);
+    caretY    = panelY + 0x16;
+    negWidth  = -width;
+    halfWidth = (s32)(negWidth + ((u32)negWidth >> 0x1F)) >> 1;
+    caretX    = halfWidth + splitWidth;
+    half      = halfWidth;
+    Ui_DrawFlatCaret((UiPanel*)obj, caretX, caretY, 0x606060, 1);
+    Ui_DrawFlatCaret((UiPanel*)obj, caretX, panelY + 0x1E, 0x606060, 0);
+    line             = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor   = (DR_TPAGE*)(line + 1);
+    *(s32*)&line->r0 = 0x606060;
+    coord            = obj->baseX + caretX;
+    line->x1         = coord;
+    line->x0         = coord;
+    line->y0         = (obj->baseY + textY) - 0xA;
+    coord            = (obj->baseY + textY) - 2;
+    setlen(line, 3);
+    setcode(line, 0x40);
+    line->y1 = coord;
+    addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, line);
+    qty = state->equipped;
+    if (qty > 0) {
+        equippedWidth = ((s32)(qty * widthM2) / (s32)(state->srcQty + state->dstQty)) + 2;
+        if (equippedWidth > 0) {
+            Ui_AllocTile((UiPanel*)obj, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
+        }
+    }
+    Ui_LayoutWithMode0(obj, (void*)((s32)-width / 2), (void*)(textY - 0xA), (void*)width, (void*)8,
+                       (void*)0x102010);
+    message = task->flags;
+    if (message == 1) {
+        task->killCountdown = 0xBC;
+        Ui_SetHolderParam((s32)Gp_StrAmmoLocked, 0, 0);
+    } else if (message == 2) {
+        task->killCountdown = 0xBC;
+        Ui_SetHolderParam((s32)Gp_StrMaxCapacity, 0, 0);
+    } else if (task->killCountdown > 0) {
+        result              = (u16)task->killCountdown - 1;
+        task->killCountdown = result;
+        if ((result << 0x10) == 0) {
+            Ui_SetHolderParam((s32)Gp_StrSetAmmoHelp, 0, 0);
+        }
+    }
+}
 
 /* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
 const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };

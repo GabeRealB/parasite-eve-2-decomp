@@ -65,6 +65,18 @@ typedef struct _GpItemMoveState {
 } GpItemMoveState;
 STATIC_ASSERT_SIZEOF(GpItemMoveState, 0x1C);
 
+/// Ammo quantity selector work block, allocated by func_800BDF6C and stored
+/// in Task::idMap. Equipped rounds stay in the destination inventory.
+typedef struct _GpAmmoSplitState {
+    /* 0x00 */ s32 srcOrig;
+    /* 0x04 */ s32 dstOrig;
+    /* 0x08 */ s32 srcQty;
+    /* 0x0C */ s32 dstQty;
+    /* 0x10 */ s32 equipped;
+    /* 0x14 */ s32 limit;
+} GpAmmoSplitState;
+STATIC_ASSERT_SIZEOF(GpAmmoSplitState, 0x18);
+
 extern GpItemDesc Gp_ItemDescs[];
 /// Second item-descriptor base. Indexed as `Gp_ItemDescsHi[id]` for `id >= 0x100`.
 extern GpItemDesc Gp_ItemDescsHi[];
@@ -118,7 +130,10 @@ extern u8                  Gp_StrSelect[];      // "Select"
 extern u8                  Gp_StrDiscard[];     // "Discard"
 extern u8                  Gp_StrEnd[];         // "End"
 extern u8                  Gp_StrMove2[];       // "Move"
-extern char                Gp_StrBullet[];      // "Bullet"
+extern const char          Gp_StrBullet[];      // "Bullet"
+extern char                Gp_StrSetAmmoHelp[];
+extern char                Gp_StrAmmoLocked[];
+extern char                Gp_StrMaxCapacity[];
 extern const GpPromptTexts Gp_ItemPromptTexts;
 /// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
 extern const VECTOR D_80093DB0;
@@ -166,6 +181,9 @@ void Gp_FillItemActions(UiList* arg0, UiObject* arg1);
 /// (`Pad_MaskCancel`) is 6. Child `field_2E` -1 / 9 / 6 closes, remaps to
 /// 6, or teardowns.
 void Gp_ItemActionListTask(Task* arg0);
+/// Ammo quantity selector. Adjusts source/destination stacks within the
+/// stack limit, reserves equipped rounds, and applies the transfer on confirm.
+void func_800BDF6C(Task* task);
 /// List-item callback for All / Select / Discard / End. Draws
 /// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `field_2E = 0x26`, Select → 6,
 /// Discard strips 0x80–0x9F attachments missing from
