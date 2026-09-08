@@ -55081,3 +55081,20 @@ ahead of the signed-division constant. Touching the mask itself prevented
 its constant from hoisting and worsened scheduling. The permuter parser
 required a local choice pointer rather than pointer arithmetic directly
 inside an asm operand; introducing that local preserved the score.
+
+
+## Stream strip upload: cache the bound and use a halfword counter
+
+`func_8001F430` reached 100% without pins or empty asm by following the
+matched stream siblings. Keep a `CdCmdQueue*` initialized before
+`StGetBackloc` so the queue address survives the call. Use an explicit
+`RECT*` for the repeated uploads, and advance the data pointer by bytes
+(`stripWidth * height * 2`), not by that many `u32` elements.
+
+A 97.732% attempt still had `branch=2 insert=2`: its loop condition read
+`D_8006AC5A` after each `LoadImage`. The `.jump`, `.loop`, and `.cse2` dumps
+showed a cached global address plus a fresh load and shift in the loop.
+Caching the width in a `u32` before the loop and using the sibling's `u16`
+counter with `(u32)(i & 0xFFFF) < (frameWidth >> 4)` removed those extra
+operations and produced the target register allocation as well. Do not
+try to fix register assignments while this repeated-load difference remains.

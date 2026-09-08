@@ -374,7 +374,98 @@ s32 CdCmd_StopMdec(s32 arg0)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/stream", func_8001F430);
+void func_8001F430(void)
+{
+    CdlLOC      loc;
+    RECT        rect;
+    s16         backFrame;
+    s32         width;
+    s16         frame;
+    s16         stripWidth;
+    s32         index;
+    s32         stride;
+    u16         i;
+    s32         imageX;
+    s32         nextStrip;
+    u16         originX;
+    u16         x, y;
+    RECT*       stripRect;
+    CdCmdQueue* queue;
+    u16         imageY;
+    u32*        data;
+    u32         frameWidth;
+
+    queue     = &CdCmd_Queue;
+    backFrame = StGetBackloc(&loc) - 1;
+    frame     = backFrame;
+    if (backFrame <= 0) {
+        frame = 1;
+    }
+    if ((s16)D_8006AC0C < frame) {
+        frame = (s16)D_8006AC0C;
+    }
+    if (queue->field_1EA != frame) {
+        queue->field_1EA = (u16)frame;
+        queue->field_1F4 = 1;
+        queue->field_1FA = 1;
+    }
+    if (queue->field_1F0 == 0) {
+        queue->field_1EE = (u16)frame;
+    } else {
+        queue->field_1EE = (D_8006AC0C - frame) + 1;
+    }
+    queue->field_1EC = 0;
+    if (D_8006AC14 == 0) {
+        queue->field_1E6 = 1;
+    } else {
+        nextStrip  = D_8006AC1C + 1;
+        D_8006AC1C = nextStrip;
+        index      = (nextStrip & 0xFFFF) - 1;
+        originX    = D_8006AC0E;
+        if (D_8006AC14 == 1) {
+            imageX = originX + index * 0x18;
+        } else {
+            imageX = originX + index * 0x10;
+        }
+        imageY = D_8006AC10;
+        rect.x = imageX;
+        if (Display_State.frameMode != 0) {
+            imageY += 0x110;
+        }
+        rect.y = imageY;
+        width  = 0x10;
+        if (D_8006AC14 == 1) {
+            width = 0x18;
+        }
+        rect.h = D_8006AC6C;
+        rect.w = width;
+        LoadImage(&rect, D_8006AC48[D_8005EAEE ^ 1]);
+        Display_State.frameMode ^= 1;
+    }
+    stripWidth = 0x10;
+    if (queue->field_22C != 0) {
+        x         = queue->field_230;
+        y         = queue->field_232;
+        stripRect = &rect;
+        if (D_8006AC14 == 1) {
+            stripWidth = 0x18;
+        }
+        stripRect->y = y;
+        stripRect->w = stripWidth;
+        stripRect->h = D_8006AC6C;
+        rect.x       = x;
+        data         = D_8006AC48[D_8005EAEE];
+        stride       = stripWidth * D_8006AC6C * 2;
+        frameWidth   = D_8006AC5A;
+        for (i = 0; (u32)(i & 0xFFFF) < (frameWidth >> 4); i++) {
+            LoadImage(stripRect, data);
+            stripRect->x += stripWidth;
+            data          = (u32*)((u8*)data + stride);
+        }
+    }
+    D_8006AC1C  = 0;
+    D_8005EAEE ^= 1;
+}
 
 void Mdec_UploadSlice(void)
 {
