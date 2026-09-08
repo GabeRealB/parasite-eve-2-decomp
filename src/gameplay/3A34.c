@@ -4533,7 +4533,167 @@ done_search:
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DEF80);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DF6AC);
+static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
+{
+    u8*     h;
+    VECTOR* vec;
+    h                       = *(u8**)G_SCRATCH_HEAD;
+    vec                     = (VECTOR*)(h - 0x30);
+    *(void**)G_SCRATCH_HEAD = vec;
+    gte_SetRotMatrix(&((GsCOORDINATE2*)obj->field_8)->workm);
+    gte_ldv0(&obj->field_10);
+    gte_rtv0_real();
+    gte_stlvnl(vec);
+    pos->vx                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
+    pos->vy                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[1] + vec->vy;
+    pos->vz                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[2] + vec->vz;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}
+
+void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
+{
+    VECTOR*    va;
+    VECTOR*    vb;
+    GpU16Pair* pair;
+    u8*        t;
+    s32        off;
+    GpObj*     obj;
+    void**     scratch;
+    u8*        head;
+    VECTOR*    block;
+    s32        i;
+    void**     sp;
+    s32        dot;
+    s32        dx2;
+    s32        tmp2;
+    s32        tmp3;
+    s32        rawDot;
+    s32        pointDot;
+    s32        radius3;
+    s32        plane3;
+    VECTOR*    vec4;
+    s32        tmp5;
+    obj          = arg0;
+    scratch      = (void**)G_SCRATCH_HEAD;
+    head         = *scratch;
+    *scratch     = (VECTOR*)(head - 0xB0);
+    block        = *scratch;
+    block[10].vx = ((GsCOORDINATE2*)obj->field_8)->coord.t[0] - arg2->vx;
+    block[10].vy = ((GsCOORDINATE2*)obj->field_8)->coord.t[1] - arg2->vy;
+    block[10].vz = ((GsCOORDINATE2*)obj->field_8)->coord.t[2] - arg2->vz;
+    SquareRoot0(block[10].vx * block[10].vx + block[10].vy * block[10].vy + block[10].vz * block[10].vz);
+    VectorNormal((VECTOR*)(head - 0x10), (VECTOR*)(head - 0x10));
+
+    dot = (arg1->field_34.vx * block[10].vx) + (arg1->field_34.vy * block[10].vy) + (arg1->field_34.vz * block[10].vz);
+    if (dot >= 0) {
+        *scratch = (u8*)*scratch + 0xB0;
+        return;
+    }
+    Gp_ObjWorldPosInline(obj, (VECTOR*)(head - 0x30));
+    gte_SetRotMatrix(&((GsCOORDINATE2*)arg1->field_8)->workm);
+    gte_ldv0(&arg1->field_C);
+    gte_rtv0_real();
+    gte_stlvnl((VECTOR*)(head - 0x70));
+    block[4].vx += ((GsCOORDINATE2*)arg1->field_8)->workm.t[0];
+    block[4].vy += ((GsCOORDINATE2*)arg1->field_8)->workm.t[1];
+    block[4].vz += ((GsCOORDINATE2*)arg1->field_8)->workm.t[2];
+    block[6].vx  = block[4].vx - block[8].vx;
+    block[6].vy  = block[4].vy - block[8].vy;
+    block[6].vz  = block[4].vz - block[8].vz;
+    dx2          = block[6].vx * block[6].vx + block[6].vy * block[6].vy + block[6].vz * block[6].vz;
+    tmp2         = (u16)arg1->field_44 + (u16)obj->field_1C;
+    if ((tmp2 * tmp2) < dx2) {
+        *scratch = (u8*)*scratch + 0xB0;
+        return;
+    }
+
+    gte_ldv0(&arg1->field_14[0]);
+    gte_rtv0_real();
+    gte_stlvnl(block);
+    ((VECTOR*)(head - 0xB0))->vx += block[4].vx;
+    block[0].vy                  += block[4].vy;
+    block[0].vz                  += block[4].vz;
+
+    gte_ldv0(&arg1->field_34);
+    gte_rtv0_real();
+    gte_stlvnl((VECTOR*)(head - 0x60));
+
+    rawDot   = (block[5].vx * ((VECTOR*)(head - 0xB0))->vx) + (block[5].vy * block[0].vy) + (block[5].vz * block[0].vz);
+    pointDot = (block[5].vx * block[8].vx) + (block[5].vy * block[8].vy) + (block[5].vz * block[8].vz);
+    tmp3     = (rawDot << 4) >> 16;
+    plane3   = (pointDot >> 12) - tmp3;
+    if (plane3 >= 0) {
+        *scratch = (u8*)*scratch + 0xB0;
+        return;
+    }
+
+    radius3 = -(s32)(u16)obj->field_1C;
+    if (plane3 >= radius3) {
+        goto body;
+    }
+
+restore_early:
+    *scratch = (u8*)*scratch + 0xB0;
+    return;
+
+restore_reload:
+    sp = (void**)G_SCRATCH_HEAD;
+    goto do_restore;
+
+body:
+    i    = 1;
+    vec4 = (VECTOR*)(head - 0xA0);
+    off  = 0x1C;
+    do {
+        gte_ldv0((SVECTOR*)((u8*)arg1 + off));
+        gte_rtv0_real();
+        gte_stlvnl(vec4);
+        vec4->vx += block[4].vx;
+        TOUCH_REG(vec4);
+        off      += 8;
+        vec4->vy += block[4].vy;
+        i++;
+        vec4->vz += block[4].vz;
+        vec4++;
+    } while (i < 4);
+
+    i    = 1;
+    t    = (u8*)Gp_FaceEdgePairs;
+    pair = (GpU16Pair*)(t + 4);
+    do {
+        TOUCH_REG(block);
+        {
+            s32 ia;
+            s32 ib;
+            ia = pair->field_0;
+            ib = pair->field_2;
+            va = (VECTOR*)((u8*)block + (ia << 4));
+            vb = (VECTOR*)((u8*)block + (ib << 4));
+        }
+        block[6].vx = va->vx - vb->vx;
+        block[6].vy = va->vy - vb->vy;
+        block[6].vz = va->vz - vb->vz;
+        gte_ldopv1(&block[5]);
+        gte_ldopv2(&block[6]);
+        gte_op12_real();
+        gte_stlvnl(&block[7]);
+        tmp2   = (block[7].vx * block[8].vx) + (block[7].vy * block[8].vy);
+        tmp2  += block[7].vz * block[8].vz;
+        tmp2 >>= 12;
+        tmp5   = (block[7].vx * va->vx) + (block[7].vy * va->vy) + (block[7].vz * va->vz);
+        i++;
+        tmp2 -= tmp5 >> 12;
+        if (tmp2 >= 0) {
+            goto restore_reload;
+        }
+        pair++;
+    } while (i < 5);
+
+    sp             = (void**)G_SCRATCH_HEAD;
+    arg1->field_4B = 1;
+do_restore:
+    *sp = (u8*)*sp + 0xB0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DFCCC);
 

@@ -505,9 +505,18 @@ STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 /// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
 /// pending `field_4B` copies `field_49` into `Mc_SaveData.field_4` when
 /// `field_48` matches `Game_Session->field_4`.
+/// `func_800DF6AC` tests an object against the quad at `field_14`, using
+/// `field_C` as its local origin, `field_34` as its normal, and `field_44`
+/// as its bounding radius. `field_8` supplies the coordinate matrices.
 typedef struct _GpObj4C {
     /* 0x00 */ struct _GpObj4C* next;
-    /* 0x04 */ byte             pad_4[0x42];
+    /* 0x04 */ byte             pad_4[4];
+    /* 0x08 */ void*            field_8;
+    /* 0x0C */ SVECTOR          field_C;
+    /* 0x14 */ SVECTOR          field_14[4];
+    /* 0x34 */ SVECTOR          field_34;
+    /* 0x3C */ byte             pad_3C[8];
+    /* 0x44 */ u16              field_44;
     /* 0x46 */ u16              field_46;
     /* 0x48 */ u8               field_48;
     /* 0x49 */ u8               field_49;
