@@ -125,6 +125,19 @@ STATIC_ASSERT_SIZEOF(GpMapIcon, 8);
 /// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.field_7 - 1`.
 extern GpMapIcon* D_8010F0CC[];
 
+/// Six-byte map icon record walked by `func_800D0C34` until `roomId` is 0.
+/// `flagId` gates visibility using the stage flag bank (0 = always, 0xFF = skip).
+typedef struct _GpMapFlagIcon {
+    /* 0x0 */ u8  roomId;
+    /* 0x1 */ u8  flagId;
+    /* 0x2 */ u16 x;
+    /* 0x4 */ u16 y;
+} GpMapFlagIcon;
+STATIC_ASSERT_SIZEOF(GpMapFlagIcon, 6);
+
+/// Per-stage table of `GpMapFlagIcon` arrays. Index is `GameSession.field_7 - 1`.
+extern GpMapFlagIcon* D_8010F0E0[];
+
 /// 0xC-byte scratchpad block `Gp_DrawMapIcons` carves off `G_SCRATCH_HEAD` to
 /// stage one map icon position before it is turned into a `SPRT_16`.
 typedef struct _GpMapIconPos {

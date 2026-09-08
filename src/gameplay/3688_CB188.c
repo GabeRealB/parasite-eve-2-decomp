@@ -2696,7 +2696,107 @@ void Gp_DrawMapMarks(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0C34);
+void func_800D0C34(Task* arg0)
+{
+    UiObject*       obj;
+    GpMapFlagIcon*  icons;
+    GpFlagBank*     bank;
+    GpMapCursorPos* pos;
+    GpMapCursorPos* temp;
+    register s16    result asm("v0");
+    SPRT_16*        p;
+    DR_TPAGE*       dr;
+    void**          scratch;
+    s32             flags[2];
+    s32             i;
+    s16             which;
+    s32             bit;
+    s32             scratchSize;
+    s32             one;
+    s32             u0;
+    u8              stage;
+    s32             flag;
+
+    i        = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    stage    = Game_Session->field_7;
+    obj      = arg0->spawnArg2;
+    icons    = D_8010F0E0[stage - 1];
+    bank     = Gp_FlagBanks[stage];
+    flags[0] = bank->field_4[0];
+    flags[1] = bank->field_4[1];
+    one      = 1;
+    for (;;) {
+        if (icons[(u8)i].roomId == 0) {
+            goto end;
+        }
+        flag = icons[(u8)i].flagId;
+        if (flag != 0xFF) {
+            TOUCH_REG_MEM(flag);
+            if (flag != 0) {
+                if ((u32)flag >= 0x21U) {
+                    bit   = one << (icons[(u8)i].flagId - 0x21);
+                    which = 1;
+                } else {
+                    bit   = one << (icons[(u8)i].flagId - 1);
+                    which = 0;
+                }
+                SOFT_USE_REG(bit);
+                if (!(bit & flags[which])) {
+                    goto next;
+                }
+            }
+            result = Gp_LookupStageFlag((u8)i);
+            TOUCH_REG(i);
+            if (icons[(u8)i].roomId != (s8)Gp_MapRoomId) {
+                goto next;
+            }
+            bit = (u16)result;
+            if (bit == 2 || bit == 0x802) {
+                temp = (GpMapCursorPos*)((u8*)*scratch - 0x1C);
+                TOUCH_REG(temp);
+                pos            = temp;
+                pos->field_14  = 0;
+                pos->field_12  = 0;
+                pos->field_10  = 0;
+                *scratch       = pos;
+                pos->x         = icons[(u8)i].x;
+                p              = (SPRT_16*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+                pos->y         = icons[(u8)i].y;
+                setlen(p, 3);
+                setcode(p, 0x7F);
+                if (bit == 2) {
+                    p->clut = GetClut(0x30, 0x101);
+                    u0      = 0x60;
+                } else if (bit == 0x802) {
+                    p->clut = GetClut(0x60, 0x101);
+                    u0      = 0x90;
+                } else {
+                    goto linkPrims;
+                }
+                p->u0       = u0;
+                p->v0       = 0;
+                scratchSize = 0x1C;
+            linkPrims:
+                p->x0 = pos->x - 8;
+                p->y0 = pos->y - 8;
+                addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1B], p);
+                dr             = Gpu_PrimCursor;
+                Gpu_PrimCursor = dr + 1;
+                setlen(dr, one);
+                dr->code[0] = 0xE100000E;
+                addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1B], dr);
+                *scratch = (u8*)*scratch + scratchSize;
+            }
+        }
+    next:
+        i++;
+        continue;
+    }
+end:
+    return;
+}
 
 s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
 {

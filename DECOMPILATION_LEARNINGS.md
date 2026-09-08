@@ -54985,3 +54985,27 @@ Linking both objects at the same address with the project's symbol values
 produces identical 0x3F4 function bytes and a 100.000% score. Check the
 function extent when comparing: the scratch target object has 12 trailing
 alignment bytes that are not part of the function.
+
+## Halfword return across a room check: inspect allocation before pinning
+
+`func_800D0C34` (GCC 2.8.1, `-O2 -mips1`) reached 99.778% unpinned with
+no branch, insertion, deletion, or scheduling penalties. The source narrowed
+an `s16` call result to `(u16)` before a room comparison. In `.sched`, that
+narrowing preceded the branch while the room byte was still live. `.lreg`
+allocated the room byte to `$a0`; `.greg` therefore listed hard register 4
+among the narrowed result's conflicts, forcing it to `$a1` and the record
+pointer to `$a2`.
+
+Moving the narrowing after the room-rejection branch freed `$a0` for the
+narrowed result. However, the original `s16` return now crossed a basic-block
+boundary: local allocation used `$v0` for address arithmetic, and global
+allocation inserted `move a0,v0` to preserve the return. After a six-minute
+unpinned permuter run and inspecting these dumps, keeping just that return
+in `register s16 result asm("v0")` produced the exact target. Delay-slot
+filling then moved `andi a0,v0,0xffff` into the room branch's slot. The best
+unpinned candidate remains in the scratch directory.
+
+This case distinguishes two causes of a register mismatch: overlapping
+lifetimes before a branch, and a local-to-global allocation change after
+splitting the block. Compare both `.lreg` and `.greg`; the final instruction
+order alone hides which conflict caused the extra copy.
