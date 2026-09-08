@@ -99,6 +99,7 @@ s32  CdAudio_JumpToSector(s32 arg0);
 s32  CdAudio_RequestStopB(void);
 void CdAudio_SetLocBase(s32 arg0);
 void CdAudio_AllocVoices(s8* arg0, s8* arg1);
+void CdAudio_CopyVoiceData(s8 arg0, s32* arg1);
 s32  CdAudio_SeekAbs(s32 arg0);
 void CdAudio_StartVolumeRamp(s32 arg0);
 void CdAudio_JumpWithPitch(s32 arg0, s32 arg1);

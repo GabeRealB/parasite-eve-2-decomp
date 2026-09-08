@@ -55308,3 +55308,20 @@ Loading `by = obj->baseY`, then `SOFT_BARRIER(); step = 10;`, then computing
 `req2.y = (s16)(by - 2) + y` let the spacing constant fill the `lhu` delay slot.
 A barrier only after the complete request also fixed allocation, but left six
 scheduling penalties because it delayed the call arguments too.
+
+## Duplicate branch-end reads to stop early address CSE, then let jump2 share the load
+
+`func_8005896C` reached 99.636% with `delete=1`, `branch=16`,
+`regs=2`: one missing `lui` shifted every later branch destination.
+The `.cse` dump reused an earlier `%hi(CdStream_State)` through a
+conditional update. A reused scalar holding first the state pointer and
+then its `field_18` value already made the pointer die at the reload.
+
+Moving the volatile `field_18` reload into both the updating arm and an
+explicit `else` stopped that early CSE. Later jump optimization merged the
+identical loads, leaving the target's fresh `lui` immediately after the
+shared load. This reached 100% without register pins or empty asm.
+A `do { ... } while (0)` wrapper and a `SOFT_BARRIER()` at the join did
+not preserve the missing `lui`. Read `.cse` and `.jump2` together: a
+branch penalty can be caused by one missing address instruction while
+the final control-flow graph is already correct.

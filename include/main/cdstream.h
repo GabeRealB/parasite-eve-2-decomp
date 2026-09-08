@@ -139,6 +139,7 @@ void CdStream_Reset(void);
 void CdStream_Start(CdStreamParams* params);
 void CdStream_Continue(void);
 void CdStream_Stop(void);
+void CdStream_TeardownVoices(void);
 void CdStream_ArmSpuIrq(void);
 void CdStream_SpuIrqHandler(void);
 void CdStream_SetPitch(s16 pitch);
@@ -158,5 +159,7 @@ extern CdStreamParams         CdStream_Params;
 extern volatile CdStreamState CdStream_State;
 extern CdStreamChannels       CdStream_Channels;
 extern volatile CdReadyQueue  CdReady_Queue;
+extern u8                     D_80068B5E;
+extern volatile u8            D_80068B67;
 
 #endif // CDSTREAM_H

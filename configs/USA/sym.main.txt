@@ -2861,6 +2861,10 @@ GameMain_HaltFlags          = 0x8005EC80;
 Mdec_DecodeBase             = 0x8007A364;
 Stage_CdEntry               = 0x8007A368;
 
+// CD stream diagnostic counters
+D_80068B5E                  = 0x80068B5E; // size:0x1
+D_80068B67                  = 0x80068B67; // size:0x1
+
 // Rodata dispatch tables
 Midi_EventFns               = 0x800689C4;
 CdAudio_DriveFns            = 0x80068B34;
