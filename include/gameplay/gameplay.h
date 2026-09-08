@@ -57,6 +57,27 @@ typedef union GpHudBarScratch {
 } GpHudBarScratch;
 STATIC_ASSERT_SIZEOF(GpHudBarScratch, 0x30);
 
+/// Coordinates of one icon in the attachment selection wheel.
+typedef struct {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ u16 y;
+} GpWheelPt;
+STATIC_ASSERT_SIZEOF(GpWheelPt, 4);
+
+/// Text scratch is reused for the wheel coordinates after drawing the prompt.
+typedef struct {
+    /* 0x00 */ UiObject obj;
+    /* 0x30 */ union {
+        struct {
+            /* 0x00 */ u8          buf[0x20];
+            /* 0x20 */ TextDrawReq req;
+        } text;
+        GpWheelPt pts[12];
+    } u;
+    /* 0x60 */ RECT rect;
+} GpWheelScratch;
+STATIC_ASSERT_SIZEOF(GpWheelScratch, 0x68);
+
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_WorldToLocal`.
 /// `mat` is the transpose of the parent rotation; `vec` is
 /// `child.t - parent.t` before `ApplyMatrixLV` rotates it into dest translation.

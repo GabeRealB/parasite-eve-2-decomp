@@ -55841,3 +55841,35 @@ worktree build-and-verify script validates the landed body.
 Parenthesize shifted `gte_lddp` arguments before passing this source to the
 permuter: `gte_lddp((mem->field_24 << 3))` compiles identically and avoids its
 inline-asm parser error at `<<`.
+
+
+## `func_800A2104`: separate spills, last-use order, and a memory input for GPU scheduling
+
+The archived seed started at 86.925%; the final body matched after 29 scored
+builds, including the baseline. Matched attachment helpers in the same TU
+provided the loop and level-selection shapes. Keeping `changed`, `xOff`, and
+`yOff` as independent scalar locals, rather than fields appended to the UI
+scratch structure, let reload produce the target spill slots and delayed
+stores. The scratch itself is a 0x68-byte object whose text buffer/request
+storage is reused for twelve coordinate pairs.
+
+Two equally referenced incoming coordinates were allocated backwards.
+Writing `rect.x = arg1` before `rect.y = arg2 + 0x17` shortened arg1's last-use
+range enough to swap their allocation without a pin or a scheduling barrier.
+Likewise, separating `dx = px + 0x30; px = dx + xOff` preserved the target
+addition order; a single expression reassociated the constant with xOff.
+
+The final GPU block had only scheduling penalties. Volatile accesses to both
+`P_TAG.len` and `DR_TPAGE.code[0]` preserve their store order. An ordinary
+`SOFT_TOUCH_REG(order)` still scheduled the OT-address `lui` two instructions
+late. A single nonvolatile empty asm with `"+r"(order)` and `"m"(Gpu_CurrentOt)`
+made that address a dependency and moved its `lui` into the required position,
+while emitting no additional instruction. There is no existing named helper
+for this precise register-output / memory-input combination.
+
+A 360-second permuter run at 99.288% found no improvement. The final match uses
+three narrowly motivated pins after the unpinned work: the signed item index,
+the second parameter lookup's table base (pinning its offset instead changed
+scheduling), and the fixed coordinate-array pointer to preserve copy direction.
+The all-unpinned final variant remains in scratch as `base_27.c`, at 99.719%
+with only 39 register penalties and zero control-flow/scheduling penalties.
