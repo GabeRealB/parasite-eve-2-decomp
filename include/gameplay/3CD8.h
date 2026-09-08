@@ -307,12 +307,14 @@ typedef struct _GpRayScratch {
 } GpRayScratch;
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawRing`.
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawRing` and
+/// `func_800EB6E8`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` is `gte_stszotz` (then incremented so it can also be
 /// used as the divisor), `flag` is `gte_stflg` and `sx` / `sy` are the
 /// `gte_stsxy` of the single RTPS. `step` is the per-vertex radius
-/// `(arg1 * 64) / otz` swept around the ring by `rsin` / `rcos`.
+/// `(arg1 * 64) / otz` swept around the ring by `rsin` / `rcos`, or the
+/// billboard half-size `(radius * 23) / otz` in `func_800EB6E8`.
 typedef struct _GpRingScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
@@ -386,6 +388,7 @@ extern GsCOORDINATE2 Gfx_ViewCoord;
 /// the top nibble of `Gp_DrawFxQuad`'s angle argument and paired with CLUT
 /// Y 0x10B.
 extern u16 Gp_QuadClutX[];
+extern u16 D_80111EB4[];
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
 /// High nibble is the `Gp_DrawFadeQuad` blend; low three nibbles are R, G, B.
 extern u16 Gp_FadeQuadColors[];
@@ -485,7 +488,12 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// (`Gp_QuadClutX`) in its top nibble and the spin angle in its low 12 bits,
 /// so the quad's corners sit at `angle` and `angle + 0x400`.
 void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
-void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Draws a grayscale, semitransparent textured billboard at the projected
+/// world position. `arg1 & 3` selects the 24-pixel animation frame, `arg2`
+/// packs the texture bank in its top nibble and radius in its low 12 bits,
+/// and `arg3` packs the CLUT index in its top nibble and brightness in its
+/// low byte.
+void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 /// Grayscale fade task controlled by `Wip_SysConfig.field_25` bit 0.

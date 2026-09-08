@@ -55416,3 +55416,19 @@ Naming `block` before the store let CSE retarget both the add and store to
 `addiu v0,v0,-0x78; move s2,v0; sw v0,0(a0)` without pins or empty asm.
 The archived seed improved from 89.919% to 100% with indexed vertices,
 counter-derived angles, signed-load temporaries, and these ordering changes.
+
+## A scheduling barrier can replace a keep-live use that changes register priority
+
+`func_800EB6E8` reached 99.803% with `regs=7` and all other penalties zero.
+The packed radius argument and its extracted texture bank occupied `$t2` and
+`$t0`; the target wanted the opposite pair. `.lreg` showed the radius pseudo
+used 4 times across 72 insns and the bank used 4 times across 37. The bank's
+extra reference came from `USE_REG(bank)` after `bank = arg2 >> 12`, added to
+keep the shift ahead of the following masks and CLUT-index extraction.
+
+Replacing that helper with `SCHED_BARRIER()` preserved scheduling but removed
+one bank reference: `.lreg` became 3/37 and `.greg` allocated the radius
+before the bank. This matched 100% without pins. Splitting the masked radius
+into a fresh local instead changed the preamble and fell to 97.079%.
+When a keep-live helper is needed only for instruction order, compare a
+barrier without operands before compensating for its allocation side effects.
