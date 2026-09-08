@@ -54965,3 +54965,23 @@ relocation-comparison limitation, not permission to ignore unexplained diffs:
 resolve the actual symbols and compare original bytes, then run the full build.
 The tables land through `[0x3cdc, .rodata, gameflow]`, leaving the preceding two
 GameFlow function-pointer tables in plain `gameflow_1` rodata.
+
+
+## `D_80073B8C` is `Wip_SysConfig.field_4`: correct aliasing also removes an extra saved register
+
+`func_acropolis_cafeteria_80181A3C` reached 96.138% with a typed debris work
+block, four-case switch, `MATRIX` assignment and `ABS()` checks. A bare
+`extern MATRIX* D_80073B8C` allowed its load and the direction address to
+move before the matrix copy. The overlapping pointer lifetimes then required
+`$s3` and a 0x28 frame instead of sharing `$s0` in a 0x20 frame. A scheduling
+barrier after the copy reached 99.763%, but kept the `lui` too late.
+
+The address is already typed: `Wip_SysConfig` is 0x80073B88, and its
+`field_4` is the player's matrix pointer. Using `Wip_SysConfig.field_4`
+restores the aggregate-memory dependence and matches with no barrier or pin.
+The raw scratch score is 99.960% solely because `%hi(D_80073B8C)` /
+`%lo(D_80073B8C)` become `%hi(Wip_SysConfig)` / `%lo(Wip_SysConfig+4)`.
+Linking both objects at the same address with the project's symbol values
+produces identical 0x3F4 function bytes and a 100.000% score. Check the
+function extent when comparing: the scratch target object has 12 trailing
+alignment bytes that are not part of the function.
