@@ -919,6 +919,7 @@ void Gp_DrawEffSprite46(struct _GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg
 void Gp_EffSprTask81(Task* arg0);
 void Gp_EffSprTask55(Task* arg0);
 void Gp_EffSprTask42(Task* arg0);
+void func_800F91AC(Task* arg0);
 void Gp_EffCtlTask9B(Task* arg0);
 void Gp_EffSprTask30(Task* arg0);
 void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);

@@ -401,7 +401,67 @@ void Gp_EffSprTask42(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F91AC);
+void func_800F91AC(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    s16            flag;
+    s32            temp;
+    s16            width;
+    s32            half;
+    s32            i;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (flag < 4) {
+        if (arg0->state == 0) {
+            coord->sub        = mem->field_8;
+            rot               = (GpMtxWords*)&coord->coord;
+            rot->w0           = 0x1000;
+            rot->w1           = 0;
+            rot->w2           = 0x1000;
+            rot->w3           = 0;
+            rot->h4           = 0x1000;
+            coord->coord.t[0] = mem->field_18;
+            coord->coord.t[1] = mem->field_1A;
+            coord->coord.t[2] = mem->field_1C;
+            coord->flg        = 0;
+            arg0->state       = 1;
+            mem->field_24     = (u16)arg0->spawnArg1;
+            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->field_26     = temp;
+            mem->field_28     = temp * 3;
+            mem->field_2A     = mem->field_24 / 768 + 1;
+            // Keep the duration live through the rate calculation.
+            SOFT_USE_REG(temp);
+        }
+        Gp_UpdateCoord(coord);
+        if (Gp_State1C->field_4 != 0) {
+            return;
+        }
+        if (mem->field_22 < mem->field_28) {
+            goto spawn;
+        }
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+    return;
+spawn:
+    width = mem->field_24;
+    half  = width >> 1;
+    for (i = 0; i < mem->field_2A; i++) {
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_10 = (s32)((u32)Gp_LcgState >> 16) % width - half;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_12 = (s32)((u32)Gp_LcgState >> 16) % width - half;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_14 = (s32)((u32)Gp_LcgState >> 16) % width - half;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        Gp_SpawnEff(0x60055, coord, (((u32)Gp_LcgState >> 16) & 0x1000) + 0x11200, &mem->field_10);
+    }
+    mem->field_22++;
+}
 
 void Gp_EffCtlTask9B(Task* arg0)
 {
