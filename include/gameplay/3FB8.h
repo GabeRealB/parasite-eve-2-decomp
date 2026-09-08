@@ -934,6 +934,7 @@ void Gp_PulseState1C80(void);
 void Gp_EffCtlTaskA5(Task* arg0);
 void Gp_EffCtlTaskA6(Task* arg0);
 void Gp_EffCtlTaskE3(Task* arg0);
+void func_800FF710(Task* arg0);
 void Gp_EffSprTaskE0(Task* arg0);
 void Gp_EffSprTaskE2(Task* arg0);
 /// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks

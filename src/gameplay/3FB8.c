@@ -2623,7 +2623,97 @@ void Gp_EffSprTask3F(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FF710);
+void func_800FF710(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+    s16            flag;
+    register s32   old asm("v1");
+    register s32   k asm("a2");
+    s32            lcg;
+    register s32   one asm("v1");
+    s32            temp;
+    s32            temp2;
+    s32            i;
+    s32            half;
+    s32            r3;
+    s32            id;
+    u16            v;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (flag >= 2) {
+        if (flag < 4) {
+            return;
+        }
+        Gp_ReleaseState1CMem(mem, arg0);
+    } else {
+        if (arg0->state == 0) {
+            one = ONE;
+            k   = 0x71350000;
+            /* Keep the LCG upper half ahead of the coordinate stores. */
+            TOUCH_REG(k);
+            m                    = &coord->coord;
+            coord->sub           = mem->field_8;
+            *(s32*)&coord->coord = one;
+            *(s32*)&m->m[1][1]   = one;
+            m->m[2][2]           = one;
+            old                  = Gp_LcgState;
+            k                   |= 0x7911;
+            *(s32*)&m->m[0][2]   = 0;
+            *(s32*)&m->m[2][0]   = 0;
+            coord->coord.t[0]    = mem->field_18;
+            coord->coord.t[1]    = mem->field_1A;
+            coord->coord.t[2]    = mem->field_1C;
+            coord->flg           = 0;
+            arg0->state          = 1;
+            lcg                  = old * 5 + k;
+            mem->field_20        = ((u32)lcg >> 16) & 0xFFF;
+            temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+            Gp_LcgState          = lcg;
+            mem->field_24        = temp;
+            temp2                = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->field_2A        = ((s16)temp >> 10) + 1;
+            mem->field_26        = temp2;
+            mem->field_28        = temp2 << 2;
+        }
+        Gp_UpdateCoord(coord);
+        Gp_DrawEffSpriteE2(coord, (u16)((s16)mem->field_22 >> 1), mem->field_24 - 0x40, mem->field_20);
+        if (Gp_State1C->field_4 != 0) {
+            return;
+        }
+        if (mem->field_22 >= mem->field_28) {
+            Gp_ReleaseState1CMem(mem, arg0);
+            return;
+        }
+        v    = mem->field_24;
+        half = (s16)v >> 1;
+        for (i = 0; i < mem->field_2A; i++) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (mem->field_26 >= (s32)(((u32)Gp_LcgState >> 16) & 3)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (s32)((u32)Gp_LcgState >> 16) % (s16)v - half;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = (s32)((u32)Gp_LcgState >> 16) % (s16)v - half;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = (s32)((u32)Gp_LcgState >> 16) % (s16)v - half;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                r3            = (s32)((u32)Gp_LcgState >> 16) % mem->field_28;
+
+                id = 0x600E1;
+                if (mem->field_22 < r3) {
+                    id = 0x600E0;
+                }
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(id, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x80,
+                            (SVECTOR*)&mem->field_10);
+            }
+        }
+        mem->field_22++;
+    }
+}
 
 void Gp_EffSprTaskE0(Task* arg0)
 {
