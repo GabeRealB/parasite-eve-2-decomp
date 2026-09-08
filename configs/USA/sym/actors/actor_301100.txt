@@ -7,3 +7,4 @@ ActorsShared8013845cSub1 = 0x801691FC; // shared body's overlay-local callee, se
 ActorsShared801384ac = 0x801684AC; // shared body, see src/actors/lib/
 ActorsShared80138404Table = 0x80161EFC; // force_not_migration:True shared body data, see src/actors/lib/
 ActorsShared80138404 = 0x80168404; // shared body, see src/actors/lib/
+ActorsShared801388e8 = 0x801688E8; // shared body, see src/actors/lib/
