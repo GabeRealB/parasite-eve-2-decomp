@@ -20,6 +20,10 @@
  * stays unprototyped. */
 s32 func_actor_341700_80168468();
 
+/* Same story: the animation-player step reads the caller's `Task*` straight out
+ * of `$a0`, so it stays unprototyped too. */
+void func_actor_341700_801649DC();
+
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_4", func_actor_341700_80168DA0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_4", func_actor_341700_80168EA0);
@@ -129,4 +133,21 @@ void func_actor_341700_80169380(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_4", func_actor_341700_80169440);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_4", func_actor_341700_80169520);
+void func_actor_341700_80169520(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+    s32              cond;
+
+    work = (Actor341700Work*)arg0->idMap;
+    func_actor_341700_801649DC();
+    work2 = (Actor341700Work*)arg0->idMap;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_420 = work->field_420 + 1;
+    }
+}

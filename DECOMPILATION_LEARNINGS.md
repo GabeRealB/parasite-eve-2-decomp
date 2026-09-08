@@ -17590,6 +17590,36 @@ The equivalent `if (A) cond = 1; else if (B) cond = 1; else cond = 0;` lets
 combine turn the last arm into `sltu v1, zero, v0`. Dropping the `if (cond)`
 lets DCE delete the whole predicate. `func_800A7CB0` is the example.
 
+The same rule holds when the boolean is *live*. In
+`func_actor_341700_80169520` the flag guards a real store, and the target is
+still `bnez; li v0,1` twice into a common join with `move v0,zero` falling
+through. `if (A) cond = 1; else if (B) cond = 1; else cond = 0;` scores 87%
+because jump.c's store-flag case ("x = a; if (...) x = b") matches the last
+arm and rewrites it as `sltu`; the `||` in one condition gives that block two
+predecessors, so the pattern cannot fire. Write the whole predicate as one
+expression whenever the target materialises 1/0 through branches.
+
+## One field read as `lhu` then `lw` is a union, not a cast
+
+`func_actor_341700_80169520` reads offset 0xEC of its work block twice in a
+row - `lhu` masked with 1, then `lw` masked with 0x102 - even though 0x102
+fits in the halfword. Two widths on one address means two views of the field
+in the original source, so model it as a union member of the work struct and
+keep the use site free of casts:
+
+```c
+typedef union Actor341700Flags {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+} Actor341700Flags;
+
+if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) { ... }
+```
+
+Declaring the field once as `u16` makes the second test `lhu` too, and once
+as `u32` makes the first test `lw`; either way the load widths are wrong for
+half the guards in the overlay, which all repeat this pair.
+
 ## Pin a later-used call arg to `$s0` so the `Task*` stays in `$s1`
 
 When the target saves `$s1` first (`sw s1; move s1,a0; sw ra; sw s0`) the
