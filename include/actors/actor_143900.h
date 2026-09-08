@@ -16,14 +16,15 @@
 ///
 /// `anim` is the animation context `Gp_AnimTickIndex` and friends walk.
 typedef struct Actor143900Work {
-    /* 0x000 */ byte      pad_0[0x40];
-    /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x462];
-    /* 0x4B6 */ s16       field_4B6; // copy of `field_4B8`, kept for change detection
-    /* 0x4B8 */ s16       field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ byte      pad_4BA[0x2C];
-    /* 0x4E6 */ u16       yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4E8 */ byte      pad_4E8[8];
+    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x142];
+    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
+    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
+    /* 0x4BA */ byte       pad_4BA[0x2C];
+    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4E8 */ byte       pad_4E8[8];
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 

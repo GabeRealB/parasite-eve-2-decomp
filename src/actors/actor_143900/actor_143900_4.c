@@ -1,35 +1,28 @@
 #include "common.h"
 
 #include "actors/actor_143900.h"
-#include "main/gfx.h"
-#include "main/tmd.h"
+#include "gameplay/1BC.h"
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
-/// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
-/// then the three longs become the coordinate's translation.
-s32 func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Reset argument this overlay forwards to every reseeded slot.
+extern s16 D_actor_143900_801413B8;
+
+/// Reseeds animation slots 1..0x13 from the current animation id and records
+/// that id as the one now playing.
+void func_actor_143900_801325A4(void)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    s32 i;
 
-    coord                         = ((TmdObject*)task->extra)->field_8;
-    ActorsShared80131f9cWork->yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->flg        = 0;
-    return 0;
+    i = 1;
+    do {
+        func_800B4114(&ActorsShared80131f9cWork->anim, i, ActorsShared80131f9cWork->field_4B8, 0,
+                      D_actor_143900_801413B8);
+        i++;
+    } while (i < 0x14);
+    ActorsShared80131f9cWork->field_4B6 = ActorsShared80131f9cWork->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_80132778);
-
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_8013279C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_801328D4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_80132A9C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_80132DEC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_80132E48);
+INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_4", func_actor_143900_80132624);

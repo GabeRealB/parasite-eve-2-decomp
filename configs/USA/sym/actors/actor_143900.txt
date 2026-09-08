@@ -7,3 +7,4 @@ ActorsShared80131f9cWork = 0x801496B8; // shared body data, see src/actors/lib/
 ActorsShared801326b4Task = 0x801496BC; // shared body data, see src/actors/lib/
 ActorsShared801326b4 = 0x801326B4; // shared body, see src/actors/lib/
 ActorsShared80131f9c = 0x80132324; // shared body, see src/actors/lib/
+ActorsShared80132538 = 0x80132514; // shared body, see src/actors/lib/

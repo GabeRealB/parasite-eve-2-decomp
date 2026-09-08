@@ -56552,3 +56552,46 @@ diff is a *rotation* of callee-saved registers rather than a swap of two, count
 references in `.greg` before touching live ranges or adding pins: the pseudo the
 target puts in `$s0` needs to top that quotient, and crossing a `floor_log2`
 boundary — 3 refs to 4, 7 to 8 — is usually the whole fix.
+
+## `overlay_dup_index.py promote` can pick a shared unit name that is already taken
+
+`promote` names the shared unit after the canonical copy's address, so
+`func_actor_143900_80132514` came out as `actors_shared_80132514`. That unit
+already existed: a *different* body, 0x78 bytes, carried by `actor_160600`,
+`actor_160700`, `actor_215100`, `actor_450800` and `actor_161500`, which is at
+0x80132514 in `actor_160700`. Two overlays having a function at the same vram
+is unremarkable — every actor in a family loads at the same address — so the
+name is not unique on its own.
+
+The symptom would have been a linker script listing one object for spans of two
+different sizes (0x78 and 0x90). Check `src/actors/lib/` for the name before
+running `promote`, and pass `--unit` with another carrier's address when it is
+taken:
+
+```
+python3 tools/overlay_dup_index.py --unit actors_shared_80132538 promote func_actor_143900_80132514
+```
+
+## Promoting a shared body renumbers the carriers' units, and splat's new files drop matched bodies
+
+Inserting a `shared` span cuts the unit it lands in, so every unit after it in
+that overlay shifts by one. splat then writes the *new* trailing file as pure
+`INCLUDE_ASM` — including functions that already had matched C bodies in the
+file they used to live in — and the tracked files keep their old contents while
+the linker script hands them new spans. The build fails loudly at first (stale
+`INCLUDE_ASM` paths point at `.s` files that no longer exist), but taking
+splat's regenerated skeleton to fix that is what silently loses the bodies.
+
+Rebuild each affected file by moving text, not by regenerating:
+
+- a span inserted at the end of the last unit only splits that file — move
+  everything after the promoted function's `INCLUDE_ASM` line into the new
+  trailing file and rewrite the unit path in the moved lines;
+- a span inserted mid-overlay shifts every later file — rename from the back
+  (`_5.c` → `_6.c`, `_4.c` → `_5.c`) before splitting the cut file, and `sed`
+  the unit name inside each renamed file.
+
+`actor_146300` is the worked example of why: its new trailing unit contains
+`func_actor_146300_80132B14`, a matched two-line body that splat's skeleton
+re-emitted as `INCLUDE_ASM`. `tools/check_lost_matches.py` does not catch this
+one, because the promoted overlay's `.s` moves under `matchings/`.
