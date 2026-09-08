@@ -55873,3 +55873,25 @@ the second parameter lookup's table base (pinning its offset instead changed
 scheduling), and the fixed coordinate-array pointer to preserve copy direction.
 The all-unpinned final variant remains in scratch as `base_27.c`, at 99.719%
 with only 39 register penalties and zero control-flow/scheduling penalties.
+
+## Equivalent comparison operand order can change local register allocation
+
+In `func_80044C34`, `arg1->x < p->x0` and `p->x0 > arg1->x` produce the same
+comparison and schedule, but different initial RTL load order. The latter
+puts the rectangle load/comparison in `$v0` and the primitive cursor advance
+in `$v1`, resolving the last six register penalties at 99.946% without pins.
+The patched `local-alloc.c` ranks quantities by
+`floor_log2(refs) * refs * size / lifetime`, with quantity number breaking ties.
+Check `.lreg` and `.greg` before introducing a pinned comparison temporary.
+
+## Input-only SOFT_USE_REG helpers are implicitly volatile in GCC 2.8.1
+
+For `func_80044C34`, `SOFT_USE_REG2(u, u1)` appears as `asm_operands/v` in the
+RTL even though the macro omits `volatile`: GCC implicitly makes an extended
+asm with no outputs volatile. `SOFT_TOUCH_REG3(u, v, u1)` has outputs and
+appears without `/v`; it keeps the three texture constants in registers while
+allowing independent scheduling. A block-local 24-bit mask, assigned before
+those constants and used in both `setaddr` expressions, preserves the early
+mask materialization. This combination matched all four edge packets without
+register pins. Inspect the actual RTL volatility flag rather than inferring
+it from a helper's name.

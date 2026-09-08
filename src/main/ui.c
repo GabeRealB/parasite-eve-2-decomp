@@ -231,7 +231,250 @@ end:
     return;
 }
 
-INCLUDE_ASM("main/nonmatchings/ui", func_80044C34);
+void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
+{
+    SPRT*     spr;
+    POLY_FT4* p;
+    TILE*     tile;
+    DR_TPAGE* dr;
+    s16       t;
+    u16       x;
+    u16       y;
+    u8        color;
+
+    spr = (SPRT*)Gpu_PrimCursor;
+    arg1->w++;
+    arg1->h++;
+    Gpu_PrimCursor = (DR_TPAGE*)((SPRT_8*)spr + 1);
+    spr->x0        = arg1->x;
+    spr->y0        = arg1->y;
+    spr->u0        = 0;
+    spr->v0        = 0x50;
+    spr->clut      = 0x3C03;
+    setlen(spr, 3);
+    setcode(spr, 0x75);
+    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+
+    spr            = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(spr + 1);
+    spr->x0        = arg1->x + arg1->w - 8;
+    if (spr->x0 > arg1->x) {
+        spr->y0   = arg1->y;
+        spr->u0   = 0x10;
+        spr->v0   = 0x50;
+        spr->clut = 0x3C03;
+        setlen(spr, 3);
+        setcode(spr, 0x75);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+    }
+
+    spr            = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(spr + 1);
+    spr->x0        = arg1->x;
+    spr->y0        = arg1->y + arg1->h - 8;
+    if (arg1->y < spr->y0) {
+        spr->u0   = 0x28;
+        spr->v0   = 0x50;
+        spr->clut = 0x3C03;
+        setlen(spr, 3);
+        setcode(spr, 0x75);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+    }
+
+    spr            = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(spr + 1);
+    spr->x0        = arg1->x + arg1->w - 8;
+    spr->y0        = arg1->y + arg1->h - 8;
+    if (arg1->y < spr->y0 && spr->x0 > arg1->x) {
+        spr->u0   = 0x38;
+        spr->v0   = 0x50;
+        spr->clut = 0x3C03;
+        setlen(spr, 3);
+        setcode(spr, 0x75);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+    }
+
+    p              = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    x              = arg1->x + 8;
+    p->x2          = x;
+    p->x0          = x;
+    t              = arg1->x + arg1->w - 8;
+    p->x3          = t;
+    p->x1          = t;
+    y              = arg1->y;
+    p->y1          = y;
+    p->y0          = y;
+    t              = arg1->y + 8;
+    p->y3          = t;
+    p->y2          = t;
+    if (p->x0 < p->x1) {
+        u32 mask;
+        s32 u;
+        s32 u1;
+        u8  v;
+        mask = 0xFFFFFF;
+        u    = 0x8;
+        v    = 0x50;
+        u1   = 0x10;
+        SOFT_TOUCH_REG3(u, v, u1);
+        p->v0    = v;
+        p->v1    = v;
+        p->v2    = 0x58;
+        p->v3    = 0x58;
+        p->tpage = 0x1E;
+        p->clut  = 0x3C03;
+        setlen(p, 9);
+        p->u1 = u1;
+        p->u3 = u1;
+        p->u0 = u;
+        p->u2 = u;
+        setcode(p, 0x2D);
+        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+    }
+
+    p              = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    x              = arg1->x + 8;
+    p->x2          = x;
+    p->x0          = x;
+    t              = arg1->x + arg1->w - 8;
+    p->x3          = t;
+    p->x1          = t;
+    y              = arg1->y + arg1->h - 8;
+    p->y1          = y;
+    p->y0          = y;
+    t              = arg1->y + arg1->h;
+    p->y3          = t;
+    p->y2          = t;
+    if (p->x0 < p->x1 && p->y0 > arg1->y) {
+        u32 mask;
+        s32 u;
+        s32 u1;
+        u8  v;
+        mask = 0xFFFFFF;
+        u    = 0x30;
+        v    = 0x50;
+        u1   = 0x38;
+        SOFT_TOUCH_REG3(u, v, u1);
+        p->v0    = v;
+        p->v1    = v;
+        p->v2    = 0x58;
+        p->v3    = 0x58;
+        p->tpage = 0x1E;
+        p->clut  = 0x3C03;
+        setlen(p, 9);
+        p->u1 = u1;
+        p->u3 = u1;
+        p->u0 = u;
+        p->u2 = u;
+        setcode(p, 0x2D);
+        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+    }
+
+    p              = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    x              = arg1->x;
+    p->x2          = x;
+    p->x0          = x;
+    t              = x + 8;
+    p->x3          = t;
+    p->x1          = t;
+    y              = arg1->y + 8;
+    p->y1          = y;
+    p->y0          = y;
+    t              = arg1->y + arg1->h - 8;
+    p->y3          = t;
+    p->y2          = t;
+    if (p->y0 < p->y2) {
+        u32 mask;
+        s32 u;
+        s32 u1;
+        u8  v;
+        mask = 0xFFFFFF;
+        u    = 0x18;
+        v    = 0x50;
+        u1   = 0x20;
+        SOFT_TOUCH_REG3(u, v, u1);
+        p->v0    = v;
+        p->v1    = v;
+        p->v2    = 0x57;
+        p->v3    = 0x57;
+        p->tpage = 0x1E;
+        p->clut  = 0x3C03;
+        setlen(p, 9);
+        p->u1 = u1;
+        p->u3 = u1;
+        p->u0 = u;
+        p->u2 = u;
+        setcode(p, 0x2D);
+        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+    }
+
+    p              = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    t              = arg1->x + arg1->w;
+    x              = t - 8;
+    p->x2          = x;
+    p->x0          = x;
+    p->x3          = t;
+    p->x1          = t;
+    y              = arg1->y + 8;
+    p->y1          = y;
+    p->y0          = y;
+    t              = arg1->y + arg1->h - 8;
+    p->y3          = t;
+    p->y2          = t;
+    if (p->x0 > arg1->x && p->y0 < p->y2) {
+        u32 mask;
+        s32 u;
+        s32 u1;
+        u8  v;
+        mask = 0xFFFFFF;
+        u    = 0x20;
+        v    = 0x50;
+        u1   = 0x28;
+        SOFT_TOUCH_REG3(u, v, u1);
+        p->v0    = v;
+        p->v1    = v;
+        p->v2    = 0x57;
+        p->v3    = 0x57;
+        p->tpage = 0x1E;
+        p->clut  = 0x3C03;
+        setlen(p, 9);
+        p->u1 = u1;
+        p->u3 = u1;
+        p->u0 = u;
+        p->u2 = u;
+        setcode(p, 0x2D);
+        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+    }
+    Ui_DrawWindowBorder(arg2, arg0->field_4, (s16)arg0->field_14 + 3);
+    if (arg0->field_4 & 0x20000) {
+        tile           = (TILE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+        color          = (9 - arg0->field_16) * 8;
+        tile->b0       = color;
+        tile->g0       = color;
+        tile->r0       = color;
+        tile->x0       = -0xA0;
+        tile->y0       = -0x78;
+        tile->w        = 0x140;
+        tile->h        = 0xF0;
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, tile);
+        dr             = Gpu_PrimCursor;
+        Gpu_PrimCursor = dr + 1;
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000240;
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, dr);
+    }
+}
 
 void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
