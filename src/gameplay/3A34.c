@@ -3478,7 +3478,170 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", Gp_PairHandler3);
+s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
+{
+    void**            scratch;
+    u8*               head;
+    GpCapsuleScratch* block;
+    VECTOR*           ends;
+    GpActorD4Rec*     rec;
+    s32               proj;
+    s32               ret;
+    s32               tapered;
+    VECTOR3*          pos;
+    s32               ratioDelta;
+    s32               radiusSquared;
+    s32               dx0;
+    s32               dy0;
+    s32               dz0;
+    s32               dx1;
+    s32               dy1;
+    s32               dz1;
+    s32               dx2;
+    s32               dy2;
+    s32               dz2;
+    s32               dx3;
+    s32               dy3;
+    s32               dz3;
+    s32               dx4;
+    s32               dy4;
+    s32               dz4;
+    s32               len;
+    s32               plen;
+    s32               r0;
+    s32               r1;
+    s32               radius;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    pos      = (VECTOR3*)(head - 0x78);
+    *scratch = head - 0x8C;
+    rec      = (GpActorD4Rec*)arg1->field_C;
+    block    = (GpCapsuleScratch*)(head - 0x8C);
+    Gp_ObjWorldPos(arg0, pos);
+    ends = (VECTOR*)(head - 0x68);
+    func_800DEC80(arg1, ends, (SVECTOR*)(head - 0x18), 0);
+
+    block->scaled.vx = (block->normal.vx * (u16)arg0->field_1C) >> 12;
+    block->scaled.vy = (block->normal.vy * (u16)arg0->field_1C) >> 12;
+    block->scaled.vz = (block->normal.vz * (u16)arg0->field_1C) >> 12;
+
+    block->planeA.vx = block->end0.vx + block->scaled.vx;
+    block->planeA.vy = block->end0.vy + block->scaled.vy;
+    block->planeA.vz = block->end0.vz + block->scaled.vz;
+    block->planeB.vx = block->end1.vx - block->scaled.vx;
+    block->planeB.vy = block->end1.vy - block->scaled.vy;
+    block->planeB.vz = block->end1.vz - block->scaled.vz;
+
+    dx0 = (block->sphere.vx - block->planeA.vx) * block->normal.vx;
+    dy0 = (block->sphere.vy - block->planeA.vy) * block->normal.vy;
+    dz0 = (block->sphere.vz - block->planeA.vz) * block->normal.vz;
+    ret = 0;
+    if (dx0 + dy0 + dz0 > 0) {
+        *scratch = (u8*)*scratch + 0x8C;
+        return 0;
+    }
+
+    dx1  = (block->sphere.vx - block->planeB.vx) * block->normal.vx;
+    dy1  = (block->sphere.vy - block->planeB.vy) * block->normal.vy;
+    dz1  = (block->sphere.vz - block->planeB.vz) * block->normal.vz;
+    proj = (dx1 + dy1 + dz1) >> 12;
+    if (proj <= 0) {
+        *scratch = (u8*)*scratch + 0x8C;
+        return 0;
+    }
+
+    r1      = rec->field_10;
+    tapered = r1 != rec->field_12;
+    if (!tapered) {
+        radius        = (u16)arg0->field_1C + r1;
+        block->hit.vx = (u16)block->planeB.vx + ((block->normal.vx * proj) >> 12);
+        block->hit.vy = (u16)block->planeB.vy + ((block->normal.vy * proj) >> 12);
+        block->hit.vz = (u16)block->planeB.vz + ((block->normal.vz * proj) >> 12);
+        proj          = radius;
+        goto check;
+    }
+
+    if (arg1->flags & 0xC00) {
+        gte_SetRotMatrix(&((GsCOORDINATE2*)arg1->field_8)->workm);
+        block->scaled.vx = (u16)rec->field_0 + (u16)arg1->field_10;
+        block->scaled.vy = (u16)rec->field_2 + (u16)arg1->field_12;
+        block->scaled.vz = (u16)rec->field_4 + (u16)arg1->field_14;
+        gte_ldv0((SVECTOR*)(head - 8));
+        gte_rtv0_real();
+        gte_stlvnl(ends);
+        block->end0.vx += ((GsCOORDINATE2*)arg1->field_8)->workm.t[0];
+        block->end0.vy += ((GsCOORDINATE2*)arg1->field_8)->workm.t[1];
+        block->end0.vz += ((GsCOORDINATE2*)arg1->field_8)->workm.t[2];
+    }
+
+    block->delta.vx = block->end0.vx - block->end1.vx;
+    block->delta.vy = block->end0.vy - block->end1.vy;
+    block->delta.vz = block->end0.vz - block->end1.vz;
+    dx2             = block->delta.vx * block->delta.vx;
+    dy2             = block->delta.vy * block->delta.vy;
+    dz2             = block->delta.vz * block->delta.vz;
+    len             = SquareRoot0(dx2 + dy2 + dz2);
+
+    block->scaled.vx = (block->normal.vx * proj) >> 12;
+    block->scaled.vy = (block->normal.vy * proj) >> 12;
+    block->scaled.vz = (block->normal.vz * proj) >> 12;
+    dx3              = block->scaled.vx * block->scaled.vx;
+    dy3              = block->scaled.vy * block->scaled.vy;
+    dz3              = block->scaled.vz * block->scaled.vz;
+    proj             = len;
+    plen             = SquareRoot0(dx3 + dy3 + dz3);
+
+    r0         = (rec->field_10 << 12) / rec->field_12;
+    proj       = (plen << 12) / proj;
+    ratioDelta = r0 - 0x1000;
+    SOFT_TOUCH_REG_USE(ratioDelta, r0);
+    r1            = (u16)arg0->field_1C;
+    proj          = r1 + ((((ratioDelta * proj) >> 12) * rec->field_12 >> 12) + rec->field_12);
+    block->hit.vx = (u16)block->scaled.vx + (u16)block->planeB.vx;
+    block->hit.vy = (u16)block->scaled.vy + (u16)block->planeB.vy;
+    block->hit.vz = (u16)block->scaled.vz + (u16)block->planeB.vz;
+
+check:
+    block->scaled.vx = (u16)block->hit.vx - (u16)block->sphere.vx;
+    block->scaled.vy = (u16)block->hit.vy - (u16)block->sphere.vy;
+    block->scaled.vz = (u16)block->hit.vz - (u16)block->sphere.vz;
+    dx4              = block->scaled.vx * block->scaled.vx;
+    dy4              = block->scaled.vy * block->scaled.vy;
+    dz4              = block->scaled.vz * block->scaled.vz;
+    radiusSquared    = proj * proj;
+    if (dx4 + dy4 + dz4 < radiusSquared) {
+        block->rsum     = 0;
+        block->src.vx   = (u16)block->end1.vx;
+        block->src.vy   = (u16)block->end1.vy;
+        block->src.vz   = (u16)block->end1.vz;
+        block->extra.vx = (u16)block->normal.vx;
+        block->extra.vy = (u16)block->normal.vy;
+        block->extra.vz = (u16)block->normal.vz;
+        func_800DBA20(arg0, arg1, (GpSphereScratch*)block);
+        if (!tapered) {
+            block->src = block->hit;
+        } else {
+            block->src.vx = (u16)block->sphere.vx;
+            block->src.vy = (u16)block->sphere.vy;
+            block->src.vz = (u16)block->sphere.vz;
+        }
+        if (arg1->flags & 0x800) {
+            block->extra.vx = (s32)arg0;
+            block->extra.vy = (s32)arg0 >> 16;
+        } else {
+            block->extra.vx = 0;
+            block->extra.vy = 0;
+        }
+        block->extra.vz = 0;
+        block->rsum     = 0;
+        func_800DBA20(arg1, arg0, (GpSphereScratch*)block);
+        ret = 1;
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x8C;
+    return ret;
+}
 
 void Gp_CollideObjGrid(GpObj* arg0)
 {

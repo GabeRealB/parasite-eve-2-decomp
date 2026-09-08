@@ -1040,6 +1040,27 @@ typedef struct _GpSphereScratch {
 } GpSphereScratch;
 STATIC_ASSERT_SIZEOF(GpSphereScratch, 0x48);
 
+/// 0x8C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PairHandler3`.
+/// The sphere position and capsule endpoints define the candidate contact.
+/// `src` / `extra` / `rsum` share the collision-record prefix of `GpSphereScratch`.
+typedef struct _GpCapsuleScratch {
+    /* 0x00 */ SVECTOR src;
+    /* 0x08 */ SVECTOR extra;
+    /* 0x10 */ s16     rsum;
+    /* 0x12 */ s16     pad_12;
+    /* 0x14 */ VECTOR3 sphere;
+    /* 0x20 */ s32     pad_20;
+    /* 0x24 */ VECTOR  end0;
+    /* 0x34 */ VECTOR  end1;
+    /* 0x44 */ VECTOR  planeA;
+    /* 0x54 */ VECTOR  planeB;
+    /* 0x64 */ VECTOR  delta;
+    /* 0x74 */ SVECTOR normal;
+    /* 0x7C */ SVECTOR hit;
+    /* 0x84 */ SVECTOR scaled;
+} GpCapsuleScratch;
+STATIC_ASSERT_SIZEOF(GpCapsuleScratch, 0x8C);
+
 /// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `Gp_CollideObjGrid`.
 /// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
 /// (`Gp_LocalToGrid`). `verts` holds the face corners rotated by
@@ -1421,6 +1442,7 @@ void            Gp_TickWorldCollision(void);
 void            Gp_RunPairHandler(GpObj* node);
 void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
 s32             Gp_PairHandler1(GpObj* arg0, GpObj* arg1);
+s32             Gp_PairHandler3(GpObj* arg0, GpObj* arg1);
 void            Gp_CollideObjGrid(GpObj* node);
 void            Gp_CollideObjGridDir(GpObj* node);
 s32             func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3);
