@@ -55227,3 +55227,35 @@ table gives 100%. Preserve the original target and validate with the actual buil
 All four generated tables belong after `Text_MeasureGlyphWidth` in `textdraw`
 rodata; move the plain `textdraw_1` rodata cut from 0x3E1C to 0x40BC, where the
 number-formatting strings begin.
+
+## A shared brightness needs two preserved copies; a touched literal can load too early
+
+`func_acropolis_security_room_801817A4` matched in `base_40.c`, without hard
+register pins. Its raw random brightness is computed into `$v0`, copied to
+`$s3` for the quad loop and independently copied to `$fp` for the line loop.
+`raw = expr; SOFT_TOUCH_REG(raw); quad = raw; saved = raw;` preserves the
+first move, but CSE forwards the second copy from `quad`, leaving
+`move $fp,$s3`. Repeating `expr` for `saved` is also insufficient: sched1
+merges the two computations into the later destination and adds a reverse
+copy. Two nonvolatile, instruction-emitting `move %0,%1` asms, each with an
+`=r` destination and the same `r` raw input, preserve the intended fork while
+letting GCC choose every register. This is distinct from the empty
+`COPY_REG` helper, whose output does not itself emit a copy.
+
+An implicit `0xFFFFFF` first-loop address mask had five references across
+106 instructions, losing `$s2` to the brightness's five references across
+90 instructions. Naming that mask before the loop and applying
+`SOFT_TOUCH_REG` gave it seven references and restored the target allocation.
+
+The remaining first-loop scheduling miss came from constant materialization
+for `mode = 1; TOUCH_REG(mode)`: reload inserted a constant input before the
+asm, and sched2 placed it ahead of two OT-depth loads, leaving a load-delay
+NOP. A nonvolatile `addiu %0,$0,1` asm with an `=r` mode output and an `r`
+loop-counter input models the materialization directly; the input prevents
+loop hoisting. With the high-tag-mask touch after the primitive's first tag
+store, sched2 places both constants in their target load-delay slots.
+
+The permuter also found that a separate assignment destination for the line's
+green multiply (`product = (greenProduct = greenBit * lineLum)`) splits its
+RTL result from the later geometry product. That fixed both `mflo` ordering
+and the green-result register, making the entire second loop exact.

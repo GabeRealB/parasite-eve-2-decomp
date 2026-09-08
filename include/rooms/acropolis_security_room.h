@@ -129,4 +129,18 @@ STATIC_ASSERT_SIZEOF(AsrBeamScratch, 0x14);
 /// Draws the security room's sweeping laser beam for this frame.
 void func_acropolis_security_room_80180A78(Task* task);
 
+/// Projection and radius scratch for the security-room flash effect.
+typedef struct AsrFlashScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     step;
+    /* 0x08 */ SVECTOR v;
+    /* 0x10 */ s16     x;
+    /* 0x12 */ s16     y;
+} AsrFlashScratch;
+STATIC_ASSERT_SIZEOF(AsrFlashScratch, 0x14);
+
+extern u32 Gp_LcgState;
+
+void func_acropolis_security_room_801817A4(Task* task);
+
 #endif // ROOMS_ACROPOLIS_SECURITY_ROOM_H
