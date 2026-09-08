@@ -302,6 +302,11 @@ extern GpCdRec10* Gp_CdRecCur;
 /// its own phase 1.
 extern u16 D_80114C70;
 
+/// Match-found flag in the halfword immediately after the phase. Keep its
+/// compiler symbol separate so loop optimization does not retain the phase
+/// address across CdCmd_Enqueue; the assembler alias preserves the data layout.
+extern u16 D_80114C72 asm("D_80114C70+2");
+
 /// Phase for `Gp_LoadWaitAreaCd` (0 init, 1 `func_800AA120`, 2 `Gp_PollAreaCdLoads`).
 /// `Gp_LoadWaitSave` clears it when advancing to this task state.
 extern u16 D_80114C74;

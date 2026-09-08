@@ -604,7 +604,127 @@ s32 Gp_PollAreaCdLoads(void)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA120);
+s32 func_800AA120(void)
+{
+    u8           param1[8];
+    u8           param2[8];
+    GpCdAreaRec* rec;
+    GpCdRec0C*   rec12;
+    GpCdRec0C*   next;
+    u16          key;
+    s32          val;
+    s16          d;
+    s16          e;
+
+    switch (D_80114C70) {
+        case 0:
+            val        = (s32)Gp_GetNestedAreaRec((GpAreaKey*)&Mc_SaveData.field_4);
+            rec        = (GpCdAreaRec*)val;
+            D_80114C64 = rec;
+            D_80114C68 = rec->field_4;
+            if (rec == NULL) {
+                goto finished;
+            }
+            next = D_80114C68;
+            TOUCH_REG(next);
+            if (next == NULL) {
+                return 1;
+            }
+            D_80114C70++;
+        case 1:
+            if (D_80114C68->field_0 == 0xFF) {
+                return 1;
+            }
+            do {
+                Gp_CdRecCur = D_80114C64->field_0;
+                D_80114C72  = 0;
+                if (Gp_CdRecCur->field_0 != 0xFF) {
+                    key = D_80114C68->field_0;
+                    while (Gp_CdRecCur->field_0 != 0xFF) {
+                        if (Gp_CdRecCur->field_0 == key && Gp_CdRecCur->field_C == 0) {
+                            D_80114C72 = 1;
+                            break;
+                        }
+                        Gp_CdRecCur++;
+                    }
+                }
+                rec12 = D_80114C68;
+                if (rec12->field_4 != 5) {
+                    if (D_80114C72 != 0) {
+                        d         = (s8)Gp_CdRecCur->field_D;
+                        e         = (s8)Gp_CdRecCur->field_E;
+                        param1[3] = 0;
+                        param1[0] = 0;
+                        val       = (s16)rec12->field_2;
+                        if (val >= 0x64) {
+                            param2[0] = val % 100;
+                            param1[2] = D_8010CAD0[rec12->field_4].field_0 + ((s16)rec12->field_2 / 100);
+                        } else {
+                            param2[0] = rec12->field_2;
+                            param1[2] = D_8010CAD0[rec12->field_4].field_0;
+                        }
+                        param2[1] = 0;
+                        param2[2] = d;
+                        param2[3] = e;
+                        CdCmd_Enqueue(0x21, param1, param2);
+                        goto queued;
+                    } else {
+                        d         = 0;
+                        e         = 0;
+                        param1[3] = 0;
+                        param1[0] = 0;
+                        val       = (s16)rec12->field_2;
+                        if (val >= 0x64) {
+                            param2[0] = val % 100;
+                            param1[2] = D_8010CAD0[rec12->field_4].field_0 + ((s16)rec12->field_2 / 100);
+                        } else {
+                            param2[0] = rec12->field_2;
+                            param1[2] = D_8010CAD0[rec12->field_4].field_0;
+                        }
+                        param2[1] = 0;
+                        param2[2] = d;
+                        param2[3] = e;
+                        CdCmd_Enqueue(0x21, param1, param2);
+                        goto queued;
+                    }
+                } else if (D_80114C72 != 0) {
+                    d         = (s8)Gp_CdRecCur->field_D;
+                    e         = (s8)Gp_CdRecCur->field_E;
+                    param1[3] = 0;
+                    param1[0] = 0;
+                    val       = (s16)rec12->field_2;
+                    if (val >= 0x64) {
+                        param2[0] = val % 100;
+                        param1[2] = D_8010CAD0[rec12->field_4].field_0 + ((s16)rec12->field_2 / 100);
+                    } else {
+                        param2[0] = rec12->field_2;
+                        param1[2] = D_8010CAD0[rec12->field_4].field_0;
+                    }
+                    param2[1] = 0;
+                    param2[2] = d;
+                    param2[3] = e;
+                    CdCmd_Enqueue(0x21, param1, param2);
+                queued:
+                    D_80114C70++;
+                    break;
+                } else {
+                    D_80114C68 = rec12 + 1;
+                }
+            } while (rec12[1].field_0 != 0xFF);
+            if (D_80114C68->field_0 == 0xFF) {
+            finished:
+                return 1;
+            }
+            break;
+        case 2:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                D_80114C68++;
+                D_80114C70--;
+            }
+            break;
+    }
+    return 0;
+}
 
 void func_800AA548(s32 arg0)
 {

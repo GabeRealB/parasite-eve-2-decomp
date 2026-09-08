@@ -55170,3 +55170,32 @@ attempt from 93.381% (branch=4, insert=3, delete=4) to 100%.
 The output was previously declared as a direction vector, but the stores are
 `kind = -1/1/2`, a cleared word, and a selected coordinate pointer. The corrected
 `GpNearestLight` type preserves the 12-byte layout of `GpLightCapture.field_24`.
+
+
+## Share only the loop-exit update before LICM; preserve adjacent symbols separately
+
+`func_800AA120` matched on retry from the archived seed, without register pins.
+The seed's three duplicated enqueue arms are necessary for the division blocks
+and cross-jumped tails, but their three phase increments are not. In `.loop`,
+the phase-address `high` had savings 3 and lifetime 9, so `move_movables` hoisted
+it into the outer preheader and retained it in `$s0` across `CdCmd_Enqueue`.
+Routing the first two arms to a label immediately before the third arm's phase
+increment leaves one update inside the loop. Its savings 1 and lifetime 3 are
+"not desirable" to hoist, restoring the post-call `lui $v1` and eliminating
+the extra preheader `lui`. Moving that shared update outside the loop instead
+adds jumps and changes block order.
+
+Adjacent globals also affect that decision: viewing phase/found as a struct or
+array merges address computations and reintroduces hoisting. The declaration
+`extern u16 D_80114C72 asm("D_80114C70+2");` gives GCC a distinct found-flag
+symbol while GAS retains the existing data symbol plus its halfword offset.
+It emits no instructions or storage. This removed five relocation-name diffs
+from an otherwise identical object (99.906% to 100.000%).
+
+The initial result can share the later `s32 val` live range to obtain `$a0`
+without a pin. `TOUCH_REG` on a separate pointer used by the second null check
+retains its `move $v0,$v1`; directing the first null check to the existing final
+`return 1` label prevents early return-value motion from changing delay slots.
+The archived seed's sentinel comparisons already matched on this retry; its
+remaining hoist was the phase address, despite the earlier corpus entry's
+sentinel-focused diagnosis. All scratch penalties reached zero in `base_12.c`.
