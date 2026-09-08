@@ -55586,3 +55586,42 @@ unpinned version modeled on the sibling matched on its fourth attempt.
 Before working from a pinned give-up seed, check
 `asm/<ver>/<overlay>/matchings/<unit>/` for a sibling with the same
 prologue shape; here two were in the same TU.
+
+## A two-store constant (`p->w = 8; p->h = 8`) is hoisted at span 2; reuse the local for a later constant to keep `li` in the loop
+
+`func_800C7DA8`'s sprite loop writes `w` and `h` from one register:
+
+```
+lhu   v0,0x22(s3)
+li    v1,8
+sh    v1,0x10(a2)
+sh    v1,0x12(a2)
+```
+
+Plain `p->w = 8; p->h = 8;` puts both stores on one pseudo (cse1 merges the
+two `force_reg` copies), so the constant's span is 2 and in a ~90-insn loop
+`move_movables` hoists it (`threshold * savings * lifetime >= insn_count`, see
+the LICM entries above): `li t5,8` lands in the preheader and every scratch
+register in the loop shifts by one. The single-use rule ("used once, span 1,
+never hoisted") does not apply because there are two uses.
+
+The give-up seed pinned this with `eight = 8; SOFT_TOUCH_REG_USE(eight, …)`
+- a second set makes the pseudo non-invariant. The natural equivalent is a
+local that the loop body also assigns *later* for an unrelated constant:
+
+```c
+val   = 8;
+p->w  = val;
+p->h  = val;
+...
+} else {
+    p->u0         = 0x78;
+    val           = 0x606060;     /* second set: `val` is no longer invariant */
+    *(u32*)&p->r0 = val;
+}
+```
+
+`n_times_set` is now 2, loop.c skips it, and both `li v1,8` and the
+`lui/ori 0x606060` stay inside the loop exactly as the target has them. The
+extra assignment is free: the colour constant was a span-1 single use that
+was never going to be hoisted anyway.

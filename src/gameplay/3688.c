@@ -101,6 +101,12 @@ extern UiList         D_8010E960;
 extern UiList         D_8010E9A4;
 extern UiList         D_8010E9CC;
 extern UiList         D_8010E9F4;
+extern u8*            D_8010E984[];
+extern u8*            D_8010E990[];
+extern u8*            D_8010E994[];
+extern u8**           D_80114D80;
+extern u16            D_8011348C[][4];
+extern u16            D_80112D5A[][5];
 extern UiList         D_8010EA30;
 extern UiListItemFunc Gp_DialogCmdFns[];
 extern UiList         D_8010EA74;
@@ -4252,7 +4258,216 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                        ((s16)vec.vy + 1), 0x81008);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7DA8);
+void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    u8            buf[8];
+    u16           selStats[3];
+    u16           eqStats[3];
+    TextDrawReq   nameReq;
+    TextDrawReq   valReq;
+    s32           xOff;
+    s32           yBase;
+    s32           y;
+    s32           xCopy;
+    s32           nx;
+    s32           ot;
+    u16*          itemRow;
+    u16*          eqRow;
+    u16*          pItem;
+    u16*          pEq;
+    UiList*       list;
+    SPRT*         p;
+    GpItemAttr*   attr;
+    GpItemSlot*   slot;
+    WipSysConfig* cfg;
+    s16           field18;
+    s32           color;
+    s32           swap;
+    s32           i;
+    s32           count;
+    s32           two;
+    u32           selVal;
+    u32           itemVal;
+    s32           val;
+
+    field18 = (s16)arg0->field_18;
+    xOff    = arg0->field_1C + 0x60;
+    yBase   = field18 + 8;
+    cfg     = &Wip_SysConfig;
+    if (arg2 == 0) {
+        yBase = field18 + 0x1C;
+    }
+    if ((u32)(arg1 - 0x80) < 0x20U) {
+        list       = &D_8010E9A4;
+        itemRow    = D_8011348C[arg1];
+        count      = 3;
+        D_80114D80 = D_8010E984;
+        eqRow      = D_8011348C[cfg->field_21 + 0x7F];
+    } else if ((u32)(arg1 - 0xA0) < 0x20U) {
+        slot    = Gp_GetItemSlot(cfg->field_21 + 0x7F);
+        list    = &D_8010E9CC;
+        itemRow = D_80112D5A[arg1];
+        if (Gp_ReloadMode == 2) {
+            if (slot->field_2 == 0) {
+                eqRow = D_80112D5A[0x9F];
+            } else {
+                eqRow = D_80112D5A[slot->field_2];
+            }
+        } else {
+            if (slot->field_0 == 0) {
+                eqRow = D_80112D5A[0x9F];
+            } else {
+                eqRow = D_80112D5A[slot->field_0];
+            }
+        }
+        D_80114D80 = D_8010E990;
+        count      = 1;
+    } else if ((u32)(arg1 - 0x60) < 0x20U) {
+
+        list        = &D_8010E9F4;
+        attr        = &Gp_ItemAttrs[arg1];
+        selStats[0] = attr->field_4;
+        selStats[1] = attr->field_6;
+        selStats[2] = Gp_GetModLevel(arg1);
+        itemRow     = selStats;
+        eqRow       = eqStats;
+        attr        = &Gp_ItemAttrs[cfg->field_23 + 0x5F];
+        count       = 3;
+        eqStats[0]  = attr->field_4;
+        eqStats[1]  = attr->field_6;
+        eqStats[2]  = Gp_GetModLevel(cfg->field_23 + 0x5F);
+        D_80114D80  = D_8010E994;
+    } else {
+        return;
+    }
+
+    xCopy = xOff;
+    y     = yBase;
+    i     = 0;
+    if (count != 0) {
+        two   = 2;
+        pItem = itemRow;
+        pEq   = eqRow;
+        do {
+            nx                 = arg0->baseX - 0xA;
+            nameReq.x          = nx + xCopy;
+            nameReq.y          = arg0->baseY + y;
+            ot                 = (s16)arg0->drawOrder + 1;
+            nameReq.otIndex    = ot;
+            nameReq.field_8    = 0x606060;
+            nameReq.glyphTable = 5;
+            nameReq.centerMode = 0;
+            nameReq.field_E    = 1;
+            func_8002E53C(&nameReq, D_80114D80[i]);
+            swap = 0;
+            if (i == two) {
+                swap = list == &D_8010E9A4;
+            }
+            if (arg2 == 1) {
+                selVal  = *pEq;
+                itemVal = *pItem;
+                if (selVal < itemVal) {
+                    color = 0x1741F;
+                    if (swap != 0) {
+                        color = 0xD287F;
+                    }
+                } else if (itemVal < selVal) {
+                    color = 0xD287F;
+                    if (swap != 0) {
+                        color = 0x1741F;
+                    }
+                } else {
+                    color = 0x606060;
+                }
+            } else {
+                color = 0x606060;
+            }
+            if (((u32)(arg1 - 0x60) < 0x20U) && (i < 2)) {
+                {
+                    s32 vx;
+                    vx       = arg0->baseX - 2;
+                    valReq.x = arg0->field_1E + vx;
+                }
+                valReq.y          = arg0->baseY + 0xB + y;
+                valReq.otIndex    = (s16)arg0->drawOrder + 1;
+                valReq.field_8    = color;
+                valReq.glyphTable = 0;
+                valReq.centerMode = two;
+                valReq.field_E    = 3;
+                func_8002E53C(&valReq, Text_ItoaSignedPlus(buf, *pItem));
+            } else {
+                {
+                    s32 vx;
+                    vx       = arg0->baseX - 2;
+                    valReq.x = arg0->field_1E + vx;
+                }
+                valReq.y          = arg0->baseY + 0xB + y;
+                valReq.otIndex    = (s16)arg0->drawOrder + 1;
+                valReq.field_8    = color;
+                valReq.glyphTable = 0;
+                valReq.centerMode = two;
+                valReq.field_E    = 3;
+                func_8002E53C(&valReq, Text_ItoaSigned(buf, *pItem));
+            }
+            y     += 0x18;
+            pItem += 1;
+            i     += 1;
+            pEq   += 1;
+        } while (i < count);
+    }
+
+    i = 0;
+    if (arg2 == 1) {
+        y     = yBase;
+        xCopy = xOff;
+        if (count != 0) {
+            s32 two2;
+            two2 = 2;
+
+            do {
+                swap = 0;
+                if (i == two2) {
+                    swap = list == &D_8010E9A4;
+                }
+                p              = (SPRT*)Gpu_PrimCursor;
+                p->x0          = arg0->baseX + xCopy;
+                p->y0          = arg0->baseY + y + 5;
+                val            = 8;
+                p->w           = val;
+                p->h           = val;
+                selVal         = eqRow[i];
+                itemVal        = itemRow[i];
+                Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+                if (selVal < itemVal) {
+                    p->u0         = 0x30;
+                    *(u32*)&p->r0 = 0x1741F;
+                    if (swap != 0) {
+                        *(u32*)&p->r0 = 0xD287F;
+                    }
+                } else if (itemVal < selVal) {
+                    p->u0         = 0xA0;
+                    *(u32*)&p->r0 = 0xD287F;
+                    p->y0         = p->y0 - 1;
+                    if (swap != 0) {
+                        *(u32*)&p->r0 = 0x1741F;
+                    }
+                } else {
+                    p->u0         = 0x78;
+                    val           = 0x606060;
+                    *(u32*)&p->r0 = val;
+                }
+                y      += 0x18;
+                p->v0   = 0x60;
+                p->clut = 0x3C09;
+                setlen(p, 4);
+                setcode(p, 0x64);
+                addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+                i += 1;
+            } while (i < count);
+        }
+        Ui_InsertDrawTPage((s16)arg0->drawOrder + 1, 0);
+    }
+}
 
 void Gp_EquipSummaryTask(Task* arg0)
 {
