@@ -1105,7 +1105,200 @@ void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800330D8);
+void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    union {
+        u8          buf[0x20];
+        TextDrawReq req;
+    } sp20;
+    TextDrawReq sp40;
+    TextDrawReq sp50;
+    union {
+        u8          buf[0x10];
+        TextDrawReq req;
+    } sp60;
+    TextDrawReq  sp70;
+    TextDrawReq  sp80;
+    TextDrawReq  sp90;
+    s32          x;
+    s32          y;
+    s32          off;
+    s32          textX;
+    s32          color;
+    s32          i;
+    s32          valid;
+    s32          sum;
+    s32          limit;
+    s32          ch;
+    volatile u8* ptr;
+    McSaveData*  save;
+
+    color = Ui_LookupTable(arg0, 1);
+    if (arg2 < ((McWork*)arg1)->field_288) {
+        off  = (arg2 << 7) + 0x294;
+        save = (McSaveData*)(arg1 + off);
+        if ((u32)(save->field_12 - 1) >= 0x10U) {
+            valid = 0;
+        } else {
+            sum = 0;
+            // Keep the checksum and counter zero initializations independent.
+            SOFT_TOUCH_REG(sum);
+            ptr   = &save->field_4;
+            limit = 0x38;
+            i     = 0;
+            do {
+                i   += 1;
+                ch   = (s8)*ptr;
+                sum  = sum + ch;
+                ptr += 1;
+            } while (i < limit);
+            sum  &= 0xFFFF;
+            valid = (save->field_1C ^ sum) == 0;
+        }
+        if (valid == 0) {
+            x = arg3 + arg0->field_1C + 8;
+            y = arg4 + (s16)arg0->field_18 + 0x11;
+            if (((McWork*)arg1)->field_A20 == 0) {
+                Text_DrawPrompt(arg0, x, y, D_80060CCC, 0x606060, 1, 0);
+                return;
+            }
+            Text_DrawMultiLine(arg0, x, y, D_80060CCC, 0x37A78, 1, 0);
+            return;
+        }
+        x               = arg3 + arg0->field_1C + 2;
+        y               = (arg4 + (s16)arg0->field_1A) - 0x10;
+        sp40.x          = arg0->baseX + x;
+        sp40.y          = arg0->baseY + (y - 2);
+        sp40.otIndex    = (s16)arg0->drawOrder + 1;
+        sp40.field_8    = 0x606060;
+        sp40.glyphTable = 5;
+        sp40.centerMode = 0;
+        sp40.field_E    = 1;
+        func_8002E53C(&sp40, D_80013B6C);
+        sp50.x          = arg0->baseX + 0x28 + x;
+        sp50.y          = arg0->baseY + y;
+        sp50.otIndex    = (s16)arg0->drawOrder + 1;
+        sp50.field_8    = color;
+        sp50.glyphTable = 0;
+        sp50.centerMode = 0;
+        sp50.field_E    = 3;
+        func_8002E53C(&sp50, Text_FormatTime(sp20.buf, (s32)save->field_C));
+        if (save->field_E > 0) {
+            x                   = (arg3 + (s16)arg0->field_1E) - 4;
+            y                   = (arg4 + (s16)arg0->field_1A) - 0xB;
+            sp60.req.x          = arg0->baseX + (x - 0x1E);
+            sp60.req.y          = arg0->baseY + (y - 2);
+            sp60.req.otIndex    = (s16)arg0->drawOrder + 1;
+            sp60.req.field_8    = 0x606060;
+            sp60.req.glyphTable = 5;
+            sp60.req.centerMode = 2;
+            sp60.req.field_E    = 1;
+            func_8002E53C(&sp60.req, D_80013B74);
+            sp70.x          = arg0->baseX + x;
+            sp70.y          = arg0->baseY + y;
+            sp70.otIndex    = (s16)arg0->drawOrder + 1;
+            sp70.field_8    = color;
+            sp70.glyphTable = 0;
+            sp70.centerMode = 2;
+            sp70.field_E    = 3;
+            func_8002E53C(&sp70, Text_ItoaUnsigned(sp20.buf, (u32)save->field_E));
+            if ((s8)save->field_12 != 0xF) {
+                sp80.x          = arg0->baseX + x;
+                sp80.y          = arg0->baseY + 8 + y;
+                sp80.otIndex    = (s16)arg0->drawOrder + 1;
+                sp80.field_8    = 0x606060;
+                sp80.glyphTable = 5;
+                sp80.centerMode = 2;
+                sp80.field_E    = 1;
+                func_8002E53C(&sp80, D_800611B8[save->field_F]);
+            }
+        }
+        x = arg3 + arg0->field_1C + 4;
+        y = arg4 + (s16)arg0->field_18 + 0x11;
+        Text_DrawPrompt(arg0, x, y, D_80067418[(s8)save->field_12], color, 1, 0);
+        sp60.buf[0] = 0;
+        Text_Strcat(sp60.buf, D_80013BA4);
+        Text_Strcat(sp60.buf, Text_ItoaSigned(sp20.buf, (s32)save->unknown_11));
+        Text_Strcat(sp60.buf, D_800139A8);
+        sp70.x          = arg0->baseX + (x + Text_MeasureWidth(D_80067418[(s8)save->field_12]));
+        sp70.y          = arg0->baseY + (y - 3);
+        sp70.otIndex    = (s16)arg0->drawOrder + 1;
+        sp70.field_8    = color;
+        sp70.glyphTable = 4;
+        sp70.centerMode = 0;
+        sp70.field_E    = 1;
+        func_8002E53C(&sp70, sp60.buf);
+        textX           = arg3 + arg0->field_1C;
+        x               = textX + 2;
+        y               = (arg4 + (s16)arg0->field_1A) - 1;
+        sp70.x          = arg0->baseX + x;
+        x              += 0x28;
+        sp70.y          = arg0->baseY + (y - 2);
+        sp70.otIndex    = (s16)arg0->drawOrder + 1;
+        sp70.field_8    = 0x606060;
+        sp70.glyphTable = 5;
+        sp70.centerMode = 0;
+        sp70.field_E    = 1;
+        func_8002E53C(&sp70, D_80013BA8);
+        if ((s8)save->field_12 != 0xF) {
+            sp80.x          = arg0->baseX + x;
+            sp80.y          = arg0->baseY + y;
+            sp80.otIndex    = (s16)arg0->drawOrder + 1;
+            sp80.field_8    = 0x606060;
+            sp80.glyphTable = 0;
+            sp80.centerMode = 0;
+            sp80.field_E    = 3;
+            func_8002E53C(&sp80, Text_ItoaSigned(sp20.buf, save->field_14));
+        } else {
+            sp80.x          = arg0->baseX + x;
+            sp80.y          = arg0->baseY + y;
+            sp80.otIndex    = (s16)arg0->drawOrder + 1;
+            sp80.field_8    = 0x606060;
+            sp80.glyphTable = 0;
+            sp80.centerMode = 0;
+            sp80.field_E    = 3;
+            func_8002E53C(&sp80, D_80013BAC);
+        }
+        x               = arg3 - 0x28;
+        sp80.x          = arg0->baseX + x;
+        sp80.y          = arg0->baseY + (y - 2);
+        sp80.otIndex    = (s16)arg0->drawOrder + 1;
+        sp80.glyphTable = 5;
+        sp80.field_8    = 0x606060;
+        sp80.centerMode = 0;
+        sp80.field_E    = 1;
+        func_8002E53C(&sp80, D_80013BB0);
+        if ((s8)save->field_12 != 0xF) {
+            sp90.x          = arg0->baseX + 0x1E + x;
+            sp90.y          = arg0->baseY + y;
+            sp90.otIndex    = (s16)arg0->drawOrder + 1;
+            sp90.field_8    = 0x606060;
+            sp90.glyphTable = 0;
+            sp90.centerMode = 0;
+            sp90.field_E    = 3;
+            func_8002E53C(&sp90, Text_ItoaSigned(sp20.buf, save->field_18));
+        } else {
+            sp90.x          = arg0->baseX + 0x1E + x;
+            sp90.y          = arg0->baseY + y;
+            sp90.otIndex    = (s16)arg0->drawOrder + 1;
+            sp90.field_8    = 0x606060;
+            sp90.glyphTable = 0;
+            sp90.centerMode = 0;
+            sp90.field_E    = 3;
+            func_8002E53C(&sp90, D_80013BAC);
+        }
+    } else {
+
+        sp20.req.x          = arg0->baseX + arg3;
+        sp20.req.y          = arg0->baseY + 5 + arg4;
+        sp20.req.otIndex    = (s16)arg0->drawOrder + 1;
+        sp20.req.glyphTable = 4;
+        sp20.req.field_8    = color;
+        sp20.req.centerMode = 1;
+        sp20.req.field_E    = 1;
+        func_8002E53C(&sp20.req, D_80060A48);
+    }
+}
 
 u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
 {

@@ -49,7 +49,6 @@ extern void  Gp_ApplySndBankMasks(u16 arg0);
 extern void  Gp_RestoreStreamRng(void);
 extern void  func_8017D6D4(void);
 extern void  func_801D4B64(Task* arg0);
-extern void  func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern s32   func_80042500(void);
 extern void  func_80046EEC(void* arg0, void* arg1, s32 arg2);
 extern void  func_8004E200(void);

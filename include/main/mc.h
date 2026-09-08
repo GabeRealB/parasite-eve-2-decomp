@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+struct _UiObject;
+
 // =============================================================================
 // Types — memcard / save (src/main/mc.c, src/main/mcmenu.c)
 // =============================================================================
@@ -228,6 +230,8 @@ STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 // Functions — src/main/mc.c (matched helpers; state handlers also live here)
 // =============================================================================
 
+/// Render the selected memory-card slot and its saved statistics.
+void func_800330D8(struct _UiObject* obj, s32 work, s32 slot, s32 x, s32 y);
 void Mc_StateCompareBuffers(Task* task, McWork* work);
 void Mc_StateOpenRead(Task* task, McWork* work);
 void Mc_StateCreateFile(Task* task, McWork* work);
@@ -316,5 +320,18 @@ extern u8   D_80073838[2][0xA4];
 extern u8   D_80073980[0x208];
 /// Stores the result of rand() after each dispatcher tick.
 extern s32 D_80073C08;
+
+// Save-slot detail labels and indexed descriptions.
+extern u8  D_800139A8[];
+extern u8  D_80013B6C[];
+extern u8  D_80013B74[];
+extern u8  D_80013BA4[];
+extern u8  D_80013BA8[];
+extern u8  D_80013BAC[];
+extern u8  D_80013BB0[];
+extern u8  D_80060A48[];
+extern u8  D_80060CCC[];
+extern u8* D_800611B8[];
+extern u8* D_80067418[];
 
 #endif // MC_H
