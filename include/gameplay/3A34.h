@@ -787,17 +787,27 @@ typedef struct _GpPanScratch {
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
+/// Nearest room light selected by `func_800D78A4`. `kind` is -1 when no
+/// light is selected, 1 for `GpRoomCoordSet.arr60`, or 2 for `arr6C`.
+/// `light` points to the selected coordinate entry; `field_4` is cleared.
+typedef struct _GpNearestLight {
+    /* 0x00 */ s32   kind;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ void* light;
+} GpNearestLight;
+STATIC_ASSERT_SIZEOF(GpNearestLight, 0xC);
+
 /// Room-light capture block owned by another overlay (imported at
 /// `D_80760618`). `func_800D7A9C` fills the four `field_30` entries with the
 /// per-channel light rows while `field_1` is set, and `func_800D78A4` writes
-/// the resolved light direction into `field_24`. `Gp_DebugPanTask` raises
+/// the nearest light selection into `field_24`. `Gp_DebugPanTask` raises
 /// `field_1` around that pair so the capture happens, then clears it.
 typedef struct _GpLightCapture {
-    /* 0x00 */ byte    pad_0[0x1];
-    /* 0x01 */ s8      field_1;
-    /* 0x02 */ byte    pad_2[0x22];
-    /* 0x24 */ VECTOR3 field_24;
-    /* 0x30 */ VECTOR3 field_30[4];
+    /* 0x00 */ byte           pad_0[0x1];
+    /* 0x01 */ s8             field_1;
+    /* 0x02 */ byte           pad_2[0x22];
+    /* 0x24 */ GpNearestLight field_24;
+    /* 0x30 */ VECTOR3        field_30[4];
 } GpLightCapture;
 STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
 
@@ -1325,10 +1335,10 @@ s32  Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
 s32  Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
 void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-/// Resolves the strongest room light for the world position `arg0` and writes
-/// its direction into `arg1` (`GpLightCapture.field_24` at the call site in
-/// `Gp_DebugPanTask`). No-ops when `Gp_GetRoomCoordSet` returns 0.
-void func_800D78A4(VECTOR* arg0, VECTOR3* arg1);
+/// Selects the nearest point or cone light to world position `arg0`, using
+/// squared distance after halving each coordinate difference. Initializes
+/// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
+void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1);
 void Gp_DebugPanTask(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
 /// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights

@@ -55152,3 +55152,21 @@ barriers. The narrowing changes the early RTL copy placement even though the
 final `andi` still occurs after the call. This avoids changing the callers'
 argument conversions. Both scratch variants scored 100%; the local variant
 passed the scoped gameplay and full project builds with the existing rodata layout.
+
+## Loop pointer copy can distinguish direct field access from a strength-reduced walk (`func_800D78A4`)
+
+The nearest-light scan has two similar loops, but the first copies its entry
+pointer at the top and loads positions at +0x38/+0x3C/+0x40; the second walks a
+strength-reduced pointer at entry+0x40 and loads at -8/-4/0. A plain
+`current = point` was copy-propagated away, and `.loop` reduced both loops to
+the latter shape. `current = point; TOUCH_REG(current);` with
+`point = current + 1` in the first loop's increment preserves the separate
+pointer without reserving a hard register. Keep the counter increment before
+the pointer increment (`i++, point = current + 1` / `i++, cone++`): placing it
+after the pointer update filled the count-load delay slot, while the target
+increments earlier and leaves that slot empty. These changes took the unpinned
+attempt from 93.381% (branch=4, insert=3, delete=4) to 100%.
+
+The output was previously declared as a direction vector, but the stores are
+`kind = -1/1/2`, a cleared word, and a selected coordinate pointer. The corrected
+`GpNearestLight` type preserves the 12-byte layout of `GpLightCapture.field_24`.

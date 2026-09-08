@@ -1235,7 +1235,58 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = (u8*)*scratch + 0x3C;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D78A4);
+void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
+{
+    GpRoomCoordSet* set;
+    GpCoord60*      point;
+    GpCoord60*      current;
+    GpCoord6C*      cone;
+    VECTOR*         delta;
+    u32             best;
+    u32             dist;
+    s32             i;
+
+    set           = (GpRoomCoordSet*)Gp_GetRoomCoordSet((GameSessionFrom4*)&Game_Session->field_4);
+    best          = 0x7FFFFFFF;
+    arg1->kind    = -1;
+    arg1->field_4 = 0;
+    arg1->light   = NULL;
+    if (set != NULL) {
+        *(u8**)G_SCRATCH_HEAD -= 0x10;
+        delta                  = *(VECTOR**)G_SCRATCH_HEAD;
+        if (set->n60 > 0) {
+            point = set->arr60;
+            for (i = 0; i < set->n60; i++, point = current + 1) {
+                current = point;
+                TOUCH_REG(current);
+                delta->vx = (current->coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (current->coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (current->coord.workm.t[2] - arg0->vz) >> 1;
+                dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
+                if (dist < best) {
+                    best        = dist;
+                    arg1->kind  = 1;
+                    arg1->light = current;
+                }
+            }
+        }
+        if (set->n6C > 0) {
+            cone = set->arr6C;
+            for (i = 0; i < set->n6C; i++, cone++) {
+                delta->vx = (cone->coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (cone->coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (cone->coord.workm.t[2] - arg0->vz) >> 1;
+                dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
+                if (dist < best) {
+                    best        = dist;
+                    arg1->kind  = 2;
+                    arg1->light = cone;
+                }
+            }
+        }
+        *(u8**)G_SCRATCH_HEAD += 0x10;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D7A9C);
 
