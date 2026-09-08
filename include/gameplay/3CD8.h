@@ -141,6 +141,33 @@ typedef struct _GpSndFade {
 } GpSndFade;
 STATIC_ASSERT_SIZEOF(GpSndFade, 0xC);
 
+/// 0x18-byte event-script command executed by `Gp_ScriptTaskState1`. `op` is
+/// the opcode (-1 ends the script; 43/44/45 are jump / call / return with
+/// `arg0` as the target command); the remaining words are per-op arguments.
+typedef struct _GpEvsCmd {
+    /* 0x00 */ s32 op;
+    /* 0x04 */ s32 arg0;
+    /* 0x08 */ s32 arg1;
+    /* 0x0C */ s32 arg2;
+    /* 0x10 */ s32 arg3;
+    /* 0x14 */ s32 arg4;
+} GpEvsCmd;
+STATIC_ASSERT_SIZEOF(GpEvsCmd, 0x18);
+
+/// 0x34-byte event-script interpreter state stored at `Task::idMap` for the
+/// script task. `pc` is the current command, `wait` the frame countdown set by
+/// op 4, `stack` / `sp` the call stack for ops 44 / 45. `msgTask` is the message
+/// task spawned by op 2 / 24 and `fadeTask` the fade task spawned by op 35.
+typedef struct _GpEvsState {
+    /* 0x00 */ GpEvsCmd* pc;
+    /* 0x04 */ s32       wait;
+    /* 0x08 */ GpEvsCmd* stack[8];
+    /* 0x28 */ s32       sp;
+    /* 0x2C */ Task*     msgTask;
+    /* 0x30 */ Task*     fadeTask;
+} GpEvsState;
+STATIC_ASSERT_SIZEOF(GpEvsState, 0x34);
+
 /// Packed bytes in `Task::spawnArg1` for `Gp_DelayedMsgTask`.
 /// `field_0` is forwarded as a2 to `Gp_DispatchMsg`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.

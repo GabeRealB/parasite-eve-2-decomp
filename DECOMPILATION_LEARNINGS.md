@@ -55469,3 +55469,46 @@ keeps the arithmetic in the target position. The final seed's `do { ... }
 while (0)` around the decreasing-value draw arm is also significant: removing
 it retained instruction/control-flow shape but introduced 117 register
 penalties (98.734%). Keep this form when cleaning up the matched body.
+
+## Put the load arm after the label so the constant arm is not hoisted into a cse2 skip-block path
+
+`Gp_ScriptTaskState1` stores a halfword that is either a script argument or a
+default: `x = arg1 ? (u16)arg1 : 7`. Every orientation with the constant arm
+*after* the label - the ternary, and `if (arg1 != 0) f = arg1; else f = 7;` -
+sat at 98.6-99% with `insert`/`delete` and the address of the struct reused as
+the following call's `a3` argument, while the target recomputes it:
+
+```
+beqz   v0,MERGE
+ li    v0,7
+lhu    v0,8(v1)
+nop
+MERGE:
+sh     v0,2(a0)          <- a0 is dead here in the target
+li     a0,1
+...
+lui    a3,%hi(D_801156D4) <- recomputed, not shared
+```
+
+The chain: `jump.c` hoists the constant `x = 7` above the branch because the
+insn after the else label is a plain constant set (see the entry above). That
+leaves `beqz L; x = lhu; L:` - a branch *around* one block with no barrier
+before its label - and `cse2` follows that with `skip_blocks`, so the merge
+block sees the pre-branch address pseudo and rewrites the call's `lui/addiu`
+into a copy of it. `sched2` then sinks the store below the argument setup, and
+the store address is allocated to `$a3`.
+
+Swap the arms so the *load* arm follows the label:
+
+```c
+if (st->pc->arg1 == 0) { D.field_2 = 7; } else { D.field_2 = (u16)st->pc->arg1; }
+```
+
+The insn after the label is now a `mem` load, which the hoist refuses, so the
+layout stays `bnez L; f = 7; j M; L: f = lhu; M:`. The label is preceded by a
+barrier, so cse2 walks the taken path and stops at `M` - the call keeps its own
+address. Post-reload cross-jumping merges the two `sh` into one at `M`, reorg
+fills the `bnez` slot with `li v0,7` from the fall-through, and
+`relax_delay_slots` inverts the branch and deletes the `j`, giving the target's
+`beqz MERGE; li v0,7; lhu; sh` exactly. `SOFT_USE_REG` on the stores had been
+used to block the hoist, but it also blocked the cross-jump.

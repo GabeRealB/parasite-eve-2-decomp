@@ -93,8 +93,10 @@ segments:
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
       - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from Gp_RunCapCmd
       - [0x3CF0, .rodata, 3CD8_375C] # jtbl from Gp_EvtCapWeaponTask
-      - [0x3D14, rodata, rodata_3CD8]
-      - [0x3E60, .rodata, 3CD8] # jtbl from func_800E9BDC
+      - [0x3D14, rodata, rodata_3CD8] # cap/script strings + Gp_CapTaskStates / Gp_ScriptTaskStates
+      - [0x3D60, .rodata, 3CD8_75C8] # jtbl from Gp_ScriptTaskState1
+      - [0x3E2C, rodata, rodata_3CD8_states] # Gp_Script18States / Gp_ScriptAStates / Gp_ScriptBStates
+      - [0x3E60, .rodata, 3CD8_9BDC] # jtbl from func_800E9BDC
       - [0x3E78, rodata, rodata_3CD8_2] # D_80097678
       - [0x3E88, .rodata, 3CD8_9CC8] # jtbl from Gp_InitState1C
       - [0x3E9C, .rodata, 3E9C] # jtbls: Gp_EffCtlTask2B + Gp_EffModelTask
@@ -117,6 +119,8 @@ segments:
       - [0x4FCD8, c, 3CD8_34D8] # Gp_RunCapCmd
       - [0x4FF5C, c, 3CD8_375C] # Gp_EvtCapWeaponTask
       - [0x5033C, c, 3CD8] # Gp_SetNibbleIf
+      - [0x53DC8, c, 3CD8_75C8] # Gp_ScriptTaskState1
+      - [0x563DC, c, 3CD8_9BDC] # func_800E9BDC
       - [0x564C8, c, 3CD8_9CC8] # Gp_InitState1C
       - [0x592A8, c, 3E9C] # Gp_EffCtlTask2B
       - [0x63DBC, c, 3FB8_75BC] # Gp_EffSprTask46
