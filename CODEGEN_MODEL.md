@@ -476,6 +476,40 @@ after `$s7`, and only global-alloc can give it out.
 conflicts per allocno; it does not print quantities or per-block insn
 positions, which is the missing piece for local cases.
 
+**Do step 2 in that order: suggestion, then priority, then birth.** Priority is
+the part that is easy to compute and the least often decisive. Measured over 86
+`.lreg` dumps from two functions, comparing only pseudos that competed in the
+same block, with ties and same-register pairs excluded:
+
+| | |
+|---|---|
+| pairs the priority ratio orders correctly | 66% |
+| pairs at an exact priority tie, where birth order decides | 38% of all pairs |
+
+The disagreement is not noise, and it is not spread evenly. Counting how often
+a pseudo took a *lower* register than a higher-priority competitor, per register:
+
+```
+$v0  4.8 inversions per assignment      $a3  0.8
+$v1  2.3                                $t0  0.9
+$a0  1.5                                $t2  0.3
+$a1  1.4                                $t3  0.0
+```
+
+It decays monotonically to zero by `$t3`. That is the shape of the suggestion
+pass, not of a ranking error: `$v0` is the return register and the destination
+of most arithmetic results, so it is the most-suggested register in any block by
+a wide margin, and a value that is suggested into it takes it before priority is
+consulted at all.
+
+The practical consequence is a different first move. To get a value *out* of
+`$v0`, break its suggestion - stop it being the direct result or operand of
+something whose output is a hard register, usually by giving the expression a
+named intermediate or by moving where the value is consumed. Adjusting refs and
+live length to lose on priority is the wrong lever there, and it is the lever a
+matching agent reaches for first because the ratio is the part the dump prints.
+Priority is decisive only once no competitor is suggested.
+
 ### 10.6 Levers: what moves an allocation and what is folklore
 
 Real, in rough order of how often it is the answer:
