@@ -54731,3 +54731,18 @@ before the call, so this does not keep the scratch address live across it.
 Splitting reused locals is often useful, but the inverse can be necessary
 when the target carries an argument-register preference between disjoint
 uses. Check `.lreg` block locality and `.greg` preferences before adding pins.
+
+
+## func_800AD024: restore unaligned RECT assignments before tuning codegen
+
+The m2c seed compiled at 68.270% despite replacing a paired `lwl`/`lwr`
+rectangle copy with `M2C_ERROR` placeholders and splitting the destination
+RECT into unrelated locals. A naturally two-byte-aligned record containing
+`RECT rect; u16 depth;` (size 0xA), `rect = area->rect`, and a sentinel-tested
+`for` loop restored the copy and both walking pointers without barriers or
+pins. Use byte-correct primitive allocation (`DR_AREA* prim; prim + 1`) and
+OT addressing: arithmetic on `DR_TPAGE*` or `u_long*` silently multiplies
+m2c's byte offsets. Reusing the adjacent `Gp_GetViewSprtExtra` lookup and
+PsyQ `addPrim` macros matched on the first corrected attempt (100.000%,
+all penalties zero). Ordinary `rect.x`, `rect.w`, `rect.h` source order
+scheduled to the target's different store order.

@@ -94,13 +94,21 @@ typedef struct _GpSprtElem {
 } GpSprtElem;
 STATIC_ASSERT_SIZEOF(GpSprtElem, 0x14);
 
+/// 10-byte draw-area record. `GpSprtRec.field_8` points at a list terminated
+/// by depth 0xFFFF. Each rectangle clips the view sprites up to its OT depth.
+typedef struct _GpDrawAreaRec {
+    /* 0x0 */ RECT rect;
+    /* 0x8 */ u16  depth;
+} GpDrawAreaRec;
+STATIC_ASSERT_SIZEOF(GpDrawAreaRec, 0xA);
+
 /// 12-byte per-view record in tables pointed to by `Gp_SprtTables`.
 /// Indexed 1-based by the `Gp_ViewIndexTables` camera / view byte.
 /// `Gp_GetViewSprtExtra` returns `field_8`. `Gp_ViewSprtCmdEmpty` reads `field_4`.
 typedef struct _GpSprtRec {
-    /* 0x0 */ GpSprtElem* field_0;
-    /* 0x4 */ GpSprtCmd*  field_4;
-    /* 0x8 */ void*       field_8;
+    /* 0x0 */ GpSprtElem*    field_0;
+    /* 0x4 */ GpSprtCmd*     field_4;
+    /* 0x8 */ GpDrawAreaRec* field_8;
 } GpSprtRec;
 STATIC_ASSERT_SIZEOF(GpSprtRec, 0xC);
 

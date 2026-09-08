@@ -1979,7 +1979,58 @@ s32 Gp_ViewSprtCmdEmpty(void)
     return recs[idx - 1].field_4->field_2 == 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD024);
+void func_800AD024(void)
+{
+    RECT              rect;
+    GameSession*      session;
+    GameSessionFrom4* sess;
+    GpViewIndexTbl*   tbl;
+    u8***             mid;
+    u8**              inner;
+    u8*               bytes;
+    u8                idx;
+    GpSprtTbl*        tbl2;
+    GpSprtRec**       mid2;
+    GpSprtRec*        recs;
+    GpDrawAreaRec*    area;
+    DR_AREA*          prim;
+
+    session = Game_Session;
+    sess    = (GameSessionFrom4*)&session->field_4;
+    tbl     = Gp_ViewIndexTables[sess->field_3 - 1];
+    mid     = tbl->field_0;
+    inner   = mid[sess->field_2 - 1];
+    bytes   = inner[sess->field_1 - 1];
+    idx     = bytes[sess->field_0 - 1];
+    tbl2    = Gp_SprtTables[sess->field_3 - 1];
+    mid2    = tbl2->field_0;
+    recs    = mid2[sess->field_2 - 1];
+    area    = recs[idx - 1].field_8;
+    if (area != NULL) {
+        for (; area->depth != 0xFFFF; area++) {
+            rect = area->rect;
+            if (Display_State.field_1f != 0) {
+                rect.y += 0x110;
+            }
+            prim           = (DR_AREA*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            SetDrawArea(prim, &rect);
+            addPrim(&Gpu_CurrentOt[0x3FF], prim);
+            if (Display_State.field_1f != 0) {
+                rect.y = 0x110;
+            } else {
+                rect.y = 0;
+            }
+            rect.x         = 0;
+            rect.w         = 0x140;
+            rect.h         = 0xF0;
+            prim           = (DR_AREA*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            SetDrawArea(prim, &rect);
+            addPrim((u_long*)((((u32)area->depth << Display_State.field_128) >> 2 & 0xFFC) + (u32)Gpu_CurrentOt), prim);
+        }
+    }
+}
 
 s32 Gp_GetViewIndex(void)
 {
