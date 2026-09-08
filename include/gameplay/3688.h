@@ -188,6 +188,15 @@ extern char Gp_StrAmmoNone[];
 
 extern char Gp_StrAttachNone[];
 
+/// Shared row callback and the fire/wind/water/earth panel captions.
+extern UiListItemFunc D_8010F620[1];
+extern u8*            D_8010F644[4];
+
+/// Four P.Energy slot lists; navigation selects adjacent elements of this array.
+extern UiList D_80114DF8[4];
+
+void func_800D29B0(Task* arg0);
+
 void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj);
 void func_800C41A4(DialogPrompt* prompt, UiObject* obj);
 void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);

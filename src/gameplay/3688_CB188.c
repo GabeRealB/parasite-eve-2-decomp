@@ -3427,7 +3427,127 @@ void Gp_DrawPeSlotRow(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D29B0);
+void func_800D29B0(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    Task*     child;
+    UiObject* childObj;
+    u8*       levels;
+    s32       flag;
+    s32       last;
+    s32       textIndex;
+
+    obj         = arg0->spawnArg2;
+    textIndex   = arg0->spawnArg1;
+    arg0->flags = 0;
+    menu        = &D_80114DF8[arg0->spawnArg1];
+    Ui_DrawText((UiPanel*)obj, D_8010F644[textIndex]);
+    if (arg0->state == 0) {
+        menu->funcs     = D_8010F620;
+        menu->field_4   = 3;
+        menu->field_5   = 3;
+        menu->field_6   = 0;
+        menu->field_7   = 0xF;
+        menu->unknown_8 = 0;
+        menu->field_9   = 0;
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        levels = &Mc_SaveData.unknown_850[arg0->spawnArg1 * 3];
+        if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
+            menu->field_4 = menu->field_5 = 3;
+        } else {
+            menu->field_4 = menu->field_5 = 2;
+        }
+        menu->field_9  = 0;
+        menu->field_10 = 0;
+        menu->field_A  = 1;
+        if (arg0->spawnArg1 & 1) {
+            obj->field_E = obj->field_12 - 0x50;
+        }
+        arg0->state++;
+    }
+    levels = &Mc_SaveData.unknown_850[arg0->spawnArg1 * 3];
+    if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
+        menu->field_4 = menu->field_5 = 3;
+    } else {
+        menu->field_4 = menu->field_5 = 2;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 6;
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            obj->field_2E = -1;
+        } else if (menu->field_22 == 3 && !(arg0->spawnArg1 & 1)) {
+            UiObject* verticalObj;
+            UiList*   verticalMenu;
+
+            verticalObj  = arg0->nextSibling->spawnArg2;
+            verticalMenu = &D_80114DF8[arg0->spawnArg1] + 1;
+            SndEvt_EnqueueType6(2, 0, 0);
+            verticalObj->status    = 0x17;
+            verticalMenu->field_10 = 0;
+            obj->status            = 0;
+        } else if (menu->field_22 == 2 && (arg0->spawnArg1 & 1)) {
+            UiObject* verticalObj;
+            UiList*   verticalMenu;
+
+            verticalObj  = arg0->nextSibling->nextSibling->nextSibling->spawnArg2;
+            verticalMenu = &D_80114DF8[arg0->spawnArg1] - 1;
+            SndEvt_EnqueueType6(2, 0, 0);
+            verticalObj->status    = 0x17;
+            verticalMenu->field_10 = verticalMenu->field_4 - 1;
+            obj->status            = 0;
+        } else if (Pad_CheckButtons(0, 1, 0x5000) == 0) {
+            if (!(arg0->spawnArg1 & 2)) {
+                if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                    UiObject* nextObj;
+                    UiList*   nextMenu;
+
+                    nextObj  = arg0->nextSibling->nextSibling->spawnArg2;
+                    nextMenu = &D_80114DF8[arg0->spawnArg1] + 2;
+                    SndEvt_EnqueueType6(2, 0, 0);
+                    nextObj->status    = 0x17;
+                    last               = nextMenu->field_4 - 1;
+                    nextMenu->field_10 = menu->field_10;
+                    if (last < nextMenu->field_10) {
+                        nextMenu->field_10 = last;
+                    }
+                    obj->status = 0;
+                }
+            } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                UiObject* nextObj;
+                UiList*   nextMenu;
+
+                nextObj  = arg0->nextSibling->nextSibling->spawnArg2;
+                nextMenu = &D_80114DF8[arg0->spawnArg1] - 2;
+                SndEvt_EnqueueType6(2, 0, 0);
+                nextObj->status    = 0x17;
+                last               = nextMenu->field_4 - 1;
+                nextMenu->field_10 = menu->field_10;
+                if (last < nextMenu->field_10) {
+                    nextMenu->field_10 = last;
+                }
+                obj->status = 0;
+            }
+        }
+    }
+    child = arg0->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        flag     = childObj->field_2E;
+        if (flag == 6) {
+            Ui_TeardownTree(childObj, childObj->owner);
+            obj->status = 1;
+        } else if (flag == -1) {
+            obj->field_2E = flag;
+        }
+    }
+    if (obj->status == 0x17) {
+        obj->status = 1;
+    }
+}
 
 void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
 {

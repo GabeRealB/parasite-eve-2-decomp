@@ -54771,3 +54771,40 @@ sharing one gave it an `$a0` preference from the later layout call. An explicit
 the later call argument, keeps that constant across calls in `$s7`; literal
 ones at the two uses were rematerialised. `base_3.c` scored 100% with zero
 penalties after these changes.
+
+## Panel-navigation locals and an index snapshot preserve GCC 2.8.1 allocation
+
+`func_800D29B0` matched without pins or empty asm after replacing the m2c
+navigation gotos with the neighbouring UI tasks' `else if` structure. Give each
+navigation arm its own `UiObject*` and `UiList*` locals. Reusing one pair across
+both horizontal arms gave the list pointer eight references across 24 RTL
+instructions and the object four across eight; global allocation chose the
+list first (`s0`). Separate locals let each object stay local to its call block
+in `s0`, while the list survives the selection-clamp branch in `s1`. The later
+jump pass still merges the identical horizontal tails.
+
+The entry needs two loads of `Task::spawnArg1`. Snapshot the caption index
+before clearing `Task::flags`, then calculate the list from a fresh field read:
+
+```c
+obj = task->spawnArg2;
+textIndex = task->spawnArg1;
+task->flags = 0;
+menu = &lists[task->spawnArg1];
+Ui_DrawText((UiPanel*)obj, captions[textIndex]);
+```
+
+Reading both indices after the flags store allowed CSE to drop a load. Loading
+the caption pointer itself before the store preserved two loads but imposed
+the wrong scheduling dependencies. The scalar snapshot gave the target order.
+An explicit `if/else` assigning the two list-count bytes also keeps the stores
+before the update call's argument moves; a ternary moved a store into its delay
+slot.
+
+The final table is four consecutive `UiList`s at `0x80114DF8`. Neighbour
+expressions `&lists[index] +/- 1` or `+/- 2` fold into relocated bases that splat
+names as nearby symbols, including `Gp_SelItemRec` at `lists - 1`. That does not
+make the selected-item pointer a list. Using the real array changes only eight
+symbolic operands in the scratch diff (`99.856%, regs=8`), while the rebuilt
+and linked gameplay overlay checksums exactly. Inspect operands before treating
+that penalty as register allocation.
