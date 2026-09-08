@@ -9,8 +9,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern s16 D_actor_151000_8013D2AC;
 
-INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000_3", func_actor_151000_801324FC);
-
 /// Ticks animation slots 1..0x12 of the actor's animation context.
 void func_actor_151000_801325C4(void)
 {
@@ -31,7 +29,7 @@ void func_actor_151000_801326AC(void)
 {
     s32 i;
 
-    ActorsShared80131f9cWork->field_4B8 = 0;
+    ActorsShared80131f9cWork->field_4B8 = NULL;
     i                                   = 1;
     do {
         func_800B4114(&ActorsShared80131f9cWork->anim, i, (s16)ActorsShared80131f9cWork->field_480, 0,

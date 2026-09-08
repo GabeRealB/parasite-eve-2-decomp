@@ -19,16 +19,17 @@
 /// `field_480` is the animation id the slots are seeded from; once they are
 /// started it is latched into `field_47E`.
 typedef struct Actor151000Work {
-    /* 0x000 */ byte      pad_0[0x40];
-    /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x42A];
-    /* 0x47E */ u16       field_47E; // animation id currently playing
-    /* 0x480 */ u16       field_480; // animation id the slots are seeded with
-    /* 0x482 */ byte      pad_482[0x2C];
-    /* 0x4AE */ u16       yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4B0 */ byte      pad_4B0[0x8];
-    /* 0x4B8 */ s32       field_4B8;
-    /* 0x4BC */ byte      pad_4BC[0x4];
+    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x13]; // the slot array `func_800B3F84` is handed
+    /* 0x34C */ byte       pad_34C[0x132];
+    /* 0x47E */ u16        field_47E;   // animation id currently playing
+    /* 0x480 */ u16        field_480;   // animation id the slots are seeded with
+    /* 0x482 */ byte       pad_482[0x2C];
+    /* 0x4AE */ u16        yaw;         // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4B0 */ byte       pad_4B0[0x8];
+    /* 0x4B8 */ GpAnimRec* field_4B8;   // last `Gp_AnimGetRec` result, to detect a change
+    /* 0x4BC */ byte       pad_4BC[0x4];
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 
