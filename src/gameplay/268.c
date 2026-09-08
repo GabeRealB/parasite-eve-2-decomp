@@ -1831,7 +1831,292 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
     arg1->spawnArg1 = saved;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B9D80);
+static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
+{
+    GpItemScan* scan;
+    GpItemRec*  table;
+    s32         i;
+    s32         ret;
+    s32         count;
+
+    scan = &Mc_SaveData.field_5BC;
+    ret  = 0;
+    switch (scan->field_2) {
+        case 2:
+            table = Gp_ItemTable2;
+            break;
+        case 1:
+            table = Gp_ItemTable1;
+            break;
+        default:
+            table = Mc_SaveData.field_1AC;
+            break;
+    }
+    i      = 0;
+    table += scan->field_0;
+    count  = scan->field_1;
+    for (; i < count; i++) {
+        if ((s8)table->field_1 > 0) {
+            if (table->field_0 == arg0) {
+                ret = 1;
+                break;
+            }
+        }
+        table++;
+    }
+    return ret;
+}
+
+s32 func_800B9D80(s32 arg0)
+{
+    WipSysConfig* cfg;
+    register s32  flags asm("v1");
+    register s32  ret asm("a3");
+    s32           stateA;
+    s32           stateB;
+    s32           bit;
+
+    ret    = 0;
+    flags  = ret;
+    stateA = ret;
+    stateB = ret;
+    cfg    = &Wip_SysConfig;
+    if (cfg->field_23 != 0) {
+        flags  = cfg->field_23;
+        flags  = flags * (s32)sizeof(GpItemAttr);
+        flags += (s32)&Gp_RelatedQty0[0x1E];
+        flags  = *(s32*)flags;
+    }
+    if ((Gp_StateC08.field_14 > 0) || ((s8)Gp_StateC08.field_17 != 0)) {
+        stateA = 1;
+    }
+    if ((Gp_StateC08.field_14 > 0) || (Gp_StateC08.field_16 != 0)) {
+        stateB = 1;
+    }
+
+    switch (arg0) {
+        case 0x101:
+            if (Gp_HasStockedItemInline(0x3F) || stateA) {
+                ret = 1;
+            }
+            break;
+        case 0x102:
+            if (stateA || (bit = flags & 0x1000)) {
+                ret = 1;
+            }
+            break;
+        case 0x104:
+            if (stateA || (bit = flags & 2)) {
+                ret = 1;
+            }
+            break;
+        case 0x108:
+            ret = Gp_HasStockedItemInline(0xB);
+            if (stateB || (bit = flags & 0x20)) {
+                ret = 1;
+            }
+            break;
+        case 0x110:
+            break;
+        case 0x120:
+            ret = Gp_HasStockedItemInline(0xE);
+            if (stateB || (bit = flags & 0x200)) {
+                ret = 1;
+            }
+            break;
+        case 0x140:
+            if (stateB || Gp_HasStockedItemInline(0xE)) {
+                ret = 1;
+            }
+            break;
+        case 0x200:
+            if ((bit = flags & 0x10) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x400:
+            if ((bit = flags & 1) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x800:
+            if ((bit = flags & 4) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x1000:
+            if ((bit = flags & 0x100) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x2000:
+            if ((bit = flags & 8) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x4000:
+            if ((bit = flags & 0x40) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x8000:
+            if ((bit = flags & 0x80) != 0) {
+                ret = 1;
+            }
+            break;
+        case 0x10000:
+            stateA = 0;
+            {
+                GpItemScan* scan;
+                GpItemRec*  table;
+                s32         i;
+                s32         count;
+
+                scan = &Mc_SaveData.field_5BC;
+                ret  = 0x36;
+                switch (scan->field_2) {
+                    case 2:
+                        table = Gp_ItemTable2;
+                        break;
+                    case 1:
+                        table = Gp_ItemTable1;
+                        break;
+                    default:
+                        table = Mc_SaveData.field_1AC;
+                        break;
+                }
+                i      = 0;
+                table += scan->field_0;
+                count  = scan->field_1;
+                for (; i < count; i++) {
+                    if ((s8)table->field_1 > 0) {
+                        if (table->field_0 == ret) {
+                            stateA = 1;
+                            break;
+                        }
+                    }
+                    table++;
+                }
+            }
+            ret = stateA;
+            break;
+        case 0x20000:
+            stateA = 0;
+            {
+                GpItemScan* scan;
+                GpItemRec*  table;
+                s32         i;
+                s32         count;
+
+                scan = &Mc_SaveData.field_5BC;
+                ret  = 0x39;
+                switch (scan->field_2) {
+                    case 2:
+                        table = Gp_ItemTable2;
+                        break;
+                    case 1:
+                        table = Gp_ItemTable1;
+                        break;
+                    default:
+                        table = Mc_SaveData.field_1AC;
+                        break;
+                }
+                i      = 0;
+                table += scan->field_0;
+                count  = scan->field_1;
+                for (; i < count; i++) {
+                    if ((s8)table->field_1 > 0) {
+                        if (table->field_0 == ret) {
+                            stateA = 1;
+                            break;
+                        }
+                    }
+                    table++;
+                }
+            }
+            ret = stateA;
+            break;
+        case 0x40000:
+            stateA = 0;
+            {
+                GpItemScan* scan;
+                GpItemRec*  table;
+                s32         i;
+                s32         count;
+
+                scan = &Mc_SaveData.field_5BC;
+                ret  = 0x38;
+                switch (scan->field_2) {
+                    case 2:
+                        table = Gp_ItemTable2;
+                        break;
+                    case 1:
+                        table = Gp_ItemTable1;
+                        break;
+                    default:
+                        table = Mc_SaveData.field_1AC;
+                        break;
+                }
+                i      = 0;
+                table += scan->field_0;
+                count  = scan->field_1;
+                for (; i < count; i++) {
+                    if ((s8)table->field_1 > 0) {
+                        if (table->field_0 == ret) {
+                            stateA = 1;
+                            break;
+                        }
+                    }
+                    table++;
+                }
+            }
+            ret = stateA;
+            break;
+        case 0x80000:
+            stateA = 0;
+            {
+                GpItemScan* scan;
+                GpItemRec*  table;
+                s32         i;
+                s32         count;
+
+                scan = &Mc_SaveData.field_5BC;
+                ret  = 0x37;
+                switch (scan->field_2) {
+                    case 2:
+                        table = Gp_ItemTable2;
+                        break;
+                    case 1:
+                        table = Gp_ItemTable1;
+                        break;
+                    default:
+                        table = Mc_SaveData.field_1AC;
+                        break;
+                }
+                i      = 0;
+                bit    = scan->field_0;
+                table += bit;
+                count  = scan->field_1;
+                for (; i < count; i++) {
+                    if ((s8)table->field_1 > 0) {
+                        if (table->field_0 == ret) {
+                            stateA = 1;
+                            break;
+                        }
+                    }
+                    table++;
+                }
+            }
+            ret = stateA;
+            break;
+        case 0x100000:
+            if (Gp_HasStockedItemInline(0x40) || (bit = flags & 1)) {
+                ret = 1;
+            }
+            break;
+    }
+    return ret;
+}
 
 void Gp_ResetInventory(void)
 {
