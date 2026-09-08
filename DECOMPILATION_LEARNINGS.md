@@ -54866,3 +54866,19 @@ kept the deltas alive until late stores; the field-based expression gives the
 target's interleaved `mult` / component store / next component load sequence.
 These changes together matched on the first structured attempt, with all-zero
 penalties and no pins or empty asm.
+
+## Near-matched siblings can preserve an entire state handler's codegen
+
+`func_acropolis_bridge_80186BBC` reached 100% on its first structured attempt
+by adapting the already-matched `func_acropolis_bridge_80186618` in the same TU.
+Only remove the spawn-variant position switch and the per-frame height setter;
+the typed work block, scale calculation, sound helper and collision scan all
+carry over unchanged. The duplicate index reports no other exact body, so
+nearby matched functions remain useful even when exact-body sharing does not.
+The minimally compile-fixed m2c baseline scored 75.997% with branch=13,
+insert=23 and delete=40; its scalar scale locals, typed pointer arithmetic and
+halfword read for the packed animation-state comparison lose real work.
+The sibling's VECTOR, coordinate members and word comparison recover it without
+pins or barriers. Preserve the scale amount assignments inside both branches,
+as described in "A value defined before the compare can never be allocated
+`$v0`"; the sibling already contains that matching shape.
