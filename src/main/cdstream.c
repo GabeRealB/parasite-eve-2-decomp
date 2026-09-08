@@ -313,7 +313,278 @@ stream_error:
     return 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/cdstream", CdStream_ReadyMts);
+void CdStream_ReadyMts(s32 interrupt, u8* result)
+{
+    volatile CdStreamState* state;
+    s16                     chunkSectors;
+    s32                     intr;
+    s32                     skipIndex;
+    s32                     skipStamp;
+    s32                     timer;
+    s32                     sectorPos;
+    s32                     attributes;
+    s32                     writeSize;
+    u32                     timerPhase;
+    u32                     previousPhase;
+    volatile CdStreamState* channelState;
+    volatile CdStreamState* regionState;
+    CdStreamChannels*       channels;
+    s32                     channelBase;
+    s32                     channelCount;
+
+    if ((u16)D_80068B6A != 0) {
+        D_80082808             = 0xC;
+        D_80082810             = D_80082808;
+        CdStream_State.flags2 |= 2;
+        return;
+    }
+    D_80068B6A = 1;
+    intr       = interrupt & 0xFF;
+    if (intr == 1) {
+        if ((s16)(u16)CdStream_State.field_4C != 2) {
+            if ((s16)(u16)CdStream_State.field_4C == intr) {
+                if (SpuIsTransferCompleted(0) == 0) {
+                    D_80068B62 += 1;
+                    ResetRCnt(0xF2000002U);
+                    previousPhase = 0;
+                    while (1) {
+                        timer = GetRCnt(0xF2000002U);
+                        if ((u32)(timer & 0xFFFF) < 0x52B0U) {
+                            timerPhase = timer & 0x7F;
+                            if (timerPhase < previousPhase) {
+                                previousPhase = timerPhase;
+                                if (SpuIsTransferCompleted(0) != 0) {
+                                    previousPhase = timerPhase;
+                                    goto read_header;
+                                }
+                            }
+                            previousPhase = timerPhase;
+                        } else {
+                            break;
+                        }
+                    }
+                    D_80082808 = 4;
+                    D_80082810 = D_80082808;
+                    goto check_status;
+                }
+                goto read_header;
+            }
+        } else {
+        read_header:
+            if (CdGetSector(&D_800827F8, 3) == 0) {
+                *((volatile u8*)&D_80068B64 + 1) = (u8)(*((volatile u8*)&D_80068B64 + 1) + 1);
+                if (D_80082808 == 0) {
+                    D_80082808 = 2;
+                }
+                D_80082810 = D_80082808;
+                goto check_status;
+            }
+            sectorPos = CdPosToInt(&D_800827F8);
+            if (sectorPos != CdStream_State.field_2C) {
+                if (sectorPos < CdStream_State.field_2C) {
+                    if (CdStream_State.field_2C >= (sectorPos + 4)) {
+                        goto sector_mismatch;
+                    }
+                } else {
+                sector_mismatch:
+                    D_80068B5F += 1;
+                    if (D_80082808 == 0) {
+                        D_80082808 = 3;
+                    }
+                    D_80082810 = D_80082808;
+                    goto check_status;
+                }
+            } else {
+                CdStream_State.field_2C += 1;
+                if ((s16)(u16)CdStream_State.field_4C == 2) {
+                    skipIndex = D_80068B78++ & 0xFF;
+                    skipStamp = skipIndex | ((CdStream_State.field_1C << 8) & 0xFFFF00);
+                    if (D_80068B74 < skipStamp) {
+                        if ((((s32 (*)(s32, s32))func_800AF590)(0, 0) << 0x10) == 0) {
+                            *(volatile s32*)&D_80068B74 = skipStamp;
+                            goto advance_countdown;
+                        }
+                        goto check_status;
+                    }
+                    CdGetSector(CdStream_State.sector, 0x200);
+                advance_countdown:
+                    state                    = &CdStream_State;
+                    CdStream_State.countdown = (u16)CdStream_State.countdown - 1;
+                    if ((u16)CdStream_State.countdown == 0) {
+                        CdStream_State.field_4C = 4;
+                    }
+                } else {
+                    if (CdGetSector(CdStream_State.sector, 0x200) == 0) {
+                        *((volatile u8*)&D_80068B64 + 1) = (u8)(*((volatile u8*)&D_80068B64 + 1) + 1);
+                        if (D_80082808 == 0) {
+                            D_80082808 = 2;
+                        }
+                        D_80082810 = D_80082808;
+                        goto check_status;
+                    }
+                    if ((u16)CdStream_State.remaining == 0) {
+                        if ((CdStream_State.sector->magic & ~0xFF) != 0x4D545300) {
+                            D_80082808 = 8;
+                            D_80082810 = D_80082808;
+                            goto check_status;
+                        }
+                        if (CdStream_State.sector->field_0 == 0) {
+                            CdStream_State.mtsPeriod = (s8)CdStream_State.sector->field_D;
+                            CdStream_State.remaining = (s16)(s8)(u8)CdStream_State.mtsPeriod;
+                            CdStream_State.mtsParam  = CdStream_State.sector->field_E;
+                            if (CdStream_State.sector->field_F & 0x80) {
+                                CdStream_State.flags1 |= 4;
+                            } else {
+                                CdStream_State.flags1 &= 0xFB;
+                            }
+                            regionState  = &CdStream_State;
+                            chunkSectors = 0x30;
+                            if ((s8)(u8)regionState->mtsPeriod == 5) {
+                                chunkSectors          = 0x18;
+                                regionState->ringHalf = 0x2770;
+                                if (Display_State.region == 1) {
+                                    chunkSectors = 0x14;
+                                }
+                            } else {
+                                regionState->ringHalf = 0x4ED0;
+                                if (Display_State.region == 1) {
+                                    chunkSectors = 0x28;
+                                }
+                            }
+                            regionState->sectorsPerChunk             = chunkSectors;
+                            channels                                 = &CdStream_Channels;
+                            channelState                             = (volatile CdStreamState*)channels - 1;
+                            *(volatile s32*)&channels->ch[0].spuAddr = channelState->spuBase;
+                            /* Keep the channel address stores in initialization order. */
+                            SOFT_BARRIER();
+                            channelBase             = channelState->spuBase + 0x40;
+                            channels->ch[1].spuAddr = channelBase + ((s32)((u16)channelState->ringHalf << 0x10) >> 0xF);
+                            channelState->flags1    = (u8)(channelState->flags1 | 1);
+                            SOFT_BARRIER();
+                            attributes             = channels->ch[0].attr | 0x80;
+                            channels->ch[0].attr   = attributes;
+                            channels->ch[1].attr   = attributes;
+                            channelState->field_1C = (s32)channelState->sector->field_0;
+                            channelState->field_38 = (s32)channelState->sector->field_4;
+                            if (!((u8)channelState->sector->field_F & 0x60)) {
+                                channelState->flags1 = (u8)(channelState->flags1 | 0x40);
+                            } else if ((u8)channelState->sector->field_F & 0x40) {
+                                channelState->flags1 = (u8)(channelState->flags1 | 0x20);
+                            } else {
+                                channelState->flags1 = (u8)(channelState->flags1 | 0x10);
+                            }
+                            goto start_chunk;
+                        }
+                        if (CdStream_State.sector->field_F & 0x80) {
+                            CdStream_State.mtsParam = CdStream_State.sector->field_E;
+                            if (CdStream_State.mtsParam != 0) {
+                                CdStream_State.flags1 |= 4;
+                            } else {
+                                CdStream_State.flags1 &= 0xFB;
+                            }
+                        } else {
+                            CdStream_State.flags1  &= 0xFB;
+                            CdStream_State.mtsParam = 0;
+                        }
+                        CdStream_State.remaining = (s16)(s8)(u8)CdStream_State.mtsPeriod;
+                    }
+                    if (((s16)(u16)CdStream_State.remaining % (s8)(u8)CdStream_State.mtsPeriod) == 0) {
+                        CdStream_State.field_1C = CdStream_State.sector->field_0;
+                        if (CdStream_State.field_1C == 0) {
+                            CdStream_State.field_38 = CdStream_State.sector->field_4;
+                        }
+                    start_chunk:
+                        channelCount = (u8)CdStream_State.sector->magic;
+                        /* Preserve the signed comparison of the channel count. */
+                        TOUCH_REG(channelCount);
+                        if ((channelCount >= 2) && (CdStream_State.sector->field_C == 0)) {
+                            CdStream_State.mode      = (s8)(u8)CdStream_State.sector->magic;
+                            CdStream_State.remaining = (s8)(u8)CdStream_State.mtsPeriod * (s8)(u8)CdStream_State.mode;
+                        }
+                        if (CdStream_State.field_1C & 1) {
+                            CdStream_State.spuAddr = CdStream_State.spuBase + (s16)(u16)CdStream_State.ringHalf;
+                        } else {
+                            CdStream_State.spuAddr = CdStream_State.spuBase;
+                        }
+                        CdStream_State.spuAddr += CdStream_State.sector->field_C * (((s32)((u16)CdStream_State.ringHalf << 0x10) >> 0xF) + 0x40);
+                        SpuSetTransferStartAddr((u32)CdStream_State.spuAddr);
+                        *(volatile s32*)&D_80068B70 = CdStream_State.spuAddr;
+                        SpuWrite((u8*)CdStream_State.sector + 0x10, 0x800U);
+                        *(void* volatile*)&D_80068B6C = (u8*)CdStream_State.sector + 0x10;
+                        CdStream_State.spuAddr       += 0x7F0;
+                    } else {
+                        SpuSetTransferStartAddr((u32)CdStream_State.spuAddr);
+                        *(volatile s32*)&D_80068B70 = CdStream_State.spuAddr;
+                        if (((s16)(u16)CdStream_State.remaining % (s8)(u8)CdStream_State.mtsPeriod) == 1) {
+                            writeSize = ((s16)(u16)CdStream_State.ringHalf - 0x7F0) % 0x800;
+                            if (writeSize == 0) {
+                                writeSize = 0x800;
+                            }
+                            if (!(CdStream_State.field_1C & 1)) {
+                                /* The two ring halves retain separate transfer paths. */
+                                SOFT_BARRIER();
+                                SpuWrite((u8*)CdStream_State.sector, (writeSize + 0x3F) & ~0x3F);
+                                *(void* volatile*)&D_80068B6C = CdStream_State.sector;
+                                CdStream_State.spuAddr       += writeSize;
+                            } else {
+                                SpuWrite((u8*)CdStream_State.sector, (writeSize + 0x3F) & ~0x3F);
+                                *(void* volatile*)&D_80068B6C = CdStream_State.sector;
+                                CdStream_State.spuAddr       += writeSize;
+                            }
+                        } else {
+                            SpuWrite((u8*)CdStream_State.sector, 0x800U);
+                            *(void* volatile*)&D_80068B6C = CdStream_State.sector;
+                            CdStream_State.spuAddr       += 0x800;
+                        }
+                    }
+                    state                    = &CdStream_State;
+                    CdStream_State.remaining = (u16)CdStream_State.remaining - 1;
+                    if ((u16)CdStream_State.remaining == 0) {
+                        if (((u8)CdStream_State.flags1 >> 2) & 1) {
+                            CdStream_State.countdown = (s16)(s8)CdStream_State.mtsParam;
+                            if ((u16)CdStream_State.countdown != 0) {
+                                CdStream_State.field_4C = 2;
+                                /* This reset is non-volatile and fills the branch delay slot. */
+                                *(u16*)&D_80068B78 = 0;
+                                goto unlock;
+                            } else {
+                                goto mark_complete;
+                            }
+                        } else {
+                        mark_complete:
+                            state->field_4C = 4;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        D_80082808 = 7;
+        D_80082810 = D_80082808;
+    check_status:
+        if (*result & 0x10) {
+            if (D_80082808 == 0) {
+                D_80082808 = 5;
+            }
+            D_80082810                       = D_80082808;
+            CdStream_State.flags            |= 1;
+            CdStream_State.field_4C          = 3;
+            CdStream_State.flags2           |= 2;
+            *((volatile u8*)&D_80068B5C + 1) = (u8)(*((volatile u8*)&D_80068B5C + 1) + 1);
+        } else if ((u16)CdStream_State.field_4C != 0) {
+            if ((s16)(u16)CdStream_State.field_4C != 4) {
+                CdStream_State.field_4C = 3;
+                if (D_80082808 == 0) {
+                    D_80082808 = 0xB;
+                }
+                D_80082810             = D_80082808;
+                CdStream_State.flags2 |= 2;
+            }
+        }
+    }
+unlock:
+    D_80068B6A = 0;
+}
 
 s32 CdStream_InitDisc(u32* arg0)
 {

@@ -154,7 +154,10 @@ s32  CdStream_Flush(void);
 void CdStream_ConfigureSpuIrq(s32 enable, u32 irqAddr);
 
 void CdStream_Drive(void);
-void CdStream_ReadyMts(s32 arg0, u8* arg1);
+void CdStream_ReadyMts(s32 interrupt, u8* result);
+
+// Gameplay callback imported by the resident CD stream handler.
+s32 func_800AF590(void);
 
 extern volatile s32 D_80068B54;
 extern s32          D_800827E8;
