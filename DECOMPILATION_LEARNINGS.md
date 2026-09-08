@@ -30532,8 +30532,9 @@ defect: the scratch pointer sat in `$a3` and the second-packet induction
 variable in `$t0`, while the target wants `$t0` / `$a3`. The C had the usual
 `ws = arg0;` copy that the neighbouring handlers use.
 
-MIPS `REG_ALLOC_ORDER` hands out `$a3` before `$t0`, so the swap just means the
-two allocnos were ranked in the wrong order. `ws` is a source-level pseudo, so
+`$a3` is handed out before `$t0` because MIPS defines no `REG_ALLOC_ORDER` and
+the allocators scan hard registers numerically (7 before 8), so the swap just
+means the two allocnos were ranked in the wrong order. `ws` is a source-level pseudo, so
 it gets a lower allocno than the giv the loop optimizer invents for
 `&poly[1]`, and ties in `allocno_compare` break by allocno number. Deleting the
 local and writing `arg0->…` throughout removes that pseudo, the giv is ranked
@@ -39918,8 +39919,9 @@ you emitted `div`, inline the literal.
 
 ## Which register that divisor lands in is decided by whether it crosses a call
 
-A short-lived pseudo gets the first free register in `REG_ALLOC_ORDER`, which
-on MIPS is call-clobbered first (`$5` before `$16`). `global_alloc` only skips
+A short-lived pseudo gets the first free register in numeric order - MIPS
+defines no `REG_ALLOC_ORDER` - which puts the call-clobbered registers first
+(`$5` before `$16`). `global_alloc` only skips
 the call-clobbered set when `calls_crossed > 0`. So a local that is *only*
 live between its assignment and one use gets `a1`; the same local assigned
 before a `jal` and read after it gets `s0`. Moving `cnt = 326;` from just
@@ -43435,7 +43437,7 @@ the right order the plain `for` allocates correctly. When a leftover looks like
 a live-range problem in a block that also has independent stores, try the store
 order before reshaping the ranges.
 
-## `local_alloc` orders by `live_length / n_refs` ascending, the inverse of `global_alloc`
+## `local_alloc` and `global_alloc` rank by the same formula, in the same direction
 
 `func_acropolis_east_elevator_hall_8017FAAC` projects one world point through
 `GsWSMATRIX` into a 0xC-byte `G_SCRATCH_HEAD` block and links a `TILE_1` into
@@ -43451,13 +43453,20 @@ Register 83 used 6 times across 23 insns in block 0;   ;; Register 83 in 4.   ($
 Register 93 used 3 times across 8 insns in block 0;    ;; Register 93 in 3.   ($v1) %hi base
 ```
 
-`global_alloc` sorts by `floor_log2(n_refs) * n_refs / live_length` *descending*
-- more references over a shorter range wins. `local_alloc` sorts the other way:
-`live_length / n_refs` **ascending**, so the shortest-lived quantity per
-reference is allocated first and takes the lowest register in `REG_ALLOC_ORDER`
-that is still free. Here `8/3 = 2.67` beats `23/6 = 3.83`, so the two-instruction
-`%hi` base is served before the scratch pointer that spans the whole block, and
-every `$v0` quantity in the block (`2/2`, `3/2`, `4/2`) is served before both.
+CORRECTION. This entry originally claimed the two allocators sort inversely.
+They do not. Both rank by `floor_log2(n_refs) * n_refs * size / live_length`,
+**descending** - `QTY_CMP_PRI` with `qty_compare` returning
+`PRI(q2) - PRI(q1)` in `local-alloc.c:1727`, and the identical expression with
+`pri2 - pri1` in `global.c:604`. More references over a shorter range wins, in
+both. There is also no `REG_ALLOC_ORDER` on this target: `config/mips/mips.h`
+defines neither it nor `ORDER_REGS_FOR_LOCAL_ALLOC`, so both allocators scan
+hard registers numerically, and `$a3` before `$t0` is simply 7 < 8.
+
+Under the real ranking, register 83 (`floor_log2(6)*6/23 = 0.52`) outranks
+register 93 (`floor_log2(3)*3/8 = 0.375`), which priority alone would serve in
+the opposite order to what the dump shows. So this allocation is *not* explained
+by priority: it is decided earlier, by the suggestion and tying rules that run
+before priority is consulted. See `CODEGEN_MODEL.md` section 10.
 
 Applying the ranking by hand explained the entire allocation, including why the
 scratch pointer could not have won: its birth and death are both fixed by the
@@ -44917,8 +44926,9 @@ sorts allocnos by
 priority = floor_log2(n_refs) * n_refs / live_length
 ```
 
-descending, and hands each one the first free register in `REG_ALLOC_ORDER`
-(caller-saved first, then `$s0`, `$s1`, …, `$fp` last). The two inputs are
+descending, and hands each one the first free register in numeric order -
+MIPS defines no `REG_ALLOC_ORDER` - which runs caller-saved first, then `$s0`,
+`$s1`, …, `$fp` last. The two inputs are
 printed verbatim at the top of `base_N.i.lreg`:
 
 ```
@@ -47967,7 +47977,7 @@ jal   Gp_IncStateF0Ref
 ```
 
 A fresh `case 1` constant expanded inside the join block gets a call-clobbered
-register (`li $v0, 1`) because `REG_ALLOC_ORDER` reaches `$v0`..`$a3` and
+register (`li $v0, 1`) because the numeric scan reaches `$v0`..`$a3` and
 `$t0`..`$t9` long before `$s0`. Only a live range that crosses the call is
 forced into `$s0`, and CSE cannot carry a value into the join block because it
 has two predecessors — so the definition has to come from the source, before
@@ -51980,7 +51990,8 @@ quantities `local_alloc` handed the lower register to.
 
 `local_alloc` sorts quantities by
 `floor_log2(n_refs) * n_refs * size / (death - birth)` and gives the winner the
-first free entry of `REG_ALLOC_ORDER` (`$v0`, `$v1`, `$a0`, `$a1`, `$a2`, …).
+first free register in numeric order (`$v0`, `$v1`, `$a0`, `$a1`, `$a2`, …);
+MIPS defines no `REG_ALLOC_ORDER`, so numeric order is the order.
 The `.lreg` header prints both terms directly:
 
 ```
