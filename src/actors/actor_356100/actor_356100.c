@@ -64,5 +64,3 @@ s32 func_actor_356100_80169E5C(void)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80169E64);
-
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80169F24);

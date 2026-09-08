@@ -91,5 +91,3 @@ INCLUDE_RODATA("actors/nonmatchings/actor_401800/actor_401800", ActorsShared8013
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013DCBC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013DD2C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013DDEC);

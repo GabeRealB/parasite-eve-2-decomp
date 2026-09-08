@@ -56740,3 +56740,63 @@ different constant offsets off one base are independent to `sched1`'s alias
 check, so their ROM order says nothing about their source order. When the
 leftover is `reorder` and the block has independent chains of visibly different
 length, try permuting the statements before reaching for pins.
+
+## `BRANCH_COST` is 1 here, so a `0`/`1` flag collapses to `sltiu` unless `reg_set_last` fails
+
+`jump_optimize`'s store-flag case rewrites `x = a; if (cond) goto L; x = b; L:`
+into an `scc` sequence. Whether it fires is decided in `gcc/jump.c` by
+
+```c
+&& ((GET_CODE (temp3) == CONST_INT)
+    || (temp3 = temp1, ((BRANCH_COST >= 2 && temp2 == const0_rtx)
+                        || BRANCH_COST >= 3)))
+```
+
+where `temp3 = reg_set_last (x, insn)` is the value `x` last held. MIPS defines
+`BRANCH_COST` as 1 for everything that is not an R4000/R6000, so the fallback
+arm is always false on this target: the transform fires **iff `reg_set_last`
+finds a constant**. `reg_set_last` (`gcc/rtlanal.c`) scans backwards and stops
+at a `CODE_LABEL`, so any label between the `x = 0` and the test defeats it -
+which is why an intervening early `return` sometimes keeps a flag branchy on
+its own. That is a fragile lever, though: with `x` already known to be 0, `cse`
+then reuses `x`'s register for the early `return 0` (`move $v0, $a0` instead of
+`move $v0, $zero`) and the return blocks stop matching. The documented
+`asm("")` / `SOFT_BARRIER()` before the `x = 1` is the reliable form, because it
+makes `temp = next_nonnote_insn (insn)` an `asm` rather than a `SET` and the
+pattern never starts.
+
+`func_actor_323000_80164904` (now `ActorsShared80164904`) is the example: every
+arrangement of `return 0` / `return 1` and of `ret = 0; if (!(flags & 2)) ret =
+1;` scored 54-89% with an `andi; sltiu` tail until the barrier went in.
+
+## Split `mask = x & BIT;` into two statements to move the mask off `$v0`
+
+With the control flow already right, `ActorsShared80164904` sat at 98.16% with
+`regs=7` and nothing else: `flags` had taken `$v0`, so the mask needed `$v1` and
+the returned pseudo was pushed out to `$a0` behind a trailing `move $v0, $a0`.
+The target has `flags` in `$v1`, the first mask in `$v0`, and the second mask
+back in `$v1` because `flags` dies there.
+
+Writing the first mask as two statements fixes it:
+
+```c
+mask80 = flags;      /* not `mask80 = flags & 0x80;` */
+mask80 &= 0x80;
+mask2  = flags & 2;
+```
+
+`local-alloc` orders quantities by
+
+```c
+#define QTY_CMP_PRI(q) \
+  ((int) (((double) (floor_log2 (qty_n_refs[q]) * qty_n_refs[q] * qty_size[q]) \
+          / (qty_death[q] - qty_birth[q])) * 10000))
+```
+
+so a quantity's rank moves with its reference count, its mode size and its live
+range, and the first free hard register (`$v0`, since MIPS defines no
+`REG_ALLOC_ORDER`) goes to whichever is ranked first. The extra copy changes
+those numbers for both the mask and the value it is masking, which is enough to
+swap them. decomp-permuter finds this shape on its own - it emits it as a
+`new_var` temporary - so on a `regs`-only leftover it is worth running before
+reasoning about the allocator.

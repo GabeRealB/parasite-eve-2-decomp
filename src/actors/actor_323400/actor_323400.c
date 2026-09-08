@@ -30,6 +30,4 @@ void func_actor_323400_8016475C(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_323400/actor_323400", func_actor_323400_80164764);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323400/actor_323400", func_actor_323400_80164824);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_323400/actor_323400", ActorsShared80135df4Table);
