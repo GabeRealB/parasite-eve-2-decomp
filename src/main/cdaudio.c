@@ -1428,6 +1428,99 @@ void func_8005896C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/cdaudio", func_80058ED4);
+void func_80058ED4(void)
+{
+    CdReadyEntry  entry;
+    s32           position;
+    u16           slot;
+    u8            saved;
+    CdReadyEntry* queued;
+    u32           flags;
+
+    position = CdStream_State.field_18;
+    if ((CdStream_State.field_20 + 1) < CdStream_State.field_38) {
+        if (((u8)CdStream_State.flags0 >> 3) & 1) {
+            CdStream_State.field_4  = (u16)CdStream_State.sectorsPerChunk + 1;
+            CdStream_State.field_18 = CdStream_State.field_1C * (s16)(u16)CdStream_State.sectorsPerChunk;
+            position                = CdStream_State.field_18;
+        } else {
+            CdStream_State.field_4 = (u16)CdStream_State.sectorsPerChunk - 2;
+            position               = CdStream_State.field_18;
+        }
+        if (!(((u8)CdStream_State.flags0 >> 2) & 1)) {
+            D_80068B5E += 1;
+        stopVoices:
+            if (((u8)CdStream_State.flags0 >> 4) & 1) {
+                Spu_KeyOff((u32)(s8)CdStream_State.voiceL);
+                Spu_KeyOff((u32)(s8)CdStream_State.voiceR);
+                if (CdStream_State.voiceFreeCb != NULL) {
+                    CdStream_State.voiceFreeCb((1 << (s8)CdStream_State.voiceL) | (1 << CdStream_State.voiceR));
+                }
+                CdStream_State.flags0 &= 0xEF;
+            }
+            CdStream_State.field_4 = 0;
+            CdStream_State.flags0 &= 0xDF;
+            if (CdStream_State.flags0 & 1) {
+                if (D_80082808 == 0) {
+                    D_80082808 = 6;
+                }
+                D_80082810             = D_80082808;
+                CdStream_State.flags0 &= 0xFE;
+                func_800B0118((s32)(s16)D_80082808, 0);
+                D_80082808             = 0;
+                CdStream_State.flags2 |= 8;
+                CdStream_State.flags2 |= 1;
+                CdStream_State.flags2 |= 4;
+                if (((u8)CdStream_State.flags0 >> 3) & 1) {
+                    CdStream_State.field_18 = CdStream_State.field_1C * (s16)(u16)CdStream_State.sectorsPerChunk;
+                }
+                CdStream_TeardownVoices();
+            }
+        } else {
+            position                 = position / (s16)(u16)CdStream_State.sectorsPerChunk;
+            CdStream_State.field_34 += 1;
+            position                += 1;
+            if (position != CdStream_State.field_34) {
+                D_80068B67             += 1;
+                position               -= 1;
+                CdStream_State.field_34 = position;
+                CdStream_State.field_20 = position;
+                CdStream_State.field_30 = CdStream_State.startSector + ((s8)(u8)CdStream_State.mtsPeriod * (s8)(u8)CdStream_State.mode * position);
+                if (D_80082808 == 0) {
+                    D_80082808 = 0xD;
+                }
+                goto stopVoices;
+            }
+            if (position < CdStream_State.field_38) {
+                entry.pollFn  = (s32)func_80059EE0;
+                entry.doneFn  = (s32)CdStream_ClearReadySlot;
+                entry.errorFn = (s32)CdStream_AbortPhase;
+                if ((u16)CdStream_State.readySlot != 0) {
+                    slot  = (u16)CdStream_State.readySlot;
+                    saved = CdReady_Queue.locked;
+                    if (slot != 0) {
+                        queued = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                        flags  = queued->flags;
+                        if (flags & 1) {
+                            queued->flags = (flags & ~1) | 4;
+                        }
+                        CdReady_Queue.locked = saved;
+                    }
+                    CdStream_State.readySlot = 0;
+                }
+                CdStream_State.field_30 += (s8)(u8)CdStream_State.mtsPeriod * (s8)(u8)CdStream_State.mode;
+                if (((u8)CdStream_State.flags1 >> 2) & 1) {
+                    CdStream_State.field_30 += (s8)CdStream_State.mtsParam;
+                }
+                entry.sectorPos          = CdStream_State.field_30;
+                CdStream_State.field_20  = position;
+                CdStream_State.flags0   &= 0xFB;
+                CdStream_State.readySlot = CdReady_Enqueue(&entry);
+                CdStream_State.phase     = 2;
+            }
+        }
+        CdStream_State.flags0 &= 0xF7;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/cdaudio", CdStream_Drive);

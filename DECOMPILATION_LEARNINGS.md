@@ -55344,3 +55344,31 @@ The last scheduling difference was a work-struct store. Writing the spilled
 precede the item store; the delay-slot pass moved the bonus store after the
 branch. Reversing those C stores left the reload too late. The final match
 uses no register pins or empty asm.
+
+
+## func_80058ED4: volatile reload placement and reusing the quotient local
+
+Matched using the adjacent `func_8005896C` stop-voice and ready-queue paths.
+A `CdReadyEntry` local preserves the callback stores that m2c's separate stack
+locals lose. Save `CdReady_Queue.locked` before the inner slot check and restore
+that saved byte after cancellation; self-assignment reads it too late.
+
+The 97.544% attempt had `branch=0 regs=8 reorder=1 insert=3 delete=3`.
+Its `.jump2` rematerialized the state address before a volatile position reload
+after an if/else. Writing the reload at the end of each arm let GCC retain the
+existing base and merge the two loads during cross-jumping. Reusing the position
+local for the quotient also put the initial unused volatile load and the
+dividend in `$a1`. These changes together reached all-zero penalties, unpinned.
+
+## GCC -dp comments can hide volatile load hazards from maspsx
+
+With this checkout's maspsx, GCC emits `#.set\tnovolatile  # 11 movsi_internal2/5`
+when `-dp` is enabled. `is_instruction()` recognizes only the exact bare
+commented directive, so lookahead stops there and misses a following use of the
+loaded register. This dropped 25 load-delay nops in `func_80058ED4`; the same C
+scored 88.709% before correcting the scratch assembler input and 97.544% after.
+
+Keep the original annotated `.s` for RTL UIDs. On the assembler input alone,
+strip the trailing annotation from commented `novolatile` directives. The
+scratch build uses `sed -E 's/(#\.set[[:space:]]+novolatile)[[:space:]]+#.*$/\1/'`
+for this. The project build does not pass `-dp` and needs no tooling change.
