@@ -56434,3 +56434,63 @@ target that the source used one variable.
 Generally: when a post-call value is one register off and the `.greg` dump shows
 a `preferences:` line naming an argument register, look for a pseudo that dies
 into it. Shorten the recipient to a single block rather than pinning.
+
+## An empty `asm` at the head of the then-arm moves the branch delay slot to the else arm
+
+For a two-armed `if`/`else` whose arms both store a constant to the same field,
+GCC 2.8.1 usually fills the `beqz` delay slot from the **fall-through** arm:
+
+```c
+if (args->withArg != 0) { work->state = 1; work->animArg = args->animArg; }
+else                    { work->state = 2; }
+```
+
+```
+    beqz  $v0, .Lelse
+     addiu $v0, $zero, 0x1   # the *then* arm's constant
+    sh    $v0, 0x47C($v1)
+    …
+  .Lelse:
+    addiu $v0, $zero, 0x2
+    sh    $v0, 0x47C($v1)
+```
+
+The ROM often has the *else* arm's constant there instead, with the label
+advanced past it:
+
+```
+    beqz  $v0, .Lelse
+     addiu $v0, $zero, 0x2   # the *else* arm's constant
+    addiu $v0, $zero, 0x1
+    sh    $v0, 0x47C($v1)
+    …
+  .Lelse:
+    sh    $v0, 0x47C($v1)
+```
+
+`reorg.c` decides this. `mostly_true_jump` returns 0 for an `EQ` condition
+(`beqz`), so `fill_eager_delay_slots` tries the fall-through thread *first* and
+only falls back to the branch target if that yields nothing. The fall-through's
+first insn is the then-arm's `li`, which conflicts with nothing, so it always
+wins. Inverting the `if` does not help: that gives `bnez`, `NE` predicts taken,
+and the target thread is tried first — but then the arms and the branch
+polarity are both wrong.
+
+The lever is `stop_search_p`, which ends `fill_slots_from_thread` immediately on
+an insn with `asm_noperands (PATTERN (insn)) >= 0`. Putting `SOFT_BARRIER()` at
+the head of the then-arm makes the fall-through scan stop before it sees
+anything, so `delay_list` comes back empty and the pass takes the else arm's
+`li` instead. The barrier emits no instruction, so the object is otherwise
+unchanged — `func_actor_150400_801326A4` went 92.37% → 100% on that one line.
+
+Two shapes that look like the same codegen but are not, and should not be
+confused with this one:
+
+- A **ternary** (`x = c ? 1 : 2;`) reaches the same asm by a different route:
+  `jump2` if-converts it to "load the else value, branch over the then value",
+  so the `li` really is a pre-branch insn that the *backward* scan of
+  `fill_simple_delay_slots` moves down. The tell is that the else value and the
+  condition are in **different registers** (they are live at the same point).
+  If the ROM has both in the same register, it is not a ternary.
+- A `li` before the branch cannot be the source when it targets the condition
+  register: the backward scan marks the condition as `needed` and refuses.
