@@ -66,6 +66,15 @@ typedef struct _GpCapCmd {
     /* 0x8 */ u8 field_8; // next command index
 } GpCapCmd;
 
+typedef struct _GpCapChoice {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ u16 eventKey;
+    /* 0x6 */ u8  sound;
+    /* 0x7 */ u8  pad_7;
+} GpCapChoice;
+STATIC_ASSERT_SIZEOF(GpCapChoice, 8);
+
 /// In-memory CAP dialogue file (`strncmp` magic `"CAP"`). Offsets at
 /// `field_8` / `field_C` / `field_10` are file-relative until
 /// `Gp_RelocCapFile` adds the file base. After that, `field_8` is a
@@ -405,6 +414,7 @@ s32  Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
 /// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
 /// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
 void Gp_DrawCapCaret(void);
+void func_800E62C0(void);
 s16  Gp_CapCenterX(u16* arg0);
 s16  Gp_CapCenterXLine(u16* arg0, s32 arg1);
 s16  Gp_CapTextHeight(u16* arg0);

@@ -55050,3 +55050,34 @@ local matrix pointers; this preserves the target's address copies.
 
 The same result survived removing unused declarations, flattening scopes,
 and using the existing `TmdObject.field_8` / `GsCOORDINATE2.coord` types.
+
+## Keep an address live across a load without changing the loaded values
+
+`func_800E62C0` draws a `POLY_G3` from an eight-byte CAP choice record.
+The primitive cursor needs a non-volatile output plus memory clobber:
+`asm("" : "+r"(p) :: "memory")`. A volatile asm or a basic empty asm
+also fences register scheduling, preventing the division constant from
+filling the cursor-load delay slot. The non-volatile form orders the
+memory accesses while allowing that constant to move.
+
+At 98.066%, the only difference was the display-address `lui`: GCC used
+`$v0` after both choice-coordinate loads, while the target used `$v1`
+before them. `.lreg` showed that the choice address died at the second
+halfword load. Keeping that address live through the display-byte load
+made the two addresses interfere and allowed sched2 to hoist the `lui`.
+An empty asm after the loads used `p` as a read/write output and the
+choice pointer, display offset, x and y as inputs.
+
+This reached 98.679% with only register and reorder penalties. The
+coordinates still lost allocation priority to the display offset.
+Repeating x and y as input operands raised their reference counts without
+adding definitions or instructions, producing 100.000% with no pins.
+Making x and y read/write outputs instead also fixed the registers, but
+changed dependencies and moved four instructions in the color/geometry
+schedule. Input-only keep-lives and read/write touches are not equivalent.
+
+The OT mask also needed `SOFT_TOUCH_REG_USE(p, mask)` to win allocation
+ahead of the signed-division constant. Touching the mask itself prevented
+its constant from hoisting and worsened scheduling. The permuter parser
+required a local choice pointer rather than pointer arithmetic directly
+inside an asm operand; introducing that local preserved the score.

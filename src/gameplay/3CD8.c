@@ -40,6 +40,8 @@ extern TaskFuncTable3 D_80097678;
 extern TaskDesc       Gp_EvtSpawnTable[];
 extern TaskDesc       D_8010FB4C[];
 extern GpRec14        Gp_WeaponMsgRec;
+extern s32            D_8010FB80;
+extern s32            D_8010FB84;
 extern s32            Gp_CapCaretGrey;
 extern s32            Gp_CapCaretDir;
 extern s32            D_8010FB90[];
@@ -64,7 +66,9 @@ extern u8             D_801155B8;
 extern u8             D_801155BA;
 extern u8             D_801155BB;
 extern s16            D_801155BC;
+extern s16            D_801155BE;
 extern s16            D_801155C0;
+extern GpCapChoice    D_801155D0[];
 extern u8             D_80115670;
 extern Task*          Gp_CapTask;
 extern s16            D_80115678;
@@ -458,7 +462,63 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E44A0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E5578);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E62C0);
+void func_800E62C0(void)
+{
+    POLY_G3*     p;
+    GpCapChoice* choice;
+    s32          x;
+    s32          y;
+    s32          offset;
+    s32          color;
+    u32          mask;
+    u32          mask_hi;
+    u_long*      ot;
+
+    if (D_801155BE != 0) {
+        if (D_80115659 != 0) {
+            D_80115659--;
+        }
+        p              = (POLY_G3*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        asm("" : "+r"(p)::"memory");
+        x      = (D_801155C0 + D_801155D0)->x;
+        y      = (D_801155C0 + D_801155D0)->y;
+        offset = Display_State.vramYOffset;
+        choice = D_801155C0 + D_801155D0;
+        asm("" : "+r"(p) : "r"(choice), "r"(offset), "r"(x), "r"(y), "r"(x), "r"(y));
+        y = (offset + 2) * -1 + y;
+        setPolyG3(p);
+        color = (D_8010FB80 << 7) / 15;
+        setRGB0(p, color, color, color);
+        color = (D_8010FB80 * 0xC0) / 15;
+        p->x0 = x;
+        p->y0 = y - 5;
+        x    -= 10;
+        p->x1 = x;
+        p->y1 = y - 10;
+        p->x2 = x;
+        p->y2 = y;
+        setRGB1(p, color, color, color);
+        setRGB2(p, color, color, color);
+        mask = 0xFFFFFF;
+        SOFT_TOUCH_REG_USE(p, mask);
+        mask_hi = 0xFF000000;
+        ot      = Gpu_CurrentOt;
+        p->tag  = (p->tag & mask_hi) | (ot[2] & mask);
+        ot[2]   = (ot[2] & mask_hi) | ((u32)p & mask);
+        if (D_8010FB84 == 0) {
+            D_8010FB80++;
+            if (D_8010FB80 >= 15) {
+                D_8010FB84 = 1;
+            }
+        } else {
+            D_8010FB80--;
+            if (D_8010FB80 < 9) {
+                D_8010FB84 = 0;
+            }
+        }
+    }
+}
 
 void Gp_CapExit(Task* arg0)
 {
