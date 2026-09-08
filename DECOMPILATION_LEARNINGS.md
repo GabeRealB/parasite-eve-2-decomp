@@ -55288,3 +55288,23 @@ The last `addu` operand swap used the established integer-address form:
 `((SndScriptTable*)((u8)script->field_0 * 2 + (u32)data))->offsets[0]`.
 Indexing `((SndScriptTable*)data)->offsets[index]` generated base-first addition.
 The final scratch candidate is `base_21.c`; all penalties are zero.
+
+
+## A keep-live can lower allocation priority when the added lifetime outweighs its reference
+
+In `func_800A087C`, the unpinned task pointer and row spacing had the right
+instructions but occupied each other's `$s7` / `$fp` registers. The patched
+GCC 2.8.1 `global.c:allocno_compare` ranks them by
+`floor_log2(n_refs) * n_refs / live_length`. The `.lreg` counts were task
+13/932 (0.04185), spacing 7/335 (0.04179), and column 7/329 (0.04255).
+A final `SOFT_USE_REG(arg0)` extended the task pointer to 14/1014 (0.04142):
+despite adding a reference, it moved behind spacing and produced a 100% match
+without pins. Check both numerator and denominator before assuming a use
+always raises priority.
+
+For the same function's HP request, `USE_REG3(y, hpReq, hpText)` after setting
+its row and call arguments kept those computations before the request stores.
+Loading `by = obj->baseY`, then `SOFT_BARRIER(); step = 10;`, then computing
+`req2.y = (s16)(by - 2) + y` let the spacing constant fill the `lhu` delay slot.
+A barrier only after the complete request also fixed allocation, but left six
+scheduling penalties because it delayed the call arguments too.

@@ -4782,7 +4782,274 @@ countdown:
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A087C);
+void func_800A087C(Task* arg0)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    TextDrawReq   req6;
+    TextDrawReq   req7;
+    TextDrawReq   req8;
+    TextDrawReq   req9;
+    TextDrawReq   req10;
+    TextDrawReq   req11;
+    UiObject*     obj;
+    WipSysConfig* cfg;
+    s32           col;
+    s32           step;
+    s32           color;
+    s32           color2;
+    s32           y;
+    s32           top;
+    s32           h;
+    s32           tx;
+    u16           add;
+    TextDrawReq*  hpReq;
+    u8*           hpText;
+    s16           by;
+
+    cfg = &Wip_SysConfig;
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 == 0) {
+            D_80114BE2 = 0;
+            D_80114BE4 = 0;
+            D_80114BDC = Gp_StateF0.field_C;
+            D_80114BDE = Gp_StateF0.field_8;
+            D_80114BE0 = Gp_StateF0.field_10;
+            if (func_800B9D80(0x8000) != 0) {
+                D_80114BE4 = ((u32)(Gp_StateF0.field_10 - 1) >> 2) + 1;
+                if (D_80114BE4 >= 100) {
+                    D_80114BE4 = 99;
+                }
+            }
+            if (func_800B9D80(0x1000) != 0) {
+                add            = (u16)Gp_StateF0.field_10;
+                D_80114BE2     = add;
+                cfg->field_18 += add;
+                if (cfg->field_18 >= cfg->field_1a) {
+                    cfg->field_18 = cfg->field_1a;
+                }
+            }
+        } else {
+            D_80114BDE = 0;
+            D_80114BDC = -10;
+            D_80114BE0 = 1;
+            D_80114BE2 = 0;
+            D_80114BE4 = 0;
+        }
+        cfg->field_C += D_80114BDC;
+        if (cfg->field_C > 999999) {
+            cfg->field_C = 999999;
+        }
+        if (cfg->field_C < 0) {
+            cfg->field_C = 0;
+        }
+        cfg->field_8 += D_80114BDE;
+        if (cfg->field_8 > 999999) {
+            cfg->field_8 = 999999;
+        }
+        cfg->field_1c += D_80114BE0 + D_80114BE4;
+        if (cfg->field_1c > cfg->field_1e) {
+            cfg->field_1c = cfg->field_1e;
+        }
+        arg0->killCountdown = 0;
+        arg0->state++;
+    }
+
+    Ui_DrawTitle((UiPanel*)obj, (char*)Gp_StrBattleResult);
+    if (arg0->killCountdown < 500) {
+        arg0->killCountdown++;
+    }
+
+    col   = 0;
+    step  = 0xE;
+    color = 0x606060;
+
+    top             = (s16)obj->field_18;
+    tx              = obj->baseX - 4;
+    req1.x          = (s16)obj->field_1E + tx;
+    req1.y          = obj->baseY + top + 5;
+    req1.otIndex    = (s16)obj->drawOrder + 1;
+    req1.field_8    = color;
+    req1.glyphTable = 5;
+    req1.centerMode = 2;
+    req1.field_E    = 1;
+    func_8002E53C(&req1, Gp_StrTotal);
+
+    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, top + 9);
+    Ui_DrawVBar((UiPanel*)obj, top + 0xC, (s16)obj->field_1A, 0x1C);
+
+    h = (s16)obj->field_1A;
+    y = h - 2;
+    if (D_80114BE2 > 0) {
+        y      = h - 1;
+        hpReq  = &req2;
+        hpText = Gp_StrHP;
+        USE_REG3(y, hpReq, hpText);
+        req2.x = obj->field_1C + (obj->baseX + 6);
+        by     = obj->baseY;
+        SOFT_BARRIER();
+        step            = 0xA;
+        req2.y          = (s16)(by - 2) + y;
+        req2.otIndex    = (s16)obj->drawOrder + 1;
+        req2.field_8    = color;
+        req2.glyphTable = 5;
+        req2.centerMode = 0;
+        req2.field_E    = 1;
+        func_8002E53C(hpReq, hpText);
+
+        req3.x          = obj->baseX + col;
+        req3.y          = obj->baseY + y;
+        req3.otIndex    = (s16)obj->drawOrder + 1;
+        req3.field_8    = color;
+        req3.glyphTable = 0;
+        req3.centerMode = 2;
+        req3.field_E    = 3;
+        func_8002E53C(&req3, Text_ItoaUnsigned(buf, D_80114BE2));
+        y -= 0xA;
+    }
+
+    req4.x          = obj->field_1C + (obj->baseX + 6);
+    req4.y          = (s16)(obj->baseY - 2) + y;
+    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.field_8    = color;
+    req4.glyphTable = 5;
+    req4.centerMode = 0;
+    req4.field_E    = 1;
+    func_8002E53C(&req4, Gp_StrMP);
+
+    req5.x          = obj->baseX + col;
+    req5.y          = obj->baseY + y;
+    req5.otIndex    = (s16)obj->drawOrder + 1;
+    req5.field_8    = color;
+    req5.glyphTable = 0;
+    req5.centerMode = 2;
+    req5.field_E    = 3;
+    func_8002E53C(&req5, Text_ItoaUnsigned(buf, D_80114BE0));
+
+    if (D_80114BE4 > 0) {
+        buf[0] = '+';
+        Text_ItoaUnsigned(&buf[1], D_80114BE4);
+        req6.x          = obj->baseX + col;
+        req6.y          = obj->baseY + y;
+        req6.otIndex    = (s16)obj->drawOrder + 1;
+        req6.field_8    = color;
+        req6.glyphTable = 0;
+        req6.centerMode = 0;
+        req6.field_E    = 3;
+        func_8002E53C(&req6, buf);
+    }
+
+    y              -= step;
+    req6.x          = obj->field_1C + (obj->baseX + 6);
+    req6.y          = (s16)(obj->baseY - 2) + y;
+    req6.otIndex    = (s16)obj->drawOrder + 1;
+    req6.field_8    = color;
+    req6.glyphTable = 5;
+    req6.centerMode = 0;
+    req6.field_E    = 1;
+    func_8002E53C(&req6, Gp_StrBP);
+
+    if (D_80114BDC < 0) {
+        req7.x          = obj->baseX + col;
+        req7.y          = obj->baseY + y;
+        req7.otIndex    = (s16)obj->drawOrder + 1;
+        req7.field_8    = 0xD287F;
+        req7.glyphTable = 0;
+        req7.centerMode = 2;
+        req7.field_E    = 3;
+        func_8002E53C(&req7, Text_ItoaSigned(buf, D_80114BDC));
+    } else {
+        req7.x          = obj->baseX + col;
+        req7.y          = obj->baseY + y;
+        req7.otIndex    = (s16)obj->drawOrder + 1;
+        req7.field_8    = color;
+        req7.glyphTable = 0;
+        req7.centerMode = 2;
+        req7.field_E    = 3;
+        func_8002E53C(&req7, Text_ItoaUnsigned(buf, D_80114BDC));
+    }
+
+    y              -= step;
+    color2          = 0x606060;
+    req7.x          = obj->field_1C + (obj->baseX + 6);
+    req7.y          = (s16)(obj->baseY - 2) + y;
+    req7.otIndex    = (s16)obj->drawOrder + 1;
+    req7.field_8    = color2;
+    req7.glyphTable = 5;
+    req7.centerMode = 0;
+    req7.field_E    = 1;
+    func_8002E53C(&req7, Gp_StrEXP);
+
+    req8.x          = obj->baseX + col;
+    req8.y          = obj->baseY + y;
+    req8.otIndex    = (s16)obj->drawOrder + 1;
+    req8.field_8    = color2;
+    req8.glyphTable = 0;
+    req8.centerMode = 2;
+    req8.field_E    = 3;
+    func_8002E53C(&req8, Text_ItoaUnsigned(buf, D_80114BDE));
+
+    y   = (s16)obj->field_1A - 2;
+    col = (s16)obj->field_1E - 2;
+    if (D_80114BE2 > 0) {
+        y = (s16)obj->field_1A - 1;
+        if (arg0->killCountdown >= 0x8D) {
+            req9.x          = obj->baseX + col;
+            req9.y          = obj->baseY + y;
+            req9.otIndex    = (s16)obj->drawOrder + 1;
+            req9.field_8    = color2;
+            req9.glyphTable = 0;
+            req9.centerMode = 2;
+            req9.field_E    = 3;
+            func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->field_18));
+        }
+        y -= step;
+    }
+    if (arg0->killCountdown >= 0x6F) {
+        req9.x          = obj->baseX + col;
+        req9.y          = obj->baseY + y;
+        req9.otIndex    = (s16)obj->drawOrder + 1;
+        req9.field_8    = 0x606060;
+        req9.glyphTable = 0;
+        req9.centerMode = 2;
+        req9.field_E    = 3;
+        func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->field_1c));
+    }
+    y -= step;
+    if (arg0->killCountdown >= 0x51) {
+        req10.x          = obj->baseX + col;
+        req10.y          = obj->baseY + y;
+        req10.otIndex    = (s16)obj->drawOrder + 1;
+        req10.field_8    = 0x606060;
+        req10.glyphTable = 0;
+        req10.centerMode = 2;
+        req10.field_E    = 3;
+        func_8002E53C(&req10, Text_ItoaUnsigned(buf, cfg->field_C));
+    }
+    y -= step;
+    if (arg0->killCountdown >= 0x33) {
+        req11.x          = obj->baseX + col;
+        req11.y          = obj->baseY + y;
+        req11.otIndex    = (s16)obj->drawOrder + 1;
+        req11.field_8    = 0x606060;
+        req11.glyphTable = 0;
+        req11.centerMode = 2;
+        req11.field_E    = 3;
+        func_8002E53C(&req11, Text_ItoaUnsigned(buf, cfg->field_8));
+    }
+
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+            obj->field_2E = 6;
+        }
+    }
+    SOFT_USE_REG(arg0);
+}
 
 void Gp_AreaEnterTask(Task* arg0)
 {

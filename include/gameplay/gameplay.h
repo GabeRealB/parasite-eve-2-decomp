@@ -395,6 +395,19 @@ typedef struct _GpSndParam {
 } GpSndParam;
 STATIC_ASSERT_SIZEOF(GpSndParam, 4);
 
+extern s16 D_80114BDC;
+extern s16 D_80114BDE;
+extern s16 D_80114BE0;
+extern s16 D_80114BE2;
+extern s16 D_80114BE4;
+extern u8  Gp_StrBattleResult[];
+extern u8  Gp_StrTotal[];
+extern u8  Gp_StrMP[];
+extern u8  Gp_StrBP[];
+extern u8  Gp_StrEXP[];
+
+void func_800A087C(Task* arg0);
+
 // Functions defined in this module but not previously declared anywhere.
 // Without a prototype m2c cannot type a call to them and the decompiled
 // seed fails to compile ('invalid use of void expression') - the single
