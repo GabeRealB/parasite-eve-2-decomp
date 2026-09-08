@@ -474,7 +474,13 @@ after `$s7`, and only global-alloc can give it out.
 
 `summarize_dumps.py` already prints rank, `used R/L`, disposition and hard
 conflicts per allocno; it does not print quantities or per-block insn
-positions, which is the missing piece for local cases.
+positions, which is the missing piece for local cases. `lregwalk.py`, symlinked
+into the scratch env beside it, supplies them: per block, the insns in
+local-alloc's own order with their `set` destinations and `REG_DEAD` notes.
+That is what step 2 needs - the `REG_DEAD` chain gives the tying, the `set`
+destinations give the suggestions, and the position gives birth order for a tie.
+
+    python3 lregwalk.py base_N.i.lreg 111 154     # blocks mentioning those pseudos
 
 **Do step 2 in that order: suggestion, then priority, then birth.** Priority is
 the part that is easy to compute and the least often decisive. Measured over 86

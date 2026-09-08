@@ -251,6 +251,13 @@ overlay.
 - `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
   family's model streams to Wavefront OBJ (vertices and faces only). Useful for
   identifying an overlay whose name is still a placeholder.
+- `python3 tools/check_regalloc_model.py <scratch>/*.i.lreg [--inversions]`
+  measure how much of a real allocation `CODEGEN_MODEL.md` section 10's ranking
+  formula accounts for. Comparing only pseudos that competed in the same block,
+  the ratio orders 66% of pairs correctly and 38% sit at an exact tie; the rest
+  is the suggestion pass, which shows up as inversions clustered on `$v0`. Re-run
+  it after anything that could move allocation - a compiler patch, a new maspsx -
+  or on a function class the model has not been checked against.
 - `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
 
 ## Code Quality Standards
