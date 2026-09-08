@@ -608,6 +608,7 @@ void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_800B2968(void);
 void  Gp_SetStreamBuf(void* arg0);
 void  func_800B1EFC(Task* arg0);
+void  func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Turns the slot-3 skeleton's head toward the world point in `arg1`'s
 /// translation (`coord.t`). Sums the first five `GsCOORDINATE2` transforms of
 /// `arg0->extra` to get the head's own position and orientation, takes the

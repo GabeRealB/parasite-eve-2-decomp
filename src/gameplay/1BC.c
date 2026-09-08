@@ -834,7 +834,113 @@ void Gp_StageLoadState2(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0928);
+void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    VECTOR         tmp;
+    VECTOR         acc0;
+    VECTOR         acc1;
+    SVECTOR        delta;
+    SVECTOR        ang;
+    SVECTOR        euler;
+    MATRIX         mtx0;
+    MATRIX         mtx1;
+    MATRIX         tmtx;
+    s32            i;
+    GsCOORDINATE2* rec;
+    GsCOORDINATE2* rec1;
+    s32            pitchLimit;
+    s32            yawLimit;
+    s32            pitchMagnitude;
+    s32            yawMagnitude;
+    MATRIX*        m0;
+    MATRIX*        m1;
+    GsCOORDINATE2* base;
+    MATRIX*        m;
+
+    i                    = 0;
+    m0                   = &mtx0;
+    *(s32*)&mtx0         = ONE;
+    *(s32*)&mtx0.m[0][2] = 0;
+    *(s32*)&m0->m[1][1]  = ONE;
+    *(s32*)&mtx0.m[2][0] = 0;
+    m0->m[2][2]          = ONE;
+    acc0.vx              = 0;
+    acc0.vy              = 0;
+    acc0.vz              = 0;
+    for (i = 0; i < 4; i++) {
+        rec = &((TmdObject*)arg0->extra)->field_8[i];
+        ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
+        acc0.vx += tmp.vx;
+        acc0.vy += tmp.vy;
+        acc0.vz += tmp.vz;
+        MulMatrix0(&rec->coord, &mtx0, &mtx0);
+    }
+    rec = &((TmdObject*)arg0->extra)->field_8[i];
+    ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
+    i                    = 0;
+    m1                   = &mtx1;
+    *(s32*)&mtx1         = ONE;
+    *(s32*)&mtx1.m[0][2] = 0;
+    *(s32*)&m1->m[1][1]  = ONE;
+    *(s32*)&mtx1.m[2][0] = 0;
+    m1->m[2][2]          = ONE;
+    acc1.vx              = 0;
+    acc1.vy              = 0;
+    acc1.vz              = 0;
+    for (i = 0; i < 4; i++) {
+        rec1 = &((TmdObject*)arg1->extra)->field_8[i];
+        ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
+        acc1.vx += tmp.vx;
+        acc1.vy += tmp.vy;
+        acc1.vz += tmp.vz;
+        MulMatrix0(&rec1->coord, &mtx1, &mtx1);
+    }
+    rec1 = &((TmdObject*)arg1->extra)->field_8[i];
+    ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
+
+    delta.vx = (u16)acc1.vx - (u16)acc0.vx;
+    delta.vy = (u16)acc1.vy - (u16)acc0.vy;
+    delta.vz = (u16)acc1.vz - (u16)acc0.vz;
+    TransposeMatrix(&mtx0, &tmtx);
+    ApplyMatrix(&tmtx, &delta, &acc0);
+
+    ang.vx = ratan2(-acc0.vy, acc0.vz >= 0 ? acc0.vz : -acc0.vz);
+    ang.vy = ratan2(acc0.vx, acc0.vz);
+    ang.vz = 0;
+
+    base = ((TmdObject*)arg0->extra)->field_8;
+    rec  = base + 4;
+    Gp_MtxToEuler(&base[4].coord, &euler);
+
+    ang.vx     = euler.vx + (ang.vx - euler.vx) * arg4 / 4096;
+    ang.vy     = euler.vy + (ang.vy - euler.vy) * arg4 / 4096;
+    ang.vz     = euler.vz;
+    pitchLimit = euler.vx >= 0 ? euler.vx : -euler.vx;
+    if (arg3 < pitchLimit) {
+        arg3 = pitchLimit;
+    }
+    yawLimit = euler.vy >= 0 ? euler.vy : -euler.vy;
+    if (arg2 < yawLimit) {
+        arg2 = yawLimit;
+    }
+    pitchMagnitude = ang.vx >= 0 ? ang.vx : -ang.vx;
+    if (arg3 < pitchMagnitude) {
+        ang.vx = ang.vx < 0 ? -arg3 : arg3;
+    }
+    yawMagnitude = ang.vy >= 0 ? ang.vy : -ang.vy;
+    if (arg2 < yawMagnitude) {
+        ang.vy = ang.vy < 0 ? -arg2 : arg2;
+    }
+
+    m                  = &rec->coord;
+    *(s32*)&rec->coord = ONE;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = ONE;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = ONE;
+    RotMatrix(&ang, m);
+    rec->flg = 0;
+}
 
 void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4)
 {

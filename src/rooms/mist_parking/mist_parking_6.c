@@ -8,8 +8,6 @@ extern u8  D_801156F9;
 extern s32 D_mist_parking_8018D830;
 extern s8  D_mist_parking_8018DA28[];
 
-extern void func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
 INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_6", func_mist_parking_80182898);
 
 void func_mist_parking_801828F0(Task* task)
@@ -43,7 +41,7 @@ void func_mist_parking_801828F0(Task* task)
                 }
             }
             work = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
-            func_800B0928(Game_GetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
+            func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             Task_Kill(task);
         }

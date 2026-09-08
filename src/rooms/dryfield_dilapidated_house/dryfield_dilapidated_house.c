@@ -1,12 +1,12 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32  D_dryfield_dilapidated_house_80189B6C;
-extern void func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern s32 D_dryfield_dilapidated_house_80189B6C;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
 
@@ -53,7 +53,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
             arg0->state    += 1;
             return;
         case 2:
-            func_800B0928(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
+            func_800B0928(temp_s1, (Task*)temp_a1, 0x200, 0x180, 0x1000);
             /* fallthrough */
         case 1:
             return;

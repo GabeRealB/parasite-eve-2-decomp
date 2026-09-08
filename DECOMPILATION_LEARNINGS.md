@@ -55028,3 +55028,25 @@ Read the actual insertion/deletion sites alongside `.jump`/`.jump2`: in
 this case they represented moved instructions, while the loop branches
 already matched. A reused local spanning independent blocks can disturb
 both allocation and scheduling even when its two values never overlap.
+
+## Split skeleton-walk pointers and use the matched sibling's angle expressions
+
+`func_800B0928`'s archived seed scored 90.189% after replacing the obsolete
+`GameActorExt` name with `TmdObject`. Removing its two `$s1` pins scored
+89.181%. Reusing `func_800B0CF4`'s ordinary signed `/ 4096` interpolation
+and separate ternary magnitude expressions repaired the angle block;
+the seed's reused product and absolute-value locals had changed its
+register allocation and branch scheduling.
+
+An unpinned 97.325% candidate reused one coordinate pointer in both
+skeleton walks and the final rotation update. Its `.lreg` reported 20
+uses across 74 instructions, and `.greg` allocated it before either
+matrix pointer, putting it in `$s0`. Giving the second walk a separate
+pointer and replacing the reused identity-constant local with `ONE`
+at each store produced 100.000%, with all penalties zero. Keep the first
+walk's pointer for its post-loop call and final rotation update. Matrix
+calls use `&mtx0` / `&mtx1`, while the identity stores also use their
+local matrix pointers; this preserves the target's address copies.
+
+The same result survived removing unused declarations, flattening scopes,
+and using the existing `TmdObject.field_8` / `GsCOORDINATE2.coord` types.

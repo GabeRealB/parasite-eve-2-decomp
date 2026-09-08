@@ -35,7 +35,6 @@ extern MistParkingCapState D_mist_parking_80195334;
 extern u8                  D_801156F9;
 extern s32                 D_mist_parking_80190874;
 extern s8                  D_mist_parking_801908C8[];
-extern void                func_800B0928(Task* task, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Position triple in a parking-lot layout table; 8 bytes with a trailing pad.
 typedef struct {
     /* 0x0 */ s16 x;
@@ -131,7 +130,7 @@ void func_mist_parking_80183D58(Task* task)
                 }
             }
             work = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
-            func_800B0928(Game_GetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
+            func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             Task_Kill(task);
         }
