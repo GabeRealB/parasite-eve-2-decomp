@@ -55815,3 +55815,29 @@ Tell: a constant in the preheader that the `.lreg` summary says should lose
 to its neighbours but holds a callee-saved register they needed. The
 constant-folding `+` needs a zero operand with a single use; with more uses
 the `added_sets_2` PARALLEL is not recognised and the `addiu` stays.
+
+
+## `func_800F289C`: split spawn-loop expression temporaries before constraining scratch registers
+
+The archived unpinned seed scored 98.959%. Loading `GpEffSpawnArgHi.field_3`
+into an `s32` before masking its low nibble preserves the target `lb`; assigning
+the masked expression straight into an `s16` emits `lbu`.
+
+Reusing `mask` and `step` across two spawn loops sends both through global
+allocation (`mask`: 8 references / 4 insns, `step`: 8 / 8). Separate locals for
+each loop make all four block-local and restore the target `v0` / `v1` / `a2`
+expression registers. Keep the loop counter and bound shared. Inlining the
+whole expression reassociates the ORs and changes invariant-hoist order.
+
+A short scratch `vecp = head - 0x1C` plus `SOFT_TOUCH_REG(head)` before
+`block = vecp` preserves the pointer copy without pins, reaching 99.837% with
+only two scheduling penalties. The empty asm takes the last `lhu` delay-slot
+opportunity, moving both `GsWSMATRIX` address instructions earlier. A 360-second
+permuter run (5,142 iterations) did not improve this candidate. The final match
+uses the adjacent `Gp_EffSprTask7C` pattern: `vecp` and the preceding `u16 vx`
+load both constrained to `v0`, with `USE_REG(head)` before that load. The bare
+worktree build-and-verify script validates the landed body.
+
+Parenthesize shifted `gte_lddp` arguments before passing this source to the
+permuter: `gte_lddp((mem->field_24 << 3))` compiles identically and avoids its
+inline-asm parser error at `<<`.
