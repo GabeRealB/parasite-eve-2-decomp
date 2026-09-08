@@ -55780,3 +55780,38 @@ That restored `addiu v0,a1,-0x28; move s0,v0` and the earlier grid-parameter
 load, reaching 100% without pins or asm helpers. Delaying `*scratch = block`
 until after the input loads had folded the pointer calculation directly into
 `s0` and changed entry scheduling.
+
+## func_800B51F4: a hoisted `li` that allocates like an expression is `zero + K` folded by combine
+
+The loop preheader of `func_800B51F4` holds `li s1, 0x9f` for the second
+poly's right edge, and the seed's `right = x + 0x9F` reached 99.3% with one
+diff: `addiu s1, s4, 0x9f`. Writing `right = 0x9F` produced the `li` and fell
+to 98.1%, because the register allocation moved: `0x9F` went to `$s3`, `y` to
+`$s6`, `mode` gained a `move`. The `.lreg` dump shows why - the constant
+pseudo is `used 5 times across 208 insns` instead of `104`. `update_equiv_regs`
+doubles `REG_LIVE_LENGTH` for a pseudo set once with a `REG_EQUAL` constant
+note (cse attaches one to every `(set reg (const_int))`), which halves its
+`global.c` priority (`floor_log2(refs) * refs / live_length`), so it sorted
+after `x - 0xA0 - y` and `x`, which took `$s1` and `$s2` first.
+
+The ROM's `li` has the *undoubled* priority, so it was not a constant when
+flow measured it. It is `x + 0x9F` where that `x` is a **separate zero
+variable with exactly one use**: cse rewrites `cx = 0` into a copy of the
+other zero (`x = 0`, still stored in the loop), loop.c hoists `(plus cx 159)`,
+and combine substitutes the single-use copy, sees `nonzero_bits(x) == 0`,
+turns the `plus` into `ior` and the `ior` into the bare constant. Combine runs
+after flow's live-length count and attaches no `REG_EQUAL` note, so the pseudo
+keeps the expression's priority and the allocator's order is unchanged.
+
+```c
+x  = 0;          /* stored into the polys */
+y  = 0;
+cx = 0;          /* single use below */
+...
+right = cx + 0x9F;   /* ROM: li s1, 0x9f, allocated as if it were addiu */
+```
+
+Tell: a constant in the preheader that the `.lreg` summary says should lose
+to its neighbours but holds a callee-saved register they needed. The
+constant-folding `+` needs a zero operand with a single use; with more uses
+the `added_sets_2` PARALLEL is not recognised and the `addiu` stays.

@@ -2953,7 +2953,134 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B51F4);
+void func_800B51F4(Task* task)
+{
+    s32       count;
+    s32       i;
+    s32       x;
+    s32       cx;
+    s32       y;
+    s32       mode;
+    u8        flag;
+    u16       flag2;
+    s32       color;
+    s32       right;
+    TILE*     tile;
+    DR_TPAGE* dr;
+    DR_TPAGE* fadeDr;
+    DR_STP*   stp;
+    POLY_FT4* p0;
+    POLY_FT4* p1;
+
+    mode  = Display_State.field_1f;
+    count = 1;
+    x     = 0;
+    y     = 0;
+    cx    = 0;
+    if (task->spawnArg1 == 0x10) {
+        count = 2;
+    }
+    if (Mc_SaveData.field_23 == 1) {
+        return;
+    }
+
+    if (task->spawnArg1 & 1) {
+        task->killCountdown++;
+        if (task->killCountdown >= 0x3D) {
+            color          = task->killCountdown - 0x3C;
+            color         *= 8;
+            tile           = (TILE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            setlen(tile, 3);
+            setcode(tile, 0x62);
+            if (color >= 0x100) {
+                color = 0xFF;
+            }
+            tile->x0 = -0xA0;
+            tile->y0 = -0x78;
+            tile->w  = 0x140;
+            tile->h  = 0xF0;
+            tile->b0 = color;
+            tile->g0 = color;
+            tile->r0 = color;
+            addPrim(&Gpu_CurrentOt[1], tile);
+
+            fadeDr         = (DR_TPAGE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = fadeDr + 1;
+            setlen(fadeDr, 1);
+            fadeDr->code[0] = 0xE1000240;
+            addPrim(&Gpu_CurrentOt[1], fadeDr);
+        }
+    }
+
+    stp            = (DR_STP*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 0);
+    addPrim(&Gpu_CurrentOt[0], stp);
+
+    dr             = (DR_TPAGE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000600;
+    addPrim(&Gpu_CurrentOt[0], dr);
+
+    for (i = 0; i < count; i++) {
+        p0             = (POLY_FT4*)Gpu_PrimCursor;
+        p1             = p0 + 1;
+        Gpu_PrimCursor = (DR_TPAGE*)(p0 + 2);
+        setlen(p0, 9);
+        setcode(p0, 0x2F);
+        setlen(p1, 9);
+        setcode(p1, 0x2F);
+        p0->x0 = p0->x2 = x - (0xA0 + y);
+        p0->x1 = p0->x3 = x;
+        p0->y0 = p0->y1 = -0x78 - y;
+        p0->y2 = p0->y3 = y + 0x77;
+        right           = cx + 0x9F;
+        p1->x0 = p1->x2 = x;
+        p1->x1 = p1->x3 = right;
+        flag            = mode;
+        flag2           = flag;
+        p1->y0 = p1->y1 = -0x78 - y;
+        p1->y2 = p1->y3 = y + 0x77;
+        if (flag2) {
+            p0->tpage = 0x100;
+            p0->u0 = p0->u2 = 0;
+            p0->u1 = p0->u3 = 0xA0;
+            p0->v0 = p0->v1 = 0;
+            p0->v2 = p0->v3 = 0xEF;
+            p1->tpage       = 0x102;
+            p1->u0 = p1->u2 = 0x20;
+            p1->u1 = p1->u3 = 0xBF;
+            p1->v0 = p1->v1 = 0;
+            p1->v2 = p1->v3 = 0xEF;
+        } else {
+            p0->tpage = 0x110;
+            p0->u0 = p0->u2 = 0;
+            p0->u1 = p0->u3 = 0xA0;
+            p0->v0 = p0->v1 = 0x10;
+            p0->v2 = p0->v3 = 0xFF;
+            p1->tpage       = 0x112;
+            p1->u0 = p1->u2 = 0x20;
+            p1->u1 = p1->u3 = 0xBF;
+            p1->v0 = p1->v1 = 0x10;
+            p1->v2 = p1->v3 = 0xFF;
+        }
+        addPrim(&Gpu_CurrentOt[0], p0);
+        addPrim(&Gpu_CurrentOt[0], p1);
+    }
+
+    dr             = (DR_TPAGE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000400;
+    addPrim(&Gpu_CurrentOt[0], dr);
+
+    stp            = (DR_STP*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 1);
+    addPrim(&Gpu_CurrentOt[0x3FF], stp);
+}
 
 void Gp_ApplyAreaTmdFlags(void)
 {
