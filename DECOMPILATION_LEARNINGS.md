@@ -56626,6 +56626,14 @@ Rebuild each affected file by moving text, not by regenerating:
 re-emitted as `INCLUDE_ASM`. `tools/check_lost_matches.py` does not catch this
 one, because the promoted overlay's `.s` moves under `matchings/`.
 
+The manifest's own `rodata` cuts name units by *name*, so they silently follow
+the renumbering onto the wrong file. `actor_107000` had
+`rodata = [{ start = "0x64", unit = "actor_107000_3" }]` for a block of jump
+tables owned by the unit at `0x29F0`; promoting `ActorsShared8013454c` at
+`0x27D0` made that unit `actor_107000_4`, and the key has to be bumped with it.
+The build does not fail on the mistake — it just links the tables into a
+different object.
+
 ## sched1 will not lift a load above an earlier store, so give the pointer its own statement
 
 An early-out handler cleared two fields:
@@ -56703,3 +56711,32 @@ Same rule as "sched1 will not lift a load above an earlier store": when the
 target loads a call argument *before* a store the call statement follows, the
 argument was a local in the original source. `func_actor_101100_80138374` is
 the example.
+
+## sched1 reorders whole word stores too, so a short RMW chain can be moved to a later statement
+
+`ActorsShared8013454c` reads a `GsCOORDINATE2`'s three translation words into a
+work block, then updates them: X and Z by `(m[i][2] * step) >> 12`, Y by a flat
+`+ 0x80`. m2c's statement order — X, Y, Z, matching the ROM's store order —
+scores 89% with `reorder=3`: the Y chain (`lw`/`addiu`/`sw`) lands in the *first*
+`mult`'s shadow, while the target has it in the *second*'s.
+
+The two `mult`s cannot overlap (the second anti-depends on the first's `mflo`),
+so there are exactly two shadows to fill, and the C only chooses which one the
+short chain takes by where the statement sits. Writing the updates X, Z, Y —
+the Y store *last* in the source, though the ROM stores it second — matches:
+
+```c
+work->field_274 = coord->coord.t[0];
+work->field_278 = coord->coord.t[1];
+work->field_27C = coord->coord.t[2];
+coord->coord.t[0] += (coord->coord.m[0][2] * work->field_2BE) >> 12;
+coord->coord.t[2] += (coord->coord.m[2][2] * work->field_2BE) >> 12;
+coord->coord.t[1] += 0x80;   /* stored second in the ROM, written last here */
+```
+
+This is the byte-store rule ("The scheduler reorders byte stores, so the source
+store order is not fixed by the object dump") at word width: two `sw`s at
+different constant offsets off one base are independent to `sched1`'s alias
+check, so their ROM order says nothing about their source order. When the
+leftover is `reorder` and the block has independent chains of visibly different
+length, try permuting the statements before reaching for pins.
