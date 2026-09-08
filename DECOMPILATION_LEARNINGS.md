@@ -56595,3 +56595,33 @@ Rebuild each affected file by moving text, not by regenerating:
 `func_actor_146300_80132B14`, a matched two-line body that splat's skeleton
 re-emitted as `INCLUDE_ASM`. `tools/check_lost_matches.py` does not catch this
 one, because the promoted overlay's `.s` moves under `matchings/`.
+
+## sched1 will not lift a load above an earlier store, so give the pointer its own statement
+
+An early-out handler cleared two fields:
+
+```c
+arg0->field_14 = 0;          /* sb */
+arg1->field_2C->field_C = 0; /* lw + sh */
+```
+
+which compiles to `sb`, `lw`, `nop`, `sh` — the load-delay nop stays because
+sched1 treats the store as possibly aliasing the load and refuses to hoist the
+`lw` past it. Swapping the two statements is no better: the load moves up but
+now the *store order* is fixed, so the `sb` cannot sink into the delay slot
+either and you get `lw`, `nop`, `sh`, …, `sb`.
+
+The target had `lw`, `sb`, `sh`. Splitting the pointer load out into its own
+statement, ahead of both stores, is what produces it:
+
+```c
+obj = arg1->field_2C;   /* lw */
+arg0->field_14 = 0;     /* sb — fills the load delay */
+obj->field_C   = 0;     /* sh */
+```
+
+Sequence points between the two stores keep their relative order, and the
+now-independent `sb` is the first ready insn after the load. Rule of thumb:
+when a load-delay nop sits in front of a store through a freshly loaded
+pointer, the fix is a local for the pointer, not a reordering of the stores.
+`func_actor_101200_80135BE0` is the example.
