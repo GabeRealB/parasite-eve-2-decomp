@@ -3843,7 +3843,535 @@ after_index:
     CdCmd_EnqueueLoadFile(type, index & 0xFF, arg1 & 0xFF);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5F70);
+void func_800C5F70(Task* arg0)
+{
+    TextDrawReq  req20;
+    TextDrawReq  req30;
+    u8           buf40[0x20];
+    TextDrawReq  req60;
+    TextDrawReq  req70;
+    TextDrawReq  req80;
+    TextDrawReq  req90;
+    TextDrawReq  reqA0;
+    TextDrawReq  reqB0;
+    u8           bufC0[0x20];
+    u8           bufE0[0x20];
+    TextDrawReq  req100;
+    TextDrawReq  req110;
+    TextDrawReq  req120;
+    TextDrawReq  req130;
+    TextDrawReq  req140;
+    TextDrawReq  req150;
+    s32          ready;
+    u32          flags;
+    UiList*      menu;
+    UiObject*    obj;
+    s32          item;
+    s32          featCount;
+    s32          altColor;
+    s32          state;
+    s32          lines;
+    u8*          p;
+    u8*          payload;
+    s32          y;
+    s32          i;
+    s32          spriteCount;
+    s32          h;
+    s32          x;
+    SPRT*        sprt;
+    s32          saved;
+    GpItemAttr*  attr;
+    u8**         names;
+    u8*          text;
+    GpRec10*     rec;
+    GpRec10*     recBase;
+    s32          idx;
+    s32          temp;
+    s32          caliber;
+    s32          recIndex;
+    s32          spriteW;
+    u8           spriteV;
+    s32          titleY;
+    s32          titleColor;
+    TextDrawReq* titleReq;
+    s32          textColor;
+    s32          spriteI;
+    s32          baseY;
+    s32          spriteMode;
+    u8*          drawPayload;
+    u8           row;
+    GpItemDesc*  descBase;
+    GpItemDesc*  desc;
+
+    ready = 0;
+    flags = ready;
+    menu  = &D_8010E910;
+    temp  = arg0->spawnArg1;
+    obj   = arg0->spawnArg2;
+    item  = temp & 0xFFFF;
+    if (temp & 0x10000) {
+        flags = 2;
+    } else if (temp & 0x40000) {
+        flags = 1;
+    }
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        if ((D_80067634 != NULL) && (D_80067634 != obj)) {
+            Task_CallExit(D_80067634->owner);
+            obj->timer = 0x14;
+        }
+        D_80067634         = obj;
+        arg0->exitCallback = func_800CF330;
+        arg0->state        = 2;
+        if ((item < 0x100) || (item == 0x10C) || (item == 0x113) || (item == 0x114) ||
+            (item == 0x11B) || (item == 0x11F) || (item == 0x125) || (item == 0x127) ||
+            (item == 0x128) || (item == 0x129) || (item == 0x107)) {
+            Gp_SetItemSeenBit(item, 1);
+        }
+        if (item == 0x125) {
+            GameFlag_SetNibble(0x111, 1);
+        }
+    } else {
+        if (arg0->spawnArg1 & 0x20000) {
+            Ui_DrawText((UiPanel*)obj, Gp_StrNextReplay);
+        } else {
+            Ui_DrawText((UiPanel*)obj, Gp_StrSpecs);
+        }
+        if (obj->mode == 2) {
+            GameMain_SetFrameTiming(1);
+        }
+        state = arg0->state;
+        if (state == 2) {
+            goto parse;
+        } else if (state < 3) {
+            goto hbar_setup;
+        } else if (state == 3) {
+            goto state3;
+        } else if (state == 4) {
+            goto state4;
+        } else {
+            goto hbar_setup;
+        }
+    parse:
+        if (CdCmd_IsIdle() & 0xFFFF) {
+            lines = 0;
+            p     = Text_SkipLines(Fs_GetChunkPayload(), 5);
+            while (*p != 0) {
+                if (*p == '\\') {
+                    p++;
+                    if (*p == 'Z' || *p == 'z') {
+                        break;
+                    }
+                }
+                if (*p == '\n') {
+                    lines++;
+                }
+                p++;
+            }
+            if (item < 0x100) {
+                if (lines < 2) {
+                    lines = 2;
+                }
+            }
+            menu->field_10 = 0;
+            menu->field_9  = 0;
+            menu->field_5  = lines;
+            menu->field_4  = lines;
+            Ui_InitList(menu, (UiMiniObj*)obj);
+            if ((s8)menu->field_5 >= 7) {
+                menu->field_5 = 6;
+            }
+            menu->field_A  = 1;
+            menu->field_17 = -(s32)(u8)obj->field_18 + 7;
+            arg0->state    = 3;
+        }
+        goto hbar_setup;
+    state3:
+        arg0->state = 4;
+    state4:
+        if (CdCmd_IsIdle() & 0xFFFF) {
+            ready = 1;
+        }
+    hbar_setup:
+        if (item >= 0x500) {
+            flags |= 0x400;
+            Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, 0x25);
+        } else {
+            Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, 5);
+        }
+        if (ready == 1) {
+            x         = 2;
+            payload   = Fs_GetChunkPayload();
+            i         = 0;
+            y         = (s16)obj->field_18 + 0x1E;
+            textColor = 0x606060;
+        draw_lines: {
+            drawPayload = payload;
+            TOUCH_REG_USE(drawPayload, x);
+            req20.x          = obj->baseX + x;
+            req20.y          = obj->baseY + y;
+            y               += 0xF;
+            req20.otIndex    = (s16)obj->drawOrder + 1;
+            req20.field_8    = textColor;
+            req20.glyphTable = 0;
+            req20.centerMode = 0;
+            req20.field_E    = 1;
+            func_8002E53C(&req20, Text_SkipLines(drawPayload, i++));
+        }
+            if (i < 5) {
+                goto draw_lines;
+            }
+            if (item >= 0x500) {
+                Text_DrawMultiLine(obj, obj->field_1C + 2, 0x34, Text_SkipLines(payload, 5),
+                                   0x606060, 3, 0);
+            } else {
+                saved       = obj->status;
+                obj->status = 0;
+                Ui_UpdateListNoAnim(menu, obj);
+                obj->status = saved;
+                if ((saved == 1) && ((s32)menu->field_4 > (s8)menu->field_5)) {
+                    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                        menu->field_9 = menu->field_9 - 1;
+                        if ((s8)menu->field_9 < 0) {
+                            menu->field_9 = 0;
+                        } else {
+                            menu->field_16 = -1;
+                            menu->field_14 = (s8)menu->field_7;
+                        }
+                        menu->field_10 = (s8)menu->field_9;
+                    } else if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                        menu->field_10 = (s8)menu->field_9 + (s8)menu->field_5;
+                        if (menu->field_10 < (s32)menu->field_4) {
+                            menu->field_16 = saved;
+                            menu->field_14 = (s8)menu->field_7;
+                        } else {
+                            menu->field_10 = menu->field_4 - 1;
+                        }
+                    } else if (Pad_CheckButtons(0, 1, 4) != 0) {
+                        if ((s8)menu->field_9 > 0) {
+                            menu->field_9 = menu->field_9 - menu->field_5;
+                            if ((s8)menu->field_9 < 0) {
+                                menu->field_9 = 0;
+                            }
+                            menu->field_10 = (s8)menu->field_9;
+                        }
+                    } else if (Pad_CheckButtons(0, 1, 8) != 0) {
+                        if ((s8)menu->field_9 < (menu->field_4 - (s8)menu->field_5)) {
+                            row           = menu->field_5;
+                            menu->field_9 = (s8)menu->field_9 + row;
+                            SOFT_USE_REG(row);
+                            if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
+                                menu->field_9 = menu->field_4 - menu->field_5;
+                            }
+                            menu->field_10 = ((s8)menu->field_9 + (s8)menu->field_5) - 1;
+                        }
+                    }
+                }
+            }
+            func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+            if ((u32)(item - 0x80) < 0x20U) {
+                spriteCount = 1;
+                if ((Gp_GetItemSlot(item)->field_2 != 0xFF) || (item == 0x8F) || (item == 0x93) ||
+                    (item == 0x94) || (item == 0x96) || (item == 0x99) || (item == 0x81)) {
+                    spriteCount = 2;
+                }
+                y       = 0x4E;
+                h       = 0xF;
+                spriteW = h;
+                spriteI = 0;
+                x       = obj->field_1C + 2;
+                if (spriteCount != 0) {
+                    do {
+                        sprt           = (SPRT*)Gpu_PrimCursor;
+                        Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+                        sprt->x0       = x;
+                        sprt->y0       = y - 8;
+                        spriteMode     = Mc_SaveData.field_1a8;
+                        spriteV        = 0x58;
+                        if (spriteMode != 2) {
+                            h        = 8;
+                            sprt->y0 = y - 4;
+                            if (spriteI == 0) {
+                                sprt->u0 = 0x90;
+                            } else {
+                                sprt->u0 = 0xB0;
+                            }
+                            SOFT_USE_REG(spriteV);
+                            sprt->v0 = spriteV;
+                        } else if (spriteI == 0) {
+                            sprt->u0 = 0x10;
+                            sprt->v0 = 0x60;
+                        } else {
+                            sprt->u0 = 0x20;
+                            sprt->v0 = 0x70;
+                        }
+                        sprt->clut = 0x3C00;
+                        setlen(sprt, 4);
+                        y      += 0xF;
+                        sprt->w = spriteW;
+                        sprt->h = h;
+                        setcode(sprt, 0x65);
+                        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, sprt);
+                        spriteI++;
+                    } while (spriteI < spriteCount);
+                }
+                Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+                x                = obj->field_1C + 2;
+                req30.x          = obj->baseX + x;
+                req30.y          = obj->baseY + 0x40;
+                req30.otIndex    = (s16)obj->drawOrder + 1;
+                req30.glyphTable = 5;
+                req30.field_8    = 0x606060;
+                req30.centerMode = 0;
+                req30.field_E    = 1;
+                func_8002E53C(&req30, Gp_StrOperation);
+            } else if ((u32)(item - 0x60) < 0x20U) {
+                attr      = &Gp_ItemAttrs[item];
+                featCount = 0;
+                altColor  = 0x808008;
+                x         = 2;
+                text      = Gp_StrAddHp;
+                SOFT_TOUCH_REG_USE(text, attr);
+                flags            = *(u32*)attr;
+                y                = (s16)obj->field_18 + 0x1E;
+                req30.x          = obj->baseX + x;
+                req30.y          = obj->baseY + (y - 2);
+                req30.otIndex    = (s16)obj->drawOrder + 1;
+                req30.glyphTable = 5;
+                req30.field_8    = 0x606060;
+                req30.centerMode = 0;
+                req30.field_E    = 1;
+                func_8002E53C(&req30, text);
+                if (attr->field_4 == 0) {
+                    req60.x          = obj->baseX + 0x78;
+                    req60.y          = obj->baseY + y;
+                    req60.otIndex    = (s16)obj->drawOrder + 1;
+                    req60.field_8    = 0x606060;
+                    req60.glyphTable = 0;
+                    req60.centerMode = 2;
+                    req60.field_E    = 3;
+                    func_8002E53C(&req60, D_8009707C);
+                } else {
+                    req60.x          = obj->baseX + 0x7A;
+                    req60.y          = obj->baseY + y;
+                    req60.otIndex    = (s16)obj->drawOrder + 1;
+                    req60.field_8    = altColor;
+                    req60.glyphTable = 0;
+                    req60.centerMode = 2;
+                    req60.field_E    = 3;
+                    func_8002E53C(&req60, Text_ItoaSignedPlus(buf40, attr->field_4));
+                }
+                y += 0xF;
+
+                req60.x          = obj->baseX + x;
+                req60.y          = obj->baseY + (y - 2);
+                req60.otIndex    = (s16)obj->drawOrder + 1;
+                req60.glyphTable = 5;
+                req60.field_8    = 0x606060;
+                req60.centerMode = 0;
+                req60.field_E    = 1;
+                func_8002E53C(&req60, Gp_StrAddMp);
+                if (attr->field_6 == 0) {
+                    req70.x          = obj->baseX + 0x76 + x;
+                    req70.y          = obj->baseY + y;
+                    req70.otIndex    = (s16)obj->drawOrder + 1;
+                    req70.centerMode = 2;
+                    req70.field_8    = 0x606060;
+                    req70.glyphTable = 0;
+                    req70.field_E    = 3;
+                    func_8002E53C(&req70, D_8009707C);
+                } else {
+                    req70.x          = obj->baseX + 0x78 + x;
+                    req70.y          = obj->baseY + y;
+                    req70.otIndex    = (s16)obj->drawOrder + 1;
+                    req70.centerMode = 2;
+                    req70.field_8    = altColor;
+                    req70.glyphTable = 0;
+                    req70.field_E    = 3;
+                    func_8002E53C(&req70, Text_ItoaSignedPlus(buf40, attr->field_6));
+                }
+                y += 0xF;
+
+                req70.x          = obj->baseX + x;
+                req70.y          = obj->baseY + (y - 2);
+                req70.otIndex    = (s16)obj->drawOrder + 1;
+                req70.field_8    = 0x606060;
+                req70.glyphTable = 5;
+                req70.centerMode = 0;
+                req70.field_E    = 1;
+                func_8002E53C(&req70, Gp_StrAttachments3);
+                textColor        = 0;
+                req80.x          = obj->baseX + 0x78 + x;
+                req80.y          = obj->baseY + y;
+                req80.otIndex    = (s16)obj->drawOrder + 1;
+                y               += 0xF;
+                req80.centerMode = 2;
+                req80.field_8    = altColor;
+                req80.glyphTable = 0;
+                req80.field_E    = 3;
+                func_8002E53C(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
+                req90.x          = obj->baseX + x;
+                req90.y          = obj->baseY + (y - 2);
+                req90.otIndex    = (s16)obj->drawOrder + 1;
+                y               += 8;
+                req90.field_8    = 0x606060;
+                req90.glyphTable = 5;
+                req90.centerMode = 0;
+                req90.field_E    = 1;
+                func_8002E53C(&req90, Gp_StrSpecialFeat);
+                names = Gp_FeatNameTbl;
+                do {
+                    if (flags & 1) {
+                        reqA0.x          = obj->baseX + 8 + x;
+                        reqA0.y          = obj->baseY + y;
+                        reqA0.otIndex    = (s16)obj->drawOrder + 1;
+                        reqA0.field_8    = 0x606060;
+                        reqA0.glyphTable = 0;
+                        reqA0.centerMode = 0;
+                        reqA0.field_E    = 3;
+                        func_8002E53C(&reqA0, *names);
+                        featCount++;
+                        y += 0xB;
+                        if (featCount >= 2) {
+                            break;
+                        }
+                    }
+                    flags >>= 1;
+                    textColor++;
+                    names++;
+                } while (textColor < 0xD);
+                x                = obj->field_1C + 2;
+                reqB0.x          = obj->baseX + x;
+                reqB0.y          = obj->baseY + 0x40;
+                reqB0.otIndex    = (s16)obj->drawOrder + 1;
+                reqB0.glyphTable = 5;
+                reqB0.field_8    = 0x606060;
+                reqB0.centerMode = 0;
+                reqB0.field_E    = 1;
+                func_8002E53C(&reqB0, Gp_StrSpecialFeat);
+            } else {
+                idx = item - 0xA0;
+                if ((u32)idx < 0x20U) {
+                    descBase = Gp_ItemDescs;
+                    desc     = descBase + item;
+                    TOUCH_REG(desc);
+                    caliber          = desc->field_2 & 0xF;
+                    baseY            = (s16)obj->field_18;
+                    reqB0.x          = obj->baseX + 2;
+                    reqB0.y          = obj->baseY + baseY + 0x1C;
+                    reqB0.otIndex    = (s16)obj->drawOrder + 1;
+                    reqB0.glyphTable = 5;
+                    textColor        = 0x606060;
+                    reqB0.field_8    = textColor;
+                    reqB0.centerMode = 0;
+                    reqB0.field_E    = 1;
+                    func_8002E53C(&reqB0, Gp_CaliberNameTbl[caliber]);
+                    recBase  = Gp_IdParamLo;
+                    recIndex = item - 0x9F;
+                    rec      = recBase + recIndex;
+                    Text_ItoaSigned(bufC0, rec->field_0);
+                    y                 = baseY + 0x2D;
+                    req100.x          = obj->baseX + 2;
+                    req100.y          = obj->baseY + (y - 2);
+                    req100.otIndex    = (s16)obj->drawOrder + 1;
+                    req100.glyphTable = 5;
+                    req100.field_8    = textColor;
+                    req100.centerMode = 0;
+                    req100.field_E    = 1;
+                    func_8002E53C(&req100, Gp_StrPowerCaps);
+                    req110.x          = obj->baseX + 0x4C;
+                    req110.y          = obj->baseY + y;
+                    req110.otIndex    = (s16)obj->drawOrder + 1;
+                    req110.field_8    = textColor;
+                    req110.glyphTable = 0;
+                    req110.centerMode = 0;
+                    req110.field_E    = 3;
+                    func_8002E53C(&req110, bufC0);
+                    Text_ItoaSigned(bufC0, Gp_ScanStackQty(&Mc_SaveData.field_5BC, item));
+                    Text_ItoaSigned(bufE0, Gp_StackLimits[idx].field_2);
+                    Text_Strcat(bufC0, Gp_StrSlash);
+                    Text_Strcat(bufC0, bufE0);
+                    y                 = baseY + 0x3C;
+                    req120.x          = obj->baseX + 2;
+                    req120.y          = obj->baseY + (y - 2);
+                    req120.otIndex    = (s16)obj->drawOrder + 1;
+                    req120.glyphTable = 5;
+                    req120.field_8    = textColor;
+                    req120.centerMode = 0;
+                    req120.field_E    = 1;
+                    func_8002E53C(&req120, Gp_StrCapacity);
+                    req130.x          = obj->baseX + 0x4C;
+                    req130.y          = obj->baseY + y;
+                    req130.otIndex    = (s16)obj->drawOrder + 1;
+                    req130.field_8    = textColor;
+                    req130.glyphTable = 0;
+                    req130.centerMode = 0;
+                    req130.field_E    = 3;
+                    func_8002E53C(&req130, bufC0);
+                    y = baseY + 0x4B;
+                    if (rec->field_4 != 0) {
+                        req140.x          = obj->baseX + 2;
+                        req140.y          = obj->baseY + (y - 2);
+                        req140.otIndex    = (s16)obj->drawOrder + 1;
+                        req140.glyphTable = 5;
+                        req140.field_8    = textColor;
+                        req140.centerMode = 0;
+                        req140.field_E    = 1;
+                        func_8002E53C(&req140, Gp_StrSpecial);
+                        req150.x          = obj->baseX + 0x4C;
+                        req150.y          = obj->baseY + y;
+                        req150.otIndex    = (s16)obj->drawOrder + 1;
+                        req150.field_8    = 0xD287F;
+                        req150.glyphTable = 0;
+                        req150.centerMode = 0;
+                        req150.field_E    = 3;
+                        func_8002E53C(&req150, D_8010E7C0[rec->field_4]);
+                    }
+                    x                 = obj->field_1C + 2;
+                    req140.x          = obj->baseX + x;
+                    req140.y          = obj->baseY + 0x40;
+                    req140.otIndex    = (s16)obj->drawOrder + 1;
+                    req140.glyphTable = 5;
+                    req140.field_8    = textColor;
+                    req140.centerMode = 0;
+                    req140.field_E    = 1;
+                    func_8002E53C(&req140, Gp_StrApplicableWpn);
+                }
+            }
+        } else {
+            func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags | 0x100);
+        }
+        titleColor = 0x606060;
+        titleY     = (s16)obj->field_18 + 0xF;
+        titleReq   = &req30;
+        if (obj->mode != 5) {
+            req30.x           = obj->baseX + 0x13;
+            req30.y           = obj->baseY + (titleY - 6);
+            req30.otIndex     = (s16)obj->drawOrder + 1;
+            titleReq->field_8 = titleColor;
+            req30.glyphTable  = 0;
+            req30.centerMode  = 0;
+            titleReq->field_E = 1;
+            func_8002E53C(titleReq, Gp_GetItemText(item, 0, 0));
+            if ((u32)(item - 0xF) < 0x24U) {
+                func_800C2538(obj, 2, titleY, ((item - 0xF) % 3) + 1, titleColor);
+            }
+            Gp_DrawItemIcon(obj, 2, titleY, item, 0);
+        }
+        if ((obj->status == 1) && (CdCmd_IsIdle() & 0xFFFF)) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm | 0x10) != 0) {
+                if (!(arg0->spawnArg1 & 0x20000)) {
+                    SndEvt_EnqueueType6(4, 0, 0);
+                }
+                GameMain_SetFrameTiming(0);
+                obj->field_2E = 6;
+            } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                GameMain_SetFrameTiming(0);
+                obj->field_2E = -1;
+            }
+        }
+    }
+}
 
 void Gp_UseKeyItemRow(Task* arg0)
 {

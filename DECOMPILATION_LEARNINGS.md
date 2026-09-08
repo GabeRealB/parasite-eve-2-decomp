@@ -55662,3 +55662,53 @@ until the following `0xFFFF` store used an unsigned halfword view:
 `-1`, preventing constant reuse. The unsigned view preserved the shared
 `0xFFFF`, fixed the final sum/counter allocation too, and reached 100% without
 pins or empty asm. Keep the shared field type unchanged; use the cast locally.
+
+
+### A spilled draw counter can increment after the call in C and before it in MIPS
+
+`func_800C5F70` reached 99.759% with its feature counter increment before
+`func_8002E53C`. The remaining counter difference was only the stack store:
+`sw t7,0x160(sp)` appeared before the draw-order `lh`, but the target stored
+after that load. `.sched` showed the pseudo increment filling the earlier
+Y-coordinate load delay; `.greg` inserted its reload/store there, and
+`.sched2` kept the spill store ahead of the later object read because they
+might alias.
+
+Writing the increment **after the draw call** fixed the sequence:
+
+```c
+func_8002E53C(&req, *names);
+featCount++;
+y += 0xB;
+if (featCount >= 2) {
+    break;
+}
+```
+
+GCC 2.8.1 moved the register increment back across the call during sched1.
+Its different original instruction position let it win a scheduling tie
+against the request-pointer setup. Reload and sched2 then produced the target
+load/increment/store interleave. Moving the increment among the preceding
+request-field assignments did not fix it. Adding uses of the counter raised
+its global allocation priority and spilled the flags variable instead.
+
+### A descriptor keep-live fence and a read/write fence allocate differently
+
+In the same function's ammunition block, splitting the table base and selected
+record retained the target base-before-index address sequence:
+
+```c
+descBase = Gp_ItemDescs;
+desc = descBase + item;
+TOUCH_REG(desc);
+caliber = desc->field_2 & 0xF;
+```
+
+The volatile fence kept the following color `lui` after the descriptor address.
+`SOFT_USE_REG(desc)` produced the same instructions but allocated the address
+and base in reversed registers. `.lreg` showed that the input-only form let the
+address share the following byte-load quantity. `TOUCH_REG(desc)` changed that
+quantity's allocation and reached 100% without hard-register pins. An earlier
+`TOUCH_REG_USE(drawPayload, x)` kept the X coordinate's allocation ahead of the
+reused text-color local. The eligible unpinned variant was also run through the
+permuter before the final manual register fix.

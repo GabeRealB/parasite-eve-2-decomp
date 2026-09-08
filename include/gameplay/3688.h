@@ -250,6 +250,27 @@ void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 u8   Gp_GetMapRoomId(void);
 s32  func_800D4D2C(s32 arg0);
 
+/// Item specification panel task, its list, and display text.
+extern u8     D_8009707C[];
+extern UiList D_8010E910;
+extern u8*    D_8010E7C0[];
+extern u8*    Gp_CaliberNameTbl[];
+extern u8*    Gp_FeatNameTbl[];
+extern u8     Gp_StrAddHp[];
+extern u8     Gp_StrAddMp[];
+extern u8     Gp_StrApplicableWpn[];
+extern u8     Gp_StrAttachments3[];
+extern u8     Gp_StrCapacity[];
+extern u8     Gp_StrNextReplay[];
+extern u8     Gp_StrOperation[];
+extern u8     Gp_StrPowerCaps[];
+extern u8     Gp_StrSpecial[];
+extern u8     Gp_StrSpecialFeat[];
+extern u8     Gp_StrSpecs[];
+
+void func_800C5F70(Task* arg0);
+void func_800CF330(Task* arg0);
+
 // Functions defined in this module but not previously declared anywhere.
 // Without a prototype m2c cannot type a call to them and the decompiled
 // seed fails to compile ('invalid use of void expression') - the single
