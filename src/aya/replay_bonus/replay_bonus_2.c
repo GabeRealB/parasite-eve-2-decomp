@@ -536,7 +536,147 @@ void func_replay_bonus_80117DE0(u8 arg0)
     D_replay_bonus_801192AC = 0x7F - (arg0 >> 1);
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_80117E04);
+void func_replay_bonus_80117E04(void)
+{
+    s32                          start;
+    s32                          i;
+    s32                          end;
+    s32                          count;
+    s32                          n;
+    s32                          scrollY;
+    s32                          visEnd;
+    s32                          y;
+    s32                          rgb;
+    s32                          code;
+    u8                           wait;
+    volatile ReplayBonusStfLine* line;
+    LINE_F2*                     lf2;
+    SPRT*                        sprt;
+    DR_TPAGE*                    tpage;
+
+    start                   = 0;
+    i                       = start;
+    count                   = D_replay_bonus_801192A0;
+    D_replay_bonus_801192B4 = 0;
+    D_replay_bonus_801192C0 =
+        Gpu_PrimHeapBase + Gpu_PrimHeapSize + (D_replay_bonus_80119224 << 16);
+    D_replay_bonus_80119224 ^= 1;
+    end                      = count - 1;
+
+    if (count > 0) {
+        n       = count;
+        line    = D_replay_bonus_80119298;
+        scrollY = D_replay_bonus_801192A4;
+        visEnd  = scrollY + 0x1E0;
+        do {
+            if (line->y < scrollY) {
+                start = 0;
+                if (i != 0) {
+                    start = i - 1;
+                }
+            }
+            if (visEnd < line->y) {
+                end = i;
+                break;
+            }
+            i++;
+            line++;
+        } while (i < n);
+        i = start;
+    }
+
+    for (; i < end + 1; i++) {
+        lf2                      = (LINE_F2*)(D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
+        D_replay_bonus_801192B4 += 0x10;
+        setLineF2(lf2);
+        y       = D_replay_bonus_80119298[i].y - (D_replay_bonus_801192A4 & 0xFFFFFE) - 0xF0;
+        lf2->x0 = -0x140;
+        lf2->x1 = 0x140;
+        lf2->r0 = 0x40;
+        lf2->g0 = 0x80;
+        lf2->b0 = 0x40;
+        lf2->y0 = y;
+        lf2->y1 = y;
+        func_replay_bonus_801183B8(y, D_replay_bonus_80119298[i].unk0);
+    }
+
+    tpage          = Gpu_PrimCursor;
+    Gpu_PrimCursor = tpage + 1;
+    setDrawTPage(tpage, 0, 1, 0);
+    addPrim(Gpu_CurrentOt + 10, tpage);
+
+    if (D_replay_bonus_80119225 != 2) {
+        sprt           = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+        setSprt(sprt);
+        sprt->x0 = D_replay_bonus_801192B8 - 0x140;
+        sprt->y0 = -0x8C;
+        sprt->w  = 0xF0;
+        sprt->h  = 0xB0;
+        sprt->r0 = D_replay_bonus_801192AC;
+        sprt->g0 = D_replay_bonus_801192AC;
+        sprt->b0 = D_replay_bonus_801192AC;
+        sprt->u0 = 0;
+        sprt->v0 = 0;
+        addPrim(Gpu_CurrentOt + 11, sprt);
+
+        tpage          = Gpu_PrimCursor;
+        Gpu_PrimCursor = tpage + 1;
+        setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, D_replay_bonus_80119226 << 8));
+        addPrim(Gpu_CurrentOt + 11, tpage);
+        return;
+    }
+
+    code           = 0x64;
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    setlen(sprt, 4);
+    setcode(sprt, code);
+    rgb      = (D_replay_bonus_801192AC * (0x78 - D_replay_bonus_80119227)) / 120;
+    sprt->x0 = D_replay_bonus_801192B8 - 0x140;
+    sprt->y0 = -0x8C;
+    sprt->w  = 0xF0;
+    sprt->h  = 0xB0;
+    sprt->u0 = 0;
+    sprt->v0 = 0;
+    setSemiTrans(sprt, 1);
+    sprt->r0 = rgb;
+    sprt->g0 = rgb;
+    sprt->b0 = rgb;
+    addPrim(Gpu_CurrentOt + 11, sprt);
+
+    tpage          = Gpu_PrimCursor;
+    Gpu_PrimCursor = tpage + 1;
+    setDrawTPage(tpage, 0, 1, getTPage(2, 1, 0x280, D_replay_bonus_80119226 << 8));
+    addPrim(Gpu_CurrentOt + 11, tpage);
+
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    setlen(sprt, 4);
+    setcode(sprt, code);
+    rgb      = (D_replay_bonus_801192AC * D_replay_bonus_80119227) / 120;
+    sprt->x0 = D_replay_bonus_801192B8 - 0x140;
+    sprt->y0 = -0x8C;
+    sprt->w  = 0xF0;
+    sprt->h  = 0xB0;
+    sprt->u0 = 0;
+    sprt->v0 = 0;
+    sprt->r0 = rgb;
+    sprt->g0 = rgb;
+    sprt->b0 = rgb;
+    addPrim(Gpu_CurrentOt + 11, sprt);
+
+    tpage          = Gpu_PrimCursor;
+    Gpu_PrimCursor = tpage + 1;
+    setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, (D_replay_bonus_80119226 ^ 1) << 8));
+    addPrim(Gpu_CurrentOt + 11, tpage);
+
+    wait                    = D_replay_bonus_80119227 - 1;
+    D_replay_bonus_80119227 = wait;
+    if (!(wait & 0xFF)) {
+        D_replay_bonus_80119225 = 0;
+    }
+}
 
 INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_801183B8);
 

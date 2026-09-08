@@ -125,6 +125,14 @@ extern s32 D_replay_bonus_801192A4;
 extern s32 D_replay_bonus_801192A8;
 /// Frame counter incremented while the credits draw.
 extern s32 D_replay_bonus_801192B0;
+/// Credits primitive-buffer selector and current buffer address.
+extern u8     D_replay_bonus_80119224;
+extern size_t D_replay_bonus_801192C0;
+/// Bytes allocated in the current credits primitive buffer.
+extern s32 D_replay_bonus_801192B4;
+/// Stream sprite brightness and horizontal position.
+extern u8  D_replay_bonus_801192AC;
+extern u16 D_replay_bonus_801192B8;
 
 /// The list of item ids the replay-bonus screen offers. `func_replay_bonus_80115D60`
 /// fills `itemIds` (one `s16` per unlocked item); `func_replay_bonus_801175D0` and
@@ -174,6 +182,7 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx);
 void func_replay_bonus_80115ED0(Task* arg0);
 s32  func_replay_bonus_801173A8(void);
 void func_replay_bonus_80117E04(void);
+void func_replay_bonus_801183B8(s32 y, void* str);
 s32  func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
 void func_replay_bonus_80118F00(s32 arg0);
 s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);
