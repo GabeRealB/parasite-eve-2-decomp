@@ -56655,3 +56655,51 @@ now-independent `sb` is the first ready insn after the load. Rule of thumb:
 when a load-delay nop sits in front of a store through a freshly loaded
 pointer, the fix is a local for the pointer, not a reordering of the stores.
 `func_actor_101200_80135BE0` is the example.
+
+## Call arguments loaded above an aliasing store need their own locals
+
+A dispatcher copied a 3-entry table onto the stack, borrowed a scratch buffer
+and called through the table:
+
+```c
+sp      = D_actor_101100_80131E24;
+scratch = (u8*)(SCRATCH_SP -= 0x68);
+scratch[0x64] = 0;
+sp.funcs[task->state](task->spawnArg2, task, task->idMap, scratch);
+```
+
+That puts every load of `task` after the `sb`, because sched1 will not lift a
+load above a store through an unknown pointer. The target instead had
+`lw a0, 0x20(a1)` and `lw a2, 0x1C(a1)` *above* the scratch store, with only
+`lw v0, 0x30(a1)` — the table index — left below it, stalling on a load-delay
+nop:
+
+```
+lw   a0, 0x20(a1)     ; arg 1
+lw   a3, 0x0(s0)      ; SCRATCH_SP
+lw   a2, 0x1C(a1)     ; arg 3
+addiu a3, a3, -0x68
+sw   a3, 0x0(s0)
+sb   zero, 0x64(a3)
+lw   v0, 0x30(a1)     ; sp.funcs[task->state]
+nop
+```
+
+Reordering statements cannot produce that split: `expand_call` expands the
+function address (`calls.c:1609`) *before* it stores any argument
+(`store_one_arg`, `calls.c:1749`), so within one call expression the index load
+always precedes the argument loads. Giving the arguments their own locals ahead
+of the store is what separates them:
+
+```c
+enemy   = task->spawnArg2;
+work    = task->idMap;
+scratch = (u8*)(SCRATCH_SP -= 0x68);
+scratch[0x64] = 0;
+sp.funcs[task->state](enemy, task, work, scratch);
+```
+
+Same rule as "sched1 will not lift a load above an earlier store": when the
+target loads a call argument *before* a store the call statement follows, the
+argument was a local in the original source. `func_actor_101100_80138374` is
+the example.
