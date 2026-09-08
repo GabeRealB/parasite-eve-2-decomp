@@ -133,6 +133,7 @@ extern u_long D_80060910[];
 /// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
 extern u_long D_800609B0[];
 /// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
-extern SPRT D_80071710;
+extern SPRT     D_80071710;
+extern DR_TPAGE D_80071728;
 
 #endif // TEXT_H

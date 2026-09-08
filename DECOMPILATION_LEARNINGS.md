@@ -55199,3 +55199,31 @@ retains its `move $v0,$v1`; directing the first null check to the existing final
 The archived seed's sentinel comparisons already matched on this retry; its
 remaining hoist was the phase address, despite the earlier corpus entry's
 sentinel-focused diagnosis. All scratch penalties reached zero in `base_12.c`.
+
+
+## Text drawing: loop entry placement and texture-page selection (`func_8002E53C`)
+
+A backslash-command loop needs the initial `ptr++` inside the `do` body. GCC
+then hoists the nested font-selection jump-table address ahead of that increment,
+and the delay-slot pass duplicates the increment onto the back edge and cancels
+it on exit. Putting the first increment before the loop and spelling out the
+exit decrement gives equivalent C behavior but loads the table address two
+instructions too late. `.loop`, `.cse2`, and `.jump2` show this distinction.
+
+For the final texture-page word, plain `if`/`else` constant assignment becomes a
+speculative default assignment in the first `.jump` pass and loses the target's
+unconditional jump. Initialize `tpage = 0xE1000000`, then use
+`SOFT_TOUCH_REG(tpage)` before `tpage |= 0x25F` / `tpage |= 0x23F` in the two
+branches. This preserves the branch shape while allowing the shared `lui` into
+the conditional branch delay slot and the first `ori` into the jump delay slot.
+Touching the completed constants instead prevents that `ori` from filling the
+slot. No hard-register pins are needed.
+
+The uncorrected scratch target scored 99.773% despite identical instruction
+order: global `jlabel` targets produced seven PC16 branch penalties, and local
+jump / table relocation names produced seventeen register penalties. The
+documented scratch-local-label repair plus recognizing `D_8001381C` as a jump
+table gives 100%. Preserve the original target and validate with the actual build.
+All four generated tables belong after `Text_MeasureGlyphWidth` in `textdraw`
+rodata; move the plain `textdraw_1` rodata cut from 0x3E1C to 0x40BC, where the
+number-formatting strings begin.

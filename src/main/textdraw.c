@@ -212,7 +212,242 @@ void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
 }
 
-INCLUDE_ASM("main/nonmatchings/textdraw", func_8002E53C);
+void func_8002E53C(TextDrawReq* arg0, u8* arg1)
+{
+    TextDrawReq* ctx;
+    u8*          ptr;
+    u8*          table;
+    FontGlyph*   glyph;
+    void         (*draw)();
+    s32          color;
+    s32          prev9;
+    s32          width;
+    s32          ch;
+    u8           c;
+    s32          end_flag;
+    s32          idx;
+    s32          temp;
+    DR_TPAGE*    dr;
+    u32          tpage;
+
+    ctx   = arg0;
+    ptr   = arg1;
+    prev9 = 0;
+    SOFT_TOUCH_REG3(ctx, ptr, prev9);
+    color      = ctx->field_8;
+    ctx->vBias = 0;
+    switch (ctx->glyphTable) {
+        case 0:
+            table      = Font_Glyphs0;
+            ctx->vBias = 0x26;
+            break;
+        case 5:
+            table      = Font_Glyphs2;
+            ctx->vBias = 0;
+            break;
+        default:
+            table             = Font_Glyphs1;
+            *(s8*)&ctx->vBias = -128;
+            break;
+    }
+    switch (ctx->centerMode) {
+        case 1:
+            width   = Text_MeasureGlyphWidth(ctx, arg1, table);
+            ctx->x -= width >> 1;
+            break;
+        case 2:
+            width   = Text_MeasureGlyphWidth(ctx, arg1, table);
+            ctx->x -= width;
+            break;
+    }
+    switch ((s32)ctx->field_E) {
+        case 1:
+            draw = Text_DrawGlyphDualSprt;
+            break;
+        case 2:
+            draw = Text_DrawGlyphDualSprtTpage;
+            break;
+        case 3:
+            draw = Text_DrawGlyphDualSprtA;
+            break;
+        case 4:
+            draw = Text_DrawGlyphOt;
+            break;
+        case 16:
+            dr = &D_80071728;
+            setlen(dr, 1);
+            dr->code[0] = 0xE100023F;
+            DrawPrim(dr);
+            draw = Text_DrawGlyphImmediate;
+            break;
+        case 0:
+        default:
+            draw = Text_DrawGlyphQueued;
+            break;
+    }
+    while ((c = *ptr) != 0 && c != 10 && c != 13) {
+        end_flag = 0;
+        if (c == 0x5C) {
+            do {
+                ptr++;
+                switch (*ptr) {
+                    case 'C':
+                    case 'c':
+                        ptr++;
+                        switch (*ptr) {
+                            case 'W':
+                            case 'w':
+                                color = 0x606060;
+                                break;
+                            case 'Y':
+                            case 'y':
+                                color = 0x037A78;
+                                break;
+                            case 'O':
+                            case 'o':
+                                color = 0x0D287F;
+                                break;
+                            case 'G':
+                            case 'g':
+                                color = 0x01741F;
+                                break;
+                            case 'H':
+                            case 'h':
+                                color = 0x38443C;
+                                break;
+                            case 'C':
+                            case 'c':
+                                color = 0x808008;
+                                break;
+                            case 'R':
+                            case 'r':
+                                color = 0x001666;
+                                break;
+                        }
+                        ptr++;
+                        break;
+                    case 'S':
+                    case 's':
+                        ptr++;
+                        switch (*ptr) {
+                            case 'S':
+                            case 's':
+                                table      = Font_Glyphs2;
+                                ctx->vBias = 0;
+                                break;
+                            case 'M':
+                            case 'm':
+                                table      = Font_Glyphs0;
+                                ctx->vBias = 0x26;
+                                break;
+                            case 'L':
+                            case 'l':
+                                table             = Font_Glyphs1;
+                                *(s8*)&ctx->vBias = -128;
+                                break;
+                        }
+                        ptr++;
+                        break;
+                    case 'W':
+                    case 'w':
+                        ptr++;
+                        switch (*ptr) {
+                            case '0':
+                                ctx->field_E = 3;
+                                draw         = Text_DrawGlyphDualSprtA;
+                                break;
+                            case '1':
+                                ctx->field_E = 1;
+                                draw         = Text_DrawGlyphDualSprt;
+                                break;
+                        }
+                        ptr++;
+                        break;
+                    case 'U':
+                    case 'u':
+                        ptr++;
+                        if ((u32)(*ptr - '0') < 10)
+                            ctx->y -= *ptr - '0';
+                        ptr++;
+                        break;
+                    case 'D':
+                    case 'd':
+                        ptr++;
+                        if ((u32)(*ptr - '0') < 10)
+                            ctx->y += *ptr - '0';
+                        ptr++;
+                        break;
+                    case 'B':
+                    case 'b':
+                        ptr++;
+                        if ((u32)(*ptr - '0') < 10) {
+                            SOFT_COMPILER_BARRIER();
+                            ctx->x = (*ptr - '0') * 8;
+                        }
+                        ptr++;
+                        break;
+                    case 'N':
+                    case 'n':
+                        end_flag = 1;
+                        break;
+                }
+                ch = *ptr;
+                if (ch != 0 && ch != 10 && ch != 13)
+                    goto check_bs;
+                end_flag = 1;
+                SOFT_COMPILER_BARRIER();
+                ch = *ptr;
+            check_bs:
+                if (ch != 0x5C)
+                    break;
+            } while (1);
+        }
+        if (end_flag != 0)
+            break;
+        if (*ptr < 0x20) {
+            ptr++;
+            continue;
+        }
+        idx   = *ptr - 0x20;
+        glyph = (FontGlyph*)(table + idx * 12);
+        temp  = prev9;
+        temp += glyph->field_8;
+        temp += 1;
+        if ((u8)temp >= 3U) {
+            if (ctx->glyphTable == 5)
+                ctx->x -= 1;
+            else
+                ctx->x -= 2;
+        }
+        prev9 = glyph->field_9;
+        draw(ctx, glyph, color);
+        ptr++;
+        ctx->x += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
+        ctx->y += (s8)glyph->field_7;
+    }
+    if (ctx->field_E == 1 || ctx->field_E == 3) {
+        dr             = Gpu_PrimCursor;
+        Gpu_PrimCursor = dr + 1;
+        dr->code[0]    = 0xE100025F;
+        setlen(dr, 1);
+        addPrim(Gpu_CurrentOt + ctx->otIndex + 1, dr);
+    }
+    if (ctx->field_E != 16) {
+        tpage = 0xE1000000;
+        if (ctx->field_E == 4) {
+            SOFT_TOUCH_REG(tpage);
+            tpage |= 0x25F;
+        } else {
+            SOFT_TOUCH_REG(tpage);
+            tpage |= 0x23F;
+        }
+        dr             = Gpu_PrimCursor;
+        Gpu_PrimCursor = dr + 1;
+        dr->code[0]    = tpage;
+        setlen(dr, 1);
+        addPrim(Gpu_CurrentOt + ctx->otIndex, dr);
+    }
+}
 
 u8* Text_FormatTime(u8* arg0, s32 arg1)
 {
