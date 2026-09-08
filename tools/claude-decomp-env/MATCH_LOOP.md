@@ -17,7 +17,7 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 | leftover | file | what to do |
 |---|---|---|
 | `insert` / `delete` / `branch` ≠ 0 | `.jump` `.jump2` | Control flow is still wrong. Fix C shape. Pins and the permuter will not finish this. |
-| `regs` | `.lreg` `.greg` | Shorten the loser's live range, **split a reused local**, or **unpin**. |
+| `regs` | `.lreg` `.greg` | **Check the suggestion first**, with `lregwalk.py`: is the value the direct result or operand of something whose output is a hard register? Measured over 98 dumps, the priority ratio orders only 66% of same-block pairs and 38% are exact ties — the rest is the suggestion pass, and inversions cluster on `$v0`. To move a value out of `$v0`, break the suggestion (name an intermediate, move where it is consumed). Only then shorten the loser's live range, **split a reused local**, or **unpin**. `CODEGEN_MODEL.md` §10.5. |
 | `reorder` | `.sched` `.sched2` `.dbr` | Statement order and delay slots (store vs `mflo`/`lbu`/`jal`). |
 | `stack` | extra locals / frame | Split or shrink locals. |
 | fused const, `lb` vs `lh`, dropped `andi` | `.cse` `.cse2` `.combine` | |

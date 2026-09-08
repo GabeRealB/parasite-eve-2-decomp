@@ -37,6 +37,7 @@ Follow **Matching loop** below (also `MATCH_LOOP.md` in this directory). First `
 
 - `./build.sh <file>.c` — compile and score against `target.o` (penalty mix; auto-dumps at ≥90%; prints **NEXT:** dump files)
 - `./dump.sh <file>.c` — cc1 `-da -dp`; prints `.lreg`/`.greg`/`.dbr` summary + dump-delta
+- `python3 lregwalk.py <file>.i.lreg [pseudo ...]` — per block, the insns in local-alloc's order with their `set` destinations and `REG_DEAD` notes; the tying, suggestions and birth order the `.lreg` header lines do not show
 - `MATCH_LOOP.md` — dump / pin / permuter / verify loop (concatenated below)
 - `./objdump.py <file>.o`
 - `./diff.sh <file>.o`
