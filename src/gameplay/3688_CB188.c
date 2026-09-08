@@ -2998,7 +2998,100 @@ s8 func_800D1434(u32 roomId, u8 flagId)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D15D0);
+void func_800D15D0(Task* arg0)
+{
+    UiObject* obj;
+    u8*       flagIds;
+    SPRT*     p;
+    DR_TPAGE* dr;
+    DR_TPAGE* rightDr;
+    s32       i;
+    s32       lum;
+    s8        ret;
+    u8        stage;
+
+    stage   = Game_Session->field_7;
+    obj     = arg0->spawnArg2;
+    flagIds = Gp_MapFlagIds[stage - 1];
+    if (stage == 5) {
+        return;
+    }
+    if (flagIds[Gp_MapRoomId] == 0xFF) {
+        return;
+    }
+
+    i = Gp_MapRoomId - 1;
+    while ((u8)i != 0) {
+        if (flagIds[(u8)i] == 0) {
+            break;
+        }
+        if (flagIds[(u8)i] == 0xFF) {
+            break;
+        }
+        ret = func_800D1434((u8)i, flagIds[(u8)i]);
+        if (ret == 1) {
+            p              = (SPRT*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+            lum            = (rsin(Display_State.field_14 << 5) + 0x1000) >> 5;
+            if (lum == 0x100) {
+                lum = 0xFF;
+            }
+            *(u32*)&p->r0 = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            setlen(p, 4);
+            setcode(p, 0x66);
+            p->clut = GetClut(0x50, 0x101);
+            p->u0   = 0x88;
+            p->w    = 8;
+            p->h    = 0x10;
+            p->x0   = -0x89;
+            p->v0   = 0;
+            p->y0   = -7;
+            addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], p);
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
+            setDrawTPage(dr, 0, 0, 0xE);
+            addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], dr);
+            break;
+        }
+        i--;
+    }
+
+    i = Gp_MapRoomId + 1;
+    while ((u8)i <= D_8010F130[Game_Session->field_7 - 1]) {
+        if (flagIds[(u8)i] == 0) {
+            return;
+        }
+        if (flagIds[(u8)i] == 0xFF) {
+            return;
+        }
+        ret = func_800D1434((u8)i, flagIds[(u8)i]);
+        if (ret == 1) {
+            p              = (SPRT*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+            lum            = (rsin(Display_State.field_14 << 5) + 0x1000) >> 5;
+            if (lum == 0x100) {
+                lum = 0xFF;
+            }
+            *(u32*)&p->r0 = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            setlen(p, 4);
+            setcode(p, 0x66);
+            p->clut = GetClut(0x50, 0x101);
+            p->u0   = 0x80;
+            p->w    = 8;
+            p->h    = 0x10;
+            p->x0   = 0x82;
+            p->v0   = 0;
+            p->y0   = -7;
+            addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], p);
+            rightDr        = Gpu_PrimCursor;
+            Gpu_PrimCursor = rightDr + 1;
+            setDrawTPage(rightDr, 0, 0, 0xE);
+            addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], rightDr);
+            return;
+        }
+        i++;
+    }
+}
 
 void Gp_HelpPanelTask(Task* arg0)
 {

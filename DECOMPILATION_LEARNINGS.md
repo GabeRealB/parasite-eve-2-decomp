@@ -55009,3 +55009,22 @@ This case distinguishes two causes of a register mismatch: overlapping
 lifetimes before a branch, and a local-to-global allocation change after
 splitting the block. Compare both `.lreg` and `.greg`; the final instruction
 order alone hides which conflict caused the extra copy.
+
+## Split independent draw-page pointers to restore local allocation
+
+`func_800D15D0` started at 95.377% with `stack=16 branch=0 regs=44
+reorder=4 insert=4 delete=4`. Both arrow-drawing blocks reused one
+`DR_TPAGE* dr`. Its `.lreg` entry had 28 uses across 56 instructions in
+multiple blocks, and `.greg` assigned it `$a3`. The draw-page cursor load
+was scheduled early, and the final OT-link mask used another temporary.
+
+Giving the right arrow its own `DR_TPAGE* rightDr` produced 100.000%
+with every penalty zero, without pins or barriers. The two pointers now
+have 14 uses across 26 instructions each, confined to blocks 9 and 18;
+neither appears in the global-allocation list. Local allocation also
+restored the separated `lui`/`ori` tpage constant and cursor-load ordering.
+
+Read the actual insertion/deletion sites alongside `.jump`/`.jump2`: in
+this case they represented moved instructions, while the loop branches
+already matched. A reused local spanning independent blocks can disturb
+both allocation and scheduling even when its two values never overlap.
