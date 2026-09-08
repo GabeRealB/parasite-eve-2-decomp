@@ -19,9 +19,12 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -58,6 +61,9 @@ extern TaskFuncTable3 Gp_StageLoadStates;
 extern TaskFuncTable3 D_80093A38;
 extern TaskFuncTable3 D_80093A5C;
 extern TaskDesc       D_80115D9C[];
+extern UiObjectDesc   D_8010D348;
+extern UiObjectDesc   D_8010D6D8;
+extern UiObjectDesc   D_8010F010;
 extern TaskDesc       D_80119218[];
 extern TaskDesc       D_8011922C[];
 extern TaskDesc       D_801637C8[];
@@ -3408,7 +3414,130 @@ s32 Gp_LookupBit2Item(s32 arg0)
     return found;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B65B0);
+void func_800B65B0(Task* task)
+{
+    GpPickupWork* work;
+    UiObjectDesc* desc;
+    UiObject*     ui;
+    UiObject*     spawned;
+    Task*         child;
+    GpCoordYaw*   coord;
+    WipSysPos*    p;
+    s32           temp;
+    s32           angle;
+    WipSysConfig* cfg;
+    McSaveData*   save;
+    s32           id;
+    s32           shift;
+    u32           mask;
+    u32*          flags;
+    u32*          current;
+
+    work = task->spawnArg2;
+    if (task->state == 0) {
+        GameMain_SetFrameTiming(0);
+        if (Gp_LookupBit2Item(work->field_0) == 0) {
+            work->field_3 = 0;
+            work->field_2 = 1;
+            Task_Kill(task);
+            return;
+        }
+        switch (Gp_PubItemLoc >> 8) {
+            case 0:
+            case 1:
+                desc = &D_8010F010;
+                break;
+            case 8:
+                coord      = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                temp       = coord->field_18;
+                p          = &Wip_SysConfig.field_10;
+                p->field_0 = temp;
+                p->field_2 = coord->field_1C;
+                p->field_4 = coord->field_20;
+                angle      = ratan2(coord->field_8, coord->field_14);
+                p->field_6 = angle;
+                if ((s16)angle >= 0x801) {
+                    p->field_6 = angle - 0x1000;
+                } else if ((s16)angle < -0x800) {
+                    p->field_6 = angle + 0x1000;
+                }
+                Display_State.field_11e = 0xFF;
+                cfg                     = &Wip_SysConfig;
+                save                    = &Mc_SaveData;
+                save->field_14          = cfg->field_8;
+                save->field_18          = cfg->field_C;
+                save->field_12          = Gp_PubItemLoc;
+                Display_InitPrimBufOnce();
+                desc = &D_8010D348;
+                break;
+            default:
+                Display_InitPrimBufOnce();
+                desc = &D_8010D6D8;
+                break;
+        }
+        work->field_3 = 0;
+        if (D_80114DDE & 0x200) {
+            work->field_4 = 0;
+        } else {
+            work->field_4 = 1;
+        }
+        spawned = Ui_SpawnFromDesc(desc, (s8)(work->field_4 ^ 1), 1, 1, NULL);
+        if (spawned != NULL) {
+            task->firstChild = spawned->owner;
+            task->state++;
+        }
+    }
+    if (task->state < 0x10) {
+        child = task->firstChild;
+        if (child != NULL) {
+            ui = child->spawnArg2;
+            if (ui->field_2E == -1 || ui->field_2E == 6) {
+                switch (Gp_PubItemLoc >> 8) {
+                    case 0:
+                    case 1:
+                        if (ui->field_2C == 0x33) {
+                            id      = work->field_0;
+                            current = Gp_Bit2Banks[Game_Session->field_7].field_4 + (id >> 4);
+                            shift   = (id & 0xF) * 2;
+                            mask    = 3 << shift;
+                            if (((*current & mask) >> shift) != 3) {
+                                flags  = Gp_Bit2Banks[Mc_SaveData.field_7].field_4 + (id >> 4);
+                                *flags = (*flags & ~mask) | (2 << shift);
+                            }
+                            work->field_3 = 1;
+                        } else {
+                            work->field_3 = 0;
+                        }
+                        break;
+                    case 8:
+                        if (ui->field_2C == 0x33) {
+                            work->field_3 = 1;
+                        } else {
+                            work->field_3 = 0;
+                        }
+                        break;
+                    default:
+                        work->field_3 = 0;
+                        break;
+                }
+                Ui_TeardownTree(ui, ui->owner);
+                task->state = 0x10;
+            }
+        }
+    }
+    if (task->state == 0x10) {
+        task->killCountdown = 0xC;
+        task->state++;
+    } else if (task->state == 0x11) {
+        if (--task->killCountdown <= 0) {
+            GameMain_SetFrameTiming(1);
+            work->field_2           = 1;
+            Display_State.field_11e = 0;
+            Stage_ReleasePrimBuf();
+            Task_Kill(task);
+        }
+    }
+}
 
 void Gp_SpawnPlaceById(u16 arg0)
 {

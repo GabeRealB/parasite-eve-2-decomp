@@ -187,6 +187,20 @@ typedef struct _GpAnimRec {
 } GpAnimRec;
 STATIC_ASSERT_SIZEOF(GpAnimRec, 4);
 
+/// `Task::spawnArg2` payload of `func_800B65B0`, the pickup-confirm task.
+/// field_0 is the `GpBit2Rec` item id passed to `Gp_LookupBit2Item`;
+/// field_2 is set to 1 when the task finishes, field_3 to 1 when the player
+/// confirmed (`UiObject.field_2C == 0x33`), and field_4 is the spawn mode
+/// (0 when `D_80114DDE` bit 9 is set, else 1; passed inverted to
+/// `Ui_SpawnFromDesc`).
+typedef struct _GpPickupWork {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ u8  field_4;
+} GpPickupWork;
+STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
+
 /// Object behind each pointer in `GpAnimSlot::field_20` (same table as
 /// `GpAnimCtx::field_0`). `field_0` is the base of 4-byte records.
 /// `field_4` is a u16 table indexed by `GpAnimSlot::field_15`.

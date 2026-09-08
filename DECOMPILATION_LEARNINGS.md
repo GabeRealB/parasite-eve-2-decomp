@@ -41372,6 +41372,17 @@ restored the boost and matched 100% with identical instructions and the same
 leftover survives every statement permutation, look for a local assigned twice
 and split it; the diff is in the tie-break, not in the source order.
 
+The same rule sank `func_800B65B0`, a give-up seed stuck at 98.2% with the
+Bit2-flag read `p = Gp_Bit2Banks[i].field_4; p += id >> 4;` scheduled before
+the `id` shifts instead of after. `sched.c`'s `birthing_insn_p` grants the
+boost only when `REG_N_SETS (pseudo) == 1`, so the `lw` *and* the `addu` both
+kept priority 3-4 and lost to every boosted insn around them. Writing it as one
+expression, `p = Gp_Bit2Banks[i].field_4 + (id >> 4);`, gives each value its
+own single-set pseudo and matched; dropping the `banks = Gp_Bit2Banks` local
+(which pulled the table's `lui` ahead of the `Game_Session` one) was the other
+half. Look for `+=` on a pointer or index whenever `.sched` shows a plain
+priority next to a column of `7f000001`.
+
 ## Which call-argument copy sits next to the `jal` is decided by hard-register set counts
 
 Two zero arguments after a run of stores looked like a register-colouring miss:
