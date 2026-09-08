@@ -639,7 +639,7 @@ STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
 /// normals and face corners; `field_C` is the `GpGridFace` table indexed by
 /// the face ids stored in the `field_10` cell grid. That grid is
 /// `field_1C` by `field_1E` cells of `s16*` face-id lists, each terminated by
-/// -1, indexed as `field_10[x * field_1E + z]`.
+/// -1, indexed as `field_10[x * field_1E + z]`. `field_22` is the face count.
 typedef struct _GpGridParams {
     /* 0x00 */ struct _GsCOORDINATE2* field_0;
     /* 0x04 */ SVECTOR*               field_4;
@@ -651,7 +651,7 @@ typedef struct _GpGridParams {
     /* 0x1C */ u16                    field_1C;
     /* 0x1E */ u16                    field_1E;
     /* 0x20 */ u16                    field_20;
-    /* 0x22 */ byte                   pad_22[2];
+    /* 0x22 */ u16                    field_22;
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
@@ -1051,6 +1051,18 @@ typedef struct _GpGridRayScratch {
 } GpGridRayScratch;
 STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
 
+/// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DD940`.
+/// `seg` holds the object's vertical world-space segment, `origin` saves its
+/// first endpoint, and `ray` holds the direction and the latest intersection.
+/// `delta` measures the displacement from `origin` to that intersection.
+typedef struct _GpFloorScratch {
+    /* 0x00 */ VECTOR  seg[2];
+    /* 0x20 */ VECTOR  origin;
+    /* 0x30 */ VECTOR  delta;
+    /* 0x40 */ SVECTOR ray[2];
+} GpFloorScratch;
+STATIC_ASSERT_SIZEOF(GpFloorScratch, 0x50);
+
 /// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
 /// `Gp_HealPending == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 Gp_HealPending;
@@ -1211,6 +1223,9 @@ extern s32 Gp_RoomParams[8];
 /// Grid conversion params used by `Gp_WorldToGrid` / `Gp_LocalToGrid`.
 /// Cleared by `Gp_ClearObjHeads`; `Gp_CollideListGrid` skips work when this is NULL.
 extern GpGridParams* Gp_GridParams;
+/// Per-face candidate flags cleared before `func_800DDC2C` and tested by
+/// `func_800DD940` when intersecting the object's vertical segment with the grid.
+extern u8 D_80115450[];
 
 /// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
 extern GpRec4 Gp_IdField0[];

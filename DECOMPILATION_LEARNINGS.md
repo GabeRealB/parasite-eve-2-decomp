@@ -54848,3 +54848,21 @@ assignment and `i < count` with `i < scan->field_1`; GCC still hoisted the
 byte load out of the inner search, but assigned `$a1/$a0/$a2`, matching.
 Check `.loop`, `.lreg`, and `.greg` before using this pattern; the dead
 initialization matters to optimization even though it emits no instructions.
+
+## func_800DD940: typed scratch vectors and ordinary loops remove m2c register pressure
+
+The minimally repaired m2c baseline scored 71.837% (branch=6, regs=101,
+reorder=9, insert=23, delete=20). Its `.lreg` kept the old scratch head live
+across four calls, while the separately tracked face offset and second loop
+index competed for saved registers. Keeping one typed 0x50-byte scratch block,
+using one `s32 i` in two ordinary `for` loops, and indexing `field_C[i]` lets
+GCC derive the 12-byte face stride and removes the old head's long lifetime.
+Two ordinary flag-update arms also reproduce the target's shared store without
+m2c's explicit goto and reused constant temporaries.
+
+Write the three delta components into the scratch VECTOR, then pass their
+sum of squares to `SquareRoot0`. The baseline's separate scalar temporaries
+kept the deltas alive until late stores; the field-based expression gives the
+target's interleaved `mult` / component store / next component load sequence.
+These changes together matched on the first structured attempt, with all-zero
+penalties and no pins or empty asm.

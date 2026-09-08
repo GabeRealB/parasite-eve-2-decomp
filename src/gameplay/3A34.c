@@ -3848,7 +3848,55 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
     return 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DD940);
+void func_800DD940(GpObj* arg0)
+{
+    void**          scratch;
+    u8*             head;
+    GpFloorScratch* block;
+    GpRec18*        slot;
+    s32             i;
+    u16             flags;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x50;
+    block    = (GpFloorScratch*)(head - 0x50);
+    for (i = 0; i < Gp_GridParams->field_22; i++) {
+        D_80115450[i] = 0;
+    }
+    func_800DDC2C(arg0);
+    func_800E0994(arg0, block->seg, block->ray);
+    block->origin.vx = block->seg[0].vx;
+    block->origin.vy = block->seg[0].vy;
+    block->origin.vz = block->seg[0].vz;
+    for (i = 0; i < Gp_GridParams->field_22; i++) {
+        if (D_80115450[i] &&
+            Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy < -0xDDA &&
+            func_800DD324(i, block->seg, block->ray, (s32)arg0)) {
+            slot  = ((GpObjDirRec*)arg0->field_C)->field_8;
+            flags = slot->field_0;
+            if (flags & 1) {
+                if ((u32)(slot->field_4 & 0xF) < (u32)Gp_GridParams->field_C[i].field_A) {
+                    slot->field_4 = Gp_GridParams->field_C[i].field_A | 0x100100;
+                }
+            } else {
+                slot->field_0 = flags | 1;
+                slot->field_4 = Gp_GridParams->field_C[i].field_A | 0x100100;
+            }
+            *(SVECTOR*)&slot->field_8  = block->ray[1];
+            *(SVECTOR*)&slot->field_10 = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
+            block->delta.vx            = block->origin.vx - block->ray[1].vx;
+            block->delta.vy            = block->origin.vy - block->ray[1].vy;
+            block->delta.vz            = block->origin.vz - block->ray[1].vz;
+            slot->field_2              = SquareRoot0(block->delta.vx * block->delta.vx +
+                                                     block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
+            block->seg[0].vx           = block->ray[1].vx;
+            block->seg[0].vy           = block->ray[1].vy;
+            block->seg[0].vz           = block->ray[1].vz;
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 void func_800DDC2C(GpObj* arg0)
 {
