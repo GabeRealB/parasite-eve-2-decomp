@@ -56327,3 +56327,49 @@ blocks sit below it in the same unit, they arrive through *those* functions'
 prefer `force_not_migration` - `actor_107600`'s comment records the same
 reasoning from the other side ("a local initializer would emit the pool at this
 function's `.rodata` instead").
+
+## A merged tail of just `jal` + `nop` means the call was written twice
+
+When both arms of an `if` set up **all four** argument registers themselves and
+then jump to a block containing only the call, the source did not funnel one
+call site through a shared variable - it wrote the call in each arm and GCC's
+cross-jumping merged the identical tail. Only the `jal` is common, so nothing is
+left to fill its delay slot and it keeps a `nop`:
+
+```
+    bne   $v0, $a1, .Lelse
+     addiu $a0, $sp, 0x10      # else-path arg, safe on fall-through
+    ...
+    addiu $a0, $sp, 0x10
+    li    $a1, 0x200
+    j     .Lcall
+     sra  $a2, $v0, 16         # (s16) cast, done per arm
+  .Lelse:
+    ...
+    li    $a1, 0x200
+    li    $a2, 0x80
+  .Lcall:
+    jal   Gp_DrawEffGroundQuad
+     nop
+```
+
+The single-call-site shape - assign the value to a local in each arm, call once
+after the `if` - compiles to the mirror image: the argument setup and the sign
+extension sink *below* the join, one `sll`/`sra` serves both paths, and the
+delay slot gets filled. `func_actor_102600_801358E0` was 70% that way and 100%
+written as:
+
+```c
+if (work->field_39A == 2) {
+    hit = func_800EA1A8((VECTOR3*)coord->workm.t, &vec);
+    if (hit != 0) {
+        Gp_DrawEffGroundQuad(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
+    }
+} else {
+    vec.vx = coord->workm.t[0]; /* … */
+    Gp_DrawEffGroundQuad(&vec, 0x200, 0x80);
+}
+```
+
+Read the join label: if it sits *on* the `jal` rather than above the argument
+setup, duplicate the call.
