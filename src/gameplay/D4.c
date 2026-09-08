@@ -39,6 +39,7 @@ extern TaskFuncTable6 Gp_LoadWaitFns;
 extern TaskFuncTable3 Gp_SessionStates;
 extern TaskFuncTable8 Gp_LoadStateFns;
 extern TaskFuncTable3 Gp_RoomObjStates;
+extern s16            D_80114CD0;
 extern u16            Gp_DirFlags;
 extern u16            D_80114CD4;
 extern u16            Gp_DirPhase;
@@ -48,10 +49,12 @@ extern u8             Gp_DirAlt;
 extern u8             Gp_DirAltNibble;
 extern u8             D_80114CDC;
 extern u8             D_80114CDD;
+extern u8             D_80114CDE;
 extern s32            D_80114CF0;
 extern s16            D_80114CF4;
 extern u16            Gp_DirFadeLevel;
 extern u8             D_80114CF8;
+extern s16            D_80114D08;
 
 void Gp_EnqueueWeaponCd(void)
 {
@@ -2177,7 +2180,93 @@ void func_800AD65C(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD6BC);
+void func_800AD6BC(void)
+{
+    Task*            slot;
+    WipSysConfig*    cfg;
+    u32              flags;
+    u32              action;
+    u32              mask;
+    GpDirActionTable funcs;
+
+    funcs = Gp_DirActionFns;
+    cfg   = &Wip_SysConfig;
+    slot  = Game_GetPtrSlot(1);
+    if (slot != NULL) {
+        if (slot->spawnArg1 != Mc_SaveData.field_4) {
+            func_800A7F24();
+            D_80114D08 = 0xA;
+        }
+    }
+    if (Display_State.field_10d != 0) {
+        D_80114D08 = 0xA;
+    }
+    if (D_80114CF8 == 0) {
+        if (Gp_StateC08.field_A == 0) {
+            Game_Session->field_13A = 0;
+            if (D_80114D08 != 0) {
+                D_80114D08 = (u16)D_80114D08 - 1;
+            }
+            if (Gp_TakePendingObj4C(&Gp_DirFlags, &Gp_DirByte, &Gp_DirNibble) != 0) {
+                if (D_80114CD0 != (s16)Gp_DirFlags) {
+                    D_80114CDC = 1;
+                } else {
+                    D_80114CDC = 0;
+                }
+                Gp_DirPhase = 0;
+                flags       = Gp_DirFlags;
+                mask        = flags & 0x8000;
+                if (Gp_StateF0.field_1 == 0) {
+                    if (mask && (Display_State.field_10d == 0) && !(Game_Session->field_5A & 0x10)) {
+                        if (!(flags & 0x4000)) {
+                            D_80114CF8 = 1;
+                        } else if (Gp_StateF0.field_0 != 1) {
+                            D_80114CF8 = 1;
+                        }
+                    } else if (cfg->field_24 != 0) {
+                        if (!(Game_Session->field_5A & 0x10)) {
+                            if (!(Gp_DirFlags & 0x4000)) {
+                                if (D_80114D08 == 0) {
+                                    D_80114CF8 = 1;
+                                    D_80114D08 = 0xA;
+                                }
+                            } else if (Gp_StateF0.field_0 != 1) {
+                                if (D_80114D08 == 0) {
+                                    D_80114CF8 = 1;
+                                    D_80114D08 = 0xA;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    D_80114CD0 = (s16)Gp_DirFlags;
+    if (D_80114CF8 != 0) {
+        Game_Session->field_13A = 1;
+        action                  = *(u8*)&Gp_DirFlags;
+        if (action != 0xFF) {
+            funcs.funcs[action]();
+        } else {
+            Gp_DirNibble    = 0;
+            Gp_DirByte      = 0;
+            Gp_DirAltNibble = 0;
+            Gp_DirAlt       = 0;
+            Gp_DirFlags     = 0;
+            D_80114CD4      = 0;
+            D_80114CF8      = 0;
+        }
+    } else {
+        Gp_DirNibble    = 0;
+        Gp_DirByte      = 0;
+        Gp_DirAltNibble = 0;
+        Gp_DirAlt       = 0;
+        Gp_DirFlags     = 0;
+        D_80114CD4      = 0;
+    }
+    D_80114CDE = Gp_StateF0.field_0;
+}
 
 void Gp_SetupDirWarp(void)
 {

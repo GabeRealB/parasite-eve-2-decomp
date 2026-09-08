@@ -55098,3 +55098,22 @@ Caching the width in a `u32` before the loop and using the sibling's `u16`
 counter with `(u32)(i & 0xFFFF) < (frameWidth >> 4)` removed those extra
 operations and produced the target register allocation as well. Do not
 try to fix register assignments while this repeated-load difference remains.
+
+
+## Precompute a flag mask before an outer guard to fill its delay slot
+
+`func_800AD6BC` reached 97.638% with a cached `u32 flags`, but testing
+`flags & 0x8000` only inside the `Gp_StateF0.field_1 == 0` arm left
+`branch=1 regs=7 reorder=1 insert=2 delete=2`. The `.jump` / `.jump2`
+dumps placed the AND in the successor block; `.lreg` / `.greg` assigned
+flags to `$v1` and the state address to `$a0`. Compute
+`mask = flags & 0x8000` before the outer guard and test `mask` inside.
+The AND then fills that guard's branch delay slot, flags moves to `$a0`,
+and the state address moves to `$a1`. This alone produced 100% without
+pins or empty asm.
+
+The same function's byte dispatch needs a `u32 action` loaded before
+the `0xFF` comparison and reused as the table index. Two direct byte
+expressions retained an extra move before the shift. Its seven-entry
+stack table has `void (*)(void)` handlers: m2c's apparent extra call
+arguments were stale argument-register values, not parameters.

@@ -15,6 +15,14 @@ struct _GpGridParams;
 struct _GpObj4A;
 struct _GpObj3A;
 
+/// Direction-action handlers copied to the stack by func_800AD6BC.
+typedef struct _GpDirActionTable {
+    void (*funcs[7])(void);
+} GpDirActionTable;
+STATIC_ASSERT_SIZEOF(GpDirActionTable, 0x1C);
+
+extern GpDirActionTable Gp_DirActionFns;
+
 /// 8-byte id/handler record. `Task::field_24` points at a table of these
 /// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
 /// matching handler with the same four arguments. Terminator id is
