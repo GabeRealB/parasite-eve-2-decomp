@@ -1063,6 +1063,16 @@ typedef struct _GpFloorScratch {
 } GpFloorScratch;
 STATIC_ASSERT_SIZEOF(GpFloorScratch, 0x50);
 
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDDF8`.
+/// `pos` holds the world-space segment from `func_800DEC80`; `ray[0]`
+/// is its normalized direction and `ray[1]` receives the intersection
+/// from `func_800DD324` before it is copied into a collision record.
+typedef struct _GpSegmentHitScratch {
+    /* 0x00 */ VECTOR  pos[2];
+    /* 0x20 */ SVECTOR ray[2];
+} GpSegmentHitScratch;
+STATIC_ASSERT_SIZEOF(GpSegmentHitScratch, 0x30);
+
 /// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
 /// `Gp_HealPending == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 Gp_HealPending;
@@ -1390,6 +1400,7 @@ void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
 s32             Gp_PairHandler1(GpObj* arg0, GpObj* arg1);
 void            Gp_CollideObjGrid(GpObj* node);
 void            Gp_CollideObjGridDir(GpObj* node);
+s32             func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3);
 void            func_800DD940(GpObj* node);
 void            func_800DDC2C(GpObj* arg0);
 void            func_800DE150(GpObj* arg0);

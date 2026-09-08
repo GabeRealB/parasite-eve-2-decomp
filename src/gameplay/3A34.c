@@ -3971,7 +3971,99 @@ void func_800DDC2C(GpObj* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DDDF8);
+void func_800DDDF8(GpObj* node)
+{
+    GpObj*               obj;
+    s32                  i;
+    GpSegmentHitScratch* block;
+    void**               scratch;
+    u8*                  head0;
+    GpRec18*             slot;
+    void**               head;
+    s32                  flags;
+    GpActorD4Rec*        rec;
+    s32                  mask;
+    s32                  idx;
+    s32                  t;
+    GpGridParams*        grid2;
+
+    obj      = node;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head0    = *scratch;
+    head0   -= 0x30;
+    *scratch = head0;
+    block    = (GpSegmentHitScratch*)head0;
+    for (i = 0; i < Gp_GridParams->field_22; i++) {
+        D_80115450[i] = 0;
+    }
+
+    func_800DE150(obj);
+    func_800DEC80(obj, block->pos, block->ray, 1);
+
+    /* The single-pass scope preserves GCC 2.8.1 register allocation. */
+    do {
+        for (i = 0; i < Gp_GridParams->field_22; i++) {
+            if (D_80115450[i] != 0) {
+                if (func_800DD324(i, block->pos, block->ray, (s32)obj) != 0) {
+                    rec  = (GpActorD4Rec*)obj->field_C;
+                    slot = rec->field_14;
+                    if (obj->flags & 0x400) {
+                        if (Gp_RoomParamTables[Game_Session->field_7 - 1]
+                                              [Game_Session->field_6 - 1]
+                                              [Gp_GridParams->field_C[i].field_A]
+                                                  ->field_1 == 0) {
+                            mask                       = 0x100000;
+                            slot->field_2              = 0;
+                            slot->field_0             |= 1;
+                            idx                        = Gp_GridParams->field_C[i].field_A;
+                            slot->field_4              = idx | mask;
+                            *(SVECTOR*)&slot->field_8  = block->ray[1];
+                            grid2                      = Gp_GridParams;
+                            *(SVECTOR*)&slot->field_10 = grid2->field_4[grid2->field_C[i].field_8];
+                            block->pos[0].vx           = block->ray[1].vx;
+                            block->pos[0].vy           = block->ray[1].vy;
+                            block->pos[0].vz           = block->ray[1].vz;
+                        }
+                    } else {
+                        t    = i * sizeof(GpGridFace);
+                        head = (void**)G_SCRATCH_HEAD;
+                        for (;;) {
+                            flags = slot->field_0;
+                            TOUCH_REG(flags);
+                            if (!(flags & 1)) {
+                                slot->field_0              = flags | 1;
+                                slot->field_2              = 0;
+                                mask                       = 0x100000;
+                                idx                        = ((GpGridFace*)(t + (s32)Gp_GridParams->field_C))->field_A;
+                                slot->field_4              = idx | mask;
+                                *(SVECTOR*)&slot->field_8  = block->ray[1];
+                                grid2                      = Gp_GridParams;
+                                *(SVECTOR*)&slot->field_10 = grid2->field_4[((GpGridFace*)(t + (s32)grid2->field_C))->field_8];
+                                if (slot->field_0 & 2) {
+                                    *head = (u8*)*head + 0x30;
+                                    return;
+                                }
+                                break;
+                            }
+                            mask = (u16)flags;
+                            SOFT_USE_REG(flags);
+                            idx = 3;
+                            if (mask != idx) {
+                                goto next_slot;
+                            }
+                            *head = (u8*)*head + 0x30;
+                            return;
+                        next_slot:
+                            slot++;
+                        }
+                    }
+                }
+            }
+        }
+
+    } while (0);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}
 
 void func_800DE150(GpObj* arg0)
 {
