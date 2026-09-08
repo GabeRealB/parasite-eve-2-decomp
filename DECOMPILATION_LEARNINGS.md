@@ -55625,3 +55625,20 @@ p->h  = val;
 `lui/ori 0x606060` stay inside the loop exactly as the target has them. The
 extra assignment is free: the colour constant was a span-1 single use that
 was never going to be hoisted anyway.
+
+
+## Signed-halfword pulse locals can restore color register priority
+
+`func_acropolis_plaza_80182054` reached 99.837% with only `regs=10` left.
+The three RGB locals were `s16`, but the triangular pulse result feeding red
+was `s32`. `.lreg` showed all three channels had four references; `.greg`
+ranked blue, green, red by live length. CSE also shifted the wider pulse
+result directly instead of reading red. Making the pulse result itself
+`s16` restored the read through red, all three target color registers, and
+100% without register pins. Check the source local feeding a narrowed
+assignment before trying to pin the destination.
+
+The two branches also need separate signed `s32` shade temporaries. Reusing
+one shade variable across both branches made it a global allocno rather than
+two block-local ranges. Keep the unpinned attempts and inspect `.lreg` /
+`.greg` to distinguish this from a scheduling problem.

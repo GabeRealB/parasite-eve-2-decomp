@@ -11,6 +11,18 @@
 
 #include <psyq/libgte.h>
 
+/// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
+/// origin, `sx` / `sy` its projected screen position, and `half` the radius
+/// scaled by inverse depth. The draw task takes 0x14 bytes from G_SCRATCH_HEAD.
+typedef struct AcropolisPlazaGlowScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     half;
+    /* 0x08 */ SVECTOR vec;
+    /* 0x10 */ s16     sx;
+    /* 0x12 */ s16     sy;
+} AcropolisPlazaGlowScratch;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaGlowScratch, 0x14);
+
 /// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
 /// reads once in state 0: `view` seeds both `CdCmd_Queue.field_1EE` and
 /// `field_1EA`, and a non-zero `noStream` skips the opening stream request

@@ -17,6 +17,14 @@
 #include "main/tmd.h"
 #include "rooms/acropolis_plaza.h"
 
+#include <psyq/inline_c.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+extern s32 D_80070F70;
+extern u32 Gp_LcgState;
+extern s16 D_acropolis_plaza_801987E0[];
+
 extern s8       D_8007106B;
 extern s16      D_80071076;
 extern TaskDesc D_acropolis_plaza_80183824;
@@ -980,7 +988,81 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_801811D0);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_80182054);
+void func_acropolis_plaza_80182054(Task* task)
+{
+    GsCOORDINATE2*             coord;
+    u8 *                       head, *raw;
+    u16                        vz;
+    AcropolisPlazaGlowScratch* blk;
+    POLY_G4*                   prim;
+    s32                        i, pulse;
+    s16                        level;
+    s32                        brightness, shade0, shade1;
+    s16                        red, green, blue;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x14;
+    SOFT_TOUCH_REG(raw);
+    blk                     = (AcropolisPlazaGlowScratch*)raw;
+    blk->vec.vx             = *(u16*)&coord->workm.t[0];
+    blk->vec.vy             = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = blk;
+    blk->vec.vz             = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisPlazaGlowScratch*)(head - 0x14))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((AcropolisPlazaGlowScratch*)(head - 0x14))->sx);
+    gte_stszotz(&blk->otz);
+    if (((AcropolisPlazaGlowScratch*)(head - 0x14))->otz >= 0x11) {
+        if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+            if (task->spawnArg1 < 0x10) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                brightness  = (((Gp_LcgState >> 16) & 0x3F) + 0x80) << 16;
+                shade0      = brightness >> 17;
+                red         = shade0;
+                green       = shade0;
+                blue        = (u32)brightness >> 18;
+                blk->half   = 0xC000 / ((AcropolisPlazaGlowScratch*)(head - 0x14))->otz;
+            } else {
+                pulse = D_80070F70 * 6;
+                if (pulse & 0x80) {
+                    level = 0x7F - (pulse & 0x7F);
+                } else {
+                    level = pulse & 0x7E;
+                }
+                red       = level;
+                shade1    = (s32)(red << 16) >> 18;
+                green     = shade1;
+                blue      = shade1;
+                blk->half = 0x8000 / blk->otz;
+            }
+            for (i = 0; i < 0x10; i += 2) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, red, green, blue);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
+                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+}
 
 /// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
 /// three effect bursts index this table with the same slot number they pass to
