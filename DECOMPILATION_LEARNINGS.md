@@ -55135,3 +55135,20 @@ changed its allocation to `$v1` but pushed bend to `$a0`, so keep the product
 separate. `Midi_Event1` matched from the minimally typed 73.949% baseline in
 seven numbered attempts, with the permuter started on the 99.778% unpinned
 seed before the final manual change.
+
+
+## func_800FDB18: a narrowed local moves the incoming argument copy after pointer saves
+
+A natural switch with direct `Gp_SpawnEff` calls and `for` loops reached
+99.755% (`regs=16`, all other penalties zero). The only difference was the
+entry sequence: the target saved/copied `a1`, `a2`, `a3`, then `a0`; the C
+saved/copied `a0` first. `.lreg` / `.greg` showed the correct hard registers
+already, and `.sched2` / `.dbr` localized the mismatch to the argument copies.
+
+The permuter found that an `s16` first parameter matched. Keeping the existing
+`s32` public signature and introducing `s16 id; id = arg0;` before the first
+call, then using `switch ((u16)id)`, also matched exactly without pins or
+barriers. The narrowing changes the early RTL copy placement even though the
+final `andi` still occurs after the call. This avoids changing the callers'
+argument conversions. Both scratch variants scored 100%; the local variant
+passed the scoped gameplay and full project builds with the existing rodata layout.

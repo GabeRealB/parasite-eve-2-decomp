@@ -149,6 +149,9 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
+extern GpEffArg D_80112C74;
+extern s32      D_80112C7C[];
+
 /// 0x2C-byte work at `Task::spawnArg2` for `Gp_EffCtlTask6E` / `Gp_EffCtlTask3B` /
 /// `Gp_EffPolyTask9C` / `Gp_EffSprTask46` / `Gp_DrawEffSprite81` / `Gp_EffSprTask81` /
 /// `Gp_EffCtlTaskC1` /

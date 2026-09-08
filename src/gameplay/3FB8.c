@@ -1948,7 +1948,110 @@ void Gp_EffSprTaskA7(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
+void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
+{
+    GameActor* actor;
+    s32        i;
+    s32        pan;
+    s16        id;
+
+    id    = arg0;
+    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    if (arg3 == NULL) {
+        arg3          = &D_80112C74;
+        arg3->field_0 = arg1;
+    } else {
+        if (arg3->field_0 == NULL) {
+            if (arg1 == NULL) {
+                arg3->field_0 = &Gfx_ViewCoord;
+                arg1          = arg3->field_0;
+            } else {
+                arg3->field_0 = arg1;
+            }
+        } else if (arg1 == NULL) {
+            arg1 = arg3->field_0;
+        }
+    }
+    switch ((u16)id) {
+        case 1:
+            if (actor->field_124 & 0x4000) {
+                Gp_SpawnEff(0x60055, arg1, 0x12300, arg2);
+                if (arg3->field_6 >= 2) {
+                    for (i = 0; i < arg3->field_6; i++) {
+                        Gp_SpawnEff(0x60055, arg1, 0x111280, arg2);
+                    }
+                }
+            } else {
+                Gp_SpawnEff(0x60055, arg1, 0x12380, arg2);
+                Gp_SpawnEff(0x60055, arg1, 0x111300, arg2);
+                Gp_SpawnEff(0x60055, arg1, 0x111300, arg2);
+                for (i = 0; i < arg3->field_6; i++) {
+                    Gp_SpawnEff(0x60055, arg1, 0x111280, arg2);
+                }
+            }
+            break;
+        case 2:
+            Gp_SpawnEff(0x60055, arg1, 0x10013380, arg2);
+            Gp_SpawnEff(0x60055, arg1, 0x10111300, arg2);
+            Gp_SpawnEff(0x60055, arg1, 0x10111300, arg2);
+            for (i = 0; i < arg3->field_6; i++) {
+                Gp_SpawnEff(0x60055, arg1, 0x10112280, arg2);
+            }
+            break;
+        case 4:
+            Gp_SpawnEff(0x6009A, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            break;
+        case 5:
+            Gp_SpawnEff(0x6009B, arg1, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            break;
+        case 6:
+            Gp_SpawnEff(0x6003B, arg1, 0x400, arg2);
+            for (i = 0; i < arg3->field_6; i++) {
+                Gp_SpawnEff(0x60055, arg1, 0x112300, arg2);
+            }
+            break;
+        case 7:
+            Gp_SpawnEff(0x6008E, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            break;
+        case 8:
+            for (i = 0; i < arg3->field_6 * 3; i++) {
+                Gp_SpawnEff(0x60055, arg3->field_0, 0x1112300, arg2);
+            }
+            break;
+        case 9:
+            Gp_SpawnEff(0x6009B, arg1, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            break;
+        case 10:
+            Gp_SpawnEff(0x600E3, arg1, arg3->field_4 | 0x10000, arg2);
+            break;
+        case 11:
+            Gp_SpawnEff(0x6007F, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), NULL);
+            pan = (s8)Gp_GetObjPan((GpObj38*)arg1);
+            SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.field_0 % 10U) - 1], pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)arg1));
+            break;
+        case 12:
+            Gp_SpawnEff(0x600F7, arg1, 1, NULL);
+            break;
+        case 13:
+            for (i = 0; i < arg3->field_6; i++) {
+                Gp_SpawnEff(0x800600AF, arg1, 1, NULL);
+            }
+            break;
+        case 15:
+            Gp_SpawnEff(0x6008E, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            Gp_SpawnEff(0x60182, arg1, 1, NULL);
+            break;
+        case 16:
+            if (actor->field_124 & 0x4000) {
+                Gp_SpawnEff(0x6007F, arg3->field_0, arg3->field_4 | 0x10000, arg2);
+            } else {
+                case 3:
+                    Gp_SpawnEff(0x6007F, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            }
+            break;
+    }
+}
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
