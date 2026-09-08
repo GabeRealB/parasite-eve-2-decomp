@@ -672,7 +672,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013B984);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013BA00);
+void func_actor_400600_8013BA00(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if ((func_actor_400600_8013A0B0() << 0x10) != 0) {
+        if (work->field_769 == 0) {
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_71C = 2;
+            work2->field_71E = 0;
+        } else {
+            work3            = (Actor400600Work*)arg0->idMap;
+            work3->field_71C = 0xA;
+            work3->field_71E = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013BA6C);
 
