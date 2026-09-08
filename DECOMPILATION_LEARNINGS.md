@@ -55325,3 +55325,22 @@ A `do { ... } while (0)` wrapper and a `SOFT_BARRIER()` at the join did
 not preserve the missing `lui`. Read `.cse` and `.jump2` together: a
 branch penalty can be caused by one missing address instruction while
 the final control-flow graph is already correct.
+
+## Place a rematerialized config pointer inside the call block to avoid a dead high half
+
+`func_800CB6FC` needs `Wip_SysConfig` materialized into a reload register
+(`lui t1; addiu t1`) after eight calls. Assigning `cfg = &Wip_SysConfig`
+immediately before its field access kept it in `$a0`. Moving the assignment
+before the slot-lookup calls made `.lreg` report 3 references across 92 insns
+and 8 calls; the pointer spilled and reload rematerialized the full address
+at its use. This also corrected the subsequent rotating `$t0`–`$t3` reloads.
+
+Putting the same assignment at function entry was different: `.greg` retained
+a dead `lui v0` in the entry block, adding an instruction. Keep the assignment
+inside the basic block containing the calls when that is the target shape.
+
+The last scheduling difference was a work-struct store. Writing the spilled
+`bonus` field before the register-resident `item` field let the bonus reload
+precede the item store; the delay-slot pass moved the bonus store after the
+branch. Reversing those C stores left the reload too late. The final match
+uses no register pins or empty asm.

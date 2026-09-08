@@ -441,7 +441,294 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800CB6FC);
+void func_800CB6FC(UiObject* arg0, Task* arg1)
+{
+    struct {
+        union {
+            TextDrawReq      req;
+            GpUseCreateTable recipes;
+        } u;
+    } sp20;
+    s32                       result;
+    s32                       bonus;
+    register s32              src;
+    register s32              extra;
+    register s32              item;
+    register s32              x;
+    register s32              color;
+    register GpUseCreateWork* work;
+    s32                       y;
+    s32                       i;
+    s32                       temp;
+    s32                       lines;
+    s32                       saved;
+    s32                       ten;
+    s32                       hiddenMode;
+    s32                       textY;
+    u16                       cd;
+    GpItemScan*               scan;
+    GpItemScan*               scanInit;
+    GpUseCreateWork*          newWork;
+    GpUseCreatePair*          p;
+    GpUseCreatePair*          q;
+    GpUseCreatePair*          start;
+    GpItemSlot*               slotSrc;
+    GpItemSlot*               slotDst;
+    GpItemRec*                rec;
+    WipSysConfig*             cfg;
+
+    if (arg1->state == 0) {
+        src         = 0;
+        result      = 0;
+        bonus       = 0;
+        item        = arg1->spawnArg1;
+        arg1->flags = 0xFF;
+        extra       = src;
+        switch (item) {
+            case 9:
+                scan = &Mc_SaveData.field_5BC;
+                if (Gp_SumScanQty(scan, 0x9F) != 0) {
+                    arg1->flags = 0x1A;
+                } else if (Gp_SumScanQty(scan, 0x9E) != 0) {
+                    src    = 0x9E;
+                    result = 0x9F;
+                } else if (Gp_SumScanQty(scan, 0x9D) != 0) {
+                    src    = 0x9D;
+                    result = 0x9E;
+                } else {
+                    arg1->flags = 0x16;
+                }
+                break;
+            case 0xC:
+                scan = &Mc_SaveData.field_5BC;
+                if (Gp_SumScanQty(scan, 0x80) != 0) {
+                    arg1->flags = 0x1A;
+                } else if (Gp_SumScanQty(scan, 0x83) != 0) {
+                    src    = 0x83;
+                    result = 0x80;
+                } else {
+                    arg1->flags = 0x19;
+                }
+                break;
+            case 0xA:
+            case 0x42:
+            case 0x43:
+            case 0x44:
+            case 0x45:
+            case 0x46:
+                scan = &Mc_SaveData.field_5BC;
+                if (Gp_SumScanQty(scan, 0x94) != 0) {
+                    if (item == 0xA) {
+                        arg1->flags = 0x1A;
+                    } else if (Gp_CanAddItem(scan, 0xA) != 0) {
+                        bonus = 0xA;
+                    } else {
+                        arg1->flags = 0x1B;
+                    }
+                }
+                if (arg1->flags == 0xFF) {
+                    ten            = 0xA;
+                    start          = sp20.u.recipes.pairs;
+                    sp20.u.recipes = D_80097184;
+                    p              = start;
+                    arg1->flags    = 0x17;
+                    do {
+                        if (Gp_SumScanQty(&Mc_SaveData.field_5BC, p->src) != 0) {
+                            extra = p->dst;
+                            if (item == ten && p->src == 0x93) {
+                                extra = 0;
+                            }
+                            if (extra != ten && extra == item) {
+                                arg1->flags = 0x1A;
+                            } else {
+                                src = p->src;
+                                for (i = 0, q = start; i < 8; i++, q++) {
+                                    if (item == q->dst && src != q->src) {
+                                        arg1->flags = 0xFF;
+                                        result      = q->src;
+                                        break;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        p++;
+                    } while ((s32)p < (s32)(start + 8));
+                }
+                break;
+        }
+        if (arg1->flags == 0xFF) {
+            cfg         = &Wip_SysConfig;
+            slotSrc     = Gp_GetItemSlot(src);
+            slotDst     = Gp_GetItemSlot(result);
+            rec         = Gp_FindItemById(src);
+            newWork     = (GpUseCreateWork*)Mem_Calloc(0x14, 0);
+            scanInit    = &Mc_SaveData.field_5BC;
+            arg1->idMap = (TaskIdMap*)newWork;
+            Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
+            rec->field_0 = (u8)result;
+            Gp_ClearEquipSlotSel(result, 0);
+            slotDst->field_0 = slotSrc->field_0;
+            Gp_EquipRelatedItem(scanInit, result, slotDst->field_0, slotSrc->field_1);
+            if ((extra == 0) && (slotDst->field_2 == slotSrc->field_2)) {
+                slotDst->field_3 = slotSrc->field_3;
+            }
+            Gp_ClearEquipSlotSel(src, 0);
+            if (cfg->field_21 == (src - 0x7F)) {
+                temp          = result;
+                cfg->field_21 = temp - 0x7F;
+            }
+            if (extra != 0) {
+                Gp_GiveItem(&Mc_SaveData.field_5BC, extra, -1);
+            }
+            if (bonus != 0) {
+                Gp_GiveItem(&Mc_SaveData.field_5BC, bonus, -1);
+            }
+            temp              = result;
+            newWork->field_8  = temp;
+            newWork->field_4  = src;
+            newWork->field_C  = extra;
+            lines             = 5;
+            newWork->field_10 = bonus;
+            newWork->field_0  = item;
+            if (extra != 0) {
+                lines = 6;
+            }
+            if (bonus != 0) {
+                lines += 1;
+            }
+            Ui_UpdateLayoutSize((UiPanel*)arg0, 0xA8, Ui_Scale15(lines) + 1);
+            ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
+            ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
+            arg1->killCountdown         = 0xBC;
+            arg1->state                 = arg1->state + 1;
+        }
+    }
+    if (arg1->flags != 0xFF) {
+        saved           = arg1->spawnArg1;
+        arg1->spawnArg1 = arg1->flags;
+        Gp_NoticePanelTask(arg1);
+        arg1->spawnArg1 = saved;
+        return;
+    }
+    color = 0x37A78;
+    y     = (s16)arg0->field_18 + 0xF;
+    work  = (GpUseCreateWork*)arg1->idMap;
+    x     = (s16)arg0->field_1C + 2;
+    Ui_DrawText((UiPanel*)arg0, Gp_StrNotice);
+    hiddenMode = 5;
+    item       = work->field_4;
+    if (arg0->mode != hiddenMode) {
+        sp20.u.req.x          = arg0->baseX + 0x11 + x;
+        textY                 = arg0->baseY - 6;
+        sp20.u.req.y          = textY + y;
+        sp20.u.req.otIndex    = (s16)arg0->drawOrder + 1;
+        sp20.u.req.field_8    = color;
+        sp20.u.req.glyphTable = 0;
+        sp20.u.req.centerMode = 0;
+        sp20.u.req.field_E    = 1;
+        func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg0, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(arg0, x, y, item, 0);
+    }
+    hiddenMode = 5;
+    item       = work->field_0;
+    y         += 0xF;
+    if (arg0->mode != hiddenMode) {
+        sp20.u.req.x          = arg0->baseX + 0x11 + x;
+        textY                 = arg0->baseY - 6;
+        sp20.u.req.y          = textY + y;
+        sp20.u.req.otIndex    = (s16)arg0->drawOrder + 1;
+        sp20.u.req.field_8    = color;
+        sp20.u.req.glyphTable = 0;
+        sp20.u.req.centerMode = 0;
+        sp20.u.req.field_E    = 1;
+        func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg0, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(arg0, x, y, item, 0);
+    }
+    y += 0xF;
+    Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, 1, 0);
+    hiddenMode = 5;
+    item       = work->field_8;
+    y         += 0xF;
+    if (arg0->mode != hiddenMode) {
+        sp20.u.req.x          = arg0->baseX + 0x11 + x;
+        textY                 = arg0->baseY - 6;
+        sp20.u.req.y          = textY + y;
+        sp20.u.req.otIndex    = (s16)arg0->drawOrder + 1;
+        sp20.u.req.field_8    = color;
+        sp20.u.req.glyphTable = 0;
+        sp20.u.req.centerMode = 0;
+        sp20.u.req.field_E    = 1;
+        func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg0, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(arg0, x, y, item, 0);
+    }
+    item = work->field_C;
+    if (item != 0) {
+        y += 0xF;
+        if (arg0->mode != 5) {
+            sp20.u.req.x          = arg0->baseX + 0x11 + x;
+            textY                 = arg0->baseY - 6;
+            sp20.u.req.y          = textY + y;
+            sp20.u.req.otIndex    = (s16)arg0->drawOrder + 1;
+            sp20.u.req.field_8    = color;
+            sp20.u.req.glyphTable = 0;
+            sp20.u.req.centerMode = 0;
+            sp20.u.req.field_E    = 1;
+            func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+            temp = item - 0xF;
+            if ((u32)temp < 0x24U) {
+                func_800C2538(arg0, x, y, temp % 3 + 1, color);
+            }
+            Gp_DrawItemIcon(arg0, x, y, item, 0);
+        }
+        item = work->field_10;
+        if (item != 0) {
+            y += 0xF;
+            if (arg0->mode != 5) {
+                sp20.u.req.x          = arg0->baseX + 0x11 + x;
+                textY                 = arg0->baseY - 6;
+                sp20.u.req.y          = textY + y;
+                sp20.u.req.otIndex    = (s16)arg0->drawOrder + 1;
+                sp20.u.req.field_8    = color;
+                sp20.u.req.glyphTable = 0;
+                sp20.u.req.centerMode = 0;
+                sp20.u.req.field_E    = 1;
+                func_8002E53C(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(arg0, x, y, temp % 3 + 1, color);
+                }
+                Gp_DrawItemIcon(arg0, x, y, item, 0);
+            }
+        }
+    }
+    Text_DrawPrompt(arg0, x, y + 0xF, Gp_StrCreatedDot, 0x606060, 1, 0);
+    if (arg0->status == 1) {
+        cd                  = arg1->killCountdown - 1;
+        arg1->killCountdown = cd;
+        if ((((s32)(cd << 0x10)) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            arg0->field_2E      = 9;
+            arg1->killCountdown = 0x7FFF;
+            return;
+        }
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            arg0->field_2E      = -1;
+            arg1->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
 {

@@ -27,6 +27,32 @@ extern TaskFuncTable5 D_80096E70;
 /// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
 
+typedef struct {
+    /* 0x0 */ u8 src;
+    /* 0x1 */ u8 dst;
+} GpUseCreatePair;
+STATIC_ASSERT_SIZEOF(GpUseCreatePair, 2);
+
+typedef struct {
+    GpUseCreatePair pairs[8];
+} GpUseCreateTable;
+STATIC_ASSERT_SIZEOF(GpUseCreateTable, 0x10);
+
+typedef struct {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} GpUseCreateWork;
+STATIC_ASSERT_SIZEOF(GpUseCreateWork, 0x14);
+
+extern GpUseCreateTable D_80097184;
+extern char             Gp_StrUsedDot[];
+extern char             Gp_StrCreatedDot[];
+
+void func_800CB6FC(UiObject* arg0, Task* arg1);
+
 /// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.
 extern const u16 D_80096F88[];
