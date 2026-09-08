@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libcd.h>
 #include <psyq/rand.h>
@@ -58,6 +59,7 @@ void func_8017FBD8(void);
 
 extern char           D_80093A44[];
 extern TaskFuncTable3 Gp_StageLoadStates;
+extern VECTOR         D_80093A28;
 extern TaskFuncTable3 D_80093A38;
 extern TaskFuncTable3 D_80093A5C;
 extern TaskDesc       D_80115D9C[];
@@ -1240,7 +1242,150 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B17D4);
+void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
+{
+    VECTOR         tmp;
+    VECTOR         acc0;
+    VECTOR         acc1;
+    SVECTOR        delta;
+    SVECTOR        ang;
+    SVECTOR        euler;
+    MATRIX         mtx0;
+    MATRIX         mtx1;
+    MATRIX         tmtx;
+    VECTOR         probe;
+    s32            rate;
+    s32            inited;
+    s32            i;
+    GsCOORDINATE2* rec;
+    GsCOORDINATE2* rec1;
+    s32            pitchLimit;
+    s32            yawLimit;
+    s32            curPitch;
+    s32            curYaw;
+    s32            newPitch;
+    s32            newYaw;
+    MATRIX*        m0;
+    MATRIX*        m1;
+    GsCOORDINATE2* base;
+    MATRIX*        m;
+
+    i          = 0;
+    m0         = &mtx0;
+    probe      = D_80093A28;
+    yawLimit   = arg2->yawLimit;
+    pitchLimit = arg2->pitchLimit;
+    rate       = arg2->rate;
+    inited     = arg2->inited;
+
+    *(s32*)&mtx0         = ONE;
+    *(s32*)&mtx0.m[0][2] = 0;
+    *(s32*)&m0->m[1][1]  = ONE;
+    *(s32*)&mtx0.m[2][0] = 0;
+    m0->m[2][2]          = ONE;
+    acc0.vx              = 0;
+    acc0.vy              = 0;
+    acc0.vz              = 0;
+    for (i = 0; i < 5; i++) {
+        rec = &((TmdObject*)arg0->extra)->field_8[i];
+        ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
+        acc0.vx += tmp.vx;
+        acc0.vy += tmp.vy;
+        acc0.vz += tmp.vz;
+        MulMatrix0(&mtx0, &rec->coord, &mtx0);
+    }
+    ApplyMatrixLV(&mtx0, &probe, &tmp);
+    acc0.vx += tmp.vx;
+    acc0.vy += tmp.vy;
+    acc0.vz += tmp.vz;
+
+    i                    = 0;
+    m1                   = &mtx1;
+    *(s32*)&mtx1         = ONE;
+    *(s32*)&mtx1.m[0][2] = 0;
+    *(s32*)&m1->m[1][1]  = ONE;
+    *(s32*)&mtx1.m[2][0] = 0;
+    m1->m[2][2]          = ONE;
+    acc1.vx              = 0;
+    acc1.vy              = 0;
+    acc1.vz              = 0;
+    for (i = 0; i < 5; i++) {
+        rec1 = &((TmdObject*)arg1->extra)->field_8[i];
+        ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
+        acc1.vx += tmp.vx;
+        acc1.vy += tmp.vy;
+        acc1.vz += tmp.vz;
+        MulMatrix0(&mtx1, &rec1->coord, &mtx1);
+    }
+    ApplyMatrixLV(&mtx1, &probe, &tmp);
+    acc1.vx += tmp.vx;
+    acc1.vy += tmp.vy;
+    acc1.vz += tmp.vz;
+
+    delta.vx = (u16)acc1.vx - (u16)acc0.vx;
+    delta.vy = (u16)acc1.vy - (u16)acc0.vy;
+    delta.vz = (u16)acc1.vz - (u16)acc0.vz;
+    TransposeMatrix(&mtx0, &tmtx);
+    ApplyMatrix(&tmtx, &delta, &acc0);
+
+    ang.vx = ratan2(-acc0.vy, acc0.vz);
+    ang.vy = ratan2(acc0.vx, acc0.vz);
+    ang.vz = 0;
+    if (delta.vy < 0) {
+        if (ang.vx < -0x400) {
+            ang.vx = (u16)ang.vx + 0x1000;
+        }
+    } else if (ang.vx >= 0x400) {
+        ang.vx = (u16)ang.vx - 0x1000;
+    }
+
+    if (inited != 0) {
+        if (ABS(ang.vx - arg2->lastPitch) > 0x800) {
+            while (ang.vx >= 0x800) {
+                ang.vx -= 0x1000;
+            }
+            while (ang.vx < -0x800) {
+                ang.vx += 0x1000;
+            }
+        }
+    } else {
+        arg2->inited = 1;
+    }
+    arg2->lastPitch = ang.vx;
+
+    base = ((TmdObject*)arg0->extra)->field_8;
+    rec  = base + 4;
+    Gp_ExtractEuler(&euler, &base[4].coord);
+
+    ang.vx   = euler.vx + (ang.vx - euler.vx) * rate / 4096;
+    ang.vy   = euler.vy + (ang.vy - euler.vy) * rate / 4096;
+    ang.vz   = euler.vz;
+    curPitch = euler.vx >= 0 ? euler.vx : -euler.vx;
+    if (pitchLimit < curPitch) {
+        pitchLimit = curPitch;
+    }
+    curYaw = euler.vy >= 0 ? euler.vy : -euler.vy;
+    if (yawLimit < curYaw) {
+        yawLimit = curYaw;
+    }
+    newPitch = ang.vx >= 0 ? ang.vx : -ang.vx;
+    if (pitchLimit < newPitch) {
+        ang.vx = ang.vx < 0 ? -pitchLimit : pitchLimit;
+    }
+    newYaw = ang.vy >= 0 ? ang.vy : -ang.vy;
+    if (yawLimit < newYaw) {
+        ang.vy = ang.vy < 0 ? -yawLimit : yawLimit;
+    }
+
+    m                  = &rec->coord;
+    *(s32*)&rec->coord = ONE;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = ONE;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = ONE;
+    RotMatrix(&ang, m);
+    rec->flg = 0;
+}
 
 void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
 {

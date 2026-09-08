@@ -630,5 +630,25 @@ void  func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// by `arg4 / 0x1000` of the remaining angle and clamps the result to `arg2`
 /// yaw and `arg3` pitch before writing the rotation with `RotMatrix`.
 void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Persistent head-tracking state for `func_800B17D4`. `yawLimit` /
+/// `pitchLimit` are the base clamps (widened to the head's current pose each
+/// step), `rate` the per-step fraction of the remaining angle in `/ 0x1000`,
+/// `lastPitch` the previous unwrapped pitch and `inited` whether it is valid.
+typedef struct _GpHeadAim {
+    /* 0x0 */ s16 yawLimit;
+    /* 0x2 */ s16 pitchLimit;
+    /* 0x4 */ s16 rate;
+    /* 0x6 */ s16 lastPitch;
+    /* 0x8 */ s8  inited;
+} GpHeadAim;
+STATIC_ASSERT_SIZEOF(GpHeadAim, 0xA);
+
+/// `func_800B0928` with the limits and step taken from `arg2` and the target
+/// being `arg1`'s head: composes the first five `GsCOORDINATE2` transforms of
+/// both tasks (plus the `D_80093A28` head offset) to get each head's world
+/// position, takes the offset in `arg0`'s head frame through `ratan2`, unwraps
+/// the pitch against `arg2->lastPitch` when it jumps by more than 0x800, steps
+/// toward it by `arg2->rate / 0x1000`, clamps, and writes the head rotation.
+void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2);
 
 #endif // GAMEPLAY_1BC_H

@@ -55547,3 +55547,42 @@ s5,a3` from reload, so nothing visible is lost.
 Diagnostic: `.sched` prints the priorities per insn -- a `(1)` in a ready list
 of `(7f000001)` entries is a multi-set pseudo, and no statement order will lift
 it. Ask what makes the *other* entries single-set copies instead.
+
+## One clamp reads the angle from a register, the next from memory: skip-blocks forwarding stops at a `?:` label
+
+`func_800B17D4`'s give-up seed sat at 99.97% after 178 attempts with nine
+register pins and three empty asms, most of them there to reproduce this
+tail, which the sibling `func_800B0928` matches with plain C:
+
+```c
+ang.vx = euler.vx + (ang.vx - euler.vx) * rate / 4096;
+ang.vy = euler.vy + (ang.vy - euler.vy) * rate / 4096;
+ang.vz = euler.vz;
+curPitch = euler.vx >= 0 ? euler.vx : -euler.vx;   if (pitchLimit < curPitch) pitchLimit = curPitch;
+curYaw   = euler.vy >= 0 ? euler.vy : -euler.vy;   if (yawLimit < curYaw)     yawLimit = curYaw;
+newPitch = ang.vx >= 0 ? ang.vx : -ang.vx;         if (pitchLimit < newPitch) ang.vx = ang.vx < 0 ? -pitchLimit : pitchLimit;
+newYaw   = ang.vy >= 0 ? ang.vy : -ang.vy;         if (yawLimit < newYaw)     ang.vy = ang.vy < 0 ? -yawLimit : yawLimit;
+```
+
+The target is asymmetric: the pitch clamp never reloads `ang.vx` - it keeps
+the `lhu`+`addu` sum in `$a1` and sign-extends it with `sll`/`sra` - while the
+yaw clamp does `lh v1, 0x4A(sp)`. The seed read that as two different source
+forms and pinned an `s16 newX` in `$a1` plus `nx`/`ny` in `$v1`. It is one
+source form and one cse pass: `-fcse-skip-blocks` lets cse1 walk through a
+forward conditional branch when nothing between the branch and its target is
+a label, so the path from the `sh a1` store runs through both `if (limit <
+cur) limit = cur;` blocks (a `bgez/move/negu` `abssi2` is a single insn, not a
+block boundary) and reaches the `ang.vx` read, which it replaces with
+`sign_extend (subreg:HI a1)`. The pitch clamp's `?:` store has an internal
+label, so the path ends at its `beqz`, and the yaw read after it starts cold.
+Write both clamps the same way and let cse produce the asymmetry.
+
+Two more things the pinned seed was compensating for, both already in the
+corpus under other names: the identity splat is three `sp`-relative stores
+plus two through `m0 = &mtx0` with the loop calls taking `&mtx0` directly
+(that is what puts the address through `$v0` before `$s0`), and the four
+magnitudes must be four locals (see the `func_800B0CF4` entry). The
+unpinned version modeled on the sibling matched on its fourth attempt.
+Before working from a pinned give-up seed, check
+`asm/<ver>/<overlay>/matchings/<unit>/` for a sibling with the same
+prologue shape; here two were in the same TU.
