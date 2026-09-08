@@ -8,6 +8,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -17,9 +18,11 @@
 #include "main/tmd.h"
 #include "rooms/acropolis_plaza.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 D_80070F70;
 extern u32 Gp_LcgState;
@@ -984,7 +987,268 @@ void func_acropolis_plaza_80180270(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_801802C0);
+void func_acropolis_plaza_801802C0(Task* task)
+{
+    // Work spans both passes; s4 is reused for transient draw state.
+    GpCoord64*                       entry;
+    AcropolisPlazaLightView*         light;
+    GsCOORDINATE2*                   coord;
+    GsCOORDINATE2*                   lightCoord;
+    register AcropolisPlazaBeamWork* work asm("s5");
+    u8 *                             head, *raw;
+    u16                              vz;
+    AcropolisPlazaBeamScratch*       blk;
+    SVECTOR*                         point;
+    POLY_G3*                         tri;
+    POLY_G4*                         prim;
+    s32                              i;
+    u32                              brightness;
+    u16                              red, green, blue;
+    s32                              slot, pulse;
+    u32                              pulse2;
+    s16                              spread, depthVal;
+    u16                              yaw;
+
+    slot       = task->spawnArg1;
+    entry      = &Gp_RoomCoords[slot & 7];
+    light      = (AcropolisPlazaLightView*)&entry->coord;
+    coord      = ((TmdObject*)task->extra)->field_8;
+    work       = (AcropolisPlazaBeamWork*)task->spawnArg2;
+    lightCoord = &light->coord;
+    if (task->state == 0) {
+        work->yaw   = (slot & 1) << 11;
+        task->state = task->state + 1;
+    }
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x60;
+    SOFT_TOUCH_REG(raw);
+    blk                     = (AcropolisPlazaBeamScratch*)raw;
+    blk->vec[0].vx          = *(u16*)&coord->workm.t[0];
+    blk->vec[0].vy          = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = blk;
+    blk->vec[0].vz          = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisPlazaBeamScratch*)(head - 0x60))->vec[0]);
+    gte_rtps_real();
+    gte_stsxy(&((AcropolisPlazaBeamScratch*)(head - 0x60))->sx);
+    gte_stszotz(&((AcropolisPlazaBeamScratch*)(head - 0x60))->otz);
+    entry->field_0 = 0;
+    if (blk->otz >= 0x11) {
+        if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
+            if (task->spawnArg1 < 5) {
+                if (work->yaw - 0x800 >= 0) {
+                    if (work->yaw - 0x800 <= 0x200) {
+                        work->depth = 0x200;
+                        goto depth_done1;
+                    }
+                    goto depth_deep1;
+                }
+                if (0x800 - work->yaw <= 0x200) {
+                    work->depth = 0x200;
+                    goto depth_done1;
+                }
+            depth_deep1:
+                work->depth = 0x800;
+            depth_done1:;
+                red   = brightness >> 1;
+                green = brightness >> 1;
+                blue  = brightness;
+            } else {
+                work->depth = ABS(work->yaw - 0x800) < 0x600 ? 0x800 : 0x200;
+                red         = brightness;
+                green       = red >> 1;
+                blue        = red >> 1;
+            }
+            depthVal               = work->depth;
+            spread                 = depthVal != 0x800 ? 0 : (yaw = work->yaw, work->yaw - 0x800 >= 0 ? (yaw - 0x800) * 4 : (depthVal - yaw) * 4);
+            work->spread           = spread;
+            lightCoord->coord.t[0] = coord->coord.t[0];
+            lightCoord->coord.t[1] = coord->coord.t[1];
+            lightCoord->coord.t[2] = coord->coord.t[2];
+            lightCoord->flg        = 0;
+            entry->field_0         = 2;
+            light->radius          = 0x600;
+            light->falloff         = work->spread + 0x600;
+            light->red             = red << 4;
+            light->green           = green << 4;
+            light->blue            = blue << 4;
+            blk->vec[1].vx         = -0x200;
+            blk->vec[1].vy         = 0;
+            blk->vec[1].vz         = work->depth;
+            blk->vec[2].vx         = 0x200;
+            blk->vec[2].vy         = 0;
+            blk->vec[2].vz         = work->depth;
+            blk->vec[3].vx         = -0x400;
+            blk->vec[3].vy         = 0;
+            blk->vec[3].vz         = 0x400;
+            blk->vec[4].vx         = 0x400;
+            blk->vec[4].vy         = 0;
+            blk->vec[4].vz         = 0x400;
+            blk->vec[5].vx         = -0x200;
+            blk->vec[5].vy         = 0;
+            blk->vec[5].vz         = 0x100;
+            blk->vec[6].vx         = 0x200;
+            blk->vec[6].vy         = 0;
+            blk->vec[6].vz         = 0x100;
+            for (i = 1; i < 7; i++) {
+                gte_SetRotMatrix(&coord->workm);
+                gte_ldv0(&blk->vec[i]);
+                gte_rtv0_real();
+                gte_stsv(&blk->vec[i]);
+                // Add the field offset last to keep this pointer separate from the GTE address.
+                point           = ((AcropolisPlazaBeamScratch*)((SVECTOR*)blk + i))->vec;
+                blk->vec[i].vx += *(u16*)&coord->workm.t[0];
+                point->vy      += *(u16*)&coord->workm.t[1];
+                point->vz      += *(u16*)&coord->workm.t[2];
+            }
+            gte_SetRotMatrix(&GsWSMATRIX);
+            for (i = 1; i < 7; i++) {
+                gte_ldv0(&blk->vec[i]);
+                gte_rtps_real();
+                gte_stsxy(&blk->screen[i]);
+            }
+            i              = 0;
+            red            = (s32)(red << 16) >> 18;
+            green          = (s32)(green << 16) >> 18;
+            blue           = (s32)(blue << 16) >> 18;
+            tri            = (POLY_G3*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(tri + 1);
+            setPolyG3(tri);
+            setRGB0(tri, (s16)red * 3, (s16)green * 3, (s16)blue * 3);
+            setRGB1(tri, 0, 0, 0);
+            setRGB2(tri, 0, 0, 0);
+            tri->x0 = blk->sx;
+            tri->y0 = blk->sy;
+            tri->x1 = (u16)blk->screen[1];
+            tri->y1 = (blk->screen[1] >> 16);
+            tri->x2 = (u16)blk->screen[2];
+            tri->y2 = (blk->screen[2] >> 16);
+            addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), tri);
+            Gp_AddTpageShift((P_TAG*)tri, 1, blk->otz);
+            for (; i < 2; i++) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, (s16)red * 2, (s16)green * 2, (s16)blue * 2);
+                setRGB2(prim, 0, 0, 0);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = (u16)blk->screen[i + 1];
+                prim->y0 = (blk->screen[i + 1] >> 16);
+                prim->x1 = blk->sx;
+                prim->y1 = blk->sy;
+                prim->x2 = (u16)blk->screen[i + 3];
+                prim->y2 = (blk->screen[i + 3] >> 16);
+                prim->x3 = (u16)blk->screen[i + 5];
+                prim->y3 = (blk->screen[i + 5] >> 16);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+            blk->half = 0xC000 / blk->otz;
+            red     <<= 1;
+            green   <<= 1;
+            blue    <<= 1;
+            for (i = 0; i < 0x10; i += 2) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, red, green, blue);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
+                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+        }
+    }
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
+    if (task->spawnArg1 < 5) {
+        if (work->yaw - 0x800 >= 0) {
+            if (work->yaw - 0x800 <= 0x300) {
+                work->depth = 0x200;
+                goto depth_done2;
+            }
+            goto depth_deep2;
+        }
+        if (0x800 - work->yaw <= 0x300) {
+            work->depth = 0x200;
+            goto depth_done2;
+        }
+    depth_deep2:
+        work->depth = 0x800;
+    depth_done2:;
+        pulse = brightness << 16;
+        red   = pulse >> 20;
+        green = pulse >> 20;
+        blue  = (u32)pulse >> 18;
+    } else {
+        work->depth = ABS(work->yaw - 0x800) < 0x500 ? 0x800 : 0x200;
+        pulse2      = brightness << 16;
+        red         = (u32)pulse2 >> 18;
+        green       = (s32)pulse2 >> 20;
+        blue        = (s32)pulse2 >> 20;
+    }
+    if (work->depth == 0x800) {
+        blk->vec[0].vx = 0;
+        blk->vec[0].vy = 0;
+        blk->vec[0].vz = 0xE00;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&blk->vec[0]);
+        gte_rtv0_real();
+        gte_stsv(&blk->vec[0]);
+        blk->vec[0].vx += *(u16*)&coord->workm.t[0];
+        blk->vec[0].vy += *(u16*)&coord->workm.t[1];
+        blk->vec[0].vz += *(u16*)&coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->vec[0]);
+        gte_rtps_real();
+        gte_stsxy(&blk->sx);
+        gte_stszotz(&blk->otz);
+        if (blk->otz >= 0x11) {
+            if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+                blk->half = 0x10000 / blk->otz;
+                for (i = 0; i < 0x10; i += 2) {
+                    prim           = (POLY_G4*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, red, green, blue);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                    prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
+                    prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                    prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                    prim->x2 = blk->sx;
+                    prim->y2 = blk->sy;
+                    prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                    prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                    addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                }
+            }
+        }
+    }
+    work->yaw               = (work->yaw - 0x80) & 0xFFF;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x60;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_801811D0);
 

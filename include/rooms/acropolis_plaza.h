@@ -23,6 +23,37 @@ typedef struct AcropolisPlazaGlowScratch {
 } AcropolisPlazaGlowScratch;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaGlowScratch, 0x14);
 
+/// Projected beam vertices and glow parameters in a 0x60-byte scratch block.
+typedef struct AcropolisPlazaBeamScratch {
+    /* 0x00 */ s32     screen[7];
+    /* 0x1C */ s32     otz;
+    /* 0x20 */ s32     half;
+    /* 0x24 */ SVECTOR vec[7];
+    /* 0x5C */ s16     sx;
+    /* 0x5E */ s16     sy;
+} AcropolisPlazaBeamScratch;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaBeamScratch, 0x60);
+
+/// Identified tail of the beam task's spawnArg2: sweep angle, length and falloff.
+typedef struct AcropolisPlazaBeamWork {
+    /* 0x00 */ u8  pad[0x24];
+    /* 0x24 */ s16 yaw;
+    /* 0x26 */ s16 depth;
+    /* 0x28 */ s16 spread;
+} AcropolisPlazaBeamWork;
+
+/// View of a room light starting at GpCoord64::coord.
+typedef struct AcropolisPlazaLightView {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ s16           red;
+    /* 0x52 */ s16           green;
+    /* 0x54 */ s16           blue;
+    /* 0x56 */ s16           pad;
+    /* 0x58 */ s32           radius;
+    /* 0x5C */ s32           falloff;
+} AcropolisPlazaLightView;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaLightView, 0x60);
+
 /// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
 /// reads once in state 0: `view` seeds both `CdCmd_Queue.field_1EE` and
 /// `field_1EA`, and a non-zero `noStream` skips the opening stream request
