@@ -513,6 +513,19 @@ typedef struct _SndScriptCmd {
 } SndScriptCmd;
 STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 
+/// "Wait" (0x74696157) command with a signed duration at offset 4.
+typedef struct _SndWaitCmd {
+    /* 0x0 */ u32 magic;
+    /* 0x4 */ s32 duration;
+} SndWaitCmd;
+STATIC_ASSERT_SIZEOF(SndWaitCmd, 0x8);
+
+/// Script data header followed by offsets to per-slot voice parameters.
+typedef struct _SndScriptTable {
+    /* 0x0 */ u8  pad_0[8];
+    /* 0x8 */ u16 offsets[1];
+} SndScriptTable;
+
 /// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
 /// SndVoice_FindById; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
@@ -627,6 +640,7 @@ s32            Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);
 s32            Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1);
 u8             Spu_GetVoiceStatus(u32 voiceIdx);
 void           Spu_ClearVoiceCallbacks(u32 voiceIdx);
+void           Spu_KeyOn(u32 voiceIdx);
 void           Spu_KeyOff(u32 voiceIdx);
 void           Spu_KeyOnClearOff(u32 voiceIdx);
 u16            Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3);

@@ -55259,3 +55259,32 @@ The permuter also found that a separate assignment destination for the line's
 green multiply (`product = (greenProduct = greenBit * lineLum)`) splits its
 RTL result from the later geometry product. That fixed both `mflo` ordering
 and the green-result register, making the entire second loop exact.
+
+
+## SndScript_Exec: switch pivots, shared timer tails, and a close allocator priority (GCC 2.8.1)
+
+Matched the 384-instruction main function without register pins. An explicit
+`oneA` case sharing the default return changes the sparse-switch decision tree:
+eight case nodes select `oneE` as the pivot. Omitting that apparently redundant
+case selected `endL` and changed branches throughout the dispatcher. Check
+`.jump` and the patched compiler's `stmt.c` before rearranging working bodies.
+
+Three timer paths share an explicit `advance_tick` label. A `SOFT_BARRIER()`
+only in each `region == 1` arm, before assigning `0x9999`, preserved the shared
+step in v0 while allowing `0x10000` into the other branch's delay slot. Barriers
+in both arms left extra jumps; removing all barriers changed hoisting and the
+step register. `.jump2` and `.dbr` distinguish those failures.
+
+At 99.062% the remaining whole-function s2/s3 swap came from close allocation
+priorities: script had 50 references / 632 insns, oneV 18 / 179. Patched
+`global.c:allocno_compare` ranks by `floor_log2(refs) * refs / live_length`.
+Replacing the existing scheduling barrier before `SndVoice_ScaleVolume` with
+`USE_REG(script)` raised script to 51 / 632 and placed it before oneV in `.greg`,
+without a pin or emitted instruction. The required permuter first found a
+countdown-local reuse that reduced oneV to 17 references; the final source
+keeps the direct countdown ternary and avoids its redundant overwritten load.
+
+The last `addu` operand swap used the established integer-address form:
+`((SndScriptTable*)((u8)script->field_0 * 2 + (u32)data))->offsets[0]`.
+Indexing `((SndScriptTable*)data)->offsets[index]` generated base-first addition.
+The final scratch candidate is `base_21.c`; all penalties are zero.

@@ -1076,7 +1076,230 @@ void SndVoice_KeyOffMatching(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
+s32 SndScript_Exec(SndScript* script)
+{
+    SpuVoiceRef   voiceRef;
+    s16           volume[2];
+    SndScriptCmd* cmd;
+    SndOneV*      oneV;
+    SndVoice*     voice;
+    SndNote*      note;
+    SpuVoiceAttr* attr;
+    SndScriptCtx* ctx;
+    SndBank*      bank;
+    u8*           data;
+    s32           result;
+    s32           ticks;
+    s32           step;
+    s32           wait;
+    s32           index;
+    s32           masterVolume;
+    u8            noteVolume;
+    s32           panSum;
+    s16           pan;
+    s16           voicePan;
+    s32           pitchValue;
+    u16           pitch;
+    s32           reverbEnabled;
+    s32           reverbGate;
+    s8            reverbLevel;
+    s32           countdown;
+    s16           envelopeOffset;
+
+    cmd = script->field_48;
+    switch ((u32)cmd->magic) {
+        case 0x45656E6F:
+            break;
+        case 0x43646E65:
+        stop:
+            script->field_D = 1;
+            break;
+        case 0x706F6F4C:
+            if (script->field_17 >= 8U) {
+                goto stop;
+            }
+            ticks = script->field_8;
+            if ((ticks >> 16) >= cmd->field_6) {
+                script->field_18[script->field_17] = cmd->field_4;
+                script->field_48                   = (SndScriptCmd*)((u8*)script->field_48 + 8);
+                script->field_20[script->field_17] = script->field_48;
+                script->field_17++;
+                script->field_8 -= cmd->field_6 << 16;
+                result           = 1;
+                goto done;
+            } else {
+                if (Display_State.region == 1) {
+                    SOFT_BARRIER();
+                    step = 0x9999;
+                } else {
+                    step = 0x10000;
+                }
+            advance_tick:
+                script->field_8 = ticks + step;
+            }
+            break;
+        case 0x4C646E65:
+            if (script->field_17 == 0) {
+                goto stop;
+            }
+            index = script->field_17 - 1;
+            if (script->field_18[index] == 1) {
+                script->field_48 = (SndScriptCmd*)((u8*)cmd + 4);
+                script->field_17--;
+            } else {
+                script->field_48 = script->field_20[index];
+                if (script->field_18[script->field_17 - 1] != 0) {
+                    script->field_18[script->field_17 - 1]--;
+                }
+            }
+            result = 1;
+            goto done;
+        case 0x43656E6F:
+            data             = script->field_44->field_0;
+            script->field_4C = (SndVoiceParams*)(data + ((SndScriptTable*)((u8)script->field_0 * 2 + (u32)data))->offsets[0]);
+            script->field_48 = (SndScriptCmd*)((u8*)script->field_48 + 0x10);
+        case 0x56656E6F:
+            oneV  = (SndOneV*)script->field_48;
+            ticks = script->field_8;
+            if ((ticks >> 16) < oneV->field_8) {
+                if (Display_State.region == 1) {
+                    SOFT_BARRIER();
+                    step = 0x9999;
+                } else {
+                    step = 0x10000;
+                }
+                goto advance_tick;
+            }
+            voice  = SndVoice_Alloc(oneV->field_10);
+            result = 1;
+            if (voice != NULL) {
+                ctx = script->field_44;
+                if (oneV->field_4 != 0) {
+                    bank = Snd_FindBank(oneV->field_4);
+                    if (bank == 0) {
+                        voice->field_8 = 0;
+                        Spu_ReleaseVoiceSlot(voice->field_0);
+                        Spu_ClearVoiceCallbacks(voice->field_0);
+                        voice->field_0 = 0;
+                        return 0;
+                    }
+                    goto setup_voice;
+                }
+                bank = ctx->field_4;
+            setup_voice:
+                Spu_GetVoiceRef(voice->field_0, &voiceRef);
+                note         = Snd_GetNote(bank, (u8)oneV->field_6, oneV->field_7);
+                attr         = voiceRef.field_4;
+                masterVolume = D_80082748;
+                attr->addr   = (s32)note->field_10;
+                if ((D_80082749 != 0) && (script->field_4C->field_E & 2)) {
+                    masterVolume = D_80082749;
+                }
+                noteVolume = (u8)oneV->field_D;
+                if (oneV->field_D < 0) {
+                    noteVolume = note->field_3;
+                }
+                voice->field_A = noteVolume;
+                voice->field_2 = (s8)((masterVolume * script->field_4C->field_5 * voice->field_A) / 16129);
+                pan            = script->field_4C->field_6;
+                panSum         = oneV->field_C;
+                if (panSum < 0) {
+                    panSum = note->field_1;
+                }
+                panSum  += (s16)(pan - 0x40);
+                voicePan = panSum;
+                if (voicePan < 0x80) {
+                    if (voicePan >= 0) {
+                        voice->field_3 = panSum;
+                    } else {
+                        voice->field_3 = 0;
+                    }
+                } else {
+                    voice->field_3 = 0x7F;
+                }
+                if (SndScript_FindOneA(script->field_44->field_0, oneV->field_12, (SndOneAOut*)attr) == -1) {
+                    attr->adsr1 = (u16)note->field_C;
+                    attr->adsr2 = (u16)note->field_E;
+                }
+                pitchValue = pitch = oneV->field_14 + (note->field_8 << 7);
+                attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> 7, (pitchValue & 0x7F) * 2, note->field_4, note->field_5);
+                if (oneV->field_E == 3) {
+                    if (D_8008274B >= 2) {
+                        reverbGate    = 1;
+                        reverbEnabled = reverbGate;
+                    } else {
+                        goto check_reverb;
+                    }
+                } else {
+                    reverbGate = 0;
+                    if (D_8008274B != 3) {
+                    check_reverb:
+                        reverbLevel = oneV->field_E;
+                        reverbGate  = 0;
+                        if (reverbLevel >= 0) {
+                            reverbGate = D_8008274B >= reverbLevel;
+                        }
+                    }
+                    reverbEnabled = reverbGate;
+                }
+                TOUCH_REG(reverbEnabled);
+                USE_REG(reverbGate);
+                if (reverbEnabled == 0) {
+                    Spu_DisableReverbVoice(voice->field_0);
+                } else {
+                    Spu_EnableReverbVoice(voice->field_0);
+                }
+                voice->field_1 = 1;
+                USE_REG(script);
+                SndVoice_ScaleVolume(script->field_10, script->field_13, voice, &script->field_50, volume);
+                attr->volume.left   = volume[0];
+                attr->volume.right  = volume[1];
+                attr->volmode.left  = 0;
+                attr->volmode.right = 0;
+                attr->mask          = 0x6009F;
+                Spu_KeyOn(voice->field_0);
+                voice->field_C = oneV;
+                countdown      = oneV->field_A == 0 ? 0x7FFFFFFF : oneV->field_A << 16;
+                voice->field_4 = countdown;
+                SndVoice_Attach((SndVoiceOwner*)script, voice);
+                envelopeOffset = oneV->field_16;
+                if (envelopeOffset != -1) {
+                    SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, note);
+                    result = 1;
+                } else {
+                    voice->field_10 = 0;
+                    result          = 1;
+                }
+            }
+            script->field_8  = (s32)(script->field_8 - (oneV->field_8 << 0x10));
+            script->field_48 = (void*)((u8*)script->field_48 + 0x18);
+
+            goto done;
+        case 0x74696157:
+            ticks = script->field_8;
+            wait  = ((SndWaitCmd*)cmd)->duration;
+            if ((ticks >> 16) < wait) {
+                if (Display_State.region == 1) {
+                    SOFT_BARRIER();
+                    step = 0x9999;
+                } else {
+                    step = 0x10000;
+                }
+                goto advance_tick;
+            }
+            script->field_8  = ticks - (wait << 16);
+            script->field_48 = (SndScriptCmd*)((u8*)script->field_48 + 8);
+            result           = 1;
+            goto done;
+        case 0x41656E6F:
+        default:
+            result = 0;
+            goto done;
+    }
+    result = 0;
+done:
+    return result;
+}
 
 void SndVoice_TickEnvelope(SndVoice* arg0)
 {
