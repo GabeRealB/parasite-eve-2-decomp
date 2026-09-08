@@ -141,6 +141,23 @@ STATIC_ASSERT_SIZEOF(AsrFlashScratch, 0x14);
 
 extern u32 Gp_LcgState;
 
+/// Four world-space vertices and their projected OT depth for the rotating quad.
+typedef struct AsrQuadScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR v[4];
+} AsrQuadScratch;
+STATIC_ASSERT_SIZEOF(AsrQuadScratch, 0x24);
+
+/// Local X/Z corner coordinates, scaled by the effect's field_24.
+typedef struct AsrQuadCorner {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 z;
+} AsrQuadCorner;
+STATIC_ASSERT_SIZEOF(AsrQuadCorner, 0x4);
+
+extern AsrQuadCorner D_acropolis_security_room_801839C0[];
+
+void func_acropolis_security_room_80181108(Task* task);
 void func_acropolis_security_room_801817A4(Task* task);
 
 #endif // ROOMS_ACROPOLIS_SECURITY_ROOM_H

@@ -32,6 +32,8 @@
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+/// Three-vertex projection with the target's RTPT opcode.
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
 /// vector added. Same reason as above for spelling out the word.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
@@ -434,7 +436,139 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_6", func_acropolis_security_room_80181108);
+/// Draws a rotating textured quad and updates its drift until it settles.
+void func_acropolis_security_room_80181108(Task* arg0)
+{
+    AsrQuadScratch* blk;
+    GsCOORDINATE2*  coord;
+    GpEffWork*      mem;
+    POLY_FT4*       prim;
+    s32             i;
+    SVECTOR*        sv;
+    s32             ty;
+    s32             tx;
+    s32             tz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrQuadScratch);
+    blk                     = (AsrQuadScratch*)*(void**)G_SCRATCH_HEAD;
+    coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    mem                     = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+
+    if (mem->field_22 == 0) {
+        mem->field_24 = 0x20;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_28 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_2A = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+    }
+
+    for (i = 0; i < 4; i++) {
+        sv           = ((AsrQuadScratch*)((SVECTOR*)blk + i))->v;
+        blk->v[i].vx = D_acropolis_security_room_801839C0[i].x * mem->field_24;
+        sv->vy       = 0;
+        sv->vz       = D_acropolis_security_room_801839C0[i].z * mem->field_24;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&blk->v[i]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[i]);
+        blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
+        sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
+        sv->vz       = *(u16*)&sv->vz + *(u16*)&coord->workm.t[2];
+    }
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setPolyFT4(prim);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    prim->u0 = 0;
+    prim->v0 = 0;
+    prim->u1 = 7;
+    prim->v1 = 0;
+    prim->u2 = 0;
+    prim->v2 = 7;
+    prim->u3 = 7;
+    prim->v3 = 7;
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    if (blk->otz > 0x10) {
+        prim->tpage = 0x2D;
+        prim->clut  = 0x4390;
+        prim->code |= 1;
+        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrQuadScratch);
+
+    if (mem->field_20 == 0) {
+        coord->coord.t[0] += mem->field_10;
+        coord->coord.t[1] += mem->field_12;
+        coord->coord.t[2] += mem->field_14;
+        Gfx_RotMatrixX(&coord->coord, mem->field_28, 0);
+        Gfx_RotMatrixZ(&coord->coord, mem->field_2A, 0);
+        coord->flg = 0;
+
+        ty = mem->field_12;
+        if (ty >= 0x1D) {
+            ty--;
+        } else {
+            ty++;
+        }
+        mem->field_12 = ty;
+
+        tx = mem->field_10;
+        if (tx == 0) {
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+        } else {
+            if (tx > 0) {
+                tx--;
+            } else {
+                tx++;
+            }
+            mem->field_10 = tx;
+        }
+
+        tz = mem->field_14;
+        if (tz == 0) {
+            mem->field_14 += mem->field_2A % 32;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+        } else {
+            if (tz > 0) {
+                tz--;
+            } else {
+                tz++;
+            }
+            mem->field_14 = tz;
+        }
+
+        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+        mem->field_28 += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 16;
+        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+        mem->field_2A += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+        if (coord->coord.t[1] >= -0x1A3) {
+            mem->field_20 = 1;
+        }
+    }
+
+    mem->field_22 = mem->field_22 + 1;
+    if ((u8)Game_Session->field_4 != 0xF) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 void func_acropolis_security_room_801817A4(Task* taskArg)
 {
