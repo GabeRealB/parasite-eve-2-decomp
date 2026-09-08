@@ -55965,3 +55965,27 @@ increment at the sched1 tie; the copy-back last keeps the store initially
 ready for the delay slot. Twelve ablations confirmed every remaining asm and
 the `u32 title`; three `volatile` casts and two `SOFT_TOUCH_REG`s from the seed
 were dead and removed.
+
+
+## Flare scratch copies: an empty asm can occupy the load-delay scheduler slot
+
+`func_acropolis_plaza_801811D0` needs `addiu v0,head,-0x4C; lhu v1,56(coord);
+move s5,v0; sh v1,32(s5)`. With `SOFT_TOUCH_REG(raw); blk = raw`, `.lreg`
+puts the load before the empty asm, but reload inserts the `move` before the
+load. `.sched2` treats the empty asm as the intervening instruction; the final
+assembler must insert a `nop` because that asm emits nothing. A non-volatile
+`__asm__("move %0, %1" : "=r"(blk) : "r"(raw))` makes the scheduled copy real
+and matches without hard-register pins. Removing the asm folds the calculation
+straight into the saved register and loses the required copy.
+
+In the same function, `ABS(yaw - 0x800) > 0x300 ? 0x800 : 0x200` matches the
+shared failure tail; its equivalent `<= 0x300 ? 0x200 : 0x800` gives a different
+positive-arm branch. `u16` color `<<= 1` also avoids the extra masks emitted by
+`*= 2`.
+
+A pristine worktree maspsx submodule may lack the existing
+`tools/maspsx-lo-load-nop.patch` until ninja configuration applies it. Check
+that patch before compensating in C for a missing `nop` between a reload and
+`lw ..., %lo(symbol)(reloaded_base)`. Two literal `0x1190` operands in this
+target still score as register differences against `%lo(Gpu_PrimCursor)`;
+linking at the original addresses verifies all 3716 original instruction bytes.

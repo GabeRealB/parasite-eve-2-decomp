@@ -1250,7 +1250,186 @@ void func_acropolis_plaza_801802C0(Task* task)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x60;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_plaza/acropolis_plaza_4", func_acropolis_plaza_801811D0);
+void func_acropolis_plaza_801811D0(Task* task)
+{
+    GsCOORDINATE2*              coord;
+    AcropolisPlazaBeamWork*     work;
+    u8 *                        head, *raw;
+    u16                         vz;
+    AcropolisPlazaFlareScratch* blk;
+    POLY_G4*                    prim;
+    s32                         i;
+    s16                         brightness;
+    u16                         red, green, blue;
+    s32                         yawInit;
+    s32                         pulse;
+    u32                         pulse2;
+    s16                         level;
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = (AcropolisPlazaBeamWork*)task->spawnArg2;
+    if (task->state == 0) {
+        yawInit     = (task->spawnArg1 & 1) << 11;
+        work->yaw   = yawInit;
+        task->state = task->state + 1;
+    }
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x4C;
+    __asm__("move %0, %1" : "=r"(blk) : "r"(raw));
+    blk->vec.vx             = *(u16*)&coord->workm.t[0];
+    blk->vec.vy             = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = blk;
+    blk->vec.vz             = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->sx);
+    gte_stszotz(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->otz);
+    if (blk->otz >= 0x11) {
+        if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+            pulse = D_80070F70 * 8 + task->spawnArg1 * 0xC0;
+            if (pulse & 0x80) {
+                level = 0x7F - (pulse & 0x7F);
+            } else {
+                level = pulse & 0x78;
+            }
+            brightness = level;
+            if (task->spawnArg1 < 9) {
+                red   = brightness >> 2;
+                green = brightness >> 2;
+                blue  = brightness;
+            } else {
+                red   = brightness;
+                green = (s16)red >> 2;
+                blue  = (s16)red >> 2;
+            }
+            blk->half = 0xA000 / blk->otz;
+            for (i = 0; i < 0x10; i += 2) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, red, green, blue);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
+                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+            blk->half  = 0x8000 / blk->otz;
+            blk->inner = 0x1800 / blk->otz;
+            red      <<= 1;
+            green    <<= 1;
+            blue     <<= 1;
+            for (i = 3; i < 0x10; i += 8) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, red, green, blue);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i]) >> 11);
+                prim->y0 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 12]) >> 11);
+                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 11);
+                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 11);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 8]) >> 11);
+                prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 4]) >> 11);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, red, green, blue);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->y0 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i]) >> 12);
+                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 8]) >> 12);
+                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 12]) >> 12);
+                prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 8]) >> 12);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+        }
+    }
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
+    if (task->spawnArg1 < 9) {
+        work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
+        pulse       = brightness << 16;
+        red         = pulse >> 20;
+        green       = pulse >> 20;
+        blue        = pulse >> 18;
+    } else {
+        work->depth = ABS(work->yaw - 0x800) < 0x500 ? 0x800 : 0x200;
+        pulse2      = brightness << 16;
+        red         = (s32)pulse2 >> 18;
+        green       = (s32)pulse2 >> 20;
+        blue        = (s32)pulse2 >> 20;
+    }
+    if (work->depth == 0x800) {
+        blk->vec.vx = 0;
+        blk->vec.vy = 0;
+        blk->vec.vz = 0xE00;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&blk->vec);
+        gte_rtv0_real();
+        gte_stsv(&blk->vec);
+        blk->vec.vx += *(u16*)&coord->workm.t[0];
+        blk->vec.vy += *(u16*)&coord->workm.t[1];
+        blk->vec.vz += *(u16*)&coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->vec);
+        gte_rtps_real();
+        gte_stsxy(&blk->sx);
+        gte_stszotz(&blk->otz);
+        if (blk->otz >= 0x11) {
+            if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+                blk->half = 0x10000 / blk->otz;
+                for (i = 0; i < 0x10; i += 2) {
+                    prim           = (POLY_G4*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, red, green, blue);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                    prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
+                    prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                    prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                    prim->x2 = blk->sx;
+                    prim->y2 = blk->sy;
+                    prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                    prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                    addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                }
+            }
+        }
+    }
+    work->yaw               = (work->yaw - 0x80) & 0xFFF;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x4C;
+}
 
 void func_acropolis_plaza_80182054(Task* task)
 {

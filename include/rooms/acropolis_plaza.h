@@ -34,6 +34,19 @@ typedef struct AcropolisPlazaBeamScratch {
 } AcropolisPlazaBeamScratch;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaBeamScratch, 0x60);
 
+/// Flare projection and two inverse-depth radii in a 0x4C-byte scratch block.
+typedef struct AcropolisPlazaFlareScratch {
+    /* 0x00 */ u8      pad_0[0x14];
+    /* 0x14 */ s32     otz;
+    /* 0x18 */ s32     half;
+    /* 0x1C */ s32     inner;
+    /* 0x20 */ SVECTOR vec;
+    /* 0x28 */ u8      pad_28[0x20];
+    /* 0x48 */ s16     sx;
+    /* 0x4A */ s16     sy;
+} AcropolisPlazaFlareScratch;
+STATIC_ASSERT_SIZEOF(AcropolisPlazaFlareScratch, 0x4C);
+
 /// Identified tail of the beam task's spawnArg2: sweep angle, length and falloff.
 typedef struct AcropolisPlazaBeamWork {
     /* 0x00 */ u8  pad[0x24];
