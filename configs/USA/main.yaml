@@ -116,7 +116,8 @@ segments:
       - [0x3c04, .rodata, gamemain] # GameMain_PauseText ("PAUSE!")
       - [0x3c0c, o, libgs/gs_123, .rdata]
       - [0x3c9c, o, libpad/padentry, .rdata]
-      - [0x3cbc, rodata, gameflow_1] # game-flow jtbls (func_8002C1D8 still unmatched)
+      - [0x3cbc, rodata, gameflow_1] # GameFlow_States5 / GameFlow_States3
+      - [0x3cdc, .rodata, gameflow] # controller state and mode jump tables
       - [0x3d20, .rodata, mem] # TODO
       - [0x3d44, .rodata, "textdraw"] # jtbl from Text_MeasureGlyphWidth
       - [0x3e1c, rodata, "textdraw_1"] # remaining jtbls/strings for unmatched 1E6C4 funcs

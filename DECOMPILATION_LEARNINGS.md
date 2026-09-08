@@ -54939,3 +54939,29 @@ Changing the shared state declaration from scalar to array also changed
 Explicitly loading `slot->field_18` and `Gp_LcgState` into locals before the
 reset restored that already-matched sibling's scheduling without new pins.
 The scoped rebuild then matched every byte of the gameplay overlay.
+
+
+## Pad polling: post-increment stores affect LICM before tails are merged
+
+`func_8002C1D8` matches without pins or empty asm. Its analog conversion loop
+writes `*axis++` in each of the dead-zone, endpoint-clamp, negative-scale and
+positive-scale branches. Moving that increment to one shared statement at the
+bottom looks equivalent, but shrinks the loop before `loop.c` runs: the shorter
+form hoists a clamp/scaling constant and changes register allocation. The
+per-branch increments are later merged into the target's single common pointer
+increment. Read `.loop` before trying to fix the resulting register differences.
+Ordinary `Pad_States[port]` / `Pad_RawPorts[port]` indexing also lets GCC create
+the two byte-offset induction variables after the hoisted constants, matching
+the prologue order that manually initialized offsets missed.
+
+The scratch scorer can report residual branch/register penalties for identical
+linked code: here `jlabel` made target branches carry `R_MIPS_PC16` relocations,
+while GCC's local labels were already resolved. Two generated tables also used
+separate target symbols versus `.rodata` and `.rodata+0x20` in C. The final seed
+had 243 identical linked instructions (972 bytes compared against the original
+`assets/USA/main.exe`); unlinked scoring reported 99.934%, or 99.893% after using
+`Pad_RawPorts[port].unknown_4` instead of its `D_800711CC` alias. This is a
+relocation-comparison limitation, not permission to ignore unexplained diffs:
+resolve the actual symbols and compare original bytes, then run the full build.
+The tables land through `[0x3cdc, .rodata, gameflow]`, leaving the preceding two
+GameFlow function-pointer tables in plain `gameflow_1` rodata.

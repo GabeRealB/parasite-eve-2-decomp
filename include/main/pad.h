@@ -69,6 +69,16 @@ typedef struct _PadRawPort {
 } PadRawPort;
 STATIC_ASSERT_SIZEOF(PadRawPort, 0x24);
 
+/// Stack workspace for controller polling and analog-axis normalization.
+typedef struct _PadPollWork {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 reserved;
+    /* 0x08 */ s32 delta;
+    /* 0x0C */ s32 range;
+    /* 0x10 */ s32 port;
+} PadPollWork;
+STATIC_ASSERT_SIZEOF(PadPollWork, 0x14);
+
 // =============================================================================
 // Functions — src/main/pad.c
 // =============================================================================
@@ -115,6 +125,7 @@ STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 extern volatile PadState Pad_States[2];
 extern PadRawPort        Pad_RawPorts[2];
 extern PadRemapState*    Pad_RemapState;
+extern u8                D_8005ED84[];
 
 // Button masks checked with Pad_CheckButtons: confirm (0x40), cancel
 // (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900

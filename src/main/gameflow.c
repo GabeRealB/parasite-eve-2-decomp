@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/libpad.h>
+
 #include "main/unknown_syms.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -373,7 +375,143 @@ void Pad_TickEventBanks(PadState* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 4;
 }
 
-INCLUDE_ASM("main/nonmatchings/gameflow", func_8002C1D8);
+void func_8002C1D8(void)
+{
+    PadPollWork  buffer;
+    PadPollWork* work;
+    PadState*    pad;
+    s16*         axis;
+    s16          status;
+    s32          portId;
+    s32          delta;
+    s32          i;
+    s32          modeRequested;
+    s32          port;
+    PadRawPort*  raw;
+    u32          state;
+    u32          mode;
+    u32          savedState;
+    u8*          rawAxis;
+    u8           center;
+
+    work = &buffer;
+    port = 0;
+    do {
+        portId      = port * 0x10;
+        pad         = (PadState*)&Pad_States[port];
+        work->port  = portId;
+        state       = PadGetState(portId);
+        work->state = state;
+        switch (state) {
+            case 4:
+                break;
+            case 0:
+                pad->initialized = 1;
+
+            case 1:
+                pad->unknown_58[0] = 0;
+                break;
+            default:
+            case 2:
+            case 3:
+            case 5:
+            case 6:
+                modeRequested = 0;
+                if ((pad->initialized == 1) && ((PadInfoMode(work->port, 2, 0) == 0) || (modeRequested = 1, (PadSetMainMode(work->port, 1, 0) != 0)))) {
+                    pad->initialized = 0;
+                }
+                Pad_TickEventBanks(pad);
+                if ((u8)pad->unknown_58[0] == 0) {
+                    savedState = work->state;
+                    if (savedState == 2) {
+                        PadSetAct(work->port, &pad->field_5A, 2);
+                        if (pad->field_5A != 0) {
+                            pad->field_5B = 1;
+                        } else {
+                            pad->field_5B = 0;
+                        }
+                        pad->field_5A = 0x40;
+                    } else if ((savedState == 6) && (modeRequested == 0)) {
+                        PadSetAct(work->port, &pad->field_5A, 2);
+                        if (PadSetActAlign(work->port, D_8005ED84) != 0) {
+                            pad->unknown_58[0] = 1;
+                        }
+                    }
+                }
+                break;
+        }
+        mode = PadInfoMode(work->port, 1, 0);
+        switch (mode) {
+            case 5:
+            case 7:
+                if (pad->status != 0x73) {
+                    *(u32*)pad->unknown_C = 0x80808080;
+                    for (i = 0; i < 4; i++) {
+                        center = (u8)pad->unknown_C[i];
+                        if (center < 0x1AU) {
+                            pad->unknown_C[i] = 0x1A;
+                        } else if (center >= 0xE6U) {
+                            *(u8*)&pad->unknown_C[i] = 0xE5;
+                        }
+                    }
+                    pad->status = 0x73;
+                }
+                axis    = &pad->field_50;
+                rawAxis = (u8*)Pad_RawPorts[port].unknown_4;
+                i       = 0;
+                do {
+                    delta       = *rawAxis - (u8)pad->unknown_C[i];
+                    work->delta = delta;
+                    if ((u32)(delta + 0x18) < 0x31U) {
+                        *axis++ = 0;
+                    } else {
+                        if (*rawAxis < 2U) {
+                            *axis++ = -0x1000;
+                        } else if (*rawAxis >= 0xFEU) {
+                            *axis++ = 0x1000;
+                        } else if (work->delta < 0) {
+                            work->range = (u8)pad->unknown_C[i] - 0x19;
+                            work->delta = (-0x18 - work->delta) << 12;
+                            work->delta = work->delta / work->range;
+                            *axis++     = -(s16)work->delta;
+                        } else {
+                            work->range = 0xE6 - (u8)pad->unknown_C[i];
+                            work->delta = (work->delta - 0x18) << 12;
+                            work->delta = work->delta / work->range;
+                            *axis++     = (s16)work->delta;
+                        }
+                    }
+                    i += 1;
+                    rawAxis++;
+                } while (i < 4);
+                pad->status = 0x73;
+                break;
+            case 0:
+            case 1:
+            case 3:
+            case 6:
+            case 8:
+                raw           = &Pad_RawPorts[port];
+                raw->field_2  = 0xFF;
+                raw->field_3  = 0xFF;
+                status        = 0xFF;
+                pad->status   = status;
+                pad->field_56 = 0;
+                pad->field_54 = 0;
+                pad->field_52 = 0;
+                pad->field_50 = 0;
+                break;
+            default:
+                pad->status   = 0x41;
+                pad->field_56 = 0;
+                pad->field_54 = 0;
+                pad->field_52 = 0;
+                pad->field_50 = 0;
+                break;
+        }
+        port += 1;
+    } while (port <= 0);
+}
 
 void Pad_UpdatePort0(void)
 {
