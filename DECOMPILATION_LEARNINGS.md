@@ -55757,3 +55757,26 @@ the operand being kept live.
 This function also needed duplicated `task->state++` tails in the source:
 8 or 10 task references allocated it to `$s5`; 12 references put it in `$s4`.
 Post-reload cross-jumping still produced the same two shared increment blocks.
+
+
+## func_800DE2C0: sentinel loads and scratch allocation before register tuning
+
+The archived unpinned seed scored 88.975%. For the nested grid scan, ordinary
+`for` loops and `while (*ids != -1) { id = *ids; ...; ids++; }` preserve the
+separate signed sentinel load and unsigned halfword payload load. Combining
+the test and assignment as `while ((id = *ids) != -1)` instead produced an
+`lhu` with explicit sign-extension shifts. In the second branch,
+`id = *ids++` inside the body preserves the target's earlier pointer increment.
+Assigning the squared radius inside the outer `for`, before the inner loop,
+lets the compiler move it ahead of the loop nest.
+
+At 97.368%, splitting the two branches' grid-parameter and squared-radius
+locals, together with reading the normal fields directly instead of keeping
+`nx` / `nz` locals, reached 99.118%. The remaining `branch=20, delete=1`
+penalties came from one missing entry instruction shifting every later label;
+the loop bodies already matched. The scratch allocation must be expressed as
+`block = (GpMarkScratch*)(*scratch = head - 0x28)` before filling the vector.
+That restored `addiu v0,a1,-0x28; move s0,v0` and the earlier grid-parameter
+load, reaching 100% without pins or asm helpers. Delaying `*scratch = block`
+until after the input loads had folded the pointer calculation directly into
+`s0` and changed entry scheduling.

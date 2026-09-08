@@ -4311,7 +4311,97 @@ void func_800DE150(GpObj* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE2C0);
+void func_800DE2C0(VECTOR* arg0, s32 arg1)
+{
+    void**         scratch;
+    u8*            head;
+    GpMarkScratch* block;
+    GpGridParams*  p;
+    GpGridParams*  p2;
+    s32            thresh2;
+    u32            cellSize;
+    s32            half;
+    s32            range;
+    s32            thresh;
+    s32            i;
+    s32            j;
+    s32            dot;
+    s32            proj;
+    s32            vz0;
+    s32            vz1;
+    s16*           ids;
+    s16            id;
+
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    cellSize      = Gp_GridParams->field_20;
+    block         = (GpMarkScratch*)(*scratch = head - 0x28);
+    block->vec.vx = arg0[0].vx - arg0[1].vx;
+    block->vec.vy = 0;
+    vz0           = arg0[0].vz;
+    vz1           = arg0[1].vz;
+    block->vec.vz = vz0 - vz1;
+    half          = cellSize >> 1;
+    range         = ((half * 0xB5) >> 7) + 1;
+    VectorNormalS(&block->vec, &block->nrm);
+
+    if ((block->nrm.vx == 0) && (block->nrm.vz == 0)) {
+        for (i = 0; i < Gp_GridParams->field_1C; i++) {
+            thresh = range * range;
+            for (j = 0; j < Gp_GridParams->field_1E; j++) {
+                p              = Gp_GridParams;
+                block->cell.vx = i * p->field_20 + (p->field_20 >> 1);
+                block->cell.vz = j * p->field_20 + (p->field_20 >> 1);
+                block->d.vx    = (u16)block->cell.vx - (u16)arg0[0].vx;
+                block->d.vz    = (u16)block->cell.vz - (u16)arg0[0].vz;
+                if ((block->d.vx * block->d.vx) + (block->d.vz * block->d.vz) < thresh) {
+                    ids = p->field_10[i * p->field_1E + j];
+                    if (ids != NULL) {
+                        while (*ids != -1) {
+                            id             = *ids;
+                            D_80115450[id] = 1;
+                            ids++;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        block->d.vx = (block->nrm.vx * range) >> 12;
+        block->d.vz = (block->nrm.vz * range) >> 12;
+        arg0[0].vx += block->d.vx;
+        arg0[0].vz += block->d.vz;
+        arg0[1].vx -= block->d.vx;
+        arg0[1].vz -= block->d.vz;
+        for (i = 0; i < Gp_GridParams->field_1C; i++) {
+            thresh2 = range * range;
+            for (j = 0; j < Gp_GridParams->field_1E; j++) {
+                p2             = Gp_GridParams;
+                block->cell.vx = i * p2->field_20 + (p2->field_20 >> 1);
+                block->cell.vz = j * p2->field_20 + (p2->field_20 >> 1);
+                dot            = ((block->cell.vx - arg0[0].vx) * block->nrm.vx) + ((block->cell.vz - arg0[0].vz) * block->nrm.vz);
+                if (dot <= 0) {
+                    proj = (((block->cell.vx - arg0[1].vx) * block->nrm.vx) + ((block->cell.vz - arg0[1].vz) * block->nrm.vz)) >> 12;
+                    if (proj > 0) {
+                        block->d.vx = ((u16)arg0[1].vx + ((block->nrm.vx * proj) >> 12)) - (u16)block->cell.vx;
+                        block->d.vz = ((u16)arg0[1].vz + ((block->nrm.vz * proj) >> 12)) - (u16)block->cell.vz;
+                        if ((block->d.vx * block->d.vx) + (block->d.vz * block->d.vz) < thresh2) {
+                            ids = p2->field_10[i * p2->field_1E + j];
+                            if (ids != NULL) {
+                                while (*ids != -1) {
+                                    id             = *ids++;
+                                    D_80115450[id] = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+}
 
 s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
 {

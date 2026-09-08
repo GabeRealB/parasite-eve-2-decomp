@@ -947,6 +947,18 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `func_800DE2C0`.
+/// `vec` is the XZ endpoint difference, normalised into `nrm`. `cell`
+/// holds a grid-cell centre; `d` holds the endpoint extension or the
+/// distance from the cell centre to the point or segment being marked.
+typedef struct _GpMarkScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR nrm;
+    /* 0x18 */ SVECTOR cell;
+    /* 0x20 */ SVECTOR d;
+} GpMarkScratch;
+STATIC_ASSERT_SIZEOF(GpMarkScratch, 0x28);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DE7CC`.
 /// `from` / `to` are the two probe endpoints promoted to VECTOR; `delta`
 /// is `from - to`, normalised into `dir` for `func_800DD324`; `hit` is the
