@@ -56220,3 +56220,36 @@ the version using the shared header is
 The integrated function passed the full project build. Sources, the paired
 prediction and both schedules are indexed by
 [final-match evidence](tools/compiler_evidence/2026-09-09-replay-final-match.json).
+## Promoting a shared body mid-unit renumbers every later unit in the carrier
+
+`overlay_dup_index.py promote` writes the `shared` span into
+`configs/USA/overlays.toml` and the shared symbol into each carrier's symbol
+map. It does **not** touch `src/`. When the span falls in the *middle* of an
+overlay's main text unit - the usual case, since a promoted body is rarely the
+last function - splat splits that unit in two and every tail unit shifts up by
+one index:
+
+```
+before: actor_102300 [0x84..0x3C04]  _2 [0x3C50..]  _3 [0x3D88..]
+after:  actor_102300 [0x84..0x3A5C]  shared [0x3A5C..0x3AE8]
+        _2 [0x3AE8..0x3C04]          _3 [0x3C50..]  _4 [0x3D88..]
+```
+
+Two things then have to be fixed by hand, and neither fails loudly:
+
+1. **The manifest's `rodata` cuts name units by index.** `rodata = [{ start =
+   "0x6C", unit = "actor_102300_2" }]` still parses after the shift, but 0x6C
+   is now attached to the wrong object - the one whose text used to be at
+   `_3`. Bump every `rodata` unit index by the same amount as the text units.
+2. **The carrier `.c` files must be rebuilt, not regenerated.** splat writes a
+   fresh `INCLUDE_ASM`-only skeleton for the new highest-numbered unit, and
+   that skeleton duplicates content the old file already held as matched C.
+   Move the old `_k.c` contents up to `_k+1.c` (rewriting the unit string
+   inside), cut the promoted function's `INCLUDE_ASM` out of the head file, and
+   hand everything after it to a newly written `_2.c`. Adopting splat's
+   skeleton instead silently drops the matched bodies - the checksum still
+   passes, because an `INCLUDE_ASM` assembles to the bytes the C compiled to.
+
+Promoting one 35-instruction body across six `actors` overlays this way turned
+one match into six, touching 27 files. Check the delta afterwards: each carrier
+should lose exactly one `INCLUDE_ASM` and keep its C definition count.

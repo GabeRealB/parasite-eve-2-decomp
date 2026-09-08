@@ -58,19 +58,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136BC0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136C4C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136D14);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136DA0);
-
-void func_actor_105700_80136E58(void)
-{
-}
-
-void func_actor_105700_80136E60(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_105700_80131EA0;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
-}

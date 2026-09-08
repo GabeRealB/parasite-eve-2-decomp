@@ -4,3 +4,4 @@ ActorsShared80135a24 = 0x8014DA24; // shared body, see src/actors/lib/
 D_actor_202300_80149E80 = 0x80149E80; // force_not_migration:True enemy state table, read from C
 D_actor_202300_80149E8C = 0x80149E8C; // force_not_migration:True enemy state table, read from C
 D_actor_202300_80149E98 = 0x80149E98; // force_not_migration:True enemy state table, read from C
+ActorsShared8013587c = 0x8014D87C; // shared body, see src/actors/lib/

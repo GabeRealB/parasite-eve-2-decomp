@@ -7,3 +7,4 @@ D_actor_105700_80131EA0 = 0x80131EA0; // force_not_migration:True enemy state ta
 D_actor_105700_80131EAC = 0x80131EAC; // force_not_migration:True enemy state table, read from C
 D_actor_105700_80131EB8 = 0x80131EB8; // force_not_migration:True enemy state table, read from C
 D_actor_105700_80131EC4 = 0x80131EC4; // force_not_migration:True enemy state table, read from C
+ActorsShared8013587c = 0x80136D14; // shared body, see src/actors/lib/

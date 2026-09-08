@@ -5,14 +5,14 @@
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 D_actor_105700_80131EAC;
+extern GpEnemyTaskFuncTable3 D_actor_205600_80149EB8;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_105700/actor_105700_3", D_actor_105700_80131EAC);
+INCLUDE_RODATA("actors/nonmatchings/actor_205600/actor_205600_4", D_actor_205600_80149EB8);
 
-void func_actor_105700_80136F9C(Task* arg0)
+void func_actor_205600_8014EAC0(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
-    sp = D_actor_105700_80131EAC;
+    sp = D_actor_205600_80149EB8;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
