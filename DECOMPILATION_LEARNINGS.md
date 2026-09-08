@@ -56373,3 +56373,64 @@ if (work->field_39A == 2) {
 
 Read the join label: if it sits *on* the `jal` rather than above the argument
 setup, duplicate the call.
+
+## A reloaded pointer shared by both `if`/`else` arms inherits `$a0`; split it
+
+`func_actor_400600_8013BA00` reloads `arg0->idMap` inside both arms of an
+if/else and stores through it. Written with one local for the reloaded pointer,
+it scored 99.26% with `regs=4` — the pointer landed in `$a0` where the target
+uses `$v1`:
+
+```c
+Actor400600Work* work2;
+...
+if (work->field_769 == 0) {
+    work2 = (Actor400600Work*)arg0->idMap;   /* -> lw $a0, 0x1C($s0) */
+    work2->field_71C = 2;
+    work2->field_71E = 0;
+} else {
+    work2 = (Actor400600Work*)arg0->idMap;   /* -> lw $a0, 0x1C($s0) */
+    ...
+}
+```
+
+The `.greg` dump names the cause outright:
+
+```
+;; 3 regs to allocate: 82 80 81
+;; 82 conflicts: 82 2 29
+;; 82 preferences: 4
+```
+
+Pseudo 80 is `arg0`, copied from `$a0` on entry, so it carries a hard-register
+preference for `$a0`. Pseudo 82 is the shared pointer, set from
+`(mem (plus (reg 80) 28))` at an insn where `arg0` is `REG_DEAD`.
+`expand_preferences` in `global.c` merges preferences across any
+`set`-with-`REG_DEAD` pair that does not conflict, so 82 inherits `$a0`.
+`prune_preferences` then strips that preference from 80 and 81 — they cross the
+`jal`, so `call_used_reg_set` is masked out of their preferences — but *not*
+from 82, which lives entirely after the call. `find_reg` honours the surviving
+preference and picks `$a0`.
+
+A pointer used in only one basic block never becomes a global allocno, so it
+never goes through `expand_preferences`. Giving each arm its own local is
+enough:
+
+```c
+Actor400600Work* work2;
+Actor400600Work* work3;
+...
+if (work->field_769 == 0) { work2 = arg0->idMap; work2->field_71C = 2;   ... }
+else                      { work3 = arg0->idMap; work3->field_71C = 0xA; ... }
+```
+
+local-alloc then assigns each one `$v1` (`$v0` is already taken by the stored
+constant) and the function matches. The duplicated tails still collapse: GCC
+cross-jumps in `jump2`, *after* reload, so two distinct pseudos that happen to
+get the same hard register merge just as one pseudo would — the object keeps
+the `j` to the shared `sh` pair. Do not conclude from a merged tail in the
+target that the source used one variable.
+
+Generally: when a post-call value is one register off and the `.greg` dump shows
+a `preferences:` line naming an argument register, look for a pseudo that dies
+into it. Shorten the recipient to a single block rather than pinning.
