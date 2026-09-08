@@ -66,6 +66,16 @@ typedef struct _GpCapCmd {
     /* 0x8 */ u8 field_8; // next command index
 } GpCapCmd;
 
+/// Four-byte dialog task request used by the CAP event runner.
+typedef struct _GpCapSpawnArg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ s8  field_2;
+    /* 0x3 */ s8  field_3;
+} GpCapSpawnArg;
+STATIC_ASSERT_SIZEOF(GpCapSpawnArg, 4);
+
+typedef void (*GpCapTextCb)(s16, s16, s32, s16, s32);
+
 typedef struct _GpCapChoice {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 y;

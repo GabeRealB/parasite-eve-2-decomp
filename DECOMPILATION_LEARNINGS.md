@@ -55740,3 +55740,20 @@ Using `arg0` directly and keeping it live with `SOFT_USE_REG(arg0)` after the
 hit-coordinate stores lowers its allocation priority enough to get `$s0`,
 leaving the scratch-head pointer in `$t8` and the segment start in `$t9`.
 The result is 100% with no register pins.
+
+
+## func_800E44A0: keep-live placement can change allocation without changing scheduling
+
+The remaining countdown pair at 99.968% was separated by a narrow priority
+margin: the loaded value had 3 references over 8 insns, while its destination
+address had 4 over 22. A `SOFT_USE_REG(holdFrames)` at the start of the taken
+branch extended the countdown value's live range enough to let the address
+win `$a1`, leaving the value in `$a2`. The emitted instructions and delay slots
+stayed unchanged and the scratch score reached 100%, without register pins.
+The same keep-live before the condition split the scheduling region and added
+instruction differences. Check the placement in `.lreg` and `.dbr`, not only
+the operand being kept live.
+
+This function also needed duplicated `task->state++` tails in the source:
+8 or 10 task references allocated it to `$s5`; 12 references put it in `$s4`.
+Post-reload cross-jumping still produced the same two shared increment blocks.

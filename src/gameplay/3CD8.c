@@ -41,6 +41,7 @@ extern s32            D_8010FB90[];
 extern u16            Gp_WeaponIdBase[];
 extern u16            Gp_AllyIdBase[];
 extern GpEvt12*       Gp_CapTable;
+extern GpCapSpawnArg  D_801155A0;
 extern s16            D_801155AC;
 extern u16            D_801155AE;
 extern s16            D_801155B0;
@@ -48,6 +49,7 @@ extern s16            D_801155B2;
 extern s16            D_801155B4;
 extern s16            D_801155B6;
 extern u8             D_801155B8;
+extern s8             D_801155B9;
 extern u8             D_801155BA;
 extern u8             D_801155BB;
 extern s16            D_801155BC;
@@ -63,6 +65,8 @@ extern u8             D_80115680;
 extern u8             D_80115688;
 extern u8             D_80115648;
 extern s16            D_8011564A;
+extern s16            D_80115650;
+extern s16            D_80115652;
 extern u16            Gp_CapCaretX;
 extern u16            Gp_CapCaretY;
 extern s16            D_80115654;
@@ -77,10 +81,12 @@ extern s16            D_80115666;
 extern s16            Gp_CapEventKey;
 extern s16            D_8011566A;
 extern u8             D_8011566C;
+extern u8             D_8011566D;
 extern u8             D_8011566E;
 extern u8             D_8011566F;
 extern s32            Gp_CapFile;
 extern u8             D_80115690;
+extern u8             D_80115694;
 extern s16            D_80115698;
 extern s16            D_8011569A;
 extern u8             D_8011569C;
@@ -95,6 +101,11 @@ extern s16            D_801156BC;
 extern GpOverlayIds*  D_801156F4;
 extern u8             D_801156F9;
 
+s32  Display_HasTransitionFlags(void);
+s32  Display_SetFlag20000000(void);
+void func_8001D5C4(void);
+s16  func_800E5578(s32, s32, s32, s32);
+void func_800E62C0(void);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
 void func_80724324(void);
@@ -411,7 +422,432 @@ s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E44A0);
+void func_800E44A0(Task* task)
+{
+    Task* target;
+    Task* lookupTask;
+    s16   eventIndex;
+    s32   viewId;
+    s32   sceneText;
+    s32   dialogText;
+    s32   timedText;
+    s32   choiceText;
+    s32   nextView;
+    s32   taskState;
+    s32   phase;
+    s32   activeViewFlags;
+    s32   soundId;
+    s32   confirmMask;
+    u16   oldChoice;
+    u8    viewPhase;
+    s32   holdFrames;
+    s32   eventFlags;
+    u8    choiceSound;
+    u8    view;
+    u8    nextPhase;
+    s32   firstPhase;
+    s32   capFlags;
+    s32   viewFlags;
+    s32   activeFlags;
+    s8    savedViewPhase;
+    s8    spawnDelay;
+    s8    viewPending;
+    s32   nextChoiceIndex;
+    s32   nextTextIndex;
+
+    D_8011565A = 1;
+    if (D_8011564A != -1) {
+        D_8011564A = (u16)D_8011564A + 1;
+    }
+    taskState = task->state;
+    if (taskState >= 2) {
+        if (taskState >= 5) {
+            Gp_CapExit(task);
+            return;
+        }
+        task->state = taskState + 1;
+        return;
+    }
+    if (D_801155BC == 2) {
+        if (Display_HasTransitionFlags() != 0) {
+            return;
+        }
+        D_801155BC = 1;
+    }
+    if ((s8)D_801155BA > 0) {
+        D_801155BA--;
+        spawnDelay = D_801155BA;
+        if (spawnDelay == 1) {
+            return;
+        }
+        if (spawnDelay != 0) {
+            return;
+        }
+        D_8011566D          = Mc_SaveData.field_4;
+        Mc_SaveData.field_4 = D_80115694;
+        Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 0, 0);
+        Display_SetFlag20000000();
+        Task_Spawn(1, 0x2C, 0, (s32)&D_801155A0);
+    }
+    eventIndex = Gp_FindCapEvt((s32)(s16)D_801155AE);
+    D_801155AE = (u16)eventIndex;
+    D_801155B2 = Gp_CapCenterX((u16*)Gp_CapTable[eventIndex].field_8);
+    eventFlags = Gp_CapTable[(s16)D_801155AE].field_1;
+    if (D_8011567A > 0) {
+        D_8011567A = (u16)D_8011567A - 1;
+        return;
+    }
+    if (D_80115678 > 0) {
+        D_80115678 = (u16)D_80115678 - 1;
+    }
+    nextPhase  = D_8011566E;
+    firstPhase = 1;
+    phase      = nextPhase & 0xFF;
+    if (phase == 0) {
+        goto processEvent;
+    }
+    if (phase == firstPhase) {
+        D_8011566E = nextPhase + firstPhase;
+        return;
+    }
+    if (phase != 2) {
+        goto resumeView;
+    }
+    D_8011566E = nextPhase + 1;
+    Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA7, (s32)(s8)D_801155BB, 0);
+    return;
+resumeView:
+    if (D_801156A4 & 0x20) {
+        if (Mc_SaveData.field_23 == 5) {
+            SndEvt_EnqueueType6(0, 0, 0);
+        }
+        D_801155BB  = 0;
+        D_8011566E  = 0;
+        D_801156A4 &= 0xDF;
+        if (D_8011566A == 1) {
+            D_8011566A = (u16)D_801156BC - 0x1E;
+        }
+    processEvent:
+        savedViewPhase = D_801155BB;
+        if (savedViewPhase != 0 && Game_Session->field_4D != 0) {
+            D_801155BB = 0;
+        }
+        if (eventFlags & 0x80) {
+            capFlags  = D_801156A4;
+            viewFlags = capFlags ^ 0x40;
+            viewFlags = viewFlags & 0x40;
+            if (eventFlags & viewFlags) {
+                return;
+            }
+            viewFlags       = capFlags & 0x40;
+            activeFlags     = eventFlags & viewFlags;
+            activeViewFlags = activeFlags & 0xFF;
+            if (activeViewFlags != (eventFlags & 0x40)) {
+                return;
+            }
+            if (activeViewFlags != 0) {
+                D_801156A4 = capFlags & 0xBF;
+            }
+            if (D_8011569C == 0) {
+                view   = Gp_CapTable[(s16)D_801155AE].field_0;
+                viewId = view & 0xFF;
+                if (viewId != 0) {
+                    view = Gp_FindViewIndex(viewId);
+                }
+            } else {
+                view = Gp_CapTable[(s16)D_801155AE].field_0;
+            }
+            if (eventFlags & 8) {
+                Task_SpawnFromTable(D_8010FB4C, 1, Gp_CapTable[(s16)D_801155AE].field_2 | (Gp_CapTable[(s16)D_801155AE].field_3 << 8) | (Gp_CapTable[(s16)D_801155AE].field_4 << 0x10), 0);
+            }
+            func_800E704C();
+            sceneText = Gp_CapTable[(s16)D_801155AE].field_8;
+            if (sceneText != -1) {
+                D_801155B4 = Gp_CapTextTopY((u16*)sceneText);
+                D_801155B2 = Gp_CapCenterX((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                nextView   = view & 0xFF;
+                D_801155BB = 0;
+                if ((nextView != 0) && (nextView != Mc_SaveData.field_4)) {
+                    if (D_80115688 == 0) {
+                        Mc_SaveData.field_4 = view;
+                        D_801155BB          = 1;
+                        if (Display_State.field_112 != 0) {
+                            if (D_8011564A == -1) {
+                                D_8011564A = 0;
+                            }
+                            func_8072455C(D_8011564A, nextView);
+                        }
+                    }
+                }
+                if (eventFlags & 0x20) {
+                    {
+                        viewPending = D_801155BB;
+                        if (viewPending != 0) {
+                            viewPhase  = D_801155BB;
+                            D_801155BB = viewPhase + 1;
+                            if (D_801156F4 != NULL) {
+                                func_8001D5C4();
+                            }
+                        } else if (!(eventFlags & 0x40)) {
+                            D_8011566A = 1;
+                        }
+                    }
+                    D_8011566E = 1;
+                    return;
+                }
+            } else {
+                task->state += 1;
+                return;
+            }
+        } else {
+            if (D_80115648 == 0) {
+                if (Gp_CapTable[(s16)D_801155AE].field_4 & 0xFE) {
+                    Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
+                    D_80115648 = 1;
+                }
+            }
+
+            if (Gp_CapTable[(s16)D_801155AE].field_6 != 0) {
+                if (D_801155AC == 0) {
+                    D_801155A0.field_0 = Gp_CapTable[(s16)D_801155AE].field_6;
+                    if (D_801155A0.field_0 < 0x65U) {
+                        if (Gp_GetCurBit2Flag((s32)D_801155A0.field_0) == 2) {
+                            D_801155AC         = 1;
+                            D_801155A0.field_2 = 1;
+                            D_801155A0.field_3 = 1;
+                            return;
+                        }
+                        if (D_801155A0.field_0 < 0x65U) {
+                            goto spawnDialog;
+                        }
+                    }
+                    lookupTask = Game_GetPtrSlot(4);
+                    target     = lookupTask;
+                    Gp_DispatchMsg(lookupTask, 0x7D8, D_801155A0.field_0 - 0x64, (s32)&target);
+                    if (target != NULL) {
+                        D_801155A0.field_2 = 0;
+                        D_801155A0.field_3 = 1;
+                        Gp_DispatchMsg(target, 0x7DB, (s32)&D_801155A0, 0);
+                    } else {
+                        D_801155A0.field_2 = 1;
+                        D_801155A0.field_3 = 1;
+                    }
+                    goto waitDialog;
+                spawnDialog:
+                    D_801155A0.field_2 = 0;
+                    if (D_80115666 == 1) {
+                        D_8011566D          = Mc_SaveData.field_4;
+                        Mc_SaveData.field_4 = D_80115694;
+                        Task_Spawn(1, 0x2C, 0, (s32)&D_801155A0);
+                    } else if (D_80115666 == 2) {
+                        D_801155BA = 4;
+                    } else {
+                        Display_InitModeObj(Task_GetDesc(9U, 0xBU), 0, (s32)&D_801155A0, 0);
+                    }
+                waitDialog:
+                    D_801155AC = 1;
+                    return;
+                }
+                if (D_801155A0.field_2 != 0) {
+                    if (D_80115666 != 0) {
+                        Mc_SaveData.field_4 = D_8011566D;
+                    }
+                    D_801155AC = 0;
+                    if (D_801155A0.field_3 == 0) {
+                        if (Gp_CapTable[(s16)D_801155AE].field_0 != 0) {
+                            Gp_CapEventKey = (s16)Gp_CapTable[(s16)D_801155AE].field_0;
+                        }
+                    }
+                    func_800E704C();
+                    D_801155AC = 0;
+                    D_801155B0 = 0;
+                    D_801155C0 = 0;
+                    dialogText = Gp_CapTable[(s16)D_801155AE].field_8;
+                    if (dialogText == -1) {
+                        task->state += 1;
+                        return;
+                    }
+                    D_801155B4 = Gp_CapTextTopY((u16*)dialogText);
+                    D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                    return;
+                }
+            } else if (D_801155AC == 1) {
+                if (*(u32*)&Gp_CapTable[(s16)D_801155AE] & 0xFFFF0000) {
+                    if (D_80115698 != 0) {
+                        func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                        D_80115698 = (u16)D_80115698 - 1;
+                        return;
+                    }
+                    if (D_8011569A == 0) {
+                        func_800E704C();
+                        timedText = Gp_CapTable[(s16)D_801155AE].field_8;
+                        if (timedText != -1) {
+                            D_801155B4 = Gp_CapTextTopY((u16*)timedText);
+                            D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                            goto resetText;
+                        }
+                        task->state += 1;
+                        goto resetText;
+                    }
+                    if (D_8011569A != 0xFF) {
+                        D_8011569A = (u16)D_8011569A - 1;
+                        return;
+                    }
+                } else {
+                    func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                    nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
+                    if ((Gp_CapTable[nextChoiceIndex].field_8 != -1) && (Gp_CapTable[nextChoiceIndex].field_6 == 0)) {
+                        if (Gp_CapTable[nextChoiceIndex].field_2 == 0) {
+                            if (Gp_CapTable[nextChoiceIndex].field_3 == 0) {
+                                goto checkChoice;
+                            }
+                            goto checkCaret;
+                        }
+                    checkChoice:
+                        if ((D_801155BE != 0) || (Gp_CapTable[nextChoiceIndex].field_1 & 0x80)) {
+                            goto checkCaret;
+                        }
+                        goto drawCaret;
+                    }
+                checkCaret:
+                    if (Gp_CapTable[(s16)D_801155AE].field_1 & 4) {
+                    drawCaret:
+                        ((void (*)(s32, s32))Gp_DrawCapCaret)(0xA0, 0xDC);
+                    } else {
+                        D_80115664 = 0;
+                    }
+                    oldChoice = (u16)D_801155C0;
+                    if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                        D_801155C0 = (u16)D_801155C0 - 1;
+                    }
+                    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                        D_801155C0 = (u16)D_801155C0 - D_80115680;
+                    }
+                    if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                        D_801155C0 = (u16)D_801155C0 + 1;
+                    }
+                    if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                        D_801155C0 = (u16)D_801155C0 + D_80115680;
+                    }
+                    if (D_801155C0 < 0) {
+                        D_801155C0 = (s16)oldChoice;
+                    }
+                    if (D_801155C0 >= D_801155BE) {
+                        D_801155C0 = (s16)oldChoice;
+                    }
+                    if ((D_801155C0 != (s16)oldChoice) && (D_801155BE != 0)) {
+                        SndEvt_EnqueueType6(0x15, 0, 0);
+                    }
+                    func_800E62C0();
+                    confirmMask = Pad_MaskConfirm;
+                    if (D_801155BE == 0) {
+                        confirmMask |= Pad_MaskCancel;
+                    }
+                    if (Pad_CheckButtons(0, 1, confirmMask) != 0) {
+                        if (D_801155BE != 0) {
+                            if (D_80115659 == 0) {
+                                choiceSound = D_801155D0[D_801155C0].sound;
+                                if (choiceSound != 1) {
+                                    if (choiceSound == 3) {
+                                        soundId = 0x15;
+                                        goto playChoiceSound;
+                                    }
+                                } else {
+                                    soundId = 0x16;
+                                playChoiceSound:
+                                    SndEvt_EnqueueType6(soundId, 0, 0);
+                                }
+                                goto confirmChoice;
+                            }
+                        } else {
+                        confirmChoice:
+                            D_801156A8 = (s32)D_801155C0;
+                            if (D_801155BE != 0) {
+                                Gp_CapEventKey = (s16)D_801155D0[D_801155C0].eventKey;
+                            }
+                            D_8011567A = (s16)(u16)D_80115678;
+                            func_800E704C();
+                            choiceText = Gp_CapTable[(s16)D_801155AE].field_8;
+                            if (choiceText == -1) {
+                                task->state += 1;
+                            } else {
+                                D_801155B4 = Gp_CapTextTopY((u16*)choiceText);
+                                D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
+                            }
+                        resetText:
+                            D_801155AC = 0;
+                            D_801155B0 = 0;
+                            D_801155C0 = 0;
+                            return;
+                        }
+                    }
+                }
+            } else if ((Gp_CapTable[(s16)D_801155AE].field_2 != 0) && !(D_80115670 & 1)) {
+                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 0, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                if ((s8)D_801155B8 > D_801155B9) {
+                    D_801155B9 = (u8)D_801155B9 + 1;
+                } else {
+                    D_801155B9 = 0;
+                    D_801155B0 = (u16)D_801155B0 + 1;
+                }
+                if (D_80115660 != 0) {
+                    ((GpCapTextCb)D_80115660)(D_80115650, D_80115652, Gp_CapTable[(s16)D_801155AE].field_8, D_801155B0, D_801155B9 == 0);
+                }
+                if (D_801155AC != 0) {
+                    D_8011569A = (s16)Gp_CapTable[(s16)D_801155AE].field_3;
+                    D_80115698 = (s16)Gp_CapTable[(s16)D_801155AE].field_2;
+                    D_80115664 = 0;
+                    return;
+                }
+            } else {
+                if (*(u32*)&Gp_CapTable[(s16)D_801155AE] & 0xFFFF0000) {
+                    if (Gp_CapTable[(s16)D_801155AE].field_2 != 0) {
+                        func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                    }
+                    D_80115664 = 0;
+                    D_801155AC = 1;
+
+                    holdFrames = Gp_CapTable[(s16)D_801155AE].field_3;
+                    D_8011569A = (s16)holdFrames;
+                    D_80115698 = Gp_CapTable[(s16)D_801155AE].field_2;
+                    if ((s32)holdFrames < D_8011566A) {
+                        SOFT_USE_REG(holdFrames);
+                        D_80115698 = (u16)D_80115698 - (u16)D_8011566A;
+                        D_8011569A = 0;
+                        if (D_80115698 < 0) {
+                            D_80115698 = 0;
+                        }
+                    } else {
+                        D_8011569A = holdFrames - (u16)D_8011566A;
+                    }
+                    D_8011566A = 0;
+                    return;
+                }
+                if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & 1)) {
+                    D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 1, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                    nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
+                    if (((Gp_CapTable[nextTextIndex].field_8 != -1) && (Gp_CapTable[nextTextIndex].field_6 == 0) && ((Gp_CapTable[nextTextIndex].field_2 != 0) || (Gp_CapTable[nextTextIndex].field_3 == 0))) || (Gp_CapTable[(s16)D_801155AE].field_1 & 4)) {
+                        ((void (*)(s32, s32))Gp_DrawCapCaret)(0xA0, 0xDC);
+                        return;
+                    }
+                    D_80115664 = 0;
+                    return;
+                }
+
+                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8, 0x80, 0, Gp_CapTable[(s16)D_801155AE].field_0 | ((Gp_CapTable[(s16)D_801155AE].field_1 & 0x12) << 8));
+                if ((s8)D_801155B8 > D_801155B9) {
+                    D_801155B9 = (u8)D_801155B9 + 1;
+                    return;
+                }
+                D_801155B9 = 0;
+                D_801155B0 = (u16)D_801155B0 + 1;
+            }
+        }
+    } else {
+        return;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E5578);
 
