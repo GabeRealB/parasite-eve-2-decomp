@@ -61,6 +61,17 @@ $CC $CC_FLAGS -G0 -o "$CC_OUTPUT" "$CPP_OUTPUT"
 rm -f "$CPP_OUTPUT"
 rm -f "${CPP_OUTPUT}.d"
 
+# -dp appends an RTL uid to the *closing* volatile marker, so cc1 emits
+#     #.set	novolatile  # 34 movsi_internal2/5
+# instead of a bare `#.set	novolatile`. maspsx filters those markers by exact
+# string equality (maspsx/__init__.py: `line in ("#.set\tvolatile", ...)`), so
+# the annotated one slips through and is counted as a real instruction - which
+# shows up as phantom branch/delete penalties and can score a perfect match
+# below 100%. func_replay_bonus_80117E04 read 99.430% here and 100.000% without
+# -dp. Strip the annotation from just those two markers; every other -dp uid is
+# left alone, because dump.sh joins the .s to its RTL dumps through them.
+sed -i -E 's/^([[:space:]]*#?\.set[[:space:]]+(no)?volatile)[[:space:]]+#.*$/\1/' "$CC_OUTPUT"
+
 # Run maspsx. Keep the .s: -fverbose-asm / -dp comments map each insn to
 # an RTL uid (e.g. `lw $2,0($4)  # 31 movsi_internal2/5`). dump.sh uses
 # the same uids. If this .s already matches and the .o does not, the bug
