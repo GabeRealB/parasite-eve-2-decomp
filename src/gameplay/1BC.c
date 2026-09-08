@@ -2691,7 +2691,34 @@ GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5A48);
+void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
+{
+    s32       j;
+    s32       i;
+    McPosRec* recs;
+
+    if (arg1->field_0 == 0) {
+        arg1->field_0  = 1;
+        arg1->field_1 |= 1;
+    }
+    if (arg1->field_1 & 1) {
+        arg1->field_1 &= 0xFC;
+        i              = 0x1F;
+        recs           = Mc_SaveData.field_28;
+        do {
+            if ((recs[i].field_A & 0xFFF) == ((arg0->field_3 << 8) | arg0->field_2)) {
+                if (i != 0x1F) {
+                    for (j = i; j < 0x1F; j++) {
+                        recs[j] = recs[j + 1];
+                    }
+                }
+                recs[0x1F].field_3 = 0;
+                recs[0x1F].field_A = 0;
+            }
+            i--;
+        } while (i >= 0);
+    }
+}
 
 void Gp_SetAreaObjId(GpAreaKey* arg0, s32 arg1, s32 arg2)
 {
