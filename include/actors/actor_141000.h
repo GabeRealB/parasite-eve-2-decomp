@@ -36,7 +36,9 @@ typedef struct Actor141000Work {
     /* 0x4A0 */ s32    field_4A0;
     /* 0x4A4 */ s32    field_4A4;
     /* 0x4A8 */ s32    field_4A8;
-    /* 0x4AC */ byte   pad_4AC[0x1D];
+    /* 0x4AC */ byte   pad_4AC[0x16];
+    /* 0x4C2 */ s16    field_4C2;
+    /* 0x4C4 */ byte   pad_4C4[0x5];
     /* 0x4C9 */ s8     field_4C9;
     /* 0x4CA */ byte   pad_4CA[0x2];
 } Actor141000Work;

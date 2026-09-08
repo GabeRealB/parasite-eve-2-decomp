@@ -56287,3 +56287,43 @@ and a function under `matchings/` should have a real C definition.
 A span at the very end of a carrier's text needs neither shift - it just drops
 the last `INCLUDE_ASM` from the final unit (`actor_260500`) - and a span that
 splits the last unit only appends a new one (`actor_260400`).
+
+## A migrated rodata table whose only reader gets decompiled disappears from the split
+
+`migrate_rodata_to_functions: True` parks a leading-`.rodata` symbol in the `.s`
+of whichever nonmatching function references it. Match that function and the
+symbol has nowhere to go: splat writes it only to the unlinked
+`asm/<ver>/<family>/data/<unit>.rodata.s` and emits **no** `D_<sym>.s` under
+`nonmatchings/<unit>/`. The link then fails on the table, not on the function:
+
+```
+undefined reference to `D_actor_141000_80131E58'
+```
+
+Adding an `INCLUDE_RODATA` for it does not help on its own - there is no file to
+include, and the assembler says so (`can't open .../D_actor_141000_80131E58.s`).
+Two ways out:
+
+- `force_not_migration: True` on the symbol, which makes splat give it its own
+  `.s`; then place the `INCLUDE_RODATA` by the unit's real rodata order (see
+  "An un-migrated table's `INCLUDE_RODATA` is ordered against *migrated* blocks
+  too").
+- For a **function-pointer dispatch table**, just define it in C. Its entries are
+  references to our own symbols, which CLAUDE.md already treats as program
+  structure rather than game data, and `TaskFuncTable4` reproduces the bytes:
+
+```c
+const TaskFuncTable4 D_actor_141000_80131E58 = { {
+    func_actor_141000_80133A68, func_actor_141000_80133B28,
+    func_actor_141000_80133490, func_actor_141000_80133BD8,
+} };
+```
+
+The C definition is only safe when the table **opens** its unit's `.rodata` -
+GAS lays the section down in file order, so a table written at the top of the
+`.c` lands at the subsegment's own start address and nothing shifts. When other
+blocks sit below it in the same unit, they arrive through *those* functions'
+`INCLUDE_ASM` lines and stay in order behind it. If the table is not first,
+prefer `force_not_migration` - `actor_107600`'s comment records the same
+reasoning from the other side ("a local initializer would emit the pool at this
+function's `.rodata` instead").
