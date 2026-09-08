@@ -56,6 +56,8 @@ extern s16            D_801155BC;
 extern s16            D_801155BE;
 extern s16            D_801155C0;
 extern GpCapChoice    D_801155D0[];
+extern u8             D_80097518[];
+extern GlyphUvwh      D_8010FB70[];
 extern u8             D_80115670;
 extern Task*          Gp_CapTask;
 extern s16            D_80115678;
@@ -104,7 +106,7 @@ extern u8             D_801156F9;
 s32  Display_HasTransitionFlags(void);
 s32  Display_SetFlag20000000(void);
 void func_8001D5C4(void);
-s16  func_800E5578(s32, s32, s32, s32);
+u16  func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3);
 void func_800E62C0(void);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
@@ -849,7 +851,317 @@ resumeView:
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E5578);
+u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
+{
+    u32          title;
+    u8           flagA;
+    u16*         text;
+    u16*         body;
+    s16          lineEnd;
+    u16          ret;
+    u16          inChoice;
+    s16          lineIdx;
+    u8           centered;
+    u8           selected;
+    s16          nChoice;
+    s16          x;
+    s32          y;
+    s16          i;
+    s16          sel;
+    u16          code;
+    s16          attr;
+    s16          sc;
+    s16          t;
+    s16          glyphY;
+    s32          palette;
+    s32          titleWidth;
+    u16*         next;
+    s32          g;
+    s16          t2;
+    s16          top;
+    s32          base59;
+    u8*          vertical;
+    POLY_G4*     bg;
+    POLY_G4*     bg2;
+    DR_MODE*     dm;
+    POLY_FT4*    ft;
+    POLY_GT4*    gt;
+    POLY_GT4*    gt2;
+    GlyphUvwh*   icon;
+    GpCapChoice* ch;
+    GpCapChoice* p;
+
+    text     = (u16*)arg0;
+    vertical = D_80097518;
+    nChoice  = 0;
+    title    = arg3;
+    SOFT_TOUCH_REG(title);
+    arg3     = (u16)arg3;
+    inChoice = 0;
+    lineIdx  = 0;
+    selected = 0;
+    centered = ((arg3 >> 9) ^ 1) & 1;
+    flagA    = arg2;
+    if (centered) {
+        x = Gp_CapCenterXLine((u16*)arg0, 0) - 0xA0;
+    } else {
+        x = (u16)D_801155B2 - 0xA0;
+    }
+    y       = (u16)D_801155B4 - 0x78;
+    body    = text;
+    lineEnd = D_801155B0;
+    code    = text[lineEnd];
+    if (flagA == 0) {
+        if ((s16)code == -1) {
+            ret     = 1;
+            lineEnd = lineEnd - 1;
+        } else {
+            ret = 0;
+        }
+    } else {
+        ret = 1;
+    }
+
+    bg             = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(bg + 1);
+    setlen(bg, 8);
+    setcode(bg, 0x3A);
+    setRGB0(bg, 0, 0, 0);
+    setRGB1(bg, 0, 0, 0);
+    setRGB2(bg, 0, 0x40, 0x20);
+    setRGB3(bg, 0, 0x40, 0x20);
+    bg->x0 = (u16)D_801155B2 - 0xA7;
+    bg->y0 = (0x59 - (u16)D_801155B6) - Display_State.vramYOffset;
+    bg->x1 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
+    bg->y1 = (0x59 - (u16)D_801155B6) - Display_State.vramYOffset;
+    bg->x2 = (u16)D_801155B2 - 0xA7;
+    bg->y2 = 0x59 - Display_State.vramYOffset;
+    bg->x3 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
+    bg->y3 = 0x59 - Display_State.vramYOffset;
+    addPrim(&Gpu_CurrentOt[3], bg);
+    bg2            = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(bg2 + 1);
+    *bg2           = *bg;
+    addPrim(&Gpu_CurrentOt[3], bg2);
+    dm             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dm + 1);
+    setlen(dm, 1);
+    dm->code[0] = 0xE100020A;
+    addPrim(&Gpu_CurrentOt[3], dm);
+
+    if (title & 0xFF) {
+        ft             = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(ft + 1);
+        setlen(ft, 9);
+        setcode(ft, 0x2D);
+        title      = title - 1;
+        base59     = 0x59;
+        top        = base59 - (u16)D_801155B6;
+        ft->x0     = (u16)D_801155B2 - 0xA7;
+        ft->y0     = (top - Display_State.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
+        titleWidth = Gp_CapGlyphs[title & 0xFF].w - 0xA7;
+        ft->x1     = (u16)D_801155B2 + titleWidth;
+        ft->y1     = (top - Display_State.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
+        ft->x2     = (u16)D_801155B2 - 0xA7;
+        ft->y2     = (base59 - Display_State.vramYOffset) - (u16)D_801155B6;
+        titleWidth = Gp_CapGlyphs[title & 0xFF].w - 0xA7;
+        ft->x3     = (u16)D_801155B2 + titleWidth;
+        ft->y3     = (base59 - Display_State.vramYOffset) - (u16)D_801155B6;
+        ft->u0     = Gp_CapGlyphs[title & 0xFF].u;
+        ft->v0     = Gp_CapGlyphs[title & 0xFF].v;
+        ft->u1     = Gp_CapGlyphs[title & 0xFF].u + Gp_CapGlyphs[title & 0xFF].w;
+        ft->v1     = Gp_CapGlyphs[title & 0xFF].v;
+        ft->u2     = Gp_CapGlyphs[title & 0xFF].u;
+        ft->v2     = Gp_CapGlyphs[title & 0xFF].v + Gp_CapGlyphs[title & 0xFF].h;
+        ft->u3     = Gp_CapGlyphs[title & 0xFF].u + Gp_CapGlyphs[title & 0xFF].w;
+        ft->v3     = Gp_CapGlyphs[title & 0xFF].v + Gp_CapGlyphs[title & 0xFF].h;
+        ft->clut   = 0x3D93;
+        ft->tpage  = getTPage(0, 1, D_80115654, D_80115656);
+        addPrim(&Gpu_CurrentOt[2], ft);
+    }
+
+    i = 0;
+    while (1) {
+        code = body[i];
+        if (flagA == 0) {
+            if (lineEnd < i) {
+                break;
+            }
+        } else {
+            if ((s16)code == -1) {
+                break;
+            }
+        }
+        if ((s16)code == -2 && inChoice == 1) {
+            nChoice++;
+            inChoice = 0;
+            selected = 0;
+        }
+        sc   = code;
+        attr = code;
+        if (sc == -2) {
+            Gp_CapCaretY = y - 2;
+            Gp_CapCaretX = x + 4;
+            t2           = lineIdx + 1;
+            next         = &body[i + 1];
+            asm("" : "=r"(g), "+m"(*next) : "r"(lineIdx));
+            lineIdx = t2;
+            if (*vertical == 0) {
+                y += func_800E6BB8(next);
+                if (centered != 0) {
+                    x = Gp_CapCenterXLine((u16*)arg0, (s16)lineIdx) - 0xA0;
+                } else {
+                    x = (u16)D_801155B2 - 0xA0;
+                }
+            } else {
+                asm("" : "+r"(i) : "r"(g));
+                y  = -0x58;
+                x -= func_800E6BB8(next);
+            }
+            i++;
+            continue;
+        } else {
+            if (sc == -3) {
+                if (*vertical == 0) {
+                    x += 3;
+                } else {
+                    y += 3;
+                }
+                i++;
+                continue;
+            } else if ((code & 0x9F00) == 0x8000) {
+                if (code & 0x2000) {
+                    sel = code & 0xFF;
+                } else {
+                    sel = Gp_FindViewIndex(code & 0xFF);
+                }
+                if (Mc_SaveData.field_4 != sel) {
+                    if (D_80115666 != 0) {
+                        Stage_BeginTransition(sel, 1);
+                        D_801155BC = 2;
+                    } else {
+                        if (attr & 0x4000) {
+                            Gp_MsgPlayer3F3(0);
+                            Gp_MsgAlly3F3(0);
+                        }
+                        Mc_SaveData.field_4    = sel;
+                        Game_Session->field_68 = 1;
+                        Gp_StateF0.field_4     = 2;
+                    }
+                }
+                i++;
+                continue;
+            } else if ((code & 0xFF00) == 0x8100 || (code & 0xFF00) == 0x8200 || (code & 0xFF00) == 0x8300) {
+                if (flagA == 0) {
+                    ret = 1;
+                    break;
+                }
+                if (inChoice == 1) {
+                    nChoice++;
+                    selected = 0;
+                }
+                inChoice    = 1;
+                ch          = D_801155D0;
+                p           = &ch[nChoice];
+                p->sound    = (attr & 0xF00) >> 8;
+                p->x        = x;
+                p->y        = y;
+                p->eventKey = attr & 0xFF;
+                if (nChoice == D_801155C0) {
+                    selected = 1;
+                }
+                i++;
+                continue;
+            } else if ((code & 0xFF00) == 0x8400) {
+                icon           = &D_8010FB70[code & 0xFF];
+                ft             = (POLY_FT4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(ft + 1);
+                setlen(ft, 9);
+                setcode(ft, 0x2D);
+                ft->clut  = 0x3C00;
+                ft->tpage = 0x1E;
+                asm("" : "+m"(ft->tpage)::"memory");
+                t      = (y - Display_State.vramYOffset) + 1;
+                ft->x0 = x;
+                ft->y0 = t - icon->h;
+                ft->x1 = x + icon->w;
+                ft->y1 = t - icon->h;
+                ft->x2 = x;
+                ft->y2 = t;
+                ft->x3 = x + icon->w;
+                ft->y3 = t;
+                ft->u0 = icon->u;
+                ft->v0 = icon->v;
+                ft->u1 = icon->u + icon->w;
+                ft->v1 = icon->v;
+                ft->u2 = icon->u;
+                ft->v2 = icon->v + icon->h;
+                ft->u3 = icon->u + icon->w;
+                ft->v3 = icon->v + icon->h;
+                addPrim(&Gpu_CurrentOt[2], ft);
+                x += icon->w;
+                i++;
+                continue;
+            } else {
+                D_801155B8     = ((s16)code >> 11) & 0xE;
+                palette        = ((s16)code >> 10) & 3;
+                code           = code & 0x3FF;
+                glyphY         = y - Display_State.vramYOffset;
+                gt             = (POLY_GT4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(gt + 1);
+                setlen(gt, 12);
+                setcode(gt, 0x3C);
+                t = x;
+                if (selected == 0) {
+                    gt->clut = palette | 0x3D50;
+                } else {
+                    gt->clut = 0x3D52;
+                }
+                setShadeTex(gt, 1);
+                setRGB0(gt, 0x70, 0x70, 0x70);
+                setRGB1(gt, 0x70, 0x70, 0x70);
+                setRGB2(gt, 0x70, 0x70, 0x70);
+                setRGB3(gt, 0x70, 0x70, 0x70);
+                setSemiTrans(gt, 1);
+                gt->tpage = getTPage(0, 1, D_80115654, D_80115656);
+                gt->x0    = t;
+                gt->y0    = glyphY - Gp_CapGlyphs[(s16)code].h;
+                gt->x1    = t + Gp_CapGlyphs[(s16)code].w;
+                gt->y1    = glyphY - Gp_CapGlyphs[(s16)code].h;
+                gt->x2    = t;
+                gt->y2    = glyphY;
+                gt->x3    = t + Gp_CapGlyphs[(s16)code].w;
+                gt->y3    = glyphY;
+                gt->u0    = Gp_CapGlyphs[(s16)code].u;
+                gt->v0    = Gp_CapGlyphs[(s16)code].v;
+                gt->u1    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].w;
+                gt->v1    = Gp_CapGlyphs[(s16)code].v;
+                gt->u2    = Gp_CapGlyphs[(s16)code].u;
+                gt->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
+                gt->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].w;
+                gt->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
+                addPrim(&Gpu_CurrentOt[2], gt);
+                gt2            = (POLY_GT4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(gt2 + 1);
+                *gt2           = *gt;
+                gt2->tpage     = getTPage(0, 2, D_80115654, D_80115656);
+                addPrim(&Gpu_CurrentOt[2], gt2);
+                asm("" : "+m"(gt2->tag)::"memory");
+                if (*vertical == 0) {
+                    x = Gp_CapGlyphs[(s16)code].w + x - 1;
+                } else {
+                    y = Gp_CapGlyphs[(s16)code].h + y - 1;
+                }
+            }
+        }
+        i++;
+    }
+
+    D_80115650 = x;
+    D_801155BE = nChoice;
+    D_80115652 = y - Display_State.vramYOffset;
+    return ret;
+}
 
 void func_800E62C0(void)
 {

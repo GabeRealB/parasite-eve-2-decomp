@@ -55906,3 +55906,62 @@ those constants and used in both `setaddr` expressions, preserves the early
 mask materialization. This combination matched all four edge packets without
 register pins. Inspect the actual RTL volatility flag rather than inferring
 it from a helper's name.
+
+
+## `func_800E5578`: spill-register rotation, sched1 launch priority, and reload's stack-slot `REG_DEAD` note
+
+The archived seed scored 99.847% with three register hunks and 84 prior
+attempts. Each hunk was a different compiler mechanism; none of them yields to
+statement reordering alone, and the dumps name the mechanism before the C does.
+
+**Sched1 pulls single-set values next to their first use.** GCC 2.8.1's
+scheduler runs in reverse. When an insn's consumer is scheduled, the insn gets
+`LAUNCH_PRIORITY` if its destination is a single-set pseudo that is live
+(`birthing_insn_p`), so it is placed right before that consumer. Stores,
+multi-set pseudos and `SUBREG` destinations keep priority 1 and sink toward the
+block head in original-order (LUID) sequence. A `u16 title; title = title - 1`
+expands to an SI temp plus a copy; with a later `SOFT_TOUCH_REG(title)` the
+temp dies at the copy, combine folds them into a `SUBREG` destination, and the
+decrement is deferred to the head *before* the `Display_State` address. Declaring
+`title` as `u32` keeps the decrement a plain single-set `addu` on the same
+pseudo, which the target wants after that address. A `u32` copy of a `u32`
+parameter is then a cse equivalence, and `make_regs_eqv` makes the longer-lived
+register canonical, so `arg3 = (u16)arg3` moved off `a3`; a `SOFT_TOUCH_REG`
+on the copy breaks the equivalence without changing allocation.
+
+**A constant array address materialised early and added second.**
+`&D_801155D0[nChoice]` swaps the constant to the second operand
+(`expand_binop`) and forces the symbol into a register after the index, so the
+`lui` follows the shifts. `ch = D_801155D0; p = &ch[nChoice]` with another
+dead `ch = D_801155D0` earlier makes `ch` a multi-set pointer: the address is
+deferred to the block head, `loop.c` does not hoist it, and cse still knows its
+value so `fold_rtx` swaps the `plus` back to offset-plus-address. The result
+pseudo `p` is separate, which is what gives `sll v1; addu v1,v1,v0`.
+
+**Reload allocates spill registers round-robin in insn order.** `t3`, `t4`,
+`t8`, `t9` cycle per reload (`last_spill_reg` in `allocate_reload_reg`), so
+which spilled variable is reloaded first decides which register it gets, and
+later users inherit the same register. The target wanted `lineIdx` before
+`body`, i.e. the increment before `next = &body[i + 1]` in the post-sched1
+order, while sched2 placed the increment after the flag load. The seed's asm
+read `lineIdx` after the `addu`, which allocated `body` first.
+
+**Reload's `REG_DEAD` note on a stack slot makes an insn a memory reader.**
+When a spilled pseudo dies in an insn, reload leaves `REG_DEAD (mem sp+N)` on
+it, and sched2 (`reload_completed`) runs `sched_analyze_2` on that note. Any
+later asm with a `"memory"` clobber or a register-addressed memory operand then
+gets an anti-dependence on the increment and cannot precede it. Giving the
+gate asm an explicit `"r"(lineIdx)` input moves the death, and the note, onto
+the asm. `memrefs_conflict_p` treats symbol-addressed memory as disjoint from
+`sp`-based slots but a bare `(reg)` address as conflicting with everything, and
+after reload a constant address becomes `(mem (reg t4))`.
+
+The landed shape is `t2 = lineIdx + 1; next = &body[i + 1];
+asm("" : "=r"(g), "+m"(*next) : "r"(lineIdx)); lineIdx = t2;` with
+`asm("" : "+r"(i) : "r"(g))` in the vertical branch. The `"+m"(*next)` gates
+the `addu` behind the flag load and gives that load priority 2; the `=r`
+output consumed in another block makes the asm a launch insn so it beats the
+increment at the sched1 tie; the copy-back last keeps the store initially
+ready for the delay slot. Twelve ablations confirmed every remaining asm and
+the `u32 title`; three `volatile` casts and two `SOFT_TOUCH_REG`s from the seed
+were dead and removed.

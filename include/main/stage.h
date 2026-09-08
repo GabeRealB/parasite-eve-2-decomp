@@ -53,6 +53,7 @@ s32  Stage_SetEndingFlag(void);
 void Stage_ReleasePrimBuf(void);
 /// Overlay callers pass 1; the argument is unused.
 void Stage_RequestSpecialFlag(s32 arg0);
+s32  Stage_BeginTransition(s32 arg0, s32 arg1);
 void Stage_RequestFromAreaTable(s32 arg0);
 void Stage_RequestMidiFromMap(s32 arg0);
 
