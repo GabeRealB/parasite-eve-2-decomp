@@ -134,6 +134,7 @@ void CdReady_Poll(void);
 void CdReady_Cancel(s16 slot /* 1-based */);
 
 // CD → SPU MTS stream
+s32  func_80059EE0(CdReadyEntry* entry);
 s32  CdStream_InitDisc(u32* phaseFlags);
 void CdStream_Reset(void);
 void CdStream_Start(CdStreamParams* params);
@@ -154,6 +155,11 @@ void CdStream_ConfigureSpuIrq(s32 enable, u32 irqAddr);
 
 void CdStream_Drive(void);
 void CdStream_ReadyMts(s32 arg0, u8* arg1);
+
+extern volatile s32 D_80068B54;
+extern s32          D_800827E8;
+extern volatile s32 D_8008280C;
+extern volatile s32 D_80082814;
 
 extern CdStreamParams         CdStream_Params;
 extern volatile CdStreamState CdStream_State;

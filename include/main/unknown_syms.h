@@ -55,7 +55,6 @@ extern void  func_8004E200(void);
 extern u8*   Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
 extern s32   CdAudio_DriveNull(void);
 extern s32   func_8001FAE0(u16 arg0, s32 arg1);
-extern void  func_80059EE0(void);
 extern s32   func_800B0118(s32 arg0, s32 arg1);
 
 extern GBytes4       D_80013F18;

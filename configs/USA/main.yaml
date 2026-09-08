@@ -152,9 +152,8 @@ segments:
       # jtbl_800141C4 (CdAudio_DriveStream) + jtbl from CdAudio_DriveSeek +
       # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1
       - [0x49c4, .rodata, "cdaudio"]
-      # Jump tables still used by unmatched assembly functions in 4A6E0.c.
-      - [0x4a48, rodata, "cdstream_1"] # jtbl_80014248 (func_80059EE0 still asm)
-      - [0x4a78, .rodata, "cdstream"] # jtbls from CdStream_InitDisc + CdStream_AbortPhase
+      # jtbls from func_80059EE0, CdStream_InitDisc and CdStream_AbortPhase
+      - [0x4a48, .rodata, "cdstream"]
       - [0x4ad0, o, libspu/s_si, .rdata]
 
       # .text section
