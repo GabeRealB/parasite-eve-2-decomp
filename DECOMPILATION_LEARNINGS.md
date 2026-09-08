@@ -54882,3 +54882,31 @@ The sibling's VECTOR, coordinate members and word comparison recover it without
 pins or barriers. Preserve the scale amount assignments inside both branches,
 as described in "A value defined before the compare can never be allocated
 `$v0`"; the sibling already contains that matching shape.
+
+
+## func_800B0CF4: split reused absolute-value and matrix-pointer locals
+
+The structured unpinned attempt reached 92.505% with stack=0, branch=9,
+regs=45, reorder=1, insert=5 and delete=6. Its `.jump2` showed `abs:SI`
+instructions, while `.lreg` gave one reused magnitude pseudo 10 references
+across 17 instructions. `.greg` allocated that pseudo first, to `$a0`,
+forcing both interpolation results and signed angle loads into different
+registers. The first absolute value also moved ahead of the remaining angle
+stores. These were still branch/insert/delete leftovers, so this was not a
+permuter candidate.
+
+Using four separate `s32` locals for the current pitch/yaw magnitudes and the
+new pitch/yaw magnitudes, plus separate matrix pointers for the initial stack
+identity and the final output identity, reached 100% together without pins or
+barriers. The temporary matrix pointer's earlier lifetime then no longer
+inherited the final `RotMatrix` argument's register preference. Keep the
+coordinate pointer shared between the five-part composition loop and the
+final head update; splitting that pointer had instead let local allocation
+reserve `$s0` for the loop part.
+
+The raw m2c baseline's `s16` clamp temporaries added truncation shifts absent
+from the target. Clamp calculations and limits are `s32`; only the stored
+`SVECTOR` angles are `s16`. Ordinary signed `/ 4096`, ternary absolute values,
+and a typed `GsCOORDINATE2` array index reproduce the bias, negation, and
+0x50-byte induction variable. The first baseline was 79.313%; the real project
+headers preserved the 100% result.

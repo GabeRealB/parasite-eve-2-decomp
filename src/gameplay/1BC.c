@@ -741,7 +741,82 @@ void Gp_StageLoadState2(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0928);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0CF4);
+void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    VECTOR         transformed;
+    VECTOR         position;
+    VECTOR         target;
+    SVECTOR        offset;
+    SVECTOR        angles;
+    SVECTOR        current;
+    MATRIX         world;
+    MATRIX         inverse;
+    MATRIX*        mtx;
+    MATRIX*        outMtx;
+    GsCOORDINATE2* part;
+    s32            i;
+    s32            pitchMagnitude;
+    s32            yawMagnitude;
+    s32            pitchLimit;
+    s32            yawLimit;
+
+    mtx                   = &world;
+    *(s32*)&world.m[0][0] = 0x1000;
+    *(s32*)&world.m[0][2] = 0;
+    *(s32*)&mtx->m[1][1]  = 0x1000;
+    *(s32*)&world.m[2][0] = 0;
+    mtx->m[2][2]          = 0x1000;
+    position.vx           = 0;
+    position.vy           = 0;
+    position.vz           = 0;
+    for (i = 0; i < 5; i++) {
+        part = &((TmdObject*)arg0->extra)->field_8[i];
+        ApplyMatrixLV(&world, (VECTOR*)part->coord.t, &transformed);
+        position.vx += transformed.vx;
+        position.vy += transformed.vy;
+        position.vz += transformed.vz;
+        MulMatrix0(&world, &part->coord, &world);
+    }
+    target.vx = arg1->coord.t[0];
+    target.vy = arg1->coord.t[1];
+    target.vz = arg1->coord.t[2];
+    offset.vx = target.vx - position.vx;
+    offset.vy = target.vy - position.vy;
+    offset.vz = target.vz - position.vz;
+    TransposeMatrix(&world, &inverse);
+    ApplyMatrix(&inverse, &offset, &position);
+    angles.vx = -ratan2(position.vy, position.vz);
+    angles.vy = ratan2(position.vx, position.vz);
+    angles.vz = 0;
+    part      = &((TmdObject*)arg0->extra)->field_8[4];
+    Gp_MtxToEuler(&part->coord, &current);
+    angles.vx  = current.vx + (angles.vx - current.vx) * arg4 / 4096;
+    angles.vy  = current.vy + (angles.vy - current.vy) * arg4 / 4096;
+    angles.vz  = current.vz;
+    pitchLimit = current.vx >= 0 ? current.vx : -current.vx;
+    if (arg3 < pitchLimit) {
+        arg3 = pitchLimit;
+    }
+    yawLimit = current.vy >= 0 ? current.vy : -current.vy;
+    if (arg2 < yawLimit) {
+        arg2 = yawLimit;
+    }
+    pitchMagnitude = angles.vx >= 0 ? angles.vx : -angles.vx;
+    if (arg3 < pitchMagnitude) {
+        angles.vx = angles.vx < 0 ? -arg3 : arg3;
+    }
+    yawMagnitude = angles.vy >= 0 ? angles.vy : -angles.vy;
+    if (arg2 < yawMagnitude) {
+        angles.vy = angles.vy < 0 ? -arg2 : arg2;
+    }
+    outMtx                      = &part->coord;
+    *(s32*)&part->coord.m[0][0] = 0x1000;
+    *(s32*)&outMtx->m[0][2]     = 0;
+    *(s32*)&outMtx->m[1][1]     = 0x1000;
+    *(s32*)&outMtx->m[2][0]     = 0;
+    outMtx->m[2][2]             = 0x1000;
+    RotMatrix(&angles, outMtx);
+}
 
 void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1)
 {
