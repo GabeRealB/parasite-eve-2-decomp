@@ -932,6 +932,19 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DE7CC`.
+/// `from` / `to` are the two probe endpoints promoted to VECTOR; `delta`
+/// is `from - to`, normalised into `dir` for `func_800DD324`; `hit` is the
+/// intersection that function writes back, which becomes the next `from`.
+typedef struct _GpRayHitScratch {
+    /* 0x00 */ VECTOR  from;
+    /* 0x10 */ VECTOR  to;
+    /* 0x20 */ VECTOR  delta;
+    /* 0x30 */ SVECTOR dir;
+    /* 0x38 */ SVECTOR hit;
+} GpRayHitScratch;
+STATIC_ASSERT_SIZEOF(GpRayHitScratch, 0x40);
+
 /// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEC80`.
 /// `local` is `field_C` as `SVECTOR[2]` plus the object's 0x10 SVECTOR,
 /// rotated by `field_8->workm` into `vec` then added to `workm.t`.

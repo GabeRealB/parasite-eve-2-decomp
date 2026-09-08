@@ -55512,3 +55512,38 @@ fills the `bnez` slot with `li v0,7` from the fall-through, and
 `relax_delay_slots` inverts the branch and deletes the `j`, giving the target's
 `beqz MERGE; li v0,7; lhu; sh` exactly. `SOFT_USE_REG` on the stores had been
 used to block the hoist, but it also blocked the cross-jump.
+
+## A two-set result local is scheduled ahead of every parameter copy in the entry block
+
+`func_800DE7CC` sat at 99.8% with one prologue difference: the target zeroes
+the result register *after* saving the last two arguments (`move s4,a2; move
+s5,a3; move s6,zero`), the seed zeroed it first. The seed copied every
+parameter into a local:
+
+```c
+from = arg0; to = arg1; params = Gp_GridParams; out = arg2; extra = arg3;
+ret = 0;                       /* set again to 1 inside the loop */
+```
+
+sched1 schedules the entry block backwards from the `bnez`, and every set of a
+pseudo live at the block end is an anti-dependence of that jump. When the jump
+is scheduled, `adjust_priority` raises each of those sets to `LAUNCH_PRIORITY`
+(`0x7f000001`) *only if* `birthing_insn_p` holds, and that needs
+`REG_N_SETS (pseudo) == 1`. The four local copies are single-set, so they win
+the ready list in source order and land at the end of the block; `ret` is set
+twice (`= 0`, `= 1`), stays at priority 1, and is scheduled last -- i.e. placed
+*first*. No reordering of the C statements changes that (`.sched` shows
+`31 28 20 17 34` for any order), because the priority gap is fixed by the set
+count, not by LUID.
+
+Dropping the locals and using the parameters directly fixes it. The
+`a0..a3` copies into the parameter pseudos are emitted before
+`NOTE_INSN_FUNCTION_BEG`, which sched1 does not schedule, so they stay in
+argument order ahead of everything the block does schedule; `ret = 0` is then
+the only priority-1 insn and sits after the `Gp_GridParams` load, exactly where
+the target has `move s6,zero`. The saves still come out as `move s2,a0 ... move
+s5,a3` from reload, so nothing visible is lost.
+
+Diagnostic: `.sched` prints the priorities per insn -- a `(1)` in a ready list
+of `(7f000001)` entries is a multi-set pseudo, and no statement order will lift
+it. Ask what makes the *other* entries single-set copies instead.

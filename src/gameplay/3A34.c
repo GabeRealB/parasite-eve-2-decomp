@@ -4150,7 +4150,77 @@ void func_800DE150(GpObj* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE2C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE7CC);
+s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
+{
+    GpGridParams*    params;
+    s32              ret;
+    GpRayHitScratch* block;
+    s32              i;
+
+    params = Gp_GridParams;
+    ret    = 0;
+    if (params == NULL) {
+        return ret;
+    }
+
+    {
+        void** scratch;
+        u8*    head;
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        i        = 0;
+        head    -= 0x40;
+        *scratch = head;
+        block    = (GpRayHitScratch*)head;
+        if (ret < params->field_22) {
+            do {
+                D_80115450[i] = 0;
+                i++;
+            } while (i < Gp_GridParams->field_22);
+        }
+    }
+    func_800DEAFC(arg0, arg1);
+    block->from.vx  = arg0->vx;
+    block->from.vy  = arg0->vy;
+    block->from.vz  = arg0->vz;
+    block->to.vx    = arg1->vx;
+    block->to.vy    = arg1->vy;
+    block->to.vz    = arg1->vz;
+    block->delta.vx = block->from.vx - block->to.vx;
+    block->delta.vy = block->from.vy - block->to.vy;
+    block->delta.vz = block->from.vz - block->to.vz;
+    VectorNormalS(&block->delta, &block->dir);
+    for (i = 0; i < Gp_GridParams->field_22; i++) {
+        if (D_80115450[i] == 0) {
+            continue;
+        }
+        if (Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1]
+                              [Gp_GridParams->field_C[i].field_A]
+                                  ->field_1 != 0) {
+            continue;
+        }
+        if (func_800DD324(i, &block->from, &block->dir, 0) == 0) {
+            continue;
+        }
+        if (arg2 != NULL) {
+            arg2->vx = block->hit.vx;
+            arg2->vy = block->hit.vy;
+            arg2->vz = block->hit.vz;
+        }
+        if (arg3 != NULL) {
+            arg3->vx = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vx;
+            arg3->vy = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy;
+            arg3->vz = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vz;
+        }
+        block->from.vx = block->hit.vx;
+        block->from.vy = block->hit.vy;
+        block->from.vz = block->hit.vz;
+        ret            = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
+    return ret;
+}
 
 void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 {
