@@ -2101,7 +2101,253 @@ void Gp_EffSprTask7C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F4308);
+void func_800F4308(Task* arg0)
+{
+    u8             rgb[3];
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* roomCoord;
+    GpCoord64*     room;
+    GpCoordTail*   slot;
+    TmdObject*     extra;
+    SVECTOR*       vec;
+    s16            flag;
+    s32            scale11;
+    s32            scale12;
+    s32            count;
+    s32            cond;
+    s32            condInc;
+    s32            i;
+    s32            t2_10;
+    s32            t2_11;
+    s32            t2_12;
+    s32            rng;
+    s32            tmp;
+
+    room      = &Gp_RoomCoords[1];
+    slot      = (GpCoordTail*)&room->coord;
+    roomCoord = &slot->coord;
+    extra     = arg0->extra;
+    mem       = arg0->spawnArg2;
+    flag      = Gp_State1C->field_4;
+    coord     = (GsCOORDINATE2*)extra->field_8;
+    if (flag != 0) {
+        cond = flag < 4;
+        goto release;
+    }
+    Gp_UpdateCoord(coord);
+    mem->field_22 = (u16)mem->field_22 + 1;
+    switch (arg0->spawnArg1) {
+        case 10:
+            switch (arg0->state) {
+                case 0:
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    vec           = (SVECTOR*)&mem->field_10;
+                    Gp_SpawnEff(0x6005C, coord, 0x600, vec);
+                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6007C, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
+                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6007C, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
+                    arg0->state++;
+                    break;
+                case 1:
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0xD0000400,
+                                (SVECTOR*)&mem->field_10);
+                    if (mem->field_22 >= 7) {
+                        arg0->state++;
+                    }
+                    break;
+                case 2:
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0xFF) | 0x82003400,
+                                (SVECTOR*)&mem->field_10);
+                    if (mem->field_22 >= 0xB) {
+                        arg0->state++;
+                    }
+                    break;
+            }
+            room->field_0         = 0x10;
+            count                 = mem->field_22;
+            slot->field_5C        = 0x2580;
+            slot->field_50        = 0x1000;
+            slot->field_52        = 0xC00;
+            slot->field_54        = 0x800;
+            slot->field_58        = (0x898 - (count * 0x64)) * 4;
+            roomCoord->coord.t[0] = coord->coord.t[0];
+            roomCoord->coord.t[1] = coord->coord.t[1];
+            t2_10                 = coord->coord.t[2];
+            roomCoord->flg        = 0;
+            roomCoord->coord.t[2] = t2_10;
+            cond                  = mem->field_22 < 0x15;
+            goto release;
+        case 11:
+            switch (arg0->state) {
+                case 0:
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_SpawnEff(0x60076, coord, 0x500, (SVECTOR*)&mem->field_10);
+                    condInc = mem->field_22 < 2;
+                    goto maybe11;
+                case 1:
+                    i = 0;
+                    do {
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                        rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                        Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
+                                    (SVECTOR*)&mem->field_10);
+                        i += 1;
+                    } while (i < 2);
+                    condInc = mem->field_22 < 9;
+                    goto maybe11;
+                case 2:
+                    i = 0;
+                    do {
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                        rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                        Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0xFF) | 0xD0000400,
+                                    (SVECTOR*)&mem->field_10);
+                        i += 1;
+                    } while (i < 2);
+                    condInc = mem->field_22 < 0xD;
+                maybe11:
+                    if (condInc != 0) {
+                        break;
+                    }
+                    arg0->state += 1;
+                    break;
+            }
+            if (mem->field_24++ < 8) {
+                tmp     = -0x80 - (mem->field_24 << 4);
+                rgb[0]  = tmp;
+                rgb[1]  = (rgb[0] * 3) >> 2;
+                rgb[2]  = (rgb[0] * 2) / 3;
+                scale11 = (mem->field_24 << 6) + 0x40;
+                Gp_DrawArc(coord, (s16)scale11, (s16)scale11, rgb);
+            }
+            if (mem->field_22 < 4) {
+                i = 0;
+                do {
+                    Gp_SpawnEff(0x60092, coord, 0, 0);
+                    i += 1;
+                } while (i < 3);
+            }
+            room->field_0         = 0x10;
+            count                 = mem->field_22;
+            slot->field_5C        = 0x2580;
+            slot->field_50        = 0xC00;
+            slot->field_52        = 0xC00;
+            slot->field_54        = 0x800;
+            slot->field_58        = (0x898 - (count * 0x64)) * 4;
+            roomCoord->coord.t[0] = coord->coord.t[0];
+            roomCoord->coord.t[1] = coord->coord.t[1];
+            t2_11                 = coord->coord.t[2];
+            roomCoord->flg        = 0;
+            roomCoord->coord.t[2] = t2_11;
+            cond                  = mem->field_22 < 0x15;
+            goto release;
+        case 12:
+            if (arg0->state != 0) {
+                if (arg0->state == 1) {
+                    goto case12_1;
+                }
+                goto skip12;
+            }
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_SpawnEff(0x60076, coord, 0x500, (SVECTOR*)&mem->field_10);
+            condInc = mem->field_22 < 2;
+            goto maybe12;
+        case12_1:
+            i = 0;
+            do {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
+                            (SVECTOR*)&mem->field_10);
+                i += 1;
+            } while (i < 2);
+            condInc = mem->field_22 < 9;
+        maybe12:
+            if (condInc == 0) {
+                arg0->state += 1;
+            }
+        skip12:
+            if (mem->field_24++ < 8) {
+                rgb[2]  = (-0x80 - (mem->field_24 << 4)) * 2;
+                rgb[1]  = (rgb[2] & 0xE0) >> 2;
+                rgb[0]  = rgb[1];
+                scale12 = (mem->field_24 << 6) + 0x40;
+                Gp_DrawArc(coord, (s16)scale12, (s16)scale12, rgb);
+                if (Display_State.field_8 & 1) {
+                    rgb[2] = ~(mem->field_24 * 0x1F);
+                    rgb[1] = rgb[2] >> 2;
+                    rgb[0] = rgb[1];
+                    Gp_DrawFadeQuad(rgb, 1);
+                }
+            }
+            room->field_0         = 0x10;
+            count                 = mem->field_22;
+            slot->field_5C        = 0x2580;
+            slot->field_50        = 0x800;
+            slot->field_52        = 0xC00;
+            slot->field_54        = 0x1000;
+            slot->field_58        = (0x898 - (count * 0x64)) * 4;
+            roomCoord->coord.t[0] = coord->coord.t[0];
+            roomCoord->coord.t[1] = coord->coord.t[1];
+            t2_12                 = coord->coord.t[2];
+            roomCoord->flg        = 0;
+            roomCoord->coord.t[2] = t2_12;
+            cond                  = mem->field_22 < 0x15;
+            goto release;
+        default:
+            return;
+    }
+release:
+    if (cond == 0) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 void Gp_EffLineTask92(Task* arg0)
 {
