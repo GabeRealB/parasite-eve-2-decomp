@@ -1523,4 +1523,216 @@ void func_80058ED4(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/cdaudio", CdStream_Drive);
+void CdStream_Drive(void)
+{
+    CdReadyEntry*    restartEntry;
+    CdReadyEntry*    stopEntry;
+    CdReadyEntry*    endEntry;
+    s32              position;
+    u16              restartSlot, stopSlot, endSlot;
+    u8               restartLock, stopLock, endLock;
+    s32              phase;
+    CdStreamChannel* channels;
+    u32              restartFlags;
+    u32              stopFlags;
+    u32              endFlags;
+
+    if (D_80068B58 == 0) {
+        D_80068B58 = 1;
+        if (CdStream_State.flags0 & 1) {
+            if (((u8)CdStream_State.flags2 >> 1) & 1) {
+                CdStream_State.flags0 &= 0xFE;
+                func_800B0118((s32)(s16)D_80082808, 0);
+                CdStream_State.flags2 |= 8;
+                D_80082808             = 0;
+                CdStream_State.flags2 |= 1;
+                CdStream_TeardownVoices();
+            } else {
+                if (((u8)CdStream_State.flags1 >> 3) & 1) {
+                    if (((u8)CdStream_State.flags0 >> 4) & 1) {
+                        Spu_KeyOff((u32)(s8)CdStream_State.voiceL);
+                        Spu_KeyOff((u32)(s8)CdStream_State.voiceR);
+                        if (CdStream_State.voiceFreeCb != NULL) {
+                            CdStream_State.voiceFreeCb((1 << CdStream_State.voiceL) | (1 << CdStream_State.voiceR));
+                        }
+                        CdStream_State.flags0 &= 0xEF;
+                    }
+                    if ((u16)CdStream_State.readySlot != 0) {
+                        restartSlot = (u16)CdStream_State.readySlot;
+                        restartLock = CdReady_Queue.locked;
+                        if (restartSlot != 0) {
+                            restartEntry = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(restartSlot - 1)];
+                            restartFlags = restartEntry->flags;
+                            if (restartFlags & 1) {
+                                restartEntry->flags = (restartFlags & ~1) | 4;
+                            }
+                            CdReady_Queue.locked = restartLock;
+                        }
+                        CdStream_State.readySlot = 0;
+                    }
+                    CdStream_State.flags0  &= 0xFB;
+                    CdStream_State.flags0  &= 0xDF;
+                    CdStream_State.field_4  = 0;
+                    CdStream_State.field_18 = CdStream_State.field_14;
+                    CdStream_State.flags1  &= 0xF7;
+                    CdStream_State.flags0  |= 2;
+                }
+                if (((u8)CdStream_State.flags0 >> 6) & 1) {
+                    if (((u8)CdStream_State.flags0 >> 4) & 1) {
+                        Spu_KeyOff((u32)(s8)CdStream_State.voiceL);
+                        Spu_KeyOff((u32)(s8)CdStream_State.voiceR);
+                        if (CdStream_State.voiceFreeCb != NULL) {
+                            CdStream_State.voiceFreeCb((1 << (s8)CdStream_State.voiceL) | (1 << CdStream_State.voiceR));
+                        }
+                        CdStream_State.flags0 &= 0xEF;
+                    }
+                    CdStream_State.flags0 &= 0xFB;
+                    CdStream_State.flags0 &= 0xDF;
+                    CdStream_State.flags0 &= 0xFE;
+                    if ((u16)CdStream_State.readySlot != 0) {
+                        stopSlot = (u16)CdStream_State.readySlot;
+                        stopLock = CdReady_Queue.locked;
+                        if (stopSlot != 0) {
+                            stopEntry = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(stopSlot - 1)];
+                            stopFlags = stopEntry->flags;
+                            if (stopFlags & 1) {
+                                stopEntry->flags = (stopFlags & ~1) | 4;
+                            }
+                            CdReady_Queue.locked = stopLock;
+                        }
+                        CdStream_State.readySlot = 0;
+                    }
+                    if (((u8)CdStream_State.flags2 >> 3) & 1) {
+                        func_800B0118(0, 0);
+                        CdStream_State.flags2 &= 0xF7;
+                    }
+                    CdStream_State.flags0 &= 0xBF;
+                    CdStream_State.flags2 |= 1;
+                } else if (!(((u8)CdStream_State.flags0 >> 1) & 1)) {
+                    phase = (s8)CdStream_State.phase;
+                    if (phase == 1) {
+                        CdStream_State.flags0 |= 2;
+                        CdStream_State.field_4 = phase;
+                        D_80068B60             = phase;
+                    }
+                } else {
+                    position = CdStream_State.field_18;
+                    if (position == 0) {
+                        CdAudio_AllocVoices((s8*)&CdStream_State.voiceL, (s8*)&CdStream_State.voiceR);
+                        channels            = (CdStreamChannel*)(&CdStream_State + 1);
+                        channels->voiceMask = (s32)(1 << (s8)CdStream_State.voiceL);
+                        // Preserve the channel base for the second voice mask.
+                        SOFT_USE_REG(channels);
+                        channels[1].voiceMask = (s32)(1 << CdStream_State.voiceR);
+                        if (!(((u8)CdStream_State.flags0 >> 4) & 1)) {
+                            Spu_ArmKeyOn((u32)(s8)CdStream_State.voiceL);
+                            Spu_ArmKeyOn((u32)(s8)CdStream_State.voiceR);
+                        }
+                        if (CdStream_State.startCb != NULL) {
+                            CdStream_State.startCb((1 << CdStream_State.voiceL) | (1 << CdStream_State.voiceR));
+                        }
+                        CdStream_State.flags0 |= 0x10;
+                        CdStream_State.flags1 |= 0x80;
+                    }
+                    if (CdStream_State.flags1 & 1) {
+                        CdAudio_CopyVoiceData((s8)CdStream_State.voiceL, (s32*)(&CdStream_State + 1));
+                        CdAudio_CopyVoiceData((s8)CdStream_State.voiceR, (s32*)((CdStreamChannel*)(&CdStream_State + 1) + 1));
+                        CdStream_State.flags1 &= 0xFE;
+                    }
+                    if ((position / (s16)(u16)CdStream_State.sectorsPerChunk >= CdStream_State.field_38 - 1) &&
+                        ((((u8)CdStream_State.flags1 >> 4) & 1) ||
+                         ((((u8)CdStream_State.flags1 >> 6) & 1) ? (position / (s16)(u16)CdStream_State.sectorsPerChunk >= CdStream_State.field_38) : (position % (s16)(u16)CdStream_State.sectorsPerChunk >= (CdStream_State.sectorsPerChunk >> 1))) ||
+                         (position / (s16)(u16)CdStream_State.sectorsPerChunk >= CdStream_State.field_38))) {
+                        if (((u8)CdStream_State.flags0 >> 4) & 1) {
+                            Spu_KeyOff((u32)(s8)CdStream_State.voiceL);
+                            Spu_KeyOff((u32)(s8)CdStream_State.voiceR);
+                            if (CdStream_State.voiceFreeCb != NULL) {
+                                CdStream_State.voiceFreeCb((1 << (s8)CdStream_State.voiceL) | (1 << CdStream_State.voiceR));
+                            }
+                            CdStream_State.flags0 &= 0xEF;
+                        }
+                        if ((u16)CdStream_State.readySlot != 0) {
+                            endSlot = (u16)CdStream_State.readySlot;
+                            endLock = CdReady_Queue.locked;
+                            if (endSlot != 0) {
+                                endEntry = (CdReadyEntry*)&CdReady_Queue.entries[(s16)(endSlot - 1)];
+                                endFlags = endEntry->flags;
+                                if (endFlags & 1) {
+                                    endEntry->flags = (endFlags & ~1) | 4;
+                                }
+                                CdReady_Queue.locked = endLock;
+                            }
+                            CdStream_State.readySlot = 0;
+                        }
+                        if (((u8)CdStream_State.flags2 >> 3) & 1) {
+                            func_800B0118(0, 0);
+                            CdStream_State.flags2 &= 0xF7;
+                        }
+                        if (D_80068B5C != 0) {
+                            SpuSetIRQ(0);
+                            SpuSetIRQCallback(NULL);
+                            D_80068B5C = 0;
+                        }
+                        CdStream_State.flags0 &= 0xFB;
+                        CdStream_State.flags0 &= 0xDF;
+                        CdStream_State.flags0 &= 0xFE;
+                    } else {
+                        if (((u8)CdStream_State.flags2 >> 2) & 1) {
+                            if (CdStream_State.field_1C & 1) {
+                                if (D_80068B5C != 0) {
+                                    SpuSetIRQ(0);
+                                    SpuSetIRQCallback(NULL);
+                                    D_80068B5C = 0;
+                                }
+                                func_80058ED4();
+                                CdStream_State.field_4 += 2;
+                            } else {
+                                if (D_80068B5C != 0) {
+                                    SpuSetIRQ(0);
+                                    SpuSetIRQCallback(NULL);
+                                    D_80068B5C = 0;
+                                }
+                                CdStream_State.field_4 = 0;
+                                func_8005896C();
+                            }
+                            CdStream_State.flags2 &= 0xFB;
+                        } else if (CdStream_State.field_4 != 0) {
+                            CdStream_State.field_4 -= 1;
+                            if ((s8)CdStream_State.field_4 < (CdStream_State.sectorsPerChunk >> 2)) {
+                                if ((((u8)CdStream_State.flags0 >> 3) & 1) || (CdStream_State.field_4 == 0)) {
+                                    if ((u8)D_80068B60 != 0) {
+                                        D_80068B60 = 0;
+                                    } else if (!(((u8)CdStream_State.flags0 >> 3) & 1)) {
+                                        D_80068B61 += 1;
+                                    }
+                                    if (D_80068B5C != 0) {
+                                        SpuSetIRQ(0);
+                                        SpuSetIRQCallback(NULL);
+                                        D_80068B5C = 0;
+                                    }
+                                    CdStream_State.field_4 = 0;
+                                    func_8005896C();
+                                }
+                            }
+                        } else if (((CdStream_State.field_18 % (CdStream_State.sectorsPerChunk * 2)) >= ((s16)(u16)CdStream_State.sectorsPerChunk - 4)) && ((((u8)CdStream_State.flags0 >> 3) & 1) || ((CdStream_State.field_18 % (CdStream_State.sectorsPerChunk * 2)) == ((s16)(u16)CdStream_State.sectorsPerChunk + 3)))) {
+                            if (!(((u8)CdStream_State.flags0 >> 3) & 1)) {
+                                D_80068B61 += 1;
+                            }
+                            if (D_80068B5C != 0) {
+                                SpuSetIRQ(0);
+                                SpuSetIRQCallback(NULL);
+                                D_80068B5C = 0;
+                            }
+                            func_80058ED4();
+                        }
+                        if (CdStream_State.flags0 & 1) {
+                            CdStream_State.field_18 += 1;
+                        }
+                    }
+                }
+            }
+        }
+        CdReady_Poll();
+        D_80068B58 = 0;
+    }
+}
