@@ -322,6 +322,11 @@ extern u8   D_80073980[0x208];
 extern s32 D_80073C08;
 
 // Save-slot detail labels and indexed descriptions.
+extern s8  D_80013998[];
+extern s8  D_800139A0[];
+extern s8  D_800139A4[];
+extern u8* D_800675F0[];
+extern u16 Mc_SaveHeaderBody[];
 extern u8  D_800139A8[];
 extern u8  D_80013B6C[];
 extern u8  D_80013B74[];

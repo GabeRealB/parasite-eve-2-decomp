@@ -55642,3 +55642,23 @@ The two branches also need separate signed `s32` shade temporaries. Reusing
 one shade variable across both branches made it a global allocno rather than
 two block-local ranges. Keep the unpinned attempts and inspect `.lreg` /
 `.greg` to distinguish this from a scheduling problem.
+
+
+## Inline save-title encoding and unsigned checksum constants (`func_80030AB0`)
+
+The archived m2c seed scored 45.112%; the matched `Mc_EncodeAsciiGlyphs` and
+checksum siblings in `mc.c` supplied the useful C shapes. In the inline glyph
+encoder, separate stores in the three `if`/`else if` arms gave the destination
+pointer enough references to win allocation before the source pointer. GCC
+then cross-jumped the stores into the target's shared tail. An explicit shared
+`goto store` produced the same operations but the wrong pointer registers.
+
+For the inlined header checksum, `u16 sum` with `0xFFFF - (u32)sum` retained
+the subtraction and let the constant cross the verification call for reuse
+in the next checksum initializer. The signed accumulator had folded this to
+`nor` already in the early RTL. The final data checksum still became `nor`
+until the following `0xFFFF` store used an unsigned halfword view:
+`*(u16*)&Mc_SaveData.field_942 = 0xFFFF`. Its signed field store had introduced
+`-1`, preventing constant reuse. The unsigned view preserved the shared
+`0xFFFF`, fixed the final sum/counter allocation too, and reached 100% without
+pins or empty asm. Keep the shared field type unchanged; use the cast locally.

@@ -165,7 +165,197 @@ s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-INCLUDE_ASM("main/nonmatchings/mcprompt", func_80030AB0);
+static inline u16* Mc_EncodeTitleText(s8* arg0, u16* arg1)
+{
+    u16* lower;
+    u16* upper;
+    u16* symbol;
+    s32  ch;
+    s32  idx;
+    u8   ch_u;
+
+    ch_u = *arg0;
+    if (*arg0 != 0) {
+        lower  = Mc_GlyphsLower;
+        upper  = Mc_GlyphsUpper;
+        symbol = Mc_GlyphsSymbol;
+        do {
+            ch = (s8)ch_u;
+            if (ch >= 0x61) {
+                idx   = (ch - 0x61) * 2;
+                idx  += (s32)lower;
+                *arg1 = *(u16*)idx;
+            } else if (ch >= 0x41) {
+                idx   = (ch - 0x41) * 2;
+                idx  += (s32)upper;
+                *arg1 = *(u16*)idx;
+            } else if (ch >= 0x20) {
+                idx   = (ch - 0x20) * 2;
+                idx  += (s32)symbol;
+                *arg1 = *(u16*)idx;
+            }
+            arg0++;
+            ch_u = *arg0;
+            arg1++;
+        } while (*arg0 != 0);
+    }
+    *arg1 = 0;
+    return arg1;
+}
+
+static inline u16* Mc_EncodeTitleLiteral(s8* arg0, u16* arg1)
+{
+    u16* lower;
+    u16* upper;
+    u16* symbol;
+    s32  ch;
+    s32  idx;
+
+    if (*arg0 != 0) {
+        lower  = Mc_GlyphsLower;
+        upper  = Mc_GlyphsUpper;
+        symbol = Mc_GlyphsSymbol;
+        do {
+            ch = *arg0;
+            if (ch >= 0x61) {
+                idx   = (ch - 0x61) * 2;
+                idx  += (s32)lower;
+                *arg1 = *(u16*)idx;
+            } else if (ch >= 0x41) {
+                idx   = (ch - 0x41) * 2;
+                idx  += (s32)upper;
+                *arg1 = *(u16*)idx;
+            } else if (ch >= 0x20) {
+                idx   = (ch - 0x20) * 2;
+                idx  += (s32)symbol;
+                *arg1 = *(u16*)idx;
+            }
+            arg0++;
+            arg1++;
+        } while (*arg0 != 0);
+    }
+    *arg1 = 0;
+    return arg1;
+}
+
+static inline void Mc_UpdateTitleHeaderChecksum(void)
+{
+    u16 sum;
+    u8* ptr;
+    s32 limit;
+    s32 i;
+    s16 tmp;
+
+    sum                  = 0;
+    ptr                  = (u8*)&Mc_SaveData;
+    ptr                 += 4;
+    limit                = 0x38;
+    i                    = 0;
+    Mc_SaveData.field_1C = 0;
+    Mc_SaveData.field_1E = 0xFFFF;
+    do {
+        i   += 1;
+        tmp  = (s8)*ptr;
+        sum  = sum + tmp;
+        ptr += 1;
+    } while (i < limit);
+    Mc_SaveData.field_1C = sum;
+    Mc_SaveData.field_1E = 0xFFFF - (u32)sum;
+    Mc_VerifySaveHdrChecksum(&Mc_SaveData);
+}
+
+static inline u8* Mc_CopyTitleBytes(u8* src, u8* dst)
+{
+    while (*src != 0) {
+        *dst++ = *src++;
+    }
+    *dst = 0;
+    return dst;
+}
+
+static inline void Mc_UpdateTitleDataChecksum(void)
+{
+    u16              sum;
+    s32              count;
+    u8*              src;
+    McChecksumBlock* dst;
+    s32              i;
+
+    sum          = 0;
+    count        = 0x200;
+    src          = Mc_DefaultChecksumSrc;
+    dst          = (McChecksumBlock*)&Mc_SaveData.field_93C;
+    i            = 0;
+    dst->field_0 = sum;
+    dst->field_2 = 0xFFFF - (u32)sum;
+    do {
+        i   += 1;
+        sum += (s8)*src;
+        src += 1;
+    } while (i < count);
+    dst->field_0 = sum;
+    dst->field_2 = 0xFFFF - (u32)sum;
+}
+
+void func_80030AB0(McWork* work)
+{
+    u8          buffer[0x20];
+    u16*        title;
+    s32         number;
+    s32         i;
+    s32         candidate;
+    s32         available;
+    McSaveData* slot;
+
+    title  = Mc_SaveHeaderBody;
+    number = 1;
+    if (work->field_288 > 0) {
+        for (i = 0; i < work->field_288; i++) {
+            slot = (McSaveData*)((s32)work + 0x294 + i * 0x80);
+            if ((s8)slot->field_12 == (s8)Mc_SaveData.field_12) {
+                if (slot->unknown_11 >= number) {
+                    number = slot->unknown_11 + 1;
+                }
+            }
+        }
+        if (number >= 100) {
+            for (candidate = 1; candidate < 100; candidate++) {
+                available = 1;
+                for (i = 0; i < work->field_288; i++) {
+                    slot = (McSaveData*)((s32)work + 0x294 + i * 0x80);
+                    if ((s8)slot->field_12 == (s8)Mc_SaveData.field_12 && slot->unknown_11 == candidate) {
+                        available = 0;
+                        break;
+                    }
+                }
+                if (available == 1) {
+                    number = candidate;
+                    break;
+                }
+            }
+        }
+    }
+    Mc_SaveData.unknown_11      = number;
+    title                       = Mc_EncodeTitleLiteral(D_80013998, title);
+    title                       = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData.field_C), title);
+    title                       = Mc_EncodeTitleLiteral(D_800139A0, title);
+    Mc_DefaultChecksumSrc[0x43] = 0;
+    Mc_DefaultChecksumSrc[0x42] = 0;
+    title                       = (u16*)Mc_CopyTitleBytes(D_800675F0[(s8)Mc_SaveData.field_12], (u8*)title);
+    title                       = Mc_EncodeTitleLiteral(D_800139A4, title);
+    title                       = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData.unknown_11), title);
+    title                       = Mc_EncodeTitleLiteral((s8*)D_800139A8, title);
+    *title                      = 0;
+    if (Mc_SaveData.field_92B == 0xFF) {
+        Mc_SaveData.field_92B = 0;
+    } else if (Mc_SaveData.field_92B < 99) {
+        Mc_SaveData.field_92B++;
+    }
+    Mc_UpdateTitleHeaderChecksum();
+    Mc_UpdateTitleDataChecksum();
+    Mc_SaveData.field_940         = 0;
+    *(u16*)&Mc_SaveData.field_942 = 0xFFFF;
+}
 
 /* Overlay: DIRENTRY.size/head at McWork+0x48/0x50 when walk starts at McWork. */
 typedef struct {
