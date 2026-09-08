@@ -452,6 +452,23 @@ typedef struct _GpEffFlareScratch {
 } GpEffFlareScratch;
 STATIC_ASSERT_SIZEOF(GpEffFlareScratch, 0x1C);
 
+/// 0x78-byte scratch for `func_800FCD00`: twelve alternating outer/inner
+/// ring vertices, four projected screen positions, depth, and GTE flags.
+typedef struct _GpEffRingScratch {
+    /* 0x00 */ SVECTOR vec[12];
+    /* 0x60 */ s16     sx0;
+    /* 0x62 */ s16     sy0;
+    /* 0x64 */ s16     sx1;
+    /* 0x66 */ s16     sy1;
+    /* 0x68 */ s16     sx2;
+    /* 0x6A */ s16     sy2;
+    /* 0x6C */ s16     sx3;
+    /* 0x6E */ s16     sy3;
+    /* 0x70 */ s32     otz;
+    /* 0x74 */ s32     flag;
+} GpEffRingScratch;
+STATIC_ASSERT_SIZEOF(GpEffRingScratch, 0x78);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffTileTaskA4`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` receives `gte_stszotz`, `flag` `gte_stflg` and `sxy`

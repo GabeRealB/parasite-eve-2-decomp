@@ -55393,3 +55393,26 @@ between `Gp_SpawnEff` and `Gfx_RotMatrixX`, which also consumes that zero.
 This caller supplies only three arguments to `Gp_DrawEffSprite6C`; its fourth
 formal is unused. An unprototyped forward declaration preserves these calls
 and the sibling's existing four-argument call without extra `$a3` setup.
+
+## Increment scratch depth before loading the primitive cursor to avoid LICM of its high address
+
+In `func_800FCD00`, loading `Gpu_PrimCursor`, incrementing `block->otz`,
+then storing the advanced cursor gave `%hi(Gpu_PrimCursor)` a life of six
+RTL insns. `.loop` hoisted it into a saved register in both drawing loops.
+Incrementing depth first shortened that life to three; `.loop` reported
+`not desirable` and left the `lui` inside each loop. Scheduling still put
+the depth increment between the cursor load and the two stores, as required.
+
+The final scratch allocation copy needed only statement order:
+
+```c
+head = (u8*)*(void**)G_SCRATCH_HEAD - 0x78;
+*(void**)G_SCRATCH_HEAD = head;
+block = (GpEffRingScratch*)head;
+```
+
+Naming `block` before the store let CSE retarget both the add and store to
+`block`, deleting the target's `move s2,v0`. Storing first preserved
+`addiu v0,v0,-0x78; move s2,v0; sw v0,0(a0)` without pins or empty asm.
+The archived seed improved from 89.919% to 100% with indexed vertices,
+counter-derived angles, signed-load temporaries, and these ordering changes.

@@ -1878,7 +1878,159 @@ do_fcd00:
     func_800FCD00(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FCD00);
+void func_800FCD00(Task* arg0)
+{
+    GpEffWork*        mem;
+    GsCOORDINATE2*    coord;
+    GpEffRingScratch* block;
+    POLY_F4*          prim;
+    u16               y;
+    u8                r;
+    u8                g;
+    u8                b;
+    u16               rad;
+    s16               outer;
+    s16               inner;
+    s16               bright;
+    s32               heightSum;
+    s32               rawBright;
+    u8*               head;
+    s32               sum;
+    s32               i;
+    s32               a;
+    s32               c;
+
+    mem       = arg0->spawnArg2;
+    coord     = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    heightSum = (u16)mem->field_28 + (rsin(mem->field_22 << 6) >> 8);
+    y         = heightSum;
+    rad       = mem->field_2A;
+    sum       = *(u8*)&Display_State.field_8 + *(u8*)&mem->field_24;
+    rawBright = mem->field_26;
+    bright    = rawBright;
+    inner     = rad - 0x40;
+    if (sum & 0x10) {
+        bright += 0xF;
+        bright -= sum & 0xF;
+    } else {
+        bright += sum & 0xF;
+    }
+    r                       = bright;
+    g                       = r >> 1;
+    b                       = r >> 2;
+    outer                   = rad;
+    head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x78;
+    *(void**)G_SCRATCH_HEAD = head;
+    block                   = (GpEffRingScratch*)head;
+    gte_SetTransMatrix(&GsWSMATRIX);
+
+    i = 0;
+    do {
+        a                = i * 0x155;
+        c                = rcos(a);
+        block->vec[i].vy = 0;
+        block->vec[i].vx = (c * outer) >> 12;
+        block->vec[i].vz = (rsin(a) * outer) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->vec[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->vec[i]);
+        *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + *(u16*)&coord->workm.t[0];
+        a                       += 0x155;
+        *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + *(u16*)&coord->workm.t[1];
+        *(u16*)&block->vec[i].vz = *(u16*)&block->vec[i].vz + *(u16*)&coord->workm.t[2];
+        c                        = rcos(a);
+        i++;
+        block->vec[i].vy = y;
+        block->vec[i].vx = (c * inner) >> 12;
+        block->vec[i].vz = (rsin(a) * inner) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->vec[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->vec[i]);
+        *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + *(u16*)&coord->workm.t[0];
+        *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + *(u16*)&coord->workm.t[1];
+        *(u16*)&block->vec[i].vz = *(u16*)&block->vec[i].vz + *(u16*)&coord->workm.t[2];
+        i++;
+    } while (i < 0xC);
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 0xC; i += 2) {
+        gte_ldv0(&block->vec[i]);
+        gte_rtps_real();
+        gte_stsxy(&block->sx0);
+        gte_ldv3(&block->vec[i + 1], &block->vec[(i + 2) % 12], &block->vec[(i + 3) % 12]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sx1, &block->sx2, &block->sx3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            block->otz     = block->otz + 1;
+            prim           = (POLY_F4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 5);
+            setcode(prim, 0x28);
+            prim->r0 = r;
+            prim->g0 = g;
+            prim->b0 = b;
+            prim->x0 = *(u16*)&block->sx0;
+            c        = block->sy0;
+            prim->y0 = c;
+            prim->x1 = *(u16*)&block->sx1;
+            c        = block->sy1;
+            prim->y1 = c;
+            prim->x2 = *(u16*)&block->sx2;
+            c        = block->sy2;
+            prim->y2 = c;
+            prim->x3 = *(u16*)&block->sx3;
+            c        = block->sy3;
+            prim->y3 = c;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+    }
+
+    for (i = 1; i < 0xC; i += 6) {
+        gte_ldv0(&block->vec[i]);
+        gte_rtps_real();
+        gte_stsxy(&block->sx0);
+        gte_ldv3(&block->vec[i + 2], &block->vec[(i + 6) % 12], &block->vec[i + 4]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sx1, &block->sx2, &block->sx3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            block->otz     = block->otz + 1;
+            prim           = (POLY_F4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 5);
+            setcode(prim, 0x28);
+            prim->r0 = r;
+            prim->g0 = g;
+            prim->b0 = b;
+            prim->x0 = *(u16*)&block->sx0;
+            c        = block->sy0;
+            prim->y0 = c;
+            prim->x1 = *(u16*)&block->sx1;
+            c        = block->sy1;
+            prim->y1 = c;
+            prim->x2 = *(u16*)&block->sx2;
+            c        = block->sy2;
+            prim->y2 = c;
+            prim->x3 = *(u16*)&block->sx3;
+            c        = block->sy3;
+            prim->y3 = c;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x78;
+}
 
 void Gp_EffSprTaskA7(Task* arg0)
 {
