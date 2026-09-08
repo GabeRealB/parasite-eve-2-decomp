@@ -616,12 +616,16 @@ STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
 /// keeping bits 0x87). Bit 0x40 is the active filter used by
 /// `func_800E0308` before it calls `func_800DFCCC`. Bit 0x80 marks the last
 /// element of an array walked at +0x3C (`Gp_LinkRoomObjects`). Same link/flag
-/// layout as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A. Full
-/// object size is not known yet.
+/// layout as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A.
+/// `func_800DFCCC` transforms the origin, four vertices and face normal
+/// into view space to test a segment against the quad.
 typedef struct _GpObj3A {
     /* 0x00 */ struct _GpObj3A* next;
     /* 0x04 */ struct _GpObj3A* prev;
-    /* 0x08 */ byte             pad_8[0x32];
+    /* 0x08 */ SVECTOR          origin;
+    /* 0x10 */ SVECTOR          verts[4];
+    /* 0x30 */ SVECTOR          normal;
+    /* 0x38 */ byte             pad_38[2];
     /* 0x3A */ u8               field_3A;
     /* 0x3B */ byte             pad_3B;
 } GpObj3A;
@@ -979,6 +983,18 @@ typedef struct _GpQuadHitScratch {
     /* 0x90 */ SVECTOR local;
 } GpQuadHitScratch;
 STATIC_ASSERT_SIZEOF(GpQuadHitScratch, 0x98);
+
+/// 0x80-byte scratch from `G_SCRATCH_HEAD` used by `func_800DFCCC`.
+/// `origin` holds the transformed quad origin, then the segment-plane hit.
+/// `edge` and `cross` hold each edge's separating-plane calculation.
+typedef struct _GpFaceHitScratch {
+    /* 0x00 */ VECTOR verts[4];
+    /* 0x40 */ VECTOR origin;
+    /* 0x50 */ VECTOR normal;
+    /* 0x60 */ VECTOR edge;
+    /* 0x70 */ VECTOR cross;
+} GpFaceHitScratch;
+STATIC_ASSERT_SIZEOF(GpFaceHitScratch, 0x80);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0994`.
 /// `local[0]` / `local[1]` are `(0, field_12 +/- field_1C, 0)` in the

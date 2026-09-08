@@ -55712,3 +55712,31 @@ quantity's allocation and reached 100% without hard-register pins. An earlier
 `TOUCH_REG_USE(drawPayload, x)` kept the X coordinate's allocation ahead of the
 reused text-color local. The eligible unpinned variant was also run through the
 permuter before the final manual register fix.
+
+
+## `func_800DFCCC`: remove pins, reuse the loop counter, preserve the scratch copy
+
+The archived pinned seed scored 98.127% with `branch=3`, `delete=5`.
+The unpinned match uses the adjacent `func_800DEF80` patterns:
+`TOUCH_REG(out)` after the first translated vertex component prevents a second
+walking pointer, and `TOUCH_REG(block)` inside the edge loop prevents hoisting
+normal/edge addresses. One `i` reused for both loops doubles its references
+(14 instead of 7) and places it in `$t3`; separate counters disturb both loops
+and the dot-product allocation.
+
+The two late failure paths must remain separate. Build the first scratch-head
+address as `sp = (void**)0x1F800000; SOFT_TOUCH_REG(sp);`
+`sp = (void**)((s32)sp | 0x3FC);`, then release and return zero. The edge-loop
+failure uses the ordinary `G_SCRATCH_HEAD` constant. Explicit release/return
+statements allow only the final add/store tail to cross-jump; a shared C label
+for the entire failure path loses five target instructions.
+
+For `tmp = head - 0x80; block = (GpFaceHitScratch*)tmp;`
+`SOFT_TOUCH_REG_USE(block, tmp); *scratch = tmp;`, a dead `tmp = 0` before the
+final success return preserves tmp as the CSE canonical name. Without it,
+`cse.c`'s register-copy special handling around line 7610 reverses the copy:
+`addiu t0; move v0,t0` instead of `addiu v0; move t0,v0`.
+Using `arg0` directly and keeping it live with `SOFT_USE_REG(arg0)` after the
+hit-coordinate stores lowers its allocation priority enough to get `$s0`,
+leaving the scratch-head pointer in `$t8` and the segment start in `$t9`.
+The result is 100% with no register pins.
