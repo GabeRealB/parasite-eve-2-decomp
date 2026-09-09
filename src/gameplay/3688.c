@@ -2274,10 +2274,9 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
             scan  = &Mc_SaveData.field_5BC;
             table = Gp_GetItemTable(scan);
             if (item != 0) {
-                idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
-                count = scan->field_1;
-                asm volatile("sll %0, %0, 2" : "+r"(idx));
-                table = (GpItemRec*)((s32)table + idx);
+                idx    = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
+                count  = scan->field_1;
+                table += idx;
                 if (flag < count) {
                     for (i = 0; i < count; i++, table++) {
                         if (table->field_0 == item) {
