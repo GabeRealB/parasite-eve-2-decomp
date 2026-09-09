@@ -1,0 +1,251 @@
+{
+  "function": "func_replay_bonus_801183B8",
+  "status": "exact match integrated and full project verified",
+  "session": {
+    "id": "7c204b1ab9a7478a86a2b4963091ddad",
+    "started_at": "2026-09-09T11:18:49.666025+00:00"
+  },
+  "authorization": "User explicitly continued the focused match beyond vacuum fail-fast limits; no global workflow change.",
+  "journaled_builds": 8,
+  "attempts": [
+    {
+      "source": "base.c",
+      "source_sha256": "bff18950736a8e6aacfcf4920e324ebf02a07520dbedcb40dc23ef58c8adf6e4",
+      "preprocessed_sha256": "1f22f4013d53375a2d96484ff40375c3ca3de69a7aa33a157214a0aceed6382f",
+      "assembly_sha256": "6f691e016e6ebf09596c1117637ef3cec45067b03d4055249c63abaff22eba1f",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 60,
+      "score": 99.87829614604462,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": null,
+      "expected": null,
+      "parent": null,
+      "pass_name": null,
+      "failure": 0
+    },
+    {
+      "source": "base.c",
+      "source_sha256": "bff18950736a8e6aacfcf4920e324ebf02a07520dbedcb40dc23ef58c8adf6e4",
+      "preprocessed_sha256": "1f22f4013d53375a2d96484ff40375c3ca3de69a7aa33a157214a0aceed6382f",
+      "assembly_sha256": "6f691e016e6ebf09596c1117637ef3cec45067b03d4055249c63abaff22eba1f",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 60,
+      "score": 99.87829614604462,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": null,
+      "expected": null,
+      "parent": null,
+      "pass_name": null,
+      "failure": 0
+    },
+    {
+      "source": "base_1.c",
+      "source_sha256": "469bc71ef57311b5533124889e0c086c62477fa71625a566ef3b7ef463bc7e2e",
+      "preprocessed_sha256": "a0d8264b4f6505e32d7acd3d62a83556ad0f6caaa03474b9b73ae29a86b2dc60",
+      "assembly_sha256": "006aa7b6ef283957d986b968b91c367c79dc84460d70393e3bc944c96abd17ed",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 60,
+      "score": 99.87829614604462,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "hypothesis": "Reproduce archived base38 with tpage advance before x to isolate the remaining page-mask reorder.",
+      "expected": "Distance60, one reorder, all registers correct.",
+      "parent": "base.c",
+      "pass_name": "sched2",
+      "failure": 0
+    },
+    {
+      "source": "base_2.c",
+      "source_sha256": "9761a19b1c4b555acad48cd984869fa3d97fc018e503a03f2e35b6628864752d",
+      "preprocessed_sha256": "a65db83d6a25f3cbce053155bb6e30d9cd494dd2e02541e845937487e26cce31",
+      "assembly_sha256": "f48def534bee86a87e4d29c3920ef329b095044b1ff3ce3f7c7dab99d62367ed",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "score": 100.0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Loading draw flags into a short-lived byte before page moves the page mask after metadata-address expansion in original RTL; unlike a named metadata pointer this does not keep an address live.",
+      "expected": "Mask beats metadata high in the backwards scheduling tie, while all allocation and other scheduling stay unchanged.",
+      "parent": "base_1.c",
+      "pass_name": "sched",
+      "failure": 0
+    },
+    {
+      "source": "base_3.c",
+      "source_sha256": "c2c8eb785280c80b7ae59f10de3bd3d728ceadbae4922b81625fddd4a9be6ee9",
+      "preprocessed_sha256": "61446e04ef1de320a612d4c057c4e8b6b7c3323203851f397edddc2ab74ac88f",
+      "assembly_sha256": "6be8b9c6041575330086883e156aef51288b21d68fc9aaafd5bf480cab28997e",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 10,
+      "score": 99.97971602434077,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 2,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Natural struct array accesses and a byte-buffer allocation express the same address arithmetic as inherited integer-pointer casts.",
+      "expected": "Preserve exact match while removing scratch pointer-arithmetic artifacts.",
+      "parent": "base_2.c",
+      "pass_name": "rtl",
+      "failure": 0
+    },
+    {
+      "source": "base_4.c",
+      "source_sha256": "0199229beac4818743224b69bb0a59d57cc7683ec13eff0194be7a3ef12b2fec",
+      "preprocessed_sha256": "ece3e58def485a234e196c2586cb8fddfaeb8e90de51e77c41af3092b702b264",
+      "assembly_sha256": "6be8b9c6041575330086883e156aef51288b21d68fc9aaafd5bf480cab28997e",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 10,
+      "score": 99.97971602434077,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 2,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Index-first typed pointer addition preserves the original integer expression operand order while retaining proper struct scaling.",
+      "expected": "Restore sprite base v0 and shifted index v1; exact scratch match.",
+      "parent": "base_3.c",
+      "pass_name": "rtl",
+      "failure": 0
+    },
+    {
+      "source": "base_5.c",
+      "source_sha256": "ab0319272a55fbf334e4b435dc1b1e9077cdd9c0b931cb00592472d33e7eaafc",
+      "preprocessed_sha256": "717d047e51d208cf0bd018945a2002375271d7cb037cba1ef21a08ac5d1c84d8",
+      "assembly_sha256": "6be8b9c6041575330086883e156aef51288b21d68fc9aaafd5bf480cab28997e",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 10,
+      "score": 99.97971602434077,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 2,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Separating table-pointer assignment from indexing changes pointer quantity formation instead of relying on commuted typed addition, which GCC canonicalizes.",
+      "expected": "Pointer/index quantities may coalesce into the target homes; all values remain unchanged.",
+      "parent": "base_3.c",
+      "pass_name": "lreg",
+      "failure": 0
+    },
+    {
+      "source": "base_6.c",
+      "source_sha256": "171d77f1b30b524afb4a79bc4fe0abd6a3563a5cd8f3277bd2cb5c451e9d6899",
+      "preprocessed_sha256": "fad8635283197e3c4dedef69ae532ca5232f3d6fee31cb958d36c2d9fabce6d2",
+      "assembly_sha256": "f48def534bee86a87e4d29c3920ef329b095044b1ff3ce3f7c7dab99d62367ed",
+      "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "score": 100.0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Move STF declarations to the shared header and use typed fields throughout; retain index-first expansion of the one initial sprite lookup whose local quantities are operand-sensitive.",
+      "expected": "Exact code after header integration and declaration cleanup.",
+      "parent": "base_2.c",
+      "pass_name": "rtl",
+      "failure": 0
+    }
+  ],
+  "successful_prediction": {
+    "parent": "base_1.c",
+    "candidate": "base_2.c",
+    "distance": [
+      60,
+      0
+    ],
+    "change": "Load u8 pageFlags from the sprite metadata immediately before computing u16 page, then use it in the unchanged draw-mode expression.",
+    "prior_evidence": "2026-09-09-replay-constraint-match.json: final-mask trace, sched2 mask/high tie and store hazard ranking.",
+    "observed": "Parent sched1 has length-store1085, mask1087, metadata-high1093. Candidate sched1 and sched2 have length-store1085, metadata-high1088, mask1100. All493 final instructions match.",
+    "behavior_review": "The same flags read crosses only pure integer page arithmetic. No altered load width, flags, constants, predicates, stores or destination addresses.",
+    "scope": "A controlled source-level scheduling result; no claim that every flags temporary gives the same schedule."
+  },
+  "integration": {
+    "scratch_source": "base_6.c",
+    "source": "src/aya/replay_bonus/replay_bonus_2.c",
+    "source_sha256": "b25026a8e6cf347a2e6883ab027b227b1cd56f944d3c244d2360193987ecb739",
+    "header": "include/aya/replay_bonus.h",
+    "header_sha256": "b50f7750e275b35fe103d1614beab3bd51a9f3b4b481686be8dc28dac1dbb9f0",
+    "changes": "Shared STF command/glyph/sprite/alignment types, actual header alignment fields, typed row command pointer and public prototype, corresponding loader/caller casts. Reused CVECTOR for brightness view and removed scratch declarations.",
+    "lookup_constraint": "Ordinary typed indexing changes the initial pointer/index coalescing and scores10. Commuting typed addition or splitting pointer assignment does not undo canonicalization. The initial index-first address sum uses sizeof the declared sprite struct; all sprite fields use typed accesses.",
+    "asm_helpers": "Two existing empty input keepalives; no hard-register pins or instruction-emitting asm."
+  },
+  "verification": [
+    {
+      "command": "./build.sh base_2.c",
+      "result": "100.000%, distance0, all penalty categories0"
+    },
+    {
+      "command": "./build.sh base_6.c",
+      "result": "100.000%, distance0, all penalty categories0"
+    },
+    {
+      "command": "./tools/build-and-verify.sh --only aya",
+      "exit_code": 0,
+      "result": "SCOPED BUILD SUCCEEDED (aya)"
+    },
+    {
+      "command": "./tools/build-and-verify.sh",
+      "exit_code": 0,
+      "result": "All3874 recorded matched functions still C or shared; BUILD SUCCEEDED, everything matched, no compiler or linter errors."
+    }
+  ],
+  "retained_evidence_relative_to_session": [
+    "LEARNINGS.md",
+    "attempts.jsonl",
+    "experiments.jsonl",
+    "PERMUTER_EVIDENCE/manual/final-match/minimal-source.diff",
+    "PERMUTER_EVIDENCE/manual/final-match/base_1.i.sched",
+    "PERMUTER_EVIDENCE/manual/final-match/base_2.i.sched",
+    "PERMUTER_EVIDENCE/manual/final-match/base_2.i.sched2",
+    "PERMUTER_EVIDENCE/manual/final-match/base_6.i.sched2",
+    "PERMUTER_EVIDENCE/manual/final-match/full-build.log"
+  ],
+  "archive": "tools/permuter_findings/func_replay_bonus_801183B8/sessions/7c204b1ab9a7478a86a2b4963091ddad/41c820d94ae2f21fc02f"
+}

@@ -78,20 +78,58 @@ extern Task* D_replay_bonus_80119228;
 /// Heap pointer to the current `ReplayBonusStream`.
 extern ReplayBonusStream* D_replay_bonus_801192BC;
 
+typedef struct ReplayBonusStfCmd {
+    /* 0x0 */ u8 op;
+    /* 0x1 */ u8 arg;
+} ReplayBonusStfCmd;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfCmd, 0x2);
+
+typedef struct ReplayBonusStfGlyph {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 v;
+    /* 0x2 */ u8 w;
+    /* 0x3 */ u8 h;
+} ReplayBonusStfGlyph;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfGlyph, 0x4);
+
+typedef struct ReplayBonusStfSpr {
+    /* 0x00 */ u16 tpageX;
+    /* 0x02 */ u16 tpageBits;
+    /* 0x04 */ u16 clutX;
+    /* 0x06 */ u16 clutY;
+    /* 0x08 */ u8  u;
+    /* 0x09 */ u8  v;
+    /* 0x0A */ u8  flags;
+    /* 0x0B */ u8  pad_B;
+    /* 0x0C */ u16 w;
+    /* 0x0E */ u16 h;
+} ReplayBonusStfSpr;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfSpr, 0x10);
+
+typedef struct ReplayBonusStfAlign {
+    /* 0x0 */ u16 left;
+    /* 0x2 */ u16 center;
+    /* 0x4 */ u16 right;
+    /* 0x6 */ u16 pad_6;
+} ReplayBonusStfAlign;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfAlign, 0x8);
+
 /// STF credits header (`D_replay_bonus_80119294`). `speed` is the 8.8
 /// increment added to the fractional accumulator each frame; `hold0` /
 /// `hold1` are multiplied by 6 for `Task::killCountdown`.
 typedef struct ReplayBonusStfHdr {
-    /* 0x0 */ u16 speed;
-    /* 0x2 */ u8  hold0;
-    /* 0x3 */ u8  hold1;
+    /* 0x00 */ u16                 speed;
+    /* 0x02 */ u8                  hold0;
+    /* 0x03 */ u8                  hold1;
+    /* 0x04 */ byte                pad_4[0x20];
+    /* 0x24 */ ReplayBonusStfAlign align[1];
 } ReplayBonusStfHdr;
 
 /// One STF credits row (`D_replay_bonus_80119298`). `y` is the line's
 /// vertical position; the last row's `y - 0x1E0` is the scroll stop.
 typedef struct ReplayBonusStfLine {
-    /* 0x0 */ void* unk0;
-    /* 0x4 */ s32   y;
+    /* 0x0 */ ReplayBonusStfCmd* cmds;
+    /* 0x4 */ s32                y;
 } ReplayBonusStfLine;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
 
@@ -114,6 +152,9 @@ STATIC_ASSERT_SIZEOF(ReplayBonusStfFile, 0x18);
 
 /// TaskDesc table spawned from the credits task (hold / fade / stream workers).
 extern TaskDesc D_replay_bonus_8011922C;
+/// Relocated STF glyph and sprite tables.
+extern ReplayBonusStfGlyph* D_replay_bonus_80119290;
+extern ReplayBonusStfSpr*   D_replay_bonus_8011929C;
 /// Relocated STF header.
 extern ReplayBonusStfHdr* D_replay_bonus_80119294;
 /// Relocated STF row array; `D_replay_bonus_801192A0` is the count.
@@ -182,7 +223,7 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx);
 void func_replay_bonus_80115ED0(Task* arg0);
 s32  func_replay_bonus_801173A8(void);
 void func_replay_bonus_80117E04(void);
-void func_replay_bonus_801183B8(s32 y, void* str);
+void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds);
 s32  func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
 void func_replay_bonus_80118F00(s32 arg0);
 s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);

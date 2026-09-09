@@ -25,7 +25,6 @@ extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
-extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
 extern s32          D_80072A9C;
 
@@ -38,9 +37,6 @@ extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
 extern s32          D_replay_bonus_80119284;
 extern s8           D_80071068;
-
-extern s32 D_replay_bonus_80119290;
-extern s32 D_replay_bonus_8011929C;
 
 void func_replay_bonus_80116EC0(void);
 
@@ -597,7 +593,7 @@ void func_replay_bonus_80117E04(void)
         lf2->b0 = 0x40;
         lf2->y0 = y;
         lf2->y1 = y;
-        func_replay_bonus_801183B8(y, D_replay_bonus_80119298[i].unk0);
+        func_replay_bonus_801183B8(y, D_replay_bonus_80119298[i].cmds);
     }
 
     tpage          = Gpu_PrimCursor;
@@ -678,7 +674,227 @@ void func_replay_bonus_80117E04(void)
     }
 }
 
-INCLUDE_ASM("aya/nonmatchings/replay_bonus/replay_bonus_2", func_replay_bonus_801183B8);
+void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
+{
+    s32                  tpageId;
+    s32                  col;
+    s32                  align;
+    s16                  i;
+    s16                  j;
+    s32                  width;
+    s16                  x;
+    s16                  x1;
+    s16                  y0;
+    s32                  glyphFlag;
+    s16                  shift;
+    s16                  piece;
+    s32                  gu;
+    s16                  gv;
+    u8                   idx;
+    s32                  tpageX;
+    s32                  clut;
+    s32                  clutY;
+    s32                  gh;
+    s32                  flags;
+    u16                  page;
+    u8                   pageFlags;
+    ReplayBonusStfGlyph* glyph;
+    ReplayBonusStfSpr*   spr;
+    POLY_FT4*            p;
+    SPRT*                sprt;
+    DR_TPAGE*            dr;
+    u_long*              glyphOt;
+    u_long               glyphTag;
+    u_long               drawTag;
+
+    tpageId = 7;
+    col     = 0;
+    align   = col;
+    i       = col;
+    if (cmds->op != 0xFF) {
+        do {
+            switch (cmds[i].op) {
+                case 0:
+                    width = 0;
+                    j     = 0;
+                    while (cmds[i + j].op == 0) {
+                        width += D_replay_bonus_80119290[cmds[i + j].arg].w;
+                        j++;
+                    }
+                    x = 0;
+                    switch ((u8)align) {
+                        case 0:
+                            x = D_replay_bonus_80119294->align[col].left - ((s16)width / 2);
+                            break;
+                        case 1:
+                            x = D_replay_bonus_80119294->align[col].center;
+                            break;
+                        case 2:
+                            x = D_replay_bonus_80119294->align[col].right - width;
+                            break;
+                    }
+                    x -= 0x140;
+                    j  = 0;
+                    while (cmds[i + j].op == 0) {
+                        glyph                    = &D_replay_bonus_80119290[cmds[i + j].arg];
+                        width                    = glyph->w;
+                        gh                       = glyph->h;
+                        gu                       = glyph->u;
+                        gv                       = glyph->v;
+                        p                        = (POLY_FT4*)((u8*)D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
+                        D_replay_bonus_801192B4 += 0x28;
+                        setPolyFT4(p);
+                        y0        = gh & 0x7F;
+                        p->u0     = gu;
+                        p->v0     = gv;
+                        p->u1     = width + gu;
+                        p->v1     = gv;
+                        p->u2     = gu;
+                        p->v2     = gv + y0;
+                        p->u3     = width + gu;
+                        p->v3     = gv + y0;
+                        p->r0     = ((CVECTOR*)&D_replay_bonus_801192AC)->r;
+                        p->x0     = x;
+                        p->x2     = x;
+                        p->y2     = y;
+                        p->y3     = y;
+                        p->g0     = ((CVECTOR*)&D_replay_bonus_801192AC)->r;
+                        p->b0     = D_replay_bonus_801192AC;
+                        y0        = y - y0;
+                        x1        = x + width;
+                        p->y0     = y0;
+                        p->x1     = x1;
+                        p->y1     = y0;
+                        p->x3     = x1;
+                        glyphFlag = (u32)gh >> 7;
+                        p->clut   = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);
+                        p->tpage  = 0x1E;
+                        if (glyphFlag) {
+                            p->tpage = 0xF;
+                        }
+                        x = x1;
+                        setaddr(p, getaddr(Gpu_CurrentOt + 10));
+                        glyphOt  = Gpu_CurrentOt + 10;
+                        glyphTag = (*glyphOt & 0xFF000000) | ((u_long)p & 0xFFFFFF);
+                        SOFT_USE_REG(gv);
+                        *glyphOt = glyphTag;
+                        j++;
+                    }
+                    i += j - 1;
+                default:
+                case 9:
+                    break;
+                case 3:
+                    tpageId = cmds[i].arg;
+                    break;
+                case 4:
+                    align = 0;
+                    col   = cmds[i].arg;
+                    break;
+                case 5:
+                    align = 1;
+                    col   = cmds[i].arg;
+                    break;
+                case 6:
+                    align = 2;
+                    col   = cmds[i].arg;
+                    break;
+                case 7:
+                    idx = cmds[i].arg;
+                    x   = 0;
+                    if (idx != 0xFF) {
+                        cmds[i].arg = 0xFF;
+                        switch ((u8)align) {
+                            case 0:
+                                x = D_replay_bonus_80119294->align[col].left - 0x78;
+                                break;
+                            case 1:
+                                x = D_replay_bonus_80119294->align[col].center;
+                                break;
+                            case 2:
+                                x = D_replay_bonus_80119294->align[col].right - 0xF0;
+                                break;
+                        }
+                        D_replay_bonus_801192B8 = x;
+                        Task_SpawnFromTable(&D_replay_bonus_8011922C, 3, idx + 1, 0);
+                    }
+                    break;
+                case 8:
+                    idx   = cmds[i].arg;
+                    width = D_replay_bonus_8011929C[idx].w;
+                    x     = 0;
+                    switch ((u8)align) {
+                        case 0:
+                            x = D_replay_bonus_80119294->align[col].left - ((s16)width / 2);
+                            break;
+                        case 1:
+                            x = D_replay_bonus_80119294->align[col].center;
+                            break;
+                        case 2:
+                            x = D_replay_bonus_80119294->align[col].right - width;
+                            break;
+                    }
+                    shift  = 2;
+                    spr    = (ReplayBonusStfSpr*)(idx * sizeof(*spr) + (size_t)D_replay_bonus_8011929C);
+                    tpageX = spr->tpageX;
+                    gu     = spr->u;
+                    gv     = spr->v;
+                    gh     = spr->h;
+                    clutY  = spr->clutY << 6;
+                    clut   = clutY | ((spr->clutX >> 4) & 0x3F);
+                    flags  = spr->flags;
+                    switch (flags) {
+                        case 1:
+                            shift = 1;
+                            break;
+                        case 2:
+                            shift = 0;
+                            break;
+                    }
+                    while ((s16)width > 0) {
+                        piece = width;
+                        if (gu + (s16)width >= 0x101) {
+                            piece = 0x100 - gu;
+                            width = width - piece;
+                            gu    = 0;
+                        } else {
+                            width = 0;
+                        }
+                        sprt           = (SPRT*)Gpu_PrimCursor;
+                        Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+                        setlen(sprt, 4);
+                        setcode(sprt, 0x64);
+                        sprt->r0   = D_replay_bonus_801192AC;
+                        sprt->x0   = x - 0x140;
+                        sprt->g0   = D_replay_bonus_801192AC;
+                        sprt->b0   = ((CVECTOR*)&D_replay_bonus_801192AC)->r;
+                        sprt->y0   = y - gh;
+                        sprt->w    = piece;
+                        sprt->h    = gh;
+                        sprt->clut = clut;
+                        sprt->u0   = gu;
+                        sprt->v0   = gv;
+                        setaddr(sprt, getaddr(Gpu_CurrentOt + 10));
+                        dr             = (DR_TPAGE*)Gpu_PrimCursor;
+                        Gpu_PrimCursor = dr + 1;
+                        setaddr(Gpu_CurrentOt + 10, sprt);
+                        setlen(dr, 1);
+                        pageFlags   = D_replay_bonus_8011929C[idx].flags;
+                        page        = (u32)(tpageX & 0x3FF) >> 6;
+                        dr->code[0] = ((pageFlags & 3) << 7) | (s16)((s32)((D_replay_bonus_8011929C[idx].tpageBits & 0x100) << 16) >> 20) | page | ((s16)(D_replay_bonus_8011929C[idx].tpageBits & 0x200) * 4) | 0xE1000200;
+                        tpageX     += 0x100 >> shift;
+                        x           = x + piece;
+                        drawTag     = (dr->tag & 0xFF000000) | (getaddr(Gpu_CurrentOt + 10) & 0xFFFFFF);
+                        SOFT_USE_REG2(piece, gh);
+                        dr->tag = drawTag;
+                        setaddr(Gpu_CurrentOt + 10, dr);
+                    }
+                    break;
+            }
+            i++;
+        } while (cmds[i].op != 0xFF);
+    }
+}
 
 s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
 {
@@ -710,17 +926,17 @@ s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
             do {
                 rec                     = D_replay_bonus_80119298;
                 i                      += 1;
-                val                     = (s32)rec->unk0;
+                val                     = (s32)rec->cmds;
                 D_replay_bonus_80119298 = rec + 1;
-                rec->unk0               = (void*)(val + (s32)file);
+                rec->cmds               = (ReplayBonusStfCmd*)(val + (s32)file);
             } while (i < D_replay_bonus_801192A0);
         }
     }
 
-    D_replay_bonus_80119290 = file->field_C;
+    D_replay_bonus_80119290 = (ReplayBonusStfGlyph*)file->field_C;
     D_replay_bonus_80119294 = (ReplayBonusStfHdr*)file->field_8;
     D_replay_bonus_80119298 = (ReplayBonusStfLine*)((ReplayBonusStfTable*)file->field_10 + 1);
-    D_replay_bonus_8011929C = file->field_14;
+    D_replay_bonus_8011929C = (ReplayBonusStfSpr*)file->field_14;
     return 1;
 }
 

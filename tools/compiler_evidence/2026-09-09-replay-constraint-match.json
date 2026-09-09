@@ -1,0 +1,1108 @@
+{
+  "function": "func_replay_bonus_801183B8",
+  "scope": "Bounded scratch matching attempt; no exact match, semantic proof or integration claim",
+  "session": {
+    "id": "d132ce656e3347ba8606277775b2d6b0",
+    "started_at": "2026-09-09T10:22:21.631404+00:00"
+  },
+  "builds": {
+    "journaled": 48,
+    "successful": 47,
+    "followup_used": 8,
+    "followup_budget": 8
+  },
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "target_sha256": "b16a172bba387bac6aa731012240bfba3fd8ebc642939e3a3f643fc1822b13b4",
+  "sources": {
+    "base.c": {
+      "source_sha256": "77c20289121d95241b773a3fe6e5714c3e1d854c177b76ebc298953cf97ec582",
+      "preprocessed_sha256": "a1af07db834c7b1f226f986fc78ae8803cc3c72838ab68f9446e891597643e06",
+      "score": 98.43813387423936,
+      "distance": 770,
+      "penalties": {
+        "branch": 0,
+        "delete": 1,
+        "insert": 1,
+        "regs": 6,
+        "reorder": 9,
+        "stack": 0
+      },
+      "assembly_sha256": "6fb0066797077408f62981f23e26c9bc2587ace1e68c4e582862946a476f7d8f",
+      "hypothesis": null,
+      "expected": null,
+      "parent": null,
+      "pass_name": null
+    },
+    "base_1.c": {
+      "source_sha256": "6f743e180c7f9c61576dd9b3ca0f753ff51611bca81bb939d0b288bc9066baee",
+      "preprocessed_sha256": "80589c0f25b73aeb8b4396806a0d0d867a1e1cd9d76e34f7ebcb47b8dd2bbbaf",
+      "score": 97.53549695740365,
+      "distance": 1215,
+      "penalties": {
+        "branch": 0,
+        "delete": 3,
+        "insert": 3,
+        "regs": 3,
+        "reorder": 10,
+        "stack": 0
+      },
+      "assembly_sha256": "52c9481f9d2fa06444a2b59a8e7feace0b5346683cfa70889c747db685106906",
+      "hypothesis": "Reproduce the reduced-padding reference with flag before clut branch and known gh/gv allocation before the paired type experiment",
+      "expected": "distance 1215, palette fp, glyph y0 a0, gh t4/gv t5",
+      "parent": "base.c",
+      "pass_name": "greg"
+    },
+    "base_6.c": {
+      "source_sha256": "5de1d7ddb3cb46f3feffd94ad0aee25826fed9f72ad248abe4768d117db53d8a",
+      "preprocessed_sha256": "acedf33fbef5ec49648da0376515e26009b8a83d3575975625169c775a448be7",
+      "score": 98.42799188640974,
+      "distance": 775,
+      "penalties": {
+        "branch": 0,
+        "delete": 2,
+        "insert": 2,
+        "regs": 15,
+        "reorder": 5,
+        "stack": 0
+      },
+      "assembly_sha256": "ec4406e4c01d1c24526906429150a23723dfacf146af18450e3e2598f56e9b5d",
+      "hypothesis": "Keep HI y0 for height/top, but assign the final flag to a distinct SI glyphFlag. Its non-overlapping lifetime may reuse a0 without the HI-to-SI condition copy.",
+      "expected": "Flag shift stays before clut branch and flag condition consumes its SI register directly; assess coalescing and gh/gv priorities",
+      "parent": "base_2.c",
+      "pass_name": "greg"
+    },
+    "base_9.c": {
+      "source_sha256": "2f33a70bda6b2a2d0ff422649c2fb362439b52d0219e0b9eb88b753a685ce710",
+      "preprocessed_sha256": "32a1a091b65b7531b0639616cfa0c51809f253526684cd567eccf909fa922fdf",
+      "score": 98.44827586206897,
+      "distance": 765,
+      "penalties": {
+        "branch": 0,
+        "delete": 2,
+        "insert": 2,
+        "regs": 13,
+        "reorder": 5,
+        "stack": 0
+      },
+      "assembly_sha256": "075556de05def179f5ead0533f42de6d8d5a22d918c2959eaa141fe39f4cf245",
+      "hypothesis": "Explicit UV stores can commute the U sum to width+gu without changing evaluation or load order.",
+      "expected": "Target addu operands, possibly unchanged gh/gv allocation because lifetimes are otherwise identical.",
+      "parent": "base_6.c",
+      "pass_name": "cse"
+    },
+    "base_16.c": {
+      "source_sha256": "fcf50a19b8f81ce01cf9e33ef1a8fdac01c650bd0ed19f6494f338f24ff64891",
+      "preprocessed_sha256": "e8c218c3e53f872551bd7b79a2eb70bddbc322e08829dc2f82309f6fd76c3cf2",
+      "score": 99.026369168357,
+      "distance": 480,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 7,
+        "stack": 0
+      },
+      "assembly_sha256": "132b6ef5fadadcff9f779927bfbcaaced0628096a80b83a5c8a7d4b046ed19d8",
+      "hypothesis": "Narrowing page introduces a short-lived full-width extension, preventing the page mask from becoming an early filler that lengthens the draw constant allocation.",
+      "expected": "Page mask late; draw constant a3, recovered global register map.",
+      "parent": "base_15.c",
+      "pass_name": "sched"
+    },
+    "base_19.c": {
+      "source_sha256": "9ae0efbd6e304f082b2fca88de7440a1951d7e045394bb00eb8aa01703885ba5",
+      "preprocessed_sha256": "a87119862516736c343ed533c7328da9ae6427430a48fa41e86e6e7f10095ca5",
+      "score": 99.026369168357,
+      "distance": 480,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 24,
+        "reorder": 6,
+        "stack": 0
+      },
+      "assembly_sha256": "4438cca547bd40bf87dd4326529982fda8ddc2cc8e26ab412af58e8fb3b6ef1e",
+      "hypothesis": "Trace sched1 cycle34 chooses x LUID102 over tpage90 and ori86. Move x immediately before tpage advance, after draw code, so ranking becomes tpage>x>ori.",
+      "expected": "tpage advances in late hole, x fills blue-load hazard, ori fills red-load hazard and high constant reaches loop top.",
+      "parent": "base_16.c",
+      "pass_name": "sched"
+    },
+    "base_21.c": {
+      "source_sha256": "5a12555ca21640b6808bf86fed10e3006bd7f2c9faa5a99d274df063777bb10c",
+      "preprocessed_sha256": "d650ee78a15f199a9e0f9d1189e57943ba2a0c80f09f7fde61a945fa4e8d6635",
+      "score": 99.14807302231237,
+      "distance": 420,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 6,
+        "stack": 0
+      },
+      "assembly_sha256": "9ef0355f2d5c90d8c106e95c59000979885b0c7acdf05aa0c27003d6f770101a",
+      "hypothesis": "Height is already live across sprite iterations. Adding it to the existing piece marker increases its global reference weight without extending its lifetime, so height should allocate before gv.",
+      "expected": "gh t4 and gv t5, field loads retain target order; no emitted instruction change outside register assignment.",
+      "parent": "base_19.c",
+      "pass_name": "greg"
+    },
+    "base_25.c": {
+      "source_sha256": "2147c1fef1aed90663fad9b28d243612fee6305f162035171e29f6b600e44a67",
+      "preprocessed_sha256": "3102bb5c88c63b1225cc42292abe4f3bbecb6cc63d279ebd01414bf822868289",
+      "score": 99.26977687626776,
+      "distance": 360,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 5,
+        "stack": 0
+      },
+      "assembly_sha256": "5db3cbb931bfe1fe5ea429f4353ef6915d0b1c8bb7395f95a934707e94ed3300",
+      "hypothesis": "Moving the volatile gv marker between completed OT tag calculation and its final store keeps all tag registers unchanged but lets j increment schedule before that store.",
+      "expected": "Exact glyph block, no brightness hoist, unchanged sprite residue.",
+      "parent": "base_21.c",
+      "pass_name": "sched"
+    },
+    "base_26.c": {
+      "source_sha256": "d1093037c217c67f0b33ab01487ad8d3f0527f64e9bc5778638f2c28e8fe722f",
+      "preprocessed_sha256": "48874ca0c6d421d9aa205e2b76793f5920ccf4a2865dfc2f97ca1e7a7346a1cb",
+      "score": 98.92494929006085,
+      "distance": 530,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 58,
+        "reorder": 4,
+        "stack": 0
+      },
+      "assembly_sha256": "73067af8004e294b465626d3d97e5ed722a97641d780685d98421a0ee8fc987f",
+      "hypothesis": "Computing the DR tag before the existing marker and storing it afterward should let the loop width shift move before the tag store without altering tag values.",
+      "expected": "Exact sprite loop tail, unchanged glyph and other sprite instructions.",
+      "parent": "base_25.c",
+      "pass_name": "sched"
+    },
+    "base_27.c": {
+      "source_sha256": "a0fada57860b3458fca3d60e5d29b0bb4ab3da78cb81fa3de1ccd7cba298f94b",
+      "preprocessed_sha256": "b1c205f8b0c5c73d6d9fb9a7a9dd9c11a18cd9ed3df0969aee9fed62942fc366",
+      "score": 99.39148073022312,
+      "distance": 300,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 4,
+        "stack": 0
+      },
+      "assembly_sha256": "f5f98bef43bd58c8cbee227f0bfbb7d9103c17440fa0c8e92fd078e678719ada",
+      "hypothesis": "Explicitly masking the source address by0xFFFFFF reproduces the redundant bitfield-store mask through flow, restoring its global weight before combine removes it.",
+      "expected": "Mask s0, i s1, col s2, with exact sprite tail and same remaining early sprite residue.",
+      "parent": "base_26.c",
+      "pass_name": "flow"
+    },
+    "base_34.c": {
+      "source_sha256": "37c0d3e1585c396ba7e5ee3855a4aa6d77bccafbfa8b7c79faef897cb6cc7edb",
+      "preprocessed_sha256": "5c1a504b3b848ee0d4191cb46912251bd231e9d4ba9c4e706a0f287e1776e3ce",
+      "score": 99.39148073022312,
+      "distance": 300,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 4,
+        "stack": 0
+      },
+      "assembly_sha256": "f5f98bef43bd58c8cbee227f0bfbb7d9103c17440fa0c8e92fd078e678719ada",
+      "hypothesis": "The permuter changed only the first UV width+gu sum; CSE retains that first value and eliminates the commuted second occurrence. Port the exact first-only spelling to the best source.",
+      "expected": "Identical distance300 and assembly; first U sum determines operand order, later commuted sum reuses it.",
+      "parent": "base_27.c",
+      "pass_name": "cse"
+    },
+    "base_37.c": {
+      "source_sha256": "bff18950736a8e6aacfcf4920e324ebf02a07520dbedcb40dc23ef58c8adf6e4",
+      "preprocessed_sha256": "1f22f4013d53375a2d96484ff40375c3ca3de69a7aa33a157214a0aceed6382f",
+      "score": 99.87829614604462,
+      "distance": 60,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 12,
+        "reorder": 0,
+        "stack": 0
+      },
+      "assembly_sha256": "6f691e016e6ebf09596c1117637ef3cec45067b03d4055249c63abaff22eba1f",
+      "hypothesis": "Directly computing/storing y0 before dimensions relocates its reload before their memory dependencies. The original unnamed expression should remain in-loop, unlike the hoisted named-top experiment.",
+      "expected": "Early y reload; inspect whether the scheduler places y0 store back near OT load with other stores unchanged.",
+      "parent": "base_27.c",
+      "pass_name": "sched"
+    },
+    "base_38.c": {
+      "source_sha256": "469bc71ef57311b5533124889e0c086c62477fa71625a566ef3b7ef463bc7e2e",
+      "preprocessed_sha256": "a0d8264b4f6505e32d7acd3d62a83556ad0f6caaa03474b9b73ae29a86b2dc60",
+      "score": 99.87829614604462,
+      "distance": 60,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "assembly_sha256": "006aa7b6ef283957d986b968b91c367c79dc84460d70393e3bc944c96abd17ed",
+      "hypothesis": "The original tpage-before-x ordering in base16 yields the target tpage reload/update group. Port that ordering now that early y0 store independently controls sprite head scheduling.",
+      "expected": "Exact tpage reload before metadata pointer load and update before indexed add, preserve sprite head and all glyph instructions.",
+      "parent": "base_37.c",
+      "pass_name": "sched"
+    }
+  },
+  "best_source": "base_38.c",
+  "alternate_source": "base_37.c",
+  "remaining_difference": {
+    "target": [
+      "li v0,1",
+      "sb v0,3(a2)",
+      "lui v0,%hi(D_replay_bonus_8011929C)",
+      "andi a1,t6,0x3ff",
+      "srl a1,a1,6"
+    ],
+    "candidate": [
+      "li v0,1",
+      "andi a1,t6,0x3ff",
+      "sb v0,3(a2)",
+      "lui v0,%hi(D_replay_bonus_8011929C)",
+      "srl a1,a1,6"
+    ],
+    "observed_cause": "Backward sched2 cycle39 chooses high1093 over mask1087 by original RTL order at equal priority8. Cycle40 comparator prefers mask1087 but potential-hazard ranking selects length store1085, weight10153984 versus0, with no actual hazard on either. Mask follows at cycle41.",
+    "unresolved_prediction": "Change mask/high readiness, priority or LUID at cycle39 while preserving page HI, direct y0 store before dimensions, palette fp, tpage step order and final-tag keepalive placement. No source fix verified."
+  },
+  "observations": [
+    {
+      "pair": [
+        "base_1.c",
+        "base_6.c"
+      ],
+      "mechanism": "Separate HI coordinate and SI glyph flag allow target glyph arithmetic and coalescing; target register identity does not require one C variable."
+    },
+    {
+      "pair": [
+        "base_19.c",
+        "base_21.c"
+      ],
+      "mechanism": "Adding gh to an existing keepalive raises global references17 to20 with span158 unchanged; it outranks gv20/span184 and restores gh t4/gv t5."
+    },
+    {
+      "pair": [
+        "base_26.c",
+        "base_27.c"
+      ],
+      "mechanism": "Redundant 24-bit OT mask restores mask references25 to28 in flow. Combine later eliminates the redundant operation; allocation retains the effect."
+    },
+    {
+      "pair": [
+        "base_27.c",
+        "base_37.c"
+      ],
+      "mechanism": "Moving the direct sprite-y0 store before dimensions changes reload insertion. Earlier stack-y reload avoids dependencies on those stores; sched2 restores target field-store order. Named temporary base20 instead hoisted new loop code and regressed."
+    },
+    {
+      "pair": [
+        "base_27.c",
+        "base_34.c"
+      ],
+      "mechanism": "Prediction supported: commuting only the second UV U sum changes RTL expansion operands but normalized CSE dumps and generated instructions are identical. The first sum controls reused operand order."
+    }
+  ],
+  "permuter": {
+    "status": "supported for UV operand order only",
+    "run": "36de27ab0b77444c",
+    "paired_distance": [
+      1161,
+      1021
+    ],
+    "prediction_source": "base_34.c",
+    "new_gain_to_best": false,
+    "review": "Pure integer sum commute; no changed destinations, predicates, flags or draw constant. Other output1130 remains unverified."
+  },
+  "traces": {
+    "page-narrow": {
+      "path": "PERMUTER_EVIDENCE/manual/page-narrow",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "input_sha256": "e8c218c3e53f872551bd7b79a2eb70bddbc322e08829dc2f82309f6fd76c3cf2",
+      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-constraint-match/base_16.i",
+      "flags": [
+        "-O2",
+        "-mips1",
+        "-mcpu=3000",
+        "-w",
+        "-funsigned-char",
+        "-fpeephole",
+        "-ffunction-cse",
+        "-fpcc-struct-return",
+        "-fcommon",
+        "-fverbose-asm",
+        "-msoft-float",
+        "-mgas",
+        "-fgnu-linker",
+        "-quiet",
+        "-gcoff",
+        "-dp",
+        "-G0",
+        "-da"
+      ],
+      "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+      "source_sha256": {
+        "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+        "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+        "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+        "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+        "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+        "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+        "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+        "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+        "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+        "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+        "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+        "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+        "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+        "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+        "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+        "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+        "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+        "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+        "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+      },
+      "assembly_identical": true,
+      "trace_complete": true,
+      "baseline_assembly_sha256": "7f0aea4e2217dae4a4c1a043b3a3909088f8a260ee2c4ca8b4fe8b7a64b3409a",
+      "traced_assembly_sha256": "7f0aea4e2217dae4a4c1a043b3a3909088f8a260ee2c4ca8b4fe8b7a64b3409a"
+    },
+    "remaining-reloads": {
+      "path": "PERMUTER_EVIDENCE/manual/remaining-reloads",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "input_sha256": "b1c205f8b0c5c73d6d9fb9a7a9dd9c11a18cd9ed3df0969aee9fed62942fc366",
+      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-constraint-match/base_27.i",
+      "flags": [
+        "-O2",
+        "-mips1",
+        "-mcpu=3000",
+        "-w",
+        "-funsigned-char",
+        "-fpeephole",
+        "-ffunction-cse",
+        "-fpcc-struct-return",
+        "-fcommon",
+        "-fverbose-asm",
+        "-msoft-float",
+        "-mgas",
+        "-fgnu-linker",
+        "-quiet",
+        "-gcoff",
+        "-dp",
+        "-G0",
+        "-da"
+      ],
+      "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+      "source_sha256": {
+        "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+        "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+        "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+        "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+        "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+        "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+        "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+        "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+        "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+        "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+        "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+        "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+        "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+        "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+        "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+        "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+        "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+        "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+        "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+      },
+      "assembly_identical": true,
+      "trace_complete": true,
+      "baseline_assembly_sha256": "0692ec77b6597319bb37f5b30e26feceedb90636274418617fd08cbcfefb1af4",
+      "traced_assembly_sha256": "0692ec77b6597319bb37f5b30e26feceedb90636274418617fd08cbcfefb1af4"
+    },
+    "final-mask": {
+      "path": "PERMUTER_EVIDENCE/manual/final-mask",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "input_sha256": "a0d8264b4f6505e32d7acd3d62a83556ad0f6caaa03474b9b73ae29a86b2dc60",
+      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-constraint-match/base_38.i",
+      "flags": [
+        "-O2",
+        "-mips1",
+        "-mcpu=3000",
+        "-w",
+        "-funsigned-char",
+        "-fpeephole",
+        "-ffunction-cse",
+        "-fpcc-struct-return",
+        "-fcommon",
+        "-fverbose-asm",
+        "-msoft-float",
+        "-mgas",
+        "-fgnu-linker",
+        "-quiet",
+        "-gcoff",
+        "-dp",
+        "-G0",
+        "-da"
+      ],
+      "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+      "source_sha256": {
+        "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+        "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+        "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+        "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+        "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+        "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+        "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+        "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+        "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+        "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+        "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+        "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+        "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+        "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+        "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+        "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+        "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+        "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+        "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+      },
+      "assembly_identical": true,
+      "trace_complete": true,
+      "baseline_assembly_sha256": "87548fab74a3e98138e215668a4509c7b9aa4d34349798c05dababfcefd73a25",
+      "traced_assembly_sha256": "87548fab74a3e98138e215668a4509c7b9aa4d34349798c05dababfcefd73a25"
+    }
+  },
+  "final_schedule_events": [
+    {
+      "after": [
+        {
+          "luid": 90,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1126
+        },
+        {
+          "luid": 70,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1093
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "before": [
+        {
+          "luid": 90,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1126
+        },
+        {
+          "luid": 70,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1093
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "clock": 38,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1126,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1093,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1126,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1093,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 1126
+    },
+    {
+      "clock": 38,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 68,
+            "priority": 8,
+            "refs": 0,
+            "tick": 0,
+            "uid": 1087
+          },
+          "before": {
+            "luid": 68,
+            "priority": 8,
+            "refs": 1,
+            "tick": 0,
+            "uid": 1087
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched2",
+      "scheduled": 1126
+    },
+    {
+      "costs": {
+        "1087": 1
+      },
+      "dependency_classes": {
+        "1087": 3,
+        "1093": 3
+      },
+      "dependency_kinds": {
+        "1087": 0
+      },
+      "event": "schedule_compare",
+      "last": 1126,
+      "pass": "sched2",
+      "reason": "original RTL order",
+      "result": -2,
+      "winner": 1093,
+      "x": {
+        "luid": 70,
+        "priority": 8,
+        "uid": 1093
+      },
+      "y": {
+        "luid": 68,
+        "priority": 8,
+        "uid": 1087
+      }
+    },
+    {
+      "after": [
+        {
+          "luid": 70,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1093
+        },
+        {
+          "luid": 68,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1087
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "before": [
+        {
+          "luid": 70,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1093
+        },
+        {
+          "luid": 68,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1087
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "clock": 39,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1093,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1087,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1093,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1087,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 1093
+    },
+    {
+      "clock": 39,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 65,
+            "priority": 8,
+            "refs": 1,
+            "tick": 0,
+            "uid": 1083
+          },
+          "before": {
+            "luid": 65,
+            "priority": 8,
+            "refs": 2,
+            "tick": 0,
+            "uid": 1083
+          },
+          "kind": 15
+        },
+        {
+          "after": {
+            "luid": 66,
+            "priority": 8,
+            "refs": 0,
+            "tick": 0,
+            "uid": 1085
+          },
+          "before": {
+            "luid": 66,
+            "priority": 8,
+            "refs": 1,
+            "tick": 0,
+            "uid": 1085
+          },
+          "kind": 14
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched2",
+      "scheduled": 1093
+    },
+    {
+      "costs": {
+        "1085": 1
+      },
+      "dependency_classes": {
+        "1085": 3,
+        "1087": 3
+      },
+      "dependency_kinds": {
+        "1083": 15,
+        "1085": 14
+      },
+      "event": "schedule_compare",
+      "last": 1093,
+      "pass": "sched2",
+      "reason": "original RTL order",
+      "result": -2,
+      "winner": 1087,
+      "x": {
+        "luid": 68,
+        "priority": 8,
+        "uid": 1087
+      },
+      "y": {
+        "luid": 66,
+        "priority": 8,
+        "uid": 1085
+      }
+    },
+    {
+      "after": [
+        {
+          "luid": 66,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1085
+        },
+        {
+          "luid": 68,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1087
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "before": [
+        {
+          "luid": 68,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1087
+        },
+        {
+          "luid": 66,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1085
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "clock": 40,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1087,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1085,
+          "unit": 0
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1087,
+          "unit": -1
+        },
+        {
+          "cost": 10153984,
+          "kind": "potential",
+          "uid": 1085,
+          "unit": 0
+        }
+      ],
+      "pass": "sched2",
+      "selected": 1085
+    },
+    {
+      "clock": 40,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 65,
+            "priority": 8,
+            "refs": 0,
+            "tick": 0,
+            "uid": 1083
+          },
+          "before": {
+            "luid": 65,
+            "priority": 8,
+            "refs": 1,
+            "tick": 0,
+            "uid": 1083
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched2",
+      "scheduled": 1085
+    },
+    {
+      "after": [
+        {
+          "luid": 68,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1087
+        },
+        {
+          "luid": 65,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1083
+        },
+        {
+          "luid": 58,
+          "priority": 7,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1064
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "before": [
+        {
+          "luid": 68,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1087
+        },
+        {
+          "luid": 65,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1083
+        },
+        {
+          "luid": 58,
+          "priority": 7,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1064
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "clock": 41,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1087,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1083,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1087,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1083,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 1087
+    },
+    {
+      "after": [
+        {
+          "luid": 65,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1083
+        },
+        {
+          "luid": 58,
+          "priority": 7,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1064
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "before": [
+        {
+          "luid": 65,
+          "priority": 8,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1083
+        },
+        {
+          "luid": 58,
+          "priority": 7,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1064
+        },
+        {
+          "luid": 79,
+          "priority": 3,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1164
+        },
+        {
+          "luid": 16,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1388
+        }
+      ],
+      "clock": 42,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1083,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 1083
+    }
+  ],
+  "evidence_relative_to_session": [
+    "LEARNINGS.md",
+    "PERMUTER_ANALYSIS.md",
+    "experiments.jsonl",
+    "PERMUTER_EVIDENCE/manual/constraint-pairs",
+    "PERMUTER_EVIDENCE/36de27ab0b77444c/manifest.json"
+  ],
+  "archive": "tools/giveups/func_replay_bonus_801183B8/sessions/d132ce656e3347ba8606277775b2d6b0/deb4dda975ed9565169b",
+  "permuter_archive": "tools/permuter_findings/func_replay_bonus_801183B8/sessions/d132ce656e3347ba8606277775b2d6b0/deb4dda975ed9565169b",
+  "resolved_by": "2026-09-09-replay-final-match.json"
+}

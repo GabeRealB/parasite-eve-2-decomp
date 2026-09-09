@@ -56163,3 +56163,60 @@ span, which is what flipped its `t6`/`t7` home against the `0xA0` constant.
 `addiu v0,v0,%lo(sym); lw v0,4(v0)`; the target's
 `lw v0,%lo(Gp_ActorSlots+4)(v0)` needs a non-volatile object. Three files had
 been casting the qualifier away to match; the declaration was the artefact.
+
+## Replay Bonus: control the reload's insertion point with a direct field store
+
+In `func_replay_bonus_801183B8`, correcting the first schedule's draw constant
+and x advance still failed after reload: the stack-y load acquired true
+dependencies on every preceding dimension/UV field store. Moving the direct
+`sprt->y0 = y - gh` store before those stores put the reload earlier; sched2
+then moved the y0 store itself back to the target position. This reduced
+distance300 to60 without another asm helper or a register change. Computing a
+named `top = y - gh` instead had introduced loop-hoisted code and regressed.
+Choose the source use that locates the reload, then inspect both schedules;
+moving only the arithmetic that fills the eventual load gap is insufficient.
+
+The same session exposed two useful allocation controls. An HI glyph
+coordinate plus a separate SI flag can coalesce into the target's shared
+register while retaining different scheduler priorities. Also, writing the
+full DR tag expression dropped the 24-bit mask pseudo from28 to25 flow
+references and changed its saved register. An explicit redundant
+`getaddr(ot) & 0xFFFFFF` restored28 references; combine removed the redundant
+operation later. Final instruction counts alone miss this allocation input.
+
+Evidence: [constraint-match observations](tools/compiler_evidence/2026-09-09-replay-constraint-match.json).
+The direct-store pair is base27 input
+`b1c205f8b0c5c73d6d9fb9a7a9dd9c11a18cd9ed3df0969aee9fed62942fc366`
+to base37 input
+`1f22f4013d53375a2d96484ff40375c3ca3de69a7aa33a157214a0aceed6382f`.
+The final base38 has one mask instruction two slots early. Its observed
+sched2 mask/high tie uses original RTL order; the following store/mask
+decision is overridden by the store's potential-hazard ranking. This last
+source constraint remains unresolved; no exact-match claim.
+
+### Resolution: split the flags load before the page calculation
+
+The next session matched Replay Bonus by giving the existing flags read its
+own byte local before computing the page:
+
+```c
+pageFlags = sprites[idx].flags;
+page = (u32)(tpageX & 0x3FF) >> 6;
+dr->code[0] = ((pageFlags & 3) << 7) | otherPageBits;
+```
+
+This puts metadata-address expansion before the mask in RTL without keeping
+a metadata pointer live. Both schedules now retain `length store; metadata
+high; page mask`, and all other instructions and register assignments survive.
+The prior trace's mask/high ordering prediction was sufficient: this first
+new intervention reduced distance60 to0. Adding another barrier was unnecessary.
+Only the same flags read crossed the pure page calculation; stored values and
+predicates were unchanged.
+
+The exact input SHA256 is
+`a65db83d6a25f3cbce053155bb6e30d9cd494dd2e02541e845937487e26cce31`;
+the version using the shared header is
+`fad8635283197e3c4dedef69ae532ca5232f3d6fee31cb958d36c2d9fabce6d2`.
+The integrated function passed the full project build. Sources, the paired
+prediction and both schedules are indexed by
+[final-match evidence](tools/compiler_evidence/2026-09-09-replay-final-match.json).
