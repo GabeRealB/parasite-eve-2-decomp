@@ -57004,6 +57004,36 @@ instructions out of place, while any position after the first statement matched.
 Sweep for the shape with an object-level compare that prints relocations - the
 checksum and `diff.py` both stay silent on it.
 
+## splat sometimes prints the resolved displacement, so removing a faked `%lo` *lowers* the scratch score
+
+**Problem:** the entry above says to replace a hand-built `%hi`/`%lo` pair with the
+plain field access. On `Gp_LoadWaitBoot` that reproduced all 139 instructions and
+both registers, and the scratch score still fell from 100.000% to 99.964% with
+`regs=1`.
+
+**Symptom:** the sole difference is the operand form of the dependent load.
+
+```
+-lhu    a0,-0x6e3c(a1)                    # target.s
++lhu    a0,%lo(CdCmd_Queue+0x224)(a1)     # ours, R_MIPS_LO16 CdCmd_Queue, addend 0x224
+```
+
+splat named the `lui` (`%hi(CdCmd_Queue + 0x224)`) but printed the load's
+displacement literally, so `target.o` has no `R_MIPS_LO16` for the scorer to
+compare against and the correct relocated form is charged as a register
+difference. This is not a property of the code: `Gp_LoadState2` and
+`Gp_LoadWaitStage` have byte-identical instruction windows here, and splat pairs
+the load in the first and not the second. Six functions in `src/gameplay/D4.c`
+read `CdCmd_Queue.field_224` this way and exactly one gets the paired render.
+
+**Fix:** treat it like the symbol-name artifact above - the scratch score cannot
+reach 100% on this shape, and only the linked checksum can. Confirm the object is
+otherwise instruction-for-instruction identical, confirm the addend resolves
+(`objdump -dr`: HI16 addend 0 plus LO16 addend `0x224` gives the same
+`lui 0x8007` / `-0x6E3C` the ROM has), then land it and let
+`./tools/build-and-verify.sh` decide. Do not restore the asm to buy back the
+0.036%.
+
 ## A second `%hi` in one block always takes `$v0`; a target `lui $v1` needs the pair to overlap
 
 The companion case to the entry above, and the one where moving the statement
