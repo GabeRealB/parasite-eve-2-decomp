@@ -57045,3 +57045,38 @@ for `cfg = &Wip_SysConfig;` (first, after `count = 0`, between the two
 destination *is* `$v1` - remain the only known handles, and the first of those is
 an instruction-emitting asm rather than a match. What actually produced the
 overlap in the original build is unresolved.
+
+## A pinned local fed by a parameter deletes the copy; `USE_REG` on the parameter brings it back
+
+`register T x asm("s5"); ... x = arg0;` does not reliably give a `move s5, a0`
+where the assignment stands. local-alloc propagates the hard register backwards
+through the copy, the incoming argument pseudo is itself allocated `$s5`, the
+copy collapses to `move $21, $21` and is deleted, and what survives is the
+*entry* copy insn (uid 4, `s5 <- a0`). That insn sits above every later
+`asm volatile` in the block, so no barrier can hold it down, and sched2 is free
+to drop it into a load-delay slot:
+
+```
+lw   v0, 0x28(s1)
+move s5, a0          # target has a nop here
+lw   s4, 0x34(v0)
+```
+
+The symptom is deceptive - one instruction fewer, every address after it
+shifted, `regs=0` - and it reads like a scheduling problem when it is an
+allocation one. Keep the parameter live past the assignment so it conflicts with
+the pinned register and cannot be given it:
+
+```c
+TOUCH_REG_USE(obj, spawnArg);   /* barrier: the copy cannot rise above this */
+prompt = arg0;
+USE_REG(arg0);                  /* arg0 still live -> real move s5, a0 */
+```
+
+`USE_REG` emits nothing, so this replaces a hand-written
+`asm("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg))` with
+an equivalent that keeps the R_MIPS relocations and the register names the
+compiler chose (`Gp_DrawAmmoRow`). The barrier is separately required: dropping
+it lets the copy schedule back into the delay slot, and dropping the `"+r"(obj)`
+half lets cse rewrite later uses of the pinned `obj` as the argument pseudo,
+which costs an extra `move`.

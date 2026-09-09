@@ -5144,25 +5144,27 @@ void Gp_EquipSummaryTask(Task* arg0)
 
 void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    TextDrawReq        req;
-    register s32       spawnArg asm("s4");
-    s32                item;
-    s32                status;
-    s32                x;
-    s32                y;
-    s32                color;
-    s32                one;
-    s32                temp;
-    s32                i;
-    s32                minusOne;
-    s32                baseY;
-    register UiObject* obj asm("s1");
-    DialogPrompt*      prompt;
-    UiObject*          spawned;
+    TextDrawReq            req;
+    register s32           spawnArg asm("s4");
+    s32                    item;
+    s32                    status;
+    s32                    x;
+    s32                    y;
+    s32                    color;
+    s32                    one;
+    s32                    temp;
+    s32                    i;
+    s32                    minusOne;
+    s32                    baseY;
+    register UiObject*     obj asm("s1");
+    register DialogPrompt* prompt asm("s5");
+    UiObject*              spawned;
 
     obj      = arg1;
     spawnArg = obj->owner->spawnArg1;
-    asm volatile("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg));
+    TOUCH_REG_USE(obj, spawnArg);
+    prompt = arg0;
+    USE_REG(arg0);
     item   = Gp_NthRelatedId(&Mc_SaveData.field_5BC, prompt->field_8, spawnArg);
     status = obj->status;
     if (((status >> 16) == 1) || (status == 1)) {
