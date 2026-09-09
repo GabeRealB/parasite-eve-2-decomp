@@ -39,63 +39,10 @@ MATCH_LAND_PATHS=(
 )
 CLI="${VACUUM_CLI:-claude}"
 CLI_EXPLICIT=0
-PROFILE="${VACUUM_PROFILE:-}"
-PROFILES_FILE="${VACUUM_PROFILES_FILE:-$ROOT/local/vacuum_profiles}"
-# Which knobs the caller set before we touch them. A profile must not clobber
-# an explicit `VACUUM_MODEL=... ./tools/vacuum.sh`, so record the difference
-# between "unset" and "set to empty" now, while it is still observable.
-_SET_MODEL=${VACUUM_MODEL+1}
-_SET_LAND_MODEL=${VACUUM_LAND_MODEL+1}
-_SET_MATCH_EFFORT=${VACUUM_MATCH_EFFORT+1}
-_SET_LAND_EFFORT=${VACUUM_LAND_EFFORT+1}
+# Profiles, and the log directory, are shared with tools/vacuum_overlay.sh.
+# shellcheck source=tools/vacuum_profile.sh
+. "$ROOT/tools/vacuum_profile.sh"
 
-# One row of the profiles table, comments and blank lines skipped.
-profile_row() {
-  [[ -f "$PROFILES_FILE" ]] || return 1
-  awk -v n="$1" '$0 !~ /^[[:space:]]*#/ && NF && $1 == n { print; found = 1; exit }
-                 END { exit !found }' "$PROFILES_FILE"
-}
-
-list_profiles() {
-  if [[ ! -f "$PROFILES_FILE" ]]; then
-    echo "No profiles file at $PROFILES_FILE"
-    return
-  fi
-  printf '%-18s %-7s %-18s %-7s %-14s %s\n' NAME CLI MODEL EFFORT LAND_MODEL LAND_EFFORT
-  awk '$0 !~ /^[[:space:]]*#/ && NF { printf "%-18s %-7s %-18s %-7s %-14s %s\n", $1, $2, $3, $4, ($5 == "" ? "-" : $5), ($6 == "" ? "-" : $6) }' \
-    "$PROFILES_FILE"
-}
-
-# Fill in only what the caller left unspecified: flags and environment win.
-apply_profile() {
-  local name=$1 row _n cli model effort land
-  if ! row=$(profile_row "$name"); then
-    echo "Error: no profile '$name' in $PROFILES_FILE"
-    echo "Known profiles:"
-    list_profiles
-    exit 1
-  fi
-  read -r _n cli model effort land land_effort <<<"$row"
-  if [[ "$cli" != "-" && $CLI_EXPLICIT -eq 0 ]]; then
-    CLI="$cli"
-  fi
-  if [[ "$model" != "-" && -z "$_SET_MODEL" ]]; then
-    export VACUUM_MODEL="$model"
-  fi
-  if [[ -n "${land:-}" && "$land" != "-" && -z "$_SET_LAND_MODEL" ]]; then
-    export VACUUM_LAND_MODEL="$land"
-  fi
-  # Effort is a role, not a CLI setting: VACUUM_MATCH_EFFORT covers the search
-  # and VACUUM_LAND_EFFORT the mechanical port, for every CLI alike - the same
-  # split VACUUM_MODEL / VACUUM_LAND_MODEL already makes.
-  if [[ "$effort" != "-" && -z "$_SET_MATCH_EFFORT" ]]; then
-    export VACUUM_MATCH_EFFORT="$effort"
-  fi
-  if [[ -n "${land_effort:-}" && "$land_effort" != "-" && -z "$_SET_LAND_EFFORT" ]]; then
-    export VACUUM_LAND_EFFORT="$land_effort"
-  fi
-  PROFILE="$name"
-}
 LOG_FILE=""
 OVERLAY_PY="tools/decomp_overlay.py"
 ORCH=0
@@ -174,8 +121,8 @@ Environment:
                            tools/claude reads the same two variables.
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
-Orchestrator sessions log to tools/vacuum-<cli>-<pid>.log and flock-append
-each function onto tools/vacuum.log.
+Orchestrator sessions log to local/logs/vacuum-<cli>-<pid>.log and
+flock-append each function onto local/logs/vacuum.log.
 EOF
 }
 
@@ -484,7 +431,7 @@ orch_claim_args() {
   printf '%s\n' "${args[@]}"
 }
 
-MAIN_LOG_FILE="$ROOT/tools/vacuum.log"
+MAIN_LOG_FILE="$(vacuum_log_dir)/vacuum.log"
 SESSION="vacuum-${CLI}-$$"
 WORKTREE_PARENT="${VACUUM_WORKTREE_PARENT:-$(dirname "$ROOT")}"
 LOG_FLUSH_POS=0
@@ -496,7 +443,7 @@ LOG_FLUSH_POS=0
 if [[ -n "${VACUUM_LOG_FILE:-}" ]]; then
   LOG_FILE="$VACUUM_LOG_FILE"
 elif [[ $ORCH -eq 1 ]]; then
-  LOG_FILE="$ROOT/tools/vacuum-${CLI}-$$.log"
+  LOG_FILE="$(vacuum_log_dir)/vacuum-${CLI}-$$.log"
 else
   LOG_FILE="$MAIN_LOG_FILE"
 fi

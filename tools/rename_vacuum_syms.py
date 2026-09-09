@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bulk-rename remaining func_800* symbols using roles from tools/vacuum.log
+Bulk-rename remaining func_800* symbols using roles from local/logs/vacuum.log
 (and verified against matched C).
 
 Run from repo root. Whole-token replacements, longest-first.
@@ -302,7 +302,7 @@ def ensure_sym_main(path: Path) -> int:
         added += 1
     if lines_to_add:
         block = (
-            "\n// Vacuum-driven renames (tools/vacuum.log roles)\n"
+            "\n// Vacuum-driven renames (local/logs/vacuum.log roles)\n"
             + "\n".join(lines_to_add)
             + "\n"
         )

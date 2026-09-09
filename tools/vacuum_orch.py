@@ -880,7 +880,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_log = sub.add_parser(
         "log-flush",
-        help="Atomically append new bytes from a session log onto tools/vacuum.log",
+        help="Atomically append new bytes from a session log onto the shared vacuum log",
     )
     p_log.add_argument("--local", required=True, help="Session log path")
     p_log.add_argument("--main", required=True, help="Shared vacuum.log path")
