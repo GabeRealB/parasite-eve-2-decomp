@@ -61,8 +61,8 @@ list_profiles() {
     echo "No profiles file at $PROFILES_FILE"
     return
   fi
-  printf '%-10s %-7s %-18s %-7s %s\n' NAME CLI MODEL EFFORT LAND_MODEL
-  awk '$0 !~ /^[[:space:]]*#/ && NF { printf "%-10s %-7s %-18s %-7s %s\n", $1, $2, $3, $4, ($5 == "" ? "-" : $5) }' \
+  printf '%-18s %-7s %-18s %-7s %s\n' NAME CLI MODEL EFFORT LAND_MODEL
+  awk '$0 !~ /^[[:space:]]*#/ && NF { printf "%-18s %-7s %-18s %-7s %s\n", $1, $2, $3, $4, ($5 == "" ? "-" : $5) }' \
     "$PROFILES_FILE"
 }
 
