@@ -90,7 +90,3 @@ void func_actor_104600_80135CE0(void* arg0, Task* task)
     Gp_UpdateActorColor(arg0, block, 0, 0);
     *scratch = (u8*)*scratch + 0x10;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_5", func_actor_104600_80135D50);
-
-INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_5", func_actor_104600_80135E2C);

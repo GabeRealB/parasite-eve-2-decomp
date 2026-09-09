@@ -56879,3 +56879,38 @@ survives and the cached index keeps reading `todo`.
 `python3 tools/overlay_dup_index.py --rebuild find <fn>` to confirm it reports
 `matched` before promoting. An unscoped `./tools/build-and-verify.sh` clears it
 too, so landing → full build → promote avoids the trap entirely.
+
+## A `shared` span in the middle of a unit renumbers every later unit
+
+**Problem:** `overlay_dup_index.py promote <fn>` succeeded and the config edits
+looked right, but the next full build failed with dozens of
+`can't open asm/USA/<family>/nonmatchings/<overlay>/<unit>/<fn>.s` errors in
+overlays that were not even touched by hand.
+
+**Symptom:** a `shared` span carves the promoted body out of the middle of an
+existing `c` subsegment, so splat cuts that subsegment in two and shifts the
+numbering of every `c` unit after it - `actor_207200_2` becomes
+`actor_207200_3`, `_3` becomes `_4`, and a brand-new `_2` appears for the run
+between the span and the next one. The existing `src/` files still carry the
+old ranges, so their `INCLUDE_ASM` unit paths now name assembly splat writes
+somewhere else. splat then *creates* a stub `.c` for the highest new unit
+number - a file whose name already existed one slot down and holds a matched
+body, which is how a promotion quietly discards decompiled source.
+
+**Fix:** read the regenerated `configs/USA/generated/<overlay>.yaml` subsegment
+list before building and reconcile `src/` to it by hand:
+
+1. Delete splat's freshly generated stub for the *last* unit; it duplicates the
+   file one number below it.
+2. `git mv` the tail files down in reverse order (`_4.c` → `_5.c`, `_3.c` →
+   `_4.c`, …) and `sed` the unit path inside each `INCLUDE_ASM` to match.
+3. Split the unit the span cut into, moving the functions above the span into a
+   new `<name>_2.c`.
+4. Re-point any `rodata` key in `configs/USA/overlays.toml` that names a unit by
+   number: `unit = "actor_207200_2"` meant the 0x1458 run before the promotion
+   and the 0x1308 run after it, so the jump-table block ends up owned by the
+   wrong object unless it is renamed to the referencing function's new unit.
+
+A promotion whose span lands at the very end of a unit's run is the easy case -
+only a single trailing `INCLUDE_ASM` moves into the generated `<name>_6.c`, and
+nothing renumbers.

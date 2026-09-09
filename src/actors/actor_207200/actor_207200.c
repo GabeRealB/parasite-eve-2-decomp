@@ -61,8 +61,4 @@ void func_actor_207200_8014AFDC(void* arg0, Task* task)
     *scratch = (u8*)*scratch + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014B04C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014B128);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_207200/actor_207200", D_actor_207200_80149E30);
