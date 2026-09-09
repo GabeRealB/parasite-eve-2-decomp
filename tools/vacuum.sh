@@ -541,6 +541,10 @@ include_asm_present() {
 
 count_attempts() {
   local scratch=$1
+  if [[ -f "$scratch/attempts.jsonl" ]]; then
+    wc -l <"$scratch/attempts.jsonl" | tr -d ' '
+    return
+  fi
   if [[ -f "$scratch/match_log.txt" ]]; then
     wc -l <"$scratch/match_log.txt" | tr -d ' '
     return
@@ -709,12 +713,12 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 
 1. cd into \`$scratch\` and make \`base.c\` compile with **minimal** edits (\`./build.sh base.c\`). If this was a give-up retry, \`base.c\` is the archived seed — do not restart from m2c or rewrite from the asm before the first score.
 2. $(dump_loop_instructions "$func")
-3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the repo root **before** adding register pins:
-   \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
+3. At ≥95%, use structural diagnostics and the bounded search router from the repo root **before** adding register pins:
+   \`python3 tools/vacuum_permute.py --func $func --scratch $scratch --timeout 360 --jobs 4\`
 4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then verify twice — \`./tools/build-and-verify.sh${scope:+ --only $scope}\` for a fast check of this overlay, then the bare \`./tools/build-and-verify.sh\` before you commit, since a scoped pass says nothing about the overlays it skipped. Commit \`matched $func <attempts>\`.
 ${promote_guard}4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/<family>/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
-6. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
+6. Complete experiment conclusions and LEARNINGS.md with unresolved hypotheses and evidence. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
 
 ---
 $(cat "$brief_file")
@@ -881,20 +885,28 @@ commit_match_if_needed() {
 }
 
 best_score() {
-  # Highest percentage seen in match_log.txt (scratch first, then the giveup
-  # archive, which is written just before this runs).
+  # The archive manifest is authoritative after merging this session's scores.
   local func=$1
   local scratch=$2
-  local log
-  for log in "$scratch/match_log.txt" "tools/giveups/$func/match_log.txt"; do
-    if [[ -f "$log" ]]; then
-      awk 'BEGIN { best = 0 }
-           { s = $2; sub(/%$/, "", s); if (s + 0 > best) best = s + 0 }
-           END { printf "%.3f", best }' "$log"
-      return
-    fi
-  done
-  echo "0.000"
+  python3 - "$func" "$scratch" <<'PY_SCORE'
+import json, sys
+from pathlib import Path
+func, scratch = sys.argv[1:]
+archive = Path('tools/giveups') / func
+meta = archive / 'meta.json'
+if meta.is_file():
+    print(f"{float(json.loads(meta.read_text()).get('score', 0)):.3f}")
+else:
+    scores = [0.0]
+    log = Path(scratch) / 'match_log.txt'
+    if log.is_file():
+        for line in log.read_text().splitlines():
+            try:
+                scores.append(float(line.split()[1].rstrip('%')))
+            except (IndexError, ValueError):
+                pass
+    print(f"{max(scores):.3f}")
+PY_SCORE
 }
 
 record_difficult_if_needed() {
@@ -903,9 +915,6 @@ record_difficult_if_needed() {
   # function, so vacuum records the give-up itself.
   local func=$1
   local scratch=$2
-  if difficult_listed "$func"; then
-    return 0
-  fi
   # A give-up is only evidence about the function if something was actually
   # compiled. Without match_log.txt nothing was: count_attempts falls back to
   # base_*.c + 1 and best_score returns 0.000, so an agent that never ran -
@@ -929,6 +938,17 @@ record_difficult_if_needed() {
   if [[ "$score" == "100.000" ]]; then
     echo "Not recording a give-up for $func: best score is 100.000" \
       | tee -a "$LOG_FILE"
+    return 0
+  fi
+  if difficult_listed "$func"; then
+    python3 - "$DIFFICULT_FUNCTIONS" "$func" "$attempts" "$score" <<'PY_ROW'
+from pathlib import Path
+import sys
+path, func, attempts, score = sys.argv[1:]
+p = Path(path)
+p.write_text('\n'.join(f'{func} {attempts} {score}' if line.split() and line.split()[0] == func else line
+                       for line in p.read_text().splitlines()) + '\n')
+PY_ROW
     return 0
   fi
   if [[ -s "$DIFFICULT_FUNCTIONS" ]] && [[ -n "$(tail -c 1 "$DIFFICULT_FUNCTIONS")" ]]; then
@@ -1040,11 +1060,11 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 
 1. cd into \`$scratch\` and make \`base.c\` compile with minimal edits (\`./build.sh base.c\`). If this was a give-up retry, \`base.c\` is the archived seed — do not restart from m2c or rewrite from the asm before the first score.
 2. $(dump_loop_instructions "$func")
-3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the worktree root **before** adding register pins:
-   \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
+3. At ≥95%, use structural diagnostics and the bounded search router from the worktree root **before** adding register pins:
+   \`python3 tools/vacuum_permute.py --func $func --scratch $scratch --timeout 360 --jobs 4\`
 4. On 100%: replace INCLUDE_ASM in the worktree host C file, fix headers in this overlay's include/ tree, include any \`configs/\` splat or jump-table yaml, run \`./tools/build-and-verify.sh\` **in the worktree**, commit \`matched $func <attempts>\` **on this worktree branch only**.
 5. On stall: revert host C in the worktree, do not leave INCLUDE_ASM replaced, leave the scratch (best unpinned \`base_N.c\` included).
-6. Leave the scratch directory.
+6. Complete experiment conclusions and LEARNINGS.md with unresolved hypotheses and evidence. Leave the scratch directory.
 
 ---
 $(cat "$brief_file")
@@ -1328,7 +1348,12 @@ copy_giveup_to_main() {
   local func=$1
   local scratch=$2
   python3 "$ROOT/tools/archive_giveup.py" --func "$func" --scratch "$scratch" \
-    2>&1 | tee -a "$LOG_FILE" || true
+    2>&1 | tee -a "$LOG_FILE"
+  local archive_status=${PIPESTATUS[0]}
+  if [[ $archive_status -ne 0 ]]; then
+    echo "Archive failed for $func; retaining scratch/worktrees so findings are not lost." | tee -a "$LOG_FILE"
+    KEEP_SCRATCH=1
+  fi
 }
 
 port_succeeded() {
@@ -1904,16 +1929,14 @@ while true; do
       2>&1 | tee -a "$LOG_FILE" || true
   elif [[ $STOP_REQUESTED -eq 1 ]]; then
     echo "Interrupted before a match for $simplest_func; leaving it unmatched (not difficult)" | tee -a "$LOG_FILE"
-    python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
-      2>&1 | tee -a "$LOG_FILE" || true
+    copy_giveup_to_main "$simplest_func" "$scratch"
     git reset --hard HEAD >/dev/null
     git clean -fd -- "${MATCH_LAND_PATHS[@]}" >/dev/null 2>&1 || true
     cleanup_scratch "$simplest_func" "$scratch"
     echo "Stopping gracefully."
     break
   else
-    python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
-      2>&1 | tee -a "$LOG_FILE" || true
+    copy_giveup_to_main "$simplest_func" "$scratch"
     record_difficult_if_needed "$simplest_func" "$scratch"
   fi
   commit_difficult_if_needed "$simplest_func" "$match_status"

@@ -47,6 +47,7 @@ MASPSX_FLAGS="--aspsx-version=${MASPX_VERSION} --run-assembler --expand-div"
 CC_FLAGS="$OPT_FLAGS -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp"
 AS_FLAGS="$ENDIAN $INCLUDE_FLAGS $OPT_FLAGS -march=r3000 -mtune=r3000 -no-pad-sections"
 OBJDUMP_FLAGS="--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
+trap 'status=$?; if (( status != 0 )); then python3 "$SCRIPT_PATH/attempt.py" record "$INPUT" --project "$PROJECT_ROOT" --compiler "$CC" --flags "$CC_FLAGS" --failure "$status" || true; fi' EXIT
 
 # Compile from project root so assembler can find include/labels.inc
 pushd "$PROJECT_ROOT" > /dev/null
@@ -58,7 +59,7 @@ $CPP -P -MMD -MP -MT "$CPP_OUTPUT" -MF "${CPP_OUTPUT}.d" $CPP_FLAGS \
 
 # Run cc
 $CC $CC_FLAGS -G0 -o "$CC_OUTPUT" "$CPP_OUTPUT"
-rm -f "$CPP_OUTPUT"
+# Keep the preprocessed input: it captures the exact header contents for replay.
 rm -f "${CPP_OUTPUT}.d"
 
 # -dp appends an RTL uid to the *closing* volatile marker, so cc1 emits
@@ -104,39 +105,14 @@ python3 ./normalize_asm.py $OBJECT_DUMP > ${1//.c/_object_dump_normalized.s}
 diff -u --suppress-common-lines target_object_dump_normalized.s ${1//.c/_object_dump_normalized.s} > ${1//.c/_diff} || true
 echo "Comparison with target file: ${1//.c/_diff}"
 
-SCORE_OUTPUT=$(python3 dist.py target.o $MASPSX_OUTPUT --stack-diffs)
+SCORE_OUTPUT=$(python3 dist.py target.o "$MASPSX_OUTPUT" --stack-diffs --json "${INPUT%.c}.score.json")
 echo "$SCORE_OUTPUT"
+python3 "$SCRIPT_PATH/diagnose.py" target.o "$MASPSX_OUTPUT" --source "$INPUT" --output "${INPUT%.c}.diagnosis.json"
 
-# Extract match percentage and log it (only for base_* files)
+# Include the baseline and alternate names; retries must retain their scores too.
 MATCH_PERCENT=$(echo "$SCORE_OUTPUT" | grep -oP 'Score: \K[0-9.]+')
 PENALTIES=$(echo "$SCORE_OUTPUT" | grep -oP 'Penalties: \K.*' || true)
-if [[ $1 =~ base_[0-9]+ ]]; then
-    echo "$1 ${MATCH_PERCENT}% ${PENALTIES}" >> match_log.txt
-
-    # Stall detection: warn if no progress in last 40 attempts
-    if [[ -f match_log.txt ]]; then
-        STALL_INFO=$(awk '
-        {
-            gsub(/%/, "", $2)
-            total++
-            if ($2 + 0 > best + 0) {
-                best = $2 + 0
-                best_file = $1
-                best_at = total
-            }
-        }
-        END {
-            since = total - best_at
-            if (since > 40) {
-                printf "%d %s %.1f\n", since, best_file, best
-            }
-        }' match_log.txt)
-        if [[ -n "$STALL_INFO" ]]; then
-            read -r SINCE BEST_FILE BEST_SCORE <<< "$STALL_INFO"
-            echo "🛑 No progress in $SINCE attempts (best: ${BEST_SCORE}% at $BEST_FILE). STOP — do not make another attempt. Report your findings immediately."
-        fi
-    fi
-fi
+echo "$(basename "$INPUT") ${MATCH_PERCENT}% ${PENALTIES}" >> match_log.txt
 
 # Auto-dump when close: regs/reorder leftovers need .lreg/.greg/.sched/.dbr,
 # not more C rewrites. dump.sh is a second cc1 -da; skip on a perfect match
@@ -156,7 +132,7 @@ if [[ -n "$MATCH_PERCENT" ]] && awk -v p="$MATCH_PERCENT" 'BEGIN { exit !(p + 0 
     stack=$(echo "$PENALTIES" | grep -oP 'stack=\K[0-9]+' || echo 0)
     echo "NEXT: open these dump files before editing C (summary is not enough):"
     if awk -v b="$branch" -v i="$insert" -v d="$delete" 'BEGIN { exit !((b+i+d) > 0) }'; then
-        echo "  ${stem}.i.jump  ${stem}.i.jump2    (control flow still wrong — fix C shape, do not pin)"
+        echo "  ${stem}.diagnosis.json then .i.jump/.i.jump2 or .i.lreg/.i.greg (address shifts, spills and rematerialization can cause these penalties)"
     fi
     if awk -v r="$regs" 'BEGIN { exit !(r > 0) }'; then
         echo "  ${stem}.i.lreg  ${stem}.i.greg     (split a reused local or unpin; do not add register asm pins)"
@@ -167,8 +143,9 @@ if [[ -n "$MATCH_PERCENT" ]] && awk -v p="$MATCH_PERCENT" 'BEGIN { exit !(p + 0 
     if awk -v s="$stack" 'BEGIN { exit !(s > 0) }'; then
         echo "  extra locals / frame — split or shrink locals"
     fi
-    echo "Do not add register … asm(\"\") pins. A non-zero branch/insert/delete score is not a register-coloring problem."
+    echo "Use structural diagnostics and dump evidence to choose the next experiment; penalties alone do not establish the cause."
 fi
+python3 "$SCRIPT_PATH/attempt.py" record "$INPUT" --project "$PROJECT_ROOT" --compiler "$CC" --flags "$CPP_FLAGS | $CC_FLAGS | $MASPSX_FLAGS | $AS_FLAGS"
 
 if grep -qE 'register[[:space:]][^;]+asm[[:space:]]*\(' "$INPUT" 2>/dev/null; then
     echo "PIN WARNING: $1 contains register … asm(\"\"). Function-scope pins reserve that hard register for the whole function. Unpin and rescore as its own base_N.c before treating this as the best seed."

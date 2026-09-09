@@ -476,6 +476,7 @@ fi
 
 cat "${CLAUDE_DIR}/prelude.inc" "${CLAUDE_DIR}/../../include/macro.inc" "$ASM_PATH" >"$created_dir/target.s"
 mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -Iinclude -o "$created_dir/target.o" "$created_dir/target.s"
+python3 "$ROOT/tools/archive_giveup.py" --restore --func "$FUNC_STEM" --scratch "$created_dir"
 
 ln -sfn "${CLAUDE_DIR}/"* "$created_dir/"
 rm -f "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"

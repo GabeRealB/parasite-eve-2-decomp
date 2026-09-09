@@ -6,6 +6,7 @@
 import argparse
 import difflib
 import hashlib
+import json
 import re
 from collections import Counter
 from typing import Dict, List, Optional, Sequence, Set, Tuple
@@ -368,6 +369,7 @@ def main():
     parser.add_argument("target_file", help="Target assembly text file or object file")
     parser.add_argument("cand_file", help="Candidate assembly text file or object file")
     parser.add_argument("--debug", action="store_true", help="Print debug info")
+    parser.add_argument("--json", dest="json_output", help="Write score metadata without changing scoring")
     parser.add_argument(
         "--stack-diffs",
         action="store_true",
@@ -395,6 +397,10 @@ def main():
     score, sha256_hash, match_percentage, penalties = score_files(
         target_lines, cand_lines, debug_mode=args.debug
     )
+    if args.json_output:
+        with open(args.json_output, "w") as out:
+            json.dump({"score": match_percentage, "distance": score, "penalties": penalties}, out)
+            out.write("\n")
 
     # Use the raw score directly as the differences value
     print(f"Score: {match_percentage:.3f}% ({score} differences)")

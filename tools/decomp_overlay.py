@@ -452,6 +452,11 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
     ]
     if giveup_line:
         lines.append(giveup_line)
+    history = giveup.parent / 'HISTORY.md'
+    if history.is_file():
+        lines += ['', '## Previous retry findings',
+                  'Read `HISTORY.md` and the archived session files before selecting a hypothesis.',
+                  history.read_text()[-12000:], '']
     lines += [
         "",
         "Scratch env is already bootstrapped. Do **not** run `./tools/claude`.",
@@ -465,8 +470,9 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "project. It is the inner loop, not the finish line: a scoped pass says",
         "nothing about the other overlays, so run the bare",
         "`./tools/build-and-verify.sh` before committing or reporting a match.",
-        "If the best score stays >= 95% on register/scheduling diffs, run",
-        f"`./permute.sh --run -j4 {loc.name} {info['asm_file']} <scratch>/base_N.c`",
+        "Record experiments with `./attempt.py plan` / `conclude`; build.sh records results.",
+        "At >=95%, use the structural diagnostics to select a bounded search:",
+        f"`python3 tools/vacuum_permute.py --func {loc.name} --scratch <scratch> --timeout 360 --jobs 4`",
         "from the project root.",
         "",
         "## INCLUDE_ASM site",

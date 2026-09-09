@@ -22,16 +22,21 @@ If `BRIEF.md` is missing:
 
 ### Build Loop
 
-Follow **Matching loop** below (also `MATCH_LOOP.md` in this directory). First `./build.sh base.c` is a baseline — do not rewrite from the asm before that score. Prefer already-matched siblings in the same TU over m2c control flow. At ≥90%, `build.sh` prints a **NEXT:** line naming dump files; open those files before the next C edit. Do not add `register … asm("")` pins.
+Follow **Matching loop** below (also `MATCH_LOOP.md` in this directory). Read `HISTORY.md` when present. First `./build.sh base.c` is a baseline — do not rewrite from the asm before that score. Prefer already-matched siblings in the same TU over m2c control flow. Record predictions and conclusions with `./attempt.py`. At ≥90%, `build.sh` prints a **NEXT:** line naming dump files; consult `.diagnosis.json` and those dumps before the next C edit. Do not add `register … asm("")` pins.
 
-### After a 100% match (or giving up)
+### After a 100% match
 
 1. Integrate into the host C file (replace `INCLUDE_ASM`). Types for this overlay live in **that overlay's** `include/` tree (`include/main/`, `include/gameplay/`, `include/<overlay>/`, …). Do not add named types to `include/main/unknown_syms.h`.
 2. From the project root run `./tools/build-and-verify.sh` until `build/USA/out/SLUS_010.42: OK` (and the overlay checksum if this unit has one).
 3. Commit `matched $functionName <attempts>`.
-4. On give-up: append `tools/difficult_functions` as `$functionName <attempts> <best%>`, revert any host C / header edits, do not leave a partial `INCLUDE_ASM` replacement.
-5. Append generalizable findings to project-root `DECOMPILATION_LEARNINGS.md`.
-6. If vacuum launched you, leave this scratch directory (vacuum archives the best seed to `tools/giveups/<func>/`). Otherwise delete it.
+
+On give-up, retain INCLUDE_ASM and revert partial host changes. Complete experiment
+conclusions and record unresolved questions in `LEARNINGS.md`, even without a
+score gain. If vacuum launched you, leave the scratch for it to archive and record
+the difficult-function entry. Otherwise, from the project root run
+`python3 tools/archive_giveup.py --func $functionName --scratch <scratch>` before
+any cleanup, and record the difficult-function entry yourself. Add reusable
+compiler findings to `DECOMPILATION_LEARNINGS.md` as well as the session notes.
 
 ## Tools
 

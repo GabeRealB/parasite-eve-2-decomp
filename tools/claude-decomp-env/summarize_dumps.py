@@ -291,7 +291,7 @@ def summarize(i_path: Path) -> str:
         "NEXT: open the dump files named by build.sh (this summary is not enough). "
         "regs → .lreg/.greg (split locals / unpin); "
         "reorder → .sched/.sched2/.dbr; extra j → .jump2. "
-        "Non-zero branch/insert/delete is control flow — do not pin."
+        "Consult .diagnosis.json: branch/insert/delete may be address shifts, spills or rematerialization."
     )
     return "\n".join(chunks) + "\n" + hint + "\n"
 

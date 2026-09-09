@@ -4,7 +4,7 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 
 1. First `./build.sh base.c` is a **baseline**. Minimal edits so it compiles. Do not rewrite m2c or a give-up seed from the asm before that score.
 2. Prefer already-matched siblings in the same TU (BRIEF.md) over m2c gotos. Write each attempt as `base_N.c`.
-3. Plan the next edit from the **penalty mix + dumps**, not from the object-dump / asm-differ alone.
+3. Plan the next edit from **structural diagnostics + a compiler hypothesis + dumps**, not from the object-dump / asm-differ alone.
 4. Search the learnings corpus with `python3 tools/learn.py <terms>` — it ranks whole
    sections, where a raw grep returns hundreds of context-free lines ("delay slot"
    appears in 286 sections but only 16 titles). `--show N` prints the top N in full.
@@ -16,7 +16,7 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 
 | leftover | file | what to do |
 |---|---|---|
-| `insert` / `delete` / `branch` ≠ 0 | `.jump` `.jump2` | Control flow is still wrong. Fix C shape. Pins and the permuter will not finish this. |
+| `insert` / `delete` / `branch` ≠ 0 | `.diagnosis.json`, then relevant RTL dumps | Distinguish changed block connections/predicates from shifted addresses, spills, rematerialization and scheduling. These penalties alone do not identify the cause. |
 | `regs` | `.lreg` `.greg` | **Check the suggestion first**, with `lregwalk.py`: is the value the direct result or operand of something whose output is a hard register? Measured over 98 dumps, the priority ratio orders only 66% of same-block pairs and 38% are exact ties — the rest is the suggestion pass, and inversions cluster on `$v0`. To move a value out of `$v0`, break the suggestion (name an intermediate, move where it is consumed). Only then shorten the loser's live range, **split a reused local**, or **unpin**. `CODEGEN_MODEL.md` §10.5. |
 | `reorder` | `.sched` `.sched2` `.dbr` | Statement order and delay slots (store vs `mflo`/`lbu`/`jal`). |
 | `stack` | extra locals / frame | Split or shrink locals. |
@@ -24,7 +24,43 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 | loop IV / one walking pointer | `.loop` then `.cse2` | |
 | dead store / `REG_DEAD` | `.flow` | |
 
-A 93% score with `branch`/`insert`/`delete` still non-zero is a **control-flow** miss, not a register-coloring miss.
+`build.sh` writes `.diagnosis.json` alongside the unchanged exact score. It compares
+block connections (including delay slots and resolved switch destinations),
+branch predicate kinds, call targets, and instruction counts. Matching topology
+is not semantic equivalence; changed branch operand registers may themselves be
+allocation differences. Unknown indirect transfers remain explicitly unknown.
+Always inspect the corresponding dumps before deciding what caused a difference.
+
+## Experiments and retry history
+
+Read `HISTORY.md` on a retry. The archive keeps immutable session notes, sources,
+compressed preprocessed inputs and experiment records even if the score declines.
+Archived `seed_*.c` alternatives are copied into the scratch; their scores are
+historical and must be rebuilt with the current headers and compiler.
+
+Before an edit, record a prediction (the candidate file can be created afterward):
+
+```
+./attempt.py plan base_1.c --parent base.c --hypothesis 'piece dies too early' --expect 'piece conflicts with a1' --pass-name lreg
+```
+
+After the build and dump inspection, record the observation and next experiment:
+
+```
+./attempt.py conclude base_1.c --result 'lifetime extended, allocation unchanged' --next 'inspect suggestion pass'
+```
+
+`build.sh` journals success/failure, source/compiler/preprocessed-input hashes,
+flags, score, duplicate assembly, and the earliest changed RTL dump versus the
+parent. An early dump difference can be numbering noise: inspect its operands.
+A failed prediction is useful evidence even when the percentage does not improve.
+Repeated assembly is not a new search result. Ten distinct builds without a score
+gain trigger a change of hypothesis or seed; do not repeat an exhausted experiment.
+The default session budget is 40 builds, including failures and repeats, unless
+the user authorized more. Repeats consume the budget without counting as progress.
+Before stopping, complete conclusions and write unresolved questions plus evidence
+in `LEARNINGS.md`. General compiler findings may also enter the shared corpus;
+the session copy is preserved independently of whether a match lands.
 
 ## Pins
 
@@ -60,13 +96,19 @@ Prefer the named helpers in `include/decomp/common.h` over raw empty `asm` / `as
 
 ## Permuter
 
-Only if best ≥ 95% **and** leftovers are `regs` / `reorder` / `stack` (`branch`=`insert`=`delete`=0). From the project root, **before** pins:
+Once a primary reaches 95%, ask the search router to assess it and alternatives:
 
 ```
-./permute.sh --run --timeout 360 -j4 $functionName <asm-path-from-BRIEF> base_N.c
+python3 tools/vacuum_permute.py --func $functionName --scratch <scratch> --timeout 360 --jobs 4
 ```
 
-Vacuum also permutes after you exit if you leave a ≥95% unpinned `base_N.c`. Give up after ~10 attempts with no gain, or ~40 total. On stall, `build.sh` tells you to stop.
+It rebuilds up to three distinct unpinned candidates, including promising lower
+scores, and uses block/predicate/call diagnostics to decide whether to search.
+Unknown structure requires further evidence or clean legacy register/scheduling
+penalties. It shares one budget across rebuilding, setup and all searches.
+`PERMUTER.json` / `PERMUTER.txt` record run and skip reasons. `--setup-only`
+inspects cached eligibility without compiling or searching.
+A zero score still requires porting and the full verification below.
 
 If the kept `.s` matches and the `.o` does not, the bug is maspsx (`--expand-div`), not GCC.
 

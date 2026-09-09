@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-"""Save the best scratch seed so a give-up can be retried later.
+"""Preserve every matching session and merge promising candidates across retries.
 
-Vacuum deletes nonmatchings/<func>/ after each iteration. This copies the
-best unpinned C within 1% of the top score (plus match_log / brief /
-DUMP.txt / permuter notes) to tools/giveups/<func>/. Replaces an older
-archive on a higher score, or an unpinned seed within 1% of a pinned one.
-
-Also keeps one *alternate* per penalty dimension the primary is stuck on, so a
-retry can start from a differently shaped attempt instead of the cornered
-best-scoring one. See pick_alternates.
+Immutable session snapshots retain sources, preprocessed inputs, observations
+and notes even at equal/lower scores. A separate manifest selects a primary and
+up to five alternatives from old and new candidates. --restore carries that
+history and those candidates into the next scratch environment.
 
 Exit 0 on write, 2 if skipped.
 """
@@ -16,9 +12,13 @@ Exit 0 on write, 2 if skipped.
 from __future__ import annotations
 
 import argparse
+import gzip
+import hashlib
 import json
 import shutil
 import sys
+import subprocess
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -64,13 +64,13 @@ def pick_any_seed(scratch: Path) -> Optional[vp.Seed]:
             return vp.Seed(
                 path=path,
                 score=0.0,
-                pinned=bool(vp.ASM_PIN_RE.search(text)),
+                pinned=bool(vp.REGISTER_ASM_RE.search(text)),
             )
     return None
 
 
 # Penalty dimensions a retry might want a different starting shape for.
-# branch/insert/delete are one axis: they all mean "control flow is wrong".
+# Instruction/address differences are diagnostic dimensions, not a cause.
 ALT_DIMENSIONS = {
     "reorder": ("reorder",),
     "regs": ("regs",),
@@ -86,38 +86,26 @@ def _dimension_cost(seed: vp.Seed, keys: tuple[str, ...]) -> Optional[int]:
 
 
 def pick_alternates(seeds: list[vp.Seed], primary: vp.Seed) -> list[vp.Seed]:
-    """Seeds that beat the primary on a penalty dimension it is stuck on.
-
-    The score-best seed is not always the best seed to retry from. It can be
-    cornered: func_actor_203700_8014A6F0's 99.512% seed had reorder=1 and
-    nothing else, and 25 minutes of permuting never moved it, while a 96.585%
-    attempt was the only one to reach reorder=0. Archiving on score alone threw
-    that one away along with the other 36 attempts, and the worktree it lived
-    in is deleted after every vacuum iteration, so it is not recoverable.
-    """
-    alternates: list[vp.Seed] = []
-    seen = {primary.path.name}
-    for keys in ALT_DIMENSIONS.values():
-        primary_cost = _dimension_cost(primary, keys)
-        if primary_cost is None or primary_cost == 0:
-            continue  # already clean on this axis, nothing to improve on
-        pool = [
-            s
-            for s in seeds
-            if s.path.name not in seen
-            and (cost := _dimension_cost(s, keys)) is not None
-            and cost < primary_cost
-        ]
-        if not pool:
-            continue
-        # Cheapest on this axis; break ties on score, then name for determinism.
-        best = min(
-            pool,
-            key=lambda s: (_dimension_cost(s, keys), -s.score, s.path.name),
-        )
-        seen.add(best.path.name)
-        alternates.append(best)
-    return alternates
+    """Keep up to five distinct sources that improve a diagnostic dimension."""
+    unique = {s.source_hash: s for s in seeds}
+    unique.pop(primary.source_hash, None)
+    pool = list(unique.values())
+    dimensions = [lambda s, keys=keys: _dimension_cost(s, keys)
+                  for keys in ALT_DIMENSIONS.values()]
+    dimensions += [lambda s: s.barriers,
+                   lambda s: 0 if s.diagnosis and s.diagnosis.get('topology') == 'match' else 1]
+    kept = []
+    for cost in dimensions:
+        baseline = cost(primary)
+        choices = [s for s in pool if cost(s) is not None
+                   and baseline is not None and cost(s) < baseline]
+        if choices:
+            best = min(choices, key=lambda s: (cost(s), s.pinned, -s.score, s.source_hash))
+            kept.append(best)
+            pool.remove(best)
+        if len(kept) == 5:
+            break
+    return kept
 
 
 def overlay_info(func: str) -> dict:
@@ -133,91 +121,135 @@ def overlay_info(func: str) -> dict:
     return loc
 
 
+def _hash(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def atomic_write(path: Path, data: bytes):
+    temporary = path.with_name(path.name + '.tmp')
+    temporary.write_bytes(data)
+    temporary.replace(path)
+
+
+def snapshot(dest: Path, scratch: Path, legacy=False) -> Path:
+    """Immutable, content-addressed observations; independent of candidate promotion."""
+    session_file = scratch / 'session.json'
+    if session_file.is_file():
+        session = json.loads(session_file.read_text())
+    else:
+        session = {'id': 'legacy' if legacy else uuid.uuid4().hex}
+        if not legacy:
+            atomic_write(session_file, (json.dumps(session) + '\n').encode())
+    files = {}
+    for path in scratch.iterdir():
+        if not path.is_file() or path.is_symlink():
+            continue
+        if (path.suffix in ('.c', '.i') or path.name.endswith(('.score.json', '.diagnosis.json'))
+                or path.name in ('LEARNINGS.md', 'NOTES.md', 'RETRY_NOTES.md', 'notes.md',
+                                 'BRIEF.md', 'PERMUTER.txt', 'PERMUTER.json', 'DUMP.txt',
+                                 'attempts.jsonl', 'experiments.jsonl', 'match_log.txt', 'prior_match_log.txt', 'session.json')):
+            files[path.name] = path.read_bytes()
+    repo = scratch.parent.parent
+    base = repo / '.vacuum-base'
+    if base.is_file():
+        result = subprocess.run(['git', 'diff', base.read_text().strip(), '--', 'DECOMPILATION_LEARNINGS.md'],
+                                cwd=repo, capture_output=True, timeout=30)
+        if result.returncode == 0 and result.stdout:
+            files['learnings.patch'] = result.stdout
+    manifest = {name: _hash(data) for name, data in sorted(files.items())}
+    event = _hash(json.dumps(manifest, sort_keys=True).encode())[:20]
+    directory = dest / 'sessions' / session['id'] / event
+    if (directory / 'manifest.json').is_file():
+        return directory
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, data in files.items():
+        if name.endswith('.i'):
+            (directory / (name + '.gz')).write_bytes(gzip.compress(data, mtime=0))
+        else:
+            (directory / name).write_bytes(data)
+    atomic_write(directory / 'manifest.json', (json.dumps({
+        'at': datetime.now(timezone.utc).isoformat(), 'session': session['id'],
+        'scratch': str(scratch), 'files': manifest}, indent=2) + '\n').encode())
+    return directory
+
+
+def write_history(dest: Path):
+    records = []
+    for path in (dest / 'sessions').glob('*/*/manifest.json'):
+        manifest = json.loads(path.read_text())
+        records.append((manifest['at'], path.parent))
+    lines = ['# Previous matching sessions', '',
+             'Scores are historical: recompile candidates against the current headers/compiler.',
+             'Read the latest hypotheses/results before choosing a new experiment.', '']
+    # Include the latest snapshot of each session; full history remains on disk.
+    latest = {}
+    for at, directory in sorted(records):
+        latest[directory.parent.name] = (at, directory)
+    for at, directory in sorted(latest.values())[-8:]:
+        lines += [f'## {at}', f'Files: `{_rel(directory)}`', '']
+        budget = 4000
+        for name in ('LEARNINGS.md', 'NOTES.md', 'RETRY_NOTES.md', 'notes.md',
+                     'experiments.jsonl', 'PERMUTER.txt', 'learnings.patch'):
+            path = directory / name
+            if path.is_file() and budget > 0:
+                content = path.read_text(errors='replace')
+                # Summaries stay bounded; original notes are never truncated.
+                excerpt = content[-min(1500, budget):]
+                budget -= len(excerpt)
+                lines += [f'### {name}', excerpt, '']
+    (dest / 'HISTORY.md').write_text('\n'.join(lines) + '\n')
+
+
 def archive(func: str, scratch: Path) -> tuple[int, str]:
     if not scratch.is_dir():
         return 2, f"GIVEUP_SKIP=no scratch at {scratch}"
-
-    seed = pick_any_seed(scratch)
-    if seed is None:
-        return 2, "GIVEUP_SKIP=no C seed in scratch"
-
     dest = GIVEUPS / func
-    prev = load_meta(dest)
-    if prev is not None and (dest / "base.c").is_file():
-        try:
-            old_score = float(prev.get("score", 0))
-        except (TypeError, ValueError):
-            old_score = 0.0
-        old_pinned = bool(prev.get("pinned", False))
-        better_score = seed.score > old_score
-        unpin_swap = (
-            old_pinned
-            and not seed.pinned
-            and seed.score >= old_score - vp.UNPINNED_WINDOW
-        )
-        if not better_score and not unpin_swap:
-            return 2, (
-                f"GIVEUP_SKIP=keep existing {old_score:.3f}%"
-                f"{' pinned' if old_pinned else ''} "
-                f"(new {seed.score:.3f}%{' pinned' if seed.pinned else ''})"
-            )
-
+    if dest.exists() and not (dest / 'sessions').exists():
+        snapshot(dest, dest, legacy=True)
     dest.mkdir(parents=True, exist_ok=True)
-    for leftover in dest.iterdir():
-        if leftover.is_file():
-            leftover.unlink()
-
-    shutil.copy2(seed.path, dest / seed.path.name)
-    shutil.copy2(seed.path, dest / "base.c")
-
-    alternates = pick_alternates(vp.parse_match_log(scratch), seed)
-    for alt in alternates:
-        shutil.copy2(alt.path, dest / alt.path.name)
-
-    if (scratch / "match_log.txt").is_file():
-        shutil.copy2(scratch / "match_log.txt", dest / "match_log.txt")
-    else:
-        (dest / "match_log.txt").write_text(
-            f"{seed.path.name} {seed.score:.3f}%\n", encoding="utf-8"
-        )
-    for extra in ("BRIEF.md", "PERMUTER.txt", "permute_seed.c", "DUMP.txt"):
-        src = scratch / extra
-        if src.is_file():
-            shutil.copy2(src, dest / extra)
-
+    observation = snapshot(dest, scratch)
+    current = vp.parse_match_log(scratch)
+    if not current:
+        fallback = pick_any_seed(scratch)
+        if fallback:
+            current = [fallback]
+    old = vp.parse_match_log(dest)
+    prev = load_meta(dest) or {}
+    if not old and (dest / 'base.c').is_file():
+        old = [vp.Seed(dest / 'base.c', float(prev.get('score', 0)),
+                       bool(prev.get('pinned')), prev.get('penalties'))]
+    # Same source rebuilt in this session supersedes stale score/diagnostics.
+    merged = {s.source_hash: s for s in old + current}
+    seeds = list(merged.values())
+    primary = vp.pick_seed(seeds, 0)
+    write_history(dest)
+    if primary is None:
+        return 0, f'GIVEUP_RECORDED={_rel(observation)} (notes only)'
+    selected = [primary] + pick_alternates(seeds, primary)
+    # Read every selected source before replacing aliases in the old archive.
+    payloads = [(s, s.path.read_bytes()) for s in selected]
+    rows, metadata = [], []
+    for seed, data in payloads:
+        name = 'seed_' + _hash(data)[:20] + '.c'
+        (dest / name).write_bytes(data)
+        if seed.diagnosis:
+            (dest / Path(name).with_suffix('.diagnosis.json')).write_text(json.dumps(seed.diagnosis, indent=2) + '\n')
+        rows.append(f'{name} {seed.score:.6f}% {vp.format_penalties(seed.penalties)}')
+        metadata.append({'seed_name': name, 'score': seed.score, 'pinned': seed.pinned,
+                         'penalties': seed.penalties, 'source_sha256': _hash(data),
+                         'barriers': seed.barriers})
+    atomic_write(dest / 'base.c', payloads[0][1])
+    atomic_write(dest / 'match_log.txt', ('\n'.join(rows) + '\n').encode())
     loc = overlay_info(func)
-    meta = {
-        "func": func,
-        "score": seed.score,
-        "seed_name": seed.path.name,
-        "pinned": seed.pinned,
-        "penalties": seed.penalties,
-        "alternates": [
-            {
-                "seed_name": alt.path.name,
-                "score": alt.score,
-                "pinned": alt.pinned,
-                "penalties": alt.penalties,
-            }
-            for alt in alternates
-        ],
-        "attempts": sum(1 for _ in scratch.glob("base_*.c")) + 1,
-        "archived_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "overlay": loc.get("overlay"),
-        "asm_file": loc.get("asm_file"),
-        "c_file": loc.get("c_file"),
-        "scratch": _rel(scratch),
-    }
-    (dest / "meta.json").write_text(
-        json.dumps(meta, indent=2) + "\n", encoding="utf-8"
-    )
-    rel = _rel(dest)
-    msg = f"GIVEUP_SAVED={rel} score={seed.score:.3f}% seed={seed.path.name}"
-    if alternates:
-        msg += " alternates=" + ",".join(
-            f"{alt.path.name}({alt.score:.3f}%)" for alt in alternates
-        )
-    return 0, msg
+    meta = {**metadata[0], 'func': func, 'alternates': metadata[1:],
+            'attempts': sum(bool(line.strip()) for line in (scratch / 'attempts.jsonl').read_text().splitlines())
+                        if (scratch / 'attempts.jsonl').is_file() else len(current),
+            'archived_at': datetime.now(timezone.utc).isoformat(),
+            'latest_session': str(observation.relative_to(dest)),
+            'overlay': loc.get('overlay'), 'asm_file': loc.get('asm_file'),
+            'c_file': loc.get('c_file'), 'scratch': _rel(scratch)}
+    atomic_write(dest / 'meta.json', (json.dumps(meta, indent=2) + '\n').encode())
+    return 0, f"GIVEUP_SAVED={_rel(dest)} score={primary.score:.3f}% seed={metadata[0]['seed_name']} sessions preserved"
 
 
 def clear(func: str) -> str:
@@ -228,10 +260,31 @@ def clear(func: str) -> str:
     return f"GIVEUP_SKIP=no archive for {func}"
 
 
+def restore(func: str, scratch: Path):
+    dest = GIVEUPS / func
+    if not dest.is_dir():
+        return
+    rows = []
+    for seed in vp.parse_match_log(dest):
+        name = 'seed_' + seed.source_hash[:20] + '.c'
+        (scratch / name).write_bytes(seed.path.read_bytes())
+        rows.append(f'{name} {seed.score:.6f}% {vp.format_penalties(seed.penalties)}')
+    if rows:
+        (scratch / 'prior_match_log.txt').write_text('\n'.join(rows) + '\n')
+    history = dest / 'HISTORY.md'
+    if history.is_file():
+        shutil.copy2(history, scratch / 'HISTORY.md')
+    prior = []
+    for path in sorted((dest / 'sessions').glob('*/*/attempts.jsonl')):
+        prior.extend(path.read_text().splitlines())
+    (scratch / 'PRIOR_ATTEMPTS.jsonl').write_text('\n'.join(dict.fromkeys(prior)) + '\n')
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--func", required=True)
     parser.add_argument("--scratch", type=Path, default=None)
+    parser.add_argument('--restore', action='store_true', help='Copy candidates/history into an existing scratch')
     parser.add_argument(
         "--clear",
         action="store_true",
@@ -246,6 +299,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         print("GIVEUP_SKIP=--scratch is required unless --clear", file=sys.stderr)
         return 2
     scratch = args.scratch if args.scratch.is_absolute() else REPO_ROOT / args.scratch
+    if args.restore:
+        restore(args.func, scratch)
+        return 0
     code, msg = archive(args.func, scratch)
     print(msg)
     return code
