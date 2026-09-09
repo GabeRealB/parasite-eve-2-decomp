@@ -231,6 +231,15 @@ overlay.
   metrics. Re-run it after a few hundred new matches; `--write` updates the
   constants block in `score_functions.py` in place.
 - `./tools/vacuum.sh [--grok|--claude] [--dry-run] [--orchestrator] [--difficult] [--overlay NAME]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. `--difficult` retries only names in `tools/difficult_functions` (a verified match removes that name from the list); `--overlay gameplay` (or `USA/main`) restricts to that overlay; both flags together are the intersection. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c. `--orchestrator` claims a function via `tools/vacuum_orch.py`, matches in a throwaway `pe2-wt-<func>` worktree, independently verifies that worktree (agents often sha256 leftover `build/` artifacts), fast-ports when trunk files have not moved, otherwise runs a port agent. Failed trunk landings are retried (`VACUUM_PORT_TRIES`, default 2) then marked difficult so the same claim cannot loop. Do not run a non-orchestrator vacuum on this checkout at the same time as an orchestrator session.
+- `./tools/vacuum_overlay_list.sh --list FILE [--profile P] [--jobs N]` drive
+  `vacuum_overlay.sh` through an ordered list of overlays, several at a time.
+  The built-in `rank_overlays` sorts by unmatched-function count alone, which
+  knows nothing about duplication: in actors the leading digit is a
+  load-address bucket, so `actor_207000` holds 44 functions but adds one body
+  `actor_107000` has not already covered. `local/actors_sweep_order.txt` is a
+  duplicate-aware cover order for that family; `local/ACTORS_SWEEP_ORDER.md`
+  explains it. Concurrency needs no locking of its own - an overlay lease is
+  exclusive, so a worker refused one takes the next name.
 - `python3 tools/vacuum_orch.py claim|relinquish|finish|merge-acquire|merge-release|status|serve` coordinate multiple vacuums: function leases plus a merge lock on the original tree. State: `$(git rev-parse --git-common-dir)/vacuum-orch.json`.
 - `./permute.sh --run --timeout 360 -j4 <func> <asm> <c>` when a match is stuck ≥95% on registers/scheduling. Stops on score 0.
 - `python3 tools/learn.py <terms>` search `DECOMPILATION_LEARNINGS.md` by
