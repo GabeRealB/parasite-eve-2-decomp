@@ -3523,6 +3523,15 @@ void func_800B60C0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
+static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
+{
+    SVECTOR sv;
+
+    sv = *src;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&sv);
+}
+
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 {
     void**            scratch;
@@ -3531,8 +3540,6 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     SVECTOR*          block;
     MATRIX*           mtx;
     GsCOORDINATE2*    coord;
-    SVECTOR           tmp;
-    SVECTOR*          tmpp;
     s32               scale;
     u16               srcx;
     u16               dstx;
@@ -3558,10 +3565,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     VectorNormalSS(block, block);
     mtx = (MATRIX*)(head - 0x20);
     TransposeMatrix(&coord->workm, mtx);
-    tmp = *(SVECTOR*)(head - 0x28);
-    gte_SetRotMatrix(mtx);
-    __asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
-    gte_ldv0(tmpp);
+    Gp_LoadRotSV(mtx, (SVECTOR*)(head - 0x28));
     gte_rtv0_real();
     gte_stsv(vec);
     gte_lddp(scale);
