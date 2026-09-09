@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (9 symbols)
+// --- from main (10 symbols)
 Task_Kill = 0x8002CCB8; // absolute:True
 Mem_Set = 0x8002D894; // absolute:True
 Mem_Calloc = 0x8002D978; // absolute:True
@@ -13,6 +13,7 @@ Gfx_MatrixCol2 = 0x8003C768; // absolute:True
 Gfx_RotMatrixX = 0x8003C788; // absolute:True
 VectorNormalSS = 0x8003D5D8; // absolute:True
 Game_Session = 0x8005ED64; // absolute:True
+Gfx_ViewCoord = 0x80070F10; // absolute:True
 Gfx_ViewWorldMtx = 0x80070F34; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
 
