@@ -28,7 +28,13 @@ typedef struct Kyle800102Task {
     /* 0x30 */ s32             state;
 } Kyle800102Task;
 
+/// One entry of the task's state table; the dispatcher passes the task itself.
+typedef void (*Kyle800102StateFn)(Kyle800102Task* task);
+
+void func_kyle_800102_80167A84(Kyle800102Task* arg0);
+void func_kyle_800102_80167DE0(Kyle800102Task* arg0);
 void func_kyle_800102_80168244(Kyle800102Task* arg0);
 void func_kyle_800102_80168270(Kyle800102Task* arg0);
+void func_kyle_800102_801682B4(Kyle800102Task* arg0);
 
 #endif

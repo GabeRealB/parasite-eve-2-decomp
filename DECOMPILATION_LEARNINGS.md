@@ -56914,3 +56914,45 @@ list before building and reconcile `src/` to it by hand:
 A promotion whose span lands at the very end of a unit's run is the easy case -
 only a single trailing `INCLUDE_ASM` moves into the generated `<name>_6.c`, and
 nothing renumbers.
+
+## A 99.x% score with `regs` and an identical objdump is a symbol-name artifact
+
+**Problem:** a small function scores just short of 100% with a nonzero `regs`
+penalty, but `./objdump.py base_N.o` is instruction-for-instruction identical to
+the target, including register assignments.
+
+**Symptom:** the only disagreement is the `lui`/`addiu` pair that addresses a
+*compiler-generated* constant. GCC emits the initializer template for a local
+aggregate into `.rdata` under an anonymous label, so the operands read
+`%hi(.rodata)` / `%lo(.rodata)`, while `target.s` names the same bytes with the
+splat symbol (`%hi(D_kyle_800102_80167A74)`). The scorer treats the two operands
+as different registers-or-symbols and charges two `regs`; nothing about
+allocation differs.
+
+`func_kyle_800102_801682B4` is the worked example - 99.6%, `regs: 2`, every
+instruction and every `.word` of the template correct, and the unscoped
+`./tools/build-and-verify.sh` matched unchanged.
+
+**Fix:** do not chase it with dumps, pins or the permuter. Confirm the emitted
+`.rdata` block holds the right words in the right order, then land the function
+and let the real build decide. Only the linked checksum can resolve a symbol
+name, so the scratch score cannot reach 100% on this shape.
+
+## The task state dispatcher repeats across overlays
+
+Many overlays end their task unit with the same body: a four-entry local array
+of function pointers, which GCC copies from a `.rodata` template onto the stack
+word by word, indexed by the task's state field and called with the task.
+
+```c
+StateFn states[4] = { f0, f1, f2, f3 };
+states[arg0->state](arg0);
+```
+
+m2c renders this badly - the loads that fill the stack copy leave their values
+in `$a1`/`$a2`/`$a3`, so it reports a seven-argument indirect call through
+`sp + state*4`. Ignore that and check
+`python3 tools/overlay_dup_index.py find <fn>` first; the body was already
+matched in `src/weapons/mm1/mm1_3.c` among others. The copies sit in different
+families at different link offsets, so `promote` has nothing to share and each
+one still has to be written out locally.

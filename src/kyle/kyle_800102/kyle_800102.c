@@ -31,4 +31,16 @@ void func_kyle_800102_80168270(Kyle800102Task* arg0)
 
 INCLUDE_RODATA("kyle/nonmatchings/kyle_800102/kyle_800102", D_kyle_800102_80167A70);
 
-INCLUDE_ASM("kyle/nonmatchings/kyle_800102/kyle_800102", func_kyle_800102_801682B4);
+/// Per-frame entry point: runs the task's current state. The table is a local,
+/// so GCC copies it from `.rodata` onto the stack every frame.
+void func_kyle_800102_801682B4(Kyle800102Task* arg0)
+{
+    Kyle800102StateFn states[4] = {
+        func_kyle_800102_80167A84,
+        func_kyle_800102_80167DE0,
+        func_kyle_800102_80168244,
+        func_kyle_800102_80168270,
+    };
+
+    states[arg0->state](arg0);
+}
