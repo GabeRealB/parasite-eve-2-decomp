@@ -35,5 +35,3 @@ s32 func_actor_150400_801326A4(Task* task, s32 arg1, Actor150400AnimArgs* args)
     func_actor_150400_80132228(task);
     return 0;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400_3", func_actor_150400_80132710);
