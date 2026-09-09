@@ -4438,7 +4438,6 @@ void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     s32         mask;
     s32         line;
     s32         temp;
-    s32         draw;
     u8*         text;
 
     if (arg2 == 1) {
@@ -4491,16 +4490,15 @@ void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     func_8002E53C(&req2, text);
     func_800D3660(arg0, arg1, arg2, x, y, 2);
 
-    req3.x = arg0->baseX + 1 + x;
-    req3.y = arg0->baseY + temp + 0x46;
-    draw   = (s16)arg0->drawOrder;
-    asm("addiu %0, %1, 0x58" : "=r"(y) : "r"(temp), "r"(draw));
-    req3.otIndex    = draw + 1;
+    req3.x          = arg0->baseX + 1 + x;
+    req3.y          = arg0->baseY + temp + 0x46;
+    req3.otIndex    = (s16)arg0->drawOrder + 1;
     req3.field_8    = color2;
     req3.glyphTable = 0;
     req3.centerMode = 0;
     req3.field_E    = 1;
     func_8002E53C(&req3, Gp_StrAtpLoss);
+    y = temp + 0x58;
     func_800D3660(arg0, arg1, arg2, x, y, 3);
 }
 
