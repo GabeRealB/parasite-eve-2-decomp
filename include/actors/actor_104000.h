@@ -33,13 +33,14 @@ typedef struct Actor104000Work {
     /* 0x000 */ s16  field_0;
     /* 0x002 */ byte pad_2[2];
     /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[0x52];
+    /* 0x006 */ u16  field_6;
+    /* 0x008 */ byte pad_8[0x50];
     /* 0x058 */ u16  field_58;
     /* 0x05A */ byte pad_5A[0x116];
     /* 0x170 */ s16  field_170;
     /* 0x172 */ byte pad_172[2];
     /* 0x174 */ s16  field_174;
-    /* 0x176 */ byte pad_176[2];
+    /* 0x176 */ s16  field_176;
     /* 0x178 */ s16  field_178;
     /* 0x17A */ byte pad_17A[0x114];
     /* 0x28E */ u16  field_28E;
@@ -49,6 +50,9 @@ typedef struct Actor104000Work {
     /* 0x3A6 */ u16  field_3A6;
     /* 0x3A8 */ byte pad_3A8[0x36];
     /* 0x3DE */ u16  field_3DE;
+    /* 0x3E0 */ byte pad_3E0[0x9C];
+    /* 0x47C */ byte field_47C[0x14];
+    /* 0x490 */ s32  field_490;
 } Actor104000Work;
 
 /// Display object hung off `field_2C`; `field_C` is the visibility/alpha value
@@ -75,6 +79,7 @@ typedef struct Actor104000Ctx {
 } Actor104000Ctx;
 
 void func_actor_104000_80132C8C(Actor104000* arg0);
+void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);
 void func_actor_104000_80138AA0(Actor104000Ctx* arg0, Actor104000* arg1);
 
 #endif

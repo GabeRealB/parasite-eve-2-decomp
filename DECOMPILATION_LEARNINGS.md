@@ -56800,3 +56800,64 @@ those numbers for both the mask and the value it is masking, which is enough to
 swap them. decomp-permuter finds this shape on its own - it emits it as a
 `new_var` temporary - so on a `regs`-only leftover it is worth running before
 reasoning about the allocator.
+
+## Two constant stores beat a ternary when the result must land in `$v0`
+
+`func_actor_104000_80138698` ends by choosing a state from a call's return
+value. Written as a ternary it reached 99.79% with `regs=3` and nothing else:
+
+```c
+work->field_0 = Gp_DispatchMsg(...) == 0 ? 5 : 0xD;   /* $v1 */
+```
+
+```
+bnez  v0,L      bnez  v0,L
+ li   v0,0xd     li   v1,0xd     <- ours
+li    v0,5      li    v1,5
+L: sh v0,0(s1)  L: sh v1,0(s1)
+```
+
+Both forms produce the *same* instruction sequence - the shape where one arm's
+constant is hoisted above the branch and lands in its delay slot - but only the
+target gets `$v0`.
+
+The ternary is if-converted in the **jump** pass, which rewrites the expanded
+`if/goto` pair into `102 = 13; bnez v0, L; 102 = 5; L: store`. That leaves one
+pseudo spanning three blocks, so it is a global allocno, and its definition sits
+*before* the branch where the call's return value is still live:
+
+```
+;; 102 conflicts: 82 102 2 29
+```
+
+`find_reg` masks `hard_reg_conflicts` out of the candidate set, so `$v0` is
+unreachable for that pseudo no matter how the statements are arranged - the
+whole class of "reorder the arms", "use an `s16` temp", "hoist the assignment"
+edits cannot fix it.
+
+Storing in both arms instead does:
+
+```c
+if (Gp_DispatchMsg(...) == 0) {
+    work->field_0 = 5;
+} else {
+    work->field_0 = 0xD;
+}
+```
+
+Now each constant is a *block-local* pseudo, allocated by `local-alloc` at a
+point where `$v0` is already dead (it died at the branch), so both get `$v0`:
+
+```
+;; 3 regs to allocate: 81 82 80
+105 in 2  106 in 2
+```
+
+`jump2` then cross-jumps the two now-identical `sh $v0, 0($s1)` tails and
+reproduces the hoisted-constant shape - with the right register. 100%.
+
+So when a `cond ? A : B` leaves only a `regs` penalty on the result, and the
+target's result register is the one the condition was tested in, write the two
+stores out. Duplicating the store in the source is what keeps the value local
+long enough for `local-alloc` to see the free register; cross-jumping puts the
+single store back.
