@@ -5,6 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "decomp/common.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -34,6 +35,9 @@ extern RgSpriteLevels D_acropolis_roof_garden_8017D5D0;
 /// Per-variant mask of camera views the ambient sprite is visible from, indexed
 /// by the low nibble of `Task::spawnArg1`.
 extern u16 D_acropolis_roof_garden_80184C48[];
+
+extern s32 D_80070F70;
+extern s16 D_acropolis_roof_garden_80184C5C[];
 
 /// Roof-garden ambient effect task. On its first frame it fires one effect per
 /// entry of `D_acropolis_roof_garden_80184BF8` - two with a 0x02000000 flavour,
@@ -176,4 +180,205 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden_3", func_acropolis_roof_garden_8017E29C);
+/// Pulsating roof-garden flare, projected into scratch memory and drawn with
+/// Gouraud polygons and optional rays.
+void func_acropolis_roof_garden_8017E29C(Task* arg0)
+{
+    GsCOORDINATE2*  coord;
+    void*           mem;
+    u8*             head;
+    u8*             raw;
+    RgFlareScratch* blk;
+    POLY_G4*        prim;
+    LINE_G3*        line;
+    s32             i;
+    s32             pulse;
+    s32             level;
+    s32             h;
+    s16             lvl;
+    s16             flip;
+    u16             vz;
+    s32             z;
+    u32             tag;
+    u_long*         ot;
+    u8              red;
+    s32             shift;
+    u32             depth;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    mem   = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x18;
+    SOFT_TOUCH_REG(raw);
+    blk                     = (RgFlareScratch*)raw;
+    blk->vec.vx             = *(u16*)&coord->workm.t[0];
+    blk->vec.vy             = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = blk;
+    blk->vec.vz             = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((RgFlareScratch*)(head - 0x18))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((RgFlareScratch*)(head - 0x18))->sx);
+    gte_stszotz(&blk->otz);
+    if (((RgFlareScratch*)(head - 0x18))->otz >= 0x11) {
+        pulse  = D_80070F70;
+        pulse *= arg0->spawnArg1 & 0xFF;
+        flip   = (arg0->spawnArg1 >> 16) & 1;
+        if (pulse & 0x80) {
+            level  = ~pulse;
+            level &= 0x7F;
+        } else {
+            level = pulse & 0x7F;
+        }
+        lvl   = level * 2;
+        level = arg0->spawnArg1;
+        if (level < 0) {
+            h           = (level >> 8) & 0xFF;
+            blk->radius = (h << 10) / blk->otz;
+            blk->inner  = (h << 7) / blk->otz;
+            for (i = 0; i < 0x10; i += 2) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, (lvl * (flip ^ 1)) >> 1, (flip * lvl) >> 1, 0);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
+                prim->y0 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i]) >> 12);
+                prim->x1 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 5]) >> 12);
+                prim->y1 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 1]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 6]) >> 12);
+                prim->y3 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 2]) >> 12);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, lvl * (flip ^ 1), flip * lvl, 0);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 13);
+                prim->y0 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i]) >> 13);
+                prim->x1 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 5]) >> 13);
+                prim->y1 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 1]) >> 13);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 6]) >> 13);
+                prim->y3 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 2]) >> 13);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+            {
+                s32 half = lvl >> 1;
+                for (i = 2; i < 0x10; i += 8) {
+                    do {
+                        prim           = (POLY_G4*)Gpu_PrimCursor;
+                        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        red = half * (flip ^ 1);
+                        setRGB2(prim, red, flip * half, 0);
+                        setRGB3(prim, 0, 0, 0);
+                        prim->x0 = blk->sx + ((blk->inner * D_acropolis_roof_garden_80184C5C[i]) >> 12);
+                        prim->y0 = blk->sy + ((blk->inner * D_acropolis_roof_garden_80184C5C[i - 4]) >> 12);
+                        prim->x1 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 11);
+                        prim->y1 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i]) >> 11);
+                        prim->x2 = blk->sx;
+                        prim->y2 = blk->sy;
+                        prim->x3 = blk->sx + ((blk->inner * D_acropolis_roof_garden_80184C5C[i + 8]) >> 12);
+                        prim->y3 = blk->sy + ((blk->inner * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
+                        shift    = Display_State.field_128;
+                        depth    = (((u32)blk->otz << shift) >> 2) & 0xFFC;
+                        // Keep the shift and its source live through the first OT address.
+                        __asm__("" : "+r"(depth) : "r"(shift), "m"(Display_State.field_128));
+                        setaddr(prim, getaddr((u_long*)(depth + (s32)Gpu_CurrentOt)));
+                        ot  = (u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt);
+                        tag = (*ot & 0xFF000000) | ((u32)prim & 0xFFFFFF);
+                        *ot = tag;
+                        z   = blk->otz;
+                        SOFT_TOUCH_REG(z);
+                        SOFT_TOUCH_REG(z);
+                        SOFT_TOUCH_REG_USE(z, tag);
+                        SOFT_TOUCH_REG_USE(prim, z);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, z);
+
+                        prim           = (POLY_G4*)Gpu_PrimCursor;
+                        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, red, flip * half, 0);
+                    } while (0);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = blk->sx + ((blk->inner * D_acropolis_roof_garden_80184C5C[i + 4]) >> 13);
+                    prim->y0 = blk->sy + ((blk->inner * D_acropolis_roof_garden_80184C5C[i]) >> 13);
+                    prim->x1 = blk->sx + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 8]) >> 12);
+                    prim->y1 = blk->sy + ((blk->radius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
+                    prim->x2 = blk->sx;
+                    prim->y2 = blk->sy;
+                    prim->x3 = blk->sx + ((blk->inner * D_acropolis_roof_garden_80184C5C[i + 12]) >> 13);
+                    prim->y3 = blk->sy + ((blk->inner * D_acropolis_roof_garden_80184C5C[i + 8]) >> 13);
+                    addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                            prim);
+                    z = blk->otz;
+                    __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_roof_garden_80184C5C[i]));
+                    SOFT_TOUCH_REG_USE(prim, z);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, z);
+                }
+            }
+        } else {
+            blk->radius = (((level >> 8) & 0xFF) << 9) / blk->otz;
+            for (i = 0; i < 2; i++) {
+                prim           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, lvl * (flip ^ 1), flip * lvl, 0);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx - blk->radius;
+                prim->x1 = prim->x2 = blk->sx;
+                prim->x3            = blk->sx + blk->radius;
+                prim->y0 = prim->y2 = prim->y3 = blk->sy;
+                prim->y1                       = (blk->sy - blk->radius) + blk->radius * (i + i);
+                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+            if (arg0->spawnArg1 & 0x10000000) {
+                for (i = 0; i < 2; i++) {
+                    line           = (LINE_G3*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+                    setLineG3(line);
+                    setRGB0(line, 0, 0, 0);
+                    setRGB1(line, lvl * (flip ^ 1), flip * lvl, 0);
+                    setRGB2(line, 0, 0, 0);
+                    line->x0 = blk->sx + blk->radius * (i * 3 - 1);
+                    line->y0 = blk->sy - blk->radius * (i + 1);
+                    line->x1 = blk->sx;
+                    line->y1 = blk->sy;
+                    line->x2 = blk->sx - blk->radius * (i * 3 - 1);
+                    line->y2 = blk->sy + blk->radius * (i + 1);
+                    addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                                      (s32)Gpu_CurrentOt),
+                            line);
+                    Gp_AddTpageShift((P_TAG*)line, 1, blk->otz);
+                }
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    Gp_ReleaseState1CMem(mem, arg0);
+}
