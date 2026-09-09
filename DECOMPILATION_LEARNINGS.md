@@ -56969,3 +56969,37 @@ in `$a1`/`$a2`/`$a3`, so it reports a seven-argument indirect call through
 matched in `src/weapons/mm1/mm1_3.c` among others. The copies sit in different
 families at different link offsets, so `promote` has nothing to share and each
 one still has to be written out locally.
+
+## A faked `%hi`/`%lo` pair matches the bytes but loses the relocation; move the read earlier instead
+
+**Problem:** a global is read a long way from where its address is formed, so the
+`lui` and the load sit ten insns apart in the target. Written naively the C puts
+them adjacent, and the tempting fix is to fabricate the pair by hand:
+
+```c
+s32 qhi;
+asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+SOFT_USE_REG2(qhi, tile);
+queued = *(u16*)((s32)qhi + (s16)0x91C4);   /* 0x91C4 == %lo(CdCmd_Queue + 0x224) */
+```
+
+**Symptom:** the checksum passes and `diff.py` says 100%, because the assembled
+words are identical - but the load now carries a bare displacement where the
+original carries `R_MIPS_LO16 CdCmd_Queue`. objdiff compares relocations, so it
+reports the function at 99.97% with everything else green. Nothing else can see
+it: the linker resolves `%lo(CdCmd_Queue)` to exactly the constant the hand-written
+offset already holds. `Gp_LoadState2` in `src/gameplay/D4.c` was the worked example.
+
+**Fix:** delete the asm and write the field access (`queued = CdCmd_Queue.field_224;`),
+then recover the schedule by moving the *statement* earlier in the function. The
+list scheduler breaks priority ties on RTL order, so a read placed near the top of
+the block lets sched1 hoist the `lui` on its own and leave the dependent load down
+by the branch that consumes it - which is the gap the hack was imitating. Here,
+hoisting the read above `ds = &Display_State;` reproduced all 150 instructions and
+both relocations, and made the `SOFT_TOUCH_REG` pin on the neighbouring constant
+unnecessary as well.
+
+Three source positions worked and one did not: reading the global *first* left two
+instructions out of place, while any position after the first statement matched.
+Sweep for the shape with an object-level compare that prints relocations - the
+checksum and `diff.py` both stay silent on it.
