@@ -1288,7 +1288,512 @@ void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D7A9C);
+static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+{
+    void**                   scratch;
+    u8*                      head;
+    register GpLightScratch* block;
+    SVECTOR*                 dir;
+    MATRIX*                  dirMtx;
+    MATRIX*                  colorMtx;
+    register s32             val;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (GpLightScratch*)(head - 0x1C);
+    dir      = (SVECTOR*)(head - 0xC);
+    *scratch = block;
+    dirMtx   = arg3->field_1C;
+    colorMtx = arg3->field_20;
+    Gfx_NormalizeLightDir((VECTOR*)((GpObj38*)arg1)->field_24.t, dir);
+    SOFT_USE_REG(block);
+    SOFT_USE_REG(block);
+
+    dirMtx->m[arg0][0] = block->dir.vx;
+    dirMtx->m[arg0][1] = block->dir.vy;
+    dirMtx->m[arg0][2] = block->dir.vz;
+
+    val          = arg1->field_4A;
+    block->scale = val;
+    __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
+    gte_ldsv(&arg1->field_50);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    colorMtx->m[0][arg0] = block->dir.vx;
+    colorMtx->m[1][arg0] = block->dir.vy;
+    colorMtx->m[2][arg0] = block->dir.vz;
+
+    *scratch = (u8*)*scratch + 0x1C;
+}
+
+static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+{
+    void**          scratch;
+    u8*             head;
+    GpLightScratch* block;
+    SVECTOR*        dir;
+    MATRIX*         dirMtx;
+    MATRIX*         colorMtx;
+    register s32    val;
+
+    scratch      = (void**)G_SCRATCH_HEAD;
+    head         = *scratch;
+    block        = (GpLightScratch*)(head - 0x1C);
+    dir          = (SVECTOR*)(head - 0xC);
+    dirMtx       = arg3->field_1C;
+    colorMtx     = arg3->field_20;
+    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
+    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    *scratch     = block;
+    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    Gfx_NormalizeLightDir(&block->in, dir);
+
+    dirMtx->m[arg0][0] = -block->dir.vx;
+    dirMtx->m[arg0][1] = -block->dir.vy;
+    dirMtx->m[arg0][2] = -block->dir.vz;
+
+    val          = arg1->field_4A;
+    block->scale = val;
+    __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
+    gte_ldsv(&arg1->field_50);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    {
+        GpMtxCol* col;
+        s32       off = arg0 * 2;
+        u16       first;
+        first  = block->dir.vx;
+        col    = (GpMtxCol*)((u8*)colorMtx + off);
+        col->x = first;
+        col->y = block->dir.vy;
+        col->z = block->dir.vz;
+    }
+
+    *scratch = (u8*)*scratch + 0x1C;
+}
+
+static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+{
+    void**          scratch;
+    u8*             head;
+    GpLightScratch* block;
+    SVECTOR*        dir;
+    MATRIX*         dirMtx;
+    MATRIX*         colorMtx;
+    register s32    val;
+
+    scratch      = (void**)G_SCRATCH_HEAD;
+    head         = *scratch;
+    block        = (GpLightScratch*)(head - 0x1C);
+    dir          = (SVECTOR*)(head - 0xC);
+    dirMtx       = arg3->field_1C;
+    colorMtx     = arg3->field_20;
+    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
+    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    *scratch     = block;
+    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    Gfx_NormalizeLightDir(&block->in, dir);
+
+    dirMtx->m[arg0][0] = -block->dir.vx;
+    dirMtx->m[arg0][1] = -block->dir.vy;
+    dirMtx->m[arg0][2] = -block->dir.vz;
+
+    val          = arg1->field_4A;
+    block->scale = val;
+    __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
+    gte_ldsv(&arg1->field_50);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    colorMtx->m[0][arg0] = block->dir.vx;
+    colorMtx->m[1][arg0] = block->dir.vy;
+    colorMtx->m[2][arg0] = block->dir.vz;
+
+    *scratch = (u8*)*scratch + 0x1C;
+}
+
+static __inline__ s32 solve_luma(GpObj44* arg0)
+{
+    s16 val;
+
+    val = arg0->field_44;
+    if (val != 0 && (u8)Game_Session->field_4 != val) {
+        return 0;
+    }
+    {
+        s32 r, g, b, lum;
+        r              = arg0->field_50;
+        g              = arg0->field_52;
+        b              = arg0->field_54;
+        arg0->field_4A = 0x1000;
+        lum            = r * 8 + g * 6 + b * 2;
+        USE_REG3(lum, lum, lum);
+        return (lum >> 8) + 0xF00;
+    }
+}
+
+static __inline__ void solve_rank(GpRec12* slots, s32 val, s32 kind, s32 obj, GpRec12* last)
+{
+    if (val > 0 && last->field_4 < val) {
+        Gp_InsertRankedSlot(slots, val, kind, obj, 2);
+    }
+}
+static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, s32 obj, GpLightSolveScratch* block)
+{
+    if (val > 0 && block->slots[3].field_4 < val) {
+        Gp_InsertRankedSlot(slots, val, kind, obj, 2);
+    }
+}
+static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
+{
+    SVECTOR tmp;
+    SOFT_USE_REG(src);
+    tmp = *src;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&tmp);
+}
+
+static __inline__ void solve_transpose(MATRIX* src, volatile MATRIX* dst)
+{
+    __asm__ volatile(
+        "lhu $12,0(%0);"
+        "lhu $13,6(%0);"
+        "lhu $14,12(%0);"
+        "sh $12,0(%1);"
+        "sh $13,2(%1);"
+        "sh $14,4(%1);"
+        "lhu $12,2(%0);"
+        "lhu $13,8(%0);"
+        "lhu $14,14(%0);"
+        "sh $12,6(%1);"
+        "sh $13,8(%1);"
+        "sh $14,10(%1);"
+        "lhu $12,4(%0);"
+        "lhu $13,10(%0);"
+        "lhu $14,16(%0);"
+        "sh $12,12(%1);"
+        "sh $13,14(%1);"
+        "sh $14,16(%1);"
+        : : "r"(src), "r"(dst) : "$12", "$13", "$14", "memory");
+    SCHED_BARRIER();
+}
+
+void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
+{
+
+    register s32                  startr;
+    register GpRoomCoordSet*      set;
+    register MATRIX*              colorMtx;
+    register GpLightSolveScratch* block;
+
+    s32        n;
+    s32        nOcc;
+    u32        idx;
+    s32        i;
+    s32        sum;
+    s32        val;
+    s32*       cutoffPtr;
+    GpCoord64* coord;
+
+    startr   = start;
+    set      = (GpRoomCoordSet*)Gp_GetRoomCoordSet((GameSessionFrom4*)&Game_Session->field_4);
+    colorMtx = extra->field_20;
+    nOcc     = 0;
+    if (set == NULL) {
+        return;
+    }
+
+    idx = nOcc;
+    TOUCH_REG(idx);
+    coord = Gp_RoomCoords;
+    n     = set->n58 + set->n60 + set->n6C;
+    do {
+        if (coord->field_0 != 0) {
+            nOcc++;
+        }
+        idx++;
+        coord++;
+    } while ((s32)idx < 8);
+
+    sum = startr + count;
+    n  += nOcc;
+    if ((u32)sum >= 4U) {
+        return;
+    }
+    if (count == 0) {
+        return;
+    }
+
+    SCHED_BARRIER();
+    Gp_FillSVec3x3((GpSVec3x3*)colorMtx, 0, 0, 0);
+    SOFT_USE_REG(n);
+
+    if ((u32)(sum - 1) >= (u32)n) {
+        func_800D7A9C(extra, pos, startr, count - 1);
+        return;
+    }
+
+    {
+        void** scratch;
+        u8*    head;
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        head    -= 0x7C;
+        *scratch = head;
+        block    = *scratch;
+    }
+
+    {
+        s32 j;
+
+        j = startr;
+        for (; (u32)j < (u32)count;) {
+            colorMtx->m[0][j] = 0;
+            colorMtx->m[1][j] = 0;
+            colorMtx->m[2][j] = 0;
+            j++;
+        }
+    }
+
+    {
+
+        i = 0;
+        do {
+            block->slots[i].field_4 = -1;
+            block->slots[i].field_8 = 0;
+            i++;
+        } while (i < 4);
+    }
+
+    {
+        GsCOORDINATE2*   world;
+        register MATRIX* src;
+
+        world           = &Gfx_ViewCoord;
+        block->pos.vx   = pos->vx;
+        block->pos.vy   = pos->vy;
+        block->pos.vz   = pos->vz;
+        block->local.vx = *(u16*)&pos->vx - *(u16*)&world->workm.t[0];
+        SCHED_BARRIER();
+        src             = &Gfx_ViewWorldMtx;
+        block->local.vy = *(u16*)&pos->vy - *(u16*)&world->workm.t[1];
+        block->local.vz = *(u16*)&pos->vz - *(u16*)&world->workm.t[2];
+
+        solve_transpose(src, &block->mtx);
+    }
+
+    solve_loadrot(&block->mtx, &block->local);
+    gte_rtv0_real();
+    gte_stsv(&block->local);
+
+    {
+        s32                 pointIndex;
+        register GpCoord64* p;
+
+        register GpRec12* last;
+        GpObj44*          obj;
+
+        p          = Gp_RoomCoords;
+        pointIndex = 0;
+        last       = &block->slots[3];
+
+        block->pos.vx = block->local.vx;
+        block->pos.vy = block->local.vy;
+        block->pos.vz = block->local.vz;
+        do {
+            if (p->field_0 != 0) {
+                obj = (GpObj44*)&p->coord;
+                val = Gp_LightPoint(obj, (VECTOR3*)&block->pos);
+                SOFT_USE_REG(obj);
+                block->intensity = val;
+                solve_rank(block->slots, val, 3, (s32)obj, last);
+            }
+            pointIndex++;
+            p++;
+        } while (pointIndex < 8);
+    }
+
+    if (set->n60 > 0) {
+        register GpCoord60* obj60;
+
+        obj60 = set->arr60;
+        i     = 0;
+
+        for (; i < set->n60;) {
+            val              = Gp_LightPointRoom((GpObj44*)obj60, (VECTOR3*)&block->pos);
+            block->intensity = val;
+            solve_rank(block->slots, val, 1, (s32)obj60, &block->slots[3]);
+            i++;
+            obj60++;
+        }
+    }
+
+    if (set->n6C > 0) {
+        register GpCoord6C* obj6C;
+        s32                 coneRank;
+
+        obj6C = set->arr6C;
+        i     = 0;
+
+        for (; i < set->n6C;) {
+            val              = Gp_LightCone((GpObj68*)obj6C, (VECTOR3*)&block->pos);
+            coneRank         = 2;
+            block->intensity = val;
+            solve_rank(block->slots, val, coneRank, (s32)obj6C, &block->slots[3]);
+            i++;
+            obj6C++;
+        }
+    }
+
+    if (set->n58 > 0) {
+        register GpCoord58* obj58;
+
+        obj58 = set->arr58;
+        i     = 0;
+        for (; i < set->n58;) {
+            val              = solve_luma((GpObj44*)obj58);
+            block->intensity = val;
+            solve_rank0(block->slots, val, 0, (s32)obj58, block);
+            i++;
+            obj58++;
+        }
+    }
+
+    colorMtx->t[2] = 0;
+    colorMtx->t[1] = 0;
+    colorMtx->t[0] = 0;
+
+    {
+
+        s32              end;
+        GpSolveSlotView* slotArg;
+
+        GpObj44* light;
+        GpObj44* extraLight;
+
+        s32 delta;
+        s32 amb;
+
+        i = startr;
+        if ((u32)i < (u32)count) {
+            end     = i + count;
+            slotArg = (GpSolveSlotView*)((GpRec12*)block + end);
+
+            do {
+                light = (GpObj44*)block->slots[i].field_8;
+                if (light != NULL) {
+                    if (i == end - 1) {
+                        cutoffPtr = &((GpSolveSlotView*)((GpRec12*)block + count))->field_8;
+                        if (*cutoffPtr != 0) {
+                            GpObj44* cutoffLight;
+                            s32      attenuation;
+                            s32      diff;
+                            s32      cutoffScale;
+                            cutoffLight = (GpObj44*)slotArg->field_8;
+                            delta       = 0;
+                            if (((GpSolveSlotView*)((GpRec12*)block + count))->field_0 != 0) {
+                                attenuation = light->field_4A;
+                                cutoffScale = cutoffLight->field_4A;
+                                diff        = attenuation - cutoffScale;
+                                if (diff < 0) {
+                                    diff = 0;
+                                }
+                                if (diff < 0x200) {
+                                    diff            = (diff * attenuation) >> 9;
+                                    delta           = attenuation - diff;
+                                    light->field_4A = diff;
+                                }
+                            }
+                            extraLight     = (GpObj44*)slotArg->field_8;
+                            delta        >>= 2;
+                            amb            = (slotArg->field_4 >> 2) + delta;
+                            colorMtx->t[2] = amb;
+                            colorMtx->t[1] = amb;
+                            colorMtx->t[0] = amb;
+                            colorMtx->t[0] = amb + (extraLight->field_50 >> 6);
+                            colorMtx->t[1] = colorMtx->t[1] + (extraLight->field_52 >> 6);
+                            colorMtx->t[2] = colorMtx->t[2] + (extraLight->field_54 >> 6);
+                        }
+                    }
+
+                    switch (block->slots[i].field_0) {
+                        case 1:
+                        case 3:
+                            solve_func_800D98C4(i, (GpObj44*)block->slots[i].field_8, &block->pos, extra);
+                            break;
+                        case 2:
+                            solve_func_800D9A30(i, (GpObj44*)block->slots[i].field_8, &block->pos, extra);
+                            break;
+                        default:
+                            solve_func_800D9794(i, (GpObj44*)block->slots[i].field_8, &block->pos, extra);
+                            break;
+                    }
+                }
+
+                i++;
+
+            } while ((u32)i < (u32)count);
+        }
+    }
+
+    if ((s8)Gp_OverrideVecFlag == 1) {
+        colorMtx->t[0] = Gp_OverrideVec.vx;
+        colorMtx->t[1] = Gp_OverrideVec.vy;
+        colorMtx->t[2] = Gp_OverrideVec.vz;
+    } else {
+        GpRoomBoundVec* bound;
+
+        bound = Gp_GetRoomBound((GameSessionFrom4*)&Game_Session->field_4);
+        if (colorMtx->t[0] < bound->field_0) {
+            colorMtx->t[0] = bound->field_0;
+        }
+        if (colorMtx->t[1] < bound->field_2) {
+            colorMtx->t[1] = bound->field_2;
+        }
+        if (colorMtx->t[2] < bound->field_4) {
+            colorMtx->t[2] = bound->field_4;
+        }
+    }
+
+    if ((s8)Gp_OverrideVec2Flag == 1) {
+        u16*      ov;
+        SVECTOR3* row;
+        s32       j;
+
+        ov  = (u16*)&Gp_OverrideVec2;
+        j   = 0;
+        row = (SVECTOR3*)extra->field_20;
+        do {
+            block->local.vx = row[j].vx;
+            block->local.vy = row[j].vy;
+            block->local.vz = row[j].vz;
+            gte_lddp(*ov);
+            gte_ldsv(&block->local);
+            gte_gpf12_real();
+            gte_stsv(&block->local);
+            row[j].vx = block->local.vx;
+            row[j].vy = block->local.vy;
+            row[j].vz = block->local.vz;
+            j++;
+            ov++;
+        } while (j < 3);
+    }
+
+    if (Pad_RemapState->field_1 == 0x13 && D_80760618->field_1 == 1) {
+        i = 0;
+        do {
+            GpLightCapture* debugState;
+            debugState                       = (GpLightCapture*)((u8*)D_80760618 + i * sizeof(GpRec12));
+            *(GpRec12*)&debugState->field_30 = block->slots[i];
+            i++;
+        } while (i < 4);
+    }
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x7C;
+}
 
 const char D_8009745C[] = {
     '?',

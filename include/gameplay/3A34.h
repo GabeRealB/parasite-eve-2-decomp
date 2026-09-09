@@ -1034,6 +1034,25 @@ typedef struct _GpEdgeScratch {
 } GpEdgeScratch;
 STATIC_ASSERT_SIZEOF(GpEdgeScratch, 0x50);
 
+/// Scratch workspace and ranked-slot view used by `func_800D7A9C`.
+typedef struct {
+    /* 0x00 */ MATRIX  mtx;
+    /* 0x20 */ s32     intensity;
+    /* 0x24 */ VECTOR  pos;
+    /* 0x34 */ SVECTOR local;
+    /* 0x3C */ byte    pad_3C[0x10];
+    /* 0x4C */ GpRec12 slots[4];
+} GpLightSolveScratch;
+STATIC_ASSERT_SIZEOF(GpLightSolveScratch, 0x7C);
+
+typedef struct {
+    /* 0x00 */ byte pad[0x4C];
+    /* 0x4C */ s32  field_0;
+    /* 0x50 */ s32  field_4;
+    /* 0x54 */ s32  field_8;
+} GpSolveSlotView;
+STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
+
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794` /
 /// `func_800D98C4` / `func_800D9A30`. `in` is the direction
 /// `func_800D98C4` / `func_800D9A30` feed to `Gfx_NormalizeLightDir`.
