@@ -60,5 +60,6 @@ typedef struct Actor101200Ctx {
 void func_actor_101200_80132640(Actor101200* arg0);
 void func_actor_101200_80135BE0(Actor101200Ctx* arg0, Actor101200* arg1);
 void func_actor_101200_80135C98(Actor101200Ctx* arg0, Actor101200* arg1);
+void func_actor_101200_80135D50(Actor101200Ctx* arg0, Actor101200* arg1);
 
 #endif
