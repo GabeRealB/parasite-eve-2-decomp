@@ -73,7 +73,11 @@ apply_profile() {
   PROFILE="$name"
   # Exported so a nested vacuum.sh - the one vacuum_overlay.sh runs inside a
   # worktree - reports the same profile instead of re-resolving a default.
+  # The table must travel with the name: a worktree's ROOT is the worktree, and
+  # local/ is gitignored, so <worktree>/local/vacuum_profiles does not exist and
+  # the nested run would abort with "no profile '<name>'".
   export VACUUM_PROFILE="$name"
+  export VACUUM_PROFILES_FILE="$PROFILES_FILE"
 }
 
 # Every lane writes here. local/ is gitignored, so logs never reach a commit,
