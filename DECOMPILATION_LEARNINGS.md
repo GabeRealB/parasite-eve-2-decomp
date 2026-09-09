@@ -56861,3 +56861,21 @@ target's result register is the one the condition was tested in, write the two
 stores out. Duplicating the store in the source is what keeps the value local
 long enough for `local-alloc` to see the free register; cross-jumping puts the
 single store back.
+
+## `promote` still sees a just-landed body as unmatched until the stale `.s` is gone
+
+**Problem:** `overlay_dup_index.py promote <fn>` refuses with `cannot be shared
+while unmatched - N different byte images` immediately after the body was landed
+in C and `build-and-verify.sh --only <overlay>` reported a scoped match.
+
+**Symptom:** the index decides `matched` from where splat put the function's
+`.s` - `asm/<ver>/<family>/matchings/…` versus `nonmatchings/…`. splat writes
+the new `matchings/` copy but never deletes files it no longer emits, and a
+scoped run deliberately does not wipe the tree ("A full run starts from a clean
+build tree. A scoped run must not"), so the old `nonmatchings/<unit>/<fn>.s`
+survives and the cached index keeps reading `todo`.
+
+**Fix:** delete the stale file (and the unit directory if it is now empty), then
+`python3 tools/overlay_dup_index.py --rebuild find <fn>` to confirm it reports
+`matched` before promoting. An unscoped `./tools/build-and-verify.sh` clears it
+too, so landing → full build → promote avoids the trap entirely.
