@@ -29730,6 +29730,15 @@ C still emits as a real reloc (the D4 `CdCmd_Queue` `lhu` is only the
 `Gp_LoadWaitStage` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `Gp_CanMoveItems`
 are the examples.
 
+The entry is state that belongs to the faked address, so it has to come out
+with it. When the `asm("lui …%hi")` is replaced by a plain field read the
+compiler emits a real `R_MIPS_LO16` again, and a stale `MIPS_NONE` leaves the
+expected object holding the raw immediate - the same objdiff mismatch as
+before, only inverted. Nothing catches it: the instruction word is unchanged,
+so the checksum and the full build stay green either way. Delete the `rom:`
+line and re-split; the `.s` should read `%lo(sym + off)` where it read the
+numeric displacement. `Gp_LoadWaitAreaCd` is the worked example.
+
 ## Barrier so temps fill the gap after a constructed RGB constant
 
 `color = 0x37A78; req.field_8 = color;` stores immediately (`lui`/`ori`/`sw`)

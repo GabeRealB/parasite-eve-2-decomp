@@ -1186,19 +1186,16 @@ void Gp_LoadWaitAreaCd(Task* task)
     DisplayState* ds;
     DisplayState* ds2;
     s32           color;
-    s32           qhi;
-    register s32  queued asm("a0");
+    s32           queued;
     s32           buf;
     s8            yoff;
 
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
-    buf  = ds->field_114;
-    tile = &Gp_FadeTiles[buf];
-    SOFT_USE_REG2(qhi, tile);
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
+    buf    = ds->field_114;
+    tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
