@@ -48,6 +48,8 @@ _SET_MODEL=${VACUUM_MODEL+1}
 _SET_LAND_MODEL=${VACUUM_LAND_MODEL+1}
 _SET_GROK_EFFORT=${VACUUM_GROK_EFFORT+1}
 _SET_CODEX_EFFORT=${VACUUM_CODEX_EFFORT+1}
+_SET_MATCH_EFFORT=${VACUUM_MATCH_EFFORT+1}
+_SET_LAND_EFFORT=${VACUUM_LAND_EFFORT+1}
 
 # One row of the profiles table, comments and blank lines skipped.
 profile_row() {
@@ -61,8 +63,8 @@ list_profiles() {
     echo "No profiles file at $PROFILES_FILE"
     return
   fi
-  printf '%-18s %-7s %-18s %-7s %s\n' NAME CLI MODEL EFFORT LAND_MODEL
-  awk '$0 !~ /^[[:space:]]*#/ && NF { printf "%-18s %-7s %-18s %-7s %s\n", $1, $2, $3, $4, ($5 == "" ? "-" : $5) }' \
+  printf '%-18s %-7s %-18s %-7s %-14s %s\n' NAME CLI MODEL EFFORT LAND_MODEL LAND_EFFORT
+  awk '$0 !~ /^[[:space:]]*#/ && NF { printf "%-18s %-7s %-18s %-7s %-14s %s\n", $1, $2, $3, $4, ($5 == "" ? "-" : $5), ($6 == "" ? "-" : $6) }' \
     "$PROFILES_FILE"
 }
 
@@ -75,7 +77,7 @@ apply_profile() {
     list_profiles
     exit 1
   fi
-  read -r _n cli model effort land <<<"$row"
+  read -r _n cli model effort land land_effort <<<"$row"
   if [[ "$cli" != "-" && $CLI_EXPLICIT -eq 0 ]]; then
     CLI="$cli"
   fi
@@ -85,12 +87,14 @@ apply_profile() {
   if [[ -n "${land:-}" && "$land" != "-" && -z "$_SET_LAND_MODEL" ]]; then
     export VACUUM_LAND_MODEL="$land"
   fi
-  # One effort column, routed to whichever knob this CLI actually reads.
-  if [[ "$effort" != "-" ]]; then
-    case "$CLI" in
-      grok)  [[ -z "$_SET_GROK_EFFORT" ]]  && export VACUUM_GROK_EFFORT="$effort" ;;
-      codex) [[ -z "$_SET_CODEX_EFFORT" ]] && export VACUUM_CODEX_EFFORT="$effort" ;;
-    esac
+  # Effort is a role, not a CLI setting: VACUUM_MATCH_EFFORT covers the search
+  # and VACUUM_LAND_EFFORT the mechanical port, for every CLI alike - the same
+  # split VACUUM_MODEL / VACUUM_LAND_MODEL already makes.
+  if [[ "$effort" != "-" && -z "$_SET_MATCH_EFFORT" ]]; then
+    export VACUUM_MATCH_EFFORT="$effort"
+  fi
+  if [[ -n "${land_effort:-}" && "$land_effort" != "-" && -z "$_SET_LAND_EFFORT" ]]; then
+    export VACUUM_LAND_EFFORT="$land_effort"
   fi
   PROFILE="$name"
 }
@@ -155,7 +159,9 @@ Environment:
   VACUUM_PERMUTE_JOBS      Permuter threads (default: min(nproc, 8))
   VACUUM_STREAM            0 disables claude's streamed per-step logging
   VACUUM_STREAM_QUIET      Non-empty: log tool calls only, no commentary
-  VACUUM_CODEX_EFFORT      codex reasoning effort (default: xhigh)
+  VACUUM_MATCH_EFFORT      Reasoning effort for the matching agent, any CLI
+  VACUUM_LAND_EFFORT       Reasoning effort for the port agent (default: match)
+  VACUUM_CODEX_EFFORT      Legacy codex-only override; wins over the above
   VACUUM_WORKTREE_PARENT   Directory for pe2-wt-<func> worktrees
                            (default: parent of this repo)
   VACUUM_ORCH_STATE        Override orchestrator JSON path
@@ -168,7 +174,7 @@ Environment:
                            (default 2). Stops the same claimed function from
                            being retried forever after a rejected port.
   VACUUM_MERGE_WAIT        Seconds to wait for the merge lock (default 3600)
-  VACUUM_GROK_EFFORT       Grok --effort for match/port (default: xhigh)
+  VACUUM_GROK_EFFORT       Legacy grok-only override; wins over the above
   GROK_MATCH_EFFORT        Same, used by tools/claude when launching grok
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
@@ -576,6 +582,9 @@ run_agent() {
   # real file, fix includes, rebuild, commit - and a call site can ask for a
   # cheaper model by setting AGENT_MODEL.
   local model="${AGENT_MODEL-${VACUUM_MODEL:-}}"
+  # Same precedence as model: a per-call override, then the role default. A
+  # legacy per-CLI variable still wins if someone set one explicitly.
+  local effort="${AGENT_EFFORT-${VACUUM_MATCH_EFFORT:-}}"
   local grok_rules=""
   if [[ -n "${AGENT_MAX_TURNS:-}" ]]; then
     extra+=(--max-turns "$AGENT_MAX_TURNS")
@@ -607,18 +616,20 @@ run_agent() {
         # frozen in the log until it ends. Stream the events and format them the
         # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
         if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-          claude -p ${model:+--model "$model"} --verbose --output-format stream-json \
+          claude -p ${model:+--model "$model"} ${effort:+--effort "$effort"} \
+            --verbose --output-format stream-json \
             --dangerously-skip-permissions "$prompt" \
             | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
         else
-          claude -p ${model:+--model "$model"} --dangerously-skip-permissions "$prompt"
+          claude -p ${model:+--model "$model"} ${effort:+--effort "$effort"} \
+            --dangerously-skip-permissions "$prompt"
         fi
         ;;
       grok)
         # grok -p cwd is the worktree/repo root, so scratch CLAUDE.md is not
         # auto-loaded. --rules injects MATCH_LOOP.md into the system prompt.
         # xhigh (override with VACUUM_GROK_EFFORT) is closer to claude ultrathink.
-        extra+=(--effort "${VACUUM_GROK_EFFORT:-xhigh}" --cwd "$cwd")
+        extra+=(--effort "${VACUUM_GROK_EFFORT:-${effort:-xhigh}}" --cwd "$cwd")
         if [[ -n "$grok_rules" ]]; then
           extra+=(--rules "$grok_rules")
         fi
@@ -656,7 +667,7 @@ run_agent() {
           -s danger-full-access
           -c 'approval_policy="never"'
           -c 'shell_environment_policy.inherit="all"'
-          -c "model_reasoning_effort=\"${VACUUM_CODEX_EFFORT:-xhigh}\""
+          -c "model_reasoning_effort=\"${VACUUM_CODEX_EFFORT:-${effort:-xhigh}}\""
           -C "$cwd"
         )
         if [[ -n "$model" ]]; then
@@ -1788,7 +1799,8 @@ vacuum_orch_loop() {
       if [[ "$status" == "matched" ]]; then
         echo "Starting port agent for $func ($status), model ${VACUUM_LAND_MODEL:-${VACUUM_MODEL:-default}}..." | tee -a "$LOG_FILE"
         AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" \
-        AGENT_MODEL="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}" run_agent \
+        AGENT_MODEL="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}" \
+        AGENT_EFFORT="${VACUUM_LAND_EFFORT-${VACUUM_MATCH_EFFORT:-}}" run_agent \
           "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint" "$siblings")" \
           "$ROOT" | tee -a "$LOG_FILE"
         if [[ $ORCH_MERGE -eq 0 ]] \
