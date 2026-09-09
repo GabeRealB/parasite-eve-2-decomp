@@ -57003,3 +57003,45 @@ Three source positions worked and one did not: reading the global *first* left t
 instructions out of place, while any position after the first statement matched.
 Sweep for the shape with an object-level compare that prints relocations - the
 checksum and `diff.py` both stay silent on it.
+
+## A second `%hi` in one block always takes `$v0`; a target `lui $v1` needs the pair to overlap
+
+The companion case to the entry above, and the one where moving the statement
+does *not* work. When a block materialises two independent global addresses, GCC
+2.8.1 emits a nameless `high` pseudo per address and local-alloc hands **every**
+one of them `$v0`:
+
+```
+lui   v0, %hi(Gp_RelatedQty0)
+addiu t6, v0, %lo(Gp_RelatedQty0)
+lui   v0, %hi(Gp_RelatedQty1)     <- second high, still $v0
+addiu t5, v0, %lo(Gp_RelatedQty1)
+```
+
+Three facts make that unconditional, and they are worth knowing before spending
+builds on it:
+
+- `config/mips/mips.h` defines no `REG_ALLOC_ORDER`, so `find_free_reg` scans
+  hard registers by ascending number and `$v0` is the first candidate.
+- A `high` temp has two references and a two-insn range, which is the maximum of
+  `QTY_CMP_PRI` (`floor_log2(n_refs) * n_refs * size / (death - birth)`). It is
+  therefore allocated *before* every longer-lived quantity in the block, so
+  pinning a neighbour to `$v0` (`register s32 limit asm("v0")`) cannot displace
+  it - verified, the score does not move.
+- sched1 never separates a `high` from its `lo_sum`: once the `lo_sum` is picked
+  off the ready list the `high` is the next ready insn and wins the tie. So two
+  `high` temps never have overlapping live ranges, and the second is free to take
+  `$v0` again.
+
+So a target that shows `lui $v1, %hi(sym)` feeding an `addiu` into some *third*
+register can only come from an allocation where `$v0` was busy across the pair,
+which means the two `high` temps did overlap in the sched1 output. Statement
+reordering does not produce that overlap: in `Gp_CountAmmoRows` five positions
+for `cfg = &Wip_SysConfig;` (first, after `count = 0`, between the two
+`Mc_SaveData` statements, after them, inside the guarded block) all kept the
+`high`/`lo_sum` pairs adjacent and all put the second `high` in `$v0`, leaving a
+`regs=2` residue at 99.894%. The existing recipes for this shape - the split
+`asm("lui")`/`asm("addiu")` pair, and `register … asm("v1")` when the `%lo`
+destination *is* `$v1` - remain the only known handles, and the first of those is
+an instruction-emitting asm rather than a match. What actually produced the
+overlap in the original build is unresolved.
