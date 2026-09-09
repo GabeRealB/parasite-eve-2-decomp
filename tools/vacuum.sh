@@ -46,8 +46,6 @@ PROFILES_FILE="${VACUUM_PROFILES_FILE:-$ROOT/local/vacuum_profiles}"
 # between "unset" and "set to empty" now, while it is still observable.
 _SET_MODEL=${VACUUM_MODEL+1}
 _SET_LAND_MODEL=${VACUUM_LAND_MODEL+1}
-_SET_GROK_EFFORT=${VACUUM_GROK_EFFORT+1}
-_SET_CODEX_EFFORT=${VACUUM_CODEX_EFFORT+1}
 _SET_MATCH_EFFORT=${VACUUM_MATCH_EFFORT+1}
 _SET_LAND_EFFORT=${VACUUM_LAND_EFFORT+1}
 
@@ -161,7 +159,6 @@ Environment:
   VACUUM_STREAM_QUIET      Non-empty: log tool calls only, no commentary
   VACUUM_MATCH_EFFORT      Reasoning effort for the matching agent, any CLI
   VACUUM_LAND_EFFORT       Reasoning effort for the port agent (default: match)
-  VACUUM_CODEX_EFFORT      Legacy codex-only override; wins over the above
   VACUUM_WORKTREE_PARENT   Directory for pe2-wt-<func> worktrees
                            (default: parent of this repo)
   VACUUM_ORCH_STATE        Override orchestrator JSON path
@@ -174,8 +171,7 @@ Environment:
                            (default 2). Stops the same claimed function from
                            being retried forever after a rejected port.
   VACUUM_MERGE_WAIT        Seconds to wait for the merge lock (default 3600)
-  VACUUM_GROK_EFFORT       Legacy grok-only override; wins over the above
-  GROK_MATCH_EFFORT        Same, used by tools/claude when launching grok
+                           tools/claude reads the same two variables.
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
 Orchestrator sessions log to tools/vacuum-<cli>-<pid>.log and flock-append
@@ -628,8 +624,8 @@ run_agent() {
       grok)
         # grok -p cwd is the worktree/repo root, so scratch CLAUDE.md is not
         # auto-loaded. --rules injects MATCH_LOOP.md into the system prompt.
-        # xhigh (override with VACUUM_GROK_EFFORT) is closer to claude ultrathink.
-        extra+=(--effort "${VACUUM_GROK_EFFORT:-${effort:-xhigh}}" --cwd "$cwd")
+        # xhigh (VACUUM_MATCH_EFFORT) is closer to claude ultrathink.
+        extra+=(--effort "${effort:-xhigh}" --cwd "$cwd")
         if [[ -n "$grok_rules" ]]; then
           extra+=(--rules "$grok_rules")
         fi
@@ -667,7 +663,7 @@ run_agent() {
           -s danger-full-access
           -c 'approval_policy="never"'
           -c 'shell_environment_policy.inherit="all"'
-          -c "model_reasoning_effort=\"${VACUUM_CODEX_EFFORT:-${effort:-xhigh}}\""
+          -c "model_reasoning_effort=\"${effort:-xhigh}\""
           -C "$cwd"
         )
         if [[ -n "$model" ]]; then
