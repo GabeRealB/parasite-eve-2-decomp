@@ -34682,11 +34682,24 @@ splat symbol (`D_8007217B`). A 99.9% score whose whole `base_N_diff` is
 `%hi(jtbl_…)` for the compiler-generated switch table — is a match; the
 authority is `./tools/build-and-verify.sh`, not the scratch score.
 
-`overlay_dup_index.py` only walks `asm/<ver>/<family>/nonmatchings/**`, so a
-twin that is **already matched** has left the index and `find` answers
-`same body: 1 copies`. That is the most valuable case and the one the tool
-cannot report, so do not read a lone-copy answer as "no sibling exists". Fall
-back to grepping `src/` for one of the function's rarer callees:
+CORRECTION. This entry used to say `overlay_dup_index.py` walks only
+`nonmatchings/**`, so an already-matched twin had left the index. It walks both
+markers - `for marker in ("nonmatchings", "matchings")` - and matched bodies are
+indexed: all 914 matched actor functions are present, `WeaponsShared*` names
+included. A `same body: 1 copies` answer means something narrower and more
+useful.
+
+Equivalence is exact disassembly *text*, so a twin that differs only in its data
+symbols is not a copy. `func_kyle_800102_80167A84` and `WeaponsShared8011d3a0`
+are both 215 instructions of the same routine on the same 0xA0 work block and
+hash differently, because one reaches `Gfx_ViewWorldMtx` where the other reaches
+`Gfx_ViewCoord+0x24`. `find` is right to separate them - promoting them together
+would not reproduce the bytes - but they port to each other at 99.9% on the
+first attempt, which no hash can tell you.
+
+So do not read a lone-copy answer as "no sibling exists": it means no
+*byte-for-byte* sibling. Fall back to grepping `src/` for one of the function's
+rarer callees or constants:
 
 ```sh
 grep -rl "Gp_StartCapSlot" src/
