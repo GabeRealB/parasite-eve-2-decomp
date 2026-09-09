@@ -159,6 +159,9 @@ def main():
     done.add_argument('source', type=Path)
     done.add_argument('--result', required=True)
     done.add_argument('--next', required=True)
+    reject = sub.add_parser('reject', help='Keep a disproven source as evidence but exclude its hash from retry seeds')
+    reject.add_argument('source', type=Path)
+    reject.add_argument('--reason', required=True)
     check = sub.add_parser('reserve-build')
     check.add_argument('scratch', type=Path)
     permuter = sub.add_parser('conclude-permuter')
@@ -187,6 +190,10 @@ def main():
         row = {'event': args.command, 'source': source.name, 'source_sha256': digest(source)}
         if args.command == 'plan':
             row.update(parent=args.parent, hypothesis=args.hypothesis, expected=args.expect, pass_name=args.pass_name)
+        elif args.command == 'reject':
+            if not source.is_file():
+                parser.error(f'candidate does not exist: {source}')
+            row.update(reason=args.reason)
         else:
             row.update(result=args.result, next=args.next)
         if args.command == 'conclude-permuter':

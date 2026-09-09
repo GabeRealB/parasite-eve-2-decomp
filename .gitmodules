@@ -12,7 +12,7 @@
 [submodule "tools/decomp-permuter"]
 	path = tools/decomp-permuter
 	url = https://github.com/simonlindholm/decomp-permuter.git
-	# permute.sh keeps tools/decomp-permuter-objdump.patch applied here, so a
+	# prepare_permuter.py keeps our objdump/sizeof fixes and parser tables here, so a
 	# dirty working tree is the expected steady state, not work in progress.
 	# "dirty" hides only file edits; a moved pointer still shows, which is the
 	# case that would actually need committing.

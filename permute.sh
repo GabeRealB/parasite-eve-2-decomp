@@ -84,22 +84,15 @@ fi
 
 # Get the path to the current script's directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# decomp-permuter is an upstream submodule, so our objdump fix cannot be
-# committed as a file and does not survive `git submodule update`. Keep it as a
-# tracked patch and re-apply it whenever the submodule comes back pristine.
-# Without it, scoring dies outright on any function where GCC emits a `j` to a
-# label inside itself - objdump prints that target as bare hex and int(imm, 0)
-# raises. Long switch bodies are exactly what produces those jumps.
-PERMUTER_PATCH="$SCRIPT_DIR/tools/decomp-permuter-objdump.patch"
-if [ -f "$PERMUTER_PATCH" ] &&
-    ! grep -q "def parse_imm" "$SCRIPT_DIR/tools/decomp-permuter/src/objdump.py" 2>/dev/null; then
-    if git -C "$SCRIPT_DIR/tools/decomp-permuter" apply "$PERMUTER_PATCH" 2>/dev/null; then
-        echo "Applied objdump patch to tools/decomp-permuter"
-    else
-        echo "Warning: could not apply $PERMUTER_PATCH; scoring may crash on switch-heavy functions" >&2
-    fi
+PYTHON="$SCRIPT_DIR/venv/bin/python"
+if [[ ! -x "$PYTHON" ]]; then
+    PYTHON="python3"
 fi
+
+# Keep upstream-submodule fixes as repository-owned patches: objdump must
+# accept bare-hex jump targets, and sizeof(type) must survive parser emission.
+# Preparation also refreshes the cached yacc table after a grammar change.
+"$PYTHON" "$SCRIPT_DIR/tools/prepare_permuter.py"
 
 # Clean the directory if the --clean flag is set
 if [ "$CLEAN" = true ]; then
@@ -119,6 +112,7 @@ echo "Creating settings.toml file"
 echo "Creating compile.sh file"
 {
     echo '#!/usr/bin/env bash'
+    echo 'set -euo pipefail'
     echo 'INPUT="$(realpath "$1")"'
     echo 'INPUT_I=$INPUT.i'
     echo 'INPUT_D=$INPUT_I.d'
@@ -126,7 +120,7 @@ echo "Creating compile.sh file"
     echo ''
     echo 'OUTPUT="$(realpath "$3")"'
     echo ''
-    echo "cd $SCRIPT_DIR"
+    printf 'cd %q\n' "$SCRIPT_DIR"
     echo ''
     echo 'mips-linux-gnu-cpp -P -MMD -MP -MT "$INPUT_I" -MF "$INPUT_D" -Iinclude -Iinclude/psyq -I build -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc -o "$INPUT_I" "$INPUT"'
     echo "tools/linux/gcc-2.8.1-psx/cc1 -O2 $G_OPTION -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -o \"\$INPUT_S\" \"\$INPUT_I\""
@@ -169,10 +163,6 @@ if [ "$RUN" = true ]; then
     export TMPDIR="$PERM_TMPDIR"
 
     echo "Running decomp-permuter"
-    PYTHON="$SCRIPT_DIR/venv/bin/python"
-    if [[ ! -x "$PYTHON" ]]; then
-        PYTHON="python3"
-    fi
     PERM_CMD=(
         "$PYTHON" tools/decomp-permuter/permuter.py
         -j"$THREADS"

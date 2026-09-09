@@ -3,6 +3,62 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A permuter gain can come from moving an expression across a generated branch
+
+Replay's Fable alternate improves from distance 1215 to 1161 by moving the clut
+store before the final glyph flag assignment. Signed division by four in the
+clut expression creates a branch; the shift then lands in the following block.
+Its old register dependencies stop constraining the previous glyph block,
+improving the green/subtraction/blue/add and Y/X/Y/X sequence. It also moves the
+shift too late and swaps gh/gv registers in both loops. An isolated transfer to
+the primary confirms the branch/shift boundary but worsens 770 to 1741. Check
+RTL block membership before explaining statement reordering as a scheduler tie.
+
+The other edit in that permuter output, unsigned sprite-x subtraction, has no
+effect on object assembly when isolated. The readable port keeps only the clut
+change. See `COMPILER_ANALYSIS.md` and the retained Replay residue evidence.
+
+Two numerically better outputs were invalid: one overwrote y0 with the glyph
+flag before storing the coordinate; another truncated the GPU command constant
+to 16 bits. Use `attempt.py reject SOURCE --reason ...` to preserve such findings
+and exclude that source hash from retry selection. Compilation and paired
+distance establish code-generation results, not preservation of behavior.
+
+## Scheduler priority can improve while both order and allocation regress
+
+Replay's reduced-padding candidate (Fable base_19, reproduced as
+`compiler-residue/base_1.c`) has distance 1215. Giving its top coordinate a
+separate local promotes subtraction UID 370 from priority 3 to LAUNCH_PRIORITY,
+as predicted. Yet at sched1 backward cycle 11 both it and green load UID 358
+are ready, neither is blocked, and `schedule_select` chooses the load on
+potential hazard (8650752 versus 0), reversing the comparator's preference.
+The top coordinate also becomes local quantity b19/q12 in v1, while the
+remaining reused height/flag moves to a3. Distance worsens to 1809.
+
+This controlled failure rules out launch priority alone as the solution.
+Observe dependency release, comparator **and** hazard selection, then check
+allocation. A local scheduling explanation is insufficient when its source
+intervention changes the quantity or live-range constraints needed elsewhere.
+`tools/trace_gcc.py --uids ...` now records all three decisions. The observer
+produced identical assembly to ordinary compilation for both inputs. See
+`COMPILER_ANALYSIS.md` and `tools/compiler_evidence/2026-09-09-replay-residue.json`.
+
+## Permuter sizeof normalization must preserve the original compiler input
+
+The vendored `perm_pycparser` grammar treats casts as unary expressions. Without
+an explicit precedence on the type form, `i * sizeof(T) + base` becomes
+`i * sizeof((T)(+base))`, sometimes producing invalid aggregate casts and
+sometimes silently changing valid scalar code. `tools/prepare_permuter.py`
+applies `decomp-permuter-sizeof.patch` and refreshes the cached yacc table;
+editing only the grammar while accepting an old optimized table is insufficient.
+`permute.sh` runs this preparation and creates a fail-fast compiler wrapper.
+
+The actual Replay seed now survives parsing/emission with identical normalized
+object assembly (distance 770). An archived malformed search output exits cc1
+with status 33 and produces no object through the repaired wrapper. This fixes
+search validity; it does not itself improve the best source. Parser, table and
+patch hashes are retained with future permuter evidence.
+
 ## A load present in `.greg` can disappear in post-reload CSE
 
 `func_80046EEC` base_35 reproduces 99.249%, with only the page-down clamp
@@ -4014,8 +4070,9 @@ relocates against `.text`, and objdump prints the target as bare hex
 (`j 2d8 <fn+0x2d8>`), which the permuter's `int(imm, 0)` rejects with
 `ValueError: invalid literal for int() with base 0`. GCC emits those for long
 switch bodies, so scoring dies on exactly the functions worth permuting.
-`tools/decomp-permuter-objdump.patch` fixes it; `permute.sh` re-applies it
-whenever the submodule comes back pristine.
+`tools/decomp-permuter-objdump.patch` fixes it; `permute.sh` invokes
+`tools/prepare_permuter.py` to re-apply it and the sizeof grammar fix whenever
+the submodule comes back pristine.
 
 **Jump table symbol names do not need normalizing for scoring.** The permuter
 already ignores a candidate field containing `.` when the target line carried a
@@ -4047,9 +4104,11 @@ of 60, while a 96.585% attempt was the only one of 38 to reach `reorder=0` -
 paying `insert=2 delete=2` for it, i.e. a genuinely different shape rather than
 a worse version of the same one. Prefer a seed that is *clean on the axis the
 best one is stuck on*, even at a lower score. `tools/archive_giveup.py` now
-keeps one such alternate per penalty dimension, and `tools/claude` names them
-when it restores a give-up seed; before that it archived on score alone and the
-other 37 attempts died with the worktree.
+keeps diagnostic alternatives and reserves slots for a near-best source with
+fewer asm helpers and a verified permuter gain. It reconsiders immutable session
+snapshots, so a candidate previously dropped from the shortlist can return.
+`tools/claude` names these when restoring a give-up seed; the search router also
+uses these priorities and deduplicates observed object equivalents.
 
 Improvements land in `permuter/<fn>/output-<score>-<n>/source.c`, as the whole
 preprocessed file reformatted by pycparser. Diff only the function against the

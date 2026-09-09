@@ -4,7 +4,8 @@
 Immutable session snapshots retain sources, preprocessed inputs, observations
 and notes even at equal/lower scores. A separate manifest selects a primary and
 up to five alternatives from old and new candidates. --restore carries that
-history and those candidates into the next scratch environment.
+history and those candidates into the next scratch environment. --reindex
+reconsiders existing session evidence without adding a session snapshot.
 
 Exit 0 on write, 2 if skipped.
 """
@@ -53,6 +54,7 @@ def pick_any_seed(scratch: Path) -> Optional[vp.Seed]:
         picked = vp.pick_seed(seeds, min_score=0.0)
         if picked is not None:
             return picked
+    rejected = vp.rejected_sources(scratch)
     numbered = sorted(
         scratch.glob("base_*.c"),
         key=lambda p: p.stat().st_mtime,
@@ -60,6 +62,8 @@ def pick_any_seed(scratch: Path) -> Optional[vp.Seed]:
     )
     for path in numbered + ([scratch / "base.c"] if (scratch / "base.c").is_file() else []):
         if path.is_file() and path.stat().st_size > 0:
+            if _hash(path.read_bytes()) in rejected:
+                continue
             text = path.read_text(encoding="utf-8", errors="replace")
             return vp.Seed(
                 path=path,
@@ -86,15 +90,25 @@ def _dimension_cost(seed: vp.Seed, keys: tuple[str, ...]) -> Optional[int]:
 
 
 def pick_alternates(seeds: list[vp.Seed], primary: vp.Seed) -> list[vp.Seed]:
-    """Keep up to five distinct sources that improve a diagnostic dimension."""
+    """Keep useful source shapes, verified permuter gains and diagnostic alternatives."""
     unique = {s.source_hash: s for s in seeds}
     unique.pop(primary.source_hash, None)
-    pool = list(unique.values())
+    pool = vp.distinct_assembly([s for s in unique.values()
+                                if not primary.assembly_sha256 or s.assembly_sha256 != primary.assembly_sha256])
+    kept = []
+    for choices in (
+        [s for s in pool if not s.pinned and s.score >= primary.score - vp.UNPINNED_WINDOW and s.barriers < primary.barriers],
+        [s for s in pool if not s.pinned and s.permuter_gain],
+    ):
+        choices = [s for s in choices if s not in kept]
+        if choices:
+            best = max(choices, key=lambda s: (s.score, -s.barriers))
+            kept.append(best)
+            pool.remove(best)
     dimensions = [lambda s, keys=keys: _dimension_cost(s, keys)
                   for keys in ALT_DIMENSIONS.values()]
     dimensions += [lambda s: s.barriers,
                    lambda s: 0 if s.diagnosis and s.diagnosis.get('topology') == 'match' else 1]
-    kept = []
     for cost in dimensions:
         baseline = cost(primary)
         choices = [s for s in pool if cost(s) is not None
@@ -106,6 +120,17 @@ def pick_alternates(seeds: list[vp.Seed], primary: vp.Seed) -> list[vp.Seed]:
         if len(kept) == 5:
             break
     return kept
+
+
+def session_candidates(dest: Path) -> list[vp.Seed]:
+    """Reconsider archived evidence, including candidates an older shortlist dropped."""
+    latest = {}
+    for manifest in (dest / 'sessions').glob('*/*/manifest.json'):
+        at = json.loads(manifest.read_text())['at']
+        session = manifest.parent.parent.name
+        if session not in latest or at > latest[session][0]:
+            latest[session] = (at, manifest.parent)
+    return [seed for _, directory in sorted(latest.values()) for seed in vp.parse_match_log(directory)]
 
 
 def overlay_info(func: str) -> dict:
@@ -146,7 +171,7 @@ def snapshot(dest: Path, scratch: Path, legacy=False) -> Path:
             continue
         if (path.suffix in ('.c', '.i') or path.name.endswith(('.score.json', '.diagnosis.json'))
                 or path.name in ('LEARNINGS.md', 'NOTES.md', 'RETRY_NOTES.md', 'notes.md',
-                                 'BRIEF.md', 'PERMUTER.txt', 'PERMUTER.json', 'DUMP.txt',
+                                 'BRIEF.md', 'PRIOR_SEEDS.json', 'PERMUTER.txt', 'PERMUTER.json', 'DUMP.txt',
                                  'PERMUTER_ANALYSIS.md', 'PERMUTER_FOLLOWUP.json',
                                  'attempts.jsonl', 'experiments.jsonl', 'match_log.txt', 'prior_match_log.txt', 'session.json')):
             files[path.name] = path.read_bytes()
@@ -218,31 +243,50 @@ def archive_permuter_findings(func: str, scratch: Path) -> str:
     return f'PERMUTER_FINDINGS_SAVED={_rel(observation)}'
 
 
-def archive(func: str, scratch: Path) -> tuple[int, str]:
+def archive(func: str, scratch: Path, *, reindex=False) -> tuple[int, str]:
     if not scratch.is_dir():
         return 2, f"GIVEUP_SKIP=no scratch at {scratch}"
-    archive_permuter_findings(func, scratch)
     dest = GIVEUPS / func
-    if dest.exists() and not (dest / 'sessions').exists():
-        snapshot(dest, dest, legacy=True)
-    dest.mkdir(parents=True, exist_ok=True)
-    observation = snapshot(dest, scratch)
-    current = vp.parse_match_log(scratch)
-    if not current:
+    if reindex:
+        latest = (load_meta(dest) or {}).get('latest_session')
+        if not latest or not (dest / latest / 'manifest.json').is_file():
+            return 2, 'GIVEUP_SKIP=no session history to reindex'
+        observation, current = dest / latest, []
+    else:
+        archive_permuter_findings(func, scratch)
+        if dest.exists() and not (dest / 'sessions').exists():
+            snapshot(dest, dest, legacy=True)
+        dest.mkdir(parents=True, exist_ok=True)
+        observation = snapshot(dest, scratch)
+        current = vp.parse_match_log(scratch)
+    if not current and not reindex:
         fallback = pick_any_seed(scratch)
         if fallback:
             current = [fallback]
     old = vp.parse_match_log(dest)
     prev = load_meta(dest) or {}
+    rejected = vp.rejected_sources(dest)
+    for manifest in (dest / 'sessions').glob('*/*/manifest.json'):
+        rejected.update(vp.rejected_sources(manifest.parent))
+    rejected.update(vp.rejected_sources(scratch))
     if not old and (dest / 'base.c').is_file():
         old = [vp.Seed(dest / 'base.c', float(prev.get('score', 0)),
                        bool(prev.get('pinned')), prev.get('penalties'))]
     # Same source rebuilt in this session supersedes stale score/diagnostics.
-    merged = {s.source_hash: s for s in old + current}
-    seeds = list(merged.values())
+    merged = {}
+    for seed in old + session_candidates(dest) + current:
+        previous = merged.get(seed.source_hash)
+        if previous is None or seed.assembly_sha256 or not previous.assembly_sha256:
+            merged[seed.source_hash] = seed
+    seeds = [s for s in merged.values() if s.source_hash not in rejected]
     primary = vp.pick_seed(seeds, 0)
     write_history(dest)
     if primary is None:
+        atomic_write(dest / 'meta.json', (json.dumps({
+            **prev, 'func': func, 'score': 0, 'seed_name': None,
+            'alternates': [], 'rejected_sources': rejected,
+            'latest_session': str(observation.relative_to(dest)),
+        }, indent=2) + '\n').encode())
         return 0, f'GIVEUP_RECORDED={_rel(observation)} (notes only)'
     selected = [primary] + pick_alternates(seeds, primary)
     # Read every selected source before replacing aliases in the old archive.
@@ -256,17 +300,23 @@ def archive(func: str, scratch: Path) -> tuple[int, str]:
         rows.append(f'{name} {seed.score:.6f}% {vp.format_penalties(seed.penalties)}')
         metadata.append({'seed_name': name, 'score': seed.score, 'pinned': seed.pinned,
                          'penalties': seed.penalties, 'source_sha256': _hash(data),
-                         'barriers': seed.barriers})
+                         'barriers': seed.barriers, 'assembly_sha256': seed.assembly_sha256,
+                         'permuter_gain': seed.permuter_gain})
     atomic_write(dest / 'base.c', payloads[0][1])
     atomic_write(dest / 'match_log.txt', ('\n'.join(rows) + '\n').encode())
     loc = overlay_info(func)
-    meta = {**metadata[0], 'func': func, 'alternates': metadata[1:],
-            'attempts': sum(bool(line.strip()) for line in (scratch / 'attempts.jsonl').read_text().splitlines())
-                        if (scratch / 'attempts.jsonl').is_file() else len(current),
+    recorded_scratch = observation if reindex else scratch
+    journal = recorded_scratch / 'attempts.jsonl'
+    origin = json.loads((observation / 'manifest.json').read_text())['scratch'] if reindex else _rel(scratch)
+    attempts = prev.get('attempts', 0) if reindex else len(current)
+    if journal.is_file():
+        attempts = sum(bool(line.strip()) for line in journal.read_text().splitlines())
+    meta = {**metadata[0], 'func': func, 'alternates': metadata[1:], 'rejected_sources': rejected,
+            'attempts': attempts,
             'archived_at': datetime.now(timezone.utc).isoformat(),
             'latest_session': str(observation.relative_to(dest)),
             'overlay': loc.get('overlay'), 'asm_file': loc.get('asm_file'),
-            'c_file': loc.get('c_file'), 'scratch': _rel(scratch)}
+            'c_file': loc.get('c_file'), 'scratch': origin}
     atomic_write(dest / 'meta.json', (json.dumps(meta, indent=2) + '\n').encode())
     return 0, f"GIVEUP_SAVED={_rel(dest)} score={primary.score:.3f}% seed={metadata[0]['seed_name']} sessions preserved"
 
@@ -283,6 +333,8 @@ def restore(func: str, scratch: Path):
     dest = GIVEUPS / func
     if not dest.is_dir():
         return
+    if (dest / 'meta.json').is_file():
+        shutil.copy2(dest / 'meta.json', scratch / 'PRIOR_SEEDS.json')
     rows = []
     for seed in vp.parse_match_log(dest):
         name = 'seed_' + seed.source_hash[:20] + '.c'
@@ -304,6 +356,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--func", required=True)
     parser.add_argument("--scratch", type=Path, default=None)
     parser.add_argument('--restore', action='store_true', help='Copy candidates/history into an existing scratch')
+    parser.add_argument('--reindex', action='store_true', help='Rebuild the retry shortlist from retained sessions without changing snapshots')
     parser.add_argument('--permuter-findings', action='store_true',
                         help='Retain compiler experiments independently of give-up seeds, including after a match')
     parser.add_argument(
@@ -316,8 +369,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     if args.clear:
         print(clear(args.func))
         return 0
+    if args.reindex:
+        code, msg = archive(args.func, GIVEUPS / args.func, reindex=True)
+        print(msg)
+        return code
     if args.scratch is None:
-        print("GIVEUP_SKIP=--scratch is required unless --clear", file=sys.stderr)
+        print("GIVEUP_SKIP=--scratch is required unless --clear or --reindex", file=sys.stderr)
         return 2
     scratch = args.scratch if args.scratch.is_absolute() else REPO_ROOT / args.scratch
     if args.permuter_findings:

@@ -321,7 +321,7 @@ m = json.load(open(sys.argv[1], encoding="utf-8"))
 alts = m.get("alternates") or []
 if alts:
     func = m.get("func", "?")
-    print("Alternate seeds (better on a penalty the best-scoring seed is stuck on):")
+    print("Alternate seeds (fewer asm helpers, verified permuter gains, or different penalty tradeoffs):")
     for a in alts:
         pen = a.get("penalties") or {}
         mix = " ".join("%s=%s" % (k, pen[k]) for k in

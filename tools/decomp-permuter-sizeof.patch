@@ -1,0 +1,25 @@
+--- a/perm_pycparser/c_parser.py
++++ b/perm_pycparser/c_parser.py
+@@ -522,7 +522,10 @@
+         ('left', 'GT', 'GE', 'LT', 'LE'),
+         ('left', 'RSHIFT', 'LSHIFT'),
+         ('left', 'PLUS', 'MINUS'),
+-        ('left', 'TIMES', 'DIVIDE', 'MOD')
++        ('left', 'TIMES', 'DIVIDE', 'MOD'),
++        # Casts are unary expressions in this fork. Reduce sizeof(type) before
++        # a following +, -, * or &: otherwise it consumes a cast operand.
++        ('right', 'SIZEOF', '_ALIGNOF'),
+     )
+ 
+     ##
+@@ -1860,8 +1863,8 @@
+ 
+     def p_unary_expression_3(self, p):
+         """ unary_expression    : SIZEOF unary_expression
+-                                | SIZEOF LPAREN type_name RPAREN
+-                                | _ALIGNOF LPAREN type_name RPAREN
++                                | SIZEOF LPAREN type_name RPAREN %prec SIZEOF
++                                | _ALIGNOF LPAREN type_name RPAREN %prec _ALIGNOF
+         """
+         p[0] = c_ast.UnaryOp(
+             p[1].replace("__alignof", "_Alignof").replace("__", ""),

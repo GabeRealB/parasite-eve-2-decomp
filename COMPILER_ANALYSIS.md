@@ -5,6 +5,99 @@ functions and supplies a reusable observer. It does not claim an exact match
 for any of them. The rules derived from it are incorporated into
 [CODEGEN_MODEL.md](CODEGEN_MODEL.md).
 
+## Replay rerun follow-up: observe selection, preserve competing constraints
+
+The later Astra and Fable sessions still leave the best distance at 770
+(98.438%). Fable supplies a useful 1215-distance source with two asm helpers,
+and Astra's repaired permuter transformation improves a weaker alternate from
+4185 to 3112. Neither constitutes an improvement over 770. Both useful shapes
+were being omitted from the retry shortlist; they are now retained and given
+search priority, with equivalent observed objects sharing a slot.
+
+The next step is to combine the already-known requirements, rather than repeat
+their individual explanations. A source intervention can fix one compiler
+decision and break a later one. The following constraints remain relevant:
+
+| Requirement | Evidence or competing requirement |
+|---|---|
+| Palette must retain fp | The previous 909/911 allocation threshold still applies; source-shape padding can affect it without changing emitted instructions. |
+| Glyph subtraction must fall between the brightness loads | Ready-list priority does not settle its placement; actual hazards can queue a load and potential hazards can override the comparator. |
+| Height, top coordinate and final flag must use the target register at their respective lifetimes | Splitting top makes it a local quantity in v1 and leaves height/flag in a3; splitting only the flag preserves top in a0 but moves the shift early and flag to t0. |
+| Sprite piece must stay live long enough for t3, while page uses a1 | The previous runs show that removing the sprite barrier improves constant placement but moves the piece update early and changes allocation. A compatible dependency/lifetime intervention remains unresolved. |
+
+`trace_gcc.py --uids` now observes `schedule_insn` dependency releases and
+`schedule_select`, including `actual_hazard` and `potential_hazard`, in addition
+to the comparator. The scheduler operates backward. Actual hazard costs are
+delays; potential costs are weights derived from unit blockage and remaining
+unit users, not cycle counts. The compiler source is `sched.c`, particularly
+`adjust_priority`, `schedule_insn`, `schedule_select` and the hazard functions.
+
+The controlled subtraction experiment reproduced a concrete counterexample:
+
+1. Rebuild Fable base_19 as `compiler-residue/base_1.c`: distance 1215.
+2. Predict that separating `top = y - y0` from the reused `y0` will promote
+   subtraction UID 370 when released. Build `base_2.c`: distance 1809.
+3. Observe the predicted promotion from priority 3 to LAUNCH_PRIORITY
+   (2130706433). At sched1 cycle 11, the comparator prefers subtraction 370 to
+   green load 358. Both have zero actual hazard. The load wins the subsequent
+   potential-hazard choice, 8650752 versus 0.
+4. Observe top as local quantity b19/q12, nine weighted references over 16
+   half-instructions, allocated to v1. Remaining height/flag r90 receives a3
+   through global allocation. Thus the predicted promotion is real and
+   insufficient; the source split also violates the register requirement.
+
+A second counterfactual, `base_3.c`, assigns the final glyph flag to the existing
+`page` variable. It keeps top in a0 but moves the shift before the subtraction,
+does not fix X/X/Y/Y store grouping, and increases distance from 770 to 2970.
+The reorder penalty improves from nine to three while the register penalty
+increases from six to 118. A better individual penalty cannot establish that a
+candidate is a better starting point without examining these tradeoffs.
+
+Both observed compilations have byte-identical assembly with and without GDB.
+The [retained counterfactual evidence](tools/compiler_evidence/2026-09-09-replay-residue.json)
+contains compiler/source/input hashes, selected raw events, scores and plans
+recorded before compilation. Full traces and sources remain in the
+`compiler-residue` scratch and its session archive. No game source was changed.
+
+The search validity defect was also repaired at its source. The vendored parser
+misparsed `sizeof(T) + value` as a cast inside `sizeof`; explicit type-form
+precedence and regeneration of cached yacc tables repair it. The actual Replay
+seed now survives parser emission with the same normalized object fingerprint
+and distance 770. The generated compiler wrapper stops on an archived malformed
+output's cc1 exit status 33 and creates no object. These checks establish a valid
+search baseline; they do not establish a new matching source.
+
+A subsequent three-minute search across all three seeds illustrates why source
+review must follow scoring. The best numerical results were 770 → 710,
+1215 → 1161 and 3112 → 2149. The first writes the glyph flag into `p->y1`
+instead of its top coordinate; the third truncates the `0xE1000200` GPU command
+constant to 16 bits. Both were rejected. `attempt.py reject SOURCE --reason ...`
+now preserves that decision by source hash through archives and restores, while
+keeping the bad output as evidence. The other primary output reproduced the
+original 770 object in the scratch scorer despite a small search-score gain.
+
+The valid Fable alternate improves to **1161 (97.645%)**. Two controlled builds
+isolate its edits: casting sprite x to unsigned before subtraction produces
+identical object assembly; moving `p->clut` before the flag assignment reproduces
+the complete gain. The cast is unnecessary and omitted from the readable port,
+`compiler-residue/base_4.c`. Its stored halfword is equivalent modulo 65536 for
+all signed-16 x values, but equivalence alone does not imply a compiler effect.
+
+The clut expression contains signed division by four. Its generated sign branch
+creates a scheduling boundary: after the source reorder, the flag shift is in
+the following block, so its output/anti-dependencies no longer constrain the
+previous glyph block. This improves green/subtraction/blue/add and Y/X/Y/X
+ordering, but moves the flag shift later than the target and swaps gh/gv's hard
+registers across both loops. This is more specific than a ready-list tie change.
+An isolated transfer to the primary (`base_8.c`) predicted and reproduced that
+branch/shift boundary, but worsened distance to 1741. The reusable rule is to
+check RTL block membership before reasoning about scheduling priorities.
+
+The valid primary remains **770 (98.438%)**. The improved alternate and all
+counterexamples are archived. No test suite was added or run; validation used
+the actual compiler, object scorer, controlled source variations, observer
+output comparisons, syntax checks and source review.
+
 ## Method and evidence
 
 Read the patched source in `local/gcc/gcc-2.8.1-psx`, especially `toplev.c`,

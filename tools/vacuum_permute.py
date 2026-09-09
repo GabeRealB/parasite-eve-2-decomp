@@ -49,6 +49,8 @@ class Seed:
     pinned: bool
     penalties: Optional[dict] = None
     diagnosis: Optional[dict] = None
+    assembly_sha256: Optional[str] = None
+    permuter_gain: bool = False
 
     @property
     def source_hash(self):
@@ -56,7 +58,10 @@ class Seed:
 
     @property
     def barriers(self):
-        return len(re.findall(r'\b(?:SOFT_BARRIER|SCHED_BARRIER|asm|__asm__)\s*\(', self.path.read_text()))
+        # Count asm helpers too, and ignore mentions in comments/string literals.
+        source = re.sub(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                        ' ', self.path.read_text(), flags=re.S)
+        return len(re.findall(r'\b(?:SOFT_BARRIER|SCHED_BARRIER|SOFT_USE_REG|(?:SOFT_)?TOUCH_REG(?:_USE)?|asm|__asm(?:__)?)\s*\(', source))
 
 
 def parse_penalties(fields: list[str]) -> Optional[dict]:
@@ -74,11 +79,32 @@ def parse_penalties(fields: list[str]) -> Optional[dict]:
     return out or None
 
 
+def rejected_sources(scratch: Path) -> dict[str, str]:
+    """Semantic/source review is separate from a successful compiler score."""
+    rejected = {}
+    for name in ('PRIOR_SEEDS.json', 'meta.json'):
+        path = scratch / name
+        if path.is_file():
+            rejected.update(json.loads(path.read_text()).get('rejected_sources', {}))
+    for row in evidence.read_rows(scratch / 'experiments.jsonl'):
+        if row.get('event') == 'reject' and row.get('source_sha256'):
+            rejected[row['source_sha256']] = row['reason']
+    return rejected
+
+
 def parse_match_log(scratch: Path) -> list[Seed]:
     logs = [scratch / 'prior_match_log.txt', scratch / 'match_log.txt']
     if not any(log.is_file() for log in logs):
         return []
     observations = {}
+    aliases = {}
+    rejected = rejected_sources(scratch)
+    metadata = scratch / 'meta.json'
+    if not metadata.is_file():
+        metadata = scratch / 'PRIOR_SEEDS.json'
+    if metadata.is_file():
+        meta = json.loads(metadata.read_text())
+        aliases = {r.get('source_sha256'): r for r in [meta] + meta.get('alternates', [])}
     journal = scratch / 'attempts.jsonl'
     if journal.is_file():
         for line in journal.read_text().splitlines():
@@ -104,12 +130,24 @@ def parse_match_log(scratch: Path) -> list[Seed]:
         path = scratch / name
         if not path.is_file():
             continue
+        if hashlib.sha256(path.read_bytes()).hexdigest() in rejected:
+            continue
         text = path.read_text(encoding="utf-8", errors="replace")
         observation = observations.get(name)
         if observation:
             if observation.get('failure') or observation.get('source_sha256') != hashlib.sha256(path.read_bytes()).hexdigest():
                 continue
             score = observation.get('score', score)
+        alias = aliases.get(hashlib.sha256(path.read_bytes()).hexdigest(), {})
+        parent = observations.get((observation or {}).get('parent'), {})
+        parent_path = scratch / parent.get('source', '')
+        permuter_gain = bool(observation and parent and not parent.get('failure')
+                             and observation.get('parent', '').startswith('base_perm_')
+                             and parent_path.is_file()
+                             and parent.get('source_sha256') == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+                             and all(observation.get(k) is not None and observation.get(k) == parent.get(k)
+                                     for k in ('compiler_sha256', 'flags', 'target_sha256'))
+                             and observation.get('distance', float('inf')) < parent.get('distance', 0))
         diagnosis = None
         sidecar = path.with_suffix('.diagnosis.json')
         if sidecar.is_file():
@@ -125,6 +163,8 @@ def parse_match_log(scratch: Path) -> list[Seed]:
                 pinned=bool(REGISTER_ASM_RE.search(text)),
                 penalties=parse_penalties(parts[2:]),
                 diagnosis=diagnosis,
+                assembly_sha256=(observation or alias).get('assembly_sha256'),
+                permuter_gain=permuter_gain or alias.get('permuter_gain', False),
             )
     return list(seeds.values())
 
@@ -156,14 +196,39 @@ def eligibility(seed: Seed, min_score: float) -> tuple[bool, str]:
     return False, 'structure unknown; rebuild or investigate indirect control flow before search'
 
 
+def distinct_assembly(seeds: list[Seed]) -> list[Seed]:
+    """Prefer a compact source for each observed object; keep unobserved sources distinct."""
+    groups = {}
+    for seed in seeds:
+        groups.setdefault(seed.assembly_sha256 or seed.source_hash, []).append(seed)
+    result = []
+    for group in groups.values():
+        seed = min(group, key=lambda s: (s.pinned, -round(s.score, 6), s.barriers,
+                                        s.path.stat().st_size, s.path.name))
+        seed.permuter_gain = any(s.permuter_gain for s in group)
+        result.append(seed)
+    return result
+
+
 def search_candidates(seeds: list[Seed], min_score: float, limit: int) -> list[Seed]:
     """A bounded, source-distinct set, including lower-score alternatives."""
-    pool = list({s.source_hash: s for s in seeds if s.score >= min_score - 5 and not s.pinned}.values())
+    pool = distinct_assembly([s for s in seeds if s.score >= min_score - 5 and not s.pinned])
     if not pool or max(s.score for s in pool) < min_score:
         return []
     first = max(pool, key=lambda s: s.score)
     chosen = [first]
     pool.remove(first)
+    # Give the retained source-shape and permuter alternatives an actual search
+    # slot, instead of spending the budget on another copy of the same object.
+    for choices in (
+        [s for s in pool if s.score >= first.score - UNPINNED_WINDOW and s.barriers < first.barriers],
+        [s for s in pool if s.permuter_gain],
+    ):
+        choices = [s for s in choices if s in pool]
+        if choices and len(chosen) < limit:
+            candidate = max(choices, key=lambda s: (s.score, -s.barriers))
+            chosen.append(candidate)
+            pool.remove(candidate)
     axes = [lambda s: sum((s.penalties or {}).get(k, 10**6) for k in ('branch', 'insert', 'delete')),
             lambda s: s.barriers, lambda s: (s.penalties or {}).get('regs', 10**6),
             lambda s: (s.penalties or {}).get('reorder', 10**6)]
@@ -189,7 +254,7 @@ def pick_seed(seeds: list[Seed], min_score: float) -> Optional[Seed]:
     best = max(s.score for s in eligible)
     unpinned = [s for s in eligible if not s.pinned and s.score >= best - UNPINNED_WINDOW]
     pool = unpinned or eligible
-    pool.sort(key=lambda s: (-s.score, s.path.name))
+    pool.sort(key=lambda s: (-round(s.score, 6), s.barriers, s.path.stat().st_size, s.path.name))
     return pool[0]
 
 
@@ -417,7 +482,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     if improved:
         best = min(improved, key=lambda r: r['improvement']['after'])
         report.update(candidate=best['improvement']['candidate'], seed=best['seed'])
-        finish(0, 'partial improvement verified; investigate and retain for retry')
+        finish(0, 'distance improvement verified; review source behavior and compiler mechanism before reuse')
         print(f"PERMUTER_SEED={scratch / best['seed']}")
         print(f"PERMUTER_IMPROVEMENT={scratch / report['candidate']}")
         return 0

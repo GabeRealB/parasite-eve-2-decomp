@@ -1,7 +1,7 @@
 """Retain permutation experiments before the next search cleans its directory.
 
 Search distances are only leads. Rebuild a paired baseline and the best output
-with the scratch compiler/scorer before advertising an improvement for reuse.
+with the scratch compiler/scorer, then review source behavior before reuse.
 """
 from __future__ import annotations
 
@@ -75,14 +75,18 @@ def capture(perm_dir, scratch, seed, repo):
         for name in ('source.c', 'score.txt', 'diff.txt'):
             keep_file(path.parent / name, output / name)
         outputs.append({'path': str(output.relative_to(scratch)), 'source_sha256': source_hash,
-                        'search_distance': distance, 'validation': 'not rebuilt'})
+                        'search_distance': distance, 'validation': 'not rebuilt',
+                        'source_review': 'pending'})
     outputs.sort(key=lambda o: (o['search_distance'], o['path']))
     record = {'id': run_id, 'path': str(directory.relative_to(scratch)), 'seed': seed.name,
               'seed_build': baseline, 'outputs': outputs, 'analysis_at_capture': 'unresolved',
               'tool_sha256': {name: digest(repo / name) for name in (
                   'tools/linux/gcc-2.8.1-psx/cc1', 'tools/maspsx/maspsx.py',
                   'tools/maspsx/maspsx/__init__.py', 'tools/permuter_evidence.py',
-                  'tools/vacuum_permute.py',
+                  'tools/vacuum_permute.py', 'tools/prepare_permuter.py',
+                  'tools/decomp-permuter-sizeof.patch', 'tools/decomp-permuter-objdump.patch',
+                  'tools/decomp-permuter/perm_pycparser/c_parser.py',
+                  'tools/decomp-permuter/perm_pycparser/yacctab.py',
                   'tools/decomp-permuter/src/scorer.py', 'tools/decomp-permuter/src/randomizer.py',
                   'tools/claude-decomp-env/dist.py', 'permute.sh')}}
     save(scratch, record)

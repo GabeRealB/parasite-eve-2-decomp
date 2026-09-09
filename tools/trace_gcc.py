@@ -54,7 +54,8 @@ def hard(reg):
 
 
 def summarize(events, wanted):
-    lines = ['Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).']
+    lines = ['Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).',
+             'Scheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.']
     for event in events:
         kind = event['event']
         if kind == 'local_choice' and (not wanted or wanted.intersection(event['members'])):
@@ -77,6 +78,16 @@ def summarize(events, wanted):
         elif kind == 'schedule_compare':
             lines.append(f"{event['pass']} comparator uid {event['x']['uid']} / "
                          f"{event['y']['uid']}: {event['reason']}; prefers uid {event['winner']}")
+        elif kind == 'schedule_select':
+            lines.append(f"{event['pass']} cycle {event['clock']}: ready "
+                         f"{[r['uid'] for r in event['before']]} -> selects {event['selected']}; "
+                         f"hazards={event['hazards']}")
+        elif kind == 'schedule_release':
+            for dep in event['dependencies']:
+                before, after = dep['before'], dep['after']
+                lines.append(f"{event['pass']} cycle {event['clock']} scheduled {event['scheduled']}: "
+                             f"uid {before['uid']} refs {before['refs']}->{after['refs']}, "
+                             f"priority {before['priority']}->{after['priority']}, tick={after['tick']}")
         elif kind == 'postreload_set':
             lines.append(f"post-reload CSE uid {event['uid']}: {event['before']} -> {event['after']}")
         elif kind == 'error':
@@ -92,7 +103,7 @@ def main():
     parser.add_argument('--output-dir', required=True, type=Path, help='new directory for evidence')
     parser.add_argument('--function', help='restrict observation to this function')
     parser.add_argument('--regs', type=int, nargs='+', default=[], help='filter the text report only')
-    parser.add_argument('--uids', type=int, nargs='+', default=[], help='observe these scheduler UIDs; also filters post-reload substitutions')
+    parser.add_argument('--uids', type=int, nargs='+', default=[], help='observe scheduler comparisons, dependency releases and hazard selection for these UIDs; also filters post-reload substitutions')
     args = parser.parse_args()
     compiler = ROOT / 'tools/linux/gcc-2.8.1-psx/cc1'
     if digest(compiler.read_bytes()) != COMPILER_SHA256:

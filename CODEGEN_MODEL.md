@@ -69,6 +69,29 @@ relationship to the last scheduled instruction, then original RTL order
 instruction is not necessarily the next one in final forward assembly. Only
 instructions admitted by the dependency graph can compete in the ready queue.
 
+That comparator does **not** make the final selection. `schedule_select` scans
+equal-priority groups, queues instructions blocked by `actual_hazard`, then
+prefers the survivor with the largest `potential_hazard` weight. A lower-ranked
+instruction can therefore be selected. Potential weights are ranking values,
+not latency cycles. Repeated stores can keep a ready load blocked on successive
+cycles; changing its priority or original order cannot remove that hazard.
+
+Trace a misplaced instruction through three decisions: its last dependency is
+released in `schedule_insn`, its ready-list ranking, and hazard selection. In
+sched1, `adjust_priority` can promote a newly ready register definition to
+`LAUNCH_PRIORITY` through `birthing_insn_p`; promotion alone does not guarantee
+selection. Replay's separate-top-coordinate counterfactual got the predicted
+promotion, but the green load won on potential hazard. It also changed the
+top coordinate to a local quantity in v1 and left the reused height in a3.
+Scheduling and allocation requirements must be satisfied together.
+
+Check block membership even when only reordering C statements. Replay's clut
+expression expands signed division by four into a sign branch. Moving its
+store before the flag assignment moves the shift to the following RTL block;
+that changes the scheduler's available region and removes dependencies from
+the preceding block. It improves one alternate, but transfers poorly to the
+primary. A comparator model restricted to the old block cannot predict this.
+
 Sched1 changes lifetimes **before** allocation. Sched2 works with hard-register
 conflicts **after** reload and post-reload CSE. Reordering C has an effect only
 if it changes the relevant RTL, dependency graph or tie order. Replay UID 370
@@ -619,11 +642,16 @@ inside the inferior, and requires byte-identical emitted assembly from the
 ordinary and observed compiles.
 
 The output contains a compiler/input/source fingerprint manifest, complete
-allocation events, selected scheduler comparisons, post-reload substitutions,
+allocation events, selected scheduler comparisons, dependency releases, hazard
+selection, post-reload substitutions,
 RTL dumps and a filtered text report. `--regs` filters the report, not evidence;
-`--uids` selects scheduler comparisons and filters late substitutions. UIDs
-must be taken from this compilation's dumps. A scheduler comparison explains
-which ready instruction wins, not why a blocked instruction was unavailable.
+`--uids` selects comparisons, releases involving those UIDs, and complete
+ready-list/hazard decisions when one of them is ready; it also filters late
+substitutions. UIDs must be taken from this compilation's dumps. Release events
+show remaining dependency counts, priority changes and earliest issue ticks.
+Selection events show actual blocking costs and potential ranking weights.
+Cycles run backward and restart in each block. Consult the RTL dependency links
+for the full graph; a UID absent from a ready list cannot win its comparison.
 
 Only the audited cc1 hash is supported. A replacement binary needs an ABI/layout
 audit before extending the profile. Source hashes record what was inspected;

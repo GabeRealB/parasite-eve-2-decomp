@@ -13,6 +13,7 @@ BLOCK = None
 GLOBAL_SEEN = False
 ACTIVE = False
 COMPARISON = None
+SELECTION = None
 
 
 def emit(event, **values):
@@ -248,6 +249,53 @@ def schedule_cost():
         Finished(lambda result: row['costs'].__setitem__(uid, result))
 
 
+def scheduler_state(pointer):
+    uid = integer(pointer + 4)
+    return dict(uid=uid, priority=array('sched.c:insn_priority', uid),
+                refs=array('sched.c:insn_ref_count', uid), tick=array('sched.c:insn_tick', uid),
+                luid=array('sched.c:insn_luid', uid))
+
+
+def schedule_select():
+    global SELECTION
+    ready, count, clock = arg(0), arg(1), arg(2)
+    before = [scheduler_state(integer(ready + 4*i)) for i in range(count)]
+    if not any(r['uid'] in CONFIG['uids'] for r in before):
+        return
+    row = dict(clock=clock, before=before, hazards=[],
+               **{'pass': 'sched2' if value('reload_completed') else 'sched1'})
+    SELECTION = row
+    def finished(result):
+        global SELECTION
+        after = [scheduler_state(integer(ready + 4*i)) for i in range(result)]
+        emit('schedule_select', **row, after=after, selected=after[0]['uid'] if after else None)
+        SELECTION = None
+    Finished(finished)
+
+
+def schedule_hazard(kind):
+    if SELECTION is not None:
+        row, unit, pointer = SELECTION, arg(0), arg(1)
+        uid = integer(pointer + 4)
+        Finished(lambda result: row['hazards'].append(dict(kind=kind, unit=unit, uid=uid, cost=result)))
+
+
+def schedule_release():
+    # Comparisons cannot explain why an instruction was absent from the ready list.
+    scheduled, clock = integer(arg(0) + 4), arg(3)
+    links, link = [], integer(arg(0) + 24)
+    while link:
+        pointer = integer(link + 4)
+        if integer(pointer + 4) in CONFIG['uids']:
+            links.append((pointer, integer(link + 2, 1, False), scheduler_state(pointer)))
+        link = integer(link + 8)
+    if links:
+        phase = 'sched2' if value('reload_completed') else 'sched1'
+        Finished(lambda result: emit('schedule_release', **{'pass': phase}, scheduled=scheduled, clock=clock,
+                                     dependencies=[dict(kind=kind, before=before, after=scheduler_state(pointer))
+                                                   for pointer, kind, before in links]))
+
+
 Entry('local_alloc', begin_function, always=True)
 Entry('local-alloc.c:block_alloc', begin_block)
 Entry('local-alloc.c:find_free_reg', local_choice)
@@ -261,4 +309,8 @@ Entry('schedule_insns', begin_function, always=True)
 if CONFIG['uids']:
     Entry('sched.c:rank_for_schedule', schedule_compare)
     Entry('sched.c:insn_cost', schedule_cost)
+    Entry('sched.c:schedule_select', schedule_select)
+    Entry('sched.c:actual_hazard', lambda: schedule_hazard('actual'))
+    Entry('sched.c:potential_hazard', lambda: schedule_hazard('potential'))
+    Entry('sched.c:schedule_insn', schedule_release)
 gdb.events.exited.connect(lambda event: emit('exit', code=getattr(event, 'exit_code', None)))

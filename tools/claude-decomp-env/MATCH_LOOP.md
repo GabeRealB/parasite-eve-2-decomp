@@ -18,7 +18,7 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 |---|---|---|
 | `insert` / `delete` / `branch` ≠ 0 | `.diagnosis.json`, then relevant RTL dumps | Distinguish changed block connections/predicates from shifted addresses, spills, rematerialization and scheduling. These penalties alone do not identify the cause. |
 | `regs` | `.lreg` `.greg`, compiler trace if needed | Identify local quantity membership/suggestions, then global conflicts/preferences, then reload evictions. `lregwalk.py` helps locate possible ties; `tools/trace_gcc.py` observes actual quantities and decisions. Per-pseudo priority ratios do not rank local quantities. `CODEGEN_MODEL.md` §10.5. |
-| `reorder` | `.sched` `.sched2` `.dbr` | Check ready-instruction priorities, dependency classes and original RTL order, then delay-slot handling. |
+| `reorder` | `.sched` `.sched2` `.dbr` | Check dependency release, ready-list ranking, actual/potential hazard selection, then delay-slot handling. The comparator alone does not select the instruction. |
 | load survives `.greg`, becomes copy in `.sched2` | `reload_cse_regs`, then `.sched2` | Post-reload CSE runs between those dumps. Trace the substitution before changing scheduler barriers. |
 | `stack` | extra locals / frame | Split or shrink locals. |
 | fused const, `lb` vs `lh`, dropped `andi` | `.cse` `.cse2` `.combine` | |
@@ -38,6 +38,11 @@ Read `HISTORY.md` on a retry. The archive keeps immutable session notes, sources
 compressed preprocessed inputs and experiment records even if the score declines.
 Archived `seed_*.c` alternatives are copied into the scratch; their scores are
 historical and must be rebuilt with the current headers and compiler.
+The shortlist reserves room for a near-best source with fewer asm helpers and
+a verified permuter gain, then different penalty tradeoffs. Equivalent observed
+objects share one search slot. `PRIOR_SEEDS.json` carries this evidence across
+restores. Reconsider older candidates with `tools/archive_giveup.py --func FUNC
+--reindex` when selection policy changes; this leaves session snapshots intact.
 
 Before an edit, record a prediction (the candidate file can be created afterward):
 
@@ -62,6 +67,17 @@ the user authorized more. Repeats consume the budget without counting as progres
 Before stopping, complete conclusions and write unresolved questions plus evidence
 in `LEARNINGS.md`. General compiler findings may also enter the shared corpus;
 the session copy is preserved independently of whether a match lands.
+
+When previous sessions already explain individual changes but remain stuck,
+write the conflicting requirements in `LEARNINGS.md` before another variant:
+desired instruction order, dependency/hazard that prevents it, required register
+home or lifetime, and the first pass where each requirement fails. Predict both
+the decision being changed and the allocation/scheduling property that must
+survive it. Inspect those two results separately even if the score declines.
+For example, Replay's subtraction can gain the expected launch priority yet
+lose hazard selection and move to a different register. Repeating that priority
+explanation or rearranging equal-priority statements is not a new hypothesis;
+the next intervention must address the demonstrated conflict.
 
 ## Pins
 
@@ -147,6 +163,18 @@ Treat discoveries as compiler experiments. Read `PERMUTER_ANALYSIS.md`, preserve
 the original seed and improved candidate, and use new files to isolate the
 source change. Compare the first meaningful RTL divergence; ignore numbering
 noise. Distinguish preprocessing/normalization effects from the permutation.
+First inspect the source delta for changed values, dropped masks or stores,
+truncated constants and reads moved across writes. Permuter mutations need not
+preserve behavior. A successful paired build verifies distance, not semantics.
+Exclude a disproven candidate without deleting its evidence:
+
+```
+./attempt.py reject base_perm_ID.c --reason 'moves flag assignment before the coordinate store; y1 receives the flag'
+```
+
+Rejections follow the source hash through archival and restore; modifying the
+source creates a new candidate for review. Inspect the next retained output
+when the best-distance result is invalid, within the same follow-up budget.
 Use `trace_gcc.py` when actual compiler decisions are needed; store traces under
 `PERMUTER_EVIDENCE/<run>/analysis/`. Record a prediction with `attempt.py plan`
 before compiling a controlled variation, then compare its actual result.
