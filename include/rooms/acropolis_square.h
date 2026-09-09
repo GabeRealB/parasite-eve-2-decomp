@@ -33,4 +33,15 @@ typedef struct AcropolisSquareCutscene {
 } AcropolisSquareCutscene;
 STATIC_ASSERT_SIZEOF(AcropolisSquareCutscene, 0x20);
 
+/// Projected flare centre, depth, and radii in the 0x18-byte scratch block.
+typedef struct AcropolisSquareBeamScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     rOuter;
+    /* 0x08 */ s32     rInner;
+    /* 0x0C */ SVECTOR vec;
+    /* 0x14 */ u16     sx;
+    /* 0x16 */ u16     sy;
+} AcropolisSquareBeamScratch;
+STATIC_ASSERT_SIZEOF(AcropolisSquareBeamScratch, 0x18);
+
 #endif // ROOMS_ACROPOLIS_SQUARE_H
