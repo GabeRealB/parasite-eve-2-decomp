@@ -5713,7 +5713,6 @@ void Gp_AttachListTask(Task* arg0)
     s32            val;
     register Task* task asm("s3");
     s32            one;
-    register char* hi asm("v0");
     s32            state;
     GpItemSlot*    slot;
     u8             temp;
@@ -5723,13 +5722,12 @@ void Gp_AttachListTask(Task* arg0)
     UiObject*      childObj;
     s32            flag;
 
-    task = arg0;
-    obj  = task->spawnArg2;
-    val  = (u16)task->spawnArg1;
-    asm volatile("lui %0, 0x8011" : "=r"(hi) : "r"(val));
+    task          = arg0;
+    obj           = task->spawnArg2;
+    val           = (u16)task->spawnArg1;
+    menu          = &D_8010E9CC;
     obj->field_2E = 0;
     state         = task->state;
-    menu          = (UiList*)(hi + (s16)0xE9CC);
     if (state == 0) {
         Gp_BuildAttachList(menu, val);
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
@@ -5829,12 +5827,8 @@ void Gp_AttachListTask(Task* arg0)
             return;
         }
         if ((task->killCountdown == 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            if (task->spawnArg1 & 0x10000) {
-                if (task->state == 2) {
-                    obj->field_2E = 6;
-                } else {
-                    obj->field_2E = 9;
-                }
+            if ((task->spawnArg1 & 0x10000) && (task->state == 2)) {
+                obj->field_2E = 6;
             } else {
                 obj->field_2E = 9;
             }

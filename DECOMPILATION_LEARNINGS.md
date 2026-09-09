@@ -57080,3 +57080,48 @@ compiler chose (`Gp_DrawAmmoRow`). The barrier is separately required: dropping
 it lets the copy schedule back into the delay slot, and dropping the `"+r"(obj)`
 half lets cse rewrite later uses of the pinned `obj` as the argument pseudo,
 which costs an extra `move`.
+
+## `&Global` halves its own allocation priority; the fix is on the *other* pseudo
+
+Writing `menu = &D_8010E9CC;` where a hand-built `asm("lui")` used to stand can
+reproduce the schedule exactly and still lose the register. The `lo_sum` insn
+that expand emits for a symbol address carries `REG_EQUIV (symbol_ref …)`, and
+`update_equiv_regs` (local-alloc.c) reacts to any REG_EQUIV with
+
+```c
+	      /* Note that the statement below does not affect the priority
+		 in local-alloc!  */
+	      REG_LIVE_LENGTH (regno) *= 2;
+```
+
+deliberately deprioritising a register the reloader could rematerialise. global
+then ranks with `floor_log2 (n_refs) * n_refs / live_length * 10000`, so in
+`Gp_AttachListTask` the address pseudo fell from 12631 (8 refs, span 19) to 6315
+(span 38) and lost `$s0` to the `UiObject*` at 7843. The faked `lui` had hidden
+this because `reg = hi + (s16)0xE9CC` is a `plus`, not a constant, so it got no
+REG_EQUIV and no doubling.
+
+Nothing on the address side helps: the doubling is unconditional once the note
+exists, the note is inherent to a symbol address, and suppressing it needs
+`REG_N_SETS != 1`. Attack the competitor instead, and look for the `floor_log2`
+cliff - one reference either side of a power of two moves the priority by a
+fifth. Here the loser had 32 references and the source held two identical tails:
+
+```c
+if (task->spawnArg1 & 0x10000) {
+    if (task->state == 2) { obj->field_2E = 6; } else { obj->field_2E = 9; }
+} else { obj->field_2E = 9; }
+```
+
+Folding them to `if ((task->spawnArg1 & 0x10000) && (task->state == 2))` is the
+same control flow after cross-jumping - identical instructions - but 31
+references, `floor_log2` 4 instead of 5, priority 6078, and the address pseudo
+takes `$s0`. Duplicated statements that the optimiser merges are invisible in
+the output and still counted by `REG_N_REFS`; loop bodies count them at
+`loop_depth`, so a duplicate inside a loop is worth two.
+
+When such a hack goes away, drop its `configs/USA/rel.<overlay>.txt` override
+too. Those entries exist to mark the faked words `MIPS_NONE` so objdiff's
+expected object matches a numeric immediate; leaving one behind after the
+compiler starts emitting `%hi`/`%lo` again recreates exactly the 99.97% the
+cleanup was meant to remove.

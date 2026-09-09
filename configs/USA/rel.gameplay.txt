@@ -38,12 +38,6 @@ rom:0x28D84 reloc:MIPS_NONE symbol:Gp_MoveScanDst
 rom:0x28DB8 reloc:MIPS_NONE symbol:Gp_MoveScanDst
 
 //--------------------------------------------------------------------
-//--- VA: 0x800C9654   split la of D_8010E9CC (lui in delay of bnez)
-//--------------------------------------------------------------------
-rom:0x35E7C reloc:MIPS_NONE symbol:D_8010E9CC
-rom:0x35E90 reloc:MIPS_NONE symbol:D_8010E9CC
-
-//--------------------------------------------------------------------
 //--- VA: 0x800C9E94   lui %hi(Mc_SaveData+0x5BC) in bnez delay
 //--------------------------------------------------------------------
 rom:0x366E4 reloc:MIPS_NONE symbol:Mc_SaveData
