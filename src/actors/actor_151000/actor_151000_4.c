@@ -1,24 +1,27 @@
 #include "common.h"
 
 #include "actors/actor_151000.h"
-#include "main/gfx.h"
-#include "main/task.h"
-#include "main/tmd.h"
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement`: the yaw is
-/// remembered in the work block and applied with `Gfx_RotMatrixY`, then the
-/// three longs become the coordinate's translation.
-s32 func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* placement)
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+extern s16 D_actor_151000_8013D2AC;
+
+/// Reseeds animation slots 1..0x12 from `field_480` and latches that id into
+/// `field_47E` as the one now playing.
+void func_actor_151000_801326AC(void)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    s32 i;
 
-    coord                         = ((TmdObject*)task->extra)->field_8;
-    ActorsShared80131f9cWork->yaw = yaw = placement->yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->flg        = 0;
-    return 0;
+    ActorsShared80131f9cWork->field_4B8 = NULL;
+    i                                   = 1;
+    do {
+        func_800B4114(&ActorsShared80131f9cWork->anim, i, (s16)ActorsShared80131f9cWork->field_480, 0,
+                      D_actor_151000_8013D2AC);
+        i++;
+    } while (i < 0x13);
+    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->field_480;
 }
+
+INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000_4", func_actor_151000_80132738);
