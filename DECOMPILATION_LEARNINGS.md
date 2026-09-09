@@ -30280,6 +30280,58 @@ filler cannot sink the `ori` and emits `ori 0x80 ; j L ; nop` — one instructio
 too many (98.96% vs 99.97%). Cross-jumping needs at least two matching insns, so
 a barrier ahead of the pair leaves only the `jump` matching and is enough.
 
+## `asm volatile("")` at the *head of the shared tail* keeps the cross-jumped `j`
+
+The mirror image of the entry above. A path whose duplicated tail is merged into
+the *immediately following* block loses its `j` as well: `do_cross_jump` deletes
+the matched insns and retargets the jump at a label it puts before the tail, and
+because that label is now the next thing in the stream, jump.c's "detect jump to
+following insn" test (`reallabelprev == insn`, `jump.c` ~line 690 —
+`condjump_p` is true for a plain `j` too) deletes the jump and the block just
+falls through. In `SndLoad_Complete` this cost two instructions: the target has
+
+```
+    j    .L80053238
+     addu $v0, $s1, $zero      # delay slot
+.L80053234:
+    addu $v0, $s1, $zero       # the shared tail's own copy
+```
+
+and the fall-through version has only the second `addu`.
+
+The fix is one empty asm at the **start of the tail block, before its first
+insn**:
+
+```c
+block_ret:
+    SCHED_BARRIER();
+    v0r = s1;
+block_clear14:
+    ...
+```
+
+`prev_active_insn` skips notes, labels and barriers but *not* an asm insn (after
+reload it only skips `USE`/`CLOBBER`), so `get_label_before` has to create a
+fresh label after the asm, that label's previous active insn is the asm rather
+than the jump, and the jump survives. The asm emits nothing, so the new label
+and `block_ret` are the same address and every other jump into the tail is
+unaffected.
+
+Note this is the opposite placement from the entry above: there the barrier goes
+in the *source* arm to stop the match, here it goes in the *destination* block to
+stop the label from landing adjacent to the jump. A barrier between the copy and
+the jump does not work — `reorg.c`'s `stop_search_p` treats any asm insn as a
+hard stop, so the delay-slot filler cannot reach past it and emits a `nop`.
+
+Two other things this function pinned down. Writing `v0r = s1; goto tail;` after
+a call is not enough on its own: `v0r` is a pseudo, cse already knows it equals
+`s1` from the preceding `if (s1 != v0r)`, and the copy is deleted — which then
+makes `v0r` live across the call and pushes it out of `$v0`. Use a duplicated
+`return s1;` (a hard `(set (reg/i:SI 2 v0) ...)`, which the call invalidates) or
+pin `v0r` to `$v0`. And the `j`/`move` pair in the delay slot is ordinary
+delay-slot filling from *before* the branch, not a hand-built sequence; there is
+no need to write it out.
+
 ## Duplicate the shared store in both arms so it lands in the cross-jumped tail
 
 `Gp_FadeWorkTask` writes a `DR_TPAGE` whose `code[0]` depends on a flag. Hoisting
