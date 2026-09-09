@@ -50,7 +50,6 @@ extern void  Gp_RestoreStreamRng(void);
 extern void  func_8017D6D4(void);
 extern void  func_801D4B64(Task* arg0);
 extern s32   func_80042500(void);
-extern void  func_80046EEC(void* arg0, void* arg1, s32 arg2);
 extern void  func_8004E200(void);
 extern u8*   Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
 extern s32   CdAudio_DriveNull(void);

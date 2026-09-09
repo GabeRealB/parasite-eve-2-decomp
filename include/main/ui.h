@@ -132,6 +132,52 @@ typedef struct _UiList {
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
+/// Signed list layout used by the list renderer. Shares UiList's 0x24-byte
+/// storage; field_8 is the item being drawn, field_B is the navigation step,
+/// field_18/field_1A are draw coordinates, and field_1C is per-item draw data.
+typedef struct {
+    /* 0x00 */ void (**funcs)(void*, void*);
+    /* 0x04 */ u8   field_4;
+    /* 0x05 */ s8   field_5;
+    /* 0x06 */ s8   field_6;
+    /* 0x07 */ s8   field_7;
+    /* 0x08 */ s8   field_8;
+    /* 0x09 */ s8   field_9;
+    /* 0x0A */ u8   field_A;
+    /* 0x0B */ s8   field_B;
+    /* 0x0C */ s32  field_C;
+    /* 0x10 */ s32  field_10;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ s8   field_16;
+    /* 0x17 */ s8   field_17;
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+    /* 0x1C */ s32  field_1C;
+    /* 0x20 */ s16  field_20;
+    /* 0x22 */ s16  field_22;
+} UiListRender;
+STATIC_ASSERT_SIZEOF(UiListRender, 0x24);
+
+/// UiPanel/UiObject prefix used when drawing a list. The status word is also
+/// tested by its high halfword, and the cursor origin is signed.
+typedef struct {
+    /* 0x00 */ union {
+        s32 w;
+        s16 h[2];
+    } state;
+    /* 0x04 */ u8  pad4[0x14];
+    /* 0x18 */ u16 field_18;
+    /* 0x1A */ u16 field_1A;
+    /* 0x1C */ u16 field_1C;
+    /* 0x1E */ u16 field_1E;
+    /* 0x20 */ s16 field_20;
+    /* 0x22 */ s16 field_22;
+} UiPanelRender;
+STATIC_ASSERT_SIZEOF(UiPanelRender, 0x24);
+
+extern s32 D_80067640;
+void       func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2);
+
 /// WIP: Task::spawnArg1 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
 typedef struct _WipSelectMenuExt {

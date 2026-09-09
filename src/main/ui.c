@@ -1246,7 +1246,402 @@ void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
     a1->field_14 = (u16)(a1->field_14 - 1);
 }
 
-INCLUDE_ASM("main/nonmatchings/ui", func_80046EEC);
+void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
+{
+    s32 sp10;
+    s32 sp14;
+    s32 sp18;
+    s32 sp1C;
+    s32 sp20;
+    s16 temp_a1;
+    s16 temp_v1_5;
+    s32 var_s3;
+    s32 var_s5;
+    s32 temp_a0_4;
+    s32 temp_s2;
+    s32 temp_s1;
+    s32 cursorTop;
+    s32 emptyTop;
+    s32 pageFits;
+    s32 pageRows;
+    u8  pageRowsUnsigned;
+    s32 targetX;
+    s32 targetY;
+    s16 baseX;
+    s16 baseY;
+    u8  count;
+    s32 temp_v0_2;
+    s32 temp_v1;
+    s32 temp_v1_13;
+    s32 temp_v1_2;
+    s32 marginMinusOne;
+    s32 temp_v1_4;
+    s32 temp_v1_6;
+    s32 temp_v1_7;
+    s32 var_a0;
+    s32 var_a1;
+    s32 var_a1_2;
+    s32 var_s2;
+    s32 var_s4;
+    s32 var_s7;
+    s32 temp_a0_2;
+    s8  temp_a0_3;
+    s8  temp_a2;
+    s8  temp_a3;
+    s8  temp_v0;
+    s8  temp_v1_10;
+    s8  temp_v1_11;
+    s32 temp_v1_12;
+    s8  temp_v1_16;
+    s8  temp_v1_3;
+    s32 temp_v1_8;
+    s32 var_fp;
+    s32 var_s1;
+    s32 temp_a0;
+    s32 temp_a1_2;
+    u8  temp_a1_3;
+    u8  temp_v1_14;
+    u8  temp_v1_15;
+    s32 temp_v1_17;
+    u8  temp_v1_9;
+
+    var_s7 = 0;
+    sp10   = 0;
+    sp14   = 0;
+    sp18   = 0;
+    sp20   = (s32)((u8)arg0->field_5 << 0x18) >> 0x1A;
+    sp1C   = D_80067640;
+    if (sp20 < 2) {
+        sp20 = 0;
+    }
+    arg0->field_20 = 0;
+    arg0->field_22 = 0;
+    arg0->field_18 = (s16)(arg1->field_1C + 2);
+    temp_v1        = arg1->state.w;
+    if (temp_v1 >= 2)
+        switch (temp_v1) {
+            case 19:
+                arg0->field_10 = (s32)arg0->field_9;
+                break;
+            case 18:
+                arg0->field_10 = (s32)((arg0->field_9 + (s8)arg0->field_5) - 1);
+                break;
+        }
+    temp_v1_2 = arg0->field_10;
+    if (temp_v1_2 < 0) {
+        arg0->field_10 = (s32)(temp_v1_2 + arg0->field_4);
+    }
+    var_fp = (s8)arg0->field_5;
+    if (var_fp < (s32)arg0->field_4) {
+        if ((arg0->field_6 != 0) || (arg0->field_9 > 0)) {
+            Ui_DrawCaret((UiList*)arg0, (UiPanel*)arg1, 0);
+        }
+        if ((arg0->field_6 != 0) || ((arg0->field_9 + (s8)arg0->field_5) < (s32)arg0->field_4)) {
+            Ui_DrawCaret((UiList*)arg0, (UiPanel*)arg1, 1);
+        }
+        arg0->field_1A = (s16)(arg1->field_18 + (s8)arg0->field_7);
+        if (arg0->field_14 > 0) {
+            temp_a1 = (s16)((u16)arg0->field_14 - (Display_State.field_10a * 2));
+            SOFT_TOUCH_REG(temp_a1);
+            arg0->field_14 = temp_a1;
+            if (temp_a1 <= 0) {
+                arg0->field_14 = 0;
+                if (arg0->field_16 == 1) {
+                    temp_a0       = arg0->field_4;
+                    temp_v1_3     = (u8)arg0->field_9 + 1;
+                    arg0->field_9 = temp_v1_3;
+                    if (temp_v1_3 >= (s32)temp_a0) {
+                        arg0->field_9 = (s8)(temp_v1_3 - temp_a0);
+                    }
+                }
+                arg0->field_16 = 0;
+            } else {
+                if (arg0->field_16 == 1) {
+                    temp_a0_2 = (s8)arg0->field_7;
+                    temp_a1   = temp_a0_2 - temp_a1;
+                    SOFT_TOUCH_REG(temp_a1);
+                    temp_v1_4      = arg0->field_1A + 7;
+                    temp_v1_4     -= temp_a0_2;
+                    arg0->field_1A = (u16)arg0->field_1A - temp_a1;
+                    var_s7         = temp_v1_4 + (((s8)arg0->field_5 - 1) * temp_a0_2);
+                } else {
+                    cursorTop      = arg0->field_1A + 7;
+                    var_s7         = cursorTop - arg0->field_7;
+                    arg0->field_1A = (s16)((u16)arg0->field_1A - temp_a1);
+                }
+                var_fp += 1;
+            }
+        }
+    } else {
+        arg0->field_1A = (s16)(arg1->field_18 + (s8)arg0->field_7);
+    }
+    temp_v1_5      = (u16)arg0->field_1A + (s8)arg0->field_17;
+    var_s5         = temp_v1_5;
+    var_s3         = var_s5;
+    arg0->field_1A = temp_v1_5;
+    if (arg0->field_4 == 0) {
+        var_a1    = 0;
+        temp_s2   = arg0->field_18 - 2;
+        emptyTop  = var_s5 + 7;
+        var_s7    = emptyTop - arg0->field_7;
+        baseX     = arg1->field_20;
+        baseY     = arg1->field_22;
+        targetX   = temp_s2 + baseX;
+        targetY   = var_s7 + baseY;
+        targetX <<= 8;
+        targetY <<= 8;
+        count     = Display_State.field_10a;
+        if (count != 0) {
+            do {
+                var_a1     += 1;
+                D_80067648 += (targetX - D_80067648) >> 2;
+                D_8006764C += (targetY - D_8006764C) >> 2;
+            } while (var_a1 < count);
+        }
+        targetX = D_80067648 >> 8;
+        targetY = D_8006764C >> 8;
+        Ui_DrawCursor((UiPanel*)arg1, targetX - arg1->field_20, targetY - arg1->field_22);
+    } else {
+        if (arg0->field_14 != 0) {
+            Ui_SetListClip((UiList*)arg0, (UiPanel*)arg1, 1);
+        }
+        var_s1 = arg0->field_9;
+        var_s4 = 0;
+        if (var_fp > 0) {
+            do {
+                if (var_s1 == arg0->field_10) {
+                    if (arg0->field_16 == 0) {
+                        temp_v1_6 = arg1->state.w;
+                        if (temp_v1_6 == 1) {
+                            SOFT_TOUCH_REG(temp_v1_6);
+                            sp18           = 1;
+                            arg0->field_C  = temp_v1_6;
+                            arg0->field_1C = sp1C;
+                            var_s5         = var_s3;
+                        } else {
+                            arg0->field_C  = 0;
+                            arg0->field_1C = sp1C;
+                        }
+                    }
+                    temp_a0_3 = (s8)arg0->field_7;
+                    temp_v1_7 = var_s3 - ((s32)(temp_a0_3 - 1) / 2);
+                    var_s7    = temp_v1_7 - 1;
+                    if (temp_a0_3 == 8) {
+                        var_s7 = temp_v1_7 - 2;
+                    }
+                } else {
+                    arg0->field_C  = 0;
+                    arg0->field_1C = sp1C;
+                }
+                var_s2        = 0;
+                temp_v1_8     = (s8)arg0->field_7;
+                arg0->field_8 = var_s1;
+                if (temp_v1_8 == 0xA) {
+                    var_s2 = 3;
+                } else if (temp_v1_8 < 0xA) {
+                    var_s2 = 2;
+                } else if (temp_v1_8 >= 0x10) {
+                    var_s2 = temp_v1_8 - 0xF;
+                }
+                arg0->field_1A = (s16)(var_s3 - var_s2);
+                if (arg0->field_A & 1) {
+                    arg0->funcs[0](arg0, arg1);
+                } else {
+                    arg0->funcs[var_s1](arg0, arg1);
+                }
+                if ((var_s1 == arg0->field_10) && (arg0->field_22 == 0x41)) {
+                    sp18 = 0;
+                }
+                var_s1   += 1;
+                var_s3    = arg0->field_1A + var_s2;
+                var_s3   += arg0->field_7;
+                temp_v1_9 = arg0->field_4;
+                if (var_s1 >= (s32)temp_v1_9) {
+                    var_s1 -= temp_v1_9;
+                }
+                var_s4 += 1;
+            } while (var_s4 < var_fp);
+        }
+        if ((sp18 == 1) && ((s8)arg0->field_7 != 0x2E)) {
+            ((void (*)(UiList*, UiPanel*, s32, s32))Ui_DrawListHighlight)((UiList*)arg0, (UiPanel*)arg1, var_s5, 0);
+        }
+        temp_s2 = arg0->field_18 - 2;
+        if (arg0->field_14 != 0) {
+            Ui_SetListClip((UiList*)arg0, (UiPanel*)arg1, 0);
+            goto block_96;
+        }
+        temp_s1 = arg1->state.w;
+        if (temp_s1 == 1) {
+            if ((arg0->field_22 == 0) && (Pad_CheckButtons(arg2, 0, 0xA000) == 0)) {
+                if (Pad_CheckButtons(arg2, 1, 0x1000) != 0) {
+                    sp14            = 1;
+                    arg0->field_B   = -1;
+                    sp10            = -1;
+                    arg0->field_10 -= 1;
+                } else if (Pad_CheckButtons(arg2, 1, 0x4000) != 0) {
+                    sp14            = 1;
+                    sp10            = 1;
+                    arg0->field_10 += 1;
+                    arg0->field_B   = (u8)sp14;
+                } else if (((s8)arg0->field_5 < (s32)arg0->field_4) && (arg0->field_6 == 0)) {
+                    if (Pad_CheckButtons(0, 1, 4) != 0) {
+                        if (arg0->field_10 != 0) {
+                            sp14 = 1;
+                        }
+                        arg0->field_B   = -1;
+                        sp10            = -1;
+                        arg0->field_10 -= 1;
+                        if (arg0->field_9 > 0) {
+                            temp_v0       = (u8)arg0->field_9 - (u8)arg0->field_5;
+                            arg0->field_9 = temp_v0;
+                            if (temp_v0 < 0) {
+                                arg0->field_9 = 0;
+                            }
+                            temp_v0_2 = (arg0->field_9 + (s8)arg0->field_5) - 1;
+                            if (temp_v0_2 < arg0->field_10) {
+                                arg0->field_10 = temp_v0_2;
+                            }
+                        } else {
+                            arg0->field_10 = 0;
+                        }
+                    } else if (Pad_CheckButtons(0, 1, 8) != 0) {
+                        if (arg0->field_10 != (arg0->field_4 - 1)) {
+                            sp14 = 1;
+                        }
+                        TOUCH_REG_MEM(temp_s1);
+                        sp10             = 1;
+                        pageRows         = arg0->field_5;
+                        temp_a1_2        = arg0->field_4;
+                        pageRowsUnsigned = (u8)((volatile UiListRender*)arg0)->field_5;
+                        arg0->field_10  += 1;
+                        SCHED_BARRIER();
+                        arg0->field_B = temp_s1;
+                        pageFits      = arg0->field_9 + pageRows < temp_a1_2;
+                        SCHED_BARRIER();
+                        temp_v1_10 = (u8)arg0->field_9 + pageRowsUnsigned;
+                        if (pageFits) {
+                            arg0->field_9 = temp_v1_10;
+                            if (temp_v1_10 > arg0->field_4 - arg0->field_5) {
+                                arg0->field_9 = arg0->field_4 - (u8)arg0->field_5;
+                            }
+                            temp_v1_11 = arg0->field_9;
+                            if (arg0->field_10 < temp_v1_11) {
+                                arg0->field_10 = (s32)temp_v1_11;
+                            }
+                        } else {
+                            arg0->field_10 = temp_a1_2 - 1;
+                        }
+                    }
+                }
+            }
+            if (arg0->field_22 == 0x41) {
+                arg0->field_22 = 0;
+                if ((s8)arg0->field_B == 0) {
+                    arg0->field_B = 1U;
+                }
+                temp_v1_12     = arg0->field_B;
+                arg0->field_10 = (s32)(arg0->field_10 + temp_v1_12);
+                sp10           = (s32)temp_v1_12;
+                SOFT_TOUCH_REG(sp10);
+            }
+        block_96:
+            if (arg1->state.w != 1) {
+                goto block_97;
+            }
+            goto block_98;
+        }
+    block_97:
+        if (arg1->state.h[1] == 1) {
+        block_98:
+            if ((s8)arg0->field_7 != 0x2E) {
+                var_a1_2  = 0;
+                baseX     = arg1->field_20;
+                baseY     = arg1->field_22;
+                targetX   = temp_s2 + baseX;
+                targetY   = var_s7 + baseY;
+                targetX <<= 8;
+                targetY <<= 8;
+                count     = Display_State.field_10a;
+                if (count != 0) {
+                    do {
+                        var_a1_2   += 1;
+                        D_80067648 += (targetX - D_80067648) >> 2;
+                        D_8006764C += (targetY - D_8006764C) >> 2;
+                    } while (var_a1_2 < count);
+                }
+                targetX = D_80067648 >> 8;
+                targetY = D_8006764C >> 8;
+                Ui_DrawCursor((UiPanel*)arg1, targetX - arg1->field_20, targetY - arg1->field_22);
+            }
+        }
+        if (sp10 == -1) {
+            temp_v1_13 = arg0->field_10;
+            if (temp_v1_13 < 0) {
+                if (arg0->field_6 != 0) {
+                    arg0->field_10 = (s32)(temp_v1_13 + arg0->field_4);
+                } else {
+                    sp14           = 0;
+                    arg0->field_22 = 2;
+                    arg0->field_10 = 0;
+                    arg0->field_B  = 1U;
+                }
+            }
+            temp_v1_14 = arg0->field_4;
+            if (temp_v1_14 != (s8)arg0->field_5) {
+                temp_v1_15     = (u8)arg0->field_9;
+                marginMinusOne = sp20 - 1;
+                if ((arg0->field_9 + marginMinusOne) >= ((s32)arg0->field_10 % (s32)temp_v1_14)) {
+                    if (arg0->field_6 != 0) {
+                        temp_v1_16    = temp_v1_15 - 1;
+                        arg0->field_9 = temp_v1_16;
+                        if (temp_v1_16 < 0) {
+                            arg0->field_9 = (s8)(temp_v1_16 + arg0->field_4);
+                        }
+                        arg0->field_16 = -1;
+                        arg0->field_14 = (s8)arg0->field_7;
+                    } else {
+                        arg0->field_9 -= 1;
+                        if (arg0->field_9 < 0) {
+                            arg0->field_9 = 0;
+                        } else {
+                            arg0->field_16 = -1;
+                            arg0->field_14 = (s8)arg0->field_7;
+                        }
+                    }
+                }
+            }
+        } else if (sp10 == 1) {
+            temp_v1_17 = arg0->field_4;
+            temp_a0_4  = arg0->field_10;
+            if (temp_a0_4 >= (s32)temp_v1_17) {
+                if (arg0->field_6 != 0) {
+                    arg0->field_10 = (s32)(temp_a0_4 - temp_v1_17);
+                } else {
+                    sp14           = 0;
+                    arg0->field_10 = (s32)(temp_v1_17 - 1);
+                    arg0->field_22 = 3;
+                    arg0->field_B  = -1;
+                }
+            }
+            temp_a1_3 = arg0->field_4;
+            temp_a2   = (s8)arg0->field_5;
+            if (temp_a1_3 != temp_a2) {
+                temp_a3 = arg0->field_9;
+                if ((((s32)arg0->field_10 % (s32)temp_a1_3) >= ((s32)((temp_a3 + temp_a2) - sp20) % (s32)temp_a1_3)) && ((arg0->field_6 != 0) || (temp_a3 < (temp_a1_3 - temp_a2)))) {
+                    arg0->field_16 = 1;
+                    arg0->field_14 = (s16)(s8)arg0->field_7;
+                }
+            }
+        }
+        if (sp14 != 0) {
+            var_a0 = 0x15;
+            if (!(arg0->field_A & 2)) {
+                var_a0 = 2;
+            }
+            SndEvt_EnqueueType6(var_a0, 0, 0);
+        }
+    }
+}
 
 void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -2477,7 +2872,7 @@ void Ui_ListTaskCallback(Task* arg0)
     if (text != NULL) {
         Ui_DrawText((UiPanel*)obj, text);
     }
-    func_80046EEC(menu, obj, 0);
+    func_80046EEC((UiListRender*)menu, (UiPanelRender*)obj, 0);
     if (obj->status == 1) {
         status = obj->field_2E;
         if ((status == 6) || (status == -1)) {
