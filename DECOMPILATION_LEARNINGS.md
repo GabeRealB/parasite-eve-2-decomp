@@ -57196,3 +57196,29 @@ copy into a stack local, then hand its address to an asm - is one the original
 sources factored into a helper, and reproducing the helper is what reproduces the
 schedule. Before fighting an address-formation `reorder`, grep the TU for a
 `static __inline__` doing the same thing.
+
+## When splat cannot pair a split `%hi`/`%lo`, the scratch score rewards the hack
+
+**Problem:** the faked-`%hi`/`%lo` shape above has a second trap. splat only
+folds a `%lo` into a load when it can pair it with the `lui`; across an eleven
+instruction gap it gives up and writes the raw displacement while still naming
+the `lui`, so `target.s` reads
+
+```
+lui  $a1, %hi(CdCmd_Queue + 0x224)
+...
+lhu  $a0, -0x6E3C($a1)
+```
+
+**Symptom:** `target.o` therefore carries `R_MIPS_HI16` and no `R_MIPS_LO16`,
+which is exactly what the hand-built pair reproduces. So in the scratch env the
+hack scores 100.000% and the correct `queued = CdCmd_Queue.field_224;` scores
+99.950% with `regs: 1` - the scorer charges the `%lo(CdCmd_Queue+0x224)` operand
+against the constant. A loop that trusts the score alone will keep the hack.
+`Gp_LoadWaitStage` in `src/gameplay/D4.c` was the worked example.
+
+**Fix:** compare the objects word by word instead. The only field that differs
+is the load's immediate - `0x0224` (an addend the linker resolves) against the
+target's prebaked `0x91C4` - so the linked words are identical and the unscoped
+build matches. Read the residual `regs` as the artifact it is, land it, and let
+the checksum decide.

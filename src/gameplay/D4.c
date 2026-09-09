@@ -929,18 +929,16 @@ void Gp_LoadWaitStage(Task* task)
     DR_TPAGE*     dr;
     DisplayState* ds;
     s32           color;
-    s32           qhi;
     s32           queued;
     s32           buf;
     s8            yoff;
 
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
     buf    = ds->field_114;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
