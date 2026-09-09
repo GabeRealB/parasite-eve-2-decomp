@@ -57125,3 +57125,44 @@ too. Those entries exist to mark the faked words `MIPS_NONE` so objdiff's
 expected object matches a numeric immediate; leaving one behind after the
 compiler starts emitting `%hi`/`%lo` again recreates exactly the 99.97% the
 cleanup was meant to remove.
+
+## A stack local's `addiu $sp` is pinned by the block copy that fills it, not by the use
+
+**Problem:** the target loads a GTE vector out of a stack local and forms the
+address *late*, right before the load and after an intervening volatile asm:
+
+```
+swl a2,0x13(sp) ... swr t0,0x14(sp)   ; tmp = *src  (8-byte block move)
+lw t4,0(s3) ... ctc2 t6,$4            ; gte_SetRotMatrix(mtx)
+addiu v0,sp,0x10                      ; &tmp
+lwc2 $0,0(v0)                         ; gte_ldv0(&tmp)
+```
+
+Written the obvious way - `tmp = *src; gte_SetRotMatrix(mtx); gte_ldv0(&tmp);` -
+the `addiu` comes out *before* the block copy instead, scoring 99.69% with
+`reorder=1`. The tempting fix is to fabricate the address:
+
+```c
+__asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
+gte_ldv0(tmpp);
+```
+
+**Symptom / mechanism:** `emit_block_move` copies the destination address into a
+pseudo at the copy site, and `purge_addressof` makes *that* pseudo the canonical
+`(plus fp N)` register, inserting a fresh copy of it at every other use - so at
+`.flow` there really are two address insns, one at the copy and one right before
+the asm. Combine then propagates the copy into the asm (`all_adjacent`, so no
+`use_crosses_set_p` check) and deletes the late one, leaving only the early def.
+Sched1 cannot repair it: a volatile asm is a full barrier in `sched_analyze`, so
+the surviving insn can never cross the `gte_SetRotMatrix` block. Moving the
+statement - the usual fix for a split `%hi`/`%lo` - is powerless here.
+
+**Fix:** route the sequence through the TU's existing inline helper rather than
+writing it out. `func_800D759C` in `src/gameplay/3A34.c` matched at 100.000% with
+zero penalties by calling `solve_loadrot(mtx, (SVECTOR*)(head - 0x2C))`, the same
+helper `func_800D7A9C` already used; its `SOFT_USE_REG(src)` emits nothing when
+the pointer is already in a register. The general lesson is that this shape -
+copy into a stack local, then hand its address to an asm - is one the original
+sources factored into a helper, and reproducing the helper is what reproduces the
+schedule. Before fighting an address-formation `reorder`, grep the TU for a
+`static __inline__` doing the same thing.
