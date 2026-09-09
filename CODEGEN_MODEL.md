@@ -646,11 +646,21 @@ control flow, and RTL/trace evidence to identify the responsible pass.
 | Load present in greg, replaced in sched2 | post-reload CSE |
 | Extra moves, loads, nops or shifted branch addresses | promotion, spill/rematerialization, scheduling, assembler expansion |
 | Structurally eligible plateau | bounded permutation search with several distinct candidate outputs |
+| Permuter improves generated code | preserve paired inputs → isolate the source delta → inspect RTL/trace → predict a controlled variation |
 | Exact scratch score, failed integration | real headers/ABI, relocations, rodata ownership/alignment, build inputs |
 
 Matching graph structure does not prove semantic equivalence. Raw branch and
 insertion/deletion penalties alone do not establish changed control flow or
 exclude a useful permutation search. Use the search router's recorded reasons.
+
+Permuter discoveries are evidence for extending this model. The router retains
+full-context outputs and verifies its best output against a paired baseline;
+partial improvements matter too. Follow the bounded investigation in
+`tools/claude-decomp-env/MATCH_LOOP.md`. A score gain establishes a changed result,
+not its mechanism. Only promote a general rule after observing the relevant
+compiler decision and checking a prediction on a controlled variation. Record
+compiler/input hashes, scope and contrary observations. Keep unresolved cases
+in session notes and `tools/permuter_findings/`, which survives match cleanup.
 
 ---
 

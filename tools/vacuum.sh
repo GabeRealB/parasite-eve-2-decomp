@@ -33,6 +33,7 @@ MATCH_LAND_PATHS=(
   include
   configs
   DECOMPILATION_LEARNINGS.md
+  CODEGEN_MODEL.md
   STRUCT_FIELDS.md
   NAMING.md
 )
@@ -733,18 +734,61 @@ build_permute_prompt() {
   local scope
   scope=$(build_scope "$scratch/BRIEF.md")
   cat <<EOF
-decomp-permuter found a **score 0** candidate for \`$func\` after the matching session stalled.
+The permuter router retained a candidate for \`$func\`. Read its verification
+status and available scratch scores in PERMUTER.json. PERMUTER_REVIEW is an
+unverified lead: first reproduce the paired comparison. Partial gains matter too.
 
 Scratch: \`$scratch\`
 Seed C: \`$seed\`
-Winning preprocessed function: \`$winner\`
+Candidate with complete declaration context: \`$winner\`
 Report: \`$scratch/PERMUTER.txt\`
 
-Port the permuter's transformations into the seed (or a new \`$scratch/base_N.c\`).
-Do NOT add \`register … asm("")\` pins. Do NOT re-run \`./tools/claude\` or the permuter.
-Confirm \`./build.sh <file>.c\` in the scratch dir reports 100%, then replace INCLUDE_ASM
-in the host C file, run \`./tools/build-and-verify.sh${scope:+ --only $scope}\` and then the
-bare \`./tools/build-and-verify.sh\`, and commit \`matched $func permute\`.
+Keep the candidate and its parent intact. Read PERMUTER_ANALYSIS.md and the paired
+sources, input hashes, scores, source/assembly diffs and manifests under
+PERMUTER_EVIDENCE/. Those are experiments to explain, including partial gains.
+
+If PERMUTER_ANALYSIS.md exists, use at most EIGHT additional scratch builds,
+including failures and repeats. Spend at most four on causal analysis, reserving
+the remainder for porting. The allowance is enforced by build.sh. At most two
+focused trace_gcc.py invocations may supplement the dumps. Do not restart the
+allowance or bypass it with manual compiler calls. Do not re-run the permuter
+or ./tools/claude, add register pins, or start a wider matching search.
+
+1. Reduce or selectively revert the source delta in new base_N.c files. Identify
+   the smallest demonstrated cause; separate source normalization from the actual
+   permutation. Record predictions before building with ./attempt.py plan.
+2. Inspect the earliest meaningful RTL divergence (UID renumbering is not a
+   mechanism). Use tools/trace_gcc.py on the paired .i files when allocation,
+   reload or scheduling needs direct observation. Put traces under
+   PERMUTER_EVIDENCE/<run>/analysis/ so they survive cleanup.
+3. Predict a controlled counterfactual, then compile it and compare the result.
+   Record observed facts, proposed mechanism, prediction/result, scope and
+   evidence paths in PERMUTER_ANALYSIS.md. Mark the mechanism unresolved if the
+   evidence or budget is insufficient. Explaining a gain must not discard it.
+4. Port the useful transformation into the original seed's C style in a new
+   base_N.c, retaining headers and verifying the score. A partial result stays
+   in scratch for retry; keep INCLUDE_ASM. An exact result must pass the scoped
+   and bare full verification commands below before integration is complete.
+   If the candidate is already integrated and fully verified, keep that match.
+5. After the final scratch build, conclude the investigation with:
+   ./attempt.py conclude-permuter <candidate>.c --status unresolved \\
+     --result 'observation, mechanism and counterfactual result' --next 'scope or unresolved question' \\
+     --evidence PERMUTER_ANALYSIS.md --evidence <retained-source-or-trace>
+   Choose supported, unresolved or not-reproduced. Supported requires a mechanism
+   backed by dump/trace evidence AND a recorded
+   prediction that survived a controlled variation. Add --prediction-source <variation>.c
+   for supported; the journal must show its prediction preceded the build.
+   A plausible story is not enough.
+   Add reusable supported findings with input hashes and evidence references to
+   DECOMPILATION_LEARNINGS.md; update CODEGEN_MODEL.md only when its general rule
+   changes. Unresolved hypotheses belong in the session notes.
+
+For an exact scratch match: replace INCLUDE_ASM in the host C file, run
+\`./tools/build-and-verify.sh${scope:+ --only $scope}\` and the bare
+\`./tools/build-and-verify.sh\`, and commit \`matched $func permute\` including supported findings.
+If there is no PERMUTER_ANALYSIS.md, the seed itself matched on rebuild; just port
+and verify it. Before finishing, archive any investigation with
+\`python3 tools/archive_giveup.py --func $func --scratch $scratch --permuter-findings\`.
 Leave the scratch directory.
 EOF
 }
@@ -760,11 +804,17 @@ try_permuter_poststep() {
     echo "Scratch gone; skipping permuter post-step" | tee -a "$LOG_FILE"
     return 1
   fi
-  if ! include_asm_present "$func" "$repo"; then
+  local followup="none"
+  if [[ -f "$scratch/PERMUTER_FOLLOWUP.json" ]]; then
+    followup=$(json_get status <"$scratch/PERMUTER_FOLLOWUP.json")
+  fi
+  if [[ "$followup" == "complete" ]]; then
+    return 1
+  fi
+  if [[ "$followup" != "active" ]] && ! include_asm_present "$func" "$repo"; then
     return 1
   fi
 
-  echo "Running permuter post-step for $func..." | tee -a "$LOG_FILE"
   local out st
   # The redirection belongs to the python command. It used to sit on its own
   # line after it, which bash parses as a second command - a bare "2>&1 | tee"
@@ -773,25 +823,28 @@ try_permuter_poststep() {
   # pipeline instead of the permuter's, so a crash read as a clean no-hit.
   # PERMUTER_HIT= still arrived via stdout, so no match was ever lost by this,
   # but a give-up at 99.887% left no record of whether the permuter had run.
-  out=$(
-    cd "$repo" || exit 1
-    python3 tools/vacuum_permute.py --func "$func" --scratch "$scratch" \
-      --timeout "${VACUUM_PERMUTE_TIMEOUT:-360}" \
-      --jobs "${VACUUM_PERMUTE_JOBS:-0}" 2>&1
-  )
-  st=$?
-  printf '%s\n' "$out" >>"$LOG_FILE"
-  if [[ $st -ne 0 ]]; then
-    return 1
+  if [[ "$followup" != "active" ]]; then
+    echo "Running permuter post-step for $func..." | tee -a "$LOG_FILE"
+    out=$(
+      cd "$repo" || exit 1
+      python3 tools/vacuum_permute.py --func "$func" --scratch "$scratch" \
+        --timeout "${VACUUM_PERMUTE_TIMEOUT:-360}" \
+        --jobs "${VACUUM_PERMUTE_JOBS:-0}" 2>&1
+    )
+    st=$?
+    printf '%s\n' "$out" >>"$LOG_FILE"
+    if [[ $st -ne 0 ]]; then
+      return 1
+    fi
   fi
   local winner seed
-  winner=$(echo "$out" | sed -n 's/^PERMUTER_HIT=//p' | tail -1)
-  seed=$(echo "$out" | sed -n 's/^PERMUTER_SEED=\([^ ]*\).*/\1/p' | tail -1)
-  if [[ -z "$winner" || ! -f "$winner" ]]; then
+  winner=$(json_get candidate <"$scratch/PERMUTER.json")
+  seed=$(json_get seed <"$scratch/PERMUTER.json")
+  if [[ -z "$winner" || -z "$seed" || ! -f "$scratch/$winner" ]]; then
     return 1
   fi
-  echo "Permuter hit score 0 ($winner); launching a port follow-up..." | tee -a "$LOG_FILE"
-  AGENT_FUNC="$func" AGENT_MAX_TURNS=40 run_agent "$(build_permute_prompt "$func" "$scratch" "$seed" "$winner")" "$repo" | tee -a "$LOG_FILE"
+  echo "Permuter retained $winner; launching a bounded analysis/port follow-up..." | tee -a "$LOG_FILE"
+  AGENT_FUNC="$func" AGENT_MAX_TURNS=40 run_agent "$(build_permute_prompt "$func" "$scratch" "$scratch/$seed" "$scratch/$winner")" "$repo" | tee -a "$LOG_FILE"
   return 0
 }
 
@@ -1356,6 +1409,18 @@ copy_giveup_to_main() {
   fi
 }
 
+copy_permuter_findings_to_main() {
+  local func=$1
+  local scratch=$2
+  python3 "$ROOT/tools/archive_giveup.py" --func "$func" --scratch "$scratch" --permuter-findings \
+    2>&1 | tee -a "$LOG_FILE"
+  local archive_status=${PIPESTATUS[0]}
+  if [[ $archive_status -ne 0 ]]; then
+    echo "Permuter evidence archive failed for $func; retaining scratch/worktree." | tee -a "$LOG_FILE"
+    KEEP_SCRATCH=1
+  fi
+}
+
 port_succeeded() {
   local func=$1
   local status=$2
@@ -1621,6 +1686,8 @@ vacuum_orch_loop() {
       exit_code=0
     fi
 
+    # Archive before verification can reset a worktree or a match clears giveups.
+    copy_permuter_findings_to_main "$func" "$scratch"
     match_status=1
     ( cd "$wt" && commit_match_if_needed "$func" "$scratch" )
     match_status=$?
@@ -1905,7 +1972,7 @@ while true; do
     echo "$prompt"
     echo "----- end prompt (scratch: $scratch) -----"
     if [[ $PERMUTER -eq 1 ]]; then
-      echo "(after a ≥95% give-up, vacuum would run tools/vacuum_permute.py then a port follow-up)"
+      echo "(after a ≥95% give-up, vacuum would retain permuter improvements and run a bounded analysis/port follow-up)"
     fi
     cleanup_scratch "$simplest_func" "$scratch"
     ((count++)) || true
@@ -1921,6 +1988,7 @@ while true; do
     try_permuter_poststep "$simplest_func" "$scratch" || true
   fi
 
+  copy_permuter_findings_to_main "$simplest_func" "$scratch"
   match_status=1
   commit_match_if_needed "$simplest_func" "$scratch"
   match_status=$?

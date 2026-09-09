@@ -147,12 +147,19 @@ def snapshot(dest: Path, scratch: Path, legacy=False) -> Path:
         if (path.suffix in ('.c', '.i') or path.name.endswith(('.score.json', '.diagnosis.json'))
                 or path.name in ('LEARNINGS.md', 'NOTES.md', 'RETRY_NOTES.md', 'notes.md',
                                  'BRIEF.md', 'PERMUTER.txt', 'PERMUTER.json', 'DUMP.txt',
+                                 'PERMUTER_ANALYSIS.md', 'PERMUTER_FOLLOWUP.json',
                                  'attempts.jsonl', 'experiments.jsonl', 'match_log.txt', 'prior_match_log.txt', 'session.json')):
             files[path.name] = path.read_bytes()
+    evidence = scratch / 'PERMUTER_EVIDENCE'
+    if evidence.is_dir() and not evidence.is_symlink():
+        for path in evidence.rglob('*'):
+            if path.is_file() and not path.is_symlink() and not any(p.is_symlink() for p in path.parents):
+                files[str(path.relative_to(scratch))] = path.read_bytes()
     repo = scratch.parent.parent
     base = repo / '.vacuum-base'
     if base.is_file():
-        result = subprocess.run(['git', 'diff', base.read_text().strip(), '--', 'DECOMPILATION_LEARNINGS.md'],
+        result = subprocess.run(['git', 'diff', base.read_text().strip(), '--',
+                                 'DECOMPILATION_LEARNINGS.md', 'CODEGEN_MODEL.md'],
                                 cwd=repo, capture_output=True, timeout=30)
         if result.returncode == 0 and result.stdout:
             files['learnings.patch'] = result.stdout
@@ -163,6 +170,7 @@ def snapshot(dest: Path, scratch: Path, legacy=False) -> Path:
         return directory
     directory.mkdir(parents=True, exist_ok=True)
     for name, data in files.items():
+        (directory / name).parent.mkdir(parents=True, exist_ok=True)
         if name.endswith('.i'):
             (directory / (name + '.gz')).write_bytes(gzip.compress(data, mtime=0))
         else:
@@ -188,7 +196,7 @@ def write_history(dest: Path):
     for at, directory in sorted(latest.values())[-8:]:
         lines += [f'## {at}', f'Files: `{_rel(directory)}`', '']
         budget = 4000
-        for name in ('LEARNINGS.md', 'NOTES.md', 'RETRY_NOTES.md', 'notes.md',
+        for name in ('PERMUTER_ANALYSIS.md', 'LEARNINGS.md', 'NOTES.md', 'RETRY_NOTES.md', 'notes.md',
                      'experiments.jsonl', 'PERMUTER.txt', 'learnings.patch'):
             path = directory / name
             if path.is_file() and budget > 0:
@@ -200,9 +208,20 @@ def write_history(dest: Path):
     (dest / 'HISTORY.md').write_text('\n'.join(lines) + '\n')
 
 
+def archive_permuter_findings(func: str, scratch: Path) -> str:
+    """Keep compiler evidence after a match clears the give-up seed archive."""
+    if not (scratch / 'PERMUTER_EVIDENCE').is_dir():
+        return 'PERMUTER_FINDINGS_SKIP=no discoveries'
+    dest = REPO_ROOT / 'tools/permuter_findings' / func
+    observation = snapshot(dest, scratch)
+    write_history(dest)
+    return f'PERMUTER_FINDINGS_SAVED={_rel(observation)}'
+
+
 def archive(func: str, scratch: Path) -> tuple[int, str]:
     if not scratch.is_dir():
         return 2, f"GIVEUP_SKIP=no scratch at {scratch}"
+    archive_permuter_findings(func, scratch)
     dest = GIVEUPS / func
     if dest.exists() and not (dest / 'sessions').exists():
         snapshot(dest, dest, legacy=True)
@@ -285,6 +304,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--func", required=True)
     parser.add_argument("--scratch", type=Path, default=None)
     parser.add_argument('--restore', action='store_true', help='Copy candidates/history into an existing scratch')
+    parser.add_argument('--permuter-findings', action='store_true',
+                        help='Retain compiler experiments independently of give-up seeds, including after a match')
     parser.add_argument(
         "--clear",
         action="store_true",
@@ -299,6 +320,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         print("GIVEUP_SKIP=--scratch is required unless --clear", file=sys.stderr)
         return 2
     scratch = args.scratch if args.scratch.is_absolute() else REPO_ROOT / args.scratch
+    if args.permuter_findings:
+        print(archive_permuter_findings(args.func, scratch))
+        return 0
     if args.restore:
         restore(args.func, scratch)
         return 0

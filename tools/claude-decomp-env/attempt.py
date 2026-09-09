@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import uuid
 
 from diagnose import fingerprint
@@ -71,6 +73,28 @@ def normalized_rtl(path):
     return re.sub(r'"[^"\n]*\.(?:i|c|h)"', '"SOURCE"', text)
 
 
+def reserve_build(scratch):
+    state = scratch / 'PERMUTER_FOLLOWUP.json'
+    if not state.is_file():
+        return 0
+    with (scratch / '.permuter-build.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        budget = json.loads(state.read_text())
+        if budget['status'] == 'complete':
+            print('Permuter investigation is complete; retain its candidate and findings. Start a new session for further search.')
+            return 1
+        if budget.get('builds_used', 0) >= budget['build_budget']:
+            print('PERMUTER BUDGET: eight further builds used. Conclude with supported evidence or unresolved questions; preserve the best candidate.')
+            return 1
+        # Reserve before compilation, including crashes and early shell failures.
+        # A lock prevents simultaneous builds from sharing the last allowance.
+        budget['builds_used'] = budget.get('builds_used', 0) + 1
+        temporary = state.with_suffix('.tmp')
+        temporary.write_text(json.dumps(budget, indent=2) + '\n')
+        temporary.replace(state)
+    return 0
+
+
 def record(source, project, compiler=None, flags='', failure=0):
     scratch = source.parent
     session(scratch)
@@ -117,7 +141,7 @@ def record(source, project, compiler=None, flags='', failure=0):
         best_at = max(range(len(scores)), key=scores.__getitem__)
         if len(unique) - best_at - 1 >= 10:
             print('REASSESS: ten distinct builds without a score gain. Change hypothesis or seed; record what the dumps ruled out.')
-    if len(previous) + 1 >= 40:
+    if len(previous) + 1 >= 40 and not (scratch / 'PERMUTER_FOLLOWUP.json').is_file():
         print('SESSION BUDGET: 40 builds including failures and repeats. Preserve findings and stop unless an explicit larger budget was authorized.')
     return row
 
@@ -135,6 +159,17 @@ def main():
     done.add_argument('source', type=Path)
     done.add_argument('--result', required=True)
     done.add_argument('--next', required=True)
+    check = sub.add_parser('reserve-build')
+    check.add_argument('scratch', type=Path)
+    permuter = sub.add_parser('conclude-permuter')
+    permuter.add_argument('source', type=Path)
+    permuter.add_argument('--status', required=True, choices=('supported', 'unresolved', 'not-reproduced'))
+    permuter.add_argument('--result', required=True)
+    permuter.add_argument('--next', required=True)
+    permuter.add_argument('--prediction-source', type=Path,
+                          help='Required for supported: a controlled variation planned before its successful build')
+    permuter.add_argument('--evidence', type=Path, action='append', required=True,
+                          help='Retained source/dump/trace or notes; may be repeated')
     build = sub.add_parser('record')
     build.add_argument('source', type=Path)
     build.add_argument('--project', type=Path, required=True)
@@ -142,6 +177,8 @@ def main():
     build.add_argument('--flags', default='')
     build.add_argument('--failure', type=int, default=0)
     args = parser.parse_args()
+    if args.command == 'reserve-build':
+        raise SystemExit(reserve_build(args.scratch.absolute()))
     source = args.source.absolute()
     if args.command == 'record':
         record(source, args.project, args.compiler, args.flags, args.failure)
@@ -152,6 +189,56 @@ def main():
             row.update(parent=args.parent, hypothesis=args.hypothesis, expected=args.expect, pass_name=args.pass_name)
         else:
             row.update(result=args.result, next=args.next)
+        if args.command == 'conclude-permuter':
+            if not source.is_file():
+                parser.error(f'candidate does not exist: {source}')
+            for path in args.evidence:
+                if not path.is_file():
+                    parser.error(f'evidence does not exist: {path}')
+            if args.status == 'supported':
+                prediction = args.prediction_source
+                if prediction is None or prediction.absolute().parent != source.parent or not prediction.is_file():
+                    parser.error('supported requires --prediction-source naming a controlled variation in this scratch')
+                plans = read_jsonl(source.parent / 'experiments.jsonl')
+                builds = read_jsonl(source.parent / 'attempts.jsonl')
+                planned = next((p for p in reversed(plans) if p.get('event') == 'plan'
+                                and p.get('source') == prediction.name and not p.get('origin')), {})
+                built = next((b for b in reversed(builds) if b.get('source') == prediction.name), {})
+                if (not planned.get('expected') or not built.get('at') or built.get('failure')
+                        or built.get('source_sha256') != digest(prediction)
+                        or planned['at'] >= built['at']):
+                    parser.error('prediction must be recorded before a successful build of the retained variation')
+                row.update(prediction=planned, prediction_build=built)
+            state = source.parent / 'PERMUTER_FOLLOWUP.json'
+            if not state.is_file():
+                parser.error('no permuter follow-up is active in this scratch')
+            budget = json.loads(state.read_text())
+            with (source.parent / 'PERMUTER_ANALYSIS.md').open('a') as out:
+                out.write(f'\n## Conclusion: {args.status}\n\n{args.result}\n\nNext: {args.next}\n\n')
+                out.writelines(f"- `{p}`\n" for p in args.evidence)
+            # Hash notes after writing them; a document cannot contain its own hash.
+            retained = source.parent / 'PERMUTER_EVIDENCE' / 'conclusions' / uuid.uuid4().hex
+            retained.mkdir(parents=True)
+            citations = []
+            for i, path in enumerate(args.evidence):
+                copy = retained / f'{i}-{path.name}'
+                shutil.copy2(path, copy)
+                citations.append({'path': str(path), 'retained': str(copy.relative_to(source.parent)),
+                                  'sha256': digest(copy)})
+            # Counterfactual dumps are otherwise scratch-only. Preserve the
+            # candidate and variation's complete build evidence automatically.
+            for variant in (source, args.prediction_source):
+                if variant is None:
+                    continue
+                for path in variant.absolute().parent.iterdir():
+                    if path.is_file() and not path.is_symlink() and path.name.startswith((variant.stem + '.', variant.stem + '_')):
+                        dest = retained / variant.stem / path.name
+                        dest.parent.mkdir(exist_ok=True)
+                        shutil.copy2(path, dest)
+            row.update(status=args.status, evidence=citations)
+            budget.update(status='complete', conclusion=row,
+                          recorded_builds=len(read_jsonl(source.parent / 'attempts.jsonl')) - budget['start_attempt'])
+            state.write_text(json.dumps(budget, indent=2) + '\n')
         append(source.parent / 'experiments.jsonl', row)
 
 

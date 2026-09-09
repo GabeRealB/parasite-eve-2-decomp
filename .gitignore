@@ -9,6 +9,7 @@ __pycache__/
 permuter/
 nonmatchings/
 tools/giveups/
+tools/permuter_findings/
 expected/
 .cache/
 .splat/

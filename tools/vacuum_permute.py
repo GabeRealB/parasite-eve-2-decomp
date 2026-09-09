@@ -3,12 +3,12 @@
 
 Intended as a vacuum *post-step* after the agent gives up. Prefers an unpinned
 seed (register-asm pins shrink the search). Uses structural diagnostics to select several candidates within one time budget.
-Always records selection and skip reasons. Prints a STATUS=
-line for vacuum.sh.
+Always records selection and skip reasons, retains full-context discoveries,
+and reports verified improvements for a bounded compiler investigation.
 
 Exit codes:
-  0  permuter produced output-0-* (PERMUTER_HIT=...)
-  1  ran and did not hit 0 (PERMUTER_MISS=...)
+  0  candidate for follow-up: verified HIT/IMPROVEMENT, or unverified REVIEW
+  1  ran without a discovery
   2  skipped (PERMUTER_SKIP=...)
 """
 
@@ -27,6 +27,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
+import permuter_evidence as evidence
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MIN_SCORE_DEFAULT = 95.0
@@ -207,24 +209,18 @@ def _nproc_jobs(requested: int) -> int:
     return max(1, min(os.cpu_count() or 4, 8))
 
 
-def find_zero_output(perm_dir: Path) -> Optional[Path]:
-    hits = sorted(perm_dir.glob("output-0-*"))
-    for hit in hits:
-        src = hit / "source.c"
-        if src.is_file():
-            return src
-    return None
-
-
 def run_bounded(cmd, *, timeout, **kwargs):
     """A timeout also terminates compiler/search descendants, not just the shell."""
     with subprocess.Popen(cmd, start_new_session=True, stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE, **kwargs) as process:
         try:
             stdout, stderr = process.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-            process.communicate()
+        except subprocess.TimeoutExpired as exc:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            exc.stdout, exc.stderr = process.communicate()
             raise
         return subprocess.CompletedProcess(cmd, process.returncode, stdout, stderr)
 
@@ -236,10 +232,11 @@ def run_permuter(
     seed: Path,
     timeout: int,
     jobs: int,
-) -> tuple[str, Optional[Path]]:
-    """Set up permuter/<func>/ from seed and search. Returns (status, winner)."""
+) -> tuple[str, Optional[dict]]:
+    """Search, retain every discovery, then rebuild a pair within this seed's budget."""
     perm_dir = REPO_ROOT / "permuter" / func
     started = time.monotonic()
+    deadline = started + timeout
     setup = run_bounded(
         ["./permute.sh", "--clean", func, str(asm_file), str(seed)],
         cwd=REPO_ROOT,
@@ -261,7 +258,6 @@ def run_permuter(
         f"-j{jobs}",
         "--better-only",
         "--stop-on-zero",
-        "--no-context-output",
         "--algorithm",
         "levenshtein",
         str(perm_dir),
@@ -269,22 +265,27 @@ def run_permuter(
     # Private TMPDIR that goes away with the run: the permuter leaves a scratch
     # file per candidate compile behind, and a shared /tmp fills up (12G in one
     # long search here). permute.sh's cleaner does not cover this call path.
+    # Reserve time for paired verification. Search and verification still share
+    # the router's total wall-clock budget; copying evidence never gets skipped.
+    search_timeout = max(0.1, timeout - min(30, timeout / 3))
+    log = ''
     with tempfile.TemporaryDirectory(prefix=f"permuter-{func}-") as tmpdir:
         env = {**os.environ, "TMPDIR": tmpdir}
         try:
-            proc = run_bounded(cmd, cwd=REPO_ROOT, text=True, env=env, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            winner = find_zero_output(perm_dir)
-            return f'timeout after {timeout:.1f}s', winner
-    winner = find_zero_output(perm_dir)
-    log_tail = (proc.stdout or "")[-1500:]
-    if winner is not None:
-        return "hit", winner
-    if proc.returncode == 124:
-        return f"timeout after {timeout}s\n{log_tail}", None
-    if proc.returncode != 0:
-        return f"permuter exit {proc.returncode}\n{log_tail}", None
-    return f"finished without score 0\n{log_tail}", None
+            proc = run_bounded(cmd, cwd=REPO_ROOT, text=True, env=env, timeout=search_timeout)
+            log = (proc.stdout or '') + (proc.stderr or '')
+            status = f'search exit {proc.returncode}'
+        except subprocess.TimeoutExpired as exc:
+            chunks = [exc.stdout or '', exc.stderr or '']
+            log = '\n'.join(c.decode(errors='replace') if isinstance(c, bytes) else c for c in chunks)
+            status = f'search timeout after {search_timeout:.1f}s'
+    # The next seed uses --clean on the same search directory. Copy first,
+    # including full declaration context, even on a nonzero exit or timeout.
+    record = evidence.capture(perm_dir, scratch, seed, REPO_ROOT)
+    (scratch / record['path'] / 'search.log').write_text(log)
+    evidence.validate(scratch, record, deadline, run_bounded)
+    evidence.save(scratch, record)
+    return status, record
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -304,17 +305,38 @@ def main(argv: Optional[list[str]] = None) -> int:
     if not scratch.is_dir():
         print(f'PERMUTER_SKIP=no scratch at {scratch}')
         return 2
-    report = {'func': args.func, 'budget_seconds': args.timeout, 'candidates': [], 'status': 'pending'}
+    # A matching agent may already have run the router. Neither a second caller
+    # nor setup-only inspection should erase its discoveries or reset its budget.
+    if not args.setup_only and (scratch / 'PERMUTER_FOLLOWUP.json').is_file():
+        print(f'PERMUTER_SKIP=existing investigation; read {scratch / "PERMUTER_ANALYSIS.md"}')
+        return 2
+    report = {'func': args.func, 'budget_seconds': args.timeout, 'candidates': [],
+              'experiments': [], 'status': 'pending'}
     def finish(code, status):
         report['status'] = status
-        (scratch / 'PERMUTER.json').write_text(json.dumps(report, indent=2) + '\n')
+        if not args.setup_only:
+            evidence.prepare_followup(scratch, report)
+        report_name = 'PERMUTER_SETUP' if args.setup_only else 'PERMUTER'
+        (scratch / (report_name + '.json')).write_text(json.dumps(report, indent=2) + '\n')
         lines = [f'status={status}']
         lines += [f"{r['seed']}: {r.get('status', '')} {r.get('reason', '')}" for r in report['candidates']]
-        (scratch / 'PERMUTER.txt').write_text('\n'.join(lines) + '\n')
+        lines += [f"Evidence: {r['path']} — {r.get('validation', 'not rebuilt')}" for r in report['experiments']]
+        if report.get('candidate'):
+            lines += [f"Follow-up candidate: {report['candidate']}", 'Read PERMUTER_ANALYSIS.md; investigate within eight further builds.']
+        (scratch / (report_name + '.txt')).write_text('\n'.join(lines) + '\n')
         if args.setup_only:
             for line in lines[1:]:
                 print('PERMUTER_CANDIDATE=' + line)
         print(('PERMUTER_MISS=' if code == 1 else 'PERMUTER_SKIP=' if code == 2 else 'PERMUTER_DONE=') + status)
+        # Standalone router calls also retain discoveries beyond scratch cleanup
+        # and successful-match removal of tools/giveups/<func>.
+        if any(r.get('outputs') for r in report['experiments']):
+            archived = subprocess.run([sys.executable, str(REPO_ROOT / 'tools/archive_giveup.py'),
+                                       '--func', args.func, '--scratch', str(scratch), '--permuter-findings'],
+                                      cwd=REPO_ROOT, capture_output=True, text=True)
+            print(archived.stdout.strip())
+            if archived.returncode:
+                print('PERMUTER_ARCHIVE_FAILED=retain scratch; ' + archived.stderr.strip(), file=sys.stderr)
         return code
     seeds = parse_match_log(scratch)
     selected = search_candidates(seeds, args.min_score, args.max_seeds)
@@ -356,6 +378,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 score_file = seed.path.with_suffix('.score.json')
                 if score_file.is_file() and json.loads(score_file.read_text()).get('distance') == 0:
                     report['winner'] = str(seed.path)
+                    report.update(candidate=seed.path.name, seed=seed.path.name)
                     entry.update(status='score zero on rebuild', reason='port and full verification required')
                     finish(0, 'score zero found; port and full build verification required')
                     print(f'PERMUTER_SEED={seed.path} score={seed.score:.3f}% pinned=0')
@@ -377,16 +400,37 @@ def main(argv: Optional[list[str]] = None) -> int:
         print(f'PERMUTER_RUN timeout={budget}s jobs={_nproc_jobs(args.jobs)}')
         ran = True
         try:
-            status, winner = run_permuter(args.func, scratch, asm_file, seed.path, budget, _nproc_jobs(args.jobs))
+            status, experiment = run_permuter(args.func, scratch, asm_file, seed.path, budget, _nproc_jobs(args.jobs))
         except (subprocess.TimeoutExpired, OSError) as exc:
-            status, winner = f'setup/search failed: {exc}', None
+            status, experiment = f'setup/search failed: {exc}', None
         entry.update(status=status, budget_seconds=budget)
-        if winner:
+        if experiment:
+            report['experiments'].append({k: v for k, v in experiment.items() if k not in ('files', 'tool_sha256', 'builds', 'seed_build')})
+        if experiment and experiment.get('exact'):
+            winner = scratch / experiment['exact']
             report['winner'] = str(winner)
+            report.update(candidate=winner.name, seed=seed.path.name)
             finish(0, 'score zero found; port and full build verification required')
             print(f'PERMUTER_HIT={winner}')
             return 0
-    return finish(1 if ran else 2, 'search finished without score zero' if ran else 'setup-only' if args.setup_only else 'all candidates skipped')
+    improved = [r for r in report['experiments'] if r.get('improvement')]
+    if improved:
+        best = min(improved, key=lambda r: r['improvement']['after'])
+        report.update(candidate=best['improvement']['candidate'], seed=best['seed'])
+        finish(0, 'partial improvement verified; investigate and retain for retry')
+        print(f"PERMUTER_SEED={scratch / best['seed']}")
+        print(f"PERMUTER_IMPROVEMENT={scratch / report['candidate']}")
+        return 0
+    leads = [r for r in report['experiments'] if r.get('outputs') and r.get('candidate')]
+    if leads:
+        # A short rebuild budget or changed preprocessing must not suppress the
+        # handoff of a possible match. Label it explicitly, never as a verified hit.
+        best = min(leads, key=lambda r: r['outputs'][0]['search_distance'])
+        report.update(candidate=best['candidate'], seed=best['seed'])
+        finish(0, 'search discovery needs review; improvement not verified')
+        print(f"PERMUTER_REVIEW={scratch / report['candidate']}")
+        return 0
+    return finish(1 if ran else 2, 'search finished without a discovery' if ran else 'setup-only' if args.setup_only else 'all candidates skipped')
 
 
 if __name__ == '__main__':

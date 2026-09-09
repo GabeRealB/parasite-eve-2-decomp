@@ -129,10 +129,70 @@ python3 tools/vacuum_permute.py --func $functionName --scratch <scratch> --timeo
 It rebuilds up to three distinct unpinned candidates, including promising lower
 scores, and uses block/predicate/call diagnostics to decide whether to search.
 Unknown structure requires further evidence or clean legacy register/scheduling
-penalties. It shares one budget across rebuilding, setup and all searches.
-`PERMUTER.json` / `PERMUTER.txt` record run and skip reasons. `--setup-only`
-inspects cached eligibility without compiling or searching.
-A zero score still requires porting and the full verification below.
+penalties. It shares one budget across rebuilding, setup, searches and paired
+verification. `PERMUTER.json` / `PERMUTER.txt` record run and skip reasons.
+`--setup-only` writes `PERMUTER_SETUP.json` / `.txt` without compiling or searching.
+
+Every complete, source-distinct search output is retained with full declaration
+context under `PERMUTER_EVIDENCE/<run>/`, before the next seed cleans the search
+directory. The router rebuilds the normalized baseline and best output using the
+scratch compiler/scorer. Search scores alone are not verified improvements.
+Fresh builds enter the ordinary candidate journal and can become retry seeds.
+Exit 0 means a candidate for follow-up: an exact scratch match (`PERMUTER_HIT`),
+a verified partial improvement (`PERMUTER_IMPROVEMENT`), or a discovery whose
+verification failed or exhausted its budget (`PERMUTER_REVIEW`). First reproduce
+unverified leads. Read the report before integrating anything.
+
+Treat discoveries as compiler experiments. Read `PERMUTER_ANALYSIS.md`, preserve
+the original seed and improved candidate, and use new files to isolate the
+source change. Compare the first meaningful RTL divergence; ignore numbering
+noise. Distinguish preprocessing/normalization effects from the permutation.
+Use `trace_gcc.py` when actual compiler decisions are needed; store traces under
+`PERMUTER_EVIDENCE/<run>/analysis/`. Record a prediction with `attempt.py plan`
+before compiling a controlled variation, then compare its actual result.
+
+This investigation has **eight additional scratch builds**, enforced by
+`build.sh`, including failures and repeats. Spend at most four on causal analysis
+and reserve the rest for porting; at most two focused tracer invocations may
+supplement the dumps. This allowance follows the router's automated verification
+and supersedes the ordinary session limit for this follow-up only. Do not reset
+it, bypass it with manual compiler calls, or rerun the router. Full integration
+verification is separate. A mechanism may remain unresolved; preserve the gain.
+
+After the final scratch build, record the conclusion:
+
+```
+./attempt.py conclude-permuter base_N.c --status unresolved \
+  --result 'observations and remaining mechanism question' --next 'specific prediction to investigate' \
+  --evidence PERMUTER_ANALYSIS.md --evidence PERMUTER_EVIDENCE/<run>/manifest.json
+```
+
+Use `supported` only with a mechanism backed by dump/trace evidence and a
+successful controlled prediction; add `--prediction-source base_K.c`. The tool
+requires its plan to precede its successful build. It cannot judge whether the
+explanation follows from the evidence: document that reasoning in the notes.
+The conclusion command copies cited files and the candidate/variation's build
+outputs into the retained evidence, including files originally saved elsewhere.
+Use `not-reproduced` when the claimed improvement fails the paired comparison.
+Notes must distinguish observations, hypotheses, prediction/result, scope and
+evidence paths. Promote reusable supported findings to `DECOMPILATION_LEARNINGS.md`
+with input hashes and selected observations; change `CODEGEN_MODEL.md` only for
+a supported general rule. Leave unresolved claims in the session notes.
+
+Port useful transformations into the seed's normal C/header style. Partial
+matches remain in scratch for archival with INCLUDE_ASM intact. A zero score
+still requires porting and the full verification below; an unresolved mechanism
+does not prevent landing a verified match. Concluding closes the scratch build
+allowance. Before cleanup, including after success, run from the project root:
+
+```
+python3 tools/archive_giveup.py --func $functionName --scratch <scratch> --permuter-findings
+```
+
+Vacuum also does this automatically, including copying worktree findings to
+trunk. `tools/permuter_findings/<function>/` keeps immutable local snapshots
+after successful matches clear give-up seeds. Regular give-up archives include
+these experiments and expose the latest conclusions in retry `HISTORY.md`.
 
 If the kept `.s` matches and the `.o` does not, the bug is maspsx (`--expand-div`), not GCC.
 

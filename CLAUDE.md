@@ -382,6 +382,14 @@ Example: If you added `extern void setCallback(void *);` but `task_scheduler.h` 
 
 **Post-success cleanup and learnings (always do these):**
 
+When the permuter contributed a full or partial improvement, first follow the
+bounded investigation in `tools/claude-decomp-env/MATCH_LOOP.md`. Preserve the
+improved candidate, isolate its source change, and check a compiler prediction.
+An unresolved mechanism is a valid recorded outcome. Before scratch cleanup,
+run `python3 tools/archive_giveup.py --func <function> --scratch <scratch> --permuter-findings`
+so sources, compiler inputs and observations survive successful-match cleanup.
+Vacuum owns cleanup when it launched the session; leave its scratch in place.
+
 1. **Clean up the scratch environment.** Delete the `nonmatchings/<function name>` directory (and the empty `nonmatchings/` parent if nothing else remains). Do not leave base_*.c attempts, object dumps, or symlinks in the tree after a successful match or after giving up.
 
 2. **Record notable findings** in the project-root `DECOMPILATION_LEARNINGS.md` (this file is symlinked into each scratch env). Add an entry only when something is generalizable — a new GCC 2.8.1 codegen quirk, a matching trick that was not already documented, a scratch-env gotcha, a struct/layout insight, etc. Skip trivial one-shot rewrites that will not help the next function. Keep the same style as existing entries: short problem → symptom → fix, with a minimal code example when useful.

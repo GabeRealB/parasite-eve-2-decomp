@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Function to display usage
 usage() {

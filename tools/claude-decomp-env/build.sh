@@ -4,6 +4,9 @@
 set -e
 
 INPUT="$(realpath "$1")"
+# The permuter investigation gets a separate, bounded allowance after search.
+# Check before installing the failure trap: a rejected build consumes no attempt.
+python3 "$(dirname "$INPUT")/attempt.py" reserve-build "$(dirname "$INPUT")"
 CPP_OUTPUT="$(realpath "${1//.c/.i}")"
 CC_OUTPUT="$(realpath "${1//.c/.s}")"
 MASPSX_OUTPUT="$(realpath "${1//.c/.o}")"
