@@ -7652,7 +7652,379 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A57B0);
+void func_800A57B0(GpIdMapC* arg0)
+{
+    GpHudHpScratch loc;
+    PadRemapState* remap;
+    s32            pendingMp;
+    TILE*          tile;
+    SPRT *         sp1, *sp3, *sp5;
+    POLY_FT4 *     poly1, *poly2;
+    DR_TPAGE*      tp;
+    WipSysConfig*  cfg;
+    s32            pendingHp;
+    s32            y;
+    s32            hp;
+    s32            mp;
+    s32            color;
+    s32            valHp;
+    s32            valMp;
+    s32            order;
+    s32            rectMode;
+    s32            iconX, iconY;
+    u16*           flags;
+    s32            txHp, txMp;
+    s32            ty;
+    s32            x;
+    u8*            text;
+    TextDrawReq*   reqPtr;
+    s32            w1;
+    s32            w2;
+    s32            i;
+    s32            textOrderStep;
+    GpStateBE8*    be8;
+
+    cfg       = &Wip_SysConfig;
+    remap     = Pad_RemapState;
+    x         = -0x98;
+    pendingHp = 0;
+    pendingMp = 0;
+    if (remap->field_A != 0) {
+        return;
+    }
+
+    if (cfg->field_18 < Gp_HpMpWork.field_0) {
+        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 - 1;
+    } else if (Gp_HpMpWork.field_0 < cfg->field_18) {
+        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
+    }
+    be8 = &Gp_HpMpWork;
+    if (cfg->field_1c < be8->field_4) {
+        be8->field_4 = be8->field_4 - 1;
+    } else if (be8->field_4 < cfg->field_1c) {
+        be8->field_4 = be8->field_4 + 1;
+    }
+
+    y             = -0x64;
+    y            -= Display_State.vramYOffset;
+    textOrderStep = 1;
+    if ((s8)Game_Session->field_139 > 0) {
+        y -= (s8)Game_Session->field_139 * 3;
+    }
+
+    if (cfg->field_25 & 0x80) {
+        pendingHp = arg0->field_10 << 1;
+    } else {
+        pendingMp = arg0->field_10;
+    }
+
+    color = 0x606060;
+    hp    = Gp_HpMpWork.field_0;
+    mp    = Gp_HpMpWork.field_4;
+
+    valHp = cfg->field_18;
+    txHp  = x + 0x2B;
+    ty    = y + 0xA;
+    if (valHp < 0) {
+        valHp = 0;
+    }
+    loc.s.req[0].x          = txHp;
+    loc.s.req[0].y          = ty;
+    loc.s.req[0].otIndex    = -2;
+    loc.s.req[0].field_8    = color;
+    loc.s.req[0].glyphTable = 0;
+    loc.s.req[0].centerMode = 2;
+    loc.s.req[0].field_E    = 3;
+    text                    = Text_ItoaUnsigned(loc.s.buf, valHp);
+    reqPtr                  = loc.s.req;
+    func_8002E53C(reqPtr, text);
+    DEF_REG(reqPtr);
+
+    valMp = cfg->field_1c;
+    txMp  = x + 0x56;
+    ty    = y + 0xA;
+    if (valMp < 0) {
+        valMp = 0;
+    }
+    loc.s.req[0].x          = txMp;
+    loc.s.req[0].y          = ty;
+    loc.s.req[0].otIndex    = -2;
+    loc.s.req[0].field_8    = color;
+    loc.s.req[0].glyphTable = 0;
+    loc.s.req[0].centerMode = 2;
+    loc.s.req[0].field_E    = 3;
+    text                    = Text_ItoaUnsigned(loc.s.buf, valMp);
+    reqPtr                  = loc.s.req;
+    func_8002E53C(reqPtr, text);
+    DEF_REG(reqPtr);
+
+    order               = -3;
+    loc.s.obj.drawOrder = order;
+    loc.s.obj.baseX     = 0;
+    loc.s.obj.baseY     = 0;
+    loc.s.obj.mode      = 0;
+
+    loc.label.x          = x + 4;
+    loc.label.y          = y + 8;
+    loc.label.otIndex    = -2;
+    loc.label.field_8    = color;
+    loc.label.glyphTable = 5;
+    loc.label.centerMode = 0;
+    loc.label.field_E    = 1;
+    func_8002E53C(&loc.label, Gp_StrHP);
+
+    loc.s.req[0].x          = loc.s.obj.baseX + 0x2E;
+    loc.s.req[0].x          = loc.s.req[0].x + x;
+    loc.s.req[0].y          = loc.s.obj.baseY + 8 + y;
+    loc.s.req[0].otIndex    = (s16)loc.s.obj.drawOrder + textOrderStep;
+    loc.s.req[0].field_8    = color;
+    loc.s.req[0].glyphTable = 5;
+    loc.s.req[0].centerMode = 0;
+    loc.s.req[0].field_E    = 1;
+    func_8002E53C(loc.s.req, Gp_StrMP);
+
+    if (hp > 0) {
+        if (cfg->field_1a > 0) {
+            if (hp >= pendingHp) {
+                w1 = (hp - pendingHp) * 0x25 / cfg->field_1a;
+                if (w1 >= 0x26) {
+                    w1 = 0x25;
+                } else if (w1 < 0) {
+                    w1 = 0;
+                }
+            } else {
+                w1 = 0;
+            }
+            w2 = hp * 0x25 / cfg->field_1a;
+            if (w2 >= 0x26) {
+                w2 = 0x25;
+            }
+            if (w1 > 0) {
+                tile           = (TILE*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+                tile->x0       = x + 5;
+                tile->y0       = y + 0xE;
+                tile->h        = 2;
+                setlen(tile, 3);
+                *(u32*)&tile->r0 = 0x1741F;
+                setcode(tile, 0x60);
+                tile->w = w1;
+                addPrim(Gpu_CurrentOt - 2, tile);
+            }
+            if (w2 - w1 > 0) {
+                tile           = (TILE*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+                {
+                    s32 tileX = w1 + 5;
+                    tile->x0  = x + tileX;
+                }
+                tile->y0         = y + 0xE;
+                tile->h          = 2;
+                *(u32*)&tile->r0 = 0xFFFF;
+                setlen(tile, 3);
+                setcode(tile, 0x60);
+                tile->w = w2 - w1;
+                addPrim(Gpu_CurrentOt - 2, tile);
+            }
+        }
+    }
+
+    if (cfg->field_1e <= 0) {
+        w1 = 0;
+        w2 = w1;
+    } else {
+        if (mp >= pendingMp) {
+            w1 = (mp - pendingMp) * 0x25 / cfg->field_1e;
+            if (w1 >= 0x26) {
+                w1 = 0x25;
+            } else if (w1 < 0) {
+                w1 = 0;
+            }
+        } else {
+            w1 = 0;
+        }
+        w2 = mp * 0x25 / cfg->field_1e;
+        if (w2 >= 0x26) {
+            w2 = 0x25;
+        }
+    }
+    if (w1 > 0) {
+        tile           = (TILE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+        tile->x0       = x + 0x30;
+        tile->y0       = y + 0xE;
+        tile->h        = 2;
+        setlen(tile, 3);
+        *(u32*)&tile->r0 = 0x1741F;
+        setcode(tile, 0x60);
+        tile->w = w1;
+        addPrim(Gpu_CurrentOt - 2, tile);
+    }
+    if (w2 - w1 > 0) {
+        tile           = (TILE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+        {
+            s32 tileX = w1 + 0x30;
+            tile->x0  = x + tileX;
+        }
+        tile->y0         = y + 0xE;
+        tile->h          = 2;
+        *(u32*)&tile->r0 = 0xFFFF;
+        setlen(tile, 3);
+        setcode(tile, 0x60);
+        tile->w = w2 - w1;
+        addPrim(Gpu_CurrentOt - 2, tile);
+    }
+
+    {
+        s32 left  = x + 4;
+        s32 yb    = y + 0xB;
+        s32 clut  = 0x3C0B;
+        s32 right = x + 0x23;
+        s32 y3    = y + 0x13;
+
+        sp1            = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp1 + 1);
+        sp1->x0        = left;
+        sp1->y0        = yb;
+        sp1->u0        = 0x98;
+        sp1->v0        = 0x68;
+        sp1->clut      = clut;
+        setlen(sp1, 3);
+        setcode(sp1, 0x75);
+        addPrim(Gpu_CurrentOt - 2, sp1);
+
+        sp1            = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp1 + 1);
+        sp1->x0        = right;
+        sp1->y0        = yb;
+        sp1->u0        = 0xA8;
+        sp1->v0        = 0x68;
+        sp1->clut      = clut;
+        setlen(sp1, 3);
+        setcode(sp1, 0x75);
+        addPrim(Gpu_CurrentOt - 2, sp1);
+
+        poly1          = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly1 + 1);
+        poly1->x2      = x + 0xC;
+        poly1->x0      = x + 0xC;
+        poly1->x3      = right;
+        poly1->x1      = right;
+        poly1->y1      = yb;
+        poly1->y0      = yb;
+        poly1->y3      = y3;
+        poly1->y2      = y3;
+        poly1->u0      = 0xA0;
+        poly1->v0      = 0x68;
+        poly1->u1      = 0xA8;
+        poly1->v1      = 0x68;
+        poly1->u2      = 0xA0;
+        poly1->v2      = 0x70;
+        poly1->u3      = 0xA8;
+        poly1->v3      = 0x70;
+        poly1->clut    = clut;
+        poly1->tpage   = 0x3E;
+        setlen(poly1, 9);
+        setcode(poly1, 0x2D);
+        addPrim(Gpu_CurrentOt - 2, poly1);
+
+        sp3            = (SPRT*)Gpu_PrimCursor;
+        sp3->x0        = left;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp3 + 1);
+        sp3->y0        = yb;
+        sp3->u0        = 0x98;
+        sp3->v0        = 0x68;
+        sp3->clut      = clut;
+        sp3->x0       += 0x2B;
+        setlen(sp3, 3);
+        setcode(sp3, 0x75);
+        addPrim(Gpu_CurrentOt - 2, sp3);
+
+        sp3            = (SPRT*)Gpu_PrimCursor;
+        sp3->x0        = right;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp3 + 1);
+        sp3->u0        = 0xA8;
+        sp3->v0        = 0x68;
+        setlen(sp3, 3);
+        setcode(sp3, 0x75);
+        sp3->x0  += 0x2B;
+        sp3->y0   = yb;
+        sp3->clut = clut;
+        addPrim(Gpu_CurrentOt - 2, sp3);
+
+        poly2          = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly2 + 1);
+        poly2->x2      = x + 0x37;
+        poly2->x0      = x + 0x37;
+        poly2->x3      = x + 0x4E;
+        poly2->x1      = x + 0x4E;
+        poly2->y1      = yb;
+        poly2->y0      = yb;
+        poly2->y3      = y3;
+        poly2->y2      = y3;
+        poly2->u0      = 0xA0;
+        poly2->v0      = 0x68;
+        poly2->u1      = 0xA8;
+        poly2->v1      = 0x68;
+        poly2->u2      = 0xA0;
+        poly2->v2      = 0x70;
+        poly2->u3      = 0xA8;
+        poly2->v3      = 0x70;
+        poly2->clut    = clut;
+        poly2->tpage   = 0x3E;
+        setlen(poly2, 9);
+        setcode(poly2, 0x2D);
+        addPrim(Gpu_CurrentOt - 2, poly2);
+    }
+
+    tp             = Gpu_PrimCursor;
+    Gpu_PrimCursor = tp + 1;
+    setlen(tp, 1);
+    tp->code[0] = 0xE100023E;
+    addPrim(Gpu_CurrentOt - 2, tp);
+
+    loc.rect.x = x;
+    loc.rect.y = y;
+    loc.rect.w = 0x5A;
+    loc.rect.h = 0x14;
+    rectMode   = 2;
+    if (cfg->field_25 != 0) {
+        rectMode = 4;
+    }
+    Ui_DrawTextInRect(&loc.rect, -1, rectMode, NULL);
+
+    if (cfg->field_25 != 0) {
+        iconX           = x;
+        iconY           = y + 0x14;
+        loc.icons.flags = D_8009389C;
+        for (i = 0; i < 7; i++) {
+            flags = loc.icons.flags.bits;
+            if (cfg->field_25 & flags[i]) {
+                sp5            = (SPRT*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(sp5 + 1);
+                sp5->x0        = iconX;
+                iconX         += 0xD;
+                sp5->y0        = iconY;
+                sp5->u0        = i * 0x10 + 0x60;
+                sp5->w         = 0xE;
+                sp5->h         = 0xE;
+                sp5->v0        = 0x40;
+                sp5->clut      = 0x3C08;
+                setlen(sp5, 4);
+                setcode(sp5, 0x65);
+                addPrim(Gpu_CurrentOt - 2, sp5);
+            }
+        }
+        Ui_InsertDrawTPage(-2, 0);
+    }
+
+    if (Gp_ActorSlots[1] != NULL) {
+        if (Mc_SaveData.field_13 != 2) {
+            Gp_DrawHudNumbers(0x2D, -0x64, (s16)Mc_SaveData.field_6C8, (s16)Mc_SaveData.field_6CA, 0);
+        }
+    }
+}
 
 void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
 {

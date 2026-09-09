@@ -56105,3 +56105,61 @@ that patch before compensating in C for a missing `nop` between a reload and
 `lw ..., %lo(symbol)(reloaded_base)`. Two literal `0x1190` operands in this
 target still score as register differences against `%lo(Gpu_PrimCursor)`;
 linking at the original addresses verifies all 3716 original instruction bytes.
+
+## `func_800A57B0`: statement order picks local-quantity spans, resident constants and store placement
+
+The party HP/MP HUD sat at 97.5% for 45 builds of register nudging; every
+remaining difference was a ranking or a scheduler tie decided by *where a
+statement sits*, and each moved with a plain source reorder. All five are
+general.
+
+**A `cfg = &Global` placed first keeps the guard chain in `v0`.** The pointer
+pseudo is rematerialised by reload (`lui tN; addiu tN,tN,%lo`) and its
+`lo_sum` insn is deleted, but its `high` pseudo is still a block-0 local
+quantity whose span is decided before that deletion. sched1 is a reverse list
+scheduler that breaks priority ties by original insn order, so the `lui`
+lands at the block top and the `lo_sum` at the bottom only when the
+assignment has the lowest LUID in the block; the span then covers everything,
+the quantity ranks last, and the `Pad_RemapState` load / `lb` chain keeps
+`v0` with `lui v1,%hi(Wip_SysConfig)` in the delay slot. With the assignment
+after the other prologue statements (or behind a `SCHED_BARRIER`), the
+high/low pair is adjacent, ranks first, and steals `v0`.
+
+**A field re-read across a global store is post-reload CSE, and it is not a
+reference.** `sp->x0 = left; Gpu_PrimCursor = sp + 1; ...; sp->x0 += 0x2B;`
+gives `sh s6,8(t9) … move v1,s6; addiu v1,v1,0x2b; sh v1,8(t9)`. Ordinary CSE
+cannot forward the store because the intervening symbol-addressed store
+invalidates every varying-address memory entry; `reload_cse_regs` forwards it
+afterwards, turning the `lhu` into a `move`. Unlike the `TOUCH_REG` copy that
+reproduces the same two instructions (entry above on `SOFT_TOUCH_REG`), the
+load is not an RTL use of `left`, so `left` has three references instead of
+four, drops below the 3-reference constants in local-alloc, and lands in `s6`
+instead of `s3`. Count references at `.lreg` time, not in the final asm.
+
+**Among equal-reference constants, the one stored last stays resident.**
+sched1 places each `li` immediately before its first use, so for the code /
+length / tpage constants written once per polygon the span is the distance
+between corresponding statements, and the statement that comes last in the
+block has the shortest span, the highest `QTY_CMP_PRI`, and the lowest free
+register. Reload then reserves the least-used registers, which are exactly the
+other two, and rematerialises them at every use (`li s4,9` in one polygon,
+`li t8,9` in the next). The order `clut, tpage, setlen, setcode` keeps `0x2d`
+in `s3`; `setcode, setlen, clut, tpage` keeps `0x3e` instead.
+
+**A spill-slot reload orders after every in-struct store before it, and a
+store of a reloaded value is deferred.** `rtx_varies_p` treats `sp` as
+varying, so the `MEM_IN_STRUCT_P` exclusion in `true_dependence` does not
+apply to `(mem (sp+116))` against `(mem/s (a0+k))`; the second `lhu` of a
+spilled `y3` depends on every field store between the two uses. sched2 gives
+a store fed by a reload priority one above stores of resident registers and,
+picking highest priority first from the block end, places it later. Writing
+`p->y3 = y3; p->y2 = y3;` adjacently makes the byte stores anti-dependent on
+the second `lhu`, which hoists it and the first store above them with the
+`y2` store last - the target's shape. It also shortens the spilled value's
+span, which is what flipped its `t6`/`t7` home against the `0xA0` constant.
+
+**A `volatile` array declaration costs an `addiu` on `arr[1]`.** With
+`extern T* volatile Gp_ActorSlots[2]`, `Gp_ActorSlots[1]` compiles to
+`addiu v0,v0,%lo(sym); lw v0,4(v0)`; the target's
+`lw v0,%lo(Gp_ActorSlots+4)(v0)` needs a non-volatile object. Three files had
+been casting the qualifier away to match; the declaration was the artefact.

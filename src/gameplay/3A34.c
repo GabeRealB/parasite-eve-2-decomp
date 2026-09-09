@@ -1932,8 +1932,7 @@ void Gp_DebugPanTask(Task* arg0)
         } while (i < 2);
     }
 
-    /* Read without the `volatile` so the +4 folds into the `%lo`. */
-    work = ((GpActorWork**)Gp_ActorSlots)[1];
+    work = Gp_ActorSlots[1];
     if (work != NULL) {
         {
             /* The target loads the extra into $v0 and copies it into the saved

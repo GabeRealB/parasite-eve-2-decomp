@@ -819,7 +819,7 @@ STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
 /// work (set/cleared by `Gp_InitPlayerWork` / `Gp_TeardownSlot0`). Walked as a
 /// pair by `Gp_ClearSlotNodeFlags`, `Gp_UnlinkNode`, `Gp_NodeSlotMask`, and
 /// `Gp_ClearNodeSlots`. `Gp_AssignNodeSlot0` assigns `field_90C` on slot 0 only.
-extern GpActorWork* volatile Gp_ActorSlots[2];
+extern GpActorWork* Gp_ActorSlots[2];
 
 /// Flag byte cleared by `func_800A7DE0` / `Gp_SpawnPlayer`.
 extern u8 D_80115768;

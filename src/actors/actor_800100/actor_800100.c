@@ -44,10 +44,10 @@ void func_actor_800100_80163C04(GpActorWork* arg0)
     GpActorD4* d4;
     Task*      task;
 
-    actor                             = arg0->actor;
-    d4                                = actor->field_910;
-    ((GpActorWork**)Gp_ActorSlots)[1] = NULL;
-    task                              = actor->field_914;
+    actor            = arg0->actor;
+    d4               = actor->field_910;
+    Gp_ActorSlots[1] = NULL;
+    task             = actor->field_914;
     if (task != NULL) {
         Task_Kill(task);
     }

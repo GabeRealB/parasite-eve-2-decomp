@@ -57,6 +57,36 @@ typedef union GpHudBarScratch {
 } GpHudBarScratch;
 STATIC_ASSERT_SIZEOF(GpHudBarScratch, 0x30);
 
+/// Seven `u16` masks tested against `WipSysConfig.field_25` by the party HP/MP
+/// HUD (`func_800A57B0`); each set bit draws one 14x14 status icon.
+typedef struct GpHudStatusBits {
+    u16 bits[7];
+} GpHudStatusBits;
+STATIC_ASSERT_SIZEOF(GpHudStatusBits, 0xE);
+
+extern GpHudStatusBits D_8009389C;
+
+/// 0x50-byte stack scratch of the party HP/MP HUD (`func_800A57B0`), reused
+/// in phases: `s.buf` is the `Text_ItoaUnsigned` digit buffer with `s.req` the
+/// matching draw request and `s.obj` the `UiObject` the "MP" label offsets are
+/// read from; `label` (at +0) draws the "HP" label; `rect` (at +0) is the
+/// `Ui_DrawTextInRect` frame; `icons.flags` (at +8) is the status-mask copy
+/// the icon loop indexes.
+typedef union GpHudHpScratch {
+    struct {
+        /* 0x00 */ u8          buf[0x10];
+        /* 0x10 */ TextDrawReq req[1];
+        /* 0x20 */ UiObject    obj;
+    } s;
+    struct {
+        /* 0x00 */ u8              pad[8];
+        /* 0x08 */ GpHudStatusBits flags;
+    } icons;
+    RECT        rect;
+    TextDrawReq label;
+} GpHudHpScratch;
+STATIC_ASSERT_SIZEOF(GpHudHpScratch, 0x50);
+
 /// Coordinates of one icon in the attachment selection wheel.
 typedef struct {
     /* 0x0 */ u16 x;
