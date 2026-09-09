@@ -228,7 +228,7 @@ def summarize(i_path: Path) -> str:
     loop = parse_loop_notes(read(dump_path(i_path, "loop")))
 
     if order or disp:
-        chunks.append(".greg alloc order (pseudo → hard):")
+        chunks.append(".greg global allocation order → final home after reload:")
         rows = order or sorted(disp)
         for am in rows[:MAX_ALLOC_ROWS]:
             info = lreg.get(am, {})
@@ -247,6 +247,7 @@ def summarize(i_path: Path) -> str:
             chunks.append(f"  r{am:<4} used {dens:<8} → {dest}{ptr}{conf}")
         if len(rows) > MAX_ALLOC_ROWS:
             chunks.append(f"  ... {len(rows) - MAX_ALLOC_ROWS} more allocnos")
+        chunks.append("  Homes include reload changes; refs/span are per pseudo, not local quantities. trace_gcc.py observes both stages.")
     elif lreg:
         chunks.append(".lreg (no .greg dispositions):")
         for am, info in list(lreg.items())[:MAX_ALLOC_ROWS]:

@@ -33,15 +33,17 @@
  * Matching helpers: empty GNU C statement-asm that emit no MIPS.
  *
  * VOLATILE variants are scheduling fences (delay slots, insn motion).
- * SOFT_ variants apply the same constraint without volatile; GCC 2.8.1
- * -fschedule-insns may still move surrounding instructions. That
- * distinction is a matching difference (see Gp_DebugPanTask).
+ * SOFT_ variants omit explicit volatile. GCC 2.8.1 makes no-output asm
+ * implicitly volatile, including SOFT_USE_REG; basic empty asm is also a
+ * boundary. Read/write SOFT_TOUCH_REG avoids that rule but still changes
+ * dependencies and may move. Inspect the RTL (CODEGEN_MODEL.md section 11).
  *
  * Expansions are plain statement-asm. Do not wrap them in do/while or
  * extra braces: that changes stack and scheduling. GCC 2.8.1 has no
  * variadic macros; use the numbered forms for multiple operands.
  *
- * register T x asm("v0") is a different tool (function-wide hard pin).
+ * register T x asm("v0") creates hard-register RTL; only top-level register
+ * declarations globally reserve the register. Local fp pins can be invalid.
  * Instruction-emitting asm (lui/lo, sll, move) stays written out.
  */
 #define SCHED_BARRIER() __asm__ volatile("")

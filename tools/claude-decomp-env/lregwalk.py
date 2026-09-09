@@ -14,8 +14,10 @@ for o in objs:
         if m:
             cur = {"n": m.group(1) or m.group(2), "insns": []}
             blocks.append(cur)
+        else:
+            cur = None
         continue
-    m = re.match(r"\((insn|call_insn|jump_insn|note) (\d+)", o)
+    m = re.match(r"\((insn|call_insn|jump_insn|code_label|barrier|note) (\d+)", o)
     if not m or cur is None: continue
     kind, uid = m.group(1), m.group(2)
     if kind == "note": continue
@@ -32,5 +34,5 @@ for b in blocks:
     if want and not (want & regs): continue
     print(f"== block {b['n']}: {len(b['insns'])} insns")
     for i, (kind, uid, dests, deads, clob, srcs) in enumerate(b["insns"], 1):
-        tag = "CALL" if kind == "call_insn" else ("JMP" if kind == "jump_insn" else "")
+        tag = {"call_insn": "CALL", "jump_insn": "JMP", "code_label": "LABEL", "barrier": "BAR"}.get(kind, "")
         print(f"  #{i:3d} uid {uid:>5} {tag:4} set={','.join(dests) or '-':>8} dead={','.join(deads) or '-':<12} regs={' '.join(srcs)}")

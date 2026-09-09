@@ -3,6 +3,63 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A load present in `.greg` can disappear in post-reload CSE
+
+`func_80046EEC` base_35 reproduces 99.249%, with only the page-down clamp
+different. UID 1228 remains `mem/s:QI(s0 + 5)` through `.greg`, then becomes
+`reg:QI a0` in `.sched2`. A direct compiler trace shows the substitution in
+`reload_cse_simplify_set`, called after `.greg` is written and before sched2.
+This pass was missing from the old model's diagram.
+
+The remaining unsigned reload is therefore not removed by ordinary CSE.
+Post-reload CSE knows that a0 still contains the value and replaces the load
+with a copy. Its memory invalidation uses scheduler dependence analysis,
+which can distinguish accesses that ordinary CSE conservatively invalidates.
+Investigate the surviving equivalence and register lifetime before changing
+source-level byte aliases or adding a scheduler fence.
+
+Use `tools/trace_gcc.py ... --uids 1228` to observe the proposed substitution;
+check the next dump to confirm it survived. The source/promotion boundary is
+a separate issue: combine eliminates an extension but leaves r138/r425 as
+distinct global pseudos. Full evidence: `COMPILER_ANALYSIS.md`, UI case.
+
+## Local quantity priority can determine which register reload reserves
+
+In `func_800A57B0`, moving each polygon y2 store next to its y3 store changes
+lower-Y's local quantity from 5 refs / 212 half-instructions (priority 471)
+to 5 / 188 (531). Its competitor stays at 520. Neither has a suggestion.
+The actual local allocator consequently changes lower-Y from t7 to t6.
+Reload subsequently evicts lower-Y from that register and reserves it.
+
+The scratch-register swap has two causes in sequence: a local rank inversion,
+then reload reservation. It is not explained by global lifetime ratios or
+a direct preference for a scratch name. The code/length/tpage and left-coordinate
+quantities still matter because they share the block's allocation pressure.
+
+`trace_gcc.py` reads quantity membership, exact birth/death positions and
+suggestions directly, then records reload evictions. `lregwalk.py` must count
+non-NOTE labels as the compiler does: omitting a block's leading label shifts
+all its positions. See `COMPILER_ANALYSIS.md`, HUD case, for both candidates.
+
+## No-output asm is implicitly volatile and can cross an allocator threshold
+
+Replay's base_33 puts palette r98 in fp at priority 909, tied with the
+brightness-address allocno. Palette's lower allocno number wins. Removing
+one basic empty asm from the consecutive glyph group changes brightness's
+length from 836 to 834, raising priority to 911. The ordinary and observed
+compiles agree: brightness gets fp, palette loses its register home.
+
+This is a diagnostic source intervention, not a match or a proposed final
+barrier sequence. Extra RTL nodes can change allocation without adding machine
+instructions. Look for a natural source lifetime/grouping change with the
+same effect.
+
+GCC 2.8.1 sets `vol = 1` for asm with no outputs. Input-only `SOFT_USE_REG`
+therefore remains volatile in RTL. Read/write `SOFT_TOUCH_REG` avoids that
+specific rule but still changes dependencies. Keep this distinction when
+replacing a barrier or keepalive. The 909/911 experiment and compiler/input
+hashes are retained in `tools/compiler_evidence/2026-09-09.json`.
+
 ## One local, assigned twice, so two immediates share `$a1`
 
 A run of `sh` that the target emits as

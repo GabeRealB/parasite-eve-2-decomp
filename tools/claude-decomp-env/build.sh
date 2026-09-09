@@ -148,5 +148,5 @@ fi
 python3 "$SCRIPT_PATH/attempt.py" record "$INPUT" --project "$PROJECT_ROOT" --compiler "$CC" --flags "$CPP_FLAGS | $CC_FLAGS | $MASPSX_FLAGS | $AS_FLAGS"
 
 if grep -qE 'register[[:space:]][^;]+asm[[:space:]]*\(' "$INPUT" 2>/dev/null; then
-    echo "PIN WARNING: $1 contains register … asm(\"\"). Function-scope pins reserve that hard register for the whole function. Unpin and rescore as its own base_N.c before treating this as the best seed."
+    echo "PIN WARNING: $1 contains register … asm(\"\"). Local pins create hard-register RTL; conflicts and eliminable fp can make a high-scoring candidate invalid. Unpin and rescore as its own base_N.c before treating this as the best seed."
 fi

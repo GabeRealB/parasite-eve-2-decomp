@@ -1,17 +1,15 @@
 # A working model of GCC 2.8.1 for this decomp
 
-`DECOMPILATION_LEARNINGS.md` is 1,275 sections and 1.29 MB, and the match prompt
-tells agents to grep it rather than read it. That is the right way to use a
-corpus of instances, but it means the *model* underneath never gets stated: 90
-sections restate "the value crosses a call", 68 restate "cast to force `lbu`",
-53 restate "a temp pins the operand order". This file is an attempt at the
-model, so that the corpus is only consulted for the residue the model does not
-explain.
+Use this model to identify compiler mechanisms, then search
+`DECOMPILATION_LEARNINGS.md` for examples. The corpus contains many repeated
+local solutions; their C spelling alone is not a general compiler rule.
 
-It is derived from the corpus, not from the GCC source. Where an entry cites a
-pass or a formula I have kept its wording; where I generalised from several
-instances I say so. Treat a rule here as a strong prior, not as ground truth —
-verify against `build.sh`'s score, which is the only authority.
+The initial model came from the corpus. Sections 1, 2, 4, 10–12 and the
+diagnostic ladder now incorporate the patched compiler source and direct GDB
+observations of the bundled cc1. The 2026-09-09 investigation, reproducible
+inputs and remaining uncertainties are in [COMPILER_ANALYSIS.md](COMPILER_ANALYSIS.md).
+Distinguish a source rule, an observed decision, and a proposed source edit.
+An exact scratch score still requires integration and build verification.
 
 It sits beside `DECOMPILATION_LEARNINGS.md` deliberately: that file is the
 corpus of instances, this one is the model they are instances of. Read this
@@ -20,9 +18,18 @@ the model does not settle.
 
 ---
 
-## 1. Register assignment is a priority sort, not a choice about your code
+## 1. Register assignment has three decision stages
 
-The entry that explains the rest:
+First identify which stage owns the mismatch:
+
+1. **Local allocation** groups eligible pseudos into quantities. Suggestions,
+   tied operands, live intervals, register classes and priority determine homes.
+2. **Global allocation** handles the remaining allocnos, considering priorities,
+   preferences, conflicts, already-used registers and caller-save eligibility.
+3. **Reload** reserves scratch registers, evicts existing homes and can retry
+   global allocation. Constants or memory equivalents can have no permanent home.
+
+One useful global-allocation rule is:
 
 > GCC's `global_alloc` orders allocnos by `floor_log2(n_refs) * n_refs /
 > live_length`. Several early `return ret;` statements inside one branch add a
@@ -36,49 +43,42 @@ Three consequences that together account for most `regs=N` mismatches:
   its priority and can swap two registers. In the cited case rewriting a branch
   as nested `if`s dropped `ret` from 20 references to 17 and flipped the pair,
   while emitting identical instructions.
-- **Live length is the other lever.** Narrowing a variable's scope shortens its
-  live range and raises its priority; hoisting an address out of a loop
-  lengthens one and lowers it.
-- **You cannot name a register, only change its rank.** This is why so many
-  entries take the form "introduce a temp so X lands in `$v0`" rather than
-  "pin X to `$v0`". A `register … asm("v0")` pin is a last resort and usually
-  papers over a rank problem.
+- **RTL live length is the other lever.** Moving a surviving definition or use
+  can alter it; narrowing lexical C scope alone need not. Scheduling recounts
+  liveness, and equivalent constants can have their global lifetime doubled.
+- **Check suggestions and conflicts before changing rank.** Named temporaries
+  can disappear during optimization. Explicit register asm changes the RTL and
+  its hard-register constraints; it does not safely express allocator intent.
 
 **Diagnostic:** `cc1 <flags> -dl -dg` writes `.lreg` / `.greg`; the `.lreg`
 header prints how many times each register is used. Comparing that between your
 build and a shape you expect is faster than guessing. 19 corpus entries work at
 this level; 27 use RTL dumps generally.
 
-**Corollary — a value that crosses a call is callee-saved.** Not a separate
-rule, just the live-range rule at its most predictable: if the value is needed
-after a `jal`, the allocator must give it `$s*`. So the lever for "target uses
-`$s3`, I get `$v1`" is usually *where the value is computed and last read*,
-relative to the call.
+**A value crossing a call needs preservation.** It may get a callee-saved
+register, use caller-save code, spill, or be reconstructed from an equivalence.
+Call crossing constrains the choice; it does not force `$s*`.
 
 ---
 
-## 2. Delay slots are filled from source order
+## 2. Scheduling uses RTL dependencies, priorities and order
 
-287 sections touch the delay-slot pass — the largest single cluster.
+The scheduler ranks ready instructions by priority, then their dependency
+relationship to the last scheduled instruction, then original RTL order
+(`sched.c:rank_for_schedule`). It schedules backward; the comparison's preferred
+instruction is not necessarily the next one in final forward assembly. Only
+instructions admitted by the dependency graph can compete in the ready queue.
 
-> GCC 2.8.1 fills the first load-delay with whichever independent op is *first*
-> in the source.
+Sched1 changes lifetimes **before** allocation. Sched2 works with hard-register
+conflicts **after** reload and post-reload CSE. Reordering C has an effect only
+if it changes the relevant RTL, dependency graph or tie order. Replay UID 370
+wins on priority in sched1 but loses an original-order tie in sched2 (§12).
 
-So statement order among *independent* operations is a real degree of freedom,
-and often the only one that matters. Writing `i++` before `p++` fills the `lw`
-delay with `i++` and leaves a `nop` after the `lbu`; swapping them matches.
-
-Practical form:
-
-- If the target has a `nop` you do not, you have too few independent operations
-  before the use — move one earlier.
-- If the target fills a slot you leave empty, reorder the independent statements
-  so the one it uses comes first.
-- `asm("")` is the blunt instrument: it stops a specific instruction winning a
-  slot. Several entries use it precisely (`asm("")` after a move that must own
-  the next `beqz` delay slot). Reach for ordering first.
-- The branch delay is filled *last*, from whatever remains, which is why a
-  pointer increment so often ends up there.
+Branch delay filling happens in `reorg.c` (`.dbr`). MIPS final output and maspsx
+also participate in load-delay handling and expansion. Compare `.sched`,
+`.greg`, `.sched2`, `.dbr`, emitted `.s` and assembled `.o` to locate the stage
+responsible for a misplaced instruction or nop. A missing nop has several
+possible causes; C statement order alone cannot identify one.
 
 ---
 
@@ -108,20 +108,21 @@ via `(u16)`, and for `.h.hi` vs `.w >> 16` on packed fixed-point types.
 - **Cross-jumping** collapses two identical tails into one. If the target keeps
   them separate and you get a branch to a shared tail, the two arms must differ
   in some way you have not reproduced — or you need a barrier to stop the merge.
-- **CSE** hoists a repeated subexpression into one register, which then needs a
-  callee-saved slot and grows the frame. If the target re-materialises a
-  constant twice (`li v0,8` in two places) and you emit one `s1`, you have
-  written it as one value where the original had two.
+- **CSE** can reuse a repeated subexpression, changing pressure and lifetimes.
+  A shared constant can occupy a saved register or be rematerialized by reload.
+  Inspect the equivalence and allocation before deciding whether to split it.
 
-The general lever: *identical text in C becomes identical code*. To keep two
-things apart, make them genuinely different — different temporaries, different
-order — rather than trying to suppress the optimisation.
+C spelling alone does not determine reuse: different temporaries can collapse,
+and identical expressions can require separate loads after invalidation. Read
+the MEM mode, address and flags and identify which optimizer performs the
+reuse. Ordinary CSE and post-reload CSE have different invalidation rules (§11).
 
 ---
 
 ## 5. Control-flow shape is inferred from the dispatch, not the source
 
-218 sections concern switches and jump tables. Recurring recognitions:
+Switches and jump tables provide source-shape hypotheses. The following corpus
+patterns are not unique reconstructions of the original C:
 
 - A two-arm dispatch that falls through to a shared tail is a `switch`, not
   `if / else if`.
@@ -228,15 +229,13 @@ What the codegen does constrain:
 
 ## 10. Register allocation, mechanically
 
-§1 says allocation is a priority sort. This section says what the sort keys
+§1 separates local allocation, global allocation and reload. This section says what the sort keys
 are, which of the two allocators runs first, what each one is allowed to take,
-and how to read the answer off `.lreg` / `.greg`. Unlike the rest of this file
-it is derived from the compiler source (`local/gcc/gcc-2.8.1-psx/`:
+and how to read the answer off `.lreg` / `.greg`. It is derived from the compiler source (`local/gcc/gcc-2.8.1-psx/`:
 `local-alloc.c`, `global.c`, `regclass.c`, `flow.c`, `config/mips/mips.h`) and
-checked with probe compiles under `dump.sh`'s exact flags. `reload1.c` was not
-read; where reload matters it is said in a sentence. Every claim below is
-either quoted from the source or reproduced by a probe; the few that are
-source-only are marked.
+checked with probe compiles under `dump.sh`'s exact flags. Reload was subsequently
+traced on the UI and HUD candidates (§11). Historical examples illustrate
+mechanisms; current reproducible observations are linked in §12.
 
 The flags that matter are all implied by `-O2` (`toplev.c`): `-fschedule-insns`
 (sched1 runs *before* allocation), `-fcaller-saves`, `-fomit-frame-pointer`
@@ -246,7 +245,10 @@ The flags that matter are all implied by `-O2` (`toplev.c`): `-fschedule-insns`
 ### 10.1 The pass order, and the three numbers every decision uses
 
 ```
-flow  →  combine  →  sched1  →  regclass  →  local_alloc  ─ .lreg ─▶  global_alloc  →  reload  ─ .greg ─▶  sched2 → jump2 → dbr
+flow → combine → sched1 → regclass → local_alloc → .lreg
+     → global_alloc → reload → .greg
+     → reload_cse_regs → prologue/epilogue RTL → sched2 → .sched2
+     → jump2 → dbr → MIPS final output → maspsx → assembler
 ```
 
 `flow` computes, per pseudo, the inputs both allocators sort on:
@@ -264,8 +266,10 @@ scheduling did to a live range. Two adjustments happen after that, both inside
 `local_alloc` (`update_equiv_regs`), so `.lreg` already reflects them and
 `global_alloc` sees exactly the `.lreg` numbers:
 
-- **Every pseudo with a `REG_EQUIV` note has its live length doubled.** That
-  is every register parameter (the arrival copy carries `REG_EQUIV (mem
+- **An eligible initializing `REG_EQUIV` note doubles nonnegative live length.**
+  `update_equiv_regs` has eligibility checks; inspect the actual note and
+  statistics rather than assuming every parameter or constant qualifies.
+  This includes register parameters (the arrival copy carries `REG_EQUIV (mem
   arg-slot)`: probe `p` went from `across 11` in `.flow` to `across 22` in
   `.lreg`), every `%hi(sym)` pseudo, and a single-block load from memory that
   nothing stores to before the pseudo dies. A plain `x = 0x12345;` gets no
@@ -350,14 +354,16 @@ quantity's refs are the **sum** and its span is the **union**. This is what
    so explicitly: "This is the identical prioritization as done by
    global-alloc"). `death - birth` is measured on the block's insn sequence
    after sched1, in half-insn units (`2 * insn_number`, clobbers at `2n - 1`,
-   an output that is never read dies at `2n + 1`). Exact ties are common in
+   an output that is never read dies at `2n + 1`). The counter includes every
+   non-NOTE node, including a leading CODE_LABEL. Exact ties are common in
    small blocks and go to the **lower quantity number, i.e. the one born
    first**. Each quantity takes the lowest numeric free register (§10.2) over
    its span.
 
 The corpus entries that state this as `live_length / n_refs` ascending, or as
 "the inverse of global_alloc", are wrong on both counts: the `floor_log2`
-factor is there, and shorter-per-reference wins in both allocators.
+factor is there, and shorter-per-weighted-reference wins in both allocators. Both keys are
+truncated integers after scaling by 10000; two unequal ratios can still tie.
 
 **Worked: `$v0`/`$v1` flipping when a store is added (probe 2, 2c).**
 
@@ -382,8 +388,8 @@ free of `$s0`-`$s7`; two disjoint call-crossing quantities in different blocks
 both get `$s0` (probe 3: `t` in one arm and `r = f2()` after the join share
 `$16`). If no `$s` is free over the span and `4 * calls < refs`, the quantity
 takes a call-clobbered register and caller-save code is emitted around each
-call (same rule as §10.4); otherwise it is left for reload, which puts it on
-the stack.
+call (same rule as §10.4); otherwise local allocation leaves it unassigned for global allocation and
+reload to handle.
 
 ### 10.4 global-alloc: rank, two passes, preferences, and what "spill" means
 
@@ -393,7 +399,10 @@ the stack.
 pri = floor_log2(n_refs) * n_refs / live_length * 10000 * size        (int)
 ```
 
-descending, ties to the lower pseudo number. Pseudo numbers follow creation
+descending, ties to the lower **allocno number**. Usually each allocno contains
+one pseudo, but `reg_may_share` can merge them: refs and call counts are summed,
+live length is the maximum, and the printed representative is the last member.
+Use the actual allocno membership when reconstructing this sort. Pseudo numbers follow creation
 order: parameters first, user locals in declaration order, compiler temporaries
 (givs, CSE copies) after. Probe 1's header `95 108 84 83 85 81 80 82` is
 exactly `2.00 1.75 1.13 1.00 0.47 0.43 0.27 0.09` from the `.lreg` lines.
@@ -435,8 +444,8 @@ dump does not show - you have to walk the order and keep score.
 6. Still nothing: if some register holds only local-alloc pseudos whose summed
    `refs / length` is lower than this allocno's, evict them (scanning from
    `$t9` downward) and take it. (Source only; no probe.)
-7. Otherwise the allocno gets no register, and reload gives it a stack slot;
-   every use becomes `lw`/`sw` through a scratch register reload picks (`$t8`,
+7. Otherwise the allocno gets no register. Reload may substitute a constant or
+   memory equivalence, or assign a stack slot. Stack accesses use a scratch register (`$t8`,
    `$t7` in the example below). There is no cost comparison between spill
    candidates: **whoever ranks low enough to find nothing free is the one
    spilled**, and a call-crossing value with `refs <= 4 * calls` cannot even
@@ -445,76 +454,29 @@ dump does not show - you have to walk the order and keep score.
 The `$fp` = `$s8` case follows from 1: it is the ninth callee-saved candidate,
 after `$s7`, and only global-alloc can give it out.
 
-### 10.5 Reading a dump: why did pseudo P land in H
+### 10.5 Reading a dump: locate the decision before choosing a lever
 
-1. Find P in `.lreg`. If there is a `;; Register P in H.` line at the end of
-   the statistics, local-alloc placed it; otherwise it is in `.greg`'s
-   `;; N regs to allocate:` line and the `;; Register dispositions:` table
-   (`P in H`). A pseudo in neither place got no register at all (spilled).
-2. **Local.** Look at P's block in the RTL that follows (the insns are in
-   sched1 order, which is what local-alloc numbered). Work out P's quantity:
-   follow `REG_DEAD` notes into two-operand ops and copies to see what it is
-   tied to. Check for a suggestion first (is the quantity copied to/from a
-   hard register, or an operand of an op whose output is one?). If not,
-   compute `floor_log2(refs) * refs / span` for it and for the quantities it
-   overlaps, using summed refs and the union span; the one that ranks higher
-   picked first, and each took the lowest numeric free register (§10.2) - the
-   registers of quantities already placed, and of global pseudos live across
-   the block (`Registers live at start`), are busy.
-3. **Global.** P's position in the order line is its rank; `.lreg` gives the
-   two inputs. Walk the order line from the front: for each allocno take the
-   lowest register not in its `conflicts` list, not call-used if it `crosses
-   calls`, not taken by an overlapping allocno placed earlier; then apply its
-   `preferences` line if the preferred register is still available. When you
-   reach P you have H and the reason.
-4. **Wrong H.** The target's assignment tells you the order the original
-   source produced. Which rank needs to change is then a matter of arithmetic
-   on the two ratios - the same computation the corpus entries under
-   `floor_log2` do by hand.
+1. Identify the value by its defining expression and UID. Pseudo IDs can change
+   between source variants; do not compare equal numbers without checking meaning.
+2. Inspect local allocation first. The `.lreg` header is per pseudo, while
+   priority uses **tied quantities** and half-instruction birth/death positions.
+   `lregwalk.py` helps inspect possible ties; `trace_gcc.py` observes the actual
+   members, suggestions, intervals and each allocation attempt.
+3. For a global value, use the actual allocno order, membership and conflicts.
+   A preferred register may be unavailable. Caller-save profitability permits
+   a retry; it does not guarantee the retry can find a register.
+4. Compare the initial homes with reload's evictions and the final `.greg`
+   dispositions. The global order and final dispositions in that same dump are
+   observations from different moments.
+5. If a load survives `.greg` but changes in `.sched2`, inspect
+   `reload_cse_regs` before attributing the change to scheduling.
+6. Record a prediction in terms of a specific quantity, conflict, substitution
+   or scheduling comparison, then check both the intermediate decision and
+   final assembly.
 
-`summarize_dumps.py` already prints rank, `used R/L`, disposition and hard
-conflicts per allocno; it does not print quantities or per-block insn
-positions, which is the missing piece for local cases. `lregwalk.py`, symlinked
-into the scratch env beside it, supplies them: per block, the insns in
-local-alloc's own order with their `set` destinations and `REG_DEAD` notes.
-That is what step 2 needs - the `REG_DEAD` chain gives the tying, the `set`
-destinations give the suggestions, and the position gives birth order for a tie.
-
-    python3 lregwalk.py base_N.i.lreg 111 154     # blocks mentioning those pseudos
-
-**Do step 2 in that order: suggestion, then priority, then birth.** Priority is
-the part that is easy to compute and the least often decisive. Measured over 86
-`.lreg` dumps from two functions, comparing only pseudos that competed in the
-same block, with ties and same-register pairs excluded:
-
-| | |
-|---|---|
-| pairs the priority ratio orders correctly | 66% |
-| pairs at an exact priority tie, where birth order decides | 38% of all pairs |
-
-The disagreement is not noise, and it is not spread evenly. Counting how often
-a pseudo took a *lower* register than a higher-priority competitor, per register:
-
-```
-$v0  4.8 inversions per assignment      $a3  0.8
-$v1  2.3                                $t0  0.9
-$a0  1.5                                $t2  0.3
-$a1  1.4                                $t3  0.0
-```
-
-It decays monotonically to zero by `$t3`. That is the shape of the suggestion
-pass, not of a ranking error: `$v0` is the return register and the destination
-of most arithmetic results, so it is the most-suggested register in any block by
-a wide margin, and a value that is suggested into it takes it before priority is
-consulted at all.
-
-The practical consequence is a different first move. To get a value *out* of
-`$v0`, break its suggestion - stop it being the direct result or operand of
-something whose output is a hard register, usually by giving the expression a
-named intermediate or by moving where the value is consumed. Adjusting refs and
-live length to lose on priority is the wrong lever there, and it is the lever a
-matching agent reaches for first because the ratio is the part the dump prints.
-Priority is decisive only once no competitor is suggested.
+Per-pseudo priority correlations do not establish how often suggestions win.
+They omit quantity grouping, eligibility, conflicts and later reload. The old
+66%/38% measurements were not a validated explanation of those mechanisms.
 
 ### 10.6 Levers: what moves an allocation and what is folklore
 
@@ -527,14 +489,14 @@ Real, in rough order of how often it is the answer:
 | where it dies | eligibility | a value that dies at a block boundary (`dies in 0 places`) is global; give it a last use in the block and it becomes local, with a different register pool |
 | operand order of a two-operand op whose operands both die | tying (local) / arithmetic preference (global) | `y + x` instead of `x + y` decides which input's register the result inherits (probe 9b) |
 | whether it crosses a call, and `refs` vs `4 * calls` | pool selection, caller-save, spill | move the computation or the last read across the `jal`; one extra reference turns a spilled value into a caller-saved one |
-| one variable vs two | one allocno with summed refs and unioned length vs two ranks; block-local halves go to local-alloc | split a reused local, or merge two into one to carry a preference between blocks (both in the corpus) |
+| one variable vs two | can change pseudo/quantity/allocno grouping; global shared allocnos sum refs and take maximum member length | split a reused local, or merge two into one to carry a preference between blocks (both in the corpus) |
 | passing straight through a hard register | suggestion (local) / copy preference (global) | return `x` or pass it as an argument unchanged and it keeps `$v0`/`$aN` if the register is free over its range |
-| statement order | only through sched1 changing live lengths | works when the moved statement is a load or store sched1 keeps in place (probe 8); the corpus has cases where sched1 re-sorts everything back |
+| statement order | through expansion, dependencies, operand tying, scheduling and liveness | works when the moved statement is a load or store sched1 keeps in place (probe 8); the corpus has cases where sched1 re-sorts everything back |
 
 Folklore, tested:
 
-- **Declaration order** of locals changes pseudo numbers and therefore breaks
-  exact priority ties, nothing else. Probe 8 swapped `int a, b;` for
+- **Declaration order** can change pseudo creation order and global tie-breaks;
+  it does not directly specify local quantity birth order. Probe 8 swapped `int a, b;` for
   `int b, a;` and produced identical code; swapping the two *statements* that
   load them flipped the registers, because the live lengths flipped.
 - **An unused local** (`int unused = 3;`) is deleted by flow before either
@@ -542,12 +504,14 @@ Folklore, tested:
 - **`register`** does not steer allocation at `-O` (`obey_regdecls` is cleared).
 - **Renaming** anything has no effect; only the RTL shape and the counts
   matter.
-- **`register x asm("$s1")`** does work, but by reserving `$s1` function-wide
-  it edits every other allocno's conflict set, so it moves other registers as
-  a side effect. The existing rule stands: pin only when both ends of the
-  losing range are fixed by the target and the ratios cannot be changed.
+- **Explicit register asm** creates hard-register RTL. Function-local declarations
+  do **not** call `globalize_reg`; only top-level register declarations do
+  (`varasm.c:make_decl_rtl`). Model their actual uses/conflicts, not a blanket
+  function-wide reservation. Eliminable `fp` is particularly problematic:
+  `global_alloc` clears its conflicts, and the saved Replay pin probe allowed
+  another live value into the same register. Keep match candidates unpinned.
 
-### 10.7 Worked example: `func_acropolis_roof_garden_8017E29C` at 99.416%
+### 10.7 Historical example: `func_acropolis_roof_garden_8017E29C` at 99.416%
 
 The archived seed (`tools/giveups/.../base_3.c`) rebuilt in a scratch
 directory reproduces the score exactly: `regs=84 reorder=2`, everything else 0.
@@ -570,36 +534,123 @@ values, so the seed's overall pressure is right; the four swaps are rank
 inversions, not structure. Which source edit pulls exactly one lever without
 disturbing the other three is the part this section does not do for you.
 
-### 10.8 Where this model is thin
+### 10.8 Limits of allocation reconstruction
 
-- **reload** was not read. It chooses the scratch registers for spilled
-  values, can re-home an allocno after a spill (`retry_global_alloc`), and
-  splits `li` into `lui/ori`. If the `.greg` dispositions agree with the
-  target and the final assembly does not, the difference is reload's.
-- The eviction step (§10.4 item 6) and the "skip registers a lower-ranked
-  allocno prefers" rule in pass 0 are from the source only.
-- `across L insns` is sched1's recount and can differ by one or two from the
-  span you would count by hand; for a tied quantity it is only a per-pseudo
-  component. When two ratios are within a few percent, compute from the RTL
-  positions, not from the header lines.
-- Nothing here changes §1's advice on *when* to reach for the permuter; it
-  changes what to try first when the permuter has stopped finding anything.
+The tracer observes actual allocation calls and results. Its displayed priority
+is calculated from observed inputs; it is not a full simulator of every
+machine constraint, global eviction or reload alternative. The bundled i386
+compiler uses floating-point division in the priority calculation; do not infer
+an unobserved exact tie solely from rounded printed ratios.
+
+An interval measured in local half-instruction positions is different from
+`REG_LIVE_LENGTH`. Constants' doubled global lengths must not be substituted
+into local quantity ranking. See the HUD example in the analysis report.
+
+## 11. Reload, aliasing, and empty asm
+
+### Reload is a second allocation problem
+
+`reload1.c:order_regs_for_reload` first considers unused registers, preferring
+call-clobbered ones. Used registers are ordered by weighted use cost. A local
+pseudo contributes `refs + (refs + 1) / 2` (integer division), since it cannot
+be relocated as easily; a global pseudo contributes `refs`. Equal costs use
+numeric hard-register order. Fixed, explicit and eliminable registers receive
+additional penalties/exclusions. Register classes still constrain selection.
+
+`spill_hard_reg` can evict pseudos and call `retry_global_alloc`; some block-local
+homes survive if their block needs no spill registers. `REG_EQUIV` values may
+be reconstructed without stack storage. In the HUD, lower-Y's changed **local**
+priority puts it in t6 instead of t7; reload then reserves that register. The
+final scratch swap is explained by both decisions, not a scratch-name preference.
+
+### A late load replacement has its own pass
+
+After the `.greg` dump, `reload_cse_regs` tracks known hard-register values.
+`reload_cse_simplify_set` can replace a memory load with a register copy;
+`reload_cse_simplify_operands` can replace individual operands. Labels and calls
+invalidate knowledge; memory stores use the dependence checks in `sched.c`.
+
+This is observed in UI candidate base_35: UID 1228 is still an unsigned byte
+load at `.greg`, then becomes a copy of a0 before sched2. If the target needs
+the reload, investigate why an equivalent value is still available there.
+
+### Different passes have different memory knowledge
+
+Ordinary CSE's `note_mem_written` / `invalidate_memory` conservatively
+invalidate categories. A varying-address QI store can invalidate all memory
+expressions. Scheduler/post-reload dependence analysis also reasons about
+specific addresses, offsets, access widths, MEM_IN_STRUCT and volatility.
+Do not apply ordinary CSE's category rule to every later optimization.
+
+In `sched.c:true_dependence` / `anti_dependence`, a varying **non-byte**
+structure access can be disambiguated from a fixed scalar access. A QI
+structure access does not get that exemption. Changing a fixed brightness
+read from scalar MEM to member MEM/s changes eligibility for this exemption.
+Trace the particular access pair: marking one read volatile is not a universal
+fence, and changing every field's type can introduce other dependencies.
+
+### Empty asm is not uniformly soft
+
+`stmt.c:expand_asm_operands` sets `vol = 1` whenever there are no outputs.
+Thus input-only `SOFT_USE_REG` is implicitly volatile in this compiler despite
+the macro spelling. Basic empty asm is also a scheduling boundary. A read/write
+`SOFT_TOUCH_REG` has an output and avoids that particular rule, but can still
+change copies, lifetimes and dependencies. Inspect the expanded RTL.
+
+Extra empty nodes can change allocation while emitting no machine instructions.
+Replay confirms this threshold effect. Such padding is diagnostic evidence;
+a final source should explain the needed lifetime naturally.
+
+## 12. Reproduce and observe a compiler decision
+
+From the project root, after `dump.sh` has produced a preprocessed input:
+
+```sh
+python3 tools/trace_gcc.py nonmatchings/FUNC/base_N.i \
+  --output-dir /tmp/gcc-observation --function FUNC --regs 138 425 \
+  --uids 1228
+```
+
+Use a new output directory. Archived `.i.gz` inputs work directly and retain
+the original header contents. The tool uses the bundled compiler, standard
+scratch flags, GDB and readelf. GDB requires ptrace access; a sandbox may require
+permission. It reads compiler state without changing it or calling functions
+inside the inferior, and requires byte-identical emitted assembly from the
+ordinary and observed compiles.
+
+The output contains a compiler/input/source fingerprint manifest, complete
+allocation events, selected scheduler comparisons, post-reload substitutions,
+RTL dumps and a filtered text report. `--regs` filters the report, not evidence;
+`--uids` selects scheduler comparisons and filters late substitutions. UIDs
+must be taken from this compilation's dumps. A scheduler comparison explains
+which ready instruction wins, not why a blocked instruction was unavailable.
+
+Only the audited cc1 hash is supported. A replacement binary needs an ABI/layout
+audit before extending the profile. Source hashes record what was inspected;
+they do not independently prove the provenance of the prebuilt compiler.
+
+See [COMPILER_ANALYSIS.md](COMPILER_ANALYSIS.md) and
+[the retained observations](tools/compiler_evidence/2026-09-09.json) for the
+UI reload substitution, HUD quantity/reload chain and Replay's 909/911 boundary.
 
 ## Diagnostic ladder
 
-Work from the penalty breakdown `build.sh` prints, not from the diff:
+Use exact penalties to locate differences, structural diagnostics to assess
+control flow, and RTL/trace evidence to identify the responsible pass.
 
-| penalties | most likely mechanism | first lever |
-|---|---|---|
-| `regs` only | §1 priority sort | change reference count or scope of the mismatched value |
-| `reorder` only | §2 delay slots | reorder independent statements |
-| `regs`+`reorder`, ≥95% | allocator noise | the permuter — this is what it is for |
-| `branch`≠0 | §5 control-flow shape | the C shape is wrong; the permuter cannot help |
-| `insert`/`delete`≠0 | missing or extra work | not a codegen problem; re-read the asm |
-| 100% in scratch, fails build | §6 rodata placement | `rodata_triage.py` |
+| observation | investigate |
+|---|---|
+| Different block connections or predicates | source control flow and jump-table interpretation |
+| Register differences | local quantities/suggestions → global conflicts/preferences → reload |
+| Instruction order differences | dependencies and priorities in sched1/sched2, then dbr/final output |
+| Load present in greg, replaced in sched2 | post-reload CSE |
+| Extra moves, loads, nops or shifted branch addresses | promotion, spill/rematerialization, scheduling, assembler expansion |
+| Structurally eligible plateau | bounded permutation search with several distinct candidate outputs |
+| Exact scratch score, failed integration | real headers/ABI, relocations, rodata ownership/alignment, build inputs |
 
-The `branch`/`insert`/`delete` row is worth internalising: those three being
-zero is the documented precondition for the permuter being any use at all.
+Matching graph structure does not prove semantic equivalence. Raw branch and
+insertion/deletion penalties alone do not establish changed control flow or
+exclude a useful permutation search. Use the search router's recorded reasons.
 
 ---
 

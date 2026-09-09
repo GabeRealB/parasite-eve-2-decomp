@@ -43,6 +43,7 @@ compiler findings to `DECOMPILATION_LEARNINGS.md` as well as the session notes.
 - `./build.sh <file>.c` — compile and score against `target.o` (penalty mix; auto-dumps at ≥90%; prints **NEXT:** dump files)
 - `./dump.sh <file>.c` — cc1 `-da -dp`; prints `.lreg`/`.greg`/`.dbr` summary + dump-delta
 - `python3 lregwalk.py <file>.i.lreg [pseudo ...]` — per block, the insns in local-alloc's order with their `set` destinations and `REG_DEAD` notes; the tying, suggestions and birth order the `.lreg` header lines do not show
+- From the root: `python3 tools/trace_gcc.py <file>.i --output-dir /tmp/gcc-observation --function FUNC --regs N` — observe actual local quantities, global allocation and reload evictions; accepts archived `.i.gz`. Add `--uids N` for scheduler comparisons and selected post-reload substitutions. Requires GDB/ptrace; see `CODEGEN_MODEL.md` §12.
 - `MATCH_LOOP.md` — dump / pin / permuter / verify loop (concatenated below)
 - `./objdump.py <file>.o`
 - `./diff.sh <file>.o`

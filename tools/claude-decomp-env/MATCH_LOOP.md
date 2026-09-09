@@ -17,8 +17,9 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 | leftover | file | what to do |
 |---|---|---|
 | `insert` / `delete` / `branch` ≠ 0 | `.diagnosis.json`, then relevant RTL dumps | Distinguish changed block connections/predicates from shifted addresses, spills, rematerialization and scheduling. These penalties alone do not identify the cause. |
-| `regs` | `.lreg` `.greg` | **Check the suggestion first**, with `lregwalk.py`: is the value the direct result or operand of something whose output is a hard register? Measured over 98 dumps, the priority ratio orders only 66% of same-block pairs and 38% are exact ties — the rest is the suggestion pass, and inversions cluster on `$v0`. To move a value out of `$v0`, break the suggestion (name an intermediate, move where it is consumed). Only then shorten the loser's live range, **split a reused local**, or **unpin**. `CODEGEN_MODEL.md` §10.5. |
-| `reorder` | `.sched` `.sched2` `.dbr` | Statement order and delay slots (store vs `mflo`/`lbu`/`jal`). |
+| `regs` | `.lreg` `.greg`, compiler trace if needed | Identify local quantity membership/suggestions, then global conflicts/preferences, then reload evictions. `lregwalk.py` helps locate possible ties; `tools/trace_gcc.py` observes actual quantities and decisions. Per-pseudo priority ratios do not rank local quantities. `CODEGEN_MODEL.md` §10.5. |
+| `reorder` | `.sched` `.sched2` `.dbr` | Check ready-instruction priorities, dependency classes and original RTL order, then delay-slot handling. |
+| load survives `.greg`, becomes copy in `.sched2` | `reload_cse_regs`, then `.sched2` | Post-reload CSE runs between those dumps. Trace the substitution before changing scheduler barriers. |
 | `stack` | extra locals / frame | Split or shrink locals. |
 | fused const, `lb` vs `lh`, dropped `andi` | `.cse` `.cse2` `.combine` | |
 | loop IV / one walking pointer | `.loop` then `.cse2` | |
@@ -64,14 +65,18 @@ the session copy is preserved independently of whether a match lands.
 
 ## Pins
 
-`register T x asm("s4")` is function-scope in GCC 2.8.1: it reserves that hard register for the **whole function**. Do not add pins because `$s4` is wrong in the object dump.
+Function-local `register T x asm("s4")` creates hard-register RTL; it does not
+reserve the register through `globalize_reg` as a top-level declaration does.
+Its uses, conflicts and elimination behavior can disturb other values. The fp
+pin in the saved Replay probe was invalid despite a high similarity score.
+Do not add pins because `$s4` is wrong in the object dump.
 
 - Do not pin until dumps say a live range is the leftover **and** an unpinned attempt exists.
 
 ## Compiler source
 
-The **patched GCC 2.8.1** that built the target (stock 2.8.1 plus the decompals
-psx patches) is on disk at `local/gcc/gcc-2.8.1-psx/`, and a scratch env
+The **patched GCC 2.8.1** source corresponding to the bundled matching compiler
+(stock 2.8.1 plus the decompals psx patches) is at `local/gcc/gcc-2.8.1-psx/`, and a scratch env
 symlinks it as `gcc/` in its own directory - use whichever your cwd is, since
 this file is read both from a scratch dir and from the repo root. Read it when
 a dump shows a
@@ -87,12 +92,31 @@ the dumps instead.
 
 Prefer the dumps first regardless: they say what the compiler did to *this*
 function, which is the question. The source only says what it does in general.
+
+When dumps omit a decisive quantity or reload transition, run from the root:
+
+```
+python3 tools/trace_gcc.py <scratch>/base_N.i --output-dir /tmp/gcc-observation --function $functionName --regs 138 425 --uids 1228
+```
+
+Use this compilation's pseudo/UID numbers and a new output directory. Archived
+`.i.gz` inputs also work. The tracer requires GDB/ptrace access, supports the
+audited bundled compiler hash, and checks that tracing leaves assembly unchanged.
+Read `CODEGEN_MODEL.md` §12 and `COMPILER_ANALYSIS.md` for limits and examples.
+Save the relevant events and input hash in `LEARNINGS.md` before scratch cleanup.
 - If the seed already has pins, **unpin and rescore** as its own `base_N.c`. Unpinning is often the 100% move.
 - Never treat a pinned ≥90% as the best seed. Leave an unpinned `base_N.c` in the scratch dir.
 
 ## Empty asm
 
-Prefer the named helpers in `include/decomp/common.h` over raw empty `asm` / `asm volatile`. `TOUCH_REG(x)` is `"+r"` (blocks CSE / copy-prop). `TOUCH_REG_USE(x, y)` is `"+r"(x)` plus a keep-live `"r"(y)`. `USE_REG(x)` is input-only (keeps live); `SOFT_USE_REG` is the non-volatile form. `SCHED_BARRIER()` vs `SOFT_BARRIER()` is volatile vs not — that is a matching difference. Do not wrap them in `do { } while (0)` or extra braces. Instruction-emitting `lui`/`lo`/`sll` stays written out. `register T x asm("v0")` is still a pin, not these macros.
+Prefer the named helpers in `include/decomp/common.h` over raw empty asm.
+`TOUCH_REG(x)` is `"+r"`; `TOUCH_REG_USE(x, y)` adds a keep-live `"r"(y)`.
+Input-only asm, including `SOFT_USE_REG`, becomes implicitly volatile in GCC
+2.8.1 because it has no outputs. Basic empty asm is a scheduling boundary too.
+Read/write `SOFT_TOUCH_REG` avoids the no-output rule, but still changes RTL
+dependencies and may move. Check the dump rather than inferring behavior from
+the helper's name. Do not add `do/while` wrappers or extra braces. Instruction-
+emitting `lui`/`lo`/`sll` stays written out; register asm remains a separate pin.
 
 ## Permuter
 
