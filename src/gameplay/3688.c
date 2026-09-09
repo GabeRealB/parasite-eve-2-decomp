@@ -5479,13 +5479,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
             if (item == 0) {
-                s32 t;
-                t = (s32)Gp_StrRemoveAmmoHelp;
-                {
-                    s32 a1v;
-                    asm volatile("addu %0, $zero, $zero" : "=r"(a1v));
-                    Ui_SetHolderParam(t, a1v, a1v);
-                }
+                Ui_SetHolderParam((s32)Gp_StrRemoveAmmoHelp, 0, 0);
             } else {
                 Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
                 if (Gp_ReloadMode == 0) {
