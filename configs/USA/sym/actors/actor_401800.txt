@@ -4,3 +4,4 @@ ActorsShared80135df4Table = 0x80132064; // shared body data, see src/actors/lib/
 ActorsShared80135df4 = 0x8013E68C; // shared body, see src/actors/lib/
 ActorsShared8016a074 = 0x8013DF3C; // shared body, see src/actors/lib/
 ActorsShared80164904 = 0x8013DDEC; // shared body, see src/actors/lib/
+ActorsShared80169e64 = 0x8013DD2C; // shared body, see src/actors/lib/
