@@ -2050,7 +2050,95 @@ static inline void Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame)
     D_actor_403100_80155808->field_5DA = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013C7B4);
+void func_actor_403100_8013C7B4(Task* arg0)
+{
+    SVECTOR        pos0, pos1, delta;
+    GsCOORDINATE2* playerCoord;
+    GsCOORDINATE2* joint;
+    s16            dx0;
+    s16            dx1;
+    s16            dz0;
+    s16            dz1;
+    u16            savedAngle;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* second;
+    GsCOORDINATE2* walker;
+    GsCOORDINATE2* view;
+
+    playerCoord = (*Gp_ActorSlots)->extra->field_8;
+    savedAngle  = (u16)D_actor_403100_80155808->field_5E2;
+    coords      = ((TmdObject*)arg0->extra)->field_8;
+    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    func_actor_403100_801327CC();
+    func_actor_403100_801328DC(arg0);
+    view              = &Gfx_ViewCoord;
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(view);
+    SOFT_TOUCH_REG_USE(view, arg0);
+    second        = coords + 7;
+    joint         = coords + 8;
+    coords[8].flg = 0;
+    Gp_UpdateCoord(joint);
+    pos0.vx = 0x160;
+    pos0.vy = 0x148;
+    pos0.vz = 0x2C0;
+    Actor403100CoordToViewInline(joint, &pos0, view);
+    dx0      = *(u16*)&playerCoord->coord.t[0] - (u16)pos0.vx;
+    delta.vx = dx0;
+    delta.vy = *(u16*)&playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
+    dz0      = *(u16*)&playerCoord->coord.t[2] - (u16)pos0.vz;
+    delta.vz = dz0;
+    if ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
+        D_actor_403100_80155808->field_668.b.field_668 = 1;
+    }
+    {
+        SVECTOR  local;
+        VECTOR   result;
+        s32      flag;
+        SVECTOR* localp = &local;
+        walker          = second;
+        pos1.vx         = 0x160;
+        pos1.vy         = 0x148;
+        pos1.vz         = 0x180;
+        local.vx        = 0x160;
+        local.vy        = 0x148;
+        local.vz        = 0x180;
+        while (1) {
+            if (walker->sub == NULL)
+                break;
+            if (walker != &Gfx_ViewCoord) {
+                gte_SetTransMatrix(&walker->coord);
+                gte_SetRotMatrix(&walker->coord);
+                gte_ldv0(localp);
+                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_stlvnl(&result);
+                gte_stflg(&flag);
+                local.vx = result.vx;
+                local.vy = result.vy;
+                local.vz = result.vz;
+                walker   = walker->sub;
+                continue;
+            }
+            pos1.vx = local.vx;
+            pos1.vy = local.vy;
+            pos1.vz = local.vz;
+            break;
+        }
+    }
+    dx1      = *(u16*)&playerCoord->coord.t[0] - (u16)pos1.vx;
+    delta.vx = dx1;
+    delta.vy = *(u16*)&playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
+    dz1      = *(u16*)&playerCoord->coord.t[2] - (u16)pos1.vz;
+    delta.vz = dz1;
+    if ((SquareRoot0((dx1 * dx1) + (dz1 * dz1)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
+        D_actor_403100_80155808->field_668.b.field_669 = 1;
+    }
+    D_actor_403100_80155808->field_5E2 = -(s16)savedAngle;
+    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    func_actor_403100_801327CC(arg0);
+    D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
+    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+}
 void func_actor_403100_8013CBE0(Task* arg0)
 {
     s16 next;
