@@ -1393,7 +1393,55 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A0D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A470);
+/// Scaled variant of `func_actor_503500_8014176C`: re-aims the eight child
+/// coordinates along `pts[0..8]`, normalising each basis with `MatrixNormal`,
+/// and from the second link on sets the translation to the local segment
+/// scaled by `0x1000 + rsin(phase) / 64` (a 1/64 pulse).
+void func_actor_503500_8013A470(SVECTOR* pts, GsCOORDINATE2* coords, s32 phase)
+{
+    Actor503500ChainScratch* s;
+    SVECTOR*                 dir;
+    s32                      scale;
+    s32                      i;
+    s32                      j;
+
+    s        = (Actor503500ChainScratch*)(SCRATCH_SP -= sizeof(Actor503500ChainScratch));
+    s->up.vx = 0;
+    s->up.vy = 0x1000;
+    s->up.vz = 0;
+    Gp_ComposeParentWorld(coords->sub, &s->world, &s->rot);
+    scale = ((rsin(phase) << 6) >> 12) + 0x1000;
+    for (i = 0, j = 1; i < 8; i++, j++) {
+        s->diff.vx = pts[j].vx - pts[i].vx;
+        s->diff.vy = pts[j].vy - pts[i].vy;
+        s->diff.vz = pts[j].vz - pts[i].vz;
+        gte_SetRotMatrix(&s->world);
+        dir = &s->dir;
+        gte_ldclmv(&coords[i].coord);
+        gte_rtir_real();
+        gte_stclmv(&s->world);
+        gte_ldclmv((char*)&coords[i].coord + 2);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->world + 2);
+        gte_ldclmv((char*)&coords[i].coord + 4);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->world + 4);
+        TRANSPOSE_ROT(&s->world, &s->inv);
+        gte_SetRotMatrix(&s->inv);
+        gte_ldv0(&s->diff);
+        gte_rtv0_real();
+        gte_stlvnl(&s->pos);
+        VectorNormalS(&s->pos, dir);
+        Gfx_OrthonormalBasis(&s->basis, dir, &s->up);
+        MatrixNormal(&s->basis, &coords[j].coord);
+        if (i != 0) {
+            coords[j].coord.t[0] = (s->pos.vx * scale) >> 12;
+            coords[j].coord.t[1] = (s->pos.vy * scale) >> 12;
+            coords[j].coord.t[2] = (s->pos.vz * scale) >> 12;
+        }
+    }
+    SCRATCH_SP += sizeof(Actor503500ChainScratch);
+}
 
 /// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
 /// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`

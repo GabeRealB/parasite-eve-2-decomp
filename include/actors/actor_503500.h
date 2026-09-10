@@ -796,14 +796,15 @@ STATIC_ASSERT_SIZEOF(Actor503500StateC08, 0x18);
 extern Actor503500StateC08 Gp_StateC08;
 
 /// Scratchpad frame (`0x90` bytes carved off the scratchpad stack) used by
-/// `func_actor_503500_8014176C` while it re-aims a chain of coordinates.
+/// `func_actor_503500_8014176C` and `func_actor_503500_8013A470` while they
+/// re-aim a chain of coordinates.
 typedef struct Actor503500ChainScratch {
     /* 0x00 */ SVECTOR diff;  // `pts[i + 1] - pts[i]`
     /* 0x08 */ SVECTOR up;    // (0, 0x1000, 0) hint for `Gfx_OrthonormalBasis`
     /* 0x10 */ SVECTOR dir;   // normalised `pos`
     /* 0x18 */ SVECTOR rot;   // `Gp_ComposeParentWorld` output
     /* 0x20 */ VECTOR  pos;   // `diff` in the link's local frame
-    /* 0x30 */ byte    pad_30[0x20];
+    /* 0x30 */ MATRIX  basis; // `Gfx_OrthonormalBasis` output, before `MatrixNormal`
     /* 0x50 */ MATRIX  inv;   // transpose of `world`
     /* 0x70 */ MATRIX  world; // accumulated rotation down the chain
 } Actor503500ChainScratch;
