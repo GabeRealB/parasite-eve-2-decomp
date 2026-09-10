@@ -13,7 +13,7 @@ typedef struct Actor341700 {
 /// Status flags at `Actor341700Work` + 0xEC, read through two widths.
 ///
 /// Every guard in the overlay tests bit 0 as a halfword and then bits 0x102 as
-/// a word (`func_actor_341700_80168468` is the out-of-line copy of the test),
+/// a word (`ActorsShared8016974c` is the out-of-line copy of the test),
 /// so both views are modelled explicitly rather than casting at the use site.
 typedef union Actor341700Flags {
     /* 0x0 */ u32 word;

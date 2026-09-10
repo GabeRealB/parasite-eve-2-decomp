@@ -7,6 +7,15 @@
 
 #include "gameplay/3A34.h"
 
+/// Status flags at `ActorsShared80168d3cWork` + 0xEC, read through two
+/// widths: guards test bit 0 as a halfword and then bits 0x102 as a word
+/// (`ActorsShared8016974c` is the out-of-line copy of the test).
+typedef union ActorsShared80168d3cFlags {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+} ActorsShared80168d3cFlags;
+STATIC_ASSERT_SIZEOF(ActorsShared80168d3cFlags, 0x4);
+
 /// 0x454-byte work block `actor_341700` and `actor_342400` allocate with
 /// `Mem_Calloc` and park in `Task::idMap` (that slot is not a `TaskIdMap`
 /// here). `field_92` is the low half of the model root `coord.t[1]`,
@@ -16,36 +25,38 @@
 /// request the actor hands to its player. The size below is the allocation,
 /// not a guess.
 typedef struct ActorsShared80168d3cWork {
-    /* 0x000 */ byte    pad_0[0x92];
-    /* 0x092 */ u16     field_92; // low half of root coord.t[1]
-    /* 0x094 */ byte    pad_94[0x218];
-    /* 0x2AC */ GpObj   obj_2AC;
-    /* 0x2CC */ GpObj   obj_2CC;
-    /* 0x2EC */ GpRec18 rec_2EC[8];
-    /* 0x3AC */ GpObj   obj_3AC;
-    /* 0x3CC */ byte    pad_3CC[0x46];
-    /* 0x412 */ u16     field_412; // per-state frame counter
-    /* 0x414 */ s16     field_414; // animation request kind
-    /* 0x416 */ byte    pad_416[0x2];
-    /* 0x418 */ s16     field_418; // animation id
-    /* 0x41A */ byte    pad_41A[0x2];
-    /* 0x41C */ s16     field_41C; // animation speed / step scale
-    /* 0x41E */ s16     field_41E;
-    /* 0x420 */ u16     field_420; // state index
-    /* 0x422 */ u16     field_422; // sub-state index
-    /* 0x424 */ byte    pad_424[0x2];
-    /* 0x426 */ s16     field_426;
-    /* 0x428 */ s16     field_428;
-    /* 0x42A */ s16     field_42A;
-    /* 0x42C */ byte    pad_42C[0x6];
-    /* 0x432 */ s16     field_432;
-    /* 0x434 */ byte    pad_434[0x4];
-    /* 0x438 */ s16     field_438;
-    /* 0x43A */ byte    pad_43A[0x6];
-    /* 0x440 */ s16     field_440;
-    /* 0x442 */ byte    pad_442[0x6];
-    /* 0x448 */ s16     field_448;
-    /* 0x44A */ byte    pad_44A[0xA];
+    /* 0x000 */ byte                      pad_0[0x92];
+    /* 0x092 */ u16                       field_92; // low half of root coord.t[1]
+    /* 0x094 */ byte                      pad_94[0x58];
+    /* 0x0EC */ ActorsShared80168d3cFlags flags_EC;
+    /* 0x0F0 */ byte                      pad_F0[0x1BC];
+    /* 0x2AC */ GpObj                     obj_2AC;
+    /* 0x2CC */ GpObj                     obj_2CC;
+    /* 0x2EC */ GpRec18                   rec_2EC[8];
+    /* 0x3AC */ GpObj                     obj_3AC;
+    /* 0x3CC */ byte                      pad_3CC[0x46];
+    /* 0x412 */ u16                       field_412; // per-state frame counter
+    /* 0x414 */ s16                       field_414; // animation request kind
+    /* 0x416 */ byte                      pad_416[0x2];
+    /* 0x418 */ s16                       field_418; // animation id
+    /* 0x41A */ byte                      pad_41A[0x2];
+    /* 0x41C */ s16                       field_41C; // animation speed / step scale
+    /* 0x41E */ s16                       field_41E;
+    /* 0x420 */ u16                       field_420; // state index
+    /* 0x422 */ u16                       field_422; // sub-state index
+    /* 0x424 */ byte                      pad_424[0x2];
+    /* 0x426 */ s16                       field_426;
+    /* 0x428 */ s16                       field_428;
+    /* 0x42A */ s16                       field_42A;
+    /* 0x42C */ byte                      pad_42C[0x6];
+    /* 0x432 */ s16                       field_432;
+    /* 0x434 */ byte                      pad_434[0x4];
+    /* 0x438 */ s16                       field_438;
+    /* 0x43A */ byte                      pad_43A[0x6];
+    /* 0x440 */ s16                       field_440;
+    /* 0x442 */ byte                      pad_442[0x6];
+    /* 0x448 */ s16                       field_448;
+    /* 0x44A */ byte                      pad_44A[0xA];
 } ActorsShared80168d3cWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80168d3cWork, 0x454);
 

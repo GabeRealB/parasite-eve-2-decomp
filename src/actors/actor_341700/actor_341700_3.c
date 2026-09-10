@@ -22,7 +22,7 @@ void func_actor_341700_8016A630(Task* arg0);
  * has no register copy.  A real prototype would make GCC emit one, so these
  * stay unprototyped. */
 s32 ActorsShared8016945c();
-s32 func_actor_341700_80168468();
+s32 ActorsShared8016974c();
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_3", func_actor_341700_80167890);
 
