@@ -370,7 +370,38 @@ static __inline__ s16 Actor403100_TestFlags104(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801356F4);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013588C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801359DC);
+void func_actor_403100_801359DC(Task* arg0)
+{
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   joint;
+    s32              i;
+    Actor403100Work* work;
+    s32              value;
+
+    value                   = 0x10;
+    D_actor_403100_80155810 = 0;
+    coord                   = ((TmdObject*)arg0->extra)->field_8;
+    joint                   = &coord[6];
+    for (i = 0; i < 28; i++) {
+        if (D_actor_403100_80155814[i].active != 0) {
+            D_actor_403100_80155814[i].active = 0;
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+        }
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    joint->coord.t[0] = -0x807;
+    coord->coord.t[0] = -0x384;
+    work              = D_actor_403100_80155808;
+    coord->coord.t[2] = 0x1130;
+    coord->coord.t[1] = 0;
+    work->field_5E2   = value;
+    work->field_5DE   = 0x13;
+    work->field_5DA   = 2;
+    work->field_5EC   = 0;
+    work->field_618   = 0x1400;
+    work->field_5FA  += 1;
+    Gp_ApplyAreaRecs(&D_8018F2CC);
+}
 void func_actor_403100_80135AE0(Task* arg0)
 {
     s32 sound;
