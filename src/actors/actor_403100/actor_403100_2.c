@@ -1512,7 +1512,79 @@ void func_actor_403100_8013BA64(Task* arg0)
         coords->coord.t[0] += (-1100 - coords->coord.t[0]) >> 3;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BB8C);
+void func_actor_403100_8013BB8C(Task* arg0)
+{
+    s16                 mode;
+    s32                 delta;
+    s32                 delta2;
+    s32                 delta3;
+    s32                 sound;
+    s32                 pan;
+    s32                 depth;
+    TmdObject*          obj;
+    register TmdObject* original asm("v1");
+    GsCOORDINATE2*      coords;
+
+    original = arg0->extra;
+    SOFT_TOUCH_REG(original);
+    obj    = original;
+    coords = obj->field_8;
+    mode   = (u16)D_actor_403100_80155808->field_628 - 1;
+    switch (mode) {
+        case 0:
+        case 4:
+            obj->field_E = 0;
+            delta        = D_actor_403100_80155808->field_94 - coords->coord.t[2];
+            if (delta > 4864) {
+                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else if (delta < -4864) {
+                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else {
+                D_actor_403100_80155808->field_5F6++;
+            }
+            break;
+        case 1:
+        case 5:
+            delta2 = 1300 - coords->coord.t[2];
+            if (delta2 > 48) {
+                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else if (delta2 < -48) {
+                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else {
+                D_actor_403100_80155808->field_5F6++;
+            }
+            break;
+        case 2:
+        case 3:
+            obj->field_E = 0;
+            delta3       = D_actor_403100_80155808->field_94 - coords->coord.t[2];
+            if (delta3 > 640) {
+                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else if (delta3 < -640) {
+                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else {
+                D_actor_403100_80155808->field_5F6++;
+            }
+            break;
+    }
+    if (D_actor_403100_80155808->field_600 == 0) {
+        if (D_actor_403100_80155808->field_602 != 0) {
+            Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+            D_actor_403100_80155808->field_5FE = 0x1E;
+            sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+            pan                                = (s8)Gp_GetObjPan((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 1));
+            depth                              = Gp_GetObjDepth((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 1));
+            SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        }
+    }
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+}
 void func_actor_403100_8013BDE4(Task* arg0)
 {
     s16            angle;
