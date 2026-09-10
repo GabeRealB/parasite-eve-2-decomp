@@ -58455,3 +58455,21 @@ a byte and reusing `v1 = 1` in the default arm. m2c's `u8 mode` local adds
 Declaring the local `s32` makes the `lbu` itself the SImode value: the `andi`
 disappears, the `1` is shared, and it matches. An if/else chain instead of the
 switch loses the switch's `beq`/`beq`/`j default` layout (91%).
+
+## Advancing a pointer in place pins its earlier derived address: use a new local
+
+`func_actor_503500_80132F64` stores `&coord->coord` into the enemy and then
+switches to model part 3. Written as `coord += 3`, sched1 has to compute
+`addiu v1,s1,4` before `addiu s1,s1,0xf0` (an anti-dependence on the one
+pseudo), so the address is hoisted above the `tmd->field_E` store and its
+`sw` sinks below `lbu 0x14(s4)` (98.6%). Declaring `part = &coord[3]` as its
+own local removes the anti-dependence: the address is computed right before
+its store, as in the target, and local-alloc still ties `part` into `coord`'s
+register because `coord` dies in that insn, so the allocation is unchanged
+(100%). Same function: the store order `field_50` then `field_54` then
+`field_40 = enemy->field_50->field_4` (copied from the matched sibling
+`func_actor_503500_801372C8`) is what produces the target's
+`move v0,v1; lhu v0,4(v0)` copy; with `field_54` first the copy is gone. That
+edit landed together with moving the `vz` load ahead of the `7D8`/`7CA` stores,
+and the pair took the function from 89.8% to 98.6% with every saved register
+fixed, so which of the two moved the allocation was not isolated.
