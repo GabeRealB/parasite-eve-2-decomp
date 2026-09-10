@@ -727,7 +727,9 @@ typedef struct Actor503500Effect4CC {
     /* 0x43F */ byte       pad_43F[0x1];
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
-    /* 0x480 */ byte       pad_480[0x20];
+    /* 0x480 */ s32        field_480[4]; // saved `coord.m` words 0..3
+    /* 0x490 */ s16        field_490;    // saved `coord.m[2][2]`
+    /* 0x492 */ byte       pad_492[0xE];
     /* 0x4A0 */ s32        field_4A0;
     /* 0x4A4 */ s32        field_4A4;
     /* 0x4A8 */ s32        field_4A8;
@@ -737,7 +739,9 @@ typedef struct Actor503500Effect4CC {
     /* 0x4B8 */ s32        field_4B8;
     /* 0x4BC */ byte       pad_4BC[0x4];
     /* 0x4C0 */ s16        field_4C0;
-    /* 0x4C2 */ byte       pad_4C2[0x6];
+    /* 0x4C2 */ s16        field_4C2;
+    /* 0x4C4 */ s16        field_4C4;
+    /* 0x4C6 */ s16        field_4C6;
     /* 0x4C8 */ s8         field_4C8;
     /* 0x4C9 */ byte       pad_4C9[0x3];
 } Actor503500Effect4CC;

@@ -1633,7 +1633,82 @@ void func_actor_503500_80145FDC(Actor503500* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_8014618C);
+/// Motion handler 1 of `Actor503500Effect4CC` (`field_4C0`), stepped by
+/// `field_4C2`: state 0 saves the coordinate's rotation words into
+/// `field_480`/`field_490`, state 1 waits 31 frames, and state 2 restores that
+/// rotation every frame while squashing its Y scale `field_4C6` from 0x1000 down
+/// to 0x200, firing the light and spark cues on the way before advancing the
+/// task at frame 150.
+void func_actor_503500_8014618C(Task* arg0)
+{
+    VECTOR                scale;
+    GsCOORDINATE2*        coord;
+    Actor503500Effect4CC* work;
+    TmdObject*            ext;
+    void*                 enemy;
+    s32*                  src;
+    s32*                  dst;
+    s32                   i;
+
+    // `extra` is read twice on purpose: the second read is what leaves the
+    // target's `move s2, v0` copy.
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = (Actor503500Effect4CC*)arg0->idMap;
+    enemy = arg0->spawnArg2;
+    ext   = arg0->extra;
+    switch (work->field_4C2) {
+        case 0:
+            work->field_4C4 = 0;
+            work->field_4C6 = 0x1000;
+            dst             = work->field_480;
+            src             = (s32*)coord->coord.m;
+            for (i = 0; i < 4; i++) {
+                *dst++ = *src++;
+            }
+            work->field_490 = coord->coord.m[2][2];
+            work->field_4C2++;
+            break;
+        case 1:
+            work->field_4C4++;
+            if (work->field_4C4 >= 0x1F) {
+                work->field_4C4 = 0;
+                work->field_4C2++;
+            }
+            break;
+        case 2:
+            if (work->field_4C6 > 0x200) {
+                work->field_4C6 -= 0x10;
+            }
+            dst = (s32*)coord->coord.m;
+            src = work->field_480;
+            for (i = 0; i < 4; i++) {
+                *dst++ = *src++;
+            }
+            coord->coord.m[2][2] = work->field_490;
+            scale.vx             = 0x1000;
+            scale.vy             = work->field_4C6;
+            scale.vz             = 0x1000;
+            ScaleMatrixL(&coord->coord, &scale);
+            coord->flg = 0;
+            work->field_4C4++;
+            switch (work->field_4C4) {
+                case 0x14:
+                    ext->field_C |= 2;
+                    Gp_SetLightMode(enemy, 1);
+                    break;
+                case 0x1E:
+                    Gp_SpawnEff(0x600A5, coord, 2, NULL);
+                    break;
+                case 0x64:
+                    Gp_SetLightMode(enemy, 2);
+                    break;
+                case 0x96:
+                    arg0->state++;
+                    break;
+            }
+            break;
+    }
+}
 
 void func_actor_503500_801463C0(Task* task)
 {
