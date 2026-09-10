@@ -324,7 +324,23 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 /// Sets the per-slot rate `GpAnimSlot::field_9` on animation slots 1..16 of the
 /// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135FB4);
+void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 rate)
+{
+    Actor503500WorkBoss* work;
+    GpAnimSlot*          slot;
+    s32                  i;
+
+    work = (Actor503500WorkBoss*)arg0->field_1C;
+    slot = &work->slots[1];
+    if (rate == 0) {
+        rate = 0x10;
+    }
+    for (i = 0xF; i >= 0; i--) {
+        slot->field_9 = rate;
+        slot++;
+    }
+    func_actor_503500_80135950(arg0, 0x7D3, &D_actor_503500_8016EAC0[arg1], 0);
+}
 /// Reports whether the boss is in sub-state `arg1` and, if so, whether either
 /// of the 0x102 bits of its state flag halfword is set. Returns -1 for any
 /// other sub-state. `arg0` is loaded by every caller but the body ignores it,
