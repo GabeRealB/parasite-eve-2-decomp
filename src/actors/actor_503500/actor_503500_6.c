@@ -565,7 +565,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A7B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A900);
+void func_actor_503500_8013A900(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy = arg0->field_20;
+    func_actor_503500_8013611C(arg0->spawnArg1);
+    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    Gp_UnlinkObj(&arg0->field_1C->obj160);
+    enemy->field_54 = 0;
+    arg0->field_1C  = NULL;
+    Gp_DestroyEnemy(enemy, (Task*)arg0);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A96C);
 
 /// Steps the 0x2EC block's countdown at 0x2D8 down to zero, then, unless the
