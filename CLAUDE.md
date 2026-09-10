@@ -263,7 +263,7 @@ overlay.
   section instead of by line; a raw grep returns context-free lines because the
   searchable term is rarely in a title. `CODEGEN_MODEL.md` at the repo root is
   the short general model those entries are instances of — read it first.
-- `python3 tools/overlay_dup_index.py stats|shared|find|solved|siblings|promote`
+- `python3 tools/overlay_dup_index.py stats|shared|find|solved|siblings|promote|similar`
   find code that repeats across overlays. Of the 8049 indexed functions, 36% are
   copies of another overlay's body (33% of instructions); only 10% are
   byte-identical. Equality is decided on splat's disassembly *text*, not on the
@@ -274,6 +274,16 @@ overlay.
   matched elsewhere, which the vacuum skips rather than matching again (677 are
   parked that way today, waiting on a promotion pass). `--family rooms` (or
   `USA/rooms`) restricts every subcommand: rooms are 43% copies, actors 32%.
+  `similar <fn>` is the fuzzy tier beside those two exact ones: it ranks
+  *already-matched* bodies resembling a function, in four classes - `shape`
+  (opcode order, operands dropped), `fields` (load/store displacements),
+  `calls` (the jal sequence) and `cflow` (branches only, long functions) -
+  printing the file each candidate's C body lives in. A candidate scoring in
+  more than one class is starred, and that agreement is the signal worth
+  trusting. It generates candidates, never equalities: dropping operands
+  equates `lw $v0, 0x4($t0)` with `lw $v0, 0xC($t0)`, the error behind the old
+  56% claim. The brief embeds the top few, so an agent is handed its
+  neighbours rather than having to go looking.
 - `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
   family's model streams to Wavefront OBJ (vertices and faces only). Useful for
   identifying an overlay whose name is still a placeholder.
