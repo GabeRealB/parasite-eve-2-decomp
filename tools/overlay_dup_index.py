@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import difflib
 import hashlib
 import json
 import re
@@ -70,6 +71,17 @@ SKIP = ("glabel", "endlabel", "nonmatching", ".include", ".set", ".section",
 # where the table ended up rather than what the body is. Both forms fold to the
 # bare label for the same reason `.align` is skipped.
 LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+):?$")
+# Similarity features. These are deliberately *lossier* than `text`: they answer
+# "is there a matched body shaped like this one", which is a candidate question,
+# never an equality one. Comparing operand-stripped opcodes equates
+# `lw $v0,0x4($t0)` with `lw $v0,0xC($t0)` - a different field of a different
+# struct - which is exactly the error that produced the old 56% duplication
+# claim. Used to rank a reference implementation for an agent to read, that is
+# fine; used to decide two functions are the same, it is not.
+MNEMONIC = re.compile(r"^\s*/\* [0-9A-F]+ [0-9A-F]{8} [0-9A-F]{8} \*/\s+(\S+)", re.M)
+DISPL = re.compile(r"\b(?:lw|lh|lhu|lb|lbu|sw|sh|sb)\s+\S+,\s*(-?(?:0x)?[0-9a-fA-F]+)\(")
+CALLS = re.compile(r"^\s*/\* [0-9A-F]+ [0-9A-F]{8} [0-9A-F]{8} \*/\s+jal\s+(\S+)", re.M)
+CACHE_VERSION = 2
 
 
 def declaration(path: Path, text: str) -> re.Match | None:
@@ -139,7 +151,30 @@ def scan_function(path: Path, unit: str) -> dict | None:
         "raw": hashlib.sha1(struct.pack(f"<{len(words)}I", *words)).hexdigest(),
         "text": hashlib.sha1("\n".join(canon).encode()).hexdigest(),
         "refs": sorted({a or b for a, b in REF.findall(text)}),
+        # Body only, for the same reason the hashes are: a migrated jump table
+        # would otherwise show up as extra "instructions" in one copy.
+        "ops": MNEMONIC.findall(text[body.end():]),
+        "disp": DISPL.findall(text[body.end():]),
+        "calls": CALLS.findall(text[body.end():]),
     }
+
+
+def encode_shapes(records: list[dict]) -> list[str]:
+    """Rewrite each record's `ops` list as a string, one character per opcode.
+
+    difflib on 100-token lists across ~1600 candidates is slow enough to notice
+    in a bootstrap; on strings it is not. The vocabulary is stored with the
+    cache so the encoding is stable and exact rather than a hash with
+    collisions.
+    """
+    vocab: dict[str, int] = {}
+    for r in records:
+        for op in r["ops"]:
+            vocab.setdefault(op, len(vocab))
+    for r in records:
+        r["shape"] = "".join(chr(0x4E00 + vocab[op]) for op in r["ops"])
+        del r["ops"]
+    return [op for op, _ in sorted(vocab.items(), key=lambda kv: kv[1])]
 
 
 def build(families: list[str] | None) -> dict:
@@ -168,7 +203,7 @@ def build(families: list[str] | None) -> dict:
                 # copies want promoting into the shared library, not matching.
                 rec["state"] = "matched" if marker == "matchings" else "todo"
                 out.append(rec)
-    return {"functions": out}
+    return {"functions": out, "vocab": encode_shapes(out), "version": CACHE_VERSION}
 
 
 def family_keys(families: list[str] | None) -> set[str]:
@@ -201,7 +236,11 @@ def load(rebuild: bool, families: list[str] | None) -> dict:
     if not rebuild and CACHE.is_file():
         cached = json.loads(CACHE.read_text())
         covered = set(cached.get("families") or [])
-        if not covered or (keys and keys <= covered):
+        # A cache written before the similarity features exist has no `shape`,
+        # and `similar` would silently rank nothing. Version it rather than
+        # letting that fail quietly.
+        if cached.get("version") == CACHE_VERSION and (
+                not covered or (keys and keys <= covered)):
             return filter_families(cached, families)
     data = build(families)
     data["families"] = sorted(keys)
@@ -502,9 +541,129 @@ def cmd_shared(data: dict, minimum: int, refs: bool) -> int:
     return 0
 
 
+def cmd_similar(data: dict, name: str, topn: int, floor: float) -> int:
+    """Rank already-matched bodies that resemble `name`, in four classes.
+
+    One blended score would hide what the caller needs, because a candidate can
+    be strong in one class and useless in the others:
+
+      shape   opcode order, operands dropped - "the same code against different
+              struct offsets". Port the body and re-field it.
+      fields  the multiset of load/store displacements - "touches the same
+              offsets", so the type it needs may already exist.
+      calls   the jal target sequence - "same helpers in the same order", the
+              most specific signal of shared purpose, and it carries argument
+              types.
+      cflow   branch opcodes alone. Reported last and gated on length: on a
+              short function every branch skeleton looks alike, and it will
+              happily rank a weapon body against a room one.
+
+    Only matched functions are offered - a candidate earns its place precisely
+    because its C body can be read - and the file holding that body is printed,
+    since hunting for it is the cost this is meant to remove.
+    """
+    fns = {f["name"]: f for f in data["functions"]}
+    tgt = fns.get(name)
+    if tgt is None:
+        print(f"{name}: not in the index")
+        return 1
+    pool = [f for f in data["functions"]
+            if f["state"] == "matched" and f["name"] != name and f["words"] >= 10]
+    tshape, tdisp = tgt.get("shape", ""), collections.Counter(tgt.get("disp") or [])
+    cfc = cflow_chars(data)
+    tcalls, tcflow = tgt.get("calls") or [], cflow_of(tgt, cfc)
+
+    def rank(score):
+        out = []
+        for f in pool:
+            if not (0.6 * tgt["words"] <= f["words"] <= 1.6 * tgt["words"]):
+                continue
+            s = score(f)
+            if s >= floor:
+                out.append((s, f))
+        return sorted(out, key=lambda kv: (-kv[0], kv[1]["name"]))[:topn]
+
+    def seq(a, b):
+        return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio() if a and b else 0.0
+
+    def jac(a, b):
+        if not a or not b:
+            return 0.0
+        return sum((a & b).values()) / sum((a | b).values())
+
+    classes_ = [
+        ("shape",  lambda f: seq(tshape, f.get("shape", ""))),
+        ("fields", lambda f: jac(tdisp, collections.Counter(f.get("disp") or []))),
+    ]
+    # A one-call sequence matches every other one-call sequence at 1.00, which
+    # is not a signal. Two is the shortest sequence whose *order* means anything.
+    if len(tcalls) >= 2:
+        classes_.append(("calls", lambda f: seq(tcalls, f.get("calls") or [])))
+    if tgt["words"] >= 40:
+        classes_.append(("cflow", lambda f: seq(tcflow, cflow_of(f, cfc))))
+
+    agree = collections.Counter()
+    results = {}
+    for cls, score in classes_:
+        results[cls] = rank(score)
+        for _s, f in results[cls]:
+            agree[f["name"]] += 1
+
+    print(f"{name}: {tgt['words']} instructions, {len(tcalls)} call(s)")
+    any_hit = False
+    for cls, _ in classes_:
+        if not results[cls]:
+            continue
+        any_hit = True
+        print(f"  {cls}:")
+        for s, f in results[cls]:
+            star = " *" if agree[f["name"]] > 1 else ""
+            print(f"    {s:5.2f}  {f['name']:<44} {f['overlay']}{star}")
+            src = body_file(f)
+            if src:
+                print(f"           body: {src}")
+    if not any_hit:
+        print(f"  no matched body scores >= {floor:.2f}")
+    elif any(n > 1 for n in agree.values()):
+        print("  * appears in more than one class - the strongest signal here")
+    return 0
+
+
+BRANCH_OPS = frozenset({"beq", "bne", "blez", "bgtz", "bltz", "bgez", "beqz",
+                        "bnez", "bgtzl", "beql", "bnel", "b", "j", "jr", "jal"})
+
+
+def cflow_chars(data: dict) -> frozenset[str]:
+    """Which encoded characters stand for a branch, for this cache's vocab."""
+    vocab = data.get("vocab") or []
+    return frozenset(chr(0x4E00 + i) for i, op in enumerate(vocab) if op in BRANCH_OPS)
+
+
+def cflow_of(f: dict, chars: frozenset[str]) -> str:
+    """The branch-only projection of a shape string."""
+    return "".join(c for c in f.get("shape", "") if c in chars)
+
+
+def body_file(f: dict) -> str | None:
+    """Where the matched C body lives, so the caller can read it."""
+    # overlay is "<ver>/<family>/<name>"; src/ has no version component.
+    rel = f["overlay"].split("/", 1)[1] if "/" in f["overlay"] else f["overlay"]
+    fam = rel.split("/")[0]
+    for pat in (f"src/{rel}", f"src/{fam}/lib", f"src/{fam}"):
+        d = Path(pat)
+        if not d.is_dir():
+            continue
+        for c in sorted(d.glob("*.c")):
+            if re.search(rf"^[A-Za-z_][\w \t*]*\b{re.escape(f['name'])}\s*\(",
+                         c.read_text(errors="replace"), re.M):
+                return str(c)
+    return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "promote", "siblings"))
+    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "promote",
+                                        "siblings", "similar"))
     ap.add_argument("name", nargs="?")
     ap.add_argument("--family", action="append", help="limit to a family (rooms, weapons, …)")
     ap.add_argument("--min", type=int, default=10, help="`shared`: minimum copies")
@@ -513,6 +672,9 @@ def main() -> int:
     ap.add_argument("--min-words", type=int, default=8, dest="min_words",
                     help="`solved`: ignore bodies shorter than this (default 8)")
     ap.add_argument("--rebuild", action="store_true", help="ignore the cached index")
+    ap.add_argument("--top", type=int, default=5, help="`similar`: candidates per class")
+    ap.add_argument("--floor", type=float, default=0.80,
+                    help="`similar`: ignore candidates below this score (default 0.80)")
     args = ap.parse_args()
 
     data = load(args.rebuild, args.family)
@@ -526,6 +688,10 @@ def main() -> int:
         if not args.name:
             ap.error("promote needs a function name")
         return cmd_promote(data, args.name, args.unit)
+    if args.command == "similar":
+        if not args.name:
+            ap.error("similar needs a function name")
+        return cmd_similar(data, args.name, args.top, args.floor)
     if args.command == "stats":
         return cmd_stats(data)
     if args.command == "shared":
