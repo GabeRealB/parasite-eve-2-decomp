@@ -171,7 +171,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E2BC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E33C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E450);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E5FC);
+void func_actor_403100_8013E5FC(void)
+{
+    D_actor_403100_8015580C->field_54   = 0;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5F8 += 1;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E624);
 void func_actor_403100_8013E6A0(Task* arg0)
 {
