@@ -659,6 +659,30 @@ typedef struct Actor503500Work770E8 {
 } Actor503500Work770E8;
 STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 
+/// The first 0xF4 block: the enemy whose state-0 init is
+/// `func_actor_503500_8013BEE4` (`Mem_Set` over `D_actor_503500_801776A0`),
+/// viewed through its own type in the one function that needs it. Its death
+/// sub-state `func_actor_503500_8013C558` keeps three halfwords at 0xEA /
+/// 0xEC / 0xEE -- a frame counter, a scale that shrinks from 0x1000 and the
+/// step it shrinks by -- where the shared view names the 0xEC / 0xED / 0xEE
+/// byte triple. Its sub-state index is `field_F0`, the one
+/// `func_actor_503500_8013CA34` dispatches on.
+typedef struct Actor503500Work776A0 {
+    /* 0x00 */ GpObj          obj;
+    /* 0x20 */ GpRec18        rec[8]; // Gp_InitRec18Table(rec, 8, 0)
+    /* 0xE0 */ GsCOORDINATE2* field_E0;
+    /* 0xE4 */ s16            field_E4;
+    /* 0xE6 */ s16            field_E6;
+    /* 0xE8 */ s16            field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ s16            field_EA; // sub-state frame counter
+    /* 0xEC */ u16            field_EC; // scale handed to func_actor_503500_80135E20
+    /* 0xEE */ s16            field_EE; // per-frame step of field_EC, stepped down by 4
+    /* 0xF0 */ s8             field_F0; // sub-state index
+    /* 0xF1 */ s8             field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte           pad_F2[0x2];
+} Actor503500Work776A0;
+STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
+
 /// Element of `D_actor_503500_801774C0`, the two 0xF0 blocks
 /// `func_actor_503500_8013AD64` clears for spawn slots 4 and 5. The shared
 /// `Actor503500Work` cannot be indexed at this stride, so the array gets its

@@ -65,6 +65,8 @@ extern Actor503500Work D_actor_503500_80177A6C;
 /// `D_actor_503500_801776A0`.
 extern SVECTOR         D_actor_503500_8016F1B0;
 extern Actor503500Work D_actor_503500_801776A0;
+/// Eighteen effect offsets `func_actor_503500_8013C558` picks from at random.
+extern SVECTOR D_actor_503500_8016F1B8[];
 /// The same pair for the 0xF0 enemy at `D_actor_503500_8017797C`.
 extern SVECTOR         D_actor_503500_8016F2D8;
 extern Actor503500Work D_actor_503500_8017797C;
@@ -173,6 +175,7 @@ void func_actor_503500_8013611C(s32 arg0);
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
 void func_actor_503500_80136048(Actor503500* arg0);
 s32  func_actor_503500_801360BC(s32 arg0, s32 arg1);
+void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2);
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
 void func_actor_503500_801372AC(s32 arg0);
 void func_actor_503500_80138288(Actor503500* arg0);
@@ -1920,7 +1923,68 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C088);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C558);
+/// Death sub-state of the first 0xF4 block, stepped by `field_F1`: phase 0
+/// is the death setup shared with `func_actor_503500_8013D558` and seeds the
+/// shrinking scale; phase 1 spawns three effects at random offsets for up to
+/// 2000 frames while the scale shrinks by an ever smaller step, and leaves
+/// once that step runs out.
+void func_actor_503500_8013C558(Actor503500* arg0)
+{
+    Actor503500Work776A0* work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               vec;
+    s32                   pan;
+
+    work  = (Actor503500Work776A0*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_F1) {
+        case 0:
+            work->obj.flags         &= 0x7FFF;
+            arg0->field_20->field_54 = 0;
+            Gp_UnlinkNode(&arg0->field_20->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            arg0->field_20->field_4C &= 0xF0;
+            pan                       = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_EC = 0x1000;
+            work->field_EE = 0x80;
+            work->field_F1++;
+            break;
+        case 1:
+            if (++work->field_EA <= 2000) {
+                if (func_actor_503500_801360BC(arg0->spawnArg1, 5) != 0) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60055, coord, 0x01001900,
+                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60055, coord, 0x01001700,
+                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6018C, coord, 0x01404600,
+                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                }
+            }
+            vec.vx = 0x1000;
+            vec.vy = 0x1000;
+            vec.vz = work->field_EC;
+            func_actor_503500_80135E20(arg0->parent, 0x10, &vec);
+            work->field_EC -= work->field_EE;
+            work->field_EE -= 4;
+            if (work->field_EE <= 0) {
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                work->field_F1++;
+            }
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+}
 
 /// Per-frame tick of the first 0xF4 block, the same shape as
 /// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
