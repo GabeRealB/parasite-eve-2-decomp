@@ -107,7 +107,34 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132584);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132664);
+s32 func_actor_503500_80132664(Task* task, s32 arg1, Actor503500ModeMsg* msg)
+{
+    Actor503500ColorMtx* work;
+
+    work = (Actor503500ColorMtx*)task->idMap;
+    switch (msg->mode) {
+        case 0:
+            work->field_45 = 0;
+            work->field_40 = 0;
+            Display_ClampField126(0);
+            break;
+        case 1:
+            work->field_45                     = 1;
+            work->field_40                     = 0;
+            ((TmdObject*)task->extra)->field_E = 0x15;
+            break;
+        case 2:
+            work->field_45                     = 2;
+            work->field_40                     = 0;
+            ((TmdObject*)task->extra)->field_E = 0x14;
+            break;
+        case 3:
+            work->field_45 = 0;
+            work->field_40 = 10000;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_8013270C);
 

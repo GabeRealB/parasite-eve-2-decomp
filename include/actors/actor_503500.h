@@ -21,14 +21,26 @@
 /// `TmdObject::field_1C` / `field_20` -- the colour/light matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
 /// -- so the allocation is exactly two `MATRIX`es plus a small tail.
+/// `func_actor_503500_80132664` sets `field_45` / `field_40` from the message
+/// mode (0..3).
 typedef struct Actor503500ColorMtx {
     /* 0x00 */ MATRIX light;
     /* 0x20 */ MATRIX color;
-    /* 0x40 */ byte   pad_40[0x4];
+    /* 0x40 */ s16    field_40;
+    /* 0x42 */ byte   pad_42[0x2];
     /* 0x44 */ s8     field_44;
-    /* 0x45 */ byte   pad_45[0x3];
+    /* 0x45 */ s8     field_45;
+    /* 0x46 */ byte   pad_46[0x2];
 } Actor503500ColorMtx;
 STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
+
+/// Payload `func_actor_503500_80132664` takes as `Gp_DispatchMsg`'s `arg2`;
+/// `mode` selects one of four colour-matrix settings.
+typedef struct Actor503500ModeMsg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 mode;
+} Actor503500ModeMsg;
+STATIC_ASSERT_SIZEOF(Actor503500ModeMsg, 0x4);
 
 /// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`, as this overlay places
 /// its parts: offset 0x44 (libgs's `param`, with `super` at 0x48) holds the
