@@ -865,7 +865,155 @@ void func_actor_403100_801395EC(Task* arg0)
         SndEvt_EnqueueType7(0x401F0004, 1);
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80139818);
+void func_actor_403100_80139818(Task* arg0)
+{
+    SVECTOR          position;
+    SVECTOR          velocity;
+    GpActorWork*     playerTask;
+    Task*            task;
+    s16              deathFrame;
+    s32              sound;
+    s32              sound2;
+    s32              sound3;
+    s32              sound4;
+    s32              sound5;
+    s32              pan;
+    s32              pan2;
+    s32              pan3;
+    s32              pan4;
+    s32              pan5;
+    u16              frame;
+    s32              depth;
+    s32              depth2;
+    s32              depth3;
+    s32              depth4;
+    s32              depth5;
+    GsCOORDINATE2*   effectCoords;
+    u32              configHi;
+    Actor403100Work* work;
+    WipSysConfig*    config;
+    GsCOORDINATE2*   part;
+    GsCOORDINATE2*   coords;
+
+    playerTask = *Gp_ActorSlots;
+    coords     = ((TmdObject*)arg0->extra)->field_8;
+    part       = coords + 6;
+    __asm__("lui %0, %%hi(Wip_SysConfig)" : "=r"(configHi));
+    __asm__("addiu %0, %1, %%lo(Wip_SysConfig)" : "=r"(config) : "r"(configHi));
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if ((u8)D_actor_403100_80155808->field_65F == 1) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x400, 0, 0);
+            D_actor_403100_80155808->field_65F = 0;
+        }
+    }
+    D_actor_403100_80155808->field_60E = 0;
+    D_actor_403100_80155808->field_610 = 0x3C;
+    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, 0x3C);
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x33) {
+        D_actor_403100_80155808->field_61C = 0;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        D_actor_403100_80155808->field_61C = 1;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 4));
+        depth = Gp_GetObjDepth((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 4));
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        SndEvt_EnqueueType7(0x401F0004, 0xA);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+        position.vy = -0x1F0;
+        position.vz = 0x620;
+        velocity.vy = -0x20;
+        position.vx = 0;
+        velocity.vx = 0;
+        velocity.vz = 0xE0;
+        func_actor_403100_80132064(arg0, &position, &velocity, 0);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+        effectCoords = ((TmdObject*)arg0->extra)->field_8;
+        position.vy  = -0x140;
+        position.vx  = 0;
+        position.vz  = 0x400;
+        Gp_SpawnEff(0x60070, effectCoords + 3, -0x3FFCB400, &position);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
+        func_8010B2A0(0, 3);
+        func_actor_403100_8013D1B8(1, 0x3F4);
+        task = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 4), 0);
+        if (config->field_18 <= 0) {
+            sound2 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->field_8 >> 0xC) << 8) | 0x531D000B;
+            pan2   = (s8)Gp_GetObjPan((GpObj38*)(playerTask->extra->field_8 + 1));
+            depth2 = Gp_GetObjDepth((GpObj38*)(playerTask->extra->field_8 + 1));
+            SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
+            Game_Session->field_12D = 0x7F;
+            work                    = D_actor_403100_80155808;
+            work->pad_670[0]        = 1;
+            work->field_654         = 0;
+            Game_Session->field_127 = 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x400, 0, 0);
+            func_actor_403100_8013D1B8(6, 0x3FF);
+        } else {
+            sound3 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->field_8 >> 0xC) << 8) | 7;
+            pan3   = (s8)Gp_GetObjPan((GpObj38*)(playerTask->extra->field_8 + 1));
+            depth3 = Gp_GetObjDepth((GpObj38*)(playerTask->extra->field_8 + 1));
+            SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x80) {
+        sound4 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F000D;
+        pan4   = (s8)Gp_GetObjPan((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 4));
+        depth4 = Gp_GetObjDepth((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 4));
+        SndEvt_EnqueueType6(sound4, (s32)pan4, (s8)(depth4 / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0xC9) {
+        sound5 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F000E;
+        pan5   = (s8)Gp_GetObjPan((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 1));
+        depth5 = Gp_GetObjDepth((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 1));
+        SndEvt_EnqueueType6(sound5, (s32)pan5, (s8)(depth5 / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    D_actor_403100_80155808->field_604 = -0x20;
+    D_actor_403100_80155808->field_608 = 0x450;
+    D_actor_403100_80155808->field_A0  = 0x290;
+    D_actor_403100_80155808->field_A2  = 0x210;
+    D_actor_403100_80155808->field_A4  = -0x160;
+    *(s32*)(u32)&part->coord.t[0]      = -0xE27;
+    *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
+    *(s32*)(u32)&coords->coord.t[1]    = -0x1388;
+    *(s32*)(u32)&coords->coord.t[2]    = 0x2710;
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_82  = 0xA00;
+    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_80132528(arg0);
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (Actor403100_TestFlags()) {
+            func_actor_403100_8013D1B8(1, 0x3F4);
+            D_actor_403100_80155808->field_5EC  = 0;
+            D_actor_403100_80155808->field_61C  = 0;
+            D_actor_403100_80155808->field_610  = 0x3C;
+            D_actor_403100_80155808->field_5FA += 1;
+        }
+    } else {
+        deathFrame                         = (u16)D_actor_403100_80155808->field_654 + 1;
+        D_actor_403100_80155808->field_654 = deathFrame;
+        if (deathFrame == 0x3C) {
+            func_actor_403100_8013D2A0(0);
+        }
+        if (D_actor_403100_80155808->field_654 >= 0x79) {
+            Game_Session->field_127 = 0;
+        }
+    }
+}
 void func_actor_403100_80139E80(Task* arg0)
 {
     s16            angle;
