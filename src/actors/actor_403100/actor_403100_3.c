@@ -238,7 +238,21 @@ void func_actor_403100_8013E174(void)
         func_actor_403100_8013D1B8(5, 0x3F4);
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E1E4);
+void func_actor_403100_8013E1E4(void)
+{
+    GpAnimArg sp;
+
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
+        sp.field_0                      = &D_actor_403100_8015570C;
+        sp.field_8                      = 1;
+        sp.field_C                      = 3;
+        sp.field_10                     = 0;
+        sp.field_4                      = 4;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&sp, 0);
+        D_actor_403100_80155808->field_5F2 = 3;
+    }
+}
 void func_actor_403100_8013E2BC(void)
 {
     if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
