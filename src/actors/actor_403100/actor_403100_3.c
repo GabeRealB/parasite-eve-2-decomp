@@ -213,7 +213,21 @@ void func_actor_403100_8013E16C(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E174);
+void func_actor_403100_8013E174(void)
+{
+    s16 timer;
+
+    if (D_80073BA0 > 0) {
+        timer                              = (u16)D_actor_403100_80155808->field_5F4 - 1;
+        D_actor_403100_80155808->field_5F4 = timer;
+        if (timer < 0) {
+            func_actor_403100_8013D1B8(5, 0x3F4);
+            D_actor_403100_80155808->field_5F2 = 2;
+            return;
+        }
+        func_actor_403100_8013D1B8(5, 0x3F4);
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E1E4);
 void func_actor_403100_8013E2BC(void)
 {
