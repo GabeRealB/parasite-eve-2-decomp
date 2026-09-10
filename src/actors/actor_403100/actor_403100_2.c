@@ -518,7 +518,61 @@ void func_actor_403100_8013A064(Task* arg0)
         D_actor_403100_80155808->field_5EC = 0;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A254);
+void func_actor_403100_8013A254(void)
+{
+    GpActorWork*     actor;
+    Actor403100Work* work;
+    s32              sound;
+    s32              sound2;
+    s32              pan;
+    s32              pan2;
+    u16              frame;
+    s32              depth;
+    s32              depth2;
+
+    actor                              = *Gp_ActorSlots;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0xB) {
+        if (D_actor_403100_80155808->regions.fields.field_63E == 0) {
+            func_8017E250(1, 1);
+            D_actor_403100_80155808->regions.fields.field_63E = 1;
+        } else {
+            func_8017E250(1, 2);
+        }
+        Gp_SpawnPadLerp(8, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 8;
+        sound                              = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0006;
+        pan                                = (s8)Gp_GetObjPan((GpObj38*)(actor->extra->field_8 + 1));
+        depth                              = Gp_GetObjDepth((GpObj38*)(actor->extra->field_8 + 1));
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
+        sound2 = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0007;
+        pan2   = (s8)Gp_GetObjPan((GpObj38*)(actor->extra->field_8 + 1));
+        depth2 = Gp_GetObjDepth((GpObj38*)(actor->extra->field_8 + 1));
+        SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
+    }
+    D_actor_403100_80155808->field_65F = 0;
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (D_actor_403100_8015580C->field_40 > 0) {
+                D_8007216C = 6;
+            }
+            D_actor_403100_80155808->field_632             = 0;
+            D_actor_403100_80155808->field_668.b.field_668 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            work                                = D_actor_403100_80155808;
+            work->pad_670[3]                    = 0;
+            work->field_47C.field_1C            = 0x400;
+            D_actor_403100_80155808->pad_670[1] = 0;
+            D_actor_403100_80155808->field_5F8  = 1;
+            D_actor_403100_80155808->field_5FA  = 0;
+        }
+    } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x1E) {
+        Game_Session->field_127 = 0;
+    }
+}
 void func_actor_403100_8013A4C8(Task* arg0)
 {
     Actor403100Entry* entries;
