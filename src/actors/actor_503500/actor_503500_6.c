@@ -73,6 +73,11 @@ extern RECT                 D_actor_503500_8016F100;
 /// for the per-frame effect, rows 3-5 for the odd-frame one.
 extern SVECTOR D_actor_503500_8016F374[];
 extern RECT    D_actor_503500_8016F3A4;
+/// The same pair for `func_actor_503500_8013E740`: nine effect offsets, one
+/// picked by frame and one by `Gp_LcgState`, and the rect it moves on frame 8.
+extern SVECTOR D_actor_503500_8016F31C[];
+extern RECT    D_actor_503500_8016F364;
+extern u32     Gp_LcgState;
 void           func_actor_503500_8013BC54(Actor503500* arg0);
 /// Per-slot local offset of the 0xF4 enemies in `D_actor_503500_801770E8`,
 /// indexed by `spawnArg1`.
@@ -1976,7 +1981,59 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013E384);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013E740);
+/// Sub-state 2 of the third 0xF0 block, stepped by `field_ED`: the same
+/// death sequence as `func_actor_503500_8013F4A4`, except the effects come
+/// from `D_actor_503500_8016F31C` - the odd-frame one at a random row - and
+/// the VRAM rect is restored on frame 8 rather than at the end.
+void func_actor_503500_8013E740(Actor503500* arg0)
+{
+    GpEnemy*         enemy;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    s32              pan;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_ED) {
+        case 0:
+            work->obj.flags &= 0x7FFF;
+            enemy->field_54  = 0;
+            Gp_UnlinkNode(&enemy->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            enemy->field_4C &= 0xF0;
+            pan              = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_ED++;
+            break;
+        case 1:
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
+                Gp_SpawnEff(0x60055, coord, 0x01001C00,
+                            &D_actor_503500_8016F31C[(s16)(work->field_EA % 9)]);
+                if (work->field_EA & 1) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6018C, coord, 0x04404600,
+                                &D_actor_503500_8016F31C[(u16)((Gp_LcgState >> 16) % 9)]);
+                }
+            }
+            if (work->field_EA == 8) {
+                MoveImage(&D_actor_503500_8016F364, 0x141, 0x12A);
+            }
+            if (work->field_EA++ >= 0x1F) {
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                work->field_ED++;
+            }
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+}
 
 /// The third 0xF0 block's per-frame tick, the same shape as
 /// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
