@@ -167,7 +167,23 @@ void func_actor_403100_80132528(Task* arg0)
     D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
     func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, angle, 0);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801326DC);
+void func_actor_403100_801326DC(Actor403100Work* work)
+{
+    s32 i;
+
+    if ((s16)D_actor_403100_80155808->field_5DC == D_actor_403100_80155808->field_5DE) {
+        for (i = 1; i < 15; i++) {
+            D_actor_403100_80155808->field_B8.animation.slots[i].field_9 = (u8)D_actor_403100_80155808->field_5E2;
+        }
+    } else {
+        for (i = 1; i < 15; i++) {
+            D_actor_403100_80155808->field_B8.animation.slots[i].field_9 = (u8)D_actor_403100_80155808->field_5E2;
+            func_800B4114(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
+        }
+        D_actor_403100_80155808->field_5FC = 0;
+    }
+    D_actor_403100_80155808->field_5DC = D_actor_403100_80155808->field_5DE;
+}
 void func_actor_403100_801327CC()
 {
     s32 i;
