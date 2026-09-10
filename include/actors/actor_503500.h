@@ -785,6 +785,45 @@ STATIC_ASSERT_SIZEOF(Actor503500StateC08, 0x18);
 
 extern Actor503500StateC08 Gp_StateC08;
 
+/// Scratchpad frame (`0x90` bytes carved off the scratchpad stack) used by
+/// `func_actor_503500_8014176C` while it re-aims a chain of coordinates.
+typedef struct Actor503500ChainScratch {
+    /* 0x00 */ SVECTOR diff;  // `pts[i + 1] - pts[i]`
+    /* 0x08 */ SVECTOR up;    // (0, 0x1000, 0) hint for `Gfx_OrthonormalBasis`
+    /* 0x10 */ SVECTOR dir;   // normalised `pos`
+    /* 0x18 */ SVECTOR rot;   // `Gp_ComposeParentWorld` output
+    /* 0x20 */ VECTOR  pos;   // `diff` in the link's local frame
+    /* 0x30 */ byte    pad_30[0x20];
+    /* 0x50 */ MATRIX  inv;   // transpose of `world`
+    /* 0x70 */ MATRIX  world; // accumulated rotation down the chain
+} Actor503500ChainScratch;
+STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
+
+/// Copies the transpose of `src`'s rotation into `dst` through `$12`-`$14`,
+/// three halfwords at a time, the way the libgte inline macros move matrices.
+#define TRANSPOSE_ROT(src, dst)           \
+    __asm__ volatile("lhu $12,0(%0);"     \
+                     "lhu $13,6(%0);"     \
+                     "lhu $14,12(%0);"    \
+                     "sh $12,0(%1);"      \
+                     "sh $13,2(%1);"      \
+                     "sh $14,4(%1);"      \
+                     "lhu $12,2(%0);"     \
+                     "lhu $13,8(%0);"     \
+                     "lhu $14,14(%0);"    \
+                     "sh $12,6(%1);"      \
+                     "sh $13,8(%1);"      \
+                     "sh $14,10(%1);"     \
+                     "lhu $12,4(%0);"     \
+                     "lhu $13,10(%0);"    \
+                     "lhu $14,16(%0);"    \
+                     "sh $12,12(%1);"     \
+                     "sh $13,14(%1);"     \
+                     "sh $14,16(%1);"     \
+                     :                    \
+                     : "r"(src), "r"(dst) \
+                     : "$12", "$13", "$14", "memory")
+
 void func_actor_503500_80146508(Task* arg0);
 void func_actor_503500_8013F8AC(Actor503500* arg0);
 void func_actor_503500_801440F0(Actor503500* arg0);

@@ -58543,3 +58543,28 @@ Same function: `vec.vx = -vec.vx` compiles to a bare `negu`, because `convert`
 narrows `(short)-(int)x` into an HImode negate, while the target sign-extends
 first (`sll/sra/negu`, and `lh` rather than `lhu` for a stack field). Going
 through an `s32 t = vec.vx; vec.vx = -t;` keeps the negate in SImode.
+
+## `pts[i + 1]` is not a giv when `pts` is a register: use a second index `j`
+
+`func_actor_503500_8014176C` walks `pts[i]`/`pts[i + 1]` and `coords[i]`/`coords[i + 1]`.
+The target keeps four walking pointers (`s1`, `s4 = s1 + 8`, `s0`, `s3 = s0 + 0x50`)
+with plain `0/2/4` offsets, plus the counter `i`.
+
+- `pts[1] - pts[0]` with `pts++`: the `+2`/`+4` address givs combine and get
+  reduced into an odd `pts + 4` register.
+- `pts[i + 1]`: `simplify_giv_expr` folds `pts + 8i + 8` to `(a + reg) + const`,
+  and summing two invariants is allowed only when both are constants (`loop.c`,
+  PLUS/PLUS case). So it is **not a giv** and gets recomputed from `pts + 8i`.
+- A `next = pts + 1` base before the loop with `next[i]` does reduce, but the
+  reduced increments all sit *before* `i++`.
+- **`for (i = 0, j = 1; i < 8; i++, j++)` with `pts[j]` / `coords[j]` matched.**
+  The `j` givs increment after `i++` (target tail: `parent+, cur+, i+, next+`),
+  and `j` itself is eliminated.
+
+In the same function, an explicit pointer set *inside* the loop body right after
+the first use of a hoisted struct-field address (`inv = &s->inv; dir = &s->dir;`
+after `gte_SetRotMatrix(&s->world)`) is hoisted as a movable in that order. That
+reproduced the target's preheader sched order, where pre-loop assignments did not.
+It also kept `inv` at 5 refs, so global allocation ordered it below `i` and `dir`.
+A row-split transpose (three asm statements) also got `inv` hoisted, but at 9 refs it
+outranked `i` and took the wrong `$s` register.

@@ -18,31 +18,6 @@
 /// different word, so spell the instruction out.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-/// Copies the transpose of `src`'s rotation into `dst` through `$12`-`$14`,
-/// three halfwords at a time, the way the libgte inline macros move matrices.
-#define TRANSPOSE_ROT(src, dst)           \
-    __asm__ volatile("lhu $12,0(%0);"     \
-                     "lhu $13,6(%0);"     \
-                     "lhu $14,12(%0);"    \
-                     "sh $12,0(%1);"      \
-                     "sh $13,2(%1);"      \
-                     "sh $14,4(%1);"      \
-                     "lhu $12,2(%0);"     \
-                     "lhu $13,8(%0);"     \
-                     "lhu $14,14(%0);"    \
-                     "sh $12,6(%1);"      \
-                     "sh $13,8(%1);"      \
-                     "sh $14,10(%1);"     \
-                     "lhu $12,4(%0);"     \
-                     "lhu $13,10(%0);"    \
-                     "lhu $14,16(%0);"    \
-                     "sh $12,12(%1);"     \
-                     "sh $13,14(%1);"     \
-                     "sh $14,16(%1);"     \
-                     :                    \
-                     : "r"(src), "r"(dst) \
-                     : "$12", "$13", "$14", "memory")
-
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_503500_80131E44;

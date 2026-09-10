@@ -18,6 +18,12 @@
 /// different word, so spell the instruction out.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
+/// `mvmva 1, 0, 3, 3, 0` (`rtir`), spelled out for the same reason.
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+
+/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_503500_80131E44;
@@ -3057,7 +3063,54 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141448);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014176C);
+/// Re-aims a chain of eight child coordinates along the polyline `pts[0..8]`.
+/// `world` starts as the chain root's world rotation and accumulates each
+/// link's local rotation; the segment `pts[i + 1] - pts[i]` is taken into that
+/// frame, and the resulting direction becomes the next link's basis
+/// (`Gfx_OrthonormalBasis`, up hint +Y) with the local segment as its
+/// translation. Works in an `Actor503500ChainScratch` on the scratchpad stack.
+void func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords)
+{
+    Actor503500ChainScratch* s;
+    MATRIX*                  inv;
+    SVECTOR*                 dir;
+    s32                      i;
+    s32                      j;
+
+    s        = (Actor503500ChainScratch*)(SCRATCH_SP -= sizeof(Actor503500ChainScratch));
+    s->up.vx = 0;
+    s->up.vy = 0x1000;
+    s->up.vz = 0;
+    Gp_ComposeParentWorld(coords->sub, &s->world, &s->rot);
+    for (i = 0, j = 1; i < 8; i++, j++) {
+        s->diff.vx = pts[j].vx - pts[i].vx;
+        s->diff.vy = pts[j].vy - pts[i].vy;
+        s->diff.vz = pts[j].vz - pts[i].vz;
+        gte_SetRotMatrix(&s->world);
+        inv = &s->inv;
+        dir = &s->dir;
+        gte_ldclmv(&coords[i].coord);
+        gte_rtir_real();
+        gte_stclmv(&s->world);
+        gte_ldclmv((char*)&coords[i].coord + 2);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->world + 2);
+        gte_ldclmv((char*)&coords[i].coord + 4);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->world + 4);
+        TRANSPOSE_ROT(&s->world, inv);
+        gte_SetRotMatrix(inv);
+        gte_ldv0(&s->diff);
+        gte_rtv0_real();
+        gte_stlvnl(&s->pos);
+        VectorNormalS(&s->pos, dir);
+        Gfx_OrthonormalBasis(&coords[j].coord, dir, &s->up);
+        coords[j].coord.t[0] = s->pos.vx;
+        coords[j].coord.t[1] = s->pos.vy;
+        coords[j].coord.t[2] = s->pos.vz;
+    }
+    SCRATCH_SP += sizeof(Actor503500ChainScratch);
+}
 
 /// Same cubic Bezier evaluation as `func_actor_503500_8013A7B0`: control points
 /// `pts[0..2]` and `p3`, `t` running from 1 (0xFFFF) down to 0 as `pos`
