@@ -202,7 +202,15 @@ void func_actor_403100_8013DA6C(void)
     fns[(s16)D_actor_403100_80155808->field_5FA]();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013DAC4);
+void func_actor_403100_8013DAC4(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131F60;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    }
+}
 void func_actor_403100_8013DB48(Task* arg0)
 {
     TaskFuncTable6 sp;
