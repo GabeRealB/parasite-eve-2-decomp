@@ -178,7 +178,40 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013335C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133928);
+s32 func_actor_403100_80133928(void)
+{
+    s16 state;
+    s8  mode;
+
+    mode = D_actor_403100_80155808->pad_66A[2];
+    if (mode == 1) {
+        state = D_actor_403100_80155808->field_62A;
+        if (state == mode) {
+            D_actor_403100_80155808->field_62A = 0;
+            func_actor_403100_8013D24C();
+            return 0;
+        }
+        if (state == 2) {
+            SndEvt_EnqueueType7(0x401F0004, 0xA);
+            func_actor_403100_8013D24C();
+            D_actor_403100_80155808->field_62A = 0;
+            D_actor_403100_80155808->field_5F8 = 8;
+            D_actor_403100_80155808->field_5FA = 0;
+            return 1;
+        }
+        if (state == 3) {
+            SndEvt_EnqueueType7(0x401F0004, 0xA);
+            func_actor_403100_8013D24C();
+            D_actor_403100_80155808->field_62A = 0;
+            D_actor_403100_80155808->field_5F8 = 0xA;
+            D_actor_403100_80155808->field_5FA = 0;
+            return 1;
+        }
+        D_actor_403100_80155808->field_62A = 0;
+        return 0;
+    }
+    return 0;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801339EC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133C94);
 void func_actor_403100_80133D88(Task* arg0)
