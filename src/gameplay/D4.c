@@ -512,15 +512,15 @@ void Gp_PumpTmdStream(Task* task)
 
 s32 Gp_PollAreaCdLoads(void)
 {
-    u8                  param1[8];
-    u8                  param2[8];
-    GpCdAreaRec*        rec;
-    register GpCdRec10* rec10 asm("a0");
-    register GpCdRec10* match asm("a1");
-    register GpCdRec10* next asm("v0");
-    GpCdRec0C*          rec12;
-    s32                 val;
-    u8                  temp;
+    u8           param1[8];
+    u8           param2[8];
+    GpCdAreaRec* rec;
+    GpCdRec10*   rec10;
+    GpCdRec10*   match;
+    GpCdRec10*   next;
+    GpCdRec0C*   rec12;
+    s32          val;
+    u8           temp;
 
     switch (Gp_AreaCdPhase) {
         case 0:
@@ -580,10 +580,11 @@ s32 Gp_PollAreaCdLoads(void)
                         }
                     }
                     {
-                        register s32 hi asm("a0");
-                        GpCdRec10*   p;
-                        asm("lui %0, %%hi(Gp_CdRecCur)" : "=r"(hi));
-                        asm("lw %0, %%lo(Gp_CdRecCur)(%1)" : "=r"(p) : "r"(hi));
+                        extern GpCdRec10*   cursor asm("Gp_CdRecCur");
+                        register GpCdRec10* p asm("v0");
+
+                        p = cursor;
+                        __asm__("" : "+r"(p) : "m"(cursor) : "v1");
                         if (p->field_0 == 0xFF) {
                             break;
                         }

@@ -58164,3 +58164,26 @@ remains unresolved.
 Observed sched2 block 0: old counter UID11 selected at backward T-39; moved counter UID57 at T-31, preceding argument setup UID23 at T-32. Forward initialization therefore follows argument setup and saved-register stores return to the desired prologue. Counter remains global r84 in s1 (26 references, live length 164 -> 161); allocation dispositions remain unchanged. This is a supported case-specific scheduling intervention, not a general rule about source order. See retained PERMUTER_ANALYSIS and controlled prediction in `tools/permuter_findings/func_actor_403100_801342B4/`.
 
 Separately, reversing chained vector assignment destinations corrects the six store pairs. Real work-struct array access replaces scalar-address indexing: RTL plus(index,base) becomes plus(base,index), preserving the 0x63C displacement and fixing four commuted addu operands. A named union preserves existing scalar views; this GCC does not support anonymous member promotion. Final unpinned `base_6.c` scores 100% with all-zero penalties.
+
+## An exact-symbol extern can split a CSE'd global HIGH without losing relocations
+
+`Gp_PollAreaCdLoads` already keeps `%hi(Gp_CdRecCur)` live in `$t0` around its
+main loop, so a second plain field read reuses that HIGH and deletes the ROM's
+fresh `lui $a0`. A block-local extern with a different C name and the exact
+assembler name survives CSE as `symbol_ref ("*Gp_CdRecCur")`; GNU as still
+emits ordinary `R_MIPS_HI16`/`R_MIPS_LO16` relocations against
+`Gp_CdRecCur`. This is narrower than spelling `Gp_CdRecCur+0`: it does not
+invent a linker addend or hide the relocation.
+
+The separate HIGH initially coalesces with its loaded pointer in `$v0`
+(base_8, 99.945%, `regs=2`). Keeping that address live in an empty asm memory
+operand while a pinned `$v0` pointer is read/write, and clobbering `$v1`, makes
+the HIGH conflict with both lower-numbered registers and selects `$a0`; base_9
+then reproduces the exact object. Unpinning the pointer adds a move, so the pin
+is part of the allocation constraint rather than decoration. This is a fallback
+for a demonstrated duplicate-HIGH CSE conflict, not a replacement for trying a
+plain global access and statement movement first.
+
+Preprocessed inputs: base_8
+`386b05e8ea476f002f4e4e142254632d9ceab76fa6ec009482b293f858792707`;
+base_9 `b370a101d7f595a64bf9ae7708817be640bfea7821d674fa68bbf5330702fdf3`.
