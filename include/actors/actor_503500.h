@@ -397,7 +397,9 @@ typedef struct Actor503500WorkC0 {
     /* 0xA4 */ VECTOR  field_A4;
     /* 0xB4 */ s32     field_B4;
     /* 0xB8 */ s16     field_B8;
-    /* 0xBA */ byte    pad_BA[0x6];
+    /* 0xBA */ byte    pad_BA[0x4];
+    /* 0xBE */ s8      field_BE; // set when a record's kind (field_4 high half) is 1
+    /* 0xBF */ s8      field_BF; // nonzero skips the push-back step
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 

@@ -737,7 +737,41 @@ void func_actor_503500_8014473C(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80144778);
+void func_actor_503500_80144778(Actor503500* arg0)
+{
+    GpDeltaScratch     delta;
+    Actor503500WorkC0* work;
+    GpRec18*           rec;
+    s32                result;
+    s32                i;
+
+    work = (Actor503500WorkC0*)arg0->field_1C;
+    rec  = work->rec;
+    if (work->field_BF == 0) {
+        result         = func_800E0C10(rec, &delta, 4, NULL);
+        work->field_B4 = result;
+        switch (result) {
+            case 0:
+                break;
+            case 1:
+                work->field_84.vx += delta.vx.w;
+                work->field_84.vy += delta.vy.w;
+                work->field_84.vz += delta.vz.w;
+                break;
+            case 2:
+                work->field_84.vx = work->field_94.vx;
+                work->field_84.vy = work->field_94.vy;
+                work->field_84.vz = work->field_94.vz;
+                break;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+            work->field_BE = 1;
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec);
+}
 
 void func_actor_503500_80144890(Task* task)
 {
