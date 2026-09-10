@@ -1,16 +1,19 @@
 #include "common.h"
+#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/task.h"
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
 
 typedef struct {
-    u8  pad_00[0x30];
-    s16 field_30;
-    s16 field_32;
-    u8  pad_34[0x4];
-    s16 field_38;
-    s16 field_3A;
+    u8    pad_00[0x28];
+    Task* field_28;
+    u8    pad_2C[0x4];
+    s16   field_30;
+    s16   field_32;
+    u8    pad_34[0x4];
+    s16   field_38;
+    s16   field_3A;
 } DumpingHoleEntity;
 
 typedef struct {
@@ -64,7 +67,11 @@ void func_shelter_b3_dumping_hole_8017FE34(void)
     Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FE64);
+void func_shelter_b3_dumping_hole_8017FE64(s32 arg0)
+{
+    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
+    Gp_DispatchMsg(p->field_28, 0x7D5, arg0, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FE9C);
 
