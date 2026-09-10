@@ -200,7 +200,32 @@ void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138AB4);
+void func_actor_403100_80138AB4(void)
+{
+    Task* player;
+    u16   frame;
+
+    func_actor_403100_8013D24C();
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if (((s16)frame < 0x20) && ((u8)D_actor_403100_80155808->field_668.b.field_668 != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+        Gp_StateC08.field_6 |= 1;
+        func_actor_403100_8013D1B8(5, 0x3F4);
+        D_actor_403100_80155808->field_5F4 = 0x17;
+        D_actor_403100_80155808->field_5F2 = 1;
+        player                             = Game_GetPtrSlot(3);
+        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+            (*Gp_ActorSlots)->actor->field_956 = 0xA;
+        }
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5DE  = 5;
+        D_actor_403100_80155808->field_5F6  = 0;
+        D_actor_403100_80155808->field_5DA  = 2;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138C18);
 void func_actor_403100_80138D08(Task* arg0)
 {
