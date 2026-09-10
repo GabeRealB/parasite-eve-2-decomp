@@ -860,7 +860,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// dispatches on), clears the phase and the two counters that go with it,
 /// cancels a pending kill, and records the slot's halfword as "asked to die"
 /// for every sub-state but 1.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013DBA8);
+void func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work770E8* work = (Actor503500Work770E8*)arg0->field_1C;
+
+    work->field_F0      = arg1;
+    work->field_F1      = 0;
+    work->field_EC      = 0;
+    work->field_EE      = 0;
+    arg0->killCountdown = 0;
+    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1, arg1 != 1);
+}
 void func_actor_503500_8013DBF4(Task* task)
 {
     TaskFuncTable3 sp;
