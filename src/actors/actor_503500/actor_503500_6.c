@@ -1253,7 +1253,60 @@ void func_actor_503500_8013DC4C(Actor503500* arg0)
 /// coordinate to a plain 4096 identity, parents it to part 1 of the parent
 /// task's model, links the enemy node and its display node, and starts the
 /// block in sub-state 0.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013DD10);
+void func_actor_503500_8013DD10(Actor503500* arg0)
+{
+    GpEnemy*       enemy;
+    Task*          parent;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parts;
+    MATRIX*        mtx;
+    GpRec18*       rec;
+
+    coord  = arg0->extra->field_8;
+    enemy  = arg0->field_20;
+    parent = arg0->parent;
+    Mem_Set(&D_actor_503500_8017797C, 0, 0xF0);
+    arg0->field_1C = &D_actor_503500_8017797C;
+
+    parts                        = ((TmdObject*)parent->extra)->field_8;
+    *(s32*)&coord->coord.m[0][0] = 0x1000;
+    coord->sub                   = &parts[1];
+    mtx                          = &coord->coord;
+    *(s32*)&mtx->m[0][2]         = 0;
+    *(s32*)&mtx->m[1][1]         = 0x1000;
+    *(s32*)&mtx->m[2][0]         = 0;
+    mtx->m[2][2]                 = 0x1000;
+    enemy->field_4               = mtx;
+    enemy->field_48              = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->field_18     = coord;
+    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->field_1C.vx  = D_actor_503500_8016F2D8.vx;
+    enemy->field_1C.vy  = D_actor_503500_8016F2D8.vy;
+    enemy->field_1C.vz  = D_actor_503500_8016F2D8.vz;
+    rec                 = &D_actor_503500_8017797C.rec;
+    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54     = (s32)rec;
+    enemy->field_40     = enemy->field_50->field_4;
+
+    D_actor_503500_8017797C.obj.field_8  = coord;
+    D_actor_503500_8017797C.obj.field_C  = rec;
+    D_actor_503500_8017797C.obj.field_18 = 0x30023;
+    D_actor_503500_8017797C.obj.field_1C = 0x3E8;
+    D_actor_503500_8017797C.obj.flags    = 1;
+    D_actor_503500_8017797C.obj.field_10 = D_actor_503500_8016F2D8.vx;
+    D_actor_503500_8017797C.obj.field_12 = D_actor_503500_8016F2D8.vy;
+    D_actor_503500_8017797C.obj.field_14 = D_actor_503500_8016F2D8.vz;
+    Gp_LinkObj(2, &D_actor_503500_8017797C.obj);
+    Gp_InitRec18Table(rec, 8, 0);
+    D_actor_503500_8017797C.field_E4   = 0x600;
+    D_actor_503500_8017797C.field_E0   = coord;
+    D_actor_503500_8017797C.field_E6   = 3;
+    D_actor_503500_8017797C.obj.flags |= 0x8000;
+    func_actor_503500_8013EC20(arg0, 0);
+    arg0->exitCallback = (TaskFunc)func_actor_503500_8013EA2C;
+    arg0->state       += 1;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80132098);
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013DEB4);
