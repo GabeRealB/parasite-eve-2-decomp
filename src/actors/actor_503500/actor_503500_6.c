@@ -328,7 +328,44 @@ s32 func_actor_503500_801364D0(Actor503500* arg0, Actor503500Work* work)
     }
     return ret;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013656C);
+
+/// Script step that dismisses both of the boss's slot-7/8 helpers: state 0
+/// asks whichever slots are ready to die and arms `field_7D2`, state 1 waits
+/// for either slot to finish dying or for `field_7BE` to pass 90 frames.
+/// Returns 0x1E while neither slot is ready, 0 the frame a request is issued
+/// or while waiting, and 0xF0 once the wait is over.
+s32 func_actor_503500_8013656C(Actor503500* arg0, Actor503500Work* work)
+{
+    s32 ret;
+
+    ret = 1;
+    switch ((s8)work->field_7DB) {
+        case 0:
+            ret             = 0x1E;
+            work->field_7D2 = 0;
+            if (func_actor_503500_80136FDC(work, 7) != 0) {
+                func_actor_503500_80136F40(work, 7, 2, 0x96);
+                ret = 0;
+            }
+            if (func_actor_503500_80136FDC(work, 8) != 0) {
+                func_actor_503500_80136F40(work, 8, 2, 0x96);
+                ret = 0;
+            }
+            if (ret == 0) {
+                work->field_7DB = 1;
+                work->field_7D2 = 0x7D0;
+            }
+            break;
+        case 1:
+            ret = 0;
+            if (func_actor_503500_80136FA8(work, 7) != 0 || func_actor_503500_80136FA8(work, 8) != 0 ||
+                ++work->field_7BE > 0x5A) {
+                ret = 0xF0;
+            }
+            break;
+    }
+    return ret;
+}
 
 /// Script step that dismisses one of two helpers: state 0 asks slot 1 to die
 /// when it is ready and the boss is within 500 units on `field_7BA`, otherwise
