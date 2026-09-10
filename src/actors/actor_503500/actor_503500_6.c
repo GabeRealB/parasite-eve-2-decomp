@@ -321,7 +321,22 @@ void func_actor_503500_80136A80(Actor503500* arg0)
 
 /// Ticks the boss's second-body-part countdown down to zero, then re-places
 /// that part's display node and its 8-record collision table.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136A88);
+void func_actor_503500_80136A88(Actor503500* arg0)
+{
+    Actor503500Work* work = arg0->field_1C;
+    GpRec18*         rec;
+
+    if (work->field_7B4 != 0) {
+        work->field_7B4 -= 1;
+        if (work->field_7B4 < 0) {
+            work->field_7B4 = 0;
+        }
+    }
+
+    rec = work->rec5F4;
+    func_actor_503500_80134EAC(arg0, &work->field_5D4, rec, 8);
+    Gp_ClearRec18Occupied(rec);
+}
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
 /// and hands it to `Gp_UpdateActorColor` with no blend parameters.
 void func_actor_503500_80136AEC(Actor503500* arg0)
