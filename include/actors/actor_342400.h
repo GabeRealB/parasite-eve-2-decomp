@@ -88,7 +88,12 @@ extern Actor342400Slot D_actor_342400_8016BF58[];
 extern TaskDesc        D_actor_342400_80173A54;
 extern u16             D_actor_342400_80173AAC; // spawn counter, `<< 12` into `GpEnemy::field_8`
 
+void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);
+void func_actor_342400_80162FFC(Task* arg0);
+void func_actor_342400_80163010(Task* arg0);
+void func_actor_342400_801630A4(Task* arg0);
+void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
 
 #endif

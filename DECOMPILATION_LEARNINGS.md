@@ -56546,6 +56546,18 @@ prefer `force_not_migration` - `actor_107600`'s comment records the same
 reasoning from the other side ("a local initializer would emit the pool at this
 function's `.rodata` instead").
 
+"First" is stricter than needed, though. GCC 2.8.1 emits a file-scope `const`
+at its definition, interleaved with the top-level `INCLUDE_ASM` /
+`INCLUDE_RODATA` blocks, so a table defined *mid-file* lands correctly as long
+as the line sits where its block falls in the unit's rodata order - usually
+straight above the dispatcher, when the rodata migrated into the `INCLUDE_ASM`
+above is the block before it. `D_actor_342400_80161E54` (offset `0x34`) sits
+between `func_actor_342400_80162824`'s migrated `0x24` block and the
+`INCLUDE_RODATA` of `D_actor_342400_80161E68`, and checksums unscoped. Write
+it as a `TaskFuncTable5` global copied by struct assignment: a local
+`TaskFunc sp[5] = {...}` initializer produces the same `$LC0` bytes but lands
+at 99.6% with `regs=2`.
+
 ## A merged tail of just `jal` + `nop` means the call was written twice
 
 When both arms of an `if` set up **all four** argument registers themselves and

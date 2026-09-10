@@ -31,7 +31,26 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162824);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162888);
+/// The five state handlers `func_actor_342400_80162888` dispatches through by
+/// `Task::state`. splat migrates this table into that function's own `.s`, so
+/// there is no standalone rodata file to `INCLUDE_RODATA`; defining it here
+/// emits it where the function sits, between the 0x80161E44 rodata of the
+/// `INCLUDE_ASM` above and the `D_actor_342400_80161E68` include below.
+const TaskFuncTable5 D_actor_342400_80161E54 = { {
+    func_actor_342400_80162084,
+    func_actor_342400_80162FFC,
+    func_actor_342400_80163010,
+    func_actor_342400_801630A4,
+    func_actor_342400_80163178,
+} };
+
+void func_actor_342400_80162888(Task* arg0)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_actor_342400_80161E54;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801628F0);
 
