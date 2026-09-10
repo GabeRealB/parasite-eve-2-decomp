@@ -591,7 +591,103 @@ s32 func_actor_503500_80133BF4(Actor503500* arg0, Actor503500Work* work)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133D40);
+/// Slot table walked by `func_actor_503500_80133D40`: four slot ids, tried in
+/// order, and the per-entry value handed to `func_actor_503500_80136F40` as
+/// its last argument when that slot is picked.
+extern s16 D_actor_503500_8016EF40[];
+extern s16 D_actor_503500_8016EF48[];
+
+/// Script step that dismisses the first ready slot of four (slots 2, 7, 13,
+/// 14 are tested) whose `field_7BA` range test passes; 13 and 14 also depend on
+/// whether the other one's `enemies` entry is empty. State 0 returns 0 the
+/// frame a slot is issued, else 1. State 1 bumps `field_7BE` unless the slot
+/// is 7, and once the slot is done or 0x1E frames have passed returns 0x3C for
+/// slot 7 or 0x1E for 2/13/14; until then 0. Any other state returns 1.
+s32 func_actor_503500_80133D40(Actor503500* arg0, Actor503500Work* work)
+{
+    s32  ret;
+    s32  i;
+    s16* slots;
+    s16  dir;
+    s16  slot;
+
+    switch ((s8)work->field_7DB) {
+        case 0:
+            ret   = 1;
+            i     = 0;
+            slots = D_actor_503500_8016EF48;
+            dir   = work->field_7BA;
+            for (; i < 4; i++) {
+                slot = *slots;
+                if (func_actor_503500_80136FDC(work, slot) != 0) {
+                    switch (slot) {
+                        case 2:
+                            if (!(dir >= -0x6A4 && dir <= 0x3E8)) {
+                                ret = 0;
+                            }
+                            break;
+                        case 13:
+                            if (func_actor_503500_80135E04((Task*)arg0, 0xE) != 0) {
+                                if (!(dir >= -0x7D0 && dir <= 0x3E8)) {
+                                    ret = 0;
+                                }
+                            } else if (dir >= 0x3E9 && dir <= 0x6A3) {
+                                ret = 0;
+                            }
+                            break;
+                        case 14:
+                            if (func_actor_503500_80135E04((Task*)arg0, 0xD) != 0) {
+                                if (!(dir >= -0x7D0 && dir <= 0x3E8)) {
+                                    ret = 0;
+                                }
+                            } else if (!(dir >= -0x7D0 && dir <= 0x6A3)) {
+                                ret = 0;
+                            }
+                            break;
+                        case 7:
+                            if (dir >= 0x5DD && dir <= 0x76B) {
+                                ret = 0;
+                            }
+                            break;
+                    }
+                    if (ret == 0) {
+                        func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
+                        work->field_7C2 = slot;
+                        work->field_7DB = 1;
+                        break;
+                    }
+                }
+                slots++;
+            }
+            break;
+        case 1:
+            ret = 0;
+            if (work->field_7C2 != 7) {
+                work->field_7BE++;
+            }
+            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x1E) {
+                switch (work->field_7C2) {
+                    case 2:
+                        ret = 0x1E;
+                        break;
+                    case 13:
+                        ret = 0x1E;
+                        break;
+                    case 14:
+                        ret = 0x1E;
+                        break;
+                    case 7:
+                        ret = 0x3C;
+                        break;
+                }
+            }
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133FD8);
 
