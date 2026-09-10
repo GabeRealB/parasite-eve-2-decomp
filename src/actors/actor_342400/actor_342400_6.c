@@ -5,6 +5,10 @@
 #include "gameplay/3A34.h"
 #include "actors/actor_342400.h"
 
+s16  func_actor_342400_8016945C(Task* arg0);
+void func_actor_342400_8016B33C(Task* arg0);
+void func_actor_342400_8016B370(Task* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_8016A950);
 
 void func_actor_342400_8016A9AC(Task* arg0)
@@ -64,7 +68,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_8016AEAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_8016AF34);
+void func_actor_342400_8016AF34(Task* arg0)
+{
+    Actor342400Work* work                = (Actor342400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_342400_8016B33C,
+        func_actor_342400_8016B370,
+    };
+
+    if (func_actor_342400_8016945C(arg0) == 0) {
+        states[(s16)work->field_422](arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_8016AFA8);
 
