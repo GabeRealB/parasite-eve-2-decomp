@@ -570,5 +570,44 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_8
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F34);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80136830);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013712C);
+void func_actor_403100_8013712C(Task* arg0)
+{
+    Actor403100Entry* entries;
+    GpObj*            obj;
+    s32               i;
+    GsCOORDINATE2*    coord;
+    Actor403100Work*  work;
+
+    coord                                 = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_8015580C->node.field_4 = 8;
+    D_actor_403100_80155808->field_5E6    = 0x1E;
+    D_actor_403100_80155808->field_62C    = 0x20;
+    D_actor_403100_80155808->field_600    = 0;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    i                                        = 0;
+    entries                                  = D_actor_403100_80155814;
+    obj                                      = &entries->obj;
+    work                                     = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
+    coord->coord.t[0]                        = -0x44C;
+    coord->coord.t[2]                        = 0x980;
+    *(volatile s16*)&D_actor_403100_80155810 = 0;
+    coord->coord.t[1]                        = 0;
+    work->field_82                           = 0xC00;
+    work->field_5D0                          = 0x1518;
+    work->field_5E2                          = 0x10;
+    work->field_5DE                          = 1;
+    work->field_80                           = 0;
+    work->field_84                           = 0;
+    work->field_5DA                          = 2;
+    work->field_5EC                          = 0;
+    for (; i < 0x1C; i++) {
+        if (entries[i].active != 0) {
+            entries[i].active = 0;
+            Gp_UnlinkObj(obj);
+        }
+        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_5FA += 1;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F60);
