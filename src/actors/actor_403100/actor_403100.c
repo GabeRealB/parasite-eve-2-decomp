@@ -70,7 +70,53 @@ void func_actor_403100_8013F12C(void);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132064);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132320);
+void func_actor_403100_80132320(Task* arg0)
+{
+    D_actor_403100_80155808->field_47C.field_8  = &((TmdObject*)arg0->extra)->field_8[3];
+    D_actor_403100_80155808->field_47C.field_C  = (GpRec18*)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155808->field_47C.field_14 = 0x300;
+    D_actor_403100_80155808->field_47C.field_10 = 0;
+    D_actor_403100_80155808->field_47C.field_12 = 0;
+    D_actor_403100_80155808->field_47C.field_18 = 0x3001F;
+    D_actor_403100_80155808->field_47C.field_1C = 0x400;
+    D_actor_403100_80155808->field_47C.flags    = 1;
+    Gp_LinkObj(2, &D_actor_403100_80155808->field_47C);
+    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_49C, 8, 0);
+    D_actor_403100_80155808->field_47C.flags   |= 0x8000;
+    D_actor_403100_80155808->field_414.field_8  = &((TmdObject*)arg0->extra)->field_8[1];
+    D_actor_403100_80155808->field_414.field_C  = (GpRec18*)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155808->field_414.field_10 = 0;
+    D_actor_403100_80155808->field_414.field_12 = 0;
+    D_actor_403100_80155808->field_414.field_14 = 0;
+    D_actor_403100_80155808->field_414.field_18 = 0x3001F;
+    D_actor_403100_80155808->field_414.field_1C = 0x800;
+    D_actor_403100_80155808->field_414.flags    = 1;
+    Gp_LinkObj(2, &D_actor_403100_80155808->field_414);
+    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_434, 3, 0);
+    D_actor_403100_80155808->field_55C.field_18 = 0x3001F;
+    D_actor_403100_80155808->field_414.flags   |= 0x8000;
+    D_actor_403100_80155808->field_55C.field_8  = &((TmdObject*)arg0->extra)->field_8[7];
+    D_actor_403100_80155808->field_55C.field_C  = (GpRec18*)D_actor_403100_80155808->pad_57C;
+    D_actor_403100_80155808->field_55C.field_10 = -0x200;
+    D_actor_403100_80155808->field_55C.field_12 = 0;
+    D_actor_403100_80155808->field_55C.field_14 = 0x200;
+    D_actor_403100_80155808->field_55C.field_1C = 0x3A0;
+    D_actor_403100_80155808->field_55C.flags    = 1;
+    Gp_LinkObj(3, &D_actor_403100_80155808->field_55C);
+    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_57C, 1, 0);
+    D_actor_403100_80155808->field_594.field_18 = 0x3001F;
+    D_actor_403100_80155808->field_55C.flags   &= 0x7FFF;
+    D_actor_403100_80155808->field_594.field_8  = &((TmdObject*)arg0->extra)->field_8[6];
+    D_actor_403100_80155808->field_594.field_C  = (GpRec18*)D_actor_403100_80155808->pad_5B4;
+    D_actor_403100_80155808->field_594.field_10 = -0x200;
+    D_actor_403100_80155808->field_594.field_12 = 0;
+    D_actor_403100_80155808->field_594.field_14 = 0x180;
+    D_actor_403100_80155808->field_594.field_1C = 0x3A0;
+    D_actor_403100_80155808->field_594.flags    = 1;
+    Gp_LinkObj(3, &D_actor_403100_80155808->field_594);
+    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_5B4, 1, 0);
+    D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+}
 void func_actor_403100_80132528(Task* arg0)
 {
     SVECTOR        pos;
