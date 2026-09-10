@@ -1477,7 +1477,22 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80132224);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80145428);
+void func_actor_503500_80145428(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
+
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord      = arg0->extra->field_8;
+    coord->flg = 0;
+    func_actor_503500_801454E0(arg0);
+    func_actor_503500_801450A0(arg0);
+}
 void func_actor_503500_80145480(Task* arg0)
 {
     TmdObject* ext;
