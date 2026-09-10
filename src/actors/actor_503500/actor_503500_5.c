@@ -389,7 +389,48 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135644);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135828);
+/// Copies bits 0x80, 2 and 4 of the parent task's model `field_C` onto
+/// `arg0`'s model, unless that model is attached to `Gfx_ViewCoord`.
+/// Clearing bit 4 reallocates the model's buffers; setting it writes 2 to
+/// `*arg1`.
+void func_actor_503500_80135828(Actor503500* arg0, s8* arg1)
+{
+    TmdObject* obj;
+    TmdObject* pobj;
+    u16        flags;
+    u16        flags2;
+
+    obj = arg0->extra;
+    if (obj->field_8->sub != &Gfx_ViewCoord) {
+        flags = obj->field_C;
+        pobj  = arg0->parent->extra;
+        if (flags & 0x80) {
+            if (!(pobj->field_C & 0x80)) {
+                obj->field_C = flags & ~0x80;
+            }
+        } else if (pobj->field_C & 0x80) {
+            obj->field_C = flags | 0x80;
+        }
+        flags2 = obj->field_C;
+        if (flags2 & 2) {
+            if (!(pobj->field_C & 2)) {
+                obj->field_C = flags2 & ~2;
+            }
+        } else if (pobj->field_C & 2) {
+            obj->field_C = flags2 | 2;
+        }
+        flags2 = obj->field_C;
+        if (flags2 & 4) {
+            if (!(pobj->field_C & 4)) {
+                obj->field_C = flags2 & ~4;
+                Tmd_AllocBuffers(obj);
+            }
+        } else if (pobj->field_C & 4) {
+            obj->field_C = flags2 | 4;
+            *arg1        = 2;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135950);
 

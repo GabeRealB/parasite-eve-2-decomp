@@ -58379,3 +58379,17 @@ The same loop also needed `coeff[i]` indexing rather than a walking
 `SVECTOR* c`: `c->vx`/`c->pad` split into two pointers (`$s2` and a
 `sp+0x1e` giv), while indexing let the giv reuse the callee-saved `&coeff[0]`
 already passed to the first call.
+
+## Which reload is skipped tells you which blocks share a flags local
+
+`func_actor_503500_80135828` copies three bits of a parent model's `field_C`
+in three `if (f & bit) { if (!(p->field_C & bit)) o->field_C = f & ~bit; }
+else if (p->field_C & bit) o->field_C = f | bit;` blocks, re-reading
+`f = o->field_C` before each. With one `u16 f` for all three (95.8%), the
+first block's no-store path jumped past the second reload and tested the old
+register directly; the target does that only after the *second* block, and
+keeps block 1's value in `$a2` but blocks 2-3 in `$v1`. One local for block 1
+and a second local reused by blocks 2 and 3 matched outright: the reload is
+elided exactly where the re-read assigns the same local that was just tested.
+Read the target's skipped reloads (a branch to just past an `lhu`, with the
+next `andi` in its delay slot) as a map of which statements share a variable.
