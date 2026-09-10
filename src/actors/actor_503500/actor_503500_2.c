@@ -182,6 +182,49 @@ void func_actor_503500_8013270C(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132778);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132990);
+void func_actor_503500_80132990(Task* task)
+{
+    TILE*     tile;
+    DR_TPAGE* dr;
+    u8        r, g, b;
+
+    r = g = b = task->killCountdown;
+    if (D_801153F4 == 0) {
+        switch (task->state) {
+            case 0:
+                task->killCountdown = 0xFF;
+                task->state++;
+                break;
+            case 1:
+                if (--task->spawnArg1 < 0 || Game_Session->field_5F != 0) {
+                    task->state++;
+                }
+                break;
+            case 2:
+                task->killCountdown -= 8;
+                if (task->killCountdown < 0) {
+                    Task_Kill(task);
+                }
+                break;
+            default:
+                Task_Kill(task);
+                break;
+        }
+    }
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    setTile(tile);
+    SetSemiTrans(tile, 1);
+    tile->x0 = -160;
+    tile->y0 = -120;
+    tile->w  = 320;
+    tile->h  = 240;
+    setRGB0(tile, r, g, b);
+    addPrim(Gpu_CurrentOt + 3, tile);
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
+    addPrim(Gpu_CurrentOt + 3, dr);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131E44);
