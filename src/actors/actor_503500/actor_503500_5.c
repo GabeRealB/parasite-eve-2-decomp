@@ -312,7 +312,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 /// Puts the boss into state 2: clears the state's step counters and the two
 /// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 and
 /// drops the main-executable flag.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136048);
+void func_actor_503500_80136048(Actor503500* arg0)
+{
+    Actor503500Work* work;
+
+    work            = arg0->field_1C;
+    work->field_7B0 = 2;
+    work->field_7DA = 0;
+    work->field_7DB = 0;
+    work->field_7BC = 0;
+    work->field_7BE = 0;
+    func_actor_503500_80137074(arg0, 0, 3);
+    D_80071090 = 0;
+}
 /// Reports whether the boss-wide gate is open; the body ignores its
 /// argument, and callers pass unrelated pointers they already hold.
 s32 func_actor_503500_8013608C(void* arg0)
