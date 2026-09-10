@@ -430,7 +430,27 @@ void func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2)
 /// block -- the yaw recovered from the matrix it just built, and the same
 /// translation in 16.16 fixed point. Clearing `flg` makes `Gp_UpdateCoordTree`
 /// recompute the world matrix from the new local one.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80137088);
+s32 func_actor_503500_80137088(Actor503500* arg0, s32 arg1, Actor503500PlaceArgs* args)
+{
+    Actor503500Work*  work;
+    Actor503500Coord* coord;
+
+    work              = arg0->field_1C;
+    coord             = (Actor503500Coord*)arg0->extra->field_8;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg         = 0;
+    work->field_7B6    = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    work->field_6C4.vx = args->pos.vx << 16;
+    work->field_6C4.vy = args->pos.vy << 16;
+    work->field_6C4.vz = args->pos.vz << 16;
+    return 0;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80137158);
 
 void func_actor_503500_80137238(Task* task)
