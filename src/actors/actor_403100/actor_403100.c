@@ -168,7 +168,28 @@ void func_actor_403100_80132528(Task* arg0)
     func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, angle, 0);
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801326DC);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801327CC);
+void func_actor_403100_801327CC()
+{
+    s32 i;
+    if (D_actor_403100_80155808->field_5DA == 1) {
+        func_actor_403100_801326DC(D_actor_403100_80155808);
+        D_actor_403100_80155808->field_5DA = 3;
+        D_actor_403100_80155808->field_5E0 = 0;
+    } else if (D_actor_403100_80155808->field_5DA == 2) {
+        for (i = 1; i < 15; i++) {
+            Gp_AnimResetSlot(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE);
+            D_actor_403100_80155808->field_B8.animation.slots[i].field_9 = (u8)D_actor_403100_80155808->field_5E2;
+        }
+        D_actor_403100_80155808->field_5DA = 3;
+        D_actor_403100_80155808->field_5E0 = 0;
+        D_actor_403100_80155808->field_5DC = D_actor_403100_80155808->field_5DE;
+    } else if (D_actor_403100_80155808->field_5DA == 3) {
+        D_actor_403100_80155808->field_5E0 += 1;
+    }
+    for (i = 1; i < 15; i++) {
+        Gp_AnimTickIndex(&D_actor_403100_80155808->field_B8.animation.anim, i);
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801328DC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132C3C);
 void func_actor_403100_801331D4(Task* arg0)
