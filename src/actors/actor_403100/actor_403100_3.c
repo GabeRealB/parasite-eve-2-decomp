@@ -233,7 +233,15 @@ void func_actor_403100_8013DC18(Task* arg0)
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013DCAC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013DD78);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013DE0C);
+void func_actor_403100_8013DE0C(Task* arg0)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_actor_403100_80132000;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    }
+}
 void func_actor_403100_8013DEA0(Task* arg0)
 {
     TaskFuncTable4 sp;
