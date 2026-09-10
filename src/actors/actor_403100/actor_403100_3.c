@@ -122,7 +122,31 @@ void func_actor_403100_8013D5F4(void)
     D_actor_403100_80155808->field_65F = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013D608);
+void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
+{
+    u16        flags;
+    TmdObject* object;
+
+    object = arg0->extra;
+    switch (arg2) {
+        case 0:
+            object->field_C = (object->field_C | 0x80) & 0xFFFB;
+            return;
+        case 1:
+            object->field_C = object->field_C & 0xFF7B;
+            return;
+        case 2:
+            object->field_C                    = object->field_C | 0x80;
+            D_actor_403100_80155808->field_658 = arg2;
+            flags                              = object->field_C | 4;
+            object->field_C                    = flags;
+            return;
+        case 3:
+            flags           = (object->field_C & 0xFF7F) | 4;
+            object->field_C = flags;
+            return;
+    }
+}
 void func_actor_403100_8013D6B4(Task* arg0)
 {
     GsCOORDINATE2* coord;
