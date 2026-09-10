@@ -302,7 +302,51 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
     D_actor_503500_80176574.enemies[arg1] = NULL;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135D00);
+/// `TaskDesc` table `func_actor_503500_80135D00` spawns slot enemies from.
+extern TaskDesc D_actor_503500_8016E924;
+
+/// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
+/// from the current area's record and parks it in slot `arg1` of the boss
+/// work block's `enemies` array. Returns the new enemy, or NULL.
+GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
+{
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
+    u8         areaByte0;
+    GpAreaRec* rec;
+    GpCdRec10* entry;
+    GpEnemy*   enemy;
+    TmdObject* model;
+    s32        idx;
+    u32        raw;
+    /* Taken before the spawn call: the ROM keeps the address in s4 across
+       every call rather than rebuilding it at the store. */
+    Actor503500Work* work = &D_actor_503500_80176574;
+
+    enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->field_20);
+    if (enemy != NULL) {
+        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        raw         = arg0->field_20->field_8;
+        model       = (TmdObject*)enemy->task->extra;
+        key.field_3 = sessionKey->field_3;
+        key.field_2 = sessionKey->field_2;
+        key.field_1 = sessionKey->field_1;
+        areaByte0   = sessionKey->field_0;
+        idx         = raw >> 12;
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec             = Gp_GetNestedAreaRec(&key);
+        entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = entry->field_D;
+        model->field_25 = entry->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+        work->enemies[arg1] = enemy;
+    }
+    return enemy;
+}
 
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
 /// empty. `arg0` is loaded by every caller but the body ignores it.
