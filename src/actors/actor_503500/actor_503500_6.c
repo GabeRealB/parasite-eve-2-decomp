@@ -270,7 +270,20 @@ void func_actor_503500_80136304(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136450);
+void func_actor_503500_80136450(Actor503500* arg0)
+{
+    Actor503500Work* work = arg0->field_1C;
+    u16              timer;
+
+    if ((s8)work->field_7DA == 0 && work->field_7D5 >= 2) {
+        func_actor_503500_80135FB4(arg0, 1, 0x10);
+    }
+    timer           = work->field_7CA - 1;
+    work->field_7CA = timer;
+    if ((s16)timer < 0) {
+        func_actor_503500_80136EFC(arg0, 1);
+    }
+}
 /// Script step for the boss's slot-0 helper: state 0 waits for the slot to be
 /// ready and then asks it to die, state 1 waits for that death to finish.
 /// Returns the number of frames the script should wait -- 1 while still busy,
