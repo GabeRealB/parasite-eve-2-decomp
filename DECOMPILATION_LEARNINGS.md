@@ -58577,3 +58577,28 @@ reproduced the target's preheader sched order, where pre-loop assignments did no
 It also kept `inv` at 5 refs, so global allocation ordered it below `i` and `dir`.
 A row-split transpose (three asm statements) also got `inv` hoisted, but at 9 refs it
 outranked `i` and took the wrong `$s` register.
+
+### Entry `lw $v0` + `move $sN, $v0` for a pointer local: load it through the chain first
+
+`func_actor_503500_80134A24` opens with `lw v0, 0x2C(s4)` / `move s2, v0` /
+`lw s1, 8(s2)`: `arg0->extra` lands in `$v0` and is copied to its callee-saved
+home rather than being loaded there directly. The natural
+`obj = arg0->extra; coord = obj->field_8;` loads straight into `$s2`, drops the
+`move`, and also swaps the `$s3`/`$s4` homes of `arg0` and `enemy` (98.28%,
+`regs=15 branch=14`, all in the entry block). Writing the chained load before
+the plain one matched outright:
+
+```c
+coord = arg0->extra->field_8;
+obj   = arg0->extra;          /* CSE'd into a copy of the first load */
+```
+
+`obj = arg0->extra; coord = arg0->extra->field_8;` builds the same object as
+the natural form - the order is what matters. The copy's extra instruction
+also shifts `li v0, 1` for the first `switch` compare below the `move`.
+
+Same function: a hand-written word-copy loop (`for (i = 0; i < 4; i++) *dst++ = *src++;`)
+takes `dst`/`src` in the order they are *assigned* - the first-assigned pointer is
+the one dbr hoists into the preceding branch's delay slot. Assign `dst` first
+when the target hoists the destination. Indexing both arrays (`dst[i] = src[i]`)
+cost 5 points instead.

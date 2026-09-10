@@ -650,7 +650,79 @@ void func_actor_503500_80134408(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801345F4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134A24);
+/// Three-step state of the boss block. Step 0 saves the coordinate's rotation
+/// and seeds the Y scale to 0x1000; step 1 counts 0x1F frames, then applies
+/// animation preset 0xE; step 2 restores the rotation every frame, squashes it
+/// in Y down to 0x200 and fires the light / effect cues at frames 0x3C, 0x46
+/// and 0x64. From step 2 on, preset 0xE is reapplied whenever
+/// `func_actor_503500_80136014` reports it.
+void func_actor_503500_80134A24(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    s32*             src;
+    s32*             dst;
+    s32              i;
+    VECTOR           scale;
+
+    coord = arg0->extra->field_8;
+    obj   = arg0->extra;
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    switch ((s8)work->field_7DA) {
+        case 0:
+            work->field_7BC = 0;
+            work->field_7CE = 0x1000;
+            dst             = work->field_77C;
+            src             = (s32*)coord->coord.m;
+            for (i = 0; i < 4; i++) {
+                *dst++ = *src++;
+            }
+            work->field_78C = coord->coord.m[2][2];
+            work->field_7DA = work->field_7DA + 1;
+            break;
+        case 1:
+            if (++work->field_7BC >= 0x1F) {
+                func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+                work->field_7BC = 0;
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+        case 2:
+            if (work->field_7CE > 0x200) {
+                work->field_7CE -= 0x10;
+            }
+            dst = (s32*)coord->coord.m;
+            src = work->field_77C;
+            for (i = 0; i < 4; i++) {
+                *dst++ = *src++;
+            }
+            coord->coord.m[2][2] = work->field_78C;
+            scale.vx             = 0x1000;
+            scale.vy             = work->field_7CE;
+            scale.vz             = 0x1000;
+            ScaleMatrixL(&coord->coord, &scale);
+            coord->flg = 0;
+            switch (++work->field_7BC) {
+                case 0x3C:
+                    obj->field_C |= 2;
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    break;
+                case 0x46:
+                    Gp_SpawnEff(0x600A5, coord, 1, NULL);
+                    break;
+                case 0x64:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+            }
+            break;
+    }
+    if ((s8)work->field_7DA >= 2 && func_actor_503500_80136014(arg0, 0xE) != 0) {
+        func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+    }
+}
 
 void func_actor_503500_80134C68(Actor503500* arg0)
 {

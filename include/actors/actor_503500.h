@@ -277,7 +277,13 @@ typedef struct Actor503500Work {
     /* 0x730 */ s16  field_730[0x11];
     /* 0x752 */ s16  field_752[0x11];
     /* 0x774 */ u32  field_774; // one "already asked to die" bit per slot
-    /* 0x778 */ byte pad_778[0x2C];
+    /* 0x778 */ byte pad_778[0x4];
+    /// Saved rotation of the task's coordinate: the first 16 bytes of
+    /// `coord.m` as words plus `m[2][2]`, restored every frame by
+    /// `func_actor_503500_80134A24` before it rescales the matrix.
+    /* 0x77C */ s32  field_77C[4];
+    /* 0x78C */ s16  field_78C;
+    /* 0x78E */ byte pad_78E[0x16];
     /* 0x7A4 */ s32  field_7A4; // seeded to 0x80000
     /* 0x7A8 */ byte pad_7A8[0x4];
     /* 0x7AC */ s32  field_7AC; // part-scale enable bits, see coord504
@@ -298,7 +304,8 @@ typedef struct Actor503500Work {
     /* 0x7C8 */ u16  field_7C8;
     /* 0x7CA */ s16  field_7CA;
     /* 0x7CC */ s16  field_7CC;
-    /* 0x7CE */ byte pad_7CE[0x4];
+    /* 0x7CE */ s16  field_7CE; // Y scale, 0x1000 stepped down by 0x10 to 0x200
+    /* 0x7D0 */ byte pad_7D0[0x2];
     /* 0x7D2 */ s16  field_7D2;
     /// 1 once `func_actor_503500_80135950` has seeded the animation slots and
     /// ticked them; that helper clears it again whenever it loads a new bank,
