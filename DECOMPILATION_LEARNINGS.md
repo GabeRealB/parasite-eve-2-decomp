@@ -59047,3 +59047,14 @@ warning; only an undeclared *variable* (`Wip_SysConfig`) stops the build.
 macros such as `actor_503500_6.c`'s `gte_rtv0_real()`.
 **Fix.** Copy the host file's angle-bracket includes and its `#define` block into the
 scratch source. `func_actor_503500_8013C088` went from 91.5% to 100% on that change alone.
+
+### `(rsin(a) << 4) * s`, not `rsin(a) * 0x10 * s`, keeps the `sll` on the call result
+**Symptom.** Target does `sll $v0,$v0,4` / `mult $v0,$s0` after each `rsin` /
+`rcos`, with the `s16` factor sign-extended once (`sll 16` / `sra 16`). Writing
+m2c's `rsin(a) * 0x10 * s` instead moves the scale onto the shared factor:
+`sll 16` / `sra 12` once, then a bare `mult $v0,$s1`, plus register churn.
+**Cause.** The front end reassociates the constant multiply into the other
+operand, and `s * 16` is then a common subexpression of both products.
+**Fix.** Write the scale as a shift of the call result, `((rsin(a) << 4) * s) >> 16`;
+a shift is not reassociated. `func_actor_342400_80169F30` went from 88% to 100% on
+this plus loading `work->field_7A` after the preceding call rather than before it.

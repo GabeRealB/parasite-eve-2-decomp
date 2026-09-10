@@ -19,8 +19,10 @@
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
     /* 0x000 */ byte    pad_0[0x4];
-    /* 0x004 */ u16     field_4; // set to 4 by the 0x7DB handler
-    /* 0x006 */ byte    pad_6[0x2A6];
+    /* 0x004 */ u16     field_4;  // set to 4 by the 0x7DB handler
+    /* 0x006 */ byte    pad_6[0x74];
+    /* 0x07A */ s16     field_7A; // heading fed to rsin / rcos
+    /* 0x07C */ byte    pad_7C[0x230];
     /* 0x2AC */ GpObj   obj_2AC;
     /* 0x2CC */ GpObj   obj_2CC;
     /* 0x2EC */ GpRec18 rec_2EC[8];
