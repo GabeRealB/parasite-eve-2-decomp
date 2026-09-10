@@ -1209,9 +1209,11 @@ void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
             gte_stclmv(&coord->workm.m[0][2]);
             gte_SetTransMatrix(pwm);
             trans = (VECTOR*)coord->coord.t;
+            TOUCH_REG(trans);
             gte_ldlv0(trans);
             gte_rtv0tr_real();
             out = (VECTOR*)coord->workm.t;
+            TOUCH_REG(out);
             gte_stlvnl(out);
             coord->flg = s2;
 
@@ -1234,8 +1236,9 @@ void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
                 register s32 t5 asm("t5");
                 register s32 mask asm("s0");
 
-                __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
-                __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
+                vx = trans->vx;
+                vy = trans->vy;
+                TOUCH_REG2(vx, vy);
                 mask = -0x400;
                 t4   = vx >> 21;
                 and_mask(t4, mask);
@@ -1284,10 +1287,10 @@ void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
                 t4   = t5 | t4;
                 gte_ldVXY2(t4);
 
-                __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
-                vx = -0x400;
-                vy = (u32)mask >> 31;
-                t4 = mask >> 21;
+                mask = trans->vz;
+                vx   = -0x400;
+                vy   = (u32)mask >> 31;
+                t4   = mask >> 21;
                 and_mask(t4, vx);
                 t5 = mask & 0x3FF;
                 t4 = t5 | t4;
@@ -1326,12 +1329,11 @@ void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
                 t4 <<= 8;
                 vy   = t4 + vy;
                 __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                t4 <<= 8;
-                mask = t4 + mask;
-                __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
-                                 :
-                                 : "r"(out), "r"(vx), "r"(vy), "r"(mask)
-                                 : "memory");
+                t4    <<= 8;
+                mask    = t4 + mask;
+                out->vx = vx;
+                out->vy = vy;
+                out->vz = mask;
             }
         }
     }
