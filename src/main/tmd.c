@@ -562,16 +562,12 @@ void Tmd_SetupDraw(TmdObject* arg0)
 
     scratch = (void**)G_SCRATCH_HEAD;
     {
-        u32        ds_hi;
         TmdSource* p;
-        s32        d;
 
-        __asm__("lui %0, %%hi(Display_State)" : "=r"(ds_hi));
-        p      = arg0->field_10;
-        tmp    = *scratch;
-        stream = p->field_20;
-        __asm__ volatile("lbu %0, %%lo(Display_State+0x128)(%1)" : "=r"(d) : "r"(ds_hi));
-        disp         = d;
+        p            = arg0->field_10;
+        tmp          = *scratch;
+        stream       = p->field_20;
+        disp         = Display_State.field_128;
         ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
         ws->field_80 = arg0;
         ws->field_84 = disp;
