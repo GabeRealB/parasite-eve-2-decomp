@@ -529,7 +529,77 @@ void func_actor_403100_80138F88(Task* arg0)
     }
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013922C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801395EC);
+void func_actor_403100_801395EC(Task* arg0)
+{
+    Actor403100Entry* entry;
+    Actor403100Entry* entries;
+    GpObj*            obj;
+    s32               x;
+    s32               i;
+    u16               frame;
+    TmdObject*        model;
+    GsCOORDINATE2*    part;
+    GsCOORDINATE2*    coords;
+
+    model                              = arg0->extra;
+    coords                             = model->field_8;
+    part                               = coords + 6;
+    D_actor_403100_80155808->field_604 = (u16)D_actor_403100_80155808->field_604 + ((s32)(-0x2E0 - D_actor_403100_80155808->field_604) >> 3);
+    D_actor_403100_80155808->field_608 = (u16)D_actor_403100_80155808->field_608 + ((s32)(0x10 - D_actor_403100_80155808->field_608) >> 3);
+    D_actor_403100_80155808->field_A0  = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 3);
+    D_actor_403100_80155808->field_A2  = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x280 - D_actor_403100_80155808->field_A2) >> 3);
+    D_actor_403100_80155808->field_A4  = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x140 - D_actor_403100_80155808->field_A4) >> 3);
+    x                                  = *(s32*)(u32)&part->coord.t[0];
+    *(s32*)(u32)&part->coord.t[0]      = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_82  = 0xC00;
+    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_80132528(arg0);
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    i                                  = 0;
+    if (((s32)(frame << 0x10) >> 0x10) >= 0x1F) {
+        entries                                   = D_actor_403100_80155814;
+        obj                                       = &entries->obj;
+        entry                                     = entries;
+        D_8007216C                                = 0x18;
+        *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
+        D_actor_403100_80155808->field_5E8        = 0;
+        D_actor_403100_80155808->field_604        = 0;
+        D_actor_403100_80155808->field_608        = 0;
+        D_actor_403100_80155808->field_A0         = 0;
+        D_actor_403100_80155808->field_A2         = 0;
+        D_actor_403100_80155808->field_A4         = 0;
+        *(s32*)(u32)&part->coord.t[0]             = -0x877;
+        D_actor_403100_80155808->field_5DE        = 7;
+        D_actor_403100_80155808->field_5DA        = 2;
+        D_actor_403100_80155808->flags_634.h.high = 0x14;
+        D_actor_403100_80155808->field_B2         = 0x200;
+        D_actor_403100_80155808->field_5EC        = 0;
+        D_actor_403100_80155808->field_5E2        = 0x10;
+        D_actor_403100_80155808->field_61C        = 0;
+        D_actor_403100_80155808->field_B0         = 0;
+        D_actor_403100_80155808->field_B4         = 0;
+        D_actor_403100_80155810                   = 0;
+        D_actor_403100_80155808->field_5FA       += 1;
+        *(s32*)(u32)&coords->coord.t[0]           = -0x44C;
+        *(s32*)(u32)&coords->coord.t[2]           = 0x2710;
+        *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
+        D_actor_403100_80155808->field_80         = 0;
+        D_actor_403100_80155808->field_82         = 0xA00;
+        D_actor_403100_80155808->field_84         = 0;
+        do {
+            if (entry->active != 0) {
+                entry->active = 0;
+                Gp_UnlinkObj(obj);
+            }
+            obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+            i  += 1;
+            entry++;
+        } while (i < 0x1C);
+        SndEvt_EnqueueType7(0x401F0004, 1);
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80139818);
 void func_actor_403100_80139E80(Task* arg0)
 {
