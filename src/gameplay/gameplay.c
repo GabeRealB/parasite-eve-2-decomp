@@ -1637,25 +1637,24 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock*  ws;
-    POLY_GT4*              poly;
-    register POLY_GT4*     xy asm("t0");
-    s32*                   opz;
-    u32                    clipMask;
-    s32                    len;
-    s32                    code;
-    register DisplayState* ds asm("t6");
-    u32                    mask;
-    u32                    maskHi;
-    s32                    hi;
-    u16*                   rec;
-    register s32           sz asm("a0");
-    s32                    idx;
-    u8*                    szTable;
-    u8*                    flagp;
-    u8*                    up;
-    s32                    i;
-    s32                    tpage;
+    TmdScratchModelBlock* ws;
+    POLY_GT4*             poly;
+    register POLY_GT4*    xy asm("t0");
+    s32*                  opz;
+    u32                   clipMask;
+    s32                   len;
+    s32                   code;
+    DisplayState*         ds;
+    u32                   mask;
+    u32                   maskHi;
+    u16*                  rec;
+    register s32          sz asm("a0");
+    s32                   idx;
+    u8*                   szTable;
+    u8*                   flagp;
+    u8*                   up;
+    s32                   i;
+    s32                   tpage;
 
     ws   = arg0;
     poly = (POLY_GT4*)ws->field_4;
@@ -1664,11 +1663,10 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         len      = 12;
         code     = 0x3C;
-        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
-        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
-        xy     = poly + 1;
+        ds       = &Display_State;
+        mask     = 0xFFFFFF;
+        maskHi   = 0xFF000000;
+        xy       = poly + 1;
         do {
             rec = (u16*)arg2;
             gte_ldsxy3_fifo_gt4_s0(xy);
