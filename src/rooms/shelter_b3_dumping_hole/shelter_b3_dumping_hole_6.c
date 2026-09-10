@@ -147,7 +147,25 @@ void func_shelter_b3_dumping_hole_80183A98(DumpingHoleState* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183AEC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183B9C);
+void func_shelter_b3_dumping_hole_80183B9C(DumpingHoleState* arg0)
+{
+    DumpingHoleDispatchDesc desc;
+    DumpingHoleEntityB*     ent = (DumpingHoleEntityB*)arg0->field_1C;
+    DumpingHoleTarget*      t0  = ent->field_0;
+    DumpingHoleTarget2*     t00 = t0->field_0;
+
+    if ((s16)(ent->field_4 += 1) >= 0x3D) {
+        DumpingHoleP2C* p = t00->field_2C;
+        p->field_24       = 2;
+        p->field_25       = 4;
+        t0->field_A       = 0x900;
+        desc.field_0      = 0;
+        desc.field_1      = 0x2A;
+        desc.field_2      = arg0->field_34;
+        Gp_DispatchMsg((Task*)t00, 0x7DB, (s32)&desc, 0);
+        arg0->field_30 += 1;
+    }
+}
 
 void func_shelter_b3_dumping_hole_80183C38(DumpingHoleState* arg0)
 {
