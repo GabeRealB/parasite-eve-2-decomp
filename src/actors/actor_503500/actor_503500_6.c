@@ -1443,7 +1443,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144B40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144D50);
+void func_actor_503500_80144D50(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
+
+    coord = arg0->extra->field_8;
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord->flg = 0;
+    func_actor_503500_80144E10((Task*)arg0);
+    func_actor_503500_80144B40(arg0);
+}
 void func_actor_503500_80144DA8(Task* arg0)
 {
     func_actor_503500_801372AC(3);
