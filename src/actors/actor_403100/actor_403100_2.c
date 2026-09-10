@@ -110,7 +110,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138844);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138AB4);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138C18);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138D08);
+void func_actor_403100_80138D08(Task* arg0)
+{
+    TmdObject*       obj;
+    Actor403100Work* work;
+
+    obj = arg0->extra;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        obj->field_E                                   = 0;
+        work                                           = D_actor_403100_80155808;
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        work->field_62C                                = 0x40;
+        work->field_5E2                                = 0x10;
+        work->field_5DE                                = 9;
+        work->field_5F6                                = 0;
+        work->field_5DA                                = 2;
+        work->field_61C                                = 2;
+        work->field_5EC                                = 0;
+        work->field_604                                = 0;
+        work->field_608                                = 0;
+        work->field_632                                = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->pad_670[3]            = 0;
+        D_actor_403100_80155808->field_5FA            += 1;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138DB0);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138F88);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013922C);
