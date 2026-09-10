@@ -797,7 +797,21 @@ void func_actor_403100_8013F520(void)
     D_actor_403100_80155808->field_5DA  = 1;
     D_actor_403100_80155808->field_5FA += 1;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F588);
+void func_actor_403100_8013F588(void)
+{
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        D_actor_403100_80155808->field_5F6             = 4;
+        D_actor_403100_80155808->field_5E2             = 0xC;
+        D_actor_403100_80155808->field_61C             = 2;
+        D_actor_403100_80155808->field_5DE             = 8;
+        D_actor_403100_80155808->field_5DA             = 2;
+        D_actor_403100_80155808->field_5EC             = 0;
+        D_actor_403100_80155808->field_82              = (u16)D_actor_403100_80155808->field_82 & 0xFFF;
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->field_5FA            += 1;
+    }
+}
 void func_actor_403100_8013F610(void)
 {
     D_actor_403100_80155808->field_61C = 2;
