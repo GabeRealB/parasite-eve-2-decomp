@@ -1254,7 +1254,8 @@ void func_acropolis_plaza_801811D0(Task* task)
 {
     GsCOORDINATE2*              coord;
     AcropolisPlazaBeamWork*     work;
-    u8 *                        head, *raw;
+    u8*                         head;
+    register u8*                raw asm("v0");
     u16                         vz;
     AcropolisPlazaFlareScratch* blk;
     POLY_G4*                    prim;
@@ -1275,9 +1276,9 @@ void func_acropolis_plaza_801811D0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    head = *(void**)G_SCRATCH_HEAD;
-    raw  = head - 0x4C;
-    __asm__("move %0, %1" : "=r"(blk) : "r"(raw));
+    head                    = *(void**)G_SCRATCH_HEAD;
+    raw                     = head - 0x4C;
+    blk                     = (AcropolisPlazaFlareScratch*)raw;
     blk->vec.vx             = *(u16*)&coord->workm.t[0];
     blk->vec.vy             = *(u16*)&coord->workm.t[1];
     vz                      = *(u16*)&coord->workm.t[2];
