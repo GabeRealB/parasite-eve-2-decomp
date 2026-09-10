@@ -58224,3 +58224,28 @@ target listing shows it *early* even though the source assigns it late.
 priority set almost entirely by how close sched1 puts its load to the call;
 when it trades a callee-saved register with a longer tied chain, try its
 assignment at every prologue position before touching anything else.
+
+## Duplicated tail: a literal shared by an HI and a QI store stops the cross-jump one insn early
+
+`func_actor_503500_8013667C` has two arms that end in the same
+`field_7D2 = 0; field_7DB = 1;` tail. Target path 1 ends
+`sh s0,7c2; move s0,zero; j tail+4; li v0,1`. Its `j` jumps *past* path 2's
+`li v0,1`, and `li v0,1` fills the delay slot. A `goto` into a shared tail, or a
+duplicated tail that stores `field_7C2 = ret`, gives
+`j tail; move s0,zero` instead (97.3%).
+
+Mechanism (sched2 and dbr dumps): the post-sched2 jump pass cross-jumps the
+duplicated tails, and `find_cross_jump` compares insns with
+`rtx_renumbered_equal_p`, which checks modes. Path 1 writes
+`field_7C2 = 1; field_7D2 = 0; field_7DB = 1; ret = 0;`, so CSE loads the
+literal 1 once as `(reg:HI v0)` and stores `field_7DB` from its `subreg:QI`.
+Path 2's `li v0,1` is `(reg:QI v0)`. The mismatch stops the merge after
+`sh zero; sb`, which leaves path 1's `li v0,1` right before its `j`, and the
+backward fill takes it. (`field_7C2 = 1` still comes out as `sh s0` because
+`ret` holds 1.)
+
+The same function also used `__builtin_abs` (`abssi2`, no RTL label). With an
+`if (d < 0) d = -d;` the abs join label stops reorg's `redundant_insn` scan, so
+a second `move a0,s1` before the next call survives. With `abssi2` the scan
+reaches the delay-slot copy, the duplicate is deleted, and the branch delay slot
+takes `li a1,1`.

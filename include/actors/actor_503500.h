@@ -258,10 +258,13 @@ typedef struct Actor503500Work {
                                 /// from the rotation matrix it just built (`ratan2` of `m[0][2]` over
                                 /// `m[2][2]`).
     /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ byte pad_7B8[0x4];
+    /* 0x7B8 */ byte pad_7B8[0x2];
+    /* 0x7BA */ s16  field_7BA;
     /* 0x7BC */ s16  field_7BC;
     /* 0x7BE */ s16  field_7BE;
-    /* 0x7C0 */ byte pad_7C0[0xA];
+    /* 0x7C0 */ byte pad_7C0[0x2];
+    /* 0x7C2 */ s16  field_7C2; // slot index being asked to die
+    /* 0x7C4 */ byte pad_7C4[0x6];
     /* 0x7CA */ s16  field_7CA;
     /* 0x7CC */ s16  field_7CC;
     /* 0x7CE */ byte pad_7CE[0x4];
