@@ -623,7 +623,24 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Steps the 0x2EC block's countdown at 0x2D8 down to zero, then, unless the
 /// global freeze is on, runs the 0x160 display node through its record table
 /// before releasing the table. Same shape as `func_actor_503500_8013BD0C`.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AA44);
+void func_actor_503500_8013AA44(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_2D8 != 0) {
+        timer           = (u16)work->field_2D8 - 1;
+        work->field_2D8 = timer;
+        if (timer < 0) {
+            work->field_2D8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_80139A20(arg0, &work->obj160, work->rec180, 8);
+    }
+    Gp_ClearRec18Occupied(work->rec180);
+}
 void func_actor_503500_8013AAC0(Actor503500* arg0)
 {
     VECTOR vec;
