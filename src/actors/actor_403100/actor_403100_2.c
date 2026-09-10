@@ -128,7 +128,36 @@ void func_actor_403100_80137DC4(Task* arg0)
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80137F4C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138048);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013842C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138610);
+void func_actor_403100_80138610(Task* arg0)
+{
+    u16            counter;
+    u16            timer;
+    u16            angle;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        coord->coord.t[1]                 += 0x30;
+        timer                              = D_actor_403100_80155808->field_5EC;
+        D_actor_403100_80155808->field_5EC = timer + 1;
+        if ((s16)timer >= 0x11) {
+            counter                                             = *(volatile u16*)&D_actor_403100_80155808->field_5FA;
+            *(volatile s16*)&D_actor_403100_80155808->field_61E = 0;
+            *(volatile s16*)&D_actor_403100_80155808->field_61E = 2;
+            angle                                               = *(volatile u16*)&D_actor_403100_80155808->field_B2;
+            D_actor_403100_80155808->field_5EC                  = 0;
+            D_actor_403100_80155808->field_620                  = 0;
+            D_actor_403100_80155808->field_626                  = (s16)angle;
+            D_actor_403100_80155808->field_5FA                  = counter + 1;
+            if ((s16)angle >= 0xD1) {
+                D_actor_403100_80155808->field_626 = 0xD0;
+            }
+            if (D_actor_403100_80155808->field_626 < -0x160) {
+                D_actor_403100_80155808->field_626 = -0x160;
+            }
+        }
+    }
+}
 void func_actor_403100_801386DC(Task* arg0)
 {
     u16            velocity;
