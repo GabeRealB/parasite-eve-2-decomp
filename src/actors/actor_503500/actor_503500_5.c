@@ -298,10 +298,10 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     work->field_5D4.field_14 = D_actor_503500_8016EC50.vz;
     Gp_LinkObj(2, &work->field_5D4);
     Gp_InitRec18Table(recs, 8, 0);
-    work->field_6E8        = 0x600;
-    work->field_6E4        = part;
-    work->field_6EA        = 3;
-    work->field_5D4.flags &= 0x7FFF;
+    work->field_6E4.field_4 = 0x600;
+    work->field_6E4.field_0 = part;
+    work->field_6E4.field_6 = 3;
+    work->field_5D4.flags  &= 0x7FFF;
 
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
@@ -716,7 +716,91 @@ void func_actor_503500_80134C68(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134EAC);
+/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
+/// the boss. Each attack id is taken once, and only type-2 ids land while the
+/// `field_7B4` countdown is clear: the damage scales with the attacker's
+/// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
+/// `field_40` starts the death state instead of the id's status effect. `arg1`
+/// is passed by the caller but unused.
+void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+{
+    VECTOR           d;
+    SVECTOR          pos;
+    MATRIX           mtx;
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   src;
+    s16              stun;
+    u32              id;
+    s32              dmg;
+    s32              i;
+    s32              j;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    for (i = 0; i < arg3; i++) {
+        id = arg2[i].field_4;
+        for (j = 0; j < i; j++) {
+            if (arg2[j].field_4 == id) {
+                goto next;
+            }
+        }
+        if ((id & 0xFFFF0000) == 0x10000) {
+            continue;
+        }
+        if ((id & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        if (work->field_7B4 != 0) {
+            continue;
+        }
+        src = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        d.vx = src->coord.t[0] - pos.vx;
+        d.vy = src->coord.t[1] - pos.vy;
+        d.vz = src->coord.t[2] - pos.vz;
+        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+        if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+            dmg *= 4;
+            Gp_SpawnEff(0x6009C, coord, 0, NULL);
+        }
+        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        enemy->field_40 -= dmg;
+        func_800DA6E8(&enemy->node, dmg, 0);
+        if (enemy->field_40 <= 0) {
+            func_actor_503500_80136EFC(arg0, 4);
+            work->field_7E6 = 1;
+        } else {
+            switch (Gp_GetIdParam0(id) & 0xFFFF) {
+                case 0:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    break;
+                case 1:
+                    Gp_SetObjFlag1((GpObj4C*)enemy);
+                    break;
+                case 2:
+                    Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                    break;
+                case 3:
+                    Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                    break;
+            }
+        }
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->field_6E4);
+        stun = Gp_GetIdParam2(id);
+        if (work->field_7B4 < stun) {
+            work->field_7B4 = stun;
+        }
+    next:;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135178);
 

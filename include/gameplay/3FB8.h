@@ -951,6 +951,7 @@ void Gp_PulseState1C80(void);
 void Gp_EffCtlTaskA5(Task* arg0);
 void Gp_EffCtlTaskA6(Task* arg0);
 void Gp_EffCtlTaskE3(Task* arg0);
+void func_800FDB18(s32 arg0, struct _GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_800FF710(Task* arg0);
 void Gp_EffSprTaskE0(Task* arg0);
 void Gp_EffSprTaskE2(Task* arg0);

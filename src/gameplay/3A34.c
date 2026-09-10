@@ -7046,7 +7046,7 @@ s32 Gp_GetIdParam1(s32 arg0)
     return ret;
 }
 
-void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1)
+void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1, s32 arg2)
 {
     s32 val;
     s32 limit;
@@ -7117,7 +7117,7 @@ void Gp_SetObjFlag1(GpObj4C* arg0)
     arg0->field_4C |= 1;
 }
 
-void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1)
+void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1, s32 arg2)
 {
     arg0->field_58  = 0;
     arg0->field_5B  = 0;

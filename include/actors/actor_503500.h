@@ -264,13 +264,12 @@ typedef struct Actor503500Work {
     /// same translation into the coordinate's own matrix.
     /* 0x6C4 */ VECTOR field_6C4;
     /* 0x6D4 */ byte   pad_6D4[0x10];
-    /// The boss's coordinate / 0x6E8 / 0x6EA trio, the same shape as
-    /// `field_E0`: `func_actor_503500_80132F64` stores model part 3 here with
-    /// the 0x600 / 3 pair.
-    /* 0x6E4 */ GsCOORDINATE2* field_6E4;
-    /* 0x6E8 */ s16            field_6E8;
-    /* 0x6EA */ s16            field_6EA;
-    /* 0x6EC */ GpEnemy*       enemies[0x11];
+    /// The boss's coordinate / 0x600 / 3 trio, the same shape as `field_E0`:
+    /// `func_actor_503500_80132F64` stores model part 3 here and
+    /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
+    /// hit-effect argument.
+    /* 0x6E4 */ GpEffArg field_6E4;
+    /* 0x6EC */ GpEnemy* enemies[0x11];
     /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
     /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
     /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on
@@ -321,7 +320,7 @@ typedef struct Actor503500Work {
     /* 0x7E3 */ byte pad_7E3[0x1];
     /* 0x7E4 */ s8   field_7E4; // 1 while the case-1 sound/buffer state is active
     /* 0x7E5 */ s8   field_7E5; // 1 while the case-2 sound state is active
-    /* 0x7E6 */ byte pad_7E6[0x1];
+    /* 0x7E6 */ s8   field_7E6; // set to 1 when a hit takes the boss's HP to 0
     /* 0x7E7 */ s8   field_7E7; // 1 while the sound started by D_80071075 plays
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
