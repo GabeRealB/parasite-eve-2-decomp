@@ -626,7 +626,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// block into sub-state `arg1`, clears the phase and frame counter that go with
 /// it, cancels a pending kill, and records the slot's halfword as "asked to
 /// die" when the sub-state is non-zero.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013ACC4);
+void func_actor_503500_8013ACC4(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work* work = arg0->field_1C;
+
+    work->field_2D4     = arg1;
+    work->field_2E4     = 0;
+    work->field_2E5     = 0;
+    work->field_2DE     = 0;
+    arg0->killCountdown = 0;
+    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1, arg1 != 0);
+}
 void func_actor_503500_8013AD0C(Task* task)
 {
     TaskFuncTable3 sp;
