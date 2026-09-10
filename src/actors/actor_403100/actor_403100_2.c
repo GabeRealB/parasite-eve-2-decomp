@@ -184,7 +184,71 @@ void func_actor_403100_801376D8(Task* arg0)
         }
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801379B4);
+void func_actor_403100_801379B4(Task* arg0)
+{
+    Task* task;
+    s32   sound;
+    s32   pan;
+    s8    count;
+    u16   angle;
+
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x3C) < 9U) {
+        func_actor_403100_8013C7B4(arg0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x44) {
+        func_actor_403100_801342B4(arg0);
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0003;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[7]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[7]) / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    D_actor_403100_80155808->field_5EC += 1;
+    if (D_actor_403100_80155808->field_668.flags != 0) {
+        D_actor_403100_80155808->field_5F6 = 4;
+        if (D_actor_403100_80155808->field_5F2 == 0) {
+            Gp_StateC08.field_6 |= 1;
+            func_actor_403100_8013D1B8(5, 0x3F4);
+            D_actor_403100_80155808->field_5F4 = 0x17;
+            D_actor_403100_80155808->field_5F2 = 1;
+            task                               = Game_GetPtrSlot(3);
+            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+                (*Gp_ActorSlots)->actor->field_956 = 0xA;
+            }
+        }
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        func_actor_403100_8013D2A0(1);
+        D_actor_403100_80155808->pad_66A[4] = 1;
+        D_actor_403100_80155808->pad_65E[0] = 1;
+    }
+    D_actor_403100_80155808->field_608 += (s16)((D_actor_403100_80155808->field_626 - D_actor_403100_80155808->field_608) << 4) >> 7;
+    if (Actor403100_TestFlags104()) {
+        count                               = (u8)D_actor_403100_80155808->pad_65E[0] - 1;
+        D_actor_403100_80155808->pad_65E[0] = count;
+        if (!(count & 0xFF)) {
+            D_actor_403100_80155808->field_5E2        = 0x10;
+            D_actor_403100_80155808->field_5DE        = 5;
+            D_actor_403100_80155808->field_5DA        = 2;
+            D_actor_403100_80155808->field_5FA       += 1;
+            D_actor_403100_80155808->field_55C.flags &= 0x7FFF;
+            D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+            return;
+        }
+        D_actor_403100_80155808->field_5E2 = 0xA;
+        angle                              = (u16)D_actor_403100_80155808->field_B2;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5DE = 2;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_626 = (s16)angle;
+        if ((s16)angle >= 0xD1) {
+            D_actor_403100_80155808->field_626 = 0xD0;
+        }
+        if (D_actor_403100_80155808->field_626 < -0x140) {
+            D_actor_403100_80155808->field_626 = -0x140;
+        }
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80137CA8);
 void func_actor_403100_80137DC4(Task* arg0)
 {
