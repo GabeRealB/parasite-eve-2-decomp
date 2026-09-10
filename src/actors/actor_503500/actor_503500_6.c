@@ -101,6 +101,9 @@ extern RECT    D_actor_503500_8016F3A4;
 /// spawn-arg term (`<< 12`) and the rotation each spawned child is turned by.
 extern s16     D_actor_503500_8016F2E0[];
 extern SVECTOR D_actor_503500_8016F2EC[];
+/// `func_actor_503500_8013D1CC`'s spawn offset and rotation for its one child.
+extern SVECTOR D_actor_503500_8016F258;
+extern SVECTOR D_actor_503500_8016F260;
 extern MATRIX* D_80073B8C;
 /// The same pair for `func_actor_503500_8013E740`: nine effect offsets, one
 /// picked by frame and one by `Gp_LcgState`, and the rect it moves on frame 8.
@@ -2383,7 +2386,94 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013CCBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013D1CC);
+/// Sub-state 2 of the second 0xF4 block, stepped by `field_F1`: phase 0
+/// applies the boss's preset 0xA; from frame 0x14 phase 1 spawns one child
+/// from `D_actor_503500_8016E9F0`, placed at the offset
+/// `D_actor_503500_8016F258` in the actor's frame and turned by
+/// `D_actor_503500_8016F260` (both mirrored for slot 8); phase 2 hands off
+/// once `func_actor_503500_80136014` reports preset 0xA flagged.
+void func_actor_503500_8013D1CC(Actor503500* arg0)
+{
+    SVECTOR               pos;
+    SVECTOR               ofs;
+    MATRIX                m;
+    Actor503500Work770E8* work;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        dst;
+    Task*                 task;
+    s32*                  src;
+    s32*                  out;
+    s32                   i;
+    s32                   t;
+
+    work  = (Actor503500Work770E8*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_8013DBA8(arg0, 1);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_F1) {
+        case 0:
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0xA, 0x10);
+            work->field_F1++;
+            break;
+        case 1:
+            if ((s16)++work->field_EC < 0x14) {
+                break;
+            }
+            task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 1, 1, 0xC00000);
+            if (task != NULL) {
+                Gp_ComposeParentWorld(coord, &m, &pos);
+                dst    = ((TmdObject*)task->extra)->field_8;
+                ofs.vx = D_actor_503500_8016F258.vx;
+                ofs.vy = D_actor_503500_8016F258.vy;
+                ofs.vz = D_actor_503500_8016F258.vz;
+                if (arg0->spawnArg1 == 8) {
+                    t      = ofs.vx;
+                    ofs.vx = -t;
+                }
+                gte_SetRotMatrix(&m);
+                gte_ldv0(&ofs);
+                gte_rtv0_real();
+                gte_stsv(&ofs);
+                dst->coord.t[0] = pos.vx + ofs.vx;
+                dst->coord.t[1] = pos.vy + ofs.vy;
+                dst->coord.t[2] = pos.vz + ofs.vz;
+                out             = (s32*)&dst->coord;
+                src             = (s32*)&m;
+                for (i = 0; i < 4; i++) {
+                    *out++ = *src++;
+                }
+                dst->coord.m[2][2] = m.m[2][2];
+                pos.vx             = D_actor_503500_8016F260.vx;
+                pos.vy             = D_actor_503500_8016F260.vy;
+                pos.vz             = D_actor_503500_8016F260.vz;
+                if (arg0->spawnArg1 == 8) {
+                    t      = pos.vy;
+                    pos.vy = -t;
+                }
+                RotMatrixZYX(&pos, &m);
+                gte_SetRotMatrix(&dst->coord);
+                gte_ldclmv(&m);
+                gte_rtir_real();
+                gte_stclmv(&dst->coord);
+                gte_ldclmv((char*)&m + 2);
+                gte_rtir_real();
+                gte_stclmv((char*)&dst->coord + 2);
+                gte_ldclmv((char*)&m + 4);
+                gte_rtir_real();
+                gte_stclmv((char*)&dst->coord + 4);
+            }
+            work->field_F1++;
+            break;
+        case 2:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 0xA) != 0) {
+                func_actor_503500_8013DBA8(arg0, 1);
+            }
+            break;
+    }
+}
 
 /// Sub-state 3 of the second 0xF4 block, stepped by `field_F1`: phase 0 is
 /// the death setup shared with `func_actor_503500_8013F4A4`; phase 1 spawns an
