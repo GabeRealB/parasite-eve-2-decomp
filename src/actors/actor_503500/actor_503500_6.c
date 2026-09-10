@@ -124,6 +124,8 @@ s32        func_actor_503500_80133684(Actor503500* arg0);
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
 /// empty. `arg0` is loaded by every caller but the body ignores it.
 s32 func_actor_503500_80135E04(Task* arg0, s32 arg1);
+/// Spawns slot enemy `arg1` as a child of `arg0`; returns it, or NULL.
+GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1);
 /// Records the per-slot halfword for slot `arg1`; `arg0` is ignored the same
 /// way `func_actor_503500_80135E04` ignores it.
 void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
@@ -1864,7 +1866,61 @@ void func_actor_503500_8013D990(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013DA2C);
+/// Sub-state 1 of the second 0xF4 block: counts `field_EA` up to `arg1`
+/// frames, then - if slot `kind` is free - respawns the two slot enemies,
+/// each primed to die in 9 frames with a fifth of this enemy's HP (at least
+/// 1), and drops back to sub-state 0 with the node unlinked. A pending
+/// kill (`killCountdown == 2`) moves it to sub-state 2 instead.
+void func_actor_503500_8013DA2C(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GpEnemy*         child;
+    s32              kind;
+    s32              slotA;
+    s32              slotB;
+    s32              hp;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (arg1 < ++work->field_EA) {
+        kind = 3;
+        if (arg0->spawnArg1 == 7) {
+            kind  = 2;
+            slotA = 0xD;
+            slotB = 0xE;
+        } else {
+            slotA = 0xF;
+            slotB = 0x10;
+        }
+        if (func_actor_503500_80135E04(arg0->parent, kind) != 0) {
+            child = func_actor_503500_80135D00((Actor503500*)arg0->parent, slotA);
+            hp    = (s16)(enemy->field_40 / 5);
+            if (hp <= 0) {
+                hp = 1;
+            }
+            if (child != NULL) {
+                child->task->killCountdown = 9;
+                child->field_40            = hp;
+            }
+            child = func_actor_503500_80135D00((Actor503500*)arg0->parent, slotB);
+            if (child != NULL) {
+                child->task->killCountdown = 9;
+                child->field_40            = hp;
+            }
+            work->field_EA = 0;
+        }
+        func_actor_503500_8013DBA8(arg0, 0);
+        work->obj.flags &= 0x7FFF;
+        Gp_UnlinkNode(&enemy->node);
+        work->field_E8 = 0;
+        return;
+    }
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_8013DBA8(arg0, 2);
+        arg0->killCountdown = 0;
+    }
+}
 
 /// The second 0xF4 block's counterpart of `func_actor_503500_8013BE48`: puts
 /// the block into sub-state `arg1` (the one `func_actor_503500_8013D990`
