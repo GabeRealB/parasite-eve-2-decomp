@@ -409,7 +409,55 @@ s32 func_actor_403100_8013E33C(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2*
         coord = coord->sub;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E450);
+s32 func_actor_403100_8013E450(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         matrix;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    if (coord == &Gfx_ViewCoord) {
+        return 0;
+    }
+    matrix = coord->coord;
+    while (1) {
+        coord = coord->sub;
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            break;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(&matrix);
+        MatrixNormal(&matrix, &normal);
+        matrix = normal;
+    }
+    __asm__ volatile(
+        "lhu $12, 0(%0);"
+        "lhu $13, 6(%0);"
+        "lhu $14, 12(%0);"
+        "sh $12, 0(%1);"
+        "sh $13, 2(%1);"
+        "sh $14, 4(%1);"
+        "lhu $12, 2(%0);"
+        "lhu $13, 8(%0);"
+        "lhu $14, 14(%0);"
+        "sh $12, 6(%1);"
+        "sh $13, 8(%1);"
+        "sh $14, 10(%1);"
+        "lhu $12, 4(%0);"
+        "lhu $13, 10(%0);"
+        "lhu $14, 16(%0);"
+        "sh $12, 12(%1);"
+        "sh $13, 14(%1);"
+        "sh $14, 16(%1);"
+        : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+    gte_SetRotMatrix(&transposed);
+    MulRotMatrix(arg1);
+    return 1;
+}
 void func_actor_403100_8013E5FC(void)
 {
     D_actor_403100_8015580C->field_54   = 0;
