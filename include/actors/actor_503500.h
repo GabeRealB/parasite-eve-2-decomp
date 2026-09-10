@@ -398,6 +398,25 @@ typedef struct Actor503500WorkC0 {
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 
+/// The 0xB4 block `func_actor_503500_801448E8` allocates: the same head and
+/// world-position pair as `Actor503500WorkC0`, then the payload
+/// `func_actor_503500_80144B40` steps every frame. `field_A8` is the speed,
+/// `Task::spawnArg2` or 0x100000 when the spawner passes none.
+typedef struct Actor503500WorkB4 {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[4];
+    /* 0x80 */ Task*   field_80;
+    /* 0x84 */ VECTOR  field_84;
+    /* 0x94 */ VECTOR  field_94;
+    /* 0xA4 */ byte    pad_A4[0x4];
+    /* 0xA8 */ s32     field_A8;
+    /* 0xAC */ s16     field_AC;
+    /* 0xAE */ s16     field_AE;
+    /* 0xB0 */ s8      field_B0;
+    /* 0xB1 */ byte    pad_B1[0x3];
+} Actor503500WorkB4;
+STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
+
 /// Animation head of the boss block (`D_actor_503500_80176574`,
 /// `Mem_Set(_, 0x7E8)`), viewed through its own type rather than the shared
 /// `Actor503500Work`: the boss fronts its allocation with a `GpAnimCtx` --
