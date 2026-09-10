@@ -79,7 +79,7 @@ next_overlay() {
 }
 
 worker() {
-    local id=$1 name rc done=0 skipped=0
+    local id=$1 name rc done=0 skipped=0 stranded=0
     while [[ $STOP -eq 0 ]]; do
         name=$(next_overlay)
         [[ -n "$name" ]] || break
@@ -89,6 +89,13 @@ worker() {
         rc=$?
         if [[ $rc -eq 0 ]]; then
             done=$((done + 1))
+        elif [[ $rc -eq 3 ]]; then
+            # Exit 3 means the sweep matched functions it could not land: the
+            # work is verified and committed on an overlay/* branch, and the
+            # worktree is still there. That is nothing like a refused lease, and
+            # collapsing the two is how actor_503500's 68 matches went unnoticed.
+            stranded=$((stranded + 1))
+            log "worker $id: LANDING FAILED for $name - matches are stranded on overlay/$name; see the log"
         else
             # A refused lease, or an overlay whose work vanished while queued,
             # is not a failure of this driver - take the next name.
@@ -96,7 +103,7 @@ worker() {
             log "worker $id: $name returned $rc (leased elsewhere, or no work left)"
         fi
     done
-    log "worker $id finished: $done swept, $skipped skipped"
+    log "worker $id finished: $done swept, $skipped skipped, $stranded stranded"
 }
 
 for i in $(seq 1 "$JOBS"); do
