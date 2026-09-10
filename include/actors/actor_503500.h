@@ -209,24 +209,31 @@ typedef struct Actor503500Work {
     /* 0x2E6 */ byte pad_2E6[0x4];
     /* 0x2EA */ s8   field_2EA;
     /* 0x2EB */ s8   field_2EB; // TMD buffer countdown, 0x2EC block
-    /* 0x2EC */ byte pad_2EC[0xB0];
-    /* 0x39C */ s32  field_39C;
-    /* 0x3A0 */ byte pad_3A0[0x4];
-    /* 0x3A4 */ s16  field_3A4;
-    /* 0x3A6 */ s16  field_3A6;
-    /* 0x3A8 */ s16  field_3A8; // countdown, floored at 0 by func_actor_503500_801420C4
-    /* 0x3AA */ s16  field_3AA;
-    /* 0x3AC */ byte pad_3AC[0x2];
-    /* 0x3AE */ s16  field_3AE;
-    /* 0x3B0 */ u16  field_3B0;
-    /* 0x3B2 */ u16  field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ byte pad_3B4[0x1C];
-    /* 0x3D0 */ s8   field_3D0; // sub-state index
-    /* 0x3D1 */ s8   field_3D1; // sub-state phase, cleared with field_3D0
-    /* 0x3D2 */ byte pad_3D2[0x4];
-    /* 0x3D6 */ s8   field_3D6;
-    /* 0x3D7 */ s8   field_3D7; // TMD buffer countdown, 0x3D8 block
-    /* 0x3D8 */ byte pad_3D8[0x12C];
+    /* 0x2EC */ byte pad_2EC[0x7C];
+    /// Local offset copied from `D_actor_503500_8016F3AC[spawnArg1]`.
+    /* 0x368 */ SVECTOR field_368;
+    /* 0x370 */ byte    pad_370[0x2C];
+    /* 0x39C */ s32     field_39C;
+    /* 0x3A0 */ byte    pad_3A0[0x4];
+    /* 0x3A4 */ s16     field_3A4;
+    /* 0x3A6 */ s16     field_3A6;
+    /* 0x3A8 */ s16     field_3A8; // countdown, floored at 0 by func_actor_503500_801420C4
+    /* 0x3AA */ s16     field_3AA;
+    /* 0x3AC */ byte    pad_3AC[0x2];
+    /* 0x3AE */ s16     field_3AE;
+    /* 0x3B0 */ u16     field_3B0;
+    /* 0x3B2 */ u16     field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ byte    pad_3B4[0x2];
+    /* 0x3B6 */ u16     field_3B6; // stepped by 0x20 up to 0x1000
+    /* 0x3B8 */ byte    pad_3B8[0x14];
+    /* 0x3CC */ u16     field_3CC; // stepped down by 0x111, floored at 0
+    /* 0x3CE */ byte    pad_3CE[0x2];
+    /* 0x3D0 */ s8      field_3D0; // sub-state index
+    /* 0x3D1 */ s8      field_3D1; // sub-state phase, cleared with field_3D0
+    /* 0x3D2 */ byte    pad_3D2[0x4];
+    /* 0x3D6 */ s8      field_3D6;
+    /* 0x3D7 */ s8      field_3D7; // TMD buffer countdown, 0x3D8 block
+    /* 0x3D8 */ byte    pad_3D8[0x12C];
     /// Private copies of two of the boss model's part coordinates (parts 4 and
     /// 10), refreshed by `func_actor_503500_80136DDC` when bits 0x20 / 0x800 of
     /// `field_7AC` are set and then scaled by `field_5A4` / `field_5B4`.

@@ -305,7 +305,34 @@ void func_actor_503500_80141D7C(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80141E64);
+/// Per-slot local offset `func_actor_503500_80141E64` copies into
+/// `Actor503500Work::field_368`, indexed by `spawnArg1`.
+extern SVECTOR D_actor_503500_8016F3AC[];
+
+void func_actor_503500_80141E64(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    u16              level;
+
+    work = arg0->field_1C;
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_80142310(arg0, 1);
+        arg0->killCountdown = 0;
+    }
+    level           = work->field_3B6 + 0x20;
+    work->field_3B6 = level;
+    if ((s16)level >= 0x1001) {
+        work->field_3B6 = 0x1000;
+    }
+    level           = work->field_3CC - 0x111;
+    work->field_3CC = level;
+    if ((s16)level < 0) {
+        work->field_3CC = 0;
+    }
+    work->field_368.vx = D_actor_503500_8016F3AC[arg0->spawnArg1].vx;
+    work->field_368.vy = D_actor_503500_8016F3AC[arg0->spawnArg1].vy;
+    work->field_368.vz = D_actor_503500_8016F3AC[arg0->spawnArg1].vz;
+}
 
 void func_actor_503500_80141F48(Actor503500* arg0)
 {
