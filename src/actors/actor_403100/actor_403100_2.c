@@ -1364,7 +1364,117 @@ void func_actor_403100_8013B3C4(Task* arg0)
 }
 extern MATRIX Gfx_ViewWorldMtx;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B5E0);
+void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
+{
+    SVECTOR        headRotation, middleRotation, lowerRotation;
+    MATRIX         worldMatrix;
+    VECTOR         delta, local;
+    MATRIX*        allocated;
+    MATRIX*        matrices;
+    SVECTOR*       angles;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* head;
+    GsCOORDINATE2* middle;
+    GsCOORDINATE2* lower;
+    GsCOORDINATE2* root;
+    MATRIX*        transpose;
+    MATRIX*        transpose2;
+    MATRIX*        dest;
+    s32            sum;
+    s32            offsetY;
+    s32            mode3;
+    u16            copyValue;
+
+    coords    = ((TmdObject*)arg0->extra)->field_8;
+    allocated = (MATRIX*)(*(u8**)0x1F8003FC - 0x88);
+    __asm__("move %0,%1" : "=r"(matrices) : "r"(allocated));
+    angles                     = (SVECTOR*)((u8*)allocated + 0x80);
+    *(s32*)&allocated->m[0][0] = 0x1000;
+    *(s32*)&matrices->m[0][2]  = 0;
+    *(s32*)&matrices->m[1][1]  = 0x1000;
+    *(s32*)&matrices->m[2][0]  = 0;
+    matrices->m[2][2]          = 0x1000;
+    root                       = ((TmdObject*)arg0->extra)->field_8;
+    *(MATRIX**)0x1F8003FC      = matrices;
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &root[3].workm, &worldMatrix);
+    delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
+    offsetY  = worldMatrix.t[1] + 0x600;
+    delta.vy = D_actor_403100_80155808->field_9A - offsetY;
+    delta.vz = D_actor_403100_80155808->field_9C - worldMatrix.t[2];
+    ApplyTransposeMatrixLV(&root->coord, &delta, &local);
+    angles->vx = (ratan2(-local.vy, local.vz) << 20) >> 20;
+    angles->vy = (ratan2(local.vx, local.vz) << 20) >> 20;
+    angles->vz = 0;
+    head       = &coords[3];
+    middle     = &coords[2];
+    lower      = &coords[1];
+    mode3      = 3;
+    SOFT_TOUCH_REG(mode3);
+    if (arg1 == 0) {
+        func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
+        func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
+        func_actor_403100_8013D06C();
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 1) {
+        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
+        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 2) {
+        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        Gp_MtxToEuler(&coords[2].coord, &middleRotation);
+        Gp_MtxToEuler(&coords[1].coord, &lowerRotation);
+        SOFT_USE_REG(mode3);
+        sum                                = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
+        headRotation.vx                    = sum;
+        headRotation.vy                    = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
+        headRotation.vz                    = (u16)headRotation.vz + ((u16)middleRotation.vz + (u16)lowerRotation.vz);
+        D_actor_403100_80155808->field_B0 += ((s32)((sum - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
+        D_actor_403100_80155808->field_B2 += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->field_B2) << 20) >> 23);
+        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == mode3) {
+        func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
+        func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
+        func_actor_403100_8013D06C();
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 4) {
+        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
+        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 5) {
+        func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
+        func_actor_403100_8013CF60(angles, D_actor_403100_80155808->field_65A, 4, 2, 8);
+        func_actor_403100_8013D06C();
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    }
+    transpose = &matrices[3];
+    TransposeMatrix(&middle->coord, transpose);
+    transpose2 = &matrices[2];
+    TransposeMatrix(&lower->coord, transpose2);
+    MulMatrix(transpose, transpose2);
+    MulMatrix(transpose, matrices);
+    head->coord.m[0][0] = (u16)transpose->m[0][0];
+    copyValue           = (u16)transpose->m[0][1];
+    SOFT_USE_REG(copyValue);
+    dest = &head->coord;
+    SOFT_TOUCH_REG(dest);
+    dest->m[0][1]      = copyValue;
+    dest->m[0][2]      = (u16)transpose->m[0][2];
+    dest->m[1][0]      = (u16)transpose->m[1][0];
+    dest->m[1][1]      = (u16)transpose->m[1][1];
+    dest->m[1][2]      = (u16)transpose->m[1][2];
+    dest->m[2][0]      = (u16)transpose->m[2][0];
+    dest->m[2][1]      = (u16)transpose->m[2][1];
+    dest->m[2][2]      = (u16)transpose->m[2][2];
+    *(u8**)0x1F8003FC += 0x88;
+    lower->flg         = 0;
+    middle->flg        = 0;
+    head->flg          = 0;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100_2", D_actor_403100_80131F84);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100_2", D_actor_403100_80131F9C);
