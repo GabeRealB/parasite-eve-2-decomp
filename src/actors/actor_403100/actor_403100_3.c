@@ -490,7 +490,19 @@ void func_actor_403100_8013EEB0(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013EEB8);
+void func_actor_403100_8013EEB8(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_5EC += 1;
+    coord->coord.t[2]                  += 0x64;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+    func_actor_403100_801327CC();
+}
 void func_actor_403100_8013EF24(void)
 {
 }
