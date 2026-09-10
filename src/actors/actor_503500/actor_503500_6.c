@@ -1275,7 +1275,20 @@ void func_actor_503500_801441E8(Actor503500* arg0)
     func_actor_503500_80144238(arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144238);
+void func_actor_503500_80144238(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work224* work;
+
+    work                = (Actor503500Work224*)arg0->field_1C;
+    work->field_221     = arg1;
+    work->field_222     = 0;
+    work->field_21A     = 0;
+    arg0->killCountdown = 0;
+    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1, arg1 != 0);
+    work->obj1.flags &= 0x7FFF;
+    work->obj2.flags &= 0x7FFF;
+    SndEvt_EnqueueType7(0x40230009, 1);
+}
 void func_actor_503500_801442A8(Task* task)
 {
     TaskFuncTable3 sp;
