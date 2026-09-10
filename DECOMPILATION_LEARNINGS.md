@@ -58772,3 +58772,34 @@ The same function also shows why that pointer won `s0` over the work pointer:
 it had to be the loop's walking pointer itself. A separate `src = (s32*)p`
 copy left `p` with few refs and dropped it behind `work` in global priority
 (flow counts refs weighted by loop depth).
+
+## `lui/addiu` base in the wrong one of two arg regs: hoist the index into a local so the base is emitted later
+
+`func_actor_503500_801338E8` indexes `tbl[(w->field_774 >> 3) & 1][w->field_7DC]`
+twice with the same shape. The first lookup matched; the second came out with the
+table base in `$a1` and the `lb` of `field_7DC` in `$a0`, the reverse of the
+target (99.85%, `regs` only). Both are block-local, so local-alloc decides:
+
+- The `high` pseudo dies in the `lo_sum`, so `combine_regs` ties both into one
+  quantity with 4 refs. Expanding the array ref emits the base address first,
+  which gives it the lowest LUIDs. Every insn here has `LAUNCH_PRIORITY`, so sched1
+  falls back to LUID order and places the `lui` first in the block. The quantity
+  lives 20 half-insn units: `QTY_CMP_PRI` = 2*4/20 = 4000.
+- The hazard check in `schedule_select` always takes a ready load, so the `lb`
+  sits right before the `addu` that uses it (latency 2). It lives 4 units:
+  2*2/4 = 5000. It is allocated first and takes `$a0`.
+
+Computing the phase bit into a local *before* the lookup statement emits the
+`lw/srl/andi` ahead of the `lui/lo_sum`. They then have higher LUIDs, sched1
+places them later, and the tied quantity outranks the `lb`. That gives 100%:
+
+```c
+bit  = (work->field_774 >> 3) & 1;           /* only on the lookup that needs it */
+step = D_actor_503500_8016EF10[bit][work->field_7DC][work->field_7DE];
+```
+
+Doing the same to the first lookup broke it (96%). Other things that did not
+help: a local copy of the table pointer (distributes the shifts), `(i)[tbl]`
+pointer-add forms (reorders the whole emission), splitting into `row`/`list`
+locals, and moving the neighbouring `field_7C8` read. Input: `base_14.i`
+sha256 `bfdfc49a8f53…`.

@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include <psyq/abs.h>
 
 /// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
@@ -539,7 +540,105 @@ s32 func_actor_503500_80133684(Actor503500* arg0)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801338E8);
+/// Attack lists for `func_actor_503500_801338E8`, indexed by the phase bit
+/// (`field_774` bit 3), the height band `field_7DC` and the yaw bucket
+/// `field_7DE`; each entry points at a NULL-terminated `Actor503500Step` run.
+extern Actor503500Step** D_actor_503500_8016EF10[2][3];
+/// Yaw-bucket thresholds, same `[phase][band]` indexing: ascending `|yaw|`
+/// limits scanned until one is not below the current yaw offset.
+extern s16* D_actor_503500_8016EF28[2][3];
+
+/// Boss attack picker. Every frame it stores the camera target's yaw
+/// relative to the boss (wrapped into [-0x800, 0x800)) in `field_7BA`. Step 0
+/// updates the height band `field_7DC` from the target's Y with hysteresis,
+/// buckets `|yaw|` into `field_7DE`, then walks that bucket's weighted list
+/// until the running weight reaches the random byte in `field_7C8`, stores
+/// the chosen step in `field_778` and runs it at once. Step 1 keeps running
+/// it. A non-zero result, an empty list (0x1E) or running off the end of the
+/// list (0xF) goes to `field_7CA` after `func_actor_503500_80136EFC(arg0, 0)`.
+void func_actor_503500_801338E8(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    Actor503500Step* step;
+    s32              bit;
+    s16*             thr;
+    s32              angle;
+    s32              absAngle;
+    u32              sum;
+    u32              r;
+    s32              ret;
+
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    angle = ratan2(D_80073B8C->t[0] - coord->coord.t[0], D_80073B8C->t[2] - coord->coord.t[2]) - work->field_7B6;
+    while (angle >= 0x800) {
+        angle -= 0x1000;
+    }
+    while (angle < -0x800) {
+        angle += 0x1000;
+    }
+    work->field_7BA = angle;
+    switch ((s8)work->field_7DA) {
+        case 0:
+            work->field_7DD = work->field_7DC;
+            work->field_7DF = work->field_7DE;
+            switch (work->field_7DD) {
+                case 0:
+                    if (D_80073B8C->t[1] >= -0xAEF) {
+                        work->field_7DC = 1;
+                    }
+                    break;
+                case 1:
+                    if (D_80073B8C->t[1] >= -0x31F) {
+                        work->field_7DC = 2;
+                    } else if (D_80073B8C->t[1] < -0xC80) {
+                        work->field_7DC = 0;
+                    }
+                    break;
+                case 2:
+                    if (D_80073B8C->t[1] < -0x4B0) {
+                        work->field_7DC = 1;
+                    }
+                    break;
+            }
+            thr      = D_actor_503500_8016EF28[(work->field_774 >> 3) & 1][work->field_7DC];
+            absAngle = abs(angle);
+            for (work->field_7DE = 0; *thr++ < absAngle; work->field_7DE++) {
+            }
+            bit  = (work->field_774 >> 3) & 1;
+            step = D_actor_503500_8016EF10[bit][work->field_7DC][work->field_7DE];
+            r    = (u8)work->field_7C8;
+            if (step->fn != NULL) {
+                sum = step->weight;
+                while (sum < r) {
+                    if (step[1].fn == NULL) {
+                        func_actor_503500_80136EFC(arg0, 0);
+                        work->field_7CA = 0xF;
+                        return;
+                    }
+                    step++;
+                    sum += step->weight;
+                }
+                work->field_778 = step->fn;
+                work->field_7DA++;
+            } else {
+                func_actor_503500_80136EFC(arg0, 0);
+                work->field_7CA = 0x1E;
+                return;
+            }
+        case 1:
+            ret = work->field_778(arg0, work);
+            if (ret != 0) {
+                func_actor_503500_80136EFC(arg0, 0);
+                work->field_7CA = ret;
+            }
+            break;
+        default:
+            func_actor_503500_80136EFC(arg0, 0);
+            break;
+    }
+}
 
 /// Script step that dismisses one of the boss's slot-10/11 helpers. State 0
 /// picks the slot: with `field_7DE` clear it tries the slot chosen by the low

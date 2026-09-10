@@ -145,6 +145,17 @@ STATIC_ASSERT_SIZEOF(Actor503500Slot40, 0x20);
 /// (`func_actor_503500_801383D0` reads `field_15C` out of the 0x160 block,
 /// `func_actor_503500_8013BD88` reads `field_ED` out of a 0xF0 block,
 /// `func_actor_503500_8013EB60` reads `field_EC` out of another 0xF0 block).
+struct Actor503500;
+struct Actor503500Work;
+
+/// One weighted entry of a boss attack list: `func_actor_503500_801338E8`
+/// walks the list summing `weight` until it passes a random byte, then runs
+/// `fn` every frame until it returns non-zero. A NULL `fn` ends the list.
+typedef struct Actor503500Step {
+    s32 (*fn)(struct Actor503500*, struct Actor503500Work*);
+    u32 weight;
+} Actor503500Step;
+
 typedef struct Actor503500Work {
     /* 0x000 */ GpObj   obj; // the display node Gp_UnlinkObj takes
     /* 0x020 */ GpRec18 rec; // collision table; 0xF0 enemies pass count 8
@@ -299,13 +310,13 @@ typedef struct Actor503500Work {
     /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
     /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on
     /// `field_730`.
-    /* 0x730 */ s16  field_730[0x11];
-    /* 0x752 */ s16  field_752[0x11];
-    /* 0x774 */ u32  field_774; // one "already asked to die" bit per slot
-    /* 0x778 */ byte pad_778[0x4];
-    /// Saved rotation of the task's coordinate: the first 16 bytes of
-    /// `coord.m` as words plus `m[2][2]`, restored every frame by
-    /// `func_actor_503500_80134A24` before it rescales the matrix.
+    /* 0x730 */ s16 field_730[0x11];
+    /* 0x752 */ s16 field_752[0x11];
+    /* 0x774 */ u32 field_774;                                                  // one "already asked to die" bit per slot
+    /* 0x778 */ s32 (*field_778)(struct Actor503500*, struct Actor503500Work*); // running step, see Actor503500Step
+                                                                                /// Saved rotation of the task's coordinate: the first 16 bytes of
+                                                                                /// `coord.m` as words plus `m[2][2]`, restored every frame by
+                                                                                /// `func_actor_503500_80134A24` before it rescales the matrix.
     /* 0x77C */ s32   field_77C[4];
     /* 0x78C */ s16   field_78C;
     /* 0x78E */ byte  pad_78E[0xE];
@@ -345,9 +356,10 @@ typedef struct Actor503500Work {
     /* 0x7D9 */ s8   field_7D9; // mode last set by func_actor_503500_80137158
     /* 0x7DA */ u8   field_7DA; // per-state step counter
     /* 0x7DB */ u8   field_7DB; // cleared alongside field_7DA
-    /* 0x7DC */ byte pad_7DC[0x2];
+    /* 0x7DC */ s8   field_7DC; // height band of the camera target, 0..2
+    /* 0x7DD */ s8   field_7DD; // previous field_7DC
     /* 0x7DE */ s8   field_7DE;
-    /* 0x7DF */ byte pad_7DF[0x1];
+    /* 0x7DF */ s8   field_7DF; // previous field_7DE
     /* 0x7E0 */ s8   field_7E0;
     /* 0x7E1 */ s8   field_7E1;
     /* 0x7E2 */ s8   field_7E2;
