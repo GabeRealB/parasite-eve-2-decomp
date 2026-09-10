@@ -66,7 +66,26 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183824);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_801838A0);
+void func_shelter_b3_dumping_hole_801838A0(DumpingHoleState* arg0)
+{
+    s16 count;
+    s32 i;
+
+    count = 0;
+    if (arg0->field_1C->field_4 != 4) {
+        func_shelter_b3_dumping_hole_801833EC(arg0);
+        for (i = 0; i < 0x10; i++) {
+            if (D_shelter_b3_dumping_hole_8018B7BC[i].field_6 == 2) {
+                count++;
+            }
+        }
+        if (count == 0x10) {
+            ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)((Task*)arg0, 0);
+            Game_Session->unknown_130[0] = 2;
+            Task_Kill((Task*)arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183950);
 
