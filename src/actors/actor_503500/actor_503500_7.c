@@ -86,6 +86,10 @@ extern Actor503500Work D_actor_503500_80176D88;
 /// 2.8.1's `fixed_scalar_and_varying_struct_p` lets a scalar global at a fixed
 /// address float above them, and hoists the load out of the call sequence.
 extern GpU16Pair* D_actor_503500_8016E7D4[];
+/// `func_actor_503500_80144300`'s `Gp_PackPair` slot, two before
+/// `D_actor_503500_8016E7D4`, and the local offset of its display node.
+extern GpU16Pair*      D_actor_503500_8016E7CC[];
+extern Actor503500UVec D_actor_503500_801715AC;
 /// Local offset of the display node `func_actor_503500_80144E8C` links, and the
 /// offsets it seeds its `GpActorD4Rec` with.
 extern Actor503500UVec D_actor_503500_801715C4;
@@ -235,6 +239,8 @@ void      func_actor_503500_801441E8(Actor503500* arg0);
 void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
 void      func_actor_503500_80144520(Actor503500* arg0);
 void      func_actor_503500_80144778(Actor503500* arg0);
+void      func_actor_503500_8014473C(Task* arg0);
+void      func_actor_503500_80137290(s32 arg0);
 void      func_actor_503500_80144B40(Actor503500* arg0);
 void      func_actor_503500_80144E10(Task* arg0);
 void      func_actor_503500_80145480(Task* arg0);
@@ -583,7 +589,74 @@ void func_actor_503500_801442A8(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80144300);
+void func_actor_503500_80144300(Task* arg0)
+{
+    Actor503500WorkC0* work;
+    GsCOORDINATE2*     coord;
+    GpRec18*           rec;
+    GpEffWork*         eff;
+    Task*              child;
+    GpMtxWords*        m;
+    VECTOR             v;
+    s32                pan;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = Mem_Calloc(sizeof(*work), false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->idMap = (TaskIdMap*)work;
+
+    work->field_84.vx = coord->coord.t[0] << 16;
+    work->field_84.vy = coord->coord.t[1] << 16;
+    work->field_84.vz = coord->coord.t[2] << 16;
+    work->field_94.vx = work->field_84.vx;
+    work->field_B8    = 0x1000;
+    work->field_94.vy = work->field_84.vy;
+    work->field_94.vz = work->field_84.vz;
+
+    if (arg0->spawnArg2 != NULL) {
+        v.vx = 0;
+        v.vy = 0;
+        v.vz = (s32)arg0->spawnArg2;
+        ApplyMatrixLV(&coord->coord, &v, &work->field_A4);
+    } else {
+        m     = (GpMtxWords*)&coord->coord;
+        m->w0 = 0x1000;
+        m->w1 = 0;
+        m->w2 = 0x1000;
+        m->w3 = 0;
+        m->h4 = 0x1000;
+    }
+    rec = work->rec;
+
+    work->obj.field_8  = coord;
+    work->obj.field_C  = rec;
+    work->obj.field_10 = D_actor_503500_801715AC.vx;
+    work->obj.field_12 = D_actor_503500_801715AC.vy;
+    work->obj.field_14 = D_actor_503500_801715AC.vz;
+    work->obj.field_18 = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1);
+    work->obj.field_1C = 0x12C;
+    work->obj.flags    = 1;
+    Gp_LinkObj(3, &work->obj);
+    Gp_InitRec18Table(rec, 4, 0);
+    work->obj.flags |= 0xC000;
+
+    eff = Gp_SpawnEff(0x60189, coord, 0, NULL);
+    if (eff == NULL) {
+        func_actor_503500_8014473C(arg0);
+        return;
+    }
+    child          = eff->field_0;
+    work->field_80 = child;
+    Task_Reparent(arg0, child);
+    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(0x40230005, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+    func_actor_503500_80137290(1);
+    arg0->exitCallback = func_actor_503500_8014473C;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80144520);
 
