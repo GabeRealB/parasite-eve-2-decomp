@@ -2648,7 +2648,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014176C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141A44);
+/// Same cubic Bezier evaluation as `func_actor_503500_8013A7B0`: control points
+/// `pts[0..2]` and `p3`, `t` running from 1 (0xFFFF) down to 0 as `pos`
+/// reaches `len`. Writes the X/Y/Z result to `out`.
+void func_actor_503500_80141A44(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
+{
+    SVECTOR  coeff[3];
+    SVECTOR* p1;
+    SVECTOR* p2;
+    s32      t;
+    s32      i;
+    s32*     o;
+
+    if (len != 0) {
+        t  = ((len - pos) * 0xFFFF) / len;
+        p1 = &pts[1];
+        p2 = &pts[2];
+        func_actor_503500_801422B8(pts->vx, p1->vx, p2->vx, p3->vx, &coeff[0]);
+        func_actor_503500_801422B8(pts->vy, p1->vy, p2->vy, p3->vy, &coeff[1]);
+        func_actor_503500_801422B8(pts->vz, p1->vz, p2->vz, p3->vz, &coeff[2]);
+        o = out;
+        for (i = 0; i < 3; i++) {
+            *o++ = ((((((coeff[i].vx * t) >> 16) + coeff[i].vy) * t >> 16) + coeff[i].vz) * t >> 16) + coeff[i].pad;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141B94);
 
