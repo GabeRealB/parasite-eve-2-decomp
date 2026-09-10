@@ -85,6 +85,9 @@ void                        func_actor_503500_8013D85C(Actor503500* arg0);
 extern SVECTOR         D_actor_503500_8016F060;
 extern SVECTOR         D_actor_503500_8016F068;
 extern Actor503500Work D_actor_503500_80176D88;
+/// Translation `func_actor_503500_801374BC` seeds into each of the two effect
+/// tasks it hangs off the task's own coordinate.
+extern SVECTOR D_actor_503500_8016F070;
 /// Row of `Gp_PackPair` arguments, one slot per effect task in this file
 /// (`func_actor_503500_801448E8` takes the slot before this one). Declared as
 /// an array because the read has to alias the struct stores around it: GCC
@@ -857,7 +860,61 @@ void func_actor_503500_801372C8(Actor503500* arg0)
     arg0->exitCallback = (TaskFunc)func_actor_503500_80138288;
     arg0->state       += 1;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801374BC);
+/// Sub-state tick of the 0x160 enemy at `D_actor_503500_80176D88`: phase 0
+/// starts mode 0xF on the parent, phase 1 spawns two tasks hung off this
+/// task's coordinate, phase 2 waits on the parent's mode 0xF and starts 0x10,
+/// phase 3 counts 0x47 frames. Leaves early once `_8013608C` reports the
+/// parent done.
+void func_actor_503500_801374BC(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    Task*            task;
+    GsCOORDINATE2*   coord;
+    s32              i;
+    s32              id;
+
+    work = arg0->field_1C;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_80138490(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_15D) {
+        case 0:
+            id = 0xF;
+            goto play;
+        case 1:
+            if ((s16)++work->field_15A > 0) {
+                for (i = 0; i < 2; i++) {
+                    task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 2, i, 0);
+                    if (task != NULL) {
+                        coord             = ((TmdObject*)task->extra)->field_8;
+                        coord->sub        = arg0->extra->field_8;
+                        coord->coord.t[0] = D_actor_503500_8016F070.vx;
+                        coord->coord.t[1] = D_actor_503500_8016F070.vy;
+                        coord->coord.t[2] = D_actor_503500_8016F070.vz;
+                        Task_Reparent((Task*)arg0, task);
+                    }
+                }
+                work->field_15A = 0;
+                work->field_15D++;
+            }
+            break;
+        case 2:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 0xF) != 0) {
+                id = 0x10;
+            play:
+                func_actor_503500_80135FB4((Actor503500*)arg0->parent, id, 0x10);
+                work->field_15D++;
+            }
+            break;
+        case 3:
+            if ((s16)++work->field_15A >= 0x47) {
+                func_actor_503500_80138490(arg0, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80131F4C);
 
