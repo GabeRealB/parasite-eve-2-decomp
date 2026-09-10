@@ -636,5 +636,6 @@ extern Actor503500StateC08 Gp_StateC08;
 void func_actor_503500_80146508(Task* arg0);
 void func_actor_503500_8013F8AC(Actor503500* arg0);
 void func_actor_503500_801440F0(Actor503500* arg0);
+void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
 #endif

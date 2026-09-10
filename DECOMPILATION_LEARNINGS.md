@@ -58358,3 +58358,24 @@ SetRotIdentity(&((View*)work)->mats[i]);
 
 A local `tbl = (View*)work` copy instead of casting at each use costs a
 separate pseudo and a second walking pointer - cast at the use site.
+
+## Loop counter and output giv swapped: walk a local copy of the output pointer
+
+`func_actor_503500_8013A7B0` (cubic Bezier eval) reached 99.57% with only the
+loop counter and the `out` store pointer in each other's registers (`$a1`/`$a0`
+instead of `$a0`/`$a1`). Written as `out[i] = ...`, loop.c makes the store
+address a giv (pseudo 177: 7 refs over 21 insns) that global.c ranks just
+above the counter `i` (7 refs over 22 insns), so the giv takes the first free
+argument register. Walking a local copy made after the calls flips the ranking:
+
+```c
+o = out;                     /* not `out` itself: that crosses the calls -> $s */
+for (i = 0; i < 3; i++) {
+    *o++ = ... coeff[i].vx ... coeff[i].pad;
+}
+```
+
+The same loop also needed `coeff[i]` indexing rather than a walking
+`SVECTOR* c`: `c->vx`/`c->pad` split into two pointers (`$s2` and a
+`sp+0x1e` giv), while indexing let the giv reuse the callee-saved `&coeff[0]`
+already passed to the first call.
