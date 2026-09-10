@@ -804,7 +804,24 @@ void func_actor_503500_8013C900(Actor503500* arg0)
     Gp_DestroyEnemy(enemy, (Task*)arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C960);
+void func_actor_503500_8013C960(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_E8 != 0) {
+        timer          = (u16)work->field_E8 - 1;
+        work->field_E8 = timer;
+        if (timer < 0) {
+            work->field_E8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_8013C088(arg0, work, &work->rec, 8);
+    }
+    Gp_ClearRec18Occupied(&work->rec);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C9DC);
 
 void func_actor_503500_8013CA34(Actor503500* arg0)
