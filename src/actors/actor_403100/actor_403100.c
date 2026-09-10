@@ -235,7 +235,119 @@ void func_actor_403100_801328DC(Task* arg0)
     Gp_UpdateCoord(joint);
     *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC) += 1;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132C3C);
+void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
+{
+    MATRIX         firstMatrix;
+    MATRIX         secondMatrix;
+    SVECTOR        first;
+    SVECTOR        second;
+    SVECTOR        corner0;
+    SVECTOR        corner1;
+    SVECTOR        corner2;
+    SVECTOR        corner3;
+    s32            screen0;
+    s32            screen1;
+    s32            screen2;
+    s32            screen3;
+    s32            perspective;
+    s32            flags;
+    s16            lastZ;
+    s16            angle;
+    GsCOORDINATE2* secondCoord;
+    GsCOORDINATE2* firstCoord;
+    s32            offset0;
+    s32            offset1;
+    s32            offset2;
+    s32            offset3;
+    s32            halfX;
+    s32            halfZ;
+    s32            depth;
+    GsCOORDINATE2* coords;
+    POLY_FT4*      poly;
+
+    coords      = ((TmdObject*)task->extra)->field_8;
+    firstCoord  = coords + firstJoint;
+    secondCoord = coords + secondJoint;
+    if (firstJoint != secondJoint) {
+        Gp_UpdateCoord(firstCoord);
+        Gp_UpdateCoord(secondCoord);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &firstMatrix);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &secondMatrix);
+        first.vy   = (s16)height;
+        second.vy  = (s16)height;
+        first.vx   = firstMatrix.t[0];
+        first.vz   = firstMatrix.t[2];
+        second.vx  = secondMatrix.t[0];
+        second.vz  = secondMatrix.t[2];
+        angle      = ratan2((s16)secondMatrix.t[0] - (s16)firstMatrix.t[0], (s16)secondMatrix.t[2] - (s16)firstMatrix.t[2]);
+        halfX      = (first.vx - second.vx) / 2;
+        halfZ      = (first.vz - second.vz) / 2;
+        offset0    = rcos(angle) * width;
+        corner0.vy = (s16)height;
+        corner0.vx = halfX + (first.vx - (offset0 >> 0xC));
+        corner0.vz = halfZ + (first.vz + ((s32)(rsin(angle) * width) >> 0xC));
+        offset1    = rcos(angle) * width;
+        corner1.vy = (s16)height;
+        corner1.vx = halfX + (first.vx + (offset1 >> 0xC));
+        corner1.vz = halfZ + (first.vz - ((s32)(rsin(angle) * width) >> 0xC));
+        offset2    = rcos(angle) * width;
+        corner2.vy = (s16)height;
+        corner2.vx = (second.vx - (offset2 >> 0xC)) - halfX;
+        corner2.vz = (second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        offset3    = rcos(angle) * width;
+        corner3.vy = (s16)height;
+        corner3.vx = (second.vx + (offset3 >> 0xC)) - halfX;
+        lastZ      = (second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        corner3.vz = lastZ;
+        if ((corner0.vz < 0x23F0) && (corner1.vz < 0x23F0) && (corner2.vz < 0x23F0) && (lastZ < 0x23F0)) {
+            if (corner0.vx >= -0x144F) {
+                corner0.vx = -0x1450;
+            }
+            if (corner1.vx >= -0x144F) {
+                corner1.vx = -0x1450;
+            }
+            if (corner2.vx >= -0x144F) {
+                corner2.vx = -0x1450;
+            }
+            if (corner3.vx >= -0x144F) {
+                corner3.vx = -0x1450;
+            }
+        } else if ((corner0.vx >= -0x144F) && (corner1.vx >= -0x144F) && (corner2.vx >= -0x144F) && (corner3.vx >= -0x144F)) {
+            if (corner0.vz < 0x23F0) {
+                corner0.vz = 0x23F0;
+            }
+            if (corner1.vz < 0x23F0) {
+                corner1.vz = 0x23F0;
+            }
+            if (corner2.vz < 0x23F0) {
+                corner2.vz = 0x23F0;
+            }
+            if (corner3.vz < 0x23F0) {
+                corner3.vz = 0x23F0;
+            }
+        }
+        Gfx_ViewCoord.flg = 0;
+        Gp_UpdateCoord(&Gfx_ViewCoord);
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
+        if (flags >= 0) {
+            poly           = Gpu_PrimCursor;
+            Gpu_PrimCursor = (u8*)poly + 0x28;
+            setlen(poly, 9);
+            poly->code       = 0x2E;
+            *(s32*)&poly->x0 = screen0;
+            poly->tpage      = 0x48;
+            *(s32*)&poly->x1 = screen1;
+            poly->clut       = 0x4283;
+            *(s32*)&poly->x2 = screen2;
+            *(s32*)&poly->x3 = screen3;
+            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+            setRGB0(poly, 0xFF, 0xFF, 0xFF);
+            addPrim((u32*)((((u32)(depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+        }
+    }
+}
 void func_actor_403100_801331D4(Task* arg0)
 {
     SVECTOR        pos;
