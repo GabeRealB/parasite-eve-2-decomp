@@ -1732,7 +1732,6 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
 void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    s32          hi;
     McItemScan*  scan;
     register s32 remaining asm("s2");
     GpItemRec*   sel;
@@ -1744,8 +1743,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
     s32          idx2;
     UiObject*    obj;
 
-    asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
-    asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+    scan      = &Mc_SaveData.field_5BC;
     remaining = arg0->field_8;
     {
         register GpItemRec* found asm("a1");
@@ -1763,10 +1761,9 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         rec   = Gp_GetItemTable(scan);
         found = NULL;
         i     = (s32)found;
-        asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
+        idx   = scan->field_0;
         count = scan->field_1;
-        asm volatile("sll %0, %0, 2" : "+r"(idx));
-        table = (GpItemRec*)((s32)rec + idx);
+        table = &rec[idx];
         if (count != 0) {
             p       = &Wip_SysConfig;
             loopOne = 1;
