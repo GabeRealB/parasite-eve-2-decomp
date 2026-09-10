@@ -871,4 +871,27 @@ void func_actor_403100_8013D2A0(s16 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D2F4);
+s32 func_actor_403100_8013D2F4(GsCOORDINATE2* coord, MATRIX* matrix)
+{
+    MATRIX         result;
+    MATRIX         parent;
+    GsCOORDINATE2* current;
+
+    current = coord->sub;
+    *matrix = coord->coord;
+    while (1) {
+        if (current == NULL) {
+            return 0;
+        }
+        if (current == &Gfx_ViewCoord) {
+            return 1;
+        }
+        parent = current->coord;
+        MatrixNormal(&parent, &parent);
+        gte_SetRotMatrix(&parent);
+        MulRotMatrix(matrix);
+        MatrixNormal(matrix, &result);
+        *matrix = result;
+        current = current->sub;
+    }
+}
