@@ -1533,7 +1533,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80145754);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801458F8);
+void func_actor_503500_801458F8(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
+
+    coord = arg0->extra->field_8;
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord->flg = 0;
+    func_actor_503500_801459B0((Task*)arg0);
+    func_actor_503500_80145754(arg0);
+}
 void func_actor_503500_80145950(Task* arg0)
 {
     TmdObject* ext;
