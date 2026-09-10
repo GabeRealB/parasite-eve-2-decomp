@@ -574,7 +574,8 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
     vz                                             = *(u16*)&arg0->workm.t[2];
     block->v0.vz                                   = vz;
     block->v1.vz                                   = vz;
-    asm volatile("addu %0, %1, $zero" : "=&r"(t) : "r"(vx));
+    t                                              = vx;
+    TOUCH_REG(t);
     extent       = arg3;
     t           += (u16)arg1[0];
     block->v1.vx = t;
