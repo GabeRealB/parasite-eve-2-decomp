@@ -729,7 +729,13 @@ void func_actor_503500_8013BD88(Actor503500* arg0)
 
 /// The 0xF0 block's counterpart of `func_actor_503500_80138454`: when a kill is
 /// pending, hands the block to sub-state 1 and cancels the countdown.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013BE0C);
+void func_actor_503500_8013BE0C(Actor503500* arg0)
+{
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_8013BE48(arg0, 1);
+        arg0->killCountdown = 0;
+    }
+}
 /// The 0xF0 block's counterpart of `func_actor_503500_80138490`: puts the block
 /// into sub-state `arg1`, clears the phase and frame counter that go with it,
 /// cancels a pending kill, and records the slot's halfword as "asked to die"
