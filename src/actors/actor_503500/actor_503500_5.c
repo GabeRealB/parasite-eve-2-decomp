@@ -383,7 +383,31 @@ void func_actor_503500_801360A4(s32 arg0, s16 arg1)
 /// Tries to claim `arg1` counts for slot `arg0`: sums every *other* slot's
 /// counter plus the requested amount and, if the total stays under 9, writes
 /// the request into the slot. Returns whether it was granted.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801360BC);
+s32 func_actor_503500_801360BC(s32 arg0, s32 arg1)
+{
+    s32  accepted;
+    s32  total;
+    s32  i;
+    u16* slot;
+
+    accepted = 0;
+    total    = arg1;
+    i        = 0;
+    slot     = D_actor_503500_80176D64;
+    do {
+        if (i != arg0) {
+            total += (s16)*slot;
+        }
+        i++;
+        slot++;
+    } while (i < 0x12);
+
+    if (total < 9) {
+        D_actor_503500_80176D64[arg0] = (u16)arg1;
+        accepted                      = 1;
+    }
+    return accepted;
+}
 void func_actor_503500_8013611C(s32 arg0)
 {
     D_actor_503500_80176D64[arg0] = 0;
