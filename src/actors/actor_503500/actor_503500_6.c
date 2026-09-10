@@ -128,6 +128,10 @@ void func_actor_503500_8013611C(s32 arg0);
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
 void func_actor_503500_801372AC(s32 arg0);
 void func_actor_503500_80138288(Actor503500* arg0);
+void func_actor_503500_801382F4(Actor503500* arg0);
+void func_actor_503500_801382FC(Actor503500* arg0);
+void func_actor_503500_80138378(Actor503500* arg0);
+void func_actor_503500_801383D0(Actor503500* arg0);
 void func_actor_503500_80136450(Actor503500* arg0);
 void func_actor_503500_801369E4(Actor503500* arg0);
 void func_actor_503500_80136A80(Actor503500* arg0);
@@ -819,7 +823,47 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80137C90);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013815C);
+void func_actor_503500_8013815C(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    s8               countdown;
+
+    work      = arg0->field_1C;
+    enemy     = arg0->field_20;
+    countdown = work->field_15E;
+    tmd       = (TmdObject*)arg0->extra;
+    if (countdown >= 0) {
+        if (countdown == 0) {
+            Tmd_FreeBuffers(tmd);
+        }
+        work->field_15E = (s8)((u8)work->field_15E - 1);
+    }
+    if (work->field_15C != 2) {
+        func_actor_503500_80135828(arg0, &work->field_15E);
+    }
+
+    switch (D_801153F4) {
+        case 1:
+            if (!(tmd->field_C & 0x80)) {
+                func_actor_503500_801382F4(arg0);
+            }
+            break;
+        case 2:
+            tmd->field_C        |= 0x80;
+            enemy->node.field_4 |= 1;
+            break;
+        default:
+            if (enemy->field_4C != 0) {
+                func_actor_503500_80138378(arg0);
+            }
+            func_actor_503500_801382F4(arg0);
+            func_actor_503500_801382FC(arg0);
+            func_actor_503500_801383D0(arg0);
+            break;
+    }
+}
 
 void func_actor_503500_80138288(Actor503500* arg0)
 {
@@ -833,7 +877,7 @@ void func_actor_503500_80138288(Actor503500* arg0)
     arg0->field_1C  = NULL;
     Gp_DestroyEnemy(enemy, (Task*)arg0);
 }
-void func_actor_503500_801382F4(void)
+void func_actor_503500_801382F4(Actor503500* arg0)
 {
 }
 
