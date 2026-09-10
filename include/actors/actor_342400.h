@@ -59,6 +59,17 @@ typedef struct Actor342400ChildWork {
     /* 0xA */ s16  field_A;
 } Actor342400ChildWork;
 
+/// Work block of the controller task set up by `func_actor_342400_801628F0`
+/// (`Mem_Calloc(6, 0)`, stored in its `Task::idMap` slot).
+/// `func_actor_342400_80162A34` counts `field_0` up to 15 before arming
+/// `Gp_StateF0`.
+typedef struct Actor342400CtrlWork {
+    /* 0x0 */ s16 field_0; // frame counter
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+} Actor342400CtrlWork;
+STATIC_ASSERT_SIZEOF(Actor342400CtrlWork, 0x6);
+
 extern Actor342400Slot D_actor_342400_8016BF58[];
 
 void func_actor_342400_801621D8(Task* arg0);

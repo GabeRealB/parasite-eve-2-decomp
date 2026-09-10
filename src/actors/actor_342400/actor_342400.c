@@ -36,7 +36,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8016299C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162A34);
+void func_actor_342400_80162A34(Task* arg0)
+{
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+
+    if (++work->field_0 == 15) {
+        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        Game_Session->unknown_130[1] = 1;
+        Gp_ArmStateF0(1);
+        arg0->state++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162AB0);
 
