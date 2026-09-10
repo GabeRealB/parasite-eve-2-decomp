@@ -168,7 +168,16 @@ void func_actor_403100_8013E16C(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E174);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E1E4);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E2BC);
+void func_actor_403100_8013E2BC(void)
+{
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+        D_actor_403100_80155808->field_5F4             = 0;
+        D_actor_403100_80155808->field_65D             = 0;
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_5F2             = 0;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E33C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E450);
 void func_actor_403100_8013E5FC(void)
