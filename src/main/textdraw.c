@@ -772,12 +772,17 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
 
 u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
 {
+    typedef struct {
+        u8 data[2];
+    } Bytes2;
+
     u8*          dest;
     register s32 place asm("a0");
     s32          digit;
     s32          temp;
     s32          prod;
     u8*          ret;
+    s32          cmp;
 
     place = 0x10000000;
     if (arg1 < 0) {
@@ -785,24 +790,13 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
         Text_ItoaHexSigned(arg0 + 1, -arg1);
         return arg0;
     }
+    cmp = arg1 < place;
     if (arg1 == 0) {
-        register s8* src asm("t2");
-        register s32 c0 asm("a3");
-        register s32 c1 asm("t0");
-        s32          hi;
-        do {
-            asm volatile("lui %1, %%hi(D_800138C8)\n\t"
-                         "addiu %0, %1, %%lo(D_800138C8)"
-                         : "=r"(src), "=r"(hi));
-            c0      = src[0];
-            c1      = src[1];
-            arg0[0] = c0;
-            arg0[1] = c1;
-        } while (0);
+        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
         return arg0;
     }
     dest = arg0;
-    if (arg1 < place) {
+    if (cmp) {
         do {
             place >>= 4;
         } while (arg1 < place);
