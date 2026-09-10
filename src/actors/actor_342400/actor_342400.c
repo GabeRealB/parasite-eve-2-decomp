@@ -73,7 +73,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80163178);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801631DC);
+extern s8 D_80187329;
+
+void func_actor_342400_801631DC(s16 arg0)
+{
+    if (arg0 == 0) {
+        D_80187329 = 2;
+        return;
+    }
+    D_80187329 = 0x11;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80163200);
 
