@@ -308,7 +308,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 /// of the 0x102 bits of its state flag halfword is set. Returns -1 for any
 /// other sub-state. `arg0` is loaded by every caller but the body ignores it,
 /// the same way `func_actor_503500_80135E04` does.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136014);
+s32 func_actor_503500_80136014(Actor503500* arg0, s32 arg1)
+{
+    if (arg1 != D_actor_503500_80176574.field_7D5) {
+        return -1;
+    }
+    return (D_actor_503500_80176574.slot40.boss.flags_4C & 0x102) != 0;
+}
 /// Puts the boss into state 2: clears the state's step counters and the two
 /// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 and
 /// drops the main-executable flag.
