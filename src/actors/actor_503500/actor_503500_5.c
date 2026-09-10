@@ -56,6 +56,8 @@ void func_actor_503500_80134A24(Actor503500* arg0);
 void func_actor_503500_80134C68(Actor503500* arg0);
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
 s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
+s32  func_actor_503500_80133D40(Actor503500* arg0, Actor503500Work* work);
+s32  func_actor_503500_80133FD8(Actor503500* arg0, Actor503500Work* work);
 s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
 void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
 /// Animation-preset table indexed by preset id; `func_actor_503500_80135FB4`
@@ -528,7 +530,72 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133FD8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134284);
+/// Script step pairing `func_actor_503500_80133D40` and `_80133FD8`. State 0
+/// runs the one the sign of `field_7BA` picks; the fallback to the other one
+/// needs `field_7BA` beyond +/-0x76C on the opposite side, which that sign
+/// rules out, so it never fires. `field_7D2` becomes 0x7D0 when the result
+/// is 0, else 0. State 1 bumps `field_7BE`
+/// unless `field_7C2` is slot 7 or 8, and once that slot is done or 0x5B
+/// frames have passed returns a per-slot delay (0xF, 0x3C, 0x5A or 0x1E);
+/// until then it returns 0. Any other state returns 1.
+s32 func_actor_503500_80134284(Actor503500* arg0, Actor503500Work* work)
+{
+    s32 ret;
+    s32 dir;
+
+    dir = work->field_7BA;
+    switch ((s8)work->field_7DB) {
+        case 0:
+            if (dir > 0) {
+                ret = func_actor_503500_80133D40(arg0, work);
+                if (ret == 1 && dir < -0x76C) {
+                    ret = func_actor_503500_80133FD8(arg0, work);
+                }
+            } else {
+                ret = func_actor_503500_80133FD8(arg0, work);
+                if (ret == 1 && dir > 0x76C) {
+                    ret = func_actor_503500_80133D40(arg0, work);
+                }
+            }
+            if (ret == 0) {
+                work->field_7D2 = 0x7D0;
+            } else {
+                work->field_7D2 = 0;
+            }
+            break;
+        case 1:
+            ret = 0;
+            if ((u16)work->field_7C2 - 7 >= 2U) {
+                work->field_7BE++;
+            }
+            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x5A) {
+                switch (work->field_7C2) {
+                    case 2:
+                    case 3:
+                        ret = 0xF;
+                        break;
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                        ret = 0x3C;
+                        break;
+                    case 7:
+                    case 8:
+                        ret = 0x5A;
+                        break;
+                    default:
+                        ret = 0x1E;
+                        break;
+                }
+            }
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 /// Two-step state of the boss block. Step 0 hides the second body part,
 /// unlinks the enemy node, stores the summed `field_40` of occupied slots

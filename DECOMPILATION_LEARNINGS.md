@@ -58490,3 +58490,19 @@ destination with `gte_SetRotMatrix(&rot)` (100%). Same function: a 4-word
 copy loop that walks a source *and* a destination pointer needs both written
 as walking pointers (`*dst++ = *src++`); `work->w[j] = src[j]` walks the
 work pointer itself and stores to `0x40(a0)`.
+
+## Switch default `ret = 1` instead of presetting `ret = 1` before the switch
+
+`func_actor_503500_80134284` dispatches on `(s8)work->field_7DB` with cases 0
+and 1, and the target tests case 1 against a separate constant, `li v0,1;
+beq v1,v0,case1`, with `li s0,1` for the fall-through in the delay slot. The
+siblings' shape, `ret = 1;` before `switch` with no `default`, lets CSE reuse
+`ret`'s register as the comparand (`li s0,1; beq v0,s0`), and `move v0,s0`
+moves into the delay slot, leaving `j end; nop` (81%). Writing it as
+`default: ret = 1; break;` with no preset keeps the constant inside the
+default arm, so the comparison gets its own `v0` and dbr steals the arm's
+`li s0,1` for the `beq` slot (100%). Same function: `s32 dir =
+work->field_7BA` instead of `s16` gives the target's single `lh` in place of
+`lhu` plus `sll/sra`, and `if ((u16)work->field_7C2 - 7 >= 2U)` gives the
+`lhu; addiu -7; sltiu 2` range test where `switch { case 7: case 8: }`
+compiles to two `slti` compares.
