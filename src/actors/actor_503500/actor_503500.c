@@ -92,7 +92,83 @@ void      func_actor_503500_8014418C(Actor503500* arg0);
 void      func_actor_503500_801441E8(Actor503500* arg0);
 void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500", func_actor_503500_8013223C);
+/// `gameplay/gameplay.h` owns this prototype but cannot be included next to
+/// the gameplay module headers (`Gp_StateC08` is declared differently).
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+/// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
+extern u8 D_actor_503500_801468A8[];
+extern u8 D_actor_503500_801468B0[];
+/// Two 360-entry X/Z paths `func_actor_503500_8013223C` walks the model along,
+/// selected by `Actor503500ColorMtx::field_45` (1 or 2).
+extern DVECTOR_XZ D_actor_503500_80147D90[];
+extern DVECTOR_XZ D_actor_503500_80148330[];
+
+void func_actor_503500_8013223C(Task* arg0)
+{
+    TmdObject*           ext;
+    Actor503500ColorMtx* work;
+    GpEnemy*             enemy;
+    GsCOORDINATE2*       coord;
+    DVECTOR_XZ*          p;
+    VECTOR               pos;
+
+    ext   = arg0->extra;
+    work  = (Actor503500ColorMtx*)arg0->idMap;
+    enemy = arg0->spawnArg2;
+    coord = ext->field_8;
+    if (work->field_45 != 0) {
+        if (work->field_40 < 360) {
+            if (work->field_45 == 1) {
+                p = &D_actor_503500_80147D90[work->field_40];
+            } else {
+                p = &D_actor_503500_80148330[work->field_40];
+            }
+            coord->coord.t[0] = p->vx;
+            coord->coord.t[2] = p->vz;
+            if (!(enemy->field_8 & 0xF)) {
+                if (work->field_40 & 1) {
+                    Gp_SpawnScript18((s32)D_actor_503500_801468A8, (s32)D_actor_503500_801468B0);
+                    Display_ClampField126(-1);
+                } else {
+                    Display_ClampField126(0);
+                }
+            }
+            work->field_40++;
+        } else {
+            work->field_40 = 0;
+            work->field_45 = 0;
+            if (!(enemy->field_8 & 0xF)) {
+                Display_ClampField126(0);
+            }
+        }
+    } else if (work->field_40 > 0) {
+        if (!(enemy->field_8 & 0xF)) {
+            if (work->field_40 & 1) {
+                Gp_SpawnScript18((s32)D_actor_503500_801468A8, (s32)D_actor_503500_801468B0);
+                Display_ClampField126(-1);
+            } else {
+                Display_ClampField126(0);
+            }
+        }
+        work->field_40--;
+    }
+    if (!(ext->field_C & 0x80)) {
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        // Filled and never read: the original passes the matrix's own
+        // translation instead, but the stores are still emitted.
+        pos.vx = coord->workm.t[0];
+        pos.vy = coord->workm.t[1];
+        pos.vz = coord->workm.t[2];
+        func_800D7A9C(ext, (VECTOR*)coord->workm.t, 0, 3);
+    }
+    if (work->field_44 >= 0) {
+        if (work->field_44 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_44--;
+    }
+}
 
 void func_actor_503500_80132430(Task* arg0)
 {

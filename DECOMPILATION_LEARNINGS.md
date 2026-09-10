@@ -43010,6 +43010,15 @@ SVECTOR unusedC;   /* sp+0x58; locals 0x50 -> frame 0x78 */
 m2c drops the stores entirely, so its seed scored 87% on frame size alone;
 the struct-assignment shape plus padding is 100%.
 
+When the dead aggregate is the *first* local, it sits at `sp+0x10` - the
+outgoing-argument area - and m2c misreads the stores as stack arguments of
+the next call instead of dropping them: `func_actor_503500_8013223C` came out
+as `func_800D7A9C(ext, &coord->workm.t, 0, 3, /* extra? */ t[0], t[1], t[2])`,
+which fails to compile against the 4-argument prototype. `/* extra? */`
+arguments to a known-arity callee mean a local struct filled right before the
+call; `VECTOR pos; pos.vx = ...; pos.vy = ...; pos.vz = ...;` followed by the
+4-argument call matched on the first try.
+
 ### A lone `move aN,vN` copy of a loaded pointer: deref the field inline once, then name it
 
 `func_acropolis_helicopter_landing_pad_8017D6E0` opens with `lw v1,0x2C(a0)` /
