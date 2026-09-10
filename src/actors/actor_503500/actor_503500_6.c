@@ -142,6 +142,10 @@ void func_actor_503500_80137678(Actor503500* arg0);
 void func_actor_503500_80138454(Actor503500* arg0);
 void func_actor_503500_80138490(Actor503500* arg0, s32 arg1);
 void func_actor_503500_8013ACC4(Actor503500* arg0, s32 arg1);
+void func_actor_503500_80138A30(Actor503500* arg0);
+void func_actor_503500_80138C08(Actor503500* arg0);
+void func_actor_503500_80139014(Actor503500* arg0);
+void func_actor_503500_801395BC(Actor503500* arg0);
 /// Defined as `s8` in actor_503500_4.c; an `s8` prototype makes the caller
 /// sign-extend with `sll 24` before the zero test.
 s32  func_actor_503500_80136208(void);
@@ -1011,7 +1015,39 @@ void func_actor_503500_8013A900(Actor503500* arg0)
     arg0->field_1C  = NULL;
     Gp_DestroyEnemy(enemy, (Task*)arg0);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A96C);
+void func_actor_503500_8013A96C(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    switch (work->field_2D4) {
+        case 0:
+            func_actor_503500_80138A30(arg0);
+            break;
+        case 1:
+            func_actor_503500_80138C08(arg0);
+            break;
+        case 2:
+            timer           = (u16)work->field_2D6 - 1;
+            work->field_2D6 = timer;
+            if (timer < 0) {
+                func_actor_503500_8013ACC4(arg0, 0);
+            }
+            break;
+        case 5:
+            func_actor_503500_80139014(arg0);
+            break;
+        case 6:
+            func_actor_503500_801395BC(arg0);
+            break;
+    }
+    timer           = (u16)work->field_2DA - 1;
+    work->field_2DA = timer;
+    if (timer < 0) {
+        work->field_2DA = 0;
+    }
+}
 
 /// Steps the 0x2EC block's countdown at 0x2D8 down to zero, then, unless the
 /// global freeze is on, runs the 0x160 display node through its record table
