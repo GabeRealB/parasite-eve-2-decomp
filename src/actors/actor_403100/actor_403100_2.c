@@ -284,7 +284,40 @@ void func_actor_403100_801379B4(Task* arg0)
         }
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80137CA8);
+void func_actor_403100_80137CA8(void)
+{
+    u16 angleY;
+    u16 angleX;
+    u32 random;
+
+    angleX                             = (u16)D_actor_403100_80155808->field_604;
+    angleY                             = (u16)D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_604 = angleX + ((s32) - (angleX << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_608 = angleY + ((s32) - (angleY << 0x14) >> 0x17);
+    if (Actor403100_TestFlags104()) {
+        if ((u8)D_actor_403100_80155808->pad_66A[4] != 0) {
+            D_actor_403100_80155808->field_5EC = 0;
+            random                             = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                        = random;
+            if (!((random >> 0x10) & 3)) {
+                D_actor_403100_80155808->field_5FC  = 0x14;
+                D_actor_403100_80155808->field_5E2  = 0x1C;
+                D_actor_403100_80155808->field_5DE  = 3;
+                D_actor_403100_80155808->field_5DA  = 1;
+                D_actor_403100_80155808->field_5FA += 1;
+                return;
+            }
+            D_actor_403100_80155808->field_5FC  = 8;
+            D_actor_403100_80155808->field_5E2  = 0x20;
+            D_actor_403100_80155808->field_5DE  = 1;
+            D_actor_403100_80155808->field_5DA  = 1;
+            D_actor_403100_80155808->field_5FA += 2;
+            return;
+        }
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
 void func_actor_403100_80137DC4(Task* arg0)
 {
     s32 sound;
