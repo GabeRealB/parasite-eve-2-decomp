@@ -1953,7 +1953,18 @@ void func_actor_503500_801420C4(Actor503500* arg0)
     Gp_ClearRec18Occupied(work->rec180);
     Gp_ClearRec18Occupied(work->rec260);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014215C);
+/// Scans `count` `GpRec18` slots and clears bit 0x8000 of `obj->flags` for
+/// every slot whose `field_4` high half is 1.
+void func_actor_503500_8014215C(Actor503500* arg0, GpObj* obj, GpRec18* rec, s32 count)
+{
+    s32 i;
+
+    for (i = 0; i < count; i++, rec++) {
+        if ((rec->field_4 & 0xFFFF0000) == 0x10000) {
+            obj->flags &= 0x7FFF;
+        }
+    }
+}
 
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
 /// and hands it to `Gp_UpdateActorColor` with no blend parameters. Same body as
