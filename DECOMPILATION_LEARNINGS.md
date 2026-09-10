@@ -41629,6 +41629,32 @@ own single-set pseudo and matched; dropping the `banks = Gp_Bit2Banks` local
 half. Look for `+=` on a pointer or index whenever `.sched` shows a plain
 priority next to a column of `7f000001`.
 
+### One pointer local shared by two `switch` cases is set twice: scope it per case
+
+`func_actor_503500_801450A0` was stuck at 98.85% with `regs`/`reorder` only.
+Cases 2 and 3 each seed a matrix through `m = (GpMtxWords*)&work->field_9C`
+and then call `func_8004BFF8(angle, &work->field_9C)`. The target computes
+`addiu a1, s1, 0x9c` *after* the `field_C0` / `field_BC` adds, so the case-2
+`step` (`lui a1, 0xfffe` / `lui a1, 0x2`) can use `a1` too. Ours hoisted the
+`addiu` to the top of the block, and `step` moved to `a2`.
+
+One function-scope `m` assigned in both cases has `REG_N_SETS == 2`. Its
+`addiu` therefore never gets the `7f000001` launch boost. With priority 1 and
+no predecessors, the backward `sched1` picks it last and places it first.
+Declaring `GpMtxWords* m;` in a `{ }` block inside each case gives two
+single-set pseudos. The addiu is then launched as soon as the last `m->` store
+is scheduled, which puts it after the adds in `sched1`. `sched2`'s luid
+tie-break keeps that order, and `step` and `m` no longer overlap, so both take
+`a1`. The function matched 100%.
+
+The probe that found it reused `step` as the pointer:
+`step = (s32)&work->field_9C; ((GpMtxWords*)step)->w1 = 0; ...`. That scored
+99.7% with `regs=0`. The anti-dependence on the `addu` that reads `step`
+ordered the `addiu`, and the shared pseudo gave `a1`. It showed which property
+mattered, but writing the per-case locals was the actual fix. When a pointer is
+hoisted to the top of a block, check whether the same C variable is also
+assigned in another `case` or branch.
+
 ## Which call-argument copy sits next to the `jal` is decided by hard-register set counts
 
 Two zero arguments after a run of stores looked like a register-colouring miss:
@@ -58989,6 +59015,17 @@ earlier (table at `_6` offset `0x10C`). The slide worked again: `units` `0xC094`
 `0xA268`, `_7`'s `rodata` `0x288` -> `0x218` (`0x70` apart, so `_7`'s existing
 table stays 8-aligned). Try the slide before adding a unit. Adding one renumbers
 every later file, and a lane that renumbers cannot be landed by filename.
+**Third use, sliding the start forward.** `func_actor_503500_801450A0`'s table
+sat at `_8` offset `0xAC` (4 mod 8). `_8` ends at a `shared` span, so its end
+boundary could not move back past it. Instead, its *start* moved forward to the
+function: `units` `0xFF5C` -> `0x13280`, and `_8`'s `rodata` `0x338` -> `0x3E4`.
+Everything in `_8.c` ahead of the function went to the tail of `_7.c`, with the
+moved `INCLUDE_ASM` / `INCLUDE_RODATA` paths renamed to `_7`. The two
+compiler tables that moved (`_8` offsets `0x0` and `0x70`) stay aligned because
+`_7`'s `.rodata` was exactly `0x120` long, a multiple of 8. Read that size from
+the `.elf.map` before sliding. Copy over only the header declarations the moved
+bodies use. `cc1` runs with `-w`, so a missing prototype does not show up as a
+warning; only an undeclared *variable* (`Wip_SysConfig`) stops the build.
 
 ### Scratch `base.c` drops the host file's `<psyq/...>` includes and local `#define`s
 **Symptom.** A port of a matched sibling scores ~91% and the only diff is

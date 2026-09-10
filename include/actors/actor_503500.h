@@ -617,10 +617,13 @@ typedef struct Actor503500WorkD0 {
     /* 0x00 */ Actor503500WorkRec4 head;
     /* 0x98 */ Task*               field_98;
     /* 0x9C */ MATRIX              field_9C;
-    /* 0xBC */ s32                 field_BC;
-    /* 0xC0 */ s32                 field_C0;
+    /* 0xBC */ GpFixed16           field_BC; // angle; the high half turns field_9C
+    /* 0xC0 */ s32                 field_C0; // per-frame angle step
     /* 0xC4 */ s16                 field_C4;
-    /* 0xC6 */ byte                pad_C6[0xA];
+    /* 0xC6 */ s16                 field_C6; // sub-state frame counter
+    /* 0xC8 */ byte                pad_C8[0x4];
+    /* 0xCC */ s8                  field_CC; // sub-state index
+    /* 0xCD */ byte                pad_CD[0x3];
 } Actor503500WorkD0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
 
