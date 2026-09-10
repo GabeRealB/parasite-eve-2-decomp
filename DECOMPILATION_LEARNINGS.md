@@ -58637,3 +58637,21 @@ takes `dst`/`src` in the order they are *assigned* - the first-assigned pointer 
 the one dbr hoists into the preceding branch's delay slot. Assign `dst` first
 when the target hoists the destination. Indexing both arrays (`dst[i] = src[i]`)
 cost 5 points instead.
+
+### Two adjacent `lui`s swapped at a call: compute the argument expression into a local first
+
+`func_actor_503500_8013E384` passes a computed fourth argument,
+`Task_SpawnFromTable(&D_..._8016E9F0, 0, 1, (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000)`.
+Everything matched except `lui a0,%hi(D_..._8016E9F0)` landing one slot above
+`lui v0,%hi(D_80073B8C)` (99.92%, `regs=4`, no other difference). Both `high`
+insns are ready together with equal priority, so sched1 falls back to LUID
+order, and inline the table address (uid 98) is emitted before the argument
+expression (uid 114). Evaluating the argument first reverses the RTL order and
+matched outright:
+
+```c
+arg  = (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000;
+task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
+```
+
+The rest of the argument setup (`move a1,zero`, `li a2,1`) did not move.

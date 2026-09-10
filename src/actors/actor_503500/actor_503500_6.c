@@ -97,6 +97,11 @@ extern RECT    D_actor_503500_8016F148[][2];
 /// for the per-frame effect, rows 3-5 for the odd-frame one.
 extern SVECTOR D_actor_503500_8016F374[];
 extern RECT    D_actor_503500_8016F3A4;
+/// `func_actor_503500_8013E384`'s per-shot tables, indexed by shot 0..5: a
+/// spawn-arg term (`<< 12`) and the rotation each spawned child is turned by.
+extern s16     D_actor_503500_8016F2E0[];
+extern SVECTOR D_actor_503500_8016F2EC[];
+extern MATRIX* D_80073B8C;
 /// The same pair for `func_actor_503500_8013E740`: nine effect offsets, one
 /// picked by frame and one by `Gp_LcgState`, and the rect it moves on frame 8.
 extern SVECTOR D_actor_503500_8016F31C[];
@@ -2609,7 +2614,88 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013DEB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013E384);
+/// Sub-state 1 of the third 0xF0 block, stepped by `field_ED`: step 0 applies
+/// the boss's preset 0xB; from frame 0x42 step 1 spawns six children from
+/// `D_actor_503500_8016E9F0`, one a frame, each placed at a fixed offset in the
+/// actor's frame and turned by its row of `D_actor_503500_8016F2EC`; step 3
+/// hands off once `func_actor_503500_80136014` reports preset 0xB flagged.
+void func_actor_503500_8013E384(Actor503500* arg0)
+{
+    SVECTOR          pos;
+    SVECTOR          ofs;
+    MATRIX           m;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   dst;
+    Task*            task;
+    s32*             src;
+    s32*             out;
+    s32              i;
+    s32              arg;
+    s16              idx;
+
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_8013EC20(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_ED) {
+        case 0:
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0xB, 0x10);
+            work->field_ED++;
+            break;
+        case 1:
+            if (++work->field_EA < 0x42) {
+                break;
+            }
+        case 2:
+            idx  = work->field_EA - 0x42;
+            arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000;
+            task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
+            if (task != NULL) {
+                Gp_ComposeParentWorld(coord, &m, &pos);
+                dst    = ((TmdObject*)task->extra)->field_8;
+                ofs.vy = 0x190;
+                ofs.vx = 0;
+                ofs.vz = 0x960;
+                gte_SetRotMatrix(&m);
+                gte_ldv0(&ofs);
+                gte_rtv0_real();
+                gte_stsv(&ofs);
+                dst->coord.t[0] = pos.vx + ofs.vx;
+                dst->coord.t[1] = pos.vy + ofs.vy;
+                dst->coord.t[2] = pos.vz + ofs.vz;
+                src             = (s32*)&m;
+                out             = (s32*)&dst->coord;
+                for (i = 0; i < 4; i++) {
+                    *out++ = *src++;
+                }
+                dst->coord.m[2][2] = m.m[2][2];
+                RotMatrix(&D_actor_503500_8016F2EC[idx], &m);
+                gte_SetRotMatrix(&dst->coord);
+                gte_ldclmv(&m);
+                gte_rtir_real();
+                gte_stclmv(&dst->coord);
+                gte_ldclmv((char*)&m + 2);
+                gte_rtir_real();
+                gte_stclmv((char*)&dst->coord + 2);
+                gte_ldclmv((char*)&m + 4);
+                gte_rtir_real();
+                gte_stclmv((char*)&dst->coord + 4);
+            }
+            if (idx >= 5) {
+                work->field_ED += 2;
+            }
+            break;
+        case 3:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 0xB) != 0) {
+                func_actor_503500_8013EC20(arg0, 0);
+            }
+            break;
+    }
+}
 
 /// Sub-state 2 of the third 0xF0 block, stepped by `field_ED`: the same
 /// death sequence as `func_actor_503500_8013F4A4`, except the effects come
