@@ -43,6 +43,25 @@ typedef struct Actor342400Msg {
 } Actor342400Msg;
 STATIC_ASSERT_SIZEOF(Actor342400Msg, 0x4);
 
+/// 8-byte record in the table at `D_actor_342400_8016BF58`, indexed by the
+/// halfword at `Task` 0x36 (the high half of `spawnArg1`). A child task that
+/// finishes writes 2 into `field_6` before killing itself.
+typedef struct Actor342400Slot {
+    /* 0x0 */ byte pad_0[0x6];
+    /* 0x6 */ s16  field_6;
+} Actor342400Slot;
+STATIC_ASSERT_SIZEOF(Actor342400Slot, 0x8);
+
+/// Work block of the child task handled by `func_actor_342400_80163178`,
+/// stored in its `Task::idMap` slot; it is killed once `field_A` reaches 3.
+typedef struct Actor342400ChildWork {
+    /* 0x0 */ byte pad_0[0xA];
+    /* 0xA */ s16  field_A;
+} Actor342400ChildWork;
+
+extern Actor342400Slot D_actor_342400_8016BF58[];
+
+void func_actor_342400_801621D8(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
 
 #endif
