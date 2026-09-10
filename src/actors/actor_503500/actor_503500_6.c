@@ -1381,7 +1381,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144B40);
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144D50);
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144DA8);
+void func_actor_503500_80144DA8(Task* arg0)
+{
+    func_actor_503500_801372AC(3);
+    if (arg0->spawnArg1 == 0) {
+        SndEvt_EnqueueType7(0x40230008, 1);
+    } else {
+        SndEvt_EnqueueType7(0x40230007, 1);
+    }
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Task_Kill(arg0);
+}
 void func_actor_503500_80144E10(Task* arg0)
 {
     Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->idMap)->rec);
