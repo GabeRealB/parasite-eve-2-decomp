@@ -1222,7 +1222,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
 /// `t` and the constant term.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801422B8);
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80142310);
+void func_actor_503500_80142310(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work* work;
+
+    work                = arg0->field_1C;
+    work->field_3A4     = arg1;
+    work->field_3D0     = 0;
+    work->field_3D1     = 0;
+    work->field_3AE     = 0;
+    work->field_3B0     = 0;
+    work->field_39C     = 0x600000;
+    work->obj240.flags &= 0x7FFF;
+    arg0->killCountdown = 0;
+    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1, arg1 != 0);
+}
 void func_actor_503500_80142370(Task* task)
 {
     TaskFuncTable3 sp;
