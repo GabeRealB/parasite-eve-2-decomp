@@ -436,7 +436,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
 /// preset `D_actor_503500_8016EAD4`. The block is passed to `Gp_AnimTickIndex`
 /// as the `GpAnimCtx` it is fronted by (`Actor503500WorkBoss::anim`).
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136D30);
+void func_actor_503500_80136D30(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s32              i;
+
+    work = arg0->field_1C;
+    if (work->field_7D4 != 0) {
+        if (work->slot40.boss.flags_4C & 0x100) {
+            if (work->field_7B0 == 0) {
+                func_actor_503500_80137048(arg0, 0);
+                func_actor_503500_80135950(arg0, 0x7D3, &D_actor_503500_8016EAD4, 0);
+            }
+        } else {
+            for (i = 1; i < 0x14; i++) {
+                Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            }
+        }
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136DDC);
 
 /// Puts the boss into state `arg1`: clears the state's step counters and the two
