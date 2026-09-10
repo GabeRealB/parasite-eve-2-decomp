@@ -457,7 +457,31 @@ void func_actor_503500_8013611C(s32 arg0)
     D_actor_503500_80176D64[arg0] = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136134);
+/// Main-executable matrix the scene tracks (`acropolis_forked_road.h` calls it
+/// the camera target); no module header owns it yet.
+extern MATRIX* D_80073B8C;
+
+/// Yaw from the actor's first part to `D_80073B8C`'s translation, relative to
+/// the part's own heading, wrapped into [-0x800, 0x800).
+s16 func_actor_503500_80136134(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR        vec;
+    s16            angle;
+
+    coord  = arg0->extra->field_8;
+    vec.vx = D_80073B8C->t[0] - coord->coord.t[0];
+    vec.vy = 0;
+    vec.vz = D_80073B8C->t[2] - coord->coord.t[2];
+    angle  = ratan2(vec.vx, vec.vz) - ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    while (angle >= 0x800) {
+        angle -= 0x1000;
+    }
+    while (angle < -0x800) {
+        angle += 0x1000;
+    }
+    return angle;
+}
 
 s8 func_actor_503500_80136208(void)
 {
