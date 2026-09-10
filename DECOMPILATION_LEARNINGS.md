@@ -58719,3 +58719,21 @@ mode constant in each predecessor and a `nop` in the shared call's delay
 slot), and `enemy->field_50 = &tbl[arg0->spawnArg1]` before
 `enemy->field_54 = rec` (the `spawnArg1` reload may alias the enemy stores, so
 source order fixes the `sw 0x54` position).
+
+### A three-term `|` with a constant: the written order decides which term the constant joins
+
+`func_actor_503500_80132778` packs `Gp_SpawnEff`'s third argument from two
+masked fields and a constant. The target computes `(f0 & 0xFFF) | 0x3800000`
+into `$a2`, `f4 & 0xF000` into `$v0`, then `or $a2, $v0, $a2`. The three
+spellings of the same value allocate differently:
+
+| source | object |
+|---|---|
+| `(f4 & 0xF000) \| ((f0 & 0xFFF) \| 0x3800000)` (m2c) | constant ORed into the `f4` term, `f0` term in `$v0` |
+| `(f0 & 0xFFF) \| 0x3800000 \| (f4 & 0xF000)` | `f0` term in `$v0`, constant joins `f4` - mirrored |
+| `(f4 & 0xF000) \| 0x3800000 \| (f0 & 0xFFF)` | **match** |
+
+Fold reassociates the constant outward, so the term it ends up paired with is
+not the one it is written next to. Penalties were `regs=4` only, all inside the
+argument expression. Try the mirrored order of the non-constant terms before
+touching anything else; it costs one build.

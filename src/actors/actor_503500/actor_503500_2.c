@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include "main/gameflag.h"
 
 /// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
@@ -19,11 +20,13 @@ extern GpMsgEntry D_actor_503500_80146888[];
 /// `Task::state`, copied onto the stack first.
 extern TaskFuncTable3 D_actor_503500_80131E24;
 void                  func_actor_503500_801324EC(Task* arg0);
-extern Task*          D_actor_503500_80176558;
-extern TaskDesc       D_actor_503500_8014B964;
-extern s8             D_actor_503500_80176D5A;
-extern s16            D_actor_503500_80176D2E;
-extern u16            D_actor_503500_80176D24;
+/// Spawn positions `func_actor_503500_80132778` indexes by `Task::spawnArg1`.
+extern SVECTOR  D_actor_503500_8014B97C[];
+extern Task*    D_actor_503500_80176558;
+extern TaskDesc D_actor_503500_8014B964;
+extern s8       D_actor_503500_80176D5A;
+extern s16      D_actor_503500_80176D2E;
+extern u16      D_actor_503500_80176D24;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
@@ -180,7 +183,80 @@ void func_actor_503500_8013270C(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132778);
+void func_actor_503500_80132778(Task* task)
+{
+    GsCOORDINATE2*      coord;
+    GpMtxWords*         rot;
+    Actor503500EffWork* work;
+    SVECTOR*            pos;
+    u8                  done;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (task->state == 0) {
+        pos               = &D_actor_503500_8014B97C[task->spawnArg1];
+        coord->coord.t[0] = pos->vx;
+        coord->coord.t[1] = pos->vy;
+        coord->coord.t[2] = pos->vz;
+        rot               = (GpMtxWords*)&coord->coord;
+        rot->w0           = 0x1000;
+        rot->w1           = 0;
+        rot->w2           = 0x1000;
+        rot->w3           = 0;
+        rot->h4           = 0x1000;
+        coord->flg        = 0;
+        work              = Mem_Calloc(0xC, false);
+        if (work == NULL) {
+            Task_Kill(task);
+            return;
+        }
+        task->idMap     = (TaskIdMap*)work;
+        work->field_0   = 0xC00;
+        work->field_4   = 0x4000;
+        work->field_8.w = 0x60000;
+        task->state++;
+    }
+    work = (Actor503500EffWork*)task->idMap;
+    if (D_801153F4 == 0) {
+        if (work->field_8.h.hi < ++task->killCountdown) {
+            task->killCountdown = 0;
+            Gp_SpawnEff(0x6018C, coord,
+                        (work->field_4 & 0xF000) | 0x03800000 | (work->field_0 & 0xFFF), NULL);
+        }
+    }
+    switch (GameFlag_GetNibble(0x12A)) {
+        case 0:
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                Task_Kill(task);
+                return;
+            }
+            done = Game_Session->field_5F;
+            break;
+        case 2:
+        case 3:
+            if (Game_Session->field_1 != 0) {
+                return;
+            }
+            work->field_4 -= 0x20;
+            if (work->field_4 < 0x1000) {
+                work->field_4 = 0x1000;
+            }
+            work->field_0 -= 0x10;
+            if (work->field_0 < 0x100) {
+                work->field_0 = 0x100;
+            }
+        case 4:
+            work->field_8.w += 0x1000;
+            done             = work->field_8.w > 0x100000;
+            break;
+        default:
+            Task_Kill(task);
+            return;
+    }
+    if (done) {
+        Task_Kill(task);
+    }
+}
 
 void func_actor_503500_80132990(Task* task)
 {

@@ -81,6 +81,25 @@ typedef struct Actor503500MsgPos {
 } Actor503500MsgPos;
 STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
 
+/// Work block `func_actor_503500_80132778` allocates (`Mem_Calloc(0xC)`) and
+/// parks in `Task::idMap`. Each spawn packs `field_0 & 0xFFF` and
+/// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
+/// period whose integer half is the `Task::killCountdown` limit between
+/// spawns. Flag nibble 0x12A states 2..4 decay the first two and stretch the
+/// period until it passes 0x10 and the task dies.
+typedef struct Actor503500EffWork {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    union {
+        /* 0x8 */ s32 w;
+        struct {
+            /* 0x8 */ s16 lo;
+            /* 0xA */ s16 hi;
+        } h;
+    } field_8;
+} Actor503500EffWork;
+STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
+
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node
 /// there -- `func_actor_503500_801372C8` links `obj` and
