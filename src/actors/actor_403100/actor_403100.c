@@ -386,7 +386,34 @@ void func_actor_403100_801354A0(Task* arg0)
     }
     func_actor_403100_801327CC(arg0);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801355D4);
+void func_actor_403100_801355D4(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            i;
+
+    D_actor_403100_80155810                   = 0;
+    coord                                     = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_61C        = 3;
+    D_actor_403100_80155808->flags_634.h.high = 0x1C;
+    for (i = 0; i < 28; i++) {
+        if (D_actor_403100_80155814[i].active != 0) {
+            D_actor_403100_80155814[i].active = 0;
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+        }
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    coord->coord.t[0]                  = -0x74E;
+    coord->coord.t[2]                  = -0x1770;
+    coord->coord.t[1]                  = 0;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 7;
+    D_actor_403100_80155808->field_5DA = 2;
+    D_actor_403100_80155808->field_82  = 0;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_618 = 0x1400;
+    func_actor_403100_801327CC(arg0);
+    D_actor_403100_80155808->field_5FA += 1;
+}
 static __inline__ s16 Actor403100_TestFlags104(void)
 {
     if (D_actor_403100_80155808->field_B8.legacy.flags_104.half & 1) {
