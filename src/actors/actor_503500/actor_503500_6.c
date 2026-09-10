@@ -97,6 +97,8 @@ extern SVECTOR D_actor_503500_8016F168[];
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 /// Effect offsets `func_actor_503500_80139014` cycles through, three entries.
 extern SVECTOR D_actor_503500_8016F0D0[];
+/// The same three-entry cycle for `func_actor_503500_80140654`.
+extern SVECTOR D_actor_503500_8016F448[];
 /// Main-executable counter; tested here for multiples of 12 (actor_503500_7.c
 /// reads its parity).
 extern s32  D_80070F70;
@@ -3895,7 +3897,137 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801400A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80140654);
+/// Death state of the 0x3D8 enemies, the same body as
+/// `func_actor_503500_80139014` at this block's offsets: unlinks the enemy
+/// node, waits for `field_3D4`, re-parents the root coordinate onto the view
+/// and plays 0x40230004 at it. Phase 2 eases every part back to rest while the
+/// body rises; past 1000 the pose is saved in `field_378` and phase 3 squashes
+/// it vertically (`field_3AC`), firing the cues on frames 10/15/30/40.
+/// Every twelfth frame of phases 0..2 sprays effects along parts 8..1.
+void func_actor_503500_80140654(Actor503500* arg0)
+{
+    MATRIX           m;
+    VECTOR           scale;
+    SVECTOR          rot;
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   part;
+    s16*             p;
+    s32              phase;
+    s32              i;
+    s32              j;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    phase = work->field_3D0;
+    coord = arg0->extra->field_8;
+    switch (phase) {
+        case 0:
+            work->obj160.flags &= 0x7FFF;
+            enemy->field_54     = 0;
+            Gp_UnlinkNode(&enemy->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_3A8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            enemy->field_4C   &= 0xF0;
+            work->field_368.vy = 0x7D0;
+            work->field_3D0++;
+            break;
+        case 1:
+            if (work->field_3D4 != 0) {
+                Gp_ComposeParentWorld(coord, &m, &rot);
+                coord->coord      = m;
+                coord->coord.t[0] = rot.vx;
+                coord->coord.t[1] = rot.vy;
+                coord->coord.t[2] = rot.vz;
+                coord->sub        = &Gfx_ViewCoord;
+                coord->flg        = 0;
+                work->field_3D6   = phase;
+                Gp_UpdateCoord(coord);
+                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                work->field_3D0++;
+            }
+            break;
+        case 2:
+            for (i = 1; i < 9; i++) {
+                part = &coord[i];
+                Gp_ExtractEuler(&rot, &part->coord);
+                p = &rot.vx;
+                j = 1;
+                do {
+                    if (*p > 0) {
+                        *p -= 2;
+                        if (*p < 0) {
+                            *p = 0;
+                        }
+                    } else {
+                        *p += 2;
+                        if (*p > 0) {
+                            *p = 0;
+                        }
+                    }
+                    p++;
+                } while (j++ < 3);
+                func_actor_503500_SetRotIdentity(&coord[i].coord);
+                RotMatrix(&rot, &part->coord);
+                part->flg = 0;
+            }
+            coord->flg         = 0;
+            coord->coord.t[1] += 10;
+            if (coord->coord.t[1] > 1000) {
+                work->field_378 = coord->coord;
+                work->field_3AC = 0x1000;
+                work->field_3D0++;
+            }
+            break;
+        case 3:
+            if (work->field_3AC > 0x200) {
+                work->field_3AC -= 0x20;
+            }
+            coord->coord = work->field_378;
+            scale.vx     = 0x1000;
+            scale.vy     = work->field_3AC;
+            scale.vz     = 0x1000;
+            ScaleMatrixL(&coord->coord, &scale);
+            coord->flg = 0;
+            switch (work->field_3AE) {
+                case 10:
+                    arg0->extra->field_C |= 2;
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                        (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                    break;
+                case 15:
+                    Gp_SpawnEff(0x600A5, coord, 1, NULL);
+                    break;
+                case 30:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+                case 40:
+                    SndEvt_EnqueueType7(0xD, 1);
+                    arg0->state++;
+                    break;
+            }
+            work->field_3AE++;
+            break;
+    }
+    if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0 && work->field_3D0 < 3 &&
+        (u32)D_80070F70 % 12 == 0) {
+        for (i = 8, j = 0; i > 0; i--) {
+            Gp_SpawnEff(0x60070, &arg0->extra->field_8[i], 0xB0008600, &D_actor_503500_8016F448[j]);
+            j++;
+            j = (j < 3) ? j : 0;
+        }
+    }
+    if (Game_Session->field_1 != 0 && Game_Session->field_4D != 0 && work->field_3D0 > 0) {
+        SndEvt_EnqueueType7(0xD, 1);
+        arg0->state = 2;
+    }
+}
 
 void func_actor_503500_80140BE8(Actor503500* arg0)
 {

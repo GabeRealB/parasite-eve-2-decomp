@@ -246,28 +246,34 @@ typedef struct Actor503500Work {
     /// Local offset copied from `D_actor_503500_8016F414[spawnArg1 - 0xD]`
     /// (the same address as `D_actor_503500_8016F3AC[spawnArg1]`).
     /* 0x368 */ SVECTOR field_368;
-    /* 0x370 */ byte    pad_370[0x2C];
-    /* 0x39C */ s32     field_39C;
-    /* 0x3A0 */ byte    pad_3A0[0x4];
-    /* 0x3A4 */ s16     field_3A4;
-    /* 0x3A6 */ s16     field_3A6;
-    /* 0x3A8 */ s16     field_3A8; // countdown, floored at 0 by func_actor_503500_801420C4
-    /* 0x3AA */ s16     field_3AA;
-    /* 0x3AC */ byte    pad_3AC[0x2];
-    /* 0x3AE */ s16     field_3AE;
-    /* 0x3B0 */ u16     field_3B0;
-    /* 0x3B2 */ u16     field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ byte    pad_3B4[0x2];
-    /* 0x3B6 */ u16     field_3B6; // stepped by 0x20 up to 0x1000
-    /* 0x3B8 */ byte    pad_3B8[0x14];
-    /* 0x3CC */ u16     field_3CC; // stepped down by 0x111, floored at 0
-    /* 0x3CE */ byte    pad_3CE[0x2];
-    /* 0x3D0 */ s8      field_3D0; // sub-state index
-    /* 0x3D1 */ s8      field_3D1; // sub-state phase, cleared with field_3D0
-    /* 0x3D2 */ byte    pad_3D2[0x4];
-    /* 0x3D6 */ s8      field_3D6;
-    /* 0x3D7 */ s8      field_3D7; // TMD buffer countdown, 0x3D8 block
-    /* 0x3D8 */ byte    pad_3D8[0x9C];
+    /* 0x370 */ byte    pad_370[0x8];
+    /// Part 0's `coord` matrix, saved by `func_actor_503500_80140654` once the
+    /// body has risen and restored every frame before scaling.
+    /* 0x378 */ MATRIX field_378;
+    /* 0x398 */ byte   pad_398[0x4];
+    /* 0x39C */ s32    field_39C;
+    /* 0x3A0 */ byte   pad_3A0[0x4];
+    /* 0x3A4 */ s16    field_3A4;
+    /* 0x3A6 */ s16    field_3A6;
+    /* 0x3A8 */ s16    field_3A8; // countdown, floored at 0 by func_actor_503500_801420C4
+    /* 0x3AA */ s16    field_3AA;
+    /* 0x3AC */ s16    field_3AC; // vertical scale, 0x1000 down to 0x200
+    /* 0x3AE */ s16    field_3AE; // sub-state frame counter
+    /* 0x3B0 */ u16    field_3B0;
+    /* 0x3B2 */ u16    field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ byte   pad_3B4[0x2];
+    /* 0x3B6 */ u16    field_3B6; // stepped by 0x20 up to 0x1000
+    /* 0x3B8 */ byte   pad_3B8[0x14];
+    /* 0x3CC */ u16    field_3CC; // stepped down by 0x111, floored at 0
+    /* 0x3CE */ byte   pad_3CE[0x2];
+    /* 0x3D0 */ s8     field_3D0; // sub-state index
+    /* 0x3D1 */ s8     field_3D1; // sub-state phase, cleared with field_3D0
+    /* 0x3D2 */ byte   pad_3D2[0x2];
+    /* 0x3D4 */ s8     field_3D4; // set while field_358 sits on field_368
+    /* 0x3D5 */ byte   pad_3D5[0x1];
+    /* 0x3D6 */ s8     field_3D6;
+    /* 0x3D7 */ s8     field_3D7; // TMD buffer countdown, 0x3D8 block
+    /* 0x3D8 */ byte   pad_3D8[0x9C];
     /// The boss's own light / colour matrix pair: `func_actor_503500_80132F64`
     /// points the model's `TmdObject::field_1C` / `field_20` at these.
     /* 0x474 */ MATRIX lightMtx;
