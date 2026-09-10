@@ -131,7 +131,43 @@ void func_actor_403100_8013D74C(Task* arg0)
     D_actor_403100_80155808->field_638             = 0;
     D_actor_403100_80155808->field_63A             = 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013D770);
+void func_actor_403100_8013D770(Task* arg0)
+{
+    SVECTOR           rotation;
+    Actor403100Matrix matrix;
+    MATRIX*           dest;
+    MATRIX*           mtx;
+    GsCOORDINATE2*    coords;
+    GsCOORDINATE2*    updated;
+
+    coords               = ((TmdObject*)arg0->extra)->field_8;
+    dest                 = &coords[6].coord;
+    coords[6].flg        = 0;
+    mtx                  = &matrix.mat;
+    matrix.ident.m00_m01 = 0x1000;
+    matrix.ident.m02_m10 = 0;
+    *(s32*)&mtx->m[1][1] = 0x1000;
+    matrix.ident.m20_m21 = 0;
+    mtx->m[2][2]         = 0x1000;
+    Gp_MtxToEuler(dest, &rotation);
+    USE_REG(mtx);
+    rotation.vz += D_actor_403100_80155808->field_A4;
+    rotation.vy += D_actor_403100_80155808->field_A2;
+    rotation.vx += D_actor_403100_80155808->field_A0;
+    RotMatrix(&rotation, &matrix.mat);
+    dest->m[0][0] = matrix.mat.m[0][0];
+    dest->m[0][1] = matrix.mat.m[0][1];
+    dest->m[0][2] = matrix.mat.m[0][2];
+    dest->m[1][0] = matrix.mat.m[1][0];
+    dest->m[1][1] = matrix.mat.m[1][1];
+    dest->m[1][2] = matrix.mat.m[1][2];
+    dest->m[2][0] = matrix.mat.m[2][0];
+    dest->m[2][1] = matrix.mat.m[2][1];
+    updated       = coords + 6;
+    USE_REG(updated);
+    dest->m[2][2] = matrix.mat.m[2][2];
+    Gp_UpdateCoord(updated);
+}
 void func_actor_403100_8013D88C(Task* arg0)
 {
     Gp_UnlinkObj(&D_actor_403100_80155808->field_47C);
