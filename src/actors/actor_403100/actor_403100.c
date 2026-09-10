@@ -446,7 +446,74 @@ void func_actor_403100_80133D88(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133E88);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801342B4);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801345E0);
+void func_actor_403100_801345E0(Task* arg0, Task* arg1)
+{
+    s32            x;
+    Task*          task;
+    GsCOORDINATE2* coord;
+
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = D_actor_403100_80155794[0][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = D_actor_403100_80155794[0][1];
+        }
+        if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+            task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+            if (task != NULL) {
+                coord = ((TmdObject*)task->extra)->field_8;
+                USE_REG(coord);
+                x                 = D_actor_403100_80155794[1][0];
+                coord->coord.t[0] = x;
+                USE_REG(x);
+                coord->coord.t[1] = 0;
+                coord->coord.t[2] = D_actor_403100_80155794[1][1];
+            }
+            if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+                task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+                if (task != NULL) {
+                    coord = ((TmdObject*)task->extra)->field_8;
+                    USE_REG(coord);
+                    x                 = D_actor_403100_80155794[2][0];
+                    coord->coord.t[0] = x;
+                    USE_REG(x);
+                    coord->coord.t[1] = 0;
+                    coord->coord.t[2] = D_actor_403100_80155794[2][1];
+                }
+                if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+                    task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+                    if (task != NULL) {
+                        coord = ((TmdObject*)task->extra)->field_8;
+                        USE_REG(coord);
+                        x                 = D_actor_403100_80155794[3][0];
+                        coord->coord.t[0] = x;
+                        USE_REG(x);
+                        coord->coord.t[1] = 0;
+                        coord->coord.t[2] = D_actor_403100_80155794[3][1];
+                    }
+                    if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
+                        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+                        if (task != NULL) {
+                            coord = ((TmdObject*)task->extra)->field_8;
+                            USE_REG(coord);
+                            x                 = D_actor_403100_80155794[4][0];
+                            coord->coord.t[0] = x;
+                            USE_REG(x);
+                            coord->coord.t[1] = 0;
+                            coord->coord.t[2] = D_actor_403100_80155794[4][1];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013480C);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E70);
