@@ -72,7 +72,13 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183A00);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183A98);
+void func_shelter_b3_dumping_hole_80183A98(DumpingHoleState* arg0)
+{
+    if (arg0->field_1C->field_0->field_40 <= 0) {
+        D_shelter_b3_dumping_hole_8018B7BC[arg0->field_36].field_6 = 2;
+        Task_Kill((Task*)arg0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183AEC);
 
