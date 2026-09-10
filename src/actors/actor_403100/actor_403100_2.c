@@ -591,7 +591,110 @@ void func_actor_403100_80138F88(Task* arg0)
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->field_40;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013922C);
+void func_actor_403100_8013922C(Task* arg0)
+{
+    s32            message[6];
+    s16            health;
+    s32            damage;
+    s32            state;
+    u16            frame;
+    u32            random;
+    u8             request;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* part;
+
+    coords                              = ((TmdObject*)arg0->extra)->field_8;
+    part                                = coords + 6;
+    D_actor_403100_80155808->field_5EC += 1;
+    func_actor_403100_8013D6B4(arg0);
+    func_actor_403100_8013C214(arg0);
+    func_actor_403100_8013C214(arg0);
+    D_actor_403100_80155808->field_82 = 0xC00;
+    D_actor_403100_80155808->field_80 = 0;
+    D_actor_403100_80155808->field_84 = 0;
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        request = (u8)D_actor_403100_80155808->field_65F;
+        if ((request == 1) && ((u8)D_actor_403100_80155808->field_664.b.field_667 == request)) {
+            random                             = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                        = random;
+            D_actor_403100_80155808->field_638 = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x400, 0, 0);
+            D_actor_403100_80155808->field_65F = 0;
+        }
+    } else {
+        frame                              = D_actor_403100_80155808->field_654 + 1;
+        D_actor_403100_80155808->field_654 = frame;
+        if ((s16)frame == 0x3C) {
+            func_actor_403100_8013D2A0(1);
+        }
+        if ((s16)D_actor_403100_80155808->field_654 >= 0x79) {
+            Game_Session->field_127 = 0;
+        }
+    }
+    func_actor_403100_80132528(arg0);
+    func_actor_403100_8013D700(arg0);
+    func_actor_403100_8013C214(arg0);
+    if (D_actor_403100_80155808->pad_66A[2] != 0) {
+        if (D_actor_403100_80155808->field_5DE != 0xD) {
+            D_actor_403100_80155808->field_5DE = 0xD;
+            D_actor_403100_80155808->field_5E2 = 0x10;
+            D_actor_403100_80155808->field_5DA = 2;
+            if ((u8)D_actor_403100_80155808->field_664.b.field_665 == 0) {
+                D_actor_403100_80155808->field_66F             = 1;
+                D_actor_403100_80155808->field_664.b.field_665 = 1;
+            }
+        }
+    } else {
+        if (Actor403100_TestFlags()) {
+            D_actor_403100_80155808->field_5E2 = 0x10;
+            D_actor_403100_80155808->field_5DE = 0xC;
+            D_actor_403100_80155808->field_5DA = 2;
+        }
+    }
+    if ((u8)D_actor_403100_80155808->pad_660[0] != 0) {
+        D_actor_403100_80155808->pad_660[0] = 0;
+        func_actor_403100_8013D1B8(1, 0x3FF);
+        message[5] = 0x28;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)message, 0);
+        D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
+    }
+    if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
+        (((u8)D_actor_403100_80155808->field_664.b.field_667 == 1) &&
+         ((s16)D_actor_403100_80155808->field_5EC >= 0x1C2) &&
+         ((u8)D_actor_403100_80155808->pad_670[0] == 0)) ||
+        (D_actor_403100_8015580C->field_40 <= 0)) {
+        damage = (s16)D_actor_403100_80155808->field_656 - D_actor_403100_8015580C->field_40;
+        health = D_actor_403100_8015580C->field_40;
+        if ((damage >= 0x3C) && (health > 0)) {
+            D_actor_403100_80155808->field_5EC  = 0;
+            D_actor_403100_80155808->field_5FA += 1;
+            return;
+        }
+        func_actor_403100_8013D1B8(1, 0x3F4);
+        TOUCH_MEM(D_actor_403100_80155808);
+        state = 8;
+        TOUCH_REG(state);
+        D_actor_403100_80155808->field_5DE = 0xE;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5E2 = state;
+        Mc_SaveData.field_4                = 0xC;
+        *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
+        *(s32*)(u32)&coords->coord.t[2]    = 0x1770;
+        *(s32*)(u32)&coords->coord.t[1]    = 0;
+        D_actor_403100_80155808->field_82  = 0xC00;
+        D_actor_403100_80155808->field_80  = 0;
+        D_actor_403100_80155808->field_84  = 0;
+        D_actor_403100_80155808->field_604 = 0;
+        D_actor_403100_80155808->field_608 = 0;
+        D_actor_403100_80155808->field_A0  = 0;
+        D_actor_403100_80155808->field_A2  = 0;
+        D_actor_403100_80155808->field_A4  = 0;
+        part->coord.t[0]                   = -0x877;
+        D_actor_403100_80155808->field_5FA = state;
+    }
+}
 void func_actor_403100_801395EC(Task* arg0)
 {
     Actor403100Entry* entry;
