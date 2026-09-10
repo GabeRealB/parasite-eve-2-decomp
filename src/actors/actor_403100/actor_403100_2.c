@@ -1102,7 +1102,67 @@ static inline void Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013C7B4);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013CBE0);
+void func_actor_403100_8013CBE0(Task* arg0)
+{
+    s16 next;
+    s16 next2;
+    s32 sound;
+    s32 soundId;
+    s32 pan;
+    u32 random;
+    s32 depth;
+    u8  request;
+    u8  state;
+
+    state = D_actor_403100_80155808->field_664.b.field_665;
+    switch (state) {
+        case 0:
+            D_actor_403100_80155808->field_5E8 = (s16)((u16)D_actor_403100_80155808->field_5E8 + ((s32) - (D_actor_403100_80155808->field_5E8 * 0x10) >> 7));
+            return;
+        case 1:
+            request = D_actor_403100_80155808->field_66F;
+            if (request == state) {
+                soundId = 0x401F0009;
+                goto play_sound;
+            }
+            if (request == 2) {
+                random      = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState = random;
+                if ((random >> 16) & 1) {
+                    soundId = 0x401F0000;
+                    TOUCH_REG(soundId);
+                    soundId |= 2;
+                } else {
+                    soundId = 0x401F0000;
+                    TOUCH_REG(soundId);
+                    soundId |= 5;
+                }
+            play_sound:
+                sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | soundId;
+                pan   = (s8)((s32 (*)(GpObj38*, s32))Gp_GetObjPan)((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 4), soundId);
+                depth = Gp_GetObjDepth((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 4));
+                SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+            }
+            D_actor_403100_80155808->field_66F             = 0U;
+            D_actor_403100_80155808->field_664.b.field_665 = (u8)(D_actor_403100_80155808->field_664.b.field_665 + 1);
+            return;
+        case 2:
+            next                               = (u16)D_actor_403100_80155808->field_5E8 + ((s32)(-0x2200 - (D_actor_403100_80155808->field_5E8 * 0x10)) >> 7);
+            D_actor_403100_80155808->field_5E8 = next;
+            if (next < -0x1FF) {
+                D_actor_403100_80155808->field_664.b.field_665 = (u8)(D_actor_403100_80155808->field_664.b.field_665 + 1);
+                return;
+            }
+            return;
+        case 3:
+            next2                              = (u16)D_actor_403100_80155808->field_5E8 + 0xC;
+            D_actor_403100_80155808->field_5E8 = next2;
+            if ((next2 << 16) >= 0) {
+                D_actor_403100_80155808->field_664.b.field_665 = 0U;
+            }
+            break;
+    }
+}
 void func_actor_403100_8013CDC0(void)
 {
     s16 next;
