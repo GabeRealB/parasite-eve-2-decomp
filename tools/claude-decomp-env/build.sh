@@ -75,6 +75,10 @@ rm -f "${CPP_OUTPUT}.d"
 # -dp. Strip the annotation from just those two markers; every other -dp uid is
 # left alone, because dump.sh joins the .s to its RTL dumps through them.
 sed -i -E 's/^([[:space:]]*#?\.set[[:space:]]+(no)?volatile)[[:space:]]+#.*$/\1/' "$CC_OUTPUT"
+# maspsx expands `li.d` / `li.s` (soft-float constants such as `x += 9.8`) by
+# splitting the raw line on ",", so a trailing uid reaches float() and aborts
+# the build. Those two pseudo-ops lose their uid for the same reason.
+sed -i -E 's/^([[:space:]]*li\.[ds][[:space:]].*[^[:space:]])[[:space:]]+#.*$/\1/' "$CC_OUTPUT"
 
 # Run maspsx. Keep the .s: -fverbose-asm / -dp comments map each insn to
 # an RTL uid (e.g. `lw $2,0($4)  # 31 movsi_internal2/5`). dump.sh uses

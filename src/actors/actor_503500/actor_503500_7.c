@@ -689,13 +689,13 @@ void func_actor_503500_80144300(Task* arg0)
     }
     arg0->idMap = (TaskIdMap*)work;
 
-    work->field_84.vx = coord->coord.t[0] << 16;
-    work->field_84.vy = coord->coord.t[1] << 16;
-    work->field_84.vz = coord->coord.t[2] << 16;
-    work->field_94.vx = work->field_84.vx;
-    work->field_B8    = 0x1000;
-    work->field_94.vy = work->field_84.vy;
-    work->field_94.vz = work->field_84.vz;
+    work->field_84.vx.w = coord->coord.t[0] << 16;
+    work->field_84.vy.w = coord->coord.t[1] << 16;
+    work->field_84.vz.w = coord->coord.t[2] << 16;
+    work->field_94.vx   = work->field_84.vx.w;
+    work->field_B8      = 0x1000;
+    work->field_94.vy   = work->field_84.vy.w;
+    work->field_94.vz   = work->field_84.vz.w;
 
     if (arg0->spawnArg2 != NULL) {
         v.vx = 0;
@@ -739,7 +739,56 @@ void func_actor_503500_80144300(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80144520);
+void func_actor_503500_80144520(Actor503500* arg0)
+{
+    Actor503500WorkC0* work;
+    GsCOORDINATE2*     coord;
+
+    work  = (Actor503500WorkC0*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    if (work->field_BE != 0) {
+        work->field_80->spawnArg1 = 2;
+        work->field_BC            = -1;
+    }
+    switch (work->field_BC) {
+        case 0:
+            work->field_A4.vy += 9.8 * 0x10000;
+            if (work->field_B4 != 0) {
+                work->obj.field_1C = 0x258;
+                work->field_A4.vx  = 0;
+                work->field_A4.vy  = 0;
+                work->field_A4.vz  = 0;
+                work->field_BF     = 1;
+                work->field_B4     = 0;
+                work->field_BA     = 0;
+                work->field_BC++;
+            } else {
+                work->field_BA++;
+                if ((s16)work->field_BA >= 0x3D) {
+                    work->field_BC = -1;
+                }
+            }
+            break;
+        case 1:
+            work->field_BA++;
+            if ((s16)work->field_BA >= 6) {
+                work->field_80->spawnArg1 = 2;
+                work->field_BA            = 0;
+                work->obj.flags          &= 0x7FFF;
+                work->field_BC++;
+            }
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+    work->field_84.vx.w += work->field_A4.vx;
+    work->field_84.vy.w += work->field_A4.vy;
+    work->field_84.vz.w += work->field_A4.vz;
+    coord->coord.t[0]    = work->field_84.vx.h.hi;
+    coord->coord.t[1]    = work->field_84.vy.h.hi;
+    coord->coord.t[2]    = work->field_84.vz.h.hi;
+}
 
 void func_actor_503500_801446E4(Actor503500* arg0)
 {
@@ -782,14 +831,14 @@ void func_actor_503500_80144778(Actor503500* arg0)
             case 0:
                 break;
             case 1:
-                work->field_84.vx += delta.vx.w;
-                work->field_84.vy += delta.vy.w;
-                work->field_84.vz += delta.vz.w;
+                work->field_84.vx.w += delta.vx.w;
+                work->field_84.vy.w += delta.vy.w;
+                work->field_84.vz.w += delta.vz.w;
                 break;
             case 2:
-                work->field_84.vx = work->field_94.vx;
-                work->field_84.vy = work->field_94.vy;
-                work->field_84.vz = work->field_94.vz;
+                work->field_84.vx.w = work->field_94.vx;
+                work->field_84.vy.w = work->field_94.vy;
+                work->field_84.vz.w = work->field_94.vz;
                 break;
         }
     }

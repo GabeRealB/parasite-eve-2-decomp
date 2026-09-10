@@ -402,6 +402,16 @@ typedef struct Actor503500WorkAC {
 } Actor503500WorkAC;
 STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 
+/// A 16.16 world position: `func_actor_503500_80144520` reads each
+/// component's high half (`lh` at +2) back into `GsCOORDINATE2.coord.t[]`.
+typedef struct Actor503500FixVec {
+    /* 0x0 */ GpFixed16 vx;
+    /* 0x4 */ GpFixed16 vy;
+    /* 0x8 */ GpFixed16 vz;
+    /* 0xC */ s32       pad;
+} Actor503500FixVec;
+STATIC_ASSERT_SIZEOF(Actor503500FixVec, 0x10);
+
 /// The 0xC0 block `func_actor_503500_80144300` allocates: the display node,
 /// the four-entry `GpRec18` table its `field_C` points at, the effect task it
 /// reparents itself under, and the payload `func_actor_503500_80144778` steps
@@ -409,17 +419,19 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 /// in 16.16) and `field_94` the copy it restores from; `field_A4` is the
 /// forward offset `ApplyMatrixLV` rotates out of `Task::spawnArg2`.
 typedef struct Actor503500WorkC0 {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[4];
-    /* 0x80 */ Task*   field_80;
-    /* 0x84 */ VECTOR  field_84;
-    /* 0x94 */ VECTOR  field_94;
-    /* 0xA4 */ VECTOR  field_A4;
-    /* 0xB4 */ s32     field_B4;
-    /* 0xB8 */ s16     field_B8;
-    /* 0xBA */ byte    pad_BA[0x4];
-    /* 0xBE */ s8      field_BE; // set when a record's kind (field_4 high half) is 1
-    /* 0xBF */ s8      field_BF; // nonzero skips the push-back step
+    /* 0x00 */ GpObj             obj;
+    /* 0x20 */ GpRec18           rec[4];
+    /* 0x80 */ Task*             field_80;
+    /* 0x84 */ Actor503500FixVec field_84;
+    /* 0x94 */ VECTOR            field_94;
+    /* 0xA4 */ VECTOR            field_A4; // per-frame velocity added onto field_84
+    /* 0xB4 */ s32               field_B4;
+    /* 0xB8 */ s16               field_B8;
+    /* 0xBA */ u16               field_BA; // sub-state frame counter
+    /* 0xBC */ s8                field_BC; // sub-state index, -1 finishes the task
+    /* 0xBD */ byte              pad_BD[0x1];
+    /* 0xBE */ s8                field_BE; // set when a record's kind (field_4 high half) is 1
+    /* 0xBF */ s8                field_BF; // nonzero skips the push-back step
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 

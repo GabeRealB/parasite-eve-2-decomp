@@ -58393,3 +58393,23 @@ and a second local reused by blocks 2 and 3 matched outright: the reload is
 elided exactly where the re-read assigns the same local that was just tested.
 Read the target's skipped reloads (a branch to just past an `lhu`, with the
 next `andi` in its delay slot) as a map of which statements share a variable.
+
+## Soft-float constants: decode the `lui`/`ori` pair as a double, then look for a 16.16 scale
+
+An `int += double` compiles to `__floatsidf` / `__adddf3` / `__fixdfsi`, with
+the constant loaded into `$a2`/`$a3` (low word in `$a2`, high word in `$a3`).
+In `func_actor_503500_80144520` the pair was `0x9999999A` / `0x41239999`, i.e.
+`0x412399999999999A` = 642252.8. m2c gives the bits but not the value, and
+guessing a "round" literal from the mantissa (`9.8` = `0x402399999999999A`)
+matches everything but the exponent. 642252.8 is `9.8 * 0x10000`: gravity in
+the 16.16 position that the function later reads back with `lh` of the high
+half. Write it that way - GCC folds the product to the identical bits:
+
+```c
+work->field_A4.vy += 9.8 * 0x10000;   /* 0x412399999999999A */
+```
+
+Check with `struct.unpack('>d', bytes.fromhex(...))` before trying literals.
+Scratch gotcha: maspsx expands `li.d` / `li.s` by splitting the raw line, so
+the `-dp` uid comment used to crash it (`could not convert string to float`);
+`build.sh` now strips the uid from those two pseudo-ops.
