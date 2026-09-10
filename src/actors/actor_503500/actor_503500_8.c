@@ -205,6 +205,7 @@ void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
 s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
 void func_actor_503500_8013611C(s32 arg0);
+s16  func_actor_503500_80136218(void);
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
 void func_actor_503500_80136048(Actor503500* arg0);
 s32  func_actor_503500_801360BC(s32 arg0, s32 arg1);
@@ -2163,7 +2164,152 @@ void func_actor_503500_8013FF0C(Actor503500* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_8", D_actor_503500_80132108);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_801400A4);
+/// Sub-state of the 0x3D8 enemies. Phase 0 latches the position behind
+/// `Wip_SysConfig.field_4` in `field_370` and rotates its offset from the
+/// parent coordinate into `field_368`; phase 1 ramps `field_3CC` to 0x2000 and
+/// re-aims once `field_3D4` is set; phases 2..4 ramp it back to 0. While in
+/// phases 0..1, `func_actor_503500_80142310` ends the state after 120 frames
+/// or when `func_actor_503500_80136218`'s reading leaves the window the slot
+/// (and whether its partner slot is empty) allows.
+void func_actor_503500_801400A4(Actor503500* arg0)
+{
+    SVECTOR          v;
+    SVECTOR          pos;
+    MATRIX           mtx;
+    MATRIX           rot;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    s32              keep;
+    s32              dist;
+
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_80142310(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_3D0) {
+        case 0:
+            work->field_370.vx = Wip_SysConfig.field_4->t[0];
+            work->field_370.vy = Wip_SysConfig.field_4->t[1];
+            work->field_370.vz = Wip_SysConfig.field_4->t[2];
+            Gp_ComposeParentWorld(coord->sub, &mtx, &pos);
+            v.vx = work->field_370.vx - pos.vx;
+            v.vy = work->field_370.vy - pos.vy - 5000;
+            v.vz = work->field_370.vz - pos.vz;
+            TRANSPOSE_ROT(&mtx, &rot);
+            gte_SetRotMatrix(&rot);
+            gte_ldv0(&v);
+            gte_rtv0_real();
+            gte_stsv(&work->field_368);
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0x12, 0x10);
+            work->field_3D0++;
+            break;
+        case 1:
+            work->field_3CC += 0x88;
+            if ((s16)work->field_3CC > 0x2000) {
+                work->field_3CC = 0x2000;
+            }
+            if (work->field_3D4 != 0 && work->field_3C8 > 2000) {
+                Gp_ComposeParentWorld(coord->sub, &mtx, &pos);
+                v.vx = work->field_370.vx - pos.vx;
+                v.vy = work->field_370.vy - pos.vy + 500;
+                v.vz = work->field_370.vz - pos.vz;
+                TRANSPOSE_ROT(&mtx, &rot);
+                gte_SetRotMatrix(&rot);
+                gte_ldv0(&v);
+                gte_rtv0_real();
+                gte_stsv(&work->field_368);
+                work->field_39C     = 0x4000000;
+                work->obj240.flags |= 0x8000;
+                work->field_3D0++;
+            }
+            break;
+        case 2:
+            work->field_3CC -= 0x200;
+            if ((s16)work->field_3CC < 0) {
+                work->field_3CC = 0;
+            }
+            work->field_3B6 -= 0x80;
+            if ((s16)work->field_3B6 < 0) {
+                work->field_3B6 = 0;
+            }
+            work->field_3B0++;
+            if ((s16)work->field_3B0 > 30) {
+                work->field_3B0 = 0;
+                work->field_3D0++;
+            }
+            break;
+        case 3:
+            work->field_3CC -= 0x2AA;
+            if ((s16)work->field_3CC < 0) {
+                work->field_3CC = 0;
+            }
+            if (work->field_3D4 != 0) {
+                work->field_3B0     = 0;
+                work->obj240.flags &= 0x7FFF;
+                work->field_3D0++;
+            }
+            break;
+        case 4:
+            work->field_3CC -= 0x400;
+            if ((s16)work->field_3CC < 0) {
+                work->field_3CC = 0;
+            }
+            work->field_3B0++;
+            if ((s16)work->field_3B0 > 30) {
+                func_actor_503500_80142310(arg0, 0);
+            }
+            break;
+    }
+    keep = 0;
+    dist = func_actor_503500_80136218();
+    switch (arg0->spawnArg1) {
+        case 13:
+            if (func_actor_503500_80135E04((Task*)arg0, 0xE) != 0) {
+                if (dist < -1900 || dist > 1000) {
+                    keep = 1;
+                }
+            } else if (dist > 1000 && dist < 1700) {
+                keep = 1;
+            }
+            break;
+        case 14:
+            if (func_actor_503500_80135E04((Task*)arg0, 0xD) != 0) {
+                if (dist < -1900 || dist > 1000) {
+                    keep = 1;
+                }
+            } else if (dist < -1900 || dist > 1699) {
+                keep = 1;
+            }
+            break;
+        case 15:
+            if (func_actor_503500_80135E04((Task*)arg0, 0x10) != 0) {
+                if (dist < -1000 || dist > 1900) {
+                    keep = 1;
+                }
+            } else if (dist < -1699 || dist > 1900) {
+                keep = 1;
+            }
+            break;
+        case 16:
+            if (func_actor_503500_80135E04((Task*)arg0, 0xF) != 0) {
+                if (dist < -1000 || dist > 1900) {
+                    keep = 1;
+                }
+            } else if (dist < -1000) {
+                if (dist >= -1699) {
+                    keep = 1;
+                }
+            }
+            break;
+    }
+    work->field_3AE++;
+    if (work->field_3D0 < 2 && (work->field_3AE > 120 || keep == 0)) {
+        func_actor_503500_80142310(arg0, 0);
+    }
+}
 
 /// Death state of the 0x3D8 enemies, the same body as
 /// `func_actor_503500_80139014` at this block's offsets: unlinks the enemy

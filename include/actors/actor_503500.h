@@ -262,9 +262,9 @@ typedef struct Actor503500Work {
     /// Local offset copied from `D_actor_503500_8016F414[spawnArg1 - 0xD]`
     /// (the same address as `D_actor_503500_8016F3AC[spawnArg1]`).
     /* 0x368 */ SVECTOR field_368;
-    /* 0x370 */ byte    pad_370[0x8];
-    /// Part 0's `coord` matrix, saved by `func_actor_503500_80140654` once the
-    /// body has risen and restored every frame before scaling.
+    /* 0x370 */ SVECTOR field_370; // player position latched by func_actor_503500_801400A4
+                                   /// Part 0's `coord` matrix, saved by `func_actor_503500_80140654` once the
+                                   /// body has risen and restored every frame before scaling.
     /* 0x378 */ MATRIX field_378;
     /* 0x398 */ byte   pad_398[0x4];
     /* 0x39C */ s32    field_39C;
@@ -279,7 +279,9 @@ typedef struct Actor503500Work {
     /* 0x3B2 */ u16    field_3B2; // fade level, stepped by 0x10 up to 0x1000
     /* 0x3B4 */ byte   pad_3B4[0x2];
     /* 0x3B6 */ u16    field_3B6; // stepped by 0x20 up to 0x1000
-    /* 0x3B8 */ byte   pad_3B8[0x14];
+    /* 0x3B8 */ byte   pad_3B8[0x10];
+    /* 0x3C8 */ s16    field_3C8;
+    /* 0x3CA */ byte   pad_3CA[0x2];
     /* 0x3CC */ u16    field_3CC; // stepped down by 0x111, floored at 0
     /* 0x3CE */ byte   pad_3CE[0x2];
     /* 0x3D0 */ s8     field_3D0; // sub-state index
