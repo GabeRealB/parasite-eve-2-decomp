@@ -266,7 +266,31 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100_2", D_actor_403100
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BA64);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BB8C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BDE4);
+void func_actor_403100_8013BDE4(Task* arg0)
+{
+    s16            angle;
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* coords;
+
+    coords = ((TmdObject*)arg0->extra)->field_8;
+    if (D_actor_403100_80155808->field_600 != 0) {
+        angle                              = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+        D_actor_403100_80155808->field_600 = angle;
+        if (angle == 0) {
+            Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+            D_actor_403100_80155808->field_5FE = 0x1E;
+            sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+            pan                                = (s8)Gp_GetObjPan((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 1));
+            depth                              = Gp_GetObjDepth((GpObj38*)(((TmdObject*)arg0->extra)->field_8 + 1));
+            SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        }
+    } else {
+        D_actor_403100_80155808->field_5F6 = 0;
+    }
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BEF0);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013C008);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013C214);
