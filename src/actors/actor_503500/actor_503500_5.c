@@ -1094,7 +1094,37 @@ s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
     return D_actor_503500_80176574.enemies[arg1] == NULL;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135E20);
+/// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
+/// in `field_7AC` for `func_actor_503500_80136DDC`. Parts 5 and 11 also seed
+/// the private copy of model part 4 / 10 and link it from the next part's
+/// `sub`; any other `arg1` only sets its bit.
+void func_actor_503500_80135E20(Actor503500* arg0, s32 arg1, SVECTOR* arg2)
+{
+    Actor503500Work* work = &D_actor_503500_80176574;
+
+    switch (arg1) {
+        case 5:
+            work->field_5A4.vx          = arg2->vx;
+            work->field_5A4.vy          = arg2->vy;
+            work->field_5A4.vz          = arg2->vz;
+            work->coord504              = arg0->extra->field_8[4];
+            arg0->extra->field_8[5].sub = &work->coord504;
+            break;
+        case 11:
+            work->field_5B4.vx           = arg2->vx;
+            work->field_5B4.vy           = arg2->vy;
+            work->field_5B4.vz           = arg2->vz;
+            work->coord554               = arg0->extra->field_8[10];
+            arg0->extra->field_8[11].sub = &work->coord554;
+            break;
+        case 16:
+            work->field_5C4.vx = arg2->vx;
+            work->field_5C4.vy = arg2->vy;
+            work->field_5C4.vz = arg2->vz;
+            break;
+    }
+    work->field_7AC |= 1 << arg1;
+}
 
 /// Records the per-slot halfword for slot `arg1` of the boss work block.
 /// `arg0` is loaded by every caller but the body ignores it, the same way

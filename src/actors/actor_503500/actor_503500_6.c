@@ -181,7 +181,7 @@ void func_actor_503500_8013611C(s32 arg0);
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
 void func_actor_503500_80136048(Actor503500* arg0);
 s32  func_actor_503500_801360BC(s32 arg0, s32 arg1);
-void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2);
+void func_actor_503500_80135E20(Actor503500* arg0, s32 arg1, SVECTOR* arg2);
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
 void func_actor_503500_801372AC(s32 arg0);
 void func_actor_503500_80138288(Actor503500* arg0);
@@ -2025,7 +2025,7 @@ void func_actor_503500_8013C558(Actor503500* arg0)
             vec.vx = 0x1000;
             vec.vy = 0x1000;
             vec.vz = work->field_EC;
-            func_actor_503500_80135E20(arg0->parent, 0x10, &vec);
+            func_actor_503500_80135E20((Actor503500*)arg0->parent, 0x10, &vec);
             work->field_EC -= work->field_EE;
             work->field_EE -= 4;
             if (work->field_EE <= 0) {
