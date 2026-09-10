@@ -1753,26 +1753,22 @@ void Gp_LinkViewSprts(void)
 
 void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 {
-    GpSprtCmd*    rec;
     register u32  i asm("s4");
     GpTpageSprt*  dest;
     GpSprtElem*   elem;
     GpSprtElem*   cur;
-    DisplayState* hi;
     DisplayState* ds;
     register u32  maskHi asm("s6");
     u32           mask;
     SPRT*         sprt;
     u32           tpage;
 
-    rec            = arg1;
     i              = 0;
     dest           = (GpTpageSprt*)Gpu_PrimCursor;
-    elem           = arg0 + rec->field_0;
-    Gpu_PrimCursor = (DR_TPAGE*)(dest + rec->field_2);
-    if (rec->field_2 != 0) {
-        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
-        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
+    elem           = arg0 + arg1->field_0;
+    Gpu_PrimCursor = (DR_TPAGE*)(dest + arg1->field_2);
+    if (arg1->field_2 != 0) {
+        ds     = &Display_State;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         cur    = elem;
@@ -1800,7 +1796,7 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
                 (*(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & maskHi) | ((u32)dest & mask);
             dest++;
             cur++;
-        } while (i < rec->field_2);
+        } while (i < arg1->field_2);
     }
 }
 
