@@ -623,7 +623,26 @@ void func_actor_503500_80136D30(Actor503500* arg0)
         }
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136DDC);
+/// Re-applies the boss's per-part scales: for each enabled bit of `field_7AC`,
+/// refreshes the private copy of model part 4 or 10 and scales it, and for
+/// 0x10000 scales model part 16 in place.
+void func_actor_503500_80136DDC(Actor503500* arg0)
+{
+    Actor503500Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_7AC & 0x20) {
+        work->coord504 = arg0->extra->field_8[4];
+        ScaleMatrix(&work->coord504.coord, &work->field_5A4);
+    }
+    if (work->field_7AC & 0x800) {
+        work->coord554 = arg0->extra->field_8[10];
+        ScaleMatrix(&work->coord554.coord, &work->field_5B4);
+    }
+    if (work->field_7AC & 0x10000) {
+        ScaleMatrix(&arg0->extra->field_8[16].coord, &work->field_5C4);
+    }
+}
 
 /// Puts the boss into state `arg1`: clears the state's step counters and the two
 /// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 with

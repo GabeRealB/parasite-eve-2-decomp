@@ -226,12 +226,20 @@ typedef struct Actor503500Work {
     /* 0x3D2 */ byte pad_3D2[0x4];
     /* 0x3D6 */ s8   field_3D6;
     /* 0x3D7 */ s8   field_3D7; // TMD buffer countdown, 0x3D8 block
-    /* 0x3D8 */ byte pad_3D8[0x1FC];
-    /// Display node + collision record of the boss's second body part:
-    /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
-    /// `func_actor_503500_80136A88` re-places the pair and
-    /// `func_actor_503500_80136228` hands `field_5D4` back to
-    /// `Gp_UnlinkObj` on teardown.
+    /* 0x3D8 */ byte pad_3D8[0x12C];
+    /// Private copies of two of the boss model's part coordinates (parts 4 and
+    /// 10), refreshed by `func_actor_503500_80136DDC` when bits 0x20 / 0x800 of
+    /// `field_7AC` are set and then scaled by `field_5A4` / `field_5B4`.
+    /* 0x504 */ GsCOORDINATE2 coord504;
+    /* 0x554 */ GsCOORDINATE2 coord554;
+    /* 0x5A4 */ VECTOR        field_5A4; // scale of coord504
+    /* 0x5B4 */ VECTOR        field_5B4; // scale of coord554
+    /* 0x5C4 */ VECTOR        field_5C4; // scale of model part 16, bit 0x10000
+                                         /// Display node + collision record of the boss's second body part:
+                                         /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
+                                         /// `func_actor_503500_80136A88` re-places the pair and
+                                         /// `func_actor_503500_80136228` hands `field_5D4` back to
+                                         /// `Gp_UnlinkObj` on teardown.
     /* 0x5D4 */ GpObj field_5D4;
     /// Record table of `field_5D4`'s node -- `func_actor_503500_80132F64`
     /// parks this address in that `GpObj` and `func_actor_503500_80136A88`
@@ -252,7 +260,8 @@ typedef struct Actor503500Work {
     /* 0x730 */ s16  field_730[0x11];
     /* 0x752 */ s16  field_752[0x11];
     /* 0x774 */ u32  field_774; // one "already asked to die" bit per slot
-    /* 0x778 */ byte pad_778[0x38];
+    /* 0x778 */ byte pad_778[0x34];
+    /* 0x7AC */ s32  field_7AC; // part-scale enable bits, see coord504
     /* 0x7B0 */ s16  field_7B0; // boss state index
     /* 0x7B2 */ u16  field_7B2;
     /* 0x7B4 */ s16  field_7B4; // per-frame countdown, clamped at 0
