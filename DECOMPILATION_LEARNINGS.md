@@ -58026,3 +58026,141 @@ init in the file, so the aggregate is also the honest shape here.
 before its use — especially one that captured a delay slot — is an aliasing
 result, not a scheduling preference. Check the declaration's type before
 touching statement order.
+
+## Entry constant moved after sched1 changes tail scheduling (actor_403100 801359DC)
+
+A named s32 initialized to 16 at function entry and used only by a later HI
+store can survive through sched1 outside the tail block, then move directly
+before its use in local allocation (CODEGEN_MODEL 10.1). It need not consume a
+saved register across intervening calls. This differs from a literal or a local
+initialized in the tail: that definition participates in tail sched1 launch and
+hazard selection. Here the entry form gave the work pointer an earlier load and
+local a1 home (15-insn span), versus v0/13 with a tail initializer. Port base_4
+matched exactly; moving only initialization back to the tail in base_5 restored
+94.538%, as predicted. Do not infer quantity rank from those per-pseudo spans.
+
+Evidence and exact inputs: tools/permuter_findings/func_actor_403100_801359DC/;
+PERMUTER_ANALYSIS.md and retained base_4/base_5 dumps. Router input SHA256
+b0a6868af49b3af36f5cfbe7d410eb1ef174d4602176633e0853e1b8e72289d3.
+Exact dump: entry r85=16 survives combine/sched; local allocation moves it to
+UID211 before HI store UID130. Tail sched1 chooses work load UID119 at backward
+T-16 after coordinate z store/constant, with recorded load hazards at T-14/15.
+The controlled experiment supports region membership and late movement; detailed
+local quantity ranking was not traced.
+
+## Early array-base materialization steers CSE address reuse (actor_403100)
+
+For func_actor_403100_80137F4C, materializing `obj = &array->obj` before
+`entry = array` made CSE derive entry as obj-112. Adding `entries = array`
+before obj initialization, then `entry = entries`, instead made CSE derive
+obj as entries+112 and retain a separate copy to entry. This restored the
+target address sequence and improved 97.984% to 100%.
+
+Controlled base_2 omitted the permuter output's unrelated work-pointer temp
+and predicted both CSE direction and preserved s0/s1/s2 homes; both held.
+base_2.rtl has separate symbol and symbol+112 materializations; base_2.cse
+removes UID 57 and rewrites UID 58 as r82+112, retaining UID 61 copy.
+base_2.greg places r82 in v0, entry r80 in s0, obj r81 in s1, i r83 in s2.
+This is an observed address-reuse instance, not a general scheduling rule.
+No pins or empty asm. Full evidence is retained under
+`tools/permuter_findings/func_actor_403100_80137F4C/`, run c3bd2bff13b848e4.
+Preprocessed base_2 SHA256: `b563c73fafc2c5b47c4f90e2c68477a4be3d077d02274e09e70b2f1daaab1e96`.
+
+## Capture a field address before a memory barrier to preserve its base
+
+For func_actor_403100_801356F4, a counter increment followed by a signed read
+was forwarded into two sign-extension shifts. A COMPILER_BARRIER retained the
+signed load but also forced a reload of the global work pointer (97.971%).
+Capturing `s16* frame = (s16*)&work->field_5EC` before the barrier and reading
+`*frame` afterward preserved the existing base while invalidating the counter
+value. Controlled base_5 in normal headers matched exactly, without the
+permuter's inert if(1) wrapper. No pins were needed.
+
+Observed: base_4 combine UID55 reloads global pointer; base_5 combine UID62
+is sign_extend MEM(r84+1516), and greg maps r84 to a0. This demonstrates
+address retention across the clobber, not a universal allocation rule.
+base_4 input SHA256: 3eac28b2477dfe0c58700df763da2fe0af5b5dcab08509ef41399250e59344d2.
+base_5 input SHA256: ac87aeb555681febaf78dd449b8ac628618d2614fb97dace4f33e520461c4a5e.
+Evidence: tools/permuter_findings/func_actor_403100_801356F4/ session
+9bf1b5d37baa4f6eb571d41a59264a2e, supported conclusion and retained combine/greg dumps.
+
+## Actor403100 counter reset: store order controls pointer CSE (2026-09-10)
+
+`func_actor_403100_80138DB0`: swapping adjacent zero stores from byte-then-halfword to halfword-then-byte raised 97.420% to 100%, confirmed by controlled base_3 after the permuter discovery. In `.cse`, both stores now share r148; the byte store still invalidates the global pointer expression, so the following state increment reloads into r154. `.greg` has byte store through v0, fresh pointer load into v1, halfword store through old v0 (fills load delay), increment load. This is an instance of CODEGEN_MODEL §11's width-sensitive invalidation, not a general statement-order scheduling rule.
+
+Explicitly reusing the earlier work local for those stores (base_2) also shares the pointer but adds a v1 hard conflict to its global allocno, assigns a0 and disrupts tail merging: 94.608%. Preserve allocation and tail identity as well as pointer sharing.
+
+Input SHA256: base_1.i `7a688b1c0d9d02edd9b1a8c869576d6ece35be90fae327b9c89525fc028106de`; base_3.i `3c65fee1e0d708a4cd584dae4af367120345218acc079e883a1918eb1a965504`. Compiler fingerprints, plans, source and dumps retained under `tools/permuter_findings/func_actor_403100_80138DB0/`, session `e794d77243ae4573a798178a417105f2`.
+
+## Byte Boolean conversion can retain a branch copy after combine (2026-09-10)
+
+In `func_actor_403100_8013AC04`, a 0/1 s32 flag lives in s3 across five calls. Direct `if (finished != 0)` branches on s3; assigning that comparison to a u8 temporary in the condition preserves a separate final copy to v0. The permuter discovery raised 97.569% to 100%; controlled base_2 isolated the assignment on the original source and reproduced the exact object without normalization changes.
+
+Expand creates gtu r84, QI narrowing, and zero-extension into r158. The extension remains through cse2; combine deletes the preceding Boolean/conversion nodes and changes UID 191 to `r158 = r84`. lreg retains this copy, and greg assigns r84=s3, r158=v0. The counter pointer/value also change from v1/v0 to target v0/v1. Both predicted properties (separate branch copy and saved flag home) survived. This is a supported conversion/combination observation, not a guarantee about arbitrary narrow temporaries or their register homes; exact quantity ranking was not traced.
+
+The real-header port requires `(s16)` at the initial unsigned counter read to retain lh. No field type change, pins or asm helpers are needed.
+
+Controlled input SHA256 `c7f5fa55b19995d55a5fdefc133aa143b42bf3a205b44ba7438a3a7550525417`, compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Plans, dumps and paired sources: `tools/permuter_findings/func_actor_403100_8013AC04/`, session `dbcd055a3a414cbfade3883d5929e406`.
+
+## An earlier call argument can change sched1 birth promotion without adding an instruction
+
+`func_actor_403100_8013CBE0`: base_7 was 99.500%, with only `move a1,s1`
+after the depth conversion instead of before it. The seed had a second argument
+to `Gp_GetObjPan`, which was initially removed to satisfy its shared one-argument
+prototype. Restoring that caller argument produced 100% without adding any
+machine instruction: the sound ID was already in a1. The callee implementation
+uses only a0; the final caller retains an explicit two-argument function-pointer
+cast for this PSX ABI call shape. This is not portable C advice or proof of the
+original prototype, and should not be generalized into adding unused arguments.
+
+The base_7 trace observes a1 copy UID177 promoted from priority 5 to
+2130706433 after call UID181. Following final a2 shift UID179, depth shift
+UID172 also launches. UID177 wins the original-order tie; all observed actual
+and potential hazards are zero. In base_16 `.sched`, with the earlier a1 call
+use, final a1 copy UID179 stays at priority 5 while depth UIDs174/173/171
+launch and are selected first backward. `.greg` also gives the sound ID an
+explicit a1 preference. Saved homes and topology are preserved. This controlled
+prediction produced the exact object; cleaned base_17 retained it.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Base_7 input: `62e9da57fff324c38db460701d817fd830ef0e744536328213bbe8b141aa7496`.
+Base_16 input: `41a3a0425fa8847261ffda7bd2d533ab235b383e99b4bc126586868f4dfce72f`.
+Session evidence is in `nonmatchings/func_actor_403100_8013CBE0-vacuum/LEARNINGS.md`,
+`base_16.i.sched`, and `TRACE_EVIDENCE/actor403100-schedule-observation/`
+(manifest, report, full events and input dumps). Observation left assembly
+unchanged. Narrowing locals, changing formal conversions and memory barriers
+had failed to fix this copy: the missing earlier hard-register use was decisive.
+
+## A neighboring halfword store can restore a signed counter reload without a barrier
+
+In `func_actor_403100_8013631C`, base_2 (97.884%) increments `field_5EE`
+and immediately compares it. CSE forwards the stored value: UID71 reads
+`subreg:HI(r116)`, and the final code uses `sll/sra` instead of `lh/nop`.
+Moving the independent `field_600` angle update after the counter increment
+(base_4) makes CSE UID71 remain `mem/s:HI(base+1518)` after the angle store
+UID64. Combine folds the sign extension into `lh`. Scheduling still moves
+the angle store before the counter store, and the final function matches.
+This is a controlled successful prediction, not an inference from assembly alone.
+
+A counterexample matters: moving the saved `field_5EC` frame store after
+the counter also restored the reload, but changed frame/angle allocation
+and order (base_3, 97.751%). Preserve allocation and scheduling as separate
+requirements. Removing the increment's explicit u16 cast alone had no effect.
+These observations concern ordinary CSE's varying structure memory handling,
+not post-reload CSE's dependence rules.
+
+Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed inputs: base_2 `5a762abeca08cfb11df21d2c621677babf549a35cce251672f1b903cdcbcea53`;
+base_4 `5d296757e0785647092c10298d69d3d360da578b4089cebf4c6c29e53392dfdb`.
+Retained evidence: `tools/permuter_findings/func_actor_403100_8013631C/`,
+session `b594e4870b9246739c7b05be49303fae`; `PERMUTER_ANALYSIS.md` documents
+the preceding permuter entry-order gain, whose full local quantity mechanism
+remains unresolved.
+
+## Actor 403100 region effects: independent counter initialization and member-array address order (2026-09-10)
+
+`func_actor_403100_801342B4`: permuter moved only `i = 3` from function entry to between vector component initializations. Normalized paired distance 270 -> 100; controlled `base_2.c` port reproduced the gain. `base_1.i` SHA256 `f856ae394020255fdaf71b8c99cf2781a62ee70e4e24ba9cfb45517f5774633a`; `base_2.i` SHA256 `9a0d3075c5552d7c02a6148b1c39640ccf96f775b0d4a52631858a271a9c8d59`.
+
+Observed sched2 block 0: old counter UID11 selected at backward T-39; moved counter UID57 at T-31, preceding argument setup UID23 at T-32. Forward initialization therefore follows argument setup and saved-register stores return to the desired prologue. Counter remains global r84 in s1 (26 references, live length 164 -> 161); allocation dispositions remain unchanged. This is a supported case-specific scheduling intervention, not a general rule about source order. See retained PERMUTER_ANALYSIS and controlled prediction in `tools/permuter_findings/func_actor_403100_801342B4/`.
+
+Separately, reversing chained vector assignment destinations corrects the six store pairs. Real work-struct array access replaces scalar-address indexing: RTL plus(index,base) becomes plus(base,index), preserving the 0x63C displacement and fixing four commuted addu operands. A named union preserves existing scalar views; this GCC does not support anonymous member promotion. Final unpinned `base_6.c` scores 100% with all-zero penalties.

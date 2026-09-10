@@ -300,8 +300,12 @@ def subsegments(
     # join the shared object either: it holds this overlay's own dispatch
     # pointers and, in word 0, the package id, which is the one word the twins
     # genuinely differ in. Emit it as this overlay's own data instead.
-    text_all_shared = bool(cuts_pre) and int(str(cuts_pre[0]["start"]), 16) == start \
-        and int(str(cuts_pre[0]["end"]), 16) == end
+    shared_end = start
+    for cut in cuts_pre:
+        if int(str(cut["start"]), 16) != shared_end:
+            break
+        shared_end = int(str(cut["end"]), 16)
+    text_all_shared = bool(cuts_pre) and shared_end == end
     if start and text_all_shared:
         if rodata_head:
             raise SystemExit(

@@ -1,1 +1,5 @@
 // Overlay-local symbols for actor_403100.
+D_actor_403100_80132030 = 0x80132030; // force_not_migration:True state table read from C
+D_actor_403100_801555EC = 0x801555EC; // image upload records read from C
+ActorCoordToView = 0x8013D460; // shared body, see src/actors/lib/
+D_actor_403100_80131F34 = 0x80131F34; // force_not_migration:True state table read from C
