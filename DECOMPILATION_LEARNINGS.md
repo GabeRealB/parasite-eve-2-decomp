@@ -31872,6 +31872,23 @@ from hoisting the unrelated `lhu` of the source vector above the `lw` of the
 head — but it perturbs the rest of the entry block, so re-pin whichever
 argument then swaps saved registers (here `register u8* rgb asm("s7") = arg3;`).
 
+## Split a scratchpad base from its dereference to retain `lui` plus displacement
+
+Writing `head = *(u8**)G_SCRATCH_HEAD;` lets GCC 2.8.1 fold the address to
+`0x1F8003FC`, materialize it as `lui`/`ori`, and CSE the resulting register into
+a later store. When the target instead uses `lui reg, 0x1F80` followed by
+`lw reg, 0x3FC(reg)`, preserve the address decomposition as two statements:
+
+```c
+head = PSX_SCRATCH;
+head = *(u8**)(head + 0x3FC);
+```
+
+In `Actor00100_Fn04270`, this replaced three instruction-emitting inline-asm
+`lui` statements while reproducing the exact object. A single-expression
+`G_SCRATCH_HEAD` load scored 96.966% because the folded address also removed
+two independent scratch-head store-address materializations.
+
 ## `+=` on an `s16` field lets the scheduler braid the XYZ updates; write both sides through `*(u16*)&`
 
 Adding a matrix translation into a scratch `SVECTOR` three components at a time:

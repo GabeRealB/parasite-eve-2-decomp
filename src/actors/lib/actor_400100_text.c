@@ -204,10 +204,10 @@ void Actor00100_Fn04270(Actor00100* argx)
         register s32 k1000 asm("s3");
         TmdObject*   o;
 
-        o     = arg0->field_2C;
-        k1000 = 0x1000;
-        sy    = k1000 - v;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(h));
+        o      = arg0->field_2C;
+        k1000  = 0x1000;
+        sy     = k1000 - v;
+        h      = PSX_SCRATCH;
         h      = *(u8**)(h + 0x3FC);
         coords = o->field_8;
         blk    = (Actor00100MtxScratch*)(h - 0x34);
@@ -226,8 +226,8 @@ void Actor00100_Fn04270(Actor00100* argx)
         register u8* h2 asm("s2");
         TmdObject*   o2;
 
-        o2 = arg0->field_2C;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(h2));
+        o2     = arg0->field_2C;
+        h2     = PSX_SCRATCH;
         h2     = *(u8**)(h2 + 0x3FC);
         coords = o2->field_8;
         blk    = (Actor00100MtxScratch*)(h2 - 0x34);
@@ -255,7 +255,7 @@ void Actor00100_Fn04270(Actor00100* argx)
         u8*          top;
         u16          m22;
 
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(h3));
+        h3                      = PSX_SCRATCH;
         top                     = *(u8**)(h3 + 0x3FC);
         m22                     = *(u16*)&blk->m.m[2][2];
         coords[0].flg           = 0;
