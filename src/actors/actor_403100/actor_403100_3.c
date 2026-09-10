@@ -219,7 +219,17 @@ void func_actor_403100_8013D8F4(Task* arg0)
     D_actor_403100_80155808->field_5F8 = 9;
     D_actor_403100_80155808->field_5FA = 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013D9C4);
+s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
+{
+    while (entry->value != -1) {
+        if (x >= entry->x && entry->x + entry->w >= x &&
+            y >= entry->y && entry->y + entry->h >= y) {
+            return entry->value;
+        }
+        entry++;
+    }
+    return 0;
+}
 void func_actor_403100_8013DA6C(void)
 {
     void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013712C, func_actor_403100_8013F12C };
