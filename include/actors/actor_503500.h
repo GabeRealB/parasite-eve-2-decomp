@@ -606,7 +606,7 @@ typedef struct Actor503500Work224 {
     /* 0x220 */ s8      field_220; // side flag: picks the +/-0x5DC turn
     /* 0x221 */ s8      field_221; // sub-state index
     /* 0x222 */ s8      field_222; // sub-state phase, cleared with field_221
-    /* 0x223 */ byte    pad_223[0x1];
+    /* 0x223 */ s8      field_223; // 0xC or 0x12, picked in sub-state 1's phase 0
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 

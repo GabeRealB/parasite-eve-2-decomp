@@ -523,7 +523,93 @@ void func_actor_503500_80142370(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_801423C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_8014271C);
+/// Sub-state 1 of the 0x224 enemy. Phase 0 hands the parent 0xC, or 0x12 when
+/// `func_actor_503500_80135E04` accepts slot 4/5, and keeps the pick in
+/// `field_223`. Phase 1 counts frames in `field_21A`: on frame 0x7A (0xC) or
+/// 0x51 (0x12) it sets bit 0x8000 on `obj1` / `obj2` and plays 0x40230009 at
+/// parent coordinate 6 or 12 (by `field_220`); on 0x90 / 0x60 it clears them,
+/// and it moves on once `func_actor_503500_80136014` reports done.
+void func_actor_503500_8014271C(Actor503500* arg0)
+{
+    Actor503500Work224* work;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coord;
+    s32                 side;
+    s32                 anim;
+    s16                 frame;
+
+    work = (Actor503500Work224*)arg0->field_1C;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_80144238(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    side = 3;
+    if (work->field_220 != 0) {
+        side = 2;
+    }
+    switch (work->field_222) {
+        case 0:
+            anim = 0xC;
+            if (func_actor_503500_80135E04(arg0->parent, side == 2 ? 5 : 4) != 0) {
+                anim = 0x12;
+            }
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, side, anim);
+            work->field_223 = anim;
+            work->field_222++;
+            break;
+        case 1:
+            frame = ++work->field_21A;
+            if (work->field_223 == 0xC) {
+                switch (frame) {
+                    case 0x7A:
+                        work->obj1.flags |= 0x8000;
+                        work->obj2.flags |= 0x8000;
+                        coords            = ((TmdObject*)arg0->parent->extra)->field_8;
+                        if (work->field_220 != 0) {
+                            coord = &coords[6];
+                        } else {
+                            coord = &coords[12];
+                        }
+                        SndEvt_EnqueueType6(0x40230009, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                            (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                        break;
+                    case 0x90:
+                        work->obj1.flags &= 0x7FFF;
+                        work->obj2.flags &= 0x7FFF;
+                        break;
+                }
+            } else {
+                switch (frame) {
+                    case 0x51:
+                        work->obj1.flags |= 0x8000;
+                        work->obj2.flags |= 0x8000;
+                        coords            = ((TmdObject*)arg0->parent->extra)->field_8;
+                        if (work->field_220 != 0) {
+                            coord = &coords[6];
+                        } else {
+                            coord = &coords[12];
+                        }
+                        SndEvt_EnqueueType6(0x40230009, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                            (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                        break;
+                    case 0x60:
+                        work->obj1.flags &= 0x7FFF;
+                        work->obj2.flags &= 0x7FFF;
+                        break;
+                }
+            }
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, side) != 0) {
+                work->obj1.flags &= 0x7FFF;
+                work->obj2.flags &= 0x7FFF;
+                work->field_222++;
+            }
+            break;
+        default:
+            func_actor_503500_80144238(arg0, 0);
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_7", D_actor_503500_80132178);
 
