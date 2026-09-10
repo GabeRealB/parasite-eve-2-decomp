@@ -206,7 +206,35 @@ void func_actor_403100_801327CC()
         Gp_AnimTickIndex(&D_actor_403100_80155808->field_B8.animation.anim, i);
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801328DC);
+void func_actor_403100_801328DC(Task* arg0)
+{
+    GsCOORDINATE2* root;
+    GsCOORDINATE2* joint;
+    MATRIX*        rotation;
+    MATRIX*        dest;
+
+    root                                = ((TmdObject*)arg0->extra)->field_8;
+    *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC) -= 1;
+    rotation                            = *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC);
+    joint                               = &root[5];
+    Actor403100_AccumulateRotation(joint, rotation, root);
+    RotMatrixX(D_actor_403100_80155808->field_604, rotation);
+    func_8004BFF8(D_actor_403100_80155808->field_608, rotation);
+    Actor403100_LocalizeRotation(joint, rotation, root);
+    dest          = &joint->coord;
+    dest->m[0][0] = rotation->m[0][0];
+    dest->m[0][1] = rotation->m[0][1];
+    dest->m[0][2] = rotation->m[0][2];
+    dest->m[1][0] = rotation->m[1][0];
+    dest->m[1][1] = rotation->m[1][1];
+    dest->m[1][2] = rotation->m[1][2];
+    dest->m[2][0] = rotation->m[2][0];
+    dest->m[2][1] = rotation->m[2][1];
+    dest->m[2][2] = rotation->m[2][2];
+    joint->flg    = 0;
+    Gp_UpdateCoord(joint);
+    *(MATRIX**)PSX_SCRATCH_ADDR(0x3FC) += 1;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132C3C);
 void func_actor_403100_801331D4(Task* arg0)
 {
