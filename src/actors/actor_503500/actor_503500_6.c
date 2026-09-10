@@ -456,7 +456,24 @@ void func_actor_503500_801382F4(void)
 /// Steps the 0x160 block's countdown at 0x158 down to zero, then, unless the
 /// global freeze is on, runs the block's display node through its record table
 /// before releasing the table.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801382FC);
+void func_actor_503500_801382FC(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_158 != 0) {
+        timer           = (u16)work->field_158 - 1;
+        work->field_158 = timer;
+        if (timer < 0) {
+            work->field_158 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_80137C90(arg0, &work->slot40.obj, work->rec60, 8);
+    }
+    Gp_ClearRec18Occupied(work->rec60);
+}
 void func_actor_503500_80138378(Actor503500* arg0)
 {
     GpEnemy* obj;
