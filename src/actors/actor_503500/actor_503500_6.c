@@ -348,7 +348,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Puts the boss into state `arg1`: clears the state's step counters and the two
 /// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 with
 /// its flag set only for state 3, and drops the main-executable flag.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136EFC);
+void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work* work;
+
+    work            = arg0->field_1C;
+    work->field_7B0 = arg1;
+    work->field_7DA = 0;
+    work->field_7DB = 0;
+    work->field_7BC = 0;
+    work->field_7BE = 0;
+    func_actor_503500_80137074(arg0, arg1 == 3, 3);
+    D_80071090 = 0;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136F40);
 
 /// True when enemy slot `slot` is either unoccupied or has its `field_730`
