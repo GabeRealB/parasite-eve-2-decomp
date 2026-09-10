@@ -171,7 +171,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801327CC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801328DC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132C3C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801331D4);
+void func_actor_403100_801331D4(Task* arg0)
+{
+    SVECTOR        pos;
+    GsCOORDINATE2* joint;
+    GsCOORDINATE2* playerCoord;
+    s16            dx;
+    s16            dx2;
+    s16            dz;
+    s16            dz2;
+    GsCOORDINATE2* coords;
+
+    coords = ((TmdObject*)arg0->extra)->field_8;
+    joint  = &coords[3];
+    if (*Gp_ActorSlots != NULL) {
+        playerCoord                        = (*Gp_ActorSlots)->extra->field_8;
+        D_actor_403100_80155808->field_90  = (u16)playerCoord->coord.t[0];
+        D_actor_403100_80155808->field_92  = (u16)playerCoord->coord.t[1];
+        D_actor_403100_80155808->field_94  = (u16)playerCoord->coord.t[2];
+        D_actor_403100_80155808->field_98  = (u16)playerCoord->coord.t[0];
+        D_actor_403100_80155808->field_9A  = (u16)playerCoord->coord.t[1];
+        D_actor_403100_80155808->field_9C  = (u16)playerCoord->coord.t[2];
+        dx                                 = (u16)playerCoord->coord.t[0] - (u16)coords->coord.t[0];
+        pos.vx                             = dx;
+        pos.vy                             = (u16)playerCoord->coord.t[1] - (u16)coords->coord.t[1];
+        dz                                 = (u16)playerCoord->coord.t[2] - (u16)coords->coord.t[2];
+        pos.vz                             = dz;
+        D_actor_403100_80155808->field_62E = SquareRoot0((dx * dx) + (dz * dz));
+        ActorCoordToView(joint, &pos);
+        dx2                                = (u16)playerCoord->coord.t[0] - (u16)pos.vx;
+        pos.vx                             = dx2;
+        pos.vy                             = (u16)playerCoord->coord.t[1] - pos.vy;
+        dz2                                = (u16)playerCoord->coord.t[2] - (u16)pos.vz;
+        pos.vz                             = dz2;
+        D_actor_403100_80155808->field_630 = SquareRoot0((dx2 * dx2) + (dz2 * dz2));
+    }
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E20);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E24);
