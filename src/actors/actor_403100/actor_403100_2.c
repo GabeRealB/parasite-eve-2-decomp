@@ -801,7 +801,60 @@ void func_actor_403100_8013AA04(Task* arg0)
         D_actor_403100_80155808->field_5FA             = 0;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AC04);
+void func_actor_403100_8013AC04(void)
+{
+    s32              state;
+    s32              message;
+    s32              sound;
+    Task*            task;
+    s32              finished;
+    s32              pan;
+    s32              depth;
+    Task*            player;
+    GameActor*       actor;
+    u8               completed;
+    Actor403100Work* work;
+
+    player   = (Task*)*Gp_ActorSlots;
+    actor    = (GameActor*)player->idMap;
+    finished = 0;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0) {
+        Gp_SpawnPadLerp(0xC, 0xFF, 0x80);
+        sound = (((u16)((GpEnemy*)player->spawnArg2)->field_8 >> 0xC) << 8) | 7;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    }
+    work = D_actor_403100_80155808;
+    if ((s16)work->field_5EC < 5) {
+        func_actor_403100_8013D0B8(work->field_90, work->field_92, (s16)(work->field_94 + 0x3E8), 0x800);
+    }
+    if (((s16)D_actor_403100_80155808->field_5EC >= 6) || (D_actor_403100_80155808->field_94 >= 0x1B58)) {
+        finished = 1;
+    }
+    D_actor_403100_80155808->field_5EC = (s16)((u16)D_actor_403100_80155808->field_5EC + 1);
+    if ((completed = finished != 0)) {
+        D_8007216C = 0x14;
+        task       = Game_GetPtrSlot(3);
+        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 2), 0) != 0) {
+            Game_Session->field_127             = 1;
+            Game_Session->field_12D             = 0x7F;
+            D_actor_403100_80155808->pad_670[0] = 1U;
+        }
+        func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
+        if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
+            actor->field_956 = 0xA;
+            state            = 7;
+            message          = 0x3FF;
+        } else {
+            state   = 2;
+            message = 0x3F4;
+        }
+        func_actor_403100_8013D1B8(state, message);
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AE28);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B128);
 void func_actor_403100_8013B3C4(Task* arg0)
