@@ -3186,7 +3186,47 @@ void func_actor_503500_80141A44(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141B94);
+/// The fade-level counterpart of `func_actor_503500_8013AB38`: while
+/// `field_3B2` is below 0x1000, blends parts 1..8 toward the 0x3D8 block's
+/// matrix table, copying the lerped rotation back word-wise and keeping a
+/// `field_3B2 / 0x1000` share of each part's offset from its table entry.
+void func_actor_503500_80141B94(Actor503500* arg0)
+{
+    MATRIX           m;
+    VECTOR           d;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    MATRIX*          mat;
+    s32*             src;
+    s32*             dst;
+    s32              t;
+    s32              i;
+    s32              j;
+
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8 + 1;
+    if ((s16)work->field_3B2 < 0x1000) {
+        mat = &((Actor503500Work3D8Mtx*)work)->mats[1];
+        t   = (s16)work->field_3B2;
+        for (i = 1; i < 9; i++) {
+            Gp_LerpOrthonormal(mat, &coord->coord, &m, t);
+            dst = (s32*)&coord->coord;
+            src = (s32*)&m;
+            for (j = 0; j < 4; j++) {
+                *dst++ = *src++;
+            }
+            coord->coord.m[2][2] = m.m[2][2];
+            d.vx                 = ((coord->coord.t[0] - mat->t[0]) * t) >> 12;
+            d.vy                 = ((coord->coord.t[1] - mat->t[1]) * t) >> 12;
+            d.vz                 = ((coord->coord.t[2] - mat->t[2]) * t) >> 12;
+            coord->coord.t[0]    = mat->t[0] + d.vx;
+            coord->coord.t[1]    = mat->t[1] + d.vy;
+            coord->coord.t[2]    = mat->t[2] + d.vz;
+            mat++;
+            coord++;
+        }
+    }
+}
 
 void func_actor_503500_80141D04(Actor503500* arg0)
 {
