@@ -284,7 +284,112 @@ s32 func_actor_403100_80133928(void)
     }
     return 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801339EC);
+void func_actor_403100_801339EC(Task* arg0)
+{
+    void (*handlers[5])(Task*) = {
+        (void (*)(Task*))func_actor_403100_80133C94,
+        func_actor_403100_80133D88,
+        func_actor_403100_80133E88,
+        (void (*)(Task*))func_actor_403100_8013E5FC,
+        func_actor_403100_8013E624
+    };
+    Actor403100Matrix rotation;
+    VECTOR            scale;
+    Actor403100Matrix scaling;
+    GsCOORDINATE2*    coords;
+    GsCOORDINATE2*    center;
+    GsCOORDINATE2*    coords2;
+    MATRIX*           mtx;
+    MATRIX*           mtx2;
+    GsCOORDINATE2*    side;
+    GsCOORDINATE2*    scaled;
+    Actor403100Work*  work;
+    s32               flash;
+    u8*               head;
+    u8*               head2;
+    MATRIX*           dest;
+    VECTOR*           pos;
+    s32               brightness;
+
+    handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
+    func_actor_403100_801327CC(arg0);
+    SOFT_USE_REG(arg0);
+    coords                            = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
+    mtx                               = &rotation.mat;
+    rotation.ident.m00_m01            = 0x1000;
+    rotation.ident.m02_m10            = 0;
+    *(s32*)&mtx->m[1][1]              = 0x1000;
+    rotation.ident.m20_m21            = 0;
+    mtx->m[2][2]                      = 0x1000;
+    func_8004BFF8(D_actor_403100_80155808->field_82, &rotation.mat);
+    dest                  = &coords->coord;
+    dest->m[0][0]         = rotation.mat.m[0][0];
+    dest->m[0][1]         = rotation.mat.m[0][1];
+    dest->m[0][2]         = rotation.mat.m[0][2];
+    dest->m[1][0]         = rotation.mat.m[1][0];
+    dest->m[1][1]         = rotation.mat.m[1][1];
+    dest->m[1][2]         = rotation.mat.m[1][2];
+    dest->m[2][0]         = rotation.mat.m[2][0];
+    dest->m[2][1]         = rotation.mat.m[2][1];
+    dest->m[2][2]         = rotation.mat.m[2][2];
+    coords->flg           = 0;
+    scaled                = ((TmdObject*)arg0->extra)->field_8;
+    scale.vx              = D_actor_403100_80155808->field_5D8;
+    scale.vy              = scale.vx;
+    scale.vz              = scale.vx;
+    mtx2                  = &scaling.mat;
+    scaling.ident.m00_m01 = 0x1000;
+    scaling.ident.m02_m10 = 0;
+    *(s32*)&mtx2->m[1][1] = 0x1000;
+    scaling.ident.m20_m21 = 0;
+    mtx2->m[2][2]         = 0x1000;
+    ScaleMatrix(&scaling.mat, &scale);
+    MulMatrix(&scaled->coord, &scaling.mat);
+    func_actor_403100_801328DC(arg0);
+    coords2        = ((TmdObject*)arg0->extra)->field_8;
+    coords2[8].flg = 0;
+    coords2[7].flg = 0;
+    coords2[6].flg = 0;
+    coords2[5].flg = 0;
+    coords2[4].flg = 0;
+    coords2[3].flg = 0;
+    coords2[2].flg = 0;
+    coords2[1].flg = 0;
+    coords2[0].flg = 0;
+    side           = &coords2[4];
+    center         = &coords2[3];
+
+    Gp_UpdateCoord(&coords2[8]);
+    USE_REG(center);
+    Gp_UpdateCoord(side);
+    __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+    head                               = *(u8**)(head + 0x3FC);
+    pos                                = (VECTOR*)(head - 16);
+    pos->vx                            = center->workm.t[0];
+    pos->vy                            = center->workm.t[1];
+    pos->vz                            = center->workm.t[2];
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = pos;
+    Gp_UpdateActorColor(arg0->spawnArg2, pos, 0, 0);
+    work  = D_actor_403100_80155808;
+    flash = work->field_5FE;
+    __asm__("lui %0, 0x1F80" : "=r"(head2) : "r"(work));
+    head2 = *(u8**)(head2 + 0x3FC);
+    SOFT_TOUCH_REG_USE(head2, flash);
+    head2 += 16;
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2) : "memory");
+    if (flash != 0) {
+        if (flash >= 16) {
+            brightness = rsin(D_80070F70 << 9) << 13;
+        } else {
+            brightness = rsin(D_80070F70 << 9) << 12;
+        }
+        Display_ClampField126((s8)(brightness >> 24));
+        D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
+    } else {
+        Display_ClampField126(0);
+    }
+}
 void func_actor_403100_80133C94(void)
 {
     s32 i;
