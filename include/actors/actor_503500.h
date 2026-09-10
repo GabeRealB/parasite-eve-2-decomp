@@ -291,6 +291,16 @@ typedef struct Actor503500Work {
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
+/// Matrix table of the 0x3D8 block, which runs from 0x40 up to the block's
+/// `obj160` display node: `func_actor_503500_80141FC8`'s sub-state 0 resets
+/// entries 1..8 to an identity rotation with zero translation. The shared
+/// `Actor503500Work` view names other blocks' fields over the same bytes.
+typedef struct Actor503500Work3D8Mtx {
+    /* 0x000 */ byte   pad_0[0x40];
+    /* 0x040 */ MATRIX mats[9];
+} Actor503500Work3D8Mtx;
+STATIC_ASSERT_SIZEOF(Actor503500Work3D8Mtx, 0x160);
+
 /// Work block shape of the `actor_503500` effect tasks -- the ones whose
 /// state-0 init `Mem_Calloc`s the block instead of pointing `Task::idMap` at a
 /// static global: `func_actor_503500_80144300` (0xC0),

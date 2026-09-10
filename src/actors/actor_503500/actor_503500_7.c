@@ -318,7 +318,55 @@ void func_actor_503500_80141F48(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80141FC8);
+/// Identity rotation, written two halfwords per word store. Being inline is
+/// what matches: the argument is expanded as an address sum, so the caller's
+/// `&mats[i]` is recomputed each iteration instead of strength-reduced.
+static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
+{
+    *(s32*)&m->m[0][0] = 0x1000;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = 0x1000;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = 0x1000;
+}
+
+/// Sub-state 0 resets the matrix table to identity; sub-state 1 raises the
+/// fade level by 0x20 a frame and, once it passes 0x1000, relinks the display
+/// node and moves on like `func_actor_503500_80141F48`.
+void func_actor_503500_80141FC8(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    u16              level;
+    s32              i;
+    long*            t;
+
+    work = arg0->field_1C;
+    switch (work->field_3D0) {
+        case 0:
+            for (i = 1; i < 9; i++) {
+                func_actor_503500_SetRotIdentity(&((Actor503500Work3D8Mtx*)work)->mats[i]);
+                // The view shifted by i matrices puts mats[i] at mats[0]; this
+                // `(work + i) + offset` association is what lets the pointer
+                // derive from the giv the indexed store below uses.
+                t                                            = ((Actor503500Work3D8Mtx*)((MATRIX*)work + i))->mats[0].t;
+                ((Actor503500Work3D8Mtx*)work)->mats[i].t[0] = 0;
+                t[1]                                         = 0;
+                t[2]                                         = 0;
+            }
+            work->field_3B2 = 0;
+            work->field_3D0++;
+        case 1:
+            level           = work->field_3B2 + 0x20;
+            work->field_3B2 = level;
+            if ((s16)level >= 0x1001) {
+                Gp_LinkNode(&arg0->field_20->node);
+                work->field_3B2     = 0x1000;
+                work->obj160.flags |= 0x8000;
+                func_actor_503500_80142310(arg0, 0);
+            }
+            break;
+    }
+}
 
 /// Steps the 0x3D8 block's countdown at 0x3A8 down to zero, then, unless the
 /// global freeze is on, runs both display nodes through their record tables

@@ -58311,3 +58311,34 @@ if (Game_Session->field_1 != 0) {
     SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(Gp_GetObjDepth(coord) / 2));
 }
 ```
+
+## An unreduced `sll; addu base; addiu K` pointer in a loop is an inline function's argument
+
+`func_actor_503500_80141FC8` resets `mats[1..8]` to identity inside a loop,
+and the rotation stores go through a base recomputed from scratch every
+iteration while the translation stores share a strength-reduced giv:
+
+```
+sll    $v0, $a0, 5          # not reduced
+addu   $v0, $v0, $s0        # mult first, base second
+addiu  $v0, $v0, 0x40       # field offset last
+sw     $a1, 0x0($v0) ...    # m[][] word stores
+addiu  $v0, $v1, 0x54       # $v1 = work + 32*i giv (see the association entry)
+```
+
+Every plain-C spelling of `m = &work->mats[i]` gives `li $a0, 0x60` + `addu`
+(loop.c reduces the `32*i + 0x40` giv), because an assignment expands the sum
+in normal mode as `base + (32*i + K)`. The `(32*i + base) + K` order only comes
+from `expand_expr` in `EXPAND_SUM` mode, which puts the MULT first and the
+constant last, and `integrate.c` expands **inline-function arguments** that way.
+The non-readonly parameter is copied into a pseudo that loop.c leaves alone.
+Writing the rotation as a `static inline` helper matched:
+
+```c
+static inline void SetRotIdentity(MATRIX* m) { *(s32*)&m->m[0][0] = 0x1000; ... }
+...
+SetRotIdentity(&((View*)work)->mats[i]);
+```
+
+A local `tbl = (View*)work` copy instead of casting at each use costs a
+separate pseudo and a second walking pointer - cast at the use site.
