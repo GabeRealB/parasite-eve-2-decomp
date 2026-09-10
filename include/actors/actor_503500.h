@@ -194,13 +194,14 @@ typedef struct Actor503500Work {
     /* 0x260 */ GpRec18 rec260[4]; // obj240's table, count 4
     /* 0x2C0 */ byte    pad_2C0[0x14];
     /* 0x2D4 */ s16     field_2D4; // sub-state index of the 0x2EC block
-    /* 0x2D6 */ byte    pad_2D6[0x2];
+    /* 0x2D6 */ s16     field_2D6;
     /// Per-frame countdown of the 0x2EC block, stepped down and floored at 0 by
     /// `func_actor_503500_8013AA44`; cleared outright by
     /// `func_actor_503500_801390C4` / `_801395BC` and gated on by
     /// `func_actor_503500_80139A20`.
     /* 0x2D8 */ s16  field_2D8;
-    /* 0x2DA */ byte pad_2DA[0x4];
+    /* 0x2DA */ s16  field_2DA;
+    /* 0x2DC */ byte pad_2DC[0x2];
     /* 0x2DE */ s16  field_2DE; // sub-state frame counter, 0x2EC block
     /* 0x2E0 */ byte pad_2E0[0x4];
     /* 0x2E4 */ s8   field_2E4; // sub-state phase, cleared with field_2D4

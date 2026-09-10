@@ -141,6 +141,7 @@ void func_actor_503500_801374BC(Actor503500* arg0);
 void func_actor_503500_80137678(Actor503500* arg0);
 void func_actor_503500_80138454(Actor503500* arg0);
 void func_actor_503500_80138490(Actor503500* arg0, s32 arg1);
+void func_actor_503500_8013ACC4(Actor503500* arg0, s32 arg1);
 /// Defined as `s8` in actor_503500_4.c; an `s8` prototype makes the caller
 /// sign-extend with `sll 24` before the zero test.
 s32  func_actor_503500_80136208(void);
@@ -919,7 +920,48 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801395BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801398D0);
+void func_actor_503500_801398D0(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    s32              dmg;
+    u8               flags;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    if ((func_actor_503500_80136208() == 0) && (Game_Session->field_1 == 0)) {
+        flags = enemy->field_4C;
+        if (flags & 1) {
+            enemy->field_4C = flags & 0xFE;
+            func_actor_503500_8013ACC4(arg0, 0);
+            work->field_2D6 = 5;
+            work->field_2DA = 8;
+        }
+        if (enemy->field_4C & 2) {
+            enemy->field_4C &= 0xFD;
+        }
+        if (enemy->field_4C & 0xC) {
+            func_actor_503500_8013ACC4(arg0, 4);
+            if (Gp_ObjFlag4Expired((GpObj5C*)arg0->field_20) != 0) {
+                enemy->field_4C &= 0xF3;
+                func_actor_503500_8013ACC4(arg0, 0);
+            } else {
+                dmg = Gp_TickObjFlag4((GpObj5C*)enemy);
+                if (dmg != 0) {
+                    enemy->field_40 -= dmg;
+                    func_800DA6E8(&enemy->node, dmg, 0);
+                    work->field_2DA = 8;
+                    if (enemy->field_40 <= 0) {
+                        enemy->field_4C &= 0xF3;
+                        func_actor_503500_8013ACC4(arg0, 5);
+                    } else {
+                        func_actor_503500_8013ACC4(arg0, 0);
+                    }
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80131F9C);
 
