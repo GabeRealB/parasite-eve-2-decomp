@@ -1,55 +1,86 @@
 #include "common.h"
-
-#include "main/sound.h"
 #include "main/task.h"
-
+#include "main/tmd.h"
 #include "gameplay/1BC.h"
-
+#include "gameplay/3A34.h"
 #include "actors/actor_342400.h"
+#include "actors/actors_shared_8016945c.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B104);
+void func_actor_342400_8016B33C(Task* arg0);
+void func_actor_342400_8016B370(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B1C8);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016A950);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B21C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B294);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B33C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B370);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B3C4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B414);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B48C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B500);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B5B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B744);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B84C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B914);
-
-void func_actor_342400_8016B9A4(Task* arg0)
+void func_actor_342400_8016A9AC(Task* arg0)
 {
     Actor342400Work* work;
+
+    work            = (Actor342400Work*)arg0->idMap;
+    arg0->state     = 5;
+    work->field_420 = 0;
+    work->field_422 = 0;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016A9C4);
+
+void func_actor_342400_8016AA08(Task* arg0)
+{
+    Actor342400Work* work;
+    Actor342400Work* work2;
+    TmdObject*       model;
     GpEnemy*         enemy;
 
+    model = (TmdObject*)arg0->extra;
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor342400Work*)arg0->idMap;
-    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
-        Gp_StateF0.field_1F = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
+    Tmd_FreeBuffers(model);
+    model->field_C |= 4;
+    func_actor_342400_801637DC(arg0);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    enemy->field_54 = 0;
+    work            = (Actor342400Work*)arg0->idMap;
+    Gp_UnlinkObj(&work->obj_2AC);
+    Gp_UnlinkObj(&work->obj_2CC);
+    Gp_UnlinkObj(&work->obj_3AC);
+    work2            = (Actor342400Work*)arg0->idMap;
+    arg0->state      = 5;
+    work2->field_420 = 0;
+    work2->field_422 = 0;
+}
+
+void func_actor_342400_8016AA9C(Task* arg0)
+{
+    Actor342400Work* work;
+
+    work            = (Actor342400Work*)arg0->idMap;
+    work->field_412 = 0;
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016BA3C);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AAB8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016BAF4);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AB6C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AC80);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AD94);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AE24);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AEAC);
+
+void func_actor_342400_8016AF34(Task* arg0)
+{
+    Actor342400Work* work                = (Actor342400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_342400_8016B33C,
+        func_actor_342400_8016B370,
+    };
+
+    if (ActorsShared8016945c(arg0) == 0) {
+        states[(s16)work->field_422](arg0);
+    }
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016AFA8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_8", func_actor_342400_8016B038);

@@ -14,16 +14,6 @@
 
 #include "actors/actor_341700.h"
 
-void func_actor_341700_8016A568(Task* arg0);
-void func_actor_341700_8016A630(Task* arg0);
-
-/* Both are called with no argument: the caller's own `Task*` is already in
- * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
- * has no register copy.  A real prototype would make GCC emit one, so these
- * stay unprototyped. */
-s32 ActorsShared8016945c();
-s32 func_actor_341700_80168468();
-
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80164CDC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80164E9C);
@@ -65,24 +55,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_801670B0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_8016724C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80167744);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80167890);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80167C30);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80167E18);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80168004);
-
-void func_actor_341700_80168124(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
-    void             (*states[2])(Task*) = {
-        func_actor_341700_8016A568,
-        func_actor_341700_8016A630,
-    };
-
-    states[(s16)work->field_420](arg0);
-}
