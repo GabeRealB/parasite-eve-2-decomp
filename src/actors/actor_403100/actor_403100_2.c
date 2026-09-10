@@ -639,7 +639,47 @@ void func_actor_403100_8013A81C(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AA04);
+void func_actor_403100_8013AA04(Task* arg0)
+{
+    s32 sound;
+    s32 pan;
+    u16 angle;
+    u16 frame;
+    s32 depth;
+
+    angle                              = (u16)D_actor_403100_80155808->field_82;
+    frame                              = D_actor_403100_80155808->field_5EC;
+    D_actor_403100_80155808->field_82  = angle + ((s32)((-0x4000 - (angle * 0x10)) << 0x10) >> 0x16);
+    D_actor_403100_80155808->field_5EC = frame + 1;
+    if ((u32)((frame - 0x33) & 0xFFFF) < 0x16U) {
+        func_actor_403100_8013C7B4(arg0);
+    } else if ((func_actor_403100_80133928() << 0x10) != 0) {
+        return;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x44) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0008;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[7]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[7]);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    if (D_actor_403100_80155808->field_668.flags != 0) {
+        D_actor_403100_80155808->pad_670[3] = 1;
+        D_actor_403100_80155808->pad_670[1] = 1;
+        Gp_StateC08.field_6                |= 1;
+        func_actor_403100_8013D1B8(3, 0x3F4);
+        func_actor_403100_8013D0B8(D_actor_403100_80155808->field_90, D_actor_403100_80155808->field_92, (s16)((u16)D_actor_403100_80155808->field_94 + 0xBB8), 0x800);
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_5EC             = 0;
+        Game_Session->field_12C                        = 1;
+        D_actor_403100_80155808->field_5FA            += 1;
+        return;
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_5F8             = 1;
+        D_actor_403100_80155808->field_5FA             = 0;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AC04);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AE28);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B128);
