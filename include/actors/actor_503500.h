@@ -299,6 +299,15 @@ typedef struct Actor503500ObjWork {
 } Actor503500ObjWork;
 STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
 
+/// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
+/// the effect task it reparents itself under.
+typedef struct Actor503500Work44 {
+    /* 0x00 */ Actor503500ObjWork head;
+    /* 0x38 */ Task*              field_38;
+    /* 0x3C */ byte               pad_3C[0x8];
+} Actor503500Work44;
+STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
+
 /// Head of the work block used by the two enemies whose teardown clears a
 /// four-entry record table (`func_actor_503500_801454E0` and
 /// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
