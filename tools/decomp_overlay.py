@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -406,6 +407,40 @@ def _struct_field_hits(needles: Iterable[str], limit_lines: int = 36) -> str:
     return "\n--\n".join(hits)
 
 
+def similar_bodies(func: str, limit: int = 4) -> str:
+    """Matched bodies shaped like this one, for the brief.
+
+    "Nearby matched functions in this TU" is the same idea confined to one
+    file; this is it ranked by actual resemblance and across the whole tree,
+    which is often where the useful neighbour lives - a dryfield room
+    function's closest match is in weapons/gunblade. Precomputed rather than
+    left to the agent to go looking for: agents do sometimes find these
+    themselves, which is what makes it worth handing over reliably rather than
+    occasionally.
+
+    Candidate generation only. The scores drop operands, so a high one means
+    "read this body", never "these are the same function".
+    """
+    try:
+        r = subprocess.run(
+            [sys.executable, "tools/overlay_dup_index.py", "similar", func,
+             "--top", str(limit)],
+            capture_output=True, text=True, timeout=120)
+    except Exception as e:
+        return f"(similarity index unavailable: {e})"
+    # A non-zero exit is not "no neighbours". An overlay worktree carries the
+    # tools/ of the commit it was cut from, so `similar` may not exist there at
+    # all, and reporting that as "none" would be a silent wrong answer.
+    if r.returncode != 0:
+        msg = ((r.stderr or "").strip() or (r.stdout or "").strip()
+               or "unknown error").splitlines()[-1]
+        return f"(similarity unavailable: {msg})"
+    lines = [l for l in r.stdout.splitlines()[1:] if l.strip()]
+    if not lines or any("no matched body scores" in l for l in lines):
+        return "(none above 0.80)"
+    return "\n".join(lines)
+
+
 def pack_context(func_name: str, version: Optional[str] = None) -> str:
     loc = find_function(func_name, version)
     if loc is None:
@@ -486,6 +521,9 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "",
         "## Callers",
         "\n".join(callers) or "(none found in src/)",
+        "",
+        "## Similar matched bodies (candidates to read, not equalities)",
+        similar_bodies(loc.name),
         "",
         "## STRUCT_FIELDS.md hits",
         fields or "(none)",
