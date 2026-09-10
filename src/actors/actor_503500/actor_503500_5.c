@@ -55,6 +55,7 @@ void func_actor_503500_801345F4(Actor503500* arg0);
 void func_actor_503500_80134A24(Actor503500* arg0);
 void func_actor_503500_80134C68(Actor503500* arg0);
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
+void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
 s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
 s32  func_actor_503500_80133D40(Actor503500* arg0, Actor503500Work* work);
 s32  func_actor_503500_80133FD8(Actor503500* arg0, Actor503500Work* work);
@@ -222,7 +223,8 @@ void func_actor_503500_80132F58(void)
 extern TaskDesc D_actor_503500_8016E924;
 /// Initial position of the boss's collision node, copied into both the
 /// enemy's `field_1C` and `field_5D4`'s `field_10/12/14`.
-extern SVECTOR D_actor_503500_8016EC50;
+extern SVECTOR  D_actor_503500_8016EC50;
+extern TaskDesc D_actor_503500_8016E9F0;
 /// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
 /// `func_actor_503500_80132F64`.
 extern GpMsgEntry D_actor_503500_8016EA2C[];
@@ -650,7 +652,69 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134A24);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134C68);
+void func_actor_503500_80134C68(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    Task*            task;
+    GsCOORDINATE2*   coord;
+
+    work = arg0->field_1C;
+    if ((u16)(work->field_7B0 - 2) < 3U) {
+        func_actor_503500_80136F40(work, 0, 0, 0);
+        return;
+    }
+    switch (work->field_7E1) {
+        case 0:
+            func_actor_503500_80135FB4(arg0, 4, 0x10);
+            func_actor_503500_80137074(arg0, 1, 0x4B);
+            work->field_7E1++;
+            break;
+        case 1:
+            if (func_actor_503500_80136014(arg0, 4) != 0) {
+                func_actor_503500_80135FB4(arg0, 5, 0x10);
+                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x5A, (s32)arg0);
+                if (task != NULL) {
+                    coord             = ((TmdObject*)task->extra)->field_8;
+                    coord->sub        = &arg0->extra->field_8[3];
+                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
+                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
+                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
+                }
+                D_80071090      = 1;
+                work->field_7C0 = 0;
+                work->field_7E1++;
+            }
+            break;
+        case 2:
+            if (++work->field_7C0 >= 0x5B) {
+                func_actor_503500_80135FB4(arg0, 6, 0x10);
+                work->field_7C0 = 0;
+                work->field_7E1++;
+            }
+            break;
+        case 3:
+            if (++work->field_7C0 >= 0x33) {
+                func_actor_503500_80135FB4(arg0, 7, 0);
+                work->field_7E1++;
+            }
+            break;
+        case 4:
+            if (func_actor_503500_80136014(arg0, 7) != 0) {
+                func_actor_503500_80135FB4(arg0, 8, 0);
+                func_actor_503500_80137074(arg0, 0, 0xE);
+                work->field_7E1++;
+            }
+            break;
+        case 5:
+            if (func_actor_503500_80136014(arg0, 8) != 0) {
+                work->field_7E0 = 0;
+                D_80071090      = 0;
+                func_actor_503500_80135F9C((Task*)arg0, 0, 0);
+                func_actor_503500_80135FB4(arg0, 0, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134EAC);
 
