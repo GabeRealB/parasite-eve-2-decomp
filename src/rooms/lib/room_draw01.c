@@ -37,6 +37,7 @@ void Room_Draw01(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32                tr;
     s32                tg;
     s32                scaled;
+    s32                sum;
     u8                 r;
     u8                 g;
     u8                 b;
@@ -109,7 +110,8 @@ void Room_Draw01(SVECTOR* arg0, s32 arg1, s32 arg2)
                     t   = ang - angStart;
                     t <<= 1;
                     TOUCH_REG(t);
-                    asm volatile("addu %0, %1, %0" : "+r"(t) : "r"(angStart));
+                    sum            = angStart + t;
+                    t              = sum;
                     Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
