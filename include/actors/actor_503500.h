@@ -441,6 +441,9 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkBoss, 0x334);
 /// and re-seeds the whole slot array whenever it changes, stores `field_4` in
 /// `field_7D5`, and uses `field_8` to choose between `func_800B4114` -- which
 /// also takes `field_C` -- and `Gp_AnimResetSlot`. `field_10` is unread.
+/// `func_actor_503500_8014652C` takes the same record as its message payload
+/// and applies it to `Actor503500Effect4CC`, with `field_0` indexing the bank
+/// table `D_actor_503500_80176520`.
 typedef struct Actor503500AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -559,25 +562,28 @@ STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 /// `Actor317000Work` and its siblings in the other actor overlays, except that
 /// those write 0x4C8 as a halfword.
 typedef struct Actor503500Effect4CC {
-    /* 0x000 */ byte   pad_0[0x43D];
-    /* 0x43D */ s8     field_43D;
-    /* 0x43E */ s8     field_43E;
-    /* 0x43F */ byte   pad_43F[0x1];
-    /* 0x440 */ MATRIX light;
-    /* 0x460 */ MATRIX color;
-    /* 0x480 */ byte   pad_480[0x20];
-    /* 0x4A0 */ s32    field_4A0;
-    /* 0x4A4 */ s32    field_4A4;
-    /* 0x4A8 */ s32    field_4A8;
-    /* 0x4AC */ byte   pad_4AC[0x4];
-    /* 0x4B0 */ s32    field_4B0;
-    /* 0x4B4 */ s32    field_4B4;
-    /* 0x4B8 */ s32    field_4B8;
-    /* 0x4BC */ byte   pad_4BC[0x4];
-    /* 0x4C0 */ s16    field_4C0;
-    /* 0x4C2 */ byte   pad_4C2[0x6];
-    /* 0x4C8 */ s8     field_4C8;
-    /* 0x4C9 */ byte   pad_4C9[0x3];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13]; // the slot array `func_800B3F84` is handed
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ s8         field_43C;   // set once the slots have been started
+    /* 0x43D */ s8         field_43D;   // animation id the slots were seeded with
+    /* 0x43E */ s8         field_43E;   // bank index into `D_actor_503500_80176520`
+    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x440 */ MATRIX     light;
+    /* 0x460 */ MATRIX     color;
+    /* 0x480 */ byte       pad_480[0x20];
+    /* 0x4A0 */ s32        field_4A0;
+    /* 0x4A4 */ s32        field_4A4;
+    /* 0x4A8 */ s32        field_4A8;
+    /* 0x4AC */ byte       pad_4AC[0x4];
+    /* 0x4B0 */ s32        field_4B0;
+    /* 0x4B4 */ s32        field_4B4;
+    /* 0x4B8 */ s32        field_4B8;
+    /* 0x4BC */ byte       pad_4BC[0x4];
+    /* 0x4C0 */ s16        field_4C0;
+    /* 0x4C2 */ byte       pad_4C2[0x6];
+    /* 0x4C8 */ s8         field_4C8;
+    /* 0x4C9 */ byte       pad_4C9[0x3];
 } Actor503500Effect4CC;
 STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
 

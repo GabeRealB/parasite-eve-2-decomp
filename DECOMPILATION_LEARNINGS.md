@@ -57944,6 +57944,15 @@ This is the `load survives .greg, becomes copy in .sched2` row of the matching
 loop table, with the pre-allocation half of the story: the reason the load was
 still there at `.greg` is a CSE invalidation two dozen insns earlier.
 
+**The object's store order can hide the intervening store.** In
+`func_actor_503500_8014652C` the target reads `sb 0x43D; sb 0x43E; lb 0x43E` -
+a byte stored and immediately read back as an array index. Writing the stores
+in that order (`field_43D = -1; field_43E = msg->field_0; D[field_43E]`) lets
+CSE forward the stored byte, giving `sll`/`sra` instead of the `lb` (85.7%).
+The source order is the other one, `field_43E = ...; field_43D = -1;`: the
+`43D` store kills the equivalence, and sched then swaps the two stores (same
+base, disjoint offsets), so the kill is invisible in the dump. 100%.
+
 ## A `regs=1` penalty can be a wrong immediate, not an allocation problem
 
 `func_actor_503500_801360BC` scored 99.79% with `regs=1` and every other penalty
