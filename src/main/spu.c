@@ -445,62 +445,7 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
 
 s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
 {
-    s32          v1r;
-    s8*          base;
-    s32          idx;
-    register s8* slotp asm("t0");
-    register s32 a2r asm("a2");
-    s32          found;
-    s32          v0r;
-
-    /* $a0 stays as voice id for sb; $v1 keeps %hi for dual lhu/lh of count. */
-    __asm__ volatile(
-        "lui %0, %%hi(Spu_LVoiceTable)\n\t"
-        "addiu %1, %0, %%lo(Spu_LVoiceTable)\n\t"
-        "sll %2, $4, 24\n\t"
-        "sra %3, %2, 24"
-        : "=&r"(v1r), "=&r"(base), "=&r"(v0r), "=r"(idx));
-    slotp = (s8*)(idx + (s32)base);
-    a2r   = (s8)slotp[0x664];
-    found = 1;
-    if (a2r != 0) {
-        v0r           = ((a2r << 4) + a2r) << 2;
-        v0r           = v0r + (s32)base;
-        arg1->field_0 = arg0;
-        arg1->field_4 = (SpuVoiceAttr*)(v0r - 0x3C);
-    } else {
-        __asm__ volatile("move %0, $0" : "=r"(found));
-        __asm__ volatile(
-            "lhu %0, %%lo(Spu_LVoiceTable)(%2)\n\t"
-            "lh  %1, %%lo(Spu_LVoiceTable)(%2)\n\t"
-            "addiu %0, %0, 1\n\t"
-            "sh %0, %%lo(Spu_LVoiceTable)(%2)"
-            : "=&r"(v0r), "=&r"(a2r)
-            : "r"(v1r)
-            : "memory");
-        /* GCC reorders entry vs count+1; keep target's v1/v0 schedule. */
-        __asm__ volatile(
-            ".set\tnoreorder\n\t"
-            "sll %0, %2, 4\n\t"
-            "addu %0, %0, %2\n\t"
-            "sll %0, %0, 2\n\t"
-            "addu %1, %0, %3\n\t"
-            "sh %4, 4(%1)\n\t"
-            "addiu %1, %2, 1\n\t"
-            "addu %0, %0, %3\n\t"
-            "addiu %0, %0, 8\n\t"
-            ".set\treorder"
-            : "=&r"(v0r), "=&r"(v1r)
-            : "r"(a2r), "r"(base), "r"(idx));
-        slotp[0x664]          = v1r;
-        arg1->field_0         = arg0;
-        arg1->field_4         = (SpuVoiceAttr*)v0r;
-        *(s32*)((u8*)v0r + 4) = 0;
-        arg1->field_1         = 0;
-        arg1->field_3         = 0;
-        arg1->field_2         = 0;
-    }
-    return found;
+    return Spu_GetVoiceRefInline(arg0, arg1);
 }
 
 s32 Spu_ReleaseVoiceSlot(u32 voiceIdx)
