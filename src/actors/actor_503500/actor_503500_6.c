@@ -1222,7 +1222,26 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Steps the 0x3D8 block's countdown at 0x3A8 down to zero, then, unless the
 /// global freeze is on, runs both display nodes through their record tables
 /// before releasing the tables. Same shape as `func_actor_503500_80144004`.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801420C4);
+void func_actor_503500_801420C4(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_3A8 != 0) {
+        timer           = (u16)work->field_3A8 - 1;
+        work->field_3A8 = timer;
+        if (timer < 0) {
+            work->field_3A8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_80140D38(arg0, &work->obj160, work->rec180, 8);
+        func_actor_503500_8014215C(arg0, &work->obj240, work->rec260, 4);
+    }
+    Gp_ClearRec18Occupied(work->rec180);
+    Gp_ClearRec18Occupied(work->rec260);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014215C);
 
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
