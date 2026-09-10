@@ -58962,3 +58962,25 @@ runs after CSE, so that address keeps the pointer register.
 `addiu`s. Declare `s32 *px, *pz` just before the clamps and use them for the clamps and
 the `>> 16` reads. A `MATRIX *m = &mat;` local does the same for an identity init whose
 stores after the first go through `addiu $a1, $sp, 0x10`.
+
+### A jump-table cut needs no renumbering when the rest of the unit is already C
+**Problem.** `func_actor_503500_8013DEB4` matched 100% in scratch, but the scoped
+build failed on `actor_503500`: its switch table sits at object offset `0x17C`
+(4 mod 8) in `actor_503500_6`'s `.rodata`, so GCC's `.align 3` added a pad word
+and the object grew from `0x1A4` to `0x1A8`.
+**Fix.** Adding a `units` cut at the function renumbers every later unit. Every
+function from it to the next unit (`_7`, at `0xD03C`) was already matched C, so
+the **existing** boundary could slide back instead: `units` `0xD03C` -> `0xC094`
+(the function) and `_7`'s `rodata` start `0x2B0` -> `0x288` (the table). No unit
+is added, and no file is renamed or regenerated. Move the tail of `_6.c` from the
+function onward to the top of `_7.c`, ahead of `_7`'s first `INCLUDE_RODATA`
+so the compiler table still comes first. Leave `INCLUDE_RODATA` for the data just
+below the table in `_6.c`: it stays in `_6`'s span, and the moved user reaches it
+through the existing `extern`. Check that the slide preserves the parity mod 8 of
+the rodata already in `_7` (here `0x28`, a multiple of 8). Also check that the
+moved block needs no declarations that exist only in `_6.c`; the two files shared
+one header block.
+**Tooling note.** `bodies_of()` keys a body to a multi-line prototype placed
+directly in front of it (`func_actor_503500_80135950` here). So a name-set diff
+before and after a move can report one false swap. Count the bodies and run
+`check_lost_matches.py`.
