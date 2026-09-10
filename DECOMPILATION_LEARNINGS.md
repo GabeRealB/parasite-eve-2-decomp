@@ -58839,3 +58839,37 @@ if (side != 0) {
 Use a dedicated local for `t`. Reusing the function's loop counter `i` matched
 the instructions but put the negation in `$a0` (the counter's home) instead of
 `$v0`.
+
+## Hoisted `move tN,tM` copies of a mask are `s16` locals; a borderline `%hi` hoist is fixed by an `s16` temp
+
+`func_actor_503500_80135644` builds two small bit masks (`8/0x10/0x20/0x40`
+and `1/2/4`) and tests them against a `u8` table entry in a 17-slot loop.
+The target preheader holds plain copies of both masks, and the loop compares
+against the copies while the `and` uses the original:
+
+```
+move  $t2, $t0            # preheader
+move  $t1, $a3
+...
+and   $v0, $t0, $a0       # loop
+bne   $v0, $t2, ...
+```
+
+An `s32` mask gives no copies; a `u8` mask gives `andi tN, tM, 0xff` (the
+local stays a `QI` pseudo). An `s16` mask gives the loop an invariant
+`sll 16`/`sra 16` pair, which `loop.c` hoists and combine later reduces to a
+`move` because every set of the mask is a small positive constant.
+
+The same loop reads `Game_Session->field_1`, whose `lui` the target keeps
+inside the loop. Its hoist is borderline: `move_movables` starts at threshold
+`2 * (1 + 28) = 58` (no call), loses 3 per moved insn, and tests
+`threshold * savings * lifetime >= insn_count`. After the table base and the
+first mask's pair it is 46, against 45 loop insns, so the `lui` moved (the
+loop dump says `moved to`). Declaring the table temp `s16 bits` instead of
+`u8 bits` adds HI-to-SI extension insns at loop time that combine removes
+later, raising the count to 48; the dump then says `not desirable` and the
+final code is otherwise unchanged. Input: `base_8.i` sha256 `4effad88c0fc…`.
+
+Read the `.loop` dump header (`N real insns`) and each movable's line before
+restructuring the loop: adding or removing a few loop-time insns is often all a
+`%hi` hoist mismatch needs.

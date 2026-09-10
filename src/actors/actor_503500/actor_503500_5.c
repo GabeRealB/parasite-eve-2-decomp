@@ -1335,7 +1335,69 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801353F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135644);
+/// Per-slot camera masks: bits 0x08/0x10/0x20/0x40 are yaw sectors around the
+/// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
+extern u8 D_actor_503500_8016E910[];
+
+/// Clears each slot enemy's `node.field_4` bit 1 only when its
+/// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
+/// (relative to `field_7B6`) and its height band and `Game_Session->field_1`
+/// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
+/// a yaw miss.
+void func_actor_503500_80135644(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    GpEnemy*         enemy;
+    s16              angle;
+    s32              y;
+    s16              dirMask;
+    s16              heightMask;
+    s32              i;
+    s16              bits;
+
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    angle = ratan2(D_80073B8C->t[0] - coord->coord.t[0], D_80073B8C->t[2] - coord->coord.t[2]) - work->field_7B6;
+    while (angle >= 0x800) {
+        angle -= 0x1000;
+    }
+    while (angle < -0x800) {
+        angle += 0x1000;
+    }
+    dirMask = 0x10;
+    if (ABS(angle) < 0x400) {
+        dirMask = 8;
+    }
+    if (angle > 0x300 && angle < 0x480) {
+        dirMask = 0x20;
+    } else if (angle < -0x300 && angle > -0x480) {
+        dirMask = 0x40;
+    }
+    y          = D_80073B8C->t[1];
+    heightMask = 4;
+    if (y < -999) {
+        heightMask = 2;
+        if (y < -3000) {
+            heightMask = 1;
+        }
+    }
+    for (i = 0; i < 0x11; i++) {
+        enemy = work->enemies[i];
+        if (enemy != NULL) {
+            bits = D_actor_503500_8016E910[i];
+            if ((bits & dirMask) != dirMask || Game_Session->field_1 != 0) {
+                enemy->node.field_4            |= 1;
+                work->enemies[i]->node.field_4 &= ~4;
+            } else if ((bits & heightMask) != heightMask) {
+                enemy->node.field_4            |= 1;
+                work->enemies[i]->node.field_4 |= 4;
+            } else {
+                enemy->node.field_4 &= ~1;
+            }
+        }
+    }
+}
 
 /// Copies bits 0x80, 2 and 4 of the parent task's model `field_C` onto
 /// `arg0`'s model, unless that model is attached to `Gfx_ViewCoord`.
