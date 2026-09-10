@@ -146,7 +146,8 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
                 }
             }
             cmd = script->field_1;
-            __asm__ volatile("addiu %0, $zero, 1" : "=r"(one));
+            one = 1;
+            SOFT_TOUCH_REG(one);
             if (cmd != one) {
                 goto L_run_cmd;
             }
