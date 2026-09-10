@@ -41,7 +41,11 @@ extern u8 D_80073BA9;
 extern u8  D_80071075;
 extern s16 D_80073BA0;
 extern s8  D_80114C12;
-s32        func_actor_503500_80133684(Actor503500* arg0);
+/// Main-executable flag byte cleared when the boss enters state 2; also written
+/// by `mist_r18`, which has no module header for it either.
+extern s8 D_80071090;
+s32       func_actor_503500_80133684(Actor503500* arg0);
+void      func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2);
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
 /// empty. `arg0` is loaded by every caller but the body ignores it.
 s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
@@ -51,6 +55,14 @@ void func_actor_503500_801345F4(Actor503500* arg0);
 void func_actor_503500_80134A24(Actor503500* arg0);
 void func_actor_503500_80134C68(Actor503500* arg0);
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
+/// Animation-preset table indexed by preset id; `func_actor_503500_80135FB4`
+/// and `func_actor_503500_80132F64` hand entry pointers to
+/// `func_actor_503500_80135950`.
+extern Actor503500AnimPreset D_actor_503500_8016EAC0[];
+/// Applies preset `arg2` to the boss block's animation slots; `arg1` and `arg3`
+/// are passed by every caller but the body ignores them.
+void func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
+                                Actor503500AnimPreset* arg2, s32 arg3);
 s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
 void func_actor_503500_8013611C(s32 arg0);
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
@@ -137,7 +149,6 @@ void func_actor_503500_80132DD4(void)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80132DEC);
-
 void func_actor_503500_80132E7C(void)
 {
     Task* slot3;
@@ -289,13 +300,22 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
     D_actor_503500_80176574.field_730[arg1] = arg2;
 }
 
+/// Sets the per-slot rate `GpAnimSlot::field_9` on animation slots 1..16 of the
+/// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
+/// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135FB4);
-
+/// Reports whether the boss is in sub-state `arg1` and, if so, whether either
+/// of the 0x102 bits of its state flag halfword is set. Returns -1 for any
+/// other sub-state. `arg0` is loaded by every caller but the body ignores it,
+/// the same way `func_actor_503500_80135E04` does.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136014);
-
+/// Puts the boss into state 2: clears the state's step counters and the two
+/// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 and
+/// drops the main-executable flag.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80136048);
-
-s32 func_actor_503500_8013608C(void)
+/// Reports whether the boss-wide gate is open; the body ignores its
+/// argument, and callers pass unrelated pointers they already hold.
+s32 func_actor_503500_8013608C(void* arg0)
 {
     return (u32)(D_actor_503500_80176D24 - 2) < 3U;
 }
@@ -305,8 +325,10 @@ void func_actor_503500_801360A4(s32 arg0, s16 arg1)
     D_actor_503500_80176D64[arg0] = arg1;
 }
 
+/// Tries to claim `arg1` counts for slot `arg0`: sums every *other* slot's
+/// counter plus the requested amount and, if the total stays under 9, writes
+/// the request into the slot. Returns whether it was granted.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801360BC);
-
 void func_actor_503500_8013611C(s32 arg0)
 {
     D_actor_503500_80176D64[arg0] = 0;
