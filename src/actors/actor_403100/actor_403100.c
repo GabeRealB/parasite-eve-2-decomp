@@ -71,7 +71,56 @@ void func_actor_403100_8013F12C(void);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132064);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132320);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132528);
+void func_actor_403100_80132528(Task* arg0)
+{
+    SVECTOR        pos;
+    SVECTOR        rotation;
+    MATRIX         matrix;
+    GameActor*     player;
+    GsCOORDINATE2* joint;
+    GsCOORDINATE2* playerCoord;
+    s32            angle;
+    s32            anim;
+    u16            savedAngle;
+    GsCOORDINATE2* coords;
+
+    anim                               = D_actor_403100_80155808->field_5DE;
+    playerCoord                        = (*Gp_ActorSlots)->extra->field_8;
+    coords                             = ((TmdObject*)arg0->extra)->field_8;
+    player                             = (*Gp_ActorSlots)->actor;
+    angle                              = D_actor_403100_80155808->field_5E2;
+    savedAngle                         = (u16)D_actor_403100_80155808->field_5E2;
+    D_actor_403100_80155808->field_5E2 = angle * 2;
+    func_actor_403100_8013E02C(anim, D_actor_403100_80155808->field_5E2, 0);
+    func_actor_403100_801327CC(arg0);
+    func_actor_403100_801328DC(arg0);
+    func_actor_403100_8013D770(arg0);
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    joint         = &coords[7];
+    coords[7].flg = 0;
+    Gp_UpdateCoord(joint);
+    pos.vx = -0x290;
+    pos.vy = 0x1E8;
+    pos.vz = 0x220;
+    ActorCoordToView(joint, &pos);
+    func_actor_403100_8013D2F4(joint, &matrix);
+    Gp_MtxToEuler(&matrix, &rotation);
+    player->field_50 = rotation.vx;
+    player->field_52 = rotation.vy;
+    player->field_54 = rotation.vz;
+    RotMatrix(&rotation, &playerCoord->coord);
+    playerCoord->coord.t[0] = pos.vx;
+    playerCoord->coord.t[1] = pos.vy;
+    playerCoord->coord.t[2] = pos.vz;
+    playerCoord->flg        = 0;
+    Gp_UpdateCoord(playerCoord);
+    D_actor_403100_80155808->field_5E2 = (-angle) << 1;
+    func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    func_actor_403100_801327CC(arg0);
+    D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
+    func_actor_403100_8013E02C(D_actor_403100_80155808->field_5DE, angle, 0);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801326DC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801327CC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801328DC);
