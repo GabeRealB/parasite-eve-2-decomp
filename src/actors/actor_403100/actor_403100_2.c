@@ -705,7 +705,25 @@ extern TaskFuncTable6 D_actor_403100_80132030;
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100_2", D_actor_403100_80132030);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BA64);
+void func_actor_403100_8013BA64(Task* arg0)
+{
+    GsCOORDINATE2* coords   = ((TmdObject*)arg0->extra)->field_8;
+    TaskFuncTable6 handlers = D_actor_403100_80132030;
+
+    D_actor_403100_80155808->field_602 = (u16)D_actor_403100_80155808->field_600;
+    handlers.funcs[D_actor_403100_80155808->field_5F6](arg0);
+    if (((Gp_GetViewIndex() & 0xFF) == 7) || ((Gp_GetViewIndex() & 0xFF) == 8)) {
+        if ((s16)D_actor_403100_80155808->field_5F8 == 6) {
+            if (D_actor_403100_80155808->field_628 == 2) {
+                coords->coord.t[0] += (-4000 - coords->coord.t[0]) >> 4;
+            } else {
+                coords->coord.t[0] += (-2700 - coords->coord.t[0]) >> 4;
+            }
+        }
+    } else {
+        coords->coord.t[0] += (-1100 - coords->coord.t[0]) >> 3;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013BB8C);
 void func_actor_403100_8013BDE4(Task* arg0)
 {
