@@ -14,6 +14,7 @@ void func_actor_342400_8016AD94(Task* arg0);
 void func_actor_342400_801698D4(Task* arg0, s32 arg1);
 s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 s16  func_actor_342400_8016974C(Task* arg0);
+void func_actor_342400_8016BEF0(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80169654);
 
@@ -101,7 +102,20 @@ void func_actor_342400_80169BAC(Task* arg0)
     states[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80169C00);
+extern TaskFuncTable3 D_actor_342400_80161ED4;
+
+void func_actor_342400_80169C00(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor342400Work*)arg0->idMap;
+    sp   = D_actor_342400_80161ED4;
+    sp.funcs[(s16)work->field_422](arg0);
+    if (work->field_44F == 1) {
+        func_actor_342400_8016BEF0(arg0);
+    }
+}
 
 extern TaskFuncTable6 D_actor_342400_80162010;
 
