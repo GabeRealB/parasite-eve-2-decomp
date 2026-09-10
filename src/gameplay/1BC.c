@@ -3818,8 +3818,7 @@ void func_800B65B0(Task* task)
 void Gp_SpawnPlaceById(u16 arg0)
 {
     GameSessionFrom4*    sess;
-    s32                  hi;
-    register GpBit2Bank* tmp asm("a1");
+    GpBit2Bank*          tmp;
     register GpBit2Bank* banks asm("t1");
     GpBit2List*          lists;
     GpEnemyPlace*        place;
@@ -3833,15 +3832,15 @@ void Gp_SpawnPlaceById(u16 arg0)
     u16                  recId;
     u8                   idx8;
 
-    sess = (GameSessionFrom4*)&Mc_SaveData.field_4;
-    asm("lui %0, %%hi(Gp_Bit2Banks)" : "=r"(hi));
-    idx8 = sess->field_3;
-    asm("addiu %0, %1, %%lo(Gp_Bit2Banks)" : "=r"(tmp) : "r"(hi));
+    sess  = (GameSessionFrom4*)&Mc_SaveData.field_4;
+    tmp   = Gp_Bit2Banks;
+    idx8  = sess->field_3;
     lists = tmp[idx8].field_0;
     if (lists == NULL) {
         return;
     }
     place = (GpEnemyPlace*)lists[sess->field_2].field_0;
+    TOUCH_REG(banks);
     if (place == NULL) {
         return;
     }
