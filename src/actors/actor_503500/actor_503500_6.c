@@ -615,7 +615,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// global freeze is on, runs the 0x160 display node through its record table
 /// before releasing the table. Same shape as `func_actor_503500_8013BD0C`.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AA44);
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AAC0);
+void func_actor_503500_8013AAC0(Actor503500* arg0)
+{
+    VECTOR vec;
+
+    vec.vx = arg0->extra->field_8->workm.t[0];
+    vec.vy = arg0->extra->field_8->workm.t[1];
+    vec.vz = arg0->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AB38);
 
 /// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
