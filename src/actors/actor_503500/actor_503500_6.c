@@ -978,7 +978,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// mode 2 only marks the enemy's link node, and anything else clears the
 /// coordinate flag and runs the normal chain.
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F6F0);
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F778);
+void func_actor_503500_8013F778(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy                                       = arg0->field_20;
+    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    Gp_UnlinkObj(&arg0->field_1C->obj);
+    enemy->field_54 = 0;
+    arg0->field_1C  = NULL;
+    Gp_DestroyEnemy(enemy, (Task*)arg0);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F7D8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F830);
