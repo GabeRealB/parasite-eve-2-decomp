@@ -60049,3 +60049,37 @@ third, so `lw $v0, 0x2C($a0)` issued after `lw $s4, 0x1C($a0)` instead of before
 it. Assigning `coord` ahead of `work` and `enemy` in the source restored the
 target's order; the loads have no dependency on each other, so LUID order
 decides.
+## An oversized body shifts overlay trailing data, faking a data-symbol %lo drift (shelter_b3_dumping_hole_8017FF14, 2026-09-10)
+
+Symptom: a decompiled overlay function fails checksum, and objdump/nm show
+*every* trailing-data symbol in the overlay linked 0xC above its `D_<addr>`
+name, so a `%lo(D_..)` reference in the new function points 0xC past the real
+data. It looks like a room data-split (`rodata`/`data` cut) bug. It is not:
+the overlay matched fine with the function still `INCLUDE_ASM`, so the data
+was correctly placed. The C body simply compiled longer than the original, and
+because rodata+trailing-data follow `.text` in the overlay image, the extra
+0xC pushed all of it up. Fix the body size, and the symbols (and the `%lo`)
+snap back.
+
+Here the bloat was an `if/else` that loaded the same global twice:
+`if (D_8007218A==1) x = D_80073BA9 + 1; else x = D_80073BA9 + 0x22;` emits two
+`lbu D_80073BA9` loads + a `j`/`nop`. GCC 2.8.1 loads the global once and picks
+the addend across a branch only for the fused form
+`x = D_80073BA9 + (D_8007218A==1 ? 1 : 0x22);` — three instructions
+(`bne; addiu (delay); addu`), matching retail and restoring the image size.
+
+Corollary: when a checksum diff presents as a whole-section address drift,
+count the new function's instructions against the `.s` (`, 0xNN` in the
+`nonmatching` header) before touching the split config.
+
+## Flip an s0/s1 saved-register assignment with a local `register … asm()` pin
+
+Same function: after fixing size, the only diff was state→s1/entity→s0 where
+retail had state→s0/entity→s1. GCC assigns saved regs by allocation priority
+(ref count / live length), so the more-referenced pseudo took s0. Pinning both
+locals — `register DumpingHoleState* s asm("s0") = …;`
+`register DumpingHoleEntity* e asm("s1") = s->field_1C;` — reproduced retail's
+prologue exactly (`sw s0; lw s0,state; … sw s1; lw s1,0x1C(s0)`). Residual on
+this one is unrelated: retail hoists the *entity reload* (`lw a3,0x1C(s0)`) up
+into the ternary's load-delay slot while loading `->field_24` late, a sched1
+split that source order does not control (left at ~98%, permuter candidate).
