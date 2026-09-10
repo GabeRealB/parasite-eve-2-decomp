@@ -467,7 +467,64 @@ void func_actor_403100_80138F88(Task* arg0)
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013922C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801395EC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80139818);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80139E80);
+void func_actor_403100_80139E80(Task* arg0)
+{
+    s16            angle;
+    s32            y;
+    s32            x;
+    u16            velocityX;
+    u16            rotationX;
+    u16            rotationZ;
+    u16            velocityZ;
+    u16            rotationY;
+    u16            frame;
+    GsCOORDINATE2* part;
+    GsCOORDINATE2* coords;
+
+    coords                             = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
+    angle                              = (u16)D_actor_403100_80155808->field_610 + 6;
+    D_actor_403100_80155808->field_610 = angle;
+    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, angle);
+    part                               = coords + 6;
+    y                                  = coords->coord.t[1];
+    coords->coord.t[1]                 = (s32)(y + ((s32)-y >> 6));
+    velocityX                          = (u16)D_actor_403100_80155808->field_604;
+    velocityZ                          = (u16)D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_604 = velocityX + ((s32)(-0x1100 - (s16)(velocityX * 0x10)) >> 7);
+    rotationX                          = (u16)D_actor_403100_80155808->field_A0;
+    D_actor_403100_80155808->field_608 = velocityZ + ((s32)(0x4E00 - (s16)(velocityZ * 0x10)) >> 7);
+    rotationY                          = (u16)D_actor_403100_80155808->field_A2;
+    D_actor_403100_80155808->field_A0  = rotationX + ((s32)(0x2400 - (s16)(rotationX * 0x10)) >> 7);
+    rotationZ                          = (u16)D_actor_403100_80155808->field_A4;
+    D_actor_403100_80155808->field_A2  = rotationY + ((s32)(-0x1D00 - (s16)(rotationY * 0x10)) >> 7);
+    D_actor_403100_80155808->field_A4  = rotationZ + ((s32)(0x2E00 - (s16)(rotationZ * 0x10)) >> 7);
+    x                                  = part->coord.t[0];
+    part->coord.t[0]                   = (s32)(x + ((s32)(-0x807 - x) >> 3));
+    func_actor_403100_80132528(arg0);
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame >= 0x1F) {
+        D_actor_403100_80155808->field_5E2              = 8;
+        D_actor_403100_80155808->field_5DE              = 0xE;
+        D_actor_403100_80155808->field_5DA              = 2;
+        *(s16*)(u32)&D_actor_403100_80155808->field_5EC = 0;
+        D_8007216C                                      = 0xC;
+        *(s32*)(u32)&coords->coord.t[0]                 = -0x44C;
+        *(s32*)(u32)&coords->coord.t[2]                 = 0x1770;
+        *(s32*)(u32)&coords->coord.t[1]                 = 0;
+        D_actor_403100_80155808->field_82               = 0xC00;
+        D_actor_403100_80155808->field_80               = 0;
+        D_actor_403100_80155808->field_84               = 0;
+        D_actor_403100_80155808->field_604              = 0;
+        D_actor_403100_80155808->field_608              = 0;
+        D_actor_403100_80155808->field_A0               = 0;
+        D_actor_403100_80155808->field_A2               = 0;
+        D_actor_403100_80155808->field_A4               = 0;
+        *(s32*)(u32)&part->coord.t[0]                   = -0x877;
+        D_actor_403100_80155808->field_5FA             += 1;
+    }
+}
 void func_actor_403100_8013A064(Task* arg0)
 {
     GameActor* actor;
