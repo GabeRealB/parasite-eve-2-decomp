@@ -4390,8 +4390,7 @@ void Gp_AimPitchToLockAlt(GpActorWork* arg0)
 
 void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    void**          scratch;
-    s32             hi;
+    register void** scratch asm("v0");
     u8*             head;
     register u8*    tmp asm("v1");
     GameActor*      actor;
@@ -4407,9 +4406,9 @@ void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2)
     s32             angle;
     s32             thresh;
 
-    thresh = arg2;
-    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(thresh));
-    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+    thresh  = arg2;
+    scratch = (void**)G_SCRATCH_HEAD;
+    TOUCH_REG_USE(scratch, thresh);
     head     = *scratch;
     actor    = arg0->actor;
     tmp      = head - 0x84;
