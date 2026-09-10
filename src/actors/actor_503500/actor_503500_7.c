@@ -56,6 +56,13 @@ extern u16 D_actor_503500_80176D24;
 /// `func_actor_503500_8013BEE4` and `func_actor_503500_8013ECBC` park the row
 /// in `GpEnemy::field_50` and seed the enemy's HP from its `field_4`.
 extern GpPairSrcE D_actor_503500_8016E7EC[];
+/// Per-slot parent part index and local offset of the 0x224 enemy in
+/// `D_actor_503500_80178AC0`, indexed by `spawnArg1 - 0xA`, and the
+/// translation it gives the task's own coordinate.
+extern s32                D_actor_503500_80171464[];
+extern SVECTOR            D_actor_503500_80171480[];
+extern SVECTOR            D_actor_503500_80171478;
+extern Actor503500Work224 D_actor_503500_80178AC0[];
 /// Local offset the 0xF4 enemy applies to both its `GpEnemy::field_1C` and
 /// its display node's 0x10 vector.
 extern SVECTOR         D_actor_503500_8016F36C;
@@ -255,6 +262,7 @@ void      func_actor_503500_80144004(Actor503500* arg0);
 void      func_actor_503500_80144098(Actor503500* arg0, s32 arg1, GpEnemy* arg2);
 void      func_actor_503500_8014418C(Actor503500* arg0);
 void      func_actor_503500_801441E8(Actor503500* arg0);
+void      func_actor_503500_80143F78(Actor503500* arg0);
 void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
 void      func_actor_503500_80144520(Actor503500* arg0);
 void      func_actor_503500_80144778(Actor503500* arg0);
@@ -521,7 +529,112 @@ void func_actor_503500_80142370(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_801423C8);
+/// State-0 init of the 0x224 enemy at `D_actor_503500_80178AC0[spawnArg1 - 0xA]`:
+/// clears the block, hangs the task's coordinate off the parent part picked by
+/// `D_actor_503500_80171464`, republishes the parent's light and colour
+/// matrices, and links three display nodes - `obj0` on the task's own
+/// coordinate, `obj1` / `obj2` on parent parts 6 / 7 (slot 1) or 12 / 13
+/// (slot 0) sharing `rec1` - before starting sub-state 0.
+void func_actor_503500_801423C8(Actor503500* arg0)
+{
+    GpEnemy*            enemy;
+    TmdObject*          tmd;
+    Task*               parent;
+    s32                 slot;
+    Actor503500Work224* work;
+    GsCOORDINATE2*      coord;
+    TmdObject*          parentTmd;
+    SVECTOR*            ofs;
+    GpRec18*            rec;
+    GsCOORDINATE2*      parts;
+    GsCOORDINATE2*      parts2;
+
+    enemy     = arg0->field_20;
+    tmd       = arg0->extra;
+    parent    = arg0->parent;
+    slot      = arg0->spawnArg1 - 0xA;
+    work      = &D_actor_503500_80178AC0[slot];
+    coord     = tmd->field_8;
+    parentTmd = parent->extra;
+    Mem_Set(work, 0, 0x224);
+    arg0->field_1C = (Actor503500Work*)work;
+
+    coord->sub        = &((TmdObject*)parent->extra)->field_8[D_actor_503500_80171464[slot]];
+    coord->coord.t[0] = D_actor_503500_80171478.vx;
+    coord->coord.t[1] = D_actor_503500_80171478.vy;
+    coord->coord.t[2] = D_actor_503500_80171478.vz;
+    work->field_220   = arg0->spawnArg1 - 0xA;
+    tmd->field_1C     = parentTmd->field_1C;
+    tmd->field_20     = parentTmd->field_20;
+    tmd->field_E      = 0x13;
+    tmd->field_C     |= 0x84;
+    coord->flg        = 0;
+
+    enemy->field_4      = &coord->coord;
+    ofs                 = &D_actor_503500_80171480[slot];
+    enemy->field_48     = 0;
+    enemy->field_18     = coord;
+    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->field_1C.vx  = ofs->vx;
+    enemy->field_1C.vy  = ofs->vy;
+    enemy->field_1C.vz  = ofs->vz;
+    rec                 = work->rec0;
+    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54     = (s32)rec;
+    enemy->field_40     = enemy->field_50->field_4;
+
+    work->obj0.field_8  = coord;
+    work->obj0.field_C  = rec;
+    work->obj0.field_10 = ofs->vx;
+    work->obj0.field_12 = ofs->vy;
+    work->obj0.field_14 = ofs->vz;
+    work->obj0.field_18 = 0x30023;
+    work->obj0.field_1C = 0x5DC;
+    work->obj0.flags    = 1;
+    Gp_LinkObj(2, &work->obj0);
+    Gp_InitRec18Table(rec, 8, 0);
+    work->obj0.flags &= 0x7FFF;
+
+    parts = ((TmdObject*)parent->extra)->field_8;
+    if (slot != 0) {
+        work->obj1.field_8 = &parts[6];
+    } else {
+        work->obj1.field_8 = &parts[12];
+    }
+    work->obj1.field_C  = work->rec1;
+    work->obj1.field_10 = 0;
+    work->obj1.field_12 = 0;
+    work->obj1.field_14 = 0;
+    work->obj1.field_18 = 0x30023;
+    work->obj1.field_1C = 0x320;
+    work->obj1.flags    = 1;
+    Gp_LinkObj(3, &work->obj1);
+    Gp_InitRec18Table(work->rec1, 4, 0);
+    work->obj1.flags &= 0x7FFF;
+
+    parts2 = ((TmdObject*)parent->extra)->field_8;
+    if (slot != 0) {
+        work->obj2.field_8 = &parts2[7];
+    } else {
+        work->obj2.field_8 = &parts2[13];
+    }
+    work->obj2.field_C  = work->rec1;
+    work->obj2.field_10 = 0;
+    work->obj2.field_12 = 0x190;
+    work->obj2.field_14 = 0;
+    work->obj2.field_18 = 0x30023;
+    work->obj2.field_1C = 0x4B0;
+    work->obj2.flags    = 1;
+    Gp_LinkObj(3, &work->obj2);
+    Gp_InitRec18Table(work->rec1, 4, 0);
+    work->field_1E4   = 0x600;
+    work->field_1E0   = coord;
+    work->field_1E6   = 3;
+    work->obj2.flags &= 0x7FFF;
+    func_actor_503500_80144238(arg0, 0);
+    arg0->exitCallback = (TaskFunc)func_actor_503500_80143F78;
+    arg0->state       += 1;
+}
 
 /// Sub-state 1 of the 0x224 enemy. Phase 0 hands the parent 0xC, or 0x12 when
 /// `func_actor_503500_80135E04` accepts slot 4/5, and keeps the pick in

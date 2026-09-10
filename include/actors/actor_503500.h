@@ -609,14 +609,18 @@ typedef struct Actor503500Work224 {
     /* 0x140 */ GpObj   obj1;
     /* 0x160 */ GpObj   obj2;
     /* 0x180 */ GpRec18 rec1[4];
-    /* 0x1E0 */ byte    pad_1E0[0x38];
-    /* 0x218 */ s16     field_218; // per-frame countdown, clamped at 0
-    /* 0x21A */ u16     field_21A; // sub-state frame counter
-    /* 0x21C */ byte    pad_21C[0x4];
-    /* 0x220 */ s8      field_220; // side flag: picks the +/-0x5DC turn
-    /* 0x221 */ s8      field_221; // sub-state index
-    /* 0x222 */ s8      field_222; // sub-state phase, cleared with field_221
-    /* 0x223 */ s8      field_223; // 0xC or 0x12, picked in sub-state 1's phase 0
+    /// The same coordinate / 0x600 / 3 trio as `Actor503500Work::field_E0`.
+    /* 0x1E0 */ GsCOORDINATE2* field_1E0;
+    /* 0x1E4 */ s16            field_1E4;
+    /* 0x1E6 */ s16            field_1E6;
+    /* 0x1E8 */ byte           pad_1E8[0x30];
+    /* 0x218 */ s16            field_218; // per-frame countdown, clamped at 0
+    /* 0x21A */ u16            field_21A; // sub-state frame counter
+    /* 0x21C */ byte           pad_21C[0x4];
+    /* 0x220 */ s8             field_220; // side flag: picks the +/-0x5DC turn
+    /* 0x221 */ s8             field_221; // sub-state index
+    /* 0x222 */ s8             field_222; // sub-state phase, cleared with field_221
+    /* 0x223 */ s8             field_223; // 0xC or 0x12, picked in sub-state 1's phase 0
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 
