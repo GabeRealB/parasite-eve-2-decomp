@@ -27,7 +27,6 @@ void Room_Draw02(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32                ang;
     register void**    scratch asm("a1");
     register s32       saved asm("t1");
-    register s32       hi asm("a1");
     register u8*       head asm("t0");
     s32                sum;
     s32                otz;
@@ -40,11 +39,10 @@ void Room_Draw02(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     u32                maskLo;
     u32                maskHi;
 
-    saved = arg1;
-    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(saved));
-    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
-    color = rgb;
-    head  = *scratch;
+    saved   = arg1;
+    scratch = (void**)G_SCRATCH_HEAD;
+    color   = rgb;
+    head    = *scratch;
     USE_REG(head);
     vx = *(u16*)&arg0->workm.t[0];
     USE_REG(vx);
