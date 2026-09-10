@@ -108,7 +108,38 @@ void func_actor_503500_801324EC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132508);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132584);
+s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
+{
+    TmdObject* obj;
+    s32        ret;
+
+    obj = task->extra;
+    ret = 0;
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C                                 |= 0x80;
+            ((Actor503500ColorMtx*)task->idMap)->field_44 = mode;
+            obj->field_C                                 |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 s32 func_actor_503500_80132664(Task* task, s32 arg1, Actor503500ModeMsg* msg)
 {
