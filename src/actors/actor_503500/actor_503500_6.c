@@ -1021,7 +1021,24 @@ void func_actor_503500_8013EA2C(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013EA8C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013EAE4);
+void func_actor_503500_8013EAE4(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_E8 != 0) {
+        timer          = (u16)work->field_E8 - 1;
+        work->field_E8 = timer;
+        if (timer < 0) {
+            work->field_E8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_8013DEB4(arg0, work, &work->rec, 8);
+    }
+    Gp_ClearRec18Occupied(&work->rec);
+}
 void func_actor_503500_8013EB60(Actor503500* arg0)
 {
     switch (arg0->field_1C->field_EC) {
