@@ -107,6 +107,9 @@ extern Actor503500UVec D_actor_503500_801715AC;
 /// `D_actor_503500_8016E7D4`, and the local offset of its display node.
 extern GpU16Pair*      D_actor_503500_8016E7D0[];
 extern Actor503500UVec D_actor_503500_801715B4;
+/// Frame count `func_actor_503500_80144B40` holds its sub-state 1 for, indexed
+/// by `Task::spawnArg1`.
+extern s32 D_actor_503500_801715BC[];
 /// Local offset of the display node `func_actor_503500_80144E8C` links, and the
 /// offsets it seeds its `GpActorD4Rec` with.
 extern Actor503500UVec D_actor_503500_801715C4;
@@ -1209,7 +1212,58 @@ void func_actor_503500_801448E8(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80144B40);
+void func_actor_503500_80144B40(Actor503500* arg0)
+{
+    Actor503500WorkB4* work;
+    GsCOORDINATE2*     coord;
+    VECTOR             v;
+
+    work  = (Actor503500WorkB4*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_B0) {
+        case 0:
+            work->field_A8 -= 0x80000;
+            if (work->field_A8 < 0x80000) {
+                work->field_80->spawnArg1 = 2;
+                work->field_B0++;
+            }
+            break;
+        case 1:
+            work->field_AE++;
+            if (D_actor_503500_801715BC[arg0->spawnArg1] < work->field_AE) {
+                work->field_AE   = 0;
+                work->obj.flags &= 0x7FFF;
+                work->field_B0++;
+            }
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+    v.vx = 0;
+    v.vy = 0;
+    v.vz = work->field_A8;
+    ApplyMatrixLV(&coord->coord, &v, &v);
+    work->field_84.vx += v.vx;
+    work->field_84.vy += v.vy - 0x10000;
+    work->field_84.vz += v.vz;
+    work->field_84.vx += v.vx;
+    work->field_84.vy += v.vy;
+    work->field_84.vz += v.vz;
+    if (work->field_84.vx > 0x36B00000) {
+        work->field_84.vx = 0x36B00000;
+    } else if (work->field_84.vx < 0x7D00000) {
+        work->field_84.vx = 0x7D00000;
+    }
+    if (work->field_84.vz > 0x32C80000) {
+        work->field_84.vz = 0x32C80000;
+    } else if (work->field_84.vz < 0x3E80000) {
+        work->field_84.vz = 0x3E80000;
+    }
+    coord->coord.t[0] = work->field_84.vx >> 16;
+    coord->coord.t[1] = work->field_84.vy >> 16;
+    coord->coord.t[2] = work->field_84.vz >> 16;
+}
 
 void func_actor_503500_80144D50(Actor503500* arg0)
 {
