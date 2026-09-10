@@ -473,7 +473,53 @@ void func_actor_403100_80133D88(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133E88);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801342B4);
+void func_actor_403100_801342B4(Task* arg0)
+{
+    SVECTOR        pos1, pos2, offset1, offset2;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* coord1;
+    GsCOORDINATE2* coord2;
+    s32            i;
+
+    coords            = ((TmdObject*)arg0->extra)->field_8;
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    coord1        = &coords[8];
+    coords[8].flg = 0;
+    Gp_UpdateCoord(coord1);
+    pos1.vx = offset1.vx = 0x160;
+    pos1.vy = offset1.vy = 0x148;
+    i                    = 3;
+    pos1.vz = offset1.vz = 0x2C0;
+    ActorCoordToView(coord1, &pos1);
+    coord2  = &coords[7];
+    pos2.vx = offset2.vx = 0;
+    pos2.vy = offset2.vy = 0;
+    pos2.vz = offset2.vz = 0;
+    ActorCoordToView(coord2, &pos2);
+    for (; i < 9; i++) {
+        if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
+            if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
+                Gp_SpawnEff(0x60050, coord1, 0, &offset1);
+                func_8017E250((s16)i, 1);
+                D_actor_403100_80155808->regions.regionFlags[i] = 1;
+            } else {
+                Gp_SpawnEff(0x60050, coord1, 1, &offset1);
+            }
+        }
+    }
+    for (i = 3; i < 9; i++) {
+        if (Actor403100_FindRegion(pos2.vx, pos2.vz) == i) {
+            if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
+                Gp_SpawnEff(0x60050, coord2, 0, &offset2);
+                func_8017E250((s16)i, 1);
+                D_actor_403100_80155808->regions.regionFlags[i] = 1;
+            } else {
+                Gp_SpawnEff(0x60050, coord2, 1, &offset2);
+            }
+        }
+    }
+}
 void func_actor_403100_801345E0(Task* arg0, Task* arg1)
 {
     s32            x;
