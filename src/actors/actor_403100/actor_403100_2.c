@@ -299,7 +299,22 @@ void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&msg, 0);
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D11C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D1B8);
+void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
+{
+    GpAnimArg msg;
+
+    msg.field_0                        = &D_actor_403100_8015570C;
+    msg.field_4                        = (s32)arg0;
+    msg.field_8                        = 0;
+    msg.field_C                        = 0;
+    msg.field_10                       = 0;
+    D_actor_403100_80155808->field_65D = (s8)arg0;
+    if (arg1 == 0x3FF) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+    } else if (arg1 == 0x3F4) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+    }
+}
 void func_actor_403100_8013D24C(void)
 {
     s32 state;
