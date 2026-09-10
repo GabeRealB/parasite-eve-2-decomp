@@ -1666,7 +1666,19 @@ void func_actor_503500_801440F0(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014418C);
+void func_actor_503500_8014418C(Actor503500* arg0)
+{
+    switch (arg0->killCountdown) {
+        case 2:
+            func_actor_503500_80144238(arg0, 1);
+            arg0->killCountdown = 0;
+            break;
+        case 8:
+            func_actor_503500_80144238(arg0, 3);
+            arg0->killCountdown = 0;
+            break;
+    }
+}
 void func_actor_503500_801441E8(Actor503500* arg0)
 {
     Actor503500Work* work;
