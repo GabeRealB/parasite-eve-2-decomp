@@ -277,7 +277,8 @@ typedef struct Actor503500Work {
     /// and `func_actor_503500_80136D30` uses it as the gate on its own tick.
     /* 0x7D4 */ s8   field_7D4;
     /* 0x7D5 */ s8   field_7D5; // boss sub-state index, seeded with field_7D6/7D9
-    /* 0x7D6 */ byte pad_7D6[0x4];
+    /* 0x7D6 */ byte pad_7D6[0x3];
+    /* 0x7D9 */ s8   field_7D9; // mode last set by func_actor_503500_80137158
     /* 0x7DA */ u8   field_7DA; // per-state step counter
     /* 0x7DB */ u8   field_7DB; // cleared alongside field_7DA
     /* 0x7DC */ byte pad_7DC[0x2];

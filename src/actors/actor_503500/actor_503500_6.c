@@ -738,7 +738,36 @@ s32 func_actor_503500_80137088(Actor503500* arg0, s32 arg1, Actor503500PlaceArgs
     work->field_6C4.vz = args->pos.vz << 16;
     return 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80137158);
+s32 func_actor_503500_80137158(Actor503500* arg0, s32 arg1, s32 mode)
+{
+    TmdObject* ext;
+    s32        ret;
+
+    ext = arg0->extra;
+    ret = 0;
+    switch (mode) {
+        case 0:
+            ext->field_C = (ext->field_C | 0x80) & ~4;
+            break;
+        case 1:
+            ext->field_C &= ~0x80;
+            Tmd_AllocBuffers(ext);
+            ext->field_C &= ~4;
+            break;
+        case 2:
+            ext->field_C             |= 0x80;
+            arg0->field_1C->field_7D9 = mode;
+            ext->field_C             |= 4;
+            break;
+        case 3:
+            ext->field_C = (ext->field_C & ~0x80) | 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 void func_actor_503500_80137238(Task* task)
 {
