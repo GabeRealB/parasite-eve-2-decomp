@@ -281,9 +281,9 @@ extern s8 D_80071090;
 void      func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2);
 void      func_actor_503500_80137048(Actor503500* arg0, s32 rate);
 /// Applies preset `arg2` to the boss block's animation slots; `arg1` and `arg3`
-/// are passed by every caller but the body ignores them.
-void func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
-                                Actor503500AnimPreset* arg2, s32 arg3);
+/// are passed by every caller but the body ignores them. Always returns 0.
+s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
+                               Actor503500AnimPreset* arg2, s32 arg3);
 /// The animation preset `func_actor_503500_80136D30` re-applies when the boss
 /// finishes the clip it was gating on.
 extern Actor503500AnimPreset D_actor_503500_8016EAD4;

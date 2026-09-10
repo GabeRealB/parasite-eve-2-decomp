@@ -66,16 +66,21 @@ void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 a
 /// `func_actor_503500_80135950`.
 extern Actor503500AnimPreset D_actor_503500_8016EAC0[];
 /// Applies preset `arg2` to the boss block's animation slots; `arg1` and `arg3`
-/// are passed by every caller but the body ignores them.
-void func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
-                                Actor503500AnimPreset* arg2, s32 arg3);
-s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
-void func_actor_503500_8013611C(s32 arg0);
-void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
-void func_actor_503500_801372AC(s32 arg0);
-void func_actor_503500_80136450(Actor503500* arg0);
-void func_actor_503500_801369E4(Actor503500* arg0);
-void func_actor_503500_80136A80(Actor503500* arg0);
+/// are passed by every caller but the body ignores them. Always returns 0.
+s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
+                               Actor503500AnimPreset* arg2, s32 arg3);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Animation-bank table indexed by `Actor503500AnimPreset::field_0`.
+extern void* D_actor_503500_8016EAB8[];
+s32          func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
+void         func_actor_503500_8013611C(s32 arg0);
+void         func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
+void         func_actor_503500_801372AC(s32 arg0);
+void         func_actor_503500_80136450(Actor503500* arg0);
+void         func_actor_503500_801369E4(Actor503500* arg0);
+void         func_actor_503500_80136A80(Actor503500* arg0);
 /// Republishes the boss's four cached matrices (`arg1`) and/or re-seeds its
 /// display state (`arg2`); lives in `actor_503500_5`.
 void func_actor_503500_80136B64(Actor503500* arg0, s32 arg1, s32 arg2);
@@ -981,7 +986,53 @@ void func_actor_503500_80135828(Actor503500* arg0, s8* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135950);
+/// Applies preset `arg2`: re-seeds the slot array from bank `field_0` when it
+/// changes, then sets every slot 1..0x13 to clip `field_4` (blended over
+/// `field_C` frames by `func_800B4114` when `field_8` is set and the array was
+/// already seeded) and ticks it once, before re-applying the part scales.
+s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1, Actor503500AnimPreset* arg2, s32 arg3)
+{
+    Actor503500Work* work;
+    Actor503500Work* work2;
+    TmdObject*       ext;
+    s32              i;
+
+    work = arg0->field_1C;
+    ext  = arg0->extra;
+    if (arg2->field_0 != work->field_7D6) {
+        work->field_7D6 = arg2->field_0;
+        func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], (GpAnimObj*)ext,
+                      work->field_334, (GpAnimSlot*)&work->obj.field_14);
+        work->field_7D4 = 0;
+    }
+    work->field_7D5 = arg2->field_4;
+    if (arg2->field_8 != 0 && work->field_7D4 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114((GpAnimCtx*)work, i, work->field_7D5, 0, arg2->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_7D5);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+    }
+    work->field_7D4 = 1;
+    work2           = arg0->field_1C;
+    if (work2->field_7AC & 0x20) {
+        work2->coord504 = arg0->extra->field_8[4];
+        ScaleMatrix(&work2->coord504.coord, &work2->field_5A4);
+    }
+    if (work2->field_7AC & 0x800) {
+        work2->coord554 = arg0->extra->field_8[10];
+        ScaleMatrix(&work2->coord554.coord, &work2->field_5B4);
+    }
+    if (work2->field_7AC & 0x10000) {
+        ScaleMatrix(&arg0->extra->field_8[16].coord, &work2->field_5C4);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135B74);
 

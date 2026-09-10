@@ -209,7 +209,10 @@ typedef struct Actor503500Work {
     /* 0x2E6 */ byte pad_2E6[0x4];
     /* 0x2EA */ s8   field_2EA;
     /* 0x2EB */ s8   field_2EB; // TMD buffer countdown, 0x2EC block
-    /* 0x2EC */ byte pad_2EC[0x7C];
+    /* 0x2EC */ byte pad_2EC[0x48];
+    /// Pose buffer `func_actor_503500_80135950` hands `func_800B3F84` when it
+    /// re-seeds the animation slots.
+    /* 0x334 */ byte field_334[0x34];
     /// Local offset copied from `D_actor_503500_8016F3AC[spawnArg1]`.
     /* 0x368 */ SVECTOR field_368;
     /* 0x370 */ byte    pad_370[0x2C];
