@@ -5908,7 +5908,6 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq         req;
     WipSysConfig*       cfg;
-    s32                 hi;
     McItemScan*         scan;
     s32                 remaining;
     GpItemRec*          rec;
@@ -5928,17 +5927,16 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     register s32        idx asm("v1");
     register s32        n asm("a1");
 
-    asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
-    asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+    scan      = &Mc_SaveData.field_5BC;
     cfg       = &Wip_SysConfig;
     remaining = arg0->field_8;
     rec       = Gp_GetItemTable(scan);
     i         = 0;
     found     = i;
-    asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
-    count = scan->field_1;
-    asm volatile("sll %0, %0, 2" : "+r"(idx));
-    table = (volatile GpItemRec*)((s32)rec + idx);
+    idx       = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
+    count     = scan->field_1;
+    idx      *= 4;
+    table     = (volatile GpItemRec*)((s32)rec + idx);
     if (count != 0) {
         n = count;
         do {
