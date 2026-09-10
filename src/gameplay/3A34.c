@@ -6111,7 +6111,6 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
 {
     void**         scratch;
-    s32            hi;
     u8*            head;
     GpNearScratch* block;
     GpActorD4Rec*  rec;
@@ -6124,11 +6123,10 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     s32            dz;
     s32            dist;
 
-    minDist = -1;
-    index   = 0;
-    best    = index;
-    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(best));
-    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+    minDist  = -1;
+    index    = 0;
+    best     = index;
+    scratch  = (void**)G_SCRATCH_HEAD;
     rec      = (GpActorD4Rec*)arg0->field_C;
     head     = *scratch;
     slot     = rec->field_14;
