@@ -609,7 +609,66 @@ void func_actor_403100_80135F30(Task* arg0)
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80136100);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013631C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80136610);
+void func_actor_403100_80136610(Task* arg0)
+{
+    Actor403100Work* work;
+    TmdObject*       obj;
+    GpEnemy*         enemy;
+    s32              i;
+    u16*             flags;
+    s32              kind;
+    GsCOORDINATE2*   coord;
+
+    obj   = arg0->extra;
+    coord = obj->field_8;
+    if ((*(u32*)&Game_Session->field_4 & ~0xFF) != 0x031D0200 ||
+        (arg0->idMap = Mem_Calloc(0x678U, false)) == NULL) {
+        Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
+        return;
+    }
+    enemy                                = ((volatile Task*)arg0)->spawnArg2;
+    work                                 = ((volatile Task*)arg0)->idMap;
+    obj->field_1C                        = &work->field_0.matrices.light;
+    D_actor_403100_8015580C              = enemy;
+    D_actor_403100_80155808              = work;
+    obj->field_20                        = &work->field_0.matrices.color;
+    arg0->field_24                       = &D_actor_403100_801556EC;
+    work->field_622                      = (s16)Game_Session->field_4;
+    enemy->field_48                      = 0;
+    enemy->field_4                       = &coord->coord;
+    D_actor_403100_8015580C->field_1C.vx = 0;
+    D_actor_403100_8015580C->field_1C.vy = 0;
+    D_actor_403100_8015580C->field_1C.vz = 0x300;
+    D_actor_403100_8015580C->field_18    = &((TmdObject*)arg0->extra)->field_8[3];
+    Gp_LinkNode(&D_actor_403100_8015580C->node);
+    kind = 9;
+    TOUCH_REG(kind);
+    D_actor_403100_8015580C->node.field_4 = kind;
+    D_actor_403100_8015580C->field_50     = &D_actor_403100_8014762C;
+    D_actor_403100_8015580C->field_54     = (s32)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155630               = ((TmdObject*)arg0->extra)->field_8;
+    flags                                 = &obj->field_C;
+    *flags                                = 0;
+    D_actor_403100_80155808->field_658    = -1;
+    func_800B3F84(&D_actor_403100_80155808->field_B8.animation.anim, &D_actor_403100_8015572C, (GpAnimObj*)obj, &D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 1;
+    D_actor_403100_80155808->field_5DA = 2;
+    func_actor_403100_801327CC(arg0);
+    coord->sub = &Gfx_ViewCoord;
+    func_actor_403100_80132320(arg0);
+    for (i = 27; i >= 0; i--) {
+        D_actor_403100_80155814[i].active = 0;
+    }
+    func_8017E4B8();
+    func_8017E3C8();
+    D_actor_403100_80155810            = 0;
+    D_actor_403100_8015580C->field_42  = D_actor_403100_80147630;
+    D_actor_403100_8015580C->field_40  = (s16)D_actor_403100_80147630;
+    arg0->state                        = 1;
+    D_actor_403100_80155808->field_5F8 = 0;
+    D_actor_403100_80155808->field_5FA = 0;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EB0);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EBC);
