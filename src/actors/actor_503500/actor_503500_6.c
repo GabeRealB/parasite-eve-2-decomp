@@ -1957,7 +1957,48 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80140654);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80140BE8);
+void func_actor_503500_80140BE8(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    s32              dmg;
+    u8               flags;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    if ((func_actor_503500_80136208() == 0) && (Game_Session->field_1 == 0)) {
+        flags = enemy->field_4C;
+        if (flags & 1) {
+            enemy->field_4C = flags & 0xFE;
+            func_actor_503500_80142310(arg0, 0);
+            work->field_3A6 = 5;
+            work->field_3AA = 8;
+        }
+        if (enemy->field_4C & 2) {
+            enemy->field_4C &= 0xFD;
+        }
+        if (enemy->field_4C & 0xC) {
+            func_actor_503500_80142310(arg0, 4);
+            if (Gp_ObjFlag4Expired((GpObj5C*)arg0->field_20) != 0) {
+                enemy->field_4C &= 0xF3;
+                func_actor_503500_80142310(arg0, 0);
+            } else {
+                dmg = Gp_TickObjFlag4((GpObj5C*)enemy);
+                if (dmg != 0) {
+                    enemy->field_40 -= dmg;
+                    func_800DA6E8(&enemy->node, dmg, 0);
+                    work->field_3AA = 8;
+                    if (enemy->field_40 <= 0) {
+                        enemy->field_4C &= 0xF3;
+                        func_actor_503500_80142310(arg0, 5);
+                    } else {
+                        func_actor_503500_80142310(arg0, 0);
+                    }
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80140D38);
 

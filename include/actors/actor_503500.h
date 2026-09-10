@@ -212,9 +212,10 @@ typedef struct Actor503500Work {
     /* 0x39C */ s32  field_39C;
     /* 0x3A0 */ byte pad_3A0[0x4];
     /* 0x3A4 */ s16  field_3A4;
-    /* 0x3A6 */ byte pad_3A6[0x2];
+    /* 0x3A6 */ s16  field_3A6;
     /* 0x3A8 */ s16  field_3A8; // countdown, floored at 0 by func_actor_503500_801420C4
-    /* 0x3AA */ byte pad_3AA[0x4];
+    /* 0x3AA */ s16  field_3AA;
+    /* 0x3AC */ byte pad_3AC[0x2];
     /* 0x3AE */ s16  field_3AE;
     /* 0x3B0 */ u16  field_3B0;
     /* 0x3B2 */ u16  field_3B2; // fade level, stepped by 0x10 up to 0x1000
