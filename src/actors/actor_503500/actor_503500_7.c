@@ -26,4 +26,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_801466E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_801467C0);
+s32 func_actor_503500_801467C0(Task* task, s32 arg1, Actor503500ModeMsg* msg)
+{
+    Actor503500Effect4CC* work;
+
+    work = (Actor503500Effect4CC*)task->idMap;
+    switch (msg->mode) {
+        case 0:
+            work->field_4B0 = 0;
+            work->field_4B4 = 0;
+            work->field_4B8 = 0;
+            break;
+        case 1:
+            work->field_4B0 = 0x0100F4DE;
+            work->field_4B4 = 0xFF6DE9BE;
+            work->field_4B8 = 0x68590;
+            break;
+        case 2:
+            work->field_4B0 = 0x1371C7;
+            work->field_4B4 = 0xBAAAA;
+            work->field_4B8 = 0;
+            work->field_4C0 = 1;
+            break;
+        case 3:
+            task->exitCallback(task);
+            break;
+    }
+    return 0;
+}

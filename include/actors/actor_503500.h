@@ -504,7 +504,13 @@ typedef struct Actor503500Effect4CC {
     /* 0x4A0 */ s32    field_4A0;
     /* 0x4A4 */ s32    field_4A4;
     /* 0x4A8 */ s32    field_4A8;
-    /* 0x4AC */ byte   pad_4AC[0x1C];
+    /* 0x4AC */ byte   pad_4AC[0x4];
+    /* 0x4B0 */ s32    field_4B0;
+    /* 0x4B4 */ s32    field_4B4;
+    /* 0x4B8 */ s32    field_4B8;
+    /* 0x4BC */ byte   pad_4BC[0x4];
+    /* 0x4C0 */ s16    field_4C0;
+    /* 0x4C2 */ byte   pad_4C2[0x6];
     /* 0x4C8 */ s8     field_4C8;
     /* 0x4C9 */ byte   pad_4C9[0x3];
 } Actor503500Effect4CC;
