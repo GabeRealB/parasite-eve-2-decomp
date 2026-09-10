@@ -602,7 +602,41 @@ static __inline__ s16 Actor403100_TestFlags104(void)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801356F4);
+void func_actor_403100_801356F4(Task* arg0)
+{
+    s16*    frame;
+    SVECTOR first;
+    SVECTOR second;
+    s32     sound;
+    s32     pan;
+
+    D_actor_403100_80155808->field_98   = -0xFA0;
+    D_actor_403100_80155808->field_9A   = 0;
+    D_actor_403100_80155808->field_9C   = 0x7B2;
+    D_actor_403100_80155808->field_5EC += 1;
+    frame                               = (s16*)&D_actor_403100_80155808->field_5EC;
+    COMPILER_BARRIER();
+    if (*frame == 1) {
+        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]) / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x32) {
+        SndEvt_EnqueueType7(0x401F0004, 0xA);
+    }
+    if (D_actor_403100_80155808->field_5EC < 0x33U) {
+        first.vy  = -0x1F0;
+        first.vz  = 0x620;
+        second.vy = -0x20;
+        first.vx  = 0;
+        second.vx = 0;
+        second.vz = 0xF0;
+        func_actor_403100_80132064(arg0, &first, &second, 1);
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 void func_actor_403100_8013588C(Task* arg0)
 {
     s32 sound;
