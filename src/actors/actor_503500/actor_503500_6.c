@@ -2121,7 +2121,83 @@ void func_actor_503500_80144E34(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144E8C);
+void func_actor_503500_80144E8C(Task* arg0)
+{
+    Actor503500WorkD0* work;
+    GsCOORDINATE2*     coord;
+    GpActorD4Rec*      d4;
+    GpRec18*           rec;
+    GpEffWork*         eff;
+    Task*              child;
+    GpMtxWords*        m1;
+    GpMtxWords*        m2;
+    s32                pan;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = Mem_Calloc(sizeof(*work), false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->idMap    = (TaskIdMap*)work;
+    work->field_C4 = 0x1000;
+
+    m1     = (GpMtxWords*)&coord->coord;
+    m1->w0 = 0x1000;
+    m1->w1 = 0;
+    m1->w2 = 0x1000;
+    m1->w3 = 0;
+    m1->h4 = 0x1000;
+
+    m2     = (GpMtxWords*)&work->field_9C;
+    m2->w0 = 0x1000;
+    m2->w1 = 0;
+    m2->w2 = 0x1000;
+    m2->w3 = 0;
+    m2->h4 = 0x1000;
+
+    d4  = &work->head.d4;
+    rec = work->head.rec;
+
+    work->head.obj.field_8  = coord;
+    work->head.obj.field_C  = (GpRec18*)d4;
+    work->head.obj.field_10 = D_actor_503500_801715C4.vx;
+    work->head.obj.field_12 = D_actor_503500_801715C4.vy;
+    work->head.obj.field_14 = D_actor_503500_801715C4.vz;
+    work->head.obj.field_18 = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
+    work->head.obj.flags    = 3;
+    work->head.obj.field_1C = 0;
+
+    d4->field_14 = rec;
+    d4->field_8  = 0;
+    d4->field_A  = 0;
+    d4->field_C  = 0;
+    d4->field_0  = D_actor_503500_801715CC.vx;
+    d4->field_2  = D_actor_503500_801715CC.vy;
+    d4->field_4  = D_actor_503500_801715CC.vz;
+    d4->field_12 = 0x3E8;
+    d4->field_10 = 0x7D0;
+
+    Gp_LinkObj(3, &work->head.obj);
+    Gp_InitRec18Table(rec, 4, 0);
+    work->head.obj.flags &= 0x7FFF;
+
+    if (arg0->spawnArg1 == 0) {
+        eff = Gp_SpawnEff(0x60195, coord, 0, NULL);
+        if (eff == NULL) {
+            func_actor_503500_80145480(arg0);
+            return;
+        }
+        child          = eff->field_0;
+        work->field_98 = child;
+        Task_Reparent(arg0, child);
+    }
+    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(0x4023000A, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+    func_actor_503500_80137290(6);
+    arg0->exitCallback = func_actor_503500_80145480;
+    arg0->state       += 1;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_801321F4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801450A0);
