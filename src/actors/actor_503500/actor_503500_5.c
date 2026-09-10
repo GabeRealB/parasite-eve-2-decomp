@@ -417,7 +417,65 @@ void func_actor_503500_80133270(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801334CC);
+/// Main-executable matrix the scene tracks (`acropolis_forked_road.h` calls it
+/// the camera target); no module header owns it yet.
+extern MATRIX* D_80073B8C;
+
+extern u32 Gp_LcgState;
+
+/// Per-frame upkeep: ticks the `field_752` slot counters down to 0 while the
+/// boss is in state 0, rolls `field_7C8` from `Gp_LcgState`, stores the yaw to
+/// `D_80073B8C` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
+/// `field_7B8`, and when `field_7CC` runs out links or unlinks `field_20`'s
+/// node per `field_7E2`.
+void func_actor_503500_801334CC(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    GpEnemy*         enemy;
+    SVECTOR          vec;
+    s16              angle;
+    s16              count;
+    s16*             p;
+    s32              i;
+
+    work = arg0->field_1C;
+    p    = work->field_752;
+    if (work->field_7B0 == 0) {
+        for (i = 0; i < 0x11; i++, p++) {
+            if (--*p < 0) {
+                *p = 0;
+            }
+        }
+    }
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->field_7C8 = Gp_LcgState >> 16;
+    coord           = arg0->extra->field_8;
+    vec.vx          = D_80073B8C->t[0] - coord->coord.t[0];
+    vec.vy          = 0;
+    vec.vz          = D_80073B8C->t[2] - coord->coord.t[2];
+    angle           = work->field_7D2 + ratan2(vec.vx, vec.vz);
+    while (angle >= 0x800) {
+        angle -= 0x1000;
+    }
+    while (angle < -0x800) {
+        angle += 0x1000;
+    }
+    work->field_7B8 = angle;
+    enemy           = arg0->field_20;
+    count           = --work->field_7CC;
+    if (count < 0) {
+        work->field_7CC = 0;
+    } else if (count == 0) {
+        if (work->field_7E2 != 0) {
+            work->field_5D4.flags |= 0x8000;
+            Gp_LinkNode(&enemy->node);
+        } else {
+            work->field_5D4.flags &= 0x7FFF;
+            Gp_UnlinkNode(&enemy->node);
+        }
+    }
+}
 
 s32 func_actor_503500_80133684(Actor503500* arg0)
 {
@@ -1086,10 +1144,6 @@ void func_actor_503500_8013611C(s32 arg0)
 {
     D_actor_503500_80176D64[arg0] = 0;
 }
-
-/// Main-executable matrix the scene tracks (`acropolis_forked_road.h` calls it
-/// the camera target); no module header owns it yet.
-extern MATRIX* D_80073B8C;
 
 /// Yaw from the actor's first part to `D_80073B8C`'s translation, relative to
 /// the part's own heading, wrapped into [-0x800, 0x800).
