@@ -567,6 +567,19 @@ typedef struct Actor503500AnimPreset {
 } Actor503500AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor503500AnimPreset, 0x14);
 
+/// Element of `D_actor_503500_801714E0`, the payload
+/// `func_actor_503500_801437D0` sends the player as message 0x3FF. It picks one
+/// of the two rows by which side of the player the hit coordinate lies on.
+/// Every row seen so far points `field_0` at `D_actor_503500_801714C8`.
+typedef struct Actor503500Msg3FF {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} Actor503500Msg3FF;
+STATIC_ASSERT_SIZEOF(Actor503500Msg3FF, 0x14);
+
 /// Work block of the enemy whose state-0 init is
 /// `func_actor_503500_801423C8` (`Mem_Set(_, 0x224)`), viewed through its own
 /// type rather than the shared `Actor503500Work`: its three display nodes sit
@@ -576,8 +589,12 @@ STATIC_ASSERT_SIZEOF(Actor503500AnimPreset, 0x14);
 /// about those four bytes. `func_actor_503500_801423C8` links all three nodes
 /// (each followed by a `Gp_InitRec18Table` on the record area at 0x180) and
 /// `func_actor_503500_80143F78` hands all three back to `Gp_UnlinkObj`.
+/// `func_actor_503500_801437D0` copies the parent's root rotation into
+/// `field_40`, turns it by +/-0x5DC with `func_8004BFF8` (sign from
+/// `field_220`) and hands it to the task it spawns.
 typedef struct Actor503500Work224 {
-    /* 0x000 */ byte    pad_0[0x60];
+    /* 0x000 */ byte    pad_0[0x40];
+    /* 0x040 */ MATRIX  field_40;
     /* 0x060 */ GpObj   obj0;
     /* 0x080 */ GpRec18 rec0[8]; // obj0's table; obj1 and obj2 share rec1
     /* 0x140 */ GpObj   obj1;
@@ -586,7 +603,8 @@ typedef struct Actor503500Work224 {
     /* 0x1E0 */ byte    pad_1E0[0x38];
     /* 0x218 */ s16     field_218; // per-frame countdown, clamped at 0
     /* 0x21A */ u16     field_21A; // sub-state frame counter
-    /* 0x21C */ byte    pad_21C[0x5];
+    /* 0x21C */ byte    pad_21C[0x4];
+    /* 0x220 */ s8      field_220; // side flag: picks the +/-0x5DC turn
     /* 0x221 */ s8      field_221; // sub-state index
     /* 0x222 */ s8      field_222; // sub-state phase, cleared with field_221
     /* 0x223 */ byte    pad_223[0x1];

@@ -12,6 +12,36 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include <psyq/inline_c.h>
+
+/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
+/// different word, so spell the instruction out.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// Copies the transpose of `src`'s rotation into `dst` through `$12`-`$14`,
+/// three halfwords at a time, the way the libgte inline macros move matrices.
+#define TRANSPOSE_ROT(src, dst)           \
+    __asm__ volatile("lhu $12,0(%0);"     \
+                     "lhu $13,6(%0);"     \
+                     "lhu $14,12(%0);"    \
+                     "sh $12,0(%1);"      \
+                     "sh $13,2(%1);"      \
+                     "sh $14,4(%1);"      \
+                     "lhu $12,2(%0);"     \
+                     "lhu $13,8(%0);"     \
+                     "lhu $14,14(%0);"    \
+                     "sh $12,6(%1);"      \
+                     "sh $13,8(%1);"      \
+                     "sh $14,10(%1);"     \
+                     "lhu $12,4(%0);"     \
+                     "lhu $13,10(%0);"    \
+                     "lhu $14,16(%0);"    \
+                     "sh $12,12(%1);"     \
+                     "sh $13,14(%1);"     \
+                     "sh $14,16(%1);"     \
+                     :                    \
+                     : "r"(src), "r"(dst) \
+                     : "$12", "$13", "$14", "memory")
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -181,30 +211,39 @@ void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 void func_actor_503500_80140D38(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
 void func_actor_503500_8014215C(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
 void func_actor_503500_801437D0(Actor503500* arg0, GpRec18* arg1, s32 arg2);
-void func_actor_503500_8013B460(Actor503500* arg0);
-void func_actor_503500_8013B8D0(Actor503500* arg0);
-void func_actor_503500_8013BE0C(Actor503500* arg0);
-void func_actor_503500_8013BCB4(Actor503500* arg0);
-void func_actor_503500_8013C900(Actor503500* arg0);
-void func_actor_503500_8013C9DC(Actor503500* arg0);
-void func_actor_503500_8013C960(Actor503500* arg0);
-void func_actor_503500_8013CA34(Actor503500* arg0);
-void func_actor_503500_8013CA74(Actor503500* arg0, s8 arg1);
-void func_actor_503500_8013D8BC(Actor503500* arg0);
-void func_actor_503500_8013D914(Actor503500* arg0);
-void func_actor_503500_8013D990(Actor503500* arg0);
-void func_actor_503500_8013BD0C(Actor503500* arg0);
-void func_actor_503500_8013BD88(Actor503500* arg0);
-void func_actor_503500_8013C558(Actor503500* arg0);
-void func_actor_503500_8013E384(Actor503500* arg0);
-void func_actor_503500_8013E740(Actor503500* arg0);
-void func_actor_503500_8013EBE4(Actor503500* arg0);
-void func_actor_503500_8013EA8C(Actor503500* arg0);
-void func_actor_503500_8013EAE4(Actor503500* arg0);
-void func_actor_503500_8013EB60(Actor503500* arg0);
-void func_actor_503500_8013F778(Actor503500* arg0);
-void func_actor_503500_8013F7D8(Actor503500* arg0);
-void func_actor_503500_8013F830(Actor503500* arg0);
+/// libgte routine right after `RotMatrixX` in the main executable (likely
+/// `RotMatrixY`); rotates `m` in place by `angle`.
+void func_8004BFF8(s32 angle, MATRIX* m);
+/// Task table `func_actor_503500_801437D0` spawns entry 0 from.
+extern TaskDesc D_actor_503500_8017146C;
+/// Message 0x3FF payloads, indexed by side (see `Actor503500Msg3FF`).
+extern Actor503500Msg3FF D_actor_503500_801714E0[];
+/// Payload of the 0x3F8 query `func_actor_503500_801437D0` sends the player.
+extern s32 D_actor_503500_80171544;
+void       func_actor_503500_8013B460(Actor503500* arg0);
+void       func_actor_503500_8013B8D0(Actor503500* arg0);
+void       func_actor_503500_8013BE0C(Actor503500* arg0);
+void       func_actor_503500_8013BCB4(Actor503500* arg0);
+void       func_actor_503500_8013C900(Actor503500* arg0);
+void       func_actor_503500_8013C9DC(Actor503500* arg0);
+void       func_actor_503500_8013C960(Actor503500* arg0);
+void       func_actor_503500_8013CA34(Actor503500* arg0);
+void       func_actor_503500_8013CA74(Actor503500* arg0, s8 arg1);
+void       func_actor_503500_8013D8BC(Actor503500* arg0);
+void       func_actor_503500_8013D914(Actor503500* arg0);
+void       func_actor_503500_8013D990(Actor503500* arg0);
+void       func_actor_503500_8013BD0C(Actor503500* arg0);
+void       func_actor_503500_8013BD88(Actor503500* arg0);
+void       func_actor_503500_8013C558(Actor503500* arg0);
+void       func_actor_503500_8013E384(Actor503500* arg0);
+void       func_actor_503500_8013E740(Actor503500* arg0);
+void       func_actor_503500_8013EBE4(Actor503500* arg0);
+void       func_actor_503500_8013EA8C(Actor503500* arg0);
+void       func_actor_503500_8013EAE4(Actor503500* arg0);
+void       func_actor_503500_8013EB60(Actor503500* arg0);
+void       func_actor_503500_8013F778(Actor503500* arg0);
+void       func_actor_503500_8013F7D8(Actor503500* arg0);
+void       func_actor_503500_8013F830(Actor503500* arg0);
 /// Global "everything is frozen" mode byte in the main executable: 1 pauses the
 /// actor, 2 hides it, anything else runs the normal per-frame chain.
 extern u8 D_801153F4;
@@ -515,7 +554,70 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_801431EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_801437D0);
+/// Scans the 0x224 enemy's shared record table. For each record whose
+/// `field_4` high half is 1 - unless the player task (`Game_GetPtrSlot(3)`)
+/// is in mode 2 or answers message 0x3F8 - copies the parent's root rotation
+/// into `field_40` and turns it by +/-0x5DC with `func_8004BFF8` (sign from
+/// `field_220`), then takes the world position of parent coordinate 5 or 11
+/// into the player's frame. The sign of its z picks the 0x3FF payload and is
+/// passed to the task spawned from `D_actor_503500_8017146C`; message 0x3F9
+/// carries the enemy's packed pair, and sound 7 plays at the player.
+void func_actor_503500_801437D0(Actor503500* arg0, GpRec18* rec, s32 count)
+{
+    SVECTOR             vec;
+    MATRIX              world;
+    MATRIX              rot;
+    GpEnemy*            enemy;
+    Actor503500Work224* work;
+    GsCOORDINATE2*      coord;
+    Task*               player;
+    GsCOORDINATE2*      pcoord;
+    s32*                src;
+    s32*                dst;
+    s32                 i;
+    s32                 j;
+    s32                 side;
+    s32                 pan;
+
+    enemy = arg0->field_20;
+    work  = (Actor503500Work224*)arg0->field_1C;
+    for (i = 0; i < count; i++) {
+        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+            player = Game_GetPtrSlot(3);
+            pcoord = ((TmdObject*)player->extra)->field_8;
+            if (((GameActor*)player->idMap)->field_954 != 2 &&
+                Gp_DispatchMsg(player, 0x3F8, (s32)&D_actor_503500_80171544, 0) == 0) {
+                coord = ((TmdObject*)arg0->parent->extra)->field_8;
+                src   = (s32*)&coord->coord;
+                dst   = (s32*)&work->field_40;
+                for (j = 0; j < 4; j++) {
+                    *dst++ = *src++;
+                }
+                work->field_40.m[2][2] = coord->coord.m[2][2];
+                if (work->field_220 != 0) {
+                    func_8004BFF8(0x5DC, &work->field_40);
+                    coord = &((TmdObject*)arg0->parent->extra)->field_8[5];
+                } else {
+                    func_8004BFF8(-0x5DC, &work->field_40);
+                    coord = &((TmdObject*)arg0->parent->extra)->field_8[11];
+                }
+                Gp_ComposeParentWorld(coord, &world, &vec);
+                TRANSPOSE_ROT(&pcoord->coord, &rot);
+                gte_SetRotMatrix(&rot);
+                gte_ldv0(&vec);
+                gte_rtv0_real();
+                gte_stsv(&vec);
+                side = vec.vz >= 0;
+                Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+                Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_801714E0[side], 0);
+                Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, (s32)&work->field_40);
+                Gp_StateC08.field_6 |= 1;
+                pan                  = (s8)Gp_GetObjPan((GpObj38*)pcoord);
+                SndEvt_EnqueueType6(7, pan, (s8)(Gp_GetObjDepth((GpObj38*)pcoord) / 2));
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80143AC0);
 
