@@ -1211,7 +1211,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
 /// and hands it to `Gp_UpdateActorColor` with no blend parameters. Same body as
 /// `func_actor_503500_80136AEC`.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801421A8);
+void func_actor_503500_801421A8(Actor503500* arg0)
+{
+    VECTOR vec;
+
+    vec.vx = arg0->extra->field_8->workm.t[0];
+    vec.vy = arg0->extra->field_8->workm.t[1];
+    vec.vz = arg0->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+}
 /// Re-aims coordinate nodes 2..7 of the model: each node's rotation is read
 /// back as Euler angles, its pitch replaced with the caller's per-node angle,
 /// and the matrix rebuilt from the result. The identity splat before
