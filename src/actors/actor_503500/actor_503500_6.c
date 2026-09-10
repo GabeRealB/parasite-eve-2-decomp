@@ -307,7 +307,29 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Returns the number of frames the script should wait -- 1 while still busy,
 /// 0 the frame the request is issued, 0x1E once the slot has gone quiet.
 /// `arg0` is passed by every caller through the step table and ignored here.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136948);
+s32 func_actor_503500_80136948(Actor503500* arg0, Actor503500Work* work)
+{
+    s32 ret;
+
+    ret = 1;
+    switch ((s8)work->field_7DB) {
+        case 0:
+            work->field_7D2 = 0;
+            if (func_actor_503500_80136FDC(work, 9) != 0) {
+                func_actor_503500_80136F40(work, 9, 2, 0x3C);
+                work->field_7DB = 1;
+                ret             = 0;
+            }
+            break;
+        case 1:
+            ret = 0;
+            if (func_actor_503500_80136FA8(work, 9) != 0) {
+                ret = 0x1E;
+            }
+            break;
+    }
+    return ret;
+}
 void func_actor_503500_801369E4(Actor503500* arg0)
 {
     Actor503500Work* work;
