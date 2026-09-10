@@ -58266,3 +58266,23 @@ if (x < 0x201 || x >= 0x600) { ... }                   /* one sltiu */
 
 CSE then reuses `x`'s register for the field read, so no second load appears
 and the match is exact.
+
+### `bodies_of()` files a body under a multi-line prototype's name
+
+Resegmenting `actor_503500` (a `0xFF5C` text cut so `func_actor_503500_80141D7C`'s
+jump table starts the new `_7` object's `.rodata`) meant moving a whole file's
+tail and diffing the snapshot. `bodies_of()` in `tools/land_overlay.py` reported
+the moved function as missing. The cause is a prototype split across two lines
+in the file's prelude:
+
+```c
+void func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
+                                Actor503500AnimPreset* arg2, s32 arg3);
+```
+
+The first line has no `;`, so `FUNC_START` accepts it as a definition and reads
+to the next `}` line. That files the first real body after the prelude under
+`80135950`. Both the snapshot and the rebuilt file carry the same misfiling, so
+a diff of the key sets only flags the file whose prelude now sits next to a
+different function. Cross-check with a definition-only grep (a signature line
+followed by `{`) before believing a "missing" body.
