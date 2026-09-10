@@ -1260,7 +1260,38 @@ void func_actor_403100_8013CDC0(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013CEAC);
+void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
+{
+    s16 facing;
+    s16 target;
+    s16 angle;
+    u16 targetU;
+    u16 facingU;
+
+    angle = *arg0 - 0x140;
+    *arg0 = angle;
+    if ((angle < (s16)arg2) && (arg3 < (s16)angle)) {
+        target  = D_actor_403100_80155808->field_B0;
+        targetU = (u16)D_actor_403100_80155808->field_B0;
+        if ((u32)(((s16)angle - target) + 0x20) >= 0x41U) {
+            if (target < (s16)angle) {
+                D_actor_403100_80155808->field_B0 = (s16)(targetU + arg1);
+                return;
+            }
+            D_actor_403100_80155808->field_B0 = (s16)(targetU - arg1);
+        }
+    } else {
+        facing  = D_actor_403100_80155808->field_B0;
+        facingU = (u16)D_actor_403100_80155808->field_B0;
+        if (facing >= 0x21) {
+            D_actor_403100_80155808->field_B0 = (s16)(facingU - 0x18);
+            return;
+        }
+        if (facing < -0x20) {
+            D_actor_403100_80155808->field_B0 = (s16)(facingU + 0x18);
+        }
+    }
+}
 void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     s16 facing;
