@@ -58385,6 +58385,41 @@ SetRotIdentity(&((View*)work)->mats[i]);
 A local `tbl = (View*)work` copy instead of casting at each use costs a
 separate pseudo and a second walking pointer - cast at the use site.
 
+## `K(T)` then `addiu T, T, K` for field copies: PsyQ `copyVector(&a[i], &b[j])`
+
+A second source of the same `(mult + base) + K` form, with no inline function.
+`func_actor_503500_80141448` copies a sampled `VECTOR out[9]` into
+`work->pts[8 - i]` in a loop, and the target's first access folds the field
+offset while the other two go through the finished pointer:
+
+```
+sll    a0, s2, 4            # i*16, not reduced
+addiu  v0, sp, 0x18         # frame base
+addu   a0, a0, v0
+lhu    v0, 0x30(a0)         # first use: K folded
+addiu  a0, a0, 0x30         # then P = T + K
+lhu    v0, 4(a0) ...        # P+4, P+8
+```
+
+`copyVector(&work->pts[8 - i], &out[i])` from `psyq/libgpu.h` matched. The macro
+expands to `(&a[i])->vx`. The front end turns `&a[i]` into a pointer sum, the
+`->` makes it an `INDIRECT_REF`, and `expand_expr` expands that address in
+`EXPAND_SUM` mode as `(mult + base) + K`. `memory_address` then forces the whole
+invalid address into `T` and `P = T + K`, so the fields come out as `P+0/2/4`.
+Spellings that did not give this form:
+
+- Direct `a[i].vx` (get_inner_reference) gives `K(T)`, `K+2(T)`, `K+4(T)`.
+- Assigning `dst = &a[i]` gives `base + (mult + K)`, and loop.c reduces it.
+- `dst = a; dst += i` stops the reduction, but combine never re-associates it.
+
+To get the loop's walking register to be the call argument rather than `T`, the
+argument has to be `&out[i].vx` itself, not a separately decremented pointer.
+
+In the same function, a `sh zero` pair that the target schedules *after* two
+loads of an unrelated table came from writing those stores after the
+`vx += tbl[i] * k >> 12` statement. A store cannot move above a load it may
+alias, so its position in the source limits how early the scheduler can place it.
+
 ## Loop counter and output giv swapped: walk a local copy of the output pointer
 
 `func_actor_503500_8013A7B0` (cubic Bezier eval) reached 99.57% with only the

@@ -345,6 +345,26 @@ typedef struct Actor503500Work3D8Mtx {
 } Actor503500Work3D8Mtx;
 STATIC_ASSERT_SIZEOF(Actor503500Work3D8Mtx, 0x160);
 
+/// Chain state of the 0x3D8 block, which the shared `Actor503500Work` view
+/// names with the 0x2EC block's fields: `func_actor_503500_80141448` samples a
+/// cubic Bezier into `pts` (root first), re-aims the chain along it and hands
+/// `angles` to `func_actor_503500_80142220`, which only reads the `vx` pitch of
+/// entries 2..7. `field_3B6` / `field_3CC` are the same bytes as the shared
+/// view's, loaded signed here.
+typedef struct Actor503500Work3D8Chain {
+    /* 0x000 */ byte    pad_0[0x2C8];
+    /* 0x2C8 */ SVECTOR pts[9];
+    /* 0x310 */ SVECTOR angles[9];
+    /* 0x358 */ SVECTOR field_358; // far control point, local to the root's parent
+    /* 0x360 */ byte    pad_360[0x54];
+    /* 0x3B4 */ s16     field_3B4; // sway amplitude
+    /* 0x3B6 */ s16     field_3B6; // sway fade-in, 0..0x1000
+    /* 0x3B8 */ s16     phase[9];  // sway phase per link, stepped by 0x80
+    /* 0x3CA */ byte    pad_3CA[0x2];
+    /* 0x3CC */ s16     field_3CC; // weight of the rest pitch table
+} Actor503500Work3D8Chain;
+STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
+
 /// Word-wise view of a `MATRIX` that `func_actor_503500_8013852C` uses to
 /// splat an identity rotation: five aligned stores instead of nine halfword
 /// ones, each word holding two adjacent `m[][]` entries.

@@ -13,6 +13,7 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 #include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 
 /// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
 /// different word, so spell the instruction out.
@@ -73,6 +74,12 @@ extern SVECTOR         D_actor_503500_8016F1B0;
 extern Actor503500Work D_actor_503500_801776A0;
 /// Eighteen effect offsets `func_actor_503500_8013C558` picks from at random.
 extern SVECTOR D_actor_503500_8016F1B8[];
+/// Rest pitch of each link of the 0x3D8 enemy's chain, scaled by
+/// `Actor503500Work3D8Chain::field_3CC` in `func_actor_503500_80141448`.
+extern s16 D_actor_503500_8016F434[];
+void       func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords);
+void       func_actor_503500_80141A44(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
+void       func_actor_503500_80142220(SVECTOR* angles, GsCOORDINATE2* nodes);
 /// The same pair for the 0xF0 enemy at `D_actor_503500_8017797C`.
 extern SVECTOR         D_actor_503500_8016F2D8;
 extern Actor503500Work D_actor_503500_8017797C;
@@ -3109,7 +3116,76 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141248);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141448);
+/// Lays the 0x3D8 enemy's nine-point chain along a cubic Bezier from the root
+/// coordinate's world position to its parent's, with the near control point
+/// offset 1000 units in the root's frame (X mirrored for spawn slots 15 / 16)
+/// and both far control points at the parent plus its rotated `field_358`. The
+/// samples land in `pts`, `func_actor_503500_8014176C` re-aims the links along
+/// them, and links 2..8 get a pitch of a fading sine sway plus the scaled rest
+/// pitch before `func_actor_503500_80142220` applies it.
+void func_actor_503500_80141448(Actor503500* arg0)
+{
+    SVECTOR                  ctrl[4];
+    SVECTOR                  ofs;
+    SVECTOR                  tmp;
+    VECTOR                   out[9];
+    MATRIX                   m;
+    GsCOORDINATE2*           coord;
+    Actor503500Work3D8Chain* work;
+    s32                      i;
+    s32                      v;
+
+    coord = arg0->extra->field_8;
+    work  = (Actor503500Work3D8Chain*)arg0->field_1C;
+    Gp_ComposeParentWorld(coord, &m, &ctrl[0]);
+    work->pts[0].vx = ctrl[0].vx;
+    work->pts[0].vy = ctrl[0].vy;
+    work->pts[0].vz = ctrl[0].vz;
+    if ((u32)(arg0->spawnArg1 - 15) < 2) {
+        ofs.vx = -1000;
+        ofs.vy = 0;
+        ofs.vz = 1000;
+    } else {
+        ofs.vx = 1000;
+        ofs.vy = 0;
+        ofs.vz = 1000;
+    }
+    gte_SetRotMatrix(&m);
+    gte_ldv0(&ofs);
+    gte_rtv0_real();
+    gte_stsv(&ctrl[1]);
+    ctrl[1].vx += ctrl[0].vx;
+    ctrl[1].vy += ctrl[0].vy;
+    ctrl[1].vz += ctrl[0].vz;
+    Gp_ComposeParentWorld(coord->sub, &m, &tmp);
+    gte_SetRotMatrix(&m);
+    gte_ldv0(&work->field_358);
+    gte_rtv0_real();
+    gte_stsv(&ofs);
+    tmp.vx    += ofs.vx;
+    tmp.vy    += ofs.vy;
+    tmp.vz    += ofs.vz;
+    ctrl[2].vx = tmp.vx;
+    ctrl[2].vy = tmp.vy;
+    ctrl[2].vz = tmp.vz;
+    ctrl[3].vx = tmp.vx;
+    ctrl[3].vy = tmp.vy;
+    ctrl[3].vz = tmp.vz;
+    for (i = 8; i >= 0; i--) {
+        func_actor_503500_80141A44(ctrl, &ctrl[3], 9, i, &out[i].vx);
+        copyVector(&work->pts[8 - i], &out[i]);
+    }
+    func_actor_503500_8014176C(work->pts, arg0->extra->field_8);
+    for (i = 8; i >= 2; i--) {
+        v                   = ((work->field_3B4 * work->field_3B6 >> 12) * rsin(work->phase[i])) >> 12;
+        work->angles[i].vx  = v;
+        work->angles[i].vx += D_actor_503500_8016F434[i] * work->field_3CC >> 12;
+        work->angles[i].vy  = 0;
+        work->angles[i].vz  = 0;
+        work->phase[i]      = (work->phase[i] + 0x80) & 0xFFF;
+    }
+    func_actor_503500_80142220(work->angles, arg0->extra->field_8);
+}
 
 /// Re-aims a chain of eight child coordinates along the polyline `pts[0..8]`.
 /// `world` starts as the chain root's world rotation and accumulates each
