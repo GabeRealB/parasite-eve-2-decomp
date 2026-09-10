@@ -359,6 +359,15 @@ typedef struct Actor503500WorkD0 {
 } Actor503500WorkD0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
 
+/// The 0xAC block `func_actor_503500_80145A2C` allocates: `Actor503500WorkRec4`
+/// plus the effect task it reparents itself under.
+typedef struct Actor503500WorkAC {
+    /* 0x00 */ Actor503500WorkRec4 head;
+    /* 0x98 */ Task*               field_98;
+    /* 0x9C */ byte                pad_9C[0x10];
+} Actor503500WorkAC;
+STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
+
 /// Animation head of the boss block (`D_actor_503500_80176574`,
 /// `Mem_Set(_, 0x7E8)`), viewed through its own type rather than the shared
 /// `Actor503500Work`: the boss fronts its allocation with a `GpAnimCtx` --

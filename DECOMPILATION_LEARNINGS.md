@@ -58286,3 +58286,28 @@ to the next `}` line. That files the first real body after the prelude under
 a diff of the key sets only flags the file whose prelude now sits next to a
 different function. Cross-check with a definition-only grep (a signature line
 followed by `{`) before believing a "missing" body.
+
+### Cross-jumped call with an `(s8)` argument: one local per arm, not one shared
+
+`func_actor_503500_80145A2C` ends in two arms that differ only in the sound id:
+each loads `lui/ori a0`, and the `SndEvt_EnqueueType6` call after them is
+shared. Writing the call once after an `if` that sets `pan`/`depth`/`id` gives
+`addu a2,v0,a2` instead of `addu a2,a2,v0`. Writing the call in each arm lets
+jump2 cross-jump the tail, which fixes that, but a single `pan` assigned in both
+arms still misses the extension: `sll v0,v0,24; sra s0,v0,24` against the
+target's `sll s0,v0,24; jal ...; sra s0,s0,24`.
+
+Set in two blocks, `pan` is a global pseudo, so the `sll` result is a separate
+block-local pseudo and local-alloc ties it to the call's `$v0`. A separate local
+per arm keeps each one block-local, and the shift pair then goes straight into
+`$s0`, as in the one-arm siblings:
+
+```c
+if (Game_Session->field_1 != 0) {
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(0x40230013, pan, (s8)(Gp_GetObjDepth(coord) / 2));
+} else {
+    pan2 = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(Gp_GetObjDepth(coord) / 2));
+}
+```

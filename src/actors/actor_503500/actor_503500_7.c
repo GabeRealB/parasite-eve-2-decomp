@@ -92,6 +92,12 @@ extern Actor503500UVec D_actor_503500_801715C4;
 extern Actor503500UVec D_actor_503500_801715CC;
 /// Local offset of the display node `func_actor_503500_801455A4` links.
 extern Actor503500UVec D_actor_503500_801715D4;
+/// `func_actor_503500_80145A2C`'s `Gp_PackPair` slot (the one after
+/// `D_actor_503500_8016E7D4[1]`), which the original reads by its own name, and
+/// its display-node and `GpActorD4Rec` offsets.
+extern GpU16Pair*      D_actor_503500_8016E7DC[];
+extern Actor503500UVec D_actor_503500_801715DC;
+extern Actor503500UVec D_actor_503500_801715E4;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
@@ -238,6 +244,7 @@ void      func_actor_503500_80145754(Actor503500* arg0);
 void      func_actor_503500_80145950(Task* arg0);
 void      func_actor_503500_801459B0(Task* arg0);
 void      func_actor_503500_80145C50(Actor503500* arg0);
+void      func_actor_503500_80145E98(Task* arg0);
 void      func_actor_503500_80145F18(Actor503500* arg0);
 /// Reports whether the boss-wide gate is open; the body ignores its
 /// argument, and callers pass unrelated pointers they already hold.
@@ -891,7 +898,78 @@ void func_actor_503500_801459D4(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80145A2C);
+void func_actor_503500_80145A2C(Task* arg0)
+{
+    Actor503500WorkAC* work;
+    GsCOORDINATE2*     coord;
+    GpActorD4Rec*      d4;
+    GpRec18*           rec;
+    GpEffWork*         eff;
+    Task*              child;
+    GpMtxWords*        m;
+    s32                pan;
+    s32                pan2;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = Mem_Calloc(sizeof(*work), false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->idMap = (TaskIdMap*)work;
+
+    m     = (GpMtxWords*)&coord->coord;
+    m->w0 = 0x1000;
+    m->w1 = 0;
+    m->w2 = 0x1000;
+    m->w3 = 0;
+    m->h4 = 0x1000;
+
+    d4  = &work->head.d4;
+    rec = work->head.rec;
+
+    work->head.obj.field_8  = coord;
+    work->head.obj.field_C  = (GpRec18*)d4;
+    work->head.obj.field_10 = D_actor_503500_801715DC.vx;
+    work->head.obj.field_12 = D_actor_503500_801715DC.vy;
+    work->head.obj.field_14 = D_actor_503500_801715DC.vz;
+    work->head.obj.field_18 = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
+    work->head.obj.flags    = 3;
+    work->head.obj.field_1C = 0;
+
+    d4->field_14 = rec;
+    d4->field_8  = 0;
+    d4->field_A  = 0;
+    d4->field_C  = 0;
+    d4->field_0  = D_actor_503500_801715E4.vx;
+    d4->field_2  = D_actor_503500_801715E4.vy;
+    d4->field_4  = D_actor_503500_801715E4.vz;
+    d4->field_12 = 0x7D0;
+    d4->field_10 = 0xBB8;
+
+    Gp_LinkObj(3, &work->head.obj);
+    Gp_InitRec18Table(rec, 4, 0);
+    work->head.obj.flags &= 0x7FFF;
+
+    eff = Gp_SpawnEff(0x60190, coord, arg0->spawnArg1, NULL);
+    if (eff == NULL) {
+        func_actor_503500_80145E98(arg0);
+        return;
+    }
+    child          = eff->field_0;
+    work->field_98 = child;
+    Task_Reparent(arg0, child);
+    if (Game_Session->field_1 != 0) {
+        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(0x40230013, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+    } else {
+        pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+    }
+    func_actor_503500_80137290(8);
+    arg0->exitCallback = func_actor_503500_80145E98;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80145C50);
 
