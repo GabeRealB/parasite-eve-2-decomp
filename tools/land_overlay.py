@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -113,6 +114,41 @@ def git(*args: str) -> str:
     return r.stdout
 
 
+def require_lease(overlay: str, skip: bool) -> None:
+    """Refuse to land an overlay nobody holds the lease on.
+
+    Every agent promotes a shared body inline (tools/vacuum.sh step 4b), and a
+    promotion rewrites the manifest span of every overlay carrying that body -
+    which renumbers their units. Landing maps bodies onto trunk's units by
+    filename, so a promotion that lands between the worktree being cut and the
+    bodies being applied silently invalidates the mapping.
+
+    The lease is what prevents it: vacuum.sh's `siblings_claimed_elsewhere`
+    guard tells an agent not to promote into an overlay another session holds.
+    vacuum_overlay.sh keeps the lease until after the landing, so the automated
+    path is safe; a landing run by hand is not, and that is exactly the window
+    in which one went wrong. Assert the precondition rather than trusting it.
+    """
+    if skip:
+        print("  WARNING: --no-lease-check; a concurrent promotion can renumber "
+              "this overlay's units mid-landing")
+        return
+    try:
+        out = subprocess.run([sys.executable, "tools/vacuum_orch.py", "status"],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60)
+        claims = json.loads(out.stdout).get("claims", {})
+    except Exception as e:                       # orchestrator down: say so, do not guess
+        raise SystemExit(f"cannot read the orchestrator to check {overlay}'s lease: {e}\n"
+                         "re-run with --no-lease-check only if no sweep is running")
+    if not any(c.get("overlay") == overlay for c in claims.values()):
+        raise SystemExit(
+            f"no session holds a lease on {overlay}; refusing to land.\n"
+            "An inline promotion from another lane can renumber this overlay's "
+            "units while the bodies are being applied, and the mapping is by "
+            "filename. Take the lease first (tools/overlay_batch.sh), or pass "
+            "--no-lease-check if you are certain nothing else is running.")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -128,7 +164,12 @@ def main() -> int:
                          "configs/USA/overlays.toml by entry instead of wholesale")
     ap.add_argument("--extra", default="",
                     help="comma-separated extra paths to land (headers, docs)")
+    ap.add_argument("--no-lease-check", action="store_true",
+                    help="land even though no session holds this overlay's lease "
+                         "(unsafe: see require_lease)")
     args = ap.parse_args()
+
+    require_lease(args.overlay, args.no_lease_check)
 
     wt = Path(args.worktree)
     funcs = ([f.strip() for f in args.functions.split(",") if f.strip()]
@@ -238,7 +279,12 @@ def main() -> int:
 
     missing = [f for f in funcs if f not in file_of]
     if missing:
-        raise SystemExit(f"no INCLUDE_ASM slot on trunk for: {missing}")
+        raise SystemExit(
+            f"no INCLUDE_ASM slot on trunk for: {missing}\n"
+            "If this overlay's sweep promoted a shared body, the promotion "
+            "renumbered its units and trunk cannot be re-split to match "
+            "(splat never rewrites a unit file that already exists). Replay the "
+            "worktree's own commits instead - see CAN_REPLAY in vacuum_overlay.sh.")
 
     # Stage 1: scaffolding (includes, statics, new types).
     touched = set(file_of.values())
