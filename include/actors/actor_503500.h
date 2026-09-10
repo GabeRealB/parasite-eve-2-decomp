@@ -478,26 +478,29 @@ typedef struct Actor503500Work2EC {
     /// Bezier-sampled chain polyline, root first, that
     /// `func_actor_503500_8013A0D0` re-aims the model's links along.
     /* 0x24C */ SVECTOR pts[9];
-    /* 0x294 */ SVECTOR field_294; // both seeded from D_actor_503500_8016F0A8
+    /* 0x294 */ SVECTOR field_294;   // both seeded from D_actor_503500_8016F0A8
     /* 0x29C */ SVECTOR field_29C;
-    /* 0x2A4 */ SVECTOR field_2A4; // rotation, spun by func_actor_503500_80138A30
-    /* 0x2AC */ byte    pad_2AC[0x24];
-    /* 0x2D0 */ s32     field_2D0;
-    /* 0x2D4 */ s16     field_2D4; // sub-state index
-    /* 0x2D6 */ s16     field_2D6;
-    /* 0x2D8 */ s16     field_2D8; // per-frame countdown
-    /* 0x2DA */ s16     field_2DA;
-    /* 0x2DC */ byte    pad_2DC[0x2];
-    /* 0x2DE */ s16     field_2DE; // sub-state frame counter
-    /* 0x2E0 */ s16     phase;     // chain pulse phase, stepped by 0x80
-    /* 0x2E2 */ s16     field_2E2;
-    /* 0x2E4 */ s8      field_2E4; // sub-state phase, cleared with field_2D4
-    /* 0x2E5 */ s8      field_2E5;
-    /* 0x2E6 */ byte    pad_2E6[0x2];
-    /* 0x2E8 */ s8      field_2E8; // cleared, then awaited, by func_actor_503500_80138C08
-    /* 0x2E9 */ s8      field_2E9;
-    /* 0x2EA */ s8      field_2EA;
-    /* 0x2EB */ s8      field_2EB; // TMD buffer countdown
+    /* 0x2A4 */ SVECTOR field_2A4;   // rotation, spun by func_actor_503500_80138A30
+    /* 0x2AC */ byte    pad_2AC[0x20];
+    /* 0x2CC */ s32     field_2CC;   // approach speed, see func_actor_503500_80139EFC
+                                     /// Top approach speed, seeded to 0x800000; its integer half doubles as
+                                     /// the arrival distance `func_actor_503500_80139EFC` tests against.
+    /* 0x2D0 */ GpFixed16 field_2D0;
+    /* 0x2D4 */ s16       field_2D4; // sub-state index
+    /* 0x2D6 */ s16       field_2D6;
+    /* 0x2D8 */ s16       field_2D8; // per-frame countdown
+    /* 0x2DA */ s16       field_2DA;
+    /* 0x2DC */ byte      pad_2DC[0x2];
+    /* 0x2DE */ s16       field_2DE; // sub-state frame counter
+    /* 0x2E0 */ s16       phase;     // chain pulse phase, stepped by 0x80
+    /* 0x2E2 */ s16       field_2E2;
+    /* 0x2E4 */ s8        field_2E4; // sub-state phase, cleared with field_2D4
+    /* 0x2E5 */ s8        field_2E5;
+    /* 0x2E6 */ byte      pad_2E6[0x2];
+    /* 0x2E8 */ s8        field_2E8; // cleared, then awaited, by func_actor_503500_80138C08
+    /* 0x2E9 */ s8        field_2E9;
+    /* 0x2EA */ s8        field_2EA;
+    /* 0x2EB */ s8        field_2EB; // TMD buffer countdown
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 

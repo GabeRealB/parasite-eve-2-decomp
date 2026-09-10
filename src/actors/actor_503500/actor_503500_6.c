@@ -12,6 +12,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
 
@@ -1237,7 +1238,7 @@ void func_actor_503500_8013852C(Actor503500* arg0)
     work->field_294.vx = D_actor_503500_8016F0A8[arg0->spawnArg1].vx;
     work->field_294.vy = D_actor_503500_8016F0A8[arg0->spawnArg1].vy;
     work->field_294.vz = D_actor_503500_8016F0A8[arg0->spawnArg1].vz;
-    work->field_2D0    = 0x800000;
+    work->field_2D0.w  = 0x800000;
     work->field_2E9    = 1;
     arg0->exitCallback = (TaskFunc)func_actor_503500_8013A900;
     arg0->state       += 1;
@@ -1577,7 +1578,65 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80139A20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80139EFC);
+/// Steers `field_294` toward `field_29C`. Inside the arrival distance (the
+/// integer half of `field_2D0`) it sets `field_2E8` and stops; otherwise the
+/// speed `field_2CC` accelerates toward +/-`field_2D0` while `field_2E9` is
+/// set, or decays to 0, and moves `field_294` along the normalized offset
+/// (at a quarter speed while `field_2DA` runs).
+void func_actor_503500_80139EFC(Actor503500* arg0)
+{
+    SVECTOR             d;
+    SVECTOR             n;
+    VECTOR              step;
+    Actor503500Work2EC* work;
+    s16                 tx;
+    s16                 ty;
+    s16                 tz;
+    s32                 lim;
+    s32                 speed;
+    s32                 k;
+
+    work = (Actor503500Work2EC*)arg0->field_1C;
+    tx   = work->field_29C.vx - work->field_294.vx;
+    d.vx = tx;
+    ty   = work->field_29C.vy - work->field_294.vy;
+    d.vy = ty;
+    tz   = work->field_29C.vz - work->field_294.vz;
+    d.vz = tz;
+    if (ABS(tx) + ABS(ty) + ABS(tz) < work->field_2D0.h.hi) {
+        work->field_2E8 = 1;
+        return;
+    }
+    lim             = work->field_2D0.w;
+    work->field_2E8 = 0;
+    if (work->field_2E9 != 0) {
+        speed = work->field_2CC + lim / 32;
+        if (speed > 0) {
+            if (speed > lim) {
+                speed = lim;
+            }
+        } else if (speed < -lim) {
+            speed = -lim;
+        }
+    } else {
+        speed = work->field_2CC - lim / 32;
+        if (speed < 0) {
+            speed = 0;
+        }
+    }
+    work->field_2CC = speed;
+    VectorNormalSS(&d, &n);
+    if (work->field_2DA != 0) {
+        speed >>= 2;
+    }
+    k                   = speed >> 12;
+    step.vx             = n.vx * k;
+    step.vy             = n.vy * k;
+    step.vz             = n.vz * k;
+    work->field_294.vx += step.vx >> 16;
+    work->field_294.vy += step.vy >> 16;
+    work->field_294.vz += step.vz >> 16;
+}
 
 /// Builds the chain polyline `pts[0..8]` from cubic Bezier segments
 /// (`func_actor_503500_8013A7B0`): a first curve runs from the root's world
