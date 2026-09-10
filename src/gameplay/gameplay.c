@@ -1473,7 +1473,6 @@ u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     register u32          mask asm("t1");
     register u32          maskHi asm("t4");
     register u32          clipMask asm("t3");
-    s32                   hi;
     u16*                  rec;
     s32                   sz;
     s32                   idx;
@@ -1484,11 +1483,10 @@ u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (ws->field_1C-- > 0) {
         opz      = &ws->field_28;
         clipMask = 0x80000000;
-        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
-        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
-        xy     = (POLY_F3*)&poly->x2;
+        ds       = &Display_State;
+        mask     = 0xFFFFFF;
+        maskHi   = 0xFF000000;
+        xy       = (POLY_F3*)&poly->x2;
         do {
             rec = (u16*)arg2;
             gte_ldsxy3_fifo(xy);
