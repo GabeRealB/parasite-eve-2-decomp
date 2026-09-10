@@ -2304,7 +2304,20 @@ void func_actor_503500_80144004(Actor503500* arg0)
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144098);
+void func_actor_503500_80144098(Actor503500* arg0, s32 arg1, GpEnemy* arg2)
+{
+    GpEnemy* enemy = arg0->field_20;
+
+    if (enemy->field_4C & 1) {
+        enemy->field_4C &= ~1;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= ~2;
+    }
+    if (enemy->field_4C & 0xC) {
+        enemy->field_4C &= ~0xC;
+    }
+}
 
 void func_actor_503500_801440F0(Actor503500* arg0)
 {
