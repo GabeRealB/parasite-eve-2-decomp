@@ -489,7 +489,21 @@ void func_actor_403100_8013F034(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F0A8);
+void func_actor_403100_8013F0A8(Task* arg0)
+{
+    TmdObject* obj;
+
+    obj                               = (TmdObject*)arg0->extra;
+    obj->field_C                     |= 0x80;
+    D_actor_403100_8014762C.field_8   = 0;
+    D_actor_403100_8014762C.field_A   = 0;
+    D_actor_403100_8014762C.field_6 >>= 1;
+    Game_Session->field_9             = 4;
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    arg0->state                        = 5;
+    D_actor_403100_80155808->field_5F8 = 0;
+    D_actor_403100_80155808->field_5FA = 0;
+}
 void func_actor_403100_8013F12C(void)
 {
     u16 frame;
