@@ -2,10 +2,25 @@
 #include "main/task.h"
 #include "main/session.h"
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 
 typedef struct {
-    u8  _pad0[0x40];
-    s16 field_40;
+    u8 _pad0[0x24];
+    u8 field_24;
+    u8 field_25;
+} DumpingHoleP2C;
+
+typedef struct {
+    u8              _pad0[0x2C];
+    DumpingHoleP2C* field_2C;
+} DumpingHoleTarget2;
+
+typedef struct {
+    DumpingHoleTarget2* field_0;
+    u8                  _pad4[0x6];
+    s16                 field_A;
+    u8                  _pad0C[0x34];
+    s16                 field_40;
 } DumpingHoleTarget;
 
 typedef struct {
@@ -14,9 +29,16 @@ typedef struct {
 } DumpingHoleEntity;
 
 typedef struct {
+    DumpingHoleTarget* field_0;
+    u16                field_4;
+} DumpingHoleEntityB;
+
+typedef struct {
     u8                 _pad0[0x1C];
     DumpingHoleEntity* field_1C;
-    u8                 _pad20[0x16];
+    u8                 _pad20[0x10];
+    s32                field_30;
+    s16                field_34;
     s16                field_36;
 } DumpingHoleState;
 
@@ -29,6 +51,12 @@ typedef struct {
     u8  _pad0[0x6];
     s16 field_6;
 } DumpingHoleB7BC;
+
+typedef struct {
+    u8  field_0;
+    u8  field_1;
+    u16 field_2;
+} DumpingHoleDispatchDesc;
 
 extern DumpingHoleB7BC D_shelter_b3_dumping_hole_8018B7BC[];
 
@@ -89,7 +117,25 @@ void func_shelter_b3_dumping_hole_801838A0(DumpingHoleState* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183950);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183A00);
+void func_shelter_b3_dumping_hole_80183A00(DumpingHoleState* arg0)
+{
+    DumpingHoleDispatchDesc desc;
+    DumpingHoleEntityB*     ent = (DumpingHoleEntityB*)arg0->field_1C;
+    DumpingHoleTarget*      t0  = ent->field_0;
+    DumpingHoleTarget2*     t00 = t0->field_0;
+
+    if ((s16)(ent->field_4 += 1) >= 0x2E) {
+        DumpingHoleP2C* p = t00->field_2C;
+        p->field_25       = 2;
+        p->field_24       = 0;
+        t0->field_A       = 0x900;
+        desc.field_0      = 0;
+        desc.field_1      = 0x2C;
+        desc.field_2      = arg0->field_34;
+        Gp_DispatchMsg((Task*)t00, 0x7DB, (s32)&desc, 0);
+        arg0->field_30 += 1;
+    }
+}
 
 void func_shelter_b3_dumping_hole_80183A98(DumpingHoleState* arg0)
 {
