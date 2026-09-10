@@ -12,6 +12,11 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include <psyq/inline_c.h>
+
+/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
+/// different word, so spell the instruction out.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -104,7 +109,13 @@ extern SVECTOR            D_actor_503500_8016F0A0[];
 extern SVECTOR            D_actor_503500_8016F0B0;
 extern Actor503500UVec    D_actor_503500_8016F0A8[];
 extern Actor503500Work2EC D_actor_503500_80176EE8[];
-void                      func_actor_503500_8013A900(Actor503500* arg0);
+/// Rest offset of the same enemies' `field_29C`, indexed by `spawnArg1 - 2`
+/// (the bytes of `D_actor_503500_8016F0A8[2..]`, named on their own because the
+/// code indexes from here), and the local vector `func_actor_503500_80138A30`
+/// rotates by `field_2A4` and adds to it every frame.
+extern Actor503500UVec D_actor_503500_8016F0B8[];
+extern SVECTOR         D_actor_503500_8016F0C8;
+void                   func_actor_503500_8013A900(Actor503500* arg0);
 /// Translation `func_actor_503500_801374BC` seeds into each of the two effect
 /// tasks it hangs off the task's own coordinate.
 extern SVECTOR D_actor_503500_8016F070;
@@ -1263,7 +1274,54 @@ void func_actor_503500_80138898(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80138A30);
+/// Sub-state of the 0x2EC enemies: seeds `field_29C` from the slot's rest
+/// offset once, hands over to state 6 below half HP or state 1 on the kill
+/// countdown, and otherwise swings `field_29C` around the rest offset by
+/// `D_actor_503500_8016F0C8` rotated through `field_2A4`, spinning that angle.
+void func_actor_503500_80138A30(Actor503500* arg0)
+{
+    Actor503500Work2EC*  work;
+    Actor503500IdentMat  m;
+    Actor503500MatWords* ident;
+    SVECTOR              v;
+    s32                  idx;
+    s16                  hp;
+
+    work = (Actor503500Work2EC*)arg0->field_1C;
+    idx  = arg0->spawnArg1 - 2;
+    if (work->field_2E4 == 0) {
+        work->field_29C.vx = D_actor_503500_8016F0B8[idx].vx;
+        work->field_29C.vy = D_actor_503500_8016F0B8[idx].vy;
+        work->field_29C.vz = D_actor_503500_8016F0B8[idx].vz;
+        work->field_2E4++;
+    }
+    hp = arg0->field_20->field_40;
+    if (hp < (D_actor_503500_8016E7EC[arg0->spawnArg1].field_4 >> 1) && hp > 0) {
+        func_actor_503500_8013ACC4(arg0, 6);
+        return;
+    }
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_8013ACC4(arg0, 1);
+        return;
+    }
+    m.ident.m00_m01 = 0x1000;
+    ident           = &m.ident;
+    ident->m02_m10  = 0;
+    ident->m11_m12  = 0x1000;
+    ident->m20_m21  = 0;
+    ident->m22      = 0x1000;
+    RotMatrix(&work->field_2A4, &m.mat);
+    gte_SetRotMatrix(&m.mat);
+    gte_ldv0(&D_actor_503500_8016F0C8);
+    gte_rtv0_real();
+    gte_stsv(&v);
+    work->field_29C.vx  = D_actor_503500_8016F0B8[idx].vx + v.vx;
+    work->field_29C.vy  = D_actor_503500_8016F0B8[idx].vy + v.vy;
+    work->field_29C.vz  = D_actor_503500_8016F0B8[idx].vz + v.vz;
+    work->field_2A4.vx += 0x20;
+    work->field_2A4.vy += 0x40;
+    work->field_2A4.vz += 0x80;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80138C08);
 

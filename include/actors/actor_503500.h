@@ -359,7 +359,8 @@ typedef struct Actor503500Work2EC {
     /* 0x248 */ byte           pad_248[0x4C];
     /* 0x294 */ SVECTOR        field_294; // both seeded from D_actor_503500_8016F0A8
     /* 0x29C */ SVECTOR        field_29C;
-    /* 0x2A4 */ byte           pad_2A4[0x2C];
+    /* 0x2A4 */ SVECTOR        field_2A4; // rotation, spun by func_actor_503500_80138A30
+    /* 0x2AC */ byte           pad_2AC[0x24];
     /* 0x2D0 */ s32            field_2D0;
     /* 0x2D4 */ s16            field_2D4; // sub-state index
     /* 0x2D6 */ s16            field_2D6;
