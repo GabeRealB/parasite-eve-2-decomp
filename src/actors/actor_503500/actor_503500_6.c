@@ -407,7 +407,22 @@ s32 func_actor_503500_80136FA8(Actor503500Work* work, s32 slot)
 /// it is occupied, not marked dying by `field_752`, and its `field_730` counter
 /// has run out. Slot 0 stands for the boss itself, which is ready when the
 /// main-executable flag `field_7E0` and its own `field_752` are both clear.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136FDC);
+s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
+{
+    s32 ret;
+
+    ret = 0;
+    if (slot != 0) {
+        if (work->enemies[slot] != NULL) {
+            if (work->field_752[slot] == 0) {
+                ret = work->field_730[slot] == 0;
+            }
+        }
+    } else if ((work->field_7E0 == 0) && (work->field_752[0] == 0)) {
+        ret = 1;
+    }
+    return ret;
+}
 /// Sets `GpAnimSlot::field_9` -- the per-slot value `Gp_AnimResetSlot` seeds
 /// with 0x10 -- on animation slots 1..16 of the boss block, `rate` of 0
 /// meaning that default.
