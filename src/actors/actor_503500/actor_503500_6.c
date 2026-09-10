@@ -383,7 +383,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Sets `GpAnimSlot::field_9` -- the per-slot value `Gp_AnimResetSlot` seeds
 /// with 0x10 -- on animation slots 1..16 of the boss block, `rate` of 0
 /// meaning that default.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80137048);
+void func_actor_503500_80137048(Actor503500* arg0, s32 rate)
+{
+    Actor503500WorkBoss* work;
+    GpAnimSlot*          slot;
+    s32                  i;
+
+    work = (Actor503500WorkBoss*)arg0->field_1C;
+    slot = &work->slots[1];
+    if (rate == 0) {
+        rate = 0x10;
+    }
+    for (i = 0xF; i >= 0; i--) {
+        slot->field_9 = rate;
+        slot++;
+    }
+}
 void func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2)
 {
     Actor503500Work* work;
