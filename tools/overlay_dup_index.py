@@ -608,6 +608,13 @@ def cmd_similar(data: dict, name: str, topn: int, floor: float) -> int:
         results[cls] = rank(score)
         for _s, f in results[cls]:
             agree[f["name"]] += 1
+    # cflow is corroboration, never a finding on its own. A branch skeleton is
+    # generic even well past the length gate: an actor task function scored 1.00
+    # against four memory-card state machines in src/main/mc.c, and a brief
+    # showing only that sends the reader somewhere useless. Keep it when another
+    # class also found something; otherwise say nothing.
+    if not any(results.get(c) for c in ("shape", "fields", "calls")):
+        results["cflow"] = []
 
     print(f"{name}: {tgt['words']} instructions, {len(tcalls)} call(s)")
     any_hit = False
