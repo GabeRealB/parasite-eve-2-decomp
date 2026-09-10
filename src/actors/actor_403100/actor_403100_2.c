@@ -347,7 +347,31 @@ void func_actor_403100_80138AB4(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138C18);
+void func_actor_403100_80138C18(void)
+{
+    u16 velocityZ;
+    u16 velocityX;
+    u32 random;
+
+    func_actor_403100_8013D24C();
+    velocityX                          = (u16)D_actor_403100_80155808->field_604;
+    velocityZ                          = (u16)D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_604 = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_608 = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
+    if (Actor403100_TestFlags104()) {
+        random      = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState = random;
+        if ((random >> 0x10) & 1) {
+            func_actor_403100_8013D2A0(1);
+        }
+        D_actor_403100_80155808->field_5FC  = 8;
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5DE  = 1;
+        D_actor_403100_80155808->field_5DA  = 1;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 void func_actor_403100_80138D08(Task* arg0)
 {
     TmdObject*       obj;
