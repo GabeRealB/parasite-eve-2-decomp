@@ -30,6 +30,7 @@ extern TaskFuncTable3 D_actor_503500_801321E8;
 extern TaskFuncTable3 D_actor_503500_801321F4;
 extern TaskFuncTable3 D_actor_503500_80132218;
 extern TaskFuncTable3 D_actor_503500_80132224;
+extern TaskFuncTable3 D_actor_503500_80132230;
 
 /// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
@@ -2391,6 +2392,8 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80132224);
 
+INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80132230);
+
 void func_actor_503500_80145428(Actor503500* arg0)
 {
     GsCOORDINATE2* coord;
@@ -2601,7 +2604,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014618C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801463C0);
+void func_actor_503500_801463C0(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80132230;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_actor_503500_8014642C(Actor503500* arg0)
 {
