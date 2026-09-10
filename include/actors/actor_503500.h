@@ -233,7 +233,12 @@ typedef struct Actor503500Work {
     /* 0x3D2 */ byte    pad_3D2[0x4];
     /* 0x3D6 */ s8      field_3D6;
     /* 0x3D7 */ s8      field_3D7; // TMD buffer countdown, 0x3D8 block
-    /* 0x3D8 */ byte    pad_3D8[0x12C];
+    /* 0x3D8 */ byte    pad_3D8[0x9C];
+    /// The boss's own light / colour matrix pair: `func_actor_503500_80132F64`
+    /// points the model's `TmdObject::field_1C` / `field_20` at these.
+    /* 0x474 */ MATRIX lightMtx;
+    /* 0x494 */ MATRIX colorMtx;
+    /* 0x4B4 */ byte   pad_4B4[0x50];
     /// Private copies of two of the boss model's part coordinates (parts 4 and
     /// 10), refreshed by `func_actor_503500_80136DDC` when bits 0x20 / 0x800 of
     /// `field_7AC` are set and then scaled by `field_5A4` / `field_5B4`.
@@ -257,9 +262,15 @@ typedef struct Actor503500Work {
     /// `func_actor_503500_80137088` stores the placement argument's
     /// integer translation here shifted left by 16, alongside dropping the
     /// same translation into the coordinate's own matrix.
-    /* 0x6C4 */ VECTOR   field_6C4;
-    /* 0x6D4 */ byte     pad_6D4[0x18];
-    /* 0x6EC */ GpEnemy* enemies[0x11];
+    /* 0x6C4 */ VECTOR field_6C4;
+    /* 0x6D4 */ byte   pad_6D4[0x10];
+    /// The boss's coordinate / 0x6E8 / 0x6EA trio, the same shape as
+    /// `field_E0`: `func_actor_503500_80132F64` stores model part 3 here with
+    /// the 0x600 / 3 pair.
+    /* 0x6E4 */ GsCOORDINATE2* field_6E4;
+    /* 0x6E8 */ s16            field_6E8;
+    /* 0x6EA */ s16            field_6EA;
+    /* 0x6EC */ GpEnemy*       enemies[0x11];
     /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
     /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
     /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on
@@ -267,7 +278,9 @@ typedef struct Actor503500Work {
     /* 0x730 */ s16  field_730[0x11];
     /* 0x752 */ s16  field_752[0x11];
     /* 0x774 */ u32  field_774; // one "already asked to die" bit per slot
-    /* 0x778 */ byte pad_778[0x34];
+    /* 0x778 */ byte pad_778[0x2C];
+    /* 0x7A4 */ s32  field_7A4; // seeded to 0x80000
+    /* 0x7A8 */ byte pad_7A8[0x4];
     /* 0x7AC */ s32  field_7AC; // part-scale enable bits, see coord504
     /* 0x7B0 */ s16  field_7B0; // boss state index
     /* 0x7B2 */ u16  field_7B2;
@@ -293,7 +306,9 @@ typedef struct Actor503500Work {
     /// and `func_actor_503500_80136D30` uses it as the gate on its own tick.
     /* 0x7D4 */ s8   field_7D4;
     /* 0x7D5 */ s8   field_7D5; // boss sub-state index, seeded with field_7D6/7D9
-    /* 0x7D6 */ byte pad_7D6[0x3];
+    /* 0x7D6 */ s8   field_7D6; // seeded to -1 with field_7D5
+    /* 0x7D7 */ byte pad_7D7[0x1];
+    /* 0x7D8 */ s8   field_7D8; // seeded to 1
     /* 0x7D9 */ s8   field_7D9; // mode last set by func_actor_503500_80137158
     /* 0x7DA */ u8   field_7DA; // per-state step counter
     /* 0x7DB */ u8   field_7DB; // cleared alongside field_7DA

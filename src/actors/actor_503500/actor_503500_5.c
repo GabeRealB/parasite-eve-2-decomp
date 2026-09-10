@@ -215,7 +215,125 @@ void func_actor_503500_80132F58(void)
     D_actor_503500_80176558 = NULL;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80132F64);
+/// `TaskDesc` table `func_actor_503500_80132F64` and
+/// `func_actor_503500_80135D00` spawn slot enemies from.
+extern TaskDesc D_actor_503500_8016E924;
+/// Initial position of the boss's collision node, copied into both the
+/// enemy's `field_1C` and `field_5D4`'s `field_10/12/14`.
+extern SVECTOR D_actor_503500_8016EC50;
+/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `func_actor_503500_80132F64`.
+extern GpMsgEntry D_actor_503500_8016EA2C[];
+extern GpPairSrcE D_actor_503500_8016E7EC[];
+void              func_actor_503500_80136228(Actor503500* arg0);
+
+/// State-0 init of the boss: clears and seeds its work block, links the
+/// second body part's display node, spawns slot enemies 1..11 from
+/// `D_actor_503500_8016E924` (tinting each from the current area record, as
+/// `func_actor_503500_80135D00` does) and applies preset 0x7D3.
+void func_actor_503500_80132F64(Actor503500* arg0)
+{
+    GpAreaKey      key;
+    GpAreaKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaRec*     rec;
+    GpCdRec10*     entry;
+    GpEnemy*       child;
+    TmdObject*     model;
+    u32            raw;
+    s32            idx;
+    s32            i;
+    TmdObject*     tmd;
+    GpEnemy*       enemy;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* part;
+    GpRec18*       recs;
+    /* Kept in a register across the spawn loop: the ROM stores enemies[0]
+       through the same base rather than rebuilding the address. */
+    Actor503500Work* work = &D_actor_503500_80176574;
+
+    tmd   = arg0->extra;
+    enemy = arg0->field_20;
+    coord = tmd->field_8;
+    Mem_Set(work, 0, 0x7E8);
+    arg0->field_1C     = work;
+    work->field_7D5    = -1;
+    work->field_7D6    = -1;
+    work->field_7D9    = -1;
+    work->field_7A4    = 0x80000;
+    work->field_6C4.vx = coord->coord.t[0] << 16;
+    work->field_6C4.vy = coord->coord.t[1] << 16;
+    work->field_6C4.vz = coord->coord.t[2] << 16;
+    work->field_7D8    = 1;
+    work->field_7CA    = 0x5A;
+    tmd->field_1C      = &work->lightMtx;
+    tmd->field_20      = &work->colorMtx;
+    tmd->field_E       = 0x14;
+    coord->flg         = 0;
+
+    enemy->field_4       = &coord->coord;
+    part                 = &coord[3];
+    enemy->field_48      = 0;
+    enemy->field_18      = part;
+    enemy->node.field_4 |= 9;
+    enemy->field_1C.vx   = D_actor_503500_8016EC50.vx;
+    enemy->field_1C.vy   = D_actor_503500_8016EC50.vy;
+    enemy->field_1C.vz   = D_actor_503500_8016EC50.vz;
+    recs                 = work->rec5F4;
+    enemy->field_50      = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54      = (s32)recs;
+    enemy->field_40      = enemy->field_50->field_4;
+
+    work->field_5D4.field_8  = part;
+    work->field_5D4.field_C  = recs;
+    work->field_5D4.field_18 = 0x30023;
+    work->field_5D4.field_1C = 0x258;
+    work->field_5D4.flags    = 1;
+    work->field_5D4.field_10 = D_actor_503500_8016EC50.vx;
+    work->field_5D4.field_12 = D_actor_503500_8016EC50.vy;
+    work->field_5D4.field_14 = D_actor_503500_8016EC50.vz;
+    Gp_LinkObj(2, &work->field_5D4);
+    Gp_InitRec18Table(recs, 8, 0);
+    work->field_6E8        = 0x600;
+    work->field_6E4        = part;
+    work->field_6EA        = 3;
+    work->field_5D4.flags &= 0x7FFF;
+
+    for (i = 1; i < 12; i++) {
+        child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
+        if (child != NULL) {
+            sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+            raw         = arg0->field_20->field_8;
+            model       = (TmdObject*)child->task->extra;
+            key.field_3 = sessionKey->field_3;
+            key.field_2 = sessionKey->field_2;
+            key.field_1 = sessionKey->field_1;
+            areaByte0   = sessionKey->field_0;
+            idx         = raw >> 12;
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(&key);
+            rec             = Gp_GetNestedAreaRec(&key);
+            entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+            model->field_24 = entry->field_D;
+            model->field_25 = entry->field_E;
+            if (model->field_18 != NULL) {
+                Tmd_ProcessStream(model);
+                Tmd_ProcessStream(model);
+            }
+            work->enemies[i] = child;
+        }
+    }
+    work->enemies[0] = enemy;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0x23);
+    func_actor_503500_80136B64(arg0, 1, 0);
+    for (i = 17; i >= 0; i--) {
+        D_actor_503500_80176D64[i] = 0;
+    }
+    func_actor_503500_80135950(arg0, 0x7D3, D_actor_503500_8016EAC0, 0);
+    arg0->exitCallback = (TaskFunc)func_actor_503500_80136228;
+    arg0->field_24     = D_actor_503500_8016EA2C;
+    arg0->state       += 1;
+}
 
 /// Per-frame update. `D_801153F4` 1 pauses the boss (buffers kept, only
 /// `func_actor_503500_80136AEC` runs), 2 hides it; anything else runs the
@@ -529,9 +647,6 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 {
     D_actor_503500_80176574.enemies[arg1] = NULL;
 }
-
-/// `TaskDesc` table `func_actor_503500_80135D00` spawns slot enemies from.
-extern TaskDesc D_actor_503500_8016E924;
 
 /// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
 /// from the current area's record and parks it in slot `arg1` of the boss
