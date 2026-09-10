@@ -126,7 +126,8 @@ void func_shelter_1f_tent_8017F484(Task* task)
                 }
             }
             cmd = script->field_1;
-            __asm__ volatile("addiu %0, $zero, 1" : "=r"(one));
+            one = 1;
+            SOFT_TOUCH_REG(one);
             if (cmd != one) {
                 goto L_run_cmd;
             }
