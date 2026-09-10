@@ -42,8 +42,10 @@ extern u8  D_80071075;
 extern s16 D_80073BA0;
 extern s8  D_80114C12;
 /// Main-executable flag byte cleared when the boss enters state 2; also written
-/// by `mist_r18`, which has no module header for it either.
-extern s8 D_80071090;
+/// by `mist_r18`, which has no module header for it either. Declared as an
+/// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
+/// the preceding `field_79C` store ordered before it.
+extern s8 D_80071090[];
 s32       func_actor_503500_80133684(Actor503500* arg0);
 void      func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2);
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
@@ -229,6 +231,7 @@ extern TaskDesc D_actor_503500_8016E924;
 /// Initial position of the boss's collision node, copied into both the
 /// enemy's `field_1C` and `field_5D4`'s `field_10/12/14`.
 extern SVECTOR  D_actor_503500_8016EC50;
+extern SVECTOR  D_actor_503500_8016EF58[];
 extern TaskDesc D_actor_503500_8016E9F0;
 /// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
 /// `func_actor_503500_80132F64`.
@@ -904,7 +907,106 @@ void func_actor_503500_80134408(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801345F4);
+/// Seven-step state of the boss block. Step 0 applies preset 0x13 and clears
+/// `field_79C`; step 1 sprays 0x60055 effects for 0x78 frames (one from the
+/// frame count, one from `Gp_LcgState`), plays 0x40230012, and at frame 0x97
+/// spawns the attached effect task into `field_79C`. Step 2 waits for
+/// `field_7E3`, kills that task and spawns a fresh one; steps 3..6 walk
+/// presets 6, 7 and 8 and finally return the boss to state 0.
+void func_actor_503500_801345F4(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    Task*            task;
+    s32              pan;
+
+    work = arg0->field_1C;
+    switch ((s8)work->field_7DA) {
+        case 0:
+            func_actor_503500_80135FB4(arg0, 0x13, 0x10);
+            func_actor_503500_8013611C(arg0->spawnArg1);
+            work->field_79C = NULL;
+            work->field_7DA = work->field_7DA + 1;
+            break;
+        case 1:
+            if (work->field_7BC < 0x78) {
+                Gp_SpawnEff(0x60055, &arg0->extra->field_8[3], 0x01001800,
+                            &D_actor_503500_8016EF58[(s16)(work->field_7BC % 7)]);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x60055, &arg0->extra->field_8[3], 0x01001800,
+                            &D_actor_503500_8016EF58[(u16)((Gp_LcgState >> 16) % 7)]);
+            }
+            if (work->field_7BC == 0x78) {
+                SndEvt_EnqueueType7(0x40230012, 0x3C);
+            }
+            if (work->field_7BC == 2) {
+                coord = &arg0->extra->field_8[3];
+                pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(0x40230012, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            }
+            if (++work->field_7BC >= 0x97) {
+                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x64, (s32)arg0);
+                if (task != NULL) {
+                    coord             = ((TmdObject*)task->extra)->field_8;
+                    coord->sub        = &arg0->extra->field_8[3];
+                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
+                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
+                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
+                }
+                work->field_79C = task;
+                D_80071090[0]   = 1;
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+        case 2:
+            if (work->field_7E3 != 0) {
+                task = work->field_79C;
+                if (task != NULL) {
+                    task->exitCallback(task);
+                }
+                func_actor_503500_80135FB4(arg0, 5, 0x10);
+                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x5A, (s32)arg0);
+                if (task != NULL) {
+                    coord             = ((TmdObject*)task->extra)->field_8;
+                    coord->sub        = &arg0->extra->field_8[3];
+                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
+                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
+                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
+                }
+                func_actor_503500_80137074(arg0, 1, 1);
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+        case 3:
+            if (func_actor_503500_80136014(arg0, 5) != 0) {
+                func_actor_503500_80135FB4(arg0, 6, 0x10);
+                work->field_7BC = 0;
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+        case 4:
+            if (++work->field_7BC >= 0x33) {
+                func_actor_503500_80135FB4(arg0, 7, 0);
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+        case 5:
+            if (func_actor_503500_80136014(arg0, 7) != 0) {
+                func_actor_503500_80135FB4(arg0, 8, 0);
+                func_actor_503500_80137074(arg0, 0, 0xE);
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+        case 6:
+            if (func_actor_503500_80136014(arg0, 8) != 0) {
+                D_80071090[0] = 0;
+                func_actor_503500_80135FB4(arg0, 0, 0);
+                work->field_7D2 = 0;
+                func_actor_503500_80136EFC(arg0, 0);
+            }
+            break;
+    }
+}
 
 /// Three-step state of the boss block. Step 0 saves the coordinate's rotation
 /// and seeds the Y scale to 0x1000; step 1 counts 0x1F frames, then applies
@@ -1008,7 +1110,7 @@ void func_actor_503500_80134C68(Actor503500* arg0)
                     coord->coord.t[1] = D_actor_503500_8016EC50.vy;
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
-                D_80071090      = 1;
+                D_80071090[0]   = 1;
                 work->field_7C0 = 0;
                 work->field_7E1++;
             }
@@ -1036,7 +1138,7 @@ void func_actor_503500_80134C68(Actor503500* arg0)
         case 5:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
                 work->field_7E0 = 0;
-                D_80071090      = 0;
+                D_80071090[0]   = 0;
                 func_actor_503500_80135F9C((Task*)arg0, 0, 0);
                 func_actor_503500_80135FB4(arg0, 0, 0);
             }
@@ -1241,7 +1343,7 @@ static inline void func_actor_503500_SetBossState(Actor503500* arg0, s16 state)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, 0, 3);
-    D_80071090 = 0;
+    D_80071090[0] = 0;
 }
 
 /// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
@@ -1428,7 +1530,7 @@ void func_actor_503500_80136048(Actor503500* arg0)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, 0, 3);
-    D_80071090 = 0;
+    D_80071090[0] = 0;
 }
 /// Reports whether the boss-wide gate is open; the body ignores its
 /// argument, and callers pass unrelated pointers they already hold.

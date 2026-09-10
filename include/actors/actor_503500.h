@@ -306,18 +306,20 @@ typedef struct Actor503500Work {
     /// Saved rotation of the task's coordinate: the first 16 bytes of
     /// `coord.m` as words plus `m[2][2]`, restored every frame by
     /// `func_actor_503500_80134A24` before it rescales the matrix.
-    /* 0x77C */ s32  field_77C[4];
-    /* 0x78C */ s16  field_78C;
-    /* 0x78E */ byte pad_78E[0x16];
-    /* 0x7A4 */ s32  field_7A4; // seeded to 0x80000
-    /* 0x7A8 */ byte pad_7A8[0x4];
-    /* 0x7AC */ s32  field_7AC; // part-scale enable bits, see coord504
-    /* 0x7B0 */ s16  field_7B0; // boss state index
-    /* 0x7B2 */ u16  field_7B2;
-    /* 0x7B4 */ s16  field_7B4; // per-frame countdown, clamped at 0
-                                /// Yaw of the placed part, recovered by `func_actor_503500_80137088`
-                                /// from the rotation matrix it just built (`ratan2` of `m[0][2]` over
-                                /// `m[2][2]`).
+    /* 0x77C */ s32   field_77C[4];
+    /* 0x78C */ s16   field_78C;
+    /* 0x78E */ byte  pad_78E[0xE];
+    /* 0x79C */ Task* field_79C; // spawned effect task, killed on step 2
+    /* 0x7A0 */ byte  pad_7A0[0x4];
+    /* 0x7A4 */ s32   field_7A4; // seeded to 0x80000
+    /* 0x7A8 */ byte  pad_7A8[0x4];
+    /* 0x7AC */ s32   field_7AC; // part-scale enable bits, see coord504
+    /* 0x7B0 */ s16   field_7B0; // boss state index
+    /* 0x7B2 */ u16   field_7B2;
+    /* 0x7B4 */ s16   field_7B4; // per-frame countdown, clamped at 0
+                                 /// Yaw of the placed part, recovered by `func_actor_503500_80137088`
+                                 /// from the rotation matrix it just built (`ratan2` of `m[0][2]` over
+                                 /// `m[2][2]`).
     /* 0x7B6 */ s16  field_7B6;
     /* 0x7B8 */ s16  field_7B8;
     /* 0x7BA */ s16  field_7BA;
