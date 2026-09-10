@@ -297,6 +297,8 @@ void      func_actor_503500_801459B0(Task* arg0);
 void      func_actor_503500_80145C50(Actor503500* arg0);
 void      func_actor_503500_80145E98(Task* arg0);
 void      func_actor_503500_80145F18(Actor503500* arg0);
+void      func_actor_503500_8014618C(Task* arg0);
+void      func_actor_503500_80146524(void);
 /// Reports whether the boss-wide gate is open; the body ignores its
 /// argument, and callers pass unrelated pointers they already hold.
 s32       func_actor_503500_8013608C(void* arg0);
@@ -1524,7 +1526,51 @@ void func_actor_503500_80145F84(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80145FDC);
+/// Per-frame tick of the `Actor503500Effect4CC` effect: runs the motion
+/// handler `field_4C0` selects, adds the 16.16 velocity `field_4B0` onto the
+/// accumulator `field_4A0`, moves the coordinate by the integer part and keeps
+/// only the fraction, then ticks the animation slots and the actor colour.
+void func_actor_503500_80145FDC(Actor503500* task)
+{
+    VECTOR                pos;
+    TmdObject*            ext      = task->extra;
+    Actor503500Effect4CC* work     = (Actor503500Effect4CC*)task->field_1C;
+    TaskFunc              funcs[2] = { (TaskFunc)func_actor_503500_80146524, func_actor_503500_8014618C };
+    GsCOORDINATE2*        coord;
+    s32                   i;
+
+    funcs[work->field_4C0]((Task*)task);
+    coord              = task->extra->field_8;
+    work->field_4A0   += work->field_4B0;
+    work->field_4A4   += work->field_4B4;
+    work->field_4A8   += work->field_4B8;
+    coord->coord.t[0] += (s16)(work->field_4A0 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4A4 >> 16);
+    coord->coord.t[2] += (s16)(work->field_4A8 >> 16);
+    coord->flg         = 0;
+    work->field_4A0    = (u16)work->field_4A0;
+    work->field_4A4    = (u16)work->field_4A4;
+    work->field_4A8    = (u16)work->field_4A8;
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        pos.vx = coord->workm.t[0];
+        pos.vy = coord->workm.t[1];
+        pos.vz = coord->workm.t[2];
+        Gp_UpdateActorColor(task->field_20, &pos, 0, 0);
+    }
+    if (work->field_4C8 >= 0) {
+        if (work->field_4C8 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4C8--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_8014618C);
 

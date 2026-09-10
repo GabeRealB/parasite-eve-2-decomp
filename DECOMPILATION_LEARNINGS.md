@@ -53788,6 +53788,23 @@ TaskFunc         states[2] = { handler0, handler1 };
 element-wise `work` load also reaches 100% there, by pinning the load ahead of
 the first `lui`; prefer the initializer, which needs no barrier.
 
+Why the initializer works, from the sched1 trace of `func_actor_503500_80145FDC`:
+the brace initializer expands through `store_constructor`, which first emits
+`(clobber (mem/s:BLK fns))`. With element stores there is no clobber, so both
+pointer loads launch together with the first `lui` right after the store
+`sw v0,0x20(sp)` is scheduled (reverse list scheduling). All three are birthing
+insns at `LAUNCH_PRIORITY`, and `schedule_select` picks the loads for their
+greater `memory`-unit potential hazard, so the `lui` ends up above them. The
+clobber (priority 1) sits between the loads and the stores, and the loads
+anti-depend on it, so they launch only after it, and by then the `lui` has
+already been placed. The element-store version scored 99.44% (`reorder=1`).
+
+The initializer also fixes the frame layout by declaration order: in that
+function a `VECTOR pos` declared after the table took `0x10` and pushed the
+table to `0x18` (99.68%, `regs=7`). The target has `pos` at `0x10` and the
+table at `0x20`, so `pos` is declared first, then `ext`, then `work`, then the
+table.
+
 ## Four `lw` then four `sw` is a struct assignment, not a hand-written copy
 
 A run of loads into `$a2/$a3/$t0/$t1` followed by four stores, repeated, is
