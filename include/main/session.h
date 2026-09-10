@@ -88,7 +88,7 @@ typedef struct _GameSession {
     u8    field_127; // 0: run death / companion-down checks in Gp_TickPlayClock
     u8    field_128; // 0xFF sentinel in Gp_StartStageLoad / Gp_FinishStageLoad
     u8    field_129; // last CdCmd 0x21 param[0] written by Gp_EnqueueSndCd
-    byte  unknown_12A[2];
+    s16   field_12A; // summed field_40 of the living boss parts (func_actor_503500_80134408)
     u8    field_12C;
     s8    field_12D; // lb/sb countdown; 0x7F sentinel in Gp_StartAreaBgm
     u8    field_12E; // copied as s8 into D_80114BD8.field_2 (Gp_PlayClockState2)

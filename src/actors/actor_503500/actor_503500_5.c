@@ -272,7 +272,54 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134284);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80134408);
+/// Two-step state of the boss block. Step 0 hides the second body part,
+/// unlinks the enemy node, stores the summed `field_40` of occupied slots
+/// 1..16 in `Game_Session->field_12A` and plays sound 0x40230010 at the
+/// part's position. Step 1 counts 0x1F frames, then posts message 0x13F4
+/// under the same gates as `func_actor_503500_80133684`.
+void func_actor_503500_80134408(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    s32              i;
+    s16              sum;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    switch ((s8)work->field_7DA) {
+        case 0:
+            work->field_5D4.flags &= 0x7FFF;
+            func_actor_503500_8013611C(arg0->spawnArg1);
+            Gp_UnlinkNode(&enemy->node);
+            enemy->field_54 = 0;
+            work->field_7B4 = 0;
+            Gp_PulseState1C();
+            sum = 0;
+            for (i = 1; i < 0x11; i++) {
+                if (work->enemies[i] != NULL) {
+                    sum += work->enemies[i]->field_40;
+                }
+            }
+            Game_Session->field_12A = sum;
+            work->field_7E0         = 0;
+            func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+            pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->extra->field_8[3]);
+            SndEvt_EnqueueType6(0x40230010, pan,
+                                (s8)(Gp_GetObjDepth((GpObj38*)&arg0->extra->field_8[3]) / 2));
+            work->field_7DA = work->field_7DA + 1;
+            break;
+        case 1:
+            if (++work->field_7BC >= 0x1F &&
+                ((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 != 2 &&
+                D_80073BA0 > 0 && D_80114C12 != 1 && D_80071075 == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                work->field_7DA = work->field_7DA + 1;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801345F4);
 
