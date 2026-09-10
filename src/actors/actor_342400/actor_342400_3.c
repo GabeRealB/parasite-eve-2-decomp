@@ -103,7 +103,17 @@ void func_actor_342400_80169BAC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_3", func_actor_342400_80169C00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_3", func_actor_342400_80169C84);
+extern TaskFuncTable6 D_actor_342400_80162010;
+
+void func_actor_342400_80169C84(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable6   sp;
+
+    work = (Actor342400Work*)arg0->idMap;
+    sp   = D_actor_342400_80162010;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_3", func_actor_342400_80169CF8);
 
