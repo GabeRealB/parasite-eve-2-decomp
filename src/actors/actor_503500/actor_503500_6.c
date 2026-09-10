@@ -1300,7 +1300,26 @@ void func_actor_503500_80143FFC(Actor503500* arg0)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144004);
+void func_actor_503500_80144004(Actor503500* arg0)
+{
+    Actor503500Work224* work;
+    s16                 timer;
+
+    work = (Actor503500Work224*)arg0->field_1C;
+    if (work->field_218 != 0) {
+        timer           = (u16)work->field_218 - 1;
+        work->field_218 = timer;
+        if (timer < 0) {
+            work->field_218 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_801431EC(arg0, &work->obj0, work->rec0, 8);
+        func_actor_503500_801437D0(arg0, work->rec1, 4);
+    }
+    Gp_ClearRec18Occupied(work->rec0);
+    Gp_ClearRec18Occupied(work->rec1);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80144098);
 
 void func_actor_503500_801440F0(Actor503500* arg0)
