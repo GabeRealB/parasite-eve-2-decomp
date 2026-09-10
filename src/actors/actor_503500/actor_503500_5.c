@@ -148,7 +148,28 @@ void func_actor_503500_80132DD4(void)
     D_actor_503500_8017655C.z = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80132DEC);
+void func_actor_503500_80132DEC(void)
+{
+    Task*          slot3;
+    GsCOORDINATE2* coord;
+    SVECTOR*       rot;
+
+    slot3 = Game_GetPtrSlot(3);
+    coord = ((TmdObject*)slot3->extra)->field_8;
+
+    D_actor_503500_8017655C.x = coord->coord.t[0];
+    D_actor_503500_8017655C.y = coord->coord.t[1];
+    D_actor_503500_8017655C.z = coord->coord.t[2];
+
+    /* Anchoring the rotation pointer *after* the three word stores is what
+     * makes cse keep the plain symbol as the base address; taking it first
+     * anchors the whole function on `D_actor_503500_8017655C + 0x10`. */
+    rot = &D_actor_503500_8017655C.rot;
+
+    rot->vx = ((GameActor*)slot3->idMap)->field_50;
+    rot->vy = ((GameActor*)slot3->idMap)->field_52;
+    rot->vz = ((GameActor*)slot3->idMap)->field_54;
+}
 void func_actor_503500_80132E7C(void)
 {
     Task* slot3;
