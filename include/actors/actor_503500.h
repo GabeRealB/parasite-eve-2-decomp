@@ -329,7 +329,7 @@ typedef struct Actor503500Work {
     /* 0x79C */ Task* field_79C; // spawned effect task, killed on step 2
     /* 0x7A0 */ byte  pad_7A0[0x4];
     /* 0x7A4 */ s32   field_7A4; // seeded to 0x80000
-    /* 0x7A8 */ byte  pad_7A8[0x4];
+    /* 0x7A8 */ s32   field_7A8;
     /* 0x7AC */ s32   field_7AC; // part-scale enable bits, see coord504
     /* 0x7B0 */ s16   field_7B0; // boss state index
     /* 0x7B2 */ u16   field_7B2;

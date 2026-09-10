@@ -1331,7 +1331,99 @@ void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135178);
+/// Per-sub-state speed class: 1 and 2 pick the slower yaw-tracking rates.
+extern s8 D_actor_503500_8016E8FC[];
+
+void func_actor_503500_80135178(Actor503500* arg0)
+{
+    SVECTOR          rot;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    GpEnemy**        enemies;
+    s32              speed;
+    s32              turn;
+    s32              diff;
+    s32              absDiff;
+    s16              yaw;
+    s16              newYaw;
+
+    work    = arg0->field_1C;
+    coord   = arg0->extra->field_8;
+    enemies = work->enemies;
+    if (work->field_7B0 < 2) {
+        if (work->field_7B0 >= 0) {
+            switch (D_actor_503500_8016E8FC[work->field_7D5]) {
+                case 1:
+                    speed = 0x60000;
+                    break;
+                case 2:
+                    speed = 0x10000;
+                    break;
+                default:
+                    speed = 0x70000;
+                    break;
+            }
+            turn = 0;
+            if (enemies[10] == NULL) {
+                turn = -(speed / 25);
+            }
+            if (enemies[11] == NULL) {
+                turn -= speed / 25;
+            }
+            if (work->enemies[6] == NULL) {
+                turn -= (speed * 12) / 100;
+            }
+            if (work->enemies[9] == NULL) {
+                turn -= speed / 4;
+            }
+            speed  += turn;
+            yaw     = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+            turn    = work->field_7A8;
+            diff    = work->field_7B8 - yaw;
+            absDiff = ABS(diff);
+            if ((speed * 8) >> 16 >= absDiff) {
+                if (turn < 0) {
+                    turn += speed / 16;
+                    if (turn > 0) {
+                        turn = 0;
+                    }
+                } else {
+                    turn -= speed / 16;
+                    if (turn < 0) {
+                        turn = 0;
+                    }
+                }
+            } else {
+                if (absDiff > 0x800) {
+                    if (diff < 0) {
+                        diff += 0x1000;
+                    } else {
+                        diff -= 0x1000;
+                    }
+                }
+                if (diff > 0) {
+                    turn += speed / 32;
+                    if (turn > speed) {
+                        turn = speed;
+                    }
+                } else {
+                    turn -= speed / 32;
+                    if (turn < -speed) {
+                        turn = -speed;
+                    }
+                }
+            }
+            newYaw          = yaw + (turn >> 16);
+            work->field_7A8 = turn;
+            rot.vx          = 0;
+            rot.vy          = newYaw;
+            rot.vz          = 0;
+            RotMatrix(&rot, &coord->coord);
+            coord->flg      = 0;
+            work->field_7B6 = newYaw;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801353F0);
 
