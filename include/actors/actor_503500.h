@@ -970,6 +970,24 @@ typedef struct Actor503500ChainScratch {
 } Actor503500ChainScratch;
 STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
 
+/// Twelve-byte record of `Actor503500VecSet::field_C`, copied whole.
+typedef struct Actor503500Rec12 {
+    /* 0x00 */ s16 field_0[6];
+} Actor503500Rec12;
+STATIC_ASSERT_SIZEOF(Actor503500Rec12, 0xC);
+
+/// Vector set that `func_actor_503500_80136B64` rotates from the template at
+/// `D_actor_503500_8016F03C` into the live copy at `D_80183EEC`: the four
+/// `field_4` vectors are only rotated, the eight `field_8` ones are also
+/// offset by the attach coordinate's translation.
+typedef struct Actor503500VecSet {
+    /* 0x00 */ s32               field_0;
+    /* 0x04 */ SVECTOR*          field_4;
+    /* 0x08 */ SVECTOR*          field_8;
+    /* 0x0C */ Actor503500Rec12* field_C;
+} Actor503500VecSet;
+STATIC_ASSERT_SIZEOF(Actor503500VecSet, 0x10);
+
 /// Copies the transpose of `src`'s rotation into `dst` through `$12`-`$14`,
 /// three halfwords at a time, the way the libgte inline macros move matrices.
 #define TRANSPOSE_ROT(src, dst)           \

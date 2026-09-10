@@ -58936,3 +58936,16 @@ reload behind an intervening store (`work->field_3D4 = 0;` first), or declare
 the field `GpFixed16` and compare `.h.hi` / load `.w`: the HImode and SImode
 MEMs are distinct cse entries, so statement order stops mattering. Both match;
 the union is what the 0x2EC-block sibling `func_actor_503500_80139EFC` uses.
+
+## Walking-pointer bumps in the `for` clause put the counter's `addiu` first
+
+A GTE loop that walks two pointers (`gte_ldv0(src); rtv0; gte_stsv(dst);`)
+emitted `addiu a0,a0,8` before `addiu a2,a2,1` when the body ended in
+`dst++; src++;` and the `for` clause held only `i++` - the target has the
+counter bump first (mechanism not traced; the increments follow source order
+here, plausibly because the volatile GTE asm pins the surrounding order). Moving the
+bumps into the clause after the counter, `for (i = 0; i < 8; i++, dst++, src++)`,
+reproduces the target order (99.5% regs/reorder -> 100%). Hoisting the two
+global tables into local pointers (`VecSet* out = &D_x;`) was the other half:
+it gives the `lui/addiu` pairs a callee-saved home across the call instead of
+rematerialising `%hi/%lo` at each use. `func_actor_503500_80136B64`.

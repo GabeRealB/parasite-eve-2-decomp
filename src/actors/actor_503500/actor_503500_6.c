@@ -662,7 +662,50 @@ void func_actor_503500_80136AEC(Actor503500* arg0)
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136B64);
+extern Actor503500VecSet D_80183EEC;
+extern Actor503500VecSet D_actor_503500_8016F03C;
+
+/// Rebuilds the live vector set `D_80183EEC` from its template in the world
+/// frame of the actor's second attach coordinate. `arg1` also recopies the
+/// four `field_C` records; `arg2` raises the offset by 0x1F40 in Y.
+void func_actor_503500_80136B64(Actor503500* arg0, s32 arg1, s32 arg2)
+{
+    MATRIX             mtx;
+    SVECTOR            ofs;
+    s32                i;
+    SVECTOR*           src;
+    SVECTOR*           dst;
+    Actor503500VecSet* out = &D_80183EEC;
+    Actor503500VecSet* in  = &D_actor_503500_8016F03C;
+
+    if (arg1 != 0) {
+        for (i = 0; i < 4; i++) {
+            out->field_C[i] = in->field_C[i];
+        }
+    }
+    Gp_ComposeParentWorld(&arg0->extra->field_8[1], &mtx, &ofs);
+    if (arg2 != 0) {
+        ofs.vy += 0x1F40;
+    }
+    gte_SetRotMatrix(&mtx);
+    dst = out->field_4;
+    src = in->field_4;
+    for (i = 0; i < 4; i++, dst++, src++) {
+        gte_ldv0(src);
+        gte_rtv0_real();
+        gte_stsv(dst);
+    }
+    dst = out->field_8;
+    src = in->field_8;
+    for (i = 0; i < 8; i++, dst++, src++) {
+        gte_ldv0(src);
+        gte_rtv0_real();
+        gte_stsv(dst);
+        dst->vx += ofs.vx;
+        dst->vy += ofs.vy;
+        dst->vz += ofs.vz;
+    }
+}
 
 /// Per-frame animation tick of the boss block. While the slot array is seeded
 /// (`field_7D4`), a clear 0x100 bit in the animation flags means the clip is
