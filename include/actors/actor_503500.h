@@ -458,6 +458,18 @@ typedef union Actor503500IdentMat {
 } Actor503500IdentMat;
 STATIC_ASSERT_SIZEOF(Actor503500IdentMat, 0x20);
 
+/// Identity rotation, written two halfwords per word store. Being inline is
+/// what matches: the argument is expanded as an address sum, so the caller's
+/// `&mats[i]` / `&coord[i].coord` is recomputed each iteration instead of strength-reduced.
+static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
+{
+    *(s32*)&m->m[0][0] = 0x1000;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = 0x1000;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = 0x1000;
+}
+
 /// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
 /// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
 /// `Actor503500Work` cannot be indexed at this stride, and this block puts a
@@ -485,8 +497,10 @@ typedef struct Actor503500Work2EC {
     /* 0x294 */ SVECTOR field_294;   // both seeded from D_actor_503500_8016F0A8
     /* 0x29C */ SVECTOR field_29C;
     /* 0x2A4 */ SVECTOR field_2A4;   // rotation, spun by func_actor_503500_80138A30
-    /* 0x2AC */ byte    pad_2AC[0x20];
-    /* 0x2CC */ s32     field_2CC;   // approach speed, see func_actor_503500_80139EFC
+                                     /// Part 0's `coord` matrix, saved by `func_actor_503500_80139014` once
+                                     /// the body has risen and restored every frame before scaling.
+    /* 0x2AC */ MATRIX field_2AC;
+    /* 0x2CC */ s32    field_2CC;    // approach speed, see func_actor_503500_80139EFC
                                      /// Top approach speed, seeded to 0x800000; its integer half doubles as
                                      /// the arrival distance `func_actor_503500_80139EFC` tests against.
     /* 0x2D0 */ GpFixed16 field_2D0;
@@ -494,7 +508,7 @@ typedef struct Actor503500Work2EC {
     /* 0x2D6 */ s16       field_2D6;
     /* 0x2D8 */ s16       field_2D8; // per-frame countdown
     /* 0x2DA */ s16       field_2DA;
-    /* 0x2DC */ byte      pad_2DC[0x2];
+    /* 0x2DC */ s16       field_2DC; // vertical scale, 0x1000 down to 0x200
     /* 0x2DE */ s16       field_2DE; // sub-state frame counter
     /* 0x2E0 */ s16       phase;     // chain pulse phase, stepped by 0x80
     /* 0x2E2 */ s16       field_2E2;

@@ -380,18 +380,6 @@ void func_actor_503500_80141F48(Actor503500* arg0)
     }
 }
 
-/// Identity rotation, written two halfwords per word store. Being inline is
-/// what matches: the argument is expanded as an address sum, so the caller's
-/// `&mats[i]` is recomputed each iteration instead of strength-reduced.
-static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
-{
-    *(s32*)&m->m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = 0x1000;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = 0x1000;
-}
-
 /// Sub-state 0 resets the matrix table to identity; sub-state 1 raises the
 /// fade level by 0x20 a frame and, once it passes 0x1000, relinks the display
 /// node and moves on like `func_actor_503500_80141F48`.

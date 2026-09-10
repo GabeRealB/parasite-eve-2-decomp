@@ -58414,6 +58414,48 @@ SetRotIdentity(&((View*)work)->mats[i]);
 A local `tbl = (View*)work` copy instead of casting at each use costs a
 separate pseudo and a second walking pointer - cast at the use site.
 
+The same helper can also show up with the *offset* reduced. In
+`func_actor_503500_80139014` a `part = &coord[i]` giv (stride 0x50) already
+lives in `$s2`, and the splat's `i*0x50` is reduced on its own:
+
+```
+li     $s5, 0x50            # preheader: bare offset giv, no base
+...
+addu   $v0, $s5, $s1        # in loop: offset first, coord second
+addiu  $v0, $v0, 0x4        # then .coord
+sw     $s7, 0x0($v0) ...
+addiu  $s5, $s5, 0x50
+```
+
+A bare offset giv with an in-loop `addu` means the `offset + base` sum is not a
+giv. If the sum is a single-set temp, loop.c makes it a giv and
+`combine_givs` merges it into `part`'s, so the stores come out as `4($s2)`. That
+happens with direct `coord[i].coord` stores, a `&coord[i].coord` local, or a
+`part = coord` copy. Two other shapes also break the sum's giv status, but they
+use the wrong operand order or the wrong fold. `p = coord; p += i;` gives
+`addu $v0, $s1, $s5` with the first store folded to `4($v0)`. A word pointer
+assigned twice, `w = (s32*)(i * sizeof(GsCOORDINATE2) + (u32)coord); w++;`,
+matches exactly. `func_actor_503500_SetRotIdentity(&coord[i].coord)` matches
+too, without the integer cast, so that helper now lives in
+`include/actors/actor_503500.h`.
+
+## `move v0, sN; slti v0, v0, K; bnez; addiu sN, sN, 1` is `while (j++ < K)`
+
+The loop test reads a copy of the counter's *old* value and the increment sits
+in the delay slot. That is a post-increment in the condition, not a `for`:
+
+```c
+j = 1;
+do { ... } while (j++ < 3);     /* three iterations, j = 1, 2, 3 */
+```
+
+If a call-free inner loop keeps its counter in an `$s` register, the variable
+is shared with a later loop that does cross calls. In
+`func_actor_503500_80139014` the Euler-easing counter and the tail loop's
+effect index are one `j` in `$s0`, and both outer counters are one `i` in `$s3`.
+A pseudo gets one hard register for its whole life, so the tail loop's calls
+force a callee-saved register for the inner loop's counter as well.
+
 ## `K(T)` then `addiu T, T, K` for field copies: PsyQ `copyVector(&a[i], &b[j])`
 
 A second source of the same `(mult + base) + K` form, with no inline function.
