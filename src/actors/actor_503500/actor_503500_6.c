@@ -265,6 +265,8 @@ extern u8 D_801153F4;
 void      func_actor_503500_801398D0(Actor503500* arg0);
 void      func_actor_503500_80139EFC(Actor503500* arg0);
 void      func_actor_503500_8013A0D0(Actor503500* arg0);
+void      func_actor_503500_8013A470(SVECTOR* pts, GsCOORDINATE2* coords, s32 phase);
+void      func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
 void      func_actor_503500_8013A96C(Actor503500* arg0);
 void      func_actor_503500_8013AA44(Actor503500* arg0);
 void      func_actor_503500_8013AAC0(Actor503500* arg0);
@@ -1481,7 +1483,92 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80139EFC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013A0D0);
+/// Builds the chain polyline `pts[0..8]` from cubic Bezier segments
+/// (`func_actor_503500_8013A7B0`): a first curve runs from the root's world
+/// position, through a point 1000 units along its Z axis, to the parent-local
+/// `field_294` point raised in Y; `pts[1..5]` and `pts[6..8]` are then sampled
+/// from two curves re-seeded from that first one. `func_actor_503500_8013A470`
+/// re-aims the links along the result, and `phase` advances by 0x80.
+void func_actor_503500_8013A0D0(Actor503500* arg0)
+{
+    SVECTOR             ctrl[4];
+    SVECTOR             ofs;
+    SVECTOR             tmp;
+    VECTOR              out[9];
+    VECTOR              v;
+    MATRIX              m;
+    GsCOORDINATE2*      coord;
+    Actor503500Work2EC* work;
+    s32                 i;
+
+    coord = arg0->extra->field_8;
+    work  = (Actor503500Work2EC*)arg0->field_1C;
+    Gp_ComposeParentWorld(coord, &m, &ctrl[0]);
+    work->pts[0].vx = ctrl[0].vx;
+    work->pts[0].vy = ctrl[0].vy;
+    work->pts[0].vz = ctrl[0].vz;
+    ofs.vx          = 0;
+    ofs.vy          = 0;
+    ofs.vz          = 1000;
+    gte_SetRotMatrix(&m);
+    gte_ldv0(&ofs);
+    gte_rtv0_real();
+    gte_stsv(&ctrl[1]);
+    ctrl[1].vx += ctrl[0].vx;
+    ctrl[1].vy += ctrl[0].vy;
+    ctrl[1].vz += ctrl[0].vz;
+    Gp_ComposeParentWorld(coord->sub, &m, &tmp);
+    gte_SetRotMatrix(&m);
+    gte_ldv0(&work->field_294);
+    gte_rtv0_real();
+    gte_stsv(&ofs);
+    tmp.vx    += ofs.vx;
+    tmp.vy    += ofs.vy;
+    tmp.vz    += ofs.vz;
+    ctrl[2].vx = tmp.vx;
+    ctrl[2].vy = tmp.vy - 3000;
+    ctrl[2].vz = tmp.vz;
+    ctrl[3].vx = tmp.vx;
+    ctrl[3].vy = tmp.vy - 2000;
+    ctrl[3].vz = tmp.vz;
+    for (i = 8; i >= 0; i--) {
+        func_actor_503500_8013A7B0(ctrl, &ctrl[3], 9, i, &out[i].vx);
+    }
+    ctrl[0].vx = out[8].vx;
+    ctrl[0].vy = out[8].vy;
+    ctrl[0].vz = out[8].vz;
+    ctrl[1].vx = out[6].vx;
+    ctrl[1].vy = out[6].vy + 1000;
+    ctrl[1].vz = out[6].vz;
+    ctrl[2].vx = out[5].vx;
+    ctrl[2].vy = out[5].vy - 2000;
+    ctrl[2].vz = out[5].vz;
+    ctrl[3].vx = out[4].vx;
+    ctrl[3].vy = out[4].vy - 2000;
+    ctrl[3].vz = out[4].vz;
+    for (i = 4; i >= 0; i--) {
+        func_actor_503500_8013A7B0(ctrl, &ctrl[3], 5, i, &v.vx);
+        copyVector(&work->pts[5 - i], &v);
+    }
+    ctrl[0].vx = out[4].vx;
+    ctrl[0].vy = out[4].vy - 2000;
+    ctrl[0].vz = out[4].vz;
+    ctrl[1].vx = out[3].vx;
+    ctrl[1].vy = out[3].vy - 2000;
+    ctrl[1].vz = out[3].vz;
+    ctrl[2].vx = tmp.vx;
+    ctrl[2].vy = tmp.vy - 1000;
+    ctrl[2].vz = tmp.vz;
+    ctrl[3].vx = tmp.vx;
+    ctrl[3].vy = tmp.vy;
+    ctrl[3].vz = tmp.vz;
+    for (i = 2; i >= 0; i--) {
+        func_actor_503500_8013A7B0(ctrl, &ctrl[3], 16, i + 12, &v.vx);
+        copyVector(&work->pts[8 - i], &v);
+    }
+    func_actor_503500_8013A470(work->pts, arg0->extra->field_8, work->phase);
+    work->phase = (work->phase + 0x80) & 0xFFF;
+}
 
 /// Scaled variant of `func_actor_503500_8014176C`: re-aims the eight child
 /// coordinates along `pts[0..8]`, normalising each basis with `MatrixNormal`,

@@ -402,8 +402,10 @@ typedef struct Actor503500Work2EC {
     /* 0x246 */ s16            field_246;
     /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
     /// to 0; the same offset as the shared view's `obj240.field_8`.
-    /* 0x248 */ void*   field_248;
-    /* 0x24C */ byte    pad_24C[0x48];
+    /* 0x248 */ void* field_248;
+    /// Bezier-sampled chain polyline, root first, that
+    /// `func_actor_503500_8013A0D0` re-aims the model's links along.
+    /* 0x24C */ SVECTOR pts[9];
     /* 0x294 */ SVECTOR field_294; // both seeded from D_actor_503500_8016F0A8
     /* 0x29C */ SVECTOR field_29C;
     /* 0x2A4 */ SVECTOR field_2A4; // rotation, spun by func_actor_503500_80138A30
@@ -415,7 +417,7 @@ typedef struct Actor503500Work2EC {
     /* 0x2DA */ s16     field_2DA;
     /* 0x2DC */ byte    pad_2DC[0x2];
     /* 0x2DE */ s16     field_2DE; // sub-state frame counter
-    /* 0x2E0 */ byte    pad_2E0[0x2];
+    /* 0x2E0 */ s16     phase;     // chain pulse phase, stepped by 0x80
     /* 0x2E2 */ s16     field_2E2;
     /* 0x2E4 */ s8      field_2E4; // sub-state phase, cleared with field_2D4
     /* 0x2E5 */ s8      field_2E5;
