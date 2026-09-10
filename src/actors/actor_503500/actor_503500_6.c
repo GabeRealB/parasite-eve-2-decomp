@@ -965,7 +965,13 @@ void func_actor_503500_8013EB60(Actor503500* arg0)
 
 /// The third 0xF0 block's counterpart of `func_actor_503500_80138454`: when a
 /// kill is pending, hands the block to sub-state 1 and cancels the countdown.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013EBE4);
+void func_actor_503500_8013EBE4(Actor503500* arg0)
+{
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_8013EC20(arg0, 1);
+        arg0->killCountdown = 0;
+    }
+}
 /// The third 0xF0 block's counterpart of `func_actor_503500_8013BE48`: puts the
 /// block into sub-state `arg1` (the one `func_actor_503500_8013EB60`
 /// dispatches on), clears the phase and frame counter that go with it, cancels
