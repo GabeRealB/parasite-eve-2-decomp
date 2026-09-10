@@ -668,7 +668,16 @@ void func_actor_403100_8013EF58(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013EF60);
+void func_actor_403100_8013EF60(void)
+{
+    if (Actor403100_TestFlags12C()) {
+        D_actor_403100_80155808->field_5FC  = 0xB4;
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5DE  = 1;
+        D_actor_403100_80155808->field_5DA  = 1;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 void func_actor_403100_8013EFC0(void)
 {
 }
