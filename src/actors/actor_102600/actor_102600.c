@@ -3,13 +3,13 @@
 #include "actors/actor_102600.h"
 #include "actors/actors_shared_80134ff0.h"
 #include "actors/actors_shared_801355a4.h"
+#include "actors/actors_shared_80135730.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_102600_8013548C(Actor102600* arg0, Actor102600Obj2C* arg1, s32 arg2);
 void func_actor_102600_80131E8C(Actor102600* arg0);
 void func_actor_102600_80133EF4(Actor102600* arg0);
 void func_actor_102600_80134034(Actor102600* arg0);
-void func_actor_102600_80135730(Actor102600* arg0);
 void func_actor_102600_801357C4(Actor102600* arg0);
 void func_actor_102600_801358E0(Actor102600* arg0);
 
@@ -97,7 +97,7 @@ default_body:
     if (work->field_3A6 != 0) {
         func_actor_102600_80134034(arg1);
     }
-    func_actor_102600_80135730(arg1);
+    ActorsShared80135730((ActorShared80135730*)arg1);
     func_actor_102600_801357C4(arg1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);

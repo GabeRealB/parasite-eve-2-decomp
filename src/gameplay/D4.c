@@ -870,8 +870,7 @@ void Gp_LoadWaitBoot(Task* task)
     McSaveData*   save;
     GameSession*  session;
     s32           color;
-    register s32  qhi asm("a1");
-    register s32  queued asm("a0");
+    s32           queued;
     s32           buf;
     s8            yoff;
 
@@ -900,14 +899,12 @@ void Gp_LoadWaitBoot(Task* task)
         Gp_EnqueueAttach7Cd();
         task->state++;
     }
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
-    buf  = ds->field_114;
-    tile = &Gp_FadeTiles[buf];
-    SOFT_USE_REG2(qhi, tile);
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
+    buf    = ds->field_114;
+    tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
@@ -932,18 +929,16 @@ void Gp_LoadWaitStage(Task* task)
     DR_TPAGE*     dr;
     DisplayState* ds;
     s32           color;
-    s32           qhi;
     s32           queued;
     s32           buf;
     s8            yoff;
 
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
     buf    = ds->field_114;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
@@ -975,26 +970,19 @@ void Gp_LoadState2(Task* task)
     DR_TPAGE*         dr;
     DisplayState*     ds;
     s32               color;
-    s32               qhi;
-    register s32      queued asm("a0");
+    s32               queued;
     s32               buf;
     s8                yoff;
     McSaveData*       save;
     GpSndParam*       pair;
     GameSessionFrom4* sess;
 
-    /* `color` must stay an unpinned pseudo with two sets: pinning it to
-     * `$a2` gives that hard register a second set, and then sched1 no longer
-     * "launches" the `a2 = a1` call-argument copy next to the jal. */
-    color = 8;
-    SOFT_TOUCH_REG(color);
-    ds = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
-    buf  = ds->field_114;
-    tile = &Gp_FadeTiles[buf];
-    SOFT_USE_REG2(qhi, tile);
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
+    buf    = ds->field_114;
+    tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
@@ -1045,8 +1033,7 @@ void Gp_LoadWaitCompanion(Task* task)
     DR_TPAGE*     dr;
     DisplayState* ds;
     s32           color;
-    s32           qhi;
-    register s32  queued asm("a0");
+    s32           queued;
     s32           buf;
     s8            yoff;
     u8            param1[8];
@@ -1054,14 +1041,12 @@ void Gp_LoadWaitCompanion(Task* task)
     s32           flag;
     McSaveData*   save;
 
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
-    buf  = ds->field_114;
-    tile = &Gp_FadeTiles[buf];
-    SOFT_USE_REG2(qhi, tile);
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
+    buf    = ds->field_114;
+    tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
@@ -1119,8 +1104,7 @@ void Gp_LoadWaitSave(Task* task)
     DR_TPAGE*     dr;
     DisplayState* ds;
     s32           color;
-    s32           qhi;
-    register s32  queued asm("a0");
+    s32           queued;
     s32           buf;
     s8            yoff;
     u8            param1[8];
@@ -1128,14 +1112,12 @@ void Gp_LoadWaitSave(Task* task)
     GpAreaKey*    saveKey;
     GameSession*  sess;
 
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
-    buf  = ds->field_114;
-    tile = &Gp_FadeTiles[buf];
-    SOFT_USE_REG2(qhi, tile);
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
+    buf    = ds->field_114;
+    tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
@@ -1204,19 +1186,16 @@ void Gp_LoadWaitAreaCd(Task* task)
     DisplayState* ds;
     DisplayState* ds2;
     s32           color;
-    s32           qhi;
-    register s32  queued asm("a0");
+    s32           queued;
     s32           buf;
     s8            yoff;
 
-    color = 8;
-    ds    = &Display_State;
-    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
-    buf  = ds->field_114;
-    tile = &Gp_FadeTiles[buf];
-    SOFT_USE_REG2(qhi, tile);
+    color  = 8;
+    queued = CdCmd_Queue.field_224;
+    ds     = &Display_State;
+    buf    = ds->field_114;
+    tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
-    queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);

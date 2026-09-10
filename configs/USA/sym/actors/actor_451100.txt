@@ -12,3 +12,4 @@ ActorsShared801326b4 = 0x801325C8; // shared body, see src/actors/lib/
 ActorsShared80131f9c = 0x801322D4; // shared body, see src/actors/lib/
 ActorsShared80132640 = 0x80132E34; // shared body, see src/actors/lib/
 ActorsShared801325c8 = 0x80132DBC; // shared body, see src/actors/lib/
+ActorsShared80132710 = 0x80132F04; // shared body, see src/actors/lib/

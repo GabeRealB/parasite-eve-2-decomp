@@ -1771,19 +1771,14 @@ block_setup:
         goto block_clear14;
     }
     SndHeap_Free((void*)arg0->field_14);
-    __asm__ volatile(
-        ".set\tnoreorder\n\t"
-        "j SndLoad_Complete_clear14\n\t"
-        "move $2, %0\n\t"
-        ".set\treorder"
-        :
-        : "r"(s1)
-        : "$2");
+    *(volatile s32*)&arg0->field_14 = 0;
+    arg0->field_18                  = 0;
+    return s1;
 
 block_ret:
+    SCHED_BARRIER();
     v0r = s1;
 block_clear14:
-    __asm__ volatile("SndLoad_Complete_clear14:");
     *(volatile s32*)&arg0->field_14 = 0;
 block_clear18:
     arg0->field_18 = 0;

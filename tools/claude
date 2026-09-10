@@ -220,7 +220,7 @@ if [[ -n "$ID" ]]; then
         elif command -v "$CLI" &>/dev/null; then
             cd "$TARGET_DIR"
             if [[ "$CLI" == grok ]]; then
-                grok --always-approve --effort "${GROK_MATCH_EFFORT:-xhigh}" \
+                grok --always-approve --effort "${VACUUM_MATCH_EFFORT:-xhigh}" \
                     --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
                     "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
             elif [[ "$CLI" == codex ]]; then
@@ -231,10 +231,12 @@ if [[ -n "$ID" ]]; then
                 codex exec --skip-git-repo-check -s danger-full-access \
                     -c approval_policy='"never"' \
                     -c shell_environment_policy.inherit='"all"' \
-                    -c model_reasoning_effort="\"${CODEX_MATCH_EFFORT:-xhigh}\"" \
+                    -c model_reasoning_effort="\"${VACUUM_MATCH_EFFORT:-xhigh}\"" \
                     "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md." </dev/null
             else
-                $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
+                effort_flag=()
+        [[ "$CLI" == claude && -n "${VACUUM_MATCH_EFFORT:-}" ]] && effort_flag=(--effort "$VACUUM_MATCH_EFFORT")
+        $CLI "${effort_flag[@]}" --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
             fi
         else
             echo "Please navigate to: $TARGET_DIR"
@@ -523,7 +525,7 @@ if [[ "$BOOTSTRAP_ONLY" == true ]]; then
 elif command -v "$CLI" &>/dev/null; then
     cd "$created_dir"
     if [[ "$CLI" == grok ]]; then
-        grok --always-approve --effort "${GROK_MATCH_EFFORT:-xhigh}" \
+        grok --always-approve --effort "${VACUUM_MATCH_EFFORT:-xhigh}" \
             --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
             "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
     elif [[ "$CLI" == codex ]]; then
@@ -534,10 +536,12 @@ elif command -v "$CLI" &>/dev/null; then
         codex exec --skip-git-repo-check -s danger-full-access \
             -c approval_policy='"never"' \
             -c shell_environment_policy.inherit='"all"' \
-            -c model_reasoning_effort="\"${CODEX_MATCH_EFFORT:-xhigh}\"" \
+            -c model_reasoning_effort="\"${VACUUM_MATCH_EFFORT:-xhigh}\"" \
             "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md." </dev/null
     else
-        $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
+        effort_flag=()
+        [[ "$CLI" == claude && -n "${VACUUM_MATCH_EFFORT:-}" ]] && effort_flag=(--effort "$VACUUM_MATCH_EFFORT")
+        $CLI "${effort_flag[@]}" --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
     fi
 else
     echo "Success! Please navigate to the created directory and start your decompilation work:"

@@ -66,4 +66,29 @@ void func_actor_101200_80135C98(Actor101200Ctx* arg0, Actor101200* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_101200/actor_101200_2", func_actor_101200_80135D50);
+/// Restarts the actor once its work block reports ready: clears the caller's
+/// flag and the display object's visibility, asks for animation 2 in motion
+/// state 1, and flips the record flags the run needs. Either way it advances
+/// the shared per-frame routine and then clears the display object's
+/// coordinate flags so the matrix is recomputed.
+void func_actor_101200_80135D50(Actor101200Ctx* arg0, Actor101200* arg1)
+{
+    Actor101200Work*  work;
+    Actor101200Obj2C* obj;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        obj              = arg1->field_2C;
+        arg0->field_14   = 0;
+        obj->field_C     = 0;
+        work->field_174  = 2;
+        work->field_170  = 1;
+        work->field_178  = 0;
+        work->field_2E6 |= 0x8000;
+        work->field_31E &= 0x7FFF;
+        work->field_356 &= 0x7FFF;
+        work->field_24E |= 0x4000;
+    }
+    func_actor_101200_80132640(arg1);
+    arg1->field_2C->field_8->flg = 0;
+}

@@ -17,8 +17,14 @@
 # then, which is the whole point of doing it in a worktree.
 #
 # Usage:
-#   tools/vacuum_overlay.sh [--overlay NAME] [--cli claude|grok] [--times N]
-#                           [--keep] [--dry-run] [--no-land]
+#   tools/vacuum_overlay.sh [--overlay NAME] [--profile NAME] [--times N]
+#                           [--cli claude|grok|codex] [--keep] [--dry-run]
+#                           [--no-land]
+#
+# --profile takes the same named cli/model/effort sets as tools/vacuum.sh, from
+# the same table; --list-profiles prints it. The profile is applied here and
+# exported, so the inner vacuum.sh run inside the worktree inherits it rather
+# than resolving a default of its own.
 #
 set -uo pipefail
 
@@ -27,19 +33,29 @@ cd "$ROOT"
 
 OVERLAY=""
 CLI="${VACUUM_CLI:-claude}"
+CLI_EXPLICIT=0
+PROFILE="${VACUUM_PROFILE:-}"
 TIMES=""
 KEEP=false
 DRY_RUN=false
 NO_LAND=false
+
+# Profiles and the log directory, shared with tools/vacuum.sh.
+# shellcheck source=tools/vacuum_profile.sh
+. "$ROOT/tools/vacuum_profile.sh"
 
 usage() { sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --overlay) OVERLAY="$2"; shift 2 ;;
-        --cli)     CLI="$2"; shift 2 ;;
-        --claude)  CLI=claude; shift ;;
-        --grok)    CLI=grok; shift ;;
+        --cli)     CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
+        --claude)  CLI=claude; CLI_EXPLICIT=1; shift ;;
+        --grok)    CLI=grok; CLI_EXPLICIT=1; shift ;;
+        --codex)   CLI=codex; CLI_EXPLICIT=1; shift ;;
+        --profile) PROFILE="$2"; shift 2 ;;
+        --profiles) PROFILES_FILE="$2"; shift 2 ;;
+        --list-profiles) list_profiles; exit 0 ;;
         --times)   TIMES="$2"; shift 2 ;;
         --keep)    KEEP=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
@@ -49,15 +65,23 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# A profile fills in cli/model/effort; with no --profile and no CLI flag the
+# `default` row does, when the table has one. Same rule as tools/vacuum.sh.
+if [[ -n "$PROFILE" ]]; then
+    apply_profile "$PROFILE"
+elif [[ $CLI_EXPLICIT -eq 0 ]] && profile_row default >/dev/null 2>&1; then
+    apply_profile default
+fi
+
 orch() { python3 "$ROOT/tools/vacuum_orch.py" --root "$ROOT" "$@"; }
 
 # --- lease + worktree ---------------------------------------------------------
 SESSION="ovb-${OVERLAY:-auto}-$$"
-LOG_FILE="$ROOT/tools/vacuum-overlay-${OVERLAY:-auto}-$$.log"
+LOG_FILE="$(vacuum_log_dir)/vacuum-overlay-${OVERLAY:-auto}-$$.log"
 : >"$LOG_FILE"
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
-log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}, log $LOG_FILE"
+log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE}, log $LOG_FILE"
 
 prep_args=(--session "$SESSION" --bootstrap 0)
 [[ -n "$OVERLAY" ]] && prep_args+=(--overlay "$OVERLAY")

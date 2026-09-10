@@ -2270,7 +2270,7 @@ void Gp_ClearInventory(void)
     val = cfg->field_21;
     if (val != 0) {
         SCHED_BARRIER();
-        asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
+        item = val + 0x7F;
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
             slot  = &Mc_SaveData.field_1C8[item];

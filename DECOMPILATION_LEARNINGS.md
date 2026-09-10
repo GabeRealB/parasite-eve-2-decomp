@@ -29730,6 +29730,15 @@ C still emits as a real reloc (the D4 `CdCmd_Queue` `lhu` is only the
 `Gp_LoadWaitStage` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `Gp_CanMoveItems`
 are the examples.
 
+The entry is state that belongs to the faked address, so it has to come out
+with it. When the `asm("lui …%hi")` is replaced by a plain field read the
+compiler emits a real `R_MIPS_LO16` again, and a stale `MIPS_NONE` leaves the
+expected object holding the raw immediate - the same objdiff mismatch as
+before, only inverted. Nothing catches it: the instruction word is unchanged,
+so the checksum and the full build stay green either way. Delete the `rom:`
+line and re-split; the `.s` should read `%lo(sym + off)` where it read the
+numeric displacement. `Gp_LoadWaitAreaCd` is the worked example.
+
 ## Barrier so temps fill the gap after a constructed RGB constant
 
 `color = 0x37A78; req.field_8 = color;` stores immediately (`lui`/`ori`/`sw`)
@@ -30270,6 +30279,58 @@ the volatile insn then sits between the `ori` and the `j`, so the delay-slot
 filler cannot sink the `ori` and emits `ori 0x80 ; j L ; nop` — one instruction
 too many (98.96% vs 99.97%). Cross-jumping needs at least two matching insns, so
 a barrier ahead of the pair leaves only the `jump` matching and is enough.
+
+## `asm volatile("")` at the *head of the shared tail* keeps the cross-jumped `j`
+
+The mirror image of the entry above. A path whose duplicated tail is merged into
+the *immediately following* block loses its `j` as well: `do_cross_jump` deletes
+the matched insns and retargets the jump at a label it puts before the tail, and
+because that label is now the next thing in the stream, jump.c's "detect jump to
+following insn" test (`reallabelprev == insn`, `jump.c` ~line 690 —
+`condjump_p` is true for a plain `j` too) deletes the jump and the block just
+falls through. In `SndLoad_Complete` this cost two instructions: the target has
+
+```
+    j    .L80053238
+     addu $v0, $s1, $zero      # delay slot
+.L80053234:
+    addu $v0, $s1, $zero       # the shared tail's own copy
+```
+
+and the fall-through version has only the second `addu`.
+
+The fix is one empty asm at the **start of the tail block, before its first
+insn**:
+
+```c
+block_ret:
+    SCHED_BARRIER();
+    v0r = s1;
+block_clear14:
+    ...
+```
+
+`prev_active_insn` skips notes, labels and barriers but *not* an asm insn (after
+reload it only skips `USE`/`CLOBBER`), so `get_label_before` has to create a
+fresh label after the asm, that label's previous active insn is the asm rather
+than the jump, and the jump survives. The asm emits nothing, so the new label
+and `block_ret` are the same address and every other jump into the tail is
+unaffected.
+
+Note this is the opposite placement from the entry above: there the barrier goes
+in the *source* arm to stop the match, here it goes in the *destination* block to
+stop the label from landing adjacent to the jump. A barrier between the copy and
+the jump does not work — `reorg.c`'s `stop_search_p` treats any asm insn as a
+hard stop, so the delay-slot filler cannot reach past it and emits a `nop`.
+
+Two other things this function pinned down. Writing `v0r = s1; goto tail;` after
+a call is not enough on its own: `v0r` is a pseudo, cse already knows it equals
+`s1` from the preceding `if (s1 != v0r)`, and the copy is deleted — which then
+makes `v0r` live across the call and pushes it out of `$v0`. Use a duplicated
+`return s1;` (a hard `(set (reg/i:SI 2 v0) ...)`, which the call invalidates) or
+pin `v0r` to `$v0`. And the `j`/`move` pair in the delay slot is ordinary
+delay-slot filling from *before* the branch, not a hand-built sequence; there is
+no need to write it out.
 
 ## Duplicate the shared store in both arms so it lands in the cross-jumped tail
 
@@ -34682,11 +34743,24 @@ splat symbol (`D_8007217B`). A 99.9% score whose whole `base_N_diff` is
 `%hi(jtbl_…)` for the compiler-generated switch table — is a match; the
 authority is `./tools/build-and-verify.sh`, not the scratch score.
 
-`overlay_dup_index.py` only walks `asm/<ver>/<family>/nonmatchings/**`, so a
-twin that is **already matched** has left the index and `find` answers
-`same body: 1 copies`. That is the most valuable case and the one the tool
-cannot report, so do not read a lone-copy answer as "no sibling exists". Fall
-back to grepping `src/` for one of the function's rarer callees:
+CORRECTION. This entry used to say `overlay_dup_index.py` walks only
+`nonmatchings/**`, so an already-matched twin had left the index. It walks both
+markers - `for marker in ("nonmatchings", "matchings")` - and matched bodies are
+indexed: all 914 matched actor functions are present, `WeaponsShared*` names
+included. A `same body: 1 copies` answer means something narrower and more
+useful.
+
+Equivalence is exact disassembly *text*, so a twin that differs only in its data
+symbols is not a copy. `func_kyle_800102_80167A84` and `WeaponsShared8011d3a0`
+are both 215 instructions of the same routine on the same 0xA0 work block and
+hash differently, because one reaches `Gfx_ViewWorldMtx` where the other reaches
+`Gfx_ViewCoord+0x24`. `find` is right to separate them - promoting them together
+would not reproduce the bytes - but they port to each other at 99.9% on the
+first attempt, which no hash can tell you.
+
+So do not read a lone-copy answer as "no sibling exists": it means no
+*byte-for-byte* sibling. Fall back to grepping `src/` for one of the function's
+rarer callees or constants:
 
 ```sh
 grep -rl "Gp_StartCapSlot" src/
@@ -56800,3 +56874,412 @@ those numbers for both the mask and the value it is masking, which is enough to
 swap them. decomp-permuter finds this shape on its own - it emits it as a
 `new_var` temporary - so on a `regs`-only leftover it is worth running before
 reasoning about the allocator.
+
+## Two constant stores beat a ternary when the result must land in `$v0`
+
+`func_actor_104000_80138698` ends by choosing a state from a call's return
+value. Written as a ternary it reached 99.79% with `regs=3` and nothing else:
+
+```c
+work->field_0 = Gp_DispatchMsg(...) == 0 ? 5 : 0xD;   /* $v1 */
+```
+
+```
+bnez  v0,L      bnez  v0,L
+ li   v0,0xd     li   v1,0xd     <- ours
+li    v0,5      li    v1,5
+L: sh v0,0(s1)  L: sh v1,0(s1)
+```
+
+Both forms produce the *same* instruction sequence - the shape where one arm's
+constant is hoisted above the branch and lands in its delay slot - but only the
+target gets `$v0`.
+
+The ternary is if-converted in the **jump** pass, which rewrites the expanded
+`if/goto` pair into `102 = 13; bnez v0, L; 102 = 5; L: store`. That leaves one
+pseudo spanning three blocks, so it is a global allocno, and its definition sits
+*before* the branch where the call's return value is still live:
+
+```
+;; 102 conflicts: 82 102 2 29
+```
+
+`find_reg` masks `hard_reg_conflicts` out of the candidate set, so `$v0` is
+unreachable for that pseudo no matter how the statements are arranged - the
+whole class of "reorder the arms", "use an `s16` temp", "hoist the assignment"
+edits cannot fix it.
+
+Storing in both arms instead does:
+
+```c
+if (Gp_DispatchMsg(...) == 0) {
+    work->field_0 = 5;
+} else {
+    work->field_0 = 0xD;
+}
+```
+
+Now each constant is a *block-local* pseudo, allocated by `local-alloc` at a
+point where `$v0` is already dead (it died at the branch), so both get `$v0`:
+
+```
+;; 3 regs to allocate: 81 82 80
+105 in 2  106 in 2
+```
+
+`jump2` then cross-jumps the two now-identical `sh $v0, 0($s1)` tails and
+reproduces the hoisted-constant shape - with the right register. 100%.
+
+So when a `cond ? A : B` leaves only a `regs` penalty on the result, and the
+target's result register is the one the condition was tested in, write the two
+stores out. Duplicating the store in the source is what keeps the value local
+long enough for `local-alloc` to see the free register; cross-jumping puts the
+single store back.
+
+## `promote` still sees a just-landed body as unmatched until the stale `.s` is gone
+
+**Problem:** `overlay_dup_index.py promote <fn>` refuses with `cannot be shared
+while unmatched - N different byte images` immediately after the body was landed
+in C and `build-and-verify.sh --only <overlay>` reported a scoped match.
+
+**Symptom:** the index decides `matched` from where splat put the function's
+`.s` - `asm/<ver>/<family>/matchings/…` versus `nonmatchings/…`. splat writes
+the new `matchings/` copy but never deletes files it no longer emits, and a
+scoped run deliberately does not wipe the tree ("A full run starts from a clean
+build tree. A scoped run must not"), so the old `nonmatchings/<unit>/<fn>.s`
+survives and the cached index keeps reading `todo`.
+
+**Fix:** delete the stale file (and the unit directory if it is now empty), then
+`python3 tools/overlay_dup_index.py --rebuild find <fn>` to confirm it reports
+`matched` before promoting. An unscoped `./tools/build-and-verify.sh` clears it
+too, so landing → full build → promote avoids the trap entirely.
+
+## A `shared` span in the middle of a unit renumbers every later unit
+
+**Problem:** `overlay_dup_index.py promote <fn>` succeeded and the config edits
+looked right, but the next full build failed with dozens of
+`can't open asm/USA/<family>/nonmatchings/<overlay>/<unit>/<fn>.s` errors in
+overlays that were not even touched by hand.
+
+**Symptom:** a `shared` span carves the promoted body out of the middle of an
+existing `c` subsegment, so splat cuts that subsegment in two and shifts the
+numbering of every `c` unit after it - `actor_207200_2` becomes
+`actor_207200_3`, `_3` becomes `_4`, and a brand-new `_2` appears for the run
+between the span and the next one. The existing `src/` files still carry the
+old ranges, so their `INCLUDE_ASM` unit paths now name assembly splat writes
+somewhere else. splat then *creates* a stub `.c` for the highest new unit
+number - a file whose name already existed one slot down and holds a matched
+body, which is how a promotion quietly discards decompiled source.
+
+**Fix:** read the regenerated `configs/USA/generated/<overlay>.yaml` subsegment
+list before building and reconcile `src/` to it by hand:
+
+1. Delete splat's freshly generated stub for the *last* unit; it duplicates the
+   file one number below it.
+2. `git mv` the tail files down in reverse order (`_4.c` → `_5.c`, `_3.c` →
+   `_4.c`, …) and `sed` the unit path inside each `INCLUDE_ASM` to match.
+3. Split the unit the span cut into, moving the functions above the span into a
+   new `<name>_2.c`.
+4. Re-point any `rodata` key in `configs/USA/overlays.toml` that names a unit by
+   number: `unit = "actor_207200_2"` meant the 0x1458 run before the promotion
+   and the 0x1308 run after it, so the jump-table block ends up owned by the
+   wrong object unless it is renamed to the referencing function's new unit.
+
+A promotion whose span lands at the very end of a unit's run is the easy case -
+only a single trailing `INCLUDE_ASM` moves into the generated `<name>_6.c`, and
+nothing renumbers.
+
+## A 99.x% score with `regs` and an identical objdump is a symbol-name artifact
+
+**Problem:** a small function scores just short of 100% with a nonzero `regs`
+penalty, but `./objdump.py base_N.o` is instruction-for-instruction identical to
+the target, including register assignments.
+
+**Symptom:** the only disagreement is the `lui`/`addiu` pair that addresses a
+*compiler-generated* constant. GCC emits the initializer template for a local
+aggregate into `.rdata` under an anonymous label, so the operands read
+`%hi(.rodata)` / `%lo(.rodata)`, while `target.s` names the same bytes with the
+splat symbol (`%hi(D_kyle_800102_80167A74)`). The scorer treats the two operands
+as different registers-or-symbols and charges two `regs`; nothing about
+allocation differs.
+
+`func_kyle_800102_801682B4` is the worked example - 99.6%, `regs: 2`, every
+instruction and every `.word` of the template correct, and the unscoped
+`./tools/build-and-verify.sh` matched unchanged.
+
+**Fix:** do not chase it with dumps, pins or the permuter. Confirm the emitted
+`.rdata` block holds the right words in the right order, then land the function
+and let the real build decide. Only the linked checksum can resolve a symbol
+name, so the scratch score cannot reach 100% on this shape.
+
+## The task state dispatcher repeats across overlays
+
+Many overlays end their task unit with the same body: a four-entry local array
+of function pointers, which GCC copies from a `.rodata` template onto the stack
+word by word, indexed by the task's state field and called with the task.
+
+```c
+StateFn states[4] = { f0, f1, f2, f3 };
+states[arg0->state](arg0);
+```
+
+m2c renders this badly - the loads that fill the stack copy leave their values
+in `$a1`/`$a2`/`$a3`, so it reports a seven-argument indirect call through
+`sp + state*4`. Ignore that and check
+`python3 tools/overlay_dup_index.py find <fn>` first; the body was already
+matched in `src/weapons/mm1/mm1_3.c` among others. The copies sit in different
+families at different link offsets, so `promote` has nothing to share and each
+one still has to be written out locally.
+
+## A faked `%hi`/`%lo` pair matches the bytes but loses the relocation; move the read earlier instead
+
+**Problem:** a global is read a long way from where its address is formed, so the
+`lui` and the load sit ten insns apart in the target. Written naively the C puts
+them adjacent, and the tempting fix is to fabricate the pair by hand:
+
+```c
+s32 qhi;
+asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+SOFT_USE_REG2(qhi, tile);
+queued = *(u16*)((s32)qhi + (s16)0x91C4);   /* 0x91C4 == %lo(CdCmd_Queue + 0x224) */
+```
+
+**Symptom:** the checksum passes and `diff.py` says 100%, because the assembled
+words are identical - but the load now carries a bare displacement where the
+original carries `R_MIPS_LO16 CdCmd_Queue`. objdiff compares relocations, so it
+reports the function at 99.97% with everything else green. Nothing else can see
+it: the linker resolves `%lo(CdCmd_Queue)` to exactly the constant the hand-written
+offset already holds. `Gp_LoadState2` in `src/gameplay/D4.c` was the worked example.
+
+**Fix:** delete the asm and write the field access (`queued = CdCmd_Queue.field_224;`),
+then recover the schedule by moving the *statement* earlier in the function. The
+list scheduler breaks priority ties on RTL order, so a read placed near the top of
+the block lets sched1 hoist the `lui` on its own and leave the dependent load down
+by the branch that consumes it - which is the gap the hack was imitating. Here,
+hoisting the read above `ds = &Display_State;` reproduced all 150 instructions and
+both relocations, and made the `SOFT_TOUCH_REG` pin on the neighbouring constant
+unnecessary as well.
+
+Three source positions worked and one did not: reading the global *first* left two
+instructions out of place, while any position after the first statement matched.
+Sweep for the shape with an object-level compare that prints relocations - the
+checksum and `diff.py` both stay silent on it.
+
+## splat sometimes prints the resolved displacement, so removing a faked `%lo` *lowers* the scratch score
+
+**Problem:** the entry above says to replace a hand-built `%hi`/`%lo` pair with the
+plain field access. On `Gp_LoadWaitBoot` that reproduced all 139 instructions and
+both registers, and the scratch score still fell from 100.000% to 99.964% with
+`regs=1`.
+
+**Symptom:** the sole difference is the operand form of the dependent load.
+
+```
+-lhu    a0,-0x6e3c(a1)                    # target.s
++lhu    a0,%lo(CdCmd_Queue+0x224)(a1)     # ours, R_MIPS_LO16 CdCmd_Queue, addend 0x224
+```
+
+splat named the `lui` (`%hi(CdCmd_Queue + 0x224)`) but printed the load's
+displacement literally, so `target.o` has no `R_MIPS_LO16` for the scorer to
+compare against and the correct relocated form is charged as a register
+difference. This is not a property of the code: `Gp_LoadState2` and
+`Gp_LoadWaitStage` have byte-identical instruction windows here, and splat pairs
+the load in the first and not the second. Six functions in `src/gameplay/D4.c`
+read `CdCmd_Queue.field_224` this way and exactly one gets the paired render.
+
+**Fix:** treat it like the symbol-name artifact above - the scratch score cannot
+reach 100% on this shape, and only the linked checksum can. Confirm the object is
+otherwise instruction-for-instruction identical, confirm the addend resolves
+(`objdump -dr`: HI16 addend 0 plus LO16 addend `0x224` gives the same
+`lui 0x8007` / `-0x6E3C` the ROM has), then land it and let
+`./tools/build-and-verify.sh` decide. Do not restore the asm to buy back the
+0.036%.
+
+## A second `%hi` in one block always takes `$v0`; a target `lui $v1` needs the pair to overlap
+
+The companion case to the entry above, and the one where moving the statement
+does *not* work. When a block materialises two independent global addresses, GCC
+2.8.1 emits a nameless `high` pseudo per address and local-alloc hands **every**
+one of them `$v0`:
+
+```
+lui   v0, %hi(Gp_RelatedQty0)
+addiu t6, v0, %lo(Gp_RelatedQty0)
+lui   v0, %hi(Gp_RelatedQty1)     <- second high, still $v0
+addiu t5, v0, %lo(Gp_RelatedQty1)
+```
+
+Three facts make that unconditional, and they are worth knowing before spending
+builds on it:
+
+- `config/mips/mips.h` defines no `REG_ALLOC_ORDER`, so `find_free_reg` scans
+  hard registers by ascending number and `$v0` is the first candidate.
+- A `high` temp has two references and a two-insn range, which is the maximum of
+  `QTY_CMP_PRI` (`floor_log2(n_refs) * n_refs * size / (death - birth)`). It is
+  therefore allocated *before* every longer-lived quantity in the block, so
+  pinning a neighbour to `$v0` (`register s32 limit asm("v0")`) cannot displace
+  it - verified, the score does not move.
+- sched1 never separates a `high` from its `lo_sum`: once the `lo_sum` is picked
+  off the ready list the `high` is the next ready insn and wins the tie. So two
+  `high` temps never have overlapping live ranges, and the second is free to take
+  `$v0` again.
+
+So a target that shows `lui $v1, %hi(sym)` feeding an `addiu` into some *third*
+register can only come from an allocation where `$v0` was busy across the pair,
+which means the two `high` temps did overlap in the sched1 output. Statement
+reordering does not produce that overlap: in `Gp_CountAmmoRows` five positions
+for `cfg = &Wip_SysConfig;` (first, after `count = 0`, between the two
+`Mc_SaveData` statements, after them, inside the guarded block) all kept the
+`high`/`lo_sum` pairs adjacent and all put the second `high` in `$v0`, leaving a
+`regs=2` residue at 99.894%. The existing recipes for this shape - the split
+`asm("lui")`/`asm("addiu")` pair, and `register … asm("v1")` when the `%lo`
+destination *is* `$v1` - remain the only known handles, and the first of those is
+an instruction-emitting asm rather than a match. What actually produced the
+overlap in the original build is unresolved.
+
+## A pinned local fed by a parameter deletes the copy; `USE_REG` on the parameter brings it back
+
+`register T x asm("s5"); ... x = arg0;` does not reliably give a `move s5, a0`
+where the assignment stands. local-alloc propagates the hard register backwards
+through the copy, the incoming argument pseudo is itself allocated `$s5`, the
+copy collapses to `move $21, $21` and is deleted, and what survives is the
+*entry* copy insn (uid 4, `s5 <- a0`). That insn sits above every later
+`asm volatile` in the block, so no barrier can hold it down, and sched2 is free
+to drop it into a load-delay slot:
+
+```
+lw   v0, 0x28(s1)
+move s5, a0          # target has a nop here
+lw   s4, 0x34(v0)
+```
+
+The symptom is deceptive - one instruction fewer, every address after it
+shifted, `regs=0` - and it reads like a scheduling problem when it is an
+allocation one. Keep the parameter live past the assignment so it conflicts with
+the pinned register and cannot be given it:
+
+```c
+TOUCH_REG_USE(obj, spawnArg);   /* barrier: the copy cannot rise above this */
+prompt = arg0;
+USE_REG(arg0);                  /* arg0 still live -> real move s5, a0 */
+```
+
+`USE_REG` emits nothing, so this replaces a hand-written
+`asm("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg))` with
+an equivalent that keeps the R_MIPS relocations and the register names the
+compiler chose (`Gp_DrawAmmoRow`). The barrier is separately required: dropping
+it lets the copy schedule back into the delay slot, and dropping the `"+r"(obj)`
+half lets cse rewrite later uses of the pinned `obj` as the argument pseudo,
+which costs an extra `move`.
+
+## `&Global` halves its own allocation priority; the fix is on the *other* pseudo
+
+Writing `menu = &D_8010E9CC;` where a hand-built `asm("lui")` used to stand can
+reproduce the schedule exactly and still lose the register. The `lo_sum` insn
+that expand emits for a symbol address carries `REG_EQUIV (symbol_ref …)`, and
+`update_equiv_regs` (local-alloc.c) reacts to any REG_EQUIV with
+
+```c
+	      /* Note that the statement below does not affect the priority
+		 in local-alloc!  */
+	      REG_LIVE_LENGTH (regno) *= 2;
+```
+
+deliberately deprioritising a register the reloader could rematerialise. global
+then ranks with `floor_log2 (n_refs) * n_refs / live_length * 10000`, so in
+`Gp_AttachListTask` the address pseudo fell from 12631 (8 refs, span 19) to 6315
+(span 38) and lost `$s0` to the `UiObject*` at 7843. The faked `lui` had hidden
+this because `reg = hi + (s16)0xE9CC` is a `plus`, not a constant, so it got no
+REG_EQUIV and no doubling.
+
+Nothing on the address side helps: the doubling is unconditional once the note
+exists, the note is inherent to a symbol address, and suppressing it needs
+`REG_N_SETS != 1`. Attack the competitor instead, and look for the `floor_log2`
+cliff - one reference either side of a power of two moves the priority by a
+fifth. Here the loser had 32 references and the source held two identical tails:
+
+```c
+if (task->spawnArg1 & 0x10000) {
+    if (task->state == 2) { obj->field_2E = 6; } else { obj->field_2E = 9; }
+} else { obj->field_2E = 9; }
+```
+
+Folding them to `if ((task->spawnArg1 & 0x10000) && (task->state == 2))` is the
+same control flow after cross-jumping - identical instructions - but 31
+references, `floor_log2` 4 instead of 5, priority 6078, and the address pseudo
+takes `$s0`. Duplicated statements that the optimiser merges are invisible in
+the output and still counted by `REG_N_REFS`; loop bodies count them at
+`loop_depth`, so a duplicate inside a loop is worth two.
+
+When such a hack goes away, drop its `configs/USA/rel.<overlay>.txt` override
+too. Those entries exist to mark the faked words `MIPS_NONE` so objdiff's
+expected object matches a numeric immediate; leaving one behind after the
+compiler starts emitting `%hi`/`%lo` again recreates exactly the 99.97% the
+cleanup was meant to remove.
+
+## A stack local's `addiu $sp` is pinned by the block copy that fills it, not by the use
+
+**Problem:** the target loads a GTE vector out of a stack local and forms the
+address *late*, right before the load and after an intervening volatile asm:
+
+```
+swl a2,0x13(sp) ... swr t0,0x14(sp)   ; tmp = *src  (8-byte block move)
+lw t4,0(s3) ... ctc2 t6,$4            ; gte_SetRotMatrix(mtx)
+addiu v0,sp,0x10                      ; &tmp
+lwc2 $0,0(v0)                         ; gte_ldv0(&tmp)
+```
+
+Written the obvious way - `tmp = *src; gte_SetRotMatrix(mtx); gte_ldv0(&tmp);` -
+the `addiu` comes out *before* the block copy instead, scoring 99.69% with
+`reorder=1`. The tempting fix is to fabricate the address:
+
+```c
+__asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
+gte_ldv0(tmpp);
+```
+
+**Symptom / mechanism:** `emit_block_move` copies the destination address into a
+pseudo at the copy site, and `purge_addressof` makes *that* pseudo the canonical
+`(plus fp N)` register, inserting a fresh copy of it at every other use - so at
+`.flow` there really are two address insns, one at the copy and one right before
+the asm. Combine then propagates the copy into the asm (`all_adjacent`, so no
+`use_crosses_set_p` check) and deletes the late one, leaving only the early def.
+Sched1 cannot repair it: a volatile asm is a full barrier in `sched_analyze`, so
+the surviving insn can never cross the `gte_SetRotMatrix` block. Moving the
+statement - the usual fix for a split `%hi`/`%lo` - is powerless here.
+
+**Fix:** route the sequence through the TU's existing inline helper rather than
+writing it out. `func_800D759C` in `src/gameplay/3A34.c` matched at 100.000% with
+zero penalties by calling `solve_loadrot(mtx, (SVECTOR*)(head - 0x2C))`, the same
+helper `func_800D7A9C` already used; its `SOFT_USE_REG(src)` emits nothing when
+the pointer is already in a register. The general lesson is that this shape -
+copy into a stack local, then hand its address to an asm - is one the original
+sources factored into a helper, and reproducing the helper is what reproduces the
+schedule. Before fighting an address-formation `reorder`, grep the TU for a
+`static __inline__` doing the same thing.
+
+## When splat cannot pair a split `%hi`/`%lo`, the scratch score rewards the hack
+
+**Problem:** the faked-`%hi`/`%lo` shape above has a second trap. splat only
+folds a `%lo` into a load when it can pair it with the `lui`; across an eleven
+instruction gap it gives up and writes the raw displacement while still naming
+the `lui`, so `target.s` reads
+
+```
+lui  $a1, %hi(CdCmd_Queue + 0x224)
+...
+lhu  $a0, -0x6E3C($a1)
+```
+
+**Symptom:** `target.o` therefore carries `R_MIPS_HI16` and no `R_MIPS_LO16`,
+which is exactly what the hand-built pair reproduces. So in the scratch env the
+hack scores 100.000% and the correct `queued = CdCmd_Queue.field_224;` scores
+99.950% with `regs: 1` - the scorer charges the `%lo(CdCmd_Queue+0x224)` operand
+against the constant. A loop that trusts the score alone will keep the hack.
+`Gp_LoadWaitStage` in `src/gameplay/D4.c` was the worked example.
+
+**Fix:** compare the objects word by word instead. The only field that differs
+is the load's immediate - `0x0224` (an addend the linker resolves) against the
+target's prebaked `0x91C4` - so the linked words are identical and the unscoped
+build matches. Read the residual `regs` as the artifact it is, land it, and let
+the checksum decide.

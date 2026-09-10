@@ -2274,10 +2274,9 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
             scan  = &Mc_SaveData.field_5BC;
             table = Gp_GetItemTable(scan);
             if (item != 0) {
-                idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
-                count = scan->field_1;
-                asm volatile("sll %0, %0, 2" : "+r"(idx));
-                table = (GpItemRec*)((s32)table + idx);
+                idx    = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
+                count  = scan->field_1;
+                table += idx;
                 if (flag < count) {
                     for (i = 0; i < count; i++, table++) {
                         if (table->field_0 == item) {
@@ -5145,25 +5144,27 @@ void Gp_EquipSummaryTask(Task* arg0)
 
 void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    TextDrawReq        req;
-    register s32       spawnArg asm("s4");
-    s32                item;
-    s32                status;
-    s32                x;
-    s32                y;
-    s32                color;
-    s32                one;
-    s32                temp;
-    s32                i;
-    s32                minusOne;
-    s32                baseY;
-    register UiObject* obj asm("s1");
-    DialogPrompt*      prompt;
-    UiObject*          spawned;
+    TextDrawReq            req;
+    register s32           spawnArg asm("s4");
+    s32                    item;
+    s32                    status;
+    s32                    x;
+    s32                    y;
+    s32                    color;
+    s32                    one;
+    s32                    temp;
+    s32                    i;
+    s32                    minusOne;
+    s32                    baseY;
+    register UiObject*     obj asm("s1");
+    register DialogPrompt* prompt asm("s5");
+    UiObject*              spawned;
 
     obj      = arg1;
     spawnArg = obj->owner->spawnArg1;
-    asm volatile("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg));
+    TOUCH_REG_USE(obj, spawnArg);
+    prompt = arg0;
+    USE_REG(arg0);
     item   = Gp_NthRelatedId(&Mc_SaveData.field_5BC, prompt->field_8, spawnArg);
     status = obj->status;
     if (((status >> 16) == 1) || (status == 1)) {
@@ -5478,13 +5479,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
             if (item == 0) {
-                s32 t;
-                t = (s32)Gp_StrRemoveAmmoHelp;
-                {
-                    s32 a1v;
-                    asm volatile("addu %0, $zero, $zero" : "=r"(a1v));
-                    Ui_SetHolderParam(t, a1v, a1v);
-                }
+                Ui_SetHolderParam((s32)Gp_StrRemoveAmmoHelp, 0, 0);
             } else {
                 Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
                 if (Gp_ReloadMode == 0) {
@@ -5718,7 +5713,6 @@ void Gp_AttachListTask(Task* arg0)
     s32            val;
     register Task* task asm("s3");
     s32            one;
-    register char* hi asm("v0");
     s32            state;
     GpItemSlot*    slot;
     u8             temp;
@@ -5728,13 +5722,12 @@ void Gp_AttachListTask(Task* arg0)
     UiObject*      childObj;
     s32            flag;
 
-    task = arg0;
-    obj  = task->spawnArg2;
-    val  = (u16)task->spawnArg1;
-    asm volatile("lui %0, 0x8011" : "=r"(hi) : "r"(val));
+    task          = arg0;
+    obj           = task->spawnArg2;
+    val           = (u16)task->spawnArg1;
+    menu          = &D_8010E9CC;
     obj->field_2E = 0;
     state         = task->state;
-    menu          = (UiList*)(hi + (s16)0xE9CC);
     if (state == 0) {
         Gp_BuildAttachList(menu, val);
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
@@ -5834,12 +5827,8 @@ void Gp_AttachListTask(Task* arg0)
             return;
         }
         if ((task->killCountdown == 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            if (task->spawnArg1 & 0x10000) {
-                if (task->state == 2) {
-                    obj->field_2E = 6;
-                } else {
-                    obj->field_2E = 9;
-                }
+            if ((task->spawnArg1 & 0x10000) && (task->state == 2)) {
+                obj->field_2E = 6;
             } else {
                 obj->field_2E = 9;
             }

@@ -1177,6 +1177,15 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     return result;
 }
 
+static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
+{
+    SVECTOR tmp;
+    SOFT_USE_REG(src);
+    tmp = *src;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&tmp);
+}
+
 void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 {
     void**                       scratch;
@@ -1186,8 +1195,6 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     MATRIX*                      mtx;
     register MATRIX*             dirMtx asm("s6");
     register MATRIX*             colorMtx asm("s7");
-    SVECTOR                      tmp;
-    SVECTOR*                     tmpp;
     s32                          val;
     register s32                 scale;
 
@@ -1209,10 +1216,7 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     TransposeMatrix(&Gfx_ViewWorldMtx, mtx);
     gte_MulMatrix0_real(mtx, &arg1->field_4C->workm, mtx);
 
-    tmp = *(SVECTOR*)(head - 0x2C);
-    gte_SetRotMatrix(mtx);
-    __asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
-    gte_ldv0(tmpp);
+    solve_loadrot(mtx, (SVECTOR*)(head - 0x2C));
     gte_rtv0_real();
     gte_stsv(dir);
 
@@ -1446,15 +1450,6 @@ static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, s32 obj, G
         Gp_InsertRankedSlot(slots, val, kind, obj, 2);
     }
 }
-static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
-{
-    SVECTOR tmp;
-    SOFT_USE_REG(src);
-    tmp = *src;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-}
-
 static __inline__ void solve_transpose(MATRIX* src, volatile MATRIX* dst)
 {
     __asm__ volatile(
