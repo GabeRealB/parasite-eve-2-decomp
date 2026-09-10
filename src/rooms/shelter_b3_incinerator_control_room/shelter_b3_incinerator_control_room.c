@@ -125,7 +125,8 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
                 }
             }
             cmd = script->field_1;
-            __asm__ volatile("addiu %0, $zero, 1" : "=r"(one));
+            one = 1;
+            SOFT_TOUCH_REG(one);
             if (cmd != one) {
                 goto L_run_cmd;
             }
