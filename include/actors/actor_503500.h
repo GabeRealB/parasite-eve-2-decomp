@@ -261,7 +261,9 @@ typedef struct Actor503500Work {
     /// points the model's `TmdObject::field_1C` / `field_20` at these.
     /* 0x474 */ MATRIX lightMtx;
     /* 0x494 */ MATRIX colorMtx;
-    /* 0x4B4 */ byte   pad_4B4[0x50];
+    /// Saved copy of model part 0's coordinate: `func_actor_503500_80135B74`
+    /// stores it on message 4 and restores it on message 5.
+    /* 0x4B4 */ GsCOORDINATE2 coord4B4;
     /// Private copies of two of the boss model's part coordinates (parts 4 and
     /// 10), refreshed by `func_actor_503500_80136DDC` when bits 0x20 / 0x800 of
     /// `field_7AC` are set and then scaled by `field_5A4` / `field_5B4`.
@@ -328,7 +330,7 @@ typedef struct Actor503500Work {
     /* 0x7CA */ s16  field_7CA;
     /* 0x7CC */ s16  field_7CC;
     /* 0x7CE */ s16  field_7CE; // Y scale, 0x1000 stepped down by 0x10 to 0x200
-    /* 0x7D0 */ byte pad_7D0[0x2];
+    /* 0x7D0 */ s16  field_7D0; // saved field_7B6, see coord4B4
     /* 0x7D2 */ s16  field_7D2;
     /// 1 once `func_actor_503500_80135950` has seeded the animation slots and
     /// ticked them; that helper clears it again whenever it loads a new bank,
@@ -347,7 +349,7 @@ typedef struct Actor503500Work {
     /* 0x7E0 */ s8   field_7E0;
     /* 0x7E1 */ s8   field_7E1;
     /* 0x7E2 */ s8   field_7E2;
-    /* 0x7E3 */ byte pad_7E3[0x1];
+    /* 0x7E3 */ s8   field_7E3; // set when coord4B4 is restored
     /* 0x7E4 */ s8   field_7E4; // 1 while the case-1 sound/buffer state is active
     /* 0x7E5 */ s8   field_7E5; // 1 while the case-2 sound state is active
     /* 0x7E6 */ s8   field_7E6; // set to 1 when a hit takes the boss's HP to 0

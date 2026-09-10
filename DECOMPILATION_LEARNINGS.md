@@ -58737,3 +58737,16 @@ Fold reassociates the constant outward, so the term it ends up paired with is
 not the one it is written next to. Penalties were `regs=4` only, all inside the
 argument expression. Try the mirrored order of the non-constant terms before
 touching anything else; it costs one build.
+
+### A repeated switch-case tail wants its own pseudo per case: write it as a `static inline` helper
+
+`func_actor_503500_80135B74` has four cases that each run the same "enter
+boss state N" tail (`work = arg0->field_1C; work->field_7B0 = N; ...; call`),
+cross-jumped after allocation. Using one function-level `work` local for every
+tail (even one separate from the `work` the case bodies use) makes it a single
+pseudo live across several blocks. Global alloc then gives it `$v1` and the
+constant `$v0`, the reverse of the target, and the score sits at 99.25% on
+`regs` alone. Moving the tail into a `static inline` helper gives each inlined
+copy its own block-local pseudo. Local alloc then puts the pointer in `$v0`
+and N in `$v1`, which is 100%. The non-inline sibling `func_actor_503500_80136048`
+(the same tail with N = 2) suggests this is how the original was written.

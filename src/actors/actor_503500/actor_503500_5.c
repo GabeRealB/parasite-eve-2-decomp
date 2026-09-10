@@ -1227,7 +1227,63 @@ s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1, Actor503500AnimPrese
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80135B74);
+/// Enters boss state `state` the way `func_actor_503500_80136048` enters
+/// state 2: clears the per-state counters, asks for sub-state 3 and drops the
+/// main-executable flag.
+static inline void func_actor_503500_SetBossState(Actor503500* arg0, s16 state)
+{
+    Actor503500Work* work;
+
+    work            = arg0->field_1C;
+    work->field_7B0 = state;
+    work->field_7DA = 0;
+    work->field_7DB = 0;
+    work->field_7BC = 0;
+    work->field_7BE = 0;
+    func_actor_503500_80137074(arg0, 0, 3);
+    D_80071090 = 0;
+}
+
+/// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
+/// task state, mode 4 saves model part 0's coordinate and `field_7B6` before
+/// entering state 6, and mode 5 restores both.
+s32 func_actor_503500_80135B74(Actor503500* arg0, s32 arg1, Actor503500ModeMsg* msg)
+{
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+
+    switch (msg->mode) {
+        case 0:
+            func_actor_503500_SetBossState(arg0, 0);
+            break;
+        case 1:
+            func_actor_503500_SetBossState(arg0, 5);
+            break;
+        case 2:
+            func_actor_503500_SetBossState(arg0, 7);
+            break;
+        case 3:
+            arg0->state++;
+            break;
+        case 4:
+            work            = arg0->field_1C;
+            coord           = arg0->extra->field_8;
+            work->field_7D0 = work->field_7B6;
+            work->coord4B4  = *coord;
+            coord->flg      = 0;
+            func_actor_503500_SetBossState(arg0, 6);
+            break;
+        case 5:
+            work            = arg0->field_1C;
+            coord           = arg0->extra->field_8;
+            work->field_7B6 = work->field_7D0;
+            *coord          = work->coord4B4;
+            coord->flg      = 0;
+            work->field_7E3 = 1;
+            break;
+    }
+    return 0;
+}
 
 /// Clears slot `arg1` of the boss work block's `enemies` array. `arg0` is
 /// loaded by every caller but the body ignores it, the same way
