@@ -3663,10 +3663,10 @@ void func_actor_503500_8013FA74(Actor503500* arg0)
 
     copyVector(&work->field_368, &D_actor_503500_8016F414[arg0->spawnArg1 - 0xD]);
     copyVector(&work->field_358, &D_actor_503500_8016F414[arg0->spawnArg1 - 0xD]);
-    work->field_39C = 0x600000;
-    work->field_3B4 = 0x40;
-    work->field_3B6 = 0x1000;
-    work->field_3D5 = 1;
+    work->field_39C.w = 0x600000;
+    work->field_3B4   = 0x40;
+    work->field_3B6   = 0x1000;
+    work->field_3D5   = 1;
     for (i = 1; i < 9; i++) {
         work->phase[i] = (i << 9) & 0xFFF;
         work->mats[i]  = coord[i].coord;
@@ -3803,7 +3803,65 @@ void func_actor_503500_80140BE8(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80140D38);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80141248);
+/// The 0x3D8 block's copy of `func_actor_503500_80139EFC`: saves `field_358`
+/// into `field_360`, then steers it toward `field_368`. Inside the arrival
+/// distance (the integer half of `field_39C`) it snaps onto the target and sets
+/// `field_3D4`; otherwise the speed `field_398` accelerates toward
+/// +/-`field_39C` while `field_3D5` is set, or decays to 0, and moves
+/// `field_358` along the normalized offset (at a quarter speed while
+/// `field_3AA` runs).
+void func_actor_503500_80141248(Actor503500* arg0)
+{
+    SVECTOR             d;
+    SVECTOR             n;
+    VECTOR              step;
+    Actor503500Work3D8* work;
+    s32                 lim;
+    s32                 speed;
+
+    work               = (Actor503500Work3D8*)arg0->field_1C;
+    work->field_360.vx = work->field_358.vx;
+    work->field_360.vy = work->field_358.vy;
+    work->field_360.vz = work->field_358.vz;
+    d.vx               = work->field_368.vx - work->field_358.vx;
+    d.vy               = work->field_368.vy - work->field_358.vy;
+    d.vz               = work->field_368.vz - work->field_358.vz;
+    if (ABS(d.vx) + ABS(d.vy) + ABS(d.vz) < work->field_39C.h.hi) {
+        work->field_3D4    = 1;
+        work->field_358.vx = work->field_368.vx;
+        work->field_358.vy = work->field_368.vy;
+        work->field_358.vz = work->field_368.vz;
+        return;
+    }
+    lim             = work->field_39C.w;
+    work->field_3D4 = 0;
+    if (work->field_3D5 != 0) {
+        speed = work->field_398 + lim / 32;
+        if (speed > 0) {
+            if (speed > lim) {
+                speed = lim;
+            }
+        } else if (speed < -lim) {
+            speed = -lim;
+        }
+    } else {
+        speed = work->field_398 - lim / 32;
+        if (speed < 0) {
+            speed = 0;
+        }
+    }
+    work->field_398 = speed;
+    VectorNormalSS(&d, &n);
+    if (work->field_3AA != 0) {
+        speed >>= 2;
+    }
+    step.vx             = n.vx * (speed >> 12);
+    step.vy             = n.vy * (speed >> 12);
+    step.vz             = n.vz * (speed >> 12);
+    work->field_358.vx += step.vx >> 16;
+    work->field_358.vy += step.vy >> 16;
+    work->field_358.vz += step.vz >> 16;
+}
 
 /// Lays the 0x3D8 enemy's nine-point chain along a cubic Bezier from the root
 /// coordinate's world position to its parent's, with the near control point

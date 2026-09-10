@@ -410,30 +410,34 @@ STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
 /// republishes on `TmdObject::field_1C` / `field_20`, then a private copy of
 /// model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work3D8 {
-    /* 0x000 */ MATRIX   light;
-    /* 0x020 */ MATRIX   color;
-    /* 0x040 */ MATRIX   mats[9];
-    /* 0x160 */ GpObj    obj160;
-    /* 0x180 */ GpRec18  rec180[8]; // obj160's table, count 8
-    /* 0x240 */ GpObj    obj240;
-    /* 0x260 */ GpRec18  rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ GpEffArg field_2C0; // coordinate / 0x600 / 3 trio
-    /* 0x2C8 */ SVECTOR  pts[9];
-    /* 0x310 */ SVECTOR  angles[9];
-    /* 0x358 */ SVECTOR  field_358;
-    /* 0x360 */ byte     pad_360[0x8];
-    /* 0x368 */ SVECTOR  field_368;
-    /* 0x370 */ byte     pad_370[0x2C];
-    /* 0x39C */ s32      field_39C;
-    /* 0x3A0 */ byte     pad_3A0[0x12];
-    /* 0x3B2 */ u16      field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ s16      field_3B4; // sway amplitude
-    /* 0x3B6 */ s16      field_3B6; // sway fade-in, 0..0x1000
-    /* 0x3B8 */ s16      phase[9];  // sway phase per link, seeded to i * 0x200
-    /* 0x3CA */ byte     pad_3CA[0xB];
-    /* 0x3D5 */ s8       field_3D5;
-    /* 0x3D6 */ s8       field_3D6;
-    /* 0x3D7 */ s8       field_3D7; // TMD buffer countdown
+    /* 0x000 */ MATRIX    light;
+    /* 0x020 */ MATRIX    color;
+    /* 0x040 */ MATRIX    mats[9];
+    /* 0x160 */ GpObj     obj160;
+    /* 0x180 */ GpRec18   rec180[8]; // obj160's table, count 8
+    /* 0x240 */ GpObj     obj240;
+    /* 0x260 */ GpRec18   rec260[4]; // obj240's table, count 4
+    /* 0x2C0 */ GpEffArg  field_2C0; // coordinate / 0x600 / 3 trio
+    /* 0x2C8 */ SVECTOR   pts[9];
+    /* 0x310 */ SVECTOR   angles[9];
+    /* 0x358 */ SVECTOR   field_358;
+    /* 0x360 */ SVECTOR   field_360; // field_358 before this frame's step
+    /* 0x368 */ SVECTOR   field_368;
+    /* 0x370 */ byte      pad_370[0x28];
+    /* 0x398 */ s32       field_398; // step speed toward field_368
+    /* 0x39C */ GpFixed16 field_39C; // speed limit; integer half is the arrival radius
+    /* 0x3A0 */ byte      pad_3A0[0xA];
+    /* 0x3AA */ s16       field_3AA;
+    /* 0x3AC */ byte      pad_3AC[0x6];
+    /* 0x3B2 */ u16       field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ s16       field_3B4; // sway amplitude
+    /* 0x3B6 */ s16       field_3B6; // sway fade-in, 0..0x1000
+    /* 0x3B8 */ s16       phase[9];  // sway phase per link, seeded to i * 0x200
+    /* 0x3CA */ byte      pad_3CA[0xA];
+    /* 0x3D4 */ s8        field_3D4; // set while field_358 sits on field_368
+    /* 0x3D5 */ s8        field_3D5;
+    /* 0x3D6 */ s8        field_3D6;
+    /* 0x3D7 */ s8        field_3D7; // TMD buffer countdown
 } Actor503500Work3D8;
 STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
 

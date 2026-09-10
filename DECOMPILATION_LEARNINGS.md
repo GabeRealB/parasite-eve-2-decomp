@@ -58873,3 +58873,24 @@ final code is otherwise unchanged. Input: `base_8.i` sha256 `4effad88c0fc…`.
 Read the `.loop` dump header (`N real insns`) and each movable's line before
 restructuring the loop: adding or removing a few loop-time insns is often all a
 `%hi` hoist mismatch needs.
+
+### A `.w >> 16` compare shares its word load with a later `lim = .w`: use `.h.hi`
+
+`func_actor_503500_80141248` tests a Manhattan distance against the integer
+half of a 16.16 limit, then reloads the whole limit in the fall-through block:
+
+```
+lh   $v1, 0x39E($s0)      # compare: high half only
+...
+lw   $a0, 0x39C($s0)      # after the early return
+```
+
+Writing the compare as `work->field_39C >> 16` gives the `lh` (combine narrows
+the `ashiftrt` of a word MEM to the `+2` half) only while no other read of the
+word sits in the same extended basic block. Adding `lim = work->field_39C;`
+before the next store makes cse reuse the first load for both, and the compare
+becomes `lw` + `sra 16` with shifted registers (95.7% to 92.6%). Either keep the
+reload behind an intervening store (`work->field_3D4 = 0;` first), or declare
+the field `GpFixed16` and compare `.h.hi` / load `.w`: the HImode and SImode
+MEMs are distinct cse entries, so statement order stops mattering. Both match;
+the union is what the 0x2EC-block sibling `func_actor_503500_80139EFC` uses.
