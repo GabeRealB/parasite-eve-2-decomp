@@ -41,6 +41,7 @@ extern GpMsgEntry D_actor_503500_80176530[];
 void              func_actor_503500_801324EC(Task* arg0);
 extern Task*      D_actor_503500_80176558;
 extern TaskDesc   D_actor_503500_8014B964;
+extern TaskDesc   D_actor_503500_8016E9F0;
 extern s8         D_actor_503500_80176D5A;
 extern s16        D_actor_503500_80176D2E;
 /// 18-entry table of per-slot u16 counters; slot 0x11 is the shared counter
@@ -2019,7 +2020,55 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013EE5C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F328);
+/// A sub-state of the 0xF4 block, stepped by `field_F1`: applies the boss's
+/// animation preset 0xC, counts 0x6F frames (spawning table entry 3 at frame
+/// 0x1E with its coordinate parented to this task's), applies preset 0xD once
+/// the boss reports sub-state 0xC done, and leaves when 0xD is done too.
+void func_actor_503500_8013F328(Actor503500* arg0)
+{
+    Actor503500WorkF4* work = (Actor503500WorkF4*)arg0->field_1C;
+    Task*              task;
+    GsCOORDINATE2*     coord;
+
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_8013F9D4(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_F1) {
+        case 0:
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0xC, 8);
+            work->field_F1++;
+            break;
+        case 1:
+            work->field_EA++;
+            if ((s16)work->field_EA >= 0x6F) {
+                work->field_EA = 0;
+                work->field_F1++;
+            } else if ((s16)work->field_EA == 0x1E) {
+                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 3, 0, 0);
+                if (task != NULL) {
+                    coord             = ((TmdObject*)task->extra)->field_8;
+                    coord->sub        = arg0->extra->field_8;
+                    coord->coord.t[0] = 0;
+                    coord->coord.t[1] = 0;
+                    coord->coord.t[2] = 0;
+                }
+            }
+            break;
+        case 2:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 0xC) != 0) {
+                func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0xD, 0x10);
+                work->field_F1++;
+            }
+            break;
+        case 3:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 0xD) != 0) {
+                func_actor_503500_8013F9D4(arg0, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F4A4);
 
