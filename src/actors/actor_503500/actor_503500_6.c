@@ -440,7 +440,52 @@ s32 func_actor_503500_80136770(Actor503500* arg0, Actor503500Work* work)
     }
     return ret;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013680C);
+
+/// Script step for the boss's slot-4/5 helper pair: state 0 asks both slots to
+/// die, led by slot 4 unless `field_7BA` is in [-0x5FF, -0x201] and by slot 5
+/// unless it is in [0x201, 0x5FF]; state 1 waits until both have finished.
+/// Returns 1 while still busy, 0 the frame a request is issued, 0xA once both
+/// slots have gone quiet. `arg0` is ignored, as in the sibling steps.
+/// The first range check compares `field_7BA` directly rather than `x`: fold
+/// merges two tests on one operand into a single unsigned range check.
+s32 func_actor_503500_8013680C(Actor503500* arg0, Actor503500Work* work)
+{
+    s32 ret;
+    s16 x;
+
+    x   = work->field_7BA;
+    ret = 1;
+    switch ((s8)work->field_7DB) {
+        case 0:
+            if (x < -0x5FF || work->field_7BA >= -0x200) {
+                if (func_actor_503500_80136FDC(work, 4) != 0) {
+                    func_actor_503500_80136F40(work, 4, 2, 0xB4);
+                    func_actor_503500_80136F40(work, 5, 2, 0xB4);
+                    ret = 0;
+                }
+            }
+            if (x < 0x201 || x >= 0x600) {
+                if (func_actor_503500_80136FDC(work, 5) != 0) {
+                    func_actor_503500_80136F40(work, 5, 2, 0xB4);
+                    func_actor_503500_80136F40(work, 4, 2, 0xB4);
+                    ret = 0;
+                }
+            }
+            if (ret == 0) {
+                work->field_7DB = 1;
+            }
+            break;
+        case 1:
+            ret = 0;
+            if (func_actor_503500_80136FA8(work, 4) != 0) {
+                if (func_actor_503500_80136FA8(work, 5) != 0) {
+                    ret = 0xA;
+                }
+            }
+            break;
+    }
+    return ret;
+}
 
 /// Script step for the boss's slot-9 helper: state 0 waits for the slot to be
 /// ready and then asks it to die, state 1 waits for that death to finish.

@@ -58249,3 +58249,20 @@ The same function also used `__builtin_abs` (`abssi2`, no RTL label). With an
 a second `move a0,s1` before the next call survives. With `abssi2` the scan
 reaches the delay-slot copy, the duplicate is deleted, and the branch delay slot
 takes `li a1,1`.
+
+### Name the field in one arm to keep a two-sided `||` bound from folding to `sltiu`
+
+`func_actor_503500_8013680C` loads `s16 x = work->field_7BA` once and tests two
+excluded bands. The target keeps the first as two `slti`s and the second as a
+merged `addiu -0x201; andi 0xFFFF; sltiu 0x3FF`, so writing both as
+`x < lo || x >= hi` folds both, and an `else if` chain changes the blocks.
+`fold_range_test` only merges when `operand_equal_p` holds for the two sides,
+so spell one side with the field itself:
+
+```c
+if (x < -0x5FF || work->field_7BA >= -0x200) { ... }   /* two slti */
+if (x < 0x201 || x >= 0x600) { ... }                   /* one sltiu */
+```
+
+CSE then reuses `x`'s register for the field read, so no second load appears
+and the match is exact.
