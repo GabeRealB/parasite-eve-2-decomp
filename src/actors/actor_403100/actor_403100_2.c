@@ -107,7 +107,58 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138610);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801386DC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138790);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138844);
+void func_actor_403100_80138844(Task* arg0)
+{
+    Task*          player;
+    s32            sound;
+    s32            sound2;
+    s32            y;
+    s32            pan;
+    s32            pan2;
+    u16            velocity;
+    u16            accel;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    func_actor_403100_8013D24C();
+    if ((D_actor_403100_80155808->field_668.flags != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+        Gp_StateC08.field_6 |= 1;
+        func_actor_403100_8013D1B8(5, 0x3F4);
+        D_actor_403100_80155808->field_5F4 = 0x17;
+        D_actor_403100_80155808->field_5F2 = 1;
+        player                             = Game_GetPtrSlot(3);
+        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+            (*Gp_ActorSlots)->actor->field_956 = 0xA;
+        }
+    }
+    func_actor_403100_8013C7B4(arg0);
+    D_actor_403100_80155808->field_5EC += 1;
+    D_actor_403100_80155808->field_608 =
+        (u16)D_actor_403100_80155808->field_608 +
+        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
+    accel                              = D_actor_403100_80155808->field_61E - 4;
+    velocity                           = D_actor_403100_80155808->field_620 + accel;
+    D_actor_403100_80155808->field_620 = velocity;
+    D_actor_403100_80155808->field_61E = accel;
+    y                                  = coord->coord.t[1] - (s16)velocity;
+    coord->coord.t[1]                  = y;
+    if (y >= 0) {
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        func_actor_403100_801342B4(arg0);
+        Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x1E;
+        sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        pan                                = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]) / 2));
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0003;
+        pan2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[7]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[7]) / 2));
+        coord->coord.t[1]                   = 0;
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138AB4);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138C18);
 void func_actor_403100_80138D08(Task* arg0)
