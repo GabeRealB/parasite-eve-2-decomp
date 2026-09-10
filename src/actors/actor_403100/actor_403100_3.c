@@ -355,7 +355,21 @@ void func_actor_403100_8013E5FC(void)
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5F8 += 1;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E624);
+void func_actor_403100_8013E624(Task* arg0)
+{
+    u16 timer;
+
+    timer                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = timer;
+    if ((s16)timer == 0x12) {
+        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x168) {
+        arg0->state                        = 5;
+        D_actor_403100_80155808->field_5F8 = 0;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
 void func_actor_403100_8013E6A0(Task* arg0)
 {
     GsCOORDINATE2* coord;
