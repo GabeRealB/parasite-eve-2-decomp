@@ -3366,7 +3366,6 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
     register s32   id asm("s4");
     s32            kind;
     void**         scratch;
-    register s32   hi asm("v1");
     u8*            head;
     register void* p asm("v0");
     GameActor*     actor;
@@ -3384,9 +3383,9 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
 
     id = arg1;
     SOFT_TOUCH_REG(id);
-    kind = arg2;
-    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(kind));
-    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+    kind    = arg2;
+    scratch = (void**)G_SCRATCH_HEAD;
+    SOFT_TOUCH_REG_USE(scratch, kind);
     head  = *scratch;
     actor = arg0->actor;
     p     = head - 0x10;
