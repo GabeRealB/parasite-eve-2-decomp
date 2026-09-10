@@ -58949,3 +58949,16 @@ reproduces the target order (99.5% regs/reorder -> 100%). Hoisting the two
 global tables into local pointers (`VecSet* out = &D_x;`) was the other half:
 it gives the `lui/addiu` pairs a callee-saved home across the call instead of
 rematerialising `%hi/%lo` at each use. `func_actor_503500_80136B64`.
+
+### `lh 2(aN)` off an `addiu aN, sN, off` with other uses at `off(sN)`: a pointer local
+**Problem.** `func_actor_503500_801353F0` clamps a 16.16 `VECTOR` field and then
+stores `pos.vx >> 16` into a coordinate. The target computes `addiu $a2, $s1, 0x6C4`
+and `addiu $a1, $s1, 0x6CC`, yet the X clamp reads and writes at `0x6C4($s1)`; only the
+final `lh 0x2($a2)` and the Z clamp's accesses go through the registers.
+**Cause.** With `s32 *px = &work->field_6C4.vx;`, CSE folds most `*px` addresses back to
+`$s1 + 0x6C4`. The `*px >> 16` is narrowed to a HImode load at `px + 2` by combine, which
+runs after CSE, so that address keeps the pointer register.
+**Fix.** Plain `work->field_6C4.vx` everywhere gives `lh 0x6C6($s1)` and drops both
+`addiu`s. Declare `s32 *px, *pz` just before the clamps and use them for the clamps and
+the `>> 16` reads. A `MATRIX *m = &mat;` local does the same for an identity init whose
+stores after the first go through `addiu $a1, $sp, 0x10`.

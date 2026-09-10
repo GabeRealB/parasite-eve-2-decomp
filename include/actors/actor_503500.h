@@ -299,17 +299,22 @@ typedef struct Actor503500Work {
     /// parks this address in that `GpObj` and `func_actor_503500_80136A88`
     /// re-places the pair with count 8.
     /* 0x5F4 */ GpRec18 rec5F4[8];
-    /* 0x6B4 */ byte    pad_6B4[0x10];
+    /// Per-frame X / Z step of `field_6C4`, written by
+    /// `func_actor_503500_801353F0` from the yaw matrix scaled by `field_7A0`.
+    /* 0x6B4 */ s32  field_6B4;
+    /* 0x6B8 */ byte pad_6B8[0x4];
+    /* 0x6BC */ s32  field_6BC;
+    /* 0x6C0 */ byte pad_6C0[0x4];
     /// World position of the boss's placed part in 16.16 fixed point:
     /// `func_actor_503500_80137088` stores the placement argument's
     /// integer translation here shifted left by 16, alongside dropping the
     /// same translation into the coordinate's own matrix.
     /* 0x6C4 */ VECTOR field_6C4;
-    /* 0x6D4 */ byte   pad_6D4[0x10];
-    /// The boss's coordinate / 0x600 / 3 trio, the same shape as `field_E0`:
-    /// `func_actor_503500_80132F64` stores model part 3 here and
-    /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
-    /// hit-effect argument.
+    /* 0x6D4 */ VECTOR field_6D4; // previous frame's coordinate translation
+                                  /// The boss's coordinate / 0x600 / 3 trio, the same shape as `field_E0`:
+                                  /// `func_actor_503500_80132F64` stores model part 3 here and
+                                  /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
+                                  /// hit-effect argument.
     /* 0x6E4 */ GpEffArg field_6E4;
     /* 0x6EC */ GpEnemy* enemies[0x11];
     /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
@@ -327,7 +332,7 @@ typedef struct Actor503500Work {
     /* 0x78C */ s16   field_78C;
     /* 0x78E */ byte  pad_78E[0xE];
     /* 0x79C */ Task* field_79C; // spawned effect task, killed on step 2
-    /* 0x7A0 */ byte  pad_7A0[0x4];
+    /* 0x7A0 */ s32   field_7A0; // walk speed, ramped by field_7A4 / 32
     /* 0x7A4 */ s32   field_7A4; // seeded to 0x80000
     /* 0x7A8 */ s32   field_7A8;
     /* 0x7AC */ s32   field_7AC; // part-scale enable bits, see coord504

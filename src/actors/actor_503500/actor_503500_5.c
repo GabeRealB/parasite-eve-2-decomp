@@ -1425,7 +1425,95 @@ void func_actor_503500_80135178(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801353F0);
+/// Main-executable yaw rotation: rotates `m` about Y by `angle`.
+void func_8004BFF8(s32 angle, MATRIX* m);
+
+/// Steps the boss along its yaw: ramps the walk speed `field_7A0` by
+/// `field_7A4` / 32 (reversed at a quarter rate when `field_7B8` is more than
+/// 0x258 off `field_7B6`), moves `field_6C4` by it inside a fixed box and drops
+/// the integer part into the coordinate. States 4, 5 and 7 (and 6 before step
+/// 3) only record the previous translation in `field_6D4`.
+void func_actor_503500_801353F0(Actor503500* arg0)
+{
+    MATRIX           mat;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    s32              step;
+    s32              speed;
+    s32              scale;
+    MATRIX*          m;
+    s32*             px;
+    s32*             pz;
+
+    work               = arg0->field_1C;
+    coord              = arg0->extra->field_8;
+    work->field_6D4.vx = coord->coord.t[0];
+    work->field_6D4.vy = coord->coord.t[1];
+    work->field_6D4.vz = coord->coord.t[2];
+    switch (work->field_7B0) {
+        case 4:
+        case 5:
+        case 7:
+            return;
+        case 6:
+            if ((s8)work->field_7DA < 3) {
+                return;
+            }
+        case 0:
+            work->field_7D8 = 1;
+            break;
+        default:
+            work->field_7D8 = 0;
+            break;
+    }
+    step = work->field_7A4;
+    if (ABS(work->field_7B8 - work->field_7B6) > 0x258) {
+        step = -step >> 2;
+    }
+    if (work->field_7D8 != 0) {
+        speed = work->field_7A0 + step / 32;
+        if (speed > 0) {
+            if (step < speed) {
+                speed = step;
+            }
+        } else if (speed < -step) {
+            speed = -step;
+        }
+    } else {
+        speed = work->field_7A0 - step / 32;
+        if (speed < 0) {
+            speed = 0;
+        }
+    }
+    work->field_7A0    = speed;
+    m                  = &mat;
+    *(s32*)&m->m[0][0] = 0x1000;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = 0x1000;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = 0x1000;
+    func_8004BFF8(work->field_7B6, m);
+    scale               = speed >> 12;
+    work->field_6B4     = mat.m[0][2] * scale;
+    work->field_6BC     = mat.m[2][2] * scale;
+    work->field_6C4.vx += work->field_6B4;
+    work->field_6C4.vz += work->field_6BC;
+    px                  = &work->field_6C4.vx;
+    pz                  = &work->field_6C4.vz;
+    if (*px > 0x23280000) {
+        *px = 0x23280000;
+    } else if (*px < 0x1B580000) {
+        *px = 0x1B580000;
+    }
+    if (*pz > 0x1F400000) {
+        *pz = 0x1F400000;
+    } else if (*pz < 0x17700000) {
+        *pz = 0x17700000;
+    }
+    coord->coord.t[0] = *px >> 16;
+    coord->coord.t[2] = *pz >> 16;
+    coord->flg        = 0;
+}
 
 /// Per-slot camera masks: bits 0x08/0x10/0x20/0x40 are yaw sectors around the
 /// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
