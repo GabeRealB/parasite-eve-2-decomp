@@ -1835,7 +1835,42 @@ void func_actor_403100_8013BEF0(Task* arg0)
     }
     coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013C008);
+void func_actor_403100_8013C008(s16 arg0, s16 arg1)
+{
+    POLY_FT4*             poly;
+    Actor403100QuadEntry* entry;
+    s32                   i;
+    u16                   clut;
+
+    for (i = 0; i < 2; i++) {
+        entry          = &D_actor_403100_801557E0[i];
+        poly           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setPolyFT4(poly);
+        poly->tpage = entry->tpage;
+        SOFT_TOUCH_REG(poly);
+        clut = entry->clut;
+        setShadeTex(poly, 1);
+        poly->clut = clut;
+        poly->u0   = entry->u;
+        poly->v0   = entry->v;
+        poly->u1   = entry->u + (u8)entry->w;
+        poly->v1   = entry->v;
+        poly->u2   = entry->u;
+        poly->v2   = entry->v + (u8)entry->h;
+        poly->u3   = entry->u + (u8)entry->w;
+        poly->v3   = entry->v + (u8)entry->h;
+        poly->x0   = entry->x + arg0;
+        poly->y0   = entry->y + arg1;
+        poly->x1   = arg0 + (entry->x + entry->w);
+        poly->y1   = entry->y + arg1;
+        poly->x2   = entry->x + arg0;
+        poly->y2   = arg1 + (entry->y + entry->h);
+        poly->x3   = arg0 + (entry->x + entry->w);
+        poly->y3   = arg1 + (entry->y + entry->h);
+        addPrim((u32*)((((u32)(entry->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+    }
+}
 void func_actor_403100_8013C214(Task* arg0)
 {
     GpActorWork*     playerTask;
