@@ -58444,3 +58444,14 @@ When a register-count mismatch traces back to *which pseudo dies first* in a
 straight-line block, read the `.sched` ready lists for idle slots before
 reordering statements: a stray independent store competing for those slots is
 a typing question, not an ordering one.
+
+## `switch` on a byte global kept in `$s`: declare the local `s32`, not `u8`
+
+`func_actor_503500_80133270` loads `D_801153F4` (`u8`) with `lbu $s1` and
+compares `$s1` straight against `li v1,1` / `li v0,2`, later storing `$s1` as
+a byte and reusing `v1 = 1` in the default arm. m2c's `u8 mode` local adds
+`andi $3,$s1,0xff` before the compares (the switch index is converted to
+`int` from a QImode pseudo) and rematerialises the `1` in a delay slot (95%).
+Declaring the local `s32` makes the `lbu` itself the SImode value: the `andi`
+disappears, the `1` is shared, and it matches. An if/else chain instead of the
+switch loses the switch's `beq`/`beq`/`j default` layout (91%).

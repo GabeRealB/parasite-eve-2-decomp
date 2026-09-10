@@ -303,7 +303,11 @@ typedef struct Actor503500Work {
     /* 0x7E0 */ s8   field_7E0;
     /* 0x7E1 */ s8   field_7E1;
     /* 0x7E2 */ s8   field_7E2;
-    /* 0x7E3 */ byte pad_7E3[0x5];
+    /* 0x7E3 */ byte pad_7E3[0x1];
+    /* 0x7E4 */ s8   field_7E4; // 1 while the case-1 sound/buffer state is active
+    /* 0x7E5 */ s8   field_7E5; // 1 while the case-2 sound state is active
+    /* 0x7E6 */ byte pad_7E6[0x1];
+    /* 0x7E7 */ s8   field_7E7; // 1 while the sound started by D_80071075 plays
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 

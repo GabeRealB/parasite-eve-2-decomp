@@ -114,6 +114,16 @@ void      func_actor_503500_80142980(Actor503500* arg0);
 void      func_actor_503500_8014418C(Actor503500* arg0);
 void      func_actor_503500_801441E8(Actor503500* arg0);
 void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
+void      func_actor_503500_801334CC(Actor503500* arg0);
+void      func_actor_503500_80135178(Actor503500* arg0);
+void      func_actor_503500_801353F0(Actor503500* arg0);
+void      func_actor_503500_80135644(Actor503500* arg0);
+void      func_actor_503500_80136280(Actor503500* arg0);
+void      func_actor_503500_80136304(Actor503500* arg0);
+void      func_actor_503500_80136A88(Actor503500* arg0);
+void      func_actor_503500_80136AEC(Actor503500* arg0);
+void      func_actor_503500_80136D30(Actor503500* arg0);
+void      func_actor_503500_80136DDC(Actor503500* arg0);
 /// Player-facing mode byte in the main executable, also written by the
 /// acropolis helicopter landing pad room.
 extern s8 D_801153F1;
@@ -207,7 +217,83 @@ void func_actor_503500_80132F58(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80132F64);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133270);
+/// Per-frame update. `D_801153F4` 1 pauses the boss (buffers kept, only
+/// `func_actor_503500_80136AEC` runs), 2 hides it; anything else runs the
+/// normal chain. `field_7D9` counts down to the frame the TMD buffers are freed.
+void func_actor_503500_80133270(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    s32              mode;
+
+    enemy = arg0->field_20;
+    tmd   = arg0->extra;
+    mode  = D_801153F4;
+    work  = arg0->field_1C;
+
+    switch (mode) {
+        case 1:
+            if (work->field_7E4 == 0) {
+                SndEvt_EnqueueType8(0x40000000);
+                Tmd_AllocBuffers(tmd);
+                tmd->field_C   &= 0xFF7B;
+                work->field_7E4 = mode;
+                work->field_7E5 = 0;
+            }
+            func_actor_503500_80136AEC(arg0);
+            return;
+        case 2:
+            if (work->field_7D9 >= 0) {
+                if (work->field_7D9 == 0) {
+                    Tmd_FreeBuffers(tmd);
+                }
+                work->field_7D9--;
+            }
+            if (work->field_7E5 == 0) {
+                SndEvt_EnqueueType8(0x40000000);
+                tmd->field_C   |= 0x84;
+                work->field_7D9 = 1;
+                work->field_7E4 = 0;
+                work->field_7E5 = 1;
+            }
+            return;
+        default:
+            if (work->field_7E4 == 1 || work->field_7E5 == 1 || work->field_7E7 != 0) {
+                SndEvt_EnqueueType9(0x40000000);
+                work->field_7E4 = 0;
+                work->field_7E5 = 0;
+                work->field_7E7 = 0;
+            }
+            if ((D_80071075 & 0xF0) == 0x40) {
+                SndEvt_EnqueueType8(0x40000000);
+                work->field_7E7 = 1;
+            }
+            if (Game_Session->field_1 == 0) {
+                tmd->field_C &= 0xFF7F;
+            }
+            if (work->field_7D9 >= 0) {
+                if (work->field_7D9 == 0) {
+                    Tmd_FreeBuffers(tmd);
+                }
+                work->field_7D9--;
+            }
+            if (enemy->field_4C != 0) {
+                func_actor_503500_80136280(arg0);
+            }
+            func_actor_503500_80136A88(arg0);
+            func_actor_503500_80136AEC(arg0);
+            func_actor_503500_80136B64(arg0, 0, 0);
+            func_actor_503500_801334CC(arg0);
+            func_actor_503500_80136304(arg0);
+            func_actor_503500_80135178(arg0);
+            func_actor_503500_801353F0(arg0);
+            func_actor_503500_80136D30(arg0);
+            func_actor_503500_80135644(arg0);
+            func_actor_503500_80136DDC(arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801334CC);
 
