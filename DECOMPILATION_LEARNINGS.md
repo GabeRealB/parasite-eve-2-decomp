@@ -58655,3 +58655,38 @@ task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
 ```
 
 The rest of the argument setup (`move a1,zero`, `li a2,1`) did not move.
+
+### A table address that is not CSE'd with an identical earlier one: `&other[x - K]` folded into the symbol
+
+`func_actor_503500_8013FA74` loads `lui/addiu %lo(D_actor_503500_8016F3AC)`
+twice in one basic block: once as `D[idx]` (`idx = spawnArg1 - 0xD`) and again,
+six loads later and after several calls, in a fresh `$v1` that is reused for
+six `lw spawnArg1; sll 3; addu; lhu` accesses. Writing both as
+`D_8016F3AC[...]` lets CSE share one address pseudo across the calls: it is
+local-allocated to a callee-saved register, displaces `tmd` (frame grows by 8
+and it spills), then gets rematerialised per use (46% -> 77% just from
+splitting another pseudo so `tmd` fit again).
+
+The second group indexes `spawnArg1` directly, which would run past the
+4-entry table - the tell. It is really the *next* table, `D_8016F414`, indexed
+by `spawnArg1 - 0xD`, reached through an address:
+`copyVector(&work->field_368, &D_8016F414[arg0->spawnArg1 - 0xD])`.
+`&a[i]` is built as `a + i`, and `pointer_int_sum` (`c-typeck.c`) applies the
+distributive law, so the bias folds into the constant `D_8016F414 - 0x68`,
+which is numerically `0x8016F3AC` - splat names it after the wrong table.
+A different `symbol_ref` is a different CSE key, so the two addresses stay
+apart. Plain `D_8016F414[spawnArg1 - 0xD]` is an `ARRAY_REF`, which does not
+distribute: it keeps an `addiu v0,v0,-0xd` per access (92.4% instead of the
+match).
+
+To land it, add the real symbol to `configs/USA/sym/<family>/<overlay>.txt` so
+the data splits there. The scratch scorer still reports
+`%lo(D_8016F414-0x68)` vs `%lo(D_8016F3AC)` as a difference (99.97%); the
+linked bytes are identical and the full build checksums.
+
+Same function, two more order-only fixes: `func(arg0, N)` written in each
+`switch` case (cross-jumping merges the `jal`, leaving `move a0,fp` and the
+mode constant in each predecessor and a `nop` in the shared call's delay
+slot), and `enemy->field_50 = &tbl[arg0->spawnArg1]` before
+`enemy->field_54 = rec` (the `spawnArg1` reload may alias the enemy stores, so
+source order fixes the `sw 0x54` position).

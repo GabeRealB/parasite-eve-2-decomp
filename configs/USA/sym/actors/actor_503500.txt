@@ -12,3 +12,4 @@ D_actor_503500_80132218 = 0x80132218; // force_not_migration:True actor state ta
 D_actor_503500_80132224 = 0x80132224; // force_not_migration:True actor state table, read from C
 D_actor_503500_80132230 = 0x80132230; // force_not_migration:True actor state table, read from C
 ActorsShared80132d00 = 0x80132D00; // shared body, see src/actors/lib/
+D_actor_503500_8016F414 = 0x8016F414; // reached as &D_actor_503500_8016F414[spawnArg1 - 0xD], folded to 0x8016F3AC

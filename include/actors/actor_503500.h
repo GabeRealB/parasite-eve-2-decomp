@@ -213,7 +213,8 @@ typedef struct Actor503500Work {
     /// Pose buffer `func_actor_503500_80135950` hands `func_800B3F84` when it
     /// re-seeds the animation slots.
     /* 0x334 */ byte field_334[0x34];
-    /// Local offset copied from `D_actor_503500_8016F3AC[spawnArg1]`.
+    /// Local offset copied from `D_actor_503500_8016F414[spawnArg1 - 0xD]`
+    /// (the same address as `D_actor_503500_8016F3AC[spawnArg1]`).
     /* 0x368 */ SVECTOR field_368;
     /* 0x370 */ byte    pad_370[0x2C];
     /* 0x39C */ s32     field_39C;
@@ -364,6 +365,42 @@ typedef struct Actor503500Work3D8Chain {
     /* 0x3CC */ s16     field_3CC; // weight of the rest pitch table
 } Actor503500Work3D8Chain;
 STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
+
+/// Element of `D_actor_503500_80177B60`, the 0x3D8 blocks
+/// `func_actor_503500_8013FA74` clears for spawn slots 0xD..0x10. Like
+/// `Actor503500Work2EC`, the shared `Actor503500Work` cannot be indexed at this
+/// stride; the task's `field_1C` still points here through the shared view,
+/// and `Actor503500Work3D8Mtx` / `Actor503500Work3D8Chain` are narrower views
+/// of the same bytes. It opens with the light / colour matrices the init
+/// republishes on `TmdObject::field_1C` / `field_20`, then a private copy of
+/// model parts 1..8's `coord` matrices.
+typedef struct Actor503500Work3D8 {
+    /* 0x000 */ MATRIX   light;
+    /* 0x020 */ MATRIX   color;
+    /* 0x040 */ MATRIX   mats[9];
+    /* 0x160 */ GpObj    obj160;
+    /* 0x180 */ GpRec18  rec180[8]; // obj160's table, count 8
+    /* 0x240 */ GpObj    obj240;
+    /* 0x260 */ GpRec18  rec260[4]; // obj240's table, count 4
+    /* 0x2C0 */ GpEffArg field_2C0; // coordinate / 0x600 / 3 trio
+    /* 0x2C8 */ SVECTOR  pts[9];
+    /* 0x310 */ SVECTOR  angles[9];
+    /* 0x358 */ SVECTOR  field_358;
+    /* 0x360 */ byte     pad_360[0x8];
+    /* 0x368 */ SVECTOR  field_368;
+    /* 0x370 */ byte     pad_370[0x2C];
+    /* 0x39C */ s32      field_39C;
+    /* 0x3A0 */ byte     pad_3A0[0x12];
+    /* 0x3B2 */ u16      field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ s16      field_3B4; // sway amplitude
+    /* 0x3B6 */ s16      field_3B6; // sway fade-in, 0..0x1000
+    /* 0x3B8 */ s16      phase[9];  // sway phase per link, seeded to i * 0x200
+    /* 0x3CA */ byte     pad_3CA[0xB];
+    /* 0x3D5 */ s8       field_3D5;
+    /* 0x3D6 */ s8       field_3D6;
+    /* 0x3D7 */ s8       field_3D7; // TMD buffer countdown
+} Actor503500Work3D8;
+STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
 
 /// Word-wise view of a `MATRIX` that `func_actor_503500_8013852C` uses to
 /// splat an identity rotation: five aligned stores instead of nine halfword

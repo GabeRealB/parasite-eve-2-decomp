@@ -3253,7 +3253,133 @@ void func_actor_503500_8013FA1C(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013FA74);
+/// Per-slot tables of the 0x3D8 enemies in `D_actor_503500_80177B60`: world
+/// translation and rotation of the task's coordinate (indexed by
+/// `spawnArg1 - 0xD`), the local offset its `GpEnemy::field_1C` and first
+/// display node share, and the second display node's local offset.
+extern SVECTOR         D_actor_503500_8016F3AC[];
+extern SVECTOR         D_actor_503500_8016F3CC[];
+extern SVECTOR         D_actor_503500_8016F3EC;
+extern Actor503500UVec D_actor_503500_8016F3F4[];
+/// Rest control point seeded into `field_368` / `field_358`, also indexed by
+/// `spawnArg1 - 0xD`. The code reaches it as `&table[spawnArg1 - 0xD]`, which
+/// folds the bias into the address constant (`D_actor_503500_8016F414 - 0x68`
+/// == `D_actor_503500_8016F3AC`); a distinct symbol is what keeps CSE from
+/// sharing that address with the `D_actor_503500_8016F3AC` access above.
+extern SVECTOR            D_actor_503500_8016F414[];
+extern Actor503500Work3D8 D_actor_503500_80177B60[];
+void                      func_actor_503500_80141D04(Actor503500* arg0);
+
+void func_actor_503500_8013FA74(Actor503500* arg0)
+{
+    GpEnemy*             enemy;
+    TmdObject*           tmd;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       part;
+    Actor503500Work3D8*  work;
+    GpRec18*             rec;
+    GpRec18*             rec2;
+    Actor503500IdentMat  m;
+    Actor503500MatWords* ident;
+    s32                  idx;
+    s32                  i;
+
+    idx   = arg0->spawnArg1 - 0xD;
+    enemy = arg0->field_20;
+    work  = &D_actor_503500_80177B60[idx];
+    coord = arg0->extra->field_8;
+    tmd   = arg0->extra;
+    Mem_Set(work, 0, 0x3D8);
+    arg0->field_1C = (Actor503500Work*)work;
+
+    coord->sub        = &((TmdObject*)arg0->parent->extra)->field_8[1];
+    coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
+    coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
+    coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
+    m.ident.m00_m01   = 0x1000;
+    ident             = &m.ident;
+    ident->m02_m10    = 0;
+    ident->m11_m12    = 0x1000;
+    ident->m20_m21    = 0;
+    ident->m22        = 0x1000;
+    RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
+    MulMatrix0(&coord->coord, &m.mat, &coord->coord);
+    coord->flg      = 0;
+    work->field_3D7 = -1;
+    tmd->field_1C   = &work->light;
+    tmd->field_20   = &work->color;
+    tmd->field_E    = 0x12;
+
+    enemy->field_4      = &coord->coord;
+    part                = &coord[8];
+    enemy->field_48     = 0;
+    enemy->field_18     = part;
+    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->field_1C.vx  = D_actor_503500_8016F3EC.vx;
+    enemy->field_1C.vy  = D_actor_503500_8016F3EC.vy;
+    enemy->field_1C.vz  = D_actor_503500_8016F3EC.vz;
+    rec                 = work->rec180;
+    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54     = (s32)rec;
+
+    work->obj160.field_8  = part;
+    work->obj160.field_C  = rec;
+    work->obj160.field_10 = D_actor_503500_8016F3EC.vx;
+    work->obj160.field_12 = D_actor_503500_8016F3EC.vy;
+    work->obj160.field_14 = D_actor_503500_8016F3EC.vz;
+    work->obj160.field_18 = 0x30023;
+    work->obj160.field_1C = 0x258;
+    work->obj160.flags    = 1;
+    Gp_LinkObj(2, &work->obj160);
+    Gp_InitRec18Table(rec, 8, 0);
+    rec2                  = work->rec260;
+    work->obj240.field_8  = part;
+    work->obj240.field_C  = rec2;
+    work->obj160.flags   &= 0x7FFF;
+    work->obj240.field_10 = D_actor_503500_8016F3F4[idx].vx;
+    work->obj240.field_12 = D_actor_503500_8016F3F4[idx].vy;
+    work->obj240.field_14 = D_actor_503500_8016F3F4[idx].vz;
+    work->obj240.field_18 = Gp_PackPair(enemy->field_50->field_0, 0);
+    work->obj240.field_1C = 0x1F4;
+    work->obj240.flags    = 1;
+    Gp_LinkObj(3, &work->obj240);
+    Gp_InitRec18Table(rec2, 4, 0);
+    work->field_2C0.field_4 = 0x600;
+    work->field_2C0.field_0 = part;
+    work->field_2C0.field_6 = 3;
+    work->obj240.flags     &= 0x7FFF;
+
+    copyVector(&work->field_368, &D_actor_503500_8016F414[arg0->spawnArg1 - 0xD]);
+    copyVector(&work->field_358, &D_actor_503500_8016F414[arg0->spawnArg1 - 0xD]);
+    work->field_39C = 0x600000;
+    work->field_3B4 = 0x40;
+    work->field_3B6 = 0x1000;
+    work->field_3D5 = 1;
+    for (i = 1; i < 9; i++) {
+        work->phase[i] = (i << 9) & 0xFFF;
+        work->mats[i]  = coord[i].coord;
+    }
+    Gp_UpdateCoord(coord);
+    func_actor_503500_801421A8(arg0);
+    switch (arg0->killCountdown) {
+        case 8:
+            func_actor_503500_80142310(arg0, 6);
+            break;
+        case 9:
+            tmd->field_C |= 0x80;
+            func_actor_503500_80142310(arg0, 7);
+            break;
+        default:
+            Gp_LinkNode(&enemy->node);
+            enemy->field_40     = D_actor_503500_8016E7EC[arg0->spawnArg1].field_4;
+            work->field_3B2     = 0x1000;
+            work->obj160.flags |= 0x8000;
+            func_actor_503500_80142310(arg0, 0);
+            break;
+    }
+    arg0->exitCallback = (TaskFunc)func_actor_503500_80141D04;
+    arg0->state       += 1;
+}
 
 void func_actor_503500_8013FF0C(Actor503500* arg0)
 {
