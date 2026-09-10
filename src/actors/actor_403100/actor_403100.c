@@ -221,7 +221,34 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_8
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E7C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80134D50);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013506C);
+void func_actor_403100_8013506C(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u16            frame;
+    s32            sound;
+    s32            pan;
+    s32            sound2;
+    s32            pan2;
+
+    coord                              = ((TmdObject*)arg0->extra)->field_8;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    coord->coord.t[1]                  = (s16)(rcos((s16)frame * 0x20) << 0xD >> 0x10) - 0x300;
+    coord->coord.t[0]                 += 0x40;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x40) {
+        D_actor_403100_80155808->field_5EC = 0;
+        Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+        D_actor_403100_80155808->field_5FE = 0x1E;
+        func_8017E128(0);
+        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]) / 2));
+        sound2 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0002;
+        pan2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]) / 2));
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801351F8);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013539C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801354A0);
