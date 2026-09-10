@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gameplay/D4.h"
 #include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04;
@@ -18,7 +20,16 @@ typedef struct {
     s16   field_3A;
     u8    pad_3C[0xC];
     s16   field_48;
+    u8    pad_4A[0x2];
+    u16   field_4C;
 } DumpingHoleEntity;
+
+typedef struct {
+    u8  pad_0[0x2];
+    s16 r;
+    s16 g;
+    s16 b;
+} DumpingHoleFadeWork;
 
 typedef struct {
     u8                 pad_00[0x1C];
@@ -55,7 +66,43 @@ s16 func_shelter_b3_dumping_hole_8017FB70(void)
     return D_shelter_b3_dumping_hole_8018809C;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FBA0);
+void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
+{
+    DumpingHoleFadeWork* fade;
+    DumpingHoleFadeWork* alloc;
+    DumpingHoleEntity*   ent;
+
+    ent  = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
+    fade = (DumpingHoleFadeWork*)arg0->idMap;
+    if (ent->field_4C == 1) {
+        Task_Kill(arg0);
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            alloc       = (DumpingHoleFadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            fade         = alloc;
+            fade->b      = 0xFF;
+            fade->g      = 0xFF;
+            fade->r      = 0xFF;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            fade->r -= (u16)arg0->spawnArg1;
+            fade->g -= (u16)arg0->spawnArg1;
+            fade->b -= (u16)arg0->spawnArg1;
+            if (fade->r < 0) {
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FCA0);
 
