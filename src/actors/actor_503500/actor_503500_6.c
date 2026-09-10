@@ -1347,7 +1347,85 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80139014);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801395BC);
+/// Sub-state of the 0x2EC enemies: unlinks the enemy node and steps
+/// `field_2E2` down to 0, spawns a pair of 0x60055 effects on the model
+/// parts for 26 frames, gives slots 0xD/0xE (spawn slot 2) or 0xF/0x10 an
+/// 8-frame kill countdown and half this enemy's `field_40`, then advances
+/// the task state 91 frames later.
+void func_actor_503500_801395BC(Actor503500* arg0)
+{
+    SVECTOR             vec;
+    Actor503500Work2EC* work;
+    GpEnemy*            enemy;
+    GpEnemy*            child;
+    GsCOORDINATE2*      coord;
+    s32                 phase;
+    s32                 a;
+    s32                 b;
+
+    work  = (Actor503500Work2EC*)arg0->field_1C;
+    phase = work->field_2E4;
+    enemy = arg0->field_20;
+    switch (phase) {
+        case 0:
+            work->obj.flags &= 0x7FFF;
+            Gp_UnlinkNode(&enemy->node);
+            enemy->field_54 = 0;
+            work->field_2D8 = 0;
+            work->field_2E4++;
+        case 1:
+            work->field_2E2 -= 0x20;
+            if (work->field_2E2 <= 0) {
+                work->field_2E2 = 0;
+                work->field_248 = NULL;
+                work->field_2E4++;
+            }
+            break;
+        case 2:
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0) {
+                coord  = &arg0->extra->field_8[(s16)(work->field_2DE / 3)];
+                vec.vx = 0;
+                vec.vy = -700;
+                vec.vx = (s16)(work->field_2DE % 3) * 33;
+                Gp_SpawnEff(0x60055, coord, 0x11101800, &vec);
+                vec.vy = 700;
+                Gp_SpawnEff(0x60055, coord, 0x11101800, &vec);
+            }
+            work->field_2DE++;
+            if (work->field_2DE >= 0x1A) {
+                a = 0xF;
+                if (arg0->spawnArg1 == phase) {
+                    a = 0xD;
+                    b = 0xE;
+                } else {
+                    b = 0x10;
+                }
+                child = func_actor_503500_80135D00((Actor503500*)arg0->parent, a);
+                if (child != NULL) {
+                    child->task->killCountdown = 8;
+                    child->field_40            = enemy->field_40 / 2;
+                }
+                child = func_actor_503500_80135D00((Actor503500*)arg0->parent, b);
+                if (child != NULL) {
+                    child->task->killCountdown = 8;
+                    child->field_40            = enemy->field_40 / 2;
+                }
+                func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+                work->field_2EB = 3;
+                work->field_2DE = 0;
+                work->field_2E4++;
+            }
+            break;
+        case 3:
+            arg0->extra->field_C |= 0x84;
+            work->field_2DE++;
+            if (work->field_2DE >= 0x5B) {
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                arg0->state++;
+            }
+            break;
+    }
+}
 
 void func_actor_503500_801398D0(Actor503500* arg0)
 {
