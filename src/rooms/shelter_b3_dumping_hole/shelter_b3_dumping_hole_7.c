@@ -3,6 +3,27 @@
 #include "gameplay/D4.h"
 #include "main/task.h"
 
+typedef struct {
+    u8  _pad0[0xA];
+    s16 field_A;
+} DumpingHoleEntity;
+
+typedef struct {
+    u8                 _pad0[0x1C];
+    DumpingHoleEntity* field_1C;
+    u8                 _pad20[0x16];
+    s16                field_36;
+} DumpingHoleState;
+
+typedef struct {
+    u8  _pad0[0x6];
+    s16 field_6;
+} DumpingHoleB7BC;
+
+extern DumpingHoleB7BC D_shelter_b3_dumping_hole_8018B7BC[];
+
+void func_shelter_b3_dumping_hole_80183F04(DumpingHoleState* arg0);
+
 extern s32     D_shelter_b3_dumping_hole_8018F4D8;
 extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[];
 extern SVECTOR D_shelter_b3_dumping_hole_8018B8BC[];
@@ -20,7 +41,15 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183D34);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183E08);
+void func_shelter_b3_dumping_hole_80183E08(DumpingHoleState* arg0)
+{
+    DumpingHoleEntity* ent = arg0->field_1C;
+    func_shelter_b3_dumping_hole_80183F04(arg0);
+    if (ent->field_A == 3) {
+        D_shelter_b3_dumping_hole_8018B7BC[arg0->field_36].field_6 = 2;
+        Task_Kill((Task*)arg0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183E6C);
 
