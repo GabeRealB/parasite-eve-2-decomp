@@ -2236,4 +2236,37 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_801463C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8014642C);
+void func_actor_503500_8014642C(Actor503500* arg0)
+{
+    Actor503500Effect4CC* work;
+    GsCOORDINATE2*        coord;
+    GpEnemy*              enemy;
+
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+
+    work = Mem_Calloc(sizeof(Actor503500Effect4CC), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit((Task*)arg0);
+        return;
+    }
+
+    arg0->field_1C  = (Actor503500Work*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4C8 = -1;
+    work->field_4A0 = 0;
+    work->field_4A4 = 0;
+    work->field_4A8 = 0;
+
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    enemy->field_54 = 0;
+
+    func_actor_503500_80146508((Task*)arg0);
+    TOUCH_REG(enemy);
+
+    arg0->field_24     = D_actor_503500_80176530;
+    arg0->exitCallback = ActorsShared801327b4;
+    arg0->state++;
+}
