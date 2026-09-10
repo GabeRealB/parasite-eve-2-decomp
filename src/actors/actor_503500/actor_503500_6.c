@@ -69,7 +69,11 @@ extern s32                  D_actor_503500_8016F0E8[];
 extern SVECTOR              D_actor_503500_8016F0F0[];
 extern Actor503500Work774C0 D_actor_503500_801774C0[];
 extern RECT                 D_actor_503500_8016F100;
-void                        func_actor_503500_8013BC54(Actor503500* arg0);
+/// Offsets `func_actor_503500_8013F4A4` spawns its two effects at: rows 0-5
+/// for the per-frame effect, rows 3-5 for the odd-frame one.
+extern SVECTOR D_actor_503500_8016F374[];
+extern RECT    D_actor_503500_8016F3A4;
+void           func_actor_503500_8013BC54(Actor503500* arg0);
 /// Per-slot local offset of the 0xF4 enemies in `D_actor_503500_801770E8`,
 /// indexed by `spawnArg1`.
 extern SVECTOR              D_actor_503500_8016F210[];
@@ -126,6 +130,9 @@ void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
 s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
 void func_actor_503500_8013611C(s32 arg0);
+void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
+void func_actor_503500_80136048(Actor503500* arg0);
+s32  func_actor_503500_801360BC(s32 arg0, s32 arg1);
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
 void func_actor_503500_801372AC(s32 arg0);
 void func_actor_503500_80138288(Actor503500* arg0);
@@ -2099,7 +2106,58 @@ void func_actor_503500_8013F328(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F4A4);
+/// Sub-state 2 of the 0xF4 block, stepped by `field_F1`: phase 0 hides the
+/// display node, unlinks the enemy node, releases its state-F0 reference and
+/// plays the death sound; phase 1 spawns effects from `D_actor_503500_8016F374`
+/// for 0x1F frames, then restores the VRAM rect and moves on.
+void func_actor_503500_8013F4A4(Actor503500* arg0)
+{
+    GpEnemy*           enemy;
+    Actor503500WorkF4* work;
+    GsCOORDINATE2*     coord;
+    s32                pan;
+
+    enemy = arg0->field_20;
+    work  = (Actor503500WorkF4*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_F1) {
+        case 0:
+            work->obj.flags &= 0x7FFF;
+            enemy->field_54  = 0;
+            Gp_UnlinkNode(&enemy->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            enemy->field_4C &= 0xF0;
+            pan              = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_EC = 2;
+            work->field_F1++;
+            break;
+        case 1:
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
+                Gp_SpawnEff(0x60055, coord, 0x01001A00,
+                            &D_actor_503500_8016F374[(s16)((s16)work->field_EA % 6)]);
+                if (work->field_EA & 1) {
+                    Gp_SpawnEff(0x6018C, coord, 0x04404600,
+                                &D_actor_503500_8016F374[(s16)((s16)work->field_EA % 3) + 3]);
+                }
+            }
+            work->field_EA++;
+            if ((s16)work->field_EA >= 0x1F) {
+                MoveImage(&D_actor_503500_8016F3A4, 0x140, 0x100);
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                work->field_F1++;
+            }
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+}
 
 /// The 0xF4 block's per-frame tick, the same shape as
 /// `func_actor_503500_8013E9A4`: frozen mode 1 skips the frame entirely,

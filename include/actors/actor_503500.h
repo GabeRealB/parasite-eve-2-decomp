@@ -466,13 +466,15 @@ STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 /// why this enemy gets a separate view. Its sub-state index is `field_F0`, the
 /// one `func_actor_503500_8013F8AC` dispatches on.
 typedef struct Actor503500WorkF4 {
-    /* 0x00 */ byte pad_0[0xEA];
-    /* 0xEA */ u16  field_EA; // sub-state frame counter
-    /* 0xEC */ s16  field_EC;
-    /* 0xEE */ byte pad_EE[0x2];
-    /* 0xF0 */ s8   field_F0; // sub-state index
-    /* 0xF1 */ s8   field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte pad_F2[0x2];
+    /* 0x00 */ GpObj obj;      // the display node, as in `Actor503500Work`
+    /* 0x20 */ byte  pad_20[0xC8];
+    /* 0xE8 */ s16   field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ u16   field_EA; // sub-state frame counter
+    /* 0xEC */ s16   field_EC;
+    /* 0xEE */ byte  pad_EE[0x2];
+    /* 0xF0 */ s8    field_F0; // sub-state index
+    /* 0xF1 */ s8    field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte  pad_F2[0x2];
 } Actor503500WorkF4;
 STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 
