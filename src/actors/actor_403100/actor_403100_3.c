@@ -452,7 +452,24 @@ void func_actor_403100_8013EDDC(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013EE28);
+void func_actor_403100_8013EE28(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_61C = 2;
+    D_actor_403100_80155808->field_5DE = 3;
+    D_actor_403100_80155808->field_5DA = 2;
+    func_actor_403100_801327CC(arg0);
+    D_actor_403100_80155808->field_82   = 0;
+    coord->coord.t[0]                   = -0x1710;
+    coord->coord.t[1]                   = 0;
+    coord->coord.t[2]                   = -0x2846;
+    D_actor_403100_80155808->field_618  = 0x1910;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
 void func_actor_403100_8013EEB0(void)
 {
 }
