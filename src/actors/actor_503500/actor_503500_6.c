@@ -1311,7 +1311,52 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AF60);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013B460);
+s16  func_actor_503500_80136134(Actor503500* arg0);
+void func_actor_503500_8013B60C(Actor503500* arg0, s32 side, s32 arg2);
+void func_actor_503500_8013BE48(Actor503500* arg0, s32 arg1);
+
+void func_actor_503500_8013B460(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              angle;
+    s32              offset;
+    s32              side;
+
+    work = arg0->field_1C;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_8013BE48(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_EE) {
+        case 0:
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 9, 0x10);
+            work->field_EE++;
+            break;
+        case 1:
+            work->field_EA++;
+            if (work->field_EA >= 0x80) {
+                offset = -0x12C;
+                angle  = func_actor_503500_80136134((Actor503500*)arg0->parent);
+                side   = work->field_EC;
+                if (side != 0) {
+                    offset = 0x12C;
+                }
+                if (angle > -0x400 - offset && angle < 0x400 - offset) {
+                    func_actor_503500_8013B60C(arg0, side, 0);
+                }
+                if (angle < offset - 0x400 || offset + 0x400 < angle) {
+                    func_actor_503500_8013B60C(arg0, side, 1);
+                }
+                work->field_EE++;
+            }
+        case 2:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 9) != 0) {
+                func_actor_503500_8013BE48(arg0, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013B60C);
 
