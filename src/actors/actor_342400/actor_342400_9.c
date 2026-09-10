@@ -64,7 +64,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_9", func_actor_342400
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_9", func_actor_342400_8016AD94);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_9", func_actor_342400_8016AE24);
+extern TaskFuncTable3 D_actor_342400_80161FB4;
+
+void func_actor_342400_8016AE24(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor342400Work*)arg0->idMap;
+    sp   = D_actor_342400_80161FB4;
+    if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
+        sp.funcs[(s16)work->field_422](arg0);
+    }
+}
 
 extern TaskFuncTable3 D_actor_342400_80161FC0;
 
