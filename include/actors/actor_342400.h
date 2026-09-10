@@ -18,7 +18,9 @@
 /// are the state and sub-state indices the handler table walks; `field_412`
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
-    /* 0x000 */ byte    pad_0[0x2AC];
+    /* 0x000 */ byte    pad_0[0x4];
+    /* 0x004 */ u16     field_4; // set to 4 by the 0x7DB handler
+    /* 0x006 */ byte    pad_6[0x2A6];
     /* 0x2AC */ GpObj   obj_2AC;
     /* 0x2CC */ GpObj   obj_2CC;
     /* 0x2EC */ GpRec18 rec_2EC[8];
@@ -31,6 +33,15 @@ typedef struct Actor342400Work {
     /* 0x424 */ byte    pad_424[0x30];
 } Actor342400Work;
 STATIC_ASSERT_SIZEOF(Actor342400Work, 0x454);
+
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor335800Msg`. The overlay's 0x7DB handler,
+/// `func_actor_342400_801626AC`, reads the halfword at 0x2.
+typedef struct Actor342400Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor342400Msg;
+STATIC_ASSERT_SIZEOF(Actor342400Msg, 0x4);
 
 void func_actor_342400_801637DC(Task* arg0);
 
