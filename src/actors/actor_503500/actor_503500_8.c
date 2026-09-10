@@ -343,8 +343,12 @@ extern Actor503500AnimPreset D_actor_503500_8016EAD4;
 /// Per-slot parent part index and local offset of the 0x224 enemy in
 /// `D_actor_503500_80178AC0`, indexed by `spawnArg1 - 0xA`, and the
 /// translation it gives the task's own coordinate.
-extern s32                D_actor_503500_80171464[];
-extern SVECTOR            D_actor_503500_80171480[];
+extern s32     D_actor_503500_80171464[];
+extern SVECTOR D_actor_503500_80171480[];
+/// Per-id flag table of `func_actor_503500_801431EC`: a hit whose id has bit
+/// 0x8000 set and a non-zero entry at `id & 0x7F` switches the enemy to state 2
+/// of `func_actor_503500_80144238`.
+extern s8                 D_actor_503500_80171490[];
 extern SVECTOR            D_actor_503500_80171478;
 extern Actor503500Work224 D_actor_503500_80178AC0[];
 /// `func_actor_503500_80144300`'s `Gp_PackPair` slot, two before
@@ -3281,7 +3285,135 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_8", D_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_80142980);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_801431EC);
+/// Hit handler of the 0x224 enemy, one pass over `count` records. Duplicate
+/// ids and anything but a type-2 hit are skipped, as is the whole record while
+/// the stun countdown `field_218` runs. Damage is scaled by distance to the
+/// attacker, quadrupled on a critical roll, and clamped so the health floors at
+/// 0 - which also arms the 0x258-frame `field_21C` recovery. Id kinds 4/6 on a
+/// dead enemy, and ids flagged in `D_actor_503500_80171490`, call
+/// `func_actor_503500_80144238(arg0, 2)` and mark the hit as kind 2. The hit effect is placed
+/// 0x5DC along the impact direction in the model's frame, offset by the side
+/// vector. Once `field_21C` runs out the health is refilled to a tenth of the
+/// spawn record's maximum.
+void func_actor_503500_801431EC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+{
+    VECTOR              d;
+    SVECTOR             pos;
+    MATRIX              mtx;
+    MATRIX              rot;
+    Actor503500Work224* work;
+    GpEnemy*            enemy;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      src;
+    s16                 stun;
+    s16                 hp;
+    u32                 id;
+    s32                 dmg;
+    s32                 crit;
+    s32                 scale;
+    s32                 i;
+    s32                 j;
+
+    enemy = arg0->field_20;
+    work  = (Actor503500Work224*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    for (i = 0; i < arg3; i++) {
+        id = arg2[i].field_4;
+        for (j = 0; j < i; j++) {
+            if (arg2[j].field_4 == id) {
+                goto next;
+            }
+        }
+        if ((id & 0xFFFF0000) == 0x10000) {
+            continue;
+        }
+        if ((id & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        if (work->field_218 != 0) {
+            continue;
+        }
+        src = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        d.vx = src->coord.t[0] - pos.vx;
+        d.vy = src->coord.t[1] - pos.vy;
+        d.vz = src->coord.t[2] - pos.vz;
+        crit = 0;
+        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
+        if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+            dmg *= 4;
+            crit = 1;
+        }
+        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        hp              = enemy->field_40 - dmg;
+        enemy->field_40 = hp;
+        if (hp <= 0) {
+            enemy->field_40 = 0;
+            dmg            += hp;
+            if (work->field_21C == 0) {
+                work->field_21C = 0x258;
+            }
+        }
+        func_800DA6E8(&enemy->node, dmg, 0);
+        switch (Gp_GetIdParam0(id) & 0xFFFF) {
+            case 0:
+            case 5:
+            case 7:
+            case 8:
+            case 9:
+                break;
+            case 1:
+                Gp_SetObjFlag1((GpObj4C*)enemy);
+                break;
+            case 2:
+                Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                break;
+            case 3:
+                Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                break;
+            case 4:
+            case 6:
+                if (enemy->field_40 <= 0) {
+                    func_actor_503500_80144238(arg0, 2);
+                    crit = 2;
+                }
+                break;
+        }
+        if ((id & 0x8000) && D_actor_503500_80171490[id & 0x7F] != 0) {
+            func_actor_503500_80144238(arg0, 2);
+            crit = 2;
+        }
+        TRANSPOSE_ROT(&coord->workm, &rot);
+        pos.vx = arg2[i].field_8 - coord->workm.t[0];
+        pos.vy = arg2[i].field_A - coord->workm.t[1];
+        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        scale  = 0x5DC000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
+        pos.vx = pos.vx * scale / 4096;
+        pos.vy = pos.vy * scale / 4096;
+        pos.vz = pos.vz * scale / 4096;
+        gte_SetRotMatrix(&rot);
+        gte_ldv0(&pos);
+        gte_rtv0_real();
+        gte_stsv(&pos);
+        pos.vx += D_actor_503500_80171480[work->field_220].vx;
+        pos.vy += D_actor_503500_80171480[work->field_220].vy;
+        pos.vz += D_actor_503500_80171480[work->field_220].vz;
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_1E0);
+        if (crit != 0) {
+            Gp_SpawnEff(0x6009C, coord, (crit == 2) * 2, &pos);
+        }
+        stun = Gp_GetIdParam2(id);
+        if (work->field_218 < stun) {
+            work->field_218 = stun;
+        }
+    next:;
+    }
+    if (--work->field_21C == 0) {
+        enemy->field_40 = D_actor_503500_8016E7EC[arg0->spawnArg1].field_4 / 10;
+    } else if (work->field_21C < 0) {
+        work->field_21C = 0;
+    }
+}
 
 /// Scans the 0x224 enemy's shared record table. For each record whose
 /// `field_4` high half is 1 - unless the player task (`Game_GetPtrSlot(3)`)

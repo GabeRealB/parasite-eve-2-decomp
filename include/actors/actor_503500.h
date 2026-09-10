@@ -788,11 +788,15 @@ typedef struct Actor503500Work224 {
     /* 0x1E8 */ byte           pad_1E8[0x30];
     /* 0x218 */ s16            field_218; // per-frame countdown, clamped at 0
     /* 0x21A */ u16            field_21A; // sub-state frame counter
-    /* 0x21C */ byte           pad_21C[0x4];
-    /* 0x220 */ s8             field_220; // side flag: picks the +/-0x5DC turn
-    /* 0x221 */ s8             field_221; // sub-state index
-    /* 0x222 */ s8             field_222; // sub-state phase, cleared with field_221
-    /* 0x223 */ s8             field_223; // 0xC or 0x12, picked in sub-state 1's phase 0
+                                          /// Recovery countdown, armed at 0x258 when a hit empties `field_40` and
+                                          /// stepped down by `func_actor_503500_801431EC`, which refills the health
+                                          /// when it reaches 0.
+    /* 0x21C */ s16  field_21C;
+    /* 0x21E */ byte pad_21E[0x2];
+    /* 0x220 */ s8   field_220; // side flag: picks the +/-0x5DC turn
+    /* 0x221 */ s8   field_221; // sub-state index
+    /* 0x222 */ s8   field_222; // sub-state phase, cleared with field_221
+    /* 0x223 */ s8   field_223; // 0xC or 0x12, picked in sub-state 1's phase 0
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 
