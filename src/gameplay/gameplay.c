@@ -1779,7 +1779,6 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     DisplayState*         ds;
     register u32          mask asm("t0");
     register u32          maskHi asm("t2");
-    s32                   hi;
     u16*                  rec;
     s32                   sz;
     s32                   idx;
@@ -1792,11 +1791,10 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         len      = 9;
         code     = 0x34;
-        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
-        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
-        xy     = poly + 1;
+        ds       = &Display_State;
+        mask     = 0xFFFFFF;
+        maskHi   = 0xFF000000;
+        xy       = poly + 1;
         do {
             rec = (u16*)arg2;
             gte_ldsxy3_fifo_gt3(xy);
