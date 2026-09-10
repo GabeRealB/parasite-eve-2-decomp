@@ -58204,3 +58204,23 @@ plain global access and statement movement first.
 Preprocessed inputs: base_8
 `386b05e8ea476f002f4e4e142254632d9ceab76fa6ec009482b293f858792707`;
 base_9 `b370a101d7f595a64bf9ae7708817be640bfea7821d674fa68bbf5330702fdf3`.
+### A pointer held across one call loses its register to an index-derived pointer; assign it just before the call
+
+`func_actor_503500_8013CAE4` sat at 99.15% with only `s2`/`s3` swapped between
+`parent` (loaded in the prologue, read once after `Mem_Set`) and the
+`idx`→`idx<<3`→`pos = &Table[idx]` chain. That chain is one local quantity:
+each step's input dies in the insn that sets the next, so `combine_regs` ties
+all three (`trace_gcc.py`: `q1 [88, 99, 89] refs=14 span=130 priority=3230`).
+`parent` is a 2-reference quantity, `priority = 20000 / span`, and at
+`span=8` (4 insns between its load and the post-call use) it scored 2500 and
+ranked below the chain.
+
+Moving `parent = arg0->parent;` from the top of the prologue to the line
+before `Mem_Set` put its sched1 load one insn later (`span=6`, 3333) and
+matched. sched2 still hoists the `lw` to third place in the final asm, so the
+target listing shows it *early* even though the source assigns it late.
+
+**Reading it.** A two-reference pointer that must survive one call has a
+priority set almost entirely by how close sched1 puts its load to the call;
+when it trades a callee-saved register with a longer tied chain, try its
+assignment at every prologue position before touching anything else.

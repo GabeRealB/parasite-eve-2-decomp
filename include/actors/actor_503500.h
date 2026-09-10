@@ -432,12 +432,17 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 /// puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
 /// the one `func_actor_503500_8013D990` dispatches on.
 typedef struct Actor503500Work770E8 {
-    /* 0x00 */ byte pad_0[0xEC];
-    /* 0xEC */ u16  field_EC; // sub-state frame counter
-    /* 0xEE */ s16  field_EE;
-    /* 0xF0 */ s8   field_F0; // sub-state index
-    /* 0xF1 */ s8   field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte pad_F2[0x2];
+    /* 0x00 */ GpObj          obj;
+    /* 0x20 */ GpRec18        rec[8]; // Gp_InitRec18Table(rec, 8, 0)
+    /* 0xE0 */ GsCOORDINATE2* field_E0;
+    /* 0xE4 */ s16            field_E4;
+    /* 0xE6 */ s16            field_E6;
+    /* 0xE8 */ byte           pad_E8[0x4];
+    /* 0xEC */ u16            field_EC; // sub-state frame counter
+    /* 0xEE */ s16            field_EE;
+    /* 0xF0 */ s8             field_F0; // sub-state index
+    /* 0xF1 */ s8             field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte           pad_F2[0x2];
 } Actor503500Work770E8;
 STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 
