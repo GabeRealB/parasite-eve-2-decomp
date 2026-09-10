@@ -1,5 +1,20 @@
 #include "common.h"
 
+typedef struct {
+    u8  _pad0[0x4];
+    s16 field_4;
+} DumpingHoleEntity;
+
+typedef struct {
+    u8                 _pad0[0x1C];
+    DumpingHoleEntity* field_1C;
+} DumpingHoleState;
+
+typedef struct {
+    u8  _pad0[0x2];
+    u16 field_2;
+} DumpingHoleMsg;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183144);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183198);
@@ -10,7 +25,13 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_801833EC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183530);
+void func_shelter_b3_dumping_hole_80183530(DumpingHoleState* arg0, s32 arg1, DumpingHoleMsg* arg2)
+{
+    DumpingHoleEntity* ent = arg0->field_1C;
+    if (arg2->field_2 == 4) {
+        ent->field_4 = arg2->field_2;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183550);
 
