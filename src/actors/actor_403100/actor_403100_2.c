@@ -298,7 +298,30 @@ void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     msg.rot.vz = 0;
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&msg, 0);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D11C);
+void func_actor_403100_8013D11C(Task* arg0)
+{
+    GsCOORDINATE2* coords;
+    GpObj44*       light;
+    s16            value;
+    u32            random;
+
+    coords                       = ((TmdObject*)arg0->extra)->field_8;
+    D_80114FF8.field_0           = 8;
+    light                        = &D_80114FF8.field_4.light;
+    light->field_58              = 0x300;
+    random                       = Gp_LcgState * 5 + 0x71357911;
+    light->field_5C              = 0x3000;
+    value                        = ((random >> 16) & 0x700) + 0x800;
+    light->field_50              = value;
+    light->field_52              = value >> 3;
+    light->field_54              = value >> 4;
+    coords                      += 3;
+    light->field_18.vx           = coords->coord.t[0];
+    light->field_18.vy           = coords->coord.t[1];
+    light->field_18.vz           = coords->coord.t[2];
+    Gp_LcgState                  = random;
+    D_80114FF8.field_4.coord.flg = 0;
+}
 void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {
     GpAnimArg msg;
