@@ -323,7 +323,10 @@ STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
 typedef struct Actor503500Work44 {
     /* 0x00 */ Actor503500ObjWork head;
     /* 0x38 */ Task*              field_38;
-    /* 0x3C */ byte               pad_3C[0x8];
+    /* 0x3C */ s16                field_3C; // frame counter within `field_40`'s phase
+    /* 0x3E */ byte               pad_3E[0x2];
+    /* 0x40 */ s8                 field_40; // phase, advanced by `func_actor_503500_80145754`
+    /* 0x41 */ byte               pad_41[0x3];
 } Actor503500Work44;
 STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 

@@ -29422,6 +29422,13 @@ sra    s0, s0, 24
 
 Assigning that `(s8)` back into the loop index (`i = (s8)Gp_GetObjPan(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `Gp_EffCtlTaskAC` / `Gp_EffCtlTaskA5` are the example.
 
+Sharing one `coord` / `pan` pair across two `if` arms that each do this sequence
+gives the same symptom, even with no loop involved: `pan` lands in the next free
+callee-saved register (`sra s1, v0, 24`) and `move a0, s0` drops into the delay
+slot. Give each arm its own locals (`coord2` / `pan2`), as
+`func_actor_503500_80144E8C` already does. That took
+`func_actor_503500_80145754` from 97.4% (`regs=7 reorder=4`) to 100%.
+
 ## Don't pin a short-lived arg copy to a later `mflo` dest
 
 `pos = arg1` only lives through the first few loads, then the three-square

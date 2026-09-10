@@ -1052,7 +1052,49 @@ void func_actor_503500_801455A4(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80145754);
+extern MATRIX* D_80073B8C;
+
+void func_actor_503500_80145754(Actor503500* arg0)
+{
+    Actor503500Work44* work;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     coord2;
+    s32                pan;
+    s32                pan2;
+
+    work = (Actor503500Work44*)arg0->field_1C;
+    if (func_actor_503500_8013608C(arg0) == 0) {
+        switch (work->field_40) {
+            case 0:
+                work->field_3C++;
+                if (work->field_3C >= 0x5F) {
+                    if (D_80073B8C->t[1] < -1000) {
+                        work->head.obj.flags |= 0x8000;
+                    }
+                    work->field_3C = 0;
+                    work->field_40++;
+                } else if (work->field_3C == 0x3E) {
+                    coord = arg0->extra->field_8;
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(0x40230014, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                } else if (work->field_3C == 0x5A) {
+                    coord2 = arg0->extra->field_8;
+                    pan2   = (s8)Gp_GetObjPan((GpObj38*)coord2);
+                    SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(Gp_GetObjDepth((GpObj38*)coord2) / 2));
+                }
+                return;
+            case 1:
+                work->field_3C++;
+                if (work->field_3C >= 4) {
+                    work->field_3C        = 0;
+                    work->head.obj.flags &= 0x7FFF;
+                    work->field_40++;
+                }
+                return;
+        }
+    }
+    arg0->state += 1;
+}
 
 void func_actor_503500_801458F8(Actor503500* arg0)
 {
