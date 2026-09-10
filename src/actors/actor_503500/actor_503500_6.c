@@ -687,7 +687,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
 /// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
 /// `t` and the constant term.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AC6C);
+void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
+{
+    coeff->vx  = -p0 + (p1 - p2) * 3 + p3;
+    coeff->vy  = (p0 + p2) * 3 - p1 * 6;
+    coeff->vz  = (-p0 + p1) * 3;
+    coeff->pad = p0;
+}
 /// The 0x2EC block's counterpart of `func_actor_503500_80138490`: puts the
 /// block into sub-state `arg1`, clears the phase and frame counter that go with
 /// it, cancels a pending kill, and records the slot's halfword as "asked to
