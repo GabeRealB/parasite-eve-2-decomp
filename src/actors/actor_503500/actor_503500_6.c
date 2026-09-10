@@ -784,7 +784,16 @@ void func_actor_503500_8013C900(Actor503500* arg0)
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C960);
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C9DC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013CA34);
+void func_actor_503500_8013CA34(Actor503500* arg0)
+{
+    switch (arg0->field_1C->field_F0) {
+        case 0:
+            break;
+        case 1:
+            func_actor_503500_8013C558(arg0);
+            break;
+    }
+}
 void func_actor_503500_8013CA74(Actor503500* arg0, s8 arg1)
 {
     Actor503500Work* work;
