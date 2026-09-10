@@ -1718,7 +1718,21 @@ void func_actor_503500_8013EA2C(Actor503500* arg0)
     Gp_DestroyEnemy(enemy, (Task*)arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013EA8C);
+void func_actor_503500_8013EA8C(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy = arg0->field_20;
+    if (enemy->field_4C & 1) {
+        enemy->field_4C &= ~1;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= ~2;
+    }
+    if (enemy->field_4C & 0xC) {
+        enemy->field_4C &= ~0xC;
+    }
+}
 
 void func_actor_503500_8013EAE4(Actor503500* arg0)
 {
