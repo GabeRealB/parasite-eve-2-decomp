@@ -337,6 +337,744 @@ s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
 /// finishes the clip it was gating on.
 extern Actor503500AnimPreset D_actor_503500_8016EAD4;
 
+/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
+/// the enemy - the same body as `func_actor_503500_80137C90` on this block's
+/// fields: each attack id is taken once, only type-2 ids land while the
+/// `field_E8` countdown is clear, and a hit that empties `field_40` starts the
+/// death sub-state. The hit effect is pulled to 1400 units along the contact
+/// offset. `arg1` is passed by the caller but unused.
+void func_actor_503500_8013C088(Actor503500* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3)
+{
+    VECTOR           d;
+    SVECTOR          pos;
+    MATRIX           mtx;
+    MATRIX           rot;
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   src;
+    s16              stun;
+    u32              id;
+    s32              dmg;
+    s32              crit;
+    s32              scale;
+    s32              i;
+    s32              j;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    for (i = 0; i < arg3; i++) {
+        id = arg2[i].field_4;
+        for (j = 0; j < i; j++) {
+            if (arg2[j].field_4 == id) {
+                goto next;
+            }
+        }
+        if ((id & 0xFFFF0000) == 0x10000) {
+            continue;
+        }
+        if ((id & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        if (work->field_E8 != 0) {
+            continue;
+        }
+        src = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        d.vx = src->coord.t[0] - pos.vx;
+        d.vy = src->coord.t[1] - pos.vy;
+        d.vz = src->coord.t[2] - pos.vz;
+        crit = 0;
+        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
+        if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+            dmg *= 4;
+            crit = 1;
+        }
+        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        func_800DA6E8(&enemy->node, dmg, 0);
+        enemy->field_40 -= dmg;
+        if (enemy->field_40 <= 0) {
+            func_actor_503500_8013CA74(arg0, 1);
+        }
+        switch (Gp_GetIdParam0(id) & 0xFFFF) {
+            case 0:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                break;
+            case 1:
+                Gp_SetObjFlag1((GpObj4C*)enemy);
+                break;
+            case 2:
+                Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                break;
+            case 3:
+                Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                break;
+        }
+        TRANSPOSE_ROT(&coord->workm, &rot);
+        pos.vx = arg2[i].field_8 - coord->workm.t[0];
+        pos.vy = arg2[i].field_A - coord->workm.t[1];
+        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        scale  = 0x578000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
+        pos.vx = pos.vx * scale / 4096;
+        pos.vy = pos.vy * scale / 4096;
+        pos.vz = pos.vz * scale / 4096;
+        gte_SetRotMatrix(&rot);
+        gte_ldv0(&pos);
+        gte_rtv0_real();
+        gte_stsv(&pos);
+        pos.vx += D_actor_503500_8016F1B0.vx;
+        pos.vy += D_actor_503500_8016F1B0.vy;
+        pos.vz += D_actor_503500_8016F1B0.vz;
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        if (crit != 0) {
+            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+        }
+        stun = Gp_GetIdParam2(id);
+        if (work->field_E8 < stun) {
+            work->field_E8 = stun;
+        }
+    next:;
+    }
+}
+
+/// Death sub-state of the first 0xF4 block, stepped by `field_F1`: phase 0
+/// is the death setup shared with `func_actor_503500_8013D558` and seeds the
+/// shrinking scale; phase 1 spawns three effects at random offsets for up to
+/// 2000 frames while the scale shrinks by an ever smaller step, and leaves
+/// once that step runs out.
+void func_actor_503500_8013C558(Actor503500* arg0)
+{
+    Actor503500Work776A0* work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               vec;
+    s32                   pan;
+
+    work  = (Actor503500Work776A0*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_F1) {
+        case 0:
+            work->obj.flags         &= 0x7FFF;
+            arg0->field_20->field_54 = 0;
+            Gp_UnlinkNode(&arg0->field_20->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            arg0->field_20->field_4C &= 0xF0;
+            pan                       = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_EC = 0x1000;
+            work->field_EE = 0x80;
+            work->field_F1++;
+            break;
+        case 1:
+            if (++work->field_EA <= 2000) {
+                if (func_actor_503500_801360BC(arg0->spawnArg1, 5) != 0) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60055, coord, 0x01001900,
+                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60055, coord, 0x01001700,
+                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6018C, coord, 0x01404600,
+                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                }
+            }
+            vec.vx = 0x1000;
+            vec.vy = 0x1000;
+            vec.vz = work->field_EC;
+            func_actor_503500_80135E20((Actor503500*)arg0->parent, 0x10, &vec);
+            work->field_EC -= work->field_EE;
+            work->field_EE -= 4;
+            if (work->field_EE <= 0) {
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                work->field_F1++;
+            }
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+}
+
+/// Per-frame tick of the first 0xF4 block, the same shape as
+/// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
+/// mode 2 only marks the enemy's link node, and anything else clears the
+/// coordinate flag and runs the normal chain.
+void func_actor_503500_8013C878(Actor503500* arg0)
+{
+    GpEnemy*       enemy;
+    GsCOORDINATE2* coord;
+
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+    if (D_801153F4 == 1) {
+        return;
+    }
+    if (D_801153F4 == 2) {
+        enemy->node.field_4 |= 1;
+        return;
+    }
+    coord->flg = 0;
+    if (enemy->field_4C != 0) {
+        func_actor_503500_8013C9DC(arg0);
+    }
+    func_actor_503500_8013C960(arg0);
+    func_actor_503500_8013CA34(arg0);
+}
+void func_actor_503500_8013C900(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy                                       = arg0->field_20;
+    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    Gp_UnlinkObj(&arg0->field_1C->obj);
+    enemy->field_54 = 0;
+    arg0->field_1C  = NULL;
+    Gp_DestroyEnemy(enemy, (Task*)arg0);
+}
+
+void func_actor_503500_8013C960(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_E8 != 0) {
+        timer          = (u16)work->field_E8 - 1;
+        work->field_E8 = timer;
+        if (timer < 0) {
+            work->field_E8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_8013C088(arg0, work, &work->rec, 8);
+    }
+    Gp_ClearRec18Occupied(&work->rec);
+}
+
+void func_actor_503500_8013C9DC(Actor503500* arg0)
+{
+    GpEnemy* enemy = arg0->field_20;
+
+    if (enemy->field_4C & 1) {
+        enemy->field_4C &= ~1;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= ~2;
+    }
+    if (enemy->field_4C & 0xC) {
+        enemy->field_4C &= ~0xC;
+    }
+}
+
+void func_actor_503500_8013CA34(Actor503500* arg0)
+{
+    switch (arg0->field_1C->field_F0) {
+        case 0:
+            break;
+        case 1:
+            func_actor_503500_8013C558(arg0);
+            break;
+    }
+}
+void func_actor_503500_8013CA74(Actor503500* arg0, s8 arg1)
+{
+    Actor503500Work* work;
+
+    work           = arg0->field_1C;
+    work->field_F0 = arg1;
+    work->field_F1 = 0;
+    work->field_EA = 0;
+}
+
+void func_actor_503500_8013CA8C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80132028;
+    sp.funcs[task->state](task);
+}
+
+/// State-0 init of the 0xF4 enemy in slot `spawnArg1` of
+/// `D_actor_503500_801770E8`, the same shape as `func_actor_503500_8013BEE4`
+/// but without linking the enemy node.
+void func_actor_503500_8013CAE4(Actor503500* arg0)
+{
+    GpEnemy*              enemy;
+    Task*                 parent;
+    GsCOORDINATE2*        coord;
+    MATRIX*               mtx;
+    GsCOORDINATE2*        parts;
+    GpRec18*              rec;
+    Actor503500Work770E8* work;
+    SVECTOR*              pos;
+    s32                   idx;
+
+    idx    = arg0->spawnArg1;
+    enemy  = arg0->field_20;
+    work   = &D_actor_503500_801770E8[idx];
+    pos    = &D_actor_503500_8016F210[idx];
+    coord  = arg0->extra->field_8;
+    parent = arg0->parent;
+    Mem_Set(work, 0, 0xF4);
+    arg0->field_1C = (Actor503500Work*)work;
+
+    parts                        = ((TmdObject*)parent->extra)->field_8;
+    *(s32*)&coord->coord.m[0][0] = 0x1000;
+    coord->sub                   = &parts[1];
+    mtx                          = &coord->coord;
+    *(s32*)&mtx->m[0][2]         = 0;
+    *(s32*)&mtx->m[1][1]         = 0x1000;
+    *(s32*)&mtx->m[2][0]         = 0;
+    mtx->m[2][2]                 = 0x1000;
+    enemy->field_4               = mtx;
+    enemy->field_48              = 0;
+    enemy->field_18              = coord;
+    enemy->node.field_4          = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->field_1C.vx           = pos->vx;
+    enemy->field_1C.vy           = pos->vy;
+    enemy->field_1C.vz           = pos->vz;
+    rec                          = work->rec;
+    enemy->field_50              = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54              = (s32)rec;
+    enemy->field_40              = enemy->field_50->field_4;
+
+    work->obj.field_8  = coord;
+    work->obj.field_C  = rec;
+    work->obj.field_10 = pos->vx;
+    work->obj.field_12 = pos->vy;
+    work->obj.field_14 = pos->vz;
+    work->obj.field_18 = 0x30023;
+    work->obj.field_1C = 0x190;
+    work->obj.flags    = 1;
+    Gp_LinkObj(2, &work->obj);
+    Gp_InitRec18Table(rec, 8, 0);
+    work->field_E4   = 0x600;
+    work->field_E0   = coord;
+    work->field_E6   = 3;
+    work->obj.flags &= 0x7FFF;
+    func_actor_503500_8013DBA8(arg0, 0);
+    arg0->exitCallback = (TaskFunc)func_actor_503500_8013D85C;
+    arg0->state       += 1;
+}
+
+INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_7", D_actor_503500_80132060);
+
+INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_8013CCBC);
+
+/// Sub-state 2 of the second 0xF4 block, stepped by `field_F1`: phase 0
+/// applies the boss's preset 0xA; from frame 0x14 phase 1 spawns one child
+/// from `D_actor_503500_8016E9F0`, placed at the offset
+/// `D_actor_503500_8016F258` in the actor's frame and turned by
+/// `D_actor_503500_8016F260` (both mirrored for slot 8); phase 2 hands off
+/// once `func_actor_503500_80136014` reports preset 0xA flagged.
+void func_actor_503500_8013D1CC(Actor503500* arg0)
+{
+    SVECTOR               pos;
+    SVECTOR               ofs;
+    MATRIX                m;
+    Actor503500Work770E8* work;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        dst;
+    Task*                 task;
+    s32*                  src;
+    s32*                  out;
+    s32                   i;
+    s32                   t;
+
+    work  = (Actor503500Work770E8*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_8013DBA8(arg0, 1);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_F1) {
+        case 0:
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0xA, 0x10);
+            work->field_F1++;
+            break;
+        case 1:
+            if ((s16)++work->field_EC < 0x14) {
+                break;
+            }
+            task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 1, 1, 0xC00000);
+            if (task != NULL) {
+                Gp_ComposeParentWorld(coord, &m, &pos);
+                dst    = ((TmdObject*)task->extra)->field_8;
+                ofs.vx = D_actor_503500_8016F258.vx;
+                ofs.vy = D_actor_503500_8016F258.vy;
+                ofs.vz = D_actor_503500_8016F258.vz;
+                if (arg0->spawnArg1 == 8) {
+                    t      = ofs.vx;
+                    ofs.vx = -t;
+                }
+                gte_SetRotMatrix(&m);
+                gte_ldv0(&ofs);
+                gte_rtv0_real();
+                gte_stsv(&ofs);
+                dst->coord.t[0] = pos.vx + ofs.vx;
+                dst->coord.t[1] = pos.vy + ofs.vy;
+                dst->coord.t[2] = pos.vz + ofs.vz;
+                out             = (s32*)&dst->coord;
+                src             = (s32*)&m;
+                for (i = 0; i < 4; i++) {
+                    *out++ = *src++;
+                }
+                dst->coord.m[2][2] = m.m[2][2];
+                pos.vx             = D_actor_503500_8016F260.vx;
+                pos.vy             = D_actor_503500_8016F260.vy;
+                pos.vz             = D_actor_503500_8016F260.vz;
+                if (arg0->spawnArg1 == 8) {
+                    t      = pos.vy;
+                    pos.vy = -t;
+                }
+                RotMatrixZYX(&pos, &m);
+                gte_SetRotMatrix(&dst->coord);
+                gte_ldclmv(&m);
+                gte_rtir_real();
+                gte_stclmv(&dst->coord);
+                gte_ldclmv((char*)&m + 2);
+                gte_rtir_real();
+                gte_stclmv((char*)&dst->coord + 2);
+                gte_ldclmv((char*)&m + 4);
+                gte_rtir_real();
+                gte_stclmv((char*)&dst->coord + 4);
+            }
+            work->field_F1++;
+            break;
+        case 2:
+            if (func_actor_503500_80136014((Actor503500*)arg0->parent, 0xA) != 0) {
+                func_actor_503500_8013DBA8(arg0, 1);
+            }
+            break;
+    }
+}
+
+/// Sub-state 3 of the second 0xF4 block, stepped by `field_F1`: phase 0 is
+/// the death setup shared with `func_actor_503500_8013F4A4`; phase 1 spawns an
+/// effect per frame from a slot-dependent offset table for 6 frames, then a
+/// final burst of three; the last phase keeps counting to 0x1F and leaves.
+void func_actor_503500_8013D558(Actor503500* arg0)
+{
+    Actor503500Work770E8* work;
+    GsCOORDINATE2*        coord;
+    SVECTOR*              vec;
+    s32                   pan;
+
+    work  = (Actor503500Work770E8*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_F1) {
+        case 0:
+            work->obj.flags         &= 0x7FFF;
+            arg0->field_20->field_54 = 0;
+            Gp_UnlinkNode(&arg0->field_20->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            arg0->field_20->field_4C &= 0xF0;
+            pan                       = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_F1++;
+            break;
+        case 1:
+            if (arg0->spawnArg1 == 7) {
+                vec = D_actor_503500_8016F278;
+            } else {
+                vec = D_actor_503500_8016F290;
+            }
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 2) != 0) {
+                Gp_SpawnEff(0x60055, coord, 0x01001C00, &vec[(s16)((s16)work->field_EC % 3)]);
+            }
+            if ((s16)work->field_EC++ >= 5) {
+                if (func_actor_503500_801360BC(arg0->spawnArg1, 6) != 0) {
+                    Gp_SpawnEff(0x6018C, coord, 0x04404600, &vec[0]);
+                    Gp_SpawnEff(0x6018C, coord, 0x05404600, &vec[1]);
+                    Gp_SpawnEff(0x6018C, coord, 0x06404600, &vec[2]);
+                }
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                work->field_F1++;
+            }
+            break;
+        default:
+            work->field_EC++;
+            if ((s16)work->field_EC >= 0x1F) {
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                arg0->state++;
+            }
+            break;
+    }
+}
+
+/// Per-frame tick of the second 0xF4 block, the same shape as
+/// `func_actor_503500_8013BBCC`: frozen mode 1 skips the frame entirely,
+/// mode 2 only marks the enemy's link node, and anything else clears the
+/// coordinate flag and runs the normal chain.
+void func_actor_503500_8013D7D4(Actor503500* arg0)
+{
+    GpEnemy*       enemy;
+    GsCOORDINATE2* coord;
+
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+    if (D_801153F4 == 1) {
+        return;
+    }
+    if (D_801153F4 == 2) {
+        enemy->node.field_4 |= 1;
+        return;
+    }
+    coord->flg = 0;
+    if (enemy->field_4C != 0) {
+        func_actor_503500_8013D8BC(arg0);
+    }
+    func_actor_503500_8013D914(arg0);
+    func_actor_503500_8013D990(arg0);
+}
+void func_actor_503500_8013D85C(Actor503500* arg0)
+{
+    GpEnemy* enemy;
+
+    enemy                                       = arg0->field_20;
+    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    Gp_UnlinkObj(&arg0->field_1C->obj);
+    enemy->field_54 = 0;
+    arg0->field_1C  = NULL;
+    Gp_DestroyEnemy(enemy, (Task*)arg0);
+}
+void func_actor_503500_8013D8BC(Actor503500* arg0)
+{
+    GpEnemy* enemy = arg0->field_20;
+
+    if (enemy->field_4C & 1) {
+        enemy->field_4C &= ~1;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= ~2;
+    }
+    if (enemy->field_4C & 0xC) {
+        enemy->field_4C &= ~0xC;
+    }
+}
+
+void func_actor_503500_8013D914(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_E8 != 0) {
+        timer          = (u16)work->field_E8 - 1;
+        work->field_E8 = timer;
+        if (timer < 0) {
+            work->field_E8 = 0;
+        }
+    }
+    if (func_actor_503500_80136208() == 0) {
+        func_actor_503500_8013CCBC(arg0, work, &work->rec, 8);
+    }
+    Gp_ClearRec18Occupied(&work->rec);
+}
+void func_actor_503500_8013D990(Actor503500* arg0)
+{
+    s8 temp_v1;
+
+    temp_v1 = arg0->field_1C->field_F0;
+    switch (temp_v1) {
+        case 0:
+            func_actor_503500_8013DC4C(arg0);
+            break;
+        case 1:
+            func_actor_503500_8013DA2C(arg0, 0x258);
+            break;
+        case 2:
+            func_actor_503500_8013D1CC(arg0);
+            break;
+        case 3:
+            func_actor_503500_8013D558(arg0);
+            break;
+    }
+}
+
+/// Sub-state 1 of the second 0xF4 block: counts `field_EA` up to `arg1`
+/// frames, then - if slot `kind` is free - respawns the two slot enemies,
+/// each primed to die in 9 frames with a fifth of this enemy's HP (at least
+/// 1), and drops back to sub-state 0 with the node unlinked. A pending
+/// kill (`killCountdown == 2`) moves it to sub-state 2 instead.
+void func_actor_503500_8013DA2C(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GpEnemy*         child;
+    s32              kind;
+    s32              slotA;
+    s32              slotB;
+    s32              hp;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (arg1 < ++work->field_EA) {
+        kind = 3;
+        if (arg0->spawnArg1 == 7) {
+            kind  = 2;
+            slotA = 0xD;
+            slotB = 0xE;
+        } else {
+            slotA = 0xF;
+            slotB = 0x10;
+        }
+        if (func_actor_503500_80135E04(arg0->parent, kind) != 0) {
+            child = func_actor_503500_80135D00((Actor503500*)arg0->parent, slotA);
+            hp    = (s16)(enemy->field_40 / 5);
+            if (hp <= 0) {
+                hp = 1;
+            }
+            if (child != NULL) {
+                child->task->killCountdown = 9;
+                child->field_40            = hp;
+            }
+            child = func_actor_503500_80135D00((Actor503500*)arg0->parent, slotB);
+            if (child != NULL) {
+                child->task->killCountdown = 9;
+                child->field_40            = hp;
+            }
+            work->field_EA = 0;
+        }
+        func_actor_503500_8013DBA8(arg0, 0);
+        work->obj.flags &= 0x7FFF;
+        Gp_UnlinkNode(&enemy->node);
+        work->field_E8 = 0;
+        return;
+    }
+    if (arg0->killCountdown == 2) {
+        func_actor_503500_8013DBA8(arg0, 2);
+        arg0->killCountdown = 0;
+    }
+}
+
+/// The second 0xF4 block's counterpart of `func_actor_503500_8013BE48`: puts
+/// the block into sub-state `arg1` (the one `func_actor_503500_8013D990`
+/// dispatches on), clears the phase and the two counters that go with it,
+/// cancels a pending kill, and records the slot's halfword as "asked to die"
+/// for every sub-state but 1.
+void func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1)
+{
+    Actor503500Work770E8* work = (Actor503500Work770E8*)arg0->field_1C;
+
+    work->field_F0      = arg1;
+    work->field_F1      = 0;
+    work->field_EC      = 0;
+    work->field_EE      = 0;
+    arg0->killCountdown = 0;
+    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1, arg1 != 1);
+}
+void func_actor_503500_8013DBF4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80132060;
+    sp.funcs[task->state](task);
+}
+
+void func_actor_503500_8013DC4C(Actor503500* arg0)
+{
+    Actor503500Work* work;
+    s32              kind;
+    s32              slotA;
+    s32              slotB;
+
+    kind = 3;
+    if (arg0->spawnArg1 == 7) {
+        kind  = 2;
+        slotA = 0xD;
+        slotB = 0xE;
+    } else {
+        slotA = 0xF;
+        slotB = 0x10;
+    }
+    if ((func_actor_503500_80135E04(arg0->parent, kind) != 0) &&
+        (func_actor_503500_80135E04(arg0->parent, slotA) != 0) &&
+        (func_actor_503500_80135E04(arg0->parent, slotB) != 0)) {
+        func_actor_503500_8013DBA8(arg0, 1);
+        work             = arg0->field_1C;
+        work->obj.flags |= 0x8000;
+        Gp_LinkNode(&arg0->field_20->node);
+    }
+}
+
+/// State-0 init of the 0xF0 enemy at `D_actor_503500_8017797C`, the same shape
+/// as `func_actor_503500_8013BEE4`: clears the block, resets the task's own
+/// coordinate to a plain 4096 identity, parents it to part 1 of the parent
+/// task's model, links the enemy node and its display node, and starts the
+/// block in sub-state 0.
+void func_actor_503500_8013DD10(Actor503500* arg0)
+{
+    GpEnemy*       enemy;
+    Task*          parent;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parts;
+    MATRIX*        mtx;
+    GpRec18*       rec;
+
+    coord  = arg0->extra->field_8;
+    enemy  = arg0->field_20;
+    parent = arg0->parent;
+    Mem_Set(&D_actor_503500_8017797C, 0, 0xF0);
+    arg0->field_1C = &D_actor_503500_8017797C;
+
+    parts                        = ((TmdObject*)parent->extra)->field_8;
+    *(s32*)&coord->coord.m[0][0] = 0x1000;
+    coord->sub                   = &parts[1];
+    mtx                          = &coord->coord;
+    *(s32*)&mtx->m[0][2]         = 0;
+    *(s32*)&mtx->m[1][1]         = 0x1000;
+    *(s32*)&mtx->m[2][0]         = 0;
+    mtx->m[2][2]                 = 0x1000;
+    enemy->field_4               = mtx;
+    enemy->field_48              = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->field_18     = coord;
+    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->field_1C.vx  = D_actor_503500_8016F2D8.vx;
+    enemy->field_1C.vy  = D_actor_503500_8016F2D8.vy;
+    enemy->field_1C.vz  = D_actor_503500_8016F2D8.vz;
+    rec                 = &D_actor_503500_8017797C.rec;
+    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54     = (s32)rec;
+    enemy->field_40     = enemy->field_50->field_4;
+
+    D_actor_503500_8017797C.obj.field_8  = coord;
+    D_actor_503500_8017797C.obj.field_C  = rec;
+    D_actor_503500_8017797C.obj.field_18 = 0x30023;
+    D_actor_503500_8017797C.obj.field_1C = 0x3E8;
+    D_actor_503500_8017797C.obj.flags    = 1;
+    D_actor_503500_8017797C.obj.field_10 = D_actor_503500_8016F2D8.vx;
+    D_actor_503500_8017797C.obj.field_12 = D_actor_503500_8016F2D8.vy;
+    D_actor_503500_8017797C.obj.field_14 = D_actor_503500_8016F2D8.vz;
+    Gp_LinkObj(2, &D_actor_503500_8017797C.obj);
+    Gp_InitRec18Table(rec, 8, 0);
+    D_actor_503500_8017797C.field_E4   = 0x600;
+    D_actor_503500_8017797C.field_E0   = coord;
+    D_actor_503500_8017797C.field_E6   = 3;
+    D_actor_503500_8017797C.obj.flags |= 0x8000;
+    func_actor_503500_8013EC20(arg0, 0);
+    arg0->exitCallback = (TaskFunc)func_actor_503500_8013EA2C;
+    arg0->state       += 1;
+}
+INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_7", D_actor_503500_80132098);
+
 /// Applies this frame's hits from the collision records `arg2[0..arg3)`, the
 /// same pass as `func_actor_503500_80137C90` for this form: each attack id is
 /// taken once, only type-2 ids land while the `field_E8` countdown is clear,

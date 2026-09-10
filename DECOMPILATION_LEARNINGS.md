@@ -58984,3 +58984,19 @@ one header block.
 directly in front of it (`func_actor_503500_80135950` here). So a name-set diff
 before and after a move can report one false swap. Count the bodies and run
 `check_lost_matches.py`.
+**Second use.** `func_actor_503500_8013C088` hit the same pad one boundary
+earlier (table at `_6` offset `0x10C`). The slide worked again: `units` `0xC094` ->
+`0xA268`, `_7`'s `rodata` `0x288` -> `0x218` (`0x70` apart, so `_7`'s existing
+table stays 8-aligned). Try the slide before adding a unit. Adding one renumbers
+every later file, and a lane that renumbers cannot be landed by filename.
+
+### Scratch `base.c` drops the host file's `<psyq/...>` includes and local `#define`s
+**Symptom.** A port of a matched sibling scores ~91% and the only diff is
+`jal gte_SetRotMatrix` / `jal gte_ldv0` / `jal gte_stsv` in place of the inline
+`ctc2`/`lwc2`/`mfc2` sequences. The build has no error: without
+`<psyq/inline_c.h>` each `gte_*` macro is an implicitly declared function.
+**Cause.** The bootstrap prelude copies the host's `#include "..."` lines but not
+`#include <psyq/abs.h>`, `<psyq/inline_c.h>`, `<psyq/libgpu.h>`, or file-local
+macros such as `actor_503500_6.c`'s `gte_rtv0_real()`.
+**Fix.** Copy the host file's angle-bracket includes and its `#define` block into the
+scratch source. `func_actor_503500_8013C088` went from 91.5% to 100% on that change alone.
