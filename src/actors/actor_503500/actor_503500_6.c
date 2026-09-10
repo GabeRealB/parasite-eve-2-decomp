@@ -95,6 +95,8 @@ extern RECT                 D_actor_503500_8016F100;
 extern SVECTOR D_actor_503500_8016F168[];
 /// Declared in `gameplay/gameplay.h`, which conflicts with this TU's headers.
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+/// Effect offsets `func_actor_503500_80137678` cycles through, three entries.
+extern SVECTOR D_actor_503500_8016F078[];
 /// Effect offsets `func_actor_503500_80139014` cycles through, three entries.
 extern SVECTOR D_actor_503500_8016F0D0[];
 /// The same three-entry cycle for `func_actor_503500_80140654`.
@@ -1053,7 +1055,156 @@ void func_actor_503500_801374BC(Actor503500* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80131F4C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80137678);
+/// Death state of the 0x160 enemy at `D_actor_503500_80176D88`: phase 0
+/// unlinks the enemy node and clears the 16.16 `rot` / `vel` / `pos`; phase 2
+/// steps `rot.vx` down for 31 frames, then re-parents the coordinate onto the
+/// view in world space, points `vel` along its Z axis and plays 0x40230004;
+/// phases 3/4 accelerate `vel.vy`, and phase 4 fires the light and sound cues
+/// on frames 10/30 and leaves on frame 40. Every frame the angles and position
+/// are applied to the coordinate, and every even frame sprays an effect from
+/// `D_actor_503500_8016F078`.
+void func_actor_503500_80137678(Actor503500* arg0)
+{
+    SVECTOR              rot;
+    Actor503500IdentMat  m;
+    Actor503500MatWords* ident;
+    Actor503500Work*     work;
+    GpEnemy*             enemy;
+    GsCOORDINATE2*       coord;
+    s32*                 src;
+    s32*                 out;
+    s32                  i;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+    switch (work->field_15D) {
+        case 0:
+            work->slot40.obj.flags &= 0x7FFF;
+            enemy->field_54         = 0;
+            Gp_UnlinkNode(&enemy->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_158 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            enemy->field_4C &= 0xF0;
+            work->rot.vx.w   = 0;
+            work->rot.vy.w   = 0;
+            work->rot.vz.w   = 0;
+            work->vel.vx.w   = 0;
+            work->vel.vy.w   = 0;
+            work->vel.vz.w   = 0;
+            work->pos.vx.w   = 0;
+            work->pos.vy.w   = 0;
+            work->pos.vz.w   = 0;
+            work->field_15D++;
+            break;
+        case 1:
+            work->field_15D++;
+            break;
+        case 2:
+            work->rot.vx.w -= 0x4000;
+            if ((s16)++work->field_15A >= 0x1F) {
+                src   = (s32*)&m;
+                coord = arg0->extra->field_8;
+                Gp_ComposeParentWorld(coord, &m.mat, &rot);
+                out = (s32*)&coord->coord;
+                for (i = 0; i < 4; i++) {
+                    *out++ = *src++;
+                }
+                coord->coord.m[2][2] = m.mat.m[2][2];
+                coord->coord.t[0]    = rot.vx;
+                coord->coord.t[1]    = rot.vy;
+                coord->coord.t[2]    = rot.vz;
+                coord->sub           = &Gfx_ViewCoord;
+                work->vel.vx.w       = 0;
+                work->vel.vy.w       = 0;
+                work->vel.vz.w       = 0x100000;
+                ApplyMatrixLV(&m.mat, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
+                func_actor_503500_80135D00((Actor503500*)arg0->parent, 0xC);
+                Gp_UpdateCoord(coord);
+                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                work->field_15A = 0;
+                work->field_15D++;
+            }
+            break;
+        case 3:
+            work->vel.vy.w += 0x8000;
+            if ((s16)++work->field_15A >= 0x1F) {
+                work->field_15A = 0;
+                work->field_15D++;
+            }
+            break;
+        case 4:
+            work->vel.vy.w += 0x8000;
+            switch ((s16)work->field_15A) {
+                case 10:
+                    arg0->extra->field_C |= 2;
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                        (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                    break;
+                case 30:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+                case 40:
+                    SndEvt_EnqueueType7(0xD, 1);
+                    arg0->state++;
+                    break;
+            }
+            work->field_15A++;
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+    rot.vx          = work->rot.vx.w >> 16;
+    rot.vy          = work->rot.vy.w >> 16;
+    rot.vz          = work->rot.vz.w >> 16;
+    m.ident.m00_m01 = 0x1000;
+    m.ident.m02_m10 = 0;
+    ident           = &m.ident;
+    ident->m11_m12  = 0x1000;
+    m.ident.m20_m21 = 0;
+    ident->m22      = 0x1000;
+    RotMatrix(&rot, &m.mat);
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldclmv(&m.mat);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord);
+    gte_ldclmv((char*)&m.mat + 2);
+    gte_rtir_real();
+    gte_stclmv((char*)&coord->coord + 2);
+    gte_ldclmv((char*)&m.mat + 4);
+    gte_rtir_real();
+    gte_stclmv((char*)&coord->coord + 4);
+    work->pos.vx.w    += work->vel.vx.w;
+    work->pos.vy.w    += work->vel.vy.w;
+    work->pos.vz.w    += work->vel.vz.w;
+    coord->coord.t[0] += work->pos.vx.h.hi;
+    coord->coord.t[1] += work->pos.vy.h.hi;
+    coord->coord.t[2] += work->pos.vz.h.hi;
+    work->pos.vx.w     = (u16)work->pos.vx.w;
+    work->pos.vy.w     = (u16)work->pos.vy.w;
+    work->pos.vz.w     = (u16)work->pos.vz.w;
+    coord->flg         = 0;
+    if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
+        switch ((u32)D_80070F70 % 6) {
+            case 0:
+            case 2:
+            case 4:
+                Gp_SpawnEff(0x60070, coord, 0xB0008600,
+                            &D_actor_503500_8016F078[(s8)(work->field_15F++ % 3)]);
+                break;
+        }
+    }
+    if (Game_Session->field_1 != 0 && Game_Session->field_4D != 0 && work->field_15D >= 3) {
+        SndEvt_EnqueueType7(0xD, 1);
+        arg0->state = 2;
+    }
+}
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the enemy, like `func_actor_503500_8013EE5C`: each attack id is taken once,

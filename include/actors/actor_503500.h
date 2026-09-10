@@ -156,6 +156,16 @@ typedef struct Actor503500Step {
     u32 weight;
 } Actor503500Step;
 
+/// A 16.16 world position: `func_actor_503500_80144520` reads each
+/// component's high half (`lh` at +2) back into `GsCOORDINATE2.coord.t[]`.
+typedef struct Actor503500FixVec {
+    /* 0x0 */ GpFixed16 vx;
+    /* 0x4 */ GpFixed16 vy;
+    /* 0x8 */ GpFixed16 vz;
+    /* 0xC */ s32       pad;
+} Actor503500FixVec;
+STATIC_ASSERT_SIZEOF(Actor503500FixVec, 0x10);
+
 typedef struct Actor503500Work {
     /* 0x000 */ GpObj   obj; // the display node Gp_UnlinkObj takes
     /* 0x020 */ GpRec18 rec; // collision table; 0xF0 enemies pass count 8
@@ -195,22 +205,28 @@ typedef struct Actor503500Work {
     /* 0x120 */ GsCOORDINATE2* field_120;
     /* 0x124 */ s16            field_124;
     /* 0x126 */ s16            field_126;
-    /* 0x128 */ byte           pad_128[0x30];
+    /// 16.16 Euler angles, velocity and position of the 0x160 block's death
+    /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
+    /// build the rotation and the position's high halves are added onto the
+    /// coordinate's translation each frame.
+    /* 0x128 */ Actor503500FixVec rot;
+    /* 0x138 */ Actor503500FixVec vel;
+    /* 0x148 */ Actor503500FixVec pos;
     /// Per-frame countdown of the 0x160 block, stepped down and floored at 0 by
     /// `func_actor_503500_801382FC`.
     /* 0x158 */ s16 field_158;
     /// Frame counter of the 0x160 block's sub-state, stepped by
     /// `func_actor_503500_801374BC` / `_80137678` and reset whenever
     /// `field_15C` changes.
-    /* 0x15A */ u16  field_15A;
-    /* 0x15C */ s8   field_15C; // sub-state index
-    /* 0x15D */ s8   field_15D; // sub-state phase, cleared with field_15C
-    /* 0x15E */ s8   field_15E; // seeded to -1 by func_actor_503500_801372C8
-    /* 0x15F */ byte pad_15F[0x1];
-    /// The two display nodes of the 0x3D8 block, linked by
-    /// `func_actor_503500_8013FA74` and both handed back to `Gp_UnlinkObj` by
-    /// `func_actor_503500_80141D04`. The 0x224 block puts a node at 0x160 too
-    /// (`Actor503500Work224::obj2`); the shorter blocks stop before it.
+    /* 0x15A */ u16 field_15A;
+    /* 0x15C */ s8  field_15C; // sub-state index
+    /* 0x15D */ s8  field_15D; // sub-state phase, cleared with field_15C
+    /* 0x15E */ s8  field_15E; // seeded to -1 by func_actor_503500_801372C8
+    /* 0x15F */ s8  field_15F; // effect-offset index, taken mod 3
+                               /// The two display nodes of the 0x3D8 block, linked by
+                               /// `func_actor_503500_8013FA74` and both handed back to `Gp_UnlinkObj` by
+                               /// `func_actor_503500_80141D04`. The 0x224 block puts a node at 0x160 too
+                               /// (`Actor503500Work224::obj2`); the shorter blocks stop before it.
     /* 0x160 */ GpObj obj160;
     /// Record table of `obj160`, passed with count 8 by
     /// `func_actor_503500_801420C4`, so the 0x3D8 block's table really runs to
@@ -620,16 +636,6 @@ typedef struct Actor503500WorkAC {
     /* 0xA9 */ byte                pad_A9[0x3];
 } Actor503500WorkAC;
 STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
-
-/// A 16.16 world position: `func_actor_503500_80144520` reads each
-/// component's high half (`lh` at +2) back into `GsCOORDINATE2.coord.t[]`.
-typedef struct Actor503500FixVec {
-    /* 0x0 */ GpFixed16 vx;
-    /* 0x4 */ GpFixed16 vy;
-    /* 0x8 */ GpFixed16 vz;
-    /* 0xC */ s32       pad;
-} Actor503500FixVec;
-STATIC_ASSERT_SIZEOF(Actor503500FixVec, 0x10);
 
 /// The 0xC0 block `func_actor_503500_80144300` allocates: the display node,
 /// the four-entry `GpRec18` table its `field_C` points at, the effect task it
