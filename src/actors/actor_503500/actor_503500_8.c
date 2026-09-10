@@ -703,7 +703,111 @@ void func_actor_503500_8013CAE4(Actor503500* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_8", D_actor_503500_80132060);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_8013CCBC);
+/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
+/// this form - the same pass as `func_actor_503500_8013C088`: each attack id
+/// is taken once, only type-2 ids land while the `field_E8` countdown is
+/// clear, and a hit that empties `field_40` starts death sub-state 3. The hit
+/// effect is pulled to 200 units along the contact offset and shifted by this
+/// slot's `D_actor_503500_8016F210` entry. `arg1` is passed but unused.
+void func_actor_503500_8013CCBC(Actor503500* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3)
+{
+    VECTOR           d;
+    SVECTOR          pos;
+    MATRIX           mtx;
+    MATRIX           rot;
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   src;
+    s16              stun;
+    u32              id;
+    s32              dmg;
+    s32              crit;
+    s32              scale;
+    s32              i;
+    s32              j;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    for (i = 0; i < arg3; i++) {
+        id = arg2[i].field_4;
+        for (j = 0; j < i; j++) {
+            if (arg2[j].field_4 == id) {
+                goto next;
+            }
+        }
+        if ((id & 0xFFFF0000) == 0x10000) {
+            continue;
+        }
+        if ((id & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        if (work->field_E8 != 0) {
+            continue;
+        }
+        src = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        d.vx = src->coord.t[0] - pos.vx;
+        d.vy = src->coord.t[1] - pos.vy;
+        d.vz = src->coord.t[2] - pos.vz;
+        crit = 0;
+        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
+        if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+            dmg *= 4;
+            crit = 1;
+        }
+        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        func_800DA6E8(&enemy->node, dmg, 0);
+        enemy->field_40 -= dmg;
+        if (enemy->field_40 <= 0) {
+            func_actor_503500_8013DBA8(arg0, 3);
+        }
+        switch (Gp_GetIdParam0(id) & 0xFFFF) {
+            case 0:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                break;
+            case 1:
+                Gp_SetObjFlag1((GpObj4C*)enemy);
+                break;
+            case 2:
+                Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                break;
+            case 3:
+                Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                break;
+        }
+        TRANSPOSE_ROT(&coord->workm, &rot);
+        pos.vx = arg2[i].field_8 - coord->workm.t[0];
+        pos.vy = arg2[i].field_A - coord->workm.t[1];
+        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        scale  = 0xC8000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
+        pos.vx = pos.vx * scale / 4096;
+        pos.vy = pos.vy * scale / 4096;
+        pos.vz = pos.vz * scale / 4096;
+        gte_SetRotMatrix(&rot);
+        gte_ldv0(&pos);
+        gte_rtv0_real();
+        gte_stsv(&pos);
+        pos.vx += D_actor_503500_8016F210[arg0->spawnArg1].vx;
+        pos.vy += D_actor_503500_8016F210[arg0->spawnArg1].vy;
+        pos.vz += D_actor_503500_8016F210[arg0->spawnArg1].vz;
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        if (crit != 0) {
+            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+        }
+        stun = Gp_GetIdParam2(id);
+        if (work->field_E8 < stun) {
+            work->field_E8 = stun;
+        }
+    next:;
+    }
+}
 
 /// Sub-state 2 of the second 0xF4 block, stepped by `field_F1`: phase 0
 /// applies the boss's preset 0xA; from frame 0x14 phase 1 spawns one child
