@@ -894,7 +894,55 @@ void func_actor_403100_80135F30(Task* arg0)
         obj->field_E                        = 0;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80136100);
+void func_actor_403100_80136100(Task* arg0)
+{
+    s16            angle;
+    s32            sound;
+    s32            y;
+    s32            z;
+    s32            pan;
+    u16            frame;
+    s32            depth;
+    GsCOORDINATE2* coord;
+
+    coord                               = ((TmdObject*)arg0->extra)->field_8;
+    angle                               = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+    D_actor_403100_80155808->field_5EC += 1;
+    D_actor_403100_80155808->field_600  = angle;
+    y                                   = -((s32)(rsin((s32)angle) << 0xD) >> 0x10);
+    coord->coord.t[1]                   = y;
+    if (y == 0) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+        Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x1E;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC < 0x11) {
+        D_actor_403100_80155808->field_82 = (u16)D_actor_403100_80155808->field_82 - 0x34;
+        coord->coord.t[2]                 = (s32)(coord->coord.t[2] - 0x10);
+        coord->coord.t[0]                 = (s32)(coord->coord.t[0] - 8);
+    }
+    frame = D_actor_403100_80155808->field_5EC;
+    if ((u32)(frame - 0x11) < 0xAU) {
+        D_actor_403100_80155808->field_82 = (u16)D_actor_403100_80155808->field_82 - 0x10;
+        z                                 = coord->coord.t[2] - 0x14;
+    } else if ((u16)(frame - 0x1B) < 0xAU) {
+        D_actor_403100_80155808->field_82 = (u16)D_actor_403100_80155808->field_82 - 0x10;
+        z                                 = coord->coord.t[2] - 0x20;
+    } else {
+        if ((u16)(frame - 0x25) < 0xAU) {
+            D_actor_403100_80155808->field_82 -= 0x10;
+        } else if ((u16)(frame - 0x2F) < 0xAU) {
+            D_actor_403100_80155808->field_82 -= 0xC;
+        } else if ((u16)(frame - 0x39) < 0xAU) {
+            D_actor_403100_80155808->field_82 -= 8;
+        }
+        z = coord->coord.t[2] - 0x40;
+    }
+    coord->coord.t[2] = z;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013631C);
 void func_actor_403100_80136610(Task* arg0)
 {
