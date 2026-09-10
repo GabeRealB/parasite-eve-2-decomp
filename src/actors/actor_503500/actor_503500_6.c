@@ -61,6 +61,13 @@ extern Actor503500Work D_actor_503500_801776A0;
 /// The same pair for the 0xF0 enemy at `D_actor_503500_8017797C`.
 extern SVECTOR         D_actor_503500_8016F2D8;
 extern Actor503500Work D_actor_503500_8017797C;
+/// Per-slot parent part index and local offset of the two 0xF0 enemies in
+/// `D_actor_503500_801774C0`, indexed by `spawnArg1 - 4`.
+extern s32                  D_actor_503500_8016F0E8[];
+extern SVECTOR              D_actor_503500_8016F0F0[];
+extern Actor503500Work774C0 D_actor_503500_801774C0[];
+extern RECT                 D_actor_503500_8016F100;
+void                        func_actor_503500_8013BC54(Actor503500* arg0);
 /// The same pair for the 0x160 enemy at `D_actor_503500_80176D88`: a world
 /// translation seeded into the task's own coordinate and the local offset its
 /// `GpEnemy::field_1C` and display node share.
@@ -921,7 +928,67 @@ void func_actor_503500_8013AD0C(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AD64);
+/// State-0 init of the 0xF0 enemies in spawn slots 4 and 5: clears the slot's
+/// block in `D_actor_503500_801774C0`, hangs the task's coordinate off the
+/// parent part the slot names, links the enemy and its display node, and
+/// hands the task to its exit callback.
+void func_actor_503500_8013AD64(Actor503500* arg0)
+{
+    GpEnemy*              enemy;
+    Task*                 parent;
+    GsCOORDINATE2*        coord;
+    MATRIX*               mtx;
+    GpRec18*              rec;
+    Actor503500Work774C0* work;
+    s32                   idx;
+
+    idx    = arg0->spawnArg1 - 4;
+    enemy  = arg0->field_20;
+    parent = arg0->parent;
+    work   = &D_actor_503500_801774C0[idx];
+    coord  = arg0->extra->field_8;
+    Mem_Set(work, 0, 0xF0);
+    arg0->field_1C = (Actor503500Work*)work;
+    work->field_EC = idx;
+
+    coord->sub                   = &((TmdObject*)parent->extra)->field_8[D_actor_503500_8016F0E8[idx]];
+    *(s32*)&coord->coord.m[0][0] = 0x1000;
+    mtx                          = &coord->coord;
+    *(s32*)&mtx->m[0][2]         = 0;
+    *(s32*)&mtx->m[1][1]         = 0x1000;
+    *(s32*)&mtx->m[2][0]         = 0;
+    mtx->m[2][2]                 = 0x1000;
+    enemy->field_4               = mtx;
+    enemy->field_48              = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->field_18      = coord;
+    enemy->node.field_4 |= 9;
+    enemy->field_1C.vx   = D_actor_503500_8016F0F0[idx].vx;
+    enemy->field_1C.vy   = D_actor_503500_8016F0F0[idx].vy;
+    enemy->field_1C.vz   = D_actor_503500_8016F0F0[idx].vz;
+    rec                  = &work->rec;
+    enemy->field_50      = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54      = (s32)rec;
+    enemy->field_40      = enemy->field_50->field_4;
+
+    work->obj.field_8  = coord;
+    work->obj.field_C  = rec;
+    work->obj.field_10 = D_actor_503500_8016F0F0[idx].vx;
+    work->obj.field_12 = D_actor_503500_8016F0F0[idx].vy;
+    work->obj.field_14 = D_actor_503500_8016F0F0[idx].vz;
+    work->obj.field_18 = 0x30023;
+    work->obj.field_1C = 0x5DC;
+    work->obj.flags    = 1;
+    Gp_LinkObj(2, &work->obj);
+    Gp_InitRec18Table(rec, 8, 0);
+    work->field_E4   = 0x600;
+    work->field_E0   = coord;
+    work->field_E6   = 3;
+    work->obj.flags |= 0x8000;
+    MoveImage(&D_actor_503500_8016F100, 0, 0x105);
+    arg0->exitCallback = (TaskFunc)func_actor_503500_8013BC54;
+    arg0->state       += 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_80131FF0);
 

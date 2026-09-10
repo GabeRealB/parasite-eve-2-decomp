@@ -441,6 +441,26 @@ typedef struct Actor503500Work770E8 {
 } Actor503500Work770E8;
 STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 
+/// Element of `D_actor_503500_801774C0`, the two 0xF0 blocks
+/// `func_actor_503500_8013AD64` clears for spawn slots 4 and 5. The shared
+/// `Actor503500Work` cannot be indexed at this stride, so the array gets its
+/// own type; the fields agree with the shared view, and the task's
+/// `field_1C` still points at the block through that view. `field_EC` holds
+/// the slot (`spawnArg1 - 4`) that selects this enemy's parent part and
+/// local offset.
+typedef struct Actor503500Work774C0 {
+    /* 0x00 */ GpObj          obj;
+    /* 0x20 */ GpRec18        rec;
+    /* 0x38 */ byte           pad_38[0xA8];
+    /* 0xE0 */ GsCOORDINATE2* field_E0;
+    /* 0xE4 */ s16            field_E4;
+    /* 0xE6 */ s16            field_E6;
+    /* 0xE8 */ byte           pad_E8[0x4];
+    /* 0xEC */ s8             field_EC;
+    /* 0xED */ byte           pad_ED[0x3];
+} Actor503500Work774C0;
+STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
+
 /// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
 /// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::idMap` slot -- that
 /// slot is not a `TaskIdMap` here. Unlike the tasks covered by
