@@ -306,7 +306,72 @@ void func_actor_403100_80138D08(Task* arg0)
     }
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138DB0);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138F88);
+void func_actor_403100_80138F88(Task* arg0)
+{
+    s32              message[6];
+    Actor403100Work* work;
+    s32              sound;
+    s32              y;
+    s32              pan;
+    s32              depth;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   part;
+
+    coords = ((TmdObject*)arg0->extra)->field_8;
+    part   = coords + 6;
+    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, D_actor_403100_80155808->field_610);
+    D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
+    D_actor_403100_80155808->field_610 = (u16)D_actor_403100_80155808->field_610 + 6;
+    y                                  = *(s32*)(u32)&coords->coord.t[1];
+    *(s32*)(u32)&coords->coord.t[1]    = y + (-y >> 6);
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_82  = 0xA00;
+    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_80132528(arg0);
+    if (Actor403100_TestFlags104()) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F000C;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        D_8007216C                      = 0xB;
+        *(s32*)(u32)&coords->coord.t[0] = -0x44C;
+        work                            = D_actor_403100_80155808;
+        SOFT_TOUCH_REG(work);
+        *(s32*)(u32)&coords->coord.t[2] = 0x1770;
+        *(s32*)(u32)&coords->coord.t[1] = 0;
+        work->field_82                  = 0xC00;
+        work->field_5E2                 = 0x10;
+        work->field_5DE                 = 0xC;
+        work->field_5DA                 = 2;
+        work->field_604                 = 0xD0;
+        work->field_608                 = -0x350;
+        work->field_A0                  = -0x110;
+        work->field_A2                  = 0x290;
+        work->field_80                  = 0;
+        work->field_84                  = 0;
+        work->field_5EC                 = 0;
+        work->field_A4                  = 0x60;
+        work->field_5FA                += 1;
+        part->coord.t[0]                = -0xBD0;
+        work->field_604                 = 0x30;
+        work->field_608                 = -0xD0;
+        work->field_A0                  = -0x150;
+        work->field_A2                  = 0x270;
+        work->field_A4                  = -0xA0;
+        part->coord.t[0]                = -0x1120;
+        work->field_47C.field_1C        = 0x500;
+        func_actor_403100_8013D74C(arg0);
+        D_actor_403100_80155808->field_664.b.field_667 = 0;
+        D_actor_403100_80155808->field_65F             = 0;
+        D_actor_403100_80155808->pad_660[0]            = 0;
+        D_actor_403100_80155808->field_5E8             = 0;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        func_actor_403100_8013D1B8(1, 0x3FF);
+        message[5] = 0x28;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)message, 0);
+        D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->field_40;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013922C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801395EC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80139818);
