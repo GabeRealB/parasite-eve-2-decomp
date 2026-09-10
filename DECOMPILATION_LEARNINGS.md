@@ -58413,3 +58413,34 @@ Check with `struct.unpack('>d', bytes.fromhex(...))` before trying literals.
 Scratch gotcha: maspsx expands `li.d` / `li.s` by splitting the raw line, so
 the `-dp` uid comment used to crash it (`could not convert string to float`);
 `build.sh` now strips the uid from those two pseudo-ops.
+
+## A cast store into a stack `MATRIX` is a "fixed scalar": it leaves the store chain and steals sched1 idle slots
+
+`func_actor_503500_8013852C` stalled at 80% with one callee-saved register too
+many: the target keeps the `D_8016F090[idx]` row pointer in `$v0` and the
+identity-matrix pointer in `$s0`, the build put the row pointer in `$s0` and
+needed `$s7`. Every source-order and pointer-naming variant produced identical
+assembly.
+
+The cause was the first identity store, `*(s32*)&m.m[0][0] = 0x1000` on a stack
+local. A cast indirection is a scalar MEM, and `fp+16` is a fixed address, so
+`fixed_scalar_and_varying_struct_p` (see "Struct-typing a body changes GCC
+2.8.1's aliasing") exempts it from the chain of `coord->coord.t[]` struct
+stores. It becomes an independent priority-2 store, and in sched1's backward
+pass it wins the load-latency idle slot on potential hazard (`.sched`: "insn N
+has a greater potential hazard"). That pushes the `a1` / `a0` argument moves
+into the next slots, so the `a0 = F0A0 + idx*8` add lands *before* the
+`F090 + idx*8` row add. `idx*8` then dies at the row add, local-alloc ties the
+row pointer into `idx`'s call-crossing `$s0` quantity, and the matrix pointer
+needs a fresh saved register.
+
+Writing that one store as a struct member of a word-view union
+(`m.ident.m00_m01 = 0x1000`, the rest through `ident = &m.ident`) makes it
+in-struct, so it conflicts with the `t[]` stores and stays in the chain; the
+argument moves fill the idle slots in the target's order and the function
+went from 80% to 100% (with three store-order fixes in later blocks).
+
+When a register-count mismatch traces back to *which pseudo dies first* in a
+straight-line block, read the `.sched` ready lists for idle slots before
+reordering statements: a stray independent store competing for those slots is
+a typing question, not an ordering one.

@@ -94,6 +94,17 @@ extern SVECTOR D_actor_503500_8016F290[];
 extern SVECTOR         D_actor_503500_8016F060;
 extern SVECTOR         D_actor_503500_8016F068;
 extern Actor503500Work D_actor_503500_80176D88;
+/// Per-slot tables of the 0x2EC enemies in `D_actor_503500_80176EE8`: world
+/// translation and rotation of the task's coordinate (indexed by
+/// `spawnArg1 - 2`), the local offset its `GpEnemy::field_1C` and display node
+/// share, and the vector seeded into `field_294` / `field_29C` (indexed by
+/// `spawnArg1`).
+extern SVECTOR            D_actor_503500_8016F090[];
+extern SVECTOR            D_actor_503500_8016F0A0[];
+extern SVECTOR            D_actor_503500_8016F0B0;
+extern Actor503500UVec    D_actor_503500_8016F0A8[];
+extern Actor503500Work2EC D_actor_503500_80176EE8[];
+void                      func_actor_503500_8013A900(Actor503500* arg0);
 /// Translation `func_actor_503500_801374BC` seeds into each of the two effect
 /// tasks it hangs off the task's own coordinate.
 extern SVECTOR D_actor_503500_8016F070;
@@ -1095,7 +1106,101 @@ void func_actor_503500_801384D4(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013852C);
+/// State-0 init of the 0x2EC enemies in spawn slots 2 and 3: clears the slot's
+/// block in `D_actor_503500_80176EE8`, hangs the task's coordinate off part 1
+/// of the parent's model at the slot's rotation, snapshots model parts 1..8,
+/// publishes the block's light and colour matrices, and links the enemy node
+/// and the display node.
+///
+/// The identity matrix's first word is stored through the union member and
+/// the rest through `ident`: the member store is a fixed-address struct
+/// reference, which keeps it in the store chain behind the `coord.t[]` writes
+/// so sched1 does not spend an idle slot on it. Through a cast pointer it
+/// would win that slot, the `RotMatrix` argument would be placed before the
+/// table row add, and `idx * 8` would drag the row pointer into `$s0`.
+void func_actor_503500_8013852C(Actor503500* arg0)
+{
+    GpEnemy*             enemy;
+    TmdObject*           tmd;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       part;
+    Actor503500Work2EC*  work;
+    GpRec18*             rec;
+    Actor503500IdentMat  m;
+    Actor503500MatWords* ident;
+    s32                  idx;
+    s32                  i;
+
+    idx   = arg0->spawnArg1 - 2;
+    enemy = arg0->field_20;
+    work  = &D_actor_503500_80176EE8[idx];
+    coord = arg0->extra->field_8;
+    tmd   = arg0->extra;
+    Mem_Set(work, 0, 0x2EC);
+    arg0->field_1C = (Actor503500Work*)work;
+
+    coord->sub        = &((TmdObject*)arg0->parent->extra)->field_8[1];
+    part              = &coord[8];
+    coord->coord.t[0] = D_actor_503500_8016F090[idx].vx;
+    coord->coord.t[1] = D_actor_503500_8016F090[idx].vy;
+    coord->coord.t[2] = D_actor_503500_8016F090[idx].vz;
+    m.ident.m00_m01   = 0x1000;
+    ident             = &m.ident;
+    ident->m02_m10    = 0;
+    ident->m11_m12    = 0x1000;
+    ident->m20_m21    = 0;
+    ident->m22        = 0x1000;
+    RotMatrix(&D_actor_503500_8016F0A0[idx], &m.mat);
+    MulMatrix0(&coord->coord, &m.mat, &coord->coord);
+    coord->flg = 0;
+    for (i = 1; i < 9; i++) {
+        work->mats[i] = coord[i].coord;
+    }
+    work->field_2E2 = 0x1000;
+    tmd->field_20   = &work->color;
+    tmd->field_E    = 0x12;
+    tmd->field_1C   = &work->light;
+    coord->flg      = 0;
+
+    work->field_2EB = -1;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->field_18     = part;
+    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->field_1C.vx  = D_actor_503500_8016F0B0.vx;
+    enemy->field_1C.vy  = D_actor_503500_8016F0B0.vy;
+    enemy->field_1C.vz  = D_actor_503500_8016F0B0.vz;
+    rec                 = work->rec;
+    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54     = (s32)rec;
+    enemy->field_40     = enemy->field_50->field_4;
+
+    work->obj.field_8  = part;
+    work->obj.field_C  = rec;
+    work->obj.field_10 = D_actor_503500_8016F0B0.vx;
+    work->obj.field_12 = D_actor_503500_8016F0B0.vy;
+    work->obj.field_14 = D_actor_503500_8016F0B0.vz;
+    work->obj.field_18 = 0x30023;
+    work->obj.field_1C = 0x320;
+    work->obj.flags    = 1;
+    Gp_LinkObj(2, &work->obj);
+    Gp_InitRec18Table(rec, 8, 0);
+    work->field_244    = 0x600;
+    work->field_240    = part;
+    work->field_246    = 3;
+    work->obj.flags   |= 0x8000;
+    work->field_29C.vx = D_actor_503500_8016F0A8[arg0->spawnArg1].vx;
+    work->field_29C.vy = D_actor_503500_8016F0A8[arg0->spawnArg1].vy;
+    work->field_29C.vz = D_actor_503500_8016F0A8[arg0->spawnArg1].vz;
+    work->field_294.vx = D_actor_503500_8016F0A8[arg0->spawnArg1].vx;
+    work->field_294.vy = D_actor_503500_8016F0A8[arg0->spawnArg1].vy;
+    work->field_294.vz = D_actor_503500_8016F0A8[arg0->spawnArg1].vz;
+    work->field_2D0    = 0x800000;
+    work->field_2E9    = 1;
+    arg0->exitCallback = (TaskFunc)func_actor_503500_8013A900;
+    arg0->state       += 1;
+}
 
 void func_actor_503500_80138898(Actor503500* arg0)
 {

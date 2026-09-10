@@ -317,6 +317,63 @@ typedef struct Actor503500Work3D8Mtx {
 } Actor503500Work3D8Mtx;
 STATIC_ASSERT_SIZEOF(Actor503500Work3D8Mtx, 0x160);
 
+/// Word-wise view of a `MATRIX` that `func_actor_503500_8013852C` uses to
+/// splat an identity rotation: five aligned stores instead of nine halfword
+/// ones, each word holding two adjacent `m[][]` entries.
+typedef struct Actor503500MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor503500MatWords;
+
+typedef union Actor503500IdentMat {
+    MATRIX              mat;
+    Actor503500MatWords ident;
+} Actor503500IdentMat;
+STATIC_ASSERT_SIZEOF(Actor503500IdentMat, 0x20);
+
+/// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
+/// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
+/// `Actor503500Work` cannot be indexed at this stride, and this block puts a
+/// coordinate / 0x244 / 0x246 trio at 0x240 where the shared view names the
+/// 0x3D8 block's `obj240`, so the array gets its own type; the task's
+/// `field_1C` still points at the block through the shared view, whose
+/// 0x2D4..0x2EB fields agree with the ones below. It opens with the light and
+/// colour matrices the init republishes on `TmdObject::field_1C` / `field_20`,
+/// then a private copy of model parts 1..8's `coord` matrices.
+typedef struct Actor503500Work2EC {
+    /* 0x000 */ MATRIX         light;
+    /* 0x020 */ MATRIX         color;
+    /* 0x040 */ MATRIX         mats[9];
+    /* 0x160 */ GpObj          obj;
+    /* 0x180 */ GpRec18        rec[8]; // Gp_InitRec18Table(rec, 8, 0)
+    /* 0x240 */ GsCOORDINATE2* field_240;
+    /* 0x244 */ s16            field_244;
+    /* 0x246 */ s16            field_246;
+    /* 0x248 */ byte           pad_248[0x4C];
+    /* 0x294 */ SVECTOR        field_294; // both seeded from D_actor_503500_8016F0A8
+    /* 0x29C */ SVECTOR        field_29C;
+    /* 0x2A4 */ byte           pad_2A4[0x2C];
+    /* 0x2D0 */ s32            field_2D0;
+    /* 0x2D4 */ s16            field_2D4; // sub-state index
+    /* 0x2D6 */ s16            field_2D6;
+    /* 0x2D8 */ s16            field_2D8; // per-frame countdown
+    /* 0x2DA */ s16            field_2DA;
+    /* 0x2DC */ byte           pad_2DC[0x2];
+    /* 0x2DE */ s16            field_2DE; // sub-state frame counter
+    /* 0x2E0 */ byte           pad_2E0[0x2];
+    /* 0x2E2 */ s16            field_2E2;
+    /* 0x2E4 */ s8             field_2E4; // sub-state phase, cleared with field_2D4
+    /* 0x2E5 */ s8             field_2E5;
+    /* 0x2E6 */ byte           pad_2E6[0x3];
+    /* 0x2E9 */ s8             field_2E9;
+    /* 0x2EA */ s8             field_2EA;
+    /* 0x2EB */ s8             field_2EB; // TMD buffer countdown
+} Actor503500Work2EC;
+STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
+
 /// Work block shape of the `actor_503500` effect tasks -- the ones whose
 /// state-0 init `Mem_Calloc`s the block instead of pointing `Task::idMap` at a
 /// static global: `func_actor_503500_80144300` (0xC0),
