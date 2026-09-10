@@ -117,7 +117,23 @@ void func_actor_403100_8013D88C(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013D8F4);
+void func_actor_403100_8013D8F4(Task* arg0)
+{
+    D_actor_403100_80155808->field_658 = -1;
+    D_actor_403100_80155808->field_618 = 0x1400;
+    Gp_StateC08.field_6                = Gp_StateC08.field_6 | 1;
+    Game_Session->field_12C            = 0;
+    D_actor_403100_8015580C->field_4C  = 0;
+    Gp_SetLightMode(arg0->spawnArg2, 0);
+    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    func_800E8614((s32)&D_80165FC0, 0);
+    arg0->state                        = 1;
+    D_actor_403100_80155808->field_5F8 = 0;
+    D_actor_403100_80155808->field_5FA = 0;
+    D_actor_403100_80155808->field_5F8 = 9;
+    D_actor_403100_80155808->field_5FA = 0;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013D9C4);
 void func_actor_403100_8013DA6C(void)
 {
