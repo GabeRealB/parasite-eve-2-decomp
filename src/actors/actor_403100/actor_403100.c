@@ -1517,7 +1517,291 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80136830);
+void func_actor_403100_80136830(Task* arg0)
+{
+    /* Share the scale and Euler workspaces to preserve the original frame. */
+    s32             identity;
+    TaskFuncTable11 stateHandlers;
+    union {
+        Actor403100VoidTable4 handlers;
+        struct {
+            VECTOR            scale;
+            Actor403100Matrix matrix;
+        } scaling;
+        struct {
+            SVECTOR           angles;
+            Actor403100Matrix matrix;
+        } rotation;
+    } scratch;
+    void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
+    WipSysConfig* config = &Wip_SysConfig;
+
+    s32          flashTimer;
+    s16          lightTimer;
+    s16          armTimer;
+    s32          countdown;
+    s32          flash;
+    u8*          head;
+    GpEnemy*     enemy;
+    s32          flags, zero, z;
+    void*        scratchHead;
+    void*        side;
+    void*        position;
+    GpActorWork* player;
+    void*        coordinates;
+    void*        center;
+    TmdObject*   obj;
+    void*        playerCoord;
+
+    obj           = arg0->extra;
+    player        = *Gp_ActorSlots;
+    stateHandlers = D_actor_403100_80131F34;
+    armTimer      = D_actor_403100_80155808->field_5E6;
+    if (armTimer != 0) {
+        if ((armTimer == 1) && (D_actor_403100_8015580C->field_40 > 0)) {
+            Gp_ArmStateF0(1);
+        }
+        D_actor_403100_80155808->field_5E6 = (s16)((u16)D_actor_403100_80155808->field_5E6 - 1);
+    }
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            if (player == NULL) {
+                D_actor_403100_80155808->field_628 = 0;
+            }
+            func_actor_403100_801331D4(arg0);
+            countdown = D_actor_403100_80155808->field_5D0;
+            if (countdown >= 0) {
+                D_actor_403100_80155808->field_5D0 = (s32)(countdown - 1);
+            }
+            if ((config->field_18 > 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+                if (D_actor_403100_8015580C->field_40 < (s16)(((s16)D_actor_403100_8015580C->field_42 * 0x23) / 100)) {
+                    D_actor_403100_80155808->field_65C = 1U;
+                } else {
+                    D_actor_403100_80155808->field_65C = 0U;
+                }
+            }
+            playerCoord                        = player->extra->field_8;
+            D_actor_403100_80155808->field_628 = func_actor_403100_8013D9C4(*(s16*)((u8*)playerCoord + 24), *(s16*)((u8*)playerCoord + 32), D_actor_403100_80155638);
+            {
+                scratch.handlers = D_actor_403100_80131E24;
+                scratch.handlers.funcs[D_actor_403100_80155808->field_5F2]();
+            }
+            stateHandlers.funcs[(s16)D_actor_403100_80155808->field_5F8](arg0);
+            if ((D_actor_403100_80155808->field_65C != 0) && (*(u8*)&D_actor_403100_80155808->pad_660[1] == 0) && (*(u8*)&D_actor_403100_80155808->pad_670[1] == 0)) {
+                D_actor_403100_80155808->field_5F8 = 9;
+                D_actor_403100_80155808->field_5FA = 0;
+            }
+            func_actor_403100_8013CBE0(arg0);
+            func_actor_403100_8013CDC0();
+            func_actor_403100_8013BA64(arg0);
+            func_actor_403100_801327CC(arg0);
+            flashTimer                              = D_actor_403100_80155808->field_5FE;
+            D_actor_403100_80155808->flags_634.half = (u16)D_actor_403100_80155808->field_B8.legacy.flags_104.half;
+            if (flashTimer != 0) {
+                if (flashTimer >= 0x10) {
+                    flash = rsin(D_80070F70 << 9) << 0xD;
+                } else {
+                    flash = rsin(D_80070F70 << 9) << 0xC;
+                }
+                Display_ClampField126(flash >> 0x18);
+                D_actor_403100_80155808->field_5FE = (s16)((u16)D_actor_403100_80155808->field_5FE - 1);
+            } else {
+                Display_ClampField126(0);
+            }
+            func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
+            SOFT_USE_REG(arg0);
+            identity = 0x1000;
+            USE_REG(identity);
+            {
+                MATRIX *       mtx, *dest;
+                GsCOORDINATE2* coords;
+                coords                               = ((TmdObject*)arg0->extra)->field_8;
+                D_actor_403100_80155808->field_82    = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
+                scratch.scaling.matrix.ident.m00_m01 = identity;
+                mtx                                  = &scratch.scaling.matrix.mat;
+                scratch.scaling.matrix.ident.m02_m10 = 0;
+                *(s32*)&mtx->m[1][1]                 = identity;
+                scratch.scaling.matrix.ident.m20_m21 = 0;
+                mtx->m[2][2]                         = identity;
+                func_8004BFF8(D_actor_403100_80155808->field_82, mtx);
+                dest          = &coords->coord;
+                dest->m[0][0] = scratch.scaling.matrix.mat.m[0][0];
+                dest->m[0][1] = scratch.scaling.matrix.mat.m[0][1];
+                dest->m[0][2] = scratch.scaling.matrix.mat.m[0][2];
+                dest->m[1][0] = scratch.scaling.matrix.mat.m[1][0];
+                dest->m[1][1] = scratch.scaling.matrix.mat.m[1][1];
+                dest->m[1][2] = scratch.scaling.matrix.mat.m[1][2];
+                dest->m[2][0] = scratch.scaling.matrix.mat.m[2][0];
+                dest->m[2][1] = scratch.scaling.matrix.mat.m[2][1];
+                dest->m[2][2] = scratch.scaling.matrix.mat.m[2][2];
+                coords->flg   = 0;
+                coords        = ((TmdObject*)arg0->extra)->field_8;
+                __asm__("la %0,%1" : "=r"(scratcharg0) : "m"(*(u8*)&scratch));
+                scratch.scaling.scale.vx             = 0x1400;
+                scratch.scaling.scale.vy             = 0x1400;
+                scratch.scaling.scale.vz             = 0x1400;
+                scratch.scaling.matrix.ident.m00_m01 = identity;
+                mtx                                  = &scratch.scaling.matrix.mat;
+                scratch.scaling.matrix.ident.m02_m10 = 0;
+                *(s32*)&mtx->m[1][1]                 = identity;
+                scratch.scaling.matrix.ident.m20_m21 = 0;
+                mtx->m[2][2]                         = identity;
+                ScaleMatrix(mtx, (VECTOR*)scratcharg0);
+                MulMatrix(&coords->coord, mtx);
+            }
+            func_actor_403100_801328DC(arg0);
+            {
+                MATRIX *mtx, *dest;
+                /* Kept across UpdateCoord; the unpinned lifetime displaces identity. */
+                register GsCOORDINATE2* coords asm("s3");
+                coords        = ((TmdObject*)arg0->extra)->field_8;
+                dest          = &coords[6].coord;
+                coords[6].flg = 0;
+                mtx           = &scratch.rotation.matrix.mat;
+                __asm__("la %0,%1" : "=r"(scratcharg1) : "m"(*(u8*)&scratch));
+                scratch.rotation.matrix.ident.m00_m01 = identity;
+                scratch.rotation.matrix.ident.m02_m10 = 0;
+                *(s32*)&mtx->m[1][1]                  = identity;
+                scratch.rotation.matrix.ident.m20_m21 = 0;
+                mtx->m[2][2]                          = identity;
+                Gp_MtxToEuler(dest, (SVECTOR*)scratcharg1);
+                __asm__("la %0,%1" : "=r"(scratcharg2) : "m"(*(u8*)&scratch));
+                scratch.rotation.angles.vz += D_actor_403100_80155808->field_A4;
+                scratch.rotation.angles.vy += D_actor_403100_80155808->field_A2;
+                scratch.rotation.angles.vx += D_actor_403100_80155808->field_A0;
+                RotMatrix((SVECTOR*)scratcharg2, &scratch.rotation.matrix.mat);
+                dest->m[0][0] = scratch.rotation.matrix.mat.m[0][0];
+                dest->m[0][1] = scratch.rotation.matrix.mat.m[0][1];
+                dest->m[0][2] = scratch.rotation.matrix.mat.m[0][2];
+                dest->m[1][0] = scratch.rotation.matrix.mat.m[1][0];
+                dest->m[1][1] = scratch.rotation.matrix.mat.m[1][1];
+                dest->m[1][2] = scratch.rotation.matrix.mat.m[1][2];
+                dest->m[2][0] = scratch.rotation.matrix.mat.m[2][0];
+                dest->m[2][1] = scratch.rotation.matrix.mat.m[2][1];
+                dest->m[2][2] = scratch.rotation.matrix.mat.m[2][2];
+                coords       += 6;
+                Gp_UpdateCoord(coords);
+                USE_REG(coords);
+            }
+            {
+                MATRIX *       mtx, *dest;
+                GsCOORDINATE2* coords;
+                coords = ((TmdObject*)arg0->extra)->field_8;
+                mtx    = &scratch.rotation.matrix.mat;
+                __asm__("la %0,%1" : "=r"(scratcharg3) : "m"(*(u8*)&scratch));
+                scratch.rotation.matrix.ident.m00_m01 = identity;
+                scratch.rotation.matrix.ident.m02_m10 = 0;
+                *(s32*)&mtx->m[1][1]                  = identity;
+                scratch.rotation.matrix.ident.m20_m21 = 0;
+                mtx->m[2][2]                          = identity;
+                dest                                  = &coords[4].coord;
+                Gp_MtxToEuler(dest, (SVECTOR*)scratcharg3);
+                __asm__("la %0,%1" : "=r"(scratcharg4) : "m"(*(u8*)&scratch));
+                scratch.rotation.angles.vx += D_actor_403100_80155808->field_5E8;
+                RotMatrix((SVECTOR*)scratcharg4, &scratch.rotation.matrix.mat);
+                dest->m[0][0] = scratch.rotation.matrix.mat.m[0][0];
+                dest->m[0][1] = scratch.rotation.matrix.mat.m[0][1];
+                dest->m[0][2] = scratch.rotation.matrix.mat.m[0][2];
+                dest->m[1][0] = scratch.rotation.matrix.mat.m[1][0];
+                dest->m[1][1] = scratch.rotation.matrix.mat.m[1][1];
+                dest->m[1][2] = scratch.rotation.matrix.mat.m[1][2];
+                dest->m[2][0] = scratch.rotation.matrix.mat.m[2][0];
+                dest->m[2][1] = scratch.rotation.matrix.mat.m[2][1];
+                dest->m[2][2] = scratch.rotation.matrix.mat.m[2][2];
+            }
+            {
+                MATRIX *       mtx, *dest;
+                GsCOORDINATE2* coords;
+                coords = ((TmdObject*)arg0->extra)->field_8;
+                mtx    = &scratch.rotation.matrix.mat;
+                __asm__("la %0,%1" : "=r"(scratcharg5) : "m"(*(u8*)&scratch));
+                scratch.rotation.matrix.ident.m00_m01 = identity;
+                scratch.rotation.matrix.ident.m02_m10 = 0;
+                *(s32*)&mtx->m[1][1]                  = identity;
+                scratch.rotation.matrix.ident.m20_m21 = 0;
+                mtx->m[2][2]                          = identity;
+                dest                                  = &coords[3].coord;
+                Gp_MtxToEuler(dest, (SVECTOR*)scratcharg5);
+                __asm__("la %0,%1" : "=r"(scratcharg6) : "m"(*(u8*)&scratch));
+                scratch.rotation.angles.vx += D_actor_403100_80155808->field_5EA;
+                RotMatrix((SVECTOR*)scratcharg6, &scratch.rotation.matrix.mat);
+                dest->m[0][0] = scratch.rotation.matrix.mat.m[0][0];
+                dest->m[0][1] = scratch.rotation.matrix.mat.m[0][1];
+                dest->m[0][2] = scratch.rotation.matrix.mat.m[0][2];
+                dest->m[1][0] = scratch.rotation.matrix.mat.m[1][0];
+                dest->m[1][1] = scratch.rotation.matrix.mat.m[1][1];
+                dest->m[1][2] = scratch.rotation.matrix.mat.m[1][2];
+                dest->m[2][0] = scratch.rotation.matrix.mat.m[2][0];
+                dest->m[2][1] = scratch.rotation.matrix.mat.m[2][1];
+                dest->m[2][2] = scratch.rotation.matrix.mat.m[2][2];
+            }
+            func_actor_403100_8013335C(arg0);
+            if (D_actor_403100_80155808->field_60C != 0) {
+                lightTimer = --D_actor_403100_80155808->field_60C;
+                if ((s16)lightTimer == 0) {
+                    Gp_SetLightMode(arg0->spawnArg2, 0);
+                }
+            }
+            if ((D_actor_403100_8015580C->field_40 <= 0) && (*(u8*)&D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+                if (config->field_18 <= 0) {
+                    D_actor_403100_8015580C->field_40 = 0x3E8;
+                } else {
+                    D_actor_403100_80155808->field_658 = -1;
+                    D_actor_403100_80155808->field_618 = 0x1400;
+                    Game_Session->field_127            = 0;
+                    Gp_StateC08.field_6                = (u8)(Gp_StateC08.field_6 | 1);
+                    Game_Session->field_12C            = 0;
+                    D_actor_403100_8015580C->field_4C  = 0;
+                    Gp_SetLightMode(arg0->spawnArg2, 0);
+                    D_actor_403100_8015580C->node.field_4 = 9;
+                    func_800E8614((s32)&D_80166098, 0);
+                    arg0->state                        = 1;
+                    D_actor_403100_80155808->field_5F8 = 0;
+                    D_actor_403100_80155808->field_5FA = 0;
+                    D_actor_403100_80155808->field_5F8 = 9;
+                    D_actor_403100_80155808->field_5FA = 0;
+                    case 1:
+                }
+            }
+            func_actor_403100_8013480C(arg0, 0x96);
+            coordinates                     = ((TmdObject*)arg0->extra)->field_8;
+            *(s32*)((u8*)coordinates + 640) = 0;
+            *(s32*)((u8*)coordinates + 560) = 0;
+            *(s32*)((u8*)coordinates + 480) = 0;
+            *(s32*)((u8*)coordinates + 400) = 0;
+            *(s32*)((u8*)coordinates + 320) = 0;
+            *(s32*)((u8*)coordinates + 240) = 0;
+            *(s32*)((u8*)coordinates + 160) = 0;
+            *(s32*)((u8*)coordinates + 80)  = 0;
+            *(s32*)((u8*)coordinates + 0)   = 0;
+            side                            = coordinates + 0x140;
+            center                          = coordinates + 0xF0;
+            Gp_UpdateCoord(coordinates + 0x280);
+            USE_REG(center);
+            Gp_UpdateCoord(side);
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(scratchHead));
+            scratchHead                     = *(void**)((u8*)scratchHead + 0x3FC);
+            *(s32*)((u8*)scratchHead + -16) = (s32) * (s32*)((u8*)center + 56);
+            position                        = scratchHead - 0x10;
+            *(s32*)((u8*)position + 4)      = (s32) * (s32*)((u8*)center + 60);
+            z                               = *(s32*)((u8*)center + 64);
+            __asm__("addu %0,$zero,$zero" : "=r"(zero) : "r"(z));
+            *(s32*)((u8*)position + 8) = z;
+            enemy                      = arg0->spawnArg2;
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(position), "r"(enemy), "r"(zero) : "memory");
+            Gp_UpdateActorColor(enemy, position, zero, zero);
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+            head  = *(u8**)(head + 0x3FC);
+            head += 16;
+            flags = obj->field_C & 0xFF7F;
+            __asm__ volatile("sw %0, 0x1F8003FC" : "+r"(head) : "r"(flags) : "memory");
+            obj->field_C = flags;
+            return;
+    }
+}
 void func_actor_403100_8013712C(Task* arg0)
 {
     Actor403100Entry* entries;
