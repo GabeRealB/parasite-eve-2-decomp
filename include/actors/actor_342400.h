@@ -86,6 +86,7 @@ STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 
 extern Actor342400Slot D_actor_342400_8016BF58[];
 extern TaskDesc        D_actor_342400_80173A54;
+extern TaskDesc        D_801575F0;              // absolute, spawned by func_actor_342400_80162DA0
 extern u16             D_actor_342400_80173AAC; // spawn counter, `<< 12` into `GpEnemy::field_8`
 
 void func_actor_342400_80162084(Task* arg0);
