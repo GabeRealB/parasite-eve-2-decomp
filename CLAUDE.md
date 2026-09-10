@@ -116,6 +116,23 @@ The same hazard applies to any landing that writes whole files from a worktree
 cut before another lane's commit; that is a different cause with an identical
 symptom, and the same check catches both.
 
+**splat creates a unit `.c` that is missing, but never rewrites one that
+exists.** That is why the step above has to *delete* files to regenerate them,
+and it has a second consequence: a manifest change that renumbers units cannot
+be applied to an existing tree by re-splitting. Adding a `shared` span in the
+middle of an overlay shifts every later unit, so the bodies belong in different
+files afterwards - but a re-split only creates the one new unit and leaves the
+existing files exactly as they were, holding the old distribution. Moving the
+bodies is the manual step `overlay_dup_index.py promote` asks for, and it
+happens in whichever tree the agent is working in. A second tree given the same
+manifest does not follow; the two then disagree about which unit holds what.
+
+This is what strands a promoting sweep at landing time, because
+`land_overlay.py` maps bodies onto trunk by filename. The fix is not to
+re-split harder: replay the worktree's own commits instead (`CAN_REPLAY` in
+`vacuum_overlay.sh`), which needs no correspondence between the trees and keeps
+each commit's attempt count.
+
 **The trailing data stays in assembly, with named exceptions.** It is models,
 animation banks and clip tables - game content, which never moves into `src/`.
 The few symbols decompiled code actually references are program structure, and
