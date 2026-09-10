@@ -284,7 +284,36 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80139E80);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A064);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A254);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A4C8);
+void func_actor_403100_8013A4C8(Task* arg0)
+{
+    Actor403100Entry* entries;
+    GpObj*            obj;
+    s32               i;
+    Actor403100Work*  work;
+
+    i                                          = 0;
+    entries                                    = D_actor_403100_80155814;
+    obj                                        = &entries->obj;
+    ((TmdObject*)arg0->extra)->field_E         = 0x1F;
+    work                                       = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
+    (*(volatile s16*)&D_actor_403100_80155810) = 0;
+    work->field_62C                            = 0x30;
+    work->field_5F6                            = 0;
+    work->flags_634.h.high                     = 0x1C;
+    for (; i < 0x1C; i++) {
+        if (entries[i].active != 0) {
+            entries[i].active = 0;
+            Gp_UnlinkObj(obj);
+        }
+        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_5E2  = 0x10;
+    D_actor_403100_80155808->field_5DE  = 7;
+    D_actor_403100_80155808->field_5DA  = 2;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A5AC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A81C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AA04);
