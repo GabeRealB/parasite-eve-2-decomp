@@ -1848,7 +1848,35 @@ INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_6", D_actor_503500_801321E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80143EB4);
+void func_actor_503500_80143EB4(Actor503500* arg0)
+{
+    GpEnemy*   enemy;
+    TmdObject* tmd;
+    s32        mode;
+
+    enemy = arg0->field_20;
+    mode  = D_801153F4;
+    tmd   = arg0->extra;
+    switch (mode) {
+        case 1:
+            if (!(tmd->field_C & 0x80)) {
+                func_actor_503500_80143FFC(arg0);
+            }
+            break;
+        case 2:
+            tmd->field_C        |= 0x80;
+            enemy->node.field_4 |= 1;
+            break;
+        default:
+            if (enemy->field_4C != 0) {
+                func_actor_503500_80144098(arg0, mode, enemy);
+            }
+            func_actor_503500_80143FFC(arg0);
+            func_actor_503500_80144004(arg0);
+            func_actor_503500_801440F0(arg0);
+            break;
+    }
+}
 void func_actor_503500_80143F78(Actor503500* arg0)
 {
     GpEnemy*            enemy;
