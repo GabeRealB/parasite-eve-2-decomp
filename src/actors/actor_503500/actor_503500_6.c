@@ -1996,7 +1996,77 @@ void func_actor_503500_8013B460(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013B60C);
+/// Per-slot local offset and Z-Y-X angles of the effects
+/// `func_actor_503500_8013B60C` spawns; `side` mirrors the offset's X and the
+/// angle's Y.
+extern Actor503500UVec D_actor_503500_8016F108[];
+extern Actor503500UVec D_actor_503500_8016F128[][3];
+
+/// Spawns effect slot `arg2` of `D_actor_503500_8016E9F0` on the task's own
+/// coordinate: the child's translation is the parent world position plus the
+/// slot offset rotated into that frame, and its rotation is the parent's world
+/// rotation times `RotMatrixZYX` of the slot angles. The negations go through
+/// an `s32` so the sign extension of the `u16` component survives.
+void func_actor_503500_8013B60C(Actor503500* arg0, s32 side, s32 arg2)
+{
+    SVECTOR        pos;
+    SVECTOR        ofs;
+    MATRIX         m;
+    GsCOORDINATE2* src;
+    GsCOORDINATE2* coord;
+    Task*          task;
+    s32*           dst;
+    s32*           p;
+    s32            i;
+    s32            t;
+    u16            vx;
+    u16            vy;
+
+    src  = arg0->extra->field_8;
+    task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 1, 0, 0xA00000);
+    if (task != NULL) {
+        Gp_ComposeParentWorld(src, &m, &pos);
+        coord  = ((TmdObject*)task->extra)->field_8;
+        ofs.vx = vx = D_actor_503500_8016F108[arg2].vx;
+        ofs.vy      = D_actor_503500_8016F108[arg2].vy;
+        ofs.vz      = D_actor_503500_8016F108[arg2].vz;
+        if (side != 0) {
+            t      = -(s16)vx;
+            ofs.vx = t;
+        }
+        gte_SetRotMatrix(&m);
+        gte_ldv0(&ofs);
+        gte_rtv0_real();
+        gte_stsv(&ofs);
+        coord->coord.t[0] = pos.vx + ofs.vx;
+        coord->coord.t[1] = pos.vy + ofs.vy;
+        coord->coord.t[2] = pos.vz + ofs.vz;
+        dst               = (s32*)coord->coord.m;
+        p                 = (s32*)m.m;
+        for (i = 0; i < 4; i++) {
+            *dst++ = *p++;
+        }
+        coord->coord.m[2][2] = m.m[2][2];
+        pos.vx               = D_actor_503500_8016F128[arg2][0].vx;
+        pos.vy = vy = D_actor_503500_8016F128[arg2][0].vy;
+        pos.vz      = D_actor_503500_8016F128[arg2][0].vz;
+        if (side != 0) {
+            t      = -(s16)vy;
+            pos.vy = t;
+        }
+        RotMatrixZYX(&pos, &m);
+        gte_SetRotMatrix(&coord->coord);
+        gte_ldclmv(&m);
+        gte_rtir_real();
+        gte_stclmv(&coord->coord);
+        gte_ldclmv((char*)&m + 2);
+        gte_rtir_real();
+        gte_stclmv((char*)&coord->coord + 2);
+        gte_ldclmv((char*)&m + 4);
+        gte_rtir_real();
+        gte_stclmv((char*)&coord->coord + 4);
+    }
+}
 
 /// Death state of the 0xF0 block, stepped by `field_EE`: phase 0 is the death
 /// setup shared with `func_actor_503500_8013F4A4`; phase 1 spawns a mirrored

@@ -58803,3 +58803,39 @@ help: a local copy of the table pointer (distributes the shifts), `(i)[tbl]`
 pointer-add forms (reorders the whole emission), splitting into `row`/`list`
 locals, and moving the neighbouring `field_7C8` read. Input: `base_14.i`
 sha256 `bfdfc49a8f53…`.
+
+## `lhu` + `sll`/`sra` + `negu` + `sh`: negate into an `s32` local, not straight into the `s16` field
+
+`func_actor_503500_8013B60C` copies a `u16` table component into an `SVECTOR`
+and then, for the mirrored side, overwrites it with its negation. The target
+keeps the sign extension even though only the low half is stored:
+
+```
+lhu   $a0, 0x0($v1)
+sh    $a0, 0x18($sp)
+...
+sll   $v0, $a0, 16
+sra   $v0, $v0, 16
+negu  $v0, $v0
+sh    $v0, 0x18($sp)
+```
+
+`ofs.vx = -ofs.vx` and `ofs.vx = -(s16)vx` (with `u16 vx`) both compile to a
+bare `negu $v0, $a0`: the front end shortens a negation whose result is
+truncated to `short`, so the RTL is already `(neg:SI (subreg:SI (reg:HI)))`
+and no extension is ever emitted. Negating into an `s32` first stops the
+shortening, and `sign_extend` survives:
+
+```c
+u16 vx;
+s32 t;
+ofs.vx = vx = tbl[arg2].vx;
+if (side != 0) {
+    t      = -(s16)vx;
+    ofs.vx = t;
+}
+```
+
+Use a dedicated local for `t`. Reusing the function's loop counter `i` matched
+the instructions but put the negation in `$a0` (the counter's home) instead of
+`$v0`.
