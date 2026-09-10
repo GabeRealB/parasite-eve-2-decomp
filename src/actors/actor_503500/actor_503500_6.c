@@ -74,6 +74,10 @@ extern s32                  D_actor_503500_8016F0E8[];
 extern SVECTOR              D_actor_503500_8016F0F0[];
 extern Actor503500Work774C0 D_actor_503500_801774C0[];
 extern RECT                 D_actor_503500_8016F100;
+/// `func_actor_503500_8013B8D0`'s nine effect offsets, one per frame, and the
+/// per-side pair of rects it moves on frame 0x14, indexed by `field_EC`.
+extern SVECTOR D_actor_503500_8016F168[];
+extern RECT    D_actor_503500_8016F148[][2];
 /// Offsets `func_actor_503500_8013F4A4` spawns its two effects at: rows 0-5
 /// for the per-frame effect, rows 3-5 for the odd-frame one.
 extern SVECTOR D_actor_503500_8016F374[];
@@ -1664,7 +1668,79 @@ void func_actor_503500_8013B460(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013B60C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013B8D0);
+/// Death state of the 0xF0 block, stepped by `field_EE`: phase 0 is the death
+/// setup shared with `func_actor_503500_8013F4A4`; phase 1 spawns a mirrored
+/// pair of effects per frame from `D_actor_503500_8016F168`, drifting with the
+/// frame count, moves the side's VRAM rects on frame 0x14 and leaves at 0x1F.
+void func_actor_503500_8013B8D0(Actor503500* arg0)
+{
+    GpEnemy*         enemy;
+    Actor503500Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    s32              pan;
+    s32              side;
+    s32              n;
+    s32              i;
+    s32              t;
+
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_EE) {
+        case 0:
+            work->obj.flags &= 0x7FFF;
+            enemy->field_54  = 0;
+            Gp_UnlinkNode(&enemy->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            enemy->field_4C &= 0xF0;
+            pan              = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_EE++;
+            break;
+        case 1:
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
+                i       = (s16)(work->field_EA % 9);
+                vec.vx  = D_actor_503500_8016F168[i].vx;
+                vec.vy  = D_actor_503500_8016F168[i].vy;
+                vec.vz  = D_actor_503500_8016F168[i].vz;
+                vec.vx -= work->field_EA * 10;
+                vec.vy -= work->field_EA * 20;
+                if (work->field_EC != 0) {
+                    t      = vec.vx;
+                    vec.vx = -t;
+                }
+                Gp_SpawnEff(0x60055, coord, 0x1800, &vec);
+                Gp_SpawnEff(0x60070, coord, 0x80008600, &vec);
+                t      = vec.vz;
+                vec.vz = -t;
+                Gp_SpawnEff(0x60055, coord, 0x1800, &vec);
+                Gp_SpawnEff(0x60070, coord, 0x80008600, &vec);
+            }
+            work->field_EA++;
+            if (work->field_EA >= 0x1F) {
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                work->field_EE++;
+            } else if (work->field_EA == 0x14) {
+                side = work->field_EC;
+                n    = 2;
+                if (side != 0) {
+                    n = 4;
+                }
+                MoveImage(&D_actor_503500_8016F148[side][0], (n << 6) + 0x140, 0x100);
+                MoveImage(&D_actor_503500_8016F148[side][1], 0, n + 0xF7);
+            }
+            break;
+        default:
+            func_actor_503500_8013611C(arg0->spawnArg1);
+            arg0->state++;
+            break;
+    }
+}
 
 void func_actor_503500_8013BBCC(Actor503500* arg0)
 {

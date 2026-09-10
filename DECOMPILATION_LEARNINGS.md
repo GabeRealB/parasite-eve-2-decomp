@@ -58506,3 +58506,23 @@ work->field_7BA` instead of `s16` gives the target's single `lh` in place of
 `lhu` plus `sll/sra`, and `if ((u16)work->field_7C2 - 7 >= 2U)` gives the
 `lhu; addiu -7; sltiu 2` range test where `switch { case 7: case 8: }`
 compiles to two `slti` compares.
+
+## `tbl[i].f` with a pre-extended `s32 i` puts `%hi/%lo` between `sll 16` and `sra 13`
+
+`func_actor_503500_8013B8D0` copies three halfwords out of an `SVECTOR`
+table indexed by `(s16)(work->field_EA % 9)`, and the target emits `sll
+a0,a0,16; lui v0,%hi(tbl); addiu v0,v0,%lo(tbl); sra a0,a0,13; addu`. A
+`SVECTOR *src = &tbl[(s16)(...)]` pointer gives every instruction but puts the
+`sra 13` *before* the `lui` (99.7%): `&tbl[x]` is pointer arithmetic, and
+`force_operand` emits the `* 8` shift before loading the symbol. sched1 sees the
+`sra` and the `lui/addiu` at equal priority and breaks the tie on insn LUID, so
+source emission order decides it. Hoisting `src = tbl;` into its own statement
+puts the `lui` before the whole modulo instead (97.7%). Writing `i = (s16)(...)`
+with `s32 i` and then `vec.vx = tbl[i].vx; vec.vy = tbl[i].vy; ...` matches: the
+ARRAY_REF expansion loads the base symbol before it expands the offset, the
+sign extension (`sll 16`) is already done in `i`'s statement, and combine
+leaves the fused `sra 13` where the `* 8` shift was, after the `addiu` (100%).
+Same function: `vec.vx = -vec.vx` compiles to a bare `negu`, because `convert`
+narrows `(short)-(int)x` into an HImode negate, while the target sign-extends
+first (`sll/sra/negu`, and `lh` rather than `lhu` for a stack field). Going
+through an `s32 t = vec.vx; vec.vx = -t;` keeps the negate in SImode.
