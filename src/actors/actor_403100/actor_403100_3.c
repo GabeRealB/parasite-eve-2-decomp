@@ -378,7 +378,27 @@ void func_actor_403100_8013E2BC(void)
         D_actor_403100_80155808->field_5F2             = 0;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E33C);
+s32 func_actor_403100_8013E33C(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    *arg1 = arg0->coord;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            return 1;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(arg1);
+        MatrixNormal(arg1, &matrix);
+        *arg1 = matrix;
+        coord = coord->sub;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E450);
 void func_actor_403100_8013E5FC(void)
 {
