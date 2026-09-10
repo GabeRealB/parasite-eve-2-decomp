@@ -855,7 +855,68 @@ void func_actor_403100_8013AC04(void)
         D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AE28);
+void func_actor_403100_8013AE28(void)
+{
+    Task* player;
+    s32   sound;
+    s32   sound2;
+    s32   sound3;
+    s32   pan;
+    s32   pan2;
+    s32   pan3;
+    s32   depth;
+    u16   frame;
+
+    player                             = (Task*)*Gp_ActorSlots;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0xA) {
+        if (D_actor_403100_80155808->regions.fields.field_63C == 0) {
+            func_8017E250(0, 1);
+            D_actor_403100_80155808->regions.fields.field_63C = 1;
+        } else {
+            func_8017E250(0, 2);
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0xB) {
+        sound = (((u16)((GpEnemy*)player->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0006;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
+        sound2 = (((u16)((GpEnemy*)player->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0007;
+        pan2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+        depth  = Gp_GetObjDepth((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
+        if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
+            sound3 = (((u16)((GpEnemy*)player->spawnArg2)->field_8 >> 0xC) << 8) | 0x531D000B;
+            pan3   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+            depth  = Gp_GetObjDepth((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+            SndEvt_EnqueueType6(sound3, pan3, (s8)(depth / 2));
+        }
+    }
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            D_actor_403100_80155808->field_668.b.field_668 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            if (D_actor_403100_8015580C->field_40 > 0) {
+                D_8007216C = 4;
+            }
+            Game_Session->field_12C             = 0;
+            D_actor_403100_80155808->pad_670[3] = 0;
+            D_actor_403100_80155808->pad_670[1] = 0;
+            D_actor_403100_80155808->field_5F8  = 1;
+            D_actor_403100_80155808->field_5FA  = 0;
+        }
+    } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x32) {
+        Game_Session->field_127 = 0;
+    }
+}
 void func_actor_403100_8013B128(Task* arg0)
 {
     Actor403100Entry* entries;
