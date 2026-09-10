@@ -1070,7 +1070,16 @@ void func_actor_503500_8013F948(Actor503500* arg0)
 }
 /// The 0xF4 block's sub-state 3 handler: when a kill is pending, hands the
 /// block to sub-state 0 and hides its display node.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013F984);
+void func_actor_503500_8013F984(Actor503500* arg0)
+{
+    Actor503500Work* work;
+
+    if (arg0->killCountdown == 8) {
+        func_actor_503500_8013F9D4(arg0, 0);
+        work             = arg0->field_1C;
+        work->obj.flags |= 0x8000;
+    }
+}
 /// The 0xF4 block's counterpart of `func_actor_503500_80138490`: puts the block
 /// into sub-state `arg1`, clears the phase and the two counters that go with
 /// it, cancels a pending kill, and records the slot's halfword as "asked to
