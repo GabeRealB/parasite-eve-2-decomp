@@ -307,7 +307,30 @@ void func_actor_403100_8013506C(Task* arg0)
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801351F8);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013539C);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801354A0);
+void func_actor_403100_801354A0(Task* arg0)
+{
+    s32 sound;
+    s32 pan;
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0xC) {
+        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]) / 2));
+        Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x1E;
+        func_8017E128(1);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x18) {
+        func_8017E128(0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+    func_actor_403100_801327CC(arg0);
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801355D4);
 static __inline__ s16 Actor403100_TestFlags104(void)
 {
