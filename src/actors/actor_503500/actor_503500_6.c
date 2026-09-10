@@ -1536,7 +1536,24 @@ void func_actor_503500_801421A8(Actor503500* arg0)
 /// and the matrix rebuilt from the result. The identity splat before
 /// `RotMatrixZYX` clears the node's rotation with five aligned stores, the same
 /// idiom `func_800B0928` uses.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80142220);
+void func_actor_503500_80142220(SVECTOR* angles, GsCOORDINATE2* nodes)
+{
+    SVECTOR ang;
+    MATRIX* m;
+    s32     i;
+
+    for (i = 2; i < 8; i++) {
+        m = &nodes[i].coord;
+        Gp_ExtractEuler(&ang, m);
+        ang.vx                 = angles[i].vx;
+        *(s32*)&nodes[i].coord = ONE;
+        *(s32*)&m->m[0][2]     = 0;
+        *(s32*)&m->m[1][1]     = ONE;
+        *(s32*)&m->m[2][0]     = 0;
+        m->m[2][2]             = ONE;
+        RotMatrixZYX(&ang, m);
+    }
+}
 /// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
 /// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
 /// `t` and the constant term.
