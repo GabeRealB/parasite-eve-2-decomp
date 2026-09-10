@@ -264,7 +264,7 @@ typedef struct Actor503500Work {
     /* 0x7BA */ s16  field_7BA;
     /* 0x7BC */ s16  field_7BC;
     /* 0x7BE */ s16  field_7BE;
-    /* 0x7C0 */ byte pad_7C0[0x2];
+    /* 0x7C0 */ s16  field_7C0;
     /* 0x7C2 */ s16  field_7C2; // slot index being asked to die
     /* 0x7C4 */ byte pad_7C4[0x6];
     /* 0x7CA */ s16  field_7CA;
@@ -281,7 +281,7 @@ typedef struct Actor503500Work {
     /* 0x7DB */ u8   field_7DB; // cleared alongside field_7DA
     /* 0x7DC */ byte pad_7DC[0x4];
     /* 0x7E0 */ s8   field_7E0;
-    /* 0x7E1 */ byte pad_7E1[0x1];
+    /* 0x7E1 */ s8   field_7E1;
     /* 0x7E2 */ s8   field_7E2;
     /* 0x7E3 */ byte pad_7E3[0x5];
 } Actor503500Work;

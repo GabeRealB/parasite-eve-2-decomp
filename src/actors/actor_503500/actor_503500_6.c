@@ -565,7 +565,31 @@ void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1)
     func_actor_503500_80137074(arg0, arg1 == 3, 3);
     D_80071090 = 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136F40);
+/// Asks slot `slot` to die: arms its `field_730` flag with `arg3` in
+/// `field_752`. Slot 0 is the boss itself and keeps `arg2` in its own work
+/// block; any other slot writes `arg2` into its enemy task's `killCountdown`,
+/// and an empty slot is only cleared.
+void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3)
+{
+    GpEnemy* enemy;
+
+    if (slot == 0) {
+        work->field_7E0    = arg2;
+        work->field_7E1    = 0;
+        work->field_7C0    = 0;
+        work->field_730[0] = 1;
+        work->field_752[0] = arg3;
+        return;
+    }
+    enemy = work->enemies[slot];
+    if (enemy != NULL) {
+        enemy->task->killCountdown = arg2;
+        work->field_730[slot]      = 1;
+        work->field_752[slot]      = arg3;
+        return;
+    }
+    work->field_730[slot] = 0;
+}
 
 /// True when enemy slot `slot` is either unoccupied or has its `field_730`
 /// counter at zero -- i.e. the slot has nothing left to wait for.
