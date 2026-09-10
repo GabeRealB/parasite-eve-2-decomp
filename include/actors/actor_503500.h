@@ -437,7 +437,10 @@ typedef struct Actor503500Work3D8 {
     /* 0x370 */ byte      pad_370[0x28];
     /* 0x398 */ s32       field_398; // step speed toward field_368
     /* 0x39C */ GpFixed16 field_39C; // speed limit; integer half is the arrival radius
-    /* 0x3A0 */ byte      pad_3A0[0xA];
+    /* 0x3A0 */ byte      pad_3A0[0x4];
+    /* 0x3A4 */ s16       field_3A4; // sub-state, see func_actor_503500_80142310
+    /* 0x3A6 */ byte      pad_3A6[0x2];
+    /* 0x3A8 */ s16       field_3A8; // hit countdown, raised by each landed id's stun
     /* 0x3AA */ s16       field_3AA;
     /* 0x3AC */ byte      pad_3AC[0x6];
     /* 0x3B2 */ u16       field_3B2; // fade level, stepped by 0x10 up to 0x1000

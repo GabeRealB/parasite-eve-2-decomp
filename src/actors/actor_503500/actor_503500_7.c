@@ -1046,7 +1046,118 @@ void func_actor_503500_80140BE8(Actor503500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80140D38);
+/// Applies this frame's hits from `obj160`'s collision records `arg2[0..arg3)`
+/// to the 0x3D8 block's enemy, like `func_actor_503500_8013EE5C`, but at model
+/// part 8: each attack id is taken once, only type-2 ids land while the
+/// `field_3A8` countdown is clear, and a hit that empties `field_40` enters
+/// state 5 (unless already past it) instead of applying the id's status effect.
+/// The hit effect is pulled to 500 units along the contact offset, and a hit
+/// landing in state 1 drops back to state 0. `arg1` is passed but unused.
+void func_actor_503500_80140D38(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+{
+    SVECTOR             pos;
+    MATRIX              rot;
+    MATRIX              mtx;
+    VECTOR              d;
+    Actor503500Work3D8* work;
+    GpEnemy*            enemy;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      src;
+    s16                 stun;
+    u32                 id;
+    s32                 dmg;
+    s32                 crit;
+    s32                 scale;
+    s32                 i;
+    s32                 j;
+
+    enemy = arg0->field_20;
+    work  = (Actor503500Work3D8*)arg0->field_1C;
+    coord = &arg0->extra->field_8[8];
+    for (i = 0; i < arg3; i++) {
+        id = arg2[i].field_4;
+        for (j = 0; j < i; j++) {
+            if (arg2[j].field_4 == id) {
+                goto next;
+            }
+        }
+        if ((id & 0xFFFF0000) == 0x10000) {
+            continue;
+        }
+        if ((id & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        if (work->field_3A8 != 0) {
+            continue;
+        }
+        Gp_ComposeParentWorld(coord, &mtx, &pos);
+        src  = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        d.vx = src->coord.t[0] - pos.vx;
+        d.vy = src->coord.t[1] - pos.vy;
+        d.vz = src->coord.t[2] - pos.vz;
+        crit = 0;
+        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
+        if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+            dmg *= 4;
+            crit = 1;
+        }
+        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        func_800DA6E8(&enemy->node, dmg, 0);
+        enemy->field_40 -= dmg;
+        if (enemy->field_40 <= 0) {
+            if (work->field_3A4 < 6) {
+                func_actor_503500_80142310(arg0, 5);
+            }
+        } else {
+            switch (Gp_GetIdParam0(id) & 0xFFFF) {
+                case 0:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    break;
+                case 1:
+                    Gp_SetObjFlag1((GpObj4C*)enemy);
+                    break;
+                case 2:
+                    Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                    break;
+                case 3:
+                    Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                    break;
+            }
+        }
+        TRANSPOSE_ROT(&coord->workm, &rot);
+        pos.vx = arg2[i].field_8 - coord->workm.t[0];
+        pos.vy = arg2[i].field_A - coord->workm.t[1];
+        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        scale  = 0x1F4000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
+        pos.vx = pos.vx * scale / 4096;
+        pos.vy = pos.vy * scale / 4096;
+        pos.vz = pos.vz * scale / 4096;
+        gte_SetRotMatrix(&rot);
+        gte_ldv0(&pos);
+        gte_rtv0_real();
+        gte_stsv(&pos);
+        pos.vx += D_actor_503500_8016F3EC.vx;
+        pos.vy += D_actor_503500_8016F3EC.vy;
+        pos.vz += D_actor_503500_8016F3EC.vz;
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_2C0);
+        if (crit != 0) {
+            Gp_SpawnEff(0x6009C, coord, 0, &pos);
+        }
+        stun = Gp_GetIdParam2(id);
+        if (work->field_3A8 < stun) {
+            work->field_3A8 = stun;
+        }
+        if (work->field_3A4 == 1) {
+            func_actor_503500_80142310(arg0, 0);
+        }
+    next:;
+    }
+}
 
 /// The 0x3D8 block's copy of `func_actor_503500_80139EFC`: saves `field_358`
 /// into `field_360`, then steers it toward `field_368`. Inside the arrival
