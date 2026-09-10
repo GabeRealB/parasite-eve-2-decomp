@@ -4657,10 +4657,9 @@ void func_800DDC2C(GpObj* arg0)
         s32              t;
         GpGridParams*    p;
         register s32     y asm("a0");
-        s32              hi;
 
         i = 0;
-        asm volatile("lui %0, %%hi(Gp_GridParams)" : "=r"(hi) : "r"(i) : "memory");
+        __asm__("" : : "m"(Gp_GridParams), "r"(i) : "v0", "v1", "a0", "a1", "a2", "a3");
         out = block->pos;
         off = 0x20;
         do {
@@ -4671,7 +4670,8 @@ void func_800DDC2C(GpObj* arg0)
             i++;
             val = out->vx;
             TOUCH_REG(val);
-            asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)" : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
+            p       = Gp_GridParams;
+            t       = block->mat.t[0];
             y       = p->field_14;
             out->vy = 0;
             out->vx = val + t + y;
