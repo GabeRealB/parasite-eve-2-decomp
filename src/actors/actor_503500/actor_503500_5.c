@@ -689,7 +689,104 @@ s32 func_actor_503500_80133D40(Actor503500* arg0, Actor503500Work* work)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133FD8);
+/// Second slot table for `func_actor_503500_80133FD8`; shares the per-entry
+/// values in `D_actor_503500_8016EF40`.
+extern s16 D_actor_503500_8016EF50[];
+
+/// Mirror of `func_actor_503500_80133D40` for the other side: tries slots 3,
+/// 15, 16 and 8 with the `field_7BA` range tests reflected. State 0 returns 0
+/// the frame a slot is issued, else 1. State 1 bumps `field_7BE` unless the
+/// slot is 8, and once the slot is done or 0x14 frames have passed returns 0x3C
+/// for slot 8 or 0x1E for 3/15/16; until then 0. Any other state returns 1.
+s32 func_actor_503500_80133FD8(Actor503500* arg0, Actor503500Work* work)
+{
+    s32  ret;
+    s32  i;
+    s16* slots;
+    s16  dir;
+    s16  slot;
+
+    switch ((s8)work->field_7DB) {
+        case 0:
+            ret   = 1;
+            i     = 0;
+            slots = D_actor_503500_8016EF50;
+            dir   = work->field_7BA;
+            for (; i < 4; i++) {
+                slot = *slots;
+                if (func_actor_503500_80136FDC(work, slot) != 0) {
+                    switch (slot) {
+                        case 3:
+                            if (!(dir >= -0x3E8 && dir <= 0x6A4)) {
+                                ret = 0;
+                            }
+                            break;
+                        case 15:
+                            if (func_actor_503500_80135E04((Task*)arg0, 0x10) != 0) {
+                                if (!(dir >= -0x3E8 && dir <= 0x7D0)) {
+                                    ret = 0;
+                                }
+                            } else if (!(dir >= -0x6A3 && dir <= 0x7D0)) {
+                                ret = 0;
+                            }
+                            break;
+                        case 16:
+                            if (func_actor_503500_80135E04((Task*)arg0, 0xF) != 0) {
+                                if (!(dir >= -0x3E8 && dir <= 0x7D0)) {
+                                    ret = 0;
+                                }
+                            } else if (dir < -0x3E8) {
+                                if (dir >= -0x6A3) {
+                                    ret = 0;
+                                }
+                            }
+                            break;
+                        case 8:
+                            if (dir < -0x5DC) {
+                                if (dir >= -0x76B) {
+                                    ret = 0;
+                                }
+                            }
+                            break;
+                    }
+                    if (ret == 0) {
+                        func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
+                        work->field_7C2 = slot;
+                        work->field_7DB = 1;
+                        break;
+                    }
+                }
+                slots++;
+            }
+            break;
+        case 1:
+            ret = 0;
+            if (work->field_7C2 != 8) {
+                work->field_7BE++;
+            }
+            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x14) {
+                switch (work->field_7C2) {
+                    case 3:
+                        ret = 0x1E;
+                        break;
+                    case 15:
+                        ret = 0x1E;
+                        break;
+                    case 16:
+                        ret = 0x1E;
+                        break;
+                    case 8:
+                        ret = 0x3C;
+                        break;
+                }
+            }
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 /// Script step pairing `func_actor_503500_80133D40` and `_80133FD8`. State 0
 /// runs the one the sign of `field_7BA` picks; the fallback to the other one
