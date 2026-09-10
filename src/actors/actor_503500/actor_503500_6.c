@@ -365,7 +365,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 /// True when enemy slot `slot` is either unoccupied or has its `field_730`
 /// counter at zero -- i.e. the slot has nothing left to wait for.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80136FA8);
+s32 func_actor_503500_80136FA8(Actor503500Work* work, s32 slot)
+{
+    s32 ret;
+
+    ret = 1;
+    if (work->enemies[slot] != NULL) {
+        ret = work->field_730[slot] == 0;
+    }
+    return ret;
+}
 /// The stricter form of `func_actor_503500_80136FA8`: slot `slot` is ready when
 /// it is occupied, not marked dying by `field_752`, and its `field_730` counter
 /// has run out. Slot 0 stands for the boss itself, which is ready when the
