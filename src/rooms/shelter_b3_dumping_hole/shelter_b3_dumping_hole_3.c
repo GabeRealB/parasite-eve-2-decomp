@@ -1,9 +1,11 @@
 #include "common.h"
 #include "gameplay/D4.h"
 #include "main/fs.h"
+#include "main/session.h"
 #include "main/task.h"
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
+extern s16      D_shelter_b3_dumping_hole_8018809C;
 
 typedef struct {
     u8    pad_00[0x28];
@@ -45,7 +47,13 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017F820);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FB70);
+s16 func_shelter_b3_dumping_hole_8017FB70(void)
+{
+    if (Game_Session->field_5 == 2) {
+        return 0;
+    }
+    return D_shelter_b3_dumping_hole_8018809C;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FBA0);
 
