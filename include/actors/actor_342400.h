@@ -2,6 +2,8 @@
 #define ACTOR_342400_H
 
 #include "common.h"
+#include "main/task.h"
+#include "gameplay/3A34.h"
 
 /// Per-actor state block for the `actor_342400` overlay's main enemy.
 ///
@@ -16,13 +18,20 @@
 /// are the state and sub-state indices the handler table walks; `field_412`
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
-    /* 0x000 */ byte pad_0[0x412];
-    /* 0x412 */ u16  field_412; // per-state frame counter
-    /* 0x414 */ byte pad_414[0xC];
-    /* 0x420 */ u16  field_420; // state index
-    /* 0x422 */ u16  field_422; // sub-state index
-    /* 0x424 */ byte pad_424[0x30];
+    /* 0x000 */ byte    pad_0[0x2AC];
+    /* 0x2AC */ GpObj   obj_2AC;
+    /* 0x2CC */ GpObj   obj_2CC;
+    /* 0x2EC */ GpRec18 rec_2EC[8];
+    /* 0x3AC */ GpObj   obj_3AC;
+    /* 0x3CC */ byte    pad_3CC[0x46];
+    /* 0x412 */ u16     field_412; // per-state frame counter
+    /* 0x414 */ byte    pad_414[0xC];
+    /* 0x420 */ u16     field_420; // state index
+    /* 0x422 */ u16     field_422; // sub-state index
+    /* 0x424 */ byte    pad_424[0x30];
 } Actor342400Work;
 STATIC_ASSERT_SIZEOF(Actor342400Work, 0x454);
+
+void func_actor_342400_801637DC(Task* arg0);
 
 #endif

@@ -1,5 +1,8 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "actors/actor_342400.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_8016A950);
@@ -16,7 +19,29 @@ void func_actor_342400_8016A9AC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_8016A9C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_8016AA08);
+void func_actor_342400_8016AA08(Task* arg0)
+{
+    Actor342400Work* work;
+    Actor342400Work* work2;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    model = (TmdObject*)arg0->extra;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    Tmd_FreeBuffers(model);
+    model->field_C |= 4;
+    func_actor_342400_801637DC(arg0);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    enemy->field_54 = 0;
+    work            = (Actor342400Work*)arg0->idMap;
+    Gp_UnlinkObj(&work->obj_2AC);
+    Gp_UnlinkObj(&work->obj_2CC);
+    Gp_UnlinkObj(&work->obj_3AC);
+    work2            = (Actor342400Work*)arg0->idMap;
+    arg0->state      = 5;
+    work2->field_420 = 0;
+    work2->field_422 = 0;
+}
 
 void func_actor_342400_8016AA9C(Task* arg0)
 {
