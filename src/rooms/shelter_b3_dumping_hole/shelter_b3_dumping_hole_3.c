@@ -8,6 +8,9 @@ typedef struct {
     u8  pad_00[0x30];
     s16 field_30;
     s16 field_32;
+    u8  pad_34[0x4];
+    s16 field_38;
+    s16 field_3A;
 } DumpingHoleEntity;
 
 typedef struct {
@@ -72,7 +75,12 @@ void func_shelter_b3_dumping_hole_8017FED4(s16 arg0)
     p->field_32          = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FEF4);
+void func_shelter_b3_dumping_hole_8017FEF4(s16 arg0)
+{
+    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
+    p->field_38          = arg0;
+    p->field_3A          = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FF14);
 
