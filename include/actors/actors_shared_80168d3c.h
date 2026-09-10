@@ -30,7 +30,7 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x418 */ s16     field_418; // animation id
     /* 0x41A */ byte    pad_41A[0x2];
     /* 0x41C */ s16     field_41C; // animation speed / step scale
-    /* 0x41E */ byte    pad_41E[0x2];
+    /* 0x41E */ s16     field_41E;
     /* 0x420 */ u16     field_420; // state index
     /* 0x422 */ u16     field_422; // sub-state index
     /* 0x424 */ byte    pad_424[0x2];
@@ -43,7 +43,9 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x438 */ s16     field_438;
     /* 0x43A */ byte    pad_43A[0x6];
     /* 0x440 */ s16     field_440;
-    /* 0x442 */ byte    pad_442[0x12];
+    /* 0x442 */ byte    pad_442[0x6];
+    /* 0x448 */ s16     field_448;
+    /* 0x44A */ byte    pad_44A[0xA];
 } ActorsShared80168d3cWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80168d3cWork, 0x454);
 

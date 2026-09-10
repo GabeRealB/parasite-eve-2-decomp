@@ -34,7 +34,7 @@ typedef struct Actor342400Work {
     /* 0x420 */ u16     field_420; // state index
     /* 0x422 */ u16     field_422; // sub-state index
     /* 0x424 */ byte    pad_424[0x2B];
-    /* 0x44F */ u8      field_44F; // 1 = run func_actor_342400_8016BEF0 after the sub-state
+    /* 0x44F */ u8      field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
     /* 0x450 */ byte    pad_450[0x4];
 } Actor342400Work;
 STATIC_ASSERT_SIZEOF(Actor342400Work, 0x454);

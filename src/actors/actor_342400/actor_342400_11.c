@@ -15,5 +15,3 @@ void func_actor_342400_8016BED8(Task* arg0)
     work->field_420 = 0;
     work->field_422 = 0;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_11", func_actor_342400_8016BEF0);
