@@ -1353,7 +1353,100 @@ void func_actor_503500_80138A30(Actor503500* arg0)
     work->field_2A4.vz += 0x80;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80138C08);
+/// Sub-state of the 0x2EC enemies: passes (0x11, 0x10) to the parent through
+/// `func_actor_503500_80135FB4`, then waits for `field_2E8`, meanwhile (for up
+/// to 90 frames) pointing `field_29C` at the camera target raised by 1000, in
+/// the frame `Gp_ComposeParentWorld` composes for `coord->sub`. Ten frames
+/// later, if the chain tip `pts[8]` is within 3000 of the target on the ground
+/// plane, it spawns `D_actor_503500_8016E9F0` 0x640 along `coord[8]`'s Z axis;
+/// ten frames after that it hands over to state 0.
+void func_actor_503500_80138C08(Actor503500* arg0)
+{
+    SVECTOR             pos;
+    SVECTOR             ofs;
+    MATRIX              m;
+    MATRIX              rot;
+    MATRIX*             mat;
+    Actor503500Work2EC* work;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      dst;
+    Task*               task;
+    s32*                src;
+    s32*                out;
+    s32                 dist;
+    s32                 i;
+
+    work  = (Actor503500Work2EC*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+        func_actor_503500_8013ACC4(arg0, 0);
+        func_actor_503500_8013611C(arg0->spawnArg1);
+        return;
+    }
+    switch (work->field_2E4) {
+        case 0:
+            work->field_2E8 = 0;
+            func_actor_503500_80135FB4((Actor503500*)arg0->parent, 0x11, 0x10);
+            work->field_2E4++;
+        case 1:
+            if (work->field_2E8 != 0) {
+                work->field_2E4++;
+                return;
+            }
+            if (++work->field_2DE >= 0x5B) {
+                func_actor_503500_8013ACC4(arg0, 0);
+                return;
+            }
+            mat = &m;
+            Gp_ComposeParentWorld(coord->sub, mat, &ofs);
+            pos.vx = D_80073B8C->t[0] - ofs.vx;
+            pos.vy = D_80073B8C->t[1] - ofs.vy - 1000;
+            pos.vz = D_80073B8C->t[2] - ofs.vz;
+            TRANSPOSE_ROT(mat, &rot);
+            gte_SetRotMatrix(&rot);
+            gte_ldv0(&pos);
+            gte_rtv0_real();
+            gte_stsv(&work->field_29C);
+            break;
+        case 2:
+            if (++work->field_2DE >= 0xB) {
+                pos.vx = D_80073B8C->t[0] - work->pts[8].vx;
+                pos.vz = D_80073B8C->t[2] - work->pts[8].vz;
+                dist   = SquareRoot0(pos.vx * pos.vx + pos.vz * pos.vz);
+                if (dist < 3000) {
+                    task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 0, dist * 3000);
+                    if (task != NULL) {
+                        Gp_ComposeParentWorld(&coord[8], &m, &pos);
+                        src    = (s32*)&m;
+                        dst    = ((TmdObject*)task->extra)->field_8;
+                        ofs.vx = 0;
+                        ofs.vy = 0;
+                        ofs.vz = 0x640;
+                        gte_SetRotMatrix(src);
+                        gte_ldv0(&ofs);
+                        gte_rtv0_real();
+                        gte_stsv(&ofs);
+                        dst->coord.t[0] = pos.vx + ofs.vx;
+                        dst->coord.t[1] = pos.vy + ofs.vy;
+                        dst->coord.t[2] = pos.vz + ofs.vz;
+                        out             = (s32*)&dst->coord;
+                        for (i = 0; i < 4; i++) {
+                            *out++ = *src++;
+                        }
+                        dst->coord.m[2][2] = m.m[2][2];
+                    }
+                }
+                work->field_2DE = 0;
+                work->field_2E4++;
+            }
+            break;
+        case 3:
+            if (++work->field_2DE >= 0xB) {
+                func_actor_503500_8013ACC4(arg0, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80139014);
 

@@ -481,7 +481,8 @@ typedef struct Actor503500Work2EC {
     /* 0x2E2 */ s16     field_2E2;
     /* 0x2E4 */ s8      field_2E4; // sub-state phase, cleared with field_2D4
     /* 0x2E5 */ s8      field_2E5;
-    /* 0x2E6 */ byte    pad_2E6[0x3];
+    /* 0x2E6 */ byte    pad_2E6[0x2];
+    /* 0x2E8 */ s8      field_2E8; // cleared, then awaited, by func_actor_503500_80138C08
     /* 0x2E9 */ s8      field_2E9;
     /* 0x2EA */ s8      field_2EA;
     /* 0x2EB */ s8      field_2EB; // TMD buffer countdown

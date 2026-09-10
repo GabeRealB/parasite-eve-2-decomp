@@ -58750,3 +58750,25 @@ constant `$v0`, the reverse of the target, and the score sits at 99.25% on
 copy its own block-local pseudo. Local alloc then puts the pointer in `$v0`
 and N in `$v1`, which is 100%. The non-inline sibling `func_actor_503500_80136048`
 (the same tail with N = 2) suggests this is how the original was written.
+
+## `&local` in a callee-saved register, set *after* the other call args: assign the pointer after the call
+
+`func_actor_503500_80138C08` wants `addiu a0,s3,0x280` (in the `beqz` delay
+slot), then `addiu s0,sp,0x20; move a1,s0; jal`, with `s0` later walking the
+matrix in a copy loop. Writing `p = &m; f(&coord[8], p, &pos);` gets the
+register right but puts `addiu s0` first: combine folds `coord+0x280` into the
+`a0` load, which sits after `p`'s set, and sched1 keeps equal-priority insns in
+original order (`rank_for_schedule` falls back to `INSN_LUID`). Passing the
+address directly and assigning the pointer afterwards matches:
+
+```c
+Gp_ComposeParentWorld(&coord[8], &m, &pos);
+src = (s32*)&m;          /* CSE reuses the a1 temp, now set after a0 */
+...
+for (i = 0; i < 4; i++) *out++ = *src++;
+```
+
+The same function also shows why that pointer won `s0` over the work pointer:
+it had to be the loop's walking pointer itself. A separate `src = (s32*)p`
+copy left `p` with few refs and dropped it behind `work` in global priority
+(flow counts refs weighted by loop depth).
