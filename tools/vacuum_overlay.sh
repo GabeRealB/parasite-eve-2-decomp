@@ -205,9 +205,28 @@ log "inner vacuum finished"
 migrate_giveups
 
 # --- collect what it actually matched -----------------------------------------
-mapfile -t MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
-                       | awk '/^matched /{print $2}' | tac)
-log "matched ${#MATCHED[@]} function(s)"
+mapfile -t ALL_MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
+                           | awk '/^matched /{print $2}' | tac)
+# land_overlay.py --overlay X maps bodies by walking trunk's src/**/X directory,
+# so only a function whose body lives in THIS overlay can be landed that way.
+# Two kinds of match end up elsewhere and make it refuse the whole batch:
+#   * a promoted shared body, which moves to src/<family>/lib/<unit>.c;
+#   * a sibling overlay's copy matched in passing - an actor_503500 sweep
+#     matched func_dryfield_dilapidated_house_80181290 like this.
+# Both still reach trunk through EXTRAS; they just must not be in the
+# per-function list. (The replay path below is unaffected: it cherry-picks
+# commits, so it carries them correctly either way.)
+WT_SRC=$(cd "$WT" && ls -d src/*/"$OVERLAY" 2>/dev/null | head -1)
+MATCHED=()
+for _fn in "${ALL_MATCHED[@]}"; do
+    if [[ -n "$WT_SRC" ]] && grep -qlE "^[A-Za-z_][A-Za-z0-9_ *]*\b${_fn}[[:space:]]*\(" \
+         "$WT/$WT_SRC"/*.c 2>/dev/null; then
+        MATCHED+=("$_fn")
+    else
+        log "  not landing $_fn here: body is not in $WT_SRC (promoted, or another overlay's)"
+    fi
+done
+log "matched ${#ALL_MATCHED[@]} function(s), ${#MATCHED[@]} landable in $OVERLAY"
 printf '  %s\n' "${MATCHED[@]}" | tee -a "$LOG_FILE"
 
 if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#MATCHED[@]} -eq 0 ]]; then
@@ -383,7 +402,19 @@ release_all() {
 # back to the file rewrite otherwise, which is what handles a drifted trunk.
 CAN_REPLAY=false
 if git merge-base --is-ancestor "$BASE" HEAD 2>/dev/null; then
-    touched=$(git -C "$WT" diff --name-only "$BASE"..HEAD)
+    # Ignore the same shared files the drift check excepts. Without this the
+    # replay path is dead in practice: DECOMPILATION_LEARNINGS.md and
+    # tools/difficult_functions are touched by every sweep and every landing, so
+    # the intersection is essentially never empty and CAN_REPLAY never becomes
+    # true. actor_503500 lost its replay to exactly that and fell through to the
+    # file rewrite, which cannot map bodies across a promotion's renumbered
+    # units - 68 verified matches stranded on the branch.
+    touched=""
+    while read -r f; do
+        [[ -n "$f" ]] || continue
+        case " $MERGEABLE " in *" $f "*) continue ;; esac
+        touched="$touched $f"
+    done < <(git -C "$WT" diff --name-only "$BASE"..HEAD)
     if [[ -z "$(git diff --name-only "$BASE"..HEAD -- $touched 2>/dev/null)" ]]; then
         CAN_REPLAY=true
     fi
@@ -409,8 +440,21 @@ fi
 
 if [[ "$CAN_REPLAY" != true ]] \
    && ! python3 "$ROOT/tools/land_overlay.py" "${land_args[@]}" >>"$LOG_FILE" 2>&1; then
-    log "landing failed; trunk left alone, worktree kept at $WT"
-    rm -f "$funcs_file"; exit 1
+    # Last resort: replay the branch's own commits. Cherry-picking needs no
+    # per-function correspondence with trunk, so it survives the renumbering a
+    # promotion causes, and it keeps each commit's attempt count. If the picks
+    # conflict it aborts and changes nothing.
+    log "file rewrite failed; trying to replay $BRANCH_NAME"
+    if git cherry-pick "$BASE".."$BRANCH_NAME" >>"$LOG_FILE" 2>&1; then
+        log "replayed cleanly after the rewrite failed"
+    else
+        git cherry-pick --abort >/dev/null 2>&1 || true
+        # Exit 3, not 1: a stranded batch is not the same as a refused lease,
+        # and the driver used to log both as "no work left" - which is how 68
+        # matches sat unnoticed for hours.
+        log "LANDING FAILED: $OVERLAY - ${#MATCHED[@]} verified match(es) are stranded on $BRANCH_NAME (worktree $WT)"
+        rm -f "$funcs_file"; exit 3
+    fi
 fi
 rm -f "$funcs_file"
 
