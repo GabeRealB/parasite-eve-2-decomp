@@ -2179,7 +2179,21 @@ void func_actor_503500_80145E98(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_80145F18);
+void func_actor_503500_80145F18(Actor503500* arg0)
+{
+    Actor503500WorkRec4* work;
+    GpRec18*             rec;
+    s32                  i;
+
+    work = (Actor503500WorkRec4*)arg0->field_1C;
+    rec  = work->rec;
+    for (i = 0; i < 4; i++) {
+        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+            work->obj.flags &= 0x7FFF;
+        }
+    }
+    Gp_ClearRec18Occupied(rec);
+}
 void func_actor_503500_80145F84(Task* task)
 {
     TaskFuncTable3 sp;
