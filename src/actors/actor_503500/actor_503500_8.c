@@ -24,7 +24,36 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_80146664);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_801466E0);
+s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
+{
+    TmdObject* ext;
+    s32        ret;
+
+    ext = task->extra;
+    ret = 0;
+    switch (mode) {
+        case 0:
+            ext->field_C = (ext->field_C | 0x80) & ~4;
+            break;
+        case 1:
+            ext->field_C &= ~0x80;
+            Tmd_AllocBuffers(ext);
+            ext->field_C &= ~4;
+            break;
+        case 2:
+            ext->field_C                                   |= 0x80;
+            ((Actor503500Effect4CC*)task->idMap)->field_4C8 = mode;
+            ext->field_C                                   |= 4;
+            break;
+        case 3:
+            ext->field_C = (ext->field_C & ~0x80) | 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 s32 func_actor_503500_801467C0(Task* task, s32 arg1, Actor503500ModeMsg* msg)
 {
