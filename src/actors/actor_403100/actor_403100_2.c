@@ -856,7 +856,78 @@ void func_actor_403100_8013AC04(void)
     }
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AE28);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B128);
+void func_actor_403100_8013B128(Task* arg0)
+{
+    Actor403100Entry* entries;
+    Actor403100Work*  work;
+    Actor403100Work*  finalWork;
+    GpObj*            obj;
+    s32               sound;
+    s32               i;
+    s32               pan;
+    s32               depth;
+    GsCOORDINATE2*    coords;
+    TmdObject*        model;
+
+    model                             = arg0->extra;
+    coords                            = model->field_8;
+    Game_Session->field_12C           = 0;
+    model->field_E                    = 0;
+    D_actor_403100_8015580C->field_4C = 0;
+    Gp_SetLightMode(arg0->spawnArg2, 0);
+    D_actor_403100_8015580C->node.field_4 = 9;
+    i                                     = 0;
+    if (D_actor_403100_80155808->field_5D0 < 0) {
+        arg0->state                        = 4;
+        D_actor_403100_80155808->field_5F8 = 0;
+        D_actor_403100_80155808->field_5FA = 0U;
+        return;
+    }
+    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    entries                 = D_actor_403100_80155814;
+    obj                     = &entries->obj;
+    D_actor_403100_80155810 = 0;
+    for (; i < 0x1C; i++) {
+        if (entries[i].active != 0) {
+            entries[i].active = 0;
+            Gp_UnlinkObj(obj);
+        }
+        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_622              = (s16)Game_Session->field_4;
+    D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
+    D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
+    Mc_SaveData.field_4                             = 0x18;
+    work                                            = D_actor_403100_80155808;
+    work->pad_660[1]                                = 1;
+    work->field_5F6                                 = 5;
+    work->field_5E2                                 = 0x10;
+    work->field_5DE                                 = 0x10;
+    work->field_5DA                                 = 2;
+    work->field_61C                                 = 2;
+    D_actor_403100_80155808->field_604              = 0;
+    D_actor_403100_80155808->field_608              = 0;
+    D_actor_403100_80155808->field_A0               = 0;
+    D_actor_403100_80155808->field_A2               = 0;
+    D_actor_403100_80155808->field_A4               = 0;
+    coords->coord.t[0]                              = -0x44C;
+    coords->coord.t[1]                              = -0x1388;
+    coords->coord.t[2]                              = 0x2710;
+    D_actor_403100_80155808->field_80               = 0;
+    D_actor_403100_80155808->field_82               = 0xA00;
+    D_actor_403100_80155808->field_84               = 0;
+    Game_Session->field_68                          = 1;
+    Gp_MsgPlayerWeapon(0);
+    sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F000B;
+    pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+    depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+    SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    finalWork             = D_actor_403100_80155808;
+    finalWork->field_5EC  = 0;
+    finalWork->pad_670[3] = 1;
+    finalWork->field_5FA  = (u16)(finalWork->field_5FA + 1);
+}
 void func_actor_403100_8013B3C4(Task* arg0)
 {
     s32            sound;
