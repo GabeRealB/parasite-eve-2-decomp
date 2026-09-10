@@ -497,7 +497,16 @@ void func_actor_403100_8013F3AC(void)
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F3EC);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F488);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F4E0);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F520);
+void func_actor_403100_8013F520(void)
+{
+    D_actor_403100_80155808->field_5EC = 0;
+    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    D_actor_403100_80155808->field_5FC  = 0x14;
+    D_actor_403100_80155808->field_5E2  = 0x1C;
+    D_actor_403100_80155808->field_5DE  = 3;
+    D_actor_403100_80155808->field_5DA  = 1;
+    D_actor_403100_80155808->field_5FA += 1;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F588);
 void func_actor_403100_8013F610(void)
 {
