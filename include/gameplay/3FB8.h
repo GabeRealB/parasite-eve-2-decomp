@@ -779,7 +779,9 @@ STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
 /// `GameActor.field_928`. `Gp_CopyPlayerAnim` and `Gp_CopyAllyAnim` copy up to
 /// 0x20 words onto `field_BC`.
 typedef struct _GpAnimBlk {
-    /* 0x00 */ byte pad_0[0xBC];
+    /* 0x00 */ byte pad_0[0x1C];
+    /* 0x1C */ s32  field_1C; // copied out by func_actor_503500_80143AC0 before message 0x3FF
+    /* 0x20 */ byte pad_20[0x9C];
     /* 0xBC */ s32  field_BC[0x20];
 } GpAnimBlk;
 

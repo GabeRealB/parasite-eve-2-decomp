@@ -9,9 +9,11 @@
 #include "actors/actor_503500.h"
 #include "actors/actors_shared_801327b4.h"
 #include "actors/actors_shared_801366fc.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 #include <psyq/inline_c.h>
 
 /// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
@@ -798,7 +800,141 @@ void func_actor_503500_801437D0(Actor503500* arg0, GpRec18* rec, s32 count)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80143AC0);
+/// Knock-back work block of `func_actor_503500_80143AC0`.
+extern Actor503500Work38 D_actor_503500_80178F10;
+/// Rows 2 and 3 of `D_actor_503500_801714E0` (the 0x3FF payload after the push,
+/// indexed by side) and row 4 (the one sent once the player's weapon animation
+/// word has been parked in `D_actor_503500_801714DC`).
+extern Actor503500Msg3FF D_actor_503500_80171508[];
+extern Actor503500Msg3FF D_actor_503500_80171530;
+extern s32               D_actor_503500_801714DC;
+/// Script pair handed to `Gp_SpawnScript18` when the push starts.
+extern u8         D_actor_503500_8017159C[];
+extern u8         D_actor_503500_801715A4[];
+extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
+extern u16        Gp_WeaponIdBase[];
+
+/// Knock-back task spawned from `D_actor_503500_8017146C` by
+/// `func_actor_503500_801437D0`, with the hit side in `spawnArg1` and the
+/// enemy's turned rotation in `spawnArg2`. State 0 copies that rotation, starts
+/// the push at speed 0x1000000 and shakes the camera for 8 frames; state 1 moves
+/// the player by the rotated speed through message 0x3FE, decaying it by
+/// 0x30000 a frame, and after 20 frames at rest moves on (or ends at -1 when the
+/// player has no HP left). States 2-4 wait out message 0x3ED between the two
+/// 0x3FF payloads and the closing 0x3F1. Frame 0x11 plays sound 0x54300002 at
+/// the player.
+void func_actor_503500_80143AC0(Task* arg0)
+{
+    VECTOR             vec;
+    Actor503500Msg3FE  msg;
+    Actor503500Work38* work;
+    Task*              player;
+    GsCOORDINATE2*     coord;
+    s32*               src;
+    s32*               dst;
+    s32                i;
+    s32                pan;
+    s32                next;
+    s32                shake;
+
+    work   = &D_actor_503500_80178F10;
+    player = Game_GetPtrSlot(3);
+    if (D_801153F4 != 0) {
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            if (D_80073BA0 <= 0) {
+                Task_Kill(arg0);
+                return;
+            }
+            Mem_Set(work, 0, sizeof(Actor503500Work38));
+            work->speed    = 0x1000000;
+            work->pos.vx.w = 0;
+            work->pos.vy.w = 0;
+            work->pos.vz.w = 0;
+            src            = (s32*)arg0->spawnArg2;
+            dst            = (s32*)&work->rot;
+            for (i = 0; i < 4; i++) {
+                *dst++ = *src++;
+            }
+            work->rot.m[2][2] = ((MATRIX*)arg0->spawnArg2)->m[2][2];
+            Gp_SpawnScript18((s32)D_actor_503500_8017159C, (s32)D_actor_503500_801715A4);
+            work->field_36 = 8;
+            // An s32 temp: passed straight to the s8 parameter, the masked
+            // expression is shortened into a byte load of the frame counter.
+            shake = (D_80070F70 ^ 1) & 1;
+            Display_ClampField126(shake);
+            arg0->state++;
+        case 1:
+            vec.vx = 0;
+            vec.vy = 0;
+            vec.vz = work->speed;
+            ApplyMatrixLV(&work->rot, &vec, &vec);
+            work->pos.vx.w += vec.vx;
+            work->pos.vy.w += vec.vy;
+            work->pos.vz.w += vec.vz;
+            msg.field_10    = 1;
+            msg.field_12    = 1;
+            msg.x           = work->pos.vx.h.hi;
+            msg.y           = work->pos.vy.h.hi;
+            msg.z           = work->pos.vz.h.hi;
+            if (Gp_DispatchMsg(player, 0x3FE, (s32)&msg, 0) != 0) {
+                work->speed = 0;
+            }
+            work->pos.vx.w = (u16)work->pos.vx.w;
+            work->pos.vy.w = (u16)work->pos.vy.w;
+            work->pos.vz.w = (u16)work->pos.vz.w;
+            work->speed   -= 0x30000;
+            if (work->speed < 0) {
+                work->speed = 0;
+                if (++work->field_34 > 20) {
+                    // The -1 arm first: reorg inverts the branch around it and
+                    // leaves the `li` in the delay slot, sharing $v0 with the load.
+                    if (D_80073BA0 <= 0) {
+                        next = -1;
+                    } else {
+                        next = arg0->state + 1;
+                    }
+                    arg0->state = next;
+                }
+            }
+            if (work->field_36 > 0) {
+                shake = (D_80070F70 ^ 1) & 1;
+                Display_ClampField126(shake);
+                work->field_36--;
+            } else {
+                Display_ClampField126(0);
+            }
+            break;
+        case 2:
+            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+                Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_80171508[arg0->spawnArg1], 0);
+                arg0->state++;
+            }
+            break;
+        case 3:
+            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+                D_actor_503500_801714DC =
+                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21]
+                        ->field_1C;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_80171530, 0);
+                arg0->state++;
+            }
+            break;
+        case 4:
+            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+                Gp_DispatchMsg(player, 0x3F1, 2, 0);
+                Task_Kill(arg0);
+            }
+            break;
+    }
+    if (++arg0->killCountdown == 0x11) {
+        coord = ((TmdObject*)player->extra)->field_8;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(0x54300002, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_7", D_actor_503500_801321DC);
 

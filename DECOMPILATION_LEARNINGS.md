@@ -43509,6 +43509,35 @@ value but the codegen the ROM has. `func_acropolis_fountain_8017D77C` went from
 92% to 99% on that rewrite alone; writing it as a two-armed `if`/`else` around
 the call instead emits the call twice.
 
+## `li` in a branch's delay slot on the register the branch tests: the constant arm comes first
+
+The ROM (`func_actor_503500_80143AC0`) has a constant written in the delay
+slot, into the same register the branch just tested, with the other arm inline:
+
+    lh    $v0, %lo(D_80073BA0)($v0)
+    blez  $v0, .Ljoin
+     addiu $v0, $zero, -0x1
+    lw    $v0, 0x30($s1)
+    addiu $v0, $v0, 0x1
+  .Ljoin:
+    sw    $v0, 0x30($s1)
+
+None of the obvious forms produce it:
+
+- `next = -1; if (x > 0) next = s + 1;` puts `next = -1` *before* the branch,
+  while the compare value is still live, so `next` cannot get `$v0` (it lands
+  in `$v1`, 99.9%).
+- `if (x > 0) next = s + 1; else next = -1;` (or the ternary) lays out
+  `blez .Lelse; lw; j .Ljoin; addiu; .Lelse: li`. Reorg does not steal the
+  `li` from the else block into the `blez` slot.
+
+Put the constant arm first: `if (x <= 0) next = -1; else next = s + 1;`. That
+gives `bgtz .Lthen; li; j .Ljoin; .Lthen: lw; addiu; .Ljoin:`. The `li` fills
+the `bgtz` slot from the fall-through, which is safe because the other path
+overwrites `$v0` and `li` cannot trap. Then `relax_delay_slots` sees a
+conditional branch around an unconditional jump. It inverts the branch into
+`blez .Ljoin` and deletes the `j`, which leaves exactly the ROM's layout.
+
 ## A literal mask turns `1 << k` into a bit extract; hold the mask in a local instead
 
 `(1 << (x - 1)) & 0x100FE` tested against zero is rewritten by combine into a

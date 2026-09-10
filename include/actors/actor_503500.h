@@ -651,6 +651,34 @@ typedef struct Actor503500Msg3FF {
 } Actor503500Msg3FF;
 STATIC_ASSERT_SIZEOF(Actor503500Msg3FF, 0x14);
 
+/// Work block of the knock-back task `func_actor_503500_801437D0` spawns
+/// (`Mem_Set(_, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
+/// rotation handed over in `Task::spawnArg2`; every frame `speed` is pushed
+/// through it by `ApplyMatrixLV` and added onto the 16.16 `pos`, whose integer
+/// halves go to the player as message 0x3FE. `field_34` counts frames spent at
+/// zero speed and `field_36` the remaining camera-shake frames.
+typedef struct Actor503500Work38 {
+    /* 0x00 */ Actor503500FixVec pos;
+    /* 0x10 */ MATRIX            rot;
+    /* 0x30 */ s32               speed;
+    /* 0x34 */ s16               field_34;
+    /* 0x36 */ s16               field_36;
+} Actor503500Work38;
+STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
+
+/// Payload of message 0x3FE: the displacement `func_actor_503500_80143AC0` asks
+/// the player to move by. A nonzero reply stops the push.
+typedef struct Actor503500Msg3FE {
+    /* 0x00 */ s32  x;
+    /* 0x04 */ s32  y;
+    /* 0x08 */ s32  z;
+    /* 0x0C */ byte pad_C[0x4];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s8   field_12;
+    /* 0x13 */ byte pad_13[0x1];
+} Actor503500Msg3FE;
+STATIC_ASSERT_SIZEOF(Actor503500Msg3FE, 0x14);
+
 /// Work block of the enemy whose state-0 init is
 /// `func_actor_503500_801423C8` (`Mem_Set(_, 0x224)`), viewed through its own
 /// type rather than the shared `Actor503500Work`: its three display nodes sit
