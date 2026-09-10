@@ -1059,7 +1059,59 @@ void func_actor_403100_8013A4C8(Task* arg0)
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013A5AC);
+void func_actor_403100_8013A5AC(Task* arg0)
+{
+    SVECTOR  offset;
+    SVECTOR  velocity;
+    s32      sound;
+    s32      pan;
+    s32      depth;
+    GpObj38* effectCoord;
+
+    if (D_actor_403100_80155810 == 1) {
+        D_actor_403100_80155808->field_5FA = 3;
+        return;
+    }
+    D_actor_403100_80155808->field_98   = -0x3110;
+    D_actor_403100_80155808->field_5EC += 1;
+    D_actor_403100_80155808->field_9A   = -0xC80;
+    D_actor_403100_80155808->field_9C   = ((s32)(rsin((s16)D_actor_403100_80155808->field_5EC << 5) * 0x10) >> 6) + 0x6DB;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        D_actor_403100_80155808->field_61C = 0;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        D_actor_403100_80155808->field_61C = 1;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        SndEvt_EnqueueType7(0x401F0004, 0xA);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+        offset.vy   = -0x1F0;
+        offset.vz   = 0x620;
+        velocity.vy = -0x20;
+        offset.vx   = 0;
+        velocity.vx = 0;
+        velocity.vz = 0xE0;
+        func_actor_403100_80132064(arg0, &offset, &velocity, 0);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+        effectCoord = (GpObj38*)&((TmdObject*)arg0->extra)->field_8[3];
+        offset.vy   = -0x140;
+        offset.vx   = 0;
+        offset.vz   = 0x400;
+        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 void func_actor_403100_8013A81C(Task* arg0)
 {
     SVECTOR  offset;
