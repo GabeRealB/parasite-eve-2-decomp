@@ -881,7 +881,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 /// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
 /// mode 2 only marks the enemy's link node, and anything else clears the
 /// coordinate flag and runs the normal chain.
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013C878);
+void func_actor_503500_8013C878(Actor503500* arg0)
+{
+    GpEnemy*       enemy;
+    GsCOORDINATE2* coord;
+
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+    if (D_801153F4 == 1) {
+        return;
+    }
+    if (D_801153F4 == 2) {
+        enemy->node.field_4 |= 1;
+        return;
+    }
+    coord->flg = 0;
+    if (enemy->field_4C != 0) {
+        func_actor_503500_8013C9DC(arg0);
+    }
+    func_actor_503500_8013C960(arg0);
+    func_actor_503500_8013CA34(arg0);
+}
 void func_actor_503500_8013C900(Actor503500* arg0)
 {
     GpEnemy* enemy;
