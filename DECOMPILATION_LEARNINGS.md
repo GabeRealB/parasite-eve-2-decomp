@@ -46830,6 +46830,15 @@ differ only in where it sits. When a store that should precede a `jal` keeps
 landing in its delay slot, check whether the value is joined from two arms
 and push the store back into them.
 
+This applies to stores that do *not* depend on the branch as well.
+`func_actor_503500_80142980` wants `sw v0,0x1f8; sw zero,0x1fc; sw zero,0x200`
+(one 16.16 vector) ahead of `ApplyMatrixLV`'s `addiu a0 / addiu a1 / jal / move
+a2`. Only `vx` differs per arm. Writing `vy = 0; vz = 0;` once after the
+`if`/`else` leaves them in the join block, and `sched1` places them after the arg
+moves. At equal priority, the store's memory-unit potential hazard beats the
+arg moves, which use no unit. Moving `vx` alone to the join through a temp does
+not help. Only repeating all three stores in both arms matched (99.67% -> 100%).
+
 ## Do not hand-hoist an `s16` sub-expression out of a loop: it breaks the shared `sll 16`
 
 `func_gunblade_8011D70C(s16 slot, s16 flags)` picks three 2-bit colour
@@ -58301,6 +58310,7 @@ plain global access and statement movement first.
 Preprocessed inputs: base_8
 `386b05e8ea476f002f4e4e142254632d9ceab76fa6ec009482b293f858792707`;
 base_9 `b370a101d7f595a64bf9ae7708817be640bfea7821d674fa68bbf5330702fdf3`.
+
 ### A pointer held across one call loses its register to an index-derived pointer; assign it just before the call
 
 `func_actor_503500_8013CAE4` sat at 99.15% with only `s2`/`s3` swapped between

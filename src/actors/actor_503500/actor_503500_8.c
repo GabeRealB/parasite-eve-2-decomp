@@ -3283,7 +3283,232 @@ void func_actor_503500_8014271C(Actor503500* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_8", D_actor_503500_80132178);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_8", func_actor_503500_80142980);
+/// The rect `func_actor_503500_80142980` moves when `field_220` is set, and
+/// the effect offsets of that death fall: five for the two-part spray, cycled,
+/// and the per-side offset of the phase-3 spark.
+extern RECT    D_actor_503500_8017155C;
+extern SVECTOR D_actor_503500_80171564[5];
+extern SVECTOR D_actor_503500_8017158C;
+extern SVECTOR D_actor_503500_80171594;
+
+/// Death state of the 0x224 enemy, the counterpart of the 0x160 enemy's
+/// `func_actor_503500_80137678`: phase 0 unlinks the enemy node and clears the
+/// 16.16 `rot` / `vel` / `pos`; phase 1 sprays effects for 31 frames, then
+/// queues the side's CD load, re-parents the coordinate onto the view in world
+/// space, copies the parent's parts 6/7 (or 12/13, by `field_220`) into its own
+/// parts 2/3 and points `vel` along the coordinate; phase 2 plays 0x40230004; phases 3/4 accelerate `vel.vy`, and
+/// phase 4 fires the light and sound cues on frames 10/30 and leaves on frame
+/// 40. Every frame the angles and position are applied to the coordinate, and
+/// every fourth frame sprays two effects from `D_actor_503500_80171564`.
+void func_actor_503500_80142980(Actor503500* arg0)
+{
+    SVECTOR              rot;
+    Actor503500IdentMat  m;
+    s8                   param1[8];
+    s8                   param2[8];
+    Actor503500MatWords* ident;
+    Actor503500Work224*  work;
+    GpEnemy*             enemy;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       src;
+    TmdObject*           tmd;
+    s32*                 in;
+    s32*                 out;
+    s32*                 in2;
+    s32*                 out2;
+    s32                  side;
+    s32                  i;
+    s32                  j;
+    s32                  k;
+
+    work  = (Actor503500Work224*)arg0->field_1C;
+    enemy = arg0->field_20;
+    coord = arg0->extra->field_8;
+    switch (work->field_222) {
+        case 0:
+            work->obj0.flags &= 0x7FFF;
+            enemy->field_54   = 0;
+            Gp_UnlinkNode(&enemy->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_218 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            enemy->field_4C  &= 0xF0;
+            work->rot.vx.w    = 0;
+            work->rot.vy.w    = 0;
+            work->rot.vz.w    = 0;
+            work->vel.vx.w    = 0;
+            work->vel.vy.w    = 0;
+            work->vel.vz.w    = 0;
+            work->pos.vx.w    = 0;
+            work->pos.vy.w    = 0;
+            work->pos.vz.w    = 0;
+            work->obj1.flags &= 0x7FFF;
+            work->obj2.flags &= 0x7FFF;
+            work->field_222++;
+            break;
+        case 1:
+            side = work->field_220;
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 1) != 0) {
+                rot.vx = side != 0 ? -300 : 300;
+                rot.vy = (u32)(rcos((s16)work->field_21A << 7) * 375) >> 10;
+                rot.vz = (u32)(rsin((s16)work->field_21A << 7) * 375) >> 10;
+                Gp_SpawnEff(0x60055, coord->sub->sub, 0x01101600, &rot);
+            }
+            if ((s16)++work->field_21A >= 0x1F) {
+                param1[3] = 4;
+                param1[2] = 0x30;
+                param2[0] = 1;
+                param2[1] = 0;
+                if (side != 0) {
+                    param1[0] = 0x14;
+                    param2[2] = -1;
+                    param2[3] = 4;
+                    MoveImage(&D_actor_503500_8017155C, 0, 0xFD);
+                } else {
+                    param1[0] = 0x13;
+                    param2[2] = -1;
+                    param2[3] = 2;
+                }
+                work->field_21E = CdCmd_Enqueue(0x21, (u8*)param1, (u8*)param2);
+                Gp_ComposeParentWorld(coord, &m.mat, &rot);
+                in  = (s32*)&m;
+                out = (s32*)&coord->coord;
+                for (k = 0; k < 4; k++) {
+                    *out++ = *in++;
+                }
+                coord->coord.m[2][2] = m.mat.m[2][2];
+                coord->coord.t[0]    = rot.vx;
+                coord->coord.t[1]    = rot.vy;
+                coord->coord.t[2]    = rot.vz;
+                src                  = ((TmdObject*)arg0->parent->extra)->field_8;
+                if (side != 0) {
+                    src += 4;
+                } else {
+                    src += 10;
+                }
+                for (i = 2; i < 4; i++) {
+                    out2 = (s32*)&coord[i].coord;
+                    in2  = (s32*)&src[i].coord;
+                    for (k = 0; k < 4; k++) {
+                        *out2++ = *in2++;
+                    }
+                    coord[i].coord.m[2][2] = src[i].coord.m[2][2];
+                }
+                tmd           = arg0->extra;
+                tmd->field_C &= 0xFF7B;
+                Tmd_AllocBuffers(tmd);
+                rot.vx = 0;
+                rot.vy = 0;
+                rot.vz = 0;
+                if (side != 0) {
+                    func_actor_503500_80135E20((Actor503500*)arg0->parent, 5, &rot);
+                    work->vel.vx.w = -0x100000;
+                    work->vel.vy.w = 0;
+                    work->vel.vz.w = 0;
+                } else {
+                    func_actor_503500_80135E20((Actor503500*)arg0->parent, 0xB, &rot);
+                    work->vel.vx.w = 0x100000;
+                    work->vel.vy.w = 0;
+                    work->vel.vz.w = 0;
+                }
+                ApplyMatrixLV(&coord->coord, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
+                coord->sub = &Gfx_ViewCoord;
+                Gp_UpdateCoord(coord);
+                work->field_21A = 0;
+                work->field_222++;
+            }
+            break;
+        case 2:
+            arg0->extra->field_E = 0x11;
+            SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_222++;
+            break;
+        case 3:
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 2) != 0) {
+                if (work->field_220 != 0) {
+                    Gp_SpawnEff(0x60055, coord, 0x01101C00, &D_actor_503500_80171594);
+                    work->rot.vz.w -= 0x2000;
+                } else {
+                    Gp_SpawnEff(0x60055, coord, 0x01101C00, &D_actor_503500_8017158C);
+                    work->rot.vz.w += 0x2000;
+                }
+            }
+            work->vel.vy.w += 0x8000;
+            if ((s16)++work->field_21A >= 0x1F) {
+                work->field_21A = 0;
+                work->field_222++;
+            }
+            break;
+        case 4:
+            work->vel.vy.w += 0x8000;
+            switch ((s16)work->field_21A) {
+                case 10:
+                    arg0->extra->field_C |= 2;
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                        (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                    break;
+                case 30:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+                case 40:
+                    SndEvt_EnqueueType7(0xD, 1);
+                    arg0->state++;
+                    break;
+            }
+            work->field_21A++;
+            break;
+        default:
+            arg0->state++;
+            break;
+    }
+    rot.vx          = work->rot.vx.w >> 16;
+    rot.vy          = work->rot.vy.w >> 16;
+    rot.vz          = work->rot.vz.w >> 16;
+    m.ident.m00_m01 = 0x1000;
+    m.ident.m02_m10 = 0;
+    ident           = &m.ident;
+    ident->m11_m12  = 0x1000;
+    m.ident.m20_m21 = 0;
+    ident->m22      = 0x1000;
+    RotMatrix(&rot, &m.mat);
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldclmv(&m.mat);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord);
+    gte_ldclmv((char*)&m.mat + 2);
+    gte_rtir_real();
+    gte_stclmv((char*)&coord->coord + 2);
+    gte_ldclmv((char*)&m.mat + 4);
+    gte_rtir_real();
+    gte_stclmv((char*)&coord->coord + 4);
+    work->pos.vx.w    += work->vel.vx.w;
+    work->pos.vy.w    += work->vel.vy.w;
+    work->pos.vz.w    += work->vel.vz.w;
+    coord->coord.t[0] += work->pos.vx.h.hi;
+    coord->coord.t[1] += work->pos.vy.h.hi;
+    coord->coord.t[2] += work->pos.vz.h.hi;
+    work->pos.vx.w     = (u16)work->pos.vx.w;
+    work->pos.vy.w     = (u16)work->pos.vy.w;
+    work->pos.vz.w     = (u16)work->pos.vz.w;
+    coord->flg         = 0;
+    if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
+        if (!(D_80070F70 & 3)) {
+            for (i = 0, j = 0; i < 2; i++) {
+                Gp_SpawnEff(0x60070, &arg0->extra->field_8[i], 0x81018A00, &D_actor_503500_80171564[j]);
+                j++;
+                j = j < 5 ? j : 0;
+            }
+        }
+    }
+    if (Game_Session->field_1 != 0 && Game_Session->field_4D != 0 && work->field_222 >= 2) {
+        SndEvt_EnqueueType7(0xD, 1);
+        arg0->state = 2;
+    }
+}
 
 /// Hit handler of the 0x224 enemy, one pass over `count` records. Duplicate
 /// ids and anything but a type-2 hit are skipped, as is the whole record while
