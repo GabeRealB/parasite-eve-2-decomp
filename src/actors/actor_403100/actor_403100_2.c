@@ -300,7 +300,17 @@ void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D11C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D1B8);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013D24C);
+void func_actor_403100_8013D24C(void)
+{
+    s32 state;
+
+    state = (s8)D_actor_403100_80155808->pad_66A[2];
+    if ((state == 1) && !(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
+        D_actor_403100_80155808->field_664.b.field_665 = state;
+        D_actor_403100_80155808->field_664.b.field_666 = (u8)state;
+        D_actor_403100_80155808->field_66F             = state;
+    }
+}
 void func_actor_403100_8013D2A0(s16 arg0)
 {
     if (!(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
