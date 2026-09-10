@@ -1090,7 +1090,74 @@ void func_actor_403100_80136100(Task* arg0)
     }
     coord->coord.t[2] = z;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013631C);
+void func_actor_403100_8013631C(Task* arg0)
+{
+    s16            frame;
+    s16            step;
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* coord;
+
+    frame                               = D_actor_403100_80155808->field_5EC + 1;
+    coord                               = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_5EC  = (u16)frame;
+    D_actor_403100_80155808->field_5EE += 1;
+    D_actor_403100_80155808->field_600  = (u16)((D_actor_403100_80155808->field_600 + 0x20) & 0x7FF);
+    if (D_actor_403100_80155808->field_5EE < 0xA) {
+        coord->coord.t[2] -= 0x6;
+    } else if (D_actor_403100_80155808->field_5EE < 0x14) {
+        coord->coord.t[2] -= 0xA;
+    } else if (D_actor_403100_80155808->field_5EE < 0x1E) {
+        coord->coord.t[2] -= 0x12;
+    } else if (D_actor_403100_80155808->field_5EE < 0x28) {
+        coord->coord.t[2] -= 0x6;
+    } else if (D_actor_403100_80155808->field_5EE < 0x32) {
+        coord->coord.t[2] -= 0x6;
+    } else if (D_actor_403100_80155808->field_5EE < 0x3C) {
+        coord->coord.t[2] -= 0xA;
+    } else if (D_actor_403100_80155808->field_5EE < 0x46) {
+        coord->coord.t[2] -= 0x12;
+    } else if (D_actor_403100_80155808->field_5EE < 0x5D) {
+        coord->coord.t[2] -= 0x4;
+    } else if (D_actor_403100_80155808->field_5EE < 0x69) {
+        coord->coord.t[2] -= 0x8;
+    } else if (D_actor_403100_80155808->field_5EE < 0x75) {
+        coord->coord.t[2] -= 0x10;
+    } else if (D_actor_403100_80155808->field_5EE < 0x81) {
+        coord->coord.t[2] -= 0x28;
+    } else if (D_actor_403100_80155808->field_5EE < 0x92) {
+        coord->coord.t[2] -= 0x18;
+    } else if (D_actor_403100_80155808->field_5EE < 0x9C) {
+        coord->coord.t[2] -= 0x6;
+    } else if (D_actor_403100_80155808->field_5EE < 0xA6) {
+        coord->coord.t[2] -= 0xA;
+    } else if (D_actor_403100_80155808->field_5EE < 0xB0) {
+        coord->coord.t[2] -= 0x12;
+    } else if (D_actor_403100_80155808->field_5EE < 0xBA) {
+        coord->coord.t[2] -= 0x6;
+    } else if (D_actor_403100_80155808->field_5EE < 0xC4) {
+        coord->coord.t[2] -= 0x6;
+    }
+    step = (s16)D_actor_403100_80155808->field_5EE;
+    if ((step == 0x2D) || (step == 0xE6) || (step == 0xB4) || (step == 0x57)) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+        D_actor_403100_80155808->field_5FE = 0x1E;
+    }
+    if (Actor403100_TestFlags12C()) {
+        D_actor_403100_80155808->field_5E2 = 0x10;
+        D_actor_403100_80155808->field_5DE = 0x18;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_5EE = 0U;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x118) {
+        D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
+    }
+}
 void func_actor_403100_80136610(Task* arg0)
 {
     Actor403100Work* work;
