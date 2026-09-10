@@ -397,7 +397,48 @@ void func_actor_403100_80138D08(Task* arg0)
         D_actor_403100_80155808->field_5FA            += 1;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138DB0);
+void func_actor_403100_80138DB0(Task* arg0)
+{
+    s32              sound;
+    s32              pan;
+    s32              depth;
+    Task*            player;
+    Actor403100Work* work;
+
+    player                             = (Task*)Gp_ActorSlots[0];
+    D_actor_403100_80155808->field_5EC = (u16)(D_actor_403100_80155808->field_5EC + 1);
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        if ((s16)D_actor_403100_80155808->field_5EC < 0x101) {
+            func_actor_403100_8013C7B4(arg0);
+            work = D_actor_403100_80155808;
+            if ((u8)work->field_668.b.field_668 != 0) {
+                work->pad_670[3]                    = 1;
+                D_actor_403100_80155808->pad_670[1] = 1;
+                Gp_StateC08.field_6                 = (u8)(Gp_StateC08.field_6 | 1);
+                sound                               = (((u16)((GpEnemy*)player->spawnArg2)->field_8 >> 0xC) << 8) | 7;
+                pan                                 = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+                depth                               = Gp_GetObjDepth((GpObj38*)&((TmdObject*)player->extra)->field_8[1]);
+                SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+                D_actor_403100_80155808->field_65F  = 0;
+                D_actor_403100_80155808->pad_660[0] = 1;
+                func_actor_403100_8013D1B8(1, 0x3F4);
+                D_actor_403100_80155808->field_5EC  = 0U;
+                D_actor_403100_80155808->pad_65E[0] = 0;
+                D_actor_403100_80155808->field_5FA += 1;
+            } else if ((u8)work->field_668.b.field_669 != 0) {
+                work->field_5E2 = -0x10;
+                work->field_5FA = 0xA;
+            }
+            D_actor_403100_80155808->field_61C = 0;
+        } else {
+            D_actor_403100_80155808->field_61C = 2;
+        }
+        if (Actor403100_TestFlags104()) {
+            D_actor_403100_80155808->field_5F8 = 1;
+            D_actor_403100_80155808->field_5FA = 0U;
+        }
+    }
+}
 void func_actor_403100_80138F88(Task* arg0)
 {
     s32              message[6];
