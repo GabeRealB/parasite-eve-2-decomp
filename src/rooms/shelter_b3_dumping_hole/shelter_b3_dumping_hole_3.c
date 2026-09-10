@@ -4,6 +4,19 @@
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
 
+typedef struct {
+    u8  pad_00[0x30];
+    s16 field_30;
+    s16 field_32;
+} DumpingHoleEntity;
+
+typedef struct {
+    u8                 pad_00[0x1C];
+    DumpingHoleEntity* field_1C;
+} DumpingHoleState;
+
+extern DumpingHoleState* D_shelter_b3_dumping_hole_8018F4A8;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017D9A8);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DA00);
@@ -52,7 +65,12 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FE9C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FED4);
+void func_shelter_b3_dumping_hole_8017FED4(s16 arg0)
+{
+    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
+    p->field_30          = arg0;
+    p->field_32          = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FEF4);
 
