@@ -531,7 +531,8 @@ typedef struct Actor503500Work770E8 {
     /* 0xE0 */ GsCOORDINATE2* field_E0;
     /* 0xE4 */ s16            field_E4;
     /* 0xE6 */ s16            field_E6;
-    /* 0xE8 */ byte           pad_E8[0x4];
+    /* 0xE8 */ s16            field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ byte           pad_EA[0x2];
     /* 0xEC */ u16            field_EC; // sub-state frame counter
     /* 0xEE */ s16            field_EE;
     /* 0xF0 */ s8             field_F0; // sub-state index

@@ -84,6 +84,10 @@ void           func_actor_503500_8013BC54(Actor503500* arg0);
 extern SVECTOR              D_actor_503500_8016F210[];
 extern Actor503500Work770E8 D_actor_503500_801770E8[];
 void                        func_actor_503500_8013D85C(Actor503500* arg0);
+/// The two three-row effect offset tables `func_actor_503500_8013D558`
+/// spawns from: the first for spawn slot 7, the second for every other slot.
+extern SVECTOR D_actor_503500_8016F278[];
+extern SVECTOR D_actor_503500_8016F290[];
 /// The same pair for the 0x160 enemy at `D_actor_503500_80176D88`: a world
 /// translation seeded into the task's own coordinate and the local offset its
 /// `GpEnemy::field_1C` and display node share.
@@ -1817,7 +1821,62 @@ INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013D1CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013D558);
+/// Sub-state 3 of the second 0xF4 block, stepped by `field_F1`: phase 0 is
+/// the death setup shared with `func_actor_503500_8013F4A4`; phase 1 spawns an
+/// effect per frame from a slot-dependent offset table for 6 frames, then a
+/// final burst of three; the last phase keeps counting to 0x1F and leaves.
+void func_actor_503500_8013D558(Actor503500* arg0)
+{
+    Actor503500Work770E8* work;
+    GsCOORDINATE2*        coord;
+    SVECTOR*              vec;
+    s32                   pan;
+
+    work  = (Actor503500Work770E8*)arg0->field_1C;
+    coord = arg0->extra->field_8;
+    switch (work->field_F1) {
+        case 0:
+            work->obj.flags         &= 0x7FFF;
+            arg0->field_20->field_54 = 0;
+            Gp_UnlinkNode(&arg0->field_20->node);
+            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
+            work->field_E8 = 0;
+            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            func_actor_503500_80136048((Actor503500*)arg0->parent);
+            arg0->field_20->field_4C &= 0xF0;
+            pan                       = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            work->field_F1++;
+            break;
+        case 1:
+            if (arg0->spawnArg1 == 7) {
+                vec = D_actor_503500_8016F278;
+            } else {
+                vec = D_actor_503500_8016F290;
+            }
+            if (func_actor_503500_801360BC(arg0->spawnArg1, 2) != 0) {
+                Gp_SpawnEff(0x60055, coord, 0x01001C00, &vec[(s16)((s16)work->field_EC % 3)]);
+            }
+            if ((s16)work->field_EC++ >= 5) {
+                if (func_actor_503500_801360BC(arg0->spawnArg1, 6) != 0) {
+                    Gp_SpawnEff(0x6018C, coord, 0x04404600, &vec[0]);
+                    Gp_SpawnEff(0x6018C, coord, 0x05404600, &vec[1]);
+                    Gp_SpawnEff(0x6018C, coord, 0x06404600, &vec[2]);
+                }
+                SndEvt_EnqueueType7(0x40230010, 0x2D);
+                work->field_F1++;
+            }
+            break;
+        default:
+            work->field_EC++;
+            if ((s16)work->field_EC >= 0x1F) {
+                func_actor_503500_8013611C(arg0->spawnArg1);
+                arg0->state++;
+            }
+            break;
+    }
+}
 
 /// Per-frame tick of the second 0xF4 block, the same shape as
 /// `func_actor_503500_8013BBCC`: frozen mode 1 skips the frame entirely,
