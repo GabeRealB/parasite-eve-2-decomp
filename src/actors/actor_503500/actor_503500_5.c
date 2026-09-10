@@ -55,6 +55,9 @@ void func_actor_503500_801345F4(Actor503500* arg0);
 void func_actor_503500_80134A24(Actor503500* arg0);
 void func_actor_503500_80134C68(Actor503500* arg0);
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
+s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
+s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
+void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
 /// Animation-preset table indexed by preset id; `func_actor_503500_80135FB4`
 /// and `func_actor_503500_80132F64` hand entry pointers to
 /// `func_actor_503500_80135950`.
@@ -264,7 +267,58 @@ s32 func_actor_503500_80133684(Actor503500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_801338E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133BF4);
+/// Script step that dismisses one of the boss's slot-10/11 helpers. State 0
+/// picks the slot: with `field_7DE` clear it tries the slot chosen by the low
+/// bit of `field_7C8` and then the other one, and always advances; otherwise
+/// the sign of `field_7BA` picks slot 10 or 11 and it only advances once that
+/// slot is ready. State 1 waits for the chosen slot (`field_7C2`) to finish
+/// dying. Returns 1 while no slot is ready, 0 the frame the request is issued
+/// or while waiting, and 1 once the slot has gone quiet. `arg0` is passed
+/// through the step table and ignored here.
+s32 func_actor_503500_80133BF4(Actor503500* arg0, Actor503500Work* work)
+{
+    s32 ret;
+    s32 odd;
+    s32 slot;
+
+    ret = 1;
+    switch ((s8)work->field_7DB) {
+        case 0:
+            if (work->field_7DE == 0) {
+                odd  = work->field_7C8 & 1;
+                slot = odd + 0xA;
+                if (func_actor_503500_80136FDC(work, slot) != 0 ||
+                    (slot = 0xB - odd, func_actor_503500_80136FDC(work, slot) != 0)) {
+                    func_actor_503500_80136F40(work, slot, 2, 0x78);
+                    work->field_7C2 = slot;
+                }
+                ret             = 0;
+                work->field_7D2 = 0;
+                work->field_7DB = 1;
+            } else if (work->field_7BA > 0) {
+                if (func_actor_503500_80136FDC(work, 0xA) != 0) {
+                    func_actor_503500_80136F40(work, 0xA, 2, 0x78);
+                    ret             = 0;
+                    work->field_7C2 = 0xA;
+                    work->field_7D2 = 0;
+                    work->field_7DB = 1;
+                }
+            } else if (func_actor_503500_80136FDC(work, 0xB) != 0) {
+                func_actor_503500_80136F40(work, 0xB, 2, 0x78);
+                ret             = 0;
+                work->field_7C2 = 0xB;
+                work->field_7D2 = 0;
+                work->field_7DB = 1;
+            }
+            break;
+        case 1:
+            if (func_actor_503500_80136FA8(work, work->field_7C2) == 0) {
+                ret = 0;
+            }
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_5", func_actor_503500_80133D40);
 

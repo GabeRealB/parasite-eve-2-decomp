@@ -266,7 +266,8 @@ typedef struct Actor503500Work {
     /* 0x7BE */ s16  field_7BE;
     /* 0x7C0 */ s16  field_7C0;
     /* 0x7C2 */ s16  field_7C2; // slot index being asked to die
-    /* 0x7C4 */ byte pad_7C4[0x6];
+    /* 0x7C4 */ byte pad_7C4[0x4];
+    /* 0x7C8 */ u16  field_7C8;
     /* 0x7CA */ s16  field_7CA;
     /* 0x7CC */ s16  field_7CC;
     /* 0x7CE */ byte pad_7CE[0x4];
@@ -279,7 +280,9 @@ typedef struct Actor503500Work {
     /* 0x7D6 */ byte pad_7D6[0x4];
     /* 0x7DA */ u8   field_7DA; // per-state step counter
     /* 0x7DB */ u8   field_7DB; // cleared alongside field_7DA
-    /* 0x7DC */ byte pad_7DC[0x4];
+    /* 0x7DC */ byte pad_7DC[0x2];
+    /* 0x7DE */ s8   field_7DE;
+    /* 0x7DF */ byte pad_7DF[0x1];
     /* 0x7E0 */ s8   field_7E0;
     /* 0x7E1 */ s8   field_7E1;
     /* 0x7E2 */ s8   field_7E2;
