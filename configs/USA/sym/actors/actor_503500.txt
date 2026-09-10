@@ -10,3 +10,4 @@ D_actor_503500_801321DC = 0x801321DC; // force_not_migration:True actor state ta
 D_actor_503500_801321E8 = 0x801321E8; // force_not_migration:True actor state table, read from C
 D_actor_503500_80132218 = 0x80132218; // force_not_migration:True actor state table, read from C
 D_actor_503500_80132224 = 0x80132224; // force_not_migration:True actor state table, read from C
+ActorsShared80132d00 = 0x80132D00; // shared body, see src/actors/lib/

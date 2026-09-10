@@ -34,7 +34,16 @@ void func_dryfield_dilapidated_house_80181264(Task* arg0)
     func_dryfield_dilapidated_house_8017EE58(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181290);
+/// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
+/// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
+/// `t` and the constant term.
+void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
+{
+    coeff->vx  = -p0 + (p1 - p2) * 3 + p3;
+    coeff->vy  = (p0 + p2) * 3 - p1 * 6;
+    coeff->vz  = (-p0 + p1) * 3;
+    coeff->pad = p0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801812E8);
 
