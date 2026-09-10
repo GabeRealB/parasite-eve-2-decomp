@@ -1484,7 +1484,37 @@ void func_actor_503500_8013AAC0(Actor503500* arg0)
     vec.vz = arg0->extra->field_8->workm.t[2];
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_6", func_actor_503500_8013AB38);
+/// Blends model parts 1..8 toward the 0x2EC block's private copies in `mats`:
+/// while `field_2E2` is below 0x1000, each part's `coord` rotation goes through
+/// `Gp_LerpOrthonormal` and its translation keeps a `field_2E2 / 0x1000` share
+/// of its offset from the copy.
+void func_actor_503500_8013AB38(Actor503500* arg0)
+{
+    VECTOR              d;
+    Actor503500Work2EC* work;
+    GsCOORDINATE2*      coord;
+    MATRIX*             mat;
+    s32                 t;
+    s32                 i;
+
+    work  = (Actor503500Work2EC*)arg0->field_1C;
+    coord = arg0->extra->field_8 + 1;
+    if (work->field_2E2 < 0x1000) {
+        mat = &work->mats[1];
+        t   = work->field_2E2;
+        for (i = 1; i < 9; i++) {
+            Gp_LerpOrthonormal(mat, &coord->coord, &coord->coord, t);
+            d.vx              = ((coord->coord.t[0] - mat->t[0]) * t) >> 12;
+            d.vy              = ((coord->coord.t[1] - mat->t[1]) * t) >> 12;
+            d.vz              = ((coord->coord.t[2] - mat->t[2]) * t) >> 12;
+            coord->coord.t[0] = mat->t[0] + d.vx;
+            coord->coord.t[1] = mat->t[1] + d.vy;
+            coord->coord.t[2] = mat->t[2] + d.vz;
+            mat++;
+            coord++;
+        }
+    }
+}
 
 /// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
 /// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
