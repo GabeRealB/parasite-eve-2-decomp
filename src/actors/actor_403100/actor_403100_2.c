@@ -94,7 +94,30 @@ static __inline__ s16 Actor403100_TestFlags12C(void)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80137268);
+void func_actor_403100_80137268(void)
+{
+    s16 state;
+
+    state = D_actor_403100_80155808->field_628 - 1;
+    switch (state) {
+        case 0:
+            if (D_actor_403100_80155808->field_62E < 0x1F40) {
+                D_actor_403100_80155808->field_5FA += 1;
+            }
+            break;
+        case 1:
+        case 5:
+            D_actor_403100_80155808->field_5FA += 1;
+            break;
+        case 2:
+        case 3:
+        case 4:
+            if (D_actor_403100_80155808->field_62E < 0x17D4) {
+                D_actor_403100_80155808->field_5FA += 1;
+            }
+            break;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80137310);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801375B8);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801376D8);
