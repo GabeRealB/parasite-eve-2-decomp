@@ -804,7 +804,44 @@ void func_actor_403100_8013AA04(Task* arg0)
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AC04);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013AE28);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B128);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B3C4);
+void func_actor_403100_8013B3C4(Task* arg0)
+{
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* coords;
+
+    coords                              = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_5EC += 1;
+    Mc_SaveData.field_4                 = 0x18;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
+        Gp_LoadImages(&D_actor_403100_801555EC);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x10E) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0005;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    }
+    coords->coord.t[0]                = -0x44C;
+    coords->coord.t[1]                = -0x1388;
+    coords->coord.t[2]                = 0x2710;
+    D_actor_403100_80155808->field_80 = 0;
+    D_actor_403100_80155808->field_82 = 0xA00;
+    D_actor_403100_80155808->field_84 = 0;
+    if (Actor403100_TestFlags()) {
+        D_actor_403100_80155808->pad_670[3] = 0;
+        Gp_LinkNode(&D_actor_403100_8015580C->node);
+        D_actor_403100_8015580C->node.field_4 = 8;
+        Game_Session->field_68                = 0;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+        coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
+        *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;
+        Mc_SaveData.field_4                           = (u8)D_actor_403100_80155808->field_622;
+        D_actor_403100_80155808->field_5F8            = 1;
+        D_actor_403100_80155808->field_5FA            = 0;
+    }
+}
 extern MATRIX Gfx_ViewWorldMtx;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013B5E0);
