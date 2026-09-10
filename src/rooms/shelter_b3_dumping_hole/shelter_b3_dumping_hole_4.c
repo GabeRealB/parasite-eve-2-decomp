@@ -1,7 +1,10 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/fs.h"
+#include "main/session.h"
 #include "main/task.h"
 
 typedef struct {
@@ -10,6 +13,8 @@ typedef struct {
     u8    pad_84[0x8];
     s16   field_8C;
     s16   field_8E;
+    u8    pad_90[0xC];
+    u16   field_9C;
 } DumpingHoleEntity;
 
 typedef struct {
@@ -18,8 +23,18 @@ typedef struct {
 } DumpingHoleState;
 
 extern DumpingHoleState* D_shelter_b3_dumping_hole_8018F4AC;
+extern u16               D_801153F6;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_4", func_shelter_b3_dumping_hole_801818E0);
+void func_shelter_b3_dumping_hole_801818E0(void)
+{
+    DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4AC->field_1C;
+    if (p->field_9C == 0) {
+        Gp_ReleaseStateF0Add((GpObj20E*)Gp_LookupSlot4(0), 0x20);
+        D_801153F6              = 0;
+        Game_Session->field_69 |= 0x80;
+        p->field_9C             = 1;
+    }
+}
 
 void func_shelter_b3_dumping_hole_80181958(s32 arg0)
 {
