@@ -59058,3 +59058,28 @@ operand, and `s * 16` is then a common subexpression of both products.
 **Fix.** Write the scale as a shift of the call result, `((rsin(a) << 4) * s) >> 16`;
 a shift is not reassociated. `func_actor_342400_80169F30` went from 88% to 100% on
 this plus loading `work->field_7A` after the preceding call rather than before it.
+
+### A leaf that opens with `move aN, a0` before any call is an inlined helper's parameter
+`func_actor_342400_8016945C` (now `ActorsShared8016945c`) copies its `Task*`
+into `$a1` in the first branch's delay slot and then keeps the work pointer
+in `$a0`, although it calls nothing. Written flat - `work = task->idMap;
+task->state = 3; work->field_420 = 0; ...` - GCC keeps the task in `$a0` and
+puts `work` in `$a1` (76%, stack/regs/insert penalties). Each run of stores
+was a `static inline` helper taking `(Task* task, s32 state)`: the inlined
+parameter is a fresh pseudo, and allocating it takes `$a1` and frees `$a0` for
+the reloaded `idMap`. Two helper calls reproduced it exactly (99.5%; the rest was
+the symbol name `Gp_StateF0+0x1F` vs `D_8011540F`). The same inlining also
+explains the repeated `lw a0, 0x1C(a1)` reload between the two store groups.
+
+```c
+static inline void SetTaskState(Task* task, s32 state) {
+    Work* work = (Work*)task->idMap;
+    task->state = state; work->field_420 = 0; work->field_422 = 0;
+}
+... if (flag & 0x80) { SetTaskState(arg0, 3); SetWorkState(arg0, 5); return 1; }
+return 0;
+```
+
+Put the `return 0` last: an early `if (!(flag & 0x80)) return 0;` inverts the
+branch (`beqz` over a tail `return 0`), while the target falls through into
+`return 0` and branches to the body.

@@ -22,7 +22,8 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x418 */ s16  field_418; // animation id
     /* 0x41A */ byte pad_41A[0x2];
     /* 0x41C */ s16  field_41C; // animation speed / step scale
-    /* 0x41E */ byte pad_41E[0x4];
+    /* 0x41E */ byte pad_41E[0x2];
+    /* 0x420 */ u16  field_420; // state index
     /* 0x422 */ u16  field_422; // sub-state index
     /* 0x424 */ byte pad_424[0x2];
     /* 0x426 */ s16  field_426;

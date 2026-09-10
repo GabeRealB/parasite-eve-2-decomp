@@ -67,11 +67,3 @@ void func_actor_342400_80169408(Task* arg0)
 
     states[(s16)work->field_420](arg0);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_8016945C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_801694A8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_80169518);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_801695C0);
