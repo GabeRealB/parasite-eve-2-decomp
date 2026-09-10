@@ -653,7 +653,27 @@ void func_actor_403100_8013F3AC(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F3EC);
+void func_actor_403100_8013F3EC(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_5F6 = 5;
+    coord->coord.t[0]                  = -0x44C;
+    coord->coord.t[1]                  = -0x1388;
+    coord->coord.t[2]                  = 0x2710;
+    D_actor_403100_80155808->field_82  = 0xA00;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 0xB;
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_84  = 0;
+    D_actor_403100_80155808->field_5DA = 2;
+    func_actor_403100_80132528(arg0);
+    Mc_SaveData.field_4                 = 0x18;
+    D_actor_403100_80155808->field_60E  = 0;
+    D_actor_403100_80155808->field_610  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F488);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013F4E0);
 void func_actor_403100_8013F520(void)
