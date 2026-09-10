@@ -4,14 +4,35 @@
 #include "main/task.h"
 
 typedef struct {
-    u8  _pad0[0xA];
-    s16 field_A;
+    u8 _pad0[0x24];
+    u8 field_24;
+    u8 field_25;
+} DumpingHoleP2C;
+
+typedef struct {
+    u8              _pad0[0x2C];
+    DumpingHoleP2C* field_2C;
+} DumpingHoleTarget2;
+
+typedef struct {
+    DumpingHoleTarget2* field_0;
+    u8                  _pad4[0x6];
+    s16                 field_A;
+} DumpingHoleTarget;
+
+typedef struct {
+    DumpingHoleTarget* field_0;
+    u8                 _pad4[0x4];
+    s16                field_8;
+    s16                field_A;
 } DumpingHoleEntity;
 
 typedef struct {
     u8                 _pad0[0x1C];
     DumpingHoleEntity* field_1C;
-    u8                 _pad20[0x16];
+    u8                 _pad20[0x10];
+    s32                field_30;
+    s16                field_34;
     s16                field_36;
 } DumpingHoleState;
 
@@ -19,6 +40,12 @@ typedef struct {
     u8  _pad0[0x6];
     s16 field_6;
 } DumpingHoleB7BC;
+
+typedef struct {
+    u8  field_0;
+    u8  field_1;
+    u16 field_2;
+} DumpingHoleDispatchDesc;
 
 extern DumpingHoleB7BC D_shelter_b3_dumping_hole_8018B7BC[];
 
@@ -37,7 +64,26 @@ extern SVECTOR D_shelter_b3_dumping_hole_8018B98C[];
 void           Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 void           Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183CA0);
+void func_shelter_b3_dumping_hole_80183CA0(DumpingHoleState* arg0)
+{
+    DumpingHoleDispatchDesc desc;
+    DumpingHoleEntity*      ent = arg0->field_1C;
+    DumpingHoleTarget*      t0  = ent->field_0;
+
+    if (t0 != NULL) {
+        DumpingHoleTarget2* t00 = t0->field_0;
+        DumpingHoleP2C*     p   = t00->field_2C;
+        p->field_24             = 3;
+        p->field_25             = 5;
+        t0->field_A             = 0x900;
+        desc.field_0            = 0;
+        desc.field_1            = 0x2E;
+        desc.field_2            = arg0->field_34;
+        Gp_DispatchMsg((Task*)t00, 0x7DB, (s32)&desc, 0);
+    }
+    ent->field_8    = 0;
+    arg0->field_30 += 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183D34);
 
