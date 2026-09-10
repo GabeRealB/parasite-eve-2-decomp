@@ -105,7 +105,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138048);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_8013842C);
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80138610);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801386DC);
+void func_actor_403100_801386DC(Task* arg0)
+{
+    u16            velocity;
+    u16            accel;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    func_actor_403100_8013D24C();
+    D_actor_403100_80155808->field_608 =
+        (u16)D_actor_403100_80155808->field_608 +
+        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_5EC += 1;
+    accel                               = D_actor_403100_80155808->field_61E + 4;
+    velocity                            = D_actor_403100_80155808->field_620 + accel;
+    D_actor_403100_80155808->field_620  = velocity;
+    D_actor_403100_80155808->field_61E  = accel;
+    coord->coord.t[1]                  -= (s16)velocity;
+    if ((s16)D_actor_403100_80155808->field_5EC >= 6) {
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
 void func_actor_403100_80138790(Task* arg0)
 {
     u16            velocity;
