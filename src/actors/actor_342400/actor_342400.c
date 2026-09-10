@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/mem.h"
 #include "actors/actor_342400.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162084);
@@ -50,7 +51,26 @@ void func_actor_342400_80162A34(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162AB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162B60);
+void func_actor_342400_80162B60(Task* arg0)
+{
+    Actor342400SpawnWork* work;
+    GpEnemy*              enemy;
+
+    work = Mem_Calloc(8, 0);
+    if (work != NULL) {
+        arg0->idMap = (TaskIdMap*)work;
+        enemy       = Gp_SpawnEnemyFromTable(&D_actor_342400_80173A54, 1, 0, 0);
+        if (enemy != NULL) {
+            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
+            work->enemy                                                   = enemy;
+            enemy->field_8                                                = D_actor_342400_80173AAC << 12;
+            D_actor_342400_80173AAC++;
+            arg0->state++;
+            return;
+        }
+    }
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162C10);
 

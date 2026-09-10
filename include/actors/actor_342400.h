@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "main/task.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 /// Per-actor state block for the `actor_342400` overlay's main enemy.
@@ -72,7 +73,18 @@ typedef struct Actor342400CtrlWork {
 } Actor342400CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor342400CtrlWork, 0x6);
 
+/// Work block of the spawner task set up by `func_actor_342400_80162B60`
+/// (`Mem_Calloc(8, 0)`, stored in its `Task::idMap` slot); holds the enemy it
+/// spawned from `D_actor_342400_80173A54`.
+typedef struct Actor342400SpawnWork {
+    /* 0x0 */ GpEnemy* enemy;
+    /* 0x4 */ byte     pad_4[4];
+} Actor342400SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
+
 extern Actor342400Slot D_actor_342400_8016BF58[];
+extern TaskDesc        D_actor_342400_80173A54;
+extern u16             D_actor_342400_80173AAC; // spawn counter, `<< 12` into `GpEnemy::field_8`
 
 void func_actor_342400_801621D8(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
