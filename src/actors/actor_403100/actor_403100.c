@@ -584,7 +584,128 @@ void func_actor_403100_80133D88(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133E88);
+void func_actor_403100_80133E88(Task* arg0)
+{
+    SVECTOR        pos;
+    Task*          task;
+    GsCOORDINATE2* coord;
+    s32            x;
+    u16            frame;
+    GsCOORDINATE2* rootCoord;
+
+    rootCoord                          = ((TmdObject*)arg0->extra)->field_8;
+    D_actor_403100_80155808->field_604 = (u16)(D_actor_403100_80155808->field_604 - 2);
+    rootCoord->flg                     = 0;
+    rootCoord->coord.t[1]              = (s32)(rootCoord->coord.t[1] + 0xC);
+    if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x28) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[0][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[0][1];
+        }
+    }
+    if ((D_actor_403100_80155808->field_5EC & 0x3F) == 0x20) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[1][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
+        }
+    }
+    if ((D_actor_403100_80155808->field_5EC & 0x7F) == 8) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[2][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[2][1];
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 2) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[1][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
+            pos.vx            = 0x578;
+            pos.vy            = -0xFA0;
+            pos.vz            = -0xAF0;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            Gp_SpawnEff(0x600A5, coord, 3, &pos);
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x1E) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[1][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
+            pos.vx            = 0x3E8;
+            pos.vy            = -0xFA0;
+            pos.vz            = -0x1130;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            Gp_SpawnEff(0x600A5, coord, 4, &pos);
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[1][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
+            pos.vx            = 0;
+            pos.vy            = -0xFA0;
+            pos.vz            = -0xFA0;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            Gp_SpawnEff(0x600A5, coord, 5, &pos);
+        }
+    }
+    if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x40) {
+        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        if (task != NULL) {
+            coord = ((TmdObject*)task->extra)->field_8;
+            USE_REG(coord);
+            x                 = (s32)D_actor_403100_80155794[4][0];
+            coord->coord.t[0] = x;
+            USE_REG(x);
+            coord->coord.t[1] = 0;
+            coord->coord.t[2] = (s32)D_actor_403100_80155794[4][1];
+        }
+    }
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0xBE) {
+        GameFlag_SetNibble(0x73, 1);
+        D_actor_403100_80155808->field_5F8 = (u16)(D_actor_403100_80155808->field_5F8 + 1);
+    }
+}
 void func_actor_403100_801342B4(Task* arg0)
 {
     SVECTOR        pos1, pos2, offset1, offset2;
