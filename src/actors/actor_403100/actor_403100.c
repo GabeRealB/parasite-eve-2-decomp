@@ -213,7 +213,30 @@ s32 func_actor_403100_80133928(void)
     return 0;
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_801339EC);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80133C94);
+void func_actor_403100_80133C94(void)
+{
+    s32 i;
+
+    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    D_actor_403100_80155810 = 0;
+    for (i = 0; i < 28; i++) {
+        if (D_actor_403100_80155814[i].active != 0) {
+            D_actor_403100_80155814[i].active = 0;
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+        }
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_5FC  = 0x20;
+    D_actor_403100_80155808->field_5E2  = 0x10;
+    D_actor_403100_80155808->field_5DE  = 0x11;
+    D_actor_403100_80155808->field_5DA  = 1;
+    D_actor_403100_80155808->field_5D8  = 0x1400;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_604  = 0;
+    D_actor_403100_80155808->field_608  = 0;
+    D_actor_403100_80155808->field_5F8 += 1;
+}
 void func_actor_403100_80133D88(Task* arg0)
 {
     GsCOORDINATE2* coord;
