@@ -119,7 +119,42 @@ void func_actor_403100_80137268(void)
     }
 }
 INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_80137310);
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_2", func_actor_403100_801375B8);
+void func_actor_403100_801375B8(void)
+{
+    u16 angle;
+    u32 random2;
+    u32 random1;
+
+    random1                             = (Gp_LcgState * 5) + 0x71357911;
+    random2                             = (random1 * 5) + 0x71357911;
+    Gp_LcgState                         = random2;
+    D_actor_403100_80155808->pad_65E[0] = ((random1 >> 0x10) & 1) + (((random2 >> 0x10) & 1) + 1);
+    D_actor_403100_80155808->field_62C  = 0x20;
+    angle                               = (u16)D_actor_403100_80155808->field_B2;
+    D_actor_403100_80155808->field_5F6  = 0;
+    D_actor_403100_80155808->field_61C  = 4;
+    D_actor_403100_80155808->field_604  = 0;
+    D_actor_403100_80155808->field_608  = 0;
+    D_actor_403100_80155808->field_626  = (s16)angle;
+    if ((s16)angle >= 0xD1) {
+        D_actor_403100_80155808->field_626 = 0xD0;
+    }
+    if (D_actor_403100_80155808->field_626 < -0x160) {
+        D_actor_403100_80155808->field_626 = -0x160;
+    }
+    D_actor_403100_80155808->field_5DE             = 4;
+    D_actor_403100_80155808->field_5E2             = 0xC;
+    D_actor_403100_80155808->field_5DA             = 2;
+    D_actor_403100_80155808->field_5EC             = 0;
+    D_actor_403100_80155808->field_55C.flags      &= 0x7FFF;
+    D_actor_403100_80155808->field_594.flags      &= 0x7FFF;
+    D_actor_403100_80155808->field_668.b.field_668 = 0;
+    D_actor_403100_80155808->field_668.b.field_669 = 0;
+    D_actor_403100_80155808->field_5FA            += 1;
+    D_actor_403100_80155808->field_664.b.field_665 = 0;
+    D_actor_403100_80155808->field_664.b.field_666 = 0;
+    D_actor_403100_80155808->pad_66A[4]            = 0;
+}
 void func_actor_403100_801376D8(Task* arg0)
 {
     Task* task;
