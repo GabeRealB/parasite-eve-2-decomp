@@ -394,7 +394,11 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
 typedef struct Actor503500WorkAC {
     /* 0x00 */ Actor503500WorkRec4 head;
     /* 0x98 */ Task*               field_98;
-    /* 0x9C */ byte                pad_9C[0x10];
+    /* 0x9C */ byte                pad_9C[0x8];
+    /* 0xA4 */ s16                 field_A4; // sub-state frame counter
+    /* 0xA6 */ byte                pad_A6[0x2];
+    /* 0xA8 */ s8                  field_A8; // sub-state index
+    /* 0xA9 */ byte                pad_A9[0x3];
 } Actor503500WorkAC;
 STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 

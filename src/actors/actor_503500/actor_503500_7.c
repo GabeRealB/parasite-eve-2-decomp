@@ -68,6 +68,7 @@ extern s32                  D_actor_503500_8016F0E8[];
 extern SVECTOR              D_actor_503500_8016F0F0[];
 extern Actor503500Work774C0 D_actor_503500_801774C0[];
 extern RECT                 D_actor_503500_8016F100;
+extern s32                  D_80070F70;
 void                        func_actor_503500_8013BC54(Actor503500* arg0);
 /// Per-slot local offset of the 0xF4 enemies in `D_actor_503500_801770E8`,
 /// indexed by `spawnArg1`.
@@ -1271,7 +1272,50 @@ void func_actor_503500_80145A2C(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_7", func_actor_503500_80145C50);
+void func_actor_503500_80145C50(Actor503500* arg0)
+{
+    Actor503500WorkAC* work;
+    GsCOORDINATE2*     coord;
+    s32                pan;
+
+    work = (Actor503500WorkAC*)arg0->field_1C;
+    switch (work->field_A8) {
+        case 0:
+            if (D_80070F70 & 1) {
+                Gp_SpawnPadLerp(1, 0x96, 0x96);
+            }
+            if (++work->field_A4 < 0x5B) {
+                return;
+            }
+            if (Game_Session->field_1 == 0) {
+                work->head.obj.flags |= 0x8000;
+                coord                 = arg0->extra->field_8;
+                pan                   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(0x4023000F, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+            }
+            goto next;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                Gp_SpawnPadLerp(1, 0xFF, 0xFF);
+            }
+            if (++work->field_A4 < 0x38) {
+                return;
+            }
+            work->head.obj.flags &= 0x7FFF;
+            SndEvt_EnqueueType7(0x4023000F, 1);
+        next:
+            work->field_A4 = 0;
+            work->field_A8++;
+            return;
+        case 2:
+            if (++work->field_A4 < 0x24) {
+                return;
+            }
+        default:
+            arg0->state += 1;
+            return;
+    }
+}
 
 void func_actor_503500_80145E1C(Actor503500* arg0)
 {
