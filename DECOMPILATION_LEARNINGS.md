@@ -6,12 +6,16 @@ Each entry was verified against real target assembly.
 ## `s8 x = 0x81` is `li -127`; an `s32` temp keeps `li 0x81`
 
 Assigning `0x81` to an `s8` field folds to QImode `const_int -127` and emits
-`addiu $v0, $zero, -127` (`li -0x7f`) before `sb`. The target that loads 129
-and lets `sb` truncate needs the constant born as a signed `s32`:
+`addiu $v0, $zero, -127` (`li -0x7f`) before `sb`. The same fold turns `0x80`
+into `const_int -128` (`li -0x80` / `addiu $v0, $zero, -128`). The target that
+loads 129 or 128 and lets `sb` truncate needs the constant born as a signed
+`s32`:
 
 ```c
 s32 flag = 0x81;
 work->field_A46 = flag; /* addiu $v0, $zero, 0x81; sb */
+flag            = 0x80;
+work->field_A46 = flag; /* addiu $v0, $zero, 0x80; sb */
 ```
 
 Do not change the field to `u8` to get this: the same address is also read
@@ -19,6 +23,9 @@ with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
 on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
 `base_1.c` 100%; preprocessed
 `ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
+`func_actor_400500_8013C7A4` is the `0x80` case (`base.c` 99.83% `regs=1`,
+`base_1.c` 100%; preprocessed
+`4bbec492afc737aa8864eef960f3cafad76558c5fee7cb24902ee6154b96e0f8`).
 
 ## An `s16` compared and stored into `u16` is `lh`+`lhu`; `s32` keeps one `lh`
 
