@@ -1355,7 +1355,28 @@ void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
     out->vz = (dist * v.vz) >> 12;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013C7E8);
+s32 func_actor_400600_8013C7E8(s16 arg0, s16 arg1)
+{
+    s16 v;
+
+    v = arg1 >> 3;
+    if (arg0 == 0) {
+        return v;
+    }
+    if ((arg0 > 0 && v < 0) || (arg0 < 0 && v > 0)) {
+        return arg0;
+    }
+    if (arg0 > 0) {
+        if (v < arg0) {
+            return arg0;
+        }
+        return v;
+    }
+    if (v < arg0) {
+        return v;
+    }
+    return arg0;
+}
 
 void func_actor_400600_8013C874(Task* arg0)
 {
