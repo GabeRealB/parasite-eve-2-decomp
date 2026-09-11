@@ -28,9 +28,7 @@ STATIC_ASSERT_SIZEOF(Actor342400Flags, 0x4);
 /// are the state and sub-state indices the handler table walks; `field_412`
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
-    /* 0x000 */ byte             pad_0[0x4];
-    /* 0x004 */ u16              field_4;  // set to 4 by the 0x7DB handler
-    /* 0x006 */ byte             pad_6[0x74];
+    /* 0x000 */ byte             pad_0[0x7A];
     /* 0x07A */ s16              field_7A; // heading fed to rsin / rcos
     /* 0x07C */ byte             pad_7C[0x70];
     /* 0x0EC */ Actor342400Flags flags_EC;
@@ -112,7 +110,7 @@ STATIC_ASSERT_SIZEOF(Actor342400ChildWork, 0xC);
 typedef struct Actor342400CtrlWork {
     /* 0x0 */ s16 field_0; // frame counter
     /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
+    /* 0x4 */ s16 field_4; // set to 4 by the 0x7DB handler; 4 idles the controller
 } Actor342400CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor342400CtrlWork, 0x6);
 

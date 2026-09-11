@@ -59137,3 +59137,35 @@ not rebuild the object that pulled it in. The fix is
 `touch src/<family>/<overlay>/<overlay>.c` (every carrier whose table names the
 promoted function) followed by a rebuild. Nothing was wrong with the manifest or
 the symbol maps, so do not go looking there.
+
+### Identity splat on a stack `MATRIX`: some stores on `$sp`, some on the argument register
+`func_actor_342400_8016BD98` splats an identity into a local union and passes
+`&m.mat` to `ScaleMatrix`/`MulMatrix`. Target: `sw v0,0x20(sp)`,
+`sw zero,0x24(sp)`, `sw v0,8(s1)`, `sw zero,0x2c(sp)`, `sh v0,0x10(s1)`, with
+`s1 = sp+0x20` the call argument. Writing all five as `m.ident.x = ...` puts
+every store on `$sp` (99%, regs + reorder). The mixed bases come from the
+source reaching two of the words through a pointer to the word view, as
+`ActorsShared801639a8` already does:
+
+```c
+ident           = &m.ident;   /* ActorXMatWords* */
+m.ident.m00_m01 = 0x1000;
+m.ident.m02_m10 = 0;
+ident->m11_m12  = 0x1000;
+m.ident.m20_m21 = 0;
+ident->m22      = 0x1000;
+```
+
+Whichever store is written through `ident->` is the one that comes out on the
+argument register; match them to the target one by one.
+
+### A promotion that renumbers units must carry the manifest `rodata` key along
+Promoting a span into the middle of `actor_341700_23` made splat renumber
+`_24` -> `_25` and `_25` -> `_26`, but the manifest's
+`rodata = [{ start = "0x220", unit = "actor_341700_24" }]` names the unit by
+string, so it would now hand the jump-table block to the new tiny `_24`. Update
+the key to the unit's new number in the same change, `git mv` the renumbered
+`.c` files and rewrite their `INCLUDE_ASM`/`INCLUDE_RODATA` folder names, then
+compare `bodies_of()` for the overlay before and after. Diffing the generated
+yaml before and after `gen_overlay_configs.py --family actors` shows the
+renumbering before anything is split.

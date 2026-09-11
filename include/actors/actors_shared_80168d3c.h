@@ -25,7 +25,8 @@ STATIC_ASSERT_SIZEOF(ActorsShared80168d3cFlags, 0x4);
 /// request the actor hands to its player. The size below is the allocation,
 /// not a guess.
 typedef struct ActorsShared80168d3cWork {
-    /* 0x000 */ byte                      pad_0[0x78];
+    /* 0x000 */ MATRIX                    mat_0; // copied into the model root coord by ActorsShared8016bd98
+    /* 0x020 */ byte                      pad_20[0x58];
     /* 0x078 */ s16                       field_78;
     /* 0x07A */ s16                       field_7A; // heading
     /* 0x07C */ s16                       field_7C;
@@ -56,7 +57,8 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x426 */ s16                       field_426;
     /* 0x428 */ s16                       field_428;
     /* 0x42A */ s16                       field_42A;
-    /* 0x42C */ byte                      pad_42C[0x6];
+    /* 0x42C */ byte                      pad_42C[0x4];
+    /* 0x430 */ u16                       field_430; // Y scale, shrunk by 0x40 a frame
     /* 0x432 */ s16                       field_432;
     /* 0x434 */ s16                       field_434; // pitch latched by ActorsShared8016a538
     /* 0x436 */ byte                      pad_436[0x2];

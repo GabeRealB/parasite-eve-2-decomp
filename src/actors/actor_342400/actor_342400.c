@@ -69,8 +69,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8
 
 void func_actor_342400_801626AC(Task* arg0, s32 arg1, Actor342400Msg* arg2)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
-    u16              id   = arg2->field_2;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    u16                  id   = arg2->field_2;
 
     if (id == 4) {
         work->field_4 = id;

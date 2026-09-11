@@ -30,15 +30,3 @@ void func_actor_341700_8016AA58(Task* arg0)
         work->field_420++;
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_23", func_actor_341700_8016AAB4);
-
-void func_actor_341700_8016ABF4(Task* arg0)
-{
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->idMap;
-    arg0->state     = 5;
-    work->field_420 = 0;
-    work->field_422 = 0;
-}
