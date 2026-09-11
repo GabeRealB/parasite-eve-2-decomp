@@ -59670,3 +59670,17 @@ and gets pushed to `$a2`. Writing `min = 0x18` inside the then-arm matches:
 reorg fills the delay slot from the fall-through arm, since `$v1` is dead on the
 taken path. This is the same fix as the pre-set `ret` entry above; what changes
 is how you spot it: the constant appears early in `.sched`, not as a return.
+
+### A counter shared by two branch loops: set it in each arm to shorten its live range
+
+`func_actor_400600_80139AE8` runs the same `i = 1..0x11` loop in both arms of an
+`if` (one arm also calls). The target has `li $s0, 1` in the `bne` delay slot,
+so m2c reads it as `i = 1;` before the `if`. That form scored 97.6%, with only
+`$s0`/`$s1` swapped between `i` and `work`. It is not a tie: `.lreg` gave `work`
+18 refs over 39 insns (4*18/39 = 1.85) against `i` at 15 over 36 (1.25), so
+`work` took `$s0`, and reordering declarations or using `for` changed nothing.
+Separate counters per arm (`i`, `j`) did not help either: `work` still ranked
+first. Writing `i = 1;` at the head of *each* arm matches. The shared pseudo no
+longer covers the header loads and compare, so it runs 16 refs over 30 insns
+(2.13) and outranks `work`. reorg then fills the `bne` slot from the fall-through
+arm's `li` (`$s0` is dead at the taken label) and drops the duplicate.
