@@ -117,7 +117,7 @@ typedef struct Actor400600Work {
     /* 0x724 */ s16                field_724; // accumulated step
     /* 0x726 */ s16                field_726;
     /* 0x728 */ s16                field_728;
-    /* 0x72A */ byte               pad_72A[0x2];
+    /* 0x72A */ u16                field_72A;
     /* 0x72C */ u16                field_72C;
     /* 0x72E */ s16                field_72E;
     /* 0x730 */ s16                field_730;

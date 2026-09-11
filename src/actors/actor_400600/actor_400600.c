@@ -669,7 +669,51 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137840);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137AF0);
+s32 func_actor_400600_80137AF0(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    TmdObject*       model;
+    TmdObject*       model2;
+    GpEnemy*         enemy;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (work->field_758 > 0) {
+        work->field_758--;
+        return 0;
+    }
+    if ((u32)(work->field_72C - 0x400) >= 0x801U && (u32)(work->field_72A - 0x300) >= 0xA01U) {
+        if (work->field_728 < 0xBB8) {
+            model = (TmdObject*)arg0->extra;
+            if (work->field_75C.b.field_75E != 1) {
+                work->field_75C.b.field_75E = 1;
+                work->field_75C.b.field_75F = 1;
+                work->field_740             = 0;
+                model->field_C             |= 2;
+                Gp_SetLightMode(arg0->spawnArg2, 2);
+                func_actor_400600_801387DC(arg0, 2);
+            }
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_71C = 0x11;
+            work2->field_71E = 0;
+            return 1;
+        }
+    } else {
+        work = (Actor400600Work*)arg0->idMap;
+    }
+    model2 = (TmdObject*)arg0->extra;
+    enemy  = (GpEnemy*)arg0->spawnArg2;
+    if (work->field_75C.b.field_75E != 0) {
+        work->field_75C.b.field_75E = 0;
+        work->field_75C.b.field_75F = 1;
+        work->field_740             = 0;
+        model2->field_C             = (model2->field_C | 2) & 0xFF7F;
+        Gp_SetLightMode(arg0->spawnArg2, 0);
+        enemy->node.field_4 = 4;
+        func_actor_400600_801387DC(arg0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137C34);
 

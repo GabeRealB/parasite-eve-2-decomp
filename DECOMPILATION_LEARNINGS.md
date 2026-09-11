@@ -59684,3 +59684,26 @@ first. Writing `i = 1;` at the head of *each* arm matches. The shared pseudo no
 longer covers the header loads and compare, so it runs 16 refs over 30 insns
 (2.13) and outranks `work`. reorg then fills the `bne` slot from the fall-through
 arm's `li` (`$s0` is dead at the taken label) and drops the duplicate.
+
+### Some predecessors of a join branch to a reload, others past it: the reload is in an `else` arm
+
+`func_actor_400600_80137AF0` tests `A && B && C` and falls into a shared tail.
+In the target the `A` and `B` failures branch to `lw $v1, 0x1C($s0)` (reload
+`arg0->idMap`), while the `C` failure branches one instruction later, keeping
+the `$v1` it already has. Reloading `work` at the join (`if (A && B && C) {...
+return 1; } work = arg0->idMap;`) scored 99.99%: every failure targets the
+reload. reorg cannot skip it for `C` alone, since `redundant_insn` stops at the
+first `CODE_LABEL` while scanning back from the branch. Nesting the test puts
+the reload only on the paths that need it, and matches:
+
+```c
+if (A && B) {
+    if (C) { ...; return 1; }
+} else {
+    work = (Actor400600Work*)arg0->idMap;
+}
+/* shared tail uses work */
+```
+
+In the same function, reusing one `model` local for both halves' `arg0->extra`
+put the second half's copy in `$a1` rather than `$a0`. A second local fixed it.
