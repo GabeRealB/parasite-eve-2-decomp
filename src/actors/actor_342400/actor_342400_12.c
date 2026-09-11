@@ -1,60 +1,48 @@
 #include "common.h"
+#include "main/sound.h"
 #include "main/task.h"
-#include "main/mem.h"
 #include "main/tmd.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80163354.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_12", func_actor_342400_80168B74);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_12", func_actor_342400_80168F14);
-
-/// Seven state handlers, indexed by `Actor342400Work::field_420`; copied to
-/// the stack before dispatch.
-extern TaskFuncTable7 D_actor_342400_8016203C;
-
-/// Same helper as in `actor_342400_6.c`: colours `enemy` from `coord`'s world
-/// position through a 0x10-byte `VECTOR` taken off `G_SCRATCH_HEAD`.
-static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
+void func_actor_342400_80168394(Task* arg0)
 {
-    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+    Actor342400Work* work;
+    Actor342400Work* work2;
+    Actor342400Work* next;
+    Actor342400Work* next2;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
+    s16              angle;
+    s16              speed;
 
-    block->vx                 = coord->workm.t[0];
-    block->vy                 = coord->workm.t[1];
-    *(VECTOR**)G_SCRATCH_HEAD = block;
-    block->vz                 = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
-}
-
-/// Per-frame callback, the seven-state counterpart of
-/// `func_actor_342400_80165FC0`: in mode 0 it also spawns effect 3 on the
-/// model's second coord part every 32 frames.
-void func_actor_342400_801690FC(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra;
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
-    GsCOORDINATE2*   coord = obj->field_8;
-    TaskFuncTable7   sp    = D_actor_342400_8016203C;
-
-    switch (D_801153F4) {
-        case 2:
-            obj->field_C |= 0x80;
-            return;
-        case 0:
-            work->field_442++;
-            sp.funcs[(s16)work->field_420](arg0);
-            if (!(work->field_442 & 0x1F)) {
-                func_800FDB18(3, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
-            }
-            coord->flg = 0;
-        case 1:
-            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
-            if (work->field_451 == 0) {
-                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
-            }
-            return;
+    work = (Actor342400Work*)arg0->idMap;
+    if ((s16)++work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    speed                                           = 0x14;
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    work2                                           = (Actor342400Work*)arg0->idMap;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->obj_2CC.flags |= 0x4000;
+        next                 = (Actor342400Work*)arg0->idMap;
+        arg0->state          = 3;
+        next->field_420      = 0;
+        next->field_422      = 0;
+        next2                = (Actor342400Work*)arg0->idMap;
+        next2->field_420     = 5;
+        next2->field_422     = 0;
     }
 }
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_12", func_actor_342400_80168530);

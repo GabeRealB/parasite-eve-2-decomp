@@ -62,7 +62,7 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x426 */ s16                       field_426;
     /* 0x428 */ s16                       field_428;
     /* 0x42A */ s16                       field_42A;
-    /* 0x42C */ s16                       field_42C;
+    /* 0x42C */ s16                       field_42C; // frames spent turning toward field_444; 16 enters state 3
     /* 0x42E */ byte                      pad_42E[0x2];
     /* 0x430 */ u16                       field_430; // Y scale, shrunk by 0x40 a frame
     /* 0x432 */ s16                       field_432;

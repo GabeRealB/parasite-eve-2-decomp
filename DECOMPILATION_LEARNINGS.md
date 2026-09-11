@@ -59306,3 +59306,27 @@ The same function's arg is sign-extended in the callee (`sll`/`sra`, so
 are separate facts: the caller's `lbu` is the *field's* type (`byte` is
 `signed char` here and gives `lb`), so give the field `u8` and the parameter
 `s16`. A scoped build catches this only as a checksum failure on the callers.
+
+### A field load in each arm, `j` past the label's copy: two full updates, cross-jumped
+
+`ActorsShared80166b20` (`func_actor_342400_80166B20`) swings a yaw toward one
+of two constants. The target's else-branch reads:
+
+```
+bnez  v0, L2
+ li   v1, -0x3800        # arm 2's constant, stolen into the delay slot
+lhu   v0, 0x424(a1)      # arm 1
+j     L3
+ li   v1, 0x3800
+L2: lhu v0, 0x424(a1)    # arm 2
+L3: sll a0, v0, 4 ...    # shared tail
+```
+
+Picking the constant first (`t = c ? -0x3800 : 0x3800;` or an if/else setting
+`t`) and writing the update once after the join gives a single `lhu` at the
+join and no `j` (89-92%). The duplicated `lhu` means each arm held the whole
+update, `x = x + ((s16)(C - x * 16) >> 9)` with its own constant: jump2
+cross-jumps everything from the shared `sll` down, and stops where sched1 left
+the arms' `li`/`lhu` pairs in opposite orders. Write the arms in the target's
+fall-through order (here `if (!bit)` first); the other order swaps
+`beqz`/`bnez` and lets the `sll` merge too (94%).
