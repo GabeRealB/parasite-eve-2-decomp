@@ -62,18 +62,19 @@ void func_8017D9B8(s32);
  * the file, which is after every `INCLUDE_RODATA` above and so at the wrong
  * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
  * same copy while leaving the rodata where it is. */
-extern const TaskFuncTable6 D_actor_400600_80131E54;
-extern const TaskFuncTable4 D_actor_400600_80131E6C;
-extern const TaskFuncTable8 D_actor_400600_80131E7C;
-extern const TaskFuncTable4 D_actor_400600_80131E9C;
-extern const TaskFuncTable3 D_actor_400600_80131F34;
-extern const TaskFuncTable8 D_actor_400600_80131F40;
-extern const TaskFuncTable4 D_actor_400600_80131F60;
-extern const TaskFuncTable3 D_actor_400600_80131F70;
-extern const TaskFuncTable4 D_actor_400600_80131F7C;
-extern const TaskFuncTable4 D_actor_400600_80131F8C;
-extern const TaskFuncTable3 D_actor_400600_80131F9C;
-extern const TaskFuncTable3 D_actor_400600_80132030;
+extern const TaskFuncTable6  D_actor_400600_80131E54;
+extern const TaskFuncTable4  D_actor_400600_80131E6C;
+extern const TaskFuncTable8  D_actor_400600_80131E7C;
+extern const TaskFuncTable4  D_actor_400600_80131E9C;
+extern const TaskFuncTable3  D_actor_400600_80131F34;
+extern const TaskFuncTable8  D_actor_400600_80131F40;
+extern const TaskFuncTable4  D_actor_400600_80131F60;
+extern const TaskFuncTable3  D_actor_400600_80131F70;
+extern const TaskFuncTable4  D_actor_400600_80131F7C;
+extern const TaskFuncTable4  D_actor_400600_80131F8C;
+extern const TaskFuncTable3  D_actor_400600_80131F9C;
+extern const TaskFuncTable3  D_actor_400600_80132030;
+extern const TaskFuncTable18 D_actor_400600_80131EEC;
 
 extern u8 D_actor_400600_8014220C[];
 extern u8 D_actor_400600_80143604[];
@@ -92,6 +93,10 @@ void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
 void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shade);
 void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2);
+void func_actor_400600_80136968(Task* arg0);
+void func_actor_400600_80137840(Task* arg0);
+void func_actor_400600_801387DC(Task* arg0, s32 arg1);
+void func_actor_400600_80138AB8(Task* arg0);
 void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
@@ -599,7 +604,49 @@ INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133434);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801337A8);
+INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_80131EEC);
+
+void func_actor_400600_801337A8(Task* arg0)
+{
+    TmdObject*       model = (TmdObject*)arg0->extra;
+    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;
+    TaskFuncTable18  fns   = D_actor_400600_80131EEC;
+
+    switch (D_801153F4) {
+        case 2:
+            model->field_C |= 0x80;
+            func_actor_400600_801387DC(arg0, -1);
+            break;
+        case 0:
+            work->field_716++;
+            func_actor_400600_80136670(arg0);
+            fns.funcs[(s16)work->field_71C](arg0);
+            func_actor_400600_80138AB8(arg0);
+            func_actor_400600_80137840(arg0);
+            func_actor_400600_80136558(arg0);
+            Actor400600_TickAnim(arg0);
+            work->field_710.h.flags = work->slots[1].field_10;
+            Actor400600_RebuildRotation(arg0);
+            func_actor_400600_80136968(arg0);
+            if (enemy->field_40 <= 0 && (u8)work->field_767 == 0) {
+                Actor400600Work* w = (Actor400600Work*)arg0->idMap;
+                arg0->state        = 2;
+                w->field_71C       = 0;
+                w->field_71E       = 0;
+            }
+        case 1:
+            Gp_ClearRec18Occupied(work->rec_4D4);
+            Gp_ClearRec18Occupied(work->rec_63C);
+            Actor400600_UpdateColor(arg0);
+            func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
+            if (work->field_75C.b.field_75E == 0) {
+                model->field_C &= ~0x80;
+                func_actor_400600_801387DC(arg0, -1);
+            }
+            break;
+    }
+}
 
 void func_actor_400600_80133B88(Task* arg0)
 {

@@ -62,6 +62,10 @@ typedef struct {
     TaskFunc funcs[16];
 } TaskFuncTable16;
 
+typedef struct {
+    TaskFunc funcs[18];
+} TaskFuncTable18;
+
 /// Intrusive linked list node for a `Task`.
 ///
 /// The head node is not an element in the linked list and points to the first

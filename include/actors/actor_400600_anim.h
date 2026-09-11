@@ -81,4 +81,25 @@ static __inline__ void Actor400600_TickAnim(Task* arg0)
     } while (i < 0x12);
 }
 
+/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
+/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
+static __inline__ void Actor400600_UpdateColor(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+
+    coord     = &((TmdObject*)arg0->extra)->field_8[1];
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
+
 #endif

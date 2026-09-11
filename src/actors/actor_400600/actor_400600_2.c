@@ -534,27 +534,6 @@ s32 func_actor_400600_80137C34(Task* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600_2", D_actor_400600_80132030);
 
-/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
-/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
-static __inline__ void Actor400600_UpdateColor(Task* arg0)
-{
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-
-    coord     = &((TmdObject*)arg0->extra)->field_8[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
-    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
-}
-
 void func_actor_400600_80137EF0(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
