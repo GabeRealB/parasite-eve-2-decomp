@@ -16,7 +16,7 @@
 
 /* The animation-player step reads the caller's `Task*` straight out of `$a0`
  * (the call passes no argument), so it stays unprototyped. */
-void func_actor_341700_801649DC();
+void ActorsShared80165cc0();
 
 void func_actor_341700_80169380(Task* arg0)
 {
@@ -51,7 +51,7 @@ void func_actor_341700_80169520(Task* arg0)
     s32              cond;
 
     work = (Actor341700Work*)arg0->idMap;
-    func_actor_341700_801649DC();
+    ActorsShared80165cc0();
     work2 = (Actor341700Work*)arg0->idMap;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;

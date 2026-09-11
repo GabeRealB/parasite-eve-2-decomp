@@ -25,5 +25,3 @@ s32 ActorsShared8016945c();
 s32 ActorsShared8016974c();
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801640F8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801649DC);

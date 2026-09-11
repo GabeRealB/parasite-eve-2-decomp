@@ -5,6 +5,7 @@
 
 #include "main/task.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 /// Status flags at `ActorsShared80168d3cWork` + 0xEC, read through two
@@ -25,20 +26,25 @@ STATIC_ASSERT_SIZEOF(ActorsShared80168d3cFlags, 0x4);
 /// request the actor hands to its player. The size below is the allocation,
 /// not a guess.
 typedef struct ActorsShared80168d3cWork {
-    /* 0x000 */ MATRIX                    mat_0;    // copied into the model root coord by ActorsShared8016bd98
-    /* 0x020 */ byte                      pad_20[0x40];
-    /* 0x060 */ VECTOR                    field_60; // own position, copied from the model root coord.t
-    /* 0x070 */ byte                      pad_70[0x8];
-    /* 0x078 */ s16                       field_78;
-    /* 0x07A */ s16                       field_7A; // heading
-    /* 0x07C */ s16                       field_7C;
-    /* 0x07E */ byte                      pad_7E[0xA];
-    /* 0x088 */ s16                       field_88; // x of the vector turned towards
-    /* 0x08A */ s16                       field_8A; // y of the vector turned towards
-    /* 0x08C */ s16                       field_8C; // z of the vector turned towards
-    /* 0x08E */ byte                      pad_8E[0x4];
-    /* 0x092 */ u16                       field_92; // low half of root coord.t[1]
-    /* 0x094 */ byte                      pad_94[0x58];
+    /* 0x000 */ MATRIX    mat_0;    // copied into the model root coord by ActorsShared8016bd98
+    /* 0x020 */ byte      pad_20[0x40];
+    /* 0x060 */ VECTOR    field_60; // own position, copied from the model root coord.t
+    /* 0x070 */ byte      pad_70[0x8];
+    /* 0x078 */ s16       field_78;
+    /* 0x07A */ s16       field_7A; // heading
+    /* 0x07C */ s16       field_7C;
+    /* 0x07E */ byte      pad_7E[0xA];
+    /* 0x088 */ s16       field_88; // x of the vector turned towards
+    /* 0x08A */ s16       field_8A; // y of the vector turned towards
+    /* 0x08C */ s16       field_8C; // z of the vector turned towards
+    /* 0x08E */ byte      pad_8E[0x4];
+    /* 0x092 */ u16       field_92; // low half of root coord.t[1]
+    /* 0x094 */ byte      pad_94[0xC];
+    /* 0x0A0 */ GpAnimCtx anim;
+    /// First of the nine `GpAnimSlot`s (0xB4..0x21C); the second overlaps
+    /// `flags_EC`, so only the first is spelled out.
+    /* 0x0B4 */ GpAnimSlot                slot_B4;
+    /* 0x0DC */ byte                      pad_DC[0x10];
     /* 0x0EC */ ActorsShared80168d3cFlags flags_EC;
     /* 0x0F0 */ byte                      pad_F0[0x1BC];
     /* 0x2AC */ GpObj                     obj_2AC;
@@ -51,9 +57,9 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x410 */ s16                       field_410; // random 0..0x7FF drawn from `Gp_LcgState`
     /* 0x412 */ u16                       field_412; // per-state frame counter
     /* 0x414 */ s16                       field_414; // animation request kind
-    /* 0x416 */ byte                      pad_416[0x2];
+    /* 0x416 */ s16                       field_416; // animation id last applied to the slots
     /* 0x418 */ s16                       field_418; // animation id
-    /* 0x41A */ byte                      pad_41A[0x2];
+    /* 0x41A */ u16                       field_41A; // frames since the animation was applied
     /* 0x41C */ s16                       field_41C; // animation speed / step scale
     /* 0x41E */ s16                       field_41E;
     /* 0x420 */ u16                       field_420; // state index

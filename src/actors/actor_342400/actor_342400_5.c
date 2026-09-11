@@ -3,6 +3,7 @@
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "actors/actor_342400.h"
+#include "actors/actors_shared_80165cc0.h"
 #include "actors/actors_shared_80163354.h"
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
@@ -48,7 +49,7 @@ void func_actor_342400_80164F3C(Task* arg0)
                 w->field_420 = 0;
                 w->field_422 = 0;
             }
-            func_actor_342400_80165CC0(arg0);
+            ActorsShared80165cc0(arg0);
             if (work->field_432 == 1) {
                 func_actor_342400_80169654(arg0, 6, &work->field_80);
             }

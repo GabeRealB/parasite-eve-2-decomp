@@ -4,6 +4,7 @@
 #include "main/tmd.h"
 #include "main/gfx.h"
 #include "actors/actor_342400.h"
+#include "actors/actors_shared_80165cc0.h"
 #include "actors/actors_shared_80164b68.h"
 #include "actors/actors_shared_801692e8.h"
 
@@ -57,7 +58,7 @@ void func_actor_342400_80163C58(Task* task)
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = 2;
-    func_actor_342400_80165CC0(task);
+    ActorsShared80165cc0(task);
     coord->sub = &Gfx_ViewCoord;
     ActorsShared80164b68(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
@@ -153,7 +154,7 @@ void func_actor_342400_80163E70(Task* task)
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = two;
-    func_actor_342400_80165CC0(task);
+    ActorsShared80165cc0(task);
     coord->sub = &Gfx_ViewCoord;
     ActorsShared80164b68(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;

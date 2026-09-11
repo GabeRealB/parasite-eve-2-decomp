@@ -199,7 +199,6 @@ void func_actor_342400_801630A4(Task* arg0);
 void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
 void func_actor_342400_801653DC(Task* arg0, s16 arg1);
-void func_actor_342400_80165CC0(Task* arg0);
 void func_actor_342400_80169654(Task* arg0, s16 arg1, u16* arg2);
 s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 void func_actor_342400_8016A494(Task* arg0);
