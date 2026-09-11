@@ -1,45 +1,40 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "actors/actor_342400.h"
+#include "actors/actors_shared_8016974c.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A664);
+s16 func_actor_342400_80169728(Task* arg0, s32 arg1);
 
-void func_actor_342400_8016A724(Task* arg0)
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A240);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A280);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A2FC);
+
+void func_actor_342400_8016A370(Task* arg0)
 {
-    Actor342400Work* work;
-    Actor342400Work* work2;
-    Actor342400Work* work3;
-    Actor342400Work* work4;
-    s16              anim;
-    s16              next;
+    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    s16              angle;
+    s16              speed;
 
-    work = (Actor342400Work*)arg0->idMap;
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
-    anim = work->field_418;
-    if (anim == 8) {
-        if (work->field_440 == 0) {
-            work2            = (Actor342400Work*)arg0->idMap;
-            work2->field_426 = 4;
-            work2->field_41C = 0x10;
-            work2->field_418 = 5;
-            work2->field_414 = 1;
-        } else {
-            work3            = (Actor342400Work*)arg0->idMap;
-            work3->field_426 = 4;
-            work3->field_41C = 0x10;
-            work3->field_418 = 6;
-            work3->field_414 = 1;
-        }
-    } else {
-        next             = D_actor_342400_80173A98[anim - 1];
-        work4            = (Actor342400Work*)arg0->idMap;
-        work4->field_426 = 4;
-        work4->field_41C = 0x10;
-        work4->field_418 = next;
-        work4->field_414 = 1;
+    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+        speed                                           = func_actor_342400_80169728(arg0, 0x1E);
+        angle                                           = work->field_7A + 0x400;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
     }
-    func_actor_342400_80165CC0(arg0);
-    work->field_420++;
+    if (ActorsShared8016974c(arg0)) {
+        Actor342400Work* next;
+
+        work->field_438 = 0;
+        next            = (Actor342400Work*)arg0->idMap;
+        next->field_420 = 3;
+        next->field_422 = 0;
+    }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A804);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A494);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_8016A4FC);
