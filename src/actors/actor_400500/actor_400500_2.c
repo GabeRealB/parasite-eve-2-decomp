@@ -429,4 +429,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DD8C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DDEC);
+s32 func_actor_400500_8013DDEC(Task* arg0)
+{
+    Actor400500HitView* work = (Actor400500HitView*)arg0->idMap;
+
+    if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
+        return 1;
+    }
+    return 0;
+}
