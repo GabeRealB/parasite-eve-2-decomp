@@ -46,8 +46,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80163E58);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_80163FBC);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700", D_actor_341700_80161E90);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700", D_actor_341700_80161E9C);
@@ -58,9 +56,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700", D_actor_341700_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700", D_actor_341700_80161ED0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_801640F8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700", func_actor_341700_801649DC);
+INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700", jtbl_actor_341700_80161EE4);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700", D_actor_341700_80161F0C);
 

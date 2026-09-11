@@ -7,11 +7,23 @@
 
 #include "actors/actor_342400.h"
 
-void func_actor_342400_8016BBD0(void)
-{
-}
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B3C4);
 
-void func_actor_342400_8016BBD8(Task* arg0)
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B414);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B48C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B500);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B5B0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B744);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B84C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016B914);
+
+void func_actor_342400_8016B9A4(Task* arg0)
 {
     Actor342400Work* work;
     GpEnemy*         enemy;
@@ -25,3 +37,7 @@ void func_actor_342400_8016BBD8(Task* arg0)
     Gp_UnlinkNode(&enemy->node);
     work->field_420 = work->field_420 + 1;
 }
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016BA3C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_13", func_actor_342400_8016BAF4);

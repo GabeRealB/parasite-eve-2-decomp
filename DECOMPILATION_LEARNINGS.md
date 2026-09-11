@@ -31942,6 +31942,23 @@ sub  *= 3;                 /* sll  v0,v1,1 ; addu v1,v1,v0 */
 Split one step at a time from the end: `sub *= 3` alone fixed the `sll`/`addu`
 pair, and moving the subtraction into `sub` as well fixed the `subu`/`sra`.
 
+The same applies to an `(s8)` cast of a call result held across a later call.
+`pan = (s8)Gp_GetObjPan(...)` shifts into a scratch `$v0` and only the `sra`
+lands in pan's saved register (`sll v0,v0,24` / `sra s1,v0,24`). The target
+had `sll s1,v0,24` / `sra s1,s1,24`, which needs the shift pair written into
+the variable itself (`ActorsShared801652a0`):
+
+```c
+pan   = Gp_GetObjPan(obj) << 24;   /* sll s1,v0,0x18 */
+pan >>= 24;                        /* sra s1,s1,0x18 */
+```
+
+A separate `pan = call; pan = (s8)pan;` does not work: combine folds the copy
+away, and the extra refs reorder global allocation against the other
+call-crossing local. In the same function, chaining the sound id
+(`id = (u16)x; id >>= 12; id <<= 8; id |= K;`) first gave the id enough refs to
+outrank `pan` for `$s0`. It had to be `u32`, or the `>>=` became `sra`.
+
 ## A `$fp` prologue plus a `sll/srl/addiu 7/srl/sll` size dance is a VLA
 
 `func_800E0C10` opens with `sw $fp,0x14($sp); move $fp,$sp; ...; subu $sp,$sp,$v0`
