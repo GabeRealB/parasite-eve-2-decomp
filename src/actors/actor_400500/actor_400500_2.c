@@ -30,6 +30,7 @@ extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
 void func_8009EA50(s32 arg0);
+void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BA24);
 
@@ -341,7 +342,31 @@ void func_actor_400500_8013DACC(Task* arg0)
     work->field_A08 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DAE4);
+void func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2)
+{
+    Actor400500Work* work;
+    s32              kind;
+
+    work = (Actor400500Work*)arg0->idMap;
+    kind = arg2[1];
+    switch (kind) {
+        case 1:
+            work->field_A4C = kind;
+            work->field_A2C = 0x1E;
+            work->field_A4B = kind;
+            func_actor_400500_8013DB64(arg0, 0xB);
+            break;
+        case 2:
+            work->field_A4B = kind;
+            break;
+        case 3:
+            work->field_A4B = kind;
+            break;
+        case 4:
+            work->field_A4B = kind;
+            break;
+    }
+}
 
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1)
 {

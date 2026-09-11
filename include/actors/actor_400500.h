@@ -92,14 +92,19 @@ typedef struct Actor400500Work {
     /* 0xA24 */ s16                field_A24; // copied to TmdObject::field_2C
     /* 0xA26 */ byte               pad_A26[0x2];
     /* 0xA28 */ s16                field_A28;
-    /* 0xA2A */ byte               pad_A2A[0xC];
+    /* 0xA2A */ byte               pad_A2A[0x2];
+    /* 0xA2C */ s16                field_A2C; // countdown written with message kind 1
+    /* 0xA2E */ byte               pad_A2E[0x8];
     /* 0xA36 */ u16                field_A36; // angle, range-tested as (a - 0x300) <= 0xA00
     /* 0xA38 */ byte               pad_A38[0x4];
     /* 0xA3C */ s16                field_A3C;
     /* 0xA3E */ s16                field_A3E;
     /* 0xA40 */ s16                field_A40;
     /* 0xA42 */ s16                field_A42;
-    /* 0xA44 */ byte               pad_A44[0xC];
+    /* 0xA44 */ byte               pad_A44[0x7];
+    /* 0xA4B */ s8                 field_A4B; // last message kind 1..4
+    /* 0xA4C */ s8                 field_A4C; // set with kind 1
+    /* 0xA4D */ byte               pad_A4D[0x3];
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
