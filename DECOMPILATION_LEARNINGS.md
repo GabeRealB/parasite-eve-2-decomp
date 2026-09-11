@@ -59819,3 +59819,22 @@ In the same function, two matrix-pointer fixes were needed:
 - **Prototype.** `func_8004BFF8` is Psy-Q `RotMatrixY` and takes a `long`.
   With an `s16` prototype, `-(s16)x` gets an extra `sll`/`sra` after the
   `negu`.
+
+## Early `return 0` inside the arm keeps `$v0` out of its temps
+
+`func_actor_400600_80137C34` (actors/actor_400600). One arm of an `if` chain
+advances the LCG twice and stores the result, then falls through to a
+`return 0;` shared with the arms that fail their tests. Target: the arm's temps
+use `$v1`/`$a0`/`$a1`, and the preceding `bne` carries `move v0,zero` in its
+delay slot. Ours: the temps took `$v0` and the arm jumped to a shared
+`move v0,zero` before the epilogue.
+
+Fix: write `return 0;` at the end of that arm. The `v0 = 0` set is then in the
+arm's own block, so sched1 (which runs before allocation) hoists it to the start
+of the block. `$v0` is live through the arm, which keeps the temps out of it,
+and dbr moves the set into the branch delay slot.
+
+In the same function, a `work2 = (T*)arg0->idMap; work2->state = N;` setter
+reused in several switch cases is one multi-block pseudo, so global alloc
+gives it `$a0` everywhere. The one setter the target puts in `$v1` needed its
+own local (`work3`), which makes it a local-alloc quantity.

@@ -438,7 +438,99 @@ s32 func_actor_400600_80137AF0(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_2", func_actor_400600_80137C34);
+s32 func_actor_400600_80137C34(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    GsCOORDINATE2*   coord;
+    u32              rnd1;
+    u32              rnd2;
+    u32              rnd;
+    s32              dist;
+    s16              y;
+
+    work        = (Actor400600Work*)arg0->idMap;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    coord       = ((TmdObject*)arg0->extra)->field_8;
+    rnd         = (u32)Gp_LcgState >> 0x10;
+    switch (work->field_76D) {
+        case 0:
+            if (work->field_732 != 0) {
+                return 0;
+            }
+            if (work->field_768 == 0) {
+                if ((rnd & 0xF) == 0) {
+                    if (!(arg0->spawnArg1 & 1) && work->field_710.h.timer == 0) {
+                        func_actor_400600_80137498(arg0, 2);
+                        work->field_76D = 1;
+                    }
+                    return 0;
+                }
+                if ((rnd & 7) == 1 || (rnd & 7) == 2) {
+                    if (work->field_728 < 0x5DC && (u32)(work->field_72C - 0x200) >= 0xC01U) {
+                        work2            = (Actor400600Work*)arg0->idMap;
+                        work2->field_71C = 8;
+                        work2->field_71E = 0;
+                        return 1;
+                    }
+                } else if (work->field_728 < 0x5DC) {
+                    if ((s16)work->field_72C < 0x400) {
+                        work2            = (Actor400600Work*)arg0->idMap;
+                        work2->field_71C = 6;
+                        work2->field_71E = 0;
+                        return 1;
+                    }
+                    if ((s16)work->field_72C > 0xC00) {
+                        work2            = (Actor400600Work*)arg0->idMap;
+                        work2->field_71C = 7;
+                        work2->field_71E = 0;
+                        return 1;
+                    }
+                }
+            } else if ((rnd & 7) == 0) {
+                if (work->field_710.h.timer == 0) {
+                    work2            = (Actor400600Work*)arg0->idMap;
+                    work2->field_71C = 0x10;
+                    work2->field_71E = 0;
+                    return 1;
+                }
+            } else if ((rnd & 0xF) == 1) {
+                if (work->field_710.h.timer == 0) {
+                    work2            = (Actor400600Work*)arg0->idMap;
+                    work2->field_71C = 0xD;
+                    work2->field_71E = 0;
+                    return 1;
+                }
+            } else {
+                rnd1                                       = ((u32)Gp_LcgState * 5) + 0x71357911;
+                rnd2                                       = (rnd1 * 5) + 0x71357911;
+                Gp_LcgState                                = rnd2;
+                ((Actor400600Work*)arg0->idMap)->field_732 = 0x3C + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
+                return 0;
+            }
+            return 0;
+        case 1:
+            work->field_76D = 0;
+            dist            = func_actor_400600_801376EC(arg0);
+            if ((u16)(dist - 0x7D1) < 0x3E8) {
+                if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x4080000) {
+                    y = -0x9C4;
+                } else {
+                    y = coord->coord.t[1] - dist;
+                }
+                work->field_9A                                  = y;
+                work3                                           = (Actor400600Work*)arg0->idMap;
+                work3->field_71C                                = 0xC;
+                work3->field_71E                                = 0;
+                ((Actor400600Work*)arg0->idMap)->obj_604.flags &= 0xBFFF;
+                return 1;
+            }
+            ((Actor400600Work*)arg0->idMap)->obj_604.flags &= 0xBFFF;
+            return 0;
+    }
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600_2", D_actor_400600_80132030);
 
