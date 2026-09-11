@@ -59,20 +59,22 @@ typedef struct Actor400600Work {
     /* 0x0B0 */ GpAnimCtx          anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
     /* 0x0C4 */ GpAnimSlot         slots[0x12];
     /* 0x394 */ byte               pad_394[0x120];
-    /* 0x4B4 */ GpObj              obj_4B4;   // collision node; flags bit 0x8000 cleared
-    /* 0x4D4 */ byte               pad_4D4[0xC0];
-    /* 0x594 */ GpObj              obj_594;   // collision node; flags bit 0x8000 cleared
+    /* 0x4B4 */ GpObj              obj_4B4;    // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ GpRec18            rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x594 */ GpObj              obj_594;    // collision node; flags bit 0x8000 cleared
     /* 0x5B4 */ byte               pad_5B4[0x18];
-    /* 0x5CC */ GpObj              obj_5CC;   // collision node; flags bit 0x8000 cleared
+    /* 0x5CC */ GpObj              obj_5CC;    // collision node; flags bit 0x8000 cleared
     /* 0x5EC */ byte               pad_5EC[0x18];
-    /* 0x604 */ GpObj              obj_604;   // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ byte               pad_624[0xE0];
-    /* 0x704 */ Task*              field_704; // child task, killed on death
-    /* 0x708 */ Task*              field_708; // child task, killed on death
+    /* 0x604 */ GpObj              obj_604;    // collision node; flags bit 0x4000 cleared
+    /* 0x624 */ byte               pad_624[0x18];
+    /* 0x63C */ GpRec18            rec_63C[1]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x654 */ byte               pad_654[0xB0];
+    /* 0x704 */ Task*              field_704;  // child task, killed on death
+    /* 0x708 */ Task*              field_708;  // child task, killed on death
     /* 0x70C */ byte               pad_70C[0x4];
     /* 0x710 */ Actor400600Timer   field_710;
     /* 0x714 */ s16                field_714; // reset to 0x1000 on death
-    /* 0x716 */ byte               pad_716[0x2];
+    /* 0x716 */ u16                field_716; // frame counter, bumped by func_actor_400600_80138D78
     /* 0x718 */ u16                field_718; // per-state frame counter
     /* 0x71A */ byte               pad_71A[0x2];
     /* 0x71C */ u16                field_71C; // state index

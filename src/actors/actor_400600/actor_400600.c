@@ -11,6 +11,7 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400600.h"
+#include "actors/actors_shared_80139948.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
@@ -29,6 +30,8 @@ extern s8    D_80115417;
 
 extern s32 Gp_LcgState;
 
+extern u8 D_801153F4;
+
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
@@ -41,6 +44,7 @@ void func_8017D9B8(s32);
  * the file, which is after every `INCLUDE_RODATA` above and so at the wrong
  * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
  * same copy while leaving the rodata where it is. */
+extern const TaskFuncTable4 D_actor_400600_80131E9C;
 extern const TaskFuncTable3 D_actor_400600_80131F34;
 extern const TaskFuncTable8 D_actor_400600_80131F40;
 extern const TaskFuncTable4 D_actor_400600_80131F60;
@@ -57,6 +61,10 @@ extern u8 D_actor_400600_80144994[];
 /* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` is called
  * both with and without an argument, so it keeps an unprototyped declaration. */
 void func_actor_400600_80135998(Task* arg0, s16 arg1);
+void func_actor_400600_80136558(Task* arg0);
+void func_actor_400600_80136670(Task* arg0);
+void func_actor_400600_80138224(Task* arg0, s32 arg1, u8 arg2);
+void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
 s32  func_actor_400600_801370F4();
@@ -449,7 +457,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138C34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138D78);
+void func_actor_400600_80138D78(Task* arg0)
+{
+    TmdObject*       model = (TmdObject*)arg0->extra;
+    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable4   fns   = D_actor_400600_80131E9C;
+
+    switch (D_801153F4) {
+        case 2:
+            model->field_C |= 0x80;
+            break;
+        case 0:
+            work->field_716++;
+            func_actor_400600_80136670(arg0);
+            func_actor_400600_80139CAC(arg0);
+            fns.funcs[(s16)work->field_71C](arg0);
+            func_actor_400600_80136558(arg0);
+            ActorsShared80139948(arg0);
+        case 1:
+            Gp_ClearRec18Occupied(work->rec_4D4);
+            Gp_ClearRec18Occupied(work->rec_63C);
+            ActorsShared8013a2c0(arg0);
+            func_actor_400600_80138224(arg0, 0, work->field_73A);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138EA0);
 
