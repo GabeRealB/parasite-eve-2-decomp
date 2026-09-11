@@ -108,7 +108,9 @@ typedef struct Actor400500Work {
     /* 0x9A0 */ Actor400500ViewPos field_9A0;
     /* 0x9A6 */ byte               pad_9A6[0x36];
     /* 0x9DC */ s16                field_9DC;
-    /* 0x9DE */ byte               pad_9DE[0x12];
+    /* 0x9DE */ byte               pad_9DE[6];
+    /* 0x9E4 */ s16                field_9E4;
+    /* 0x9E6 */ byte               pad_9E6[0xA];
     /* 0x9F0 */ Task*              field_9F0[2]; // child tasks, killed on death
     /* 0x9F8 */ s16                field_9F8;    // animation speed / step scale
     /* 0x9FA */ s16                field_9FA;    // animation request kind
