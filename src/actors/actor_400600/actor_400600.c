@@ -44,6 +44,7 @@ void func_8017D9B8(s32);
  * the file, which is after every `INCLUDE_RODATA` above and so at the wrong
  * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
  * same copy while leaving the rodata where it is. */
+extern const TaskFuncTable4 D_actor_400600_80131E6C;
 extern const TaskFuncTable4 D_actor_400600_80131E9C;
 extern const TaskFuncTable3 D_actor_400600_80131F34;
 extern const TaskFuncTable8 D_actor_400600_80131F40;
@@ -485,7 +486,31 @@ void func_actor_400600_80138D78(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138EA0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138FD4);
+void func_actor_400600_80138FD4(Task* arg0)
+{
+    TmdObject*       model = (TmdObject*)arg0->extra;
+    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable4   fns   = D_actor_400600_80131E6C;
+
+    switch (D_801153F4) {
+        case 2:
+            model->field_C |= 0x80;
+            break;
+        case 0:
+            work->field_716++;
+            func_actor_400600_80136670(arg0);
+            fns.funcs[(s16)work->field_71C](arg0);
+            func_actor_400600_80139CAC(arg0);
+            func_actor_400600_80136558(arg0);
+            ActorsShared80139948(arg0);
+        case 1:
+            Gp_ClearRec18Occupied(work->rec_4D4);
+            Gp_ClearRec18Occupied(work->rec_63C);
+            ActorsShared8013a2c0(arg0);
+            func_actor_400600_80138224(arg0, 0, work->field_73A);
+            break;
+    }
+}
 
 void func_actor_400600_801390FC(Task* arg0)
 {
