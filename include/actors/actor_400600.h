@@ -39,7 +39,8 @@ STATIC_ASSERT_SIZEOF(Actor400600Timer, 0x4);
 /// pointer field for its own work block, so it is *not* a `TaskIdMap` here.
 /// Reach it with `(Actor400600Work*)task->idMap`.
 typedef struct Actor400600Work {
-    /* 0x000 */ byte               pad_0[0x88];
+    /* 0x000 */ MATRIX             matrix_0; // copy of the root coordinate's local matrix
+    /* 0x020 */ byte               pad_20[0x68];
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
     /* 0x092 */ u16                field_92;  // seeds field_73E on state entry
@@ -56,7 +57,8 @@ typedef struct Actor400600Work {
     /* 0x708 */ Task*              field_708; // child task, killed on death
     /* 0x70C */ byte               pad_70C[0x4];
     /* 0x710 */ Actor400600Timer   field_710;
-    /* 0x714 */ byte               pad_714[0x4];
+    /* 0x714 */ s16                field_714; // reset to 0x1000 on death
+    /* 0x716 */ byte               pad_716[0x2];
     /* 0x718 */ u16                field_718; // per-state frame counter
     /* 0x71A */ byte               pad_71A[0x2];
     /* 0x71C */ u16                field_71C; // state index
