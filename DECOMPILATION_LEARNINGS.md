@@ -32058,6 +32058,18 @@ each dying at the end of its loop, each win `$s0` in turn. Whenever the leftover
 is `regs` alone and the diff is a rotation of the callee-saved set rather than
 one wrong pair, look for a temp whose scope is wider than its use.
 
+The same holds when the "loops" are just two `if` blocks that each call
+`SndEvt_EnqueueType6`. The tell is a whole expression chain computed directly
+in a callee-saved register (`lhu s0,8(v0); srl s0; sll s0; ori s0,s0,6`) where
+yours computes it in `$v0` and only the last op writes `$s2`. A CALL_INSN does
+not end a basic block, so a local used in only one block is allocated by
+local-alloc even though it crosses the calls. That lets local-alloc tie the
+dying intermediates into the same qty, which then gets `$s0`. Share the variable
+between the two blocks and it becomes a global allocno instead: the
+intermediates stay in `$v0` and the callee-saved set rotates. In
+`func_actor_400600_80134218`, giving the second block its own `sound2`/`pan2`
+took it from 98.86% (regs only) to 100%.
+
 ## Split `&base[i]` into a base-pointer local to control the final `addu` dest
 
 The last two diffs in `func_800B3448` were `addu v0,v1,v0` vs `addu v1,v1,v0` —

@@ -143,7 +143,7 @@ typedef struct Actor400600Work {
     /* 0x75C */ Actor400600State   field_75C;
     /* 0x760 */ byte               pad_760[0x2];
     /* 0x762 */ u8                 field_762;
-    /* 0x763 */ s8                 field_763;
+    /* 0x763 */ u8                 field_763;
     /* 0x764 */ u8                 field_764;
     /* 0x765 */ s8                 field_765;
     /* 0x766 */ s8                 field_766;

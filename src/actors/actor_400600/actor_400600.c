@@ -776,7 +776,85 @@ void func_actor_400600_80133FC0(Task* arg0)
     work->field_71E++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134218);
+void func_actor_400600_80134218(Task* arg0)
+{
+    Actor400600Msg3FF msg;
+    SVECTOR           vec;
+    Actor400600Work*  work;
+    Actor400600Work*  work2;
+    GpEnemy*          enemy;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    player;
+    GsCOORDINATE2*    root;
+    s32               id;
+    s32               sound;
+    s32               pan;
+    s32               sound2;
+    s32               pan2;
+    s32               y;
+    s32               ty;
+
+    work               = (Actor400600Work*)arg0->idMap;
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    enemy              = (GpEnemy*)arg0->spawnArg2;
+    player             = Gp_ActorSlots[0]->extra->field_8;
+    work->field_84    += -(s16)work->field_84 >> 2;
+    coord->coord.t[0] += (player->coord.t[0] - coord->coord.t[0]) >> 2;
+    coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
+    y                  = coord->coord.t[1];
+    ty                 = y + 900;
+    coord->coord.t[1]  = y + ((player->coord.t[1] - ty) >> 2);
+    work->field_718++;
+    if (++work->field_71A == 8) {
+        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 6;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_763 == 1 || work->field_764 == 1 || enemy->field_40 <= 0 || work->field_75C.b.field_75C >= 3) {
+        work->field_763 = 0;
+        if (work->field_764 == 0) {
+            msg.field_0  = D_actor_400600_80151A48;
+            msg.field_8  = 1;
+            msg.field_C  = 8;
+            msg.field_10 = 0;
+            msg.field_4  = 2;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+        }
+        work2                = (Actor400600Work*)arg0->idMap;
+        work2->field_720     = 8;
+        work2->field_726     = 0x10;
+        work2->field_746     = 6;
+        work2->field_742     = 1;
+        work->field_722      = 0;
+        work->field_724      = 0;
+        work->field_718      = 0;
+        work->obj_4B4.flags |= 0x4000;
+        work->field_71E++;
+        return;
+    }
+    if ((s16)work->field_718 == 0xD || (s16)work->field_718 == 0x1A) {
+        root = &Gp_ActorSlots[0]->extra->field_8[4];
+        Gp_SpawnPadLerp(0xA, 0xC0, 8);
+        id = 0x40060009;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0009;
+        }
+        sound2 = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan2   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0) != 0) {
+            work->field_764 = 1;
+        }
+        vec.vx = 0;
+        vec.vy = -200;
+        vec.vz = 0;
+        Gp_SpawnEff(0x6009B, root, 0x10100, &vec);
+    }
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        work->field_718 = 0;
+        work->field_75C.b.field_75C++;
+    }
+}
 
 void func_actor_400600_80134570(Task* arg0)
 {
