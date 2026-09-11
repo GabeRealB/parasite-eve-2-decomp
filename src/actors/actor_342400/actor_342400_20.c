@@ -7,4 +7,4 @@
 
 #include "actors/actor_342400.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_20", func_actor_342400_8016B104);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_20", func_actor_342400_8016B33C);
