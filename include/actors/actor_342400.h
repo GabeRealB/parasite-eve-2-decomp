@@ -135,12 +135,17 @@ extern TaskDesc        D_801575F0;                // absolute, spawned by func_a
 extern u16             D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
 extern u8              D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
 extern u8              D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
+extern u8              D_801153F4;                // absolute; nonzero skips the controller's state handler
 
 void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);
 void func_actor_342400_80162324(Task* arg0);
 s16  func_actor_342400_801624A4(void);
 s16  func_actor_342400_801626CC(u8 arg0, s16 arg1, s16 arg2);
+void func_actor_342400_801628F0(Task* arg0);
+void func_actor_342400_8016299C(Task* arg0);
+void func_actor_342400_80162A34(Task* arg0);
+void func_actor_342400_80162AB0(Task* arg0);
 void func_actor_342400_80162FFC(Task* arg0);
 void func_actor_342400_80163010(Task* arg0);
 void func_actor_342400_801630A4(Task* arg0);

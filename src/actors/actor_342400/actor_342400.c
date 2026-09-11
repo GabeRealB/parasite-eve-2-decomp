@@ -26,7 +26,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162748);
+/// The controller task's four state handlers, dispatched by
+/// `func_actor_342400_80162748`. Like `D_actor_342400_80161E54` below, splat
+/// migrates it into the function's own `.s`, so it is defined here.
+const TaskFuncTable4 D_actor_342400_80161E24 = { {
+    func_actor_342400_801628F0,
+    func_actor_342400_8016299C,
+    func_actor_342400_80162A34,
+    func_actor_342400_80162AB0,
+} };
+
+void func_actor_342400_80162748(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_actor_342400_80161E24;
+    if (D_801153F4 == 0) {
+        sp.funcs[arg0->state](arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801627C0);
 
