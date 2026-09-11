@@ -11,6 +11,7 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400600.h"
+#include "actors/actors_shared_80139dcc.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
@@ -561,7 +562,21 @@ void func_actor_400600_8013BF80(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_2", func_actor_400600_8013BFD4);
+void func_actor_400600_8013BFD4(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+
+    work             = (Actor400600Work*)arg0->idMap;
+    work->field_718  = 0;
+    work2            = (Actor400600Work*)arg0->idMap;
+    work2->field_720 = 2;
+    work2->field_726 = 0x10;
+    work2->field_746 = 0x16;
+    work2->field_742 = 1;
+    ActorsShared80139dcc(arg0, 0xE, (ActorsShared80139dccPos*)&work->field_88);
+    work->field_71E = work->field_71E + 1;
+}
 
 void func_actor_400600_8013C038(Task* arg0)
 {
