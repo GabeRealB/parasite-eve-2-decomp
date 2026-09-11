@@ -28,16 +28,33 @@ STATIC_ASSERT_SIZEOF(Actor342400Flags, 0x4);
 /// are the state and sub-state indices the handler table walks; `field_412`
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
-    /* 0x000 */ byte             pad_0[0x7A];
-    /* 0x07A */ s16              field_7A; // heading fed to rsin / rcos
-    /* 0x07C */ byte             pad_7C[0x70];
+    /* 0x000 */ byte      pad_0[0x20];
+    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
+    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
+    /* 0x060 */ byte      pad_60[0x1A];
+    /* 0x07A */ s16       field_7A; // heading fed to rsin / rcos
+    /* 0x07C */ byte      pad_7C[0x4];
+    /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
+    /* 0x082 */ u16       field_82; // root coord.t[1], after lifting it by 0x3C
+    /* 0x084 */ u16       field_84; // root coord.t[2]
+    /* 0x086 */ byte      pad_86[0x1A];
+    /* 0x0A0 */ GpAnimCtx anim;
+    /// First of the nine `GpAnimSlot`s (0xB4..0x21C) handed to `func_800B3F84`;
+    /// the second overlaps `flags_EC`, so only the first is spelled out.
+    /* 0x0B4 */ GpAnimSlot       slot_B4;
+    /* 0x0DC */ byte             pad_DC[0x10];
     /* 0x0EC */ Actor342400Flags flags_EC;
-    /* 0x0F0 */ byte             pad_F0[0x1BC];
+    /* 0x0F0 */ byte             pad_F0[0x12C];
+    /* 0x21C */ byte             field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
     /* 0x2AC */ GpObj            obj_2AC;
     /* 0x2CC */ GpObj            obj_2CC;
     /* 0x2EC */ GpRec18          rec_2EC[8];
     /* 0x3AC */ GpObj            obj_3AC;
-    /* 0x3CC */ byte             pad_3CC[0x46];
+    /* 0x3CC */ byte             pad_3CC[0x30];
+    /* 0x3FC */ GsCOORDINATE2*   field_3FC; // the model's second coord part
+    /* 0x400 */ s16              field_400;
+    /* 0x402 */ s16              field_402;
+    /* 0x404 */ byte             pad_404[0xE];
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
     /* 0x416 */ byte             pad_416[0x2];
@@ -134,6 +151,9 @@ extern u16             D_actor_342400_80173AAC;   // spawn counter, `<< 12` into
 extern u8              D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
 extern u8              D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
 extern u8              D_801153F4;                // absolute; nonzero skips the controller's state handler
+extern GpPairSrcE      D_actor_342400_80170588;   // the main enemy's `GpEnemy::field_50` record
+extern u8              D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
+extern u8              D_actor_342400_80173A3C[]; // stored into `Task::field_24` by func_actor_342400_80163C58
 
 void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);
@@ -150,6 +170,7 @@ void func_actor_342400_801630A4(Task* arg0);
 void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
 void func_actor_342400_80165CC0(Task* arg0);
+void func_actor_342400_801692E8(void);
 void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 void func_actor_342400_801632D4(Task* arg0);
 

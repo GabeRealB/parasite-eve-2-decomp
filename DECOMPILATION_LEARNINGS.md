@@ -59231,3 +59231,33 @@ VectorNormalSS(&d0, &d0);
 Choose the wrapped span from the target: the barrier sits at both ends, so a
 store left outside cannot fill a slot inside, and vice versa (the permuter's
 first hit wrapped only the last two stores and scored 98.6%).
+
+### `li $s0,1` right *after* a call: assign `one = 1` *before* the call
+`func_actor_342400_80163C58` ends with `jal Gp_IncStateF0Ref` then
+`lw v0,0x34(s3); li s0,1; andi; bne v0,s0` and `sw s0,0x30(s3)` (state = 1) in
+the else arm. Plain `if ((task->spawnArg1 & 0xF) == 1) ... task->state = 1;`
+scored 99.89%: the same code with the constant in `$v1`.
+
+The constant's pseudo spans two blocks, so global alloc places it. In
+`find_reg` pass 0 every call-used register counts as already used, so a
+pseudo that crosses no call takes the first free one (`$v1`). A callee-saved
+home requires `allocno_calls_crossed != 0`, which a value first set after the
+call, where the target's order puts it, cannot have (not built separately; it
+is the literal case). Assigned *before* the call, `one` crosses it and gets
+`$s0` (built: 100%), the first callee-saved register free once the enemy
+pointer held there dies. sched2 works on hard registers and has no call
+dependency for callee-saved ones, so it sinks the `li` next to its use below
+the `jal`:
+
+```c
+enemy->node.field_4 = 4;
+one                 = 1;
+Gp_IncStateF0Ref(0);
+if ((task->spawnArg1 & 0xF) == one) { ... task->state = 2; ... }
+else                                { ... task->state = one; ... }
+```
+
+Read a callee-saved constant materialized just after a call as "set before the
+call". The same function's `li s2,2` shows the mirror image. That constant is
+CSE'd across two calls, and sched2 hoists it into the delay slot of the call
+*before* its C assignment.
