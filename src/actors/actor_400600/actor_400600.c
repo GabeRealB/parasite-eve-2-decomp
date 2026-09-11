@@ -527,7 +527,48 @@ void func_actor_400600_80135450(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80135578);
+void func_actor_400600_80135578(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    u32              sound;
+    s32              id;
+    s32              pan;
+    u32              rnd;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if ((s16)work->field_718 == 0) {
+        work->field_767 = 0;
+        id              = 0x40060006;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0006;
+        }
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan   = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->field_718++;
+    }
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        if (work->field_730 != 3) {
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_720 = 2;
+            work2->field_726 = 0x10;
+            work2->field_746 = 0x14;
+            work2->field_742 = 1;
+            work->field_71E++;
+            return;
+        }
+        work->field_730  = 0;
+        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState      = rnd;
+        work->field_750  = ((rnd >> 0x10) & 0x7F) + 0x1E;
+        work3            = (Actor400600Work*)arg0->idMap;
+        work3->field_71C = 5;
+        work3->field_71E = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801356E0);
 
