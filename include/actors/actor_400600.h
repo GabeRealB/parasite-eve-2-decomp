@@ -101,7 +101,7 @@ typedef struct Actor400600Work {
     /* 0x756 */ u16                field_756; // countdown to the next state-2 transition
     /* 0x758 */ s16                field_758;
     /* 0x75A */ byte               pad_75A[0x4];
-    /* 0x75E */ s8                 field_75E;
+    /* 0x75E */ u8                 field_75E; // compared unsigned by func_actor_400600_8013C874
     /* 0x75F */ s8                 field_75F;
     /* 0x760 */ byte               pad_760[0x3];
     /* 0x763 */ s8                 field_763;

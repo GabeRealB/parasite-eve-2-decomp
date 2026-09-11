@@ -1006,7 +1006,32 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013C7E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013C874);
+void func_actor_400600_8013C874(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    TmdObject*       model;
+    TmdObject*       model2;
+
+    work            = (Actor400600Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    work->field_73A = 0;
+    work2           = (Actor400600Work*)arg0->idMap;
+    model2          = (TmdObject*)arg0->extra;
+    if (work2->field_75E != 1) {
+        work2->field_75E = 1;
+        work2->field_75F = 1;
+        work2->field_740 = 0;
+        model2->field_C |= 2;
+        Gp_SetLightMode(arg0->spawnArg2, 2);
+        func_actor_400600_801387DC(arg0, 2);
+    }
+    work->obj_4B4.flags &= 0x7FFF;
+    work->obj_594.flags &= 0x7FFF;
+    work->obj_5CC.flags &= 0x7FFF;
+    model->field_C      |= 0x80;
+    work->field_71C      = work->field_71C + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013C940);
 
