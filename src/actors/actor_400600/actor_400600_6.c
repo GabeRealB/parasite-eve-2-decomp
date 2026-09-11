@@ -166,7 +166,38 @@ void func_actor_400600_8013A638(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013A6C4);
+void func_actor_400600_8013A6C4(Task* arg0)
+{
+    Actor400600Work* work;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    SVECTOR          rot;
+
+    work             = (Actor400600Work*)arg0->idMap;
+    model            = (TmdObject*)arg0->extra;
+    coord            = model->field_8;
+    work->field_73A  = (u16)work->field_73A + (-work->field_73A >> 2);
+    work->field_714 -= 0x30;
+    scale.vx         = 0x1000;
+    scale.vy         = work->field_714;
+    scale.vz         = 0x1000;
+    coord->coord     = work->matrix_0;
+    ScaleMatrix(&coord->coord, &scale);
+    coord->flg = 0;
+    work->field_718++;
+    if ((s16)work->field_718 == 8) {
+        rot.vx = 0;
+        rot.vy = 0;
+        rot.vz = 0;
+        Gp_SpawnEff(0x600A5, coord, 4, &rot);
+    }
+    if ((s16)work->field_718 >= 0x11) {
+        model->field_C |= 0x80;
+        func_actor_400600_801387DC(arg0, -1);
+        work->field_71C = work->field_71C + 1;
+    }
+}
 
 void func_actor_400600_8013A808(Task* arg0)
 {
