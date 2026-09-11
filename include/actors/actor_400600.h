@@ -44,7 +44,11 @@ typedef struct Actor400600Work {
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
     /* 0x092 */ u16                field_92;  // seeds field_73E on state entry
-    /* 0x094 */ byte               pad_94[0x14];
+    /* 0x094 */ byte               pad_94[0x4];
+    /* 0x098 */ u16                field_98;  // low half of the root coordinate's world X
+    /* 0x09A */ byte               pad_9A[0x2];
+    /* 0x09C */ u16                field_9C;  // low half of the root coordinate's world Z
+    /* 0x09E */ byte               pad_9E[0xA];
     /* 0x0A8 */ Actor400600ViewPos field_A8;  // copied to the stack for func_actor_400600_80139C00
     /* 0x0AE */ byte               pad_AE[0x406];
     /* 0x4B4 */ GpObj              obj_4B4;   // collision node; flags bit 0x8000 cleared

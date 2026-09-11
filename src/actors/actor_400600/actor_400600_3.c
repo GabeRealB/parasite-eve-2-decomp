@@ -45,6 +45,7 @@ s32  func_actor_400600_801370F4();
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
 s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
+void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139CAC();
 s32  func_actor_400600_8013A0B0();
@@ -603,7 +604,28 @@ void func_actor_400600_8013C104(Task* arg0)
     work->field_71E = work->field_71E + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013C124);
+void func_actor_400600_8013C124(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    GsCOORDINATE2*   coord;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    func_actor_400600_80138B40(arg0);
+    work2            = (Actor400600Work*)arg0->idMap;
+    work2->field_720 = 4;
+    work2->field_726 = 0x10;
+    work2->field_746 = 0x20;
+    work2->field_742 = 1;
+    work->field_722  = 0x40;
+    work->field_724  = 0;
+    work->field_718  = 0;
+    work->field_98   = coord->coord.t[0];
+    work->field_9C   = coord->coord.t[2];
+    work->field_73E  = work->field_92;
+    work->field_71E  = work->field_71E + 1;
+}
 
 void func_actor_400600_8013C1C0(Task* arg0)
 {
