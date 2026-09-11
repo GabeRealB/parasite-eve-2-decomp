@@ -59261,3 +59261,21 @@ Read a callee-saved constant materialized just after a call as "set before the
 call". The same function's `li s2,2` shows the mirror image. That constant is
 CSE'd across two calls, and sched2 hoists it into the delay slot of the call
 *before* its C assignment.
+
+## `lui %hi(table)` in the delay slot before `sll idx,2`: index the table inline, not through `p = &T[i]`
+
+`func_actor_342400_801626CC` bounds-checks an `s16` index, then reads two
+fields of a 4-byte record. The target fills the check's `bnez` delay slot with
+`lui v0,%hi(T)` and computes `addiu`, `sll v1,v1,2`, `addu a0,v1,v0` after it.
+`p = &T[i]` (or `T + i`) expands the `sll` *before* the `high`/`lo_sum`; all
+four have sched1 priority 1, so the luid tie-break keeps that order and reorg
+steals the `sll` instead (85.5%, `regs=7 insert=2 delete=2`). `p = T; p += i;`
+fixes the order but makes `p` conflict with `i` (98.2%, `stack=9 regs=9`).
+Writing `T[i].field_0` / `T[i].field_2` at every use, with no pointer local,
+lets CSE build the address with the symbol first: 100%.
+
+The same function's arg is sign-extended in the callee (`sll`/`sra`, so
+`s16`), yet the header said `u8` because the callers load it with `lbu`. Those
+are separate facts: the caller's `lbu` is the *field's* type (`byte` is
+`signed char` here and gives `lb`), so give the field `u8` and the parameter
+`s16`. A scoped build catches this only as a checksum failure on the callers.

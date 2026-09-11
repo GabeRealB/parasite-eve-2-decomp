@@ -76,7 +76,7 @@ void func_actor_342400_801621D8(Task* arg0)
         coord = ((TmdObject*)task->extra)->field_8;
         if (enemy->field_40 <= 0) {
             work->enemy0 = NULL;
-        } else if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+        } else if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
             msg.field_0 = 0;
             msg.field_1 = 0;
             msg.field_2 = 5;
@@ -92,7 +92,7 @@ void func_actor_342400_801621D8(Task* arg0)
         coord = ((TmdObject*)task->extra)->field_8;
         if (enemy->field_40 <= 0) {
             work->enemy1 = NULL;
-        } else if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+        } else if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
             msg.field_0 = 0;
             msg.field_1 = 0;
             msg.field_2 = 5;
@@ -118,7 +118,22 @@ void func_actor_342400_801626AC(Task* arg0, s32 arg1, Actor342400Msg* arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801626CC);
+s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
+{
+    if (arg0 == 0 || arg0 > 0x10) {
+        return 0;
+    }
+    if (D_actor_342400_8016C010[arg0].axis == 0) {
+        if (arg1 < D_actor_342400_8016C010[arg0].limit) {
+            return 1;
+        }
+    } else {
+        if (arg2 >= D_actor_342400_8016C010[arg0].limit) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161E20);
 
@@ -299,7 +314,7 @@ void func_actor_342400_80162CBC(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+    if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
         msg.field_0 = 0;
         msg.field_1 = 0x2C;
         msg.field_2 = 5;
@@ -378,7 +393,7 @@ void func_actor_342400_80162F1C(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+    if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
         msg.field_0 = 0;
         msg.field_1 = 0;
         msg.field_2 = 5;

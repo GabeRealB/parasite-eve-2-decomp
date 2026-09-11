@@ -97,7 +97,8 @@ typedef struct _GameSession {
     u8    field_132;
     byte  unknown_133[2];
     u8    field_135;
-    byte  unknown_136[3];
+    u8    field_136; // 1..16 index into actor_342400's `D_actor_342400_8016C010`
+    byte  unknown_137[2];
     u8    field_139;
     u8    field_13A; // cleared by Gp_PostDirIfCapIdle when D_80114CDC is 0
     u8    field_13B;

@@ -110,6 +110,15 @@ typedef struct Actor342400Slot {
 } Actor342400Slot;
 STATIC_ASSERT_SIZEOF(Actor342400Slot, 0x8);
 
+/// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
+/// by `Game_Session->field_136`. `func_actor_342400_801626CC` compares
+/// an enemy's x against `limit` when `axis` is 0 and its z otherwise.
+typedef struct Actor342400Limit {
+    /* 0x0 */ s16 axis;
+    /* 0x2 */ s16 limit;
+} Actor342400Limit;
+STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
+
 /// Work block of the child task handled by `func_actor_342400_80163178`,
 /// stored in its `Task::idMap` slot; it is killed once `field_A` reaches 3.
 /// `func_actor_342400_80162084` allocates it (`Mem_Calloc(0xC, 0)`) and
@@ -144,25 +153,26 @@ typedef struct Actor342400SpawnWork {
 } Actor342400SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 
-extern u8              D_actor_342400_8016BF48[]; // stored into `Task::field_24` by func_actor_342400_801628F0
-extern Actor342400Slot D_actor_342400_8016BF58[];
-extern TaskDesc        D_actor_342400_80173A54;
-extern TaskDesc        D_actor_342400_8016BFE0;
-extern TaskDesc        D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
-extern TaskDesc        D_80151E60;                // absolute, spawned twice by func_actor_342400_80162084
-extern u16             D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
-extern u8              D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
-extern u8              D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
-extern u8              D_801153F4;                // absolute; nonzero skips the controller's state handler
-extern GpPairSrcE      D_actor_342400_80170588;   // the main enemy's `GpEnemy::field_50` record
-extern u8              D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
-extern u8              D_actor_342400_80173A3C[]; // stored into `Task::field_24` by func_actor_342400_80163C58
+extern u8               D_actor_342400_8016BF48[]; // stored into `Task::field_24` by func_actor_342400_801628F0
+extern Actor342400Slot  D_actor_342400_8016BF58[];
+extern Actor342400Limit D_actor_342400_8016C010[];
+extern TaskDesc         D_actor_342400_80173A54;
+extern TaskDesc         D_actor_342400_8016BFE0;
+extern TaskDesc         D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
+extern TaskDesc         D_80151E60;                // absolute, spawned twice by func_actor_342400_80162084
+extern u16              D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
+extern u8               D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
+extern u8               D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
+extern u8               D_801153F4;                // absolute; nonzero skips the controller's state handler
+extern GpPairSrcE       D_actor_342400_80170588;   // the main enemy's `GpEnemy::field_50` record
+extern u8               D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
+extern u8               D_actor_342400_80173A3C[]; // stored into `Task::field_24` by func_actor_342400_80163C58
 
 void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);
 void func_actor_342400_80162324(Task* arg0);
 s16  func_actor_342400_801624A4(void);
-s16  func_actor_342400_801626CC(u8 arg0, s16 arg1, s16 arg2);
+s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
 void func_actor_342400_801628F0(Task* arg0);
 void func_actor_342400_8016299C(Task* arg0);
 void func_actor_342400_80162A34(Task* arg0);
