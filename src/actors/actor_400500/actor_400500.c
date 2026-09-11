@@ -29,6 +29,7 @@ extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
 void func_8009EA50(s32 arg0);
+void func_actor_400500_80132628(Task* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132000);
 
@@ -38,7 +39,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132628);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132AB0);
+void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
+{
+    s32 temp_s2;
+
+    temp_s2 = arg2 & 0xFF;
+    func_actor_400500_80132628(arg0, 3, 9, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 9, 0xA, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 0xA, 0xB, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 3, 6, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 6, 7, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 7, 8, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 1, 5, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 1, 0xC, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 0xC, 0xD, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 0xD, 0xE, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 1, 0xF, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 0xF, 0x10, 0x100, (s32)arg1, temp_s2);
+    func_actor_400500_80132628(arg0, 0x10, 0x11, 0x100, (s32)arg1, temp_s2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132C54);
 
