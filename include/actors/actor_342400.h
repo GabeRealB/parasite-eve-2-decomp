@@ -53,7 +53,9 @@ typedef struct Actor342400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ byte             pad_428[0x10];
     /* 0x438 */ s16              field_438;
-    /* 0x43A */ byte             pad_43A[0x12];
+    /* 0x43A */ byte             pad_43A[0x6];
+    /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
+    /* 0x442 */ byte             pad_442[0xA];
     /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ byte             pad_44E[0x1];
     /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
@@ -132,6 +134,7 @@ extern TaskDesc        D_actor_342400_8016BFE0;
 extern TaskDesc        D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
 extern u16             D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
 extern u8              D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
+extern u8              D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
 
 void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);
@@ -142,6 +145,7 @@ void func_actor_342400_80163010(Task* arg0);
 void func_actor_342400_801630A4(Task* arg0);
 void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
+void func_actor_342400_80165CC0(Task* arg0);
 void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 
 #endif
