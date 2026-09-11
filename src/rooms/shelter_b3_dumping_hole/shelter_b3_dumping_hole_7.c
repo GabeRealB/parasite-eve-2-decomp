@@ -22,7 +22,7 @@ typedef struct {
 
 typedef struct {
     DumpingHoleTarget* field_0;
-    u8                 _pad4[0x4];
+    DumpingHoleTarget* field_4;
     s16                field_8;
     s16                field_A;
 } DumpingHoleEntity;
@@ -85,7 +85,32 @@ void func_shelter_b3_dumping_hole_80183CA0(DumpingHoleState* arg0)
     arg0->field_30 += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183D34);
+void func_shelter_b3_dumping_hole_80183D34(DumpingHoleState* arg0)
+{
+    DumpingHoleEntity* ent = arg0->field_1C;
+    DumpingHoleTarget* t   = ent->field_4;
+
+    func_shelter_b3_dumping_hole_80183F04(arg0);
+    if (ent->field_4 != NULL) {
+        if ((s16)(ent->field_8 += 1) < 0x3D) {
+            return;
+        }
+        {
+            DumpingHoleTarget2*     t00 = ent->field_4->field_0;
+            DumpingHoleP2C*         p   = t00->field_2C;
+            DumpingHoleDispatchDesc desc;
+            p->field_24  = 3;
+            p->field_25  = 5;
+            t->field_A   = 0x900;
+            desc.field_0 = 0;
+            desc.field_1 = 0x2E;
+            desc.field_2 = arg0->field_34;
+            Gp_DispatchMsg((Task*)t00, 0x7DB, (s32)&desc, 0);
+        }
+    }
+    ent->field_8   = 0;
+    arg0->field_30 += 1;
+}
 
 void func_shelter_b3_dumping_hole_80183E08(DumpingHoleState* arg0)
 {
