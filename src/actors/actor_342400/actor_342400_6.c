@@ -2,8 +2,6 @@
 #include "main/task.h"
 #include "actors/actor_342400.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_801662EC);
-
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_801664C4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_6", func_actor_342400_8016666C);

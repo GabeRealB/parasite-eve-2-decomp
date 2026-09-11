@@ -59201,3 +59201,33 @@ the key to the unit's new number in the same change, `git mv` the renumbered
 compare `bodies_of()` for the overlay before and after. Diffing the generated
 yaml before and after `gen_overlay_configs.py --family actors` shows the
 renumbering before anything is split.
+
+### Call-argument setup hoisted above a run of stores: a `do { } while (0)` loop-note barrier
+`ActorsShared801662ec` copies a stack `SVECTOR` into the work block and then
+calls `VectorNormalSS(&d0, &d0)`. Target: `lhu/sh` x3 (the `sh dist` filling the
+last load's delay slot), then `addiu a0,sp,0x10` / `jal` / `move a1,a0`. Plain C
+(97%) lets sched1 hoist `a0 = sp+16` into the stores' load-delay slots: an
+argument set has no predecessors, so its priority is 1, while each store
+inherits 3-4 through the load -> store memory chain, and backward list
+scheduling places the higher-priority stores next to the call.
+
+The permuter found the mechanism: a `NOTE_INSN_LOOP_BEG/END` in the middle of a
+block makes `sched_analyze_insn` flush every dependency (`sched.c`, "If there
+is a {LOOP,EHREGION}_{BEG,END} note in the middle of a basic block"), so no
+insn crosses it. Wrapping exactly the stores that must stay above the call puts
+the barrier where it is needed while leaving them free to reorder among
+themselves:
+
+```c
+do {
+    work->field_88  = d0.vx;
+    work->field_8A  = d0.vy;
+    work->field_8C  = d0.vz;
+    work->field_43A = dist;   /* still fills the lhu vz delay slot */
+} while (0);
+VectorNormalSS(&d0, &d0);
+```
+
+Choose the wrapped span from the target: the barrier sits at both ends, so a
+store left outside cannot fill a slot inside, and vice versa (the permuter's
+first hit wrapped only the last two stores and scored 98.6%).

@@ -25,14 +25,16 @@ STATIC_ASSERT_SIZEOF(ActorsShared80168d3cFlags, 0x4);
 /// request the actor hands to its player. The size below is the allocation,
 /// not a guess.
 typedef struct ActorsShared80168d3cWork {
-    /* 0x000 */ MATRIX                    mat_0; // copied into the model root coord by ActorsShared8016bd98
-    /* 0x020 */ byte                      pad_20[0x58];
+    /* 0x000 */ MATRIX                    mat_0;    // copied into the model root coord by ActorsShared8016bd98
+    /* 0x020 */ byte                      pad_20[0x40];
+    /* 0x060 */ VECTOR                    field_60; // own position, copied from the model root coord.t
+    /* 0x070 */ byte                      pad_70[0x8];
     /* 0x078 */ s16                       field_78;
     /* 0x07A */ s16                       field_7A; // heading
     /* 0x07C */ s16                       field_7C;
     /* 0x07E */ byte                      pad_7E[0xA];
     /* 0x088 */ s16                       field_88; // x of the vector turned towards
-    /* 0x08A */ byte                      pad_8A[0x2];
+    /* 0x08A */ s16                       field_8A; // y of the vector turned towards
     /* 0x08C */ s16                       field_8C; // z of the vector turned towards
     /* 0x08E */ byte                      pad_8E[0x4];
     /* 0x092 */ u16                       field_92; // low half of root coord.t[1]
@@ -65,10 +67,12 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x434 */ s16                       field_434; // pitch latched by ActorsShared8016a538
     /* 0x436 */ byte                      pad_436[0x2];
     /* 0x438 */ s16                       field_438;
-    /* 0x43A */ byte                      pad_43A[0x6];
+    /* 0x43A */ s16                       field_43A; // distance to the nearer player actor
+    /* 0x43C */ byte                      pad_43C[0x4];
     /* 0x440 */ s16                       field_440;
     /* 0x442 */ s16                       field_442; // phase of the pitch sway
-    /* 0x444 */ byte                      pad_444[0x4];
+    /* 0x444 */ s16                       field_444; // heading to the nearer player actor, relative to field_7A
+    /* 0x446 */ byte                      pad_446[0x2];
     /* 0x448 */ s16                       field_448;
     /* 0x44A */ s16                       field_44A;
     /* 0x44C */ byte                      pad_44C[0x5];
