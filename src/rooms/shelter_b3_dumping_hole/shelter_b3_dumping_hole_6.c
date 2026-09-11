@@ -46,7 +46,9 @@ typedef struct {
 typedef struct {
     u8                 _pad0[0x1C];
     DumpingHoleEntity* field_1C;
-    u8                 _pad20[0x10];
+    u8                 _pad20[0x4];
+    void*              field_24;
+    u8                 _pad28[0x8];
     s32                field_30;
     s16                field_34;
     s16                field_36;
@@ -82,6 +84,7 @@ extern TaskFuncTable3  D_shelter_b3_dumping_hole_8017D664;
 extern TaskFuncTable3  D_shelter_b3_dumping_hole_8017D670;
 extern TaskFuncTable5  D_shelter_b3_dumping_hole_8017D67C;
 extern u8              D_801153F4;
+extern u8              D_shelter_b3_dumping_hole_8018B7AC[];
 
 void RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
 
@@ -162,7 +165,28 @@ void func_shelter_b3_dumping_hole_80183678(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_801836E0);
+void func_shelter_b3_dumping_hole_801836E0(DumpingHoleState* arg0)
+{
+    DumpingHoleEntity* work;
+    s32                i;
+
+    if ((u8)Game_Session->unknown_130[0] == 2) {
+        Task_Kill((Task*)arg0);
+        return;
+    }
+    work = Mem_Calloc(6, 0);
+    if (work == NULL) {
+        Task_Kill((Task*)arg0);
+        return;
+    }
+    for (i = 15; i >= 0; i--) {
+        D_shelter_b3_dumping_hole_8018B7BC[i].field_6 = 0;
+    }
+    D_shelter_b3_dumping_hole_8018F4D4 = 0;
+    arg0->field_1C                     = work;
+    arg0->field_24                     = D_shelter_b3_dumping_hole_8018B7AC;
+    arg0->field_30 += 1;
+}
 
 void func_shelter_b3_dumping_hole_8018378C(DumpingHoleState* arg0)
 {
