@@ -564,7 +564,40 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134570);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013479C);
+void func_actor_400600_8013479C(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    s16              v;
+
+    work = (Actor400600Work*)arg0->idMap;
+    v    = func_actor_400600_801376EC();
+    if (v != 0) {
+        if ((u16)(v - 0x4E9) >= 0x6D0U) {
+            func_actor_400600_80138B40(arg0);
+            work3            = (Actor400600Work*)arg0->idMap;
+            work3->field_71C = 2;
+            work3->field_71E = 0;
+            return;
+        }
+        work->field_98 = ((rsin((s16)work->field_82 + 0x800) * (v - 0x100)) >> 12) / 20;
+        work->field_9C = ((rcos((s16)work->field_82 + 0x800) * (v - 0x100)) >> 12) / 20;
+    } else {
+        work->field_98 = ((rsin((s16)work->field_82 + 0x800) * 3000) >> 12) / 20;
+        work->field_9C = ((rcos((s16)work->field_82 + 0x800) * 3000) >> 12) / 20;
+    }
+    func_actor_400600_80138B40(arg0);
+    work2            = (Actor400600Work*)arg0->idMap;
+    work2->field_720 = 4;
+    work2->field_726 = 0x10;
+    work2->field_746 = 0x15;
+    work2->field_742 = 1;
+    work->field_722  = -0x2A;
+    work->field_724  = 0;
+    work->field_718  = 0;
+    work->field_71E++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134970);
 
