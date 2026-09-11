@@ -59656,3 +59656,17 @@ assigned *before* the final `if` with a `goto` into it. Compiled that way
 `i = 1;` after it matches: reorg fills the default branch's delay slot from the
 loop head, which is where the duplicate `li` comes from. A `switch` instead
 scored 78% (different block shape).
+
+### A pre-set default before an inner `if`/`else` gets hoisted by sched1 and lands in the wrong register
+
+`func_actor_400600_8013B740` sets `min = 0x10` at the top. Then, inside an outer
+`if`, it steps the LCG and picks `min`/`step` on a bit of the result. The target
+puts `li v1,0x18` in the `beqz` delay slot, after the LCG math, which also uses
+`$v1`. m2c's reading, `min = 0x18; if (bit) {...} else { min = 0x14; }`, scored
+96.9% with `min` in `$a2`. sched1 has no dependency holding the constant, so it
+hoisted `min = 0x18` to the top of the LCG block (`.greg`: `(set (reg/v:HI 6 a2)
+(const_int 24))` ahead of the `lw`). There `min` overlaps the LCG temp in `$v1`
+and gets pushed to `$a2`. Writing `min = 0x18` inside the then-arm matches:
+reorg fills the delay slot from the fall-through arm, since `$v1` is dead on the
+taken path. This is the same fix as the pre-set `ret` entry above; what changes
+is how you spot it: the constant appears early in `.sched`, not as a return.

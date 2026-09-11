@@ -722,7 +722,37 @@ void func_actor_400600_8013B6F4(Task* arg0)
     work->field_71E = work->field_71E + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013B740);
+void func_actor_400600_8013B740(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    SVECTOR          pos;
+    s16              min;
+    s16              step;
+    u32              rnd;
+
+    min = 0x10;
+    if (work->field_728 > 0xBB8 && work->field_76B == 0) {
+        rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState = rnd;
+        if ((rnd >> 0x10) & 1) {
+            min  = 0x18;
+            step = 0x24;
+        } else {
+            min  = 0x14;
+            step = 0x1E;
+        }
+        work->field_754 = step;
+        work->field_76B = 1;
+    }
+    if (work->field_752 < min) {
+        work->field_752 = min;
+    }
+    pos.vx = work->field_A8.x;
+    pos.vy = work->field_A8.y;
+    pos.vz = work->field_A8.z;
+    ActorsShared80139c00(arg0, &pos, work->field_754);
+    func_actor_400600_80135998(arg0, work->field_752);
+}
 
 void func_actor_400600_8013B830(Task* arg0)
 {

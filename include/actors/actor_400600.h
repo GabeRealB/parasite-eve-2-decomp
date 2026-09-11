@@ -129,7 +129,7 @@ typedef struct Actor400600Work {
     /* 0x768 */ u8                 field_768;
     /* 0x769 */ u8                 field_769; // sub-variant flag, gates state indices
     /* 0x76A */ byte               pad_76A[0x1];
-    /* 0x76B */ s8                 field_76B;
+    /* 0x76B */ u8                 field_76B;
     /* 0x76C */ byte               pad_76C[0x4];
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
