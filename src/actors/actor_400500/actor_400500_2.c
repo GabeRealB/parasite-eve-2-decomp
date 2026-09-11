@@ -81,7 +81,31 @@ void func_actor_400500_8013BAA4(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BB18);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BBB0);
+void func_actor_400500_8013BBB0(Task* arg0)
+{
+    Actor400500Work*    work;
+    Actor400500HitView* hit;
+    s32                 soundId;
+    s32                 pan;
+    s32                 cond;
+
+    work = (Actor400500Work*)arg0->idMap;
+    if ((s16)work->field_A04 == 0) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050006;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->field_A04 = work->field_A04 + 1;
+    }
+    hit = (Actor400500HitView*)arg0->idMap;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_A42 = 0;
+    }
+}
 
 void func_actor_400500_8013BC9C(Task* arg0)
 {
@@ -97,7 +121,31 @@ void func_actor_400500_8013BC9C(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BCCC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BD64);
+void func_actor_400500_8013BD64(Task* arg0)
+{
+    Actor400500Work*    work;
+    Actor400500HitView* hit;
+    s32                 soundId;
+    s32                 pan;
+    s32                 cond;
+
+    work = (Actor400500Work*)arg0->idMap;
+    if ((s16)work->field_A04 == 0) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050006;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->field_A04 = work->field_A04 + 1;
+    }
+    hit = (Actor400500HitView*)arg0->idMap;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_A42 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BE50);
 
