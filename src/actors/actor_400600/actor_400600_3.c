@@ -665,7 +665,20 @@ void func_actor_400600_8013C518(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013C534);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013C598);
+void func_actor_400600_8013C598(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    u32              rnd;
+
+    work->field_720 = 4;
+    work->field_726 = 0x10;
+    work->field_746 = 1;
+    work->field_742 = 1;
+    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState     = rnd;
+    work->field_756 = ((rnd >> 0x10) & 0x3F) + 0x5A;
+    work->field_71E = work->field_71E + 1;
+}
 
 void func_actor_400600_8013C5F8(Task* arg0)
 {
