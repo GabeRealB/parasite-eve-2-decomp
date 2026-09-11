@@ -53,7 +53,24 @@ void func_actor_342400_80162888(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801628F0);
+void func_actor_342400_801628F0(Task* arg0)
+{
+    Actor342400CtrlWork* work;
+    s32                  i;
+
+    if ((u8)Game_Session->unknown_130[1] == 2 || (u8)Game_Session->unknown_130[0] == 0 ||
+        (work = Mem_Calloc(6, 0)) == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    for (i = 16; i >= 0; i--) {
+        D_actor_342400_8016BF58[i].field_6 = 0;
+    }
+    D_actor_342400_80173AAC = 0;
+    arg0->idMap             = (TaskIdMap*)work;
+    arg0->field_24          = D_actor_342400_8016BF48;
+    arg0->state++;
+}
 
 void func_actor_342400_8016299C(Task* arg0)
 {

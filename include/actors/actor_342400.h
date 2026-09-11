@@ -114,6 +114,7 @@ typedef struct Actor342400SpawnWork {
 } Actor342400SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 
+extern u8              D_actor_342400_8016BF48[]; // stored into `Task::field_24` by func_actor_342400_801628F0
 extern Actor342400Slot D_actor_342400_8016BF58[];
 extern TaskDesc        D_actor_342400_80173A54;
 extern TaskDesc        D_actor_342400_8016BFE0;
