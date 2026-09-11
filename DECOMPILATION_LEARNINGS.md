@@ -59369,3 +59369,35 @@ pseudo, which is what survives as the `move` (99.93%). The last register -
 `idMap` reloaded into `$v1` rather than `$a0` inside the arm - came from
 reloading into a fresh local instead of reassigning the helper's `work`, which
 kept that pseudo in `$a0`.
+
+### GTE `sqr0` has no usable macro, and its store address must be named before `gte_ldlvl`
+
+`func_actor_342400_80168B74` squares a distance vector on the GTE:
+
+```
+addiu v1, sp, 0x28       # &sq, computed before the loads
+sw    v0, 0x18(sp)
+addiu v0, sp, 0x10       # &d
+lwc2  $9..$11, 0..8(v0)
+nop; nop
+sqr   0                  # word 0x4AA00428
+swc2  $25..$27, 0..8(v1)
+```
+
+`gte_sqr0()` in `psyq/inline_c.h` emits `.word 0x00000f3f`, the DMPSX
+placeholder encoding, which nothing in this build rewrites; write the real word,
+`__asm__ volatile("nop; nop; .word 0x4AA00428")`. `gte_Square0` from
+`gtemac.h` wraps the same macro.
+
+`gte_stlvnl(&sq)` computes `&sq` after the `sqr`: a volatile asm clobbers every
+pseudo for sched1, so an address set after it cannot rise above it. Assigning a
+pointer local, `out = &sq;`, before `gte_ldlvl(&d)` and passing `out` lets
+sched1 hoist the `addiu` and gives it the second register (97.2% -> 97.6%).
+
+Two more changes in the same function. `(rsin(a) * 16 * step) >> 16` is
+reassociated into `rsin(a) * (step * 16)`, so the `sll 4` lands on `step` in
+the `ratan2` delay slot. `(rsin(a) << 4) * step` keeps the shift on the call
+result. Separately, `v.vy = 0` for a stack `SVECTOR` has anti-dependences on the
+earlier pointer loads, so its source position against the `vx` loads is fixed.
+The target's `sh zero` after the `vx` loads means `vx, vy, vz` source order
+(97.6% -> 99.6%).
