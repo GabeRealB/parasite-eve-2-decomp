@@ -91,7 +91,41 @@ void func_actor_342400_801621D8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162324);
+void func_actor_342400_80162324(Task* arg0)
+{
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    s16                  count;
+    s16                  i;
+    s16                  idx;
+    s16                  type;
+    s16                  arg;
+
+    count = 0;
+    for (i = 0; i < 17; i++) {
+        if (D_actor_342400_8016BF58[i].field_6 == 1) {
+            count++;
+        }
+    }
+    if (count < 3) {
+        idx = work->field_2;
+        if (idx < 17 && Game_Session->field_120 >= 0x3D) {
+            type = D_actor_342400_8016BF58[idx].field_0;
+            arg  = D_actor_342400_8016BF58[idx].field_2;
+            switch (type) {
+                case 0:
+                    Task_SpawnFromTable(&D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    break;
+                case 1:
+                    Task_SpawnFromTable(&D_actor_342400_8016BFE0, 2, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    break;
+                case 2:
+                    Task_SpawnFromTable(&D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    break;
+            }
+            work->field_2++;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801624A4);
 
