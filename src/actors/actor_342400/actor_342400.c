@@ -19,7 +19,48 @@ extern u8 D_actor_342400_8016D780[];
 
 extern s32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162084);
+void func_actor_342400_80162084(Task* arg0)
+{
+    Actor342400ChildWork* work;
+    GpEnemy*              enemy;
+    Task*                 task;
+    TmdObject*            obj;
+
+    work = Mem_Calloc(0xC, 0);
+    if (work == NULL) {
+        goto kill;
+    }
+    arg0->idMap  = (TaskIdMap*)work;
+    work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
+    work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
+    if (work->enemy0 == NULL && work->enemy1 == NULL) {
+    kill:
+        Task_Kill(arg0);
+        return;
+    }
+    if (work->enemy0 != NULL) {
+        enemy          = work->enemy0;
+        enemy->field_8 = D_actor_342400_80173AAC << 12;
+        D_actor_342400_80173AAC++;
+        task            = enemy->task;
+        obj             = task->extra;
+        obj->field_24   = 3;
+        obj->field_25   = 5;
+        enemy->field_40 = 1;
+    }
+    if (work->enemy1 != NULL) {
+        enemy          = work->enemy1;
+        enemy->field_8 = D_actor_342400_80173AAC << 12;
+        D_actor_342400_80173AAC++;
+        task            = enemy->task;
+        obj             = task->extra;
+        obj->field_24   = 3;
+        obj->field_25   = 5;
+        enemy->field_40 = 1;
+    }
+    D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
+    arg0->state++;
+}
 
 void func_actor_342400_801621D8(Task* arg0)
 {

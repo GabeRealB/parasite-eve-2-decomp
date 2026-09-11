@@ -147,6 +147,7 @@ extern Actor342400Slot D_actor_342400_8016BF58[];
 extern TaskDesc        D_actor_342400_80173A54;
 extern TaskDesc        D_actor_342400_8016BFE0;
 extern TaskDesc        D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
+extern TaskDesc        D_80151E60;                // absolute, spawned twice by func_actor_342400_80162084
 extern u16             D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
 extern u8              D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
 extern u8              D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
