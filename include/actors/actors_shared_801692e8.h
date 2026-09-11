@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-extern s8 D_80115415; // absolute; set once ActorsShared801692e8 has queued its CD load
+extern s8 D_80115415; // absolute; set once CD command 0x21 is queued (ActorsShared801692e8, func_actor_400600_8013B640)
 
 /// Queue CD command 0x21 once, guarded by `D_80115415`. The first parameter
 /// block selects 2 or 3 when session `field_7` is 4, `field_6` is 0x27 or

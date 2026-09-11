@@ -1,7 +1,9 @@
 #include "common.h"
 
+#include "main/fs.h"
 #include "main/gfx.h"
 #include "main/sound.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -14,6 +16,7 @@
 #include "actors/actor_400600.h"
 #include "actors/actors_shared_80139948.h"
 #include "actors/actors_shared_80139dcc.h"
+#include "actors/actors_shared_801692e8.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
@@ -646,7 +649,36 @@ void func_actor_400600_8013B520(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013B640);
+void func_actor_400600_8013B640(void)
+{
+    u8 param1[8];
+    u8 param2[8];
+
+    if (D_80115415 == 0) {
+        /* Same shape as ActorsShared801692e8: each branch makes its own call
+         * and jump2's cross-jumping merges the identical tails. */
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x3200000 && Game_Session->field_9 == 1) {
+            param1[2] = 0x28;
+            param1[0] = 2;
+            param1[3] = 0;
+            param2[0] = 6;
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+        } else {
+            param1[2] = 0x28;
+            param1[0] = 1;
+            param1[3] = 0;
+            param2[0] = 6;
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+        }
+        D_80115415 = 1;
+    }
+}
 
 void func_actor_400600_8013B6F4(Task* arg0)
 {
