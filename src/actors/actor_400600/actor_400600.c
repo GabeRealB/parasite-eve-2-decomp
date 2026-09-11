@@ -1092,7 +1092,49 @@ void func_actor_400600_80134E28(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801350F4);
+void func_actor_400600_801350F4(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    GsCOORDINATE2*   coord;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_718++;
+    if ((s16)work->field_718 < 8) {
+        ActorsShared80139dcc(arg0, 3, (ActorsShared80139dccPos*)&work->field_88);
+        return;
+    }
+    work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
+    work->field_88.z += ((s16)work->field_9C - work->field_88.z) >> 2;
+    func_actor_400600_80139E68(arg0, 3, &work->field_88);
+    work->field_722   += 2;
+    work->field_724   += work->field_722;
+    coord->coord.t[1] += work->field_724;
+    if ((work->field_80 & 0xFFF) != 0x800) {
+        work->field_80 -= 0x80;
+    }
+    if ((s16)work->field_92 < coord->coord.t[1]) {
+        work->field_768   = 0;
+        coord->coord.t[0] = (s16)work->field_98;
+        coord->coord.t[1] = (s16)work->field_92;
+        coord->coord.t[2] = (s16)work->field_9C;
+        work->field_80    = 0;
+        work->field_84    = 0;
+        work->field_82   += 0x800;
+        Actor400600_RebuildRotation(arg0);
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_720 = 2;
+        work2->field_726 = 0x10;
+        work2->field_746 = 0x19;
+        work2->field_742 = 1;
+        Actor400600_TickAnim(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        work->field_718 = 0;
+        work->field_71E++;
+    }
+}
 
 void func_actor_400600_80135450(Task* arg0)
 {
