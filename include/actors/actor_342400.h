@@ -50,6 +50,16 @@ typedef struct Actor342400Msg {
 } Actor342400Msg;
 STATIC_ASSERT_SIZEOF(Actor342400Msg, 0x4);
 
+/// The same four bytes as the overlay builds them for its own 0x7DB send in
+/// `func_actor_342400_80163010`: two id bytes followed by the halfword
+/// (`Task::spawnArg1`) the receiver reads; see `Actor104000Msg7DA`.
+typedef struct Actor342400Msg7DB {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor342400Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor342400Msg7DB, 0x4);
+
 /// 8-byte record in the table at `D_actor_342400_8016BF58`, indexed by the
 /// halfword at `Task` 0x36 (the high half of `spawnArg1`). A child task that
 /// finishes writes 2 into `field_6` before killing itself.
@@ -61,10 +71,15 @@ STATIC_ASSERT_SIZEOF(Actor342400Slot, 0x8);
 
 /// Work block of the child task handled by `func_actor_342400_80163178`,
 /// stored in its `Task::idMap` slot; it is killed once `field_A` reaches 3.
+/// `func_actor_342400_80162084` allocates it (`Mem_Calloc(0xC, 0)`) and
+/// spawns the two enemies it holds.
 typedef struct Actor342400ChildWork {
-    /* 0x0 */ byte pad_0[0xA];
-    /* 0xA */ s16  field_A;
+    /* 0x0 */ GpEnemy* enemy0;
+    /* 0x4 */ GpEnemy* enemy1;
+    /* 0x8 */ s16      field_8;
+    /* 0xA */ s16      field_A;
 } Actor342400ChildWork;
+STATIC_ASSERT_SIZEOF(Actor342400ChildWork, 0xC);
 
 /// Work block of the controller task set up by `func_actor_342400_801628F0`
 /// (`Mem_Calloc(6, 0)`, stored in its `Task::idMap` slot).
