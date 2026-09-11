@@ -207,6 +207,11 @@ s32  func_actor_342400_80169518(Task* arg0);
 void func_actor_342400_80169654(Task* arg0, s16 arg1, u16* arg2);
 s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 void func_actor_342400_8016A494(Task* arg0);
+void func_actor_342400_8016AE24(Task* arg0);
+void func_actor_342400_8016AEAC(Task* arg0);
+void func_actor_342400_8016AF34(Task* arg0);
+void func_actor_342400_8016AFA8(Task* arg0);
+void func_actor_342400_8016B038(Task* arg0);
 void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 void func_actor_342400_801632D4(Task* arg0);
 
