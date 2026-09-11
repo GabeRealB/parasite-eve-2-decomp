@@ -57582,6 +57582,33 @@ rival. Compute both sides before assuming the source shape is wrong: with the
 instruction stream fixed, a value's live length is usually forced, and
 `REG_N_REFS` is the only free variable.
 
+**A narrower parameter type is a third lever, and changes no instructions.** A
+`u8`/`s16` parameter reaches its pseudo through an `SI` temp that `assign_parms`
+loads and then narrows (`(set (reg/v:QI 88) (subreg:QI (reg:SI 89) 0))`), and
+that temp gets no doubling. `ActorsShared80163354` passes `shade` on the stack
+and stores it with three `sb`; as `s32 shade` its pseudo read `4 refs across 386
+insns` in `.lreg`, lost to the `s16 width` parameter (`2 across 73`), and the two
+came out as `$fp`/`$s7` the wrong way round. As `u8 shade` the temp read `4 across
+193`, the ranking flipped and the function matched. The code was the same, since
+`sb` only stores the low byte anyway. When a stack parameter is used only through
+a narrow store or compare, try declaring it at that width before moving statements.
+
+## A struct load cannot cross a byte store, but stores into one prim reorder freely
+
+GCC 2.8.1's alias check proves two `MEM`s off the same base register with
+disjoint constant offsets independent, so every store into one `POLY_FT4`
+reorders against every other. A load from a *different* struct, such as a
+scratch block of `RotTransPers4` outputs, conflicts with any `u8` store, because
+char aliases everything. So in `ActorsShared80163354`, the ROM's
+`lw a2, 0x7C(s4)` ahead of the UV `sb`s, with its `sw a2, 0x20(a0)` after
+`setRGB0`, means `*(s32*)&poly->x3 = s->screen3` was written *before*
+`setUV4`: the load is pinned above the byte stores and the store sinks.
+Writing it after `setRGB0` (matching the store's position) or putting
+`tpage` / `clut` between the `x0..x2` copies scored 96.4-96.5%. Writing the four
+screen copies first, then `setUV4`, `tpage`, `clut`, `setRGB0`, gave 99.8%.
+When a load and its store sit far apart in a prim fill, place the statement
+where the *load* is.
+
 ## Put an empty-asm nudge *after* the call whose argument fills a delay slot
 
 `TOUCH_REG(v)` emits nothing but is a scheduling barrier, so where it goes
