@@ -40,6 +40,7 @@ extern s32 D_8011574C;
  * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
  * same copy while leaving the rodata where it is. */
 extern const TaskFuncTable3 D_actor_400600_80131F34;
+extern const TaskFuncTable8 D_actor_400600_80131F40;
 extern const TaskFuncTable4 D_actor_400600_80131F60;
 extern const TaskFuncTable3 D_actor_400600_80131F70;
 extern const TaskFuncTable4 D_actor_400600_80131F7C;
@@ -434,7 +435,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801393D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139444);
+void func_actor_400600_80139444(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable8   fns  = D_actor_400600_80131F40;
+
+    func_actor_400600_80138AA4(arg0);
+    fns.funcs[(s16)work->field_71E](arg0);
+}
 
 void func_actor_400600_801394E0(Task* arg0)
 {
