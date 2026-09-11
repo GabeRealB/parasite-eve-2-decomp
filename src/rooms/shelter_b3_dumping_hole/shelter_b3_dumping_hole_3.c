@@ -37,8 +37,15 @@ typedef struct {
 } DumpingHoleState;
 
 extern DumpingHoleState* D_shelter_b3_dumping_hole_8018F4A8;
+extern TaskFuncTable3    D_shelter_b3_dumping_hole_8017D5C4;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017D9A8);
+void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b3_dumping_hole_8017D5C4;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DA00);
 
