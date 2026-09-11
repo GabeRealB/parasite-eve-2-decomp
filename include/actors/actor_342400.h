@@ -60,17 +60,21 @@ typedef struct Actor342400Work {
     /* 0x418 */ s16              field_418; // animation id
     /* 0x41A */ byte             pad_41A[0x2];
     /* 0x41C */ s16              field_41C; // animation speed / step scale
-    /* 0x41E */ byte             pad_41E[0x2];
+    /* 0x41E */ s16              field_41E; // 1 lets `field_448` jump the state machine
     /* 0x420 */ u16              field_420; // state index
     /* 0x422 */ u16              field_422; // sub-state index
     /* 0x424 */ byte             pad_424[0x2];
     /* 0x426 */ s16              field_426;
-    /* 0x428 */ byte             pad_428[0x10];
+    /* 0x428 */ byte             pad_428[0xA];
+    /* 0x432 */ s16              field_432; // 1 runs func_actor_342400_80169654 on the spawn position
+    /* 0x434 */ byte             pad_434[0x4];
     /* 0x438 */ s16              field_438;
     /* 0x43A */ byte             pad_43A[0x6];
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ u16              field_442;
-    /* 0x444 */ byte             pad_444[0x8];
+    /* 0x444 */ byte             pad_444[0x4];
+    /* 0x448 */ s16              field_448; // pending state request; 4 moves the task to state 4 once the enemy is dead
+    /* 0x44A */ byte             pad_44A[0x2];
     /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ byte             pad_44E[0x1];
     /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
@@ -182,7 +186,10 @@ void func_actor_342400_80163010(Task* arg0);
 void func_actor_342400_801630A4(Task* arg0);
 void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
+void func_actor_342400_801653DC(Task* arg0, s16 arg1);
 void func_actor_342400_80165CC0(Task* arg0);
+void func_actor_342400_80169654(Task* arg0, s16 arg1, u16* arg2);
+void func_actor_342400_8016A494(Task* arg0);
 void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 void func_actor_342400_801632D4(Task* arg0);
 
