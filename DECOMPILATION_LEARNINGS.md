@@ -3,6 +3,33 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Hoist a compare outside `do { } while (0)` to reweight `REG_N_REFS` by loop depth
+
+`REG_N_REFS` is weighted by loop depth (1 outside, 2 in one loop, 3 nested;
+CODEGEN_MODEL §10.1). `global_alloc` uses `floor_log2(n_refs) * n_refs /
+live_length`, so crossing 16 refs is a step change.
+
+A call-free first loop plus a call-crossing second loop, both using the same
+counter `i` and pointer `work`, can leave `work` in `$s0` and `i` in `$s1`
+when the target is the reverse: `work` has the extra compare loads, which
+push it over `floor_log2` 4 while `i` stays at 3 (18/31 vs 15/24 on
+`func_actor_400500_8013DCD4`).
+
+A `do { } while (0)` around the `if`/`else` raises every ref *inside* it by
+one depth. That is not enough if the compare stays inside — both `work` and
+`i` move up and `work` still wins (28/31 vs 22/26). Hoist the compare to a
+local *outside* the once-loop so those `work` refs stay weight 1. Loop-body
+refs of `i` go 15→22 and take `$s0` (22/24, pri 3.67 vs `work` 26/31, pri
+3.35). The emitted compare is still `lh`/`lh`/`bne`; the extra local and
+once-loop notes do not add instructions.
+
+The once-loop is doing loop-depth accounting here, not a sched1 barrier.
+A compare temp without the once-loop is combined away and does not change
+allocation. Inputs: `base_1.i`
+`be92135be8e30218837ed7e0c261f6b6f1eb0cbe19a3175a009369bd381e9d42`,
+`base_5.i` `d08384d08514d9bc7ca4a5e54c77e16792133d49505e94daa3db7dfe98601f6d`,
+`base_6.i` `76a841798330fe18ab10b003e7d8928217f63ab3281dbe3695735614264ab241`.
+
 ## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
 
 A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does

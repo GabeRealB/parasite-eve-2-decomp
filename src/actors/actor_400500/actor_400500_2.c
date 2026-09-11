@@ -35,6 +35,10 @@ void func_actor_400500_8013403C(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 extern TaskFuncTable3 D_actor_400500_80131EE4;
 
 void func_actor_400500_8013BA24(Task* arg0)
@@ -1081,7 +1085,32 @@ void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
     work->field_9FA = 2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DCD4);
+void func_actor_400500_8013DCD4(Task* arg0)
+{
+    s32              same;
+    Actor400500Work* work;
+    s32              i;
+
+    work = (Actor400500Work*)arg0->idMap;
+    i    = 1;
+    same = (s16)work->field_9FC == work->field_9FE;
+    do {
+        if (same) {
+            do {
+                work->slots[i].field_9 = (u8)work->field_9F8;
+                i++;
+            } while (i < 0x12);
+        } else {
+            do {
+                work->slots[i].field_9 = (u8)work->field_9F8;
+                func_800B4114(&work->anim, i, work->field_9FE, 0, work->field_A0E);
+                i++;
+            } while (i < 0x12);
+            work->field_A0E = 0;
+        }
+    } while (0);
+    work->field_9FC = work->field_9FE;
+}
 
 s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
 {
