@@ -557,7 +557,34 @@ void func_actor_400600_80138B40(Task* arg0)
     work->obj_604.flags &= 0xBFFF;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138B5C);
+void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
+{
+    Actor400600Work* work;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    model = (TmdObject*)arg0->extra;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor400600Work*)arg0->idMap;
+    if (!(arg1 & 0xFF)) {
+        if (work->field_75E != 0) {
+            work->field_75E = 0;
+            work->field_75F = 1;
+            work->field_740 = 0;
+            model->field_C  = (model->field_C | 2) & 0xFF7F;
+            Gp_SetLightMode(arg0->spawnArg2, 0);
+            enemy->node.field_4 = 4;
+            func_actor_400600_801387DC(arg0, 0);
+        }
+    } else if (work->field_75E != 1) {
+        work->field_75E = 1;
+        work->field_75F = 1;
+        work->field_740 = 0;
+        model->field_C |= 2;
+        Gp_SetLightMode(arg0->spawnArg2, 2);
+        func_actor_400600_801387DC(arg0, 2);
+    }
+}
 
 void func_actor_400600_80138C34(Task* arg0)
 {
