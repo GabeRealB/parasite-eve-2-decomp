@@ -70,7 +70,8 @@ typedef struct Actor342400Work {
     /* 0x438 */ s16              field_438;
     /* 0x43A */ byte             pad_43A[0x6];
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
-    /* 0x442 */ byte             pad_442[0xA];
+    /* 0x442 */ u16              field_442;
+    /* 0x444 */ byte             pad_444[0x8];
     /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ byte             pad_44E[0x1];
     /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
