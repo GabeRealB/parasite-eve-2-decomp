@@ -30,10 +30,17 @@ typedef struct Actor342400Work {
     /* 0x3AC */ GpObj   obj_3AC;
     /* 0x3CC */ byte    pad_3CC[0x46];
     /* 0x412 */ u16     field_412; // per-state frame counter
-    /* 0x414 */ byte    pad_414[0xC];
+    /* 0x414 */ s16     field_414; // animation request kind
+    /* 0x416 */ byte    pad_416[0x2];
+    /* 0x418 */ s16     field_418; // animation id
+    /* 0x41A */ byte    pad_41A[0x2];
+    /* 0x41C */ s16     field_41C; // animation speed / step scale
+    /* 0x41E */ byte    pad_41E[0x2];
     /* 0x420 */ u16     field_420; // state index
     /* 0x422 */ u16     field_422; // sub-state index
-    /* 0x424 */ byte    pad_424[0x14];
+    /* 0x424 */ byte    pad_424[0x2];
+    /* 0x426 */ s16     field_426;
+    /* 0x428 */ byte    pad_428[0x10];
     /* 0x438 */ s16     field_438;
     /* 0x43A */ byte    pad_43A[0x12];
     /* 0x44C */ u16     field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
@@ -110,8 +117,9 @@ STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 extern Actor342400Slot D_actor_342400_8016BF58[];
 extern TaskDesc        D_actor_342400_80173A54;
 extern TaskDesc        D_actor_342400_8016BFE0;
-extern TaskDesc        D_801575F0;              // absolute, spawned by func_actor_342400_80162DA0
-extern u16             D_actor_342400_80173AAC; // spawn counter, `<< 12` into `GpEnemy::field_8`
+extern TaskDesc        D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
+extern u16             D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
+extern u8              D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
 
 void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);

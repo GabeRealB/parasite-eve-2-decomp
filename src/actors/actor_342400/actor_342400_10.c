@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "gameplay/1BC.h"
@@ -58,7 +59,34 @@ void func_actor_342400_8016AA9C(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_10", func_actor_342400_8016AAB8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_10", func_actor_342400_8016AB6C);
+void func_actor_342400_8016AB6C(Task* arg0)
+{
+    Actor342400Work* work;
+    Actor342400Work* work2;
+    s32              soundId;
+    s32              pan;
+
+    work            = (Actor342400Work*)arg0->idMap;
+    work->field_44F = D_actor_342400_80173A84[work->field_418 - 1];
+    if (work->field_44F == 1) {
+        work2            = (Actor342400Work*)arg0->idMap;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xB;
+        work2->field_414 = 1;
+        SndEvt_EnqueueType7(0x402C0002, 1);
+    } else {
+        work2            = (Actor342400Work*)arg0->idMap;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0x11;
+        work2->field_414 = 1;
+    }
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0003;
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    work->field_422++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_10", func_actor_342400_8016AC80);
 
