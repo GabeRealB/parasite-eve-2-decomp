@@ -6,6 +6,7 @@
 #include "main/pad.h"
 #include "main/stage.h"
 #include "gameplay/3CD8.h"
+#include "main/display.h"
 
 typedef struct {
     u8  field_0;
@@ -25,7 +26,37 @@ extern void func_shelter_b3_dumping_hole_80181C8C(void);
 void        func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void        func_shelter_b3_dumping_hole_80182AA0(void);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181A48);
+typedef struct {
+    u8  pad_00[0x2A];
+    u16 field_2A;
+    u8  pad_2C[0x4];
+    s32 field_30;
+    s32 field_34;
+} Sub81A48;
+
+void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
+{
+    Sub81A48* s = (Sub81A48*)arg0;
+
+    switch (s->field_30) {
+        case 0:
+            s->field_34  = 3;
+            s->field_2A  = 8;
+            s->field_30 += 1;
+            break;
+        case 1:
+            if ((s16)(s->field_2A -= 1) < 0) {
+                s->field_30 += 1;
+            }
+            Display_ClampField126(s->field_34);
+            s->field_34 = -s->field_34;
+            break;
+        default:
+            Display_ClampField126(0);
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 void func_shelter_b3_dumping_hole_80181B04(s16 arg0)
 {
