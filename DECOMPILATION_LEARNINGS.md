@@ -37986,6 +37986,14 @@ an existing `.c`, so truncate the original by hand at the cut and move any
 already-matched C bodies (and the `extern` declarations they need) into the new
 file.
 
+A promoted function that a state table points at renames that table's entry, and
+ninja does not notice. The re-split rewrites the `INCLUDE_RODATA` `.s` to
+`.word ActorsShared80167b70`, but the `.c` that includes it has not changed, so
+its object keeps the old reference and the link fails with `undefined reference
+to 'func_actor_341700_8016688C'` from `<overlay>.c.o:(.rodata+…)`. Rebuilding
+again does not help. Delete that object (`build/USA/src/<family>/<overlay>/<overlay>.c.o`
+for each sharer) and rebuild.
+
 Two cases cannot be promoted mechanically at all:
 
 * an overlay whose manifest already carries `rodata` or `units` cuts - that
