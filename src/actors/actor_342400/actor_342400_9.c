@@ -4,7 +4,7 @@
 #include "main/tmd.h"
 #include "actors/actor_342400.h"
 
-void func_actor_342400_80168394(Task* arg0)
+void func_actor_342400_801679D4(Task* arg0)
 {
     Actor342400Work* work;
     Actor342400Work* work2;
@@ -44,5 +44,3 @@ void func_actor_342400_80168394(Task* arg0)
         next2->field_422     = 0;
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_9", func_actor_342400_80168530);

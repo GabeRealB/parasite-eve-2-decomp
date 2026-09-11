@@ -14,15 +14,6 @@
 
 #include "actors/actor_341700.h"
 
-/* Both are called with no argument: the caller's own `Task*` is already in
- * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
- * has no register copy.  A real prototype would make GCC emit one, so these
- * stay unprototyped. */
-s32 ActorsShared8016945c();
-s32 ActorsShared8016974c();
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_10", func_actor_341700_801670B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_10", func_actor_341700_80167890);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_10", func_actor_341700_80167C30);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_10", func_actor_341700_80167E18);
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_10", func_actor_341700_8016724C);
