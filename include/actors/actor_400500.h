@@ -2,9 +2,11 @@
 #define ACTOR_400500_H
 
 #include "common.h"
-#include "main/task.h"
 
 #include <psyq/libgte.h>
+
+#include "gameplay/3A34.h"
+#include "main/task.h"
 
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
@@ -35,8 +37,9 @@ typedef struct Actor400500RootXZ {
 /// (0x1C), which an enemy actor reuses for its own work block, so it is *not*
 /// a `TaskIdMap` here. Reach it with `(Actor400500Work*)task->idMap`. The
 /// same function hands `&work->field_97C` / `&work->field_95C` to the
-/// `TmdObject` at `Task::extra` (`field_1C` / `field_20`) and `work + 0x848`
+/// `TmdObject` at `Task::extra` (`field_1C` / `field_20`) and `work->rec0`
 /// to `GpEnemy::field_54`; the size below is the allocation, not a guess.
+/// `obj1`/`obj2` share `rec1`; `obj3`/`obj4` share `rec2`.
 ///
 /// `field_A06` / `field_A08` are the state and sub-state indices the handler
 /// tables walk and `field_A04` is the per-state frame counter, mirroring
@@ -44,7 +47,15 @@ typedef struct Actor400500RootXZ {
 typedef struct Actor400500Work {
     /* 0x000 */ byte               pad_0[0x808];
     /* 0x808 */ MATRIX             matrix_808; // model root coord, copied on the light-mode path
-    /* 0x828 */ byte               pad_828[0x120];
+    /* 0x828 */ GpObj              obj0;
+    /* 0x848 */ GpRec18            rec0[3];
+    /* 0x890 */ GpObj              obj1;
+    /* 0x8B0 */ GpObj              obj2;
+    /* 0x8D0 */ GpRec18            rec1[1];
+    /* 0x8E8 */ GpObj              obj3;
+    /* 0x908 */ GpObj              obj4;
+    /* 0x928 */ GpRec18            rec2[1];
+    /* 0x940 */ byte               pad_940[8];
     /* 0x948 */ s16                field_948;
     /* 0x94A */ s16                field_94A;
     /* 0x94C */ s16                field_94C;

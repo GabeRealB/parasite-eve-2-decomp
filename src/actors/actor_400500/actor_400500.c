@@ -31,7 +31,72 @@ extern u8 D_actor_400500_80144624[];
 void func_8009EA50(s32 arg0);
 void func_actor_400500_80132628(Task* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132000);
+void func_actor_400500_80132000(Task* arg0)
+{
+    Actor400500Work* work;
+
+    work = (Actor400500Work*)arg0->idMap;
+
+    work->obj0.field_8  = &((TmdObject*)arg0->extra)->field_8[3];
+    work->obj0.field_C  = work->rec0;
+    work->obj0.field_14 = 0x110;
+    work->obj0.field_10 = 0;
+    work->obj0.field_12 = 0;
+    work->obj0.field_18 = 0x30005;
+    work->obj0.field_1C = 0x260;
+    work->obj0.flags    = 1;
+    Gp_LinkObj(2, &work->obj0);
+    Gp_InitRec18Table(work->rec0, 3, 0);
+    work->obj0.flags |= 0x8000;
+
+    work->obj1.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj1.field_8  = &((TmdObject*)arg0->extra)->field_8[7];
+    work->obj1.field_C  = work->rec1;
+    work->obj1.field_10 = -0x460;
+    work->obj1.field_12 = 0;
+    work->obj1.field_14 = 0;
+    work->obj1.field_1C = 0x290;
+    work->obj1.flags    = 1;
+    Gp_LinkObj(3, &work->obj1);
+    Gp_InitRec18Table(work->rec1, 1, 0);
+    work->obj1.flags &= 0x7FFF;
+
+    work->obj2.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj2.field_8  = &((TmdObject*)arg0->extra)->field_8[7];
+    work->obj2.field_C  = work->rec1;
+    work->obj2.field_10 = -0x200;
+    work->obj2.field_12 = 0;
+    work->obj2.field_14 = 0;
+    work->obj2.field_1C = 0x250;
+    work->obj2.flags    = 1;
+    Gp_LinkObj(3, &work->obj2);
+    Gp_InitRec18Table(work->rec1, 1, 0);
+    work->obj2.flags &= 0x7FFF;
+
+    work->obj3.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj3.field_8  = &((TmdObject*)arg0->extra)->field_8[10];
+    work->obj3.field_C  = work->rec2;
+    work->obj3.field_10 = 0x460;
+    work->obj3.field_12 = 0;
+    work->obj3.field_14 = 0;
+    work->obj3.field_1C = 0x290;
+    work->obj3.flags    = 1;
+    Gp_LinkObj(3, &work->obj3);
+    Gp_InitRec18Table(work->rec2, 1, 0);
+    work->obj3.flags &= 0x7FFF;
+
+    work->obj4.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj4.field_8  = &((TmdObject*)arg0->extra)->field_8[10];
+    work->obj4.field_C  = work->rec2;
+    work->obj4.field_10 = 0x200;
+    work->obj4.field_12 = 0;
+    work->obj4.field_14 = 0;
+    work->obj4.field_1C = 0x250;
+    work->obj4.flags    = 1;
+    Gp_LinkObj(3, &work->obj4);
+    Gp_InitRec18Table(work->rec2, 1, 0);
+    work->obj4.flags &= 0x7FFF;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013226C);
 
