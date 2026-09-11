@@ -26,8 +26,11 @@
  * chosen: the byte store to `D_80115417` matches with `SOFT_BARRIER()` after
  * it, so that one is declared as the scalar it is; the pointer store to
  * `D_800678F0` checksums wrong with the barrier and matches only as an
- * aggregate, so its one-element array stays and is doing real work. */
+ * aggregate, so its one-element array stays and is doing real work.
+ * `D_80115414`, from the same flag run, is declared as the aggregate
+ * `actor_400600_6.c` needs, which matches here too. */
 extern void* D_800678F0[1];
+extern s8    D_80115414[1];
 extern s8    D_80115417;
 
 extern s32 Gp_LcgState;
@@ -313,7 +316,51 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133118);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801332F4);
+void func_actor_400600_801332F4(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    s32              mode;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    model = (TmdObject*)arg0->extra;
+    mode  = work->field_762;
+    coord = model->field_8;
+    if (mode == 1) {
+        Gp_SpawnPadLerp(0x14, 0xFF, 0x80);
+        coord->coord.t[0] = 0xCE4;
+        coord->coord.t[1] = -0xBB8;
+        coord->coord.t[2] = 0;
+        work->field_80    = 0;
+        work->field_82    = 0xC00;
+        work->field_84    = 0;
+        model->field_C   &= 0xFF7F;
+        work->field_718   = 0;
+        work->field_722   = 0;
+        work->field_724   = 0;
+        func_actor_400600_80139D98(arg0, 0x15, 0x10);
+        func_actor_400600_80138B5C(arg0, 0);
+        work->field_71C = work->field_71C + 1;
+    } else if (mode == 2) {
+        work->obj_4B4.flags |= 0x8000;
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+        coord->coord.t[0]    = -0x6A4;
+        coord->coord.t[2]    = -0x514;
+        coord->coord.t[1]    = 0;
+        work->field_82       = 0x400;
+        work->field_73A      = 0xFF;
+        work->field_80       = 0;
+        work->field_84       = 0;
+        D_80115414[0]        = mode;
+        work2                = (Actor400600Work*)arg0->idMap;
+        arg0->state          = 1;
+        work2->field_71C     = 0;
+        work2->field_71E     = 0;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_80131E20);
 
