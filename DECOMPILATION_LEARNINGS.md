@@ -59498,3 +59498,12 @@ return D_actor_342400_8016C054[k][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >
 
 `Gp_LcgState` must be `u32` here (`srl`, not `sra`); the sibling unit declares it `s32`,
 so keep the extern file-local rather than in the overlay header.
+
+### `srl` on an `rsin`/`rcos` result stored to a halfword: cast to `u32` before the shift
+`func_actor_400600_8013896C` stores `rsin(a) >> 3` into an `SVECTOR` field, and
+target shifts with `srl`. The low 16 bits are the same either way, but GCC 2.8.1
+keeps the `sra` for `vec.vx = rsin(a) >> 3;` - combine does not relax it to a
+logical shift just because the store truncates (91.3%, the only diff was the two
+`sra`s). Write `vec.vx = (u32)rsin(a) >> 3;`, the form `pe/pepper_spray` already
+uses. The same function also shows that separate `s16` locals (m2c's
+`sp10/sp12/sp14`) lose the stores that a single `SVECTOR` local keeps.
