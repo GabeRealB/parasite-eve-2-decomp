@@ -74,7 +74,9 @@ typedef struct Actor342400Work {
     /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ byte             pad_44E[0x1];
     /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
-    /* 0x450 */ byte             pad_450[0x4];
+    /* 0x450 */ byte             pad_450[0x1];
+    /* 0x451 */ u8               field_451;
+    /* 0x452 */ byte             pad_452[0x2];
 } Actor342400Work;
 STATIC_ASSERT_SIZEOF(Actor342400Work, 0x454);
 
