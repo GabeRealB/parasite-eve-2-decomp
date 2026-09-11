@@ -5,9 +5,9 @@
 #include "gameplay/3A34.h"
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_8016945c.h"
+#include "actors/actors_shared_8016b370.h"
 
 void func_actor_342400_8016B33C(Task* arg0);
-void func_actor_342400_8016B370(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_10", func_actor_342400_8016A950);
 
@@ -97,7 +97,7 @@ void func_actor_342400_8016AF34(Task* arg0)
     Actor342400Work* work                = (Actor342400Work*)arg0->idMap;
     void             (*states[2])(Task*) = {
         func_actor_342400_8016B33C,
-        func_actor_342400_8016B370,
+        ActorsShared8016b370,
     };
 
     if (ActorsShared8016945c(arg0) == 0) {
