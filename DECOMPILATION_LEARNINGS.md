@@ -58844,6 +58844,28 @@ edit landed together with moving the `vz` load ahead of the `7D8`/`7CA` stores,
 and the pair took the function from 89.8% to 98.6% with every saved register
 fixed, so which of the two moved the allocation was not isolated.
 
+## A call between deriving `p = a->b` and re-using `a->b` reloads the expression: reference it inline post-call
+
+`func_shelter_b3_dumping_hole_8017E7DC` caches `extra = arg0->extra` (a saved
+reg `s2`) for `coord = extra->field_8` and `Tmd_AllocBuffers(extra)`, but the
+`extra->field_C = 0` store *after* an intervening `Mem_Set(work,…)` call comes
+out as a fresh `lw v0,0x2C(s4)` reload, not `sh zero,0xC(s2)`. GCC 2.8.1's CSE
+does not carry a memory load across a call: `arg0->extra` read before `Mem_Set`
+is invalidated, so a later reference reloads — even though the pointer is still
+sitting in a saved register. Match it by referencing the chain inline at that
+one use, `((TmdObject*)arg0->extra)->field_C = 0;`, and keeping the cached
+`extra` local for the uses that *do* reuse `s2`.
+
+The same function's `func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3)` tail
+is not a direct pass: retail copies `coord->workm.t[0..2]` into a stack `VECTOR`
+and passes `&v`, reloading `arg0->extra->field_8` for each element (each stack
+store kills the CSE of the next load) while the *first* reload's `a0` is shared
+with the call's first argument. Reproduce with an explicit `VECTOR v;`, a local
+`e2 = (TmdObject*)arg0->extra;` used for both `v.vx` and the call, and inline
+`((TmdObject*)arg0->extra)->field_8->workm.t[i]` for `v.vy`/`v.vz`. Passing
+`(VECTOR*)coord->workm.t` directly (the `room_util20` form) instead emits no
+stack copy and no reloads.
+
 ## Transposed rotation copied through two base registers: one inline-asm block
 
 `func_actor_503500_801437D0` transposes the player's `coord` rotation into a
@@ -59052,6 +59074,31 @@ The same function also shows why that pointer won `s0` over the work pointer:
 it had to be the loop's walking pointer itself. A separate `src = (s32*)p`
 copy left `p` with few refs and dropped it behind `work` in global priority
 (flow counts refs weighted by loop depth).
+
+## A stack buffer's base kept in a register for one field store: write that field through a pointer alias
+
+`func_shelter_b3_dumping_hole_80181430` fills a `s32 desc[5]` then passes
+`(s32)desc` to `Gp_DispatchMsg`. Retail materialises `addiu a1,sp,0x18`
+(`&desc`) in the ternary's `bne` delay slot and stores `desc[1]` via
+`sw v0,0x4(a1)`, keeping the other elements `sp`-relative — so the ternary is a
+full `bne / j` diamond (the delay slot is consumed by the address, not the
+value). Writing every element as `desc[i]=` collapses it: GCC addresses all
+five off `sp`, never needs a base register, and folds the ternary into
+`bne`+fall-through (no `j`). Force the base into a register by writing the one
+element through an aliased pointer:
+
+```c
+s32  desc[5];
+s32* p = desc;
+desc[0] = base + (flag == 1 ? 1 : 0x22);
+p[1]    = 1;              /* &desc kept in a reg, used once, then reused for the call arg */
+desc[2] = desc[3] = desc[4] = 0;
+Gp_DispatchMsg(slot, 0x3E8, (s32)desc, 0);
+```
+
+The single pointer-based store gives `&desc` enough of a reason to live in a
+register across the ternary; the address computation then claims the `bne`
+delay slot and the `j` reappears.
 
 ## `lui/addiu` base in the wrong one of two arg regs: hoist the index into a local so the base is emitted later
 
