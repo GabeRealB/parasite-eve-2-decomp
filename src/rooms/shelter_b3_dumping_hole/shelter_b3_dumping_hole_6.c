@@ -6,6 +6,7 @@
 #include "gameplay/1BC.h"
 #include "main/mem.h"
 #include "main/fs.h"
+#include "main/display.h"
 
 typedef struct {
     u8 _pad0[0x24];
@@ -75,12 +76,19 @@ extern TaskDesc        D_80142604;
 extern TaskDesc        D_801575F0;
 extern s16             D_shelter_b3_dumping_hole_8018B578;
 extern s16             D_shelter_b3_dumping_hole_8018B57A;
+extern TaskDesc        D_shelter_b3_dumping_hole_8018B594;
+
+void RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
 
 void func_shelter_b3_dumping_hole_801833EC(DumpingHoleState* arg0);
 void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
 void func_shelter_b3_dumping_hole_80181D68(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183144);
+void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
+{
+    RoomsShared801830f0Sub(arg0, arg1, 0xD0);
+    Display_InitModeObj(&D_shelter_b3_dumping_hole_8018B594, arg2, 0, 0);
+}
 
 void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 {
