@@ -77,6 +77,8 @@ extern TaskDesc        D_801575F0;
 extern s16             D_shelter_b3_dumping_hole_8018B578;
 extern s16             D_shelter_b3_dumping_hole_8018B57A;
 extern TaskDesc        D_shelter_b3_dumping_hole_8018B594;
+extern TaskFuncTable4  D_shelter_b3_dumping_hole_8017D654;
+extern u8              D_801153F4;
 
 void RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
 
@@ -123,7 +125,15 @@ void func_shelter_b3_dumping_hole_80183530(DumpingHoleState* arg0, s32 arg1, Dum
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183550);
+void func_shelter_b3_dumping_hole_80183550(Task* task)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_shelter_b3_dumping_hole_8017D654;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_801835C8);
 
