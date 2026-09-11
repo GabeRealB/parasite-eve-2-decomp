@@ -6,6 +6,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 
 /// Three packed halfwords filled by `func_actor_400600_80139F4C`: the actor's
 /// view-space X/Y (the translation of the `Gp_WorldToLocal` result) and the low
@@ -62,13 +63,13 @@ typedef struct Actor400600Work {
     /* 0x4B4 */ GpObj              obj_4B4;    // collision node; flags bit 0x8000 cleared
     /* 0x4D4 */ GpRec18            rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
     /* 0x594 */ GpObj              obj_594;    // collision node; flags bit 0x8000 cleared
-    /* 0x5B4 */ byte               pad_5B4[0x18];
+    /* 0x5B4 */ GpRec18            rec_5B4[1]; // obj_594's table (flags kind 1)
     /* 0x5CC */ GpObj              obj_5CC;    // collision node; flags bit 0x8000 cleared
-    /* 0x5EC */ byte               pad_5EC[0x18];
+    /* 0x5EC */ GpRec18            rec_5EC[1]; // obj_5CC's table (flags kind 1)
     /* 0x604 */ GpObj              obj_604;    // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ byte               pad_624[0x18];
-    /* 0x63C */ GpRec18            rec_63C[1]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x654 */ byte               pad_654[0xB0];
+    /* 0x624 */ GpActorD4Rec       rec_624;    // obj_604's payload (flags kind 3)
+    /* 0x63C */ GpRec18            rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x6FC */ byte               pad_6FC[0x8];
     /* 0x704 */ Task*              field_704;  // child task, killed on death
     /* 0x708 */ Task*              field_708;  // child task, killed on death
     /* 0x70C */ byte               pad_70C[0x4];
