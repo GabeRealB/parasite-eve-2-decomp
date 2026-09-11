@@ -148,5 +148,6 @@ void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
 void func_actor_342400_80165CC0(Task* arg0);
 void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
+void func_actor_342400_801632D4(Task* arg0);
 
 #endif

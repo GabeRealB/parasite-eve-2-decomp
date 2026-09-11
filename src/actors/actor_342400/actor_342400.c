@@ -303,7 +303,33 @@ void func_actor_342400_80163010(Task* arg0)
     arg0->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801630A4);
+void func_actor_342400_801630A4(Task* arg0)
+{
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    GpEnemy*              enemy;
+    Task*                 task;
+    TmdObject*            obj;
+    Actor342400Msg7DB     msg;
+
+    enemy = work->enemy1;
+    func_actor_342400_801632D4(arg0);
+    if (work->enemy1 != NULL) {
+        if (++work->field_8 <= 0x3C) {
+            return;
+        }
+        task           = work->enemy1->task;
+        obj            = task->extra;
+        obj->field_24  = 3;
+        obj->field_25  = 5;
+        enemy->field_A = 0x900;
+        msg.field_0    = 0;
+        msg.field_1    = 0x2E;
+        msg.field_2    = arg0->spawnArg1;
+        Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
+    }
+    work->field_8 = 0;
+    arg0->state++;
+}
 
 void func_actor_342400_80163178(Task* arg0)
 {
