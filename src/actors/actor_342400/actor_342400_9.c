@@ -15,7 +15,15 @@ void func_actor_342400_8016AC80(Task* arg0);
 void func_actor_342400_8016AD94(Task* arg0);
 s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_9", func_actor_342400_8016978C);
+extern TaskFuncTable10 D_actor_342400_80161E80;
+
+void func_actor_342400_8016978C(Task* arg0)
+{
+    TaskFuncTable10 sp;
+
+    sp = D_actor_342400_80161E80;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_9", func_actor_342400_80169810);
 
