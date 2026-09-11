@@ -359,7 +359,72 @@ void func_actor_400600_80132B3C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80132C70);
+void func_actor_400600_80132C70(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    Actor400600Work* work4;
+    GsCOORDINATE2*   coords;
+    u8               mode;
+    s16              yaw;
+
+    work   = (Actor400600Work*)arg0->idMap;
+    mode   = work->field_762;
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (mode == 1) {
+        coords->coord.t[0] = 0x36B0;
+        coords->coord.t[1] = -0x320;
+        coords->coord.t[2] = -0x7D0;
+        work->field_80     = 0;
+        work->field_82     = 0x400;
+        work->field_84     = 0x400;
+        work->field_718    = 0;
+        func_actor_400600_80139D98(arg0, 2, 0x10);
+        work->field_73C = -0x7D0;
+        work->field_71C++;
+    } else if (mode == 2) {
+        coords->coord.t[0] = 0x4A38;
+        coords->coord.t[1] = -0x320;
+        coords->coord.t[2] = -0xFA0;
+        yaw                = -0x400;
+        work->field_82     = yaw;
+        work->field_80     = 0;
+        work->field_84     = 0x400;
+        work->field_718    = 0;
+        func_actor_400600_80139D98(arg0, 2, 0x10);
+        work->field_73C  = -0xFA0;
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_71C = 5;
+        work2->field_71E = 0;
+    } else if (mode == 3) {
+        work->obj_4B4.flags |= 0x8000;
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+        coords->coord.t[0]   = 0x2AF8;
+        coords->coord.t[2]   = -0x3E8;
+        coords->coord.t[1]   = 0;
+        work->field_80       = 0;
+        work->field_82       = 0xC00;
+        work3                = (Actor400600Work*)arg0->idMap;
+        arg0->state          = 1;
+        work3->field_71C     = 0;
+        work3->field_71E     = 0;
+    } else if (mode == 4) {
+        work->obj_4B4.flags |= 0x8000;
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+        coords->coord.t[0]   = 0x3A98;
+        coords->coord.t[2]   = -0xBB8;
+        coords->coord.t[1]   = 0;
+        work->field_80       = 0;
+        work->field_82       = 0x400;
+        work4                = (Actor400600Work*)arg0->idMap;
+        arg0->state          = 1;
+        work4->field_71C     = 0;
+        work4->field_71E     = 0;
+    }
+}
 
 void func_actor_400600_80132E10(Task* arg0)
 {
