@@ -450,7 +450,37 @@ void func_actor_400500_8013C508(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C578);
+void func_actor_400500_8013C578(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    GsCOORDINATE2*   coord;
+    u16              step;
+    u16              accum;
+    s32              y;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    SCHED_BARRIER();
+    step              = (u16)work->field_A10 + 2;
+    accum             = (u16)work->field_A12 + step;
+    work->field_A12   = accum;
+    work->field_A10   = step;
+    y                 = coord->coord.t[1] + (s16)accum;
+    coord->coord.t[1] = y;
+    if (y >= -0x897) {
+        coord->coord.t[1] = -0x898;
+        work->field_A08   = work->field_A08 + 1;
+        work2             = (Actor400500Work*)arg0->idMap;
+        work2->field_9F8  = 0x10;
+        work2->field_9FE  = 0x13;
+        work2->field_9FA  = 2;
+        work->field_94C   = (u16)work->field_94C + 0x800;
+        coord->coord.t[1] = -0x3E8;
+        work->field_A04   = 0;
+        work->field_A1E   = work->field_A1E | 1;
+    }
+}
 
 void func_actor_400500_8013C61C(Task* arg0)
 {
