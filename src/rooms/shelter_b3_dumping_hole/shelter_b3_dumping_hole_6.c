@@ -194,7 +194,26 @@ void func_shelter_b3_dumping_hole_80183A98(DumpingHoleState* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183AEC);
+void func_shelter_b3_dumping_hole_80183AEC(DumpingHoleState* arg0)
+{
+    DumpingHoleEntity* work = Mem_Calloc(8, 0);
+    if (work != NULL) {
+        DumpingHoleTarget* enemy;
+        arg0->field_1C = work;
+        enemy          = (DumpingHoleTarget*)Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, NULL);
+        if (enemy != NULL) {
+            u16 idx;
+            D_shelter_b3_dumping_hole_8018B7BC[arg0->field_36].field_6 = 1;
+            idx                                                        = D_shelter_b3_dumping_hole_8018F4D4;
+            work->field_0                                              = enemy;
+            enemy->field_8                                             = idx << 12;
+            D_shelter_b3_dumping_hole_8018F4D4                         = idx + 1;
+            arg0->field_30 += 1;
+            return;
+        }
+    }
+    Task_Kill((Task*)arg0);
+}
 
 void func_shelter_b3_dumping_hole_80183B9C(DumpingHoleState* arg0)
 {
