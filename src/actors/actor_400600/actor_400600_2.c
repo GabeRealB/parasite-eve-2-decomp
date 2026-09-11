@@ -95,7 +95,7 @@ void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2);
 void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
-s32  func_actor_400600_801370F4();
+s32  func_actor_400600_801370F4(Task* arg0);
 s32  func_actor_400600_80137AF0(Task* arg0);
 s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
@@ -200,7 +200,83 @@ s32 func_actor_400600_80136FA8(Task* arg0)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_2", func_actor_400600_801370F4);
+s32 func_actor_400600_801370F4(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (work->field_768 == 0) {
+        switch (work->field_730) {
+            case 1:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 3;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 2:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 4;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 3:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 5;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 4:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 4;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 5:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 0xF;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+        }
+        work->field_730 = 0;
+        return 0;
+    } else {
+        switch (work->field_730) {
+            case 1:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 3;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 2:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 4;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 3:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 0xE;
+                work2->field_71E = 0;
+                return 1;
+            case 4:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 4;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+            case 5:
+                work2            = (Actor400600Work*)arg0->idMap;
+                work2->field_71C = 0xE;
+                work2->field_71E = 0;
+                work->field_730  = 0;
+                return 1;
+        }
+        work->field_730 = 0;
+        return 0;
+    }
+}
 
 void func_actor_400600_80137240(Task* arg0)
 {
