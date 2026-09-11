@@ -3,6 +3,44 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
+
+A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does
+unsigned halfword math on the work block, wants
+
+```
+lw    v0, 0x2C(a0)     /* extra */
+lw    a1, 0x1C(a0)     /* work */
+lw    a2, 0x8(v0)      /* coord */
+lhu   v1, field_A10
+lhu   v0, field_A12
+```
+
+Independent `lhu`s on work are ready while extra is still live, so sched1
+parks them between the extra load and `coord = extra->field_8`. Extra's local
+quantity then overlaps the A12 temp in `$v0` and takes `$a0`. Incoming `$a0`
+is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
+function (regs + an extra `addu`).
+
+`func_actor_400500_8013D210` in the same TU keeps `$a0` without a barrier
+because it has no halfword math to interleave. `func_actor_400600_8013ADA4`
+uses coord for other `t[]` stores *before* the step/accum, which is a real
+dependence the scheduler cannot sink past the coord load.
+
+When the only uses of coord are the later Y add, a fence after the load is
+enough — empty asm emits no MIPS, extra dies in `$v0`, and the parameter
+copy is coalesced:
+
+```c
+work  = (Actor400500Work*)arg0->idMap;
+coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+SCHED_BARRIER();
+step  = (u16)work->field_A10 + 2;
+accum = (u16)work->field_A12 + step;
+```
+
+`func_actor_400500_8013BB18` is the example (scratch `base_4.c`).
+
 ## Two call-diamonds need two flags; one `s32` lives in `$a0` and jump-threads
 
 A pair of `if (field) { field = 0; jal; flag = 1; } else { flag = 0; }` tests
