@@ -54,7 +54,7 @@ typedef struct Actor400600Work {
     /* 0x09A */ byte               pad_9A[0x2];
     /* 0x09C */ u16                field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte               pad_9E[0xA];
-    /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for func_actor_400600_80139C00
+    /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for ActorsShared80139c00
     /* 0x0AE */ byte               pad_AE[0x2];
     /* 0x0B0 */ GpAnimCtx          anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
     /* 0x0C4 */ GpAnimSlot         slots[0x12];

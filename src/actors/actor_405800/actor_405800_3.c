@@ -8,6 +8,7 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_405800.h"
+#include "actors/actors_shared_80139c00.h"
 
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
 void func_8009EA50(s16 arg0);
@@ -17,7 +18,6 @@ void func_actor_405800_80135E28(Task* arg0);
 s32  func_actor_405800_80136A1C(Task* arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80137948(Task* task);
-void func_actor_405800_801383CC(Task* arg0, SVECTOR* arg1, s16 arg2);
 void func_actor_405800_80139358(Task* arg0);
 void func_actor_405800_801393E8(Task* arg0);
 void func_actor_405800_801394E4(Task* arg0);
@@ -63,7 +63,7 @@ void func_actor_405800_80137E64(Task* task)
             work2->field_848 = 0;
             return;
         }
-        func_actor_405800_801383CC(task, &work->field_A8, 0x18);
+        ActorsShared80139c00(task, &work->field_A8, 0x18);
         func_actor_405800_80135E28(task);
     }
 }
@@ -87,5 +87,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80138294);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_8013836C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_801383CC);

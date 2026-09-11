@@ -12,6 +12,7 @@
 
 #include "actors/actor_400600.h"
 #include "actors/actors_shared_80139948.h"
+#include "actors/actors_shared_80139c00.h"
 #include "actors/actors_shared_8013a0b0.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
@@ -101,7 +102,6 @@ s32  func_actor_400600_8013CACC(Task* arg0);
 void func_actor_400600_8013C5F8(Task* arg0);
 void func_actor_400600_80132294(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 void func_actor_400600_80135DDC(Task* arg0);
-void func_actor_400600_80139C00(Task* arg0, Actor400600ViewPos* arg1, s32 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013203C);
 
@@ -782,10 +782,10 @@ void func_actor_400600_801394E0(Task* arg0)
 
 void func_actor_400600_80139560(Task* arg0)
 {
-    Actor400600Work*   work;
-    Actor400600Work*   work2;
-    Actor400600ViewPos pos;
-    s16                count;
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    SVECTOR          pos;
+    s16              count;
 
     work = (Actor400600Work*)arg0->idMap;
     func_actor_400600_80138AA4(arg0);
@@ -798,10 +798,10 @@ void func_actor_400600_80139560(Task* arg0)
             work2->field_71E = 0;
             return;
         }
-        pos.x = work->field_A8.x;
-        pos.y = work->field_A8.y;
-        pos.z = work->field_A8.z;
-        func_actor_400600_80139C00(arg0, &pos, 0x18);
+        pos.vx = work->field_A8.x;
+        pos.vy = work->field_A8.y;
+        pos.vz = work->field_A8.z;
+        ActorsShared80139c00(arg0, &pos, 0x18);
         func_actor_400600_80135DDC(arg0);
     }
 }

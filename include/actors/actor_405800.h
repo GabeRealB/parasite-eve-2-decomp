@@ -20,7 +20,7 @@ typedef struct Actor405800Work {
     /* 0x000 */ byte    pad_0[0x9A];
     /* 0x09A */ s16     field_9A;
     /* 0x09C */ byte    pad_9C[0xC];
-    /* 0x0A8 */ SVECTOR field_A8;  // world point `func_actor_405800_801383CC` turns to face (it reads `vx` / `vz`)
+    /* 0x0A8 */ SVECTOR field_A8;  // world point `ActorsShared80139c00` turns to face (it reads `vx` / `vz`)
     /* 0x0B0 */ byte    pad_B0[0x692];
     /* 0x742 */ u16     field_742; // flag word; bit 0x4000 cleared by func_actor_405800_801379F8
     /* 0x744 */ byte    pad_744[0xE0];
