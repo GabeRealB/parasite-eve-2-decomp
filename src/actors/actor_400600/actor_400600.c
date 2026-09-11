@@ -37,6 +37,7 @@ extern s32 Gp_LcgState;
  * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
  * same copy while leaving the rodata where it is. */
 extern const TaskFuncTable4 D_actor_400600_80131F60;
+extern const TaskFuncTable3 D_actor_400600_80131F70;
 
 extern u8 D_actor_400600_8014220C[];
 extern u8 D_actor_400600_80143604[];
@@ -388,7 +389,14 @@ void func_actor_400600_80139608(Task* arg0)
     fns[(s16)work->field_71E](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139670);
+void func_actor_400600_80139670(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable3   fns  = D_actor_400600_80131F70;
+
+    func_actor_400600_80138AA4(arg0);
+    fns.funcs[(s16)work->field_71E](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801396E4);
 
