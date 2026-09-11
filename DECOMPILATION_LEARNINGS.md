@@ -59623,3 +59623,16 @@ Writing each arm in full - three stores and `return 1` - matches: sched1 hoists
 the hard-register `v0 = 1` to the top of each arm, so post-reload cross-jumping
 merges only the stores beneath it. The switch's default falls out to the
 function's own `field_730 = 0; return 0;`, which is where its `j` lands.
+
+### Selected sound-id constant needs its own local, separate from the OR'd id
+
+In `func_actor_400600_80135450` the target picks a constant into `$a1`
+(`lui/ori a1` then a conditional `lui/ori a1`) and ORs it with a shifted field
+into `$s0`, which survives the `Gp_GetObjPan`/`Gp_GetObjDepth` calls. Writing
+it as one variable (`sound = 0x40060003; if (c) sound = 0x404A0003; sound |=
+x << 8;`) scores 98.7% with only `regs`: the constant and the result are one
+pseudo, so the selected constant is born in the callee-saved register too
+(`lui s1`, and the shifted field lands in `$v0`). Two locals match - `id = ...;
+if (c) id = ...; sound = id | (x << 8);` - since `id` dies at the OR and stays a
+call-clobbered temp, while the shift chain is computed straight into `sound`'s
+`$s0`.
