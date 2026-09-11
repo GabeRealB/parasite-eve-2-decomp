@@ -32,7 +32,8 @@ typedef struct Actor104400Work {
     /* 0x41E */ s16    field_41E;
     /* 0x420 */ u16    field_420; // state index
     /* 0x422 */ u16    field_422; // sub-state index
-    /* 0x424 */ byte   pad_424[0xC];
+    /* 0x424 */ s16    field_424; // yaw added to model parts 3..5, a third each
+    /* 0x426 */ byte   pad_426[0xA];
     /* 0x430 */ s16    field_430;
     /* 0x432 */ byte   pad_432[0x16];
     /* 0x448 */ s16    field_448;

@@ -50,7 +50,7 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x41E */ s16                       field_41E;
     /* 0x420 */ u16                       field_420; // state index
     /* 0x422 */ u16                       field_422; // sub-state index
-    /* 0x424 */ byte                      pad_424[0x2];
+    /* 0x424 */ s16                       field_424; // yaw added to model parts 3..5, a third each
     /* 0x426 */ s16                       field_426;
     /* 0x428 */ s16                       field_428;
     /* 0x42A */ s16                       field_42A;
