@@ -105,6 +105,20 @@ void func_actor_342400_8016AF34(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_10", func_actor_342400_8016AFA8);
+extern TaskFuncTable3 D_actor_342400_80161FCC;
+
+void func_actor_342400_8016AFA8(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor342400Work*)arg0->idMap;
+    sp   = D_actor_342400_80161FCC;
+    if ((ActorsShared8016945c(arg0) << 0x10) != 0) {
+        work->field_438 = 0;
+        return;
+    }
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_10", func_actor_342400_8016B038);

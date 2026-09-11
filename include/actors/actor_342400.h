@@ -33,7 +33,9 @@ typedef struct Actor342400Work {
     /* 0x414 */ byte    pad_414[0xC];
     /* 0x420 */ u16     field_420; // state index
     /* 0x422 */ u16     field_422; // sub-state index
-    /* 0x424 */ byte    pad_424[0x28];
+    /* 0x424 */ byte    pad_424[0x14];
+    /* 0x438 */ s16     field_438;
+    /* 0x43A */ byte    pad_43A[0x12];
     /* 0x44C */ u16     field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ byte    pad_44E[0x1];
     /* 0x44F */ u8      field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
