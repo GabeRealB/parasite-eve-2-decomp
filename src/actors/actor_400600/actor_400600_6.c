@@ -68,7 +68,25 @@ void func_actor_400600_8013CB40(Task* arg0, u8 arg1);
 void func_actor_400600_8013CB70(Task* arg0, s32 arg1);
 void func_actor_400600_8013CC04(Task* arg0, s16 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013A338);
+void func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+
+    switch (arg2[1]) {
+        case 0:
+            work->field_762 = 1;
+            break;
+        case 1:
+            work->field_762 = 2;
+            break;
+        case 2:
+            work->field_762 = 3;
+            break;
+        case 3:
+            work->field_762 = 4;
+            break;
+    }
+}
 
 void func_actor_400600_8013A3A8(Task* arg0)
 {
