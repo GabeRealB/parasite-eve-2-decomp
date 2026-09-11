@@ -561,7 +561,24 @@ void func_actor_400600_8013BA00(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013BA6C);
+void func_actor_400600_8013BA6C(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+
+    if (work->field_769 == 0) {
+        work->field_720 = 8;
+        work->field_726 = 0x10;
+        work->field_746 = 0xF;
+        work->field_742 = 1;
+    } else {
+        work->field_720 = 3;
+        work->field_726 = 0x10;
+        work->field_746 = 0x11;
+        work->field_742 = 1;
+    }
+    func_actor_400600_80138B5C(arg0, 0);
+    work->field_71E = work->field_71E + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013BAEC);
 
