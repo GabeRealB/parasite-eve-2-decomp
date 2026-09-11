@@ -41740,6 +41740,15 @@ own single-set pseudo and matched; dropping the `banks = Gp_Bit2Banks` local
 half. Look for `+=` on a pointer or index whenever `.sched` shows a plain
 priority next to a column of `7f000001`.
 
+Split only the local whose setter has to win the tie. `func_actor_400600_801356E0`
+runs the same spawn-and-rotate body twice, with one `pm = &m` per block
+(`addiu s0,sp,0x10`) scheduled after `li a0,-0x180` in the target. Sharing
+`pm`, `obj` and `coord` between the blocks got allocation right and that one
+pair backwards (99.3%). Giving *every* block-local its own variable (m2c's
+shape) fixed the order but swapped `pm`/`coord` between `$s0`/`$s1` (98.9%).
+Splitting only `pm` into `pm`/`pm2`, and keeping `obj`/`coord` shared,
+matched.
+
 ### One pointer local shared by two `switch` cases is set twice: scope it per case
 
 `func_actor_503500_801450A0` was stuck at 98.85% with `regs`/`reorder` only.
