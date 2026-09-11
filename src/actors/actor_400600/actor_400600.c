@@ -54,6 +54,8 @@ void func_actor_400600_80135998(Task* arg0, s16 arg1);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
 s32  func_actor_400600_801370F4();
+s32  func_actor_400600_80137AF0(Task* arg0);
+s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
@@ -61,6 +63,8 @@ void func_actor_400600_80139CAC();
 s32  func_actor_400600_8013A0B0();
 void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_actor_400600_8013B6F4(Task* arg0);
+void func_actor_400600_8013B740(Task* arg0);
 void func_actor_400600_8013B830(Task* arg0);
 void func_actor_400600_8013B8AC(Task* arg0);
 void func_actor_400600_8013B984(Task* arg0);
@@ -363,7 +367,22 @@ void func_actor_400600_801390FC(Task* arg0)
     work->field_71E = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139110);
+void func_actor_400600_80139110(Task* arg0)
+{
+    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    void             (*fns[2])(Task*) = { func_actor_400600_8013B6F4, func_actor_400600_8013B740 };
+
+    func_actor_400600_80138AA4(arg0);
+    if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
+        fns[(s16)work->field_71E](arg0);
+        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x4080000 && work->field_768 != 0 && ((TmdObject*)arg0->extra)->field_8->coord.t[0] > 10000) {
+            Actor400600Work* cur = (Actor400600Work*)arg0->idMap;
+
+            cur->field_71C = 0xD;
+            cur->field_71E = 0;
+        }
+    }
+}
 
 void func_actor_400600_80139218(Task* arg0)
 {
