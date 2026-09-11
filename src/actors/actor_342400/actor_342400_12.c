@@ -7,7 +7,9 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_12", func_actor_342400_80168B74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_12", func_actor_342400_80168F14);
+/// Five state handlers, indexed by `Actor342400Work::field_420`; copied to
+/// the stack before dispatch.
+extern TaskFuncTable5 D_actor_342400_80162028;
 
 /// Seven state handlers, indexed by `Actor342400Work::field_420`; copied to
 /// the stack before dispatch.
@@ -25,6 +27,39 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
     block->vz                 = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Per-frame callback, the five-state counterpart of
+/// `func_actor_342400_801690FC`; unlike it, clears bit 0x80 of `field_C` on
+/// the way out of modes 0 and 1.
+void func_actor_342400_80168F14(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra;
+    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFuncTable5   sp    = D_actor_342400_80162028;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            sp.funcs[(s16)work->field_420](arg0);
+            if (!(work->field_442 & 0x1F)) {
+                func_800FDB18(3, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+            }
+            coord->flg = 0;
+        case 1:
+            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            if (work->field_451 == 0) {
+                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
+                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
+                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+            }
+            obj->field_C &= ~0x80;
+            return;
+    }
 }
 
 /// Per-frame callback, the seven-state counterpart of
