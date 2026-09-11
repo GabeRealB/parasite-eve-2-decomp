@@ -1072,7 +1072,30 @@ void func_actor_400600_8013C1C0(Task* arg0)
     work->field_73E  = work->field_92;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013C238);
+void func_actor_400600_8013C238(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    GsCOORDINATE2*   coord;
+
+    work               = (Actor400600Work*)arg0->idMap;
+    coord              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    work->field_722    = work->field_722 + 2;
+    work->field_724    = work->field_724 + work->field_722;
+    coord->coord.t[1] += work->field_724;
+    if ((s16)work->field_92 < coord->coord.t[1]) {
+        coord->coord.t[1] = (s16)work->field_92;
+        work2             = (Actor400600Work*)arg0->idMap;
+        work2->field_726  = 0x10;
+        work2->field_746  = 0x13;
+        work2->field_742  = 2;
+        work->field_769   = 1;
+        work->field_718   = 0;
+        work->field_768   = 0;
+        work->field_84    = work->field_84 + 0x800;
+        work->field_71E   = work->field_71E + 1;
+    }
+}
 
 void func_actor_400600_8013C2D4(Task* arg0)
 {
