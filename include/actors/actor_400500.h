@@ -9,6 +9,20 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
+/// A `MATRIX` plus the word-wise view used to splat an identity rotation
+/// with five aligned stores instead of nine halfword ones.
+typedef union Actor400500Matrix {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor400500Matrix;
+STATIC_ASSERT_SIZEOF(Actor400500Matrix, 0x20);
+
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
 /// coordinate nodes. `func_actor_400500_80132C54` passes
@@ -117,7 +131,7 @@ typedef struct Actor400500Work {
     /* 0xA20 */ s16                field_A20;
     /* 0xA22 */ byte               pad_A22[0x2];
     /* 0xA24 */ s16                field_A24; // copied to TmdObject::field_2C
-    /* 0xA26 */ byte               pad_A26[0x2];
+    /* 0xA26 */ u16                field_A26; // heading countdown, decremented by 0x80
     /* 0xA28 */ s16                field_A28;
     /* 0xA2A */ byte               pad_A2A[0x2];
     /* 0xA2C */ s16                field_A2C; // countdown written with message kind 1
@@ -136,5 +150,8 @@ typedef struct Actor400500Work {
     /* 0xA4D */ byte               pad_A4D[0x3];
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
+
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+void ActorsShared80132c4c(MATRIX* src, MATRIX* dst);
 
 #endif
