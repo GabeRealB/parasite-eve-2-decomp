@@ -507,7 +507,29 @@ void func_actor_400600_8013B394(Task* arg0)
     work->field_71C      = work->field_71C + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013B410);
+void func_actor_400600_8013B410(Task* arg0)
+{
+    Actor400600Work* work;
+    GsCOORDINATE2*   coords;
+    s32              soundId;
+    s32              pan;
+
+    work                = (Actor400600Work*)arg0->idMap;
+    coords              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    work->field_73A    += (0xFF - work->field_73A) >> 5;
+    work->field_722    += 1;
+    work->field_724    += work->field_722;
+    coords->coord.t[1] += work->field_724;
+    if (coords->coord.t[1] >= 0) {
+        work->field_718 = 0;
+        soundId         = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40060003;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        func_actor_400600_80139D98(arg0, 0x19, 0x10);
+        coords->coord.t[1] = 0;
+        work->field_71C++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013B520);
 
