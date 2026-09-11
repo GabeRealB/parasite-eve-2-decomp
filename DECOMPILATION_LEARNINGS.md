@@ -59636,3 +59636,14 @@ pseudo, so the selected constant is born in the callee-saved register too
 if (c) id = ...; sound = id | (x << 8);` - since `id` dies at the OR and stays a
 call-clobbered temp, while the shift chain is computed straight into `sound`'s
 `$s0`.
+
+### m2c's `var = 1; if (x == 3) { ...; label: var = 1; }` folds `field++` into `addu v0, v0, s0`
+`func_actor_400600_80139CAC` is an `if / else if` chain on a state halfword
+followed by a `for (i = 1; ...)` loop. The target puts `li $s0, 1` both in the
+last `bne`'s delay slot and at the join, which m2c reads as a loop counter
+assigned *before* the final `if` with a `goto` into it. Compiled that way
+(92.97%), CSE sees `s0 == 1` live in the `case 3` arm and turns
+`work->field_748++` into `addu $v0, $v0, $s0`. Writing the chain plainly with
+`i = 1;` after it matches: reorg fills the default branch's delay slot from the
+loop head, which is where the duplicate `li` comes from. A `switch` instead
+scored 78% (different block shape).
