@@ -67,12 +67,28 @@ void func_actor_400600_8013C518(Task* arg0);
 void func_actor_400600_8013C534(Task* arg0);
 void func_actor_400600_8013C598(Task* arg0);
 void func_actor_400600_8013C5F8(Task* arg0);
+void func_actor_400600_80132294(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013203C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80132294);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80132704);
+void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2)
+{
+    func_actor_400600_80132294(arg0, 3, 9, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 9, 0xA, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 0xA, 0xB, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 3, 6, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 6, 7, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 7, 8, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 1, 5, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 1, 0xC, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 0xC, 0xD, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 0xD, 0xE, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 1, 0xF, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 0xF, 0x10, 0x80, arg1, arg2);
+    func_actor_400600_80132294(arg0, 0x10, 0x11, 0x80, arg1, arg2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801328A8);
 
