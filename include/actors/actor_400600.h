@@ -4,6 +4,8 @@
 #include "common.h"
 #include "main/task.h"
 
+#include "gameplay/3A34.h"
+
 /// Three packed halfwords filled by `func_actor_400600_80139F4C`: the actor's
 /// view-space X/Y (the translation of the `Gp_WorldToLocal` result) and the low
 /// half of the root coordinate's world Z. `func_actor_400600_801361AC` passes
@@ -41,14 +43,14 @@ typedef struct Actor400600Work {
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
     /* 0x092 */ u16                field_92;  // seeds field_73E on state entry
-    /* 0x094 */ byte               pad_94[0x43E];
-    /* 0x4D2 */ u16                field_4D2; // flags; bit 0x8000 cleared
-    /* 0x4D4 */ byte               pad_4D4[0xDE];
-    /* 0x5B2 */ u16                field_5B2; // flags; bit 0x8000 cleared
-    /* 0x5B4 */ byte               pad_5B4[0x36];
-    /* 0x5EA */ u16                field_5EA; // flags; bit 0x8000 cleared
-    /* 0x5EC */ byte               pad_5EC[0x36];
-    /* 0x622 */ u16                field_622; // flags; bit 0x4000 cleared
+    /* 0x094 */ byte               pad_94[0x420];
+    /* 0x4B4 */ GpObj              obj_4B4;   // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ byte               pad_4D4[0xC0];
+    /* 0x594 */ GpObj              obj_594;   // collision node; flags bit 0x8000 cleared
+    /* 0x5B4 */ byte               pad_5B4[0x18];
+    /* 0x5CC */ GpObj              obj_5CC;   // collision node; flags bit 0x8000 cleared
+    /* 0x5EC */ byte               pad_5EC[0x18];
+    /* 0x604 */ GpObj              obj_604;   // collision node; flags bit 0x4000 cleared
     /* 0x624 */ byte               pad_624[0xE0];
     /* 0x704 */ Task*              field_704; // child task, killed on death
     /* 0x708 */ Task*              field_708; // child task, killed on death

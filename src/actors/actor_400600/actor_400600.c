@@ -296,7 +296,7 @@ void func_actor_400600_80138B40(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->idMap;
 
-    work->field_622 &= 0xBFFF;
+    work->obj_604.flags &= 0xBFFF;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138B5C);
@@ -500,7 +500,30 @@ void func_actor_400600_8013A820(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013A864);
+void func_actor_400600_8013A864(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    model = (TmdObject*)arg0->extra;
+    work  = (Actor400600Work*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    Tmd_FreeBuffers(model);
+    model->field_C |= 4;
+    func_actor_400600_80137240(arg0);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    enemy->field_54 = 0;
+    Gp_UnlinkObj(&work->obj_4B4);
+    Gp_UnlinkObj(&work->obj_594);
+    Gp_UnlinkObj(&work->obj_5CC);
+    Gp_UnlinkObj(&work->obj_604);
+    work2            = (Actor400600Work*)arg0->idMap;
+    arg0->state      = 3;
+    work2->field_71C = 0;
+    work2->field_71E = 0;
+}
 
 void func_actor_400600_8013A908(Task* arg0)
 {
@@ -566,11 +589,11 @@ void func_actor_400600_8013AB98(Task* arg0)
     model           = (TmdObject*)arg0->extra;
     work->field_73A = 0;
     func_actor_400600_80138B5C(arg0, 1);
-    work->field_4D2 &= 0x7FFF;
-    work->field_5B2 &= 0x7FFF;
-    work->field_5EA &= 0x7FFF;
-    model->field_C  |= 0x80;
-    work->field_71C  = work->field_71C + 1;
+    work->obj_4B4.flags &= 0x7FFF;
+    work->obj_594.flags &= 0x7FFF;
+    work->obj_5CC.flags &= 0x7FFF;
+    model->field_C      |= 0x80;
+    work->field_71C      = work->field_71C + 1;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013AC14);
