@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
@@ -44,8 +45,15 @@ typedef struct Actor400500RootXZ {
 /// `field_A06` / `field_A08` are the state and sub-state indices the handler
 /// tables walk and `field_A04` is the per-state frame counter, mirroring
 /// `Actor400600Work::field_71C` / `field_71E` / `field_718`.
+///
+/// The block opens with the 0x14-byte animation context and eighteen 0x28-byte
+/// slots. `func_actor_400500_8013DC4C` walks slots 1..17, copies the low byte
+/// of `field_9F8` into each slot's `field_9`, resets them from `field_9FE`,
+/// and latches that id in `field_9FC`.
 typedef struct Actor400500Work {
-    /* 0x000 */ byte               pad_0[0x808];
+    /* 0x000 */ GpAnimCtx          anim;
+    /* 0x014 */ GpAnimSlot         slots[0x12];
+    /* 0x2E4 */ byte               pad_2E4[0x524];
     /* 0x808 */ MATRIX             matrix_808; // model root coord, copied on the light-mode path
     /* 0x828 */ GpObj              obj0;
     /* 0x848 */ GpRec18            rec0[3];
@@ -71,7 +79,7 @@ typedef struct Actor400500Work {
     /* 0x9F0 */ Task*              field_9F0[2]; // child tasks, killed on death
     /* 0x9F8 */ s16                field_9F8;    // animation speed / step scale
     /* 0x9FA */ s16                field_9FA;    // animation request kind
-    /* 0x9FC */ byte               pad_9FC[0x2];
+    /* 0x9FC */ u16                field_9FC;    // last animation id the slots were reset to
     /* 0x9FE */ s16                field_9FE;    // animation id
     /* 0xA00 */ byte               pad_A00[0x2];
     /* 0xA02 */ s16                field_A02;    // identity scale written with the matrix copy

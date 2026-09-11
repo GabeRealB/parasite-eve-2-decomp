@@ -401,7 +401,20 @@ void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DC4C);
+void func_actor_400500_8013DC4C(Task* arg0)
+{
+    Actor400500Work* work;
+    s32              i;
+
+    work = (Actor400500Work*)arg0->idMap;
+    i    = 1;
+    do {
+        work->slots[i].field_9 = (u8)work->field_9F8;
+        Gp_AnimResetSlot(&work->anim, i, work->field_9FE);
+        i++;
+    } while (i < 0x12);
+    work->field_9FC = work->field_9FE;
+}
 
 void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
 {
