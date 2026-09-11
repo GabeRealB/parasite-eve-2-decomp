@@ -14,31 +14,21 @@
 
 #include "actors/actor_341700.h"
 
-void func_actor_341700_8016AA58(Task* arg0)
+void func_actor_341700_8016A8EC(void)
 {
-    Actor341700Work* work;
-    TmdObject*       model;
-
-    work  = (Actor341700Work*)arg0->idMap;
-    model = (TmdObject*)arg0->extra;
-
-    work->field_412++;
-    if ((s16)work->field_412 >= 0x18) {
-        model->field_C |= 2;
-        work->field_412 = 0;
-        work->field_451 = 1;
-        work->field_420++;
-    }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_8016AAB4);
-
-void func_actor_341700_8016ABF4(Task* arg0)
+void func_actor_341700_8016A8F4(Task* arg0)
 {
     Actor341700Work* work;
+    GpEnemy*         enemy;
 
-    work            = (Actor341700Work*)arg0->idMap;
-    arg0->state     = 5;
-    work->field_420 = 0;
-    work->field_422 = 0;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor341700Work*)arg0->idMap;
+    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+        Gp_StateF0.field_1F = 0;
+    }
+    Gp_UnlinkNode(&enemy->node);
+    work->field_420 = work->field_420 + 1;
 }

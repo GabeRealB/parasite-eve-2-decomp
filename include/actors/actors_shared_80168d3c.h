@@ -56,11 +56,13 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x42A */ s16                       field_42A;
     /* 0x42C */ byte                      pad_42C[0x6];
     /* 0x432 */ s16                       field_432;
-    /* 0x434 */ byte                      pad_434[0x4];
+    /* 0x434 */ s16                       field_434; // pitch latched by ActorsShared8016a538
+    /* 0x436 */ byte                      pad_436[0x2];
     /* 0x438 */ s16                       field_438;
     /* 0x43A */ byte                      pad_43A[0x6];
     /* 0x440 */ s16                       field_440;
-    /* 0x442 */ byte                      pad_442[0x6];
+    /* 0x442 */ s16                       field_442; // phase of the pitch sway
+    /* 0x444 */ byte                      pad_444[0x4];
     /* 0x448 */ s16                       field_448;
     /* 0x44A */ s16                       field_44A;
     /* 0x44C */ byte                      pad_44C[0x8];
