@@ -470,7 +470,41 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801361AC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80136558);
+void func_actor_400600_80136558(Task* arg0)
+{
+    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    TmdObject*       model = (TmdObject*)arg0->extra;
+    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;
+    s32              state = work->field_75C.word & 0xFFFF0000;
+    s16              count;
+
+    if (state == 0x1000000) {
+        work->field_73A = (u16)work->field_73A + ((0xFF - work->field_73A) >> 5);
+        work->field_740++;
+        if (work->field_740 >= 0x20) {
+            model->field_C &= ~2;
+            func_actor_400600_801387DC(arg0, -1);
+            work->field_740             = 0;
+            work->field_75C.b.field_75F = 0;
+        }
+    } else if (state == 0x1010000) {
+        work->field_73A = (u16)work->field_73A + (-work->field_73A >> 3);
+        count           = work->field_740 + 1;
+        work->field_740 = count;
+        if (count >= 0x12) {
+            if (work->field_75A != 0) {
+                enemy->node.field_4 = 4;
+            } else {
+                enemy->node.field_4 = 5;
+            }
+            model->field_C |= 0x80;
+            func_actor_400600_801387DC(arg0, -1);
+            work->field_740             = 0;
+            work->field_75C.b.field_75F = 0;
+            work->field_73A             = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80136670);
 
@@ -679,10 +713,10 @@ void func_actor_400600_80138A24(Task* arg0, s16 arg1)
         model->field_C     |= 0x80;
         Gp_SetLightMode(arg0->spawnArg2, 2);
         func_actor_400600_801387DC(arg0, 2);
-        work->field_75E = 1;
-        work->field_740 = 0;
-        work->field_75F = 0;
-        work->field_73A = 0;
+        work->field_75C.b.field_75E = 1;
+        work->field_740             = 0;
+        work->field_75C.b.field_75F = 0;
+        work->field_73A             = 0;
     }
 }
 
@@ -734,20 +768,20 @@ void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
     enemy = (GpEnemy*)arg0->spawnArg2;
     work  = (Actor400600Work*)arg0->idMap;
     if (!(arg1 & 0xFF)) {
-        if (work->field_75E != 0) {
-            work->field_75E = 0;
-            work->field_75F = 1;
-            work->field_740 = 0;
-            model->field_C  = (model->field_C | 2) & 0xFF7F;
+        if (work->field_75C.b.field_75E != 0) {
+            work->field_75C.b.field_75E = 0;
+            work->field_75C.b.field_75F = 1;
+            work->field_740             = 0;
+            model->field_C              = (model->field_C | 2) & 0xFF7F;
             Gp_SetLightMode(arg0->spawnArg2, 0);
             enemy->node.field_4 = 4;
             func_actor_400600_801387DC(arg0, 0);
         }
-    } else if (work->field_75E != 1) {
-        work->field_75E = 1;
-        work->field_75F = 1;
-        work->field_740 = 0;
-        model->field_C |= 2;
+    } else if (work->field_75C.b.field_75E != 1) {
+        work->field_75C.b.field_75E = 1;
+        work->field_75C.b.field_75F = 1;
+        work->field_740             = 0;
+        model->field_C             |= 2;
         Gp_SetLightMode(arg0->spawnArg2, 2);
         func_actor_400600_801387DC(arg0, 2);
     }

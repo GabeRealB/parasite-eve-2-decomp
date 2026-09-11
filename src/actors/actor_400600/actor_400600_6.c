@@ -1235,11 +1235,11 @@ void func_actor_400600_8013C874(Task* arg0)
     work->field_73A = 0;
     work2           = (Actor400600Work*)arg0->idMap;
     model2          = (TmdObject*)arg0->extra;
-    if (work2->field_75E != 1) {
-        work2->field_75E = 1;
-        work2->field_75F = 1;
-        work2->field_740 = 0;
-        model2->field_C |= 2;
+    if (work2->field_75C.b.field_75E != 1) {
+        work2->field_75C.b.field_75E = 1;
+        work2->field_75C.b.field_75F = 1;
+        work2->field_740             = 0;
+        model2->field_C             |= 2;
         Gp_SetLightMode(arg0->spawnArg2, 2);
         func_actor_400600_801387DC(arg0, 2);
     }

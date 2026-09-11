@@ -17620,6 +17620,15 @@ Declaring the field once as `u16` makes the second test `lhu` too, and once
 as `u32` makes the first test `lw`; either way the load widths are wrong for
 half the guards in the overlay, which all repeat this pair.
 
+GCC 2.8.1's C front end has **no anonymous unions or structs**: wrapping
+existing byte fields in an unnamed `union { s32 word; struct { ... }; };`
+fails with "structure has no member named" at every use site (and trips the
+`STATIC_ASSERT_SIZEOF`). Name both levels and rename the existing byte users.
+`func_actor_400600_80136558` does `lw 0x75C` + `& 0xFFFF0000` over the
+`u8 field_75E` / `s8 field_75F` pair that other functions store with `sb`;
+it became `Actor400600State { s32 word; struct { ... } b; }`, with the byte
+writes spelled `work->field_75C.b.field_75E`.
+
 ## Pin a later-used call arg to `$s0` so the `Task*` stays in `$s1`
 
 When the target saves `$s1` first (`sw s1; move s1,a0; sw ra; sw s0`) the

@@ -34,6 +34,19 @@ typedef union Actor400600Timer {
 } Actor400600Timer;
 STATIC_ASSERT_SIZEOF(Actor400600Timer, 0x4);
 
+/// The word at `Actor400600Work::field_75C`. Its two high bytes are a state
+/// pair written one at a time; `func_actor_400600_80136558` reads the whole word
+/// and dispatches on its high half, so both views are modelled explicitly.
+typedef union Actor400600State {
+    /* 0x0 */ s32 word;
+    struct {
+        /* 0x0 */ byte pad_0[0x2];
+        /* 0x2 */ u8   field_75E; // compared unsigned by func_actor_400600_8013C874
+        /* 0x3 */ s8   field_75F;
+    } b;
+} Actor400600State;
+STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
+
 /// Per-actor state block for the `actor_400600` overlay.
 ///
 /// `func_actor_400600_80133434` allocates it with `Mem_Calloc(0x770)` and
@@ -104,9 +117,8 @@ typedef struct Actor400600Work {
     /* 0x754 */ s16                field_754;
     /* 0x756 */ u16                field_756; // countdown to the next state-2 transition
     /* 0x758 */ s16                field_758;
-    /* 0x75A */ byte               pad_75A[0x4];
-    /* 0x75E */ u8                 field_75E; // compared unsigned by func_actor_400600_8013C874
-    /* 0x75F */ s8                 field_75F;
+    /* 0x75A */ s16                field_75A;
+    /* 0x75C */ Actor400600State   field_75C;
     /* 0x760 */ byte               pad_760[0x2];
     /* 0x762 */ u8                 field_762;
     /* 0x763 */ s8                 field_763;
