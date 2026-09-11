@@ -75,7 +75,8 @@ typedef struct Actor400600Work {
     /* 0x722 */ s16                field_722; // velocity step (can go negative)
     /* 0x724 */ s16                field_724; // accumulated step
     /* 0x726 */ s16                field_726;
-    /* 0x728 */ byte               pad_728[0xA];
+    /* 0x728 */ s16                field_728;
+    /* 0x72A */ byte               pad_72A[0x8];
     /* 0x732 */ s16                field_732; // countdown seeded by func_actor_400600_80138AF0
     /* 0x734 */ byte               pad_734[0x6];
     /* 0x73A */ s16                field_73A; // fade level, lerped toward 0xFF
