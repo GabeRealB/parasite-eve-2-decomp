@@ -59112,3 +59112,16 @@ return 0;
 Put the `return 0` last: an early `if (!(flag & 0x80)) return 0;` inverts the
 branch (`beqz` over a tail `return 0`), while the target falls through into
 `return 0` and branches to the body.
+
+### `(u8)s16_field * K` right after storing the field keeps an `lbu` reload
+`func_actor_342400_8016B744` stores `work->field_41C = 0x10` and a few insns
+later reads it back as `lbu 0x41C` for `field_44F = ... << 2`. Written as
+`work->field_44F = work->field_41C * 4`, CSE forwards the store and GCC emits
+`lh` of the field (or folds the constant). Casting the operand,
+`(u8)work->field_41C * 4`, narrows the load in the front end to a `QImode` MEM
+at the same address; CSE only remembers the `HImode` store, so the reload
+survives as `lbu` (93.6% -> 96.7%). The remaining insert/delete was a `li s2,4`
+shared by two stores (`field_426 = 4` before the call, `field_422 = 4` after
+it) being scheduled one slot too late; putting `field_426 = 4` first among the
+stores gave 100% although the target shows the stores in another order - the
+statement order moves the constant load, and the stores are still in target order.
