@@ -60083,3 +60083,31 @@ prologue exactly (`sw s0; lw s0,state; … sw s1; lw s1,0x1C(s0)`). Residual on
 this one is unrelated: retail hoists the *entity reload* (`lw a3,0x1C(s0)`) up
 into the ternary's load-delay slot while loading `->field_24` late, a sched1
 split that source order does not control (left at ~98%, permuter candidate).
+### A loop accumulator lands in a callee-saved reg by spanning a call, not by an `asm` pin
+**Symptom.** A `switch`-free counter loop (`for (i…) if (…) count++;` then
+`if (count == K)`) came out one instruction short: the accumulator sat in a
+call-clobbered temp (`a1`), so no second callee-saved reg was saved and the
+frame was `0x18` instead of retail's `0x20`.
+**Wrong fix.** `register s16 count asm("s0")` makes the frame right but the
+accumulator is dead after the compare, so GCC reuses the pinned reg as the
+sign-extend temp — `sll s0,s0,16; sra s0,s0,16; bne s0,v0` — while retail
+extends into a fresh temp and keeps the const in another (`sll v0,s0,16;
+sra v0,v0,16; li v1,K; bne v0,v1`). Same class as the "pinning makes the shift
+in-place" note above.
+**Fix.** Don't pin. Make the accumulator *span the function call* the loop sits
+after: initialise `count = 0;` **before** the call (e.g. the `func_x();` ahead of
+the loop), not after it. A value live across a call must occupy a callee-saved
+reg, so GCC parks `count` in `s0` on its own, pushes the argument to `s1`, grows
+the frame to `0x20`, and — because `count` is a real variable, not a pinned
+throwaway — reads it into a fresh temp for the `(s16)` compare. `func_shelter_b3_dumping_hole_801838A0`.
+
+### Inline a sign-extended `s16` param at its use instead of a hoisted local
+**Symptom.** Everything matched except the one-time `sll/sra` that sign-extends
+an `s16` parameter was scheduled two instructions too early — ahead of the loop
+preamble (`i=0`, the hoisted `li K` compare constant) instead of after it.
+**Cause.** Assigning `s32 target = arg2;` near the top makes GCC treat the
+extension as its own early statement, so it emits right after the first init.
+**Fix.** Drop the temp and use the parameter directly in the loop compare
+(`if (count == arg2)`). GCC still hoists the single extension out of the loop,
+but now schedules it *among* the other loop-invariants (after `i=0` and the
+compare constant), matching retail. `func_shelter_b3_dumping_hole_80183198`.
