@@ -417,7 +417,45 @@ void func_actor_400600_80133B88(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133CB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133E38);
+void func_actor_400600_80133E38(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    s32              id;
+    u32              sound;
+    s32              pan;
+
+    work = (Actor400600Work*)arg0->idMap;
+    work->field_718++;
+    if ((s16)work->field_718 == 0x15) {
+        id = 0x40060005;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0005;
+        }
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan   = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->obj_594.flags |= 0x8000;
+    }
+    if ((s16)work->field_718 == 0x1C) {
+        work->obj_594.flags &= 0x7FFF;
+    }
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        func_actor_400600_80138AF0(arg0, 0x2D);
+        func_actor_400600_80138AA4(arg0);
+        if (work->field_768 == 0 && work->field_728 < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_71C = 9;
+            work2->field_71E = 0;
+        } else {
+            work3            = (Actor400600Work*)arg0->idMap;
+            work3->field_71C = 2;
+            work3->field_71E = 0;
+        }
+    }
+}
 
 void func_actor_400600_80133FC0(Task* arg0)
 {

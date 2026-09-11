@@ -59707,3 +59707,18 @@ if (A && B) {
 
 In the same function, reusing one `model` local for both halves' `arg0->extra`
 put the second half's copy in `$a1` rather than `$a0`. A second local fixed it.
+
+### State-change tails merged by cross-jumping: one pointer local per arm
+
+`func_actor_400600_80133E38` ends in `if (...) { w->field_71C = 9; w->field_71E = 0; }
+else { w->field_71C = 2; w->field_71E = 0; }`, each arm reloading `arg0->idMap`.
+jump2 cross-jumps the common `sh $zero, 0x71E` into one tail. Reusing a single
+`work2` local in both arms makes one pseudo live across blocks, so global alloc
+picks `$a0`; the target has `$v1`. A separate local per arm (`work2`, `work3`)
+keeps each pseudo local, both land in `$v1`, and the tails still merge. Writing
+`((Work*)arg0->idMap)->field` directly instead reloads `idMap` per store (97%).
+
+In the same function, `sound = id | ((x >> 12) << 8)` gives the target's
+`or $s0, $a1, $s0`, while `sound = x; sound >>= 12; sound <<= 8; sound |= id;`
+gives `or $s0, $s0, $a1`: `expand_binop` swaps commutative operands so the
+first matches the target pseudo, so the accumulator form always puts it first.
