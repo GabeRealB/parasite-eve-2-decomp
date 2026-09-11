@@ -199,7 +199,33 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801337A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133B88);
+void func_actor_400600_80133B88(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    s32              sound;
+    s32              pan;
+    u32              rnd;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (work->field_728 < 0xBB8 || D_80115417 != 0) {
+        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40060004;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        func_actor_400600_80138B5C(arg0, 0);
+        Gp_ArmStateF0(1);
+        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState      = rnd;
+        work->field_758  = ((rnd >> 0x10) & 0x3F) + 0x1E;
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_71C = 2;
+        work2->field_71E = 0;
+        return;
+    }
+    if ((s16)func_actor_400600_80136FA8(arg0) != 0) {
+        Gp_ArmStateF0(1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133CB0);
 
