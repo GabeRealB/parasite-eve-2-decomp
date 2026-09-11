@@ -660,7 +660,30 @@ void func_actor_400600_8013BA6C(Task* arg0)
     work->field_71E = work->field_71E + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013BAEC);
+void func_actor_400600_8013BAEC(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
+        if (work->field_769 == 0) {
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_720 = 8;
+            work2->field_726 = 0x10;
+            work2->field_746 = 0x10;
+            work2->field_742 = 1;
+        } else {
+            work3            = (Actor400600Work*)arg0->idMap;
+            work3->field_720 = 8;
+            work3->field_726 = 0x10;
+            work3->field_746 = 0x12;
+            work3->field_742 = 1;
+        }
+        work->field_71E = work->field_71E + 1;
+    }
+}
 
 void func_actor_400600_8013BB88(Task* arg0)
 {
