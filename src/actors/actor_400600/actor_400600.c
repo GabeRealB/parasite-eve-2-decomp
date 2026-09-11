@@ -1468,7 +1468,87 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80135DDC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801361AC);
+/// Drives the two sound/tracking windows of the current animation. The window
+/// bounds are frame counts derived from the playback rate (`field_726`), each
+/// read back through `arg0->idMap` rather than the cached `work` pointer.
+void func_actor_400600_801361AC(Task* arg0)
+{
+    Actor400600Work* work;
+    GsCOORDINATE2*   coord;
+    /* The bounds are computed into their own temporaries first; a `u8` temp is
+     * what keeps the zero arm of each test out of the surrounding block. */
+    u8  tmp0;
+    u8  tmp1;
+    u8  tmp2;
+    u8  end0;
+    u8  start1;
+    u8  end1;
+    s32 start0;
+    u32 sound;
+    s32 pan;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (work->field_746 != 2) {
+        work->field_726 = 0x10;
+        work->field_746 = 2;
+        work->field_742 = 2;
+        Actor400600_TickAnim(arg0);
+    }
+    if (((Actor400600Work*)arg0->idMap)->field_726 == 0) {
+        tmp0 = 0;
+    } else {
+        tmp0 = (u32)(0xB00 / ((Actor400600Work*)arg0->idMap)->field_726) >> 4;
+    }
+    end0 = tmp0;
+    if (((Actor400600Work*)arg0->idMap)->field_726 == 0) {
+        tmp1 = 0;
+    } else {
+        tmp1 = (u32)(0xC00 / ((Actor400600Work*)arg0->idMap)->field_726) >> 4;
+    }
+    start1 = tmp1;
+    if (((Actor400600Work*)arg0->idMap)->field_726 == 0) {
+        tmp2 = 0;
+    } else {
+        tmp2 = (u32)(0x1500 / ((Actor400600Work*)arg0->idMap)->field_726) >> 4;
+    }
+    end1 = tmp2;
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        work->field_748 = 0;
+    }
+    /* The first window starts at frame 0, and the original compares against it
+     * in a register: a literal 0 is folded into `$zero` by CSE. */
+    SOFT_MOVE_ZERO(start0);
+    if (work->field_748 == start0) {
+        func_actor_400600_80139F4C(arg0, 0xB, &work->field_88);
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        sound  |= 0x404A000A;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_748 == start1) {
+        func_actor_400600_80139F4C(arg0, 8, &work->field_88);
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        sound  |= 0x404A000B;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_748 >= start0 && work->field_748 <= end0) {
+        func_actor_400600_80139FE0(arg0, 0xB, &work->field_88);
+        work->field_734 = 8;
+    }
+    if (work->field_748 >= start1 && work->field_748 <= end1) {
+        func_actor_400600_80139FE0(arg0, 8, &work->field_88);
+        work->field_734 = 0xB;
+    }
+    coord->flg = 0;
+}
 
 void func_actor_400600_80136558(Task* arg0)
 {

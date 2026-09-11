@@ -129,7 +129,8 @@ typedef struct Actor400600Work {
     /* 0x72E */ s16                field_72E;
     /* 0x730 */ s16                field_730;
     /* 0x732 */ s16                field_732; // countdown seeded by func_actor_400600_80138AF0
-    /* 0x734 */ byte               pad_734[0x6];
+    /* 0x734 */ s16                field_734; // model slot id handed to func_actor_400600_80139FE0
+    /* 0x736 */ byte               pad_736[0x4];
     /* 0x73A */ s16                field_73A; // fade level, lerped toward 0xFF
     /* 0x73C */ s16                field_73C;
     /* 0x73E */ u16                field_73E;

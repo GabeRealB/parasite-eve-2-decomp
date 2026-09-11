@@ -59894,3 +59894,72 @@ unit — as an implicit `int` declaration would — makes each result its own SI
 pseudo with a truncating copy into the `s16` local, and matched 100% with no other
 change. Signature: a raw-return register *and* a copy of it, both alive, with the
 first use sign-extending the raw one.
+
+## A narrower temp blocks jump2's `if (...) { x = a; goto l; } x = b;` hoist
+
+`func_actor_400600_801361AC` computes three window bounds with the same shape:
+
+```c
+if (rate == 0) { tmp = 0; } else { tmp = (u32)(K / rate) >> 4; }
+bound = tmp;
+```
+
+The first two came out exactly like the target — `bnez` to the else arm, the
+zero arm as `j join` with `move a0,zero` in its delay slot. The third came out
+inverted and one instruction shorter:
+
+```
+/* target */                    /* ours */
+bnez  v1, else                  move  s5,a0
+move  s5,a0    (delay)          beqz  v1, join
+j     join                      move  v0,zero   (delay)
+move  v0,zero  (delay)          li    v0,0x1500
+else: li v0,0x1500
+```
+
+`jump.c`'s "Simplify `if (...) { x = a; goto l; } x = b;` to `x = a; if (...)
+goto l; x = b;`" did it, and the `.jump2` dump shows the hoisted `(set (reg:SI 2
+v0) (const_int 0))` inserted before the branch. The transform requires the else
+arm's *first* insn to set the same register as the zero arm, compared with
+`rtx_equal_p`, which compares modes too. Arms 1 and 2 escaped by accident: their
+temp was allocated `$a0` while the else arm opens with `li $v0, K` for the
+dividend. Arm 3's temp landed in `$v0` — the same register the dividend uses —
+so the registers matched and the hoist fired.
+
+Declaring the temps with the bound's own `u8` type is what blocks it: the zero
+arm becomes `(set (reg:QI v0) 0)`, the dividend stays `(set (reg:SI v0) K)`, the
+modes differ and `rtx_equal_p` fails. Nothing else changed, and the QI temp
+costs no instruction because the `srl` writes it directly. Signature to
+recognise: several structurally identical if/else assignments where exactly one
+loses its `j` and comes out with the opposite branch condition.
+
+## A constant argument to a `static __inline__` helper materialises at the call site
+
+Writing the same three bounds through a helper
+
+```c
+static __inline__ u32 Frames(Task* arg0, s32 time) { ... time / work->field_726 ... }
+```
+
+put `li $v0, 0xC00` *before* the test instead of at the head of the else arm,
+where the target has it. `integrate.c` copies a constant argument into a pseudo
+with `copy_to_mode_reg` at the point of expansion, so the `li` is emitted before
+the inlined body's own branch; the target's dividend belongs to the arm. Write
+the computation out at each site (a statement `if`/`else` into a temp) when the
+target shows the constant inside the arm. The same seed also showed the two
+forms differ in branch polarity: a ternary `b = cond ? 0 : expr;` inverted the
+test and assigned the variable directly, while the statement `if`/`else` plus
+`bound = tmp;` produced the target's `bnez` and its separate copy.
+
+## `SOFT_MOVE_ZERO` where the zeroed local must still be scheduled
+
+A local whose value is a literal `0` and that is compared twice (`x == lo`,
+`x >= lo`) is folded to `$zero` by CSE wherever CSE can see the assignment, so
+`slt $v0, $v1, $s2` against a register holding 0 needs the zero materialised
+some other way. `MOVE_ZERO` (volatile) does materialise it, but it is also a
+scheduling fence and cost `reorder=2` here: the target's `move $s2, zero` sits
+between the `lh` and the `bne` that uses it, which the fence forbids. The
+schedulable `SOFT_MOVE_ZERO(x)` — `__asm__("" : "=r"(x) : "0"(0))`, legal
+because the asm has an output and so is not implicitly volatile — matched.
+Reach for the SOFT form first whenever the forced constant sits in a block the
+scheduler still has to fill.
