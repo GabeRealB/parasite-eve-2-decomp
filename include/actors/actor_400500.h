@@ -4,6 +4,8 @@
 #include "common.h"
 #include "main/task.h"
 
+#include <psyq/libgte.h>
+
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
 /// coordinate nodes. `func_actor_400500_80132C54` passes
@@ -31,7 +33,9 @@ STATIC_ASSERT_SIZEOF(Actor400500ViewPos, 0x6);
 /// tables walk and `field_A04` is the per-state frame counter, mirroring
 /// `Actor400600Work::field_71C` / `field_71E` / `field_718`.
 typedef struct Actor400500Work {
-    /* 0x000 */ byte               pad_0[0x948];
+    /* 0x000 */ byte               pad_0[0x808];
+    /* 0x808 */ MATRIX             matrix_808; // model root coord, copied on the light-mode path
+    /* 0x828 */ byte               pad_828[0x120];
     /* 0x948 */ s16                field_948;
     /* 0x94A */ s16                field_94A;
     /* 0x94C */ s16                field_94C;
@@ -45,7 +49,8 @@ typedef struct Actor400500Work {
     /* 0x9FA */ s16                field_9FA;    // animation request kind
     /* 0x9FC */ byte               pad_9FC[0x2];
     /* 0x9FE */ s16                field_9FE;    // animation id
-    /* 0xA00 */ byte               pad_A00[0x4];
+    /* 0xA00 */ byte               pad_A00[0x2];
+    /* 0xA02 */ s16                field_A02;    // identity scale written with the matrix copy
     /* 0xA04 */ u16                field_A04;    // per-state frame counter
     /* 0xA06 */ u16                field_A06;    // state index
     /* 0xA08 */ u16                field_A08;    // sub-state index

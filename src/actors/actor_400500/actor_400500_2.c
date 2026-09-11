@@ -222,7 +222,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D878);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D8CC);
+void func_actor_400500_8013D8CC(Task* arg0)
+{
+    Actor400500Work* work;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+
+    model            = (TmdObject*)arg0->extra;
+    work             = (Actor400500Work*)arg0->idMap;
+    coord            = model->field_8;
+    work->field_A02  = 0x1000;
+    work->matrix_808 = coord->coord;
+    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+    work->field_A04 = 0;
+    work->field_A06 = work->field_A06 + 1;
+}
 
 void func_actor_400500_8013D958(Task* arg0)
 {
