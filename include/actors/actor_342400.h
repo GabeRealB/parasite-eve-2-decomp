@@ -74,7 +74,7 @@ typedef struct Actor342400Work {
     /* 0x41E */ s16              field_41E; // 1 lets `field_448` jump the state machine
     /* 0x420 */ u16              field_420; // state index
     /* 0x422 */ u16              field_422; // sub-state index
-    /* 0x424 */ byte             pad_424[0x2];
+    /* 0x424 */ u16              field_424; // eased toward zero each frame by func_actor_342400_801640B0
     /* 0x426 */ s16              field_426;
     /* 0x428 */ s16              field_428;
     /* 0x42A */ s16              field_42A;

@@ -59405,3 +59405,30 @@ result. Separately, `v.vy = 0` for a stack `SVECTOR` has anti-dependences on the
 earlier pointer loads, so its source position against the `vx` loads is fixed.
 The target's `sh zero` after the `vx` loads means `vx, vy, vz` source order
 (97.6% -> 99.6%).
+
+### Per-arm `return 1` plus a trailing `return 0` stops jump2 cross-jumping a hit handler's tails
+
+`func_actor_342400_801640B0` inlines a two-arm message check whose arms both end
+in `idMap->field_422 = 0`. Target: arm 1 ends `j join; sh zero,0x422(v1)`, arm 2
+falls through into `join`, and every miss branch carries `move a0,zero` in its
+delay slot. The sibling's spelling (`hit = 0` up front, `hit = 1` in each arm)
+gives 99.5% instead: arm 1 becomes `j <arm 2's last sh>` because the jump pass
+after sched2 cross-jumps an unconditional jump against the insns before its label
+with `minimum` 1 (`jump.c`, `find_cross_jump (insn, JUMP_LABEL (insn), 1, ...)`).
+
+```c
+if ((work->field_44C & 0xF) == 2) {
+    if (work->field_438 == 0) { ...; return 1; }
+} else if ((work->field_44C & 0xF) == 3) {
+    ...; return 1;
+}
+return 0;
+```
+
+The inlined `return 0` becomes a `hit = 0` block between arm 2 and the join, so
+arm 1's jump target is no longer preceded by a matching store and nothing merges.
+dbr then steals `hit = 0` into each miss branch's delay slot and redirects it past
+the block. That leaves the block unreachable, and it is deleted together with arm 2's
+jump over it. The same shape is worth trying whenever the target has a
+`move rX,zero` in several branch delay slots and duplicate tails that did *not*
+merge.

@@ -259,11 +259,6 @@ STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);
 
 void func_actor_403100_8013480C(Task* arg0, s32 arg1);
 
-typedef struct {
-    void (*funcs[11])(Task*);
-} TaskFuncTable11;
-STATIC_ASSERT_SIZEOF(TaskFuncTable11, 0x2C);
-
 void       func_actor_403100_80133C94(void);
 void       func_actor_403100_80133D88(Task* arg0);
 void       func_actor_403100_80133E88(Task* arg0);
