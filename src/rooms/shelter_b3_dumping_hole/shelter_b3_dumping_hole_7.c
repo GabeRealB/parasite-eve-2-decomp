@@ -48,6 +48,7 @@ typedef struct {
 } DumpingHoleDispatchDesc;
 
 extern DumpingHoleB7BC D_shelter_b3_dumping_hole_8018B7BC[];
+extern TaskDesc        D_shelter_b3_dumping_hole_8018B83C;
 
 void func_shelter_b3_dumping_hole_80183F04(DumpingHoleState* arg0);
 
@@ -122,7 +123,20 @@ void func_shelter_b3_dumping_hole_80183E08(DumpingHoleState* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183E6C);
+void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
+{
+    switch (arg1) {
+        case 0:
+            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 1, (arg0 << 16) + arg2, 0);
+            break;
+        case 1:
+            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 2, (arg0 << 16) + arg2, 0);
+            break;
+        case 2:
+            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 3, (arg0 << 16) + arg2, 0);
+            break;
+    }
+}
 
 typedef struct {
     u8  _pad0[0x40];
