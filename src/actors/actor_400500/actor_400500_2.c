@@ -409,7 +409,24 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D744);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D878);
+void func_actor_400500_8013D878(Task* arg0)
+{
+    Actor400500HitView* work;
+    Actor400500Work*    work2;
+    s32                 cond;
+
+    work = (Actor400500HitView*)arg0->idMap;
+    if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work2            = (Actor400500Work*)arg0->idMap;
+        work2->field_A06 = 0xA;
+        work2->field_A08 = 0;
+    }
+}
 
 void func_actor_400500_8013D8CC(Task* arg0)
 {
