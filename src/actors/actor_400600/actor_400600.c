@@ -16,6 +16,7 @@
 #include "actors/actor_400600.h"
 #include "actors/actors_shared_80139948.h"
 #include "actors/actors_shared_80139c00.h"
+#include "actors/actors_shared_80139dcc.h"
 #include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 
@@ -96,6 +97,10 @@ s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139CAC();
+void func_actor_400600_80139A78(Task* arg0);
+void func_actor_400600_80139AE8(Task* arg0);
+s16  func_actor_400600_80139BA0(Task* arg0, s16 arg1);
+void func_actor_400600_80139E68(Task* arg0, s16 arg1, Actor400600ViewPos* arg2);
 void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_actor_400600_8013B6F4(Task* arg0);
@@ -925,8 +930,6 @@ void func_actor_400600_80134970(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134B98);
-
 /// `ActorsShared80139948`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
 /// `G_SCRATCH_HEAD` access in the absolute `lui`/`lw` form instead of a
@@ -962,6 +965,64 @@ static __inline__ void Actor400600_RebuildRotation(Task* arg0)
     dst->m[2][1]          = m->m[2][1];
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
     dst->m[2][2]          = m->m[2][2];
+}
+
+/// `func_actor_400600_80139CAC`'s body, inlined: advance the pending animation
+/// request, then tick every model slot at the current rate.
+static __inline__ void Actor400600_TickAnim(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    s32              i;
+
+    if (work->field_742 == 1) {
+        if (work->field_744 != work->field_746) {
+            work->field_748 = 0;
+        } else {
+            work->field_748 = func_actor_400600_80139BA0(arg0, work->field_748);
+        }
+        func_actor_400600_80139AE8(arg0);
+        work->field_742 = 3;
+    } else if (work->field_742 == 2) {
+        func_actor_400600_80139A78(arg0);
+        work->field_742 = 3;
+        work->field_748 = 0;
+    } else if (work->field_742 == 3) {
+        work->field_748++;
+    }
+    i = 1;
+    do {
+        work->slots[i].field_9 = work->field_726;
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x12);
+}
+
+void func_actor_400600_80134B98(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    GsCOORDINATE2*   coord;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    func_actor_400600_80139E68(arg0, 0xE, &work->field_88);
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        work->field_82   = (work->field_82 + 0x800) & 0xFFF;
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_726 = 0x10;
+        work2->field_746 = 2;
+        work2->field_742 = 2;
+        Actor400600_RebuildRotation(arg0);
+        Actor400600_TickAnim(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        work->field_769  = 0;
+        work3            = (Actor400600Work*)arg0->idMap;
+        work3->field_71C = 2;
+        work3->field_71E = 0;
+    }
 }
 
 void func_actor_400600_80134E28(Task* arg0)
