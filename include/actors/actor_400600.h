@@ -84,7 +84,8 @@ typedef struct Actor400600Work {
     /* 0x724 */ s16                field_724; // accumulated step
     /* 0x726 */ s16                field_726;
     /* 0x728 */ s16                field_728;
-    /* 0x72A */ byte               pad_72A[0x6];
+    /* 0x72A */ byte               pad_72A[0x4];
+    /* 0x72E */ s16                field_72E;
     /* 0x730 */ s16                field_730;
     /* 0x732 */ s16                field_732; // countdown seeded by func_actor_400600_80138AF0
     /* 0x734 */ byte               pad_734[0x6];

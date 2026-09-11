@@ -1095,7 +1095,27 @@ void func_actor_400600_8013C9DC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013CACC);
+s32 func_actor_400600_8013CACC(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+
+    if (work->field_72E == 1 && work->field_768 == 0) {
+        switch (work->field_730) {
+            case 3:
+                work->field_71C = 5;
+                work->field_71E = 0;
+                work->field_730 = 0;
+                return 1;
+            case 5:
+                work->field_71C = 0xF;
+                work->field_71E = 0;
+                work->field_730 = 0;
+                return 1;
+        }
+    }
+    work->field_730 = 0;
+    return 0;
+}
 
 void func_actor_400600_8013CB40(Task* arg0, u8 arg1)
 {
