@@ -36,6 +36,7 @@ extern s32 Gp_LcgState;
  * the file, which is after every `INCLUDE_RODATA` above and so at the wrong
  * address; reading the splat-owned table as a `TaskFuncTable4` reproduces the
  * same copy while leaving the rodata where it is. */
+extern const TaskFuncTable3 D_actor_400600_80131F34;
 extern const TaskFuncTable4 D_actor_400600_80131F60;
 extern const TaskFuncTable3 D_actor_400600_80131F70;
 
@@ -361,7 +362,14 @@ void func_actor_400600_80139280(Task* arg0)
     fns[(s16)work->field_71E](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801392E8);
+void func_actor_400600_801392E8(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable3   fns  = D_actor_400600_80131F34;
+
+    func_actor_400600_80138AA4(arg0);
+    fns.funcs[(s16)work->field_71E](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013935C);
 
