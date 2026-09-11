@@ -59722,3 +59722,22 @@ In the same function, `sound = id | ((x >> 12) << 8)` gives the target's
 `or $s0, $a1, $s0`, while `sound = x; sound >>= 12; sound <<= 8; sound |= id;`
 gives `or $s0, $s0, $a1`: `expand_binop` swaps commutative operands so the
 first matches the target pseudo, so the accumulator form always puts it first.
+
+## `a - (b + CONST)` reassociates to `(a - CONST) - b` — compute `b + CONST` as its own statement
+
+`func_actor_400600_80134E28` eases a coordinate toward a floor:
+`t1 += (floor - (t1 + 400)) >> 3`. The target adds first and subtracts the sum
+(`addiu $v1, $a0, 0x190` / `subu $v0, $v0, $v1`), but written as one
+expression `fold` moves the constant out before RTL exists (`.i.rtl` already
+has `(plus floor -400)` followed by `(minus … t1)`), giving
+`addiu $v0, $v0, -0x190` / `subu $v0, $v0, $v1`. A separate statement is not
+refolded:
+
+```c
+y                  = coord->coord.t[1] + 0x190;
+coord->coord.t[1] += ((s16)work->field_9A - y) >> 3;
+```
+
+Same mechanism as the `base | (x | CONST)` entry above. Check `.i.rtl` for
+the constant's sign: when it is already negated there, the fix is in the C
+tree, not in a later pass.

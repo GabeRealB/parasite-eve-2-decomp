@@ -17,6 +17,7 @@
 #include "actors/actors_shared_80139948.h"
 #include "actors/actors_shared_80139c00.h"
 #include "actors/actors_shared_8013a0b0.h"
+#include "actors/actors_shared_8016a538.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
@@ -924,7 +925,97 @@ void func_actor_400600_80134970(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134B98);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134E28);
+/// `ActorsShared80139948`'s body, inlined: wrap the three angles to 12 bits and
+/// rebuild the model root's rotation from them. Inlining is what keeps each
+/// `G_SCRATCH_HEAD` access in the absolute `lui`/`lw` form instead of a
+/// register CSE would otherwise hoist the address into.
+static __inline__ void Actor400600_RebuildRotation(Task* arg0)
+{
+    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    MATRIX*          m;
+    MATRIX*          dst;
+
+    work->field_80           &= 0xFFF;
+    work->field_82           &= 0xFFF;
+    work->field_84           &= 0xFFF;
+    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    *(s32*)&m->m[0][0]        = 0x1000;
+    *(s32*)&m->m[0][2]        = 0;
+    *(s32*)&m->m[1][1]        = 0x1000;
+    *(s32*)&m->m[2][0]        = 0;
+    m->m[2][2]                = 0x1000;
+    *(MATRIX**)G_SCRATCH_HEAD = m;
+    RotMatrixZ((s16)work->field_84, m);
+    RotMatrixX((s16)work->field_80, m);
+    func_8004BFF8(work->field_82, m);
+    dst                   = &coord->coord;
+    dst->m[0][0]          = m->m[0][0];
+    dst->m[0][1]          = m->m[0][1];
+    dst->m[0][2]          = m->m[0][2];
+    dst->m[1][0]          = m->m[1][0];
+    dst->m[1][1]          = m->m[1][1];
+    dst->m[1][2]          = m->m[1][2];
+    dst->m[2][0]          = m->m[2][0];
+    dst->m[2][1]          = m->m[2][1];
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+    dst->m[2][2]          = m->m[2][2];
+}
+
+void func_actor_400600_80134E28(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    GsCOORDINATE2*   coord;
+    s32              id;
+    s32              sound;
+    s32              pan;
+    s32              y;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_718++;
+    if ((s16)work->field_718 < 0x11) {
+        func_actor_400600_80136FA8(arg0);
+        return;
+    }
+    if ((s16)work->field_718 == 0x11) {
+        work->field_730      = 0;
+        work->field_767      = 1;
+        work->field_73E      = work->field_9A;
+        work->obj_4B4.flags &= ~0x4000;
+    }
+    /* A separate statement: written inline, fold turns `a - (y + 400)` into
+     * `(a - 400) - y`. */
+    y                  = coord->coord.t[1] + 0x190;
+    coord->coord.t[1] += ((s16)work->field_9A - y) >> 3;
+    work->field_80    += (0x800 - (s16)work->field_80) >> 3;
+    if ((s16)work->field_9A >= coord->coord.t[1]) {
+        id = 0x40060003;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0003;
+        }
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->obj_4B4.flags |= 0x4000;
+        coord->coord.t[1]    = (s16)work->field_9A;
+        work->field_80       = 0;
+        work->field_84       = 0x800;
+        work->field_82      += 0x800;
+        Actor400600_RebuildRotation(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_720 = 2;
+        work2->field_726 = 0x10;
+        work2->field_746 = 0x19;
+        work2->field_742 = 1;
+        work->field_767  = 0;
+        work->field_768  = 1;
+        work->field_71E++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801350F4);
 
