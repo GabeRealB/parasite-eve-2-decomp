@@ -76,7 +76,8 @@ typedef struct Actor400600Work {
     /* 0x000 */ MATRIX             matrix_0;  // copy of the root coordinate's local matrix
     /* 0x020 */ MATRIX             matrix_20; // color matrix for the child models
     /* 0x040 */ MATRIX             matrix_40; // light matrix for the child models
-    /* 0x060 */ byte               pad_60[0x20];
+    /* 0x060 */ byte               pad_60[0x10];
+    /* 0x070 */ VECTOR             field_70;  // copy of the root coordinate's translation
     /* 0x080 */ u16                field_80;  // pitch, see ActorsShared80139948
     /* 0x082 */ u16                field_82;  // yaw, see ActorsShared80139948
     /* 0x084 */ u16                field_84;  // roll, see ActorsShared80139948

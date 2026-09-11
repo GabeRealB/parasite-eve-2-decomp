@@ -59873,3 +59873,24 @@ first unit (4 mod 8). `rodata_head = "0xB4"` (entry "`rodata_head` moves a
 mid-unit jump table to the front") fixed the placement for an actor too. Delete
 the `INCLUDE_RODATA` lines below the head from the `.c` file by hand; do not
 re-split it.
+
+## Two `s16` call results each copied after the *second* call: the callee returns `int` at this site
+
+`func_actor_400600_80136670` calls `func_actor_400600_8013886C` (defined `s16` in
+`actor_400600_2.c`) twice and compares both results. Target, after the second `jal`:
+
+```
+jal   f               ; delay: move s0,v0   (first result)
+move  s2,s0           ; the s16 local
+move  v1,v0           ; second result ...
+sll   s0,s0,16 / sra s0,s0,16   ; first compare re-extends the *raw* value in place
+... move a0,v1        ; ... and its s16 local
+```
+
+With an `s16` prototype each result goes straight into its local (one pseudo), the
+first compare extends into `$v0`, one callee-saved register goes unused and the
+frame is 8 bytes short (94.8%). Declaring the callee `s32 f(Task*)` in the calling
+unit — as an implicit `int` declaration would — makes each result its own SImode
+pseudo with a truncating copy into the `s16` local, and matched 100% with no other
+change. Signature: a raw-return register *and* a copy of it, both alive, with the
+first use sign-extending the raw one.

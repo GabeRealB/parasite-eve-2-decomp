@@ -102,6 +102,9 @@ void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2);
 void func_actor_400600_80136968(Task* arg0);
 void func_actor_400600_80137840(Task* arg0);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
+/* Defined in actor_400600_2.c returning `s16`; this unit sees an `int`
+ * return, and the truncating copy into an `s16` local is what matches. */
+s32  func_actor_400600_8013886C(Task* arg0);
 void func_actor_400600_80138AB8(Task* arg0);
 void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
@@ -1503,7 +1506,73 @@ void func_actor_400600_80136558(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80136670);
+void func_actor_400600_80136670(Task* arg0)
+{
+    Actor400600Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   player;
+    GameActor*       actor;
+    GpActorWork*     slot;
+    SVECTOR          v;
+    s16              a;
+    s16              b;
+
+    work              = (Actor400600Work*)arg0->idMap;
+    coord             = ((TmdObject*)arg0->extra)->field_8;
+    slot              = Gp_ActorSlots[0];
+    work->field_70.vx = coord->coord.t[0];
+    work->field_70.vy = coord->coord.t[1];
+    work->field_70.vz = coord->coord.t[2];
+    if (slot == NULL) {
+        return;
+    }
+    player = slot->extra->field_8;
+    actor  = slot->actor;
+    if (work->field_76E != 0) {
+        a = func_actor_400600_8013886C(arg0);
+        b = func_actor_400600_8013886C((Task*)slot);
+        if (a == 2 && (b == 1 || b == 6)) {
+            work->field_A8.x = 0x1194;
+            work->field_A8.y = 0;
+            work->field_A8.z = 0;
+        } else if (a == 3 && ((b >= 1 && b <= 2) || b == 6)) {
+            work->field_A8.x = 0x1194;
+            work->field_A8.y = 0;
+            work->field_A8.z = -0x1194;
+        } else if (a == 4 && ((b >= 1 && b <= 3) || b == 6)) {
+            work->field_A8.x = -0x125C;
+            work->field_A8.y = 0;
+            work->field_A8.z = -0x1194;
+        } else if (a == 5 && ((b >= 1 && b <= 4) || b == 6)) {
+            work->field_A8.x = -0x1194;
+            work->field_A8.y = 0;
+            work->field_A8.z = 0x1194;
+        } else if (b == 1 && a == 6) {
+            work->field_A8.x = 0;
+            work->field_A8.y = 0;
+            work->field_A8.z = 0;
+        } else if (b != 1 && a == 1) {
+            work->field_A8.x = 0x1194;
+            work->field_A8.y = 0;
+            work->field_A8.z = 0;
+        } else {
+            work->field_A8.x = player->coord.t[0];
+            work->field_A8.y = player->coord.t[1];
+            work->field_A8.z = player->coord.t[2];
+        }
+    } else {
+        work->field_A8.x = player->coord.t[0];
+        work->field_A8.y = player->coord.t[1];
+        work->field_A8.z = player->coord.t[2];
+    }
+    v.vx            = work->field_A8.x - coord->coord.t[0];
+    v.vy            = work->field_A8.y - coord->coord.t[1];
+    v.vz            = work->field_A8.z - coord->coord.t[2];
+    work->field_728 = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
+    VectorNormalSS(&v, &v);
+    work->field_72C = (ratan2(v.vx, v.vz) - work->field_82) & 0xFFF;
+    work->field_72A = (ratan2(-v.vx, -v.vz) - actor->field_52) & 0xFFF;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_80131F34);
 
