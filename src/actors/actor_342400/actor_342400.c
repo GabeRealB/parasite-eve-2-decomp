@@ -386,7 +386,25 @@ void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801632D4);
+void func_actor_342400_801632D4(Task* arg0)
+{
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+
+    if (work->enemy0 != NULL) {
+        if (work->enemy0->field_40 <= 0) {
+            work->enemy0 = NULL;
+        }
+    } else {
+        work->field_A |= 1;
+    }
+    if (work->enemy1 != NULL) {
+        if (work->enemy1->field_40 <= 0) {
+            work->enemy1 = NULL;
+        }
+    } else {
+        work->field_A |= 2;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80163354);
 
