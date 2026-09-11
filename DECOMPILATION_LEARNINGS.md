@@ -59432,3 +59432,26 @@ the block. That leaves the block unreachable, and it is deleted together with ar
 jump over it. The same shape is worth trying whenever the target has a
 `move rX,zero` in several branch delay slots and duplicate tails that did *not*
 merge.
+
+### `sll 12; sra 16` across a call is a literal shift pair, not an `s16` local
+
+`func_actor_342400_80168530` scales a step before `rsin`:
+
+```
+mflo  a3
+sll   s0, a3, 12
+jal   rsin
+sra   s0, s0, 16       # delay slot; s0 used as-is in the later mult
+```
+
+`s16 step = (x * k) >> 4;` means the same value but compiles to `sra 4`
+before the call and a fresh `sll 16; sra 16` sign extension after it: the
+truncation to `HImode` is a separate pseudo, and combine does not merge
+it with the `>> 4` across the call. Keep `step` as `s32` and write the pair
+literally, `step = ((w->field_41C * k) << 12) >> 16;` (`k = -0x10` in a local,
+so the `mult` survives). Same function: a `(u16)` cast on an `s16` field read
+in `((u16)w->field_7A - ratan2(...)) << 20 >> 20` gives the single `lhu` the
+target reuses for the `field_7A -= 0x18` stores; without it GCC emits both an
+`lh` and an `lhu` (97.5% -> 99.8%). The last 0.16% was two prologue loads tied
+at priority 1 in sched1 - swapping `coord = obj->field_8;` above
+`enemy = arg0->spawnArg2;` changed their luids and matched.
