@@ -548,7 +548,20 @@ void func_actor_400600_801398E0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139948);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139A78);
+void func_actor_400600_80139A78(Task* arg0)
+{
+    Actor400600Work* work;
+    s32              i;
+
+    work = (Actor400600Work*)arg0->idMap;
+    i    = 1;
+    do {
+        work->slots[i].field_9 = work->field_726;
+        Gp_AnimResetSlot(&work->anim, i, work->field_746);
+        i++;
+    } while (i < 0x12);
+    work->field_744 = work->field_746;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139AE8);
 

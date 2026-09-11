@@ -4,6 +4,7 @@
 #include "common.h"
 #include "main/task.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 /// Three packed halfwords filled by `func_actor_400600_80139F4C`: the actor's
@@ -45,14 +46,17 @@ typedef struct Actor400600Work {
     /* 0x086 */ byte               pad_86[0x2];
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
-    /* 0x092 */ u16                field_92;  // seeds field_73E on state entry
+    /* 0x092 */ u16                field_92; // seeds field_73E on state entry
     /* 0x094 */ byte               pad_94[0x4];
-    /* 0x098 */ u16                field_98;  // low half of the root coordinate's world X
+    /* 0x098 */ u16                field_98; // low half of the root coordinate's world X
     /* 0x09A */ byte               pad_9A[0x2];
-    /* 0x09C */ u16                field_9C;  // low half of the root coordinate's world Z
+    /* 0x09C */ u16                field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte               pad_9E[0xA];
-    /* 0x0A8 */ Actor400600ViewPos field_A8;  // copied to the stack for func_actor_400600_80139C00
-    /* 0x0AE */ byte               pad_AE[0x406];
+    /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for func_actor_400600_80139C00
+    /* 0x0AE */ byte               pad_AE[0x2];
+    /* 0x0B0 */ GpAnimCtx          anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
+    /* 0x0C4 */ GpAnimSlot         slots[0x12];
+    /* 0x394 */ byte               pad_394[0x120];
     /* 0x4B4 */ GpObj              obj_4B4;   // collision node; flags bit 0x8000 cleared
     /* 0x4D4 */ byte               pad_4D4[0xC0];
     /* 0x594 */ GpObj              obj_594;   // collision node; flags bit 0x8000 cleared
@@ -84,7 +88,7 @@ typedef struct Actor400600Work {
     /* 0x73E */ u16                field_73E;
     /* 0x740 */ s16                field_740;
     /* 0x742 */ s16                field_742; // animation request kind
-    /* 0x744 */ byte               pad_744[0x2];
+    /* 0x744 */ s16                field_744; // animation id now playing
     /* 0x746 */ s16                field_746; // animation id
     /* 0x748 */ s16                field_748; // sound step index (func_actor_400600_801361AC)
     /* 0x74A */ byte               pad_74A[0x6];
