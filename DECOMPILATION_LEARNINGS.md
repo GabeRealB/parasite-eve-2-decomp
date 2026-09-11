@@ -3,6 +3,37 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Two dest pointers keep offset `addiu`s live across a following `jal`
+
+`GsCOORDINATE2 *parts` plus two indexes that are only consumed *after* a
+call look like they can share a register:
+
+```c
+part7  = &parts[7];
+parts  = &parts[10];          /* reuse the base pseudo */
+child  = Task_SpawnFromTable(...);
+coord->sub = parts;
+```
+
+sched1 sinks both addius past the `jal` (they do not feed the call), so the
+base crosses it instead. The delay slot becomes `move a3,a1`, `parts[10]`
+never gets its own callee-saved home, and every later `$s` assignment
+slides. `func_actor_400500_8013226C` scored 85.5% that way.
+
+Two destination pseudos assigned before the call keep both addius live
+across it. One fills the delay slot (`addiu s0,s0,0x320`) and the results
+land in `$s0` / `$s7`:
+
+```c
+part7  = &parts[7];
+part10 = &parts[10];
+child  = Task_SpawnFromTable(...);
+coord->sub = part10;
+```
+
+This is a sched1 live-range effect, not the "dies in 2 places" allocno
+reuse of a work pointer reloaded after a call.
+
 ## `u16` to `s16` arg is `lhu`+`sll`/`sra` only if the load is not combined
 
 Passing a `u16` field to an `s16` parameter combines to a single `lh`. The

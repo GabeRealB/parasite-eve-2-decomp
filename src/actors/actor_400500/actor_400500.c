@@ -28,6 +28,8 @@ extern u8 D_actor_400500_8014393C[];
 extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
+extern TaskDesc D_actor_400500_80153D48;
+
 void func_8009EA50(s32 arg0);
 void func_actor_400500_80132628(Task* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
@@ -98,7 +100,74 @@ void func_actor_400500_80132000(Task* arg0)
     work->obj4.flags &= 0x7FFF;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013226C);
+void func_actor_400500_8013226C(Task* arg0)
+{
+    Actor400500Work*   work;
+    Actor400500Matrix  rot;
+    Actor400500Matrix* src;
+    GsCOORDINATE2*     parts;
+    GsCOORDINATE2*     part7;
+    GsCOORDINATE2*     part10;
+    GsCOORDINATE2*     coord;
+    Task*              child;
+    TmdObject*         extra;
+    TmdObject*         tmd;
+    TmdObject*         parentTmd;
+
+    parts              = ((TmdObject*)arg0->extra)->field_8;
+    work               = (Actor400500Work*)arg0->idMap;
+    part7              = &parts[7];
+    part10             = &parts[10];
+    child              = Task_SpawnFromTable(&D_actor_400500_80153D48, 0, 0, 0);
+    work->field_9F0[0] = child;
+    extra              = (TmdObject*)child->extra;
+    coord              = extra->field_8;
+    extra->field_C     = 0x80;
+    coord->sub         = part10;
+    coord->coord.t[0]  = 0x400;
+    coord->coord.t[1]  = 0;
+    coord->coord.t[2]  = 0;
+    src                = &rot;
+    rot.ident.m00_m01  = 0x1000;
+    src->ident.m02_m10 = 0;
+    src->ident.m11_m12 = 0x1000;
+    src->ident.m20_m21 = 0;
+    src->ident.m22     = 0x1000;
+    func_8004BFF8(-0x180, &src->mat);
+    ActorsShared80132c4c(&src->mat, &coord->coord);
+    parentTmd     = (TmdObject*)arg0->extra;
+    tmd           = (TmdObject*)child->extra;
+    tmd->field_24 = parentTmd->field_24;
+    tmd->field_25 = parentTmd->field_25;
+    if (tmd->field_18 != NULL) {
+        Tmd_ProcessStream(tmd);
+        Tmd_ProcessStream(tmd);
+    }
+    child              = Task_SpawnFromTable(&D_actor_400500_80153D48, 1, 0, 0);
+    work->field_9F0[1] = child;
+    extra              = (TmdObject*)child->extra;
+    coord              = extra->field_8;
+    extra->field_C     = 0x80;
+    coord->sub         = part7;
+    coord->coord.t[0]  = -0x400;
+    coord->coord.t[1]  = 0;
+    coord->coord.t[2]  = 0;
+    parentTmd          = (TmdObject*)arg0->extra;
+    tmd                = (TmdObject*)child->extra;
+    tmd->field_24      = parentTmd->field_24;
+    tmd->field_25      = parentTmd->field_25;
+    if (tmd->field_18 != NULL) {
+        Tmd_ProcessStream(tmd);
+        Tmd_ProcessStream(tmd);
+    }
+    rot.ident.m00_m01  = 0x1000;
+    src->ident.m02_m10 = 0;
+    src->ident.m11_m12 = 0x1000;
+    src->ident.m20_m21 = 0;
+    src->ident.m22     = 0x1000;
+    func_8004BFF8(0x180, &src->mat);
+    ActorsShared80132c4c(&src->mat, &coord->coord);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132438);
 
