@@ -803,7 +803,25 @@ void func_actor_400500_8013D210(Task* arg0)
     work->field_A08   = work->field_A08 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D274);
+void func_actor_400500_8013D274(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    s32              flag;
+
+    work = (Actor400500Work*)arg0->idMap;
+    if ((u8)work->field_A4B == 2) {
+        work->field_A2C = 0x258;
+        work2           = (Actor400500Work*)arg0->idMap;
+        if ((work2->field_A46 >= 0) || (((u8)work2->field_A46 & 0x7F) != 1)) {
+            flag             = 0x81;
+            work2->field_A46 = flag;
+            work2->field_A47 = 0;
+        }
+        work->field_A04 = 0;
+        work->field_A08 = work->field_A08 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D2D8);
 
