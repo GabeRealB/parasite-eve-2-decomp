@@ -59351,3 +59351,21 @@ reloads the byte (96%). The source compares against the constant:
 the pseudo as equivalent to `const_int 1` and substitutes the register for the
 constant, so a register-register compare with no `li` is the constant form, not
 a second field read.
+
+### `move v0, aN` right before `bnez v0`: the inlined flag helper returns `s16`
+
+`func_actor_342400_801670C0` sets a skip flag in `a1` (`move a1,zero` in the
+delay slot, `li a1,1` in the arm) and then tests a copy of it:
+
+```
+move  v0, a1
+bnez  v0, skip
+```
+
+A `static __inline__ s32` helper returning `hit` tests `a1` directly - the
+return pseudo coalesces with the flag (99.4%). Declaring the helper and its
+flag `s16` keeps the copy: the `HImode` return value goes through its own
+pseudo, which is what survives as the `move` (99.93%). The last register -
+`idMap` reloaded into `$v1` rather than `$a0` inside the arm - came from
+reloading into a fresh local instead of reassigning the helper's `work`, which
+kept that pseudo in `$a0`.

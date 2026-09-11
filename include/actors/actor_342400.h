@@ -34,9 +34,10 @@ typedef struct Actor342400Work {
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
     /* 0x060 */ byte      pad_60[0x10];
     /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by func_actor_342400_8016B5B0
-    /* 0x078 */ byte      pad_78[0x2];
+    /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX by func_actor_342400_801670C0
     /* 0x07A */ s16       field_7A; // heading fed to rsin / rcos
-    /* 0x07C */ byte      pad_7C[0x4];
+    /* 0x07C */ s16       field_7C; // roll, fed to RotMatrixZ by func_actor_342400_801670C0
+    /* 0x07E */ byte      pad_7E[0x2];
     /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
     /* 0x082 */ u16       field_82; // root coord.t[1], after lifting it by 0x3C
     /* 0x084 */ u16       field_84; // root coord.t[2]
