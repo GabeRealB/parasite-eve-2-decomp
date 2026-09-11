@@ -64,7 +64,9 @@ STATIC_ASSERT_SIZEOF(Actor342400Msg7DB, 0x4);
 /// halfword at `Task` 0x36 (the high half of `spawnArg1`). A child task that
 /// finishes writes 2 into `field_6` before killing itself.
 typedef struct Actor342400Slot {
-    /* 0x0 */ byte pad_0[0x6];
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ byte pad_4[0x2];
     /* 0x6 */ s16  field_6;
 } Actor342400Slot;
 STATIC_ASSERT_SIZEOF(Actor342400Slot, 0x8);
@@ -113,5 +115,6 @@ void func_actor_342400_80163010(Task* arg0);
 void func_actor_342400_801630A4(Task* arg0);
 void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
+void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 
 #endif

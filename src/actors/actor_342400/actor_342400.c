@@ -55,7 +55,19 @@ void func_actor_342400_80162888(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801628F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_8016299C);
+void func_actor_342400_8016299C(Task* arg0)
+{
+    s32                  i;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    Actor342400Slot*     slot;
+
+    for (i = 0; i < 3; i++) {
+        slot = &D_actor_342400_8016BF58[work->field_2];
+        func_actor_342400_80163200(work->field_2, slot->field_0, slot->field_2);
+        work->field_2++;
+    }
+    arg0->state++;
+}
 
 void func_actor_342400_80162A34(Task* arg0)
 {
