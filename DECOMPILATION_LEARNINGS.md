@@ -59521,3 +59521,18 @@ matched outright. CSE forwards each read-back from the store, and memrefs at
 different offsets off the same base do not conflict, so the stores still come
 out 724-then-722. So the source shape changes the dependency graph even though
 the loads and stores it produces are the same.
+
+### An implicit-`int` callee makes a later call lose sched1's birthing boost
+`func_actor_400600_801397E4` copies a table to the stack, calls
+`func_actor_400600_80138AA4(arg0)` for effect, then tests a second call's
+result. The target has `addiu s1,sp,0x10` (the table address, which crosses
+calls and so floats freely in sched1) in the second `jal`'s delay slot; the
+scratch put it after that call, in the `bnez` slot (94.0%). The scratch had no
+prototype for the first callee, so it was implicit `int` and emitted as
+`call_value`: that made `REG_N_SETS($v0)` 2, so `birthing_insn_p` no longer
+held for the second call, which stayed at priority 1 while the address insn
+got the `max_priority` boost and was scheduled after it. The real TU declares
+the callee `void`; adding that prototype to the scratch gave 100% with no
+source change. When a delay slot is off around several calls, check every
+callee in the scratch has the prototype the host file has - m2c's `/* extern */`
+lines, and callees it does not declare at all, are not that.

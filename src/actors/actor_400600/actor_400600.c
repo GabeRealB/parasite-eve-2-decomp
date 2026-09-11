@@ -45,6 +45,7 @@ extern const TaskFuncTable4 D_actor_400600_80131F60;
 extern const TaskFuncTable3 D_actor_400600_80131F70;
 extern const TaskFuncTable4 D_actor_400600_80131F7C;
 extern const TaskFuncTable4 D_actor_400600_80131F8C;
+extern const TaskFuncTable3 D_actor_400600_80131F9C;
 
 extern u8 D_actor_400600_8014220C[];
 extern u8 D_actor_400600_80143604[];
@@ -78,6 +79,7 @@ void func_actor_400600_80134B98(Task* arg0);
 void func_actor_400600_8013C518(Task* arg0);
 void func_actor_400600_8013C534(Task* arg0);
 void func_actor_400600_8013C598(Task* arg0);
+s32  func_actor_400600_8013CACC(Task* arg0);
 void func_actor_400600_8013C5F8(Task* arg0);
 void func_actor_400600_80132294(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 void func_actor_400600_80135DDC(Task* arg0);
@@ -515,7 +517,16 @@ void func_actor_400600_80139764(Task* arg0)
     fns.funcs[(s16)work->field_71E](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801397E4);
+void func_actor_400600_801397E4(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable3   fns  = D_actor_400600_80131F9C;
+
+    func_actor_400600_80138AA4(arg0);
+    if ((func_actor_400600_8013CACC(arg0) << 0x10) == 0) {
+        fns.funcs[(s16)work->field_71E](arg0);
+    }
+}
 
 void func_actor_400600_80139878(Task* arg0)
 {
