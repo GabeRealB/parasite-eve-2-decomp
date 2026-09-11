@@ -19,6 +19,15 @@ typedef struct Actor400500ViewPos {
 } Actor400500ViewPos;
 STATIC_ASSERT_SIZEOF(Actor400500ViewPos, 0x6);
 
+/// Overlay of the model-root `GsCOORDINATE2` at `TmdObject::field_8`.
+/// `x` / `z` are the low halfwords of `coord.t[0]` / `coord.t[2]`.
+typedef struct Actor400500RootXZ {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ u16  x;
+    /* 0x1A */ byte pad_1A[6];
+    /* 0x20 */ u16  z;
+} Actor400500RootXZ;
+
 /// Per-actor state block for the `actor_400500` overlay.
 ///
 /// `func_actor_400500_80135414` is the overlay's only allocator: it calls
@@ -39,7 +48,11 @@ typedef struct Actor400500Work {
     /* 0x948 */ s16                field_948;
     /* 0x94A */ s16                field_94A;
     /* 0x94C */ s16                field_94C;
-    /* 0x94E */ byte               pad_94E[0x52];
+    /* 0x94E */ byte               pad_94E[2];
+    /* 0x950 */ u16                field_950; // low half of root coord.t[0]
+    /* 0x952 */ byte               pad_952[2];
+    /* 0x954 */ u16                field_954; // low half of root coord.t[2]
+    /* 0x956 */ byte               pad_956[0x4A];
     /* 0x9A0 */ Actor400500ViewPos field_9A0;
     /* 0x9A6 */ byte               pad_9A6[0x36];
     /* 0x9DC */ s16                field_9DC;
