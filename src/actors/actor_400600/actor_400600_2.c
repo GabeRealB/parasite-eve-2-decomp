@@ -90,7 +90,25 @@ void func_actor_400600_80139F4C(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_2", func_actor_400600_80139FE0);
+void func_actor_400600_80139FE0(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
+{
+    MATRIX         root;
+    MATRIX         local;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* coords;
+
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord  = &coords[arg1];
+    Gp_UpdateCoord(coord);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0].workm, &root);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
+    coords[0].coord.t[0] = arg2->x - (local.t[0] - root.t[0]);
+    coords[0].coord.t[1] = arg2->y - (local.t[1] - root.t[1]);
+    coords[0].flg        = 0;
+    coord->flg           = 0;
+    Gp_UpdateCoord(coord);
+    Gp_UpdateCoord(coords);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_2", func_actor_400600_8013A0B0);
 
