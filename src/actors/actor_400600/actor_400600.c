@@ -54,9 +54,8 @@ extern u8 D_actor_400600_80143604[];
 extern u8 D_actor_400600_80143B24[];
 extern u8 D_actor_400600_80144994[];
 
-/* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` and
- * `func_actor_400600_8013A0B0` are called both with and without an argument,
- * so they keep an unprototyped declaration. */
+/* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` is called
+ * both with and without an argument, so it keeps an unprototyped declaration. */
 void func_actor_400600_80135998(Task* arg0, s16 arg1);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
@@ -66,7 +65,6 @@ s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139CAC();
-s32  func_actor_400600_8013A0B0();
 void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_actor_400600_8013B6F4(Task* arg0);

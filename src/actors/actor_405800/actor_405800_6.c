@@ -5,10 +5,10 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "actors/actor_405800.h"
+#include "actors/actors_shared_8013a0b0.h"
 
 void func_8009EA50(s16 arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
-s32  func_actor_405800_801385F4(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138854);
@@ -36,7 +36,7 @@ void func_actor_405800_80138A18(Task* task)
 
     work = (Actor405800Work*)task->idMap;
     func_actor_405800_8013A0F4(task);
-    if ((s16)func_actor_405800_801385F4(task) != 0) {
+    if ((s16)ActorsShared8013a0b0(task) != 0) {
         work->field_846 = work->field_846 + 1;
     }
 }
@@ -155,7 +155,7 @@ void func_actor_405800_801397F0(Task* task)
 {
     Actor405800Work* work;
 
-    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)func_actor_405800_801385F4(task) != 0)) {
+    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)ActorsShared8013a0b0(task) != 0)) {
         work            = (Actor405800Work*)task->idMap;
         work->field_846 = 2;
         work->field_848 = 0;
@@ -196,7 +196,7 @@ void func_actor_405800_801398C0(Task* task)
     Actor405800Work* work2;
 
     work = (Actor405800Work*)task->idMap;
-    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)func_actor_405800_801385F4(task) != 0)) {
+    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)ActorsShared8013a0b0(task) != 0)) {
         work->field_85E  = 0x12C;
         work2            = (Actor405800Work*)task->idMap;
         work2->field_846 = 2;

@@ -18,7 +18,6 @@ s32  func_actor_405800_80136A1C(Task* arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80137948(Task* task);
 void func_actor_405800_801383CC(Task* arg0, SVECTOR* arg1, s16 arg2);
-s32  func_actor_405800_801385F4(Task* arg0);
 void func_actor_405800_80139358(Task* arg0);
 void func_actor_405800_801393E8(Task* arg0);
 void func_actor_405800_801394E4(Task* arg0);

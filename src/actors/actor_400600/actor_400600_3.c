@@ -34,9 +34,8 @@ extern u8 D_actor_400600_80151B1C[];
 
 void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 
-/* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` and
- * `func_actor_400600_8013A0B0` are called both with and without an argument,
- * so they keep an unprototyped declaration. */
+/* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` is called
+ * both with and without an argument, so it keeps an unprototyped declaration. */
 void func_actor_400600_80135998(Task* arg0, s16 arg1);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
@@ -45,11 +44,8 @@ void func_actor_400600_80137498(Task* arg0, s16 arg1);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139CAC();
-s32  func_actor_400600_8013A0B0();
 void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_actor_400600_8013AAD8(Task* arg0);
-void func_actor_400600_8013AB44(Task* arg0);
 void func_actor_400600_8013B830(Task* arg0);
 void func_actor_400600_8013B8AC(Task* arg0);
 void func_actor_400600_8013CB40(Task* arg0, u8 arg1);
@@ -111,21 +107,4 @@ void func_actor_400600_80139FE0(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
     coord->flg           = 0;
     Gp_UpdateCoord(coord);
     Gp_UpdateCoord(coords);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013A0B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013A0F0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013A170);
-
-void func_actor_400600_8013A26C(Task* arg0)
-{
-    Actor400600Work* work                = (Actor400600Work*)arg0->idMap;
-    void             (*states[2])(Task*) = {
-        func_actor_400600_8013AAD8,
-        func_actor_400600_8013AB44,
-    };
-
-    states[(s16)work->field_71C](arg0);
 }
