@@ -121,7 +121,33 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183218);
+typedef struct {
+    u8 _pad0[0xC];
+    u8 field_C;
+    u8 _pad2[0x7];
+    u8 field_14;
+} SprtViewState;
+
+typedef struct {
+    u8             _pad0[0xA0];
+    SprtViewState* field_A0;
+} SprtBigRec;
+
+void func_shelter_b3_dumping_hole_80183218(u8 arg0)
+{
+    GameSessionFrom4* g4 = (GameSessionFrom4*)&Game_Session->field_4;
+    SprtViewState*    vs =
+        ((SprtBigRec*)Gp_SprtTables[g4->field_3 - 1]->field_0[g4->field_2 - 1])->field_A0;
+
+    if (arg0 == 0) {
+        vs->field_C  = 1;
+        vs->field_14 = 1;
+    } else if (arg0 == 1) {
+        vs->field_14 = 0;
+    } else if (arg0 == 2) {
+        vs->field_C = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183298);
 
