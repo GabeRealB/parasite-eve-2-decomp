@@ -3,6 +3,23 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `s8 x = 0x81` is `li -127`; an `s32` temp keeps `li 0x81`
+
+Assigning `0x81` to an `s8` field folds to QImode `const_int -127` and emits
+`addiu $v0, $zero, -127` (`li -0x7f`) before `sb`. The target that loads 129
+and lets `sb` truncate needs the constant born as a signed `s32`:
+
+```c
+s32 flag = 0x81;
+work->field_A46 = flag; /* addiu $v0, $zero, 0x81; sb */
+```
+
+Do not change the field to `u8` to get this: the same address is also read
+with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
+on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
+`base_1.c` 100%; preprocessed
+`ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
+
 ## An `s16` compared and stored into `u16` is `lh`+`lhu`; `s32` keeps one `lh`
 
 `work->field_A08 = work->field_A1A` with `field_A1A` `s16` and `field_A08`
