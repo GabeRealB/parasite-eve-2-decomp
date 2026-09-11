@@ -30,7 +30,9 @@ extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
 void func_8009EA50(s32 arg0);
+s32  func_actor_400500_80133460(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
+s32  func_actor_400500_8013DB78(Task* arg0);
 
 extern TaskFuncTable3 D_actor_400500_80131EE4;
 
@@ -192,7 +194,36 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013CF68);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D078);
+void func_actor_400500_8013D078(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    s32              flag;
+
+    work = (Actor400500Work*)arg0->idMap;
+    if (work->field_A4A != 0) {
+        work->field_A4A = 0;
+        func_actor_400500_8013DB64(arg0, 5);
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
+        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        if (((u16)work->field_94A & 0xFFF) == 0xC00) {
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_9F8 = 0x10;
+            work2->field_9FE = 4;
+            work2->field_9FA = 2;
+            work->field_A08  = 3;
+            return;
+        }
+        work3            = (Actor400500Work*)arg0->idMap;
+        work3->field_A06 = 9;
+        work3->field_A08 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D144);
 

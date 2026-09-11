@@ -130,7 +130,7 @@ typedef struct Actor400500Work {
     /* 0xA42 */ s16                field_A42;
     /* 0xA44 */ byte               pad_A44[0x5];
     /* 0xA49 */ s8                 field_A49;
-    /* 0xA4A */ byte               pad_A4A;
+    /* 0xA4A */ s8                 field_A4A;
     /* 0xA4B */ s8                 field_A4B; // last message kind 1..4
     /* 0xA4C */ s8                 field_A4C; // set with kind 1
     /* 0xA4D */ byte               pad_A4D[0x3];
