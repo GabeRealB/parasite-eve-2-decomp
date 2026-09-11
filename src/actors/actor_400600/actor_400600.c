@@ -62,7 +62,6 @@ s32  func_actor_400600_801370F4();
 s32  func_actor_400600_80137AF0(Task* arg0);
 s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
-void func_actor_400600_801387DC(Task* arg0, s32 arg1);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139CAC();
 s32  func_actor_400600_8013A0B0();
@@ -286,7 +285,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801383E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801387DC);
+/// Copies this actor's model flags onto both child tasks' models and, for a
+/// non-negative `arg1`, sets the children's light mode to it.
+void func_actor_400600_801387DC(Task* arg0, s32 arg1)
+{
+    Actor400600Work* work;
+    TmdObject*       model;
+    Task*            child;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    model = (TmdObject*)arg0->extra;
+    if (work->field_704 != NULL) {
+        child                               = work->field_704;
+        ((TmdObject*)child->extra)->field_C = model->field_C;
+        if (arg1 >= 0) {
+            Gp_SetLightMode(child->spawnArg2, arg1);
+        }
+    }
+    if (work->field_708 != NULL) {
+        child                               = work->field_708;
+        ((TmdObject*)child->extra)->field_C = model->field_C;
+        if (arg1 >= 0) {
+            Gp_SetLightMode(child->spawnArg2, arg1);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013886C);
 

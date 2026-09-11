@@ -19380,6 +19380,24 @@ entry = temp;
 `Gp_DispatchMsg` is the example. The one-pointer form stuck at 92% with only
 that `lw`/`move` pair missing.
 
+Testing the field itself and re-reading it inside the `if` gives the same pair
+without a named temp: CSE turns the second load into a copy of the tested
+pseudo, and the copy survives as the child pointer's own register.
+
+```c
+if (work->field_704 != NULL) {
+    child = work->field_704;   /* lw v0; beqz v0; move a0, v0 */
+    ...
+}
+```
+
+`func_actor_400600_801387DC` needed it for a second reason: with the child in
+`$a0`, `$a1` still held `arg1` at the first `Gp_SetLightMode`, so
+`reload_cse_regs` deleted the `move a1, s0`. With `child = work->field_704;
+if (child != NULL)`, the pointer landed in `$a1`, the move came back, and the
+score stuck at 85.7%. An inline helper that took the child as a parameter did
+not help, because its parameter copy was coalesced.
+
 ## Init a NULL result before a call so it rematerializes into leftover `%hi`
 
 When the target forms `&global.field` with split addresses (`lui s0, %hi`;
