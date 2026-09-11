@@ -14,8 +14,6 @@
 
 #include "actors/actor_341700.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_80169F38);
-
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_80169FB0);
 
 void func_actor_341700_8016A058(Task* arg0)
