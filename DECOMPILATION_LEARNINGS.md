@@ -3,6 +3,52 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Two call-diamonds need two flags; one `s32` lives in `$a0` and jump-threads
+
+A pair of `if (field) { field = 0; jal; flag = 1; } else { flag = 0; }` tests
+in sequence looks like one `s32 flag` reused after the first `bnez`. One
+variable is live at the second `jal`, so it takes `$a0` (`preferences` from
+the incoming argument, and `$a0` is the call setup). Then:
+
+- `beqz` cannot hold `move $v0, zero` — that would clobber `$a0` on the
+  fall-through into the `jal`.
+- The inner `flag = 0` arm is jump-threaded onto the later calls, dropping
+  the extra `move $v0, zero` block and the `j` / `li $v0, 1` after the
+  second `jal`.
+
+Give each diamond its own short-lived flag so both phis die into `$v0`:
+
+```c
+if (work->field_A4A != 0) {
+    work->field_A4A = 0;
+    func(arg0, 5);
+    flag = 1;
+} else {
+    flag = 0;
+}
+if (flag == 0) {
+    if (work2->field_A49 != 0) {
+        work2->field_A49 = 0;
+        if (work2->field_A1E & 1) {
+            flag2 = 0;
+        } else {
+            func(arg0, 4);
+            flag2 = 1;
+        }
+    } else {
+        flag2 = 0;
+    }
+    if (flag2 == 0 && ...) {
+```
+
+`func_actor_400500_80136864` (`base_1.c` 89.4% one flag in `$a0`, `base_2.c`
+99.7% two flags / leftover `$a0` on the shared `idMap` reload, `base_3.c`
+100%; preprocessed
+`c94bebb11bdc205b8397160000a8a22a0347e2613b0ad275a84bc36696387834`).
+The `$a0` leftover on a pointer reloaded in both arms is the existing
+`func_actor_400600_8013BA00` split: per-arm locals plus a duplicated tail
+store, merged by `jump2`.
+
 ## `if (x != 0) return expr; return 0` inverts; write the zero check first
 
 A leaf that divides by a loaded field, with target:
