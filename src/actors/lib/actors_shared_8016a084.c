@@ -1,0 +1,38 @@
+#include "common.h"
+
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+
+#include "actors/actors_shared_8016974c.h"
+#include "actors/actors_shared_8016a084.h"
+
+extern u32 Gp_LcgState;
+
+void ActorsShared8016a084(Task* arg0)
+{
+    ActorsShared80168d3cWork* work;
+    ActorsShared80168d3cWork* work2;
+    s32                       soundId;
+    s32                       pan;
+    u32                       rand;
+
+    work            = (ActorsShared80168d3cWork*)arg0->idMap;
+    work->field_438 = 0;
+    if ((s16)++work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0004;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (ActorsShared8016974c(arg0) != 0) {
+        rand             = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState      = rand;
+        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
+        work2            = (ActorsShared80168d3cWork*)arg0->idMap;
+        work2->field_420 = 3;
+        work2->field_422 = 0;
+    }
+}

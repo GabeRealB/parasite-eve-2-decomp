@@ -62,7 +62,8 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x440 */ s16                       field_440;
     /* 0x442 */ byte                      pad_442[0x6];
     /* 0x448 */ s16                       field_448;
-    /* 0x44A */ byte                      pad_44A[0xA];
+    /* 0x44A */ s16                       field_44A;
+    /* 0x44C */ byte                      pad_44C[0x8];
 } ActorsShared80168d3cWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80168d3cWork, 0x454);
 
