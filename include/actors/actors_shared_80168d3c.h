@@ -43,7 +43,9 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x2CC */ GpObj                     obj_2CC;
     /* 0x2EC */ GpRec18                   rec_2EC[8];
     /* 0x3AC */ GpObj                     obj_3AC;
-    /* 0x3CC */ byte                      pad_3CC[0x46];
+    /* 0x3CC */ byte                      pad_3CC[0x40];
+    /* 0x40C */ s16                       field_40C; // heading of the fall push
+    /* 0x40E */ byte                      pad_40E[0x4];
     /* 0x412 */ u16                       field_412; // per-state frame counter
     /* 0x414 */ s16                       field_414; // animation request kind
     /* 0x416 */ byte                      pad_416[0x2];

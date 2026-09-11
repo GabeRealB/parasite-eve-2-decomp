@@ -37996,6 +37996,18 @@ Two cases cannot be promoted mechanically at all:
   regenerates that per link address. The data symbol is defined in one overlay
   and nowhere else.
 
+## A promotion leaves a stale `.o` behind a renamed `INCLUDE_RODATA` table entry
+
+**Problem:** after `promote`, the scoped build fails with `actor_342400.i:(.rodata+0xd8):
+undefined reference to 'func_actor_342400_80164DD4'` although the re-split
+already rewrote the table in `asm/.../actor_342400.rodata.s` to
+`.word ActorsShared80164dd4`. **Cause:** ninja does not track the `.s` an
+`INCLUDE_RODATA` pulls in, so the first unit's `.c.o` - which holds the state
+handler table naming every body - is not rebuilt when only the rodata changes.
+Rerunning does not help. **Fix:** delete that overlay's
+`build/USA/src/<family>/<overlay>/<overlay>.c.o` (one per sharer) and rebuild.
+Seen promoting `ActorsShared80164dd4` (`actor_342400` + `actor_341700`).
+
 ## `build-and-verify.sh` used to hide every build error
 
 ninja reports a failed command on **stdout** - the compiler diagnostic, the
