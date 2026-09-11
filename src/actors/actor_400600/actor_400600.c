@@ -562,7 +562,64 @@ void func_actor_400600_80133FC0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134218);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134570);
+void func_actor_400600_80134570(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   player;
+    GsCOORDINATE2*   root;
+    SVECTOR          vec;
+    s32              i;
+    s32              y;
+    s32              id;
+    s32              sound;
+    s32              pan;
+    s16              vy;
+
+    work            = (Actor400600Work*)arg0->idMap;
+    coord           = ((TmdObject*)arg0->extra)->field_8;
+    player          = Gp_ActorSlots[0]->extra->field_8;
+    work->field_84 += -(s16)work->field_84 >> 2;
+    work->field_718++;
+    if ((s16)work->field_718 >= 8) {
+        work->obj_4B4.flags |= 0x8000;
+        work->field_722     += 2;
+        work->field_724     += work->field_722;
+        y                    = coord->coord.t[1] + work->field_724;
+        coord->coord.t[1]    = y;
+        if (y >= (s16)work->field_9A) {
+            coord->coord.t[1] = (s16)work->field_9A;
+            player->flg       = 0;
+            Gp_UpdateCoord(player);
+            if (work->field_76C != 0) {
+                vy   = -0x1A4;
+                root = ((TmdObject*)arg0->extra)->field_8;
+                Gp_SpawnEff(D_8011574C, root, 0x40, NULL);
+                for (i = 0; i < 16; i++) {
+                    vec.vx = (u32)rsin(i << 8) >> 3;
+                    vec.vy = vy;
+                    vec.vz = (u32)rcos(i << 8) >> 3;
+                    Gp_SpawnEff(D_80115738, root, 0x01202148, &vec);
+                }
+            }
+            id = 0x40060003;
+            if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+                id = 0x404A0003;
+            }
+            sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+            pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+            work->obj_4B4.flags |= 0x4000;
+            work2                = (Actor400600Work*)arg0->idMap;
+            work2->field_720     = 2;
+            work2->field_746     = 0x19;
+            work2->field_726     = 0x10;
+            work2->field_742     = 1;
+            work->field_71E++;
+        }
+    }
+}
 
 void func_actor_400600_8013479C(Task* arg0)
 {
