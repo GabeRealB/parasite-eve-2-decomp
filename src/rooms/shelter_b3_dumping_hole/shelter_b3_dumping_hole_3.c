@@ -1,5 +1,8 @@
 #include "common.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
@@ -214,7 +217,66 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8018098C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_80181430);
+typedef struct {
+    u8    pad_00[0x80];
+    Task* field_80;
+    Task* field_84;
+    Task* field_88;
+    u8    pad_8C[0xA];
+    s16   field_96;
+} DumpingHoleEntity4;
+
+typedef struct {
+    u8                  pad_00[0x1C];
+    DumpingHoleEntity4* field_1C;
+} DumpingHoleState4;
+
+typedef struct {
+    u8  field_0;
+    u8  field_1;
+    s16 field_2;
+} DumpingHoleDesc7DA;
+
+extern DumpingHoleState4* D_shelter_b3_dumping_hole_8018F4AC;
+extern s16                D_shelter_b3_dumping_hole_8018F4B0;
+extern s8                 D_8007218A;
+extern u8                 D_80073BA9;
+
+void func_shelter_b3_dumping_hole_80181430(void)
+{
+    DumpingHoleEntity4* ent;
+    DumpingHoleDesc7DA  desc;
+    s32                 desc3[5];
+    s32*                p3;
+
+    ent = D_shelter_b3_dumping_hole_8018F4AC->field_1C;
+    Gp_SetOverrideVec(NULL);
+    if (ent->field_88 != NULL) {
+        Task_CallExit(ent->field_88);
+        ent->field_88 = NULL;
+    }
+    ent->field_96 = 1;
+    Gp_PulseState1C();
+
+    D_shelter_b3_dumping_hole_8018F4B0 = 0;
+    desc.field_0 = Game_Session->field_7;
+    desc.field_1 = Game_Session->field_6;
+    desc.field_2 = 0x13;
+    Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&desc, 0x7DB);
+
+    Display_ClampField126(0);
+    Gp_DispatchMsg(ent->field_84, 0x7D5, 1, 0);
+    Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
+
+    p3       = desc3;
+    desc3[0] = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+    p3[1]    = 1;
+    desc3[2] = 0;
+    desc3[3] = 0;
+    desc3[4] = 0;
+    Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)desc3, 0);
+    CdCmd_CancelReplaceAndActivate();
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_80181560);
 
