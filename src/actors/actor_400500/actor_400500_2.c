@@ -100,7 +100,41 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BE50);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BEC4);
+void func_actor_400500_8013BEC4(Task* arg0)
+{
+    Actor400500Work*   work;
+    Actor400500Matrix  rot;
+    Actor400500Matrix* src;
+    Task*              child;
+    GsCOORDINATE2*     coord;
+    Actor400500Work*   work2;
+    s32                angle;
+
+    work                                = (Actor400500Work*)arg0->idMap;
+    src                                 = &rot;
+    work->field_A26                     = work->field_A26 + 0x80;
+    work->field_A04                     = work->field_A04 + 1;
+    child                               = ((Actor400500Work*)arg0->idMap)->field_9F0[1];
+    angle                               = work->field_A26;
+    ((TmdObject*)child->extra)->field_C = 0;
+    coord                               = ((TmdObject*)child->extra)->field_8;
+    rot.ident.m00_m01                   = 0x1000;
+    rot.ident.m02_m10                   = 0;
+    src->ident.m11_m12                  = 0x1000;
+    rot.ident.m20_m21                   = 0;
+    src->ident.m22                      = 0x1000;
+    func_8004BFF8(angle, &src->mat);
+    ActorsShared80132c4c(&src->mat, &coord->coord);
+    if ((s16)work->field_A26 >= 0x200) {
+        work2            = (Actor400500Work*)arg0->idMap;
+        work2->field_9F8 = 0x10;
+        work2->field_9FE = 8;
+        work2->field_9FA = 2;
+        work->field_A18  = 0;
+        work->field_A04  = 0;
+        work->field_A08  = work->field_A08 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BFB0);
 

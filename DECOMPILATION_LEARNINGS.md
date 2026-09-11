@@ -3,6 +3,27 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `u16` to `s16` arg is `lhu`+`sll`/`sra` only if the load is not combined
+
+Passing a `u16` field to an `s16` parameter combines to a single `lh`. The
+target that reloads with `lhu` and sign-extends in the delay slots of a
+pointer chase needs an `s32` temporary:
+
+```c
+child = work->child;
+angle = work->heading; /* lhu, before any store through child */
+((TmdObject*)child->extra)->field_C = 0;
+func_8004BFF8(angle, &src->mat); /* sll/sra of the s32 */
+```
+
+`func_actor_400500_8013BEC4` with `func_8004BFF8(work->field_A26, …)` is `lh`
+at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
+that store a true alias dep of the reload: `lhu` cannot fill the child-load
+delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
+(92.8%). Moving the assignment before `field_C` (after the child load, so
+CSE cannot reuse the increment) is 100%. Compare `func_actor_400500_80138CE8`,
+which keeps the increment in `angle` and never reloads.
+
 ## Reusing a pointer across a call keeps the pre-call home
 
 A work pointer loaded before `jalr` and assigned again after it is one pseudo
