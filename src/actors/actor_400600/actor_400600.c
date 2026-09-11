@@ -32,6 +32,8 @@ extern s32 Gp_LcgState;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
+void func_8017D9B8(s32);
+
 /* One of the sub-state tables in this unit's leading rodata. The original wrote
  * it as a local array initializer, so GCC 2.8.1 put the four constant pointers
  * in the constant pool and had the dispatcher copy them onto the stack. Writing
@@ -109,7 +111,31 @@ void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2)
     func_actor_400600_80132294(arg0, 0x10, 0x11, 0x80, arg1, arg2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801328A8);
+void func_actor_400600_801328A8(Task* arg0)
+{
+    GsCOORDINATE2*   coords;
+    Actor400600Work* work;
+    s32              sound;
+    s32              pan;
+
+    coords              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    work                = (Actor400600Work*)arg0->idMap;
+    coords->coord.t[0] += (0x4364 - coords->coord.t[0]) >> 2;
+    coords->coord.t[2] += (0x760 - coords->coord.t[2]) >> 2;
+    work->field_722    += 2;
+    work->field_724    += work->field_722;
+    coords->coord.t[1] += work->field_724;
+    if (coords->coord.t[1] >= -0x508) {
+        Gp_SpawnPadLerp(0xA, 0xC0, 0x80);
+        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x531A0009;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        func_8017D9B8(1);
+        func_actor_400600_80139D98(arg0, 0x19, 0x30);
+        coords->coord.t[1] = -0x508;
+        work->field_71C++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801329EC);
 
