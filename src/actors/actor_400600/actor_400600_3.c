@@ -47,6 +47,7 @@ s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
 void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
+void func_actor_400600_80139948(Task* arg0);
 void func_actor_400600_80139CAC();
 s32  func_actor_400600_8013A0B0();
 void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
@@ -196,7 +197,30 @@ void func_actor_400600_8013A908(Task* arg0)
     work->field_71C = work->field_71C + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013A990);
+void func_actor_400600_8013A990(Task* arg0)
+{
+    Actor400600Work* work;
+    GsCOORDINATE2*   coord;
+
+    work               = (Actor400600Work*)arg0->idMap;
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    work->field_722   += 2;
+    work->field_724   += work->field_722;
+    coord->coord.t[1] += work->field_724;
+    if ((s16)work->field_92 < coord->coord.t[1]) {
+        coord->coord.t[1] = (s16)work->field_92;
+        func_actor_400600_80139D98(arg0, 0x13, 0x10);
+        work->field_84 += 0x800;
+        func_actor_400600_80139948(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        work->field_718 = 0;
+        work->field_768 = 0;
+        work->field_769 = 1;
+        work->field_71C++;
+    }
+    func_actor_400600_80139CAC(arg0);
+}
 
 void func_actor_400600_8013AA5C(Task* arg0)
 {

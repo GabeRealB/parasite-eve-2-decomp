@@ -59507,3 +59507,17 @@ logical shift just because the store truncates (91.3%, the only diff was the two
 `sra`s). Write `vec.vx = (u32)rsin(a) >> 3;`, the form `pe/pepper_spray` already
 uses. The same function also shows that separate `s16` locals (m2c's
 `sp10/sp12/sp14`) lose the stores that a single `SVECTOR` local keeps.
+
+### Velocity/accumulator updates: `+=` on the `s16` fields, not `u16` step locals
+`func_actor_400600_8013A990` does `field_722 += 2; field_724 += field_722;
+t[1] += field_724` on a work block, with `field_724` stored before `field_722`.
+The sibling form in the same TU (`u16 step = field_722 + 2; u16 accum = field_724
++ step;` then two stores) gives identical instructions but 93.8%: sched1
+interleaves the `extra->field_8` pointer load with both `lhu`s, so its temp
+overlaps them and local-alloc puts it in `$a0`. Clobbering `$a0` costs an extra
+`move $a0,$s2` before the first call, which reload_cse would otherwise have
+deleted. Writing the three statements as compound assignments on the fields
+matched outright. CSE forwards each read-back from the store, and memrefs at
+different offsets off the same base do not conflict, so the stores still come
+out 724-then-722. So the source shape changes the dependency graph even though
+the loads and stores it produces are the same.
