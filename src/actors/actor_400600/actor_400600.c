@@ -79,6 +79,8 @@ void func_actor_400600_8013C534(Task* arg0);
 void func_actor_400600_8013C598(Task* arg0);
 void func_actor_400600_8013C5F8(Task* arg0);
 void func_actor_400600_80132294(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
+void func_actor_400600_80135DDC(Task* arg0);
+void func_actor_400600_80139C00(Task* arg0, Actor400600ViewPos* arg1, s32 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013203C);
 
@@ -443,7 +445,31 @@ void func_actor_400600_801394E0(Task* arg0)
     fns.funcs[(s16)work->field_71E](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80139560);
+void func_actor_400600_80139560(Task* arg0)
+{
+    Actor400600Work*   work;
+    Actor400600Work*   work2;
+    Actor400600ViewPos pos;
+    s16                count;
+
+    work = (Actor400600Work*)arg0->idMap;
+    func_actor_400600_80138AA4(arg0);
+    if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
+        count           = work->field_750 - 1;
+        work->field_750 = count;
+        if (count == 0) {
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_71C = 0xB;
+            work2->field_71E = 0;
+            return;
+        }
+        pos.x = work->field_A8.x;
+        pos.y = work->field_A8.y;
+        pos.z = work->field_A8.z;
+        func_actor_400600_80139C00(arg0, &pos, 0x18);
+        func_actor_400600_80135DDC(arg0);
+    }
+}
 
 void func_actor_400600_80139608(Task* arg0)
 {

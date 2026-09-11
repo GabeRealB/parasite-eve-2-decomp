@@ -44,7 +44,9 @@ typedef struct Actor400600Work {
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
     /* 0x092 */ u16                field_92;  // seeds field_73E on state entry
-    /* 0x094 */ byte               pad_94[0x420];
+    /* 0x094 */ byte               pad_94[0x14];
+    /* 0x0A8 */ Actor400600ViewPos field_A8;  // copied to the stack for func_actor_400600_80139C00
+    /* 0x0AE */ byte               pad_AE[0x406];
     /* 0x4B4 */ GpObj              obj_4B4;   // collision node; flags bit 0x8000 cleared
     /* 0x4D4 */ byte               pad_4D4[0xC0];
     /* 0x594 */ GpObj              obj_594;   // collision node; flags bit 0x8000 cleared
@@ -78,7 +80,8 @@ typedef struct Actor400600Work {
     /* 0x744 */ byte               pad_744[0x2];
     /* 0x746 */ s16                field_746; // animation id
     /* 0x748 */ s16                field_748; // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ byte               pad_74A[0x8];
+    /* 0x74A */ byte               pad_74A[0x6];
+    /* 0x750 */ u16                field_750; // countdown to state 0xB
     /* 0x752 */ s16                field_752;
     /* 0x754 */ s16                field_754;
     /* 0x756 */ u16                field_756; // countdown to the next state-2 transition
