@@ -72,6 +72,7 @@ extern const TaskFuncTable3 D_actor_400600_80131F70;
 extern const TaskFuncTable4 D_actor_400600_80131F7C;
 extern const TaskFuncTable4 D_actor_400600_80131F8C;
 extern const TaskFuncTable3 D_actor_400600_80131F9C;
+extern const TaskFuncTable3 D_actor_400600_80132030;
 
 extern u8 D_actor_400600_8014220C[];
 extern u8 D_actor_400600_80143604[];
@@ -89,6 +90,7 @@ void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
 void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shade);
+void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2);
 void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
@@ -1484,7 +1486,54 @@ s32 func_actor_400600_80137AF0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137C34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137EF0);
+INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_80132030);
+
+/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
+/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
+static __inline__ void Actor400600_UpdateColor(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+
+    coord     = &((TmdObject*)arg0->extra)->field_8[1];
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
+
+void func_actor_400600_80137EF0(Task* arg0)
+{
+    TmdObject*       model = (TmdObject*)arg0->extra;
+    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    TaskFuncTable3   fns   = D_actor_400600_80132030;
+
+    switch (D_801153F4) {
+        case 2:
+            model->field_C |= 0x80;
+            break;
+        case 0:
+            work->field_716++;
+            func_actor_400600_80136670(arg0);
+            Actor400600_TickAnim(arg0);
+            fns.funcs[(s16)work->field_71C](arg0);
+            func_actor_400600_80136558(arg0);
+            Actor400600_RebuildRotation(arg0);
+        case 1:
+            Gp_ClearRec18Occupied(work->rec_4D4);
+            Gp_ClearRec18Occupied(work->rec_63C);
+            Actor400600_UpdateColor(arg0);
+            func_actor_400600_80138224(arg0, 0, work->field_73A);
+            break;
+    }
+}
 
 /// Refreshes the parts listed in `D_actor_400600_80151B88`, projects each into
 /// view space with `arg1` as the Y, and passes nine fixed pairs of the resulting
