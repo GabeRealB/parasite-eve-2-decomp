@@ -262,7 +262,20 @@ void func_actor_342400_801631DC(s16 arg0)
     D_80187329 = 0x11;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80163200);
+void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
+{
+    switch (arg1) {
+        case 0:
+            Task_SpawnFromTable(&D_actor_342400_8016BFE0, 1, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            break;
+        case 1:
+            Task_SpawnFromTable(&D_actor_342400_8016BFE0, 2, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            break;
+        case 2:
+            Task_SpawnFromTable(&D_actor_342400_8016BFE0, 3, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801632D4);
 
