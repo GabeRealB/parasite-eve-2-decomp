@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## An `s16` compared and stored into `u16` is `lh`+`lhu`; `s32` keeps one `lh`
+
+`work->field_A08 = work->field_A1A` with `field_A1A` `s16` and `field_A08`
+`u16` keeps both a sign-extended SI for the compares and a HI copy for the
+store. Reload emits `lh` (`extendhisi2`) and `lhu` (`movhi`) from the same
+address, then `sh` of the unsigned copy. An `s16` local is not enough: it
+still has HI mode for the store, so CSE/reload reconstruct the pair.
+
+Widen the value first so the compares and the truncated store share one SI:
+
+```c
+s32 a1a = work->field_A1A; /* lh $v1 */
+if (a1a != 1) {
+    if (a1a == 4) {
+        work->field_A08 = a1a; /* sh $v1 */
+    }
+}
+```
+
+`func_actor_400500_8013CBD8` (`base_1.c` 95.2%, `base_3.c` 100%;
+preprocessed `486d0cc84d065c614c955ae9a6c7ef05155c50dfc0be5e6338ffefc01778504b`).
+Sibling `func_actor_400500_8013CDA8` stores a fresh constant 7, so it never
+needs the loaded HI and one `lh` is enough.
+
 ## `u16 x = -1` is `ori 0xFFFF`; an `s32` temp keeps `addiu -1`
 
 Assigning `-1` to a `u16` field converts the constant to 65535 and emits
