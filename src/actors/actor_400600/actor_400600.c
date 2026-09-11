@@ -61,12 +61,15 @@ extern u8 D_actor_400600_80143604[];
 extern u8 D_actor_400600_80143B24[];
 extern u8 D_actor_400600_80144994[];
 
+/* Part indices into the model's coordinate array, terminated by -1. */
+extern s16 D_actor_400600_80151B88[];
+
 /* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` is called
  * both with and without an argument, so it keeps an unprototyped declaration. */
 void func_actor_400600_80135998(Task* arg0, s16 arg1);
 void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
-void func_actor_400600_80138224(Task* arg0, s32 arg1, u8 arg2);
+void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
@@ -403,7 +406,40 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137EF0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138224);
+/// Refreshes the parts listed in `D_actor_400600_80151B88`, projects each into
+/// view space with `arg1` as the Y, and passes nine fixed pairs of the resulting
+/// points to `func_actor_400600_801383E4` along with `arg2` (the fade level at
+/// every call site).
+void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
+{
+    MATRIX         mtx;
+    SVECTOR        pts[11];
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* root;
+    s32            i;
+
+    root              = ((TmdObject*)arg0->extra)->field_8;
+    Gfx_ViewCoord.flg = 0;
+    root->flg         = 0;
+    for (i = 0; D_actor_400600_80151B88[i] != -1; i++) {
+        coord      = &((TmdObject*)arg0->extra)->field_8[D_actor_400600_80151B88[i]];
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &mtx);
+        pts[i].vx = mtx.t[0];
+        pts[i].vy = arg1;
+        pts[i].vz = mtx.t[2];
+    }
+    func_actor_400600_801383E4(&pts[1], &pts[5], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[5], &pts[6], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[1], &pts[3], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[3], &pts[4], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[0], &pts[2], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[0], &pts[7], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[7], &pts[8], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[0], &pts[9], 0x80, arg2);
+    func_actor_400600_801383E4(&pts[9], &pts[10], 0x80, arg2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801383E4);
 

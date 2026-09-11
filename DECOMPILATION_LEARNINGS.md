@@ -59573,3 +59573,25 @@ the callee `void`; adding that prototype to the scratch gave 100% with no
 source change. When a delay slot is off around several calls, check every
 callee in the scratch has the prototype the host file has - m2c's `/* extern */`
 lines, and callees it does not declare at all, are not that.
+
+### A loop's pointer increment in a load stall means the source stores are in the wrong order
+`func_actor_400600_80138224` walks a `-1`-terminated `s16` index list with
+`for (i = 0; D[i] != -1; i++)` (loop.c reduces `D[i]` to a pointer, which gives
+the target's `addiu s1,a0,%lo(D)` *after* the entry test; an explicit
+`p = D` puts it before), then fills `pts[i].vx/vy/vz` from `mtx.t[0]`, `arg1`,
+`mtx.t[2]`. The target's store order is vy, vx, vz; writing the C in that order
+gave 96.8% with the giv's `addiu s1,s1,2` sunk from the top of the body into
+the tail, between `lhu 0x24(sp)` and `sh ...,0(v0)`. The increment has priority
+1 and is ready from the start of backward scheduling, so sched1 uses it to fill
+the `lhu` load stall. In source order vx, vy, vz, the `sh arg1,2(v0)` store fills
+that stall instead: stores at different offsets off the same base do not
+conflict, so it moves above the vx store. The increment then stays at the top
+(99.4%). If an independent insn appears in the gap between a load and the store
+that uses it, try a different source order for the neighbouring stores before
+you touch the loop.
+
+The last 0.6% was `arg1`/`arg2` swapped between `$s4` and `$s5`. Declaring
+`arg1` `s16` instead of `s32` (the callers pass a constant, so their code does not
+change) cuts its pseudo's live length from 80 insns to 35. 3 refs over 35 insns
+then outranks `arg2`'s 2 over 40, so global-alloc allocates it first and it
+takes `$s4`.
