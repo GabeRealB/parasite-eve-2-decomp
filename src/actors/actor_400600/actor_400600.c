@@ -29,6 +29,9 @@ extern s8    D_80115417;
 
 extern s32 Gp_LcgState;
 
+extern s32 D_80115738;
+extern s32 D_8011574C;
+
 /* One of the sub-state tables in this unit's leading rodata. The original wrote
  * it as a local array initializer, so GCC 2.8.1 put the four constant pointers
  * in the constant pool and had the dispatcher copy them onto the stack. Writing
@@ -288,7 +291,21 @@ s32 func_actor_400600_8013892C(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013896C);
+void func_actor_400600_8013896C(Task* arg0, s16 arg1)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR        vec;
+    s32            i;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    Gp_SpawnEff(D_8011574C, coord, 0x40, NULL);
+    for (i = 0; i < 16; i++) {
+        vec.vx = (u32)rsin(i << 8) >> 3;
+        vec.vy = arg1;
+        vec.vz = (u32)rcos(i << 8) >> 3;
+        Gp_SpawnEff(D_80115738, coord, 0x01202148, &vec);
+    }
+}
 
 void func_actor_400600_80138A24(Task* arg0, s16 arg1)
 {
