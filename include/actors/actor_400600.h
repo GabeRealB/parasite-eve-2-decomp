@@ -41,8 +41,10 @@ STATIC_ASSERT_SIZEOF(Actor400600Timer, 0x4);
 /// Reach it with `(Actor400600Work*)task->idMap`.
 typedef struct Actor400600Work {
     /* 0x000 */ MATRIX             matrix_0; // copy of the root coordinate's local matrix
-    /* 0x020 */ byte               pad_20[0x64];
-    /* 0x084 */ u16                field_84;
+    /* 0x020 */ byte               pad_20[0x60];
+    /* 0x080 */ u16                field_80; // pitch, see ActorsShared80139948
+    /* 0x082 */ u16                field_82; // yaw, see ActorsShared80139948
+    /* 0x084 */ u16                field_84; // roll, see ActorsShared80139948
     /* 0x086 */ byte               pad_86[0x2];
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x4];
