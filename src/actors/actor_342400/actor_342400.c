@@ -557,25 +557,3 @@ INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_8
 INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", jtbl_actor_342400_80161F28);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F50);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", jtbl_actor_342400_80161F78);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F8C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", jtbl_actor_342400_80161FA0);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161FB4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161FC0);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161FCC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161FD8);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161FE8);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80162010);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80162028);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_8016203C);

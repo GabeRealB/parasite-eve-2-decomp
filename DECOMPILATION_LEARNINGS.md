@@ -59330,3 +59330,24 @@ cross-jumps everything from the shared `sll` down, and stops where sched1 left
 the arms' `li`/`lhu` pairs in opposite orders. Write the arms in the target's
 fall-through order (here `if (!bit)` first); the other order swaps
 `beqz`/`bnez` and lets the `sll` merge too (94%).
+
+### `bne v0, a0` where `a0` holds a loaded field that just tested `== 1`: write the constant
+
+`func_actor_342400_801664C4` loads `field_44F` into `a0`, branches on
+`a0 == 1`, and inside that arm compares another field against `a0`:
+
+```
+lbu   a0, 0x44F(v1)
+li    v0, 1
+bne   a0, v0, else
+...
+lh    v0, 0x448(v1)
+bne   v0, a0, skip       # register compare, no second lbu
+```
+
+Writing what the asm seems to say, `work->field_448 == work->field_44F`,
+reloads the byte (96%). The source compares against the constant:
+`work->field_448 == 1`. On the path where `a0 == 1` holds, CSE records
+the pseudo as equivalent to `const_int 1` and substitutes the register for the
+constant, so a register-register compare with no `li` is the constant form, not
+a second field read.
