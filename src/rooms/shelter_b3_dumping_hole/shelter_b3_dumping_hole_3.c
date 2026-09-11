@@ -113,7 +113,36 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FCA0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FCF4);
+typedef struct {
+    u8  pad_00[0xC];
+    s16 field_C;
+    s16 field_E;
+    s16 field_10;
+} DumpingHoleSpawnWork;
+
+typedef struct {
+    u16 field_0;
+    u16 field_2;
+    u16 field_4;
+} DumpingHoleSpawnArg;
+
+void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1)
+{
+    Task*                 task;
+    DumpingHoleSpawnWork* work;
+
+    task        = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 1, 0, (s32)arg0);
+    work        = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    Mem_Set(work, 0, 0x24);
+    work->field_C  = arg1->field_0;
+    work->field_E  = arg1->field_2;
+    work->field_10 = arg1->field_4;
+}
 
 void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1)
 {
