@@ -6,6 +6,15 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
+/// Status flags at `Actor342400Work` + 0xEC, read through two widths: guards
+/// test bit 0 as a halfword and then bits 0x102 as a word, the same shape as
+/// `Actor341700Flags`.
+typedef union Actor342400Flags {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+} Actor342400Flags;
+STATIC_ASSERT_SIZEOF(Actor342400Flags, 0x4);
+
 /// Per-actor state block for the `actor_342400` overlay's main enemy.
 ///
 /// `func_actor_342400_80163C58` and `func_actor_342400_80163E70` both allocate
@@ -19,34 +28,36 @@
 /// are the state and sub-state indices the handler table walks; `field_412`
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
-    /* 0x000 */ byte    pad_0[0x4];
-    /* 0x004 */ u16     field_4;  // set to 4 by the 0x7DB handler
-    /* 0x006 */ byte    pad_6[0x74];
-    /* 0x07A */ s16     field_7A; // heading fed to rsin / rcos
-    /* 0x07C */ byte    pad_7C[0x230];
-    /* 0x2AC */ GpObj   obj_2AC;
-    /* 0x2CC */ GpObj   obj_2CC;
-    /* 0x2EC */ GpRec18 rec_2EC[8];
-    /* 0x3AC */ GpObj   obj_3AC;
-    /* 0x3CC */ byte    pad_3CC[0x46];
-    /* 0x412 */ u16     field_412; // per-state frame counter
-    /* 0x414 */ s16     field_414; // animation request kind
-    /* 0x416 */ byte    pad_416[0x2];
-    /* 0x418 */ s16     field_418; // animation id
-    /* 0x41A */ byte    pad_41A[0x2];
-    /* 0x41C */ s16     field_41C; // animation speed / step scale
-    /* 0x41E */ byte    pad_41E[0x2];
-    /* 0x420 */ u16     field_420; // state index
-    /* 0x422 */ u16     field_422; // sub-state index
-    /* 0x424 */ byte    pad_424[0x2];
-    /* 0x426 */ s16     field_426;
-    /* 0x428 */ byte    pad_428[0x10];
-    /* 0x438 */ s16     field_438;
-    /* 0x43A */ byte    pad_43A[0x12];
-    /* 0x44C */ u16     field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
-    /* 0x44E */ byte    pad_44E[0x1];
-    /* 0x44F */ u8      field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
-    /* 0x450 */ byte    pad_450[0x4];
+    /* 0x000 */ byte             pad_0[0x4];
+    /* 0x004 */ u16              field_4;  // set to 4 by the 0x7DB handler
+    /* 0x006 */ byte             pad_6[0x74];
+    /* 0x07A */ s16              field_7A; // heading fed to rsin / rcos
+    /* 0x07C */ byte             pad_7C[0x70];
+    /* 0x0EC */ Actor342400Flags flags_EC;
+    /* 0x0F0 */ byte             pad_F0[0x1BC];
+    /* 0x2AC */ GpObj            obj_2AC;
+    /* 0x2CC */ GpObj            obj_2CC;
+    /* 0x2EC */ GpRec18          rec_2EC[8];
+    /* 0x3AC */ GpObj            obj_3AC;
+    /* 0x3CC */ byte             pad_3CC[0x46];
+    /* 0x412 */ u16              field_412; // per-state frame counter
+    /* 0x414 */ s16              field_414; // animation request kind
+    /* 0x416 */ byte             pad_416[0x2];
+    /* 0x418 */ s16              field_418; // animation id
+    /* 0x41A */ byte             pad_41A[0x2];
+    /* 0x41C */ s16              field_41C; // animation speed / step scale
+    /* 0x41E */ byte             pad_41E[0x2];
+    /* 0x420 */ u16              field_420; // state index
+    /* 0x422 */ u16              field_422; // sub-state index
+    /* 0x424 */ byte             pad_424[0x2];
+    /* 0x426 */ s16              field_426;
+    /* 0x428 */ byte             pad_428[0x10];
+    /* 0x438 */ s16              field_438;
+    /* 0x43A */ byte             pad_43A[0x12];
+    /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
+    /* 0x44E */ byte             pad_44E[0x1];
+    /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
+    /* 0x450 */ byte             pad_450[0x4];
 } Actor342400Work;
 STATIC_ASSERT_SIZEOF(Actor342400Work, 0x454);
 

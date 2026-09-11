@@ -9,6 +9,7 @@
 #include "actors/actors_shared_8016b370.h"
 
 void func_actor_342400_8016B33C(Task* arg0);
+void func_actor_342400_801694A8(Task* arg0, s32 arg1);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_11", func_actor_342400_8016A950);
 
@@ -117,7 +118,30 @@ void func_actor_342400_8016AC80(Task* arg0)
     work->field_422++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_11", func_actor_342400_8016AD94);
+void func_actor_342400_8016AD94(Task* arg0)
+{
+    Actor342400Work* work;
+    s32              cond;
+
+    work = (Actor342400Work*)arg0->idMap;
+    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        if (work->field_44F == 1) {
+            work            = (Actor342400Work*)arg0->idMap;
+            work->field_420 = 3;
+            work->field_422 = 0;
+        } else {
+            func_actor_342400_801694A8(arg0, 1);
+            work            = (Actor342400Work*)arg0->idMap;
+            work->field_420 = 5;
+            work->field_422 = 0;
+        }
+    }
+}
 
 extern TaskFuncTable3 D_actor_342400_80161FB4;
 
