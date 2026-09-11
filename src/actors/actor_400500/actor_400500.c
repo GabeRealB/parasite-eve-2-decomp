@@ -23,6 +23,7 @@
  * (12 register and 8 reorder penalties); as a one-element array it is exact,
  * the same remedy `actor_400600` needed for the same global. */
 extern void* D_800678F0[1];
+extern u8    D_80072170;
 
 /* Model streams in the overlay's own `.data`, selected through `D_800678F0`. */
 extern u8 D_actor_400500_8014393C[];
@@ -39,6 +40,7 @@ s32  func_actor_400500_80133358(Task* arg0);
 s32  func_actor_400500_80133460(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
+void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2);
 
 void func_actor_400500_80132000(Task* arg0)
 {
@@ -200,7 +202,64 @@ void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
     func_actor_400500_80132628(arg0, 0x10, 0x11, 0x100, (s32)arg1, temp_s2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132C54);
+void func_actor_400500_80132C54(Task* arg0)
+{
+    Actor400500Work*   work;
+    Actor400500Matrix  rot;
+    Actor400500Matrix* src;
+    GsCOORDINATE2*     coord;
+    s32                tx;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    switch (D_80072170) {
+        case 1:
+            tx                = 0x800;
+            work->field_94A   = tx;
+            work->field_94C   = tx;
+            tx                = 0x14A0;
+            coord->coord.t[0] = tx;
+            tx                = -0xFA0;
+            coord->coord.t[1] = tx;
+            tx                = -0x209E;
+            coord->coord.t[2] = tx;
+            break;
+        case 2:
+            tx                = 0x800;
+            work->field_94C   = tx;
+            tx                = 0x4074;
+            work->field_94A   = 0;
+            coord->coord.t[0] = tx;
+            tx                = -0xFA0;
+            coord->coord.t[1] = tx;
+            tx                = -0x209E;
+            coord->coord.t[2] = tx;
+            break;
+        case 3:
+            tx                = 0xC00;
+            work->field_94A   = tx;
+            tx                = 0x800;
+            work->field_94C   = tx;
+            tx                = 0xFA0;
+            coord->coord.t[0] = tx;
+            tx                = -0xFA0;
+            coord->coord.t[1] = tx;
+            tx                = -0x209E;
+            coord->coord.t[2] = tx;
+            break;
+    }
+    tx                 = 0x1000;
+    src                = &rot;
+    rot.ident.m00_m01  = tx;
+    src->ident.m02_m10 = 0;
+    src->ident.m11_m12 = tx;
+    src->ident.m20_m21 = 0;
+    src->ident.m22     = tx;
+    RotMatrixZ(work->field_94C, &src->mat);
+    func_8004BFF8(work->field_94A, &src->mat);
+    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DBCC(arg0, 0xB, &work->field_9A0);
+}
 
 s32 func_actor_400500_80132D74(Task* arg0)
 {
