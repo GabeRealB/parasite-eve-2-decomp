@@ -32,13 +32,19 @@ typedef struct Actor342400Work {
     /* 0x000 */ byte      pad_0[0x20];
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
-    /* 0x060 */ byte      pad_60[0x1A];
+    /* 0x060 */ byte      pad_60[0x10];
+    /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by func_actor_342400_8016B5B0
+    /* 0x078 */ byte      pad_78[0x2];
     /* 0x07A */ s16       field_7A; // heading fed to rsin / rcos
     /* 0x07C */ byte      pad_7C[0x4];
     /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
     /* 0x082 */ u16       field_82; // root coord.t[1], after lifting it by 0x3C
     /* 0x084 */ u16       field_84; // root coord.t[2]
-    /* 0x086 */ byte      pad_86[0x1A];
+    /* 0x086 */ byte      pad_86[0xA];
+    /* 0x090 */ u16       field_90; // root coord.t[0], snapshotted by func_actor_342400_8016B5B0
+    /* 0x092 */ u16       field_92; // root coord.t[1]
+    /* 0x094 */ u16       field_94; // root coord.t[2]
+    /* 0x096 */ byte      pad_96[0xA];
     /* 0x0A0 */ GpAnimCtx anim;
     /// First of the nine `GpAnimSlot`s (0xB4..0x21C) handed to `func_800B3F84`;
     /// the second overlaps `flags_EC`, so only the first is spelled out.
@@ -66,7 +72,9 @@ typedef struct Actor342400Work {
     /* 0x422 */ u16              field_422; // sub-state index
     /* 0x424 */ byte             pad_424[0x2];
     /* 0x426 */ s16              field_426;
-    /* 0x428 */ byte             pad_428[0xA];
+    /* 0x428 */ s16              field_428;
+    /* 0x42A */ s16              field_42A;
+    /* 0x42C */ byte             pad_42C[0x6];
     /* 0x432 */ s16              field_432; // 1 runs func_actor_342400_80169654 on the spawn position
     /* 0x434 */ byte             pad_434[0x2];
     /* 0x436 */ s16              field_436; // animation step applied by ActorsShared801698d4

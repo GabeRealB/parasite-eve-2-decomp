@@ -4,10 +4,59 @@
 #include "main/task.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "psyq/inline_c.h"
 
 #include "actors/actor_342400.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_25", func_actor_342400_8016B5B0);
+void func_actor_342400_8016B5B0(Task* arg0)
+{
+    Actor342400Work* work;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   current;
+    SVECTOR*         pos;
+    SVECTOR          local;
+    VECTOR           result;
+    s32              flag;
+
+    work   = (Actor342400Work*)arg0->idMap;
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    SndEvt_EnqueueType7(0x402C0002, 1);
+    work->field_90  = coords->coord.t[0];
+    work->field_92  = coords->coord.t[1];
+    work->field_94  = coords->coord.t[2];
+    work->field_412 = 0;
+    work->field_428 = 0;
+    work->field_42A = 0;
+    work->field_422++;
+    pos     = &work->field_70;
+    pos->vx = pos->vy = pos->vz = 0;
+    current                     = &((GsCOORDINATE2*)((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8)[3];
+    local.vx                    = pos->vx;
+    local.vy                    = pos->vy;
+    local.vz                    = pos->vz;
+    while (1) {
+        if (current->sub == NULL) {
+            return;
+        }
+        if (current == &Gfx_ViewCoord) {
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            return;
+        }
+        gte_SetTransMatrix(&current->coord);
+        gte_SetRotMatrix(&current->coord);
+        gte_ldv0(&local);
+        __asm__ volatile("nop; nop; .word 0x4A480012");
+        gte_stlvnl(&result);
+        gte_stflg(&flag);
+        local.vx = result.vx;
+        local.vy = result.vy;
+        local.vz = result.vz;
+        current  = current->sub;
+    }
+}
 
 void func_actor_342400_8016B744(Task* arg0)
 {
