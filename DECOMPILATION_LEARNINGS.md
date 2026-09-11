@@ -45628,6 +45628,18 @@ with the literal, 99.0% with both constants assigned at the top, 100% with
 left at the top. Same reasoning applies to a `sh` of a constant that the ROM
 materialises in the prologue - that one *does* want the early assignment.
 
+**The `li` / `sll` order after the call follows source order.** When the ROM
+scales the call result first (`sll v0,v0,4; li s1,-0x8c; mult v0,s1`), writing
+the scale inline, `((rsin(a) << 4) * speed) >> 16`, with `speed = -0x8C` ahead
+of the statement leaves every register right but sched1 puts the `li` first
+(99.3%, one reorder). Both insns are ready together in the post-call block;
+the constant's insn precedes the shift in the insn stream, and that is the tie
+the scheduler resolves. Assign the scaled result to a temp *before* the
+constant and the order flips: `dx = rsin(a) << 4; speed = -0x8C; t[0] +=
+(dx * speed) >> 16;`. Keep the `<< 4` written as a shift, too: `* 16 * speed`
+folds the 16 into the constant (`li s1,-0x8c0`) once CSE knows `speed`.
+`ActorsShared80168010` (`func_actor_342400_80168010`) is the example.
+
 ## Promoting a body ahead of a jump-table user needs a `rodata` cut too
 
 Carving a shared span out of the middle of an overlay splits the code into

@@ -3,5 +3,3 @@
 #include "actors/actor_342400.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_7", func_actor_342400_80167E78);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_7", func_actor_342400_80168010);
