@@ -26,8 +26,12 @@
  * chosen: the byte store to `D_80115417` matches with `SOFT_BARRIER()` after
  * it, so that one is declared as the scalar it is; the pointer store to
  * `D_800678F0` checksums wrong with the barrier and matches only as an
- * aggregate, so its one-element array stays and is doing real work. */
+ * aggregate, so its one-element array stays and is doing real work.
+ * `D_80115414`, from the same flag run, is the aggregate case too: its store
+ * sits between struct stores on both sides, and the barrier trades the sink
+ * for a hoist above the preceding flag updates. */
 extern void* D_800678F0[1];
+extern s8    D_80115414[1];
 extern s8    D_80115417;
 
 extern s32 Gp_LcgState;
@@ -531,7 +535,36 @@ void func_actor_400600_8013B410(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013B520);
+void func_actor_400600_8013B520(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    s32              soundId;
+    s32              pan;
+
+    work            = (Actor400600Work*)arg0->idMap;
+    work->field_718 = work->field_718 + 1;
+    if ((s16)work->field_718 == 1) {
+        Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
+    }
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40060004;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->obj_4B4.flags |= 0x8000;
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+        D_80115414[0]        = 1;
+        work2                = (Actor400600Work*)arg0->idMap;
+        arg0->state          = 1;
+        work2->field_71C     = 0;
+        work2->field_71E     = 0;
+        work3                = (Actor400600Work*)arg0->idMap;
+        work3->field_71C     = 2;
+        work3->field_71E     = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013B640);
 
