@@ -25,7 +25,13 @@ STATIC_ASSERT_SIZEOF(ActorsShared80168d3cFlags, 0x4);
 /// request the actor hands to its player. The size below is the allocation,
 /// not a guess.
 typedef struct ActorsShared80168d3cWork {
-    /* 0x000 */ byte                      pad_0[0x92];
+    /* 0x000 */ byte                      pad_0[0x7A];
+    /* 0x07A */ s16                       field_7A; // heading
+    /* 0x07C */ byte                      pad_7C[0xC];
+    /* 0x088 */ s16                       field_88; // x of the vector turned towards
+    /* 0x08A */ byte                      pad_8A[0x2];
+    /* 0x08C */ s16                       field_8C; // z of the vector turned towards
+    /* 0x08E */ byte                      pad_8E[0x4];
     /* 0x092 */ u16                       field_92; // low half of root coord.t[1]
     /* 0x094 */ byte                      pad_94[0x58];
     /* 0x0EC */ ActorsShared80168d3cFlags flags_EC;
