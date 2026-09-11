@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gfx.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -659,7 +660,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013CB40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013CB70);
+void func_actor_400600_8013CB70(Task* arg0, s32 arg1)
+{
+    s32 soundId;
+    s32 pan;
+
+    if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+        arg1 &= 0xFF00FFFF;
+        arg1 |= 0x4A0000;
+    }
+    soundId = arg1 | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+}
 
 void func_actor_400600_8013CC04(Task* arg0, s16 arg1)
 {
