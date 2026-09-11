@@ -59483,3 +59483,18 @@ target reuses for the `field_7A -= 0x18` stores; without it GCC emits both an
 `lh` and an `lhu` (97.5% -> 99.8%). The last 0.16% was two prologue loads tied
 at priority 1 in sched1 - swapping `coord = obj->field_8;` above
 `enemy = arg0->spawnArg2;` changed their luids and matched.
+
+### LCG draw indexing a table: write the `Gp_LcgState` update inside the index
+`func_actor_342400_801624A4` returns `table[row][rng >> 16 & 3]` after an LCG step.
+Target loads the constant and `lui/addiu %hi/%lo(table)` *before* `lw Gp_LcgState`
+(`$a2` = constant, `$a0` = table, `$v1` = new state). Writing the update as a
+statement (`Gp_LcgState = Gp_LcgState * 5 + 0x71357911; return T[k][Gp_LcgState >> 16 & 3];`,
+or via a `rng` local) expands the table address after the multiply: 65%, regs rotated.
+Putting the assignment in the subscript expands the array base first and matches:
+
+```c
+return D_actor_342400_8016C054[k][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+```
+
+`Gp_LcgState` must be `u32` here (`srl`, not `sra`); the sibling unit declares it `s32`,
+so keep the extern file-local rather than in the overlay header.

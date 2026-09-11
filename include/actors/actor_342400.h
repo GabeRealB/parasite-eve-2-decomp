@@ -179,15 +179,16 @@ extern Actor342400Slot  D_actor_342400_8016BF58[];
 extern Actor342400Limit D_actor_342400_8016C010[];
 extern TaskDesc         D_actor_342400_80173A54;
 extern TaskDesc         D_actor_342400_8016BFE0;
-extern TaskDesc         D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
-extern TaskDesc         D_80151E60;                // absolute, spawned twice by func_actor_342400_80162084
-extern u16              D_actor_342400_80173AAC;   // spawn counter, `<< 12` into `GpEnemy::field_8`
-extern u8               D_actor_342400_80173A84[]; // per animation id (1-based): value for `field_44F`
-extern u8               D_actor_342400_80173A98[]; // per animation id (1-based): the animation to follow it
-extern u8               D_801153F4;                // absolute; nonzero skips the controller's state handler
-extern GpPairSrcE       D_actor_342400_80170588;   // the main enemy's `GpEnemy::field_50` record
-extern u8               D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
-extern u8               D_actor_342400_80173A3C[]; // stored into `Task::field_24` by func_actor_342400_80163C58
+extern TaskDesc         D_801575F0;                   // absolute, spawned by func_actor_342400_80162DA0
+extern TaskDesc         D_80151E60;                   // absolute, spawned twice by func_actor_342400_80162084
+extern u16              D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::field_8`
+extern u8               D_actor_342400_80173A84[];    // per animation id (1-based): value for `field_44F`
+extern u8               D_actor_342400_80173A98[];    // per animation id (1-based): the animation to follow it
+extern u8               D_801153F4;                   // absolute; nonzero skips the controller's state handler
+extern GpPairSrcE       D_actor_342400_80170588;      // the main enemy's `GpEnemy::field_50` record
+extern u8               D_actor_342400_801739E8[];    // animation bank handed to `func_800B3F84`
+extern u8               D_actor_342400_80173A3C[];    // stored into `Task::field_24` by func_actor_342400_80163C58
+extern s16              D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
 
 void func_actor_342400_80162084(Task* arg0);
 void func_actor_342400_801621D8(Task* arg0);

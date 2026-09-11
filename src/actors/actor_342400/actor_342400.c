@@ -6,6 +6,8 @@
 #include "gameplay/3FB8.h"
 #include "actors/actor_342400.h"
 
+extern u32 Gp_LcgState;
+
 void func_actor_342400_80162084(Task* arg0)
 {
     Actor342400ChildWork* work;
@@ -127,7 +129,35 @@ void func_actor_342400_80162324(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801624A4);
+s16 func_actor_342400_801624A4(void)
+{
+    GsCOORDINATE2* coord = (*Gp_ActorSlots)->extra->field_8;
+    s16            x     = coord->coord.t[0];
+    s16            z     = coord->coord.t[2];
+
+    if (x <= 5000) {
+        return D_actor_342400_8016C054[0][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    if (x <= 8000) {
+        return D_actor_342400_8016C054[1][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    if (x <= 11000) {
+        return D_actor_342400_8016C054[2][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    if (z >= -5500) {
+        return D_actor_342400_8016C054[3][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    if (z >= -8500) {
+        return D_actor_342400_8016C054[4][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    if (z >= -11500) {
+        return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    if (z >= -24500) {
+        return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    }
+    return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+}
 
 void func_actor_342400_801626AC(Task* arg0, s32 arg1, Actor342400Msg* arg2)
 {
