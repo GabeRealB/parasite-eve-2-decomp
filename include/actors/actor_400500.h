@@ -31,7 +31,8 @@ STATIC_ASSERT_SIZEOF(Actor400500ViewPos, 0x6);
 /// tables walk and `field_A04` is the per-state frame counter, mirroring
 /// `Actor400600Work::field_71C` / `field_71E` / `field_718`.
 typedef struct Actor400500Work {
-    /* 0x000 */ byte               pad_0[0x94A];
+    /* 0x000 */ byte               pad_0[0x948];
+    /* 0x948 */ s16                field_948;
     /* 0x94A */ s16                field_94A;
     /* 0x94C */ s16                field_94C;
     /* 0x94E */ byte               pad_94E[0x52];

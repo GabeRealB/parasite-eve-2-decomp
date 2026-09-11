@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gfx.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -110,7 +111,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C818);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C908);
+void func_actor_400500_8013C908(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    s32              soundId;
+    s32              pan;
+
+    work    = (Actor400500Work*)arg0->idMap;
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    work2            = (Actor400500Work*)arg0->idMap;
+    work2->field_9F8 = 0x10;
+    work2->field_9FE = 0x15;
+    work2->field_9FA = 2;
+    work->field_A04  = 0;
+    work->field_A18  = 0;
+    work->field_A10  = 0;
+    work->field_A12  = 0x12C;
+    work->field_948  = 0;
+    work->field_A08  = work->field_A08 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C9D4);
 
