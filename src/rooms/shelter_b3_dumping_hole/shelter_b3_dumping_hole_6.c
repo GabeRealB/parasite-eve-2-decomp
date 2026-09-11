@@ -44,6 +44,10 @@ typedef struct {
 } DumpingHoleEntityC;
 
 typedef struct {
+    u16 field_0;
+} DumpingHoleEntityD;
+
+typedef struct {
     u8                 _pad0[0x1C];
     DumpingHoleEntity* field_1C;
     u8                 _pad20[0x4];
@@ -185,7 +189,7 @@ void func_shelter_b3_dumping_hole_801836E0(DumpingHoleState* arg0)
     D_shelter_b3_dumping_hole_8018F4D4 = 0;
     arg0->field_1C                     = work;
     arg0->field_24                     = D_shelter_b3_dumping_hole_8018B7AC;
-    arg0->field_30 += 1;
+    arg0->field_30                    += 1;
 }
 
 void func_shelter_b3_dumping_hole_8018378C(DumpingHoleState* arg0)
@@ -202,7 +206,16 @@ void func_shelter_b3_dumping_hole_8018378C(DumpingHoleState* arg0)
     arg0->field_30 += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183824);
+void func_shelter_b3_dumping_hole_80183824(DumpingHoleState* arg0)
+{
+    DumpingHoleEntityD* ent = (DumpingHoleEntityD*)arg0->field_1C;
+    if ((s16)(ent->field_0 += 1) == 0xF) {
+        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        Game_Session->unknown_130[0] = 1;
+        Gp_ArmStateF0(1);
+        arg0->field_30 += 1;
+    }
+}
 
 void func_shelter_b3_dumping_hole_801838A0(DumpingHoleState* arg0)
 {
@@ -239,7 +252,7 @@ void func_shelter_b3_dumping_hole_80183950(DumpingHoleState* arg0)
             work->field_0                                              = enemy;
             enemy->field_8                                             = idx << 12;
             D_shelter_b3_dumping_hole_8018F4D4                         = idx + 1;
-            arg0->field_30 += 1;
+            arg0->field_30                                            += 1;
             return;
         }
     }
@@ -288,7 +301,7 @@ void func_shelter_b3_dumping_hole_80183AEC(DumpingHoleState* arg0)
             work->field_0                                              = enemy;
             enemy->field_8                                             = idx << 12;
             D_shelter_b3_dumping_hole_8018F4D4                         = idx + 1;
-            arg0->field_30 += 1;
+            arg0->field_30                                            += 1;
             return;
         }
     }
