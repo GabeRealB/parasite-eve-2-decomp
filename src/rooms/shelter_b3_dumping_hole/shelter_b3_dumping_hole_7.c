@@ -99,7 +99,37 @@ void func_shelter_b3_dumping_hole_80183E08(DumpingHoleState* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183E6C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", func_shelter_b3_dumping_hole_80183F04);
+typedef struct {
+    u8  _pad0[0x40];
+    s16 field_40;
+} DumpingHolePairTarget;
+
+typedef struct {
+    DumpingHolePairTarget* field_0;
+    DumpingHolePairTarget* field_4;
+    u8                     _pad8[0x2];
+    u16                    field_A;
+} DumpingHolePairC;
+
+void func_shelter_b3_dumping_hole_80183F04(DumpingHoleState* arg0)
+{
+    DumpingHolePairC* p = (DumpingHolePairC*)arg0->field_1C;
+
+    if (p->field_0 != NULL) {
+        if (p->field_0->field_40 <= 0) {
+            p->field_0 = NULL;
+        }
+    } else {
+        p->field_A |= 1;
+    }
+    if (p->field_4 != NULL) {
+        if (p->field_4->field_40 <= 0) {
+            p->field_4 = NULL;
+        }
+    } else {
+        p->field_A |= 2;
+    }
+}
 
 void func_shelter_b3_dumping_hole_80183F84(Task* task)
 {
