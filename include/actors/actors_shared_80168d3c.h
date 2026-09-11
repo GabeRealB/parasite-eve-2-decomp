@@ -62,7 +62,8 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x426 */ s16                       field_426;
     /* 0x428 */ s16                       field_428;
     /* 0x42A */ s16                       field_42A;
-    /* 0x42C */ byte                      pad_42C[0x4];
+    /* 0x42C */ s16                       field_42C;
+    /* 0x42E */ byte                      pad_42E[0x2];
     /* 0x430 */ u16                       field_430; // Y scale, shrunk by 0x40 a frame
     /* 0x432 */ s16                       field_432;
     /* 0x434 */ s16                       field_434; // pitch latched by ActorsShared8016a538
@@ -73,7 +74,7 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x440 */ s16                       field_440;
     /* 0x442 */ s16                       field_442; // phase of the pitch sway
     /* 0x444 */ s16                       field_444; // heading to the nearer player actor, relative to field_7A
-    /* 0x446 */ byte                      pad_446[0x2];
+    /* 0x446 */ s16                       field_446; // randomised hold, 0xB0 .. 0xEF frames in ActorsShared8016b294
     /* 0x448 */ s16                       field_448;
     /* 0x44A */ s16                       field_44A;
     /* 0x44C */ byte                      pad_44C[0x5];

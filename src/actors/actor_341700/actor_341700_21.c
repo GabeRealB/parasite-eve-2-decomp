@@ -14,8 +14,6 @@
 
 #include "actors/actor_341700.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_21", func_actor_341700_80169FB0);
-
 void func_actor_341700_8016A058(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->idMap;
