@@ -43,6 +43,7 @@ void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
 s32  func_actor_400600_801370F4();
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
+s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139CAC();
@@ -644,7 +645,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013C598);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013C5F8);
+void func_actor_400600_8013C5F8(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    u16              count;
+    u32              rnd;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (((func_actor_400600_80136FA8() << 0x10) == 0) && ((func_actor_400600_80137C34(arg0) << 0x10) == 0)) {
+        count           = work->field_756 - 1;
+        work->field_756 = count;
+        if ((count << 0x10) == 0) {
+            rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState     = rnd;
+            work->field_758 = ((rnd >> 0x10) & 0x3F) + 0x1E;
+            func_actor_400600_80138B5C(arg0, 0);
+            work2            = (Actor400600Work*)arg0->idMap;
+            work2->field_71C = 2;
+            work2->field_71E = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013C6B0);
 
