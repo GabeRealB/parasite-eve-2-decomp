@@ -173,4 +173,27 @@ typedef struct Actor400600QuadScratch {
 } Actor400600QuadScratch;
 STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
 
+/// 0x8C-byte scratchpad frame `func_actor_400600_80132294` carves off
+/// `G_SCRATCH_HEAD` to draw a textured quad between two model parts. Same
+/// layout as `ActorsShared80163354Scratch` without the trailing half offsets,
+/// which this variant keeps in registers.
+typedef struct Actor400600BeamScratch {
+    /* 0x00 */ MATRIX  firstMatrix;  // first part's `workm` in view space
+    /* 0x20 */ MATRIX  secondMatrix; // second part's `workm` in view space
+    /* 0x40 */ SVECTOR first;
+    /* 0x48 */ SVECTOR second;
+    /* 0x50 */ SVECTOR corner0;
+    /* 0x58 */ SVECTOR corner1;
+    /* 0x60 */ SVECTOR corner2;
+    /* 0x68 */ SVECTOR corner3;
+    /* 0x70 */ s32     screen0;
+    /* 0x74 */ s32     screen1;
+    /* 0x78 */ s32     screen2;
+    /* 0x7C */ s32     screen3;
+    /* 0x80 */ s32     perspective;
+    /* 0x84 */ s32     flags;
+    /* 0x88 */ s32     depth;
+} Actor400600BeamScratch;
+STATIC_ASSERT_SIZEOF(Actor400600BeamScratch, 0x8C);
+
 #endif
