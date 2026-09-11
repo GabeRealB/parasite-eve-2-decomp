@@ -45,7 +45,8 @@ typedef struct Actor342400Work {
     /* 0x090 */ u16       field_90; // root coord.t[0], snapshotted by func_actor_342400_8016B5B0
     /* 0x092 */ u16       field_92; // root coord.t[1]
     /* 0x094 */ u16       field_94; // root coord.t[2]
-    /* 0x096 */ byte      pad_96[0xA];
+    /* 0x096 */ byte      pad_96[0x2];
+    /* 0x098 */ SVECTOR   field_98; // translation of coords[6] relative to the view, from func_actor_342400_801648E4
     /* 0x0A0 */ GpAnimCtx anim;
     /// First of the nine `GpAnimSlot`s (0xB4..0x21C) handed to `func_800B3F84`;
     /// the second overlaps `flags_EC`, so only the first is spelled out.
@@ -59,8 +60,10 @@ typedef struct Actor342400Work {
     /* 0x2EC */ GpRec18          rec_2EC[8];
     /* 0x3AC */ GpObj            obj_3AC;
     /* 0x3CC */ byte             pad_3CC[0x30];
-    /* 0x3FC */ GpEffArg         eff_3FC; // `func_800FDB18`'s arg3; field_0 is the model's second coord part
-    /* 0x404 */ byte             pad_404[0xC];
+    /* 0x3FC */ GpEffArg         eff_3FC;   // `func_800FDB18`'s arg3; field_0 is the model's second coord part
+    /* 0x404 */ byte             pad_404[0x8];
+    /* 0x40C */ s16              field_40C; // heading func_actor_342400_801648E4 moves the root along
+    /* 0x40E */ byte             pad_40E[0x2];
     /* 0x410 */ s16              field_410;
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
@@ -200,6 +203,7 @@ void func_actor_342400_801630A4(Task* arg0);
 void func_actor_342400_80163178(Task* arg0);
 void func_actor_342400_801637DC(Task* arg0);
 void func_actor_342400_801653DC(Task* arg0, s16 arg1);
+s32  func_actor_342400_80169518(Task* arg0);
 void func_actor_342400_80169654(Task* arg0, s16 arg1, u16* arg2);
 s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 void func_actor_342400_8016A494(Task* arg0);

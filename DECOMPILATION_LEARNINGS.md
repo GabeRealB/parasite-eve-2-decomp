@@ -45659,6 +45659,10 @@ constant and the order flips: `dx = rsin(a) << 4; speed = -0x8C; t[0] +=
 (dx * speed) >> 16;`. Keep the `<< 4` written as a shift, too: `* 16 * speed`
 folds the 16 into the constant (`li s1,-0x8c0`) once CSE knows `speed`.
 `ActorsShared80168010` (`func_actor_342400_80168010`) is the example.
+Declaring the constant's local `s16` instead of `s32` also flips it, with no
+temp and `speed = -250` still ahead of the statement: `func_actor_342400_801648E4`
+went from 99.75% (one reorder) to 100% on that type change alone. That is an
+observation only; the mechanism was not traced in the dumps.
 
 ## Promoting a body ahead of a jump-table user needs a `rodata` cut too
 
