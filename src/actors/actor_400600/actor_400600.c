@@ -42,6 +42,7 @@ extern u8 D_actor_400600_8014220C[];
 extern u8 D_actor_400600_80143604[];
 extern u8 D_actor_400600_80143B24[];
 extern u8 D_actor_400600_80144994[];
+extern u8 D_actor_400600_80151B1C[];
 
 void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 
@@ -443,7 +444,15 @@ void func_actor_400600_8013A3C0(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013A3C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013A4AC);
+void func_actor_400600_8013A4AC(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    func_actor_400600_80139D98(arg0, D_actor_400600_80151B1C[work->field_746], 0x10);
+    func_actor_400600_80139CAC(arg0);
+    work->field_71C = work->field_71C + 1;
+}
 
 void func_actor_400600_8013A518(Task* arg0)
 {
