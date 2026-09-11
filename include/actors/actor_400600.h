@@ -82,9 +82,11 @@ typedef struct Actor400600Work {
     /* 0x084 */ u16                field_84;  // roll, see ActorsShared80139948
     /* 0x086 */ byte               pad_86[0x2];
     /* 0x088 */ Actor400600ViewPos field_88;
-    /* 0x08E */ byte               pad_8E[0x4];
+    /* 0x08E */ byte               pad_8E[0x2];
+    /* 0x090 */ u16                field_90; // spawn position X (low half)
     /* 0x092 */ u16                field_92; // seeds field_73E on state entry
-    /* 0x094 */ byte               pad_94[0x4];
+    /* 0x094 */ u16                field_94; // spawn position Z (low half)
+    /* 0x096 */ byte               pad_96[0x2];
     /* 0x098 */ u16                field_98; // low half of the root coordinate's world X
     /* 0x09A */ u16                field_9A; // copy of field_92
     /* 0x09C */ u16                field_9C; // low half of the root coordinate's world Z
@@ -103,9 +105,11 @@ typedef struct Actor400600Work {
     /* 0x604 */ GpObj              obj_604;    // collision node; flags bit 0x4000 cleared
     /* 0x624 */ GpActorD4Rec       rec_624;    // obj_604's payload (flags kind 3)
     /* 0x63C */ GpRec18            rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ byte               pad_6FC[0x8];
-    /* 0x704 */ Task*              field_704;  // child task, killed on death
-    /* 0x708 */ Task*              field_708;  // child task, killed on death
+    /* 0x6FC */ GsCOORDINATE2*     field_6FC;  // fourth model part's coordinate
+    /* 0x700 */ s16                field_700;
+    /* 0x702 */ s16                field_702;
+    /* 0x704 */ Task*              field_704; // child task, killed on death
+    /* 0x708 */ Task*              field_708; // child task, killed on death
     /* 0x70C */ byte               pad_70C[0x4];
     /* 0x710 */ Actor400600Timer   field_710;
     /* 0x714 */ s16                field_714; // reset to 0x1000 on death
@@ -154,7 +158,8 @@ typedef struct Actor400600Work {
     /* 0x76B */ u8                 field_76B;
     /* 0x76C */ u8                 field_76C; // nonzero: landing spawns the dust ring
     /* 0x76D */ u8                 field_76D;
-    /* 0x76E */ byte               pad_76E[0x2];
+    /* 0x76E */ u8                 field_76E; // set when spawned in map 0x0314
+    /* 0x76F */ byte               pad_76F;
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 

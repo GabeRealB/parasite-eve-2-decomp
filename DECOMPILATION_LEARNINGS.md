@@ -59838,3 +59838,38 @@ In the same function, a `work2 = (T*)arg0->idMap; work2->state = N;` setter
 reused in several switch cases is one multi-block pseudo, so global alloc
 gives it `$a0` everywhere. The one setter the target puts in `$v1` needed its
 own local (`work3`), which makes it a local-alloc quantity.
+
+## A reloaded field that post-reload CSE folds away: move the aliasing load earlier in the source
+
+`func_actor_400600_80133434` (actors/actor_400600) copies a spawn position and
+then seeds a field from one of the copies:
+
+```c
+work->field_90 = coord->coord.t[0];
+work->field_92 = coord->coord.t[1];
+work->field_94 = coord->coord.t[2];   /* must precede the LCG lines */
+rnd = ((u32)Gp_LcgState * 5) + 0x71357911;
+Gp_LcgState = rnd;
+work->field_716 = rnd >> 0x10;
+work->field_73E = work->field_92;     /* target reloads: lhu a0,0x92(s3) */
+```
+
+With `field_94` written after `field_716`, the `.cse` dump still had the
+`field_92` load, but the object had `sh a0,0x73e` straight from the `t[1]`
+register. The `sh 0x716(s3)` store blocks the `lhu 0x20(s5)` load (sched1
+treats `s3`/`s5` stores and loads as possibly aliasing), so `t[1]` stayed live in
+its own register and `reload_cse_regs` replaced the reload with it. Once the
+`t[2]` load comes first, it reuses `t[1]`'s register (`$v1`), the reload
+survives, and `srl`/`sh 0x716` drop to the end of the block as in retail.
+
+Same function, first instruction mismatch: `sw s3,0x1c(s4)` where the target has
+`addu s3,v0,zero; bnez s3; sw v0,0x1c(s4)`. Write
+`arg0->idMap = Mem_Calloc(...); work = arg0->idMap;` rather than assigning
+`work` first, chained or not. The store's source is then the call-value pseudo
+(`$v0`) and `work` is a separate copy that the test reads.
+
+Its switch's jump table sat at leading-rodata offset `0xB4` of the overlay's
+first unit (4 mod 8). `rodata_head = "0xB4"` (entry "`rodata_head` moves a
+mid-unit jump table to the front") fixed the placement for an actor too. Delete
+the `INCLUDE_RODATA` lines below the head from the `.c` file by hand; do not
+re-split it.
