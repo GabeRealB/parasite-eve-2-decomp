@@ -40522,6 +40522,34 @@ below both coordinates and handed `$a3`/`$t1` to them in the target's order.
 Sibling penalties (`reorder`) then resolved by themselves, because the schedule
 was only chasing the register reuse.
 
+## `n_refs` is counted before combine and cross-jumping: identical code, different rank
+
+`flow` fills `REG_N_REFS` (each use and set adding the block's loop depth) and
+nothing later lowers it, but `combine` and the `jump2` cross-jumping pass both
+run after it and delete references. So two sources that compile to the *same*
+instructions can still rank their pseudos differently, and a permuted-register
+leftover can be fixed with no instruction change at all. Two such levers, both
+from `func_actor_342400_801653DC`:
+
+- **List identical case bodies separately.** `case 4: case 6: work->field_448 = 4;`
+  and two separate `case 4:` / `case 6:` bodies emit the same code once
+  `jump2` merges the copies. But each copy is a `work` store inside the loop
+  that `flow` has already counted twice. Three such pairs took `work` from 46 to
+  52 refs (priority 0.604 → 0.663), past `enemy` (0.642), and swapped
+  `$s3`/`$s4` into the target's order.
+- **Split an assignment from a call's result.** `pen = rec->field_2 -
+  SquareRoot0(...)` gives `pen` one ref. `pen = SquareRoot0(...); pen =
+  rec->field_2 - pen;` gives it three (the copy out of `$v0`, then a use and a
+  set), and combine folds the copy away, so it is still one `subu`. That took `pen`
+  from 12 to 16 weighted refs, across the `floor_log2` step from 3 to 4, and it
+  outranked the inline's `rec` parameter.
+
+Live length moves the other way. Assigning a pointer earlier (here `c2` ahead of
+the `d` computation, which also matched the target's load placement) lowers its
+priority. Read the lengths from the `.sched` dump's `life shortened from X to Y`
+lines, not from flow: sched1 rewrites `REG_LIVE_LENGTH` before `lreg` and
+`greg` read it.
+
 ## Constants held in a register across a branch mean one local, reassigned
 
 `li` of a constant several instructions *before* the branch, with the matching

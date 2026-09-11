@@ -32,7 +32,7 @@ typedef struct Actor342400Work {
     /* 0x000 */ byte      pad_0[0x20];
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
-    /* 0x060 */ byte      pad_60[0x10];
+    /* 0x060 */ VECTOR    field_60; // position func_actor_342400_801653DC snaps the root back to when blocked
     /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by func_actor_342400_8016B5B0
     /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX by func_actor_342400_801670C0
     /* 0x07A */ s16       field_7A; // heading fed to rsin / rcos
@@ -63,7 +63,7 @@ typedef struct Actor342400Work {
     /* 0x3FC */ GpEffArg         eff_3FC;   // `func_800FDB18`'s arg3; field_0 is the model's second coord part
     /* 0x404 */ byte             pad_404[0x8];
     /* 0x40C */ s16              field_40C; // heading func_actor_342400_801648E4 moves the root along
-    /* 0x40E */ byte             pad_40E[0x2];
+    /* 0x40E */ s16              field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
     /* 0x410 */ s16              field_410;
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
@@ -84,7 +84,8 @@ typedef struct Actor342400Work {
     /* 0x436 */ s16              field_436; // animation step applied by ActorsShared801698d4
     /* 0x438 */ s16              field_438;
     /* 0x43A */ s16              field_43A;
-    /* 0x43C */ byte             pad_43C[0x4];
+    /* 0x43C */ byte             pad_43C[0x2];
+    /* 0x43E */ s16              field_43E; // counted down each frame by func_actor_342400_801653DC
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ u16              field_442;
     /* 0x444 */ u16              field_444; // angle, masked to 0xFFF
@@ -92,7 +93,7 @@ typedef struct Actor342400Work {
     /* 0x448 */ s16              field_448; // pending state request; 4 moves the task to state 4 once the enemy is dead
     /* 0x44A */ s16              field_44A;
     /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
-    /* 0x44E */ byte             pad_44E[0x1];
+    /* 0x44E */ u8               field_44E; // set while the enemy carries status flag 4/8
     /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
     /* 0x450 */ byte             pad_450[0x1];
     /* 0x451 */ u8               field_451;
@@ -207,6 +208,13 @@ s32  func_actor_342400_80169518(Task* arg0);
 void func_actor_342400_80169654(Task* arg0, s16 arg1, u16* arg2);
 s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 void func_actor_342400_8016A494(Task* arg0);
+void func_actor_342400_8016A664(Task* arg0);
+void func_actor_342400_8016A724(Task* arg0);
+void func_actor_342400_8016A804(Task* arg0);
+void func_actor_342400_8016A950(Task* arg0);
+void func_actor_342400_8016A9AC(Task* arg0);
+void func_actor_342400_8016A9C4(Task* arg0);
+void func_actor_342400_8016AA08(Task* arg0);
 void func_actor_342400_8016AE24(Task* arg0);
 void func_actor_342400_8016AEAC(Task* arg0);
 void func_actor_342400_8016AF34(Task* arg0);

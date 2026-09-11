@@ -4,10 +4,25 @@
 #include "main/mem.h"
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_80163354.h"
+#include "actors/actors_shared_80166180.h"
+#include "actors/actors_shared_801695a0.h"
 
 /// Nine state handlers, indexed by `Actor342400Work::field_420`; copied to the
-/// stack before dispatch.
-extern TaskFuncTable9 D_actor_342400_80161F50;
+/// stack before dispatch. splat migrates this table into
+/// `func_actor_342400_80165FC0`'s own `.s`, so there is no standalone rodata
+/// file to `INCLUDE_RODATA`; it is defined here, as `D_actor_342400_80161E54`
+/// is in `actor_342400.c`.
+const TaskFuncTable9 D_actor_342400_80161F50 = { {
+    func_actor_342400_8016A664,
+    func_actor_342400_8016A724,
+    func_actor_342400_8016A804,
+    ActorsShared801695a0,
+    func_actor_342400_8016A950,
+    ActorsShared80166180,
+    func_actor_342400_8016A9AC,
+    func_actor_342400_8016A9C4,
+    func_actor_342400_8016AA08,
+} };
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
 /// taken off `G_SCRATCH_HEAD`. Inlined so each scratch-head access keeps its
@@ -53,3 +68,7 @@ void func_actor_342400_80165FC0(Task* arg0)
             return;
     }
 }
+
+/// Closes this unit's `.rodata` so `actor_342400_8`'s rodata starts at
+/// 0x80161F78; gas does not pad the section out. Nothing reads it.
+const u32 D_actor_342400_80161F74 = 0;

@@ -553,7 +553,3 @@ INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_8
 INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F00);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F14);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", jtbl_actor_342400_80161F28);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F50);
