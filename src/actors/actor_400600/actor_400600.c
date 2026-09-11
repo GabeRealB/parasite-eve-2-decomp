@@ -79,7 +79,7 @@ extern s16 D_actor_400600_80151B88[];
 /* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` is called
  * both with and without an argument, so it keeps an unprototyped declaration. */
 void func_actor_400600_80135998(Task* arg0, s16 arg1);
-s32  func_actor_400600_801376EC();
+s32  func_actor_400600_801376EC(Task* arg0);
 void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
@@ -647,7 +647,7 @@ void func_actor_400600_80133FC0(Task* arg0)
     s32               pan;
 
     work = (Actor400600Work*)arg0->idMap;
-    if (Gp_ActorSlots[0]->actor->field_954 == 2 || (func_actor_400600_801376EC() << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
+    if (Gp_ActorSlots[0]->actor->field_954 == 2 || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
         func_actor_400600_80138B40(arg0);
         work2            = (Actor400600Work*)arg0->idMap;
         work2->field_71C = 2;
@@ -769,7 +769,7 @@ void func_actor_400600_8013479C(Task* arg0)
     s16              v;
 
     work = (Actor400600Work*)arg0->idMap;
-    v    = func_actor_400600_801376EC();
+    v    = func_actor_400600_801376EC(arg0);
     if (v != 0) {
         if ((u16)(v - 0x4E9) >= 0x6D0U) {
             func_actor_400600_80138B40(arg0);
@@ -1015,7 +1015,46 @@ void func_actor_400600_80137240(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137498);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801376EC);
+s32 func_actor_400600_801376EC(Task* arg0)
+{
+    Actor400600Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          v;
+    s16              dist;
+    s32              i;
+
+    dist  = 0;
+    work  = (Actor400600Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    for (i = 0; i < 8; i++) {
+        if ((work->rec_63C[i].field_4 & 0xFFFF0000) != 0x100000) {
+            dist = 0;
+        } else {
+            if (work->field_76A == 0) {
+                dist = 1;
+            } else if (work->field_76A == 1) {
+                v.vx = work->rec_63C[i].field_8 - coord->workm.t[0];
+                v.vy = 0;
+                v.vz = work->rec_63C[i].field_C - coord->workm.t[2];
+                dist = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
+                if (dist == 0) {
+                    dist = 1;
+                }
+            } else if (work->field_76A == 2) {
+                v.vx = work->rec_63C[i].field_8 - coord->workm.t[0];
+                v.vy = work->rec_63C[i].field_A - coord->workm.t[1];
+                v.vz = 0;
+                dist = SquareRoot0(v.vx * v.vx + v.vy * v.vy);
+                if (dist == 0) {
+                    dist = 1;
+                }
+            }
+            break;
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec_63C);
+    return dist;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80137840);
 

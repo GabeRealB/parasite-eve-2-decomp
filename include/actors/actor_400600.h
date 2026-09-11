@@ -148,7 +148,7 @@ typedef struct Actor400600Work {
     /* 0x767 */ s8                 field_767;
     /* 0x768 */ u8                 field_768;
     /* 0x769 */ u8                 field_769; // sub-variant flag, gates state indices
-    /* 0x76A */ byte               pad_76A[0x1];
+    /* 0x76A */ u8                 field_76A; // distance mode: 0 none, 1 XZ, 2 XY
     /* 0x76B */ u8                 field_76B;
     /* 0x76C */ u8                 field_76C; // nonzero: landing spawns the dust ring
     /* 0x76D */ byte               pad_76D[0x3];
