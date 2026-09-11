@@ -3,6 +3,20 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Reusing a pointer across a call keeps the pre-call home
+
+A work pointer loaded before `jalr` and assigned again after it is one pseudo
+that "dies in 2 places". That is not local-alloc eligible, so `global_alloc`
+gives both ranges the same home — the one the first range needed (`$v1`,
+because `$v0` held the table address and call target). The target reloads
+into `$v0` after the call.
+
+Use a distinct local for the post-call stores. `func_actor_400500_8013BA24`
+scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
+two `idMap` reloads after the dispatcher call is 100%. This is the same
+"dies in 2 places" rule as the switch-arm scratch pointers, but inside one
+block split by a call rather than two `case`s.
+
 ## A permuter gain can come from moving an expression across a generated branch
 
 Replay's Fable alternate improves from distance 1215 to 1161 by moving the clut

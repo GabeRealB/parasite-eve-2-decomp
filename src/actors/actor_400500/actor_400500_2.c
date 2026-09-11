@@ -32,7 +32,23 @@ extern u8 D_actor_400500_80144624[];
 void func_8009EA50(s32 arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013BA24);
+extern TaskFuncTable3 D_actor_400500_80131EE4;
+
+void func_actor_400500_8013BA24(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    TaskFuncTable3   sp;
+
+    work = (Actor400500Work*)arg0->idMap;
+    sp   = D_actor_400500_80131EE4;
+    sp.funcs[(s16)work->field_A08](arg0);
+    work2            = (Actor400500Work*)arg0->idMap;
+    work2->field_A3C = 0;
+    work2->field_A3E = 0;
+    work2            = (Actor400500Work*)arg0->idMap;
+    work2->field_A49 = 0;
+}
 
 void func_actor_400500_8013BAA4(Task* arg0)
 {
