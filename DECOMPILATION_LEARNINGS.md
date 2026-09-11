@@ -59595,3 +59595,31 @@ The last 0.6% was `arg1`/`arg2` swapped between `$s4` and `$s5`. Declaring
 change) cuts its pseudo's live length from 80 insns to 35. 3 refs over 35 insns
 then outranks `arg2`'s 2 over 40, so global-alloc allocates it first and it
 takes `$s4`.
+
+### `li $v0, 1` in both predecessors of a shared store tail: each arm had its own `return 1`
+
+The return-value version of "The same call written twice". In
+`func_actor_400600_8013CACC`, two switch arms that set state 5 or 0xF share a
+single `sh v1,0x71C; sh 0,0x71E; jr ra; sh 0,0x730` tail, but *each* arm loads
+`li $v0, 1` itself (one of them through a `beq` delay slot):
+
+```
+    beq   $v1, $v0, .Lcase5
+     addiu $v0, $zero, 0x1        # stolen from .Lcase5's head
+    j     .Lret0
+     sh    $zero, 0x730($a0)
+    addiu $v0, $zero, 0x1        # case 3
+    addiu $v1, $zero, 0x5
+.Ltail:
+    sh ... ; sh ... ; jr $ra ; sh ...
+.Lcase5:
+    j     .Ltail
+     addiu $v1, $zero, 0xF
+```
+
+Writing the stores once at a join (`state = 5; break;` then the stores and
+`return 1`) scores 82%, and a `ret` variable 73%: `li v0,1` stays in the join.
+Writing each arm in full - three stores and `return 1` - matches: sched1 hoists
+the hard-register `v0 = 1` to the top of each arm, so post-reload cross-jumping
+merges only the stores beneath it. The switch's default falls out to the
+function's own `field_730 = 0; return 0;`, which is where its `j` lands.
