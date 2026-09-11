@@ -59125,3 +59125,15 @@ shared by two stores (`field_426 = 4` before the call, `field_422 = 4` after
 it) being scheduled one slot too late; putting `field_426 = 4` first among the
 stores gave 100% although the target shows the stores in another order - the
 statement order moves the constant load, and the stores are still in target order.
+
+### After a promotion, touch the host `.c` whose `INCLUDE_RODATA` table names the body
+Promoting `func_actor_342400_8016B414` renamed the body to `ActorsShared8016b414`,
+and the re-split correctly rewrote the overlay's state-handler table
+(`D_actor_342400_80161FCC.s`) to the new name. The scoped build still failed at
+link with `actor_342400.i:(.rodata+0x1b0): undefined reference to
+'func_actor_342400_8016B414'`. The reason is that `INCLUDE_RODATA` expands to an
+assembler `.include`, so cpp's `-MMD` depfile never lists the `.s` and ninja did
+not rebuild the object that pulled it in. The fix is
+`touch src/<family>/<overlay>/<overlay>.c` (every carrier whose table names the
+promoted function) followed by a rebuild. Nothing was wrong with the manifest or
+the symbol maps, so do not go looking there.
