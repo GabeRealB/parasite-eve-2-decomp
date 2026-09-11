@@ -1,6 +1,9 @@
 #include "common.h"
 
+#include "psyq/inline_c.h"
+#include "main/display.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -80,7 +83,7 @@ s32  func_actor_400600_801376EC();
 void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
-void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shade);
 void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
@@ -795,7 +798,57 @@ void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
     func_actor_400600_801383E4(&pts[9], &pts[10], 0x80, arg2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801383E4);
+/// Draws a semi-transparent textured quad along the segment from `arg0` to
+/// `arg1`: widened by `width` either side, pulled in by half its length at both
+/// ends, and shaded grey `shade`. The per-model counterpart of
+/// `ActorsShared80163354`, taking view-space points instead of joints.
+void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shade)
+{
+    Actor400600QuadScratch* s;
+    s16                     angle;
+    s32                     halfX;
+    s32                     halfZ;
+    POLY_FT4*               poly;
+
+    Gfx_ViewCoord.flg = 0;
+    s                 = (Actor400600QuadScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor400600QuadScratch));
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    angle         = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
+    halfX         = (arg0->vx - arg1->vx) / 2;
+    halfZ         = (arg0->vz - arg1->vz) / 2;
+    s->corner0.vx = halfX + (arg0->vx - ((s32)(rcos(angle) * width) >> 0xC));
+    s->corner0.vy = arg0->vy;
+    s->corner0.vz = halfZ + (arg0->vz + ((s32)(rsin(angle) * width) >> 0xC));
+    s->corner1.vx = halfX + (arg0->vx + ((s32)(rcos(angle) * width) >> 0xC));
+    s->corner1.vy = arg0->vy;
+    s->corner1.vz = halfZ + (arg0->vz - ((s32)(rsin(angle) * width) >> 0xC));
+    s->corner2.vx = (arg1->vx - ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
+    s->corner2.vy = arg1->vy;
+    s->corner2.vz = (arg1->vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+    s->corner3.vx = (arg1->vx + ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
+    s->corner3.vy = arg1->vy;
+    s->corner3.vz = (arg1->vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
+                             &s->screen2, &s->screen3, &s->perspective, &s->flags);
+    if (s->flags >= 0) {
+        poly           = Gpu_PrimCursor;
+        Gpu_PrimCursor = (u8*)poly + 0x28;
+        setlen(poly, 9);
+        poly->code       = 0x2E;
+        *(s32*)&poly->x0 = s->screen0;
+        *(s32*)&poly->x1 = s->screen1;
+        *(s32*)&poly->x2 = s->screen2;
+        *(s32*)&poly->x3 = s->screen3;
+        setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+        poly->tpage = 0x48;
+        poly->clut  = 0x4283;
+        setRGB0(poly, shade, shade, shade);
+        addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+    }
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor400600QuadScratch);
+}
 
 /// Copies this actor's model flags onto both child tasks' models and, for a
 /// non-negative `arg1`, sets the children's light mode to it.

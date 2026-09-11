@@ -154,4 +154,22 @@ typedef struct Actor400600Work {
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
+/// 0x3C-byte scratchpad frame `func_actor_400600_801383E4` carves off
+/// `G_SCRATCH_HEAD`: the four widened corners of the quad and
+/// `RotTransPers4`'s outputs. Same tail as `ActorsShared80163354Scratch`.
+typedef struct Actor400600QuadScratch {
+    /* 0x00 */ SVECTOR corner0;
+    /* 0x08 */ SVECTOR corner1;
+    /* 0x10 */ SVECTOR corner2;
+    /* 0x18 */ SVECTOR corner3;
+    /* 0x20 */ s32     screen0;
+    /* 0x24 */ s32     screen1;
+    /* 0x28 */ s32     screen2;
+    /* 0x2C */ s32     screen3;
+    /* 0x30 */ s32     perspective;
+    /* 0x34 */ s32     flags;
+    /* 0x38 */ s32     depth;
+} Actor400600QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
+
 #endif
