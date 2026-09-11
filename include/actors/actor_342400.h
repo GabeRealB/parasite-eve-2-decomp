@@ -5,6 +5,7 @@
 #include "main/task.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 
 /// Status flags at `Actor342400Work` + 0xEC, read through two widths: guards
 /// test bit 0 as a halfword and then bits 0x102 as a word, the same shape as
@@ -51,9 +52,7 @@ typedef struct Actor342400Work {
     /* 0x2EC */ GpRec18          rec_2EC[8];
     /* 0x3AC */ GpObj            obj_3AC;
     /* 0x3CC */ byte             pad_3CC[0x30];
-    /* 0x3FC */ GsCOORDINATE2*   field_3FC; // the model's second coord part
-    /* 0x400 */ s16              field_400;
-    /* 0x402 */ s16              field_402;
+    /* 0x3FC */ GpEffArg         eff_3FC;   // `func_800FDB18`'s arg3; field_0 is the model's second coord part
     /* 0x404 */ byte             pad_404[0xE];
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
