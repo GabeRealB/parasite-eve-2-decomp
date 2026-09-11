@@ -5,6 +5,7 @@
 #include "main/gfx.h"
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_80164b68.h"
+#include "actors/actors_shared_801692e8.h"
 
 /// Main enemy init. Allocates the 0x454-byte `Actor342400Work`, points the
 /// model at the light / color matrices inside it, runs the animation context,
@@ -37,7 +38,7 @@ void func_actor_342400_80163C58(Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    func_actor_342400_801692E8();
+    ActorsShared801692e8();
     obj            = task->extra;
     w              = (Actor342400Work*)task->idMap;
     e              = task->spawnArg2;
