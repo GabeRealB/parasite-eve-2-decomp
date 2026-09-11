@@ -80,6 +80,7 @@ extern TaskDesc        D_shelter_b3_dumping_hole_8018B594;
 extern TaskFuncTable4  D_shelter_b3_dumping_hole_8017D654;
 extern TaskFuncTable3  D_shelter_b3_dumping_hole_8017D664;
 extern TaskFuncTable3  D_shelter_b3_dumping_hole_8017D670;
+extern TaskFuncTable5  D_shelter_b3_dumping_hole_8017D67C;
 extern u8              D_801153F4;
 
 void RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
@@ -153,7 +154,13 @@ void func_shelter_b3_dumping_hole_80183620(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183678);
+void func_shelter_b3_dumping_hole_80183678(Task* task)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_shelter_b3_dumping_hole_8017D67C;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_801836E0);
 
