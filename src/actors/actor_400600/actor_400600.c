@@ -12,6 +12,7 @@
 
 #include "actors/actor_400600.h"
 #include "actors/actors_shared_80139948.h"
+#include "actors/actors_shared_8013a0b0.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run
@@ -145,7 +146,45 @@ void func_actor_400600_801328A8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_801329EC);
+void func_actor_400600_801329EC(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    u32              sound;
+    s32              pan;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if ((s16)work->field_718 == 0) {
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        sound  |= 0x531A000A;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    work->field_718++;
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        sound  |= 0x40060004;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->obj_4B4.flags |= 0x8000;
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+        work2                = (Actor400600Work*)arg0->idMap;
+        arg0->state          = 1;
+        work2->field_71C     = 0;
+        work2->field_71E     = 0;
+        work3                = (Actor400600Work*)arg0->idMap;
+        work3->field_71C     = 2;
+        work3->field_71E     = 0;
+    }
+}
 
 void func_actor_400600_80132B3C(Task* arg0)
 {

@@ -29447,6 +29447,25 @@ slot. Give each arm its own locals (`coord2` / `pan2`), as
 `func_actor_503500_80144E8C` already does. That took
 `func_actor_503500_80145754` from 97.4% (`regs=7 reorder=4`) to 100%.
 
+When the sound id is also built in place (`lhu s0; srl s0; sll s0; or s0,s0,a1`)
+and one `sound` / `pan` pair serves both arms, write both halves as a chain of
+statements on the variable itself. That ties every intermediate to its home and
+gives `sound` enough refs to outrank the work pointer for `$s0`:
+
+```c
+u32 sound;                     /* unsigned, or the >>= becomes sra */
+sound  = enemy->field_8;
+sound >>= 0xC;
+sound <<= 8;
+sound |= 0x531A000A;
+pan    = Gp_GetObjPan(coord) << 24;
+pan  >>= 24;
+```
+
+`pan = (s8)pan` after a plain assignment raised `pan`'s refs past `sound`'s and
+swapped `$s0`/`$s1`; the explicit shifts did not. `func_actor_400600_801329EC`
+went from 97.7% (one-expression `sound`, `(s8)` cast) to 100%.
+
 ## Don't pin a short-lived arg copy to a later `mflo` dest
 
 `pos = arg1` only lives through the first few loads, then the three-square
