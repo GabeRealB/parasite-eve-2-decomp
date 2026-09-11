@@ -1035,7 +1035,35 @@ void func_actor_400600_8013C5F8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013C6B0);
+void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
+{
+    VECTOR v;
+    VECTOR n;
+    s32    dx;
+    s32    dz;
+    s32    dist;
+    s32    t;
+
+    dx   = pos->vx - rec->field_8;
+    v.vy = 0;
+    v.vx = dx;
+    dz   = pos->vz - rec->field_C;
+    v.vz = dz;
+    dist = rec->field_2 - SquareRoot0(dx * dx + dz * dz);
+    t    = dist;
+    if (dist <= 0) {
+        t = 0;
+    }
+    dist = t;
+    v.vx = pos->vx - rec->field_8;
+    v.vy = pos->vy - rec->field_A;
+    v.vz = pos->vz - rec->field_C;
+    VectorNormal(&v, &n);
+    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &v);
+    out->vx = (dist * v.vx) >> 12;
+    out->vy = 0;
+    out->vz = (dist * v.vz) >> 12;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013C7E8);
 
