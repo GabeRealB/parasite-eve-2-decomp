@@ -40,12 +40,31 @@ STATIC_ASSERT_SIZEOF(Actor400600Timer, 0x4);
 typedef union Actor400600State {
     /* 0x0 */ s32 word;
     struct {
-        /* 0x0 */ byte pad_0[0x2];
-        /* 0x2 */ u8   field_75E; // compared unsigned by func_actor_400600_8013C874
-        /* 0x3 */ s8   field_75F;
+        /* 0x0 */ s16 field_75C; // cleared on its own by func_actor_400600_80133FC0
+        /* 0x2 */ u8  field_75E; // compared unsigned by func_actor_400600_8013C874
+        /* 0x3 */ s8  field_75F;
     } b;
 } Actor400600State;
 STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
+
+/// Payload `func_actor_400600_80133FC0` sends the `Game_GetPtrSlot(3)` task as
+/// message 0x3FF, with `field_0` pointing at `D_actor_400600_80151A48`.
+typedef struct Actor400600Msg3FF {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} Actor400600Msg3FF;
+STATIC_ASSERT_SIZEOF(Actor400600Msg3FF, 0x14);
+
+/// Reply buffer `func_actor_400600_80133FC0` passes with message 0x3F8; only
+/// `field_14` is seeded (to 8) before the query.
+typedef struct Actor400600Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor400600Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor400600Msg3F8, 0x18);
 
 /// Per-actor state block for the `actor_400600` overlay.
 ///
@@ -65,7 +84,7 @@ typedef struct Actor400600Work {
     /* 0x092 */ u16                field_92; // seeds field_73E on state entry
     /* 0x094 */ byte               pad_94[0x4];
     /* 0x098 */ u16                field_98; // low half of the root coordinate's world X
-    /* 0x09A */ byte               pad_9A[0x2];
+    /* 0x09A */ u16                field_9A; // copy of field_92
     /* 0x09C */ u16                field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte               pad_9E[0xA];
     /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for ActorsShared80139c00
@@ -90,7 +109,7 @@ typedef struct Actor400600Work {
     /* 0x714 */ s16                field_714; // reset to 0x1000 on death
     /* 0x716 */ u16                field_716; // frame counter, bumped by func_actor_400600_80138D78
     /* 0x718 */ u16                field_718; // per-state frame counter
-    /* 0x71A */ byte               pad_71A[0x2];
+    /* 0x71A */ s16                field_71A;
     /* 0x71C */ u16                field_71C; // state index
     /* 0x71E */ u16                field_71E; // sub-state index
     /* 0x720 */ s16                field_720;
@@ -98,7 +117,8 @@ typedef struct Actor400600Work {
     /* 0x724 */ s16                field_724; // accumulated step
     /* 0x726 */ s16                field_726;
     /* 0x728 */ s16                field_728;
-    /* 0x72A */ byte               pad_72A[0x4];
+    /* 0x72A */ byte               pad_72A[0x2];
+    /* 0x72C */ u16                field_72C;
     /* 0x72E */ s16                field_72E;
     /* 0x730 */ s16                field_730;
     /* 0x732 */ s16                field_732; // countdown seeded by func_actor_400600_80138AF0

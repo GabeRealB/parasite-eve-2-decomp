@@ -42,6 +42,8 @@ extern s32 D_8011574C;
 
 extern GpU16Pair D_actor_400600_80144EA8;
 
+extern u8 D_actor_400600_80151A48[];
+
 void func_8017D9B8(s32);
 
 /* One of the sub-state tables in this unit's leading rodata. The original wrote
@@ -74,6 +76,8 @@ extern s16 D_actor_400600_80151B88[];
 /* Still `INCLUDE_ASM` in this overlay; `func_actor_400600_80139CAC` is called
  * both with and without an argument, so it keeps an unprototyped declaration. */
 void func_actor_400600_80135998(Task* arg0, s16 arg1);
+s32  func_actor_400600_801376EC();
+void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
 void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
@@ -412,7 +416,70 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133E38);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80133FC0);
+void func_actor_400600_80133FC0(Task* arg0)
+{
+    Actor400600Msg3FF msg;
+    Actor400600Msg3F8 query;
+    Actor400600Work*  work;
+    Actor400600Work*  work2;
+    Actor400600Work*  work3;
+    s32               base;
+    s32               sound;
+    s32               pan;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (Gp_ActorSlots[0]->actor->field_954 == 2 || (func_actor_400600_801376EC() << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
+        func_actor_400600_80138B40(arg0);
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_71C = 2;
+        work2->field_71E = 0;
+        func_actor_400600_80135998(arg0, work->field_752);
+        return;
+    }
+    query.field_14 = 8;
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&query, 0) != 0) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        if (work->field_768 == 0) {
+            work3            = (Actor400600Work*)arg0->idMap;
+            work3->field_71C = 2;
+            work3->field_71E = 0;
+            return;
+        }
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_71C = 0xD;
+        work2->field_71E = 0;
+        return;
+    }
+    work->field_73E = work->field_92;
+    func_actor_400600_80138B40(arg0);
+    work->field_768      = 0;
+    Gp_StateC08.field_6 |= 1;
+    work->field_767      = 1;
+    work->field_9A       = work->field_92;
+    msg.field_0          = D_actor_400600_80151A48;
+    msg.field_8          = 0;
+    msg.field_C          = 0;
+    msg.field_10         = 0;
+    msg.field_4          = 1;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+    work->obj_4B4.flags &= 0x3FFF;
+    work2                = (Actor400600Work*)arg0->idMap;
+    work2->field_720     = 4;
+    work2->field_726     = 0x10;
+    work2->field_746     = 5;
+    work2->field_742     = 1;
+    work->field_718      = 0;
+    work->field_71A      = 0;
+    base                 = 0x40060004;
+    if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+        base = 0x404A0004;
+    }
+    sound = base | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+    pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    work->field_75C.b.field_75C = 0;
+    work->field_71E++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80134218);
 
