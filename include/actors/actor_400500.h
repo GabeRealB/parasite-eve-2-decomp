@@ -142,7 +142,8 @@ typedef struct Actor400500Work {
     /* 0xA2C */ s16                field_A2C; // countdown written with message kind 1
     /* 0xA2E */ byte               pad_A2E[2];
     /* 0xA30 */ s16                field_A30; // blocks setting field_A46 to 0x80 while nonzero
-    /* 0xA32 */ byte               pad_A32[4];
+    /* 0xA32 */ s16                field_A32; // heading; >>3 as u16, compared to 0 as s16
+    /* 0xA34 */ byte               pad_A34[2];
     /* 0xA36 */ u16                field_A36; // angle, range-tested as (a - 0x300) <= 0xA00
     /* 0xA38 */ s16                field_A38;
     /* 0xA3A */ s16                field_A3A;

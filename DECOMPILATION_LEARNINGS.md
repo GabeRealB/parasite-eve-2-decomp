@@ -60425,3 +60425,18 @@ extension as its own early statement, so it emits right after the first init.
 (`if (count == arg2)`). GCC still hoists the single extension out of the loop,
 but now schedules it *among* the other loop-invariants (after `i=0` and the
 compare constant), matching retail. `func_shelter_b3_dumping_hole_80183198`.
+### An action phi sinks `move a0` into the jal delay and collapses the 2/3 diamond
+
+`func_actor_400500_80132D74` has three arms that call the same helper with
+`a1 = 1/2/3` and return 1. An `s16 action` phi plus one call scored 94.7%:
+`move a0, a2` landed in the jal delay, so the flag `bnez` delay took `li a1, 3`
+and the `a1 = 2` arm fell through with no `j`. Target occupies that `bnez`
+delay with `move a0, a2`, which forces `li a1, 3` into its own block and the
+`j` / `li a1, 2` over it.
+
+Duplicate the call in each arm and let `jump.c` merge the jal+return tails.
+Path 1 keeps `move a0` / `j` / `li a1, 1`; the 2/3 diamond keeps `bnez` /
+`move a0` / `j` / `li a1, 2` / `li a1, 3` / `jal` / `nop`. Same overlay's
+`func_actor_400500_8013DB78` already shows the distance/angle test this
+function extends. `field_A32` is `s16` so the second group is `lh`; the first
+group's `>> 3` needs `(u16)` for `lhu` / `srl`.
