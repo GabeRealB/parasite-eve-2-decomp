@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gfx.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -562,7 +563,68 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80139C1C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80139D70);
+void func_actor_400500_80139D70(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    GsCOORDINATE2*   coord;
+    GpEnemy*         enemy;
+    u16              step;
+    u16              accum;
+    s32              y;
+    s16              angle;
+    s32              soundId;
+    s32              pan;
+    s32              soundId2;
+    s32              pan2;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = (Actor400500Work*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    if ((s16)++work->field_A04 < 9) {
+        if (enemy->field_40 <= 0) {
+            work->field_A42 = 0;
+            return;
+        }
+        work2 = (Actor400500Work*)arg0->idMap;
+        if (work2->field_A4A != 0) {
+            work2->field_A4A = 0;
+            func_actor_400500_8013DB64(arg0, 5);
+        }
+    } else {
+        step              = (u16)work->field_A10 - 2;
+        accum             = (u16)work->field_A12 + step;
+        work->field_A12   = accum;
+        work->field_A10   = step;
+        y                 = coord->coord.t[1] - (s16)accum;
+        coord->coord.t[1] = y;
+        if (work->field_948 < 0x800) {
+            angle           = (u16)work->field_948 + 0x98;
+            work->field_948 = angle;
+            if (angle >= 0x801) {
+                work->field_948 = 0x800;
+            }
+        }
+        if (coord->coord.t[1] < -0xFA0) {
+            coord->coord.t[1] = -0xFA0;
+            work->field_A08   = work->field_A08 + 1;
+            coord->coord.t[1] = -0xFA0;
+            work->field_948   = 0;
+            work->field_94C   = 0x800;
+            work->field_94A   = (u16)work->field_94A + 0x800;
+            work2             = (Actor400500Work*)arg0->idMap;
+            work2->field_9F8  = 0x10;
+            work2->field_9FE  = 0x19;
+            work2->field_9FA  = 2;
+            soundId           = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050001;
+            pan               = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+            soundId2 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050002;
+            pan2     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(soundId2, pan2, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80139F6C);
 
