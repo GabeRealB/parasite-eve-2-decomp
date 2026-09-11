@@ -97,7 +97,7 @@ typedef struct Actor400600Work {
     /* 0x75F */ s8                 field_75F;
     /* 0x760 */ byte               pad_760[0x3];
     /* 0x763 */ s8                 field_763;
-    /* 0x764 */ byte               pad_764[0x1];
+    /* 0x764 */ u8                 field_764;
     /* 0x765 */ s8                 field_765;
     /* 0x766 */ s8                 field_766;
     /* 0x767 */ s8                 field_767;

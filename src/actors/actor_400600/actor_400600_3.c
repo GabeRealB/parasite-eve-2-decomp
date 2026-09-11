@@ -45,6 +45,7 @@ s32  func_actor_400600_801370F4();
 void func_actor_400600_80137498(Task* arg0, s16 arg1);
 s32  func_actor_400600_80137C34(Task* arg0);
 void func_actor_400600_801387DC(Task* arg0, s32 arg1);
+void func_actor_400600_80138AF0(Task* arg0, s32 arg1);
 void func_actor_400600_80138B40(Task* arg0);
 void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 void func_actor_400600_80139948(Task* arg0);
@@ -574,7 +575,24 @@ void func_actor_400600_8013BE58(Task* arg0)
     work->field_71E = work->field_71E + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_3", func_actor_400600_8013BE90);
+void func_actor_400600_8013BE90(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work2;
+
+    work->field_84 += -(s16)work->field_84 >> 2;
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (work->field_764 == 0) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        }
+        func_actor_400600_80138AF0(arg0, 0x3C);
+        work->field_84   = 0;
+        work2            = (Actor400600Work*)arg0->idMap;
+        work2->field_71C = 2;
+        work2->field_71E = 0;
+        work->field_767  = 0;
+    }
+}
 
 void func_actor_400600_8013BF48(Task* arg0)
 {
