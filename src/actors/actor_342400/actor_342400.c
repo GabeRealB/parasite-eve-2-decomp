@@ -21,7 +21,47 @@ extern s32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162084);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801621D8);
+void func_actor_342400_801621D8(Task* arg0)
+{
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    GpEnemy*              enemy;
+    Task*                 task;
+    GsCOORDINATE2*        coord;
+    Actor342400Msg7DB     msg;
+
+    if (work->enemy0 != NULL) {
+        enemy = work->enemy0;
+        task  = enemy->task;
+        coord = ((TmdObject*)task->extra)->field_8;
+        if (enemy->field_40 <= 0) {
+            work->enemy0 = NULL;
+        } else if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+            msg.field_0 = 0;
+            msg.field_1 = 0;
+            msg.field_2 = 5;
+            Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
+            work->enemy0 = NULL;
+        }
+    } else {
+        work->field_A |= 1;
+    }
+    if (work->enemy1 != NULL) {
+        enemy = work->enemy1;
+        task  = enemy->task;
+        coord = ((TmdObject*)task->extra)->field_8;
+        if (enemy->field_40 <= 0) {
+            work->enemy1 = NULL;
+        } else if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+            msg.field_0 = 0;
+            msg.field_1 = 0;
+            msg.field_2 = 5;
+            Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
+            work->enemy1 = NULL;
+        }
+    } else {
+        work->field_A |= 2;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162324);
 
