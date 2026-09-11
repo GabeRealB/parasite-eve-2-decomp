@@ -169,7 +169,31 @@ void func_actor_342400_80162CA8(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162CBC);
+void func_actor_342400_80162CBC(Task* arg0)
+{
+    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->idMap;
+    GpEnemy*              enemy;
+    Task*                 task;
+    GsCOORDINATE2*        coord;
+    Actor342400Msg7DB     msg;
+
+    enemy = work->enemy;
+    task  = enemy->task;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (enemy->field_40 <= 0) {
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+        Task_Kill(arg0);
+        return;
+    }
+    if (func_actor_342400_801626CC(Game_Session->unknown_136[0], coord->coord.t[0], coord->coord.t[2])) {
+        msg.field_0 = 0;
+        msg.field_1 = 0x2C;
+        msg.field_2 = 5;
+        Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+        Task_Kill(arg0);
+    }
+}
 
 void func_actor_342400_80162DA0(Task* arg0)
 {
