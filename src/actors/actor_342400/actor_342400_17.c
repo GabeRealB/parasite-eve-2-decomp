@@ -54,6 +54,35 @@ void func_actor_342400_8016B9A4(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_17", func_actor_342400_8016BA3C);
+void func_actor_342400_8016BA3C(Task* arg0)
+{
+    Actor342400Work* work;
+    s16              anim;
+    s16              next;
+
+    work = (Actor342400Work*)arg0->idMap;
+    anim = work->field_418;
+    if (anim == 8) {
+        if (work->field_440 == 0) {
+            work->field_426 = 4;
+            work->field_41C = 0x10;
+            work->field_418 = 5;
+            work->field_414 = 1;
+        } else {
+            work->field_426 = 4;
+            work->field_41C = 0x10;
+            work->field_418 = 6;
+            work->field_414 = 1;
+        }
+    } else {
+        next            = D_actor_342400_80173A98[anim - 1];
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = next;
+        work->field_414 = 1;
+    }
+    func_actor_342400_80165CC0(arg0);
+    work->field_420++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_17", func_actor_342400_8016BAF4);
