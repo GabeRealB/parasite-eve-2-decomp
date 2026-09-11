@@ -55,4 +55,19 @@ void func_shelter_b3_dumping_hole_80183024(Task* arg0)
     func_shelter_b3_dumping_hole_80181C8C();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80183060);
+void func_shelter_b3_dumping_hole_80183060(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            arg0->state = 1;
+            break;
+        case 1:
+            arg0->spawnArg1 -= 1;
+            if (arg0->spawnArg1 <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                Task_Kill(arg0);
+                Stage_SetEndingFlag();
+            }
+            break;
+    }
+    func_shelter_b3_dumping_hole_80181C8C();
+}
