@@ -26,7 +26,7 @@ void ActorsShared80139948(Task* arg0)
     *(MATRIX**)G_SCRATCH_HEAD = m;
     RotMatrixZ((s16)work->roll, m);
     RotMatrixX((s16)work->pitch, m);
-    func_8004BFF8(work->yaw, m);
+    func_8004BFF8((s16)work->yaw, m);
     dst                   = &coord->coord;
     dst->m[0][0]          = m->m[0][0];
     dst->m[0][1]          = m->m[0][1];

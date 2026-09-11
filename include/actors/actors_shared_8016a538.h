@@ -22,7 +22,9 @@ typedef union ActorsShared8016a538Mat {
 } ActorsShared8016a538Mat;
 STATIC_ASSERT_SIZEOF(ActorsShared8016a538Mat, 0x20);
 
-void func_8004BFF8(s16 angle, MATRIX* matrix);
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
+/// so a negated angle is passed without re-truncation to 16 bits.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 /// Rebuild the model root's rotation: pitch about X by a sine sway driven by
 /// `field_442`, then turn by the heading `field_7A`, and copy the 3x3 into the

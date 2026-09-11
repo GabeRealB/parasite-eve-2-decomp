@@ -59762,3 +59762,45 @@ coord->coord.t[1] += ((s16)work->field_9A - y) >> 3;
 Same mechanism as the `base | (x | CONST)` entry above. Check `.i.rtl` for
 the constant's sign: when it is already negated there, the fix is in the C
 tree, not in a later pass.
+
+## Reusing one local for a copied value and then a constant forces the store order sched1 would otherwise swap
+
+`func_actor_400600_80137498` ends case 0 of a switch with
+`field_4 = out.vz; field_10 = 10; field_12 = 10; break;`, and case 2 ends with
+the same two constant stores. The target is `lhu v0,0x1C(sp) / nop /
+sh v0,0x628 / j <case 2's sh 0x634> / li v0,10`: jump2 cross-jumped the
+`sh 0x634 / sh 0x636` tail into case 2. With plain constants, sched1 ranked the
+vz store (priority 4, the end of the `out` load/store alias chain) above the
+constant stores (priority 3). It put that store last and moved `li 10` into
+the load-delay slot. The block then ended in `sh 0x628` instead of the shared
+pair, so the cross-jump failed (96%).
+
+Carrying both values in one local adds an anti-dependence (the `li` writes the
+register the vz store reads), which keeps the store ahead of the `li`:
+
+```c
+n                      = out.vz;
+work->rec_624.field_4  = n;
+n                      = 0xA;
+work->rec_624.field_10 = n;
+work->rec_624.field_12 = n;
+```
+
+Two things did not work. A variable fed by every case and stored after the
+switch makes it a multi-block pseudo, which goes to `$v1`. A constant local set
+at the top of the function is live across the call, so it gets `$s2`. When a
+missing cross-jump comes down to one store that sched1 sinks past constant
+stores, look for a shared register that forces the order, not a reordering of
+statements.
+
+In the same function, two matrix-pointer fixes were needed:
+
+- **Register swap.** `$s0`/`$s1` were swapped between `work` and the matrix
+  pointer (global priorities 1.32 vs 0.68). Declaring the pointer inside each
+  `if` arm, with `ApplyMatrixSV` repeated per arm, made it a local-alloc
+  quantity, which gets `$s0` before global alloc runs. jump2 merges the
+  repeated calls again. This is the same mechanism as "State-change tails
+  merged by cross-jumping: one pointer local per arm".
+- **Prototype.** `func_8004BFF8` is Psy-Q `RotMatrixY` and takes a `long`.
+  With an `s16` prototype, `-(s16)x` gets an extra `sll`/`sra` after the
+  `negu`.
