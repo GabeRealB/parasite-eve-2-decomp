@@ -5,10 +5,25 @@
 #include "main/tmd.h"
 #include "main/pad.h"
 #include "main/stage.h"
+#include "gameplay/3CD8.h"
+
+typedef struct {
+    u8  field_0;
+    u8  field_1;
+    u8  _pad2[0x2];
+    u8  field_4;
+    u8  _pad5[0x3];
+    s32 field_8;
+} DumpingHoleSpawnElem;
+
+extern DumpingHoleSpawnElem* D_shelter_b3_dumping_hole_8018F4BC;
+extern s16                   D_shelter_b3_dumping_hole_8018F4C6;
 
 extern void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1);
 extern void func_shelter_b3_dumping_hole_8017FE10(void);
 extern void func_shelter_b3_dumping_hole_80181C8C(void);
+void        func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void        func_shelter_b3_dumping_hole_80182AA0(void);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181A48);
 
@@ -25,7 +40,27 @@ void func_shelter_b3_dumping_hole_80181B44(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181B64);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181C8C);
+void func_shelter_b3_dumping_hole_80181C8C(void)
+{
+    if (D_shelter_b3_dumping_hole_8018F4BC == NULL) {
+        return;
+    }
+    if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8 == -1) {
+        return;
+    }
+    if (Gp_CapBusy() != 0) {
+        return;
+    }
+    func_shelter_b3_dumping_hole_80181F80(
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8, 0x80, 1,
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_0 |
+            ((D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_1 & 0x10)
+             << 4));
+    if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_4 & 1) {
+        return;
+    }
+    func_shelter_b3_dumping_hole_80182AA0();
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181D68);
 
