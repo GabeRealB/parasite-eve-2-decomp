@@ -1366,7 +1366,28 @@ void func_actor_400600_8013C874(Task* arg0)
     work->field_71C      = work->field_71C + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_6", func_actor_400600_8013C940);
+void func_actor_400600_8013C940(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    u32              rnd;
+
+    work = (Actor400600Work*)arg0->idMap;
+    if (D_80115414[0] == 1) {
+        rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState     = rnd;
+        work->field_718 = ((rnd >> 0x10) & 7) + 0x14;
+        work->field_71C = work->field_71C + 1;
+    } else if (D_80115414[0] == 2) {
+        work->obj_4B4.flags |= 0x8000;
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+        work2                = (Actor400600Work*)arg0->idMap;
+        arg0->state          = 1;
+        work2->field_71C     = 0;
+        work2->field_71E     = 0;
+    }
+}
 
 void func_actor_400600_8013C9DC(Task* arg0)
 {
