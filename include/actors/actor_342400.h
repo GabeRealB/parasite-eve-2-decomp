@@ -96,10 +96,12 @@ STATIC_ASSERT_SIZEOF(Actor342400CtrlWork, 0x6);
 
 /// Work block of the spawner task set up by `func_actor_342400_80162B60`
 /// (`Mem_Calloc(8, 0)`, stored in its `Task::idMap` slot); holds the enemy it
-/// spawned from `D_actor_342400_80173A54`.
+/// spawned from `D_actor_342400_80173A54`. `func_actor_342400_80162C10`
+/// counts `field_4` up past 60 before releasing the enemy.
 typedef struct Actor342400SpawnWork {
     /* 0x0 */ GpEnemy* enemy;
-    /* 0x4 */ byte     pad_4[4];
+    /* 0x4 */ s16      field_4; // frame counter
+    /* 0x6 */ byte     pad_6[2];
 } Actor342400SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 
