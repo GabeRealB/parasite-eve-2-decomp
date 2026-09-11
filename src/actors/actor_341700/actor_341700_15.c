@@ -14,38 +14,17 @@
 
 #include "actors/actor_341700.h"
 
-/* Called with no argument: the caller's own `Task*` is already in
- * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
- * has no register copy.  A real prototype would make GCC emit one, so it
- * stays unprototyped. */
-s32 ActorsShared8016945c();
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_80169F38);
 
-void func_actor_341700_8016A0E0(Task* arg0)
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_80169FB0);
+
+void func_actor_341700_8016A058(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->idMap;
 
-    work->field_426 = 8;
+    work->field_426 = 4;
     work->field_41C = 0x10;
     work->field_418 = 0xF;
     work->field_414 = 1;
     work->field_422 = work->field_422 + 1;
-    Gp_ArmStateF0(1);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_8016A130);
-
-void func_actor_341700_8016A1A8(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-
-    work = (Actor341700Work*)arg0->idMap;
-    if ((ActorsShared8016945c() << 0x10) == 0) {
-        work2            = (Actor341700Work*)arg0->idMap;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xF;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
 }

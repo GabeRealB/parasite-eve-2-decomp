@@ -2,24 +2,44 @@
 #include "main/task.h"
 #include "actors/actor_342400.h"
 
-void func_actor_342400_8016B84C(Task* arg0);
-void func_actor_342400_8016B914(Task* arg0);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80165FC0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80168B74);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80166180);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80168F14);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801662EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801690FC);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801664C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801692E8);
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_8016666C);
 
-void func_actor_342400_80169408(Task* arg0)
-{
-    Actor342400Work* work                = (Actor342400Work*)arg0->idMap;
-    void             (*states[2])(Task*) = {
-        func_actor_342400_8016B84C,
-        func_actor_342400_8016B914,
-    };
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80166B20);
 
-    states[(s16)work->field_420](arg0);
-}
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80166C68);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80166DD4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80166F54);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801670C0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801673F8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801676D4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_8016784C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_801679D4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80167B70);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80167CDC);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80167E78);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80168010);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80168174);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80168394);
+
+INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_5", func_actor_342400_80168530);

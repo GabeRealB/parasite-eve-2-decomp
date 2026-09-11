@@ -14,31 +14,44 @@
 
 #include "actors/actor_341700.h"
 
-void func_actor_341700_8016A568(Task* arg0);
-void func_actor_341700_8016A630(Task* arg0);
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80164CDC);
 
-/* Both are called with no argument: the caller's own `Task*` is already in
- * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
- * has no register copy.  A real prototype would make GCC emit one, so these
- * stay unprototyped. */
-s32 ActorsShared8016945c();
-s32 ActorsShared8016974c();
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80164E9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80167890);
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80165008);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80167C30);
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801651E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80167E18);
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80165388);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80168004);
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016583C);
 
-void func_actor_341700_80168124(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
-    void             (*states[2])(Task*) = {
-        func_actor_341700_8016A568,
-        func_actor_341700_8016A630,
-    };
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80165984);
 
-    states[(s16)work->field_420](arg0);
-}
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80165AF0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80165C70);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80165DDC);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80166114);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801663F0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80166568);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801666F0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016688C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801669F8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80166B94);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80166D2C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_80166E90);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_801670B0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_5", func_actor_341700_8016724C);

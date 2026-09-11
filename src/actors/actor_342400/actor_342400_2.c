@@ -15,11 +15,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_801646B8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_801648E4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_80164CA4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_80164DD4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_80164F3C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_2", func_actor_342400_8016513C);
