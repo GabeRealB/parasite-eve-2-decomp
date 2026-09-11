@@ -9,7 +9,19 @@
 #include "gameplay/gameplay.h"
 #include "actors/actor_400500.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_3", func_actor_400500_8013DEFC);
+void func_actor_400500_8013DF74(Task* arg0);
+void func_actor_400500_8013DFE4(Task* arg0);
+
+void func_actor_400500_8013DEFC(Task* arg0)
+{
+    Actor400500Work* work                = (Actor400500Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_400500_8013DF74,
+        func_actor_400500_8013DFE4,
+    };
+
+    states[(s16)work->field_A06](arg0);
+}
 
 void func_actor_400500_8013DF50(Task* arg0)
 {
