@@ -52,8 +52,9 @@ typedef struct Actor342400Work {
     /* 0x2EC */ GpRec18          rec_2EC[8];
     /* 0x3AC */ GpObj            obj_3AC;
     /* 0x3CC */ byte             pad_3CC[0x30];
-    /* 0x3FC */ GpEffArg         eff_3FC;   // `func_800FDB18`'s arg3; field_0 is the model's second coord part
-    /* 0x404 */ byte             pad_404[0xE];
+    /* 0x3FC */ GpEffArg         eff_3FC; // `func_800FDB18`'s arg3; field_0 is the model's second coord part
+    /* 0x404 */ byte             pad_404[0xC];
+    /* 0x410 */ s16              field_410;
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
     /* 0x416 */ byte             pad_416[0x2];
@@ -67,14 +68,17 @@ typedef struct Actor342400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ byte             pad_428[0xA];
     /* 0x432 */ s16              field_432; // 1 runs func_actor_342400_80169654 on the spawn position
-    /* 0x434 */ byte             pad_434[0x4];
+    /* 0x434 */ byte             pad_434[0x2];
+    /* 0x436 */ s16              field_436; // animation step applied by ActorsShared801698d4
     /* 0x438 */ s16              field_438;
-    /* 0x43A */ byte             pad_43A[0x6];
+    /* 0x43A */ s16              field_43A;
+    /* 0x43C */ byte             pad_43C[0x4];
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ u16              field_442;
-    /* 0x444 */ byte             pad_444[0x4];
+    /* 0x444 */ u16              field_444; // angle, masked to 0xFFF
+    /* 0x446 */ byte             pad_446[0x2];
     /* 0x448 */ s16              field_448; // pending state request; 4 moves the task to state 4 once the enemy is dead
-    /* 0x44A */ byte             pad_44A[0x2];
+    /* 0x44A */ s16              field_44A;
     /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ byte             pad_44E[0x1];
     /* 0x44F */ u8               field_44F; // 1 = run ActorsShared8016bef0 after the sub-state
@@ -189,6 +193,7 @@ void func_actor_342400_801637DC(Task* arg0);
 void func_actor_342400_801653DC(Task* arg0, s16 arg1);
 void func_actor_342400_80165CC0(Task* arg0);
 void func_actor_342400_80169654(Task* arg0, s16 arg1, u16* arg2);
+s16  func_actor_342400_80169728(Task* arg0, s32 arg1);
 void func_actor_342400_8016A494(Task* arg0);
 void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 void func_actor_342400_801632D4(Task* arg0);

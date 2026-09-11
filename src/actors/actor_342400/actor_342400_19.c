@@ -4,8 +4,6 @@
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_8016974c.h"
 
-s16 func_actor_342400_80169728(Task* arg0, s32 arg1);
-
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_19", func_actor_342400_8016A240);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_19", func_actor_342400_8016A280);
