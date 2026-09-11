@@ -49,6 +49,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 /* Still `INCLUDE_ASM` in this unit; `func_actor_400600_80139CAC` and
  * `func_actor_400600_8013A0B0` are called both with and without an argument,
  * so they keep an unprototyped declaration. */
+void func_actor_400600_80135998(Task* arg0, s16 arg1);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
 s32  func_actor_400600_801370F4();
@@ -695,7 +696,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013B640);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013B6F4);
+void func_actor_400600_8013B6F4(Task* arg0)
+{
+    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+
+    work->field_754 = 0x18;
+    work->field_76B = 0;
+    work->field_752 = 0x10;
+    func_actor_400600_80135998(arg0, 0x10);
+    work->field_71E = work->field_71E + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013B740);
 

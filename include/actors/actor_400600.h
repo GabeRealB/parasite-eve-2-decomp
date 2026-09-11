@@ -76,7 +76,10 @@ typedef struct Actor400600Work {
     /* 0x744 */ byte               pad_744[0x2];
     /* 0x746 */ s16                field_746; // animation id
     /* 0x748 */ s16                field_748; // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ byte               pad_74A[0x19];
+    /* 0x74A */ byte               pad_74A[0x8];
+    /* 0x752 */ s16                field_752;
+    /* 0x754 */ s16                field_754;
+    /* 0x756 */ byte               pad_756[0xD];
     /* 0x763 */ s8                 field_763;
     /* 0x764 */ byte               pad_764[0x1];
     /* 0x765 */ s8                 field_765;
@@ -84,7 +87,9 @@ typedef struct Actor400600Work {
     /* 0x767 */ s8                 field_767;
     /* 0x768 */ byte               pad_768[0x1];
     /* 0x769 */ u8                 field_769; // sub-variant flag, gates state indices
-    /* 0x76A */ byte               pad_76A[0x6];
+    /* 0x76A */ byte               pad_76A[0x1];
+    /* 0x76B */ s8                 field_76B;
+    /* 0x76C */ byte               pad_76C[0x4];
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
