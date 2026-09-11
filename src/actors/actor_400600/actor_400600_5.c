@@ -8,7 +8,15 @@
 void func_actor_400600_8013AAD8(Task* arg0);
 void func_actor_400600_8013AB44(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013A0F0);
+/* Splat-owned in the first unit's leading rodata; see `actor_400600.c`. */
+extern const TaskFuncTable9 D_actor_400600_80131EAC;
+
+void func_actor_400600_8013A0F0(Task* arg0)
+{
+    TaskFuncTable9 states = D_actor_400600_80131EAC;
+
+    states.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_5", func_actor_400600_8013A170);
 
