@@ -126,7 +126,8 @@ typedef struct Actor400500Work {
     /* 0xA14 */ byte               pad_A14[0x2];
     /* 0xA16 */ s16                field_A16; // distance, compared to a range
     /* 0xA18 */ s16                field_A18;
-    /* 0xA1A */ byte               pad_A1A[0x4];
+    /* 0xA1A */ s16                field_A1A; // 1: sample part 0xE when heading is 0x400/0xC00
+    /* 0xA1C */ byte               pad_A1C[0x2];
     /* 0xA1E */ u16                field_A1E; // flags; bit 0x1 and bit 0x2 gate animations
     /* 0xA20 */ s16                field_A20;
     /* 0xA22 */ byte               pad_A22[0x2];

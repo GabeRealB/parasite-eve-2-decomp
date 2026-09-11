@@ -3,6 +3,44 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `u16 x = -1` is `ori 0xFFFF`; an `s32` temp keeps `addiu -1`
+
+Assigning `-1` to a `u16` field converts the constant to 65535 and emits
+`ori $v0, $zero, 0xFFFF` then `sh`. The target that stores signed `-1` and
+lets `sh` truncate needs the constant born as a signed `s32`:
+
+```c
+s32 neg = -1;
+work->field_A04 = neg; /* addiu $v0, $zero, -1; sh */
+```
+
+`func_actor_400500_8013CA38` with `work->field_A04 = -1` was `ori`. The
+same store through an `s32` temp is exact. Do not change the field to `s16`
+to get this: other readers of `field_A04` use `lhu`.
+
+## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
+
+`work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
+`Gp_WorldToLocal` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
+nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
+as `sh $v1, 4($v0)`.
+
+Taking the address *before* the two jals into one pointer, then copying it
+to a second pointer after the calls, forces the address to be rematerialized
+there:
+
+```c
+pos2 = &work->field_9A0;
+Gp_UpdateCoord(&coords[0xE]);
+Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+pos    = pos2;
+pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
+pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
+```
+
+A single `pos = &work->field_9A0` after the calls still folds. `func_actor_400500_8013CA38`
+is the example (permuter `de95fd9fa49844d3`, confirmed by `base_6.c`).
+
 ## Two dest pointers keep offset `addiu`s live across a following `jal`
 
 `GsCOORDINATE2 *parts` plus two indexes that are only consumed *after* a

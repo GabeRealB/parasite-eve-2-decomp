@@ -265,7 +265,40 @@ void func_actor_400500_8013C908(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C9D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013CA38);
+void func_actor_400500_8013CA38(Task* arg0)
+{
+    MATRIX              local;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    GsCOORDINATE2*      coords;
+    Actor400500ViewPos* pos;
+    Actor400500ViewPos* pos2;
+    s32                 heading;
+    s32                 masked;
+    s32                 neg;
+
+    work             = (Actor400500Work*)arg0->idMap;
+    heading          = (u16)work->field_94A;
+    work->field_A04  = 0;
+    work2            = (Actor400500Work*)arg0->idMap;
+    work2->field_9F8 = 0x10;
+    work2->field_9FE = 0x16;
+    work2->field_9FA = 2;
+    masked           = heading & 0xFFF;
+    if ((work->field_A1A == 1) && ((masked == 0x400) || (masked == 0xC00))) {
+        neg             = -1;
+        work->field_A04 = neg;
+        pos2            = &work->field_9A0;
+        coords          = ((TmdObject*)arg0->extra)->field_8;
+        Gp_UpdateCoord(&coords[0xE]);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+        pos             = pos2;
+        pos->x          = local.t[0];
+        pos->z          = local.t[2];
+        coords[0xE].flg = 0;
+    }
+    work->field_A08 = work->field_A08 + 1;
+}
 
 void func_actor_400500_8013CB0C(Task* arg0)
 {
