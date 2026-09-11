@@ -361,7 +361,29 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C474);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C508);
+void func_actor_400500_8013C508(Task* arg0)
+{
+    Actor400500HitView* hit;
+    Actor400500Work*    work;
+    GpEnemy*            enemy;
+    s32                 cond;
+
+    hit   = (Actor400500HitView*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond || (enemy->field_40 <= 0)) {
+        work            = (Actor400500Work*)hit;
+        work->field_A04 = 0;
+        work->field_A18 = 0;
+        work->field_A10 = 0;
+        work->field_A12 = 0;
+        work->field_A08 = work->field_A08 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C578);
 
@@ -901,7 +923,29 @@ void func_actor_400500_8013D4F0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D59C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D630);
+void func_actor_400500_8013D630(Task* arg0)
+{
+    Actor400500HitView* hit;
+    Actor400500Work*    work;
+    GpEnemy*            enemy;
+    s32                 cond;
+
+    hit   = (Actor400500HitView*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond || (enemy->field_40 <= 0)) {
+        work            = (Actor400500Work*)hit;
+        work->field_A04 = 0;
+        work->field_A18 = 0;
+        work->field_A10 = 0;
+        work->field_A12 = 0;
+        work->field_A08 = work->field_A08 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D6A0);
 
