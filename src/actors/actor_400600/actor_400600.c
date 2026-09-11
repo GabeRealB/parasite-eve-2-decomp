@@ -286,7 +286,26 @@ s32 func_actor_400600_8013892C(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013896C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80138A24);
+void func_actor_400600_80138A24(Task* arg0, s16 arg1)
+{
+    Actor400600Work* work;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    work  = (Actor400600Work*)arg0->idMap;
+    model = (TmdObject*)arg0->extra;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    if (arg1 != 0) {
+        enemy->node.field_4 = 5;
+        model->field_C     |= 0x80;
+        Gp_SetLightMode(arg0->spawnArg2, 2);
+        func_actor_400600_801387DC(arg0, 2);
+        work->field_75E = 1;
+        work->field_740 = 0;
+        work->field_75F = 0;
+        work->field_73A = 0;
+    }
+}
 
 void func_actor_400600_80138AA4(Task* arg0)
 {

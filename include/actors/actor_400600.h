@@ -73,7 +73,7 @@ typedef struct Actor400600Work {
     /* 0x73A */ s16                field_73A; // fade level, lerped toward 0xFF
     /* 0x73C */ byte               pad_73C[0x2];
     /* 0x73E */ u16                field_73E;
-    /* 0x740 */ byte               pad_740[0x2];
+    /* 0x740 */ s16                field_740;
     /* 0x742 */ s16                field_742; // animation request kind
     /* 0x744 */ byte               pad_744[0x2];
     /* 0x746 */ s16                field_746; // animation id
@@ -83,7 +83,10 @@ typedef struct Actor400600Work {
     /* 0x754 */ s16                field_754;
     /* 0x756 */ u16                field_756; // countdown to the next state-2 transition
     /* 0x758 */ s16                field_758;
-    /* 0x75A */ byte               pad_75A[0x9];
+    /* 0x75A */ byte               pad_75A[0x4];
+    /* 0x75E */ s8                 field_75E;
+    /* 0x75F */ s8                 field_75F;
+    /* 0x760 */ byte               pad_760[0x3];
     /* 0x763 */ s8                 field_763;
     /* 0x764 */ byte               pad_764[0x1];
     /* 0x765 */ s8                 field_765;
