@@ -3,6 +3,37 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `if (x != 0) return expr; return 0` inverts; write the zero check first
+
+A leaf that divides by a loaded field, with target:
+
+```
+lh    v1, field(v0)
+beqz  v1, ret0
+sll   v0, a1, 16    /* delay: first insn of expr */
+...
+jr    ra
+sra   v0, v0, 16
+jr    ra
+move  v0, zero
+```
+
+`if (scale != 0) { return expr; } return 0;` is inverted by jump/dbr into
+`bnez` plus an early `jr` / `move v0, zero` (86.5%, `branch=3 insert=1
+delete=1`). GCC inverts from the other polarity:
+
+```c
+if (scale == 0) {
+    return 0;
+}
+return (((arg1 << 0x10) >> 8) / scale << 0xC) >> 0x10;
+```
+
+`func_actor_400500_8013DD8C` (`base.c` 86.5%, `base_2.c` 100%; preprocessed
+`29af23378570f40437573e4b1dbc1cc56a3490080f64c3463381314ae1745bfb`).
+`s16` vs `s32` for `arg1` is the same object.
+
+
 ## `s8 x = 0x81` is `li -127`; an `s32` temp keeps `li 0x81`
 
 Assigning `0x81` to an `s8` field folds to QImode `const_int -127` and emits

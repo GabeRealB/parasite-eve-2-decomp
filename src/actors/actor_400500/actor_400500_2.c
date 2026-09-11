@@ -963,7 +963,18 @@ void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DCD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013DD8C);
+s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
+{
+    Actor400500Work* work;
+    s16              scale;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    scale = work->field_9F8;
+    if (scale == 0) {
+        return 0;
+    }
+    return (((arg1 << 0x10) >> 8) / scale << 0xC) >> 0x10;
+}
 
 s32 func_actor_400500_8013DDEC(Task* arg0)
 {
