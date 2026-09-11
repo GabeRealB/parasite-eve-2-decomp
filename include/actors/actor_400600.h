@@ -89,7 +89,7 @@ typedef struct Actor400600Work {
     /* 0x732 */ s16                field_732; // countdown seeded by func_actor_400600_80138AF0
     /* 0x734 */ byte               pad_734[0x6];
     /* 0x73A */ s16                field_73A; // fade level, lerped toward 0xFF
-    /* 0x73C */ byte               pad_73C[0x2];
+    /* 0x73C */ s16                field_73C;
     /* 0x73E */ u16                field_73E;
     /* 0x740 */ s16                field_740;
     /* 0x742 */ s16                field_742; // animation request kind
