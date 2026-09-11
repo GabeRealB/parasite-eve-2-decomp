@@ -153,7 +153,8 @@ typedef struct Actor400600Work {
     /* 0x76A */ u8                 field_76A; // distance mode: 0 none, 1 XZ, 2 XY
     /* 0x76B */ u8                 field_76B;
     /* 0x76C */ u8                 field_76C; // nonzero: landing spawns the dust ring
-    /* 0x76D */ byte               pad_76D[0x3];
+    /* 0x76D */ u8                 field_76D;
+    /* 0x76E */ byte               pad_76E[0x2];
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
@@ -211,5 +212,7 @@ typedef struct Actor400600Zone {
 STATIC_ASSERT_SIZEOF(Actor400600Zone, 0xA);
 
 extern Actor400600Zone D_actor_400600_80151B40[];
+
+void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2);
 
 #endif

@@ -4224,6 +4224,21 @@ compiler's tables at exactly the offsets the migrated block occupied — the
 `INCLUDE_ASM`/`INCLUDE_RODATA` order in the file already encodes the layout and
 needs no hand-editing.
 
+**A `units` cut that moves matched bodies into a new file loses the prototypes
+their earlier definitions supplied.** When `actor_400600` gained
+`units = ["0x5188"]` with `rodata = [{ start = "0x1B4", unit = "actor_400600_2" }]`
+(the jump table for `func_actor_400600_80136FA8` sat at 4 mod 8 from the
+unit's `0x0` base), the tail of `actor_400600.c` became `actor_400600_2.c` and
+the later units renumbered `_2..._6` -> `_3..._7`. Every body compiled the same,
+except one call: `func_actor_400600_80132704(Task*, s16, u8)` had been
+*defined* higher up the old file, so its callers in the tail saw a prototype.
+In the new file the call was implicit, the `u8` argument was passed as an `int`,
+and `lbu` became `lh` - a one-byte checksum failure (`cmp -l` found it). Fix:
+put the prototype in the overlay header. Two related steps: calls that ran the
+other way were already implicit before the split, so they are unaffected, and
+`static __inline__` helpers used on both sides of the cut move to a header
+(`actor_400600_anim.h`) instead of being duplicated.
+
 **A shared-text twin needs the cut in every overlay that carries the body.**
 When the whole `.text` is one `shared` span — the relocated-actor case where two
 packages are the same code (`actor_400100` / `actor_407500`) — the shared object
