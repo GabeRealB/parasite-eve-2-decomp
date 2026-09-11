@@ -83,7 +83,8 @@ typedef struct ActorsShared80168d3cWork {
     /* 0x446 */ s16                       field_446; // randomised hold, 0xB0 .. 0xEF frames in ActorsShared8016b294
     /* 0x448 */ s16                       field_448;
     /* 0x44A */ s16                       field_44A;
-    /* 0x44C */ byte                      pad_44C[0x5];
+    /* 0x44C */ u16                       field_44C; // message 0x2C00's halfword; low nibble 1 runs ActorsShared801673f8
+    /* 0x44E */ byte                      pad_44E[0x3];
     /* 0x451 */ u8                        field_451;
     /* 0x452 */ byte                      pad_452[0x2];
 } ActorsShared80168d3cWork;
