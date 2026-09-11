@@ -198,4 +198,18 @@ typedef struct Actor400600BeamScratch {
 } Actor400600BeamScratch;
 STATIC_ASSERT_SIZEOF(Actor400600BeamScratch, 0x8C);
 
+/// One entry of `D_actor_400600_80151B40`, a world-space XZ rectangle table
+/// ended by an entry whose `id` is -1. `func_actor_400600_8013886C` returns the
+/// `id` of the first rectangle containing the actor (edges inclusive).
+typedef struct Actor400600Zone {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id;
+} Actor400600Zone;
+STATIC_ASSERT_SIZEOF(Actor400600Zone, 0xA);
+
+extern Actor400600Zone D_actor_400600_80151B40[];
+
 #endif

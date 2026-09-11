@@ -7,6 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -1598,7 +1599,25 @@ void func_actor_400600_801387DC(Task* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_8013886C);
+/// Returns the id of the first `D_actor_400600_80151B40` zone containing the
+/// actor's world XZ position, or 0 if none does.
+s16 func_actor_400600_8013886C(Task* arg0)
+{
+    GpCoordXZ*       coord;
+    Actor400600Zone* zone;
+    s16              x;
+    s16              z;
+
+    coord = (GpCoordXZ*)((TmdObject*)arg0->extra)->field_8;
+    x     = coord->field_18;
+    z     = coord->field_20;
+    for (zone = D_actor_400600_80151B40; zone->id != -1; zone++) {
+        if (zone->x <= x && x <= zone->x + zone->w && zone->z <= z && z <= zone->z + zone->h) {
+            return zone->id;
+        }
+    }
+    return 0;
+}
 
 s32 func_actor_400600_8013892C(Task* arg0)
 {
