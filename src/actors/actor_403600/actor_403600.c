@@ -369,7 +369,106 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80137300);
+u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    CVECTOR       col;
+    s16           upper_y;
+    s16           lower_y;
+    POLY_GT3*     poly;
+    s32           upper_delta;
+    s32           upper_calc;
+    s32           lower_delta;
+    s32           light;
+    s32           upper_limit;
+    s32*          opz;
+    u32           mask;
+    u16*          rec;
+    u8*           verts;
+    u8*           norms;
+    DisplayState* ds;
+
+    poly  = (POLY_GT3*)arg0->field_0;
+    col   = D_actor_403600_80131E34;
+    light = arg0->field_80->field_2C;
+    if (arg0->field_1C-- > 0) {
+        opz         = &arg0->field_28;
+        upper_limit = 0x168 - light;
+        ds          = &Display_State;
+        do {
+            rec   = (u16*)arg2;
+            verts = (u8*)arg0->field_8;
+            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
+                     verts + (rec[2] & 0xFFF8));
+            gte_rtpt_real();
+            gte_stflg(&arg0->field_24);
+            if (arg0->field_24 >= 0) {
+                gte_nclip_real();
+                gte_stopz(opz);
+                if (arg0->field_28 > 0) {
+                    gte_stsxy3_gt3(poly);
+                    gte_avsz3_real();
+                    upper_delta = 0;
+                    if (light != 0) {
+                        upper_y = poly->y0;
+                        if (upper_limit < upper_y) {
+                            upper_calc = upper_y - 0x168;
+                            SOFT_TOUCH_REG(upper_calc);
+                            upper_delta = (upper_calc + light) * 2;
+                        }
+                    }
+                    if (upper_delta >= 0x81) {
+                        *(u32*)&poly->r0 = 0;
+                        *(u32*)&poly->r1 = 0;
+                        *(u32*)&poly->r2 = 0;
+                    } else {
+                        col.r = -0x80 - upper_delta;
+                        col.g = -0x80 - upper_delta;
+                        col.b = -0x80 - upper_delta;
+                        gte_ldrgb(&col);
+                        norms = (u8*)arg0->field_C;
+                        gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
+                                 norms + (rec[5] & 0xFFF8));
+                        gte_ncct_real();
+                        gte_strgb3_gt3(poly);
+                    }
+                    setlen(poly, 9);
+                    setcode(poly, 0x34);
+                    if (light != 0) {
+                        lower_y = poly->y0;
+                        if (lower_y < (light - 0x168)) {
+                            lower_delta  = lower_y;
+                            lower_delta += 0x168;
+                            lower_delta -= light;
+                            lower_delta *= 2;
+                            poly->y1    += lower_delta;
+                            poly->y2    += lower_delta;
+                            poly->y0    += lower_delta;
+                            poly->code  |= 2;
+                        }
+                    }
+                    poly->code = (poly->code & 0xFE) | 2;
+                    gte_stotz(opz);
+                    mask      = 0xFFFFFF;
+                    poly->tag = (poly->tag & 0xFF000000) |
+                                (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                             0xFFC) +
+                                            (s32)arg0->field_14) &
+                                 mask);
+                    *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                               (s32)arg0->field_14) =
+                        (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                    (s32)arg0->field_14) &
+                         0xFF000000) |
+                        ((u32)poly & mask);
+                }
+            }
+            poly++;
+            arg2 += arg0->field_18;
+        } while (arg0->field_1C-- > 0);
+    }
+    arg0->field_0 = (u8*)poly;
+    return arg2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801375F8);
 
