@@ -61675,3 +61675,24 @@ Actor02000_Fn02294: `s8 pan = Gp_GetObjPan(self); enqueue(sound, (s32)pan, depth
 
 The permuter discovered an equivalent separate s32 temporary. Controlled base_6 changes only the pan declaration and assignment cast and reproduces distance 519 → 419 (96.796% → 97.414%) with pointer homes preserved. This is promotion placement evidence, not a general scheduler-priority rule. Adding the target depth truncation and using the existing store-first scratch-pointer idiom produces an exact match.
 Controlled input SHA256: `32d0fff679bf0093c5620720b52d9280fd99ba4a4eed677145ee61fe92aacc46`; compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Evidence: `tools/permuter_findings/Actor02000_Fn02294/`, run `5f7956cc732c412f`, session `a4cb1d292260497485f9a149ceec0976`; detailed source review and dump observations in retained `PERMUTER_ANALYSIS.md`.
+
+### Actor02000_Fn00CD0: initial read order changes scheduling and register reuse
+
+The baseline had matching structure and 79 instructions, with regs=14 only
+(99.114%). Permuter changed the two initial independent pointer reads and
+introduced a constant index temporary. Controlled base_1 swapped only the reads:
+coordinate first, work second. It reproduced 100%; the index mutation was
+unnecessary. base_2 retained the match with typed VECTOR scratch fields.
+
+In base_1 sched1 at T-46, work UID16 wins before coordinate UID13 in reverse
+scheduling; baseline selected coordinate UID16 before work UID11. The changed
+order permits the coordinate intermediate to die before the Wip pointer load.
+The Wip pointer r93 changes from v1 to v0 in lreg and remains there in greg;
+work r81 stays s1 and trigger r86 stays s0. Thus apparent register penalties
+can originate in scheduling of independent reads. This is a narrow observed
+case, not a claim that statement order always controls scheduler selection.
+
+Evidence: tools/permuter_findings/Actor02000_Fn00CD0/ and scratch
+base.i.sched/lreg/greg, base_1.i.sched/lreg/greg, base_2.i.greg.
+base.i SHA256: `45019294330fc7e90d024c40dc92909968df545d934fa354fdcf3cb4e3101716`.
+base_1.i SHA256: `7aa9c4b0ff6cf7ae1366c7bb3359f633c0f9685640601c51b098d496d9cb5d21`.

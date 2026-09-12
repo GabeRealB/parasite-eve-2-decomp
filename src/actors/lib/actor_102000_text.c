@@ -117,7 +117,50 @@ void Actor02000_Fn00AEC(Actor02000* arg0)
     *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00CD0);
+void Actor02000_Fn00CD0(Actor02000* arg0)
+{
+    Actor02000Work* work;
+    GsCOORDINATE2*  self;
+    s32             dx;
+    s32             distance;
+    s32             dz;
+    s32             trigger;
+    VECTOR*         head;
+    VECTOR*         delta;
+
+    self                      = arg0->field_2C->field_8;
+    work                      = arg0->field_1C;
+    head                      = *(VECTOR**)G_SCRATCH_HEAD;
+    delta                     = head - 1;
+    head[-1].vx               = (s32)(Wip_SysConfig.field_4->t[0] - self->coord.t[0]);
+    delta->vy                 = 0;
+    dz                        = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+    delta->vz                 = dz;
+    dx                        = head[-1].vx;
+    trigger                   = 0;
+    *(VECTOR**)G_SCRATCH_HEAD = delta;
+    distance                  = SquareRoot0((dx * dx) + (dz * dz));
+    if (distance < 0x5DC) {
+        if (D_801153F2 & 0x17) {
+            work->field_6B2 = 1;
+        }
+    } else {
+        if (D_801153F2 & 5) {
+            trigger = 1;
+        }
+        if ((D_801153F2 & 0x12) && (distance < 0xBB8)) {
+            trigger = 1;
+        }
+        if (trigger != 0) {
+            work->field_694 = 4;
+            work->field_69C = 0;
+            work->field_69E = 0;
+            work->field_6AE = 0;
+            work->field_6A8 = 1;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00E0C);
 

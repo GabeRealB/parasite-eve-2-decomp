@@ -7,6 +7,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+extern u8 D_801153F2;
+
 typedef struct Actor02000AnimRec {
     /* 0x00 */ u16 field_0;
     /* 0x02 */ u8  field_2;
