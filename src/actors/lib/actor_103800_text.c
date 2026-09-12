@@ -217,7 +217,65 @@ void Actor03800_Fn01520(Actor103800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn0166C);
+void Actor03800_Fn0166C(Actor103800* arg0)
+{
+    Actor03800MoveScratch* scratch;
+    Actor103800Work*       work;
+    Actor103800Ctx*        ctx;
+    GsCOORDINATE2*         coord;
+    s16                    state;
+    s32                    snd;
+    s32                    pan;
+    s32                    pan2;
+
+    scratch = (Actor03800MoveScratch*)(SCRATCH_SP -= 0x18);
+    work    = arg0->field_1C;
+    ctx     = arg0->field_20;
+    state   = work->field_354;
+    coord   = work->field_344;
+    switch (state) {
+        case 0:
+            work->field_348  = 3;
+            work->field_354  = 1;
+            work->field_36A  = 0;
+            work->field_36E  = 1;
+            work->field_2AA &= 0x7FFF;
+            snd              = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260003;
+            pan              = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            break;
+        case 1:
+            if ((u32)(work->field_34C - 2) < 12) {
+                scratch->delta.vx = coord->coord.t[0] - Wip_SysConfig.field_4->t[0];
+                scratch->delta.vy = coord->coord.t[1] - Wip_SysConfig.field_4->t[1];
+                scratch->delta.vz = coord->coord.t[2] - Wip_SysConfig.field_4->t[2];
+                VectorNormalS(&scratch->delta, &scratch->normal);
+                coord->coord.t[0] += (scratch->normal.vx * 17) >> 9;
+                coord->coord.t[2] += (scratch->normal.vz * 17) >> 9;
+            } else {
+                work->field_35C = 0;
+                work->field_35E = 0;
+            }
+            if ((s16)work->field_34C == 12) {
+                snd  = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260002;
+                pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if ((s16)work->field_34C >= 29) {
+                work->field_354 = 2;
+                work->field_37C = ((Actor03800_D05F48 - ctx->field_40) * 100 / Actor03800_D05F48) * 10 + 240;
+            }
+            break;
+        case 2:
+            work->field_37C--;
+            if (work->field_37C <= 0) {
+                work->field_352 = 4;
+                work->field_354 = 0;
+            }
+            break;
+    }
+    SCRATCH_SP += 0x18;
+}
 
 void Actor03800_Fn01948(Actor103800* arg0)
 {

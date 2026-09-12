@@ -99,7 +99,7 @@ typedef struct Actor103800Work {
     /* 0x376 */ byte           pad_376[2];
     /* 0x378 */ s16            field_378;
     /* 0x37A */ s16            field_37A;
-    /* 0x37C */ byte           pad_37C[2];
+    /* 0x37C */ s16            field_37C;
     /* 0x37E */ s16            field_37E;
 } Actor103800Work;
 STATIC_ASSERT_SIZEOF(Actor103800Work, 0x380);
@@ -128,6 +128,12 @@ typedef struct Actor103800 {
 } Actor103800;
 STATIC_ASSERT_SIZEOF(Actor103800, 0x34);
 
+typedef struct Actor03800MoveScratch {
+    VECTOR  delta;
+    SVECTOR normal;
+} Actor03800MoveScratch;
+STATIC_ASSERT_SIZEOF(Actor03800MoveScratch, 0x18);
+
 typedef struct Actor103800StateFuncTable3 {
     void (*funcs[3])(Actor103800Ctx*, Actor103800*);
 } Actor103800StateFuncTable3;
@@ -144,6 +150,7 @@ extern u8    Actor03800_D0492C[];
 
 extern s8  D_80115410;
 extern s16 Actor03800_D05F90[];
+extern u16 Actor03800_D05F48;
 
 void Actor03800_Fn02998(Actor103800Ctx* arg0, Actor103800* arg1);
 void Actor03800_Fn0315C(Actor103800* arg0);

@@ -61748,3 +61748,13 @@ logs. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290
 - base_24.c preprocessed SHA256: `1af290502c9a825a6b49b9572342269704d5fde46178edc9c684818dd298646b`.
 - base_25.c preprocessed SHA256: `89737430e2e6d5e901a779b4b5d6ebd76a5a158d058935fe7564f0b9b5ceadeb`.
 - base_27.c preprocessed SHA256: `1291f2f06ac4cdde7f9e55a96ce21b2b96b427df0818c11d45d20a2343023035`.
+
+## Separate pan locals let coordinates reuse s0 across sound calls (Actor03800_Fn0166C)
+
+A pan variable reused in two switch arms was global (four refs/ten insns, two deaths), allocated in s0 before the coordinate pointer, which then landed in s3. Splitting only the second pan into pan2 made both pan values block-local (two refs/four insns, one call each). Their narrowing chains occupy s0 only after the coordinate argument copy dies. The global coordinate conflict with the old shared pan disappears, allowing coord in s0, scratch in s2 and actor in s3. Sound ID stays shared. Controlled base_3 predicted these homes and preserved matching topology, improving 96.339% to 100%; base_4 preserved it with normal overlay headers. This is an eligibility/conflict change, not a per-pseudo local priority ranking claim. The permuter originally inlined the second pan call; separate locals preserve explicit call order.
+
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+- base_2.i SHA256: `61e196c6a2ea549f780e722e7dd43027fb2bd84e02f74b762fac46cd56f1bcce`
+- base_3.i SHA256: `2faf9066b8219f72b2bfe34fbfdcad1b6c3107db7634c9976e34be168cc1cc6a`
+- base_4.i SHA256: `ad751a367d68e3ae8f1344e417370f0f42890f720b1b2a6200b601e0c2a250e4`
+Evidence: tools/permuter_findings/Actor03800_Fn0166C/ retained session; base_2/base_3 .rtl UID 242 and 255, .lreg headers, .greg dispositions/conflicts. Scheduler selection not traced.
