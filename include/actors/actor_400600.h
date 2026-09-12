@@ -106,11 +106,9 @@ typedef struct Actor400600Work {
     /* 0x604 */ GpObj              obj_604;    // collision node; flags bit 0x4000 cleared
     /* 0x624 */ GpActorD4Rec       rec_624;    // obj_604's payload (flags kind 3)
     /* 0x63C */ GpRec18            rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ GsCOORDINATE2*     field_6FC;  // fourth model part's coordinate
-    /* 0x700 */ s16                field_700;
-    /* 0x702 */ s16                field_702;
-    /* 0x704 */ Task*              field_704; // child task, killed on death
-    /* 0x708 */ Task*              field_708; // child task, killed on death
+    /* 0x6FC */ GpEffArg           eff_6FC;    // fourth model part's coordinate
+    /* 0x704 */ Task*              field_704;  // child task, killed on death
+    /* 0x708 */ Task*              field_708;  // child task, killed on death
     /* 0x70C */ byte               pad_70C[0x4];
     /* 0x710 */ Actor400600Timer   field_710;
     /* 0x714 */ s16                field_714; // reset to 0x1000 on death
@@ -139,7 +137,8 @@ typedef struct Actor400600Work {
     /* 0x744 */ s16                field_744; // animation id now playing
     /* 0x746 */ s16                field_746; // animation id
     /* 0x748 */ s16                field_748; // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ byte               pad_74A[0x6];
+    /* 0x74A */ s16                field_74A; // hit cooldown, seeded from Gp_GetIdParam2
+    /* 0x74C */ byte               pad_74C[0x4];
     /* 0x750 */ u16                field_750; // countdown to state 0xB
     /* 0x752 */ s16                field_752;
     /* 0x754 */ s16                field_754;
@@ -147,7 +146,8 @@ typedef struct Actor400600Work {
     /* 0x758 */ s16                field_758;
     /* 0x75A */ s16                field_75A;
     /* 0x75C */ Actor400600State   field_75C;
-    /* 0x760 */ byte               pad_760[0x2];
+    /* 0x760 */ s8                 field_760;
+    /* 0x761 */ byte               pad_761;
     /* 0x762 */ u8                 field_762;
     /* 0x763 */ u8                 field_763;
     /* 0x764 */ u8                 field_764;

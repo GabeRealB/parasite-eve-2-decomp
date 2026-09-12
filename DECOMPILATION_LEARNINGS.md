@@ -60019,3 +60019,33 @@ sound   = id | voice;
 the insn becomes `(ior id sound)` with `sound` as its own destination — one
 pseudo, the full live range and ref count of the chained form, and the target's
 operand order.
+
+## Spill slots are laid out in declaration order, so a misplaced local resizes the frame
+
+`func_actor_400600_80136968` scored 99.375% with every block, predicate and
+instruction already in place: the only differences were stack offsets, and the
+frame was 8 bytes short (`0x80` against the target's `0x88`). Six values are
+spilled - four `s16` axis accumulators, a `u8` flag and one pointer held across
+the whole body - and the target gives each its own 8-byte slot at
+`0x30`/`0x38`/`0x40`/`0x48`/`0x50`/`0x58`, with the *pointer* first. Mine put
+the four `s16`s first and packed the pointer into the leftover of the flag's
+slot at `0x54`, four bytes on from it.
+
+Reload assigns those homes in `alter_reg`, which walks pseudos in ascending
+regno, and a local's regno is fixed when `expand_decl` creates its `DECL_RTL` -
+that is, in **declaration** order, not in order of first assignment or use. The
+pointer was declared after the accumulators, so it was the last pseudo to get a
+slot; moving its declaration ahead of them moved its slot to the front of the
+group and pushed everything else up by 8, which took the same source to 99.95%
+with the frame byte-identical.
+
+So when a near-match differs only in stack offsets, reorder the *declarations*
+rather than hunting for a missing local. Each reordering is free of semantic
+risk, and the frame size tells you whether a slot is missing (add a local) or
+merely misplaced (move one).
+
+The residual 0.05% was ordinary sched1 tie-breaking: `arg0->extra` was read
+third, so `lw $v0, 0x2C($a0)` issued after `lw $s4, 0x1C($a0)` instead of before
+it. Assigning `coord` ahead of `work` and `enemy` in the source restored the
+target's order; the loads have no dependency on each other, so LUID order
+decides.

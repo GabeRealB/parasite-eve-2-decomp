@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "psyq/abs.h"
 #include "psyq/inline_c.h"
 #include "main/display.h"
 #include "main/gfx.h"
@@ -141,6 +142,10 @@ s32  func_actor_400600_8013CACC(Task* arg0);
 void func_actor_400600_8013C5F8(Task* arg0);
 void func_actor_400600_80132294(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 void func_actor_400600_80135DDC(Task* arg0);
+void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out);
+/* Defined in actor_400600_7.c returning `int`; this unit sees the `s16` it
+ * really produces, which is what sign-extends the result at the call sites. */
+s16 func_actor_400600_8013C7E8(s16 arg0, s16 arg1);
 
 void func_actor_400600_8013203C(Task* arg0)
 {
@@ -636,12 +641,12 @@ void func_actor_400600_80133434(Task* arg0)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)arg0->extra)->field_8[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4 = 5;
-    enemy->field_50     = &D_actor_400600_80144EB0;
-    enemy->field_54     = (s32)work->rec_4D4;
-    work->field_6FC     = &((TmdObject*)arg0->extra)->field_8[3];
-    work->field_700     = 0x300;
-    work->field_702     = 2;
+    enemy->node.field_4   = 5;
+    enemy->field_50       = &D_actor_400600_80144EB0;
+    enemy->field_54       = (s32)work->rec_4D4;
+    work->eff_6FC.field_0 = &((TmdObject*)arg0->extra)->field_8[3];
+    work->eff_6FC.field_4 = 0x300;
+    work->eff_6FC.field_6 = 2;
     enemy->field_40 = enemy->field_42 = D_actor_400600_80144EB0.field_4;
     func_800B3F84(&work->anim, D_actor_400600_80151A54, (GpAnimObj*)model, work->pad_394, work->slots);
 
@@ -1866,4 +1871,191 @@ INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600", D_actor_400600_80131F9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600", func_actor_400600_80136968);
+void func_actor_400600_80136968(Task* arg0)
+{
+    SVECTOR          push;
+    SVECTOR          pos;
+    GpDeltaScratch   delta;
+    GsCOORDINATE2*   eff;
+    s16              maxX;
+    s16              maxZ;
+    s16              stepX;
+    s16              stepZ;
+    u8               blocked;
+    Actor400600Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    s16              amount;
+    s32              dmg;
+    s32              tmp;
+    s16              tick;
+    s32              i;
+
+    maxX            = 0;
+    maxZ            = 0;
+    stepX           = 0;
+    stepZ           = 0;
+    blocked         = 0;
+    coord           = ((TmdObject*)arg0->extra)->field_8;
+    work            = (Actor400600Work*)arg0->idMap;
+    enemy           = (GpEnemy*)arg0->spawnArg2;
+    work->field_72E = 0;
+    eff             = &coord[3];
+
+    for (i = 0; i < 8; i++) {
+        switch (work->rec_4D4[i].field_4 & 0xFFFF0000) {
+            case 0x10000:
+            case 0x30000:
+                pos.vx = coord->workm.t[0];
+                pos.vy = coord->workm.t[1];
+                pos.vz = coord->workm.t[2];
+                func_actor_400600_8013C6B0(&pos, &work->rec_4D4[i], &push);
+                if (ABS(maxX) < ABS(push.vx)) {
+                    maxX = push.vx;
+                }
+                if (ABS(maxZ) < ABS(push.vz)) {
+                    maxZ = push.vz;
+                }
+                break;
+            case 0x20000:
+                if (work->field_74A == 0) {
+                    work->field_72E = 1;
+                    dmg             = Gp_ComputeDamage(work->rec_4D4[i].field_4, work->field_728, 0, 0);
+                    amount          = dmg;
+                    work->field_74A = Gp_GetIdParam2(work->rec_4D4[i].field_4);
+                    if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].field_4, 0) != 0) {
+                        amount = ((u32)dmg << 16) >> 14;
+                        Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->field_8[3], 0, NULL);
+                    }
+                    func_800E2C78((GpObj40*)enemy, work->rec_4D4[i].field_4, amount, 0);
+                    func_800DA6E8(&enemy->node, amount, 0);
+                    enemy->field_40 -= amount;
+                    if (enemy->field_40 < 0) {
+                        enemy->field_40 = 0;
+                    }
+                    if ((work->rec_4D4[i].field_4 & 0x7F) == 0xE) {
+                        if (!(work->rec_4D4[i].field_4 & 0x8000)) {
+                            work->field_75A = 0x258;
+                        }
+                    } else {
+                        func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].field_4) & 0xFFFF,
+                                      &((TmdObject*)arg0->extra)->field_8[4], NULL, &work->eff_6FC);
+                    }
+                    if (amount >= 0x64) {
+                        work->field_730 = 2;
+                    } else {
+                        work->field_730 = 1;
+                    }
+                    switch (Gp_GetIdParam0(work->rec_4D4[i].field_4) & 0xFFFF) {
+                        case 0:
+                            break;
+                        case 1:
+                            Gp_SetObjFlag1((GpObj4C*)enemy);
+                            break;
+                        case 2:
+                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_4D4[i].field_4, 0);
+                            break;
+                        case 3:
+                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_4D4[i].field_4, 0);
+                            break;
+                        case 4:
+                            work->field_730 = 4;
+                            break;
+                        case 5:
+                            work->field_730 = 2;
+                            break;
+                        case 6:
+                            work->field_730 = 4;
+                            break;
+                        case 7:
+                            work->field_730 = 2;
+                            break;
+                        case 8:
+                            work->field_730 = 3;
+                            break;
+                        case 9:
+                            work->field_730 = 3;
+                            break;
+                    }
+                } else if ((Gp_GetIdParam1(work->rec_4D4[i].field_4) & 0xFFFF) == 0xD) {
+                    func_800FDB18(0xD, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_6FC);
+                }
+                break;
+        }
+    }
+
+    if (enemy->field_4C & 1) {
+        enemy->field_4C &= 0xFE;
+        work->field_730  = 5;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= 0xFD;
+        work->field_730  = 3;
+    }
+    if (enemy->field_4C & 0xC) {
+        work->field_760 = 1;
+        tmp             = Gp_TickObjFlag4((GpObj5C*)enemy);
+        tick            = tmp;
+        if (tick != 0) {
+            enemy->field_40 -= tmp;
+            func_800DA6E8(&enemy->node, tick, 0);
+            if (enemy->field_40 < 0) {
+                enemy->field_40 = 0;
+            }
+            work->field_72E = 1;
+            work->field_730 = 2;
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+    }
+
+    switch (func_800E0C10(work->rec_4D4, &delta, 8, NULL)) {
+        case 0:
+            break;
+        case 1:
+            stepZ = delta.vz.h.hi;
+            stepX = delta.vx.w >> 16;
+            if (delta.vx.w & 0xFFFF) {
+                if (delta.vx.w > 0) {
+                    stepX++;
+                } else {
+                    stepX--;
+                }
+            }
+            if (delta.vz.w & 0xFFFF) {
+                if (delta.vz.w > 0) {
+                    stepZ++;
+                } else {
+                    stepZ--;
+                }
+            }
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_70.vx;
+            coord->coord.t[2] = work->field_70.vz;
+            coord->flg        = 0;
+            blocked           = 1;
+            break;
+    }
+
+    Gp_ClearRec18Occupied(work->rec_4D4);
+    if (work->field_74A > 0) {
+        work->field_74A--;
+    } else {
+        work->field_74A = 0;
+    }
+    if (blocked == 0) {
+        work->field_88.x  += func_actor_400600_8013C7E8(stepX, maxX);
+        work->field_88.z  += func_actor_400600_8013C7E8(stepZ, maxZ);
+        coord->coord.t[0] += func_actor_400600_8013C7E8(stepX, maxX);
+        coord->coord.t[2] += func_actor_400600_8013C7E8(stepZ, maxZ);
+        coord->flg         = 0;
+    }
+    if (work->field_75A != 0) {
+        work->field_75A--;
+        if ((work->field_75A & 7) == 1) {
+            Gp_SpawnEff(0x60080, eff, 0x10200, NULL);
+        }
+    }
+}
