@@ -767,6 +767,36 @@ locals; with a single roll the local is what hurts.
 `ActorsShared80169dbc` (`src/actors/lib/actors_shared_80169dbc.c`) is the
 example.
 
+Roll through the global for *chained* rolls too, when the target keeps **both**
+`sw Gp_LcgState` stores. When roll2 derives from roll1's register (the target
+computes `roll2 = roll1*5+K` with no reload, then stores both at the block end),
+the natural two-locals form drops a store:
+
+```c
+rng2 = Gp_LcgState * 5 + 0x71357911;   /* roll1 */
+...field16 from rng2...
+rng3 = rng2 * 5 + 0x71357911;          /* roll2 from the local, no reload */
+...field20 from rng3...
+Gp_LcgState = rng2;
+Gp_LcgState = rng3;   /* the two stores end up adjacent -> GCC DSEs the first */
+```
+
+GCC generally does not dead-store-eliminate stores to a global, but two writes
+that schedule **adjacent** with no intervening memory read of that global are
+the case it does catch, so only one `sw Gp_LcgState` survives (`insert`/`delete`
+= 1). Roll through the global instead and read it back between the writes:
+
+```c
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;          /* store roll1 */
+W->field_16 = 0xFFF6 - ((Gp_LcgState >> 16) & 7);    /* CSE'd to roll1 reg */
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;          /* roll2 = roll1 reg *5+K, no reload; store */
+W->field_20 = (Gp_LcgState >> 16) & 7;               /* CSE'd to roll2 reg */
+```
+
+The intervening field-store reads keep the two `sw` non-adjacent, so both
+survive, while CSE still feeds roll2 from roll1's register (no `lw` reload).
+`func_shelter_b3_dumping_hole_8017DCFC` is the example.
+
 ## Earlyclobber empty asm copies an SI value (`move`) instead of `andi` / in-place `sll`
 
 A value loaded `lhu` into an SI temp and reused for both `field += step` and
@@ -3509,6 +3539,32 @@ p = &base[(s8)arg0];
 
 `SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->field_0` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
+
+**Matrix cluster on an embedded MATRIX — first element on the struct base, rest
+through an aliased pointer.** Writing a scaled-identity into a `GsCOORDINATE2`'s
+embedded `coord` (`MATRIX` at +4) with the usual s32-cast idiom
+(`*(s32*)&coord->coord.m[0][0] = 0x1000; ...`) lets GCC address every element
+off the struct base (`sw …,8(s0)`, `sw …,0xC(s0)`, …). The target instead
+materializes `addiu vN,s0,4` once and stores the *cluster* through it while the
+first element and any far field (`sub` at +0x4C) stay on `s0`. Reproduce by
+aliasing only the tail:
+
+```c
+MATRIX* m = &coord->coord;
+coord->sub                   = mem->field_8;   /* on s0 */
+*(s32*)&coord->coord.m[0][0] = 0x1000;         /* on s0, offset 4 */
+*(s32*)&m->m[0][2]           = 0;              /* on s0+4 base */
+*(s32*)&m->m[1][1]           = 0x1000;
+*(s32*)&m->m[2][0]           = 0;
+m->m[2][2]                   = 0x1000;
+```
+
+Two levers together: (1) `m00` written through `coord->coord` (not `m`) keeps it
+on `s0` while the four aliased stores form and reuse `s0+4`; (2) doing the far
+`coord->sub` store *before* `m00` (load `mem->field_8` first) keeps the coord arg
+live in `$a0` across the earlier branch so the following `Gp_UpdateCoord(coord)`
+needs no `move a0,s0` reload — writing `m00` first re-derives `a0` and costs one
+insn. `func_shelter_b3_dumping_hole_80186D4C` is the worked example.
 
 **Base before index without a second pseudo — assign inside the subscript.**
 The local-pointer form above costs a register: a user pointer variable splits
