@@ -64066,3 +64066,56 @@ replaced by the register's known value `(plus vsv 16)`, while `(mem (plus (reg
 d) 2))` keeps the register because cse will not substitute a more complex
 expression inside an address PLUS. So *one* sp-relative store followed by
 base-relative ones is the signature; all-sp-relative means a plain local.
+
+## A bare-scalar `D_8...` *load* can also let a store float: read the sched2 trace
+
+The converse of "when a store to an unnamed `D_8...` global sinks past nearby
+struct loads". `func_actor_444000_8013FB74` reached 99.899% with a single
+`reorder=1`: `sw t0, 0xEB0(s2)` (the message payload's `field_0`) sat two slots
+late inside the `%hi`/`%lo` cluster that computes
+
+```c
+D_actor_444000_80161670[4] =
+    ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
+```
+
+Nothing about the allocation or the statement order was wrong - swapping the two
+statements cost 15 register penalties and did not move the store.
+
+`build.sh`'s `.sched2` dump carries the scheduler's own trace, which names the
+decision outright:
+
+```
+;; ready list at T-24: 1248 (1) 1245 (1) 1241 (1) 1300 (1) 1298 (1), now 1248 1245 1241 1300 1298
+;; insn 1241 has a greater potential hazard, now 1241 1248 1245 1300 1298
+;; blocking insn 1254 for 1 cycles
+```
+
+sched2 runs in reverse. Every insn in that cluster has priority 1 (`priority()`
+subtracts one per link, so a chain of unit-latency insns is flat), so
+`schedule_select` breaks the tie on `potential_hazard` and the store - the only
+memory insn in the group - wins and is placed last, i.e. earliest in the final
+order. The store was in that ready list at all because it had already lost its
+last dependent: `anti_dependence` (sched.c:862) exempts the pair
+
+```
+MEM_IN_STRUCT_P (x) && rtx_addr_varies_p (x) && ... && ! MEM_IN_STRUCT_P (mem) && ! rtx_addr_varies_p (mem)
+```
+
+and `work->anim.field_0` is exactly that varying `mem/s` store while `lb
+%lo(D_8007218A)` is a fixed-address non-struct load, so the load never depended
+on it.
+
+The two addresses are `Mc_SaveData.field_22` (`Mc_SaveData = 0x80072168`) and
+`Wip_SysConfig.field_21` (`Wip_SysConfig = 0x80073B88`) - the spelling
+`include/gameplay/3CD8.h` already documents for this index. Writing them that
+way makes both loads `mem/s`, the exemption no longer applies, the store keeps
+those dependents, becomes ready two cycles later and lands where the ROM has it.
+100% with no pins.
+
+So the rule cuts both ways, and the symptom on the load side is much quieter: a
+lone `reorder` on a *store* that has no obvious reason to move. Check the
+scalars the surrounding expression reads, not just the store's own spelling -
+and read the `;; ready list` / `;; insn N has a greater potential hazard` lines
+in `.sched2` before theorising about priority, because they state which
+comparison was made.

@@ -8,6 +8,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -52,6 +53,15 @@ extern s16 D_actor_444000_80161850;
 extern GsCOORDINATE2 D_actor_444000_80161948[];
 /// Spawn table of the enemy the arena fight drops in every tenth step.
 extern TaskDesc D_actor_444000_801617DC;
+
+/// The animation-set table the fight installs on the player through message
+/// 0x3FF; entry 4 is rebuilt from the player's own weapon block before the
+/// second (`field_4 == 4`) send.
+extern GpAnimSet* D_actor_444000_80161670[];
+/// Reply buffer the fight hands message 0x3F8 before asking for the hold.
+extern Actor444000Msg3F8 D_actor_444000_80161928;
+extern GpAnimBlk*        Gp_PlayerAnimBlkTbl[];
+extern u16               Gp_WeaponIdBase[];
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
 /// allocate its `Actor444000SpinnerWork`, parent the model object to the world
@@ -994,7 +1004,281 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013EC84);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013FB74);
+/// Tick of the arena fight that runs the boss' two swipes and keeps the player
+/// pinned in the scripted animation.
+///
+/// A reset request re-arms the block on animation 4, clears the host model's
+/// flag word and pushes it onto each of the seven escorts' models, makes sure
+/// the host and every escort has its model buffers allocated, then rebuilds the
+/// free coordinate at `field_E3C` from `field_7C8` and plays the entry cue.
+/// That coordinate is pushed through `Gp_UpdateCoord` again on every step.
+///
+/// The two swipes are one-shot: animation 4 reaching frame 0xC raises bit
+/// 0x8000 of the collision object's flags, kicks the pad and fires two cues,
+/// and animation 5 reaching frame 0x1C fires a third. `field_7AC` remembers the
+/// frame each step so neither repeats while the frame is held, and the bit is
+/// cleared on every step the first swipe is not live.
+///
+/// `field_6` then picks the blend weight in `field_7A4` (and hands over to
+/// state 0xA at 0xDC), and while it sits in 0x29..0x2E the shared timer
+/// `D_actor_444000_80144A70` climbs by 0x258 a step up to 0x1770 -- past 0x39 it
+/// is wound back down again instead.
+///
+/// The rest is the player hold: once one of the collision object's five records
+/// reports a hit of class 1, message 0x3F8 is asked whether the player can be
+/// taken over and message 0x3F9 asks for the hold itself, with `field_ECA`
+/// keeping that reply and `field_EC8` marking the hold as ours. While it is,
+/// the 0x3FF animation is re-sent every step the reply and `field_EC8` agree
+/// (or, if they do not, for the first 0x28 steps), and after 0x17 steps without
+/// the hold the payload is swapped for the player's own weapon animation
+/// (`field_4` 4). A reply of something other than 1 on that second stage
+/// cancels the animation with message 0x3F1 and drops the hold.
+void func_actor_444000_8013FB74(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    Actor444000Work* buffers;
+    GpEnemy*         enemy;
+    Task*            player;
+    Task*            target;
+    TmdObject*       tmd;
+    TmdObject*       escortTmd;
+    GsCOORDINATE2*   coord;
+    GpRec18*         recs;
+    s16              i;
+    s16              j;
+    s16              k;
+    s16              mode;
+    s32              found;
+    s32              frame;
+    s32              frame2;
+    s32              resetId;
+    s32              resetPan;
+    s32              swipeId;
+    s32              swipePan;
+    s32              swipe2Id;
+    s32              swipe2Pan;
+    s32              hitId;
+    s32              hitPan;
+    s32              cueId;
+    s32              cuePan;
+    u16              count;
+
+    work        = arg0->field_1C;
+    enemy       = arg0->field_20;
+    player      = Game_GetPtrSlot(3);
+    SCRATCH_SP -= 0x30;
+
+    if (work->field_4 != 0) {
+        work->field_F1D                    = 0xB;
+        work->field_7B3                    = 4;
+        work->field_7B0                    = 2;
+        escorts                            = arg0->field_1C;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        tmd     = (TmdObject*)arg0->extra;
+        buffers = arg0->field_1C;
+        if (tmd->field_18 == NULL) {
+            Tmd_AllocBuffers(tmd);
+        }
+        for (j = 0; j < 7; j++) {
+            if (buffers->field_ECC[j] != NULL) {
+                escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                if (escortTmd->field_18 == NULL) {
+                    Tmd_AllocBuffers(escortTmd);
+                }
+            }
+        }
+        work->field_EF6 = 1;
+        work->field_EF4 = 0;
+        work->field_EFA = 1;
+        work->field_EF8 = 1;
+        Gfx_RotMatrixY(&work->field_E3C.coord, work->field_7C8, 1);
+        work->field_E3C.flg = 0;
+        Gp_UpdateCoord(&work->field_E3C);
+        work->field_E96 = 0xC80;
+
+        resetId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200017;
+        resetPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(resetId, resetPan,
+                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+
+    coord               = &work->field_E3C;
+    work->field_E3C.flg = 0;
+    Gp_UpdateCoord(coord);
+
+    if (work->field_7B3 == 4 && (frame = work->slots0[1].field_2 & 0x3FF) == 0xC &&
+        work->field_7AC != frame) {
+        Gfx_RotMatrixY(&work->field_E3C.coord, work->field_7C8, 1);
+        work->field_E3C.flg = 0;
+        Gp_UpdateCoord(coord);
+        work->field_EAC  = 3;
+        work->field_D6A |= 0x8000;
+        Gp_SpawnPadLerp(0x30, 0xFF, 8);
+
+        swipeId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200019;
+        swipePan = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            swipeId, swipePan,
+            (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) / 2));
+
+        swipe2Id  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020001A;
+        swipe2Pan = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            swipe2Id, swipe2Pan,
+            (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) / 2));
+    } else {
+        work->field_D6A &= 0x7FFF;
+    }
+
+    if (work->field_7B3 == 5 && (frame2 = work->slots0[2].field_2 & 0x3FF) == 0x1C &&
+        work->field_7AC != frame2) {
+        work->field_EAC = 3;
+        Gp_SpawnPadLerp(0x20, 0x8F, 8);
+
+        hitId  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020001B;
+        hitPan = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            hitId, hitPan,
+            (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) / 2));
+    }
+
+    if (work->field_7B3 == 4) {
+        work->field_7AC = work->slots0[1].field_2 & 0x3FF;
+    } else {
+        work->field_7AC = work->slots0[2].field_2 & 0x3FF;
+    }
+
+    switch (work->field_6) {
+        case 0x14:
+            D_actor_444000_80144A70 = 0x640;
+            work->field_7A4         = 0;
+            break;
+        case 0x22:
+            work->field_7A4 = 1;
+            break;
+        case 0x2B:
+            work->field_7A4 = 5;
+            cueId           = (((u16)enemy->field_8 >> 12) << 8) | 0x40200018;
+            cuePan          = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+            SndEvt_EnqueueType6(
+                cueId, cuePan,
+                (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) /
+                     2));
+            break;
+        case 0x2D:
+            work->field_7A4 = 2;
+            break;
+        case 0x38:
+            work->field_7A4 = 4;
+            break;
+        case 0x44:
+            work->field_7A4 = 3;
+            break;
+        case 0xDC:
+            work->field_0 = 0xA;
+            break;
+    }
+
+    if ((u32)((u16)work->field_6 - 0x29) < 6 && D_actor_444000_80144A70 < 0x1770) {
+        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 + 0x258;
+    }
+
+    func_actor_444000_8013441C(arg0);
+
+    recs = work->recs2;
+    for (k = 0; k < 5; k++) {
+        if (recs[k].field_4 == 0) {
+            goto missed;
+        }
+        if ((recs[k].field_4 & 0xFFFF0000) == 0x10000) {
+            found = 1;
+            goto scanned;
+        }
+    }
+missed:
+    found = 0;
+scanned:
+    if (found != 0 && Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161928, 0) == 0) {
+        target          = Game_GetPtrSlot(3);
+        work->field_ECA = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0);
+        if (work->field_ECA == 1) {
+            ((GameActor*)player->idMap)->field_956 = 0xA;
+        }
+        work->anim.field_0 = D_actor_444000_80161670;
+        work->field_EC8    = 1;
+        work->anim.field_4 = 2;
+        work->anim.field_8 = 0;
+        work->anim.field_C = 0;
+        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+        work->field_7CA = 0;
+    }
+
+    mode = work->field_EC8;
+    if (mode == 1 && (s16)work->field_0 != 0xD) {
+        count           = work->field_7CA + 1;
+        work->field_7CA = count;
+        if (work->field_ECA == mode) {
+            if (work->anim.field_4 == 2) {
+                work->anim.field_0 = D_actor_444000_80161670;
+                work->anim.field_8 = 0;
+                work->anim.field_C = 0;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+                work->field_7CA = 0;
+            }
+        } else if (work->anim.field_4 == 2 && (s16)count < 0x28) {
+            work->anim.field_0 = D_actor_444000_80161670;
+            work->anim.field_8 = 0;
+            work->anim.field_C = 0;
+            Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+        }
+
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            switch (work->anim.field_4) {
+                case 2:
+                    if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
+                        work->anim.field_0         = D_actor_444000_80161670;
+                        D_actor_444000_80161670[4] = ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl
+                                                          [Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21])
+                                                         ->sets[7];
+                        work->anim.field_4 = 4;
+                        work->anim.field_8 = 1;
+                        work->anim.field_C = 3;
+                        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+                        work->field_7CA = 0;
+                    }
+                    break;
+                case 4:
+                    if (work->field_ECA != 1) {
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+                        work->field_EC8 = 0;
+                    }
+                    break;
+            }
+        }
+    }
+
+    if (work->field_6 == 0x3C && work->field_7B3 == 4) {
+        work->field_7B3 = 5;
+        work->field_7B0 = 1;
+    }
+
+    if (work->field_6 >= 0x39) {
+        if (D_actor_444000_80144A70 >= 0xBB9) {
+            D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+        } else {
+            D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0x1E;
+        }
+    }
+
+    SCRATCH_SP += 0x30;
+}
 
 /// Per-tick state of the arena fight once it is under way. A reset request
 /// re-arms the block on animation 0xB, clears the host model's flag word and

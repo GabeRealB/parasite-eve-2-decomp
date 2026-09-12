@@ -70,11 +70,16 @@ typedef struct Actor444000Work {
     /* 0x744 */ byte       aux5[0x40];
     /* 0x784 */ byte       pad_784[0x20];
     /* 0x7A4 */ s16        field_7A4;
-    /* 0x7A6 */ byte       pad_7A6[0xA];
-    /* 0x7B0 */ s8         field_7B0;
-    /* 0x7B1 */ s8         field_7B1; // set while the blended tick path runs
-                                      /// Animation id currently playing; `func_actor_444000_80134040` latches
-                                      /// `field_7B3` here once it has reseeded every slot.
+    /* 0x7A6 */ byte       pad_7A6[0x6];
+    /// The masked `slots0[1]` / `slots0[2]` frame the arena tick
+    /// (`func_actor_444000_8013FB74`) last saw, so its two one-shot cues only fire
+    /// on the step the animation reaches their frame. Same role as `field_7D8`,
+    /// which the other ticks use.
+    /* 0x7AC */ s32 field_7AC;
+    /* 0x7B0 */ s8  field_7B0;
+    /* 0x7B1 */ s8  field_7B1; // set while the blended tick path runs
+                               /// Animation id currently playing; `func_actor_444000_80134040` latches
+                               /// `field_7B3` here once it has reseeded every slot.
     /* 0x7B2 */ s8   field_7B2;
     /* 0x7B3 */ s8   field_7B3;
     /* 0x7B4 */ u16  field_7B4; // frames since the block was re-armed
@@ -87,8 +92,11 @@ typedef struct Actor444000Work {
     /* 0x7C2 */ byte pad_7C2[0x2];
     /* 0x7C4 */ s16  field_7C4;
     /* 0x7C6 */ byte pad_7C6[0x2];
-    /* 0x7C8 */ s16  field_7C8;      // yaw the drive step walks toward its target, clamped to +/-0x200 per call
-    /* 0x7CA */ byte pad_7CA[0x6];
+    /* 0x7C8 */ s16  field_7C8; // yaw the drive step walks toward its target, clamped to +/-0x200 per call
+                                /// Frames since the arena tick last (re)sent the player its message 0x3FF
+                                /// animation; the retries in `func_actor_444000_8013FB74` are bounded by it.
+    /* 0x7CA */ u16  field_7CA;
+    /* 0x7CC */ byte pad_7CC[0x4];
     /* 0x7D0 */ byte field_7D0[0x8]; // start of a 0x20-byte run zeroed whenever the block is re-armed
                                      /// The masked `slots0[2].field_2` value the 0x1C-arrival check in
                                      /// `func_actor_444000_80140E28` last saw, so the script spawn only fires on
@@ -107,29 +115,51 @@ typedef struct Actor444000Work {
     /// records of their own group. The count is what the used multiples of
     /// 0x98 bound, not a figure read out of the game.
     /* 0x7FC */ Actor444000HitGroup hits[9];
-    /* 0xD54 */ byte                pad_D54[0x138];
-    /* 0xE8C */ s16                 field_E8C; // Gp_GetIdParam2 of the hit group 0 took
-    /* 0xE8E */ byte                pad_E8E[0x4];
-    /* 0xE92 */ s16                 field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
-    /* 0xE94 */ byte                pad_E94[0x18];
+    /// 0xD4C starts the `GpObj` `func_actor_444000_8013AFF8` hands `Gp_LinkObj`,
+    /// whose `GpRec18` table is `recs2` below (`Gp_InitRec18Table(work + 0xD84, 5,
+    /// 0)`). Its base falls inside the tail of the `hits[]` guess above, so only
+    /// the two fields the decompiled code needs are named here: `field_D6A` is that
+    /// object's `flags` halfword, which the arena tick raises bit 0x8000 of while
+    /// the swipe is live and clears otherwise.
+    /* 0xD54 */ byte    pad_D54[0x16];
+    /* 0xD6A */ u16     field_D6A;
+    /* 0xD6C */ byte    pad_D6C[0x18];
+    /* 0xD84 */ GpRec18 recs2[5];
+    /* 0xDFC */ byte    pad_DFC[0x40];
+    /// Free coordinate the arena tick rebuilds from `field_7C8` every step and
+    /// pushes through `Gp_UpdateCoord`.
+    /* 0xE3C */ GsCOORDINATE2 field_E3C;
+    /* 0xE8C */ s16           field_E8C; // Gp_GetIdParam2 of the hit group 0 took
+    /* 0xE8E */ byte          pad_E8E[0x4];
+    /* 0xE92 */ s16           field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
+    /* 0xE94 */ byte          pad_E94[0x2];
+    /* 0xE96 */ s16           field_E96;
+    /* 0xE98 */ byte          pad_E98[0x14];
     /// Screen-shake request written from outside the task by
     /// `func_actor_444000_80143490`: 1, 2 and 3 pick a shake length, anything
     /// else leaves the driver alone. `field_EAD` is the value the driver has
     /// already armed, so a change is what starts a new shake; `field_EAE` is
     /// the frames still to run and `field_EAF` the amplitude handed to
     /// `Display_ClampField126`.
-    /* 0xEAC */ u8   field_EAC;
-    /* 0xEAD */ u8   field_EAD;
-    /* 0xEAE */ u8   field_EAE;
-    /* 0xEAF */ s8   field_EAF;
-    /* 0xEB0 */ byte pad_EB0[0x14];
+    /* 0xEAC */ u8 field_EAC;
+    /* 0xEAD */ u8 field_EAD;
+    /* 0xEAE */ u8 field_EAE;
+    /* 0xEAF */ s8 field_EAF;
+    /// Message 0x3FF payload the arena tick sends the player, pointed at
+    /// `D_actor_444000_80161670`.
+    /* 0xEB0 */ GpAnimArg anim;
     /// The three payload bytes of the last 0x7DB message
     /// `func_actor_444000_8013ACD0` accepted, kept whether or not the id half
     /// selected one of its cases.
     /* 0xEC4 */ u8   field_EC4;
     /* 0xEC5 */ u8   field_EC5;
     /* 0xEC6 */ u8   field_EC6;
-    /* 0xEC7 */ byte pad_EC7[0x5];
+    /* 0xEC7 */ byte pad_EC7[0x1];
+    /// Set while the arena tick has an animation installed on the player;
+    /// `field_ECA` is the reply message 0x3F9 gave when it asked for the hold, so
+    /// the two differing is what makes the tick re-send the animation.
+    /* 0xEC8 */ s16 field_EC8;
+    /* 0xECA */ s16 field_ECA;
     /// The seven escorts `func_actor_444000_8013AFF8` spawns with
     /// `Gp_SpawnEnemyFromTable`; the resets walk them to push the host's
     /// `TmdObject::field_C` onto each escort's own model object.
