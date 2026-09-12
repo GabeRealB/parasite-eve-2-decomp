@@ -948,7 +948,125 @@ INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", ActorsShared8013
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80135770);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80135EBC);
+extern TaskFuncTable11 D_actor_400500_80131E90;
+extern TaskFuncTable3  D_actor_400500_80131EBC;
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_400500_80131E90\n"
+        "dlabel D_actor_400500_80131E90\n"
+        "    .word func_actor_400500_801361EC\n"
+        "    .word func_actor_400500_8013662C\n"
+        "    .word func_actor_400500_80136864\n"
+        "    .word func_actor_400500_801369A4\n"
+        "    .word func_actor_400500_80136B94\n"
+        "    .word func_actor_400500_80136D00\n"
+        "    .word func_actor_400500_80136EB8\n"
+        "    .word func_actor_400500_80137034\n"
+        "    .word func_actor_400500_801371A0\n"
+        "    .word func_actor_400500_80137338\n"
+        "    .word func_actor_400500_80137478\n"
+        "enddlabel D_actor_400500_80131E90\n"
+        "nonmatching D_actor_400500_80131EBC\n"
+        "dlabel D_actor_400500_80131EBC\n"
+        "    .word func_actor_400500_8013BAA4\n"
+        "    .word func_actor_400500_8013BB18\n"
+        "    .word func_actor_400500_8013BBB0\n"
+        "    .word 0x00000000\n"
+        "enddlabel D_actor_400500_80131EBC\n"
+        ".section .text");
+#endif
+
+void func_actor_400500_80135EBC(Task* arg0)
+{
+    Actor400500Work*       work;
+    GpEnemy*               enemy;
+    TaskFuncTable11        sp10;
+    TaskFuncTable3         sp40;
+    Actor400500Work*       work2;
+    Actor400500AnimStride* stride;
+    s32                    i;
+    Actor400500Work*       work3;
+    s32                    flag;
+    Actor400500Work*       work4;
+    Actor400500AnimStride* stride2;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    sp10  = D_actor_400500_80131E90;
+    sp40  = D_actor_400500_80131EBC;
+    if (enemy->field_40 <= 0) {
+        sp40.funcs[(s16)work->field_A0A](arg0);
+        work2 = (Actor400500Work*)arg0->idMap;
+        if (work2->field_9FA == 1) {
+            if ((s16)work2->field_9FC != work2->field_9FE) {
+                work2->field_A00 = 0;
+            } else {
+                work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            work2->field_9FA = 3;
+        } else if (work2->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            work2->field_9FA = 3;
+            work2->field_A00 = 0;
+        } else if (work2->field_9FA == 3) {
+            work2->field_A00 = (u16)work2->field_A00 + 1;
+        }
+        i      = 1;
+        stride = (Actor400500AnimStride*)work2 + 1;
+        do {
+            stride->field_1D = (u8)work2->field_9F8;
+            Gp_AnimTickIndex(&work2->anim, i);
+            i++;
+            stride++;
+        } while (i < 0x12);
+        work3 = (Actor400500Work*)arg0->idMap;
+        if ((work3->field_A46 >= 0) || (((u8)work3->field_A46 & 0x7F) != 1)) {
+            flag             = 0x81;
+            work3->field_A46 = flag;
+            work3->field_A47 = 0;
+        }
+        work->obj1.flags &= 0x7FFF;
+        work->obj2.flags &= 0x7FFF;
+        work->obj3.flags &= 0x7FFF;
+        work->obj4.flags &= 0x7FFF;
+        return;
+    }
+    if ((s16)work->field_A08 != 0) {
+        work4 = (Actor400500Work*)arg0->idMap;
+        if (work4->field_9FA == 1) {
+            if ((s16)work4->field_9FC != work4->field_9FE) {
+                work4->field_A00 = 0;
+            } else {
+                work4->field_A00 = func_actor_400500_8013DD8C(arg0, work4->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            work4->field_9FA = 3;
+        } else if (work4->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            work4->field_9FA = 3;
+            work4->field_A00 = 0;
+        } else if (work4->field_9FA == 3) {
+            work4->field_A00 = (u16)work4->field_A00 + 1;
+        }
+        i       = 1;
+        stride2 = (Actor400500AnimStride*)work4 + 1;
+        do {
+            stride2->field_1D = (u8)work4->field_9F8;
+            Gp_AnimTickIndex(&work4->anim, i);
+            i++;
+            stride2++;
+        } while (i < 0x12);
+    }
+    sp10.funcs[(s16)work->field_A08](arg0);
+    work3 = (Actor400500Work*)arg0->idMap;
+    if (((work3->field_A46 >= 0) || ((u8)work3->field_A46 & 0x7F)) && (work3->field_A30 == 0)) {
+        flag             = 0x80;
+        work3->field_A46 = flag;
+        work3->field_A47 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801361EC);
 
