@@ -150,8 +150,10 @@ extern u8    Actor03800_D0492C[];
 
 extern s8  D_80115410;
 extern s16 Actor03800_D05F90[];
+extern s16 Actor03800_D05FA8[];
 extern u16 Actor03800_D05F48;
 
+void Actor03800_Fn03008(Actor103800* actor, u32 variant);
 void Actor03800_Fn02998(Actor103800Ctx* arg0, Actor103800* arg1);
 void Actor03800_Fn0315C(Actor103800* arg0);
 void Actor03800_Fn031B8(Actor103800Ctx* arg0, Actor103800* arg1);

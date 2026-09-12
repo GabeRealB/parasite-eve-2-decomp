@@ -812,7 +812,67 @@ timer:
     work->field_354 = 2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02E50);
+void Actor03800_Fn02E50(Actor103800* actor)
+{
+    s16  variants[4];
+    s32  selected;
+    s16* choice;
+    s16* variantBase;
+    s16* firstOut;
+    s16* nextOut;
+    s32  i;
+    s32  thirdProduct;
+    s32  secondIndex;
+    s32  remaining;
+    s32  firstProduct;
+    u32  thirdRandom;
+    u32  firstVariant;
+    u32  firstRandom;
+    u32  secondRandom;
+
+    firstProduct = Gp_LcgState * 5;
+    firstRandom  = firstProduct + 0x71357911;
+    Gp_LcgState  = (s32)firstRandom;
+    firstVariant = ((firstRandom >> 16) % 5) & 0xFFFF;
+    Actor03800_Fn03008(actor, firstVariant);
+    firstOut = &variants[0];
+    if ((u16)Gp_StateF0.field_6 < 2U) {
+        remaining = Actor03800_D05FA8[(u16)Gp_StateF0.field_6];
+        i         = 0;
+        do {
+            if (i != firstVariant) {
+                *firstOut = i;
+                firstOut++;
+            }
+            i += 1;
+        } while (i < 5);
+        secondRandom = (Gp_LcgState * 5) + 0x71357911;
+        secondIndex  = (secondRandom >> 0x10) & 3;
+        SOFT_TOUCH_REG(secondIndex);
+        variantBase = variants;
+        choice      = variantBase;
+        choice     += secondIndex;
+        selected    = *choice;
+        Gp_LcgState = (s32)secondRandom;
+        Actor03800_Fn03008(actor, (u32)selected);
+        remaining--;
+        if (remaining > 0) {
+            nextOut = variantBase;
+            i       = 0;
+            do {
+                if ((i != firstVariant) && (i != secondIndex)) {
+                    *nextOut = i;
+                    nextOut++;
+                }
+                i += 1;
+            } while (i < 5);
+            thirdProduct = Gp_LcgState * 5;
+            thirdRandom  = thirdProduct + 0x71357911;
+            Gp_LcgState  = (s32)thirdRandom;
+            Actor03800_Fn03008(actor, (u32)variants[((thirdRandom >> 16) % 3) & 0xFFFF]);
+        }
+    }
+}
 
 void Actor03800_Fn03008(Actor103800* actor, u32 variant)
 {
