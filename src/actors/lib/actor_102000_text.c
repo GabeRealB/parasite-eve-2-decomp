@@ -162,7 +162,131 @@ void Actor02000_Fn00CD0(Actor02000* arg0)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn00E0C);
+void Actor02000_Fn00E0C(Actor02000* arg0)
+{
+    s16             state;
+    s16             nextAnim;
+    s16             nextAnim2;
+    s32             snd;
+    s32             random3;
+    s32             pan;
+    s32             pan2;
+    s32             pan3;
+    u16             timer;
+    u16             timer2;
+    u32             random;
+    u32             random2;
+    Actor02000Work* work;
+    GsCOORDINATE2*  self;
+
+    work  = arg0->field_1C;
+    self  = arg0->field_2C->field_8;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            if (work->field_6AA == 0) {
+                work->field_694          = 0x16;
+                work->field_6A8          = 1;
+                work->field_6B8          = 1;
+                work->field_4CC.field_14 = -0xA7;
+            } else {
+                work->field_694          = 0x1A;
+                work->field_6A8          = 2;
+                work->field_6B8          = 2;
+                work->field_4CC.field_14 = 0x109;
+            }
+            work->field_4CC.field_1C = 0x15E;
+            work->field_69C          = 0;
+            work->field_69E          = 0;
+            work->field_6DE          = 1;
+            work->field_4CC.flags    = (u16)(work->field_4CC.flags | 0x4000);
+            work->field_564.flags    = (u16)(work->field_564.flags & 0xBFFF);
+            arg0->field_20->field_4C = 0;
+            work->field_6D4          = 1;
+            break;
+        case 1:
+            if (work->field_698 == 0x14) {
+                snd = Actor02000_D15DEC[work->field_6D6 + 0xC] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, (s32)pan, (s8)Gp_GetObjDepth(self));
+            }
+            if (work->field_698 == 0x2C) {
+                snd  = Actor02000_D15DEC[work->field_6D6 + 8] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan2 = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, (s32)pan2, (s8)Gp_GetObjDepth(self));
+            }
+            if (work->field_698 >= 0x42) {
+                work->field_694 = 0x19;
+                work->field_6D4 = 0;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                work->field_6AE = (u16)((random >> 0x10) & 0x3F);
+                Gp_LcgState     = (s32)random;
+                if (arg0->field_20->field_40 > 0) {
+                    work->field_6A8 = 3;
+                } else {
+                    arg0->field_30  = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+                break;
+            }
+            break;
+        case 2:
+            if (work->field_698 == 0x19) {
+                snd  = Actor02000_D15DEC[work->field_6D6 + 8] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan3 = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, (s32)pan3, (s8)Gp_GetObjDepth(self));
+            }
+            if (work->field_698 >= 0x31) {
+                work->field_694 = 0x1D;
+                work->field_6D4 = 0;
+                random2         = (Gp_LcgState * 5) + 0x71357911;
+                work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
+                Gp_LcgState     = (s32)random2;
+                if (arg0->field_20->field_40 > 0) {
+                    work->field_6A8 = 3;
+                } else {
+                    arg0->field_30  = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+            }
+            break;
+        case 3:
+            timer           = work->field_6AE - 1;
+            work->field_6AE = timer;
+            if ((s16)timer <= 0) {
+                nextAnim = 0x1C;
+                if (work->field_6B8 == 1) {
+                    nextAnim = 0x18;
+                }
+                work->field_6AE = 0xAU;
+                work->field_694 = nextAnim;
+                work->field_6A8 = 4;
+                break;
+            }
+            break;
+        case 4:
+            timer2          = work->field_6AE - 1;
+            work->field_6AE = timer2;
+            if ((s16)timer2 <= 0) {
+                nextAnim2 = 0x1D;
+                if (work->field_6B8 == 1) {
+                    nextAnim2 = 0x19;
+                }
+                work->field_694 = nextAnim2;
+                work->field_6A8 = 3;
+                random3         = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random3;
+                work->field_6AE = (u16)(((u32)random3 >> 0x10) & 0x3F);
+            }
+            break;
+    }
+}
 
 /// Per-frame tick. State 0 picks the animation from `field_6B8`: 1 selects
 /// animation 0x17 and hands over to state 1, anything else selects 0x1B and
