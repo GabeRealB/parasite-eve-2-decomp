@@ -133,9 +133,14 @@ typedef struct Actor444000Work {
     /* 0xE8E */ s16           field_E8E; // Gp_GetIdParam2 of the hit groups 3, 4 and 5 took
     /* 0xE90 */ s16           field_E90; // Gp_GetIdParam2 of the hit groups 6, 7 and 8 took
     /* 0xE92 */ s16           field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
-    /* 0xE94 */ byte          pad_E94[0x2];
-    /* 0xE96 */ s16           field_E96;
-    /* 0xE98 */ byte          pad_E98[0x14];
+                                         /// Yaw the arena tick walks toward `field_E96` in steps of 0x32, snapping
+                                         /// once the two are within 0x33 of each other. `field_E96` is the target
+                                         /// the state ladder picks each tick and `field_E98` the companion drop the
+                                         /// shared floor-marker helper takes.
+    /* 0xE94 */ s16  field_E94;
+    /* 0xE96 */ s16  field_E96;
+    /* 0xE98 */ s16  field_E98;
+    /* 0xE9A */ byte pad_E9A[0x12];
     /// Screen-shake request written from outside the task by
     /// `func_actor_444000_80143490`: 1, 2 and 3 pick a shake length, anything
     /// else leaves the driver alone. `field_EAD` is the value the driver has
@@ -286,6 +291,7 @@ typedef struct Actor444000 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[0x8];
     /* 0x2C */ void*            extra; // Task::extra, a TmdObject
+    /* 0x30 */ s32              state; // Task::state, the dispatcher index
 } Actor444000;
 
 /// Work block of the overlay's *other* enemy, the one dispatched through
@@ -553,6 +559,9 @@ STATIC_ASSERT_SIZEOF(Actor444000DeltaScratch, 0x14);
 s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id);
 void func_actor_444000_8013441C(Actor444000* arg0);
+void func_actor_444000_801371E8(Task* task, s16 arg1, s16 index);
+void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task);
+void func_actor_444000_801423C4(GpEnemy* enemy, Task* task);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);
 void func_actor_444000_80143F4C(Actor444000* arg0);

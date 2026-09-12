@@ -64138,3 +64138,136 @@ scalars the surrounding expression reads, not just the store's own spelling -
 and read the `;; ready list` / `;; insn N has a greater potential hazard` lines
 in `.sched2` before theorising about priority, because they state which
 comparison was made.
+
+## A constant store between an if-ladder and its reloads belongs in the arms
+
+An if-ladder that picks a value, followed by a second constant store and then
+reloads of the fields just written:
+
+```
+sh    v0, 0xE96(s0)
+li    v0, 0x190
+sh    v0, 0xE98(s0)
+lh    a2, 0xE96(s0)
+lh    a1, 0xE94(s0)
+lhu   a0, 0xE96(s0)
+lhu   v1, 0xE94(s0)
+subu  v0, a2, a1
+```
+
+Writing the second store once, after the ladder, puts it in the ladder's *join*
+block together with the reloads, and sched1 sinks it below them:
+
+```c
+if (state == 3)      work->field_E96 = 0xBB8;
+else if (...)        work->field_E96 = 0x1388;
+...
+work->field_E98 = 0x190;          /* join block */
+```
+
+`memrefs_conflict_p` proves `0xE98` and `0xE96` disjoint, so the reloads are
+free to move above the store, and `priority()` ranks them higher: a load feeding
+the `subu` costs 2 and the `subu` chain is 1, so the `lh` is priority 3 while
+`li 0x190` is only `1 + priority(sh)` = 2. The loads win and the `li`/`sh` pair
+lands after them.
+
+Put the second store in every arm instead:
+
+```c
+if (state == 3)      { work->field_E96 = 0xBB8;  work->field_E98 = 0x190; }
+else if (...)        { work->field_E96 = 0x1388; work->field_E98 = 0x190; }
+```
+
+Now the join block holds only the reloads, so sched1 has nothing to reorder, and
+the duplicate tails are merged back by cross-jumping in `jump2` — which runs
+*after* sched2 — leaving one copy in source order immediately before the join.
+The differing `li` per arm stays behind in each arm's delay slot, which is also
+what produces the ROM's single `sh 0xE96` fed by four separate `li`s.
+
+The same reasoning applies to any "compute into a variable, store once" rewrite
+of a ladder: a single store in the join block is CSE-visible to the following
+reload (`move a0, v1` instead of `lhu a0, 0xE96(s0)`), because the join block is
+where the value is still live. Per-arm stores leave the join a fresh extended
+basic block and force the reload.
+
+## `fold_range_test` folds only the innermost `&&` pair
+
+`state != 0x12 && state != 0x13` on two *adjacent* constants is turned by
+`fold_range_test` into one unsigned range check:
+
+```
+lhu   v0, 0(s0)
+addiu v0, v0, -0x12
+sltiu v0, v0, 2
+bnez  v0, skip
+```
+
+The ROM's five separate `beq`s mean the fold did not happen, and the way to
+suppress it is positional, not semantic. `fold` runs bottom-up on the
+left-associated chain, so only the innermost pair is ever a candidate: in
+`a != 0 && a != 0x12 && a != 0x13 && ...` the innermost pair is `0` and `0x12`,
+which is not contiguous, so nothing folds and all five compares survive. Pull
+the first term into an outer `if` and `0x12`/`0x13` become innermost, and the
+fold fires.
+
+So when a chain has to be split (here to give `state == 0` its own edge), split
+it so that no two adjacent constants end up as the innermost pair:
+
+```c
+if (state != 0) {
+    if (state != 0x12) {
+        if (state != 0x13 && state != 5 && state != 0xC) { ... }
+    }
+    ...
+}
+```
+
+The inner `if`s collapse in `jump.c` — every empty arm jumps to the same end
+label — so the emitted order is still the source order `0, 0x12, 0x13, 5, 0xC`.
+
+## `thread_jumps` cannot skip a reloaded test
+
+A branch that jumps *past* a test of the same memory looks like jump threading:
+
+```
+lh    a0, 0(s0)
+beqz  a0, .Lgrid          /* straight to the body */
+li    v0, 0x12
+beq   a0, v0, .Ltest      /* everything else tests again */
+...
+.Ltest:
+lh    v0, 0(s0)
+nop
+bnez  v0, .Ldone
+nop                       /* delay slot stays empty */
+.Lgrid:
+lui   v0, %hi(...)
+```
+
+It is not. `thread_jumps` in `jump.c` walks backwards from both branches in
+lockstep and gives up at `if (num_same_regs != 0) break;`, so it only fires when
+the two blocks compare the *same* pseudo **and** the target block is nothing but
+its branch (`prev_nonnote_insn (b2) == label`). A reload in the target block
+fails the second condition immediately; making both loads write one C variable
+fails the first instead, because `note_stores` marks that pseudo modified
+between the label and the branch and `rtx_equal_for_thread_p` then rejects it
+outright for a `REG_USERVAR_P` register.
+
+What produces the shape is an explicit exit from the enclosing `if`, whose end
+label simply *is* the body:
+
+```c
+if (state != 0) {
+    ...
+    if ((s16)work->field_0 != 0) {
+        goto skipGrid;
+    }
+}
+<body>
+skipGrid:
+```
+
+The empty delay slot follows from the same thing: `<body>`'s first instruction
+is now a branch target, so `dbr` cannot hoist it into the `bnez` slot. An
+unfilled slot in front of a label that another edge reaches is the cheap way to
+spot this shape in a target.

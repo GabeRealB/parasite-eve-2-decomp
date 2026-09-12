@@ -2,6 +2,7 @@
 
 #include "actors/actor_444000.h"
 #include "actors/actor_444000_view.h"
+#include "actors/actors_shared_80132cb8.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -2260,4 +2261,170 @@ void func_actor_444000_80142254(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_801423C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80142F28);
+/// Per-frame tail of the arena fight: keeps the camera pulled back far enough
+/// to hold both the boss and the player, then runs the state the task is in.
+///
+/// `field_E94` is the camera distance actually in use and `field_E96` the one
+/// the current state asks for -- 0xBB8 while the boss is grappling (state 3),
+/// 0xD48 for the close patterns and 0x1388 otherwise -- walked 0x32 per frame
+/// until the two are within 0x33 of each other. `field_E98` is the companion
+/// height the floor-marker helpers take.
+///
+/// Most states hand that pair to `ActorsShared80132cb8`, which drops the marker
+/// under the boss. The exception is pattern 1 in state 9: it uses
+/// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
+/// and pushes the player back by the boss part's view-space depth less 0x7D0 --
+/// part 4 of the boss model carried up the coordinate chain by
+/// `Actor444000_LocalToView`. Whether the camera distance is then added to x or
+/// subtracted from z is the same split: patterns other than 1-in-state-9 widen
+/// x, the rest pull z in, and pattern 2 additionally floors z at 0x251C.
+///
+/// States 0, 5, 0xC, 0x12 and 0x13 skip all of that. State 0 -- and any state
+/// the calls above dropped back to 0 -- also resets the two floor quads
+/// `Gp_GridParams` keeps at vertices 24..31 to their default heights, and
+/// state 5 still wants the marker.
+///
+/// The dispatch table is a local: `Task::state` picks the spawn state, this
+/// tick, or `Gp_DestroyEnemy`.
+void func_actor_444000_80142F28(Actor444000* arg0)
+{
+    void (*handlers[3])(GpEnemy*, Task*) = {
+        func_actor_444000_8013AFF8,
+        func_actor_444000_801423C4,
+        Gp_DestroyEnemy,
+    };
+    SVECTOR          result;
+    Actor444000Work* work;
+    GpEnemy*         enemy;
+    Task*            player;
+    SVECTOR*         verts;
+    s32              diff;
+    s16              state;
+
+    enemy  = arg0->field_20;
+    player = Game_GetPtrSlot(3);
+    work   = arg0->field_1C;
+    if (work != NULL) {
+        if (work->field_EE8 != NULL && work->field_EE8->field_40 <= 0) {
+            work->field_EE8 = NULL;
+        }
+        if (work->field_EEC != NULL && work->field_EEC->field_40 <= 0) {
+            work->field_EEC = NULL;
+        }
+
+        state = work->field_0;
+        if (state == 3) {
+            work->field_E96 = 0xBB8;
+            work->field_E98 = 0x190;
+        } else if (state == 9) {
+            work->field_E96 = 0x1388;
+            work->field_E98 = 0x190;
+        } else if (state == 0x11) {
+            work->field_E96 = 0x1388;
+            work->field_E98 = 0x190;
+        } else if (work->field_F08 != 0) {
+            work->field_E96 = 0xD48;
+            work->field_E98 = 0x190;
+        } else {
+            work->field_E96 = 0x1388;
+            work->field_E98 = 0x190;
+        }
+
+        diff = work->field_E96 - work->field_E94;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff >= 0x33) {
+            if (work->field_E94 < work->field_E96) {
+                work->field_E94 = (u16)work->field_E94 + 0x32;
+            } else {
+                work->field_E94 = (u16)work->field_E94 - 0x32;
+            }
+        } else {
+            work->field_E94 = (u16)work->field_E96;
+        }
+
+        state = work->field_0;
+        if (state != 0) {
+            /* Split so that `0x12` and `0x13` are not the innermost `&&` pair:
+               `fold_range_test` would turn two adjacent constants into one
+               `sltiu` range check. */
+            if (state != 0x12) {
+                if (state != 0x13 && state != 5 && state != 0xC) {
+                    if (work->field_F08 == 1 && state == 9) {
+                        func_actor_444000_801371E8((Task*)arg0, work->field_E94, 6);
+                        {
+                            GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->field_8;
+
+                            if (playerCoord->coord.t[0] < 0x2CEC) {
+                                playerCoord->coord.t[0] = 0x2CEC;
+                            }
+                        }
+                        result.vx = result.vy = result.vz = 0;
+                        Actor444000_LocalToView(((TmdObject*)arg0->extra)->field_8 + 4, &result);
+                        {
+                            GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->field_8;
+                            s32            z           = result.vz - 0x7D0;
+
+                            if (z < playerCoord->coord.t[2]) {
+                                playerCoord->coord.t[2] = z;
+                            }
+                        }
+                    } else {
+                        ActorsShared80132cb8((Task*)arg0, work->field_E94, work->field_E98, 6);
+                    }
+
+                    if (work->field_F08 == 0 || (work->field_F08 == 1 && (s16)work->field_0 != 9)) {
+                        GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->field_8;
+                        GsCOORDINATE2* selfCoord   = ((TmdObject*)arg0->extra)->field_8;
+                        s32            x           = work->field_E94 + selfCoord->coord.t[0];
+
+                        if (playerCoord->coord.t[0] < x) {
+                            playerCoord->coord.t[0] = x;
+                        }
+                    } else {
+                        GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->field_8;
+                        GsCOORDINATE2* selfCoord   = ((TmdObject*)arg0->extra)->field_8;
+                        s32            z           = selfCoord->coord.t[2] - work->field_E94;
+
+                        if (z < playerCoord->coord.t[2]) {
+                            playerCoord->coord.t[2] = z;
+                        }
+                    }
+
+                    if (work->field_F08 == 2) {
+                        GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->field_8;
+
+                        if (playerCoord->coord.t[0] < 0x251C) {
+                            playerCoord->coord.t[2] = 0x251C;
+                        }
+                    }
+                }
+            }
+            /* Re-read: the calls above can drop the fight back to state 0. The
+               `goto` is what lets the `state == 0` edge reach the reset
+               directly, as the ROM does. */
+            if ((s16)work->field_0 != 0) {
+                goto skipGrid;
+            }
+        }
+
+        verts        = Gp_GridParams->field_8;
+        verts[24].vy = 0x1F4;
+        verts[25].vy = 0x1F4;
+        verts[26].vy = 0x320;
+        verts[27].vy = 0x320;
+        verts[28].vy = 0x1F4;
+        verts[29].vy = 0x1F4;
+        verts[30].vy = 0x320;
+        verts[31].vy = 0x320;
+
+    skipGrid:
+        state = work->field_0;
+        if (state == 5) {
+            ActorsShared80132cb8((Task*)arg0, work->field_E94, work->field_E98, 6);
+        }
+    }
+
+    handlers[arg0->state](enemy, (Task*)arg0);
+}
