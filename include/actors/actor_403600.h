@@ -82,12 +82,24 @@ typedef struct Actor403600 {
     /* 0x30 */ s32              field_30;
 } Actor403600;
 
+/// 0x18-byte block temporarily taken from `G_SCRATCH_HEAD` while projecting
+/// an actor's origin and calculating its ordering-table depth.
+typedef struct Actor403600ProjectScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     sxy;
+    /* 0x0C */ s32     dp;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s32     otz;
+} Actor403600ProjectScratch;
+STATIC_ASSERT_SIZEOF(Actor403600ProjectScratch, 0x18);
+
 typedef struct Actor403600Ctx {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ u8   field_14;
 } Actor403600Ctx;
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
+u8*  func_actor_403600_80138DCC(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
 
 #endif

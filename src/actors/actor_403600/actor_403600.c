@@ -4,6 +4,15 @@
 #include "main/sound.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "psyq/inline_c.h"
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define actor_403600_load_scratch_head(out) \
+    __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0)" : "=r"(out))
+#define actor_403600_store_scratch_head(value) \
+    __asm__ volatile("lui $1, 0x1F80; sw %0, 0x3FC($1)" : : "r"(value) : "$1", "memory")
+#define actor_403600_restore_scratch_head(value) \
+    __asm__("addiu %0, %0, 24; lui $1, 0x1F80; sw %0, 0x3FC($1)" : "+r"(value) : : "$1")
 
 extern u8       D_80071075;
 extern u8       D_801153F4;
@@ -31,6 +40,7 @@ void func_actor_403600_8014161C(Actor403600* arg0);
 void func_actor_403600_80141954(s32 arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_80141B24(Actor403600* arg0);
+s32  func_actor_403600_801320F8(s32 arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801320F8);
 
@@ -142,7 +152,44 @@ loop:
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138DCC);
+u8* func_actor_403600_80138DCC(Actor403600* arg0)
+{
+    u8*                        head;
+    u8*                        restore;
+    Actor403600ProjectScratch* block;
+    TmdObject*                 object;
+    GsCOORDINATE2*             coord;
+    SVECTOR*                   vec;
+
+    object = arg0->field_2C;
+    actor_403600_load_scratch_head(head);
+    coord = object->field_8;
+    SOFT_BARRIER();
+    block = (Actor403600ProjectScratch*)(head - sizeof(Actor403600ProjectScratch));
+    actor_403600_store_scratch_head(block);
+    block->vec.vx = 0;
+    block->vec.vy = 0;
+    block->vec.vz = 0;
+    Gp_UpdateCoord(&coord[1]);
+    vec = &block->vec;
+    SOFT_TOUCH_REG(vec);
+    gte_SetRotMatrix(&coord[1].workm);
+    gte_SetTransMatrix(&coord[1].workm);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy);
+    gte_stdp(&block->dp);
+    gte_stflg(&block->flag);
+    gte_stszotz(&block->otz);
+    if (block->flag < 0) {
+        block->otz = 0;
+    }
+    block->otz = (block->otz >> 4) + 0x1E;
+    func_actor_403600_801320F8(block->otz);
+    actor_403600_load_scratch_head(restore);
+    actor_403600_restore_scratch_head(restore);
+    return restore;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", ActorsShared80131e24Sub0);
 
