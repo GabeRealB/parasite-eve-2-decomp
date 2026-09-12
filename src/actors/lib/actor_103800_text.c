@@ -337,7 +337,47 @@ void Actor03800_Fn01948(Actor103800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn01AD0);
+void Actor03800_Fn01AD0(Actor103800* arg0)
+{
+    Actor103800Ctx*  ctx;
+    Actor103800Work* work;
+
+    work            = arg0->field_1C;
+    ctx             = arg0->field_20;
+    work->field_360 = 0;
+    work->field_35C = 0;
+    work->field_35E = 0;
+    work->field_356--;
+    if (work->field_356 <= 0) {
+        if (work->field_36E == 0) {
+            work->field_348 = 0xB;
+        } else {
+            work->field_348 = 6;
+        }
+        work->field_34A = 1;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_356 = (((u32)Gp_LcgState >> 16) & 7) + 3;
+    }
+    if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
+        work->field_37E = 0;
+        if (work->field_350 == 0) {
+            if (work->field_36E == 0) {
+                work->field_352 = 2;
+                work->field_354 = 0;
+                if (work->field_36A == 0) {
+                    work->field_36A = 1;
+                }
+            } else {
+                work->field_352 = 3;
+                work->field_354 = 2;
+                work->field_37C = ((Actor03800_D05F48 - ctx->field_40) * 100 / Actor03800_D05F48) * 10 + 240;
+            }
+        } else {
+            work->field_352 = 0xA;
+            work->field_354 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn01C50);
 
