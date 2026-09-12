@@ -61,7 +61,9 @@ typedef struct Actor444000Work {
     /* 0x7BC */ s16        field_7BC; // animation id the slot resets seed from
     /* 0x7BE */ s16        field_7BE; // GpAnimSlot::field_9 the resets seed with
     /* 0x7C0 */ s16        field_7C0;
-    /* 0x7C2 */ byte       pad_7C2[0x31];
+    /* 0x7C2 */ byte       pad_7C2[0x2];
+    /* 0x7C4 */ s16        field_7C4;
+    /* 0x7C6 */ byte       pad_7C6[0x2D];
     /* 0x7F3 */ s8         field_7F3;
     /* 0x7F4 */ byte       pad_7F4[0x6B8];
     /* 0xEAC */ s8         field_EAC;

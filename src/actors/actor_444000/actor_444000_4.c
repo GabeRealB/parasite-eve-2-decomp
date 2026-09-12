@@ -10,6 +10,8 @@
 
 extern s16 D_actor_444000_80144A72;
 
+extern void func_80185220(void);
+
 /// The overlay's event/controller task, whose `idMap` holds an
 /// `Actor444000EventWork`.
 extern Actor444000* D_actor_444000_80161878;
@@ -29,7 +31,38 @@ s16 func_actor_444000_801434B4(void)
     return D_actor_444000_80144A72;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_801434C4);
+/// The re-arm's counterpart: on a reset request it sets the two 0xEF4 counters
+/// and the 0x7B0 pair rather than clearing them, and pushes `field_E = 2` onto
+/// the first two escorts' model objects. Every tick it also parks one of two
+/// yaw presets in `field_7C4`, alternating every 60 counts.
+void func_actor_444000_801434C4(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    s16              tick;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        work->field_EF4                                        = 1;
+        work->field_EF6                                        = 1;
+        work->field_EFA                                        = 0;
+        work->field_7B3                                        = 1;
+        work->field_7B0                                        = 1;
+        work->field_EFE                                        = 0;
+        work->field_F1A                                        = 0;
+        ((TmdObject*)work->field_ECC[0]->task->extra)->field_E = 2;
+        ((TmdObject*)work->field_ECC[1]->task->extra)->field_E = 2;
+        func_80185220();
+    }
+    func_actor_444000_8013441C(arg0);
+    tick = work->field_6;
+    if (tick % 60 == 0) {
+        if (tick % 120 == 0) {
+            work->field_7C4 = 0x2B2;
+        } else {
+            work->field_7C4 = -0x1A2;
+        }
+    }
+}
 
 void func_actor_444000_801435CC(Actor444000* arg0)
 {

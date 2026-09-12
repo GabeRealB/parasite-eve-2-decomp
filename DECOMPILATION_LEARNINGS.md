@@ -62236,3 +62236,58 @@ allocation order so the work pointer takes `$s2` and the task pointer `$s3`.
 `func_actor_444000_8013A1C4` went from 95.57% with `regs=28` to 100% on that one
 change; before it, no amount of statement reordering could move either penalty,
 because both were downstream of the same source decision.
+
+## `% 60` and `% 120` of one `s16` share a single `mult`/`mfhi`
+
+A block that multiplies by `0x88888889` once and then uses the same `mfhi`
+result twice, with two different shift counts, is two remainders of the same
+dividend, not a single expression:
+
+```
+lhu   v0, 0x6(s0)
+sll   v0, v0, 16
+sra   a0, v0, 16        # a0 = the s16 dividend
+mult  a0, 0x88888889
+sra   a1, v0, 31        # sign correction, from the *shifted* value
+mfhi  a3
+addu  a2, a3, a0
+sra   v1, a2, 5         # a0 / 60   (0x88888889, shift 3 for /15, +2 for /4)
+subu  v1, v1, a1
+sll   v0, v1, 4
+subu  v0, v0, v1
+sll   v0, v0, 2         # v1 * 60
+subu  v0, a0, v0        # a0 % 60
+…
+sra   v1, a2, 6         # a0 / 120, same mfhi/addu reused
+…
+sll   v0, v0, 3         # v1 * 120
+subu  v0, a0, v0        # a0 % 120
+```
+
+Read the divisor off the *multiply-back* shifts (`<<4 - x` is `*15`, then `<<2`
+or `<<3`), not off the magic number: `0x88888889` alone is `/15`, and the
+`sra 5` / `sra 6` pair is what distinguishes 60 from 120. The sign correction
+is computed from the pre-`sra` value (`v0 = x << 16`), which has the same sign
+bit, so `sra a1, v0, 31` is not a separate quantity.
+
+The `lhu` plus `sll`/`sra` says the dividend reached the division through an
+`s16` local rather than being read from the field inline (see "`sh` of an `s16`
+field: `lhu` is a plain copy"). The `sll v0, v0, 16` before each `bnez` needs no
+cast in the source — `s16 tick; if (tick % 60 == 0)` emits the HImode test on
+its own.
+
+```c
+tick = work->field_6;
+if (tick % 60 == 0) {
+    if (tick % 120 == 0) {
+        work->field_7C4 = 0x2B2;
+    } else {
+        work->field_7C4 = -0x1A2;
+    }
+}
+```
+
+`func_actor_444000_801434C4` is the example; the two literal stores rather than
+a shared `s16 value` local are the same requirement as "Two literal stores
+cross-jump" — a shared temp is global-allocated to `$a1` and pushes the three
+division pseudos one register up (`regs=11`, 99.17%).
