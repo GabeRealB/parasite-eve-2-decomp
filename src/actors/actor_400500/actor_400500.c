@@ -14,6 +14,7 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400500.h"
+#include "actors/coord_to_view.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.
@@ -505,7 +506,103 @@ INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", D_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013456C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801348D8);
+void func_actor_400500_801348D8(Task* arg0, s32 arg1)
+{
+    SVECTOR                pos;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         joint;
+    GsCOORDINATE2*         player;
+    GpActorWork*           slot;
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500AnimStride* stride;
+    Actor400500AnimStride* stride2;
+    s32                    i;
+    s32                    cur;
+    s32                    sample;
+
+    coords = ((TmdObject*)arg0->extra)->field_8;
+    slot   = *Gp_ActorSlots;
+    joint  = coords + 8;
+    work   = (Actor400500Work*)arg0->idMap;
+    if (slot != NULL) {
+        player = slot->extra->field_8;
+        work2  = work;
+        if (work->field_9FA == 1) {
+            if ((s16)work->field_9FC != work->field_9FE) {
+                work->field_A00 = 0;
+            } else {
+                work->field_A00 = func_actor_400500_8013DD8C(arg0, work->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            work2->field_9FA = 3;
+        } else if (work->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            work->field_9FA = 3;
+            work->field_A00 = 0;
+        } else if (work->field_9FA == 3) {
+            work->field_A00 = (u16)work->field_A00 + 1;
+        }
+        i      = 1;
+        stride = (Actor400500AnimStride*)work2 + 1;
+        do {
+            stride->field_1D = (u8)work2->field_9F8;
+            Gp_AnimTickIndex(&work2->anim, i);
+            i++;
+            stride++;
+        } while (i < 0x12);
+        Gfx_ViewCoord.flg = 0;
+        Gp_UpdateCoord(&Gfx_ViewCoord);
+        joint->flg = 0;
+        Gp_UpdateCoord(joint);
+        pos.vx = 0x160;
+        pos.vy = 0x148;
+        pos.vz = 0x2C0;
+        ActorCoordToView(joint, &pos);
+        if ((arg1 << 0x10) == 0) {
+            player->coord.t[0] = pos.vx;
+            player->coord.t[2] = pos.vz;
+        } else {
+            sample             = pos.vx;
+            cur                = player->coord.t[0];
+            cur               += (sample - cur) >> 2;
+            player->coord.t[0] = cur;
+            sample             = pos.vz;
+            cur                = player->coord.t[2];
+            cur               += (sample - cur) >> 2;
+            player->coord.t[2] = cur;
+        }
+        player->flg = 0;
+        Gp_UpdateCoord(player);
+        work->field_9F8 = -0x10;
+        work3           = (Actor400500Work*)arg0->idMap;
+        if (work3->field_9FA == 1) {
+            if ((s16)work3->field_9FC != work3->field_9FE) {
+                work3->field_A00 = 0;
+            } else {
+                work3->field_A00 = func_actor_400500_8013DD8C(arg0, work3->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            work3->field_9FA = 3;
+        } else if (work3->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            work3->field_9FA = 3;
+            work3->field_A00 = 0;
+        } else if (work3->field_9FA == 3) {
+            work3->field_A00 = (u16)work3->field_A00 + 1;
+        }
+        i       = 1;
+        stride2 = (Actor400500AnimStride*)work3 + 1;
+        do {
+            stride2->field_1D = (u8)work3->field_9F8;
+            Gp_AnimTickIndex(&work3->anim, i);
+            i++;
+            stride2++;
+        } while (i < 0x12);
+        work->field_9F8 = 0x10;
+    }
+}
 
 void func_actor_400500_80134B88(Task* arg0)
 {
