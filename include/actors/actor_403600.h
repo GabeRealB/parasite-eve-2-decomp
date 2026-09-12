@@ -49,7 +49,7 @@ typedef struct Actor403600Work {
     /* 0x742 */ s16                  field_742;
     /* 0x744 */ u16                  field_744;
     /* 0x746 */ s16                  field_746;
-    /* 0x748 */ byte                 pad_748[2];
+    /* 0x748 */ u16                  field_748;
     /* 0x74A */ s16                  field_74A;
     /* 0x74C */ u16                  field_74C;
     /* 0x74E */ u16                  field_74E;
@@ -145,6 +145,26 @@ typedef struct Actor403600DistanceScratch {
 } Actor403600DistanceScratch;
 STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
 
+typedef struct Actor403600TurnMatrix {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ s16 pad_12;
+    /* 0x14 */ s32 field_14;
+    /* 0x18 */ s32 field_18;
+    /* 0x1C */ s32 field_1C;
+} Actor403600TurnMatrix;
+STATIC_ASSERT_SIZEOF(Actor403600TurnMatrix, 0x20);
+
+typedef struct Actor403600TurnScratch {
+    /* 0x00 */ u16                   angles[4];
+    /* 0x08 */ s16                   vector[4];
+    /* 0x10 */ Actor403600TurnMatrix matrix;
+} Actor403600TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
+
 typedef struct Actor403600Point {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 pad_2;
@@ -168,6 +188,7 @@ u8*  func_actor_403600_80138DCC(Actor403600* arg0);
 void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1);
 s32  func_actor_403600_8013D9A8(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
+s32  func_actor_403600_8013DFE0(Actor403600* arg0);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
 s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
 

@@ -818,7 +818,213 @@ void func_actor_403600_8013DC7C(Actor403600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013DDF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013DFE0);
+s32 func_actor_403600_8013DFE0(Actor403600* arg0)
+{
+    s16                     temp_v0;
+    s16                     temp_v0_2;
+    s16                     temp_v0_3;
+    s16                     temp_v1_3;
+    s16                     temp_v1_4;
+    s32                     temp_v1_5;
+    s16                     temp_v1_6;
+    s32                     temp_v1_7;
+    s16                     temp_v1_8;
+    s32                     temp_v1_9;
+    s16                     var_a0_2;
+    s16                     var_a0_3;
+    s16                     var_a0_4;
+    s32                     var_a1;
+    s32                     var_a1_2;
+    s32                     var_a1_3;
+    s16                     var_v0;
+    s16                     var_v0_2;
+    s32                     var_v0_3;
+    s16                     var_v0_4;
+    s32                     var_v0_5;
+    s16                     var_v0_6;
+    s32                     var_v0_7;
+    s32                     temp_lo;
+    s32                     temp_s5;
+    s32                     temp_step;
+    s32                     temp_step_2;
+    s32                     temp_step_3;
+    u16                     temp_a3;
+    u16                     temp_a3_2;
+    u16                     temp_a3_3;
+    Actor403600TurnMatrix*  temp_s0;
+    MATRIX*                 temp_s0_2;
+    Actor403600TurnMatrix*  temp_s0_3;
+    MATRIX*                 temp_s0_4;
+    SVECTOR*                temp_s1;
+    SVECTOR*                temp_s2;
+    Actor403600Work*        temp_s4;
+    Actor403600TurnScratch* temp_v1;
+    Actor403600TurnScratch* temp_v1_2;
+
+    temp_v1             = *(Actor403600TurnScratch**)0x1F8003FC;
+    temp_v1             = (Actor403600TurnScratch*)((u8*)temp_v1 - 0x30);
+    *(void**)0x1F8003FC = temp_v1;
+    temp_v1_2           = temp_v1;
+    temp_s4             = arg0->field_1C;
+    temp_v1_3           = temp_s4->field_746;
+    switch (temp_v1_3) {
+        case 0:
+            temp_v1_2->vector[0] =
+                (s16)(Wip_SysConfig.field_4->t[0] - temp_s4->field_4B8.coord.t[0]);
+            temp_v1_2->vector[1] =
+                (s16)(Wip_SysConfig.field_4->t[1] - temp_s4->field_4B8.coord.t[1]);
+            temp_v1_2->vector[2] =
+                (s16)(Wip_SysConfig.field_4->t[2] - temp_s4->field_4B8.coord.t[2]);
+            break;
+        case 1:
+        case 3:
+            temp_v1_2->vector[0] = (s16)(temp_s4->field_6F0.vx - temp_s4->field_4B8.coord.t[0]);
+            temp_v1_2->vector[1] = (s16)(temp_s4->field_6F0.vy - temp_s4->field_4B8.coord.t[1]);
+            temp_v1_2->vector[2] = (s16)(temp_s4->field_6F0.vz - temp_s4->field_4B8.coord.t[2]);
+            break;
+        case 2:
+            temp_s5              = (s16)(Wip_SysConfig.field_4->t[0] - temp_s4->field_4B8.coord.t[0]);
+            temp_v1_2->vector[1] = 0;
+            temp_v1_2->vector[0] = temp_s5;
+            temp_v1_2->vector[2] =
+                (s16)(Wip_SysConfig.field_4->t[2] - temp_s4->field_4B8.coord.t[2]);
+            break;
+    }
+    temp_v0   = temp_v1_2->vector[0];
+    temp_v0_2 = temp_v1_2->vector[1];
+    temp_v0_3 = temp_v1_2->vector[2];
+    temp_lo   = temp_v0_3 * temp_v0_3;
+    temp_s5   = SquareRoot0((temp_v0 * temp_v0) + (temp_v0_2 * temp_v0_2) + temp_lo);
+    if (temp_s4->field_746 == 3) {
+        temp_s2                   = (SVECTOR*)temp_v1_2->vector;
+        temp_s0                   = &temp_v1_2->matrix;
+        temp_v1_2->matrix.field_0 = 0x1000;
+        temp_s0->field_4          = 0;
+        temp_s0->field_8          = 0x1000;
+        temp_s0->field_C          = 0;
+        temp_s0->field_10         = 0x1000;
+        VectorNormalSS(temp_s2, temp_s2);
+        temp_v1_2->angles[0] = 0;
+        temp_v1_2->angles[1] = 0x1000;
+        temp_v1_2->angles[2] = 0;
+        Gfx_OrthonormalBasis((MATRIX*)temp_s0, temp_s2, (SVECTOR*)temp_v1_2);
+        Gfx_MatrixToEuler((MATRIX*)temp_s0, (SVECTOR*)temp_v1_2);
+        temp_s0_2            = &temp_s4->field_4B8.coord;
+        temp_v1_2->angles[2] = (u16)(temp_v1_2->angles[2] + temp_s4->field_75E);
+        Gfx_RotMatrixXYZ(temp_s0_2, (SVECTOR*)temp_v1_2, 1);
+        Gfx_MatrixCol2(temp_s0_2, (SVECTOR*)temp_v1_2);
+    } else {
+        temp_s1                   = (SVECTOR*)temp_v1_2->vector;
+        temp_s0_3                 = &temp_v1_2->matrix;
+        temp_v1_2->matrix.field_0 = 0x1000;
+        temp_s0_3->field_4        = 0;
+        temp_s0_3->field_8        = 0x1000;
+        temp_s0_3->field_C        = 0;
+        temp_s0_3->field_10       = 0x1000;
+        VectorNormalSS(temp_s1, temp_s1);
+        temp_v1_2->angles[0] = 0;
+        temp_v1_2->angles[1] = 0x1000;
+        temp_v1_2->angles[2] = 0;
+        Gfx_OrthonormalBasis((MATRIX*)temp_s0_3, temp_s1, (SVECTOR*)temp_v1_2);
+        Gfx_MatrixToEuler((MATRIX*)temp_s0_3, (SVECTOR*)temp_v1_2);
+        Gfx_MatrixToEuler(&temp_s4->field_4B8.coord, temp_s1);
+        temp_a3   = temp_v1_2->angles[0];
+        temp_v1_4 = (temp_a3 & 0xFFF) - ((u16)temp_v1_2->vector[0] & 0xFFF);
+        temp_step = temp_s4->field_76E;
+        var_a1    = temp_v1_4;
+        if (temp_v1_4 < 0) {
+            SOFT_TOUCH_REG(var_a1);
+            var_a1 = -var_a1;
+        }
+        var_a0_2 = temp_v1_4;
+        if (temp_step >= var_a1) {
+            temp_v1_2->vector[0] = (s16)temp_a3;
+        } else {
+            SOFT_TOUCH_REG(var_a0_2);
+            SOFT_TOUCH_REG(var_a0_2);
+            if (var_a1 >= 0x801) {
+                var_v0_2 = temp_v1_4 - 0x1000;
+                if (temp_v1_4 <= 0) {
+                    var_v0_2 = 0x1000 - temp_v1_4;
+                }
+                var_a0_2 = var_v0_2;
+            }
+            temp_v1_5 = temp_v1_2->vector[0];
+            if ((var_a0_2 << 0x10) > 0) {
+                var_v0_3 = temp_v1_5 + temp_s4->field_76E;
+            } else {
+                var_v0_3 = temp_v1_5 - temp_s4->field_76E;
+            }
+            temp_v1_2->vector[0] = var_v0_3;
+        }
+        temp_a3_2   = temp_v1_2->angles[1];
+        temp_v1_6   = (temp_a3_2 & 0xFFF) - ((u16)temp_v1_2->vector[1] & 0xFFF);
+        temp_step_2 = temp_s4->field_76E;
+        var_a1_2    = temp_v1_6;
+        if (temp_v1_6 < 0) {
+            SOFT_TOUCH_REG(var_a1_2);
+            var_a1_2 = -var_a1_2;
+        }
+        var_a0_3 = temp_v1_6;
+        if (temp_step_2 >= var_a1_2) {
+            temp_v1_2->vector[1] = (s16)temp_a3_2;
+        } else {
+            SOFT_TOUCH_REG(var_a0_3);
+            SOFT_TOUCH_REG(var_a0_3);
+            if (var_a1_2 >= 0x801) {
+                var_v0_4 = temp_v1_6 - 0x1000;
+                if (temp_v1_6 <= 0) {
+                    var_v0_4 = 0x1000 - temp_v1_6;
+                }
+                var_a0_3 = var_v0_4;
+            }
+            temp_v1_7 = temp_v1_2->vector[1];
+            if ((var_a0_3 << 0x10) > 0) {
+                var_v0_5 = temp_v1_7 + temp_s4->field_76E;
+            } else {
+                var_v0_5 = temp_v1_7 - temp_s4->field_76E;
+            }
+            temp_v1_2->vector[1] = var_v0_5;
+        }
+        temp_a3_3   = temp_v1_2->angles[2];
+        temp_v1_8   = (temp_a3_3 & 0xFFF) - ((u16)temp_v1_2->vector[2] & 0xFFF);
+        temp_step_3 = temp_s4->field_76E;
+        var_a1_3    = temp_v1_8;
+        if (temp_v1_8 < 0) {
+            SOFT_TOUCH_REG(var_a1_3);
+            var_a1_3 = -var_a1_3;
+        }
+        var_a0_4 = temp_v1_8;
+        if (temp_step_3 >= var_a1_3) {
+            temp_v1_2->vector[2] = (s16)temp_a3_3;
+        } else {
+            SOFT_TOUCH_REG(var_a0_4);
+            SOFT_TOUCH_REG(var_a0_4);
+            if (var_a1_3 >= 0x801) {
+                var_v0_6 = temp_v1_8 - 0x1000;
+                if (temp_v1_8 <= 0) {
+                    var_v0_6 = 0x1000 - temp_v1_8;
+                }
+                var_a0_4 = var_v0_6;
+            }
+            temp_v1_9 = temp_v1_2->vector[2];
+            if ((var_a0_4 << 0x10) > 0) {
+                var_v0_7 = temp_v1_9 + temp_s4->field_76E;
+            } else {
+                var_v0_7 = temp_v1_9 - temp_s4->field_76E;
+            }
+            temp_v1_2->vector[2] = var_v0_7;
+        }
+        temp_s0_4            = &temp_s4->field_4B8.coord;
+        temp_v1_2->vector[2] = (s16)((u16)temp_v1_2->vector[2] + temp_s4->field_75E);
+        Gfx_RotMatrixXYZ(temp_s0_4, (SVECTOR*)temp_v1_2->vector, 1);
+        temp_s4->field_748 = (u16)temp_v1_2->vector[1];
+        Gfx_MatrixCol2(temp_s0_4, (SVECTOR*)temp_v1_2);
+    }
+    temp_s4->field_748  = ratan2((s16)temp_v1_2->angles[0], (s16)temp_v1_2->angles[2]);
+    *(void**)0x1F8003FC = (void*)((u8*)*(void**)0x1F8003FC + 0x30);
+    return temp_s5;
+}
 
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
 {
