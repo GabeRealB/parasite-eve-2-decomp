@@ -20,6 +20,14 @@ extern Task* D_actor_444000_80161860;
 extern s8 D_8007218A;
 extern u8 D_80073BA9;
 
+/// The area-record id the loader replays, and the view index that goes with it;
+/// `func_actor_444000_801321FC` republishes both whenever the room is entered.
+extern u8 D_8007216C;
+extern s8 D_8007216D;
+
+/// 0xFF-terminated area-record list this overlay applies on entry.
+extern GpAreaApplyRec D_8018FB6C[];
+
 /// Animation-set table this overlay hands the player task as message 0x3F4's
 /// `GpAnimArg::field_0`, the counterpart of `D_actor_403100_8015570C`. The first
 /// entry is a `GpAnimSet` in the overlay's own data; the other three point at
@@ -87,7 +95,49 @@ void func_actor_444000_80132054(Task* task)
     work->field_2C = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801321FC);
+/// Bring the room's presentation up to date for an enter (0), a first entry
+/// (1) or a re-entry (2): pick the view set from the current disc/scenario
+/// stage in `GameSession::field_132`, republish the area-record id, and on a
+/// first entry spawn the accompanying task. Any other `arg0` does nothing.
+void func_actor_444000_801321FC(s32 arg0)
+{
+    Actor444000EventWork* work;
+
+    work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    switch (arg0) {
+        case 0:
+            Game_Session->field_52 = 1;
+            D_8007216C             = work->field_28;
+            break;
+        case 1:
+        case 2:
+            switch (Game_Session->field_132) {
+                case 0:
+                    Game_Session->field_5 = 4;
+                    D_8007216D            = 4;
+                    break;
+                case 1:
+                    Game_Session->field_5 = 5;
+                    D_8007216D            = 5;
+                    break;
+                case 2:
+                case 3:
+                    Game_Session->field_5 = 6;
+                    D_8007216D            = 6;
+                    break;
+            }
+            Game_Session->unknown_133[1] = Game_Session->field_5 - 1;
+            Game_Session->unknown_133[0] = 1;
+            Game_Session->field_76       = 1;
+            D_8007216C                   = work->field_28;
+            Gp_ApplyAreaRecs(D_8018FB6C);
+            if (arg0 == 1) {
+                work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
+            }
+            Game_Session->field_52 = 1;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132358);
 

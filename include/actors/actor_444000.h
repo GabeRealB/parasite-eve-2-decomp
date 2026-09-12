@@ -125,7 +125,8 @@ typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ Task* field_20; // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-    /* 0x28 */ byte  pad_28[0x2];
+    /* 0x28 */ u8    field_28; // area-record id published to D_8007216C on every enter/re-enter
+    /* 0x29 */ byte  pad_29[0x1];
     /* 0x2A */ u16   field_2A; // one-shot flag: set once func_actor_444000_80132608 has played its cue
     /* 0x2C */ u16   field_2C; // action index, switched on by func_actor_444000_80132054
     /* 0x2E */ s16   field_2E; // cleared whenever field_2C is set

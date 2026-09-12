@@ -62862,3 +62862,49 @@ On `func_actor_444000_8013ACD0` this was the whole remaining gap, 93.4% to
 into a second walking pointer (`addiu $v1,$s2,4`) for the nine-element matrix
 copy. Spelling the stores `coord->coord.m[i][j] = ...` keeps one base register
 and the copy matches.
+
+## `bltz` + `slti` instead of one `sltiu` means `switch`, not `if (x >= 0 && x < N)`
+
+GCC 2.8.1 folds a signed two-sided range test into a single unsigned compare.
+`if (arg0 >= 0 && arg0 < 3)` becomes `sltiu $v0, $a0, 3` — one instruction, one
+branch. So a target that spends *two* separate signed tests on the same bound
+
+```
+bnez  $s3, .Lnext        /* case 0 */
+ lui  $v0, %hi(Game_Session)
+...
+.Lnext:
+bltz  $s3, .Ldefault     /* index < low  -> default */
+ slti $v0, $s3, 3
+beqz  $v0, .Ldefault     /* index > high -> default */
+```
+
+did not come from an `&&` chain at all: it is `stmt.c:emit_case_nodes` walking a
+`switch` decision tree, and the two tests are the low and high bound checks of a
+case node that the folder never sees. m2c reconstructs this as
+`if (arg0 == 0) {...} if ((arg0 >= 0) && (arg0 < 3)) {...}`, which scores in the
+low 70s and cannot be pushed higher by rearranging the conditions.
+
+The same signature distinguishes the nested tests. For a single-valued node with
+children on both sides, `emit_case_nodes` emits the **equality test first**, then
+the pivot compare:
+
+```
+lbu   $v1, 0x132($a0)
+addiu $v0, $zero, 1
+beq   $v1, $v0, .Lcase1  /* do_jump_if_equal on node->low  */
+ slti $v0, $v1, 2        /* then GT node->high -> right subtree */
+beqz  $v0, .Lright
+```
+
+An `if`/`else if` chain would instead compare in source order. And a node with
+only a *high* bound test (`slti $v1, 4; beqz -> default`) that then falls
+straight into the body is a grouped range node: `expand_end_case` runs
+`group_case_nodes`, which merges adjacent cases sharing one label, so
+`case 2: case 3:` becomes the single node `[2,3]` and only its upper bound is
+tested — the lower bound was already established by the parent pivot.
+
+Recovering the switch shape from those three signatures took
+`func_actor_444000_801321FC` from 72.48% (branch=4 regs=14 insert=4 delete=18) to
+an exact match in one attempt, with the register assignment falling out on its
+own once the block order was right.
