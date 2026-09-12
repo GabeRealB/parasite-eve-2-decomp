@@ -7,8 +7,6 @@ extern s16 D_actor_403200_80141C5A;
 
 extern Task* D_actor_403200_8015F8F0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_2", func_actor_403200_80141018);
-
 void func_actor_403200_801410F0(s8 arg0)
 {
     ((Actor403200Work*)D_actor_403200_8015F8F0->idMap)->field_EAC = arg0;

@@ -2,3 +2,4 @@
 ActorsShared80132724 = 0x80132724; // shared body, see src/actors/lib/
 ActorsShared80143374 = 0x80143374; // shared body, see src/actors/lib/
 ActorsShared80143798 = 0x80143798; // shared body, see src/actors/lib/
+ActorsShared801433b8 = 0x801433B8; // shared body, see src/actors/lib/

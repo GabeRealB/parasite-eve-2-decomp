@@ -11,8 +11,6 @@ extern s16 D_actor_444000_80144A72;
 /// `Actor444000EventWork`.
 extern Actor444000* D_actor_444000_80161878;
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801433B8);
-
 void func_actor_444000_80143490(s8 arg0)
 {
     D_actor_444000_80161878->field_1C->field_EAC = arg0;

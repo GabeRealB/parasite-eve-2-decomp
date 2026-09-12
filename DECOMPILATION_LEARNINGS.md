@@ -61932,3 +61932,44 @@ separately:
 Offsets 0x38/0x3C/0x40 of a `GsCOORDINATE2` are `workm.t[0..2]`, the world-space
 translation `Gp_UpdateCoord` has just recomputed; `flg = 0` at offset 0 is the
 customary "matrix is stale" clear that precedes it.
+
+## Recover an array stride in a work block from a sibling function's calls, not from the function you are matching
+
+**Problem.** `func_actor_444000_801433B8` hands eight addresses inside a
+0xF24-byte work block to `Gp_UnlinkObj`: `+0x7F4`, `+0x88C`, `+0x9BC`, `+0xA54`,
+`+0xAEC`, `+0xB84`, `+0xC1C`, `+0xCB4`. `Gp_UnlinkObj` takes a `GpObj*`, and
+`GpObj` is 0x20 bytes, so the 0x98 spacing says nothing on its own — the run
+could be eight unrelated fields with padding between them, and writing it that
+way means eight named `GpObj` members and a guess about every gap.
+
+**Symptom.** A near-uniform stride between offsets passed to one callee, with
+the callee's own type far smaller than the stride, and one gap that is exactly
+twice the stride (here 0x88C → 0x9BC, i.e. a skipped element).
+
+**Fix.** Grep the *rest of the overlay* for the intermediate offsets before
+inventing a layout. `func_actor_444000_801423C4` calls
+`Gp_ClearRec18Occupied(work + 0x814)` and `(work + 0x8AC)` — 0x20 past two
+consecutive `GpObj`s, and 0x98 apart themselves. `GpRec18` is 0x18, and
+0x88C - 0x814 = 0x78 = 5 × 0x18, so the stride is `GpObj` followed by the
+five-entry `GpRec18` table its `field_C` points at:
+
+```c
+typedef struct {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[5];
+} Node;   /* 0x98 */
+```
+
+`Node nodes[9]` at 0x7F4 then covers 0x7F4..0xD4C exactly, the unlinked
+offsets become `nodes[0,1,3,4,5,6,7,8]`, and the one 0x130 gap is explained as
+`nodes[2]` — an element the teardown skips — rather than as padding. Matched
+100% on the first attempt.
+
+The general point: the offsets *one* function passes are a sparse sample of a
+layout. `grep -rho '0x[0-9A-F]\+' asm/.../<overlay>/` over the whole overlay and
+counting which intermediate offsets are referenced at all distinguishes a real
+array from a bag of fields, and the callee at each of those offsets names the
+element's sub-type for free. `GpObj` + a `GpRec18` table is a recurring shape in
+this family (`ActorShared8014ca28Work` is the same idea with per-node table
+lengths of 1/4/1/1), so a 0x38/0x50/0x98 stride around a `GpObj` is worth
+testing against it first.
