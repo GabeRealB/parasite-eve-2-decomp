@@ -13,6 +13,7 @@ extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
 
 extern s16 D_actor_444000_80144A72;
 
+extern Actor444000* D_actor_444000_80161860;
 extern Actor444000* D_actor_444000_80161878;
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132054);
@@ -41,7 +42,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132778);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_801327E8);
+/// Set the actor's action index, resetting the sub-state counter that goes
+/// with it.
+void func_actor_444000_801327E8(s16 action)
+{
+    Actor444000Work* work = D_actor_444000_80161860->field_1C;
+
+    work->field_2C = action;
+    work->field_2E = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132808);
 

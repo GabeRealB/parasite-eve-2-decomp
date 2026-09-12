@@ -14,8 +14,11 @@
 /// byte at 0xEAC written by `func_actor_444000_80143490`. Fill in the padding
 /// as the remaining functions are matched.
 typedef struct Actor444000Work {
-    /* 0x000 */ s16  field_0; // state index
-    /* 0x002 */ byte pad_2[0xEAA];
+    /* 0x000 */ s16  field_0;  // state index
+    /* 0x002 */ byte pad_2[0x2A];
+    /* 0x02C */ u16  field_2C; // action index, switched on by func_actor_444000_80132054
+    /* 0x02E */ s16  field_2E; // cleared whenever field_2C is set
+    /* 0x030 */ byte pad_30[0xE7C];
     /* 0xEAC */ s8   field_EAC;
     /* 0xEAD */ byte pad_EAD[0x77];
 } Actor444000Work;
