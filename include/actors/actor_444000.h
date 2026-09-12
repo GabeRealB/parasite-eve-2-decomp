@@ -72,9 +72,14 @@ typedef struct Actor444000Work {
     /* 0x7C2 */ byte pad_7C2[0x2];
     /* 0x7C4 */ s16  field_7C4;
     /* 0x7C6 */ byte pad_7C6[0x2];
-    /* 0x7C8 */ s16  field_7C8;       // yaw the drive step walks toward its target, clamped to +/-0x200 per call
+    /* 0x7C8 */ s16  field_7C8;      // yaw the drive step walks toward its target, clamped to +/-0x200 per call
     /* 0x7CA */ byte pad_7CA[0x6];
-    /* 0x7D0 */ byte field_7D0[0x20]; // zeroed whenever the block is re-armed
+    /* 0x7D0 */ byte field_7D0[0x8]; // start of a 0x20-byte run zeroed whenever the block is re-armed
+                                     /// The masked `slots0[2].field_2` value the 0x1C-arrival check in
+                                     /// `func_actor_444000_80140E28` last saw, so the script spawn only fires on
+                                     /// the step the animation reaches that frame rather than every step after.
+    /* 0x7D8 */ s32  field_7D8;
+    /* 0x7DC */ byte pad_7DC[0x14];
     /* 0x7F0 */ byte pad_7F0[0x3];
     /* 0x7F3 */ s8   field_7F3;
     /* 0x7F4 */ byte pad_7F4[0x6B8];
@@ -114,7 +119,8 @@ typedef struct Actor444000Work {
     /* 0xF04 */ s16      field_F04;
     /* 0xF06 */ byte     pad_F06[0x2];
     /* 0xF08 */ s16      field_F08;
-    /* 0xF0A */ byte     pad_F0A[0xC];
+    /* 0xF0A */ byte     pad_F0A[0xA];
+    /* 0xF14 */ s16      field_F14; // eighths of it is how many extra re-arm steps the reset runs
     /* 0xF16 */ s16      field_F16;
     /* 0xF18 */ byte     pad_F18[0x2];
     /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick

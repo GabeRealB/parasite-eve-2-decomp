@@ -17,6 +17,8 @@
 
 extern s16 D_actor_444000_80144A68;
 extern s16 D_actor_444000_80144A70;
+extern s32 D_actor_444000_80144A74;
+extern s32 D_actor_444000_80144A7C;
 extern s32 Gp_LcgState;
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
@@ -449,7 +451,74 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80140BBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80140E28);
+/// Reset handler for the arena fight: on a reset request, clear the host
+/// model's flag word, push it onto each of the seven escorts' models, make sure
+/// the host and every escort has its model buffers allocated, then fast-forward
+/// the animation by running the re-arm step an eighth of `field_F14` times
+/// before restoring the normal blend weight and playing the entry cue.
+///
+/// Either way the tick then runs the ordinary re-arm, re-flags the root
+/// coordinate for rebuild, and spawns the 0x18 script once -- on the step the
+/// second animation slot first reaches frame 0x1C, which `field_7D8` remembers
+/// so the spawn does not repeat while the frame is held.
+void func_actor_444000_80140E28(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    Actor444000Work* buffers;
+    GpEnemy*         obj;
+    TmdObject*       tmd;
+    TmdObject*       escortTmd;
+    s16              i;
+    s16              j;
+    s16              k;
+    s32              frame;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                                = arg0->field_20;
+        escorts                            = arg0->field_1C;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        tmd     = (TmdObject*)arg0->extra;
+        buffers = arg0->field_1C;
+        if (tmd->field_18 == NULL) {
+            Tmd_AllocBuffers(tmd);
+        }
+        for (j = 0; j < 7; j++) {
+            if (buffers->field_ECC[j] != NULL) {
+                escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                if (escortTmd->field_18 == NULL) {
+                    Tmd_AllocBuffers(escortTmd);
+                }
+            }
+        }
+        work->field_7B6 = 0x7F;
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+        for (k = 0; k < work->field_F14 / 8; k++) {
+            func_actor_444000_8013441C(arg0);
+        }
+        work->field_7B6 = 0x10;
+        SndEvt_EnqueueType7((((u16)obj->field_8 >> 12) << 8) | 0x4020000A, 1);
+    }
+    if (D_actor_444000_80144A70 >= 0x191) {
+        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+    }
+    func_actor_444000_8013441C(arg0);
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    frame                                   = work->slots0[2].field_2 & 0x3FF;
+    if (frame == 0x1C && work->field_7D8 != frame) {
+        work->field_EAC = 3;
+        Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
+    }
+    work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
+}
 
 void func_actor_444000_8014105C(Actor444000* arg0)
 {
