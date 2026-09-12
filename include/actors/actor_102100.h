@@ -2,6 +2,7 @@
 #define ACTOR_102100_H
 
 #include "common.h"
+#include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -23,7 +24,9 @@ typedef struct Actor02100Params {
 } Actor02100Params;
 
 typedef struct Actor02100Spawn {
-    /* 0x00 */ byte              pad_0[0x10];
+    /* 0x00 */ byte              pad_0[8];
+    /* 0x08 */ u16               field_8;
+    /* 0x0A */ byte              pad_A[6];
     /* 0x10 */ byte              field_10[0x2C];
     /* 0x3C */ Actor02100Params* field_3C;
     /* 0x40 */ s16               field_40;
@@ -49,9 +52,16 @@ struct Actor02100;
 
 typedef struct Actor02100Work {
     /* 0x000 */ byte               pad_0[0x40];
-    /* 0x040 */ byte               field_40[0x38];
-    /* 0x078 */ byte               field_78[0x50];
-    /* 0x0C8 */ byte               field_C8[0x40];
+    /* 0x040 */ byte               field_40[0x20];
+    /* 0x060 */ GpRec18            field_60;
+    /* 0x078 */ byte               field_78[0x1E];
+    /* 0x096 */ u16                field_96;
+    /* 0x098 */ GpRec18            field_98;
+    /* 0x0B0 */ byte               pad_B0[0x18];
+    /* 0x0C8 */ byte               field_C8[0x1E];
+    /* 0x0E6 */ u16                field_E6;
+    /* 0x0E8 */ byte               pad_E8[0x18];
+    /* 0x100 */ GpEffArg           field_100;
     /* 0x108 */ VECTOR             field_108;
     /* 0x118 */ s16                field_118;
     /* 0x11A */ s16                field_11A;
@@ -62,10 +72,11 @@ typedef struct Actor02100Work {
     /* 0x124 */ s16                field_124;
     /* 0x126 */ byte               pad_126[0x1A];
     /* 0x140 */ struct Actor02100* field_140;
-    /* 0x144 */ byte               pad_144[0x20];
+    /* 0x144 */ MATRIX             field_144;
     /* 0x164 */ s32                field_164;
     /* 0x168 */ s32                field_168;
-    /* 0x16C */ byte               pad_16C[6];
+    /* 0x16C */ byte               pad_16C[4];
+    /* 0x170 */ s16                field_170;
     /* 0x172 */ s16                field_172;
     /* 0x174 */ s16                field_174;
     /* 0x176 */ byte               pad_176[2];
@@ -74,10 +85,12 @@ typedef struct Actor02100Work {
     /* 0x17C */ s16                field_17C;
     /* 0x17E */ s16                field_17E;
     /* 0x180 */ s16                field_180;
-    /* 0x182 */ byte               pad_182[4];
+    /* 0x182 */ u16                field_182;
+    /* 0x184 */ s16                field_184;
     /* 0x186 */ s16                field_186;
     /* 0x188 */ s16                field_188;
-    /* 0x18A */ byte               pad_18A[0x12];
+    /* 0x18A */ s16                field_18A;
+    /* 0x18C */ byte               pad_18C[0x10];
 } Actor02100Work;
 STATIC_ASSERT_SIZEOF(Actor02100Work, 0x19C);
 

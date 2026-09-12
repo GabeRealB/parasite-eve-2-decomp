@@ -12,7 +12,148 @@
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn004C4);
+GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+
+void Actor02100_Fn004C4(Actor02100* arg0)
+{
+    Actor02100Fn014E4Scratch* scratch;
+    Actor02100Work*           work;
+    Actor02100Spawn*          enemy;
+    GsCOORDINATE2*            coord;
+    GsCOORDINATE2*            src;
+    GpRoomParamRec*           param;
+    u8*                       head;
+    s32                       damage;
+    s32                       stun;
+    s32                       sound;
+    s32                       pan;
+    s32                       depth;
+    s32                       index;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x18;
+    scratch               = (Actor02100Fn014E4Scratch*)*(u8**)G_SCRATCH_HEAD;
+    coord                 = arg0->field_2C->field_8;
+    work                  = arg0->field_1C;
+    enemy                 = arg0->field_20;
+
+    if (work->field_170 != 0) {
+        work->field_170--;
+        if (work->field_170 <= 0) {
+            work->field_170 = 0;
+        }
+    }
+    work->field_17E = 0;
+    if (work->field_18A != 0) {
+        work->field_18A--;
+    }
+
+    if (work->field_170 == 0) {
+        if ((work->field_60.field_4 & 0xFFFF0000) == 0x20000) {
+            if (work->field_60.field_4 & 0x8000) {
+                func_800DA6E8(&enemy->field_10, 0, 0);
+            } else if ((((u32)work->field_60.field_4 >> 8) & 0x3F) < 0x21U) {
+                src             = Gp_ActorSlots[((u32)work->field_60.field_4 >> 7) & 1]->extra->field_8;
+                scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
+                scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
+                scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];
+                damage          = Gp_ComputeDamage(work->field_60.field_4,
+                                                   SquareRoot0(scratch->vec.vx * scratch->vec.vx +
+                                                               scratch->vec.vy * scratch->vec.vy +
+                                                               scratch->vec.vz * scratch->vec.vz),
+                                                   0, 0);
+                if (Gp_RollEnemyChance((struct _GpEnemy*)arg0->field_20,
+                                       work->field_60.field_4, 0) != 0) {
+                    damage *= 4;
+                    Gp_SpawnEff(0x6009C, coord, 0, 0);
+                }
+                enemy->field_40 -= damage;
+                func_800DA6E8(&enemy->field_10, damage, 0);
+                work->field_17E = 1;
+                if (enemy->field_40 <= 0) {
+                    Gp_SpawnEff(0x6005C, coord, 0x10002400, 0);
+                    Gp_SpawnEff(0x60070, coord, 0x32FF1400, 0);
+                    work->field_172 = 4;
+                    work->field_174 = 0;
+                    work->field_96 &= 0x7FFF;
+                    work->field_E6 &= 0x7FFF;
+                    work->field_96 &= 0xBFFF;
+                    work->field_E6 &= 0xBFFF;
+                    arg0->field_30  = 2;
+                    sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x4015000A;
+                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                        (s8)Gp_GetObjDepth((GpObj38*)coord));
+                } else if (damage > 0) {
+                    if (work->field_18A == 0) {
+                        scratch->shortVec.vx = 0;
+                        scratch->shortVec.vy = 0;
+                        scratch->shortVec.vz = 0xC8;
+                        if ((Gp_GetIdParam0(work->field_60.field_4) & 0xFFFF) == 7) {
+                            Gp_SpawnEff(0x6007F, coord,
+                                        work->field_100.field_4 | (work->field_100.field_6 << 16),
+                                        &scratch->shortVec);
+                        }
+                        func_800FDB18(7, coord, &scratch->shortVec, &work->field_100);
+                        work->field_18A = 10;
+                    }
+                    sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40150009;
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+                    SndEvt_EnqueueType6(sound, pan, depth);
+                    stun = Gp_GetIdParam2(work->field_60.field_4);
+                    if (stun > 0) {
+                        work->field_170 = stun;
+                    }
+                }
+            }
+        }
+    }
+
+    Gp_ClearRec18Occupied(&work->field_60);
+    work->field_184 = 0;
+    if (Gp_CountRec18Hi(&work->field_98, 0x100000) != 0) {
+        index = func_800E1B24(work->field_98.field_4);
+        param = Gp_RoomParamTables[Game_Session->field_7 - 1]
+                                  [Game_Session->field_6 - 1][index];
+        if (param->field_1 == 0) {
+            work->field_184 = 1;
+        }
+    }
+
+    if ((work->field_98.field_4 & 0xFFFF0000) == 0x10000 ||
+        (work->field_98.field_4 & 0xFFFF0000) == 0x30000 || work->field_184 == 1) {
+        scratch->shortVec.vx = 0;
+        scratch->shortVec.vy = 0;
+        scratch->shortVec.vz = 0x12C;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->shortVec);
+        __asm__ volatile("nop; nop; .word 0x4A486012");
+        gte_stlvnl(&scratch->vec);
+        scratch->vec.vx += coord->workm.t[0];
+        scratch->vec.vy += coord->workm.t[1];
+        scratch->vec.vz += coord->workm.t[2];
+        scratch->vec.vx  = work->field_98.field_8 - scratch->vec.vx;
+        scratch->vec.vy  = work->field_98.field_A - scratch->vec.vy;
+        scratch->vec.vz  = work->field_98.field_C - scratch->vec.vz;
+        work->field_182  = SquareRoot0(scratch->vec.vx * scratch->vec.vx +
+                                       scratch->vec.vy * scratch->vec.vy +
+                                       scratch->vec.vz * scratch->vec.vz);
+        if (work->field_174 >= 2) {
+            scratch->shortVec.vx = 0;
+            scratch->shortVec.vy = 0;
+            scratch->shortVec.vz = work->field_182;
+            gte_SetRotMatrix(&work->field_144);
+            gte_ldv0(&scratch->shortVec);
+            __asm__ volatile("nop; nop; .word 0x4A486012");
+            gte_stsv(&scratch->shortVec);
+            scratch->shortVec.vz += 0x12C;
+            Gp_SpawnEff(0x6003B, coord, 0, &scratch->shortVec);
+        }
+    }
+
+    Gp_ClearRec18Occupied(&work->field_98);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00ADC);
 
