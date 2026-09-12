@@ -97,5 +97,3 @@ void func_actor_444000_80133C58(Actor444000* task, s16 arg1)
     ((TmdObject*)task->extra)->field_8[4].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[4]);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_2", func_actor_444000_80133DE4);

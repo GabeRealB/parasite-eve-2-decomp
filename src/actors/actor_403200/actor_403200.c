@@ -12,8 +12,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_80133614);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200", func_actor_403200_801337A0);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_80131E3C);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", D_actor_403200_80131E64);

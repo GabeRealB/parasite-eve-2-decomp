@@ -87,7 +87,8 @@ typedef struct Actor444000Work {
     /* 0xEFA */ s16      field_EFA;
     /* 0xEFC */ byte     pad_EFC[0x2];
     /* 0xEFE */ s16      field_EFE;
-    /* 0xF00 */ byte     pad_F00[0x16];
+    /* 0xF00 */ s16      field_F00; // pitch the head tracker walks toward its target, clamped to 0..0x500
+    /* 0xF02 */ byte     pad_F02[0x14];
     /* 0xF16 */ s16      field_F16;
     /* 0xF18 */ byte     pad_F18[0x2];
     /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
