@@ -11,6 +11,7 @@
 /// and teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320A0;
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320EC;
+extern Task*                 D_actor_403600_801606A8;
 
 void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1);
 void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1);
@@ -28,7 +29,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801414FC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141598);
+void func_actor_403600_80141598(Task* task)
+{
+    Actor403600Work* work;
+    GpEnemy*         enemy;
+
+    enemy                                   = task->spawnArg2;
+    work                                    = (Actor403600Work*)task->idMap;
+    ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
+    enemy->field_54                         = 0;
+    Gp_UnlinkNode(&enemy->node);
+    Gp_UnlinkObj(&work->field_508);
+    Gp_UnlinkObj(&work->field_588);
+    if (task == D_actor_403600_801606A8) {
+        Gp_UnlinkObj(&work->field_5C0);
+    }
+    Gp_EnemyTaskExit(task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_8014161C);
 

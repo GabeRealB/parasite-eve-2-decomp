@@ -19,7 +19,12 @@ typedef struct Actor403600Work {
     /* 0x108 */ GpObj         obj;
     /* 0x128 */ byte          pad_128[0x390];
     /* 0x4B8 */ GsCOORDINATE2 field_4B8;
-    /* 0x508 */ byte          pad_508[0x200];
+    /* 0x508 */ GpObj         field_508;
+    /* 0x528 */ byte          pad_528[0x60];
+    /* 0x588 */ GpObj         field_588;
+    /* 0x5A8 */ byte          pad_5A8[0x18];
+    /* 0x5C0 */ GpObj         field_5C0;
+    /* 0x5E0 */ byte          pad_5E0[0x128];
     /* 0x708 */ s16           field_708;
     /* 0x70A */ byte          pad_70A[0x26];
     /* 0x730 */ s16           field_730;
