@@ -6,6 +6,16 @@
 #include "gameplay/3A34.h"
 #include <psyq/libgte.h>
 
+/// Packed halfwords `func_actor_405800_80138514` reads as the desired root
+/// translation. Only `x` and `z` are used; the middle halfword is kept so the
+/// layout matches `Actor400600ViewPos`.
+typedef struct Actor405800ViewPos {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+} Actor405800ViewPos;
+STATIC_ASSERT_SIZEOF(Actor405800ViewPos, 0x6);
+
 /// Per-actor work block for the `actor_405800` overlay.
 ///
 /// `func_actor_405800_801334B8` allocates it with `Mem_Calloc(0x89C, 0)` and
