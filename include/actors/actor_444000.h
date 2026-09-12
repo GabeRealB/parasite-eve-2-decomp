@@ -62,14 +62,23 @@ typedef struct Actor444000Work {
     /* 0x7C0 */ s16        field_7C0;
     /* 0x7C2 */ byte       pad_7C2[0x6EA];
     /* 0xEAC */ s8         field_EAC;
-    /* 0xEAD */ byte       pad_EAD[0x47];
+    /* 0xEAD */ byte       pad_EAD[0x3B];
+    /* 0xEE8 */ GpEnemy*   field_EE8; // nearby enemy, dropped once its HP runs out
+    /* 0xEEC */ GpEnemy*   field_EEC; // second such slot
+    /* 0xEF0 */ byte       pad_EF0[0x4];
     /* 0xEF4 */ s16        field_EF4;
     /* 0xEF6 */ s16        field_EF6;
     /* 0xEF8 */ byte       pad_EF8[0x2];
     /* 0xEFA */ s16        field_EFA;
     /* 0xEFC */ byte       pad_EFC[0x2];
     /* 0xEFE */ s16        field_EFE;
-    /* 0xF00 */ byte       pad_F00[0x24];
+    /* 0xF00 */ byte       pad_F00[0x16];
+    /* 0xF16 */ s16        field_F16;
+    /* 0xF18 */ byte       pad_F18[0x2];
+    /* 0xF1A */ u8         field_F1A; // free-running counter bumped on every heal tick
+    /* 0xF1B */ byte       pad_F1B[0x1];
+    /* 0xF1C */ s8         field_F1C; // countdown, decremented while positive
+    /* 0xF1D */ byte       pad_F1D[0x7];
 } Actor444000Work;
 STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 
@@ -100,20 +109,6 @@ typedef struct Actor444000EventWork {
 } Actor444000EventWork;
 STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 
-/// Body/collision object the actor task carries at +0x20 (the `Task::spawnArg2`
-/// slot). The halfword at 0x40 is the remaining HP, tested for `> 0` by
-/// `func_actor_444000_80143D68` and topped back up by
-/// `func_actor_444000_80143E68`; `field_8` and `field_14` are the two slots
-/// `func_actor_444000_801435CC` touches.
-typedef struct Actor444000Obj {
-    /* 0x00 */ byte pad_0[0x8];
-    /* 0x08 */ u16  field_8; // high nibble selects the sound-event variant
-    /* 0x0A */ byte pad_A[0xA];
-    /* 0x14 */ s8   field_14;
-    /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ s16  field_40; // remaining HP
-} Actor444000Obj;
-
 /// Payload `func_actor_444000_801326DC` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
 /// The same four bytes as `AcropolisBridgeMsg7DA`: two id bytes followed by a
@@ -126,12 +121,13 @@ typedef struct Actor444000Msg7DA {
 STATIC_ASSERT_SIZEOF(Actor444000Msg7DA, 0x4);
 
 /// The overlay's enemy task: the same layout as `Task`, named for the two
-/// slots this overlay reaches through it. Not the event task
+/// slots this overlay reaches through it. `field_20` is the `GpEnemy` the
+/// dispatchers already hand their handlers as `Task::spawnArg2`. Not the event task
 /// `D_actor_444000_80161860`, whose `idMap` holds an `Actor444000EventWork`.
 typedef struct Actor444000 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor444000Work* field_1C;
-    /* 0x20 */ Actor444000Obj*  field_20;
+    /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[0x8];
     /* 0x2C */ void*            extra; // Task::extra, a TmdObject
 } Actor444000;

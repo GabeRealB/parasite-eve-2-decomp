@@ -84,7 +84,39 @@ s32 func_actor_444000_80143D7C(Actor444000* arg0, s32 arg1, ActorShared80135990P
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143E68);
+/// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
+/// heal counter, files a negative "damage" with `func_800DA6E8` so the HUD
+/// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
+/// the countdown at 0xF1C down, re-arms `field_F16` and drops either tracked
+/// enemy whose HP has run out.
+s32 func_actor_444000_80143E68(Actor444000* arg0, s32 arg1, s32 arg2)
+{
+    Actor444000Work* work = arg0->field_1C;
+    GpEnemy*         obj  = arg0->field_20;
+
+    switch (arg2) {
+        case 0:
+            work->field_F1A++;
+            func_800DA6E8(&obj->node, -0x64, 0);
+            if (obj->field_40 > 0) {
+                obj->field_40 += 0x64;
+            }
+            break;
+        case 1:
+            if (work->field_F1C > 0) {
+                work->field_F1C--;
+            }
+            work->field_F16 = 2;
+            if (work->field_EE8 != NULL && work->field_EE8->field_40 <= 0) {
+                work->field_EE8 = NULL;
+            }
+            if (work->field_EEC != NULL && work->field_EEC->field_40 <= 0) {
+                work->field_EEC = NULL;
+            }
+            break;
+    }
+    return 1;
+}
 
 s32 func_actor_444000_80143F38(Actor444000* arg0)
 {
