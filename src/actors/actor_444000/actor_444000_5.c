@@ -264,7 +264,144 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_801371E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80137594);
+/// World position of `coord` as seen from `Gfx_ViewCoord`: `out` starts as the
+/// point in `coord`'s own space and is walked up the coordinate hierarchy, one
+/// `gte_rt` per level, until the view coordinate is reached. A hierarchy that
+/// does not end at the view coordinate leaves `out` untouched.
+static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* out)
+{
+    SVECTOR acc;
+    VECTOR  v;
+    s32     flag;
+
+    acc.vx = out->vx;
+    acc.vy = out->vy;
+    acc.vz = out->vz;
+
+    for (;;) {
+        if (coord->sub == NULL) {
+            return;
+        }
+        if (coord != &Gfx_ViewCoord) {
+            gte_SetTransMatrix(&coord->coord);
+            gte_SetRotMatrix(&coord->coord);
+            gte_ldv0(&acc);
+            gte_rt_real();
+            gte_stlvnl(&v);
+            gte_stflg(&flag);
+            acc.vx = v.vx;
+            acc.vy = v.vy;
+            acc.vz = v.vz;
+            coord  = coord->sub;
+        } else {
+            out->vx = acc.vx;
+            out->vy = acc.vy;
+            out->vz = acc.vz;
+            return;
+        }
+    }
+}
+
+/// Accumulated world rotation of `coord`: `mat` starts as the coordinate's own
+/// rotation and is multiplied by each parent's in turn, renormalised at every
+/// level, until the chain reaches `Gfx_ViewCoord` (or runs out).
+static __inline__ void Actor444000_AccumulateRotation(GsCOORDINATE2* coord, MATRIX* mat)
+{
+    MATRIX         m;
+    GsCOORDINATE2* cur;
+
+    cur  = coord->sub;
+    *mat = coord->coord;
+    while (1) {
+        if (cur == NULL) {
+            return;
+        }
+        if (cur == &Gfx_ViewCoord) {
+            return;
+        }
+        gte_SetRotMatrix(&cur->coord);
+        MulRotMatrix(mat);
+        MatrixNormal(mat, &m);
+        *mat = m;
+        cur  = cur->sub;
+    }
+}
+
+/// Link one of the work block's display nodes: it hangs off the model's own
+/// coordinate, carries `rec` as its collision-record table and sits at `pos`
+/// in that coordinate's space with `field1C` as its extent.
+static __inline__ void Actor444000_LinkWorkObj(GpObj* obj, GsCOORDINATE2* coord, GpRec18* rec,
+                                               SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
+{
+    obj->field_8  = coord;
+    obj->field_C  = rec;
+    obj->field_10 = pos->vx;
+    obj->field_12 = pos->vy;
+    obj->field_14 = pos->vz;
+    obj->field_1C = field1C;
+    obj->flags    = 1;
+    Gp_LinkObj(prio, obj);
+    Gp_InitRec18Table(obj->field_C, kind, 0);
+}
+
+/// Spawn state of the enemy dispatched through `D_actor_444000_80131EA8`:
+/// allocate its work block and stand the model up where the host's first
+/// escort is, in view space.
+///
+/// The model is reparented to `Gfx_ViewCoord`, so both halves of that escort's
+/// part 1 have to be resolved by hand: `Actor444000_AccumulateRotation` walks
+/// the part's coordinate chain up to the view coordinate for the rotation and
+/// `Actor444000_LocalToView` carries its origin along the same chain for the
+/// translation. The model is then turned a quarter turn, its single display
+/// node is linked with a 0x394 extent, and that node is paired with the owning
+/// enemy so collisions against it reach this task.
+///
+/// Bails out -- destroying the enemy -- when the overlay is shutting down, the
+/// host actor has left the grab states, or the work block cannot be allocated.
+void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work;
+    GpEnemy*             owner;
+    Actor444000Work*     host;
+    SVECTOR              pos;
+    SVECTOR              vec;
+
+    owner = task->parent->spawnArg2;
+    host  = owner->task->idMap;
+
+    if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
+        (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12 ||
+        (work = Mem_Calloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    work->field_1AC           = 0;
+    task->extra->field_8->sub = &Gfx_ViewCoord;
+    task->extra->field_C      = 0;
+
+    Actor444000_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->field_8[1],
+                                   &task->extra->field_8->coord);
+
+    vec.vx = vec.vy = vec.vz = 0;
+    Actor444000_LocalToView(&((TmdObject*)host->field_ECC[0]->task->extra)->field_8[1], &vec);
+
+    task->extra->field_8->coord.t[0] = vec.vx;
+    task->extra->field_8->coord.t[1] = vec.vy;
+    task->extra->field_8->coord.t[2] = vec.vz;
+    task->extra->field_8->flg        = 0;
+
+    Gfx_RotMatrixY(&task->extra->field_8->coord, 0x80, 0);
+    Gp_UpdateCoord(task->extra->field_8);
+
+    pos.vx = pos.vy = pos.vz = 0;
+    Actor444000_LinkWorkObj(&work->obj0, task->extra->field_8, &work->rec0, &pos, 0x394, 3, 1);
+
+    work->obj0.flags   &= 0x7FFF;
+    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 2);
+    work->field_1A8     = 1;
+    task->state++;
+}
 
 /// Flight step of the seized player's model: carry it along the model's own
 /// forward axis until it lands. `field_1A8` (the dispatcher's state-changed
@@ -519,61 +656,6 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
     work->field_1AC++;
 }
 
-/// World position of `coord` as seen from `Gfx_ViewCoord`: `out` starts as the
-/// point in `coord`'s own space and is walked up the coordinate hierarchy, one
-/// `gte_rt` per level, until the view coordinate is reached. A hierarchy that
-/// does not end at the view coordinate leaves `out` untouched.
-static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* out)
-{
-    SVECTOR acc;
-    VECTOR  v;
-    s32     flag;
-
-    acc.vx = out->vx;
-    acc.vy = out->vy;
-    acc.vz = out->vz;
-
-    for (;;) {
-        if (coord->sub == NULL) {
-            return;
-        }
-        if (coord != &Gfx_ViewCoord) {
-            gte_SetTransMatrix(&coord->coord);
-            gte_SetRotMatrix(&coord->coord);
-            gte_ldv0(&acc);
-            gte_rt_real();
-            gte_stlvnl(&v);
-            gte_stflg(&flag);
-            acc.vx = v.vx;
-            acc.vy = v.vy;
-            acc.vz = v.vz;
-            coord  = coord->sub;
-        } else {
-            out->vx = acc.vx;
-            out->vy = acc.vy;
-            out->vz = acc.vz;
-            return;
-        }
-    }
-}
-
-/// Link one of the work block's display nodes: it hangs off the model's own
-/// coordinate, carries `rec` as its collision-record table and sits at `pos`
-/// in that coordinate's space.
-static __inline__ void Actor444000_LinkWorkObj(GpObj* obj, GsCOORDINATE2* coord, GpRec18* rec,
-                                               SVECTOR* pos, s32 prio, s32 kind)
-{
-    obj->field_8  = coord;
-    obj->field_C  = rec;
-    obj->field_10 = pos->vx;
-    obj->field_12 = pos->vy;
-    obj->field_14 = pos->vz;
-    obj->field_1C = 0x100;
-    obj->flags    = 1;
-    Gp_LinkObj(prio, obj);
-    Gp_InitRec18Table(obj->field_C, kind, 0);
-}
-
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F0C`:
 /// allocate its work block, drop the model onto the floor of the view
 /// coordinate and hang the two display nodes off it.
@@ -634,7 +716,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
 
     vec.vx = vec.vy = vec.vz = 0;
 
-    Actor444000_LinkWorkObj(&work->obj0, task->extra->field_8, &work->rec0, &vec, 3, 1);
+    Actor444000_LinkWorkObj(&work->obj0, task->extra->field_8, &work->rec0, &vec, 0x100, 3, 1);
 
     work->obj1.field_8  = task->extra->field_8;
     work->obj1.field_C  = &work->rec1;

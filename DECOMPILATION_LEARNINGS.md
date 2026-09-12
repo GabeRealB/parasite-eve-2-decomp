@@ -63419,3 +63419,49 @@ The helper's other pointer parameter shows the same way: `&work->obj0` living in
 than `0xB8(s3)` / `0xBC(s3)` off the work block. That extra pseudo is also what
 gives the function its seventh callee-saved register, so the prologue's
 `sw $sN` count is the cheap way to spot the missing helper.
+
+## An address-taken local at frame offset 0 loses its inline's constant equivalence
+
+`func_actor_444000_80137594` passes two zeroed `SVECTOR` locals to two
+`static __inline__` helpers. Declared as
+
+```c
+SVECTOR vec;   /* frame offset 0 */
+SVECTOR pos;
+```
+
+it scored 92.5%: the helper that copies `out->vx/vy/vz` re-loaded all three
+fields through an address register, where the target had folded them to
+`sh zero` stores, and the extra address pseudo pushed the block-copy
+temporaries from `$t2/$t3/$t7/$t8` to `$t3/$t7/$t8/$t9`. Swapping the two
+declarations - putting the *other* local at offset 0 - was a 100% match.
+
+The cause is in `integrate.c`. An inline's pointer parameter is substituted
+into the body only when the actual argument is recorded in `const_equiv_map`,
+which needs `CONSTANT_P` or `FIXED_BASE_PLUS_P`:
+
+```c
+#define FIXED_BASE_PLUS_P(X) \
+  (GET_CODE (X) == PLUS && GET_CODE (XEXP (X, 1)) == CONST_INT ...)
+```
+
+`&local` is `(plus virtual_stack_vars N)` and passes - except for the local at
+offset 0, whose address *is* `virtual_stack_vars_rtx`, a bare `REG`. No PLUS,
+no equivalence, so the formal is only `copy_to_mode_reg`'d into a pseudo
+(forced anyway, since the formal is `REG_USERVAR_P` and the virtual register is
+not). Every use then reads `(mem (reg 137))` instead of `(mem (plus (reg 77)
+8))`, and cse cannot match those against the `(plus (reg 77) N)` stores that
+zeroed the local a few insns earlier:
+
+```
+(insn 211 (set (reg/v:SI 137) (reg:SI 77)))                  ; offset 0: opaque
+(insn 216 (set (reg:HI 138) (mem/s:HI (reg/v:SI 137))))      ; stays a load
+(insn 211 (set (reg/v:SI 137) (plus:SI (reg:SI 77) (const_int 8))))  ; offset 8
+(insn 216 (set (reg:HI 138) (mem/s:HI (plus:SI (reg:SI 77) (const_int 8)))))
+```
+
+So when an inline helper's copy of a just-initialised local reloads from memory
+instead of folding, check which local sits at frame offset 0 and move it. This
+is a second reason to reorder declarations beyond the frame-layout one in
+"Spill slots are laid out in declaration order": here the offsets were a
+7.5% penalty, not a cosmetic one.
