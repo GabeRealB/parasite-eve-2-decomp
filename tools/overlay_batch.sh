@@ -75,6 +75,8 @@ if [[ "$CLEANUP" == true ]]; then
     [[ -n "$OVERLAY" ]] || { echo "--cleanup needs --overlay" >&2; exit 1; }
     WT="$ROOT/../pe2-ov-${OVERLAY//\//-}"   # "actors/lib" -> pe2-ov-actors-lib
     BRANCH="overlay/$OVERLAY"
+# build scope: a shared unit verifies against its whole family
+SCOPE="$OVERLAY"; [[ "$OVERLAY" == */lib/* ]] && SCOPE="${OVERLAY%%/*}"
 
     if [[ ! -d "$WT" ]]; then
         echo "no worktree at $WT; nothing to clean"
@@ -191,7 +193,8 @@ fi
 # picks, not after.
 TRIAGE_JSON="$(mktemp)"
 trap 'rm -f "$TRIAGE_JSON"' EXIT
-python3 "$ROOT/tools/rodata_triage.py" "$OVERLAY" --json >"$TRIAGE_JSON" 2>/dev/null || echo '{}' >"$TRIAGE_JSON"
+if [[ "$OVERLAY" == */lib/* ]]; then echo '{}' >"$TRIAGE_JSON"; else
+python3 "$ROOT/tools/rodata_triage.py" "$OVERLAY" --json >"$TRIAGE_JSON" 2>/dev/null || echo '{}' >"$TRIAGE_JSON"; fi
 BLOCKED="$(python3 - "$TRIAGE_JSON" <<'PYEOF'
 import json, sys
 try:
@@ -255,7 +258,7 @@ BRIEF="$WT/OVERLAY_BRIEF.md"
         echo
         echo '```'
         echo "python3 tools/rodata_cut.py $OVERLAY --apply"
-        echo "./tools/build-and-verify.sh --only $OVERLAY"
+        echo "./tools/build-and-verify.sh --only ${SCOPE}"
         echo '```'
         echo
         echo "Ownership is not a judgement call - a generated table must live in the"

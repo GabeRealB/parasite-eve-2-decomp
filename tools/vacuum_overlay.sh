@@ -76,8 +76,11 @@ fi
 orch() { python3 "$ROOT/tools/vacuum_orch.py" --root "$ROOT" "$@"; }
 
 # --- lease + worktree ---------------------------------------------------------
-SESSION="ovb-${OVERLAY:-auto}-$$"
-LOG_FILE="$(vacuum_log_dir)/vacuum-overlay-${OVERLAY:-auto}-$$.log"
+# A shared unit is named "<family>/lib/<unit>"; the slashes cannot go into a
+# filename, so every path derived from the overlay name is flattened.
+OVERLAY_SLUG="${OVERLAY:-auto}"; OVERLAY_SLUG="${OVERLAY_SLUG//\//-}"
+SESSION="ovb-${OVERLAY_SLUG}-$$"
+LOG_FILE="$(vacuum_log_dir)/vacuum-overlay-${OVERLAY_SLUG}-$$.log"
 : >"$LOG_FILE"
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
@@ -90,7 +93,7 @@ if ! "$ROOT/tools/overlay_batch.sh" "${prep_args[@]}" >>"$LOG_FILE" 2>&1; then
     exit 1
 fi
 OVERLAY=$(awk '/^leased /{print $2; exit}' "$LOG_FILE" | tr -d ':')
-WT="$ROOT/../pe2-ov-$OVERLAY"
+WT="$ROOT/../pe2-ov-$OVERLAY_SLUG"
 log "leased $OVERLAY, worktree $WT"
 
 # Carry give-up archives out of the worktree and remove it. tools/giveups/ is
@@ -172,7 +175,16 @@ VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" <<'PYEOF' 2>/dev/null || echo ""
 import re, subprocess, sys, pathlib
 wt, ov = sys.argv[1], sys.argv[2]
 inc = []
-for c in pathlib.Path(wt, "src").rglob(f"{ov}/*.c"):
+src = pathlib.Path(wt, "src")
+# "<family>/lib/<unit>" is one .c file; every other overlay is a directory of them.
+if "/lib/" in ov:
+    fam, unit = ov.split("/lib/", 1)
+    files = [src / fam / "lib" / f"{unit}.c"]
+else:
+    files = list(src.rglob(f"{ov}/*.c"))
+for c in files:
+    if not c.is_file():
+        continue
     inc += re.findall(r'INCLUDE_ASM\("[^"]+",\s*(\w+)\)', c.read_text(errors="replace"))
 try:
     solved = set(subprocess.run(
@@ -186,7 +198,12 @@ PYEOF
 export VACUUM_TOTAL
 log "${VACUUM_TOTAL:-?} function(s) to attempt (of $CLAIMED_N claimed; the rest are duplicates already matched elsewhere)"
 
-inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$OVERLAY")
+# decomp_overlay resolves a nested name relative to the family's asm tree, so
+# it knows "lib/<unit>" but not "<family>/lib/<unit>". The lease keeps the
+# family qualifier; the inner vacuum gets the tree-relative form.
+INNER_OVERLAY="$OVERLAY"
+[[ "$OVERLAY" == */lib/* ]] && INNER_OVERLAY="lib/${OVERLAY##*/}"
+inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$INNER_OVERLAY")
 [[ -n "$TIMES" ]] && inner+=(--times "$TIMES")
 [[ "$DRY_RUN" == true ]] && inner+=(--dry-run)
 
@@ -216,7 +233,13 @@ mapfile -t ALL_MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
 # Both still reach trunk through EXTRAS; they just must not be in the
 # per-function list. (The replay path below is unaffected: it cherry-picks
 # commits, so it carries them correctly either way.)
-WT_SRC=$(cd "$WT" && ls -d src/*/"$OVERLAY" 2>/dev/null | head -1)
+# A shared unit "<family>/lib/<unit>" is a file inside src/<family>/lib, not a
+# directory of its own; everything else is src/<family>/<overlay>.
+if [[ "$OVERLAY" == */lib/* ]]; then
+    WT_SRC="src/${OVERLAY%/*}"
+else
+    WT_SRC=$(cd "$WT" && ls -d src/*/"$OVERLAY" 2>/dev/null | head -1)
+fi
 MATCHED=()
 for _fn in "${ALL_MATCHED[@]}"; do
     if [[ -n "$WT_SRC" ]] && grep -qlE "^[A-Za-z_][A-Za-z0-9_ *]*\b${_fn}[[:space:]]*\(" \
@@ -255,7 +278,7 @@ fi
 # Everything the branch touched outside src/<overlay> - new headers, learnings,
 # a manifest cut - has to travel with the bodies or trunk will not build.
 mapfile -t EXTRAS < <(git -C "$WT" diff --name-only "$BASE"..HEAD \
-                      | grep -v "^src/.*/$OVERLAY/" || true)
+                      | grep -v "^src/.*/${OVERLAY%/*}/" || true)
 log "extra paths: ${EXTRAS[*]:-none}"
 
 # --- has trunk moved under us? ----------------------------------------------
@@ -474,7 +497,7 @@ log "trunk verified"
 
 # --- bookkeeping --------------------------------------------------------------
 DIFFICULT=$(awk '{print $1}' "$ROOT/tools/difficult_functions" 2>/dev/null \
-            | grep -F "_${OVERLAY}_" || true)
+            | grep -F "_${OVERLAY##*/}_" || true)
 matched_csv=$(IFS=,; echo "${MATCHED[*]}")
 diff_csv=$(tr '\n' ',' <<<"$DIFFICULT" | sed 's/,$//')
 unattempted=$(comm -23 <(sort <<<"$CLAIMED") \
