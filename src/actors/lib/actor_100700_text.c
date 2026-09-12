@@ -6,6 +6,10 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
+s32  Gp_ObjFlag4Expired(Actor00700Ctx* arg0);
+s32  Gp_TickObjFlag4(Actor00700Ctx* arg0);
+void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
+
 s32            Gp_TickObjFlag2(Actor00700Ctx* arg0);
 void           Gp_ArmStateF0(s32 arg0);
 s32            Gp_GetObjPan(void* arg0);
@@ -706,7 +710,47 @@ case1:
     Actor00700_Fn01E9C(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01988);
+void Actor00700_Fn01988(Actor00700* arg0, Actor00700Obj2C* arg1, s32 arg2)
+{
+    Actor00700Ctx*  ctx;
+    Actor00700Work* work;
+    s32             damage;
+    u16             remaining;
+    u8              flags;
+
+    ctx   = arg0->field_20;
+    flags = ctx->field_4C;
+    work  = arg0->field_1C;
+    if (flags & 1) {
+        ctx->field_4C   = flags & 0xFE;
+        work->field_37A = 2;
+        work->field_37C = 0;
+    }
+    if ((ctx->field_4C & 2) && ((u32)((u16)work->field_37A - 2) >= 2U)) {
+        work->field_37A = 3;
+        work->field_37C = 0;
+        work->field_398 = 1;
+    }
+    if (ctx->field_4C & 0xC) {
+        damage = Gp_TickObjFlag4(ctx);
+        if (damage != 0) {
+            func_800DA6E8(&ctx->node, damage, 0);
+            remaining     = ctx->field_40 - damage;
+            ctx->field_40 = remaining;
+            if ((s16)remaining <= 0) {
+                work->field_37A = 5;
+                work->field_37C = 0;
+                arg0->field_30  = 2;
+            } else {
+                work->field_37A = 4;
+                work->field_37C = 0;
+            }
+        }
+        if (Gp_ObjFlag4Expired(ctx) != 0) {
+            ctx->field_4C &= 0xF3;
+        }
+    }
+}
 
 void Actor00700_Fn00F20(Actor00700* arg0);
 void Actor00700_Fn01148(Actor00700* arg0);

@@ -69,7 +69,8 @@ typedef struct Actor00700Ctx {
     /* 0x10 */ Actor00700Node    node;
     /* 0x18 */ byte              pad_18[0x24];
     /* 0x3C */ Actor00700Params* field_3C;
-    /* 0x40 */ byte              pad_40[0xC];
+    /* 0x40 */ s16               field_40;
+    /* 0x42 */ byte              pad_42[0xA];
     /* 0x4C */ u8                field_4C;
     /* 0x4D */ byte              pad_4D[7];
     /* 0x54 */ s32               field_54;
@@ -81,6 +82,7 @@ typedef struct Actor00700 {
     /* 0x20 */ Actor00700Ctx*   field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor00700Obj2C* field_2C;
+    /* 0x30 */ s32              field_30;
 } Actor00700;
 
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
