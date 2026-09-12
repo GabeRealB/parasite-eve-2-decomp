@@ -7,11 +7,14 @@
 #include "actors/actor_405800.h"
 #include "actors/actors_shared_8013a0b0.h"
 
+extern u8 D_actor_405800_801514D8[];
+
 void func_8009EA50(s16 arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80136E14(Task* arg0);
 void func_actor_405800_8013706C(Task* arg0, s16 arg1);
 void func_actor_405800_8013A0F4(Task* arg0);
+void func_actor_405800_8013A1E0(Task* task, s16 arg1, s16 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138854);
 
@@ -30,7 +33,15 @@ void func_actor_405800_801388DC(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_801388E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_801389AC);
+void func_actor_405800_801389AC(Task* task)
+{
+    Actor405800Work* work = (Actor405800Work*)task->idMap;
+
+    Gp_ReleaseStateF0Add((GpObj20E*)task, 0);
+    func_actor_405800_8013A1E0(task, D_actor_405800_801514D8[work->field_872], 0x10);
+    func_actor_405800_8013A0F4(task);
+    work->field_846 = work->field_846 + 1;
+}
 
 void func_actor_405800_80138A18(Task* task)
 {
