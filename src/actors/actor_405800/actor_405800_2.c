@@ -28,6 +28,8 @@ extern u8 D_actor_405800_80141430[];
 /* Defined in another unit of this overlay, or still `INCLUDE_ASM`. */
 void func_actor_405800_801390FC(Task* arg0);
 void func_actor_405800_80139188(Task* arg0);
+void func_actor_405800_80139260(Task* arg0);
+void func_actor_405800_801392EC(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80136388);
 
@@ -164,4 +166,11 @@ void func_actor_405800_80137B34(Task* task)
     states[(s16)work->field_848](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80137B9C);
+void func_actor_405800_80137B9C(Task* task)
+{
+    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    TaskFunc         states[2] = { func_actor_405800_80139260, func_actor_405800_801392EC };
+
+    func_actor_405800_80137948(task);
+    states[(s16)work->field_848](task);
+}
