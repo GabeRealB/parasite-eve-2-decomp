@@ -351,7 +351,136 @@ void Actor02000_Fn018A4(Actor02000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn01A20);
+extern u8 D_801153F4;
+void      Gp_AnimTickIndex(Actor02000Work*, s32);
+void      Gp_DrawEffGroundQuad(VECTOR3*, s32, s32);
+void      Gp_ReleaseStateF0Add(Actor02000*, s32);
+void      Gp_SaveEnemyPose(Actor02000Ctx*);
+void      Gp_UnlinkNode(Actor02000Node*);
+void      Gp_UnlinkObj(Actor02000Obj*);
+void      Gp_UpdateActorColor(Actor02000Ctx*, VECTOR3*, s32, s32);
+void      Gp_UpdateCoord(GsCOORDINATE2*);
+void      func_800B4114(Actor02000Work*, s32, s32, s32, s32);
+
+void Actor02000_Fn01A20(Actor02000Ctx* ctx, Actor02000* actor)
+{
+    VECTOR3         pos;
+    SVECTOR*        scratch;
+    s16             duration;
+    s16             state;
+    s16             anim;
+    GsCOORDINATE2*  partA;
+    GsCOORDINATE2*  partB;
+    GsCOORDINATE2*  coord;
+    GsCOORDINATE2*  rootA;
+    GsCOORDINATE2*  rootB;
+    GsCOORDINATE2*  rootC;
+    GsCOORDINATE2*  rootD;
+    s32             i;
+    u32             random;
+    Actor02000Work* work;
+    Actor02000Work* animWork;
+
+    *(u32*)0x1F8003FC -= 8;
+    scratch            = (SVECTOR*)*(u32*)0x1F8003FC;
+    work               = actor->field_1C;
+    coord              = ((void*)((volatile Actor02000*)actor)->field_2C->field_8);
+    switch (D_801153F4) {
+        case 0:
+            actor->field_2C->field_C = 0;
+            ctx->node.field_4        = 0;
+            break;
+        case 1:
+            coord->flg                      = 0;
+            actor->field_2C->field_8[3].flg = 0;
+            Gp_UpdateCoord(coord);
+            rootC  = actor->field_2C->field_8;
+            pos.vx = rootC->workm.t[0];
+            pos.vy = rootC->workm.t[1];
+            pos.vz = rootC->workm.t[2];
+            Gp_UpdateActorColor(actor->field_20, &pos, 0, 0);
+            rootD  = actor->field_2C->field_8;
+            partB  = &rootD[3];
+            pos.vx = partB->workm.t[0];
+            pos.vy = rootD->workm.t[1];
+            pos.vz = partB->workm.t[2];
+            Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+            return;
+        case 2:
+            actor->field_2C->field_C = 0x80;
+            ctx->node.field_4        = 1;
+            return;
+    }
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            ctx->field_54 = 0;
+            Gp_UnlinkNode(&ctx->node);
+            Gp_UnlinkObj(&work->field_47C);
+            Gp_UnlinkObj(&work->field_564);
+            Gp_UnlinkObj(&work->field_4CC);
+            Gp_UnlinkObj(&work->field_5E4);
+            if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
+                Gp_UnlinkObj(&work->field_61C);
+            }
+            Gp_ReleaseStateF0Add(actor, (s16)work->field_6CA);
+            anim = 0x1D;
+            if (work->field_6B8 == 1) {
+                anim = 0x19;
+            }
+            work->field_694 = anim;
+            work->field_6A8 = 1;
+            ctx->field_4B   = (u8)work->field_6B8;
+            Gp_SaveEnemyPose(ctx);
+            D_80115419 = 1;
+            break;
+        case 1:
+            if (!(work->field_698 & 3)) {
+                scratch->vx = 0;
+                scratch->vz = 0;
+                random      = (Gp_LcgState * 5) + 0x71357911;
+                scratch->vy = -((random >> 0x10) & 0x1FF);
+                Gp_LcgState = (s32)random;
+                Gp_SpawnEff(0x600E0, &actor->field_2C->field_8[3], 0x400, scratch);
+            }
+            break;
+    }
+    animWork = actor->field_1C;
+    i        = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0U;
+        duration            = Actor02000_D03784[animWork->field_694];
+        do {
+            func_800B4114(animWork, i, animWork->field_694, 0, (s32)duration);
+            i++;
+        } while (i < 0x13);
+        coord->flg = 0;
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)(animWork->field_698 + i);
+        do {
+            Gp_AnimTickIndex(animWork, i);
+            i += 1;
+        } while (i < 0x13);
+        coord->flg = 0;
+    }
+    actor->field_2C->field_8[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    rootA  = actor->field_2C->field_8;
+    pos.vx = rootA->workm.t[0];
+    pos.vy = rootA->workm.t[1];
+    pos.vz = rootA->workm.t[2];
+    Gp_UpdateActorColor(actor->field_20, &pos, 0, 0);
+    rootB  = actor->field_2C->field_8;
+    partA  = &rootB[3];
+    pos.vx = partA->workm.t[0];
+    pos.vy = rootB->workm.t[1];
+    pos.vz = partA->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+    *(u32*)0x1F8003FC += 8;
+    return;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn01DF0);
 

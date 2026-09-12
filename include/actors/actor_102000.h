@@ -85,14 +85,15 @@ typedef struct Actor02000Work {
     /* 0x584 */ Actor02000Rec18     field_584[4];
     /* 0x5E4 */ Actor02000Obj       field_5E4;
     /* 0x604 */ Actor02000Rec18     field_604[1];
-    /* 0x61C */ byte                pad_61C[0x50];
+    /* 0x61C */ Actor02000Obj       field_61C;
+    /* 0x63C */ byte                pad_63C[0x30];
     /* 0x66C */ s16*                field_66C;
     /* 0x670 */ GsCOORDINATE2*      field_670;
     /* 0x674 */ s16                 field_674;
     /* 0x676 */ s16                 field_676;
     /* 0x678 */ byte                pad_678[0x1C];
     /* 0x694 */ s16                 field_694;
-    /* 0x696 */ byte                pad_696[2];
+    /* 0x696 */ s16                 field_696;
     /* 0x698 */ s16                 field_698;
     /* 0x69A */ byte                pad_69A[2];
     /* 0x69C */ s16                 field_69C;
