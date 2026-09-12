@@ -17,7 +17,8 @@ extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
 extern s16      D_shelter_b3_dumping_hole_8018809C;
 
 typedef struct {
-    u8    pad_00[0x28];
+    u8    pad_00[0x24];
+    Task* field_24;
     Task* field_28;
     Task* field_2C;
     s16   field_30;
@@ -25,9 +26,11 @@ typedef struct {
     u8    pad_34[0x4];
     s16   field_38;
     s16   field_3A;
-    u8    pad_3C[0x6];
+    u8    pad_3C[0x4];
+    s16   field_40;
     u16   field_42;
-    u8    pad_44[0x4];
+    s16   field_44;
+    s16   field_46;
     s16   field_48;
     u8    pad_4A[0x2];
     u16   field_4C;
@@ -460,7 +463,34 @@ void func_shelter_b3_dumping_hole_8017FEF4(s16 arg0)
     p->field_3A          = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FF14);
+extern s8 D_8007218A;
+extern u8 D_80073BA9;
+extern u8 D_shelter_b3_dumping_hole_801881CC;
+
+void func_shelter_b3_dumping_hole_8017FF14(void)
+{
+    register DumpingHoleState*  st asm("s0")  = D_shelter_b3_dumping_hole_8018F4A8;
+    register DumpingHoleEntity* ent asm("s1") = st->field_1C;
+    DumpingHoleEntity*          ent2;
+    s32                         desc[5];
+
+    Gp_DispatchMsg(ent->field_2C, 0x7D5, 2, 0);
+    Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
+    Gp_DispatchMsg(ent->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
+    ent2    = st->field_1C;
+    desc[0] = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+    desc[1] = 9;
+    desc[2] = 0;
+    desc[3] = 0;
+    desc[4] = 0;
+    Gp_DispatchMsg(ent2->field_24, 0x3E8, (s32)desc, 0);
+    ent->field_40 = 2;
+    ent->field_46 = 1;
+    ent->field_42 = 1;
+    ent->field_4C = 1;
+    ent->field_44 = 1;
+    CdCmd_CancelReplaceAndActivate();
+}
 
 void func_shelter_b3_dumping_hole_8017FFF4(void)
 {
@@ -504,8 +534,6 @@ typedef struct {
 
 extern DumpingHoleState4* D_shelter_b3_dumping_hole_8018F4AC;
 extern s16                D_shelter_b3_dumping_hole_8018F4B0;
-extern s8                 D_8007218A;
-extern u8                 D_80073BA9;
 
 void func_shelter_b3_dumping_hole_80181430(void)
 {
