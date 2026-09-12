@@ -62982,3 +62982,59 @@ instructions are identical.
 Corollary for the C: duplicated arms are what the original source looked like,
 so do not factor them. This function matched on the first attempt (81.27% m2c
 baseline to 100%) once the ladder had all nine arms written out.
+
+## A narrower parameter type can change scheduling without changing an instruction
+
+`s16` and `s32` parameters that are only ever used truncated compile to the same
+instruction, but not to the same RTL. A `short` parameter arrives in an SImode
+argument register, so `assign_parms` emits *two* insns - the copy out of `$a1`
+and a `(subreg:HI)` truncation - where an `int` parameter emits one. Both
+collapse to a single `move $s4, $a1` after reload, so the object code is
+identical; what differs is that the truncation depends on the copy, giving it
+sched1 priority 2 instead of 1, and sched1 (which schedules backwards and places
+priority-1 insns first) therefore pushes it *past* the first body insns.
+
+In `func_actor_444000_80132CB8` that is the whole difference between 97.48% and
+100%: with `s32 scale, s32 drop` the prologue reads
+
+```
+sw $s3,0x34($sp); move $s3,$a0
+sw $s4,0x38($sp); move $s4,$a1      <- parm copies stay at the top
+sw $s6,0x40($sp); move $s6,$a2
+lui $v0,%hi(Gp_GridParams)
+```
+
+and with `s16 scale, s16 drop` the `$s4`/`$s6` pairs move below the
+`lui`/`lw`/`sll`/`sra` group, which is what the ROM does. Every other
+instruction in the 214-instruction function was already identical.
+
+So when a function matches except for the position of a `move $sN, $aN` pair,
+look at the parameter widths before looking at the scheduler. The callers are
+the evidence: this one is reached with `lh $a1, 0xE94($s0)` / `lh $a2,
+0xE98($s0)`, i.e. two `short`s.
+
+## GCC keeps an address in a register only when the source made it a value
+
+An address that appears literally at each use is re-expanded at each use;
+one that the source stored into a variable becomes a single pseudo that
+CSE and the allocator can then keep in a callee-saved register. Two forms of
+this cost `func_actor_444000_80132CB8` about 8%:
+
+* **`&local` passed to several callees and to `gte_*` asm.** Writing
+  `VectorNormalSS(&dir, &dir)` and later `gte_ldsv(&dir)` expands
+  `(plus $sp 16)` straight into `$a0` for the call and again into a scratch
+  register for the asm operand - two computations, and neither survives the
+  call. Assigning `d = &dir;` once and passing `d` everywhere after it gives
+  the single pseudo the ROM keeps in `$s1`. `src/gameplay/3E9C.c` already has
+  this shape (`vel = (SVECTOR*)&mem->field_10;` immediately before
+  `gte_ldsv(vel)`), so it is an established form here, not a hack.
+* **Element addresses of an array.** `p = &verts[i * 4]; p[1].vy = …` folds the
+  `+8` into every displacement (`0xa($s1)`), while
+  `verts[i * 4 + 1].vy = …` gives each element its own address pseudo; combine
+  then substitutes the definition into the *first* use only - which is why the
+  ROM stores `.vx` as `8($s0)` but `.vy`/`.vz` as `2($a1)`/`4($a1)` off a
+  register holding `$s0+8`. A base pointer plus small indices and a fully
+  written-out index expression are not interchangeable.
+
+The tell for both is an `addiu` that the ROM has and the attempt does not,
+next to displacements that are "too folded".

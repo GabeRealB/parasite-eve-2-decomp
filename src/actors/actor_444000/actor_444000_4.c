@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include <psyq/abs.h>
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -19,78 +20,175 @@ extern s16 D_actor_444000_80144A68;
 extern s16 D_actor_444000_80144A70;
 extern s32 Gp_LcgState;
 
-/// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
-/// allocate its `Actor444000SpinnerWork`, parent the model object to the world
-/// coordinate, give it a random orientation off `Gp_LcgState`, point it at its
-/// own light and colour matrices and step the task on. Bails to
-/// `Gp_DestroyEnemy` when the overlay is shutting down or the allocation fails.
-void func_actor_444000_8013A1C4(GpEnemy* enemy, Actor444000Spinner* task)
+extern s8         D_8007218A;
+extern u8         D_80073BA9;
+extern GpAnimSet* D_actor_444000_80161694[];
+extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
+extern u16        Gp_WeaponIdBase[];
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Per-animation reset argument, a `[?][0x2D]` table of `field_7B3` indexed by
+/// the id that was playing before the switch.
+extern s8 D_actor_444000_80160C5C[][0x2D];
+
+/// Reseed every slot of the three even animation members from `field_7B3` when
+/// the id it names differs from the latched `field_7B2`, then latch it. Each
+/// slot also has its `field_9` seeded from `field_7B6`, and the reset argument
+/// comes from the `[field_7B2][field_7B3]` transition table.
+void func_actor_444000_80134040(Actor444000* arg0)
 {
-    Actor444000SpinnerWork* work;
+    Actor444000Work* work = arg0->field_1C;
+    s32              i;
 
-    if (D_actor_444000_80144A68 == 1) {
-        Gp_DestroyEnemy(enemy, (Task*)task);
-        return;
+    if (work->field_7B2 != work->field_7B3) {
+        for (i = 1; i < 8; i++) {
+            work->slots0[i].field_9 = work->field_7B6;
+            func_800B4114(&work->anim0, i, work->field_7B3, 0,
+                          D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
+        }
+        for (i = 0; i < 4; i++) {
+            work->slots2[i].field_9 = work->field_7B6;
+            func_800B4114(&work->anim2, i, work->field_7B3, 0,
+                          D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
+        }
+        for (i = 0; i < 4; i++) {
+            work->slots4[i].field_9 = work->field_7B6;
+            func_800B4114(&work->anim4, i, work->field_7B3, 0,
+                          D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
+        }
+        work->field_7B2 = work->field_7B3;
     }
-
-    work           = Mem_Calloc(0xA0, 0);
-    task->field_1C = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, (Task*)task);
-        return;
-    }
-
-    task->extra->field_8->sub = &Gfx_ViewCoord;
-    task->extra->field_C      = 0;
-
-    switch ((u16)task->spawnArg1) {
-        case 0:
-            work->spin = 0x14;
-            break;
-        case 1:
-            work->spin = 0x28;
-            break;
-        case 2:
-            work->spin = 0x50;
-            break;
-        default:
-            work->spin = 0x50;
-            break;
-    }
-
-    task->field_24 = NULL;
-    work->field_98 = 0;
-    work->field_96 = 0;
-
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra->field_8->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixZ(&task->extra->field_8->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixX(&task->extra->field_8->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
-
-    task->extra->field_1C     = &work->lightMtx;
-    task->extra->field_20     = &work->colorMtx;
-    task->extra->field_8->flg = 0;
-    Gp_UpdateCoord(task->extra->field_8);
-    func_800D7A9C(task->extra, (VECTOR*)task->extra->field_8->workm.t, 0, 3);
-    task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013A3AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013A77C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013A958);
-
-/// Rebuilds the host's root coordinate around the yaw it is already facing:
-/// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
-/// the rotation from it, and `ScaleMatrix` widens it to 1.0 / 0.0 / 1.0 so the
-/// model flattens vertically. The working matrix lives in a frame carved off
-/// `G_SCRATCH_HEAD`, which is handed back before the coordinate is refreshed.
-static __inline__ void Actor444000_RebuildRotation(Actor444000* task)
+/// Advance every animation slot of the three context pairs and write the blended
+/// pose out of each pair's even member. Both members of a pair are ticked with
+/// the same slot index; the odd member's `field_9` is seeded from `field_7BE`
+/// and the even member's from `field_7B6 - 3`. `field_7C0` is the copy weight,
+/// with `0x1000 - field_7C0` as its complement.
+void func_actor_444000_801341C4(Actor444000* arg0)
 {
-    GsCOORDINATE2*         coord = ((TmdObject*)task->extra)->field_8;
+    GpAnimPose       pose0;
+    GpAnimPose       pose1;
+    Actor444000Work* work     = arg0->field_1C;
+    s32              blend    = work->field_7C0;
+    s32              invBlend = 0x1000 - blend;
+    s16              i;
+
+    for (i = 1; i < 8; i++) {
+        if (i < 11) {
+            work->slots1[i].field_9 = work->field_7BE;
+            work->slots0[i].field_9 = work->field_7B6 - 3;
+            func_800B3448(&work->anim0, i, (s32)&pose0, 0);
+            func_800B3448(&work->anim1, i, (s32)&pose1, 0);
+            Gp_AnimWritePoseCopy(&work->anim0, i, &pose0, &pose1, blend, invBlend);
+        } else {
+            work->slots0[i].field_9 = work->field_7B6 - 3;
+            Gp_AnimTickIndex(&work->anim0, i);
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        work->slots3[i].field_9 = work->field_7BE;
+        work->slots2[i].field_9 = work->field_7B6 - 3;
+        func_800B3448(&work->anim2, i, (s32)&pose0, 0);
+        func_800B3448(&work->anim3, i, (s32)&pose1, 0);
+        Gp_AnimWritePoseCopy(&work->anim2, i, &pose0, &pose1, blend, invBlend);
+    }
+
+    for (i = 0; i < 4; i++) {
+        work->slots5[i].field_9 = work->field_7BE;
+        work->slots4[i].field_9 = work->field_7B6 - 3;
+        func_800B3448(&work->anim4, i, (s32)&pose0, 0);
+        func_800B3448(&work->anim5, i, (s32)&pose1, 0);
+        Gp_AnimWritePoseCopy(&work->anim4, i, &pose0, &pose1, blend, invBlend);
+    }
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013441C);
+
+/// Spawn the hit effect for an attack that landed on `coord`: the effect kind
+/// is the attack's `Gp_GetIdParam1`, and its rotation comes from the attack's
+/// `Gp_GetIdParam0` - categories 2, 4, 6 and 7 get one fixed tilt, everything
+/// else picks one of three at random. The rotation and `func_800FDB18`'s
+/// argument block live in a 0x10-byte scratchpad frame.
+void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id)
+{
+    Actor444000EffScratch* sc = (Actor444000EffScratch*)(SCRATCH_SP -= sizeof(Actor444000EffScratch));
+
+    sc->eff.field_4 = 0x500;
+    sc->eff.field_0 = coord;
+    sc->eff.field_6 = 3;
+
+    switch (Gp_GetIdParam0(id) & 0xFFFF) {
+        case 2:
+        case 4:
+        case 6:
+        case 7:
+            sc->rot.vx = 0;
+            sc->rot.vy = -0x190;
+            sc->rot.vz = 0x258;
+            func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+            break;
+        case 0:
+        case 1:
+        case 3:
+        case 5:
+        case 8:
+        case 9:
+        default:
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            switch ((u16)(((u32)Gp_LcgState >> 16) % 3U)) {
+                case 0:
+                    sc->rot.vy = 0;
+                    sc->rot.vx = 0;
+                    sc->rot.vz = 0x384;
+                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+                    break;
+                case 1:
+                    sc->rot.vx = 0x258;
+                    sc->rot.vy = -0xC8;
+                    sc->rot.vz = 0x2BC;
+                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+                    break;
+                case 2:
+                    sc->rot.vx = -0x12C;
+                    sc->rot.vy = -0x320;
+                    sc->rot.vz = 0x320;
+                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+                    break;
+            }
+            break;
+    }
+
+    SCRATCH_SP += sizeof(Actor444000EffScratch);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013482C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80135448);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_801371E8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80137594);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013799C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80137D4C);
+
+/// Rebuilds the model's root coordinate around the yaw it already faces and
+/// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
+/// the yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
+/// applies 0.5 on all three axes. The working matrix lives in a frame carved
+/// off `G_SCRATCH_HEAD`, which is handed back once the rotation has been copied
+/// onto the coordinate. Written as an inline so the four scratch-head accesses
+/// stay absolute; see `Actor444000_RebuildRotation` in `actor_444000_4.c`.
+static __inline__ void Actor444000_ShrinkRotation(GsCOORDINATE2* coord)
+{
     Actor444000RotScratch* sc;
     s16                    ang;
 
@@ -100,9 +198,9 @@ static __inline__ void Actor444000_RebuildRotation(Actor444000* task)
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
     Gfx_RotMatrixY(&sc->m, ang, 1);
-    sc->scale.vx = 0x1000;
-    sc->scale.vy = 0;
-    sc->scale.vz = 0x1000;
+    sc->scale.vx = 0x800;
+    sc->scale.vy = 0x800;
+    sc->scale.vz = 0x800;
     ScaleMatrix(&sc->m, &sc->scale);
 
     coord->coord.m[0][0] = sc->m.m[0][0];
@@ -116,279 +214,237 @@ static __inline__ void Actor444000_RebuildRotation(Actor444000* task)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    ((TmdObject*)task->extra)->field_8->flg = 0;
-    *(u8**)G_SCRATCH_HEAD                   = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
-    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
 }
 
-/// The enemy task's 0x7DB message handler, listed in `D_actor_444000_80161818`.
-/// The three payload bytes are always recorded in the work block; only messages
-/// from sender 0x2804 act, and then on three of the selector's values. 0 and 1
-/// both announce the state change with the same pair of cues, 1 additionally
-/// re-arms the animation blocks and drops the model onto its start position,
-/// and 19 switches the host and its fourth escort to light mode 2 before
-/// raising eight floor vertices and flattening the model's rotation.
-s32 func_actor_444000_8013ACD0(Actor444000* task, s32 msgId, Actor444000Msg7DB* msg)
+/// Death throes of the grabbing enemy: bounce the model on the floor until it
+/// settles. While the model is still below the floor plane (`coord.t[1] > 0`)
+/// it is snapped back to -0x32, the step counter is cleared, the impact cue is
+/// enqueued with the object's own pan and half its depth, and the task steps
+/// on. Otherwise the body keeps falling by `field_1AA`'s magnitude, drifts a
+/// fifteenth of `vel` in x and z, has its colour refreshed from the model's
+/// world position, damps the two shake terms and has its rotation rebuilt at
+/// half scale.
+void func_actor_444000_801381B0(GpEnemy* enemy, Actor444000Grab* task)
 {
-    Actor444000Work* work  = task->field_1C;
-    GpEnemy*         enemy = task->field_20;
-    SVECTOR*         verts;
-    s32              action;
+    Actor444000GrabWork* work = task->field_1C;
+    GsCOORDINATE2*       coord;
+    VECTOR               pos;
+    s32                  sfx;
+    s32                  pan;
+    s32                  drop;
+    s32                  bounce;
 
-    work->field_EC4 = msg->b[0];
-    work->field_EC5 = msg->b[1];
-    work->field_EC6 = msg->b[2];
-
-    if (msg->h.id == 0x2804) {
-        action = msg->h.action;
-        switch (action) {
-            case 0:
-                work->field_0 = 0;
-                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000A, 1);
-                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000D, 1);
-                break;
-
-            case 1:
-                work->field_7B3 = 0xA;
-                work->field_7B0 = 2;
-                func_actor_444000_8013441C(task);
-                func_actor_444000_8013441C(task);
-                func_actor_444000_8013441C(task);
-                work->field_7B6 = 1;
-                func_actor_444000_8013441C(task);
-                work->field_7B6                                = 0x10;
-                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0xBB8;
-                ((TmdObject*)task->extra)->field_8->coord.t[1] = 0;
-                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x992;
-                ((TmdObject*)task->extra)->field_8->flg        = 0;
-                work->field_0                                  = 0x11;
-                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000A, 1);
-                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000D, 1);
-                break;
-
-            case 19:
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
-                Gp_SetLightMode((GpObj4C*)work->field_ECC[3], 2);
-                work->field_0   = action;
-                work->field_2   = -1;
-                work->field_F04 = 1;
-                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x54280007, 1);
-
-                verts        = Gp_GridParams->field_8;
-                verts[24].vy = 0x1F4;
-                verts[25].vy = 0x1F4;
-                verts[26].vy = 0x320;
-                verts[27].vy = 0x320;
-                verts[28].vy = 0x1F4;
-                verts[29].vy = 0x1F4;
-                verts[30].vy = 0x320;
-                verts[31].vy = 0x320;
-
-                Actor444000_RebuildRotation(task);
-                break;
-        }
-    }
-    return 1;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013AFF8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013C060);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013C4B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013CA60);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013D128);
-
-/// Reset/teardown handler: when the work block is asking for a reset, arm the
-/// re-spawn sequence and push the host's model flag word onto each of the seven
-/// escorts' models. Otherwise run the ordinary re-arm while the sub-state
-/// counter is still below 0xA, and once it reaches 2 release the host's and
-/// every escort's model buffers.
-void func_actor_444000_8013D810(Actor444000* arg0)
-{
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* dying;
-    s16              i;
-    s16              j;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        escorts                            = arg0->field_1C;
-        work->field_7F3                    = 3;
-        ((TmdObject*)arg0->extra)->field_C = 0x80;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
-            }
-        }
-        work->field_7B3 = 0xA;
-        work->field_7B0 = 2;
-        work->field_6   = 0;
-        work->field_7B6 = 0x10;
-        func_actor_444000_8013441C(arg0);
-    } else {
-        if (work->field_6 < 0xA) {
-            func_actor_444000_8013441C(arg0);
-        }
-        if (work->field_6 == 2) {
-            dying = arg0->field_1C;
-            Tmd_FreeBuffers((TmdObject*)arg0->extra);
-            for (j = 0; j < 7; j++) {
-                if (dying->field_ECC[j] != NULL) {
-                    Tmd_FreeBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
-                }
-            }
-        }
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013D96C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013E058);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013EC84);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013FB74);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_801404C0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80140BBC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80140E28);
-
-void func_actor_444000_8014105C(Actor444000* arg0)
-{
-    Actor444000Work* work;
-    GpEnemy*         obj;
-    TmdObject*       tmd;
-    s32              state;
-    s32              id;
-    s32              pan;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        tmd               = (TmdObject*)arg0->extra;
-        obj               = arg0->field_20;
-        obj->node.field_4 = 8;
-        tmd->field_C      = 0;
-        state             = work->field_7B3;
-        work->field_EF4   = 0;
-        work->field_EF6   = 0;
-        work->field_EFA   = 1;
-        if (state != 0xD) {
-            work->field_7B0 = 1;
-            work->field_7B3 = 0xD;
-        } else {
-            work->field_7B0 = 2;
-            work->field_7B3 = state;
-        }
-        id  = (((u16)obj->field_8 >> 12) << 8) | 0x40200004;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
-        SndEvt_EnqueueType7((((u16)obj->field_8 >> 12) << 8) | 0x4020000D, 1);
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
         return;
     }
-    SCRATCH_SP -= 0xC;
-    if (D_actor_444000_80144A70 >= 0x191) {
-        work->field_7A4         = 0;
-        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+
+    coord = task->extra->field_8;
+    drop  = coord->coord.t[1];
+    if (drop > 0) {
+        coord->coord.t[1] = -0x32;
+        work->field_1AC   = 0;
+        sfx               = ((enemy->field_8 >> 0xC) << 8) | 0x4020000C;
+        pan               = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+        SndEvt_EnqueueType6(sfx, pan, (s8)(Gp_GetObjDepth((GpObj38*)task->extra->field_8) / 2));
+        task->state++;
+        return;
     }
-    func_actor_444000_8013441C(arg0);
-    if (work->slots0[1].field_10 & 1) {
-        work->field_0 = 0xA;
-    }
-    SCRATCH_SP += 0xC;
+
+    bounce            = ABS(work->field_1AA);
+    coord->coord.t[1] = drop + bounce;
+
+    task->extra->field_8->coord.t[0] += work->vel.vx / 15;
+    task->extra->field_8->coord.t[2] += work->vel.vz / 15;
+    task->extra->field_8->flg         = 0;
+
+    pos.vx = task->extra->field_8->workm.t[0];
+    pos.vy = task->extra->field_8->workm.t[1];
+    pos.vz = task->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    work->field_168 >>= 1;
+    work->field_16C >>= 2;
+
+    Actor444000_ShrinkRotation(task->extra->field_8);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_801411C8);
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80138490);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80141618);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80141DFC);
-
-/// Keeps the player inside the arena: clamps the player model's root
-/// translation every tick. `t[1]` (height) is never allowed above 0, and `t[2]`
-/// (depth) is capped at 0 in front and -26000 at the back. The `t[2]` ladder
-/// then picks the `t[0]` (lateral) corridor for that depth band, so the walls
-/// narrow and widen as the player moves through the room.
-void func_actor_444000_80142254(void)
+/// Hold state of the enemy dispatched through `D_actor_444000_80131EA8`: once
+/// `field_1A8` says the take-over is armed and `field_1B2` says the player
+/// animation is already installed, rebuild the overlay's own animation-set
+/// table from the player's current weapon block and (re)send it as message
+/// 0x3FF, flagging the model object busy. Then count the step, and after nine
+/// of them cancel the animation with message 0x3F1 and step the task on.
+/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down, cancelling a
+/// still-installed animation on the way out.
+void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
 {
-    Task* player;
-    s32   z;
+    Actor444000GrabWork* work;
+    Task*                player;
+    s32                  armed;
 
+    work   = task->field_1C;
     player = Game_GetPtrSlot(3);
-
-    if (((TmdObject*)player->extra)->field_8->coord.t[1] > 0) {
-        ((TmdObject*)player->extra)->field_8->coord.t[1] = 0;
+    if (D_actor_444000_80144A68 == 1) {
+        if (work->field_1B2 == 1) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+            work->field_1B2 = 0;
+        }
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
     }
 
-    z = ((TmdObject*)player->extra)->field_8->coord.t[2];
-    if (z > 0) {
-        ((TmdObject*)player->extra)->field_8->coord.t[2] = 0;
-    } else if (z > -1000) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 0) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 0;
+    if (work->field_1A8 != 0) {
+        armed           = work->field_1B2;
+        work->field_1AC = 0;
+        if (armed != 1) {
+            task->state++;
+            return;
         }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
-        }
-    } else if (z > -5000) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 0) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 0;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
-        }
-    } else if (z > -7000) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 9500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 9500;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
-        }
-    } else if (z > -13200) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
-        }
-    } else if (z > -14750) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 17500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 17500;
-        }
-    } else if (z > -21250) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
-        }
-    } else if (z > -22800) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 17500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 17500;
-        }
-    } else if (z > -26000) {
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
-        }
-        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
-            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
-        }
-    } else {
-        ((TmdObject*)player->extra)->field_8->coord.t[2] = -26000;
+        D_actor_444000_80161694[2] =
+            ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[9];
+        work->anim.field_0 = D_actor_444000_80161694;
+        work->anim.field_4 = 2;
+        work->anim.field_8 = armed;
+        work->anim.field_C = 9;
+        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+        task->extra->field_C = 0x80;
     }
+
+    if (work->field_1AC >= 9) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+        work->field_1B2 = 0;
+        task->state++;
+    }
+    work->field_1AC++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_801423C4);
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80138B94);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80142F28);
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80138FC4);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131E90);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131E9C);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131EA8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013928C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80139594);
+
+/// Ascent state that precedes the descent above: lift the model by 0x1F4 plus
+/// `field_1AE` a step until it passes -0x4E20, then clamp it there, snap its
+/// horizontal position back onto `work->target`, restart the step counter, pick
+/// a fresh 0..0x1F bias for the next leg, flag the list object and step the task
+/// on. Either way the work block's own coordinate is left tracking the model.
+/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
+void func_actor_444000_80139AF8(GpEnemy* enemy, Actor444000Drop* task)
+{
+    Actor444000DropWork* work;
+    s32                  y;
+
+    work = task->field_1C;
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_UnlinkObj(&work->obj);
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    y                                = task->extra->field_8->coord.t[1] - 0x1F4;
+    task->extra->field_8->coord.t[1] = y - work->field_1AE;
+    if (task->extra->field_8->coord.t[1] < -0x4E20) {
+        task->state++;
+        task->extra->field_8->coord.t[0] = work->target.vx;
+        task->extra->field_8->coord.t[2] = work->target.vz;
+        Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
+        task->extra->field_8->coord.t[1] = -0x4E20;
+        work->timer                      = 0;
+        work->field_1AE                  = ((u32)Gp_LcgState >> 16) & 0x1F;
+        work->obj.flags                 |= 0x8000;
+    }
+
+    task->extra->field_8->flg = 0;
+    work->coord.coord.t[0]    = task->extra->field_8->coord.t[0];
+    work->coord.coord.t[1]    = task->extra->field_8->coord.t[1];
+    work->coord.coord.t[2]    = task->extra->field_8->coord.t[2];
+    work->coord.flg           = 0;
+    Gp_UpdateCoord(&work->coord);
+}
+
+/// Descent state of the enemy dispatched through `D_actor_444000_80131F1C`:
+/// draw the growing shadow marker on the floor under the model, then after
+/// 0x14 steps start pulling the model down by `0x258 + field_1AE` a step. When
+/// it reaches floor level, zero the height, restart the step counter, tell the
+/// trailing `Gp_SpawnEff` effect to wind down, play the landing cue and step
+/// the task on. Either way the work block's own coordinate is left tracking
+/// the model. Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
+void func_actor_444000_80139C80(GpEnemy* enemy, Actor444000Drop* task)
+{
+    Actor444000DropWork* work;
+    Actor444000DropCoord coord;
+    MATRIX*              mtx;
+    GpEnemy*             owner;
+    s32                  snd;
+    s32                  pan;
+
+    work = task->field_1C;
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_UnlinkObj(&work->obj);
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    work->timer++;
+    coord.c.sub          = &Gfx_ViewCoord;
+    mtx                  = &coord.c.coord;
+    coord.ident.m00_m01  = 0x1000;
+    coord.ident.m02_m10  = 0;
+    *(s32*)&mtx->m[1][1] = 0x1000;
+    coord.ident.m20_m21  = 0;
+    mtx->m[2][2]         = 0x1000;
+    Gfx_RotMatrixY(mtx, 0, 1);
+
+    coord.c.coord.t[0] = task->extra->field_8->coord.t[0];
+    coord.c.coord.t[1] = 0;
+    coord.c.coord.t[2] = task->extra->field_8->coord.t[2];
+    coord.c.flg        = 0;
+    Gp_UpdateCoord(&coord.c);
+
+    Gp_DrawEffGroundQuad((VECTOR3*)coord.c.workm.t, (s16)((s16)work->timer * 8 + 0x80),
+                         Gp_State1C->field_8);
+
+    if ((s16)work->timer >= 0x14) {
+        task->extra->field_8->coord.t[1] =
+            task->extra->field_8->coord.t[1] + (work->field_1AE + 0x258);
+        if (task->extra->field_8->coord.t[1] > 0) {
+            owner                            = task->parent->spawnArg2;
+            task->extra->field_8->coord.t[1] = 0;
+            work->timer                      = 0;
+            if (work->eff != NULL) {
+                work->eff->field_0->spawnArg1 = 2;
+            }
+            task->state++;
+            snd = ((owner->field_8 >> 12) << 8) | 0x4020000C;
+            pan = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)task->extra->field_8));
+        }
+    }
+
+    task->extra->field_8->flg = 0;
+    Gp_ClearRec18Occupied(&work->rec);
+    work->coord.coord.t[0] = task->extra->field_8->coord.t[0];
+    work->coord.coord.t[1] = task->extra->field_8->coord.t[1];
+    work->coord.coord.t[2] = task->extra->field_8->coord.t[2];
+    work->coord.flg        = 0;
+    Gp_UpdateCoord(&work->coord);
+}
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131F0C);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131F1C);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131F30);
