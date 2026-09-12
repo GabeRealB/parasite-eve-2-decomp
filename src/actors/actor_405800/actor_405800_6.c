@@ -73,8 +73,8 @@ void func_actor_405800_80138A70(Task* task)
     Gp_UnlinkObj(&work->obj_674);
     Gp_UnlinkObj(&work->obj_694);
     Gp_UnlinkObj(&work->obj_724);
-    work->field_83E = 0x1000;
-    work->matrix_0  = coord->coord;
+    work->flags_83C.h.field_83E = 0x1000;
+    work->matrix_0              = coord->coord;
     Gp_SetLightMode((GpObj4C*)task->spawnArg2, 1);
     work->field_842 = 0;
     work->field_846++;

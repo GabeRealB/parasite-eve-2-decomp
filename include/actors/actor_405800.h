@@ -17,6 +17,19 @@ typedef struct Actor405800ViewPos {
 } Actor405800ViewPos;
 STATIC_ASSERT_SIZEOF(Actor405800ViewPos, 0x6);
 
+/// Status flags at + 0x83C of the work block, read through two widths: bit 0
+/// as a halfword, then bits 0x102 as a word (`func_actor_405800_80137908`).
+/// The high half is `field_83E`, the scale reset to 0x1000 on death.
+typedef union Actor405800Flags83C {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+    struct {
+        /* 0x0 */ u16 pad;
+        /* 0x2 */ s16 field_83E;
+    } h;
+} Actor405800Flags83C;
+STATIC_ASSERT_SIZEOF(Actor405800Flags83C, 0x4);
+
 /// Per-actor work block for the `actor_405800` overlay.
 ///
 /// `func_actor_405800_801334B8` allocates it with `Mem_Calloc(0x89C, 0)` and
@@ -61,9 +74,9 @@ typedef struct Actor405800Work {
     /* 0x834 */ s16        field_834;
     /* 0x836 */ s16        field_836;
     /* 0x838 */ s16        field_838;
-    /* 0x83A */ byte       pad_83A[0x4];
-    /* 0x83E */ s16        field_83E; // reset to 0x1000 on death
-    /* 0x840 */ byte       pad_840[0x2];
+    /* 0x83A */ byte                pad_83A[0x2];
+    /* 0x83C */ Actor405800Flags83C flags_83C;
+    /* 0x840 */ byte                pad_840[0x2];
     /* 0x842 */ u16        field_842; // per-state frame counter
     /* 0x844 */ byte       pad_844[0x2];
     /* 0x846 */ u16        field_846; // state index
