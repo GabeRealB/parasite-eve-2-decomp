@@ -24,7 +24,9 @@ typedef struct {
     u8    pad_34[0x4];
     s16   field_38;
     s16   field_3A;
-    u8    pad_3C[0xC];
+    u8    pad_3C[0x6];
+    u16   field_42;
+    u8    pad_44[0x4];
     s16   field_48;
     u8    pad_4A[0x2];
     u16   field_4C;
@@ -55,7 +57,110 @@ void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DA00);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DCFC);
+typedef struct {
+    s16 field_0;
+    s16 field_2;
+    s16 field_4;
+    u8  pad_6[0x2];
+    s16 field_8;
+    u8  pad_A[0xA];
+    s16 field_14;
+    s16 field_16;
+    s16 field_18;
+    u8  pad_1A[0x2];
+    s16 field_1C;
+    u16 field_1E;
+    u16 field_20;
+} DumpingHoleAnimWork;
+
+typedef struct {
+    s16 field_0;
+    s16 field_2;
+    s16 field_4;
+    s16 field_6;
+    s16 field_8;
+    s16 field_A;
+} DumpingHoleAnimFrame;
+
+extern u32                  Gp_LcgState;
+extern s16                  D_shelter_b3_dumping_hole_80188154[];
+extern DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[];
+
+u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 arg1, s16 arg2,
+                                          s16 arg3, s16 arg4, s16 arg5, s16 arg6,
+                                          s16 arg7, s16 arg8, s16 arg9);
+
+void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
+{
+    DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->idMap;
+    GsCOORDINATE2*       coord  = ((TmdObject*)arg0->extra)->field_8;
+    DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
+
+    if (entity->field_42 == 1) {
+        Task_Kill((Task*)arg0);
+        return;
+    }
+
+    switch (arg0->state) {
+        case 0:
+            coord->sub        = &Gfx_ViewCoord;
+            coord->coord.t[0] = W->field_0;
+            coord->coord.t[1] = W->field_2;
+            coord->coord.t[2] = W->field_4;
+            arg0->state++;
+            return;
+        case 1:
+            if (entity->field_42 != 2) {
+                return;
+            }
+            W->field_1C = 5;
+            W->field_14 = 0;
+            W->field_18 = 0;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            W->field_16 = 0xFFF6 - ((Gp_LcgState >> 16) & 7);
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            W->field_20 = (Gp_LcgState >> 16) & 7;
+            arg0->state++;
+            return;
+        case 2:
+            if (W->field_20 == 0) {
+                arg0->state = 3;
+            } else {
+                W->field_20--;
+            }
+            return;
+        case 3: {
+            s32 t1e     = W->field_1E + 1;
+            W->field_1E = t1e;
+            if (D_shelter_b3_dumping_hole_80188154[W->field_1C] < (s16)t1e) {
+                *(u16*)&W->field_1C = *(u16*)&W->field_1C + 1;
+                W->field_1E         = 0;
+                if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
+                    Task_Kill((Task*)arg0);
+                    return;
+                }
+            }
+            break;
+        }
+        default:
+            return;
+    }
+
+    coord->coord.t[1] += W->field_16;
+    if (func_shelter_b3_dumping_hole_8017DA00(
+            coord,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_8,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_A,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_2,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_6,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_4,
+            W->field_8, 0x43C0, 0) != 0) {
+        Task_Kill((Task*)arg0);
+        return;
+    }
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DF90);
 
