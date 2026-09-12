@@ -25,7 +25,12 @@ extern u8 D_actor_405800_8014086C[];
 extern u8 D_actor_405800_80140F10[];
 extern u8 D_actor_405800_80141430[];
 
+s32 func_actor_405800_80136A1C(Task* arg0);
+s32 func_actor_405800_801373E0(Task* arg0);
+
 /* Defined in another unit of this overlay, or still `INCLUDE_ASM`. */
+void func_actor_405800_80138FA8(Task* arg0);
+void func_actor_405800_8013902C(Task* arg0);
 void func_actor_405800_801390FC(Task* arg0);
 void func_actor_405800_80139188(Task* arg0);
 void func_actor_405800_80139260(Task* arg0);
@@ -151,7 +156,29 @@ void func_actor_405800_801379F8(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80137A14);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80137A60);
+/// Per-frame entry point for one of this actor's states: clears the animation
+/// request flags, then runs the sub-state handler `field_848` selects unless
+/// `func_actor_405800_80136A1C` or `func_actor_405800_801373E0` already
+/// consumed the frame. After the handler, a set `field_890` plus a root
+/// world X past 10000 switches to state 0xD. The two-entry table is small
+/// enough that GCC materialises each callback with its own `lui`/`addiu`
+/// pair instead of copying a `.rodata` pool.
+void func_actor_405800_80137A60(Task* task)
+{
+    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    TaskFunc         states[2] = { func_actor_405800_80138FA8, func_actor_405800_8013902C };
+
+    func_actor_405800_80137948(task);
+    if ((s16)func_actor_405800_80136A1C(task) == 0 && (s16)func_actor_405800_801373E0(task) == 0) {
+        states[(s16)work->field_848](task);
+        if (work->field_890 != 0 && ((TmdObject*)task->extra)->field_8->coord.t[0] > 10000) {
+            Actor405800Work* cur = (Actor405800Work*)task->idMap;
+
+            cur->field_846 = 0xD;
+            cur->field_848 = 0;
+        }
+    }
+}
 
 /// Per-frame entry point for one of this actor's states: clears the animation
 /// request flags, then runs the sub-state handler `field_848` selects. The

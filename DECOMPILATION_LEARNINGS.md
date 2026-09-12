@@ -64957,3 +64957,29 @@ work->field_848 = next + 1;
 The extra statement gives the counter load an LUID between the two coordinate
 accesses, so sched1 ranks it first of the post-store pair, while `sh field_98`
 still has no ready filler and keeps the nop. `func_actor_405800_80139928`.
+
+## Two-entry `TaskFunc` table: initializer vs assignment moves the first `lui`
+
+**Symptom.** A dispatcher that matches its sibling in every other instruction
+still has `reorder=1`: the first callback `lui %hi(fn)` sits between
+`move s0,a0` and `sw ra` / `lw s1`, while the target (and the already-matched
+two-entry siblings in the same TU) do `lw s1,0x1C(s0)` then `lui`.
+
+**Cause.** Separate stores
+
+```c
+TaskFunc states[2];
+states[0] = fn0;
+states[1] = fn1;
+```
+
+give the first `high` insn an original RTL order that sched1 can hoist into
+the prologue saves. The CONSTRUCTOR form used by the matched siblings
+
+```c
+TaskFunc states[2] = { fn0, fn1 };
+```
+
+keeps that `lui` after the work load. Topology, predicates and delay-slot
+words were already identical; only this spelling changed the schedule.
+`func_actor_405800_80137A60` (98.87% → 100%).
