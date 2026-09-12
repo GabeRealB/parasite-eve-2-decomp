@@ -13,10 +13,11 @@
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320A0;
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320EC;
 extern s32                   D_actor_403600_80160504[4];
+extern s32                   D_actor_403600_8016057C[];
 extern Task*                 D_actor_403600_801606A8;
 extern s32                   D_80070F70;
 
-void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1);
 void func_actor_403600_80141338(Actor403600* arg0);
 void func_actor_403600_801414FC(Actor403600* arg0);
@@ -26,7 +27,47 @@ void func_actor_403600_801400BC(Actor403600* arg0);
 void func_actor_403600_80141F28(Actor403600* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801411D4);
+void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1)
+{
+    Actor403600Work* work;
+    s32              i;
+    s32              masked1;
+    s32              masked2;
+    s32              limit1;
+    s32              limit2;
+    u8*              anim;
+
+    work = arg0->field_1C;
+    if (D_actor_403600_8016057C[(s16)work->field_736] != 0) {
+        i = 1;
+        if ((s16)work->field_736 != work->field_738) {
+            masked1         = arg1 & 0xFF;
+            work->field_738 = work->field_736;
+            work->field_73A = 0;
+            if (i < masked1) {
+                limit1 = masked1;
+                do {
+                    func_800B4114((GpAnimCtx*)work, i, work->field_736, 0, work->field_756);
+                    i++;
+                } while (i < limit1);
+            }
+        } else {
+            TOUCH_REG(i);
+            masked2          = arg1 & 0xFF;
+            work->field_73A += i;
+            if (i < masked2) {
+                limit2 = masked2;
+                anim   = &work->pad_0[0x28];
+                do {
+                    anim[0x1D] = (u8)work->field_778;
+                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                    i++;
+                    anim += 0x28;
+                } while (i < limit2);
+            }
+        }
+    }
+}
 
 void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1)
 {

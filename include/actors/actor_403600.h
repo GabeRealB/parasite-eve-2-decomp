@@ -34,7 +34,7 @@ typedef struct Actor403600Work {
     /* 0x732 */ s16                  field_732;
     /* 0x734 */ byte                 pad_734[2];
     /* 0x736 */ s16                  field_736;
-    /* 0x738 */ byte                 pad_738[2];
+    /* 0x738 */ s16                  field_738;
     /* 0x73A */ s16                  field_73A;
     /* 0x73C */ s16                  field_73C;
     /* 0x73E */ s16                  field_73E;
