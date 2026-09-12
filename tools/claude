@@ -392,8 +392,13 @@ elif [[ "$BOOTSTRAP" == true ]]; then
     # only; a file without such labels comes through byte-identical.
     M2C_ASM="$ASM_PATH"
     if grep -qE '\b\w+_L[0-9A-F]+\b' "$ASM_PATH" 2>/dev/null; then
-        if python3 "$ROOT/tools/define_shared_labels.py" "$ASM_PATH" "m2c_input.s"; then
-            M2C_ASM="m2c_input.s"
+        # A temp file, not a relative path: this runs before the cd into the
+        # scratch dir, so a bare name would litter the repo root.
+        M2C_TMP=$(mktemp -t m2c_input.XXXXXX.s)
+        if python3 "$ROOT/tools/define_shared_labels.py" "$ASM_PATH" "$M2C_TMP"; then
+            M2C_ASM="$M2C_TMP"
+        else
+            rm -f "$M2C_TMP"
         fi
     fi
 
