@@ -63176,3 +63176,116 @@ after a switch is not the same as a call per case - see "sched1 sets the
 cross-jump boundary" - because cross-jumping stops just after the CALL_INSN when
 each case's argument insns hold different pseudos, which is what leaves three
 `lb a0,0xEAF; j <call>` tails feeding one `jal`.
+
+## An 18-byte `lw`x4 + `lh` copy is `__builtin_memcpy` of a 3x3, not a struct assign
+
+Copying a `MATRIX`'s rotation into a `GsCOORDINATE2` shows up as four aligned
+word moves followed by `lh`/`nop`/`sh`:
+
+```
+lw a2,0(s1); lw a3,4(s1); lw t0,8(s1); lw t1,0xc(s1)
+sw a2,4(a0); sw a3,8(a0); sw t0,0xc(a0); sw t1,0x10(a0)
+lh a2,0x10(s1)
+nop
+sh a2,0x14(a0)
+```
+
+That is one `movstrsi` of **18 bytes at alignment 4**: `output_block_move`
+(mips.c) drains the block four scratch registers at a time - `a2`/`a3`/`t0`/`t1`
+- and falls to `lh`/`sh` for a 2-byte remainder, emitting the load-delay `nop`
+itself. No struct assignment can produce it, because C rounds a struct's size up
+to its alignment: an `s16 m[9]` wrapper is 18 bytes but alignment 2, so it comes
+out `lwl`/`lwr`, and adding an `s32` member to get alignment 4 makes the size 20,
+which is five word moves. Write `__builtin_memcpy(dst->coord.m, src->m,
+sizeof(dst->coord.m))`; `get_pointer_alignment` on a `MATRIX*` supplies the 4.
+
+Nine separate `m[i][j] = ...` assignments instead give nine `lhu`/`sh` pairs, and
+splitting it as a 16-byte struct assignment plus one `s16` store gives the right
+instructions but lets the scheduler hoist a following store into the load-delay
+slot, because two stores through the same base at different offsets have no
+dependency. Keeping it as the single block-move insn is what stops that.
+
+## Three `return arg0;` in an inlined helper cost the caller's pointer a register
+
+`func_actor_444000_80132808` came out 99.1% with only a three-way permutation of
+`$s2`/`$s3`/`$s4` left: the coordinate pointer sat in `$s2` where the target has
+`$s4`. Global allocation hands out hard registers in priority order, and
+`allocno_compare` (global.c) ranks by
+
+```
+floor_log2 (REG_N_REFS) * REG_N_REFS / REG_LIVE_LENGTH
+```
+
+so the ranking is dominated by the reference *count*, and `floor_log2` makes it
+step. `tools/trace_gcc.py --regs` prints the observed inputs:
+
+```
+global a0 [80]: refs=7 span=108 priority=1296 -> $s2     (wanted $s4)
+global a1 [81]: refs=2 span=24  priority=833
+global a4 [90]: refs=3 span=38  priority=789
+```
+
+Four of those seven references are the real uses. The other three were the
+`return arg0;` in an inlined helper: the inliner emits one `(set result arg0)`
+per exit, and cross-jumping only merges them in the post-reload `jump2` pass -
+long after `life_analysis` counted them. Rewriting the helper to fall out of its
+loop and `return arg0;` once dropped refs to 5 and, with `floor_log2` stepping
+2 -> 2 but the count falling, put the pointer below both sentinel pseudos, which
+took `$s2`/`$s3` and left it `$s4`. Exact match, no pins.
+
+Two things follow. A pure register permutation with every instruction otherwise
+in place is an allocation *priority* problem, not a conflict problem, so count
+references before reaching for a pin. And an inline helper's exit count is a
+tuning knob: each extra `return <caller value>;` is another reference charged to
+the caller's pseudo.
+
+## A helper that returns the pointer it was passed gives the store base its own pseudo
+
+The same function stores the result through `$a0`, set by a `move a0,s4` that
+sits at the head of the merged tail block and is duplicated into a branch delay
+slot. That is not argument setup - argument setup is a hard-register copy whose
+scheduling priority is one above the call, so it lands *late* in the block. It is
+a pseudo holding the caller's pointer, allocated to `$a0` because it dies into
+the call, and the block's stores address off it.
+
+The shape that produces it is an inlined helper returning the pointer it was
+given:
+
+```c
+static __inline__ GsCOORDINATE2* Localize(GsCOORDINATE2* arg0, MATRIX* arg1)
+{
+    ...
+    return arg0;
+}
+...
+out = Localize(coord, rotation);
+__builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+out->flg = 0;
+Gp_UpdateCoord(out);
+```
+
+The result pseudo is assigned where the helper's exits merge, which is exactly
+where the `move` appears, and because the block-move now depends on it the copy
+outranks everything else in the block and is scheduled first. An inline helper
+whose body simply *contains* the tail does not work: GCC maps a parameter whose
+argument is already a pseudo straight through, so the copy never exists.
+
+## A loop sentinel compared against a literal needs its own local
+
+Where the target materialises `&Gfx_ViewCoord` twice - once into `$v0` for an
+early-exit compare, then `move s2,v0` for the loop's compare - passing the same
+address as a helper parameter gives only one pseudo: the parameter is
+initialised at the top of the inlined body and cse folds the literal compare
+into it. Assigning a local *after* the early exit reproduces the pair, since cse
+then rewrites the second `lui`/`lo_sum` as a copy of the register already
+holding it but cannot propagate into the loop, which is a different extended
+basic block.
+
+```c
+coord = arg0->sub;
+if (coord != &Gfx_ViewCoord) {
+    view = &Gfx_ViewCoord;      /* becomes `move s2,v0` */
+    ...
+    while (1) { ...; if (coord == view) break; }
+}
+```
