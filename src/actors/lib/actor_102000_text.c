@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_102000.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -18,6 +20,7 @@ s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s32 Gp_LcgState;
+extern s32 D_8011572C;
 extern s8  D_80115419;
 extern s16 Actor02000_D03784[];
 extern s32 Actor02000_D15DEC[];
@@ -785,6 +788,27 @@ void Actor02000_Fn03644(void* arg0, Task* task)
     work->field_6D8 = 0xA;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03690);
+void Actor02000_Fn03690(void* arg0, Task* task)
+{
+    GpEffWork*      effect;
+    Task*           parent;
+    Actor02000Work* work;
+    s16             count;
+
+    parent                             = task->parent;
+    work                               = (Actor02000Work*)parent->idMap;
+    ((TmdObject*)task->extra)->field_C = (u16)((TmdObject*)parent->extra)->field_C;
+    if (work->field_6D8 > 0) {
+        count           = (u16)work->field_6D8 - 1;
+        work->field_6D8 = count;
+        if (count == 0) {
+            effect = Gp_SpawnEff(D_8011572C | 0x80000000,
+                                 &((TmdObject*)task->parent->extra)->field_8[7], 0, NULL);
+            if (effect != NULL) {
+                Task_Reparent(task, effect->field_0);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03728);
