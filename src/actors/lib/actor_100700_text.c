@@ -746,7 +746,17 @@ void Actor00700_Fn01D80(Actor00700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01E44);
+void Actor00700_Fn01E44(Actor00700* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+}
 
 void Actor00700_Fn01E9C(Actor00700* arg0)
 {
