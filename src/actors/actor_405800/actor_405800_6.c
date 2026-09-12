@@ -4,6 +4,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "actors/actor_405800.h"
 #include "actors/actors_shared_8013a0b0.h"
 
@@ -14,6 +15,7 @@ void func_8009EA50(s16 arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80136E14(Task* arg0);
 void func_actor_405800_8013706C(Task* arg0, s16 arg1);
+void func_actor_405800_80137994(Task* arg0, s32 arg1);
 void func_actor_405800_801379F8(Task* task);
 void func_actor_405800_8013A0F4(Task* arg0);
 void func_actor_405800_8013A1E0(Task* task, s16 arg1, s16 arg2);
@@ -219,7 +221,24 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_8013967C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139700);
+void func_actor_405800_80139700(Task* task)
+{
+    Actor405800Work* work = (Actor405800Work*)task->idMap;
+    Actor405800Work* work2;
+
+    work->field_84 += -(s16)work->field_84 >> 2;
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (work->field_88C == 0) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        }
+        func_actor_405800_80137994(task, 0x3C);
+        work->field_84   = 0;
+        work2            = (Actor405800Work*)task->idMap;
+        work2->field_846 = 2;
+        work2->field_848 = 0;
+        work->field_88F  = 0;
+    }
+}
 
 void func_actor_405800_801397B8(Task* task)
 {
