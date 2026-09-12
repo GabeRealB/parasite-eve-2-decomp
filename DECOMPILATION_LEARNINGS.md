@@ -3,6 +3,45 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Reuse one `s32` for the constants in both arms of an if/else so the join store is `$v0`
+
+A lighting init that writes `0xFF` / `0` / `0` then `0x10` on one path and
+`0x1000` / `0xFF` / `0` then `0x2000` on the other, then stores the last
+value after the join, needs those numbers to be sequential assignments to
+**one** local. A dedicated `scale` phi is its own allocno (`$v1`): GCC
+hoists `li v1, 0x2000` into the `bne`-to-else delay slot and `li v1, 0x10`
+above `li v0, 0xFF`, then sinks the join store into the following `jal`
+delay (`99.2%`, `delete=1` from the missing `nop`).
+
+```c
+if (mode == 1 || mode == 3 || mode == 5 || mode == 6) {
+    val = 0xFF;
+    work->field_A20 = val;
+    val = 0x10;
+    work->field_A24 = 0;
+    work->field_A28 = 0;
+} else {
+    val = 0x1000;
+    work->field_A24 = val;
+    val = 0xFF;
+    work->field_A28 = val;
+    val = 0x2000;
+    work->field_A20 = 0;
+}
+work->field_A2C = val;
+SOFT_BARRIER();
+func_8009EA50(work->field_A20);
+```
+
+The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
+`val` is `0x10` / `0x2000` in `$v0`; the join `sh` is after the join. The
+barrier is the existing "store out of the next delay slot" rule: without it
+`dbr` still steals `sh A2C` into the `jal` slot.
+
+Example: `func_actor_400500_80135414`. Inputs: `base_2.i`
+`432c3463a92dbded850b096bf5f64ab24c3065db351eb175d46826f119b955f0`, `base_3.i`
+`876058f28b4d181b9d6f52e6e872d74235dea662415994a9a1a4bc13f3360bbb`.
+
 ## Migrated `D_*` tables have no `D_*.s` after a re-split
 
 `migrate_rodata_to_functions` folds a function-pointer table into that

@@ -79,7 +79,7 @@ STATIC_ASSERT_SIZEOF(Actor400500AnimStride, 0x28);
 /// `Mem_Calloc(0xA50, 0)` and stores the result in the `Task::idMap` slot
 /// (0x1C), which an enemy actor reuses for its own work block, so it is *not*
 /// a `TaskIdMap` here. Reach it with `(Actor400500Work*)task->idMap`. The
-/// same function hands `&work->field_97C` / `&work->field_95C` to the
+/// same function hands `&work->lightMtx` / `&work->colorMtx` to the
 /// `TmdObject` at `Task::extra` (`field_1C` / `field_20`) and `work->rec0`
 /// to `GpEnemy::field_54`; the size below is the allocation, not a guess.
 /// `obj1`/`obj2` share `rec1`; `obj3`/`obj4` share `rec2`.
@@ -106,7 +106,7 @@ typedef struct Actor400500Work {
     /* 0x8E8 */ GpObj              obj3;
     /* 0x908 */ GpObj              obj4;
     /* 0x928 */ GpRec18            rec2[1];
-    /* 0x940 */ byte               pad_940[8];
+    /* 0x940 */ GpEffArg           eff_940; // part-3 coord, scale 0x100, count 3
     /* 0x948 */ s16                field_948;
     /* 0x94A */ s16                field_94A;
     /* 0x94C */ s16                field_94C;
@@ -114,7 +114,10 @@ typedef struct Actor400500Work {
     /* 0x950 */ u16                field_950; // low half of root coord.t[0]
     /* 0x952 */ byte               pad_952[2];
     /* 0x954 */ u16                field_954; // low half of root coord.t[2]
-    /* 0x956 */ byte               pad_956[0x4A];
+    /* 0x956 */ byte               pad_956[6];
+    /* 0x95C */ MATRIX             colorMtx;  // TmdObject::field_20
+    /* 0x97C */ MATRIX             lightMtx;  // TmdObject::field_1C
+    /* 0x99C */ byte               pad_99C[4];
     /* 0x9A0 */ Actor400500ViewPos field_9A0;
     /* 0x9A6 */ byte               pad_9A6[0x16];
     /* 0x9BC */ s16                field_9BC;

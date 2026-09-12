@@ -3,6 +3,7 @@
 
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -33,10 +34,13 @@ extern u8 D_actor_400500_8014393C[];
 extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
-extern TaskDesc D_actor_400500_80153D48;
-extern u16      D_actor_400500_80153DB4[];
-extern u8       D_actor_400500_80153DD4[];
-extern s32      Gp_LcgState;
+extern GpPairSrcE D_actor_400500_80153C90;
+extern u8         D_actor_400500_80153CA0[];
+extern u8         D_actor_400500_80153CC0[];
+extern TaskDesc   D_actor_400500_80153D48;
+extern u16        D_actor_400500_80153DB4[];
+extern u8         D_actor_400500_80153DD4[];
+extern s32        Gp_LcgState;
 
 void func_8009EA50(s32 arg0);
 void func_actor_400500_80132628(Task* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -659,7 +663,130 @@ void func_actor_400500_80134B88(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80134D6C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80135414);
+void func_actor_400500_80135414(Task* arg0)
+{
+    TmdObject*             extra;
+    GpEnemy*               enemy;
+    GsCOORDINATE2*         coord;
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500Work*       work4;
+    Actor400500Work*       work5;
+    Actor400500Work*       work6;
+    Actor400500Work*       work7;
+    Actor400500AnimStride* stride;
+    GsCOORDINATE2*         player;
+    GsCOORDINATE2*         coord2;
+    TmdObject*             extra2;
+    s32                    i;
+    s32                    flag;
+    s32                    val;
+    u8                     mode;
+
+    extra       = arg0->extra;
+    enemy       = arg0->spawnArg2;
+    coord       = extra->field_8;
+    arg0->idMap = Mem_Calloc(0xA50, 0);
+    work        = (Actor400500Work*)arg0->idMap;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, arg0);
+        return;
+    }
+    extra->field_1C    = &work->lightMtx;
+    extra->field_20    = &work->colorMtx;
+    extra->field_C     = 0;
+    enemy->field_4     = &coord->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &((TmdObject*)arg0->extra)->field_8[3];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_54     = (s32)work->rec0;
+    enemy->field_50     = &D_actor_400500_80153C90;
+    enemy->field_40 = enemy->field_42 = D_actor_400500_80153C90.field_4;
+    func_800B3F84(&work->anim, D_actor_400500_80153CC0, (GpAnimObj*)extra, work->pad_2E4,
+                  work->slots);
+    coord->sub       = &Gfx_ViewCoord;
+    work2            = (Actor400500Work*)arg0->idMap;
+    work2->field_9F8 = 0x18;
+    work2->field_9FE = 2;
+    work2->field_9FA = 2;
+    work3            = (Actor400500Work*)arg0->idMap;
+    if (work3->field_9FA == 1) {
+        if ((s16)work3->field_9FC != work3->field_9FE) {
+            work3->field_A00 = 0;
+        } else {
+            work3->field_A00 = func_actor_400500_8013DD8C(arg0, work3->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work3->field_9FA = 3;
+    } else if (work3->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work3->field_9FA = 3;
+        work3->field_A00 = 0;
+    } else if (work3->field_9FA == 3) {
+        work3->field_A00 = (u16)work3->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work3 + 1;
+    do {
+        stride->field_1D = (u8)work3->field_9F8;
+        Gp_AnimTickIndex(&work3->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+    arg0->field_24 = D_actor_400500_80153CA0;
+    func_actor_400500_80132C54(arg0);
+    work4 = (Actor400500Work*)arg0->idMap;
+    if (Gp_ActorSlots[0] != NULL) {
+        player              = Gp_ActorSlots[0]->extra->field_8;
+        work4->field_9D0.vx = (u16)player->coord.t[0];
+        work4->field_9D0.vy = (u16)player->coord.t[1];
+        work4->field_9D0.vz = (u16)player->coord.t[2];
+    }
+    work5  = (Actor400500Work*)arg0->idMap;
+    mode   = Game_Session->field_5;
+    extra2 = arg0->extra;
+    if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
+        val              = 0xFF;
+        work5->field_A20 = val;
+        val              = 0x10;
+        work5->field_A24 = 0;
+        work5->field_A28 = 0;
+    } else {
+        val              = 0x1000;
+        work5->field_A24 = val;
+        val              = 0xFF;
+        work5->field_A28 = val;
+        val              = 0x2000;
+        work5->field_A20 = 0;
+    }
+    work5->field_A2C = val;
+    SOFT_BARRIER();
+    func_8009EA50(work5->field_A20);
+    extra2->field_2C = work5->field_A24;
+    func_actor_400500_80132000(arg0);
+    func_actor_400500_8013226C(arg0);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    coord2                = ((TmdObject*)arg0->extra)->field_8;
+    work->eff_940.field_4 = 0x100;
+    work->eff_940.field_6 = 3;
+    work->eff_940.field_0 = &coord2[3];
+    work6                 = (Actor400500Work*)arg0->idMap;
+    work6->field_A06      = 6;
+    work6->field_A08      = 0;
+    work7                 = (Actor400500Work*)arg0->idMap;
+    D_80062735            = 2;
+    if (((work7->field_A46 >= 0) || ((u8)work7->field_A46 & 0x7F)) && (work7->field_A30 == 0)) {
+        flag             = 0x80;
+        work7->field_A46 = flag;
+        work7->field_A47 = 0;
+    }
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", ActorsShared801328ccTable);
 
