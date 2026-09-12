@@ -2,10 +2,13 @@
 
 #include "actors/actor_102100.h"
 #include "gameplay/3A34.h"
+#include "main/gfx.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+
+#include <psyq/inline_c.h>
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
 
@@ -138,7 +141,77 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn011C4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn014E4);
+s32 Actor02100_Fn014E4(Actor02100* arg0)
+{
+    Actor02100Fn014E4Scratch* scratch;
+    Actor02100Work*           work;
+    GsCOORDINATE2*            coord;
+    GsCOORDINATE2*            targetCoord;
+    VECTOR*                   vec;
+    GpLockPos*                lock;
+    u8*                       head;
+    s32                       result;
+    s32                       state;
+
+    work   = arg0->field_1C;
+    coord  = arg0->field_2C->field_8;
+    result = 0;
+    if (work->field_140 == NULL) {
+        return result;
+    }
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    scratch               = (Actor02100Fn014E4Scratch*)(head - 0x18);
+    *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+    vec                   = &scratch->vec;
+    state                 = work->field_180;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state < 2) {
+        goto cleanup;
+    }
+    if (state == 2) {
+        goto case2;
+    }
+    goto cleanup;
+
+case1:
+    if (work->field_178 == 4) {
+        targetCoord = work->field_140->field_2C->field_8;
+    } else {
+        targetCoord = &work->field_140->field_2C->field_8[3];
+    }
+    vec->vx = targetCoord->workm.t[0];
+    vec->vy = targetCoord->workm.t[1];
+    vec->vz = targetCoord->workm.t[2];
+    ApplyTransposeMatrixLV(&coord->workm, vec, &work->field_108);
+    result = 1;
+    goto cleanup;
+
+case2:
+    if (work->field_140->field_20->field_40 <= 0) {
+        goto cleanup;
+    }
+    lock = (GpLockPos*)&work->field_140->field_20->field_10;
+    Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
+    scratch->shortVec.vx = *(u16*)&scratch->vec.vx;
+    scratch->shortVec.vy = *(u16*)&scratch->vec.vy;
+    scratch->shortVec.vz = *(u16*)&scratch->vec.vz;
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(&scratch->shortVec);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stlvnl(vec);
+    scratch->vec.vx += Gfx_ViewCoord.workm.t[0];
+    scratch->vec.vy += Gfx_ViewCoord.workm.t[1];
+    scratch->vec.vz += Gfx_ViewCoord.workm.t[2];
+    ApplyTransposeMatrixLV(&coord->workm, &scratch->vec, &work->field_108);
+    result = 1;
+
+cleanup:
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x18;
+    return result;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn016EC);
 

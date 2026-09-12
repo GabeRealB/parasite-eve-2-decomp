@@ -23,9 +23,17 @@ typedef struct Actor02100Params {
 } Actor02100Params;
 
 typedef struct Actor02100Spawn {
-    /* 0x00 */ byte              pad_0[0x3C];
+    /* 0x00 */ byte              pad_0[0x10];
+    /* 0x10 */ byte              field_10[0x2C];
     /* 0x3C */ Actor02100Params* field_3C;
+    /* 0x40 */ s16               field_40;
 } Actor02100Spawn;
+
+typedef struct Actor02100Fn014E4Scratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR shortVec;
+} Actor02100Fn014E4Scratch;
+STATIC_ASSERT_SIZEOF(Actor02100Fn014E4Scratch, 0x18);
 
 /// 0x20-byte scratch block taken from `G_SCRATCH_HEAD` by
 /// `Actor02100_Fn00DCC`: the world-space delta between the two coordinates,
@@ -37,36 +45,39 @@ typedef struct Actor02100Sight {
 } Actor02100Sight;
 STATIC_ASSERT_SIZEOF(Actor02100Sight, 0x20);
 
+struct Actor02100;
+
 typedef struct Actor02100Work {
-    /* 0x000 */ byte  pad_0[0x40];
-    /* 0x040 */ byte  field_40[0x38];
-    /* 0x078 */ byte  field_78[0x50];
-    /* 0x0C8 */ byte  field_C8[0x50];
-    /* 0x118 */ s16   field_118;
-    /* 0x11A */ s16   field_11A;
-    /* 0x11C */ s16   field_11C;
-    /* 0x11E */ byte  pad_11E[2];
-    /* 0x120 */ s16   field_120;
-    /* 0x122 */ s16   field_122;
-    /* 0x124 */ s16   field_124;
-    /* 0x126 */ byte  pad_126[0x1A];
-    /* 0x140 */ void* field_140;
-    /* 0x144 */ byte  pad_144[0x20];
-    /* 0x164 */ s32   field_164;
-    /* 0x168 */ s32   field_168;
-    /* 0x16C */ byte  pad_16C[6];
-    /* 0x172 */ s16   field_172;
-    /* 0x174 */ s16   field_174;
-    /* 0x176 */ byte  pad_176[2];
-    /* 0x178 */ s16   field_178;
-    /* 0x17A */ s16   field_17A;
-    /* 0x17C */ s16   field_17C;
-    /* 0x17E */ s16   field_17E;
-    /* 0x180 */ s16   field_180;
-    /* 0x182 */ byte  pad_182[4];
-    /* 0x186 */ s16   field_186;
-    /* 0x188 */ s16   field_188;
-    /* 0x18A */ byte  pad_18A[0x12];
+    /* 0x000 */ byte               pad_0[0x40];
+    /* 0x040 */ byte               field_40[0x38];
+    /* 0x078 */ byte               field_78[0x50];
+    /* 0x0C8 */ byte               field_C8[0x40];
+    /* 0x108 */ VECTOR             field_108;
+    /* 0x118 */ s16                field_118;
+    /* 0x11A */ s16                field_11A;
+    /* 0x11C */ s16                field_11C;
+    /* 0x11E */ byte               pad_11E[2];
+    /* 0x120 */ s16                field_120;
+    /* 0x122 */ s16                field_122;
+    /* 0x124 */ s16                field_124;
+    /* 0x126 */ byte               pad_126[0x1A];
+    /* 0x140 */ struct Actor02100* field_140;
+    /* 0x144 */ byte               pad_144[0x20];
+    /* 0x164 */ s32                field_164;
+    /* 0x168 */ s32                field_168;
+    /* 0x16C */ byte               pad_16C[6];
+    /* 0x172 */ s16                field_172;
+    /* 0x174 */ s16                field_174;
+    /* 0x176 */ byte               pad_176[2];
+    /* 0x178 */ s16                field_178;
+    /* 0x17A */ s16                field_17A;
+    /* 0x17C */ s16                field_17C;
+    /* 0x17E */ s16                field_17E;
+    /* 0x180 */ s16                field_180;
+    /* 0x182 */ byte               pad_182[4];
+    /* 0x186 */ s16                field_186;
+    /* 0x188 */ s16                field_188;
+    /* 0x18A */ byte               pad_18A[0x12];
 } Actor02100Work;
 STATIC_ASSERT_SIZEOF(Actor02100Work, 0x19C);
 
@@ -110,5 +121,6 @@ void Actor02100_Fn03168(Actor02100* arg0);
 void Actor02100_Fn031C4(Actor02100Ctx* arg0, Actor02100* arg1);
 void Actor02100_Fn032E4(Actor02100* arg0);
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1);
+s32  Actor02100_Fn014E4(Actor02100* arg0);
 
 #endif
