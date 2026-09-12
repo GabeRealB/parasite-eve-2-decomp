@@ -10,9 +10,11 @@
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
@@ -29,6 +31,7 @@
 #define gte_rt_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 extern s16 D_actor_444000_80144A68;
+extern s32 D_actor_444000_80144A6C;
 extern s16 D_actor_444000_80144A70;
 extern s32 Gp_LcgState;
 
@@ -36,8 +39,10 @@ extern s8         D_8007218A;
 extern u8         D_80073BA9;
 extern u8         D_801153F4;
 extern GpAnimSet* D_actor_444000_80161694[];
-extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
-extern u16        Gp_WeaponIdBase[];
+/// Reply buffer the hold state below hands message 0x3F8.
+extern Actor444000Msg3F8 D_actor_444000_80161898;
+extern GpAnimBlk*        Gp_PlayerAnimBlkTbl[];
+extern u16               Gp_WeaponIdBase[];
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_actor_444000_80133010(Actor444000* task);
@@ -681,7 +686,151 @@ void func_actor_444000_801381B0(GpEnemy* enemy, Actor444000Grab* task)
     Actor444000_ShrinkRotation(task->extra->field_8);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80138490);
+/// Rebuilds the model's root coordinate around the yaw it already faces and
+/// rescales it: `ratan2` of the rotation's Z basis gives the yaw,
+/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// `xz` on both horizontal axes and `y` on the vertical one. The working
+/// matrix lives in a frame carved off `G_SCRATCH_HEAD`, which is handed back
+/// once the rotation has been copied onto the coordinate. Written as an inline
+/// so the four scratch-head accesses stay absolute, like
+/// `Actor444000_ShrinkRotation` above.
+static __inline__ void Actor444000_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s32 y)
+{
+    Actor444000RotScratch* sc;
+    s16                    ang;
+
+    sc                                       = (Actor444000RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor444000RotScratch));
+    *(Actor444000RotScratch**)G_SCRATCH_HEAD = sc;
+
+    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle = ang;
+    Gfx_RotMatrixY(&sc->m, ang, 1);
+    sc->scale.vx = xz;
+    sc->scale.vy = y;
+    sc->scale.vz = xz;
+    ScaleMatrix(&sc->m, &sc->scale);
+
+    coord->coord.m[0][0] = sc->m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+}
+
+/// Squared-distance test on a horizontal gap, run out of a `VECTOR3` carved
+/// off `G_SCRATCH_HEAD`: the vector holds the gap's x and z beside a 1000-unit
+/// reach, each component is squared in place, and the result says whether the
+/// gap is longer than the reach.
+static __inline__ s32 Actor444000_OutOfReach(SVECTOR* gap)
+{
+    VECTOR3* v;
+
+    v                          = (VECTOR3*)(*(u8**)G_SCRATCH_HEAD - sizeof(VECTOR3));
+    *(VECTOR3**)G_SCRATCH_HEAD = v;
+    v->vx                      = gap->vx;
+    v->vy                      = gap->vz;
+    v->vz                      = 1000;
+    v->vx                      = v->vx * v->vx;
+    v->vy                      = v->vy * v->vy;
+    v->vz                      = v->vz * v->vz;
+    *(u8**)G_SCRATCH_HEAD      = *(u8**)G_SCRATCH_HEAD + sizeof(VECTOR3);
+
+    return v->vx + v->vy >= v->vz;
+}
+
+/// Rise state of the enemy dispatched through `D_actor_444000_80131EA8`: for
+/// the first nine steps the model is stretched taller and thinner each step --
+/// horizontally `step * 400 + 0x800` and vertically `0x800 / step` -- around
+/// the yaw it already faces. On step 7 it is squashed to 0x17A0 wide at normal
+/// height, and if the player is within 1000 units horizontally, is not in mode
+/// 2, still has HP and answers the 0x3F8 query, the overlay's own animation-set
+/// table is sent as message 0x3FF and the take-over is latched in `field_1B2`.
+/// The task steps on once the count passes ten with no animation installed,
+/// once the latched animation has been released, or after 200 steps. Every
+/// step refreshes the model's colour from its world position and damps the two
+/// shake terms. Bails to `Gp_DestroyEnemy` when the overlay is shutting down,
+/// cancelling a still-installed animation on the way out.
+void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work;
+    Task*                player;
+    GameActor*           actor;
+    WipSysConfig*        cfg;
+    SVECTOR              gap;
+    VECTOR               pos;
+    s16                  step;
+    s16                  scale;
+    s32                  shrink;
+
+    work   = task->field_1C;
+    player = Game_GetPtrSlot(3);
+    actor  = (GameActor*)player->idMap;
+    cfg    = &Wip_SysConfig;
+
+    if (D_actor_444000_80144A68 == 1) {
+        if (work->field_1B2 == 1) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+            work->field_1B2 = 0;
+        }
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    step = ++work->field_1AC;
+    if (step < 10) {
+        scale  = step * 0x190 + 0x800;
+        shrink = 0x800 / step;
+        Actor444000_ScaleRotation(task->extra->field_8, scale, shrink);
+    }
+
+    if (work->field_1AC == 7) {
+        Actor444000_ScaleRotation(task->extra->field_8, 0x17A0, 0x800);
+
+        gap.vx = task->extra->field_8->coord.t[0] -
+                 ((TmdObject*)player->extra)->field_8->coord.t[0];
+        gap.vy = 0;
+        gap.vz = task->extra->field_8->coord.t[2] -
+                 ((TmdObject*)player->extra)->field_8->coord.t[2];
+
+        if (Actor444000_OutOfReach(&gap) == 0 && actor->field_954 != 2 &&
+            cfg->field_18 > 0) {
+            D_actor_444000_80161898.field_14 = 0x28;
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161898, 0) == 0) {
+                D_actor_444000_80144A6C = 1;
+                work->anim.field_0      = D_actor_444000_80161694;
+                work->anim.field_4      = 1;
+                work->anim.field_8      = 0;
+                work->anim.field_C      = 3;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+                work->field_1B2 = 1;
+            }
+        }
+    }
+
+    if (work->field_1AC >= 11 && work->field_1B2 == 0) {
+        task->state++;
+    } else if (work->field_1B2 == 1 && D_actor_444000_80144A6C == 0) {
+        task->state++;
+    } else if (work->field_1AC >= 0xC9) {
+        D_actor_444000_80144A6C = 0;
+        task->state++;
+    }
+
+    pos.vx = task->extra->field_8->workm.t[0];
+    pos.vy = task->extra->field_8->workm.t[1];
+    pos.vz = task->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    work->colorMtx.t[1] >>= 1;
+    work->colorMtx.t[2] >>= 2;
+}
 
 /// Hold state of the enemy dispatched through `D_actor_444000_80131EA8`: once
 /// `field_1A8` says the take-over is armed and `field_1B2` says the player

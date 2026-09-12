@@ -187,6 +187,16 @@ typedef union Actor444000Msg7DB {
 } Actor444000Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor444000Msg7DB, 0x4);
 
+/// Reply buffer `func_actor_444000_80138490` passes with message 0x3F8, held
+/// at `D_actor_444000_80161898`; only `field_14` is seeded (to 0x28) before
+/// the query. The same shape as `Actor400600Msg3F8`.
+typedef struct Actor444000Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+    /* 0x18 */ byte pad_18[0x8];
+} Actor444000Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor444000Msg3F8, 0x20);
+
 /// Scratchpad frame `func_actor_444000_8013ACD0` carves off `G_SCRATCH_HEAD` to
 /// rebuild the host's root coordinate: `Gfx_RotMatrixY` writes `m`, `scale`
 /// is the 1.0 / 0.0 / 1.0 vector `ScaleMatrix` applies to it, and `angle` is

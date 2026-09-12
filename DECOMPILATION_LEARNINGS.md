@@ -63585,3 +63585,98 @@ A `u8` local instead is worse in both directions: GCC trusts `PROMOTE_MODE` and
 emits neither `andi`, and an explicit `(u8)(spin - 1)` assigned back to the
 variable makes the `sb` depend on the truncation, so the store schedules after
 it. `func_actor_444000_8013A3AC` is the example.
+
+## Absolute loads from a fixed address only survive inside a `static __inline__`
+
+`memory_address()` in `explow.c` forces a constant MEM address into a pseudo
+at expand time - the comment there is literally "By passing constant addresses
+thru registers we get a chance to cse them". So `*(u8**)G_SCRATCH_HEAD`
+expands to `(set (reg) (const_int 0x1F8003FC))` plus `(mem (reg))`, never
+`(mem (const_int 0x1F8003FC))`. Only `combine` folds it back, and only when the
+address pseudo has a *single* use; CSE merges the per-access pseudos into one
+as soon as the same address is read and written in a block, and that pseudo is
+then multi-use, so the fold never happens. The object grows a
+`lui/ori` pair in a callee-saved register, which also shifts every other
+allocation:
+
+```
+lui  $17,0x1f80        # wrong: address CSE'd into a pseudo
+ori  $17,$17,0x03fc
+lw   $16,0($17)
+                       # target: cc1 emitted `lw $s4,0x1F8003FC`, gas split it
+lui  $s4,0x1f80
+lw   $s4,0x3fc($s4)
+```
+
+`expand_inline_function` is the exception: `integrate.c`'s `try_constants`
+substitutes a pseudo's known constant equivalent into the address and
+re-validates it, and a bare `CONST_INT` is `CONSTANT_ADDRESS_P` on MIPS, so the
+MEM keeps the absolute form however many times the inline touches it. That is
+why the scratchpad helpers in this project (`Actor444000_ShrinkRotation`,
+`Actor444000_RebuildRotation`) are inlines and not open-coded blocks - the
+same TU shows both forms, absolute in the functions that call the inline and
+register-based in the ones that carve the frame in line. If the target loads or
+stores against a fixed address and your attempt materialises the address,
+move the accesses into a `static __inline__`.
+
+## `lui %hi(sym)` + `addiu %lo(sym)` + `lh x,OFF(reg)` means a pointer local
+
+Three instructions for one member read - the symbol address built into a
+register, then a separate displacement - is not a scheduling artefact. Reading
+`Global.field_18` directly gives `(const (plus (symbol_ref) (const_int 24)))`,
+which is `CONSTANT_P`, so combine folds it straight into the MEM and you get
+the two-instruction form `lui %hi(sym+24)` / `lh %lo(sym+24)`. Holding the
+address in a pointer first gives `(set (reg) (symbol_ref))` and
+`(mem (plus (reg) (const_int 24)))`; `(plus (symbol_ref) (const_int))` without
+a wrapping `CONST` is *not* `CONSTANT_P`, so the substituted address fails
+`memory_operand` and combine leaves both insns alone. Write the pointer local
+the original had:
+
+```c
+WipSysConfig* cfg = &Wip_SysConfig;
+...
+if (cfg->field_18 > 0) { ... }
+```
+
+A single-use pointer like this usually loses global allocation and is
+rematerialised by reload into a caller-saved temp (`$t0` here), which is what
+puts the `lui`/`addiu` right at the use site. `func_actor_444000_80138490` and
+`func_800AD6BC` in `src/gameplay/D4.c` are the worked examples.
+
+## An inline that returns a comparison branches through `slt`/`xori`
+
+A relational used directly as an `if` condition is a branch: `do_jump` sees
+`LT_EXPR` and emits `slt` plus the reversed branch. When the condition is the
+*return value* of an inline function, `do_jump` falls into its default case,
+expands the call as a value - `do_store_flag` materialises the comparison with
+the `sge`/`sle` patterns, i.e. `slt` followed by `xori $r,$r,1` - and then
+branches on `!= 0`. So
+
+```
+slt  $v0,$v0,$v1
+xori $v0,$v0,0x1
+bnez $v0,skip
+```
+
+is a reliable fingerprint of `if (SomeInline(...) == 0 && ...)` where the
+inline ends in `return a + b >= c;`. Do not try to reach it by rewriting the
+comparison in place; the extra `xori` only appears when the value crosses a
+function boundary.
+
+## `s16` parameter: the sign-extension is emitted at the use, not at the call
+
+Passing an `s16` local to an `s32` parameter widens it at the argument
+assignment, so `sll`/`sra` land before the call (and before an inline's body).
+Declaring the parameter `s16` moves the pair to the point where the value is
+stored into a wider field inside the callee, which is where the target usually
+has it, and one pair still covers several stores of the same value:
+
+```c
+static __inline__ void Scale(GsCOORDINATE2* coord, s16 xz, s32 y)
+{
+    ...
+    sc->scale.vx = xz;   /* sll/sra here, CSE'd with the vz store */
+    sc->scale.vy = y;
+    sc->scale.vz = xz;
+}
+```
