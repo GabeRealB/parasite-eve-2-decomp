@@ -45502,6 +45502,39 @@ The reverse edit — splitting a reused counter — is the same lever pulled the
 other way, and the existing "Merge a dead local into a later counter to claim
 its callee-saved register" entry is the neighbouring case.
 
+## Two loops in mutually exclusive branches need their *own* counter and pointer
+
+The sharper version of the entry above, when the two loops are the arms of one
+`if`/`else` rather than sequential. `func_actor_444000_8013D810` walks the same
+seven-escort array twice: the reset arm only stores a halfword, the teardown arm
+calls `Tmd_FreeBuffers` on each escort. Writing it with one `escorts` pointer and
+one `i` shared by both arms merges each into a single pseudo whose live range
+spans the teardown arm's calls, so global allocation has to give *all four*
+values callee-saved homes - `$s0`-`$s3`, a 0x28 frame and four save/restore
+pairs. The target uses a 0x20 frame and keeps the call-free arm's pair in
+`$a1`/`$a2`.
+
+Declaring a separate pointer and counter per arm was the only change needed,
+93.4% (`regs=38`, `stack=0` because the extra saves shifted rather than grew the
+locals) to 100%:
+
+```c
+if (work->field_4 != 0) {
+    escorts = arg0->field_1C;
+    for (i = 0; i < 7; i++) { /* no call */ }
+} else {
+    dying = arg0->field_1C;
+    for (j = 0; j < 7; j++) { Tmd_FreeBuffers(...); }
+}
+```
+
+The tell is a `regs` leftover where the object dump saves more `$sN` than the
+target and the target's registers for one loop are caller-saved: a caller-saved
+register in the target *is* the statement that the value does not live across a
+call, so any variable sharing that forces it to is wrong. Note that `stack` can
+read 0 even though the frame differs, because the scorer sees the frame size as
+part of the prologue/epilogue instructions rather than as a stack penalty.
+
 ## Step an `s16` field toward zero through an `s32` local, one local per site
 
 A drift vector whose components each walk one unit back towards zero every

@@ -95,7 +95,49 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013D128);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013D810);
+/// Reset/teardown handler: when the work block is asking for a reset, arm the
+/// re-spawn sequence and push the host's model flag word onto each of the seven
+/// escorts' models. Otherwise run the ordinary re-arm while the sub-state
+/// counter is still below 0xA, and once it reaches 2 release the host's and
+/// every escort's model buffers.
+void func_actor_444000_8013D810(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    Actor444000Work* dying;
+    s16              i;
+    s16              j;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        escorts                            = arg0->field_1C;
+        work->field_7F3                    = 3;
+        ((TmdObject*)arg0->extra)->field_C = 0x80;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        work->field_7B3 = 0xA;
+        work->field_7B0 = 2;
+        work->field_6   = 0;
+        work->field_7B6 = 0x10;
+        func_actor_444000_8013441C(arg0);
+    } else {
+        if (work->field_6 < 0xA) {
+            func_actor_444000_8013441C(arg0);
+        }
+        if (work->field_6 == 2) {
+            dying = arg0->field_1C;
+            Tmd_FreeBuffers((TmdObject*)arg0->extra);
+            for (j = 0; j < 7; j++) {
+                if (dying->field_ECC[j] != NULL) {
+                    Tmd_FreeBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013D96C);
 
