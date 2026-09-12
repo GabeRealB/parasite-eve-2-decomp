@@ -386,8 +386,19 @@ elif [[ "$BOOTSTRAP" == true ]]; then
         M2C_FUNC_ARG=(-f "$FUNC_STEM")
     fi
 
+    # A shared unit's branch targets are symbols the linker fills in per
+    # overlay, so they are referenced but never defined in the .s and m2c stops
+    # at "Cannot find branch target". Reconstruct them into a copy for m2c
+    # only; a file without such labels comes through byte-identical.
+    M2C_ASM="$ASM_PATH"
+    if grep -qE '\b\w+_L[0-9A-F]+\b' "$ASM_PATH" 2>/dev/null; then
+        if python3 "$ROOT/tools/define_shared_labels.py" "$ASM_PATH" "m2c_input.s"; then
+            M2C_ASM="m2c_input.s"
+        fi
+    fi
+
     set +e
-    M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c "${M2C_FUNC_ARG[@]}" "${CONTEXT_ARG[@]}" "$ASM_PATH" "${JTBL_ASM[@]}" 2>&1)
+    M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c "${M2C_FUNC_ARG[@]}" "${CONTEXT_ARG[@]}" "$M2C_ASM" "${JTBL_ASM[@]}" 2>&1)
     M2C_EXIT_CODE=$?
     set -e
 
