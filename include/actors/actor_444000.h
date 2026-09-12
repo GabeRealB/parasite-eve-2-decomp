@@ -3,8 +3,11 @@
 
 #include "common.h"
 
-/// Per-actor work block for the `actor_444000` overlay, reached through the
-/// `Task::idMap` slot (0x1C) rather than being a `TaskIdMap` here.
+#include "main/task.h"
+
+/// Per-actor work block for the enemy task `D_actor_444000_80161878` points
+/// at, reached through the `Task::idMap` slot (0x1C) rather than being a
+/// `TaskIdMap` here.
 ///
 /// `func_actor_444000_8013AFF8` allocates it with `Mem_Calloc(0xF24, 0)` and
 /// stores the result in that slot, so the size below is the allocation rather
@@ -14,15 +17,35 @@
 /// byte at 0xEAC written by `func_actor_444000_80143490`. Fill in the padding
 /// as the remaining functions are matched.
 typedef struct Actor444000Work {
-    /* 0x000 */ s16  field_0;  // state index
-    /* 0x002 */ byte pad_2[0x2A];
-    /* 0x02C */ u16  field_2C; // action index, switched on by func_actor_444000_80132054
-    /* 0x02E */ s16  field_2E; // cleared whenever field_2C is set
-    /* 0x030 */ byte pad_30[0xE7C];
+    /* 0x000 */ s16  field_0; // state index
+    /* 0x002 */ byte pad_2[0xEAA];
     /* 0xEAC */ s8   field_EAC;
     /* 0xEAD */ byte pad_EAD[0x77];
 } Actor444000Work;
 STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
+
+/// Work block of the overlay's event/controller task -- the one
+/// `D_actor_444000_80161860` points at, which is a different and much smaller
+/// block than the enemy's `Actor444000Work` above.
+///
+/// `func_actor_444000_80132358` allocates it with `Mem_Calloc(0x34, 0)`,
+/// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::idMap` slot, so
+/// the size is anchored; the same function stores the `Game_GetPtrSlot(3)`
+/// task in `field_20` and publishes its owning task in
+/// `D_actor_444000_80161860`. `field_20` is the target of every
+/// `Gp_DispatchMsg` the leaf helpers send, and they null-check it first
+/// (`func_actor_444000_801321FC`). `field_2C` is the action index
+/// `func_actor_444000_80132054` switches on, with `field_2E` the sub-state
+/// counter reset alongside it.
+typedef struct Actor444000EventWork {
+    /* 0x00 */ byte  pad_0[0x20];
+    /* 0x20 */ Task* field_20; // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x24 */ byte  pad_24[0x8];
+    /* 0x2C */ u16   field_2C; // action index, switched on by func_actor_444000_80132054
+    /* 0x2E */ s16   field_2E; // cleared whenever field_2C is set
+    /* 0x30 */ byte  pad_30[0x4];
+} Actor444000EventWork;
+STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 
 /// Body/collision object the actor task carries at +0x20 (the `Task::spawnArg2`
 /// slot). Only the halfword at 0x40 is known so far: it is the remaining HP,
@@ -44,6 +67,9 @@ typedef struct Actor444000Msg7DA {
 } Actor444000Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor444000Msg7DA, 0x4);
 
+/// The overlay's enemy task: the same layout as `Task`, named for the two
+/// slots this overlay reaches through it. Not the event task
+/// `D_actor_444000_80161860`, whose `idMap` holds an `Actor444000EventWork`.
 typedef struct Actor444000 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor444000Work* field_1C;

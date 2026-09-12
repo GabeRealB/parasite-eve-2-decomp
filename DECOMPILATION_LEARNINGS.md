@@ -61794,3 +61794,32 @@ Preprocessed SHA256:
 GCC 2.8.1 compiler hash `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. A reused coordinate pointer had two deaths in one block and crossed two calls (`base_1.i.lreg` r82); global allocation put it in s1 and work in s0. The permuter introduced a fresh temporary at the second coordinate load. Each range then died once and local allocation placed both in s0, leaving work in s1. A planned direct split (`base_2.c`) reproduced the paired distance improvement 150 → 35, preserving topology and instruction count. A second planned split of case-specific direction variables changed a twice-dead global v1 value to separate local v0 values, preserving coordinate homes and reaching distance zero. Normal overlay headers retained the exact match.
 
 This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establish a new ranking or hazard rule. Paired source review found no changed values or memory ordering. Input hashes: base_1 `54c13514bd884bbdad45f0b4578ca4e42cafecdc941fecd6bcac8c1a9e39d02d`; base_2 `9ff704a817a14c1b5542e5fe0aa1831132e64a713700ea3fe85f92bec8513627`; base_3 `0d022f0896c3b350e4878c4938ecab681826acd7f36489a1a8e923b7f3ad266b`. Full observations and dumps are retained under `tools/permuter_findings/Actor00700_Fn0268C/`, session `a2fc32754bd943b5b3f0dec2721f4b20`.
+
+## Two overlay globals of the same struct type can own differently-sized work blocks
+
+**Problem.** `actor_444000` publishes two task pointers, `D_actor_444000_80161860`
+and `D_actor_444000_80161878`, and the header had typed both `Actor444000*` with a
+single `Actor444000Work* field_1C`. Fields were then filed into that one struct from
+whichever function touched them, so `field_2C` / `field_2E` (reached through
+`80161860`) and `field_0` / `field_EAC` (reached through `80161878`) shared a
+layout asserted at `0xF24`.
+
+**Symptom.** Nothing. Both bodies matched — a store at a constant offset does not
+care which struct name the offset came from — so the error is invisible to the
+build and only shows up as a wrong `STATIC_ASSERT_SIZEOF` and wrong padding.
+
+**Fix.** Anchor each block to its own allocation before adding a field to it. The
+allocation site names both the size and the owning global:
+`func_actor_444000_80132358` does `Mem_Calloc(0x34, 0)`, stores it in
+`task->idMap` and publishes that task in `80161860`, while
+`func_actor_444000_8013AFF8` does `Mem_Calloc(0xF24, 0)` for `80161878`. Those are
+two structs. The family convention for the smaller one is a separate
+`…EventWork` typedef reached by casting, as in `actor_342000` and `actor_121300`:
+
+```c
+Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+```
+
+Finding the writers is one grep — `grep -rn 'D_<overlay>_<addr>' asm/… | grep 'sw '`
+returns the single publisher of each global, and the `Mem_Calloc` a few lines above
+it gives the size.

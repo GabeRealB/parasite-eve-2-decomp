@@ -13,7 +13,9 @@ extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
 
 extern s16 D_actor_444000_80144A72;
 
-extern Actor444000* D_actor_444000_80161860;
+/// The overlay's event/controller task, whose `idMap` holds an
+/// `Actor444000EventWork`.
+extern Task*        D_actor_444000_80161860;
 extern Actor444000* D_actor_444000_80161878;
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132054);
@@ -24,7 +26,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132608);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8013265C);
+/// Forward a message to the slot-3 task the event work block carries.
+void func_actor_444000_8013265C(s32 arg0)
+{
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+
+    Gp_DispatchMsg(work->field_20, 0x3F3, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132694);
 
@@ -46,7 +54,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 /// with it.
 void func_actor_444000_801327E8(s16 action)
 {
-    Actor444000Work* work = D_actor_444000_80161860->field_1C;
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
 
     work->field_2C = action;
     work->field_2E = 0;
