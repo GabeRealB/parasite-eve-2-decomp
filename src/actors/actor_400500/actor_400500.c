@@ -1028,7 +1028,46 @@ void func_actor_400500_8013A8E4(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013AA98);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013ABE4);
+void func_actor_400500_8013ABE4(Task* arg0)
+{
+    Actor400500Work* work;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    SVECTOR          pos;
+    u16              frame;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    model = (TmdObject*)arg0->extra;
+    coord = model->field_8;
+
+    work->field_A20 = (u16)work->field_A20 + ((s16)(0xFF - (u16)work->field_A20) >> 4);
+    work->field_A24 = (u16)work->field_A24 + ((s16) - (u16)work->field_A24 >> 4);
+    work->field_A28 = (u16)work->field_A28 + (-work->field_A28 >> 4);
+    model->field_2C = work->field_A24;
+    func_8009EA50(work->field_A20);
+
+    work->field_A02 = (u16)work->field_A02 - 0x30;
+    scale.vx        = 0x1000;
+    scale.vy        = work->field_A02;
+    scale.vz        = 0x1000;
+    coord->coord    = work->matrix_808;
+    ScaleMatrix(&coord->coord, &scale);
+    coord->flg = 0;
+
+    frame           = work->field_A04 + 1;
+    work->field_A04 = frame;
+    if ((s16)frame == 0x10) {
+        pos.vx = 0;
+        pos.vy = 0;
+        pos.vz = 0;
+        Gp_SpawnEff(0x600A5, coord, 5, &pos);
+    }
+    if ((s16)work->field_A04 >= 0x41) {
+        model->field_C |= 0x80;
+        work->field_A06 = work->field_A06 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013AD60);
 
