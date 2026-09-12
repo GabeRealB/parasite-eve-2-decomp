@@ -188,6 +188,7 @@ typedef struct {
     void (*funcs[3])(Actor02000Ctx*, Actor02000*);
 } Actor02000StateFuncTable3;
 
+extern Actor02000StateFuncTable3 Actor02000_D00060;
 extern Actor02000StateFuncTable3 Actor02000_D0006C;
 
 /// Location key `Actor02000_Fn0251C` copies out of the session block before

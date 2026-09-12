@@ -916,7 +916,13 @@ void Actor02000_Fn035E0(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn035E8);
+void Actor02000_Fn035E8(Actor02000* arg0)
+{
+    Actor02000StateFuncTable3 sp;
+
+    sp = Actor02000_D00060;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 /// Parents this actor's model to part 7 of its spawner's model, points the
 /// model at the spawner's light and colour matrices and seeds the spawner's
