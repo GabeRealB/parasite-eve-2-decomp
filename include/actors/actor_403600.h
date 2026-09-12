@@ -117,5 +117,6 @@ void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
 u8*  func_actor_403600_80138DCC(Actor403600* arg0);
 s32  func_actor_403600_8013D9A8(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
+void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
 
 #endif

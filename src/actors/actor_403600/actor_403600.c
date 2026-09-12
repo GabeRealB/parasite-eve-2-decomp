@@ -2,6 +2,7 @@
 
 #include "actors/actor_403600.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "psyq/inline_c.h"
@@ -415,7 +416,47 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013DFE0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013E470);
+void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
+{
+    SVECTOR        local;
+    GsCOORDINATE2* coord;
+    s32            angle;
+    s32            x;
+    s32            z;
+    void*          head;
+    void*          vec;
+    void*          matrix;
+    void*          scratch;
+
+    head                      = *(void**)0x1F8003FC;
+    coord                     = (*Gp_ActorSlots)->extra->field_8;
+    *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    vec                       = head - 0x40;
+    *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+    scratch                   = (*(void**)0x1F8003FC = head - 0x7C);
+    *(s16*)((s8*)vec + 4)     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+    matrix                    = head - 0x20;
+    TransposeMatrix(&arg0->workm, matrix);
+    local = *(SVECTOR*)vec;
+    gte_SetRotMatrix(matrix);
+    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stsv(vec);
+    angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    *arg2 = angle;
+    if (angle >= 0x801) {
+        *arg2 = angle - 0x1000;
+    } else if (angle < -0x800) {
+        *arg2 = angle + 0x1000;
+    }
+    x                            = Wip_SysConfig.field_4->t[0] - arg0->coord.t[0];
+    *(s32*)((s8*)scratch + 0x20) = x;
+    *(s32*)((s8*)scratch + 0x24) = Wip_SysConfig.field_4->t[1] - arg0->coord.t[1];
+    z                            = Wip_SysConfig.field_4->t[2] - arg0->coord.t[2];
+    *(s32*)((s8*)scratch + 0x28) = z;
+    *arg1                        = SquareRoot0((x * x) + (z * z));
+    *(void**)0x1F8003FC          = *(void**)0x1F8003FC + 0x7C;
+}
 
 s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
 {
