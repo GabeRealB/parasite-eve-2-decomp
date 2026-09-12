@@ -59,7 +59,8 @@ typedef struct Actor403600Work {
     /* 0x756 */ s16                  field_756;
     /* 0x758 */ byte                 pad_758[6];
     /* 0x75E */ s16                  field_75E;
-    /* 0x760 */ byte                 pad_760[4];
+    /* 0x760 */ u16                  field_760;
+    /* 0x762 */ s16                  field_762;
     /* 0x764 */ s16                  field_764;
     /* 0x766 */ s16                  field_766;
     /* 0x768 */ s16                  field_768;
@@ -117,6 +118,12 @@ typedef struct Actor403600 {
     /* 0x2C */ TmdObject*       field_2C;
     /* 0x30 */ s32              field_30;
 } Actor403600;
+
+typedef struct Actor403600Msg {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ s32   field_4;
+} Actor403600Msg;
+STATIC_ASSERT_SIZEOF(Actor403600Msg, 0x8);
 
 /// 0x18-byte block temporarily taken from `G_SCRATCH_HEAD` while projecting
 /// an actor's origin and calculating its ordering-table depth.

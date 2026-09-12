@@ -5,6 +5,7 @@
 #include "main/wipsys.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -31,6 +32,7 @@
     __asm__ volatile("sw $zero, 1208(%1); addiu %0, %0, 32" : "+r"(head) : "r"(work))
 
 extern u8               D_80071075;
+extern s8               D_8007216C;
 extern u8               D_801153F4;
 extern MATRIX*          D_80073B8C;
 extern s32              D_8005C374;
@@ -40,11 +42,13 @@ extern u32              Gp_LcgState;
 extern u8               D_actor_403600_80150ED4;
 extern TaskDesc         D_actor_403600_801421A0;
 extern s32              D_actor_403600_8016056C;
+extern Actor403600Msg   D_actor_403600_80160568;
 extern s32              D_actor_403600_8016057C[];
 extern Actor403600Point D_actor_403600_801605F4[];
 extern s32              D_actor_403600_80160698;
 extern s32              D_actor_403600_8016069C;
 extern s32              D_actor_403600_801606A0;
+extern GpU16Pair        D_actor_403600_801606A4;
 extern Task*            D_actor_403600_801606A8;
 extern GpU16Pair        D_actor_403600_80150EB0;
 
@@ -995,7 +999,166 @@ s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013EA04);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013F0C0);
+void func_actor_403600_8013F0C0(Actor403600* arg0)
+{
+    s16              temp_v1;
+    s16              temp_v1_2;
+    s16              temp_v1_3;
+    s16              temp_v1_4;
+    s32              temp_s2;
+    s32              temp_s4;
+    s32              var_v0_2;
+    s32              temp_s0;
+    s32              temp_s0_2;
+    s32              temp_s0_3;
+    s32              temp_s0_4;
+    s32              var_v0;
+    u16              temp_v0;
+    register u16     temp_v0_2 asm("v0");
+    GsCOORDINATE2*   temp_a0;
+    GsCOORDINATE2*   temp_a0_2;
+    GsCOORDINATE2*   temp_a0_3;
+    Actor403600Work* temp_a1;
+    Actor403600Work* temp_a1_2;
+    Actor403600Work* temp_a1_3;
+    Actor403600Work* temp_s3;
+
+    temp_s4 = (s32)Gp_ActorSlots[0]->extra->field_8;
+    temp_s3 = arg0->field_1C;
+    switch (D_actor_403600_8016056C) {
+        case 1:
+            temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
+            temp_a1            = arg0->field_1C;
+            temp_a0            = Gp_ActorSlots[0]->extra->field_8;
+            temp_a0->coord.t[0] =
+                (s32)(temp_a0->coord.t[0] +
+                      ((s32)(temp_a0->coord.m[0][2] * temp_a1->field_762) >> 0xC));
+            temp_a0->coord.t[2] =
+                (s32)(temp_a0->coord.t[2] +
+                      ((s32)(temp_a0->coord.m[2][2] * temp_a1->field_762) >> 0xC));
+            if (((s16)temp_s3->field_760 >= 0xC) || (Game_Session->field_4D != 0)) {
+                temp_s3->field_760 = 0;
+                if (func_actor_403600_8013E7D4((s32)arg0, 3) == 0) {
+                    D_8007216C = 7;
+                } else {
+                    D_8007216C = 3;
+                }
+                D_actor_403600_80160568.field_4 = 2;
+                Gp_StateC08.field_6            |= 1;
+                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
+                goto end;
+            }
+            break;
+
+        case 2:
+            temp_v0            = temp_s3->field_760 + 1;
+            temp_s3->field_760 = temp_v0;
+            if ((s16)temp_v0 == 0xC) {
+                Gp_SpawnPadLerp(0xA, 0xFF, 0xFF);
+                D_actor_403600_801606A4.field_0 = 0x14;
+                D_actor_403600_801606A4.field_2 = 0;
+                temp_s2                         = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 6;
+                temp_s0                         = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                SndEvt_EnqueueType6(temp_s2, temp_s0,
+                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+                temp_s2 =
+                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160011;
+                temp_s0_2 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                SndEvt_EnqueueType6(temp_s2, temp_s0_2,
+                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9,
+                               Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+            }
+            var_v0_2 = (s16)temp_s3->field_760 < 0x66;
+            goto check_timeout;
+
+        case 3:
+            temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
+            temp_v1            = (u16)temp_s3->field_762 + 2;
+            temp_s3->field_762 = temp_v1;
+            if ((temp_v1 << 0x10) > 0) {
+                temp_s3->field_762 = 0;
+            }
+            temp_a1_2 = arg0->field_1C;
+            temp_a0_2 = Gp_ActorSlots[0]->extra->field_8;
+            temp_a0_2->coord.t[0] =
+                (s32)(temp_a0_2->coord.t[0] +
+                      ((s32)(temp_a0_2->coord.m[0][2] * temp_a1_2->field_762) >> 0xC));
+            temp_a0_2->coord.t[2] =
+                (s32)(temp_a0_2->coord.t[2] +
+                      ((s32)(temp_a0_2->coord.m[2][2] * temp_a1_2->field_762) >> 0xC));
+            temp_v1_2 = temp_s3->field_73E;
+            if ((temp_v1_2 != 0x3C) && (temp_v1_2 != 0x28) &&
+                ((s16)temp_s3->field_760 == 0xC)) {
+                temp_s2 =
+                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160012;
+                temp_s0_3 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                SndEvt_EnqueueType6(temp_s2, temp_s0_3,
+                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+            }
+            if ((s16)temp_s3->field_760 >= 0x24) {
+                Gp_StateC08.field_6            |= 1;
+                temp_s3->field_760              = 0;
+                D_actor_403600_80160568.field_4 = 5;
+                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
+                goto end;
+            }
+            break;
+
+        case 4:
+            temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
+            temp_v1_3          = (u16)temp_s3->field_762 - 2;
+            temp_s3->field_762 = temp_v1_3;
+            if (temp_v1_3 < 0) {
+                temp_s3->field_762 = 0;
+            }
+            temp_a1_3 = arg0->field_1C;
+            temp_a0_3 = Gp_ActorSlots[0]->extra->field_8;
+            temp_a0_3->coord.t[0] =
+                (s32)(temp_a0_3->coord.t[0] +
+                      ((s32)(temp_a0_3->coord.m[0][2] * temp_a1_3->field_762) >> 0xC));
+            temp_a0_3->coord.t[2] =
+                (s32)(temp_a0_3->coord.t[2] +
+                      ((s32)(temp_a0_3->coord.m[2][2] * temp_a1_3->field_762) >> 0xC));
+            temp_v1_4 = temp_s3->field_73E;
+            if ((temp_v1_4 != 0x3C) && (temp_v1_4 != 0x28) &&
+                ((s16)temp_s3->field_760 == 0xC)) {
+                temp_s2 =
+                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160012;
+                temp_s0_4 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                SndEvt_EnqueueType6(temp_s2, temp_s0_4,
+                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+            }
+            if ((s16)temp_s3->field_760 >= 0x24) {
+                Gp_StateC08.field_6            |= 1;
+                temp_s3->field_760              = 0;
+                D_actor_403600_80160568.field_4 = 6;
+                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
+                goto end;
+            }
+            break;
+
+        case 5:
+        case 6:
+            temp_v0_2          = temp_s3->field_760 + 1;
+            temp_s3->field_760 = temp_v0_2;
+            SOFT_TOUCH_REG(temp_v0_2);
+            var_v0_2 = (s16)temp_v0_2 < 0x28;
+            goto check_timeout;
+    }
+    goto end;
+
+check_timeout:
+    if (var_v0_2 != 0) {
+        goto end;
+    }
+    temp_s3->field_760      = 0;
+    D_actor_403600_8016056C = 0;
+    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
+
+end:
+    return;
+}
 
 void func_actor_403600_8013F608(Actor403600* arg0)
 {
