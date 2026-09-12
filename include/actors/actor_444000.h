@@ -131,7 +131,7 @@ typedef struct Actor444000Work {
     /* 0xE3C */ GsCOORDINATE2 field_E3C;
     /* 0xE8C */ s16           field_E8C; // Gp_GetIdParam2 of the hit group 0 took
     /* 0xE8E */ s16           field_E8E; // Gp_GetIdParam2 of the hit groups 3, 4 and 5 took
-    /* 0xE90 */ byte          pad_E90[0x2];
+    /* 0xE90 */ s16           field_E90; // Gp_GetIdParam2 of the hit groups 6, 7 and 8 took
     /* 0xE92 */ s16           field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
     /* 0xE94 */ byte          pad_E94[0x2];
     /* 0xE96 */ s16           field_E96;
@@ -182,7 +182,7 @@ typedef struct Actor444000Work {
     /* 0xF06 */ byte     pad_F06[0x2];
     /* 0xF08 */ s16      field_F08;
     /* 0xF0A */ s16      field_F0A; // damage pool the hit handler for groups 3, 4 and 5 draws down
-    /* 0xF0C */ byte     pad_F0C[0x2];
+    /* 0xF0C */ s16      field_F0C; // damage pool the hit handler for groups 6, 7 and 8 draws down
     /* 0xF0E */ s16      field_F0E; // damage pool the hit handler for groups 1 and 2 draws down
     /* 0xF10 */ s16      field_F10; // stagger countdown: the tick spins here until it runs out
     /* 0xF12 */ byte     pad_F12[0x2];

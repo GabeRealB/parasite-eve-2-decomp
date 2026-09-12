@@ -32,6 +32,10 @@
 /// with it (see DECOMPILATION_LEARNINGS.md, "Struct-typing a body changes GCC
 /// 2.8.1's aliasing").
 extern s16 D_actor_444000_80144A3C[];
+/// The same six-halfword shape as `D_actor_444000_80144A3C`, one label along:
+/// `[0]` refills `field_F0C`, the pool the hit handler for groups 6, 7 and 8
+/// draws down. Declared as an aggregate for the same aliasing reason.
+extern s16 D_actor_444000_80144A4C[];
 extern s16 D_actor_444000_80144A68;
 extern s16 D_actor_444000_80144A70;
 extern s16 D_actor_444000_80144A72;
@@ -1061,7 +1065,212 @@ out:
     SCRATCH_SP += sizeof(Actor444000HitScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013D128);
+/// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
+/// as `func_actor_444000_8013CA60` runs for groups 3, 4 and 5, with the next
+/// group only scanned when the previous one landed nothing and the part it hit
+/// reported no attack id back. `Gp_GetIdParam0` is called and its kind thrown
+/// away here too.
+///
+/// Damage is the distance-scaled hit -- measured from an offset point rather
+/// than the model origin -- quadrupled when `Gp_RollEnemyChance` fires, then
+/// divided by six (never down to zero unless it already was), and comes off the
+/// host, the second escort and `field_F0C`. Emptying that pool spawns the same
+/// effect again and refills it from `D_actor_444000_80144A4C`. Both effect
+/// spawns and the state change to 0xE are skipped while the boss is in one of
+/// the seven states that ignore hits, while `field_F08` is clear, or while the
+/// player hold is armed.
+///
+/// The second escort carries the damage and the effect, but `sc->angle` is the
+/// yaw of the contact point relative to the *first* escort's facing.
+void func_actor_444000_8013D128(Actor444000* task)
+{
+    Actor444000HitScratch* sc;
+    Actor444000Work*       work;
+    GpEnemy*               host;
+    WipSysConfig*          cfg;
+    GsCOORDINATE2*         coord;
+    GpRec18*               recs;
+    GpRec18*               recs2;
+    GpRec18*               recs3;
+    SVECTOR*               pos;
+    SVECTOR*               pos2;
+    SVECTOR*               pos3;
+    s32                    id;
+    s32                    dx2;
+    s32                    dy2;
+    s32                    dz2;
+    u32                    dmg;
+    s16                    angle;
+    s16                    state;
+    s16                    i;
+    s16                    i2;
+    s16                    i3;
+
+    cfg  = &Wip_SysConfig;
+    host = task->field_20;
+    work = task->field_1C;
+    sc   = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
+    pos  = &sc->pos;
+    recs = work->hits[6].recs;
+    for (i = 0; i < 5; i++) {
+        if (recs[i].field_4 == 0) {
+            goto missed1;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+            pos->vx = recs[i].field_8;
+            pos->vy = recs[i].field_A;
+            pos->vz = recs[i].field_C;
+            id      = recs[i].field_4;
+            goto found1;
+        }
+    }
+missed1:
+    id = 0;
+found1:
+    sc->id = id;
+    if (id != 0) {
+        coord = work->hits[6].coord;
+        goto hit;
+    }
+
+    pos2  = &sc->pos;
+    recs2 = work->hits[7].recs;
+    for (i2 = 0; i2 < 5; i2++) {
+        if (recs2[i2].field_4 == 0) {
+            goto missed2;
+        }
+        if ((recs2[i2].field_4 & 0xFFFF0000) == 0x20000) {
+            pos2->vx = recs2[i2].field_8;
+            pos2->vy = recs2[i2].field_A;
+            pos2->vz = recs2[i2].field_C;
+            id       = recs2[i2].field_4;
+            goto found2;
+        }
+    }
+missed2:
+    id = 0;
+found2:
+    sc->id = id;
+    if (id != 0) {
+        coord = work->hits[7].coord;
+    hit:
+        func_actor_444000_80134688(coord, id);
+        if (sc->id != 0) {
+            goto body;
+        }
+    }
+
+    pos3  = &sc->pos;
+    recs3 = work->hits[8].recs;
+    for (i3 = 0; i3 < 5; i3++) {
+        if (recs3[i3].field_4 == 0) {
+            goto missed3;
+        }
+        if ((recs3[i3].field_4 & 0xFFFF0000) == 0x20000) {
+            pos3->vx = recs3[i3].field_8;
+            pos3->vy = recs3[i3].field_A;
+            pos3->vz = recs3[i3].field_C;
+            id       = recs3[i3].field_4;
+            goto found3;
+        }
+    }
+missed3:
+    id = 0;
+found3:
+    sc->id = id;
+    if (id == 0) {
+        goto out;
+    }
+    func_actor_444000_80134688(work->hits[8].coord, id);
+    if (sc->id == 0) {
+        goto out;
+    }
+body:
+    work->field_E90 = Gp_GetIdParam2(sc->id);
+    Gp_GetIdParam0(sc->id);
+
+    sc->delta.vx = (cfg->field_4->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0]) - 0x51F;
+    dx2          = sc->delta.vx * sc->delta.vx;
+    sc->delta.vy = (cfg->field_4->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1]) - 0xFA;
+    dy2          = sc->delta.vy * sc->delta.vy;
+    sc->delta.vz = (cfg->field_4->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2]) + 0x25F;
+    dz2          = sc->delta.vz * sc->delta.vz;
+    sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
+    sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
+
+    if (Gp_RollEnemyChance(work->field_ECC[1], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
+        state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_F08 != 0 &&
+        work->field_EC8 != 1) {
+        sc->rot.vz = 0x3E8;
+        sc->rot.vy = 0;
+        sc->rot.vx = 0;
+        sc->rot.vy = 0;
+        sc->rot.vx = 0;
+        sc->rot.vz = 0x258;
+        Gp_SpawnEff(0x6009C, &((TmdObject*)work->field_ECC[1]->task->extra)->field_8[1], 0, &sc->rot);
+        sc->damage     *= 4;
+        work->field_0   = 0xE;
+        work->field_F0C = D_actor_444000_80144A4C[0];
+    }
+
+    dmg = sc->damage / 6;
+    if (dmg == 0) {
+        dmg = 1;
+        if (sc->damage == 0) {
+            sc->damage = 0;
+            goto stored;
+        }
+    }
+    sc->damage = dmg;
+stored:
+    func_800E2C78((GpObj40*)host, sc->id, sc->damage, 0);
+    func_800DA6E8(&work->field_ECC[1]->node, sc->damage, 0);
+    ((GpObj40*)host)->field_40 -= sc->damage;
+    work->field_F0C            -= sc->damage;
+    if (work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
+        state != 0xF && state != 8 && state != 0xB && work->field_F08 != 0 && work->field_EC8 != 1) {
+        sc->rot.vz = 0x3E8;
+        sc->rot.vy = 0;
+        sc->rot.vx = 0;
+        sc->rot.vy = 0;
+        sc->rot.vx = 0;
+        sc->rot.vz = 0x258;
+        Gp_SpawnEff(0x6009C, &((TmdObject*)work->field_ECC[1]->task->extra)->field_8[1], 0, &sc->rot);
+        work->field_0   = 0xE;
+        work->field_F0C = D_actor_444000_80144A4C[0];
+    }
+
+    ((TmdObject*)work->field_ECC[1]->task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)work->field_ECC[1]->task->extra)->field_8);
+    sc->rot.vx = sc->pos.vx - ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->workm.t[0];
+    sc->rot.vy = sc->pos.vy - ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->workm.t[1];
+    sc->rot.vz = sc->pos.vz - ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->workm.t[2];
+    angle      = ratan2(sc->rot.vx, sc->rot.vz) -
+            ratan2(-((TmdObject*)task->extra)->field_8->workm.m[2][0],
+                   ((TmdObject*)task->extra)->field_8->workm.m[2][2]);
+    sc->angle = angle;
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    sc->angle = angle;
+
+    if (work->field_7B3 != 4) {
+        work->field_7C8 = 0;
+        work->field_7C4 = 0;
+    }
+out:
+    SCRATCH_SP += sizeof(Actor444000HitScratch);
+}
 
 /// Reset/teardown handler: when the work block is asking for a reset, arm the
 /// re-spawn sequence and push the host's model flag word onto each of the seven
