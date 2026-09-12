@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "main/task.h"
+#include "gameplay/3A34.h"
 #include <psyq/libgte.h>
 
 /// Per-actor work block for the `actor_405800` overlay.
@@ -21,8 +22,17 @@ typedef struct Actor405800Work {
     /* 0x09A */ s16     field_9A;
     /* 0x09C */ byte    pad_9C[0xC];
     /* 0x0A8 */ SVECTOR field_A8;  // world point `ActorsShared80139c00` turns to face (it reads `vx` / `vz`)
-    /* 0x0B0 */ byte    pad_B0[0x692];
-    /* 0x742 */ u16     field_742; // flag word; bit 0x4000 cleared by func_actor_405800_801379F8
+    /* 0x0B0 */ byte    pad_B0[0x404];
+    /* 0x4B4 */ GpObj   obj_4B4;   // collision node; unlinked on death
+    /* 0x4D4 */ byte    pad_4D4[0xC0];
+    /* 0x594 */ GpObj   obj_594;   // collision node; unlinked on death
+    /* 0x5B4 */ byte    pad_5B4[0xC0];
+    /* 0x674 */ GpObj   obj_674;   // collision node; unlinked on death
+    /* 0x694 */ GpObj   obj_694;   // collision node; unlinked on death
+    /* 0x6B4 */ GpObj   obj_6B4;   // collision node; unlinked on death
+    /* 0x6D4 */ GpObj   obj_6D4;   // collision node; unlinked on death
+    /* 0x6F4 */ byte    pad_6F4[0x30];
+    /* 0x724 */ GpObj   obj_724;   // collision node; flags bit 0x4000 cleared by func_actor_405800_801379F8
     /* 0x744 */ byte    pad_744[0xE0];
     /* 0x824 */ Task*   field_824; // child task, killed on state exit
     /* 0x828 */ Task*   field_828; // child task, killed on state exit

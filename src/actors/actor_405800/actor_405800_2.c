@@ -143,8 +143,8 @@ void func_actor_405800_801379F8(Task* task)
 {
     Actor405800Work* work;
 
-    work            = (Actor405800Work*)task->idMap;
-    work->field_742 = work->field_742 & 0xBFFF;
+    work                = (Actor405800Work*)task->idMap;
+    work->obj_724.flags = work->obj_724.flags & 0xBFFF;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80137A14);

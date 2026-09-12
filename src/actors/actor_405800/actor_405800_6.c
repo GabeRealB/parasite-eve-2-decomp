@@ -9,6 +9,7 @@
 
 void func_8009EA50(s16 arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
+void func_actor_405800_80136E14(Task* arg0);
 void func_actor_405800_8013706C(Task* arg0, s16 arg1);
 void func_actor_405800_8013A0F4(Task* arg0);
 
@@ -88,7 +89,34 @@ void func_actor_405800_80138BEC(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138C30);
+void func_actor_405800_80138C30(Task* task)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    model = (TmdObject*)task->extra;
+    work  = (Actor405800Work*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    Tmd_FreeBuffers(model);
+    model->field_C |= 4;
+    func_actor_405800_80136E14(task);
+    work->field_866 = 0;
+    Gp_ReleaseStateF0Add((GpObj20E*)task, 0);
+    enemy->field_54 = 0;
+    Gp_UnlinkObj(&work->obj_594);
+    Gp_UnlinkObj(&work->obj_4B4);
+    Gp_UnlinkObj(&work->obj_6B4);
+    Gp_UnlinkObj(&work->obj_6D4);
+    Gp_UnlinkObj(&work->obj_674);
+    Gp_UnlinkObj(&work->obj_694);
+    Gp_UnlinkObj(&work->obj_724);
+    work2            = (Actor405800Work*)task->idMap;
+    task->state      = 3;
+    work2->field_846 = 0;
+    work2->field_848 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138CF0);
 
