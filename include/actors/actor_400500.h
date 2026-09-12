@@ -63,6 +63,16 @@ typedef struct Actor400500HitView {
     /* 0x4C */ Actor400500HitFlags flags_4C;
 } Actor400500HitView;
 
+/// 0x28-byte stride overlay of `Actor400500Work` from offset 0. `anim` is
+/// 0x14 bytes, so `stride[i].field_1D` is `slots[i].field_9`. Walked from
+/// index 1 by `func_actor_400500_8013A8E4`.
+typedef struct Actor400500AnimStride {
+    /* 0x00 */ byte pad[0x1D];
+    /* 0x1D */ u8   field_1D;
+    /* 0x1E */ byte pad_1E[0xA];
+} Actor400500AnimStride;
+STATIC_ASSERT_SIZEOF(Actor400500AnimStride, 0x28);
+
 /// Per-actor state block for the `actor_400500` overlay.
 ///
 /// `func_actor_400500_80135414` is the overlay's only allocator: it calls
@@ -118,7 +128,7 @@ typedef struct Actor400500Work {
     /* 0x9FA */ s16                field_9FA;    // animation request kind
     /* 0x9FC */ u16                field_9FC;    // last animation id the slots were reset to
     /* 0x9FE */ s16                field_9FE;    // animation id
-    /* 0xA00 */ byte               pad_A00[0x2];
+    /* 0xA00 */ s16                field_A00;    // blend frame; incremented as u16, passed signed to 8013DD8C
     /* 0xA02 */ s16                field_A02;    // identity scale written with the matrix copy
     /* 0xA04 */ u16                field_A04;    // per-state frame counter
     /* 0xA06 */ u16                field_A06;    // state index

@@ -3,6 +3,40 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `field_9` is `sb 0x1D`
+
+`Actor400500Work` opens with `GpAnimCtx` (0x14) then `GpAnimSlot slots[0x12]`
+(0x28 each). `slots[i].field_9` is at `0x14 + i*0x28 + 9`. A `GpAnimSlot*`
+walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
+work base:
+
+```
+addiu s2, s1, 0x28
+sb    v0, 0x1D(s2)
+```
+
+because `0x14 + 9 = 0x1D`. Overlay the work as 0x28-byte records with a `u8`
+at 0x1D and start at index 1:
+
+```c
+typedef struct {
+    byte pad[0x1D];
+    u8   field_1D;
+    byte pad_1E[0xA];
+} Actor400500AnimStride;
+
+stride = (Actor400500AnimStride*)work + 1;
+stride->field_1D = (u8)work->field_9F8;
+stride++;
+```
+
+`func_actor_400500_8013A8E4` is the example. Computing
+`mapped = table[work->field_9FE]` *before* the `field_9F8` / `field_9FA`
+stores is what hoists the table `lui` into the prologue and keeps `lbu` in
+`$v1` across those stores (same function). Inputs: `base_1.i`
+`7e8d3dfb642f4b70105a041b51235e353d475f9c96a829b30a18bfe0fea6c10e`,
+`base_2.i` `06a7c6f4979d00ed8984830b2192c81affdbc7753268b98d3a1aac60a3461b22`.
+
 ## Hoist a compare outside `do { } while (0)` to reweight `REG_N_REFS` by loop depth
 
 `REG_N_REFS` is weighted by loop depth (1 outside, 2 in one loop, 3 nested;

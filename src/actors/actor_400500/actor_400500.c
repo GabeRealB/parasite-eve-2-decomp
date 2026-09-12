@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -31,6 +32,7 @@ extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
 extern TaskDesc D_actor_400500_80153D48;
+extern u8       D_actor_400500_80153DD4[];
 
 void func_8009EA50(s32 arg0);
 void func_actor_400500_80132628(Task* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -41,6 +43,9 @@ s32  func_actor_400500_80133460(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
 void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2);
+void func_actor_400500_8013DC4C(Task* arg0);
+void func_actor_400500_8013DCD4(Task* arg0);
+s32  func_actor_400500_8013DD8C(Task* arg0, s16 arg1);
 
 void func_actor_400500_80132000(Task* arg0)
 {
@@ -813,7 +818,63 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013A700);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013A8E4);
+void func_actor_400500_8013A8E4(Task* arg0)
+{
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500AnimStride* stride;
+    GpEnemy*               enemy;
+    s32                    mapped;
+    s32                    i;
+
+    work            = (Actor400500Work*)arg0->idMap;
+    enemy           = (GpEnemy*)arg0->spawnArg2;
+    mapped          = D_actor_400500_80153DD4[work->field_9FE];
+    work->field_9F8 = 0x10;
+    work->field_9FA = 2;
+    work->field_9FE = mapped;
+    work2           = (Actor400500Work*)arg0->idMap;
+    if (work2->field_9FA == 1) {
+        if ((s16)work2->field_9FC != work2->field_9FE) {
+            work2->field_A00 = 0;
+        } else {
+            work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work2->field_9FA = 3;
+    } else if (work2->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work2->field_9FA = 3;
+        work2->field_A00 = 0;
+    } else if (work2->field_9FA == 3) {
+        work2->field_A00 = (u16)work2->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work2 + 1;
+    do {
+        stride->field_1D = (u8)work2->field_9F8;
+        Gp_AnimTickIndex(&work2->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+    Gp_UnlinkNode(&enemy->node);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    enemy->field_54 = 0;
+    Gp_UnlinkObj(&work->obj0);
+    Gp_UnlinkObj(&work->obj1);
+    Gp_UnlinkObj(&work->obj3);
+    Gp_UnlinkObj(&work->obj2);
+    Gp_UnlinkObj(&work->obj4);
+    GameFlag_SetNibble(0xCE, 1);
+    if (work->field_A40 == 4) {
+        work3            = (Actor400500Work*)arg0->idMap;
+        work3->field_A06 = 6;
+        work3->field_A08 = 0;
+        return;
+    }
+    work->field_A06 = work->field_A06 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013AA98);
 
