@@ -63465,3 +63465,74 @@ instead of folding, check which local sits at frame offset 0 and move it. This
 is a second reason to reorder declarations beyond the frame-layout one in
 "Spill slots are laid out in declaration order": here the offsets were a
 7.5% penalty, not a cosmetic one.
+
+## `lhu` + `sll`/`sra` instead of `lh`: keep the load away from its sign-extend
+
+`extendhisi2` is a `define_expand` that calls `force_not_mem` when optimizing,
+so *every* `(s32)someShort` from memory starts life as three insns - `movhi`
+(which prints `lhu`), `ashift 16`, `ashiftrt 16`. Combine normally folds them
+back into `extendhisi2_internal`, one `lh`. When the target keeps the split
+form, the question is not what type the field has; it is why combine could not
+fold.
+
+`can_combine_p` refuses to move a MEM source across a memory write:
+
+```c
+|| (! all_adjacent
+    && (((GET_CODE (src) != MEM || ! find_reg_note (insn, REG_EQUIV, src))
+         && use_crosses_set_p (src, INSN_CUID (insn)))
+```
+
+and `use_crosses_set_p` returns 1 for a MEM when `mem_last_set > from_cuid`.
+So reading the short into an `s16` temp *before* a run of stores, and using it
+as an `s32` after them, keeps `lhu` / `sll` / `sra`:
+
+```c
+/* lh + nop */
+v->vx = a.vx;
+v->vy = b->vz;
+v->vz = work->field_98;
+
+/* lhu (hoisted early by the scheduler) + sll/sra */
+angle = work->field_98;   /* s16 temp */
+v->vx = a.vx;
+v->vy = b->vz;
+v->vz = angle;
+```
+
+Reading the same short through a *pointer to a frame local* splits it too, even
+with no store in between (`p->vz` where `p = &local` stays `lhu`+shifts, while
+`local.vz` folds to `lh`). `func_actor_444000_8013A3AC` needed both forms in one
+statement group.
+
+## A pointer to a local and the local's own name are two frame-address pseudos
+
+Taking `p = &d` and then writing `d = GLOBAL;` gives two pseudos holding the
+same frame address: the struct-copy destination and `p`. Both get hard
+registers and the extra `move` shows up in the object. Writing the copy through
+the pointer - `p = &d; *p = GLOBAL;` - collapses them to one `addiu sN, sp, K`,
+which also fixed the `$s0`/`$s1`/`$s2` assignment because the surviving pseudo
+had the target's live range. Keep the *element* accesses on the local name
+(`d.vx -= ...`), or they stop being `sp`-relative.
+
+## `andi 0xff` before `andi 3`: read the `u8` field into an `s32` local
+
+`if ((obj->byteField & 3) == K)` does the mask in QImode - `andi 3` first, then
+a zero-extend combine deletes, because `(and x 3)` already has clear high bits.
+The target's order, `andi 0xff` then `andi 3`, is the SImode form: the byte is
+zero-extended to `int` and *then* masked. Assigning the field to an `s32` local
+gets it, and leaves the `sb` of the decremented value independent so the
+scheduler still issues the store first:
+
+```c
+spin       = work->spin;   /* s32 */
+spin--;
+work->spin = spin;         /* sb, does not depend on the mask */
+phase      = work->spin;   /* s32: cse rematerialises it as andi 0xff */
+if ((phase & 3) == 1) { ... }
+```
+
+A `u8` local instead is worse in both directions: GCC trusts `PROMOTE_MODE` and
+emits neither `andi`, and an explicit `(u8)(spin - 1)` assigned back to the
+variable makes the `sb` depend on the truncation, so the store schedules after
+it. `func_actor_444000_8013A3AC` is the example.
