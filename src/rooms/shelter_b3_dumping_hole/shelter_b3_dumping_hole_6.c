@@ -94,7 +94,7 @@ void RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
 
 void func_shelter_b3_dumping_hole_801833EC(DumpingHoleState* arg0);
 void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
-void func_shelter_b3_dumping_hole_80181D68(s32 arg0);
+s32  func_shelter_b3_dumping_hole_80181D68(s32 arg0);
 
 void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
 {
