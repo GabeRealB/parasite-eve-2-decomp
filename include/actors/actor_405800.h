@@ -109,7 +109,9 @@ typedef struct Actor405800Work {
     /* 0x88F */ s8         field_88F;
     /* 0x890 */ u8         field_890; // nonzero: allow the state-0xD transition when root X > 10000
     /* 0x891 */ u8         field_891;
-    /* 0x892 */ byte       pad_892[0xA];
+    /* 0x892 */ byte       pad_892[0x6];
+    /* 0x898 */ u8         field_898;
+    /* 0x899 */ byte       pad_899[0x3];
 } Actor405800Work;
 STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
 
