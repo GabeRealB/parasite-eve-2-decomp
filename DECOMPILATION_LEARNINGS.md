@@ -60664,6 +60664,42 @@ Same mechanism as the `base | (x | CONST)` entry above. Check `.i.rtl` for
 the constant's sign: when it is already negated there, the fix is in the C
 tree, not in a later pass.
 
+## …and the mirror: `(a - CONST) - b` reassociates to `a - (b + CONST)`
+
+The entry above is only half the rule. `fold`'s associate step splits *either*
+operand, and which one it lands on decides which way the constant moves
+(`fold-const.c`, the `if (!wins)` block): when the **left** operand splits into
+`VAR ± CON`, it rebuilds `(VAR ± CON) ± ARG1` as `VAR ± (ARG1 ± CON)`, pushing
+the constant onto the right. Only when the left operand will not split does it
+try `split_tree` on the right and produce the `(a - CONST) - b` shape the entry
+above describes. So do not assume the fold only runs one way.
+
+`func_actor_444000_80139AF8` raises a model by a fixed step plus a per-step
+bias, and the target subtracts the constant first (`addiu $v0, $v0, -0x1F4` /
+`subu $v0, $v0, $v1`). Written as one expression:
+
+```c
+task->extra->field_8->coord.t[1] =
+    task->extra->field_8->coord.t[1] - 0x1F4 - work->field_1AE;
+```
+
+the left operand splits as `VAR = t1`, `CON = -0x1F4`, so fold builds
+`t1 - (field_1AE - -0x1F4)`, emitting `addiu $v0, $v0, 0x1F4` /
+`subu $v1, $v1, $v0` and loading `field_1AE` before `t1` (96.6%,
+`insert=1 delete=2`). Splitting the first subtraction into its own statement
+leaves fold nothing to split and gives 100%:
+
+```c
+y                                = task->extra->field_8->coord.t[1] - 0x1F4;
+task->extra->field_8->coord.t[1] = y - work->field_1AE;
+```
+
+RTL combine does not put it back: `(minus (plus a -C) b)` is not a single MIPS
+insn, so the 2->2 substitution fails and both insns survive. That is why the
+fix has to be in the C tree — as with the `a - (b + CONST)` case, check
+`.i.rtl` for which operand already carries the constant before touching a later
+pass.
+
 ## Reusing one local for a copied value and then a constant forces the store order sched1 would otherwise swap
 
 `func_actor_400600_80137498` ends case 0 of a switch with
