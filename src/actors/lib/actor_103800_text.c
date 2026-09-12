@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_103800.h"
+#include "actors/actors_shared_80135b58.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
@@ -1134,4 +1135,32 @@ void Actor03800_Fn03744(Actor103800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn037E0);
+void Actor03800_Fn037E0(Actor103800* arg0)
+{
+    Actor103800Work*            work;
+    GsCOORDINATE2*              coord;
+    MATRIX*                     head;
+    ActorShared80135b58Scratch* scratch;
+
+    work                = arg0->field_1C;
+    head                = *(MATRIX**)0x1F8003FC;
+    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    *(void**)0x1F8003FC = scratch;
+    coord               = work->field_344;
+    if (work->field_35A >= 0x201) {
+        work->field_35A = (u16)work->field_35A - 0x50;
+    }
+    scratch->scale.vx          = 0x1000;
+    scratch->scale.vy          = (s32)work->field_35A;
+    scratch->scale.vz          = 0x1000;
+    coord->coord               = work->field_2CC;
+    scratch->mat.ident.m00_m01 = 0x1000;
+    scratch->mat.ident.m02_m10 = 0;
+    scratch->mat.ident.m11_m12 = 0x1000;
+    scratch->mat.ident.m20_m21 = 0;
+    scratch->mat.ident.m22     = 0x1000;
+    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->mat.mat);
+    coord->flg         = 0;
+    *(u8**)0x1F8003FC += 0x30;
+}

@@ -61758,3 +61758,10 @@ Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 - base_3.i SHA256: `2faf9066b8219f72b2bfe34fbfdcad1b6c3107db7634c9976e34be168cc1cc6a`
 - base_4.i SHA256: `ad751a367d68e3ae8f1344e417370f0f42890f720b1b2a6200b601e0c2a250e4`
 Evidence: tools/permuter_findings/Actor03800_Fn0166C/ retained session; base_2/base_3 .rtl UID 242 and 255, .lreg headers, .greg dispositions/conflicts. Scheduler selection not traced.
+
+
+### Actor03800_Fn037E0: scale-store order reverses a scheduler memory dependency
+
+An aggregate MATRIX assignment replaces m2c scalar word copies with the required grouped block move (50.328% to 99%). Moving the scale vy assignment before vz then gives 100%. In base_1.i.dbr the vy source load UID 60 depends on both vx and vz stores; in base_2.i.dbr the load UID 55 depends only on vx, and vz UID 62 instead has REG_DEP_ANTI 55. sched1 selects vz at T-18 by potential hazard, blocks the load at T-19 and selects argument setup UID 96, then loads at T-20. The reversed forward sequence matches, with unchanged register allocation. A pre-build controlled prediction and typed sibling-scratch port both scored 100%; no pins/helpers. This is a dependency-order result, not a general statement-order rule. Evidence is retained under tools/permuter_findings/Actor03800_Fn037E0; session PERMUTER_ANALYSIS.md records scope.
+
+Inputs: base_1.i SHA256 4ba8db8acce267093f1a4ff609783fb231e3bb9aaf6dd2bef583fdaf0a43c7f7, base_2.i SHA256 99cfda7437af4ee1be11a0214745f28bea33dc8199f7bf432b0dff73112767e7.
