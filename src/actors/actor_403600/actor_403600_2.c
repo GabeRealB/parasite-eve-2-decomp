@@ -131,7 +131,26 @@ void func_actor_403600_80141598(Task* task)
     Gp_EnemyTaskExit(task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_8014161C);
+void func_actor_403600_8014161C(Actor403600* arg0)
+{
+    Actor403600Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (*(s16*)((u8*)work + 0x78C) == 1) {
+        if (((*(u16*)((u8*)work + 0x79E) & 3) == 3) &&
+            ((work->field_73E != 0x28) || (work->field_732 != 5))) {
+            Gp_SpawnEff(0x60055, arg0->field_2C->field_8 + 1, 0x12800, NULL);
+        }
+        *(u16*)((u8*)work + 0x79E)  = (u16)(*(u16*)((u8*)work + 0x79E) + 1);
+        work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
+        if (((s16) * (u16*)((u8*)work + 0x78A) / 10 < enemy->field_40) &&
+            (*(u16*)((u8*)work + 0x79E) >= 0x385) && (work->field_73E == 0)) {
+            work->field_730 = 6;
+        }
+    }
+}
 
 void func_actor_403600_8014174C(Actor403600* arg0)
 {
