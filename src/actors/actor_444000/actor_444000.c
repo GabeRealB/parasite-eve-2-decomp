@@ -27,7 +27,16 @@ void func_actor_444000_8013265C(s32 arg0)
     Gp_DispatchMsg(work->field_20, 0x3F3, arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132694);
+/// Kill the subordinate task the event work block carries, if it is still alive.
+void func_actor_444000_80132694(void)
+{
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+
+    if (work->field_24 != NULL) {
+        Task_Kill(work->field_24);
+        work->field_24 = NULL;
+    }
+}
 
 void func_actor_444000_801326DC(void)
 {
