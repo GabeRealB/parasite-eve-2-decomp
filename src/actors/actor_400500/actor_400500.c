@@ -42,7 +42,9 @@ s32  func_actor_400500_80133358(Task* arg0);
 s32  func_actor_400500_80133460(Task* arg0);
 void func_actor_400500_801335E8(Task* arg0);
 void func_actor_400500_8013403C(Task* arg0);
+void func_actor_400500_80139448(Task* arg0);
 void func_actor_400500_8013A0B8(Task* arg0);
+void func_actor_400500_8013C7A4(Task* arg0);
 void func_actor_400500_8013CA38(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
@@ -926,7 +928,52 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801391B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801392D8);
+void func_actor_400500_801392D8(Task* arg0)
+{
+    Actor400500Work*       work             = (Actor400500Work*)arg0->idMap;
+    void                   (*fns[2])(Task*) = { func_actor_400500_8013C7A4, func_actor_400500_80139448 };
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500Work*       work4;
+    Actor400500AnimStride* stride;
+    s32                    i;
+
+    fns[(s16)work->field_A08](arg0);
+    work2 = (Actor400500Work*)arg0->idMap;
+    if (work2->field_9FA == 1) {
+        if ((s16)work2->field_9FC != work2->field_9FE) {
+            work2->field_A00 = 0;
+        } else {
+            work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work2->field_9FA = 3;
+    } else if (work2->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work2->field_9FA = 3;
+        work2->field_A00 = 0;
+    } else if (work2->field_9FA == 3) {
+        work2->field_A00 = (u16)work2->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work2 + 1;
+    do {
+        stride->field_1D = (u8)work2->field_9F8;
+        Gp_AnimTickIndex(&work2->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+    work3            = (Actor400500Work*)arg0->idMap;
+    work3->field_A3C = 0;
+    work3->field_A3E = 0;
+    work3            = (Actor400500Work*)arg0->idMap;
+    work3->field_A49 = 0;
+    work4            = (Actor400500Work*)arg0->idMap;
+    if (work4->field_A4A != 0) {
+        work4->field_A4A = 0;
+        func_actor_400500_8013DB64(arg0, 5);
+    }
+}
 
 void func_actor_400500_80139448(Task* arg0)
 {
