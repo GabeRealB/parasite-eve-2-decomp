@@ -284,6 +284,35 @@ typedef struct Actor444000Grab {
     /* 0x34 */ s32                  spawnArg1;
 } Actor444000Grab;
 
+/// Work block of the enemy dispatched through `D_actor_444000_80131F0C` --
+/// named for that table because the creature itself is not identified yet.
+/// `func_actor_444000_80138B94` allocates it with `Mem_Calloc(0x1C0, 0)` and
+/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// than guessed.
+///
+/// The two named fields are the pair the dispatcher
+/// `func_actor_444000_80143A6C` keeps: `field_1B4` is the state it last ran and
+/// `field_1A8` the flag it sets when that state has changed since.
+typedef struct Actor444000F0CWork {
+    /* 0x000 */ byte pad_0[0x1A8];
+    /* 0x1A8 */ s16  field_1A8; // set when the dispatcher sees the state change, cleared when it has not
+    /* 0x1AA */ byte pad_1AA[0xA];
+    /* 0x1B4 */ s16  field_1B4; // the state the dispatcher last ran, so it can spot the change
+    /* 0x1B6 */ byte pad_1B6[0xA];
+} Actor444000F0CWork;
+STATIC_ASSERT_SIZEOF(Actor444000F0CWork, 0x1C0);
+
+/// That enemy's task: the same `Task` layout, named for the slots the
+/// `D_actor_444000_80131F0C` states reach through it.
+typedef struct Actor444000F0C {
+    /* 0x00 */ byte                pad_0[0x1C];
+    /* 0x1C */ Actor444000F0CWork* field_1C;
+    /* 0x20 */ GpEnemy*            spawnArg2;
+    /* 0x24 */ byte                pad_24[0x8];
+    /* 0x2C */ TmdObject*          extra;
+    /* 0x30 */ s32                 state;
+} Actor444000F0C;
+
 /// The head of a `Gp_PlayerAnimBlkTbl` entry as this overlay reads it: an array
 /// of animation-set pointers, of which the grab state copies entry 9 onto its
 /// own `D_actor_444000_80161694` table. The same shape as
