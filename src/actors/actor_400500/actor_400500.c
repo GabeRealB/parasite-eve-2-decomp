@@ -12,6 +12,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400500.h"
@@ -817,7 +818,144 @@ void func_actor_400500_80134B88(Task* arg0)
     Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[3], 0x200, NULL);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80134D6C);
+typedef struct Actor400500DrawScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ u_short ofs[2];
+    /* 0x08 */ RECT    clip;
+    /* 0x10 */ byte    pad[4];
+} Actor400500DrawScratch;
+STATIC_ASSERT_SIZEOF(Actor400500DrawScratch, 0x14);
+
+void func_actor_400500_80134D6C(s32 otz)
+{
+    u8*                     head;
+    u8*                     allocated;
+    Actor400500DrawScratch* scratch;
+    GpDrawAreaRec*          extra;
+    DR_AREA*                area;
+    DR_STP*                 stp;
+    DR_OFFSET*              off;
+    SPRT*                   sprt;
+    DR_TPAGE*               tpage;
+    TILE*                   tile;
+    RECT*                   clip;
+    u_short*                ofs;
+    s32                     val;
+    s32                     z;
+
+    extra                   = Gp_GetViewSprtExtra();
+    head                    = *(u8**)G_SCRATCH_HEAD;
+    area                    = (DR_AREA*)Gpu_PrimCursor;
+    allocated               = head - 0x14;
+    *(void**)G_SCRATCH_HEAD = allocated;
+    Gpu_PrimCursor          = (DR_TPAGE*)(area + 1);
+    USE_REG(allocated);
+    scratch      = (Actor400500DrawScratch*)allocated;
+    scratch->otz = otz;
+    if (extra != NULL) {
+        val = (extra->depth << Display_State.field_128) & 0x3FFF;
+        z   = otz;
+        SOFT_TOUCH_REG(z);
+        if ((val >> 4) < z) {
+            scratch->clip   = extra->rect;
+            scratch->clip.y = (u16)scratch->clip.y + Display_State.field_1f * 0x110;
+        } else {
+            goto block_4;
+        }
+    } else {
+    block_4:
+        scratch->clip.x = 0;
+        scratch->clip.y = Display_State.field_1f * 0x110;
+        scratch->clip.w = 0x140;
+        scratch->clip.h = 0xF0;
+    }
+    clip = &scratch->clip;
+    SetDrawArea(area, clip);
+    addPrim(&Gpu_CurrentOt[scratch->otz], area);
+
+    stp            = (DR_STP*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 0);
+    addPrim(&Gpu_CurrentOt[scratch->otz], stp);
+
+    ofs             = scratch->ofs;
+    off             = (DR_OFFSET*)Gpu_PrimCursor;
+    Gpu_PrimCursor  = (DR_TPAGE*)(off + 1);
+    scratch->ofs[0] = 0xA0;
+    scratch->ofs[1] = Display_State.field_1f * 0x110 + 0x78;
+    SetDrawOffset(off, ofs);
+    addPrim(&Gpu_CurrentOt[scratch->otz], off);
+
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt->x0       = -0xA0;
+    sprt->y0       = -0x78;
+    sprt->w        = 0xA0;
+    sprt->h        = 0xF0;
+    sprt->u0       = 0;
+    sprt->v0       = Display_State.field_1f * 0x10;
+    setlen(sprt, 4);
+    setcode(sprt, 0x65);
+    addPrim(&Gpu_CurrentOt[scratch->otz], sprt);
+
+    tpage          = Gpu_PrimCursor;
+    Gpu_PrimCursor = tpage + 1;
+    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, Display_State.field_1f << 8));
+    addPrim(&Gpu_CurrentOt[scratch->otz], tpage);
+
+    sprt           = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt->x0       = 0;
+    sprt->y0       = -0x78;
+    sprt->w        = 0xA0;
+    sprt->h        = 0xF0;
+    sprt->u0       = 0x20;
+    sprt->v0       = Display_State.field_1f * 0x10;
+    setlen(sprt, 4);
+    setcode(sprt, 0x65);
+    addPrim(&Gpu_CurrentOt[scratch->otz], sprt);
+
+    tpage          = Gpu_PrimCursor;
+    Gpu_PrimCursor = tpage + 1;
+    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, Display_State.field_1f << 8));
+    addPrim(&Gpu_CurrentOt[scratch->otz], tpage);
+
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    setlen(tile, 3);
+    setcode(tile, 0x60);
+    tile->b0 = 2;
+    tile->g0 = 2;
+    tile->r0 = 2;
+    tile->x0 = -0xA0;
+    tile->y0 = -0x78;
+    tile->w  = 0x140;
+    tile->h  = 0xF0;
+    addPrim(&Gpu_CurrentOt[scratch->otz], tile);
+
+    stp            = (DR_STP*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 1);
+    addPrim(&Gpu_CurrentOt[scratch->otz], stp);
+
+    off             = (DR_OFFSET*)Gpu_PrimCursor;
+    Gpu_PrimCursor  = (DR_TPAGE*)(off + 1);
+    scratch->ofs[0] = 0x260;
+    scratch->ofs[1] = 0x178;
+    SetDrawOffset(off, ofs);
+    addPrim(&Gpu_CurrentOt[scratch->otz], off);
+
+    area            = (DR_AREA*)Gpu_PrimCursor;
+    Gpu_PrimCursor  = (DR_TPAGE*)(area + 1);
+    scratch->clip.x = 0x1C0;
+    scratch->clip.y = 0x100;
+    scratch->clip.w = 0x140;
+    scratch->clip.h = 0xF0;
+    SetDrawArea(area, clip);
+    addPrim(&Gpu_CurrentOt[scratch->otz], area);
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+}
 
 void func_actor_400500_80135414(Task* arg0)
 {

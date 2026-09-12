@@ -3,6 +3,61 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
+
+A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `Gpu_PrimCursor`
+load/store gives two block-0 local quantities with the same
+`refs=3 span=12 priority=2500` and no suggestions. The tracer reports
+`q1[%hi(Gpu_PrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
+tie goes to the quantity born first (the `lui` that fills the `ori` of
+`G_SCRATCH_HEAD`). Extra then takes `$a0` globally (`move a0, v0` /
+`slt ..., s0`). The target wants `addiu a0, a2, -N` / `move s8, a0` /
+`move a1, v0`.
+
+`USE_REG(allocated)` *after* the cursor store and *before* the copy into
+the long-lived scratch pointer adds a fourth ref at the existing death
+point, so the span stays ~12. Priority `4/12 = 3333` sits between the
+`G_SCRATCH_HEAD` address (still first, `$v1`) and the cursor `%hi`
+(`$a1`). Allocated wins `$a0`; extra is `$a1`; `slt` still needs a
+separate copy of `$s0` (next entry). Putting `USE_REG` earlier, or using
+`SOFT_TOUCH_REG` (`+r` new def), either takes `$v1` first or ties
+allocated onto the scratch pointer.
+
+```c
+allocated = head - 0x14;
+*(void**)G_SCRATCH_HEAD = allocated;
+Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+USE_REG(allocated);
+scratch = (Scratch*)allocated;
+```
+
+Example: `func_actor_400500_80134D6C`. Inputs: `base_5.i`
+`db660a885fa42f2836d4ae0d358a81cd47c68d7c44439164717fc319fe6fd5b6`, `base_11.i`
+`7611575ed383c7701264eaf1c6eec714a3015a0313f78ce776c7a01c0ba0e081`.
+
+## Mask first, then `z = otz; SOFT_TOUCH_REG(z)` for `move v1, s0` before `slt`
+
+The same function's depth test is `andi` / `move v1, s0` / `sra` / `slt
+v0, v0, v1`. A bare `if (val < otz)` uses `$s0` directly (copy-coalesced).
+`z = otz` at the start of the arm is coalesced too, or
+`SOFT_TOUCH_REG(z)` there copies into `$a0` too early and kicks
+`Display_State` into `$a3`. Split the mask from the shift, then copy:
+
+```c
+val = (extra->depth << Display_State.field_128) & 0x3FFF;
+z = otz;
+SOFT_TOUCH_REG(z);
+if ((val >> 4) < z) {
+```
+
+`$v1` is dead after `sllv`, so the copy lands there between `andi` and
+`sra`. Else `clip.y = Display_State.field_1f * 0x110` (not a standalone
+`D_80070F87`) keeps the inner-branch delay `lui` of `Display_State`; the
+linked `lbu` offset is the same byte as `%lo(D_80070F87)`.
+
+Example: `func_actor_400500_80134D6C`. Input: `base_15.i`
+`8261c716b435e040370e4845acbf72d746d43a564e61942b37da767915b56107`.
+
 ## Reuse one `s32` for the constants in both arms of an if/else so the join store is `$v0`
 
 A lighting init that writes `0xFF` / `0` / `0` then `0x10` on one path and
