@@ -3,6 +3,40 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Migrated `D_*` tables have no `D_*.s` after a re-split
+
+`migrate_rodata_to_functions` folds a function-pointer table into that
+function's `.s`. Matching the function drops `INCLUDE_ASM`, so those bytes
+leave the object. A hand-made `D_<sym>.s` plus `INCLUDE_RODATA` can pass a
+scoped build and then fail the unscoped one: `ninja_config.py` regenerates
+`asm/` and does not emit a separate file for a migrated symbol.
+
+Emit the words with file-scope `.section .rodata` / `dlabel` asm in the unit
+that owns the leading rodata, in address order between the neighbouring
+`INCLUDE_RODATA` lines. Do not `const TaskFuncTableN` in C — GCC collects that
+`.rodata` at the end of the object, behind later tables.
+
+Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
+`D_actor_400500_80131EFC`).
+
+## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
+
+A dispatcher that copies two `TaskFuncTable3`s then tests
+`enemy->field_40` needs `GpEnemy* enemy = arg0->spawnArg2` assigned *before*
+the copies. Inlining the field after the copies keeps `lw 0x20(s2)` late and
+adds a load-delay nop (`lh v0, 0x40(v0)`). The named pointer lives across the
+copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
+Keep `if (enemy->field_40 <= 0)` so the branch is `bgtz` (the sibling
+`8013899C` uses `> 0` / `blez` because it only copies one table).
+
+The anim tail is the same sibling `if / else if` on `field_9FA` (with
+`(s16)field_9FC` and `(u16)field_A00 + 1`) and the `Actor400500AnimStride`
+loop; m2c's `i = 1` before the `== 3` arm turns `addiu + 1` into `addu $s0`.
+
+Example: `func_actor_400500_801385D0`. Inputs: `base.i`
+`128fa46c44f1af8dc5f495aaf31694e6bf72940c4e69bcb9e7ed9ceafd4efabc`, `base_1.i`
+`38b568359da4147b672dbcd693bf72b3daf881696b7cfe5a355bfd618bfdde0c`.
+
 ## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
 
 `func_actor_400500_801391B0` reloads `arg0->idMap` in each of three animation
