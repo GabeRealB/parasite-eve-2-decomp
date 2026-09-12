@@ -23,12 +23,15 @@ typedef struct Actor103800Obj2C {
 
 typedef struct Actor103800Work {
     /* 0x000 */ byte           pad_0[0x1A4];
-    /* 0x1A4 */ byte           field_1A4[0x68];
+    /* 0x1A4 */ byte           field_1A4[0x1E];
+    /* 0x1C2 */ u16            field_1C2;
+    /* 0x1C4 */ byte           pad_1C4[0x48];
     /* 0x20C */ byte           field_20C[0x12];
     /* 0x21E */ s16            field_21E;
     /* 0x220 */ byte           pad_220[8];
     /* 0x228 */ s16            field_228;
-    /* 0x22A */ byte           pad_22A[0x62];
+    /* 0x22A */ u16            field_22A;
+    /* 0x22C */ byte           pad_22C[0x60];
     /* 0x28C */ byte           field_28C[0x1E];
     /* 0x2AA */ u16            field_2AA;
     /* 0x2AC */ byte           pad_2AC[0x20];
@@ -50,7 +53,7 @@ typedef struct Actor103800Work {
     /* 0x360 */ s16            field_360;
     /* 0x362 */ s16            field_362;
     /* 0x364 */ s16            field_364;
-    /* 0x366 */ byte           pad_366[2];
+    /* 0x366 */ s16            field_366;
     /* 0x368 */ s16            field_368;
     /* 0x36A */ s16            field_36A;
     /* 0x36C */ s16            field_36C;
@@ -86,6 +89,7 @@ typedef struct Actor103800 {
 } Actor103800;
 STATIC_ASSERT_SIZEOF(Actor103800, 0x30);
 
+extern s8  D_80115410;
 extern s16 Actor03800_D05F90[];
 
 void Actor03800_Fn02998(Actor103800Ctx* arg0, Actor103800* arg1);

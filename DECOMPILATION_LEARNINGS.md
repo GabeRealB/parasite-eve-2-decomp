@@ -61696,3 +61696,14 @@ Evidence: tools/permuter_findings/Actor02000_Fn00CD0/ and scratch
 base.i.sched/lreg/greg, base_1.i.sched/lreg/greg, base_2.i.greg.
 base.i SHA256: `45019294330fc7e90d024c40dc92909968df545d934fa354fdcf3cb4e3101716`.
 base_1.i SHA256: `7aa9c4b0ff6cf7ae1366c7bb3359f633c0f9685640601c51b098d496d9cb5d21`.
+
+
+## Cache an actor sub-pointer before dispatch to reproduce an entry load
+
+Actor03800_Fn034B0: the m2c seed loaded actor->field_20 only inside case 0, after a store through actor->field_2C. The target loads it before dispatch. Permuter output-30-1 introduced a typed context local before the switch; normalized baseline distance stayed 257, while paired candidate distance was 30. Controlled base_1 predicted and reproduced the same transformation in normal source.
+
+Earliest meaningful divergence is .rtl UID 17, offset-32 load in entry. Incoming actor r80 becomes block-local (4 references/12 insns instead of global 4/24); context r82 spans dispatch and is assigned a0 in .greg, sharing the incoming argument register after that value dies. Flag allocation is unchanged. This is a source load-placement and lifetime change, not evidence that declaration order itself selects a register. Caching also preserves the target's read-before-write ordering.
+
+A separate controlled base_2 reversed independent 22A/2AA halfword updates. The second update's r89/r90 retained v0, and third update's r91/r92 retained v1, exchanging field values. Sched2 then placed the 22A store last, for the call delay slot, reaching exact match. Observed homes and scheduler output support this particular intervention; local quantity priority calculations were not traced and are not generalized.
+
+Evidence: tools/permuter_findings/Actor03800_Fn034B0/ (session 1f7d1f1cdcec496eb650b4ceb4787b28), retained PERMUTER_ANALYSIS.md and base_1/base_2 dumps. Baseline preprocessed SHA256 1a4327b257fa23d6dbca01be9f60681124f37a8df64c0e9d782da7b75b8e5518; paired improved input 746ae5b2bc93e1db3bead8ca0533d8e0bca43579d68a33135a4fd5c97d06098e; compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Full fingerprints and controlled predictions are retained in the session notes.

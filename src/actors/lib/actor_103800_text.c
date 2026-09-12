@@ -15,6 +15,7 @@ void Actor03800_Fn03628(Actor103800* arg0);
 void Actor03800_Fn036EC(Actor103800* arg0);
 void Actor03800_Fn03744(Actor103800* arg0);
 void Actor03800_Fn037E0(Actor103800* arg0);
+void Gp_ArmStateF0(s32 arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void Gp_UnlinkNode(void* node);
@@ -874,7 +875,39 @@ void Actor03800_Fn03420(Actor103800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn034B0);
+void Actor03800_Fn034B0(Actor103800* arg0)
+{
+    Actor103800Obj2C* obj;
+    Actor103800Ctx*   ctx;
+    Actor103800Work*  work;
+
+    work = arg0->field_1C;
+    obj  = arg0->field_2C;
+    ctx  = arg0->field_20;
+    switch (D_80115410) {
+        case 0:
+            obj->field_C      = 0x84;
+            ctx->node.field_4 = 1;
+            return;
+        case 1:
+            obj->field_C     = 0;
+            work->field_1C2 |= 0x8000;
+            work->field_22A |= 0x4200;
+            work->field_2AA |= 0x8000;
+            Gp_ArmStateF0(1);
+            work->field_366 = 0x80;
+            work->field_356 = 0x5A;
+            work->field_350 = 0;
+            work->field_372 = 0x80;
+            return;
+        case 2:
+            if (--work->field_356 <= 0) {
+                work->field_352 = 1;
+                work->field_354 = 0;
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn03594);
 
