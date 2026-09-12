@@ -438,10 +438,6 @@ tail:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01F8C);
 
-void Actor02500_L02000(void)
-{
-}
-
 void Actor02500_Fn00B18(Actor02500* arg0);
 void Actor02500_Fn00DD8(Actor02500* arg0);
 void Actor02500_Fn01144(Actor02500* arg0);
@@ -481,15 +477,7 @@ void Actor02500_Fn02008(Actor02500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn020D0);
 
-void Actor02500_L02170(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02178);
-
-void Actor02500_L021F0(void)
-{
-}
 
 s32 Gp_TickObjFlag2(Actor02500Ctx* arg0);
 

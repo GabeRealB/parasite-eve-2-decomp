@@ -158,10 +158,6 @@ s32 Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A44C);
 
-void Actor01900_L0A494(void)
-{
-}
-
 s32 Actor01900_Fn0A49C(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
 {
     GsCOORDINATE2*            coord;
@@ -215,10 +211,6 @@ void Actor01900_Fn0A6CC(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A764);
 
-void Actor01900_L0A7B8(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A7C0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A868);
@@ -231,14 +223,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AA78);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AB1C);
 
-void Actor01900_L0AB98(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0ABA0);
-
-void Actor01900_L0ABDC(void)
-{
-}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0ABE4);

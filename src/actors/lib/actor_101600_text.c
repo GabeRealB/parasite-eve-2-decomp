@@ -394,10 +394,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn066E8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06744);
 
-void Actor01600_L06808(void)
-{
-}
-
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend

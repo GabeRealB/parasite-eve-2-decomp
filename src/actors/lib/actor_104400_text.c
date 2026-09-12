@@ -176,17 +176,9 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06328);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06374);
 
-void Actor04400_L063DC(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn063E4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0648C);
-
-void Actor04400_L064E4(void)
-{
-}
 
 void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
 {
@@ -290,10 +282,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07050);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0710C);
 
-void Actor04400_L07144(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0714C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn071C8);
@@ -337,10 +325,6 @@ void Actor04400_Fn07750(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0781C);
 
-void Actor04400_L07870(void)
-{
-}
-
 void Actor04400_Fn07878(Task* arg0)
 {
     Actor104400Work* work;
@@ -352,10 +336,6 @@ void Actor04400_Fn07878(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07890);
-
-void Actor04400_L078CC(void)
-{
-}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn078D4);
 
@@ -390,43 +370,19 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07F6C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07FD0);
 
-void Actor04400_L0808C(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08094);
-
-void Actor04400_L080E0(void)
-{
-}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn080E8);
 
-void Actor04400_L08158(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08160);
-
-void Actor04400_L08200(void)
-{
-}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08208);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0823C);
 
-void Actor04400_L08288(void)
-{
-}
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08290);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn082E0);
-
-void Actor04400_L08350(void)
-{
-}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08358);
 
@@ -470,10 +426,6 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08AA4);
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08B3C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08C08);
-
-void Actor04400_L08C5C(void)
-{
-}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08C64);
 
