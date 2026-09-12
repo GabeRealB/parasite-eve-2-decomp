@@ -119,7 +119,19 @@ void func_actor_403600_80141C3C(Actor403600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141C7C);
+void func_actor_403600_80141C7C(Actor403600* arg0, s32 arg1)
+{
+    GpEnemy*         enemy;
+    Actor403600Work* work;
+
+    enemy           = arg0->field_20;
+    work            = arg0->field_1C;
+    enemy->field_40 = *(u16*)&enemy->field_40 - arg1;
+    func_800DA6E8(&enemy->node, arg1, 0);
+    if (enemy->field_40 <= 0) {
+        work->field_742 = 1;
+    }
+}
 
 void func_actor_403600_80141CD4(Task* arg0)
 {
