@@ -31,6 +31,7 @@ extern u8 D_actor_400500_80144624[];
 
 void func_8009EA50(s32 arg0);
 s32  func_actor_400500_80133460(Task* arg0);
+void func_actor_400500_80133B14(Task* arg0);
 void func_actor_400500_8013403C(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
@@ -1004,7 +1005,34 @@ void func_actor_400500_8013D274(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D2D8);
+void func_actor_400500_8013D2D8(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    GsCOORDINATE2*   coord;
+    s32              flag;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if ((s16)++work->field_A04 == 1) {
+        work2 = (Actor400500Work*)arg0->idMap;
+        if (((work2->field_A46 >= 0) || ((u8)work2->field_A46 & 0x7F)) && (work2->field_A30 == 0)) {
+            flag             = 0x80;
+            work2->field_A46 = flag;
+            work2->field_A47 = 0;
+        }
+    }
+    func_actor_400500_80133B14(arg0);
+    if (coord->coord.t[2] >= -0x225F) {
+        work3            = (Actor400500Work*)arg0->idMap;
+        work3->field_A0E = 0xA;
+        work3->field_9F8 = 0x10;
+        work3->field_9FE = 1;
+        work3->field_9FA = 1;
+        work->field_A08  = work->field_A08 + 1;
+    }
+}
 
 void func_actor_400500_8013D3B8(Task* arg0)
 {
