@@ -365,6 +365,50 @@ preprocessed `486d0cc84d065c614c955ae9a6c7ef05155c50dfc0be5e6338ffefc01778504b`)
 Sibling `func_actor_400500_8013CDA8` stores a fresh constant 7, so it never
 needs the loaded HI and one `lh` is enough.
 
+## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
+
+A bit test that then stores 7 or 8 wants `$v0` for both the `andi` and the
+stored value:
+
+```
+lhu    v0, flags
+andi   v0, v0, 1
+bnez   v0, eight
+li     v0, 8          /* delay: also runs on the 7 path, then overwritten */
+lw     v1, idMap
+j      store
+li     v0, 7
+eight:
+lw     v1, idMap
+nop
+store:
+sh     v0, A06(v1)
+```
+
+`val = 8; if (!(flags & 1)) { val = 7; ... } else { ... }` defines 8 *before*
+the `andi`. The temp is live across the bit test, conflicts with `$v0`, and
+lands in `$a0` (`li a0,8` / `sh a0`, `regs=3`). Assign both constants only in
+the arms so the temp is born after the `andi` dies; reorg still fills `li v0,8`
+into the `bnez` delay:
+
+```c
+if (!(work->field_A1E & 1)) {
+    work2 = (Actor400500Work*)arg0->idMap;
+    val   = 7;
+} else {
+    work2 = (Actor400500Work*)arg0->idMap;
+    val   = 8;
+}
+work2->field_A06 = val;
+```
+
+`if (flags & 1) { A06 = 8; } else { A06 = 7; }` inverts to `beqz` and stores in
+each arm. The shared `sh $v0` needs the temp. Example:
+`func_actor_400500_801369A4`. Inputs: `base_2.i`
+`d6fa594d680cbd4a4c1a1545385cbdcf58206e1d1a26e01c36f76f2a00d12bd8`,
+`base_3.i`
+`403131c1eb39b3e99712c3d36d375cab3aef9f9a5a796f6bf948e9f3aeae268a`.
+
 ## `u16 x = -1` is `ori 0xFFFF`; an `s32` temp keeps `addiu -1`
 
 Assigning `-1` to a `u16` field converts the constant to 65535 and emits
