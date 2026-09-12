@@ -232,7 +232,78 @@ void func_actor_400500_8013B374(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013B4A4);
+void func_actor_400500_8013B4A4(Task* arg0)
+{
+    Actor400500Work* work;
+    GpEnemy*         enemy;
+    u8               mode;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    mode  = Game_Session->field_5;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
+        s16 hp;
+        s32 maxHp;
+        s32 quarter;
+
+        hp      = enemy->field_40;
+        maxHp   = enemy->field_42 << 0x10;
+        quarter = maxHp >> 0x12;
+        if ((quarter + (maxHp >> 0x11)) < hp) {
+            work->field_A2C = 0x10;
+            work->field_A2E = 0;
+            return;
+        }
+        if (quarter < hp) {
+            work->field_A2C = 0x20;
+            work->field_A2E = 0x40;
+            return;
+        }
+        if ((maxHp >> 0x13) < hp) {
+            work->field_A2C = 0x30;
+            work->field_A2E = 0x80;
+            return;
+        }
+        if ((maxHp >> 0x14) < hp) {
+            work->field_A2C = 0x40;
+            work->field_A2E = 0xC0;
+            return;
+        }
+        work->field_A2C = 0x50;
+        work->field_A2E = 0x100;
+        return;
+    } else {
+        s16 hp;
+        s32 maxHp;
+        s32 quarter;
+
+        hp      = enemy->field_40;
+        maxHp   = enemy->field_42 << 0x10;
+        quarter = maxHp >> 0x12;
+        if ((quarter + (maxHp >> 0x11)) < hp) {
+            work->field_A2C = 0x2000;
+            work->field_A2E = 0x20;
+            return;
+        }
+        if (quarter < hp) {
+            work->field_A2C = 0x2000;
+            work->field_A2E = 0x40;
+            return;
+        }
+        if ((maxHp >> 0x13) < hp) {
+            work->field_A2C = 0x2000;
+            work->field_A2E = 0x80;
+            return;
+        }
+        if ((maxHp >> 0x14) < hp) {
+            work->field_A2C = 0x2000;
+            work->field_A2E = 0xC0;
+            return;
+        }
+        work->field_A2C = 0x2000;
+        work->field_A2E = 0x100;
+    }
+}
 
 extern TaskFuncTable5 D_actor_400500_80131FEC;
 
