@@ -184,7 +184,47 @@ void func_actor_403600_801419E8(Actor403600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141A34);
+void func_actor_403600_80141A34(Actor403600* arg0)
+{
+    RECT             rect;
+    Actor403600Work* work;
+    s16              value;
+
+    work  = arg0->field_1C;
+    value = work->field_784;
+    if (work->field_7A8 != value) {
+        if (value == 1) {
+            s16 width;
+
+            rect.x = 0x162;
+            rect.y = 0x162;
+            width  = 0x15;
+            rect.w = width;
+            rect.h = 0xA;
+            MoveImage(&rect, 0x141, 0x152);
+            rect.x = 0x16F;
+            rect.y = 0x102;
+            rect.w = 0x17;
+            rect.h = width;
+            MoveImage(&rect, 0x141, 0x164);
+        } else {
+            s16 width;
+
+            rect.x = 0x141;
+            rect.y = 0x1F3;
+            width  = 0x15;
+            rect.w = width;
+            rect.h = 0xA;
+            MoveImage(&rect, 0x141, 0x152);
+            rect.x = 0x17F;
+            rect.y = 0x1AB;
+            rect.w = 0x17;
+            rect.h = width;
+            MoveImage(&rect, 0x141, 0x164);
+        }
+        work->field_7A8 = (u16)work->field_784;
+    }
+}
 
 void func_actor_403600_80141B24(Actor403600* arg0)
 {
