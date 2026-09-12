@@ -120,8 +120,16 @@ typedef struct Actor103800 {
     /* 0x20 */ Actor103800Ctx*   field_20;
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor103800Obj2C* field_2C;
+    /* 0x30 */ s32               field_30;
 } Actor103800;
-STATIC_ASSERT_SIZEOF(Actor103800, 0x30);
+STATIC_ASSERT_SIZEOF(Actor103800, 0x34);
+
+typedef struct Actor103800StateFuncTable3 {
+    void (*funcs[3])(Actor103800Ctx*, Actor103800*);
+} Actor103800StateFuncTable3;
+STATIC_ASSERT_SIZEOF(Actor103800StateFuncTable3, 0xC);
+
+extern Actor103800StateFuncTable3 Actor03800_D00004;
 
 extern void* D_80067704[1];
 extern u8    Actor03800_D0459C[];
@@ -134,6 +142,7 @@ extern s8  D_80115410;
 extern s16 Actor03800_D05F90[];
 
 void Actor03800_Fn02998(Actor103800Ctx* arg0, Actor103800* arg1);
+void Actor03800_Fn0315C(Actor103800* arg0);
 void Actor03800_Fn031B8(Actor103800Ctx* arg0, Actor103800* arg1);
 void Actor03800_Fn032D8(Actor103800* arg0);
 

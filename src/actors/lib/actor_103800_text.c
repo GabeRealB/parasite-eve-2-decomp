@@ -911,7 +911,13 @@ void Actor03800_Fn03008(Actor103800* actor, u32 variant)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn0315C);
+void Actor03800_Fn0315C(Actor103800* arg0)
+{
+    Actor103800StateFuncTable3 sp;
+
+    sp = Actor03800_D00004;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 void Actor03800_Fn031B8(Actor103800Ctx* arg0, Actor103800* arg1)
 {
