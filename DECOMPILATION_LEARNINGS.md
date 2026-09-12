@@ -60214,3 +60214,18 @@ extension as its own early statement, so it emits right after the first init.
 (`if (count == arg2)`). GCC still hoists the single extension out of the loop,
 but now schedules it *among* the other loop-invariants (after `i=0` and the
 compare constant), matching retail. `func_shelter_b3_dumping_hole_80183198`.
+
+## Chained signed divides by 15: reuse one local, not two
+
+func_shelter_b3_dumping_hole_80182AA0 (POLY_G3 colour ramp) does two
+"(global << k) / 15" signed divides back to back, storing the quotients to
+different prim fields. Writing them into two separate locals
+("c1 = a/15; ...; c2 = b/15;") makes GCC 2.8.1 keep an extra dead pseudo for the
+first divide's dividend, which shifts the whole mult/mfhi/addu/sra/subu
+magic-divide sequence onto $v1 instead of $v0 (it should reuse the register that
+held the 0x30 "code" store). Reuse ONE local across both:
+"c1 = a/15; r=g=b=c1; c1 = b/15; c2 = c1;". The "c2 = c1" copy (not a fresh
+"c2 = b/15") is what lets the first divide reuse the freed register. Found by
+decomp-permuter distance search (see [[pe2-windows-toolchain-gotchas]] 3e for how
+the permuter runs on the spaced Windows checkout via a bind mount), confirmed by
+port.

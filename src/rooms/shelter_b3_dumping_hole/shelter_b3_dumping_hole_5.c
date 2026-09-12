@@ -7,6 +7,7 @@
 #include "main/stage.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
+#include "psyq/libgpu.h"
 
 typedef struct {
     u8  field_0;
@@ -198,7 +199,78 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_801829B4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182AA0);
+typedef struct {
+    /* 0x00 */ u32 tag;
+    /* 0x04 */ u8  r;
+    /* 0x05 */ u8  g;
+    /* 0x06 */ u8  b;
+    /* 0x07 */ u8  code;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ u8  field_C;
+    /* 0x0D */ u8  field_D;
+    /* 0x0E */ u8  field_E;
+    /* 0x0F */ u8  pad_F;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ s16 field_12;
+    /* 0x14 */ u8  field_14;
+    /* 0x15 */ u8  field_15;
+    /* 0x16 */ u8  field_16;
+    /* 0x17 */ u8  pad_17;
+    /* 0x18 */ s16 field_18;
+    /* 0x1A */ s16 field_1A;
+} Prim82AA0;
+
+extern s32 D_shelter_b3_dumping_hole_8018B670;
+extern s32 D_shelter_b3_dumping_hole_8018B674;
+extern u16 D_shelter_b3_dumping_hole_8018F4CC;
+extern u16 D_shelter_b3_dumping_hole_8018F4CE;
+
+void func_shelter_b3_dumping_hole_80182AA0(void)
+{
+    Prim82AA0* prim;
+    s32        c1;
+    s32        c2;
+
+    if (D_shelter_b3_dumping_hole_8018F4D0 != 0) {
+        D_shelter_b3_dumping_hole_8018F4D0 -= 1;
+        return;
+    }
+    prim           = (Prim82AA0*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 6);
+    prim->code     = 0x30;
+    c1             = (D_shelter_b3_dumping_hole_8018B670 << 7) / 15;
+    prim->r        = c1;
+    prim->g        = c1;
+    prim->b        = c1;
+    c1             = (D_shelter_b3_dumping_hole_8018B670 * 192) / 15;
+    c2             = c1;
+    prim->field_C  = c2;
+    prim->field_D  = c2;
+    prim->field_E  = c2;
+    prim->field_14 = c2;
+    prim->field_15 = c2;
+    prim->field_16 = c2;
+    prim->field_8  = D_shelter_b3_dumping_hole_8018F4CC + 3;
+    prim->field_A  = D_shelter_b3_dumping_hole_8018F4CE;
+    prim->field_10 = D_shelter_b3_dumping_hole_8018F4CC;
+    prim->field_18 = D_shelter_b3_dumping_hole_8018F4CC + 7;
+    prim->field_12 = D_shelter_b3_dumping_hole_8018F4CE - 7;
+    prim->field_1A = D_shelter_b3_dumping_hole_8018F4CE - 7;
+    addPrim(&Gpu_CurrentOt[2], prim);
+    if (D_shelter_b3_dumping_hole_8018B674 == 0) {
+        D_shelter_b3_dumping_hole_8018B670 += 1;
+        if (D_shelter_b3_dumping_hole_8018B670 >= 0xF) {
+            D_shelter_b3_dumping_hole_8018B674 = 1;
+        }
+    } else {
+        D_shelter_b3_dumping_hole_8018B670 -= 1;
+        if (D_shelter_b3_dumping_hole_8018B670 < 9) {
+            D_shelter_b3_dumping_hole_8018B674 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182C24);
 
