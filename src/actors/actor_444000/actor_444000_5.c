@@ -35,10 +35,23 @@ extern s32 D_actor_444000_80144A6C;
 extern s16 D_actor_444000_80144A70;
 extern s32 Gp_LcgState;
 
+extern MATRIX*    D_80073B8C;
 extern s8         D_8007218A;
 extern u8         D_80073BA9;
 extern u8         D_801153F4;
 extern GpAnimSet* D_actor_444000_80161694[];
+
+/// Which of the three drop-point groups the falling enemies use this round,
+/// rerolled off `Gp_LcgState` whenever a spawn arrives with `spawnArg1` 0.
+extern u8 D_actor_444000_80161690;
+/// Per-`spawnArg1` offset from the host model to the point the enemy is stood
+/// up at when it is spawned.
+extern SVECTOR D_actor_444000_80161704[];
+/// The drop points themselves: `vz` is added to the ring x coordinate and `vx`
+/// (less 0x189C) becomes the z coordinate.
+extern SVECTOR D_actor_444000_80161744[];
+/// `[group][spawnArg1]` index into `D_actor_444000_80161744`.
+extern u8 D_actor_444000_801617C4[][8];
 /// Reply buffer the hold state below hands message 0x3F8.
 extern Actor444000Msg3F8 D_actor_444000_80161898;
 extern GpAnimBlk*        Gp_PlayerAnimBlkTbl[];
@@ -335,7 +348,7 @@ static __inline__ void Actor444000_AccumulateRotation(GsCOORDINATE2* coord, MATR
 /// Link one of the work block's display nodes: it hangs off the model's own
 /// coordinate, carries `rec` as its collision-record table and sits at `pos`
 /// in that coordinate's space with `field1C` as its extent.
-static __inline__ void Actor444000_LinkWorkObj(GpObj* obj, GsCOORDINATE2* coord, GpRec18* rec,
+static __inline__ void Actor444000_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj, GpRec18* rec,
                                                SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
 {
     obj->field_8  = coord;
@@ -400,7 +413,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
     Gp_UpdateCoord(task->extra->field_8);
 
     pos.vx = pos.vy = pos.vz = 0;
-    Actor444000_LinkWorkObj(&work->obj0, task->extra->field_8, &work->rec0, &pos, 0x394, 3, 1);
+    Actor444000_LinkWorkObj(task->extra->field_8, &work->obj0, &work->rec0, &pos, 0x394, 3, 1);
 
     work->obj0.flags   &= 0x7FFF;
     work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 2);
@@ -942,7 +955,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
 
     vec.vx = vec.vy = vec.vz = 0;
 
-    Actor444000_LinkWorkObj(&work->obj0, task->extra->field_8, &work->rec0, &vec, 0x100, 3, 1);
+    Actor444000_LinkWorkObj(task->extra->field_8, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
 
     work->obj1.field_8  = task->extra->field_8;
     work->obj1.field_C  = &work->rec1;
@@ -1113,7 +1126,158 @@ void func_actor_444000_8013928C(GpEnemy* enemy, Actor444000Grab* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80139594);
+/// Horizontal gap from `coord` to the camera target `D_80073B8C`, as an
+/// `SVECTOR` the caller supplies.
+static __inline__ void Actor444000_GapToCamera(GsCOORDINATE2* coord, SVECTOR* out)
+{
+    out->vx = D_80073B8C->t[0] - coord->coord.t[0];
+    out->vy = D_80073B8C->t[1] - coord->coord.t[1];
+    out->vz = D_80073B8C->t[2] - coord->coord.t[2];
+}
+
+/// Spawn state of the enemy dispatched through `D_actor_444000_80131F1C`:
+/// allocate its work block and pick the point it will be dropped on.
+///
+/// A spawn with `spawnArg1` 0 rerolls the drop-point group in
+/// `D_actor_444000_80161690`, mapping the two low bits of the LCG onto group
+/// 1, 1, 2 and 0. `work->target` is then the host model's position pushed out
+/// by 0x1B58, 0x2710 or 0x32C8 -- whichever ring the host is on, measured
+/// against the camera target -- plus the `[group][spawnArg1]` entry of
+/// `D_actor_444000_80161744`, with a 0..0x7F jitter on z. `spawnArg1` 4 drops
+/// on the player instead. The model itself is stood up beside the host at the
+/// `D_actor_444000_80161704` offset, its work coordinate is parented to
+/// `Gfx_ViewCoord` with an identity rotation and carries the single display
+/// node, and the spawn cue is enqueued at the model's own pan and depth with
+/// the owner's id in its high half. The trailing `Gp_SpawnEff` effect becomes
+/// this task's parent so it dies with it.
+///
+/// Bails out -- destroying the enemy -- when the overlay is shutting down or
+/// the work block cannot be allocated.
+void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
+{
+    Actor444000DropWork* work;
+    GpEnemy*             owner;
+    Task*                parent;
+    Task*                player;
+    Actor444000Matrix*   mtx;
+    SVECTOR              vec;
+    s32                  dist;
+    s32                  rnd;
+    s32                  snd;
+    s32                  pan;
+
+    player = Game_GetPtrSlot(3);
+    owner  = task->parent->spawnArg2;
+    parent = task->parent;
+
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+    work           = Mem_Calloc(sizeof(Actor444000DropWork), false);
+    task->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    task->extra->field_8->sub = &Gfx_ViewCoord;
+    work->field_1AA           = 0;
+
+    Actor444000_GapToCamera(task->extra->field_8, &vec);
+
+    if ((u16)task->spawnArg1 == 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        rnd         = ((u32)Gp_LcgState >> 16) & 3;
+        switch (rnd) {
+            case 0:
+            case 1:
+                D_actor_444000_80161690 = 1;
+                break;
+            case 2:
+                D_actor_444000_80161690 = rnd;
+                break;
+            case 3:
+                D_actor_444000_80161690 = 0;
+                break;
+            default:
+                D_actor_444000_80161690 = 0;
+                break;
+        }
+    }
+
+    Actor444000_GapToCamera(((TmdObject*)parent->extra)->field_8, &vec);
+    dist  = vec.vx * vec.vx;
+    dist += vec.vy * vec.vy;
+    dist += vec.vz * vec.vz;
+    dist  = SquareRoot0(dist);
+
+    if (dist < 0x1F40) {
+        work->target.vx = ((TmdObject*)parent->extra)->field_8->coord.t[0] + 0x1B58;
+    } else if (dist < 0x2AF8) {
+        work->target.vx = ((TmdObject*)parent->extra)->field_8->coord.t[0] + 0x2710;
+    } else {
+        work->target.vx = ((TmdObject*)parent->extra)->field_8->coord.t[0] + 0x32C8;
+    }
+
+    work->target.vx +=
+        D_actor_444000_80161744[D_actor_444000_801617C4[D_actor_444000_80161690]
+                                                       [(u16)task->spawnArg1]]
+            .vz;
+    work->target.vy = 0;
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->target.vz = D_actor_444000_80161744[D_actor_444000_801617C4[D_actor_444000_80161690]
+                                                                     [(u16)task->spawnArg1]]
+                          .vx -
+                      0x189C;
+    work->target.vz = (((u32)Gp_LcgState >> 16) & 0x7F) + work->target.vz;
+
+    if ((u16)task->spawnArg1 == 4) {
+        work->target.vx = ((TmdObject*)player->extra)->field_8->coord.t[0];
+        work->target.vy = 0;
+        work->target.vz = ((TmdObject*)player->extra)->field_8->coord.t[2];
+    }
+
+    work->timer     = 0;
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->field_1AE = ((u32)Gp_LcgState >> 16) & 8;
+
+    vec.vx = D_actor_444000_80161704[(u16)task->spawnArg1].vx;
+    vec.vy = D_actor_444000_80161704[(u16)task->spawnArg1].vy;
+    vec.vz = D_actor_444000_80161704[(u16)task->spawnArg1].vz;
+
+    task->extra->field_8->coord.t[0] = vec.vx + ((TmdObject*)parent->extra)->field_8->coord.t[0];
+    task->extra->field_8->coord.t[1] = vec.vy;
+    task->extra->field_8->coord.t[2] = vec.vz + ((TmdObject*)parent->extra)->field_8->coord.t[2];
+
+    work->obj.field_18 = Gp_PackObjPair((GpObj50*)owner, 1);
+
+    vec.vx = 0;
+    vec.vy = 0;
+    vec.vz = 0;
+
+    work->coord.sub    = &Gfx_ViewCoord;
+    mtx                = (Actor444000Matrix*)&work->coord.coord;
+    mtx->ident.m00_m01 = 0x1000;
+    mtx->ident.m02_m10 = 0;
+    mtx->ident.m11_m12 = 0x1000;
+    mtx->ident.m20_m21 = 0;
+    mtx->ident.m22     = 0x1000;
+    Gfx_RotMatrixY(&mtx->mat, 0, 1);
+
+    Actor444000_LinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
+    work->obj.flags &= 0x7FFF;
+
+    snd = ((owner->field_8 >> 12) << 8) | 0x4020000B;
+    pan = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)task->extra->field_8));
+
+    work->eff = Gp_SpawnEff(0x6019B, task->extra->field_8, 0, NULL);
+    if (work->eff != NULL) {
+        Task_Reparent((Task*)task, work->eff->field_0);
+    }
+    task->state++;
+}
 
 /// Ascent state that precedes the descent above: lift the model by 0x1F4 plus
 /// `field_1AE` a step until it passes -0x4E20, then clamp it there, snap its

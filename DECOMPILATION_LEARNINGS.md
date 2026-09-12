@@ -63835,3 +63835,93 @@ This also explains why `&work->hits[0].recs[i]` written out in full does not
 hoist `work + 0x814`: `fold` reassociates `(work + 0x814) + i * 0x18` into
 `work + (i * 0x18 + 0x814)`, and the constant lands on the index
 (`addiu v0,v0,0x814` / `addu v1,s3,v0`) rather than on an invariant base.
+
+## A `move` immediately after a load is a *second* read that post-reload CSE collapsed
+
+`parent = task->parent;` compiles to one insn: `expand_assignment` stores the
+MEM straight into the variable's pseudo, and if anything does produce a
+temporary, `combine` merges `(set p1 (mem ...))` + `(set p2 p1)` back into a
+single load. So a target that reads
+
+```
+lw   v1,8(s3)          # task->parent
+move s0,v1
+lw   s6,0x20(s0)       # ->spawnArg2
+```
+
+is *not* a coalescing failure, and it cannot be reproduced by an `__inline__`
+accessor either - the inlined return-value copy is merged the same way. The
+copy is `reload_cse_regs`, which runs after reload and rewrites the **second**
+`lw s0,8(s3)` as `move s0,v1` because `v1` still holds that address's value.
+
+Two loads survive into reload only when ordinary CSE leaves them: read the
+expression once for a *use* and assign the variable from a *second* read, in
+that order.
+
+```c
+owner  = task->parent->spawnArg2;   /* first read: its own pseudo */
+parent = task->parent;              /* second read: cse -> copy, kept */
+```
+
+The reverse order (`parent = task->parent; owner = task->parent->spawnArg2;`)
+does not work: cse rewrites the later load to the variable it already has and
+flow deletes the dead set, leaving one load again. `func_actor_444000_80139594`
+is the worked example; getting this one instruction right also re-seated the
+temporaries in three later blocks, because the extra pseudo shifts local-alloc's
+quantity order for the whole function.
+
+## Accumulate a sum into its own variable or it coalesces with `$a0`
+
+`SquareRoot0(x*x + y*y + z*z)` expands as `t1 = x2 + y2`, then
+`(set p (plus t1 z2))` and `(set a0 p)`; combine folds the copy into the second
+add, and local-alloc then hands `t1` the same `$a0`, so both adds write `$a0`:
+
+```
+addu a0,a3,v1
+addu a0,a0,t0
+jal  SquareRoot0
+move v1,v0          /* the result lands wherever is left */
+```
+
+Writing the accumulation into the destination variable makes the partial sum and
+the call result *the same pseudo*, which therefore keeps its own register across
+the call:
+
+```c
+dist  = vec.vx * vec.vx;
+dist += vec.vy * vec.vy;
+dist += vec.vz * vec.vz;
+dist  = SquareRoot0(dist);
+```
+
+```
+addu a3,a3,v1       /* dist = x2 + y2, in dist's register */
+addu a0,a3,t0       /* only the last add folds into the argument */
+jal  SquareRoot0
+move a3,v0          /* dist reclaims the same register */
+```
+
+Note that `dist = x*x + y*y + z*z; dist = SquareRoot0(dist);` is **not** enough -
+it produces byte-identical output to the one-liner, because the temporary for
+the inner sum is still distinct from `dist`. Only per-term accumulation makes
+them one pseudo.
+
+## An inlined helper's parameter order breaks a scheduling tie at the call site
+
+Two address computations that feed the same first store are tied on scheduling
+priority, and `rank_for_schedule` falls back to `INSN_LUID` - original insn
+order. For an inlined call that order is the order `expand_inline_function`
+copies the actuals into the formals, i.e. the **parameter** order. So
+
+```
+addiu v0,s2,0x10     /* &work->coord */
+addiu s0,s2,0xb0     /* &work->obj   */
+sw    v0,8(s0)
+```
+
+says the coordinate parameter is declared before the object parameter, even
+though the body writes `obj->field_8 = coord;`. Swapping the two parameters of
+`Actor444000_LinkWorkObj` was the last instruction of
+`func_actor_444000_80139594`; the helper's other two call sites in the same TU
+still matched, because there the coordinate argument is a load rather than an
+address computation and nothing ties.
