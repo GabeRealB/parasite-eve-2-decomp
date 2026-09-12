@@ -9,7 +9,9 @@ extern u8       D_80071075;
 extern u8       D_801153F4;
 extern s32      D_8005C374;
 extern s32      D_8007107C;
+extern s16      D_80073BA0;
 extern TaskDesc D_actor_403600_801421A0;
+extern s32      D_actor_403600_8016056C;
 extern s32      D_actor_403600_8016069C;
 extern s32      D_actor_403600_801606A0;
 
@@ -26,7 +28,9 @@ void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1);
 void func_actor_403600_80141338(Actor403600* arg0);
 void func_actor_403600_801414FC(Actor403600* arg0);
 void func_actor_403600_8014161C(Actor403600* arg0);
+void func_actor_403600_80141954(s32 arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
+void func_actor_403600_80141B24(Actor403600* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801320F8);
 
@@ -240,7 +244,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013D9A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013DAF4);
+void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1)
+{
+    Actor403600**    temp_v0;
+    GpEnemy*         temp_s0;
+    Actor403600Work* temp_s1;
+    Actor403600*     temp_v0_2;
+    Actor403600Work* temp_v0_3;
+
+    temp_s0           = arg0->field_20;
+    temp_s1           = arg0->field_1C;
+    temp_s0->field_40 = (u16)temp_s0->field_40 - arg1;
+    func_800DA6E8(&temp_s0->node, arg1, 0);
+    if (temp_s0->field_40 <= 0) {
+        if (D_80073BA0 <= 0) {
+            temp_s0->field_40 = 0xA;
+            return;
+        }
+        temp_v0 = temp_s1->field_4B4;
+        if (temp_v0 != NULL) {
+            temp_v0_2                      = *temp_v0;
+            temp_v0_2->field_30            = 2;
+            temp_v0_2->field_2A            = 0;
+            temp_v0_2->field_1C->field_732 = 1;
+        }
+        temp_s1->field_588.flags &= 0x7FFF;
+        Gp_PulseState1C80();
+        Game_Session->field_1   = 1;
+        D_actor_403600_8016056C = 0;
+        Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
+        temp_v0_3            = arg0->field_1C;
+        temp_v0_3->field_756 = 8;
+        temp_v0_3->field_776 = 0xA;
+        temp_v0_3->field_742 = 0;
+        temp_v0_3->field_746 = 0;
+        temp_v0_3->field_774 = 0;
+        temp_v0_3->field_778 = 0x10;
+        temp_v0_3->field_77A = 0;
+        temp_v0_3->field_784 = 0;
+        temp_v0_3->field_73C = 0;
+        temp_v0_3->field_73E = 0;
+        temp_v0_3->field_74A = 0;
+        temp_v0_3->field_73A = 0;
+        temp_v0_3->field_76E = 0x40;
+        temp_v0_3->field_75E = 0;
+        temp_v0_3->field_7A4 = 0;
+        temp_v0_3->field_7A6 = 0;
+        temp_v0_3->field_7AC = 0;
+        func_actor_403600_80141954(0);
+        func_actor_403600_80141B24(arg0);
+        temp_s1->field_742 = 1;
+        temp_s1->field_736 = 1;
+        temp_s1->field_756 = 0;
+        temp_s1->field_778 = 0x10;
+        temp_s1->field_730 = 0x14;
+        temp_s1->field_732 = 0;
+        temp_s1->field_7A2 = 0;
+        Gp_HaltPadScripts();
+        SndEvt_EnqueueType7(0x54160001, 1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013DC7C);
 
