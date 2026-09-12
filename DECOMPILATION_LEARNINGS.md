@@ -64271,3 +64271,91 @@ The empty delay slot follows from the same thing: `<body>`'s first instruction
 is now a branch target, so `dbr` cannot hoist it into the `bnez` slot. An
 unfilled slot in front of a label that another edge reaches is the cheap way to
 spot this shape in a target.
+
+## Group struct writes by object to move a free-floating address computation
+
+`func_actor_444000_8013AFF8` sets up a `GpObj` and the `GpActorD4Rec` it points
+at, then hands the record table to `Gp_InitRec18Table`. Every version of the
+block emitted all 17 stores in the right order and still left one instruction -
+`addiu s0, s7, 0xd84` (`&work->recs2`, the table pointer) - seven slots too late,
+for a stubborn 99.933%.
+
+Two groups of stores behave differently in `sched2`. Stores fed by a constant in
+`$v0` form a chain: register reuse makes each `li`/`sh` pair anti-dependent on
+the next, so their relative order is frozen at source order. Stores of `zero`, or
+of a value in another register, are *free*: they are all ready at once, they beat
+ALU insns on `potential_hazard`, and their order among themselves is decided by
+`INSN_LUID` - which is source order again. So the emitted order only pins the
+order *within* each group, and an address computation (ALU, no unit) floats up
+through the block until it meets an ALU insn with a **higher** luid, which it
+wins on the same luid tie-break in `rank_for_schedule`.
+
+That last comparison is the whole leftover. Writing the two objects interleaved
+(`d4rec.field_C/10/12`, `obj.field_C/12/14`, `d4rec.field_0..A/14`, `obj.*`)
+gives the table pointer a luid *after* `li 0x25f`, so it stops there. Writing all
+of `d4rec` first and all of `obj` afterwards keeps both groups' internal order -
+so every store still lands where it did - while moving the pointer's luid before
+`obj.field_12`/`field_14`, and it floats the remaining seven slots to its target
+position. `reorder` went 1 → 0 with no other change.
+
+Worth reaching for whenever a single address computation sits a few slots off
+inside an otherwise exact run of stores: reorder whole field groups rather than
+individual statements, since regrouping is the one edit that changes luids
+without changing the store order. Moving the *statement* that first uses the
+pointer cannot work - `sched1` re-attaches the computation to its store (it has
+no in-block dependency, so it is alone in priority group 1 and is picked the
+moment the store is), so the pair moves together.
+
+## Scratchpad-head accesses share a CSE'd register unless the helper is inlined
+
+`*(u8**)G_SCRATCH_HEAD` compiles two ways in this tree, and the difference is
+whether the accesses sit in a `static __inline__` helper:
+
+```
+lui  $s2, 0x1F80        ; inlined helper: gas expands `lw $s2, 0x1F8003FC`
+lw   $s2, 0x3FC($s2)
+lui  $at, 0x1F80        ; ... and `sw $s0, 0x1F8003FC` needs $at
+sw   $s0, 0x3FC($at)
+
+lui  $s3, 0x1F80        ; plain function body: one register for all accesses
+ori  $s3, $s3, 0x3FC
+lw   $s2, 0($s3)
+```
+
+`memory_address` forces a constant address into a register at expand time "to
+get a chance to cse them", and CSE then unifies every occurrence into one
+pseudo, which `global.c` parks in a callee-saved register because the carve and
+the release straddle calls. In an inlined body each access keeps its own
+materialisation instead. `Actor444000_RebuildRotation` and
+`actors/actor_342400_7.c`'s `update_color` (whose comment already records the
+effect) are the inlined form; `func_actor_444000_8013799C` and
+`func_actor_444000_80134688` are the plain form. `func_actor_444000_8013AFF8`
+needed the inlined one, which is also why its rotation reset is a helper rather
+than straight-line code: the four accesses must not share `$s3`.
+
+## Duplicate the call in both arms to keep the `j` an argument-conditional wants
+
+A call whose only conditional part is one argument has two shapes. A ternary
+(`Gp_UpdateActorColor(cond ? enemy : other, ...)`) collapses into an inverted
+branch with the then-value in the delay slot:
+
+```
+bnez  v0, .L
+ move a0, s4
+lw    a0, 0xed8(s7)
+```
+
+Writing the call out in both arms instead lets `jump.c`'s cross-jumping merge
+the identical tails, which leaves the two-block form with an empty `beqz` slot:
+
+```
+beqz  v0, .L1
+ nop
+j     .L2
+ move a0, s4
+.L1: lw a0, 0xed8(s7)
+```
+
+Same instruction count either way, so the give-away in a target is the extra
+block plus the unfilled branch slot - `.diagnosis.json` reports one block too
+few before it reports anything about registers.

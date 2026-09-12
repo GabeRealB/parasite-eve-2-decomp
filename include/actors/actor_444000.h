@@ -10,19 +10,34 @@
 #include "main/tmd.h"
 
 /// One of the nine back-to-back collision groups in `Actor444000Work` at
-/// 0x7FC. `coord` is the part's own coordinate -- what
-/// `func_actor_444000_80134688` spawns the hit effect on -- and `recs` is the
-/// `GpRec18` table the gameplay collision pass fills in for that part. The
-/// 0x98 stride is what the used offsets spell out: group 2's record table is
-/// `work + 0x944`, which is `0x7FC + 2 * 0x98 + 0x18`.
+/// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
+/// is the `GpRec18` table it fills in for that part, which is why the stride is
+/// 0x98: `func_actor_444000_8013AFF8` hands `func_8010C980` the pair
+/// (`&hits[i].obj`, `hits[i].recs`) for each group, and that helper is what
+/// spells the boundary out. `obj.field_8` is the part's own coordinate -- what
+/// `func_actor_444000_80134688` spawns the hit effect on.
 typedef struct Actor444000HitGroup {
-    /* 0x00 */ GsCOORDINATE2* coord;
-    /* 0x04 */ byte           pad_4[0x12];
-    /* 0x16 */ u16            field_16;
-    /* 0x18 */ GpRec18        recs[5];
-    /* 0x90 */ byte           pad_90[0x8];
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 recs[5];
 } Actor444000HitGroup;
 STATIC_ASSERT_SIZEOF(Actor444000HitGroup, 0x98);
+
+/// `GsCOORDINATE2` with the leading words of its rotation matrix named, so the
+/// identity can be written with the aligned word stores GCC 2.8.1 emits -- the
+/// same shape as `Actor403100Matrix`, widened to cover the whole coordinate
+/// because the descent state builds the identity in a local `GsCOORDINATE2`.
+typedef union Actor444000DropCoord {
+    GsCOORDINATE2 c;
+    struct {
+        /* 0x00 */ s32 flg;
+        /* 0x04 */ s32 m00_m01;
+        /* 0x08 */ s32 m02_m10;
+        /* 0x0C */ s32 m11_m12;
+        /* 0x10 */ s32 m20_m21;
+        /* 0x14 */ s16 m22;
+    } ident;
+} Actor444000DropCoord;
+STATIC_ASSERT_SIZEOF(Actor444000DropCoord, 0x50);
 
 /// Per-actor work block for the enemy task `D_actor_444000_80161878` points
 /// at, reached through the `Task::idMap` slot (0x1C) rather than being a
@@ -84,7 +99,7 @@ typedef struct Actor444000Work {
     /* 0x7B3 */ s8   field_7B3;
     /* 0x7B4 */ u16  field_7B4; // frames since the block was re-armed
     /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ byte pad_7B8[0x2];
+    /* 0x7B8 */ s16  field_7B8;
     /* 0x7BA */ s16  field_7BA;
     /* 0x7BC */ s16  field_7BC; // animation id the slot resets seed from
     /* 0x7BE */ s16  field_7BE; // GpAnimSlot::field_9 the resets seed with
@@ -105,7 +120,6 @@ typedef struct Actor444000Work {
     /* 0x7DC */ byte pad_7DC[0x14];
     /* 0x7F0 */ byte pad_7F0[0x3];
     /* 0x7F3 */ s8   field_7F3;
-    /* 0x7F4 */ byte pad_7F4[0x8];
     /// One collision group per body part the boss can be struck on: the
     /// coordinate a landed hit spawns its effect at, followed by that part's
     /// own `GpRec18` table. `func_actor_444000_8013AFF8` publishes
@@ -114,29 +128,30 @@ typedef struct Actor444000Work {
     /// `func_actor_444000_8013C4B0` for groups 1 and 2, ...) each scan five
     /// records of their own group. The count is what the used multiples of
     /// 0x98 bound, not a figure read out of the game.
-    /* 0x7FC */ Actor444000HitGroup hits[9];
-    /// 0xD4C starts the `GpObj` `func_actor_444000_8013AFF8` hands `Gp_LinkObj`,
-    /// whose `GpRec18` table is `recs2` below (`Gp_InitRec18Table(work + 0xD84, 5,
-    /// 0)`). Its base falls inside the tail of the `hits[]` guess above, so only
-    /// the two fields the decompiled code needs are named here: `field_D6A` is that
-    /// object's `flags` halfword, which the arena tick raises bit 0x8000 of while
-    /// the swipe is live and clears otherwise.
-    /* 0xD54 */ byte    pad_D54[0x16];
-    /* 0xD6A */ u16     field_D6A;
-    /* 0xD6C */ byte    pad_D6C[0x18];
-    /* 0xD84 */ GpRec18 recs2[5];
-    /* 0xDFC */ byte    pad_DFC[0x40];
+    /* 0x7F4 */ Actor444000HitGroup hits[9];
+    /// The tenth collision object, the one `func_actor_444000_8013AFF8` links by
+    /// hand rather than through `func_8010C980`: a kind-3 `GpObj` whose `field_C`
+    /// points at `d4rec`, whose own `field_14` points at the `GpRec18` table
+    /// `recs2`. The arena tick raises `obj.flags` bit 0x8000 while the swipe is
+    /// live and clears it otherwise.
+    /* 0xD4C */ GpObj        obj;
+    /* 0xD6C */ GpActorD4Rec d4rec;
+    /* 0xD84 */ GpRec18      recs2[5];
+    /// The light and colour matrices the spawn state points the host model and
+    /// every escort model at (`TmdObject::field_1C` / `field_20`).
+    /* 0xDFC */ MATRIX lightMtx;
+    /* 0xE1C */ MATRIX colorMtx;
     /// Free coordinate the arena tick rebuilds from `field_7C8` every step and
     /// pushes through `Gp_UpdateCoord`.
-    /* 0xE3C */ GsCOORDINATE2 field_E3C;
-    /* 0xE8C */ s16           field_E8C; // Gp_GetIdParam2 of the hit group 0 took
-    /* 0xE8E */ s16           field_E8E; // Gp_GetIdParam2 of the hit groups 3, 4 and 5 took
-    /* 0xE90 */ s16           field_E90; // Gp_GetIdParam2 of the hit groups 6, 7 and 8 took
-    /* 0xE92 */ s16           field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
-                                         /// Yaw the arena tick walks toward `field_E96` in steps of 0x32, snapping
-                                         /// once the two are within 0x33 of each other. `field_E96` is the target
-                                         /// the state ladder picks each tick and `field_E98` the companion drop the
-                                         /// shared floor-marker helper takes.
+    /* 0xE3C */ Actor444000DropCoord field_E3C;
+    /* 0xE8C */ s16                  field_E8C; // Gp_GetIdParam2 of the hit group 0 took
+    /* 0xE8E */ s16                  field_E8E; // Gp_GetIdParam2 of the hit groups 3, 4 and 5 took
+    /* 0xE90 */ s16                  field_E90; // Gp_GetIdParam2 of the hit groups 6, 7 and 8 took
+    /* 0xE92 */ s16                  field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
+                                                /// Yaw the arena tick walks toward `field_E96` in steps of 0x32, snapping
+                                                /// once the two are within 0x33 of each other. `field_E96` is the target
+                                                /// the state ladder picks each tick and `field_E98` the companion drop the
+                                                /// shared floor-marker helper takes.
     /* 0xE94 */ s16  field_E94;
     /* 0xE96 */ s16  field_E96;
     /* 0xE98 */ s16  field_E98;
@@ -170,32 +185,33 @@ typedef struct Actor444000Work {
     /// `Gp_SpawnEnemyFromTable`; the resets walk them to push the host's
     /// `TmdObject::field_C` onto each escort's own model object.
     /* 0xECC */ GpEnemy* field_ECC[7];
-    /* 0xEE8 */ GpEnemy* field_EE8; // nearby enemy, dropped once its HP runs out
-    /* 0xEEC */ GpEnemy* field_EEC; // second such slot
-                                    /// The enemy `func_actor_444000_801404C0` drops into the arena every tenth
-                                    /// sub-state step once the fight passes 0x3D.
+    /// Two nearby-enemy slots, each dropped once its HP runs out; the spawn
+    /// state clears them in a loop, which is what makes them an array.
+    /* 0xEE8 */ GpEnemy* field_EE8[2];
+    /// The enemy `func_actor_444000_801404C0` drops into the arena every tenth
+    /// sub-state step once the fight passes 0x3D.
     /* 0xEF0 */ GpEnemy* field_EF0;
     /* 0xEF4 */ s16      field_EF4;
     /* 0xEF6 */ s16      field_EF6;
     /* 0xEF8 */ s16      field_EF8;
     /* 0xEFA */ s16      field_EFA;
-    /* 0xEFC */ byte     pad_EFC[0x2];
+    /* 0xEFC */ s16      field_EFC; // the field_EFA the colour update last ran for
     /* 0xEFE */ s16      field_EFE;
     /* 0xF00 */ s16      field_F00; // pitch the head tracker walks toward its target, clamped to 0..0x500
     /* 0xF02 */ byte     pad_F02[0x2];
     /* 0xF04 */ s16      field_F04;
-    /* 0xF06 */ byte     pad_F06[0x2];
+    /* 0xF06 */ s16      field_F06;
     /* 0xF08 */ s16      field_F08;
     /* 0xF0A */ s16      field_F0A; // damage pool the hit handler for groups 3, 4 and 5 draws down
     /* 0xF0C */ s16      field_F0C; // damage pool the hit handler for groups 6, 7 and 8 draws down
     /* 0xF0E */ s16      field_F0E; // damage pool the hit handler for groups 1 and 2 draws down
     /* 0xF10 */ s16      field_F10; // stagger countdown: the tick spins here until it runs out
-    /* 0xF12 */ byte     pad_F12[0x2];
+    /* 0xF12 */ s16      field_F12;
     /* 0xF14 */ s16      field_F14; // eighths of it is how many extra re-arm steps the reset runs
     /* 0xF16 */ s16      field_F16;
     /* 0xF18 */ byte     pad_F18[0x2];
     /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
-    /* 0xF1B */ byte     pad_F1B[0x1];
+    /* 0xF1B */ s8       field_F1B;
     /* 0xF1C */ s8       field_F1C; // countdown, decremented while positive
     /* 0xF1D */ s8       field_F1D;
     /* 0xF1E */ byte     pad_F1E[0x6];
@@ -286,12 +302,16 @@ STATIC_ASSERT_SIZEOF(Actor444000RotScratch, 0x34);
 /// dispatchers already hand their handlers as `Task::spawnArg2`. Not the event task
 /// `D_actor_444000_80161860`, whose `idMap` holds an `Actor444000EventWork`.
 typedef struct Actor444000 {
-    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x00 */ byte             pad_0[0x18];
+    /* 0x18 */ TaskFunc         exitCallback;
     /* 0x1C */ Actor444000Work* field_1C;
     /* 0x20 */ GpEnemy*         field_20;
-    /* 0x24 */ byte             pad_24[0x8];
-    /* 0x2C */ void*            extra; // Task::extra, a TmdObject
-    /* 0x30 */ s32              state; // Task::state, the dispatcher index
+    /* 0x24 */ void*            field_24; // Task::field_24, the message handler table
+    /* 0x28 */ byte             pad_28[0x4];
+    /* 0x2C */ void*            extra;    // Task::extra, a TmdObject
+    /* 0x30 */ s32              state;    // Task::state, the dispatcher index
+    /* 0x34 */ s16              spawnArg1Lo;
+    /* 0x36 */ s16              field_36; // the high half of Task::spawnArg1
 } Actor444000;
 
 /// Work block of the overlay's *other* enemy, the one dispatched through
@@ -363,23 +383,6 @@ typedef struct Actor444000DropWork {
     /* 0x1B0 */ byte          pad_1B0[0x10];
 } Actor444000DropWork;
 STATIC_ASSERT_SIZEOF(Actor444000DropWork, 0x1C0);
-
-/// `GsCOORDINATE2` with the leading words of its rotation matrix named, so the
-/// identity can be written with the aligned word stores GCC 2.8.1 emits -- the
-/// same shape as `Actor403100Matrix`, widened to cover the whole coordinate
-/// because the descent state builds the identity in a local `GsCOORDINATE2`.
-typedef union Actor444000DropCoord {
-    GsCOORDINATE2 c;
-    struct {
-        /* 0x00 */ s32 flg;
-        /* 0x04 */ s32 m00_m01;
-        /* 0x08 */ s32 m02_m10;
-        /* 0x0C */ s32 m11_m12;
-        /* 0x10 */ s32 m20_m21;
-        /* 0x14 */ s16 m22;
-    } ident;
-} Actor444000DropCoord;
-STATIC_ASSERT_SIZEOF(Actor444000DropCoord, 0x50);
 
 /// A `MATRIX` plus the word-wise view `func_actor_444000_80140BBC` uses to
 /// splat an identity rotation into the shared coordinate
@@ -560,7 +563,7 @@ s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id);
 void func_actor_444000_8013441C(Actor444000* arg0);
 void func_actor_444000_801371E8(Task* task, s16 arg1, s16 index);
-void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task);
+void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task);
 void func_actor_444000_801423C4(GpEnemy* enemy, Task* task);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);

@@ -263,11 +263,11 @@ s32 func_actor_444000_80143E68(Actor444000* arg0, s32 arg1, s32 arg2)
                 work->field_F1C--;
             }
             work->field_F16 = 2;
-            if (work->field_EE8 != NULL && work->field_EE8->field_40 <= 0) {
-                work->field_EE8 = NULL;
+            if (work->field_EE8[0] != NULL && work->field_EE8[0]->field_40 <= 0) {
+                work->field_EE8[0] = NULL;
             }
-            if (work->field_EEC != NULL && work->field_EEC->field_40 <= 0) {
-                work->field_EEC = NULL;
+            if (work->field_EE8[1] != NULL && work->field_EE8[1]->field_40 <= 0) {
+                work->field_EE8[1] = NULL;
             }
             break;
     }

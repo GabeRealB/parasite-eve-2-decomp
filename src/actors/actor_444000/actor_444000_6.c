@@ -3,6 +3,7 @@
 #include "actors/actor_444000.h"
 #include "actors/actor_444000_view.h"
 #include "actors/actors_shared_80132cb8.h"
+#include "actors/actors_shared_801433b8.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -38,6 +39,29 @@ extern s16 D_actor_444000_80144A3C[];
 /// draws down. Declared as an aggregate for the same aliasing reason.
 extern s16 D_actor_444000_80144A4C[];
 extern s16 D_actor_444000_80144A68;
+
+/// Pair descriptors the host and its escorts publish as `GpEnemy::field_50`;
+/// `field_4` is the hit-point pool each one starts with.
+extern GpPairSrcE D_actor_444000_80144A28;
+extern GpPairSrcE D_actor_444000_80144A38;
+extern GpPairSrcE D_actor_444000_80144A48;
+extern GpPairSrcE D_actor_444000_80144A58;
+
+/// Animation-set tables: the host's two blocks, escort 0's two and escort 1's.
+extern GpAnimSet* D_actor_444000_80161448[];
+extern GpAnimSet* D_actor_444000_80161500[];
+extern GpAnimSet* D_actor_444000_801615B8[];
+/// The enemy task's message-handler table, parked in `Task::field_24`.
+extern void* D_actor_444000_80161818;
+/// Spawn table of the seven escorts, indexed 0..6.
+extern TaskDesc D_actor_444000_801616B0;
+/// The enemy task itself, published for the overlay's other files.
+extern Actor444000* D_actor_444000_80161878;
+/// Effect argument block the spawn state points at the host's root coordinate.
+extern GpEffArg D_actor_444000_80161880;
+/// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
+extern Actor444000Msg7DA D_actor_444000_80161888;
+
 extern s16 D_actor_444000_80144A70;
 extern s16 D_actor_444000_80144A72;
 extern s32 D_actor_444000_80144A74;
@@ -551,7 +575,368 @@ s32 func_actor_444000_8013ACD0(Actor444000* task, s32 msgId, Actor444000Msg7DB* 
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013AFF8);
+/// Rebuilds the host's root coordinate from its own facing yaw with a uniform
+/// 1.0 scale, marks the model for a rebuild and arms the first state. The
+/// matrix lives in a frame taken off `G_SCRATCH_HEAD`, which is handed back
+/// once the rotation has been copied out; inlined so each scratch-head access
+/// keeps its own `lui` instead of sharing a CSE'd register.
+static __inline__ void Actor444000_SeedRootCoord(Actor444000* task, Actor444000Work* work)
+{
+    GsCOORDINATE2*         coord = ((TmdObject*)task->extra)->field_8;
+    Actor444000RotScratch* sc;
+    s16                    ang;
+
+    sc                                       = (Actor444000RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor444000RotScratch));
+    *(Actor444000RotScratch**)G_SCRATCH_HEAD = sc;
+
+    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle = ang;
+    Gfx_RotMatrixY(&sc->m, ang, 1);
+    sc->scale.vx = sc->scale.vy = sc->scale.vz = 0x1000;
+    ScaleMatrix(&sc->m, &sc->scale);
+
+    coord->coord.m[0][0] = sc->m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+
+    work->field_0                      = 1;
+    ((TmdObject*)task->extra)->field_C = 0;
+    *(u8**)G_SCRATCH_HEAD              = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+}
+
+/// Spawn state of the arena boss: allocate its `Actor444000Work`, wire the host
+/// enemy up to the model's root coordinate and its nine collision objects, then
+/// spawn the seven escorts that make up the rest of the creature.
+///
+/// The host takes collision groups 0..2 (group 0's record table doubles as its
+/// own `GpEnemy::field_54`), escort 0 takes 3..5 and escort 1 takes 6..8; each
+/// group is armed through `func_8010C980` on one of the model's part
+/// coordinates. Escorts 2..5 are parented to a part coordinate at a fixed
+/// offset and nothing else, and escort 6 is only spawned when the high half of
+/// `Task::spawnArg1` is clear. Escort 3 is the one the colour updates treat as
+/// the host's twin, so it shares the host's group-1 record table.
+///
+/// The root coordinate is flattened to its own yaw with a uniform 1.0 scale
+/// (`Actor444000_SeedRootCoord`), the tenth collision object at `obj` is linked
+/// by hand around the free coordinate `field_E3C`, and both the host and every
+/// escort model are pointed at the work block's light and colour matrices
+/// before the fight announces itself with message 0x7DA.
+void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
+{
+    Actor444000Work*   work;
+    Actor444000Work*   buffers;
+    Actor444000Work*   escorts;
+    Actor444000Matrix* mtx;
+    TmdObject*         tmd;
+    TmdObject*         model;
+    TmdObject*         escortTmd;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     freeCoord;
+    GpEnemy*           esc;
+    Task*              escTask;
+    SVECTOR            dir;
+    SVECTOR*           gteDir;
+    VECTOR             pos;
+    s16                i;
+    s16                j;
+    s16                k;
+
+    tmd   = (TmdObject*)task->extra;
+    coord = tmd->field_8;
+
+    work           = Mem_Calloc(0xF24, 0);
+    task->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    task->exitCallback = ActorsShared801433b8;
+
+    enemy->field_4     = &((TmdObject*)task->extra)->field_8->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = -0xC8;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &((TmdObject*)task->extra)->field_8[4];
+    Gp_LinkNode(&enemy->node);
+    enemy->field_4C = 0;
+    enemy->field_40 = D_actor_444000_80144A28.field_4;
+    enemy->field_50 = &D_actor_444000_80144A28;
+    enemy->field_54 = (s32)work->hits[0].recs;
+
+    func_800B3F84(&work->anim0, D_actor_444000_80161448, (GpAnimObj*)tmd, work->aux0, work->slots0);
+    func_800B3F84(&work->anim1, D_actor_444000_80161448, (GpAnimObj*)tmd, work->aux1, work->slots1);
+
+    work->field_7B0 = 2;
+    work->field_7B3 = 2;
+    work->field_EF8 = 1;
+    work->field_7B1 = 0;
+    work->field_7C4 = work->field_7C8 = 0;
+    work->field_7B6 = work->field_7B8 = 0x10;
+
+    func_8010C980(&((TmdObject*)task->extra)->field_8[4], &work->hits[0].obj, work->hits[0].recs, 5, 0x20, 0x300);
+    func_8010C980(&((TmdObject*)task->extra)->field_8[4], &work->hits[1].obj, work->hits[1].recs, 5, 0x20, 0x300);
+    func_8010C980(&((TmdObject*)task->extra)->field_8[1], &work->hits[2].obj, work->hits[2].recs, 5, 0x20, 0xBB8);
+
+    work->hits[1].obj.field_10 = 0;
+    work->hits[1].obj.field_12 = 0;
+    work->hits[1].obj.field_14 = -0x100;
+    work->hits[2].obj.field_10 = 0;
+    work->hits[2].obj.field_12 = 0x400;
+    work->hits[2].obj.field_14 = -0x400;
+
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, &dir);
+    dir.vy = 0;
+    gteDir = &dir;
+    VectorNormalSS(gteDir, gteDir);
+    gte_lddp(0x1388);
+    gte_ldsv(gteDir);
+    gte_gpf12_real();
+    gte_stsv(gteDir);
+
+    work->anim.field_0  = NULL;
+    work->anim.field_4  = 1;
+    work->anim.field_8  = 0;
+    work->anim.field_C  = 3;
+    work->anim.field_10 = 1;
+    work->field_F12     = 0;
+    task->field_24      = &D_actor_444000_80161818;
+    coord->sub          = &Gfx_ViewCoord;
+    coord->flg          = 0;
+    Gp_UpdateCoord(coord);
+
+    D_actor_444000_80161880.field_0 = ((TmdObject*)task->extra)->field_8;
+    D_actor_444000_80161880.field_4 = 0x100;
+    D_actor_444000_80161880.field_6 = 2;
+    work->field_2                   = -1;
+
+    model   = (TmdObject*)task->extra;
+    buffers = task->field_1C;
+    if (model->field_18 == NULL) {
+        Tmd_AllocBuffers(model);
+    }
+    for (i = 0; i < 7; i++) {
+        if (buffers->field_ECC[i] != NULL) {
+            escortTmd = (TmdObject*)buffers->field_ECC[i]->task->extra;
+            if (escortTmd->field_18 == NULL) {
+                Tmd_AllocBuffers(escortTmd);
+            }
+        }
+    }
+
+    Actor444000_SeedRootCoord(task, work);
+
+    esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 0, 0, task->field_20);
+    work->field_ECC[0]                                                 = esc;
+    ((TmdObject*)esc->task->extra)->field_8->sub                       = ((TmdObject*)task->extra)->field_8;
+    ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->coord.t[0] = 0;
+    ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->coord.t[1] = 0;
+    ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->coord.t[2] = 0;
+    ((TmdObject*)work->field_ECC[0]->task->extra)->field_C             = 0;
+    func_800B3F84(&work->anim2, D_actor_444000_80161500, (GpAnimObj*)work->field_ECC[0]->task->extra, work->aux2,
+                  work->slots2);
+    func_800B3F84(&work->anim3, D_actor_444000_80161500, (GpAnimObj*)work->field_ECC[0]->task->extra, work->aux3,
+                  work->slots3);
+    work->field_ECC[0]->field_4     = &((TmdObject*)task->extra)->field_8->coord;
+    work->field_ECC[0]->field_48    = 0;
+    work->field_ECC[0]->field_1C.vx = 0xC8;
+    work->field_ECC[0]->field_1C.vy = 0;
+    work->field_ECC[0]->field_1C.vz = 0x3E8;
+    work->field_ECC[0]->field_18    = &((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1];
+    Gp_LinkNode(&work->field_ECC[0]->node);
+    work->field_ECC[0]->field_4C = 0;
+    work->field_ECC[0]->field_40 = D_actor_444000_80144A28.field_4;
+    work->field_F0A              = D_actor_444000_80144A38.field_4;
+    work->field_ECC[0]->field_50 = &D_actor_444000_80144A38;
+    work->field_ECC[0]->field_54 = (s32)work->hits[3].recs;
+    func_8010C980(&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1], &work->hits[3].obj, work->hits[3].recs, 5,
+                  0x20, 0x300);
+    func_8010C980(&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[2], &work->hits[4].obj, work->hits[4].recs, 5,
+                  0x20, 0x300);
+    func_8010C980(&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[3], &work->hits[5].obj, work->hits[5].recs, 5,
+                  0x20, 0x300);
+
+    esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 1, 0, task->field_20);
+    work->field_ECC[1]                                                 = esc;
+    ((TmdObject*)esc->task->extra)->field_8->sub                       = ((TmdObject*)task->extra)->field_8;
+    ((TmdObject*)work->field_ECC[1]->task->extra)->field_8->coord.t[0] = 0;
+    ((TmdObject*)work->field_ECC[1]->task->extra)->field_8->coord.t[1] = 0;
+    ((TmdObject*)work->field_ECC[1]->task->extra)->field_8->coord.t[2] = 0;
+    ((TmdObject*)work->field_ECC[1]->task->extra)->field_C             = 0;
+    func_800B3F84(&work->anim4, D_actor_444000_801615B8, (GpAnimObj*)work->field_ECC[1]->task->extra, work->aux4,
+                  work->slots4);
+    func_800B3F84(&work->anim5, D_actor_444000_801615B8, (GpAnimObj*)work->field_ECC[1]->task->extra, work->aux5,
+                  work->slots5);
+    work->field_ECC[1]->field_4     = &((TmdObject*)task->extra)->field_8->coord;
+    work->field_ECC[1]->field_48    = 0;
+    work->field_ECC[1]->field_1C.vx = -0xC8;
+    work->field_ECC[1]->field_1C.vy = 0;
+    work->field_ECC[1]->field_1C.vz = 0x3E8;
+    work->field_ECC[1]->field_18    = &((TmdObject*)work->field_ECC[1]->task->extra)->field_8[1];
+    Gp_LinkNode(&work->field_ECC[1]->node);
+    work->field_ECC[1]->field_4C = 0;
+    work->field_ECC[1]->field_40 = D_actor_444000_80144A28.field_4;
+    work->field_F0C              = D_actor_444000_80144A48.field_4;
+    work->field_ECC[1]->field_50 = &D_actor_444000_80144A48;
+    work->field_ECC[1]->field_54 = (s32)work->hits[6].recs;
+    func_8010C980(&((TmdObject*)work->field_ECC[1]->task->extra)->field_8[1], &work->hits[6].obj, work->hits[6].recs, 5,
+                  0x20, 0x300);
+    func_8010C980(&((TmdObject*)work->field_ECC[1]->task->extra)->field_8[2], &work->hits[7].obj, work->hits[7].recs, 5,
+                  0x20, 0x300);
+    func_8010C980(&((TmdObject*)work->field_ECC[1]->task->extra)->field_8[3], &work->hits[8].obj, work->hits[8].recs, 5,
+                  0x20, 0x300);
+
+    esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 2, 0, task->field_20);
+    work->field_ECC[2]                                                 = esc;
+    ((TmdObject*)esc->task->extra)->field_8->sub                       = &((TmdObject*)task->extra)->field_8[4];
+    ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[0] = 0;
+    ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[1] = 0x59;
+    ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[2] = -0x64;
+    ((TmdObject*)work->field_ECC[2]->task->extra)->field_C             = 0;
+
+    esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 3, 0, task->field_20);
+    work->field_ECC[3]                                                 = esc;
+    ((TmdObject*)esc->task->extra)->field_8->sub                       = &((TmdObject*)task->extra)->field_8[3];
+    ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[0] = 0;
+    ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[1] = 0;
+    ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[2] = 0;
+    ((TmdObject*)work->field_ECC[3]->task->extra)->field_C             = 0;
+    work->field_ECC[3]->field_4                                        = &((TmdObject*)task->extra)->field_8->coord;
+    work->field_ECC[3]->field_48                                       = 0;
+    work->field_ECC[3]->field_1C.vx                                    = 0;
+    work->field_ECC[3]->field_1C.vy                                    = 0;
+    work->field_ECC[3]->field_1C.vz                                    = 0x514;
+    work->field_ECC[3]->field_18                                       = ((TmdObject*)work->field_ECC[3]->task->extra)->field_8;
+    Gp_LinkNode(&work->field_ECC[3]->node);
+    work->field_ECC[3]->field_4C = 0;
+    work->field_ECC[3]->field_40 = D_actor_444000_80144A28.field_4;
+    work->field_F0E              = D_actor_444000_80144A58.field_4;
+    work->field_ECC[3]->field_50 = &D_actor_444000_80144A58;
+    work->field_ECC[3]->field_54 = (s32)work->hits[1].recs;
+
+    freeCoord                     = &work->field_E3C.c;
+    work->field_E3C.c.sub         = ((TmdObject*)task->extra)->field_8;
+    work->field_E3C.ident.m00_m01 = 0x1000;
+    mtx                           = (Actor444000Matrix*)&work->field_E3C.c.coord;
+    mtx->ident.m02_m10            = 0;
+    mtx->ident.m11_m12            = 0x1000;
+    mtx->ident.m20_m21            = 0;
+    mtx->ident.m22                = 0x1000;
+    work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
+    work->field_E3C.c.flg                                                                      = 0;
+    Gp_UpdateCoord(freeCoord);
+
+    work->d4rec.field_C  = 0x1B58;
+    work->d4rec.field_10 = 0x258;
+    work->d4rec.field_12 = 0x258;
+    work->d4rec.field_0  = 0;
+    work->d4rec.field_2  = 0;
+    work->d4rec.field_4  = 0;
+    work->d4rec.field_8  = 0;
+    work->d4rec.field_A  = 0;
+    work->d4rec.field_14 = work->recs2;
+    work->obj.field_8    = freeCoord;
+    work->obj.field_C    = (GpRec18*)&work->d4rec;
+    work->obj.field_10   = 0;
+    work->obj.field_12   = -0xFA;
+    work->obj.field_14   = 0x25F;
+    work->obj.field_18   = 0x30000 | 0x20;
+    work->obj.field_1C   = 0;
+    work->obj.flags      = 3;
+    Gp_LinkObj(2, &work->obj);
+    Gp_InitRec18Table(work->recs2, 5, 0);
+    work->obj.flags &= 0x7FFF;
+
+    esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 4, 0, task->field_20);
+    work->field_ECC[4]                                                 = esc;
+    ((TmdObject*)esc->task->extra)->field_8->sub                       = &((TmdObject*)task->extra)->field_8[4];
+    ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[0] = 0;
+    ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] = 0;
+    ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[2] = 0x14;
+    ((TmdObject*)work->field_ECC[4]->task->extra)->field_C             = 0;
+
+    esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 5, 0, task->field_20);
+    work->field_ECC[5]                                                 = esc;
+    ((TmdObject*)esc->task->extra)->field_8->sub                       = &((TmdObject*)task->extra)->field_8[2];
+    ((TmdObject*)work->field_ECC[5]->task->extra)->field_8->coord.t[0] = 0;
+    ((TmdObject*)work->field_ECC[5]->task->extra)->field_8->coord.t[1] = 0x67C;
+    ((TmdObject*)work->field_ECC[5]->task->extra)->field_8->coord.t[2] = 0xC8;
+    ((TmdObject*)work->field_ECC[5]->task->extra)->field_C             = 0;
+
+    if (task->field_36 == 0) {
+        esc                                                                = Gp_SpawnEnemyFromTable(&D_actor_444000_801616B0, 6, 0, task->field_20);
+        work->field_ECC[6]                                                 = esc;
+        ((TmdObject*)esc->task->extra)->field_8->sub                       = &((TmdObject*)task->extra)->field_8[1];
+        ((TmdObject*)work->field_ECC[6]->task->extra)->field_8->coord.t[0] = 0;
+        ((TmdObject*)work->field_ECC[6]->task->extra)->field_8->coord.t[1] = 0x62C;
+        ((TmdObject*)work->field_ECC[6]->task->extra)->field_8->coord.t[2] = 0x5DC;
+        ((TmdObject*)work->field_ECC[6]->task->extra)->field_C             = 0;
+    } else {
+        work->field_ECC[6] = NULL;
+    }
+
+    work->field_F04 = 0;
+    work->field_F06 = 0;
+    work->field_F08 = 0;
+    work->field_F0C = D_actor_444000_80144A4C[0];
+    work->field_F0A = D_actor_444000_80144A3C[0];
+
+    escorts = task->field_1C;
+
+    D_actor_444000_80144A68 = 0;
+
+    ((TmdObject*)task->extra)->field_1C = &escorts->lightMtx;
+    ((TmdObject*)task->extra)->field_20 = &escorts->colorMtx;
+    for (j = 0; j < 7; j++) {
+        esc = escorts->field_ECC[j];
+        if (esc != NULL) {
+            escTask                                = esc->task;
+            ((TmdObject*)escTask->extra)->field_1C = &escorts->lightMtx;
+            ((TmdObject*)escTask->extra)->field_20 = &escorts->colorMtx;
+        }
+    }
+
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    if (work->field_EFA != work->field_EFC) {
+        Gp_UpdateActorColor(enemy, &pos, 0, 0);
+        Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
+        work->field_EFC = work->field_EFA;
+    }
+    if (work->field_EFA != 0) {
+        Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    } else {
+        Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
+    }
+    func_actor_444000_8013441C(task);
+
+    D_actor_444000_80161888.field_0 = 0;
+    D_actor_444000_80161888.field_1 = 0x2C;
+    D_actor_444000_80161888.field_2 = 0;
+    Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
+
+    work->field_E94 = work->field_E96 = 0xFA0;
+    for (k = 0; k < 2; k++) {
+        work->field_EE8[k] = NULL;
+    }
+
+    Gp_StateF0.field_6 = 0xA;
+    Gp_ReleaseStateF0Add((GpObj20E*)task, 0x20);
+    D_actor_444000_80161878 = task;
+    work->field_F1B = work->field_F1C = 0;
+    task->state                      += 1;
+}
 
 /// Applies the single hit collision group 0 took this frame: the first of the
 /// group's five `GpRec18` records holding a type-2 attack id wins, and its
@@ -615,7 +1000,7 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        func_actor_444000_80134688(work->hits[0].coord, id);
+        func_actor_444000_80134688(work->hits[0].obj.field_8, id);
         work->field_E8C = Gp_GetIdParam2(sc->id);
         Gp_GetIdParam0(sc->id);
 
@@ -744,7 +1129,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[1].coord;
+        coord = work->hits[1].obj.field_8;
         goto hit;
     }
 
@@ -769,7 +1154,7 @@ found2:
     if (id == 0) {
         goto out;
     }
-    coord = work->hits[2].coord;
+    coord = work->hits[2].obj.field_8;
 hit:
     func_actor_444000_80134688(coord, id);
     if (sc->id != 0) {
@@ -927,7 +1312,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[3].coord;
+        coord = work->hits[3].obj.field_8;
         goto hit;
     }
 
@@ -950,7 +1335,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[4].coord;
+        coord = work->hits[4].obj.field_8;
     hit:
         func_actor_444000_80134688(coord, id);
         if (sc->id != 0) {
@@ -979,7 +1364,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_444000_80134688(work->hits[5].coord, id);
+    func_actor_444000_80134688(work->hits[5].obj.field_8, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -1130,7 +1515,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[6].coord;
+        coord = work->hits[6].obj.field_8;
         goto hit;
     }
 
@@ -1153,7 +1538,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[7].coord;
+        coord = work->hits[7].obj.field_8;
     hit:
         func_actor_444000_80134688(coord, id);
         if (sc->id != 0) {
@@ -1182,7 +1567,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_444000_80134688(work->hits[8].coord, id);
+    func_actor_444000_80134688(work->hits[8].obj.field_8, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -1513,9 +1898,9 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
         work->field_EF4 = 0;
         work->field_EFA = 1;
         work->field_EF8 = 1;
-        Gfx_RotMatrixY(&work->field_E3C.coord, work->field_7C8, 1);
-        work->field_E3C.flg = 0;
-        Gp_UpdateCoord(&work->field_E3C);
+        Gfx_RotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
+        work->field_E3C.c.flg = 0;
+        Gp_UpdateCoord(&work->field_E3C.c);
         work->field_E96 = 0xC80;
 
         resetId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200017;
@@ -1524,17 +1909,17 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
                             (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
     }
 
-    coord               = &work->field_E3C;
-    work->field_E3C.flg = 0;
+    coord                 = &work->field_E3C.c;
+    work->field_E3C.c.flg = 0;
     Gp_UpdateCoord(coord);
 
     if (work->field_7B3 == 4 && (frame = work->slots0[1].field_2 & 0x3FF) == 0xC &&
         work->field_7AC != frame) {
-        Gfx_RotMatrixY(&work->field_E3C.coord, work->field_7C8, 1);
-        work->field_E3C.flg = 0;
+        Gfx_RotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
+        work->field_E3C.c.flg = 0;
         Gp_UpdateCoord(coord);
         work->field_EAC  = 3;
-        work->field_D6A |= 0x8000;
+        work->obj.flags |= 0x8000;
         Gp_SpawnPadLerp(0x30, 0xFF, 8);
 
         swipeId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200019;
@@ -1549,7 +1934,7 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
             swipe2Id, swipe2Pan,
             (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) / 2));
     } else {
-        work->field_D6A &= 0x7FFF;
+        work->obj.flags &= 0x7FFF;
     }
 
     if (work->field_7B3 == 5 && (frame2 = work->slots0[2].field_2 & 0x3FF) == 0x1C &&
@@ -2289,7 +2674,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000
 void func_actor_444000_80142F28(Actor444000* arg0)
 {
     void (*handlers[3])(GpEnemy*, Task*) = {
-        func_actor_444000_8013AFF8,
+        (void (*)(GpEnemy*, Task*))func_actor_444000_8013AFF8,
         func_actor_444000_801423C4,
         Gp_DestroyEnemy,
     };
@@ -2305,11 +2690,11 @@ void func_actor_444000_80142F28(Actor444000* arg0)
     player = Game_GetPtrSlot(3);
     work   = arg0->field_1C;
     if (work != NULL) {
-        if (work->field_EE8 != NULL && work->field_EE8->field_40 <= 0) {
-            work->field_EE8 = NULL;
+        if (work->field_EE8[0] != NULL && work->field_EE8[0]->field_40 <= 0) {
+            work->field_EE8[0] = NULL;
         }
-        if (work->field_EEC != NULL && work->field_EEC->field_40 <= 0) {
-            work->field_EEC = NULL;
+        if (work->field_EE8[1] != NULL && work->field_EE8[1]->field_40 <= 0) {
+            work->field_EE8[1] = NULL;
         }
 
         state = work->field_0;
