@@ -182,7 +182,57 @@ void func_actor_403600_80138C68(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138C9C);
+void func_actor_403600_80138C9C(Actor403600MotionState* arg0)
+{
+    s32  temp_a1;
+    s32  temp_a1_2;
+    s32  temp_v0;
+    s32  temp_v0_3;
+    s32  temp_v1;
+    s32  temp_v1_2;
+    s32  var_v0;
+    s16* temp_v0_2;
+    s16* temp_v0_4;
+
+    temp_a1        = arg0->field_80;
+    temp_v1        = temp_a1 + 0x1F;
+    var_v0         = temp_v1;
+    arg0->field_80 = temp_v1;
+    if (temp_v1 < 0) {
+        var_v0 = temp_a1 + 0x3E;
+    }
+    temp_v0 = temp_v1 - ((var_v0 >> 5) << 5);
+    __asm__("move %0,%1" : "=r"(temp_a1_2) : "r"(temp_v0));
+    arg0->field_80  = temp_v0;
+    temp_v0_2       = &arg0->field_0[temp_a1_2];
+    temp_v0_2[0]    = 0;
+    temp_v0_2[0x20] = 0;
+    if (arg0->field_8E != 0) {
+        if (arg0->field_8C == 0) {
+            arg0->field_84 = 0;
+        }
+        temp_v1_2 = arg0->field_88;
+        if (temp_v1_2 < 0x1000) {
+            arg0->field_88 = temp_v1_2 + 0x200;
+        }
+    } else {
+        temp_v0_3 = arg0->field_88;
+        if (temp_v0_3 > 0) {
+            arg0->field_88 = temp_v0_3 - 0x80;
+        }
+    }
+    arg0->field_8C = (u16)arg0->field_8E;
+    if (arg0->field_88 != 0) {
+        temp_v0_4       = &arg0->field_0[temp_a1_2];
+        temp_v0_4[0]    = (u16)arg0->field_84;
+        temp_v0_4[0x20] = (u16)arg0->field_88;
+        if (arg0->field_E0 == 0) {
+            arg0->field_84 += 0x180;
+            return;
+        }
+        arg0->field_84 += 0x100;
+    }
+}
 
 s32 func_actor_403600_80138D9C(s16* arg0)
 {

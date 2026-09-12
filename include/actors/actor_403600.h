@@ -91,6 +91,18 @@ typedef struct Actor403600Work {
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
 
+typedef struct Actor403600MotionState {
+    /* 0x00 */ s16  field_0[0x40];
+    /* 0x80 */ s32  field_80;
+    /* 0x84 */ s32  field_84;
+    /* 0x88 */ s32  field_88;
+    /* 0x8C */ s16  field_8C;
+    /* 0x8E */ s16  field_8E;
+    /* 0x90 */ byte pad_90[0x50];
+    /* 0xE0 */ s32  field_E0;
+} Actor403600MotionState;
+STATIC_ASSERT_SIZEOF(Actor403600MotionState, 0xE4);
+
 typedef struct Actor403600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor403600Work* field_1C;
@@ -118,6 +130,7 @@ typedef struct Actor403600Ctx {
 } Actor403600Ctx;
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
 u8*  func_actor_403600_80138DCC(Actor403600* arg0);
 s32  func_actor_403600_8013D9A8(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
