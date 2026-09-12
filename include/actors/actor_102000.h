@@ -230,4 +230,21 @@ typedef struct Actor02000Eff {
     /* 0x0 */ Actor02000* task;
 } Actor02000Eff;
 
+/// Overlay view of the GpObj3A collision-face list, matching gameplay/3A34.h.
+typedef struct Actor02000CollisionFace {
+    /* 0x00 */ struct Actor02000CollisionFace* next;
+    /* 0x04 */ struct Actor02000CollisionFace* prev;
+    /* 0x08 */ SVECTOR                         origin;
+    /* 0x10 */ SVECTOR                         verts[4];
+    /* 0x30 */ SVECTOR                         normal;
+    /* 0x38 */ byte                            pad_38[2];
+    /* 0x3A */ u8                              field_3A;
+    /* 0x3B */ byte                            pad_3B;
+} Actor02000CollisionFace;
+STATIC_ASSERT_SIZEOF(Actor02000CollisionFace, 0x3C);
+
+extern Actor02000CollisionFace* D_80115550;
+s32                             func_800DFCCC(Actor02000CollisionFace* node, SVECTOR* start, SVECTOR* end, VECTOR* direction);
+s32                             Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
+
 #endif

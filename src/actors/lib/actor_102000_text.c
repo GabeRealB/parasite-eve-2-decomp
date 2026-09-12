@@ -964,7 +964,37 @@ void Actor02000_Fn02D5C(Actor02000* arg0)
     *(s32*)G_SCRATCH_HEAD += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn0315C);
+s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
+{
+    void**                   scratch;
+    u8*                      head;
+    VECTOR*                  vec;
+    Actor02000CollisionFace* node;
+    s32                      ret;
+
+    ret                          = 0;
+    scratch                      = (void**)G_SCRATCH_HEAD;
+    node                         = D_80115550;
+    head                         = *scratch;
+    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+    head                         = head - 0x10;
+    TOUCH_REG_USE(head, node);
+    vec      = (VECTOR*)head;
+    vec->vy  = arg1->vy - arg0->vy;
+    *scratch = vec;
+    vec->vz  = arg1->vz - arg0->vz;
+    VectorNormal(vec, vec);
+    for (; node != NULL; node = node->next) {
+        if (node->field_3A & 0x40) {
+            ret = func_800DFCCC(node, arg0, arg1, vec);
+            if (ret == 1) {
+                break;
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
 
 /// Per-frame tick, entry 0 of `Actor02000_D16064`. State 0 counts `field_6AE`
 /// up to 0x5B frames and then hands over to state 1 with animation 4, running
