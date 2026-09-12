@@ -62618,3 +62618,123 @@ reads that register directly, and `sb` of the same register stores the low byte
 back. `func_actor_444000_8014105C`: 87.99% to 100% together with `(s8)` casts
 on the two `Gp_GetObjPan`/`Gp_GetObjDepth` returns, which likewise move the
 `sll 24; sra 24` up to the call site instead of leaving it at the use.
+
+## The absolute `lw $r, 0x1F8003FC` form can only come from asm at `-O2 -G0`
+
+`func_actor_444000_80139EE4` reads and writes the scratchpad head four times
+per branch and every access is the assembler-macro form (`lui $s2, 0x1F80` /
+`lw $s2, 0x3FC($s2)` for a load, `lui $at, 0x1F80` / `sw $s0, 0x3FC($at)` for a
+store - `$at` is the tell, GCC never allocates it). Neither route from C
+reaches it:
+
+* `*(u8**)0x1F8003FC` never survives as `(mem (const_int))`. `memory_address()`
+  in `explow.c` does `if (! cse_not_expected && CONSTANT_P (x) &&
+  CONSTANT_ADDRESS_P (x)) x = force_reg (Pmode, x);` - "by passing constant
+  addresses thru registers we get a chance to cse them" - so at `-O2` the
+  expander always emits `(set (reg) (const_int 0x1F8003FC))` first. CSE folds
+  the constant back into the `MEM` only when the address has a single use in
+  the block; a load *and* a store leaves it in a register (`li`/`ori` + `0($3)`),
+  which is what the existing "one use per block" entry describes.
+* An `extern` global at that address does produce `lw $2, sym` - but only
+  without `-G0`. This project compiles with `-G0`, so `TARGET_GP_OPT` is off,
+  `ENCODE_SECTION_INFO` never sets `SYMBOL_REF_FLAG`, `mips_check_split()`
+  returns 1 and every symbol address is split into `%hi`/`%lo` (`lui $16,%hi(sym)`
+  / `lw $4,%lo(sym)($16)`), with the `%hi` CSE'd into one register.
+
+So write the accesses out. `__asm__ volatile("lui %0, 0x1F80" : "=r"(h)); h =
+*(u8**)(h + 0x3FC);` gives the load (one variable for both halves, so `lui` and
+`lw` land on the same register) and `__asm__ volatile("sw %0, 0x1F8003FC" ::
+"r"(x) : "memory")` gives the store. `actor_403100` and `acropolis_bridge` use
+the same pair.
+
+## `asm volatile` is a hard scheduling barrier; a non-volatile one is deletable
+
+`sched_analyze_2` (`sched.c`) treats `ASM_OPERANDS` as a full barrier only when
+`MEM_VOLATILE_P` is set - that is, for `asm volatile`. It then depends on every
+prior insn and every later insn depends on it, so nothing crosses it and, less
+obviously, every priority computed through it collapses to the barrier's. That
+is enough to change scheduling on its own: with a volatile store asm in the
+middle of a block, `addiu s0, s2, -0x34` (which feeds the barrier) outranks
+`lw s1, 8(v0)` (which feeds a `jal` chain) for the load-delay slot.
+
+The obvious fix - drop `volatile` - does not work for a store: an `asm` with no
+outputs is implicitly volatile in GCC 2.8.1, and giving it a `"+r"` output to
+escape that makes `flow.c`'s `insn_dead_p` delete the whole insn as soon as the
+output is dead (`INSN_VOLATILE` is what protects a volatile asm there). A
+scratch-head *restore*, whose value is used nowhere afterwards, disappears
+silently and the build still links.
+
+## Put a two-instruction asm in one `asm` when the target keeps the pair adjacent
+
+Where an `asm volatile` barrier forces the wrong insn into a load-delay slot,
+emitting both target instructions from a single `asm` removes the choice:
+
+```c
+__asm__ volatile("addiu %0, %1, -0x34\n\tsw %0, 0x1F8003FC"
+                 : "=r"(blk) : "r"(head) : "memory");
+```
+
+`func_actor_444000_80139EE4` went 89% -> 99.6% on that one change: with the
+`addiu` inside the asm there is no longer a ready insn competing with
+`lw s1, 8(v0)` for the slot after the scratch load, so the scheduler fills it
+the way the target does.
+
+## A constant-address `MEM` does not alias struct fields, so stores reorder around it
+
+`true_dependence()` / `anti_dependence()` in `sched.c` exempt a pair where one
+`MEM` is `MEM_IN_STRUCT_P` with a varying address and the other is neither in a
+struct nor varying. The original's `sw $v0, 0x1F8003FC` is the second kind, so
+`coord->coord.m[2][2] = m22` can be scheduled across it - which is how the two
+otherwise identical branches of `func_actor_444000_80139EE4` end up with the
+scratch restore on opposite sides of the same store. Reproducing that with an
+`asm` is not possible (an `"=m"` operand needs a register-based address, which
+varies), so write the two branches in the statement order each one's schedule
+implies instead of assuming one source order must serve both.
+
+## Extending a live range with `TOUCH_REG` can *raise* its local-alloc priority
+
+`QTY_CMP_PRI` in `local-alloc.c` is
+`floor_log2(refs) * refs * size / (death - birth)`. The `floor_log2` factor is a
+step, so adding references can win more than the longer range costs. In
+`func_actor_444000_80139EE4` the scratch-restore pointer (6 refs, span 12,
+priority 10000) lost `$v0` to the shadow-size chain (`lh`/`sll`/`addiu`, tied
+into one quantity by `block_alloc`: 6 refs, span 10, priority 12000) and was
+pushed to `$v1`. A `TOUCH_REG(tail)` after the restore store takes the pointer
+to 8 refs and span 14 - `floor_log2` steps from 2 to 3 - for priority 17142, so
+it is allocated first, takes `$v0` (reusing the register the dying `m22` just
+freed, exactly as the target does) and the chain falls to `$v1`. That was the
+last 0.33%.
+
+`tools/trace_gcc.py --regs` prints these quantities with their observed refs,
+span and priority; the `.lreg` header lines do not show quantity membership, and
+the three-pseudo chain looks like three quantities there when it is one.
+
+## splat embeds a jump table in its function's `.s` only when the unit owns the rodata
+
+Promoting a shared body splits a unit, and every `INCLUDE_ASM` function that
+moves into the new unit takes its jump-table references with it. splat writes a
+jump table *inside* `func_<addr>.s` when that function's unit owns the `.rodata`
+subsegment the table lives in, and as a standalone `jtbl_<addr>.s` otherwise -
+and the standalone file is only referenced from the owning unit's `.c`, which
+splat will not rewrite because it already exists. The link then fails with
+`undefined reference to jtbl_...`. Cut the rodata where ownership changes, with
+a second entry in the manifest's `rodata` list:
+
+```toml
+actor_444000 = { rodata = [{ start = "0x1C", unit = "actor_444000_3" },
+                           { start = "0x124", unit = "actor_444000_4" }], ... }
+```
+
+After that splat embeds each table in its function's `.s` again and the link is
+clean.
+
+## ninja does not depend on `.include`d asm, so a re-split leaves stale objects
+
+`INCLUDE_ASM` reaches its `.s` through a gas `.include`, which is invisible to
+the `-MMD` dependency file. A re-split that changes asm content without changing
+the `.c` therefore leaves the old `.o` in place: the above jump-table failure
+kept reporting after the fix because `actor_444000_4.c.o` was four minutes older
+than the asm it was supposed to contain (and its `objdump -h` had no `.rodata`
+section at all). `rm -rf build/USA/src/<family>/<overlay>` after any manifest
+change that moves functions between units, before believing either a failure or
+a success.
