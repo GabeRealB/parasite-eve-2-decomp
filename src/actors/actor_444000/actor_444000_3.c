@@ -33,7 +33,62 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8013441C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80134688);
+/// Spawn the hit effect for an attack that landed on `coord`: the effect kind
+/// is the attack's `Gp_GetIdParam1`, and its rotation comes from the attack's
+/// `Gp_GetIdParam0` - categories 2, 4, 6 and 7 get one fixed tilt, everything
+/// else picks one of three at random. The rotation and `func_800FDB18`'s
+/// argument block live in a 0x10-byte scratchpad frame.
+void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id)
+{
+    Actor444000EffScratch* sc = (Actor444000EffScratch*)(SCRATCH_SP -= sizeof(Actor444000EffScratch));
+
+    sc->eff.field_4 = 0x500;
+    sc->eff.field_0 = coord;
+    sc->eff.field_6 = 3;
+
+    switch (Gp_GetIdParam0(id) & 0xFFFF) {
+        case 2:
+        case 4:
+        case 6:
+        case 7:
+            sc->rot.vx = 0;
+            sc->rot.vy = -0x190;
+            sc->rot.vz = 0x258;
+            func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+            break;
+        case 0:
+        case 1:
+        case 3:
+        case 5:
+        case 8:
+        case 9:
+        default:
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            switch ((u16)(((u32)Gp_LcgState >> 16) % 3U)) {
+                case 0:
+                    sc->rot.vy = 0;
+                    sc->rot.vx = 0;
+                    sc->rot.vz = 0x384;
+                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+                    break;
+                case 1:
+                    sc->rot.vx = 0x258;
+                    sc->rot.vy = -0xC8;
+                    sc->rot.vz = 0x2BC;
+                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+                    break;
+                case 2:
+                    sc->rot.vx = -0x12C;
+                    sc->rot.vy = -0x320;
+                    sc->rot.vz = 0x320;
+                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &sc->rot, &sc->eff);
+                    break;
+            }
+            break;
+    }
+
+    SCRATCH_SP += sizeof(Actor444000EffScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8013482C);
 
@@ -104,6 +159,12 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80138B94);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80138FC4);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_3", D_actor_444000_80131E90);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_3", D_actor_444000_80131E9C);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_3", D_actor_444000_80131EA8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8013928C);
 
@@ -240,6 +301,12 @@ void func_actor_444000_8013A1C4(GpEnemy* enemy, Actor444000Spinner* task)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8013A3AC);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_3", D_actor_444000_80131F0C);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_3", D_actor_444000_80131F1C);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_3", D_actor_444000_80131F30);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8013A77C);
 

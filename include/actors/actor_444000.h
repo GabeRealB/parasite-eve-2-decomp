@@ -5,6 +5,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -325,6 +326,15 @@ typedef struct Actor444000AnimTable {
     /* 0x00 */ GpAnimSet* sets[10];
 } Actor444000AnimTable;
 STATIC_ASSERT_SIZEOF(Actor444000AnimTable, 0x28);
+
+/// Scratchpad frame (`0x10` bytes carved off the scratchpad stack) used by
+/// `func_actor_444000_80134688` to hand `func_800FDB18` a hit-effect rotation
+/// together with the `GpEffArg` naming the coordinate it hangs off.
+typedef struct Actor444000EffScratch {
+    /* 0x0 */ SVECTOR  rot; // effect rotation, chosen from the attack's param 0
+    /* 0x8 */ GpEffArg eff; // `func_800FDB18`'s arg3: coordinate, 0x500, 3
+} Actor444000EffScratch;
+STATIC_ASSERT_SIZEOF(Actor444000EffScratch, 0x10);
 
 void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw);
 void func_actor_444000_8013441C(Actor444000* arg0);

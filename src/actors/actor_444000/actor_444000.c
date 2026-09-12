@@ -61,37 +61,3 @@ void func_actor_444000_801326DC(void)
 INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131E20);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131E24);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131E3C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131E64);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131E7C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131E90);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131E9C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131EA8);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131EBC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131F0C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131F1C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131F30);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131F44);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131F64);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131F8C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131FAC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131FDC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131FF4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80132048);
