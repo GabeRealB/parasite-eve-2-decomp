@@ -62097,3 +62097,51 @@ to 100% in one build.
 The corollary: do not read the `argN` suffix in an m2c seed as an argument
 index. It is a register name, so a gap in the sequence (`arg0`, `arg2`) is
 itself the report that a parameter is missing.
+
+## The inverted twin: when the low group runs the body, `default:` has to be written beside it
+
+"`bltz` + `slti N` before the `bne N` is a switch with empty low cases" recovers
+the case labels from a dead signed range check, but it assumes the recovered low
+cases share the *empty* label, which is also where `default` falls. Half the time
+the shape is the other way round — the low group runs the body and the single
+high case is the empty one:
+
+```asm
+lbu   v1, %lo(D_801153F4)(v0)
+bltz  v1, call         /* can never be taken: v1 is zero-extended */
+slti  v0, v1, 2
+bnez  v0, call
+li    v0, 2
+beq   v1, v0, skip     /* only case 2 returns without dispatching */
+/* fall through to call */
+```
+
+Read straight through, that is "call unless the value is 2", and the obvious
+`if (x != 2)` or `switch (x) { case 2: break; default: ... }` emits the single
+`bne`/`beq` alone. Spelling out the low cases is still the fix, but on its own it
+is not enough: `bltz` targets the *dispatch*, so `default` must resolve to the
+body's label rather than to the end of the switch. That means writing `default:`
+into the same label group as the low cases:
+
+```c
+switch (D_801153F4) {
+    default:
+    case 0:
+    case 1:
+        sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+        break;
+    case 2:
+        break;
+}
+```
+
+`group_case_nodes` merges `default`, `case 0` and `case 1` because they share one
+label, giving the same `[0,1]` root with a `[2,2]` right child as the original
+entry — `node_has_low_bound` fails on the root, so the dead `if (i < 0) goto
+default` appears, then `if (i <= 1) goto <body>`, then the leaf's `i == 2`. Put
+`default:` after `case 2:` instead and the low group's label becomes the end of
+the switch, which inverts every branch target in the tree.
+
+So the diagnostic is: the dead range check says case labels are missing, and
+*which* label `bltz` jumps to says whether `default` belongs with them.
+`func_actor_444000_801438E4` matched on the first attempt this way.

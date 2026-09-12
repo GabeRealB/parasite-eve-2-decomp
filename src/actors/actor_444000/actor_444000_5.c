@@ -12,6 +12,12 @@
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
 
+/// A second three-entry handler table, dispatched only while the global game
+/// state is not 2.
+extern GpEnemyTaskFuncTable3 D_actor_444000_80131E9C;
+
+extern u8 D_801153F4;
+
 extern s16 D_actor_444000_80144A68;
 extern s16 D_actor_444000_80144A72;
 
@@ -31,7 +37,23 @@ void func_actor_444000_80143888(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_801438E4);
+/// Same dispatch as `func_actor_444000_80143888` through the second handler
+/// table, skipped while the global game state is 2.
+void func_actor_444000_801438E4(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_444000_80131E9C;
+    switch (D_801153F4) {
+        default:
+        case 0:
+        case 1:
+            sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+            break;
+        case 2:
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143960);
 
