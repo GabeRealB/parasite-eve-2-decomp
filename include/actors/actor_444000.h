@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -176,6 +177,68 @@ typedef struct Actor444000Spinner {
     /* 0x30 */ s32                     state;
     /* 0x34 */ s32                     spawnArg1; // spin preset selector
 } Actor444000Spinner;
+
+/// Work block of the enemy dispatched through `D_actor_444000_80131F1C` -- the
+/// one that rises out of view and then slams back down onto the floor.
+/// `func_actor_444000_80139594` allocates it with `Mem_Calloc(0x1C0, 0)` and
+/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// than guessed.
+///
+/// `target` is the landing point the spawn state picks from the player's
+/// distance; `coord` is the coordinate the shadow marker is drawn at, kept on
+/// the floor (`coord.t[1] == 0`) directly under the model and refreshed with
+/// `Gp_UpdateCoord` every step. `obj` is the collision node the spawn state
+/// hands to `Gp_LinkObj` with `field_8` pointing at `coord` and `field_C` at
+/// the single-entry `rec` table that follows it. `timer` is the step counter:
+/// the descent state grows the shadow quad with it, only starts applying the
+/// fall after 0x14 steps, and zeroes it again on touchdown.
+typedef struct Actor444000DropWork {
+    /* 0x000 */ VECTOR3       target;
+    /* 0x00C */ byte          pad_C[0x4];
+    /* 0x010 */ GsCOORDINATE2 coord;
+    /* 0x060 */ byte          pad_60[0x50];
+    /* 0x0B0 */ GpObj         obj;
+    /* 0x0D0 */ byte          pad_D0[0x20];
+    /* 0x0F0 */ GpRec18       rec;
+    /* 0x108 */ byte          pad_108[0x88];
+    /* 0x190 */ GpEffWork*    eff; // Gp_SpawnEff result, reparented onto the task
+    /* 0x194 */ byte          pad_194[0x16];
+    /* 0x1AA */ s16           field_1AA;
+    /* 0x1AC */ u16           timer;
+    /* 0x1AE */ s16           field_1AE; // per-step fall/rise bias, an LCG bit (0 or 8)
+    /* 0x1B0 */ byte          pad_1B0[0x10];
+} Actor444000DropWork;
+STATIC_ASSERT_SIZEOF(Actor444000DropWork, 0x1C0);
+
+/// `GsCOORDINATE2` with the leading words of its rotation matrix named, so the
+/// identity can be written with the aligned word stores GCC 2.8.1 emits -- the
+/// same shape as `Actor403100Matrix`, widened to cover the whole coordinate
+/// because the descent state builds the identity in a local `GsCOORDINATE2`.
+typedef union Actor444000DropCoord {
+    GsCOORDINATE2 c;
+    struct {
+        /* 0x00 */ s32 flg;
+        /* 0x04 */ s32 m00_m01;
+        /* 0x08 */ s32 m02_m10;
+        /* 0x0C */ s32 m11_m12;
+        /* 0x10 */ s32 m20_m21;
+        /* 0x14 */ s16 m22;
+    } ident;
+} Actor444000DropCoord;
+STATIC_ASSERT_SIZEOF(Actor444000DropCoord, 0x50);
+
+/// That enemy's task: the same `Task` layout, named for the slots the
+/// `D_actor_444000_80131F1C` states reach through it.
+typedef struct Actor444000Drop {
+    /* 0x00 */ byte                 pad_0[0x8];
+    /* 0x08 */ Task*                parent;
+    /* 0x0C */ byte                 pad_C[0x10];
+    /* 0x1C */ Actor444000DropWork* field_1C;
+    /* 0x20 */ byte                 pad_20[0xC];
+    /* 0x2C */ TmdObject*           extra;
+    /* 0x30 */ s32                  state;
+    /* 0x34 */ s32                  spawnArg1;
+} Actor444000Drop;
 
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);

@@ -8,11 +8,14 @@
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern s16 D_actor_444000_80144A68;
 extern s32 Gp_LcgState;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80134040);
 
@@ -50,7 +53,73 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80139AF8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80139C80);
+/// Descent state of the enemy dispatched through `D_actor_444000_80131F1C`:
+/// draw the growing shadow marker on the floor under the model, then after
+/// 0x14 steps start pulling the model down by `0x258 + field_1AE` a step. When
+/// it reaches floor level, zero the height, restart the step counter, tell the
+/// trailing `Gp_SpawnEff` effect to wind down, play the landing cue and step
+/// the task on. Either way the work block's own coordinate is left tracking
+/// the model. Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
+void func_actor_444000_80139C80(GpEnemy* enemy, Actor444000Drop* task)
+{
+    Actor444000DropWork* work;
+    Actor444000DropCoord coord;
+    MATRIX*              mtx;
+    GpEnemy*             owner;
+    s32                  snd;
+    s32                  pan;
+
+    work = task->field_1C;
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_UnlinkObj(&work->obj);
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    work->timer++;
+    coord.c.sub          = &Gfx_ViewCoord;
+    mtx                  = &coord.c.coord;
+    coord.ident.m00_m01  = 0x1000;
+    coord.ident.m02_m10  = 0;
+    *(s32*)&mtx->m[1][1] = 0x1000;
+    coord.ident.m20_m21  = 0;
+    mtx->m[2][2]         = 0x1000;
+    Gfx_RotMatrixY(mtx, 0, 1);
+
+    coord.c.coord.t[0] = task->extra->field_8->coord.t[0];
+    coord.c.coord.t[1] = 0;
+    coord.c.coord.t[2] = task->extra->field_8->coord.t[2];
+    coord.c.flg        = 0;
+    Gp_UpdateCoord(&coord.c);
+
+    Gp_DrawEffGroundQuad((VECTOR3*)coord.c.workm.t, (s16)((s16)work->timer * 8 + 0x80),
+                         Gp_State1C->field_8);
+
+    if ((s16)work->timer >= 0x14) {
+        task->extra->field_8->coord.t[1] =
+            task->extra->field_8->coord.t[1] + (work->field_1AE + 0x258);
+        if (task->extra->field_8->coord.t[1] > 0) {
+            owner                            = task->parent->spawnArg2;
+            task->extra->field_8->coord.t[1] = 0;
+            work->timer                      = 0;
+            if (work->eff != NULL) {
+                work->eff->field_0->spawnArg1 = 2;
+            }
+            task->state++;
+            snd = ((owner->field_8 >> 12) << 8) | 0x4020000C;
+            pan = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)task->extra->field_8));
+        }
+    }
+
+    task->extra->field_8->flg = 0;
+    Gp_ClearRec18Occupied(&work->rec);
+    work->coord.coord.t[0] = task->extra->field_8->coord.t[0];
+    work->coord.coord.t[1] = task->extra->field_8->coord.t[1];
+    work->coord.coord.t[2] = task->extra->field_8->coord.t[2];
+    work->coord.flg        = 0;
+    Gp_UpdateCoord(&work->coord);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80139EE4);
 

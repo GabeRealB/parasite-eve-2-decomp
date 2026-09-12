@@ -62291,3 +62291,69 @@ if (tick % 60 == 0) {
 a shared `s16 value` local are the same requirement as "Two literal stores
 cross-jump" — a shared temp is global-allocated to `$a1` and pushes the three
 division pseudos one register up (`regs=11`, 99.17%).
+
+## `*(s32*)&local.m[0][0]` loses a scheduler dependency that a union field keeps
+
+The identity-matrix idiom `*(s32*)&m->m[0][0] = 0x1000;` writes the 3x3 rotation
+as five word stores. When the matrix is a *frame local* rather than reached
+through a pointer, the cast changes which side of a `sched1` ready-list tie the
+stores fall on, because `output_dependence` (`sched.c:889`) discards the
+write-after-write dependence in exactly this shape:
+
+```c
+      && ! (MEM_IN_STRUCT_P (mem) && rtx_addr_varies_p (mem)
+            && GET_MODE (mem) != QImode
+            && GET_CODE (XEXP (mem, 0)) != AND
+            && ! MEM_IN_STRUCT_P (x) && ! rtx_addr_varies_p (x))
+```
+
+`*(s32*)&coord.coord.m[0][0]` is `(mem:SI (plus $fp 20))` — the explicit cast
+wraps the `ADDR_EXPR` in a `NOP_EXPR`, so `expand_expr`'s `INDIRECT_REF` case
+sees neither a `PLUS_EXPR` nor an `ADDR_EXPR` of an aggregate and leaves
+`MEM_IN_STRUCT_P` clear (`expr.c:5533`). A preceding `work->timer++` is
+`(mem/s:HI (plus <pseudo> 428))` — in a struct, and varying. So the clause above
+fires, no dependence is recorded, and those stores keep `INSN_PRIORITY` 1. A
+`mem/s` store to the *same* frame local (`coord.sub = &Gfx_ViewCoord;`) does get
+the dependence and priority 2, wins the tie, and the `li 0x1000` group is pushed
+ahead of the counter increment — where it lands in the `lhu` load-delay slot and
+takes `$v1` instead of `$v0`. Retail emits the block in source order with
+`li a2, 1` filling that slot.
+
+Writing the words as named union fields restores `MEM_IN_STRUCT_P`, the
+dependence, and the order. This is the shape `Actor403100Matrix` already uses;
+widen it to the whole `GsCOORDINATE2` when the identity is built in a local
+coordinate:
+
+```c
+typedef union Actor444000DropCoord {
+    GsCOORDINATE2 c;
+    struct {
+        /* 0x00 */ s32 flg;
+        /* 0x04 */ s32 m00_m01;
+        /* 0x08 */ s32 m02_m10;
+        /* 0x0C */ s32 m11_m12;
+        /* 0x10 */ s32 m20_m21;
+        /* 0x14 */ s16 m22;
+    } ident;
+} Actor444000DropCoord;
+
+coord.ident.m00_m01  = 0x1000;
+coord.ident.m02_m10  = 0;
+*(s32*)&mtx->m[1][1] = 0x1000;   /* via the pointer: already varying, fine */
+coord.ident.m20_m21  = 0;
+mtx->m[2][2]         = 0x1000;
+```
+
+`func_actor_444000_80139C80` is the worked example: 95.88% with the casts,
+100.00% with the union. The probe that identified the mechanism was
+`((s32*)&coord)[1] = 0x1000;` — `build_array_ref` builds
+`INDIRECT_REF (PLUS_EXPR ...)`, which sets `MEM_IN_STRUCT_P` while still folding
+to an `$fp`-based address — so if a union is unavailable, a nonzero word index
+off the enclosing object is the same fix. Index 0 does not work: `fold` removes
+`+ 0` and the `PLUS_EXPR` with it.
+
+The same function needed `t[1] + (bias + 0x258)` rather than
+`t[1] + 0x258 + bias`: `fold`'s `associate` case splits `(VAR + CON) +- ARG1`
+into `VAR +- (ARG1 +- CON)` (`fold-const.c:4313`), so the `addiu` lands on the
+*other* operand. Parenthesising the constant with the second operand takes the
+`split_tree (arg1)` path instead, which rebuilds it as `(t[1] + 0x258) + bias`.
