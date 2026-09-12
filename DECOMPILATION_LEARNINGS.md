@@ -62072,3 +62072,28 @@ return type out to the alignment column.
 
 `tools/check_lost_matches.py` catches a dropped *body*; it does not catch either
 of these, because the code still compiles to the same bytes.
+
+## `regs` penalties that only touch branch operands mean m2c dropped an unused parameter
+
+m2c names arguments after the register that carries them, but it only declares
+the ones the body reads. A function whose third argument is the switch selector
+and whose second is unused comes out as `f(void *arg0, s32 arg2)` — two
+parameters, so the selector arrives in `$a1` and every compare against it uses
+the wrong register:
+
+```
+-beqz    a2,2c          # target
++beqz    a1,2c          # m2c seed
+```
+
+`func_actor_444000_80143E68` scored 99.81% this way, with `regs=2` and zero
+`stack` / `branch` / `reorder` / `insert` / `delete`, and the structural
+diagnostic reporting `blocks=14/14 predicates_match=True`. That combination —
+an otherwise perfect structure whose only difference is the register named in
+one value's uses — is the signature, and the fix is to count `$a0`-`$a3` in the
+prologue rather than to touch allocation. Adding the missing `s32 arg1` took it
+to 100% in one build.
+
+The corollary: do not read the `argN` suffix in an m2c seed as an argument
+index. It is a register name, so a gap in the sequence (`arg0`, `arg2`) is
+itself the report that a parameter is missing.
