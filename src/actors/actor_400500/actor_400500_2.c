@@ -484,7 +484,40 @@ void func_actor_400500_8013C3C4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C474);
+void func_actor_400500_8013C474(Task* arg0)
+{
+    GpEnemy*            enemy;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500Work*    work3;
+    Actor400500HitView* hit;
+    s32                 cond;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor400500Work*)arg0->idMap;
+    if (enemy->field_40 > 0) {
+        hit = (Actor400500HitView*)work;
+        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work->field_A4A = 0;
+            if (!(work->field_A1E & 2)) {
+                work2            = (Actor400500Work*)arg0->idMap;
+                work2->field_A06 = 0;
+                work2->field_A08 = 0;
+            } else {
+                work3            = (Actor400500Work*)arg0->idMap;
+                work3->field_A06 = 0xA;
+                work3->field_A08 = 0;
+            }
+        }
+    } else {
+        work->field_A42 = 0;
+    }
+}
 
 void func_actor_400500_8013C508(Task* arg0)
 {
@@ -1139,7 +1172,40 @@ void func_actor_400500_8013D4F0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013D59C);
+void func_actor_400500_8013D59C(Task* arg0)
+{
+    GpEnemy*            enemy;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500Work*    work3;
+    Actor400500HitView* hit;
+    s32                 cond;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor400500Work*)arg0->idMap;
+    if (enemy->field_40 > 0) {
+        hit = (Actor400500HitView*)work;
+        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work->field_A4A = 0;
+            if (!(work->field_A1E & 2)) {
+                work2            = (Actor400500Work*)arg0->idMap;
+                work2->field_A06 = 0;
+                work2->field_A08 = 0;
+            } else {
+                work3            = (Actor400500Work*)arg0->idMap;
+                work3->field_A06 = 0xA;
+                work3->field_A08 = 0;
+            }
+        }
+    } else {
+        work->field_A42 = 0;
+    }
+}
 
 void func_actor_400500_8013D630(Task* arg0)
 {
