@@ -25,6 +25,7 @@ extern u8       D_actor_403600_80150ED4;
 extern TaskDesc D_actor_403600_801421A0;
 extern s32      D_actor_403600_8016056C;
 extern s32      D_actor_403600_8016057C[];
+extern s32      D_actor_403600_80160698;
 extern s32      D_actor_403600_8016069C;
 extern s32      D_actor_403600_801606A0;
 extern Task*    D_actor_403600_801606A8;
@@ -95,7 +96,90 @@ void func_actor_403600_801327A0(POLY_FT4* arg0)
     *(u8*)((s8*)arg0 + 0x1E)  = adjust;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013289C);
+void func_actor_403600_8013289C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s16 temp_t3;
+    s16 temp_t5;
+    s16 var_v0;
+    s16 var_v0_3;
+    s32 temp_a1;
+    s32 temp_v0;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    s32 var_v0_2;
+    s32 var_v0_4;
+    s32 var_t0;
+    u8  temp_v0_2;
+    u8* var_t2;
+
+    switch (arg1) {
+        case 0:
+            arg2   = arg0 + 8;
+            var_t2 = (u8*)(arg0 + 0x1E);
+            break;
+        case 1:
+            arg2   = arg0 + 0x10;
+            var_t2 = (u8*)(arg0 + 0x1F);
+            break;
+        case 2:
+            arg2   = arg0 + 0x18;
+            var_t2 = (u8*)(arg0 + 0x26);
+            break;
+        default:
+            arg2   = arg0 + 0x20;
+            var_t2 = (u8*)(arg0 + 0x27);
+            break;
+    }
+    SOFT_TOUCH_REG(arg2);
+    temp_t3                 = *(s16*)arg2;
+    temp_t5                 = *(s16*)(arg2 + 2);
+    arg0                    = temp_t3 + 0xA0;
+    var_t0                  = temp_t5 + 0x78;
+    temp_a1                 = (D_actor_403600_80160698 * 5) + 0x71357911;
+    D_actor_403600_80160698 = temp_a1;
+    if (((temp_a1 >> 0x10) & 0xFFF) < (arg3 + 0x400)) {
+        temp_v1                 = (temp_a1 * 5) + 0x71357911;
+        arg0                    = temp_t3 + 0x9C;
+        arg0                   += (temp_v1 >> 0x10) & 7;
+        temp_v0                 = (temp_v1 * 5) + 0x71357911;
+        D_actor_403600_80160698 = temp_v0;
+        temp_v1_2               = temp_t5 + 0x74;
+        var_t0                  = temp_v1_2 + ((temp_v0 >> 0x10) & 7);
+    }
+    if (var_t0 >= 0xF0) {
+        var_v0 = ((u16) * (s16*)(arg2 + 2) + 0xEF) - var_t0;
+        var_t0 = 0xEF;
+        goto block_15;
+    }
+    var_v0_2 = arg0 < 0x140;
+    if (var_t0 < 0) {
+        var_v0 = (u16) * (s16*)(arg2 + 2) - var_t0;
+        var_t0 = 0;
+    block_15:
+        *(s16*)(arg2 + 2) = var_v0;
+        var_v0_2          = arg0 < 0x140;
+    }
+    if (var_v0_2 == 0) {
+        var_v0_3 = ((u16) * (s16*)arg2 + 0x13F) - arg0;
+        arg0     = 0x13F;
+        goto block_20;
+    }
+    var_v0_4 = arg0 < 0x100;
+    if (arg0 < 0) {
+        var_v0_3 = (u16) * (s16*)arg2 - arg0;
+        arg0     = 0;
+    block_20:
+        *(s16*)arg2 = var_v0_3;
+        var_v0_4    = arg0 < 0x100;
+    }
+    *var_t2 = 0;
+    if (var_v0_4 == 0) {
+        *var_t2 = 0x40;
+    }
+    temp_v0_2        = *var_t2;
+    *(s8*)(arg2 + 5) = var_t0;
+    *(s8*)(arg2 + 4) = (s8)(arg0 - temp_v0_2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80132A18);
 
