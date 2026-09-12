@@ -22,6 +22,8 @@ void func_actor_405800_80137948(Task* task);
 void func_actor_405800_80139358(Task* arg0);
 void func_actor_405800_801393E8(Task* arg0);
 void func_actor_405800_801394E4(Task* arg0);
+void func_actor_405800_80139E2C(Task* arg0);
+void func_actor_405800_80139E48(Task* arg0);
 void func_actor_405800_80139EAC(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 
@@ -80,7 +82,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_801380C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80138154);
+void func_actor_405800_80138154(Task* task)
+{
+    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    TaskFunc         states[2] = { func_actor_405800_80139E2C, func_actor_405800_80139E48 };
+
+    func_actor_405800_80137948(task);
+    states[(s16)work->field_848](task);
+}
 
 void func_actor_405800_801381BC(Task* task)
 {
