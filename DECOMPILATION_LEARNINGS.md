@@ -62145,3 +62145,94 @@ the switch, which inverts every branch target in the tree.
 So the diagnostic is: the dead range check says case labels are missing, and
 *which* label `bltz` jumps to says whether `default` belongs with them.
 `func_actor_444000_801438E4` matched on the first attempt this way.
+
+## `slti high+1` between the equality tests means three case nodes, not two
+
+`balance_case_nodes` leaves a two-case list flat: the root is the *lowest* case
+and the other hangs off `->right`, so `switch (x) { case 0: … case 1: … default:
+… }` tests `x == 0` first and never emits a range check. The moment the printed
+tree tests the *middle* value first and follows it with a signed compare against
+`high + 1`, a third case node exists — `balance_case_nodes` only splits at the
+middle once `i == 3`:
+
+```asm
+beq   v1, s1, .L28       /* s1 = 1: the root, tested first        */
+ slti v0, v1, 2          /* bgt index, 1  -> the right subtree    */
+beqz  v0, .Ljoin
+ li   v0, 0x50
+bnez  v1, .Ljoin         /* inverted `beq index, 0 -> case 0`     */
+ nop
+j     .Ljoin
+ li   v0, 0x14
+.L28: li v0, 0x28
+```
+
+Root `1` with children on both sides, neither bounded, is the third arm of
+`emit_case_nodes`: `bgt` to the right subtree, then the left leaf's equality
+test, then the right subtree. The right subtree is invisible here because its
+body is the default's body — cross-jumping merges the two, and the leaf's
+`beq index, 2` is then a branch whose target is also its fall-through, so
+`jump.c` deletes it. So a *missing* third case is what the code looks like:
+
+```c
+switch ((u16)task->spawnArg1) {
+    case 0:  work->spin = 0x14; break;
+    case 1:  work->spin = 0x28; break;
+    case 2:  work->spin = 0x50; break;   /* invisible: same body as default */
+    default: work->spin = 0x50; break;
+}
+```
+
+`slti` rather than `sltiu` also pins the index type: `(u16)x` promotes to `int`,
+so the range test is signed even though the load is `lhu`. Writing the switch
+over two cases scored 91.75% on `func_actor_444000_8013A1C4`; adding the third
+took it to 95.57%.
+
+## A store that has to lead its block belongs in the switch arms, not after them
+
+`schedule_select` works down the ready list in groups of equal `INSN_PRIORITY`
+and, when more than one insn in that group survives, picks the one with the
+largest `potential_hazard`. A store beats an `ori` on that test every time. So
+the shared tail of a switch
+
+```c
+switch (v) { case 0: spin = 0x14; break; … }
+work->spin = spin;              /* first statement of the join block */
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+```
+
+cannot come out first in the join block: the store and the constant's `lui`/`ori`
+are all at depth 1 from the block head, `priority()` floors every one of them at
+1, so they are one group and the store loses. The schedule comes out
+`lui / ori / sb` while the target is `sb / lui / ori`, and the delay-slot filler
+then duplicates the `lui` and retargets a branch past it, adding a basic block —
+which is what makes the structural diagnostic report `blocks=11/12` and makes
+`vacuum_permute.py` refuse to search.
+
+There is no priority to tune: `priority()` returns `max (1, …)`, so the store
+cannot be ranked below the `ori`. The store simply was not in that block. Put it
+in each arm instead:
+
+```c
+switch ((u16)task->spawnArg1) {
+    case 0:  work->spin = 0x14; break;
+    case 1:  work->spin = 0x28; break;
+    …
+}
+```
+
+sched1 then schedules each arm separately, and the post-reload `jump2` pass
+cross-jumps the four now-identical `sb $v0, 0x9c($s2)` tails back into one shared
+block — identical only because reload has already turned the pseudos into hard
+registers, which is why the same duplication is *not* merged by the pre-sched
+jump pass and why the source form and the object disagree about how many stores
+there are.
+
+The same edit fixes register allocation as a side effect. `allocno_compare`
+ranks by `floor_log2 (n_refs) * n_refs / live_length`, and the four arm stores
+raise the work pointer from 8 refs to 11 — `3*8/74 = 3243` against the task
+pointer's `4*18/204 = 3529`, versus `3*11/74 = 4459` — which flips the
+allocation order so the work pointer takes `$s2` and the task pointer `$s3`.
+`func_actor_444000_8013A1C4` went from 95.57% with `regs=28` to 100% on that one
+change; before it, no amount of statement reordering could move either penalty,
+because both were downstream of the same source decision.
