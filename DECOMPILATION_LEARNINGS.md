@@ -63680,3 +63680,51 @@ static __inline__ void Scale(GsCOORDINATE2* coord, s16 xz, s32 y)
     sc->scale.vz = xz;
 }
 ```
+
+## Cast stores sink past struct-member stores; a union keeps them in order
+
+Splatting an identity into a *global* `GsCOORDINATE2` with the usual
+`*(s32*)&mtx->m[r][c]` idiom (learnings "Identity MATRIX: global `= ONE`
+first") can come out reordered when the surrounding writes are ordinary member
+assignments on the same object:
+
+```
+sw   a1,4(a0)        /* D.ident.m00_m01 */
+sh   a1,0x10(v1)     /* mtx->m[2][2]    */
+sw   v0,0x1c(a0)     /* D.coord.t[1]    */
+...
+sw   zero,4(v1)      /* the three *(s32*)&mtx->m[..] stores, sunk */
+sw   a1,8(v1)
+sw   zero,0xc(v1)
+```
+
+A `*(s32*)&x` store is not a component reference, so its MEM lacks
+`MEM_IN_STRUCT_P` while the member stores around it carry it; GCC 2.8.1's
+alias check treats the two classes as independent and sched1 is free to move
+them past each other. Give the pointer a union type whose `ident` half names
+the word pairs - the project already has one per overlay (`Actor403100Matrix`,
+`ActorShared80135b58Mat`, now `Actor444000Matrix`) - so every store is a real
+component reference and source order survives:
+
+```c
+mtx                = (Actor444000Matrix*)&D_x.c.coord;
+mtx->ident.m02_m10 = 0;
+mtx->ident.m11_m12 = 0x1000;
+mtx->ident.m20_m21 = 0;
+mtx->ident.m22     = 0x1000;
+```
+
+Two further points for a global rather than a stack coordinate:
+
+- The *first* address constant mentioned is the one GCC materialises; every
+  other reference is derived from it. Assigning `mtx = &D_x.c.coord` before the
+  first store emits `lui`/`addiu` of `D_x+4` and then `addiu a0,v1,-4` for the
+  object itself, losing the `sw zero,%lo(D_x)($hi)` the target uses for `flg`.
+  Store one field of the object first, then take the matrix pointer.
+- Loading a value used only by the last store (`coord.sub`) into a local at the
+  top of the block is what lets sched1 issue its two dependent loads before the
+  store run; written inline at the assignment they stay at the bottom behind
+  two load-delay `nop`s.
+
+`func_actor_444000_80140BBC` is the worked example: 92.5% -> 96.8% -> 100% over
+those three changes.

@@ -308,6 +308,24 @@ typedef union Actor444000DropCoord {
 } Actor444000DropCoord;
 STATIC_ASSERT_SIZEOF(Actor444000DropCoord, 0x50);
 
+/// A `MATRIX` plus the word-wise view `func_actor_444000_80140BBC` uses to
+/// splat an identity rotation into the shared coordinate
+/// `D_actor_444000_801618B8`: five aligned stores instead of nine halfword
+/// ones, each word holding two adjacent `m[][]` entries. The same shape as
+/// `Actor403100Matrix`; the rotation half of `Actor444000DropCoord` seen
+/// through a pointer, which is what keeps those stores in source order.
+typedef union Actor444000Matrix {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor444000Matrix;
+STATIC_ASSERT_SIZEOF(Actor444000Matrix, 0x20);
+
 /// That enemy's task: the same `Task` layout, named for the slots the
 /// `D_actor_444000_80131F1C` states reach through it.
 typedef struct Actor444000Drop {

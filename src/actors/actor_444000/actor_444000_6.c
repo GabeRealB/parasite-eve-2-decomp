@@ -26,11 +26,17 @@ extern s16 D_actor_444000_80144A70;
 extern s16 D_actor_444000_80144A72;
 extern s32 D_actor_444000_80144A74;
 extern s32 D_actor_444000_80144A7C;
+extern s32 D_actor_444000_80144A84;
+extern s32 D_actor_444000_80144A8C;
 extern s32 Gp_LcgState;
 
 /// World point the spinner chases: written by `func_actor_444000_8013E058`,
 /// read here as the target of the per-tick step.
 extern SVECTOR D_actor_444000_80161890;
+
+/// Shared coordinate `func_actor_444000_80140BBC` rebuilds when the fight
+/// reaches sub-state 0x2D of state 9, parented to the host model's fifth part.
+extern Actor444000DropCoord D_actor_444000_801618B8;
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
 /// allocate its `Actor444000SpinnerWork`, parent the model object to the world
@@ -563,7 +569,91 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_801404C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80140BBC);
+/// Tick of the arena fight state that runs alongside `func_actor_444000_80140E28`:
+/// on a reset request it clears the host model's flag word, pushes it onto each
+/// of the seven escorts' models, makes sure the host and every escort has its
+/// model buffers allocated and restores the normal blend weight.
+///
+/// The three state checks that follow are independent. In state 0xD the 0x18
+/// script is spawned once, on the step the third animation slot first reaches
+/// frame 0x15, which `field_7D8` remembers so the spawn does not repeat while
+/// the frame is held. In state 9 at sub-state 0x2D the shared coordinate
+/// `D_actor_444000_801618B8` is rebuilt as an identity sitting 100 units below
+/// and 100 in front of the host model's fifth part, which it is parented to.
+/// State 0x14 hands over to state 0xD once the second slot raises its flag.
+/// The tick then runs the ordinary re-arm and re-flags the root coordinate for
+/// rebuild.
+void func_actor_444000_80140BBC(Actor444000* arg0)
+{
+    Actor444000Work*   work;
+    Actor444000Work*   escorts;
+    Actor444000Work*   buffers;
+    TmdObject*         tmd;
+    TmdObject*         escortTmd;
+    Actor444000Matrix* mtx;
+    GsCOORDINATE2*     coords;
+    s16                i;
+    s16                j;
+    s32                frame;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        escorts                            = arg0->field_1C;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        tmd     = (TmdObject*)arg0->extra;
+        buffers = arg0->field_1C;
+        if (tmd->field_18 == NULL) {
+            Tmd_AllocBuffers(tmd);
+        }
+        for (j = 0; j < 7; j++) {
+            if (buffers->field_ECC[j] != NULL) {
+                escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                if (escortTmd->field_18 == NULL) {
+                    Tmd_AllocBuffers(escortTmd);
+                }
+            }
+        }
+        work->field_7B6 = 0x10;
+    }
+    if (work->field_7B3 == 0xD) {
+        frame = work->slots0[2].field_2 & 0x3FF;
+        if (frame == 0x15 && work->field_7D8 != frame) {
+            work->field_EAC = 3;
+            Gp_SpawnScript18((s32)&D_actor_444000_80144A84, (s32)&D_actor_444000_80144A8C);
+        }
+        work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
+    }
+    if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
+        coords                                = ((TmdObject*)arg0->extra)->field_8;
+        D_actor_444000_801618B8.ident.m00_m01 = 0x1000;
+        mtx                                   = (Actor444000Matrix*)&D_actor_444000_801618B8.c.coord;
+        mtx->ident.m02_m10                    = 0;
+        mtx->ident.m11_m12                    = 0x1000;
+        mtx->ident.m20_m21                    = 0;
+        mtx->ident.m22                        = 0x1000;
+        D_actor_444000_801618B8.c.coord.t[1]  = -0x64;
+        D_actor_444000_801618B8.c.coord.t[0]  = 0;
+        D_actor_444000_801618B8.c.coord.t[2]  = 0x64;
+        D_actor_444000_801618B8.c.flg         = 0;
+        D_actor_444000_801618B8.c.sub         = &coords[4];
+        Gp_UpdateCoord(&D_actor_444000_801618B8.c);
+    }
+    if (work->field_7B3 == 0x14 && (work->slots0[1].field_10 & 1)) {
+        work->field_7B3 = 0xD;
+        work->field_7B0 = 1;
+    }
+    if (D_actor_444000_80144A70 >= 0x191) {
+        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+    }
+    func_actor_444000_8013441C(arg0);
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+}
 
 /// Reset handler for the arena fight: on a reset request, clear the host
 /// model's flag word, push it onto each of the seven escorts' models, make sure
