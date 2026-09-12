@@ -6,6 +6,7 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
+s32            Gp_TickObjFlag2(Actor00700Ctx* arg0);
 void           Gp_ArmStateF0(s32 arg0);
 s32            Gp_GetObjPan(void* arg0);
 s32            Gp_GetObjDepth(void* arg0);
@@ -365,7 +366,66 @@ case2:
 pop:;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01148);
+void Actor00700_Fn01148(Actor00700* arg0)
+{
+    Actor00700Ctx*  ctx;
+    Actor00700Work* work;
+    s16             state;
+    s32             rng;
+    s32             rng2;
+    u16             timer;
+
+    work  = arg0->field_1C;
+    state = work->field_37C;
+    switch (state) {
+        case 0:
+            work->field_384 = 0;
+            work->field_386 = 0;
+            if (work->field_396 == 0) {
+                work->field_37C = 1;
+                work->field_37E = 6;
+            } else {
+                work->field_37C = 2;
+                rng             = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_38C = ((u32)rng >> 0x10) & 0xF;
+            }
+            work->field_396 = 1;
+            work->field_380 = 1;
+            return;
+        case 1:
+            if ((s16)work->field_382 >= 0x1D) {
+                work->field_37C = 2;
+                rng2            = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = rng2;
+                work->field_38C = ((u32)rng2 >> 0x10) & 0xF;
+                return;
+            }
+            return;
+        case 2:
+            timer           = work->field_38C - 1;
+            work->field_38C = timer;
+            if ((timer << 0x10) <= 0) {
+                work->field_37E = 8;
+                work->field_37C = 3;
+                return;
+            }
+            break;
+        case 3:
+            if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+                ctx             = arg0->field_20;
+                ctx->field_4C  &= 0xFD;
+                work->field_37A = 0;
+                work->field_37C = 0;
+                work->field_37E = 1;
+                work->field_38C = 0;
+                work->field_394 = 1;
+                work->field_396 = 0;
+                work->field_398 = 0;
+            }
+            break;
+    }
+}
 
 void Actor00700_Fn012E4(Actor00700* arg0)
 {

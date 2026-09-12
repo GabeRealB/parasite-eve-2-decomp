@@ -51,6 +51,7 @@ typedef struct Actor00700Work {
     /* 0x392 */ u16            field_392;
     /* 0x394 */ s16            field_394;
     /* 0x396 */ s16            field_396;
+    /* 0x398 */ s16            field_398;
 } Actor00700Work;
 
 /// `Gp_UnlinkNode` list entry at +0x10 of `Actor00700Ctx`. `field_4` is the
