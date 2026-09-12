@@ -4,6 +4,7 @@ ActorsShared801328ccTable = 0x80131E4C; // shared body data, see src/actors/lib/
 ActorsShared80132c4c = 0x8013DE2C; // shared body, see src/actors/lib/
 ActorCoordToView = 0x8013B920; // shared body, see src/actors/lib/
 D_actor_400500_80131F2C = 0x80131F2C; // force_not_migration:True state table read from C
+D_actor_400500_80131F48 = 0x80131F48; // force_not_migration:True state table read from C
 D_actor_400500_80131F54 = 0x80131F54; // force_not_migration:True state table read from C
 D_actor_400500_80131F60 = 0x80131F60; // force_not_migration:True state table read from C
 D_actor_400500_80131FEC = 0x80131FEC; // force_not_migration:True state table read from C
