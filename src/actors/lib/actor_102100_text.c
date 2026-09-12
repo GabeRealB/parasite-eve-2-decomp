@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_102100.h"
+#include "gameplay/3A34.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -249,9 +250,37 @@ void Actor02100_Fn032E4(Actor02100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn0337C);
+s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
+{
+    void**           scratch;
+    u8*              head;
+    register VECTOR* vec asm("s1");
+    GpObj3A*         node;
+    s32              ret;
 
-void Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+    ret                          = 0;
+    scratch                      = (void**)G_SCRATCH_HEAD;
+    node                         = D_80115550;
+    head                         = *scratch;
+    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+    head                         = head - 0x10;
+    vec                          = (VECTOR*)head;
+    TOUCH_REG_USE(vec, head);
+    vec->vy  = arg1->vy - arg0->vy;
+    *scratch = vec;
+    vec->vz  = arg1->vz - arg0->vz;
+    VectorNormal(vec, vec);
+    for (; node != NULL; node = node->next) {
+        if (node->field_3A & 0x40) {
+            ret = func_800DFCCC(node, arg0, arg1, vec);
+            if (ret == 1) {
+                break;
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
 
 void Actor02100_Fn03488(Actor02100* arg0)
 {
@@ -266,11 +295,6 @@ void Actor02100_Fn03488(Actor02100* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn034E0);
-
-void Gp_UnlinkNode(void* node);
-void Gp_UnlinkObj(void* node);
-void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
-void Gp_DestroyEnemy(void* enemy, void* task);
 
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1)
 {
