@@ -720,7 +720,108 @@ case2:
     actor->field_30 = kind;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn02A34);
+void        Actor02000_Fn00078(Actor02000*);
+void        Actor02000_Fn01698(Actor02000*);
+extern void (*Actor02000_D16064[])(Actor02000*);
+
+void Actor02000_Fn02A34(Actor02000Ctx* ctx, Actor02000* actor)
+{
+    VECTOR3         pos;
+    Actor02000Ctx*  spawn;
+    TmdObject*      model;
+    Actor02000Work* moveWork;
+    Actor02000Work* animWork;
+    Actor02000Work* work;
+    Actor02000Work* flagWork;
+    GsCOORDINATE2*  moveCoord;
+    GsCOORDINATE2*  part;
+    GsCOORDINATE2*  coord;
+    GsCOORDINATE2*  root;
+    s16             duration;
+    s32             i;
+    u8              flags;
+
+    work  = actor->field_1C;
+    model = actor->field_2C;
+    coord = model->field_8;
+    switch (D_801153F4) {
+        case 0:
+            model->field_C    = 0;
+            ctx->node.field_4 = 0;
+            break;
+        case 1:
+            goto draw;
+        case 2:
+            model->field_C    = 0x80;
+            ctx->node.field_4 = 1;
+            return;
+    }
+
+    if (ctx->field_4C != 0) {
+        spawn    = actor->field_20;
+        flags    = spawn->field_4C;
+        flagWork = actor->field_1C;
+        if ((flags & 2) && (flagWork->field_6B8 == 0)) {
+            spawn->field_4C     = flags & 0xFD;
+            flagWork->field_6A6 = 0xA;
+            flagWork->field_694 = 0x14;
+            flagWork->field_6A8 = 0;
+            flagWork->field_6E0 = 1;
+        }
+    }
+    Actor02000_Fn00078(actor);
+    Actor02000_D16064[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        Actor02000_Fn0150C(actor);
+    }
+    moveCoord              = actor->field_2C->field_8;
+    moveWork               = actor->field_1C;
+    moveWork->field_678    = (s32)moveCoord->coord.t[0];
+    moveWork->field_67C    = (s32)moveCoord->coord.t[1];
+    moveWork->field_680    = (s32)moveCoord->coord.t[2];
+    moveCoord->coord.t[0] += (s32)(moveCoord->coord.m[0][2] * moveWork->field_69C) >> 0xC;
+    if (moveWork->field_6DE < 2) {
+        moveCoord->coord.t[1] += 0x80;
+    }
+    moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
+    animWork               = actor->field_1C;
+    i                      = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0;
+        duration            = Actor02000_D03784[animWork->field_694];
+        do {
+            func_800B4114(animWork, i, (s32)animWork->field_694, 0, (s32)duration);
+            i += 1;
+        } while (i < 0x13);
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)animWork->field_698 + i;
+        do {
+            Gp_AnimTickIndex(animWork, i);
+            i += 1;
+        } while (i < 0x13);
+    }
+    if (work->field_6B4 != 0) {
+        Actor02000_Fn01698(actor);
+    }
+    Actor02000_Fn018A4(actor);
+    coord->flg                      = 0;
+    actor->field_2C->field_8[3].flg = 0;
+    Gp_UpdateCoord(coord);
+draw:
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(actor->field_20, &pos, 0, 0);
+    root   = actor->field_2C->field_8;
+    part   = root + 3;
+    pos.vx = part->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+    return;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn02D5C);
 

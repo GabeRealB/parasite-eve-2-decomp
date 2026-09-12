@@ -91,7 +91,10 @@ typedef struct Actor02000Work {
     /* 0x670 */ GsCOORDINATE2*      field_670;
     /* 0x674 */ s16                 field_674;
     /* 0x676 */ s16                 field_676;
-    /* 0x678 */ byte                pad_678[0x1C];
+    /* 0x678 */ s32                 field_678;
+    /* 0x67C */ s32                 field_67C;
+    /* 0x680 */ s32                 field_680;
+    /* 0x684 */ byte                pad_684[0x10];
     /* 0x694 */ s16                 field_694;
     /* 0x696 */ s16                 field_696;
     /* 0x698 */ s16                 field_698;
@@ -108,7 +111,8 @@ typedef struct Actor02000Work {
     /* 0x6AE */ s16                 field_6AE;
     /* 0x6B0 */ byte                pad_6B0[2];
     /* 0x6B2 */ s16                 field_6B2;
-    /* 0x6B4 */ byte                pad_6B4[4];
+    /* 0x6B4 */ s16                 field_6B4;
+    /* 0x6B6 */ byte                pad_6B6[2];
     /* 0x6B8 */ s16                 field_6B8;
     /* 0x6BA */ byte                pad_6BA[0x10];
     /* 0x6CA */ s16                 field_6CA;
