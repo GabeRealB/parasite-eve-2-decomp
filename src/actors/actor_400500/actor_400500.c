@@ -936,7 +936,57 @@ void func_actor_400500_80137478(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801375B8);
+void func_actor_400500_801375B8(Task* arg0)
+{
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500Work*       work4;
+    Actor400500AnimStride* stride;
+    s32                    flag;
+    s32                    i;
+
+    work                = (Actor400500Work*)arg0->idMap;
+    work->obj0.field_1C = 0x130;
+    work2               = (Actor400500Work*)arg0->idMap;
+    if ((work2->field_A46 >= 0) || (((u8)work2->field_A46 & 0x7F) != 1)) {
+        flag             = 0x81;
+        work2->field_A46 = flag;
+        work2->field_A47 = 0;
+    }
+    work3            = (Actor400500Work*)arg0->idMap;
+    work3->field_9F8 = 0x10;
+    work3->field_9FE = 5;
+    work3->field_9FA = 2;
+    work4            = (Actor400500Work*)arg0->idMap;
+    if (work4->field_9FA == 1) {
+        if ((s16)work4->field_9FC != work4->field_9FE) {
+            work4->field_A00 = 0;
+        } else {
+            work4->field_A00 = func_actor_400500_8013DD8C(arg0, work4->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work4->field_9FA = 3;
+    } else if (work4->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work4->field_9FA = 3;
+        work4->field_A00 = 0;
+    } else if (work4->field_9FA == 3) {
+        work4->field_A00 = (u16)work4->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work4 + 1;
+    do {
+        stride->field_1D = (u8)work4->field_9F8;
+        Gp_AnimTickIndex(&work4->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+    work->field_A04 = 0;
+    work->field_A18 = 0;
+    work->field_9BC = 0;
+    work->field_A08 = work->field_A08 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013771C);
 

@@ -116,7 +116,9 @@ typedef struct Actor400500Work {
     /* 0x954 */ u16                field_954; // low half of root coord.t[2]
     /* 0x956 */ byte               pad_956[0x4A];
     /* 0x9A0 */ Actor400500ViewPos field_9A0;
-    /* 0x9A6 */ byte               pad_9A6[0x36];
+    /* 0x9A6 */ byte               pad_9A6[0x16];
+    /* 0x9BC */ s16                field_9BC;
+    /* 0x9BE */ byte               pad_9BE[0x1E];
     /* 0x9DC */ s16                field_9DC;
     /* 0x9DE */ byte               pad_9DE[2];
     /* 0x9E0 */ s16                field_9E0;
