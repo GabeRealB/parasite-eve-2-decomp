@@ -309,7 +309,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139EAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139F0C);
+void func_actor_405800_80139F0C(Task* task, u8 arg1)
+{
+    Actor405800Work* work = (Actor405800Work*)task->idMap;
+    s32              mode = arg1;
+
+    if (mode == 0) {
+        work->field_88E = 1;
+    } else if (mode == 1) {
+        work->field_88D = mode;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139F3C);
 
