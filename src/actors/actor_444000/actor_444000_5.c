@@ -586,7 +586,85 @@ INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_5", D_actor_444000
 
 INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_5", D_actor_444000_80131EA8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_8013928C);
+/// Settling state that follows the bounce: the step counter drives the whole
+/// thing. When the dispatcher flags a state change the horizontal velocity is
+/// cut to a ninth, both light modes are reset and the two display nodes drop
+/// the draw flags the descent raised. Past x 0x4B65 in room 0x0427 the x
+/// velocity is killed outright; for the first eight steps what is left of it
+/// moves the model and is halved again each step. Steps 1, 2, 4, 8 and 20 puff
+/// a `0x600A5` effect out of the model's coordinate, and 4 and 8 also switch
+/// the light mode. After 0x51 steps both nodes are unlinked and the task steps
+/// on; until then the two collision-record tables are wiped each step. The
+/// model's own `workm` translation is handed to `Gp_UpdateActorColor`.
+void func_actor_444000_8013928C(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work = task->field_1C;
+    VECTOR               pos;
+    s16                  step;
+
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_UnlinkObj(&work->obj0);
+        Gp_UnlinkObj(&work->obj1);
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    if (work->field_1A8 != 0) {
+        work->field_1AC = 0;
+        work->vel.vx   /= 9;
+        work->vel.vz   /= 9;
+        Gp_SetLightMode((GpObj4C*)enemy, 0);
+        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        work->obj1.flags    &= ~0x4000;
+        work->obj0.flags    &= ~0x8000;
+        task->extra->field_C = 2;
+    }
+
+    work->field_1AC++;
+
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04270000 &&
+        task->extra->field_8->coord.t[0] >= 0x4B65) {
+        work->vel.vx = 0;
+    }
+
+    if (work->field_1AC < 8) {
+        task->extra->field_8->coord.t[0] += work->vel.vx;
+        task->extra->field_8->coord.t[2] += work->vel.vz;
+        work->vel.vx                    >>= 1;
+        work->vel.vz                    >>= 1;
+        task->extra->field_8->flg         = 0;
+    }
+
+    step = work->field_1AC - 1;
+    switch (step) {
+        case 3:
+        case 7:
+            Gp_SpawnEff(0x600A5, task->extra->field_8, 1, NULL);
+            Gp_SetLightMode((GpObj4C*)enemy, 2);
+            break;
+        case 0:
+        case 1:
+        case 19:
+            Gp_SpawnEff(0x600A5, task->extra->field_8, 1, NULL);
+            break;
+    }
+
+    if (work->field_1AC >= 0x51) {
+        Gp_UnlinkObj(&work->obj0);
+        Gp_UnlinkObj(&work->obj1);
+        task->state++;
+    }
+
+    if (work->field_1AC < 0x51) {
+        Gp_ClearRec18Occupied(&work->rec1);
+        Gp_ClearRec18Occupied(&work->rec0);
+    }
+
+    pos.vx = task->extra->field_8->workm.t[0];
+    pos.vy = task->extra->field_8->workm.t[1];
+    pos.vz = task->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80139594);
 
