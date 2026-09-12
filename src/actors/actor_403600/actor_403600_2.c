@@ -18,6 +18,7 @@ void func_actor_403600_80141338(Actor403600* arg0);
 void func_actor_403600_801414FC(Actor403600* arg0);
 void func_actor_403600_8014161C(Actor403600* arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
+void func_actor_403600_801400BC(Actor403600* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801411D4);
 
@@ -73,7 +74,18 @@ void func_actor_403600_80141BE0(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141C3C);
+void func_actor_403600_80141C3C(Actor403600* arg0)
+{
+    s16 value;
+
+    value = arg0->field_1C->field_730;
+    if (value < 0) {
+        return;
+    }
+    if (value < 2) {
+        func_actor_403600_801400BC(arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141C7C);
 
