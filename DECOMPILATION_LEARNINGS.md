@@ -40988,6 +40988,55 @@ goto advance;
 That took `func_dryfield_motel_balcony_8017D74C` from 92.1% to 98.6% (the rest
 was store ordering).
 
+## Cross-jumping runs after reload, so a duplicated early-out is a register-allocation lever
+
+Two bail-outs written as one merged test and one written as two separate `if`s
+emit the *same* object, because cross-jumping merges the identical
+`Gp_DestroyEnemy` tails back together - but they do not allocate the same,
+because that merge happens after reload while `global.c` already counted the
+references in the unmerged RTL.
+
+`func_actor_444000_80137D4C` scored 99.911% with `regs=5` and nothing else: its
+`enemy` parameter and its `owner` local were swapped between `$s0` and `$s1`.
+`.greg` showed the two pseudos adjacent in the allocation order and conflicting,
+so whichever sorts first takes `$s0`, and `allocno_compare` ranks by
+`floor_log2(n_refs) * n_refs / live_length`. In the merged form
+
+```c
+if (D_actor_444000_80144A68 == 1 ||
+    (work = Mem_Calloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+    Gp_DestroyEnemy(enemy, (Task*)task);
+    return;
+}
+```
+
+`enemy` has two references - the parameter copy and the one call argument -
+against `owner`'s three, and `owner`'s shorter live range is not enough to make
+up the difference, so `owner` takes `$s0`. Splitting the bail-out gives `enemy`
+a third reference, flips the order and matches exactly:
+
+```c
+if (D_actor_444000_80144A68 == 1) {
+    Gp_DestroyEnemy(enemy, (Task*)task);
+    return;
+}
+
+work           = Mem_Calloc(sizeof(Actor444000GrabWork), false);
+task->field_1C = work;
+if (work == NULL) {
+    Gp_DestroyEnemy(enemy, (Task*)task);
+    return;
+}
+```
+
+So when a function is otherwise exact and two long-lived pseudos have simply
+traded callee-saved registers, duplicating (or merging) an early-out is worth a
+build: it is invisible in the emitted code and moves exactly one term of the
+priority formula. Note that the sibling `func_actor_444000_80138B94`, whose
+prologue is otherwise identical, needs the *merged* form - there `owner` lives
+far longer, so the ranking already comes out right and the extra reference
+would break it.
+
 ## A pointless `move` between two registers means two source variables
 
 `move v0,a0` followed later by `move a0,v0` - a value copied out and straight

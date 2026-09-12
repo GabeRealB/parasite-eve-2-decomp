@@ -512,8 +512,6 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80137D4C);
-
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
 /// the yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
@@ -549,6 +547,85 @@ static __inline__ void Actor444000_ShrinkRotation(GsCOORDINATE2* coord)
     coord->flg           = 0;
 
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+}
+
+/// Entry state of the enemy dispatched through `D_actor_444000_80131F0C`:
+/// allocate its work block and drop the model onto the floor of the view
+/// coordinate, under escort 1 of the host actor.
+///
+/// The model is reparented to `Gfx_ViewCoord`, its texture page cleared and its
+/// CLUT row set to 2, and -- once the stream buffers exist -- processed twice
+/// before the spawn cue is enqueued at the model's own pan and half its depth
+/// with the owner's id in its high half. The task's light and colour matrices
+/// are pointed into the work block, the translation is replaced by the world
+/// position of part 1 of escort 1's model, and `field_1AA` is a fifteenth of
+/// that height. `vel` is the horizontal gap to the player, which the later
+/// states spend a fifteenth at a time. The rotation is finally rebuilt at half
+/// scale around the yaw the model already faces.
+///
+/// Bails out -- destroying the enemy -- when the overlay is shutting down or
+/// the work block cannot be allocated.
+void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work;
+    GpEnemy*             owner;
+    Actor444000Work*     host;
+    Task*                player;
+    SVECTOR              vec;
+    s32                  sfx;
+    s32                  pan;
+
+    owner  = task->parent->spawnArg2;
+    host   = owner->task->idMap;
+    player = Game_GetPtrSlot(3);
+
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    work           = Mem_Calloc(sizeof(Actor444000GrabWork), false);
+    task->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    task->extra->field_8->sub = &Gfx_ViewCoord;
+    task->extra->field_C      = 0;
+    task->extra->field_24     = 0;
+    task->extra->field_25     = 2;
+
+    if (task->extra->field_18 != NULL) {
+        Tmd_ProcessStream(task->extra);
+        Tmd_ProcessStream(task->extra);
+        sfx = ((owner->field_8 >> 0xC) << 8) | 0x4020001C;
+        pan = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+        SndEvt_EnqueueType6(sfx, pan, (s8)(Gp_GetObjDepth((GpObj38*)task->extra->field_8) / 2));
+    }
+
+    task->extra->field_1C = &work->lightMtx;
+    task->extra->field_20 = &work->colorMtx;
+
+    vec.vx = vec.vy = vec.vz = 0;
+    Actor444000_LocalToView(&((TmdObject*)host->field_ECC[1]->task->extra)->field_8[1], &vec);
+
+    task->extra->field_8->coord.t[0] = vec.vx;
+    task->extra->field_8->coord.t[1] = vec.vy;
+    task->extra->field_8->coord.t[2] = vec.vz;
+    task->extra->field_8->flg        = 0;
+
+    work->field_1AA = task->extra->field_8->coord.t[1] / 15;
+    work->vel.vx =
+        ((TmdObject*)player->extra)->field_8->coord.t[0] - task->extra->field_8->coord.t[0];
+    work->vel.vy = 0;
+    work->vel.vz =
+        ((TmdObject*)player->extra)->field_8->coord.t[2] - task->extra->field_8->coord.t[2];
+    work->field_1AC = 0;
+    work->field_1B2 = 0;
+
+    Actor444000_ShrinkRotation(task->extra->field_8);
+    task->state++;
 }
 
 /// Death throes of the grabbing enemy: bounce the model on the floor until it
