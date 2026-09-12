@@ -3,6 +3,42 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Split the A4A work pointer from the later anim `work2`; put `skip = 0` in the else
+
+A state dispatcher that copies a `TaskFuncTableN` onto the stack, then either
+calls a helper and returns or indexes the table, must not reuse one `work2`
+for both the short A4A check and the anim-tick loop after the join.
+
+Reusing it makes one pseudo live across the helper `jal`. GCC then keeps
+`&sp.funcs` in `$s2` (`addiu s2, sp, 0x10` in the `blez` delay slot) and
+indexes as `lw 0(s2+idx)` instead of rematerializing `addu v0, sp, v0` /
+`lw 0x10(v0)`. The skip flag also lands in `$v1` rather than sharing `$v0`
+with the `lb` of `field_A4A`.
+
+Use a separate pointer for the A4A reload, and birth `skip = 0` only on the
+false path so it fills the `beqz` delay as `move v0, zero`:
+
+```c
+workA = (Actor400500Work*)arg0->idMap;
+if (workA->field_A4A != 0) {
+    workA->field_A4A = 0;
+    func_actor_400500_8013DB64(arg0, 5);
+    skip = 1;
+} else {
+    skip = 0;
+}
+if (skip == 0) {
+    sp.funcs[(s16)work->field_A08](arg0);
+    goto common;
+}
+```
+
+`skip = 0` before the `if` keeps the flag live across the `lb` and forces
+`$v1`. Example: `func_actor_400500_8013899C`. Inputs: `base_1.i`
+`02b994e9dd32f1764760e620575baa1621fe224bfac3129eb3c4f2b1ecbb1e2e`,
+`base_2.i`
+`5719ab41d072287600b1201bcfdf318b9db76f72b2c7a6e0d105a4c4cb3115c1`.
+
 ## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
 
 `func_8004BFF8` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
