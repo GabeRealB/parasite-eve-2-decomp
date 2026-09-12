@@ -22,11 +22,11 @@ from typing import List, Sequence
 
 
 # --- fitted model (tools/fit_difficulty_model.py) ---
-# Logistic regression on 2305 observations mined from this repo:
+# Logistic regression on 4265 observations mined from this repo:
 # every `matched <fn> <attempts>` commit plus every give-up in
 # tools/difficult_functions, joined to that function's assembly metrics.
 # Target: P(the function does not match on the first attempt); a give-up is a
-# positive whatever its attempt count. 5-fold CV AUC 0.830. Adding stack
+# positive whatever its attempt count. 5-fold CV AUC 0.815. Adding stack
 # size, jump-table, float/GTE, callee or memory-op counts moves that by less
 # than the fold noise: the difficulty a static count cannot see is the
 # difficulty that is left.
@@ -39,29 +39,29 @@ from typing import List, Sequence
 LOG_FEATURES = True
 MEANS = np.array(
     [
-        np.float64(3.6588284972715863),
-        np.float64(1.2122403477966301),
-        np.float64(1.2255697514170867),
-        np.float64(1.2135238361141523),
+        np.float64(3.6950937174515066),
+        np.float64(1.1617867590182993),
+        np.float64(1.2476784923508466),
+        np.float64(1.150388993880383),
     ]
 )
 STDS = np.array(
     [
-        np.float64(1.250484481361305),
-        np.float64(1.0339521365752524),
-        np.float64(1.077530401896331),
-        np.float64(1.0178699150553976),
+        np.float64(1.2785218233582019),
+        np.float64(1.0199671267761687),
+        np.float64(1.0447320976735799),
+        np.float64(1.0166884722696874),
     ]
 )
 COEFFICIENTS = np.array(
     [
-        np.float64(1.52456370024467),
-        np.float64(-0.35694681632271547),
-        np.float64(-0.9063275200088586),
-        np.float64(1.0860794374704668),
+        np.float64(1.40964952047923),
+        np.float64(-0.2245898599269215),
+        np.float64(-0.6690302965172861),
+        np.float64(0.7563613205215792),
     ]
 )
-INTERCEPT = -0.40073954408147544
+INTERCEPT = -0.5009374975187026
 # --- end fitted model ---
 
 
