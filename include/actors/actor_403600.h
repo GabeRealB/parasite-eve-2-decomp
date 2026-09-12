@@ -31,7 +31,8 @@ typedef struct Actor403600Work {
     /* 0x6B0 */ VECTOR               field_6B0;
     /* 0x6C0 */ byte                 pad_6C0[0x30];
     /* 0x6F0 */ VECTOR               field_6F0;
-    /* 0x700 */ byte                 pad_700[8];
+    /* 0x700 */ s16                  field_700;
+    /* 0x702 */ byte                 pad_702[6];
     /* 0x708 */ s16                  field_708;
     /* 0x70A */ byte                 pad_70A[6];
     /* 0x710 */ Task*                field_710;
@@ -71,7 +72,8 @@ typedef struct Actor403600Work {
     /* 0x788 */ byte                 pad_788[2];
     /* 0x78A */ u16                  field_78A;
     /* 0x78C */ s16                  field_78C;
-    /* 0x78E */ byte                 pad_78E[4];
+    /* 0x78E */ byte                 pad_78E[2];
+    /* 0x790 */ s16                  field_790;
     /* 0x792 */ s16                  field_792;
     /* 0x794 */ s16                  field_794;
     /* 0x796 */ byte                 pad_796[8];

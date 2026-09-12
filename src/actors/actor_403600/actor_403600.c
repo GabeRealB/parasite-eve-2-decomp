@@ -20,6 +20,8 @@ extern u8       D_801153F4;
 extern s32      D_8005C374;
 extern s32      D_8007107C;
 extern s16      D_80073BA0;
+extern u32      Gp_LcgState;
+extern u8       D_actor_403600_80150ED4;
 extern TaskDesc D_actor_403600_801421A0;
 extern s32      D_actor_403600_8016056C;
 extern s32      D_actor_403600_8016057C[];
@@ -279,7 +281,55 @@ default_body:
     func_actor_403600_8013F0C0(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013955C);
+void func_actor_403600_8013955C(Actor403600* arg0)
+{
+    Actor403600Work* temp_s1;
+    GpEnemy*         temp_s0;
+    s32              temp_ret;
+    u32              temp_v0;
+    u32              temp_v0_2;
+    u32              temp_v1_2;
+    u8               temp_v1;
+
+    temp_s0 = arg0->field_20;
+    temp_v1 = temp_s0->field_4C;
+    temp_s1 = arg0->field_1C;
+    if (temp_v1 != 0) {
+        if (temp_v1 & 1) {
+            temp_s0->field_4C  = temp_v1 & 0xFE;
+            temp_s1->field_730 = 2;
+        }
+        if (temp_s0->field_4C & 2) {
+            temp_s0->field_4C &= 0xFD;
+            temp_s1->field_730 = 3;
+            temp_s1->field_736 = 0xE;
+            SOFT_BARRIER();
+            temp_s1->field_790 = D_actor_403600_80150ED4 * 0x1E;
+        }
+        if (temp_s0->field_4C & 0xC) {
+            if (temp_s1->field_73E != 0x28) {
+                temp_ret = Gp_TickObjFlag4((GpObj5C*)temp_s0);
+                if (temp_ret != 0) {
+                    temp_v1_2   = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState = temp_v1_2;
+                    if ((temp_v1_2 >> 0x10) & 1) {
+                        temp_v0            = (temp_v1_2 * 5) + 0x71357911;
+                        Gp_LcgState        = temp_v0;
+                        temp_s1->field_700 = ((temp_v0 >> 0xB) & 0x60) + 0x80;
+                    } else {
+                        temp_v0_2          = (temp_v1_2 * 5) + 0x71357911;
+                        Gp_LcgState        = temp_v0_2;
+                        temp_s1->field_700 = -(((temp_v0_2 >> 0xB) & 0x60) + 0x80);
+                    }
+                    func_actor_403600_8013DAF4(arg0, temp_ret / 5);
+                }
+            }
+            if ((Gp_ObjFlag4Expired((GpObj5C*)temp_s0) != 0) || (temp_s0->field_40 < 0x1F4)) {
+                temp_s0->field_4C &= 0xF3;
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E34);
 
