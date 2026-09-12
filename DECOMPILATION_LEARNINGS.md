@@ -61765,3 +61765,25 @@ Evidence: tools/permuter_findings/Actor03800_Fn0166C/ retained session; base_2/b
 An aggregate MATRIX assignment replaces m2c scalar word copies with the required grouped block move (50.328% to 99%). Moving the scale vy assignment before vz then gives 100%. In base_1.i.dbr the vy source load UID 60 depends on both vx and vz stores; in base_2.i.dbr the load UID 55 depends only on vx, and vz UID 62 instead has REG_DEP_ANTI 55. sched1 selects vz at T-18 by potential hazard, blocks the load at T-19 and selects argument setup UID 96, then loads at T-20. The reversed forward sequence matches, with unchanged register allocation. A pre-build controlled prediction and typed sibling-scratch port both scored 100%; no pins/helpers. This is a dependency-order result, not a general statement-order rule. Evidence is retained under tools/permuter_findings/Actor03800_Fn037E0; session PERMUTER_ANALYSIS.md records scope.
 
 Inputs: base_1.i SHA256 4ba8db8acce267093f1a4ff609783fb231e3bb9aaf6dd2bef583fdaf0a43c7f7, base_2.i SHA256 99cfda7437af4ee1be11a0214745f28bea33dc8199f7bf432b0dff73112767e7.
+
+## Actor00700_Fn02414: scratch assignment copy and global pointer lifetimes
+
+Controlled GCC 2.8.1 experiment: changing `block = head - 1; *scratch = block;`
+to `block = (*scratch = head - 1);` restored an intermediate copy. Expansion
+creates an arithmetic temporary; CSE preserves its stack-head store and the
+copy to the long-lived block pseudo (base_2 UIDs 21/25/27). Distance 497 -> 195,
+with only register penalties remaining. This is an observed context-specific
+copy-retention effect, not a universal rule for chained assignments.
+
+Changing the later x store from `head[-1].vx.w` to `block->vx.w` then yielded
+100%. The block global pseudo r93 rose from 7 refs/66 insns to 8/66, overtaking
+work r81 (13/112). Old head r92 shrank from 4/59 to 3/13 and crossed one call
+instead of two, overtaking actor r80. `.greg` confirms block/work/head/actor
+homes s1/s2/s3/s4. The extra copy and instruction order survived. No pins or
+empty asm. Real-header port also matched; controlled plans and retained dumps
+are in `tools/permuter_findings/Actor00700_Fn02414/`.
+
+Preprocessed SHA256:
+- base_1: `c222954dca1cce3ad18a89b7bc7ffa64bc902ee88b8bccccbdd652dca7687cad`
+- base_2: `3f17b1d740bbd9685df78d2dfd4724bc18bff190d96373809518b3a1267dfd54`
+- base_3: `fd2af23eb5f65aef9ac5737f4502f74601891e64fa27b715969597d3e041adee`

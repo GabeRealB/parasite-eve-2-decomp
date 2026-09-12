@@ -2,6 +2,7 @@
 #define ACTOR_100700_H
 
 #include "common.h"
+#include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -19,39 +20,57 @@ typedef struct Actor00700Params {
     /* 0xF */ u8   field_F;
 } Actor00700Params;
 
+typedef union Actor00700HitRecord {
+    GpRec18 rec;
+    struct {
+        u32       header;
+        GpFixed16 id;
+    } hit;
+} Actor00700HitRecord;
+
 typedef struct Actor00700Work {
-    /* 0x000 */ byte           pad_0[0x1DC];
-    /* 0x1DC */ byte           field_1DC[0x1E];
-    /* 0x1FA */ u16            field_1FA;
-    /* 0x1FC */ byte           field_1FC[0x18];
-    /* 0x214 */ byte           field_214[0x68];
-    /* 0x27C */ byte           field_27C[0x6A];
-    /* 0x2E6 */ s16            field_2E6;
-    /* 0x2E8 */ byte           pad_2E8[0x14];
-    /* 0x2FC */ byte           field_2FC[0x1E];
-    /* 0x31A */ u16            field_31A;
-    /* 0x31C */ byte           pad_31C[0x20];
-    /* 0x33C */ GsCOORDINATE2* field_33C;
-    /* 0x340 */ MATRIX         field_340;
-    /* 0x360 */ byte           pad_360[0x10];
-    /* 0x370 */ SVECTOR        field_370;
-    /* 0x378 */ byte           pad_378[2];
-    /* 0x37A */ s16            field_37A;
-    /* 0x37C */ s16            field_37C;
-    /* 0x37E */ u16            field_37E;
-    /* 0x380 */ s16            field_380;
-    /* 0x382 */ u16            field_382;
-    /* 0x384 */ s16            field_384;
-    /* 0x386 */ s16            field_386;
-    /* 0x388 */ s16            field_388;
-    /* 0x38A */ u16            field_38A;
-    /* 0x38C */ u16            field_38C;
-    /* 0x38E */ u16            field_38E;
-    /* 0x390 */ s16            field_390;
-    /* 0x392 */ u16            field_392;
-    /* 0x394 */ s16            field_394;
-    /* 0x396 */ s16            field_396;
-    /* 0x398 */ s16            field_398;
+    /* 0x000 */ byte                pad_0[0x154];
+    /* 0x154 */ Actor00700HitRecord field_154;
+    /* 0x16C */ byte                pad_16C[0x20];
+    /* 0x18C */ GpRec18             field_18C;
+    /* 0x1A4 */ byte                pad_1A4[0x38];
+    /* 0x1DC */ byte                field_1DC[0x1E];
+    /* 0x1FA */ u16                 field_1FA;
+    /* 0x1FC */ byte                field_1FC[0x18];
+    /* 0x214 */ byte                field_214[0x10];
+    /* 0x224 */ GpEffArg            field_224;
+    /* 0x22C */ byte                pad_22C[0x50];
+    /* 0x27C */ byte                field_27C[0x40];
+    /* 0x2BC */ s32                 field_2BC;
+    /* 0x2C0 */ s32                 field_2C0;
+    /* 0x2C4 */ s32                 field_2C4;
+    /* 0x2C8 */ byte                pad_2C8[0x1E];
+    /* 0x2E6 */ s16                 field_2E6;
+    /* 0x2E8 */ byte                pad_2E8[0x14];
+    /* 0x2FC */ byte                field_2FC[0x1E];
+    /* 0x31A */ u16                 field_31A;
+    /* 0x31C */ byte                pad_31C[0x20];
+    /* 0x33C */ GsCOORDINATE2*      field_33C;
+    /* 0x340 */ MATRIX              field_340;
+    /* 0x360 */ byte                pad_360[0x10];
+    /* 0x370 */ SVECTOR             field_370;
+    /* 0x378 */ byte                pad_378[2];
+    /* 0x37A */ s16                 field_37A;
+    /* 0x37C */ s16                 field_37C;
+    /* 0x37E */ u16                 field_37E;
+    /* 0x380 */ s16                 field_380;
+    /* 0x382 */ u16                 field_382;
+    /* 0x384 */ s16                 field_384;
+    /* 0x386 */ s16                 field_386;
+    /* 0x388 */ s16                 field_388;
+    /* 0x38A */ u16                 field_38A;
+    /* 0x38C */ u16                 field_38C;
+    /* 0x38E */ u16                 field_38E;
+    /* 0x390 */ s16                 field_390;
+    /* 0x392 */ u16                 field_392;
+    /* 0x394 */ s16                 field_394;
+    /* 0x396 */ s16                 field_396;
+    /* 0x398 */ s16                 field_398;
 } Actor00700Work;
 
 /// `Gp_UnlinkNode` list entry at +0x10 of `Actor00700Ctx`. `field_4` is the

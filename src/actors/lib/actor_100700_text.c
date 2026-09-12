@@ -972,7 +972,81 @@ default_body:
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02414);
+s32  func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+u32  Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
+s32  Gp_GetIdParam1(s32 arg0);
+void func_800E2C78(Actor00700Ctx* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+void Actor00700_Fn02414(Actor00700* arg0)
+{
+    Actor00700Work* work;
+    GsCOORDINATE2*  coord;
+    s32             movement;
+    s32             dx;
+    s32             dy;
+    s32             dz;
+    s32             amount;
+    s32             damage;
+    s32             z;
+    u16             state;
+    GsCOORDINATE2*  target;
+    GpDeltaScratch* head;
+    GpDeltaScratch* delta;
+
+    work     = arg0->field_1C;
+    head     = *(void**)0x1F8003FC;
+    delta    = (*(void**)0x1F8003FC = head - 1);
+    coord    = arg0->field_2C->field_8;
+    movement = func_800E0C10(&work->field_18C, delta, 4, 0);
+    switch (movement) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] += head[-1].vx.h.hi;
+            coord->coord.t[1] += delta->vy.h.hi;
+            z                  = coord->coord.t[2] + delta->vz.h.hi;
+            coord->coord.t[2]  = z;
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_2BC;
+            coord->coord.t[1] = work->field_2C0;
+            coord->coord.t[2] = work->field_2C4;
+            break;
+    }
+    Gp_ClearRec18Occupied(&work->field_18C);
+    state = (u16)work->field_154.hit.id.h.hi;
+    switch ((u32)state) {
+        case 0:
+            break;
+        case 1:
+            arg0->field_30           = 2;
+            arg0->field_20->field_40 = 0;
+            Gp_ArmStateF0(1);
+            break;
+        case 2:
+            arg0->field_30 = (s32)state;
+            target         = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->field_8;
+            dx             = target->coord.t[0] - coord->coord.t[0];
+            delta->vx.w    = dx;
+            dy             = target->coord.t[1] - coord->coord.t[1];
+            delta->vy.w    = dy;
+            dz             = target->coord.t[2] - coord->coord.t[2];
+            delta->vz.w    = dz;
+            damage         = Gp_ComputeDamage((s32)work->field_154.hit.id.w, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+            amount         = damage;
+            if (damage == 0) {
+                damage = 1;
+                amount = 1;
+            }
+            func_800DA6E8(&arg0->field_20->node, amount, 0);
+            func_800E2C78(arg0->field_20, (s32)work->field_154.hit.id.w, damage, 0);
+            arg0->field_20->field_40 = 0;
+            func_800FDB18(Gp_GetIdParam1((s32)work->field_154.hit.id.w) & 0xFFFF, arg0->field_2C->field_8, 0, &work->field_224);
+            break;
+    }
+    Gp_ClearRec18Occupied(&work->field_154.rec);
+    SCRATCH_SP += 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn0268C);
 
