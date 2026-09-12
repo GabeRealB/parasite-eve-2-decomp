@@ -50,7 +50,50 @@ s32  func_actor_403600_801320F8(s32 arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801320F8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801327A0);
+void func_actor_403600_801327A0(POLY_FT4* arg0)
+{
+    s32 temp_a0;
+    s32 temp_a1;
+    s32 temp_t1;
+    s32 temp_t2;
+    s32 max;
+    s32 min;
+    u8  adjust;
+
+    temp_t2 = *(u8*)((s8*)arg0 + 0xC) + *(u8*)((s8*)arg0 + 0x1E);
+    min     = temp_t2;
+    max     = temp_t2;
+    temp_t1 = *(u8*)((s8*)arg0 + 0x14) + *(u8*)((s8*)arg0 + 0x1F);
+    temp_a1 = *(u8*)((s8*)arg0 + 0x1C) + *(u8*)((s8*)arg0 + 0x26);
+    temp_a0 = *(u8*)((s8*)arg0 + 0x24) + *(u8*)((s8*)arg0 + 0x27);
+    if (temp_t1 < min) {
+        min = temp_t1;
+    } else if (max < temp_t1) {
+        max = temp_t1;
+    }
+    if (temp_a1 < min) {
+        min = temp_a1;
+    } else if (max < temp_a1) {
+        max = temp_a1;
+    }
+    if (temp_a0 < min) {
+        min = temp_a0;
+    } else if (max < temp_a0) {
+        max = temp_a0;
+    }
+    if ((max >= 0x100) || (adjust = 0, min >= 0x40)) {
+        adjust = 0x40;
+    }
+    *(s16*)((s8*)arg0 + 0x16) = (s16)(((u32)(adjust + 0x1C0) >> 6) | 0x110);
+    *(u8*)((s8*)arg0 + 0xC)   = (u8)(temp_t2 - adjust);
+    *(u8*)((s8*)arg0 + 0x14)  = (u8)(temp_t1 - adjust);
+    *(u8*)((s8*)arg0 + 0x1C)  = (u8)(temp_a1 - adjust);
+    *(u8*)((s8*)arg0 + 0x24)  = (u8)(temp_a0 - adjust);
+    *(u8*)((s8*)arg0 + 0x27)  = adjust;
+    *(u8*)((s8*)arg0 + 0x26)  = adjust;
+    *(u8*)((s8*)arg0 + 0x1F)  = adjust;
+    *(u8*)((s8*)arg0 + 0x1E)  = adjust;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013289C);
 
