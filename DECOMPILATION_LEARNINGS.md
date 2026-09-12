@@ -62357,3 +62357,34 @@ The same function needed `t[1] + (bias + 0x258)` rather than
 into `VAR +- (ARG1 +- CON)` (`fold-const.c:4313`), so the `addiu` lands on the
 *other* operand. Parenthesising the constant with the second operand takes the
 `split_tree (arg1)` path instead, which rebuilds it as `(t[1] + 0x258) + bias`.
+
+## An `s16` local read once but used at two widths costs an explicit `sll`/`sra`
+
+Distinct from "`sh` of an `s16` field", which is about the *load width* of a
+short-to-short copy. Here the leftover is two extra instructions.
+
+When one read of an `s16` field feeds both a 16-bit comparison and a 32-bit
+store, an `s16` local keeps the value in `HImode`: `movhi` loads it with `lhu`
+and the `SImode` use then needs its own sign extension, so the block opens with
+three instructions instead of one.
+
+```c
+s16 armed = work->field_1B2;      /* lhu $v0, 0x1b2($s0)     */
+if (armed != 1) { ... }           /* sll $v0,$v0,0x10        */
+work->anim.field_8 = armed;       /* sra $t1,$v0,0x10 ; beq  */
+```
+
+Widening the local makes the *load* the sign extension, and the one register
+then serves both uses:
+
+```c
+s32 armed = work->field_1B2;      /* lh  $t1, 0x1b2($s0)     */
+if (armed != 1) { ... }           /* beq $t1,$v1             */
+work->anim.field_8 = armed;       /* sw  $t1, 0x19c($s0)     */
+```
+
+`func_actor_444000_801389EC` is the worked example: 96.27% with the `s16`
+local, 100.00% with `s32`, nothing else changed. The tell is that the same
+field read *only* for a comparison elsewhere in the function already came out
+as a plain `lh` — a single field appearing as both `lh` and `lhu` in one
+function points at the local's declared width, not at the field's.

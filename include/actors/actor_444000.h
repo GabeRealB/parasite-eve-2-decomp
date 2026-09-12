@@ -240,6 +240,55 @@ typedef struct Actor444000Drop {
     /* 0x34 */ s32                  spawnArg1;
 } Actor444000Drop;
 
+/// Work block of the enemy dispatched through `D_actor_444000_80131EA8`, the
+/// one that seizes the player: its states install a scripted animation on the
+/// slot-3 task with message 0x3FF and cancel it again with message 0x3F1.
+/// `func_actor_444000_80137D4C` allocates it with `Mem_Calloc(0x1C0, 0)` and
+/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// than guessed.
+///
+/// `anim` is the `GpAnimArg` handed to the player as message 0x3FF's payload --
+/// sent by address out of the work block rather than from a local, which is why
+/// it lives here. `field_1B2` is the one-shot flag saying that animation is
+/// currently installed, so only the state that set it sends the cancel;
+/// `field_1AC` is the step counter the hold states compare against their own
+/// limit, and `field_1A8` gates the take-over in `func_actor_444000_801389EC`.
+/// Fill in the padding as the remaining states are matched.
+typedef struct Actor444000GrabWork {
+    /* 0x000 */ byte      pad_0[0x168];
+    /* 0x168 */ s32       field_168;
+    /* 0x16C */ s32       field_16C;
+    /* 0x170 */ byte      pad_170[0x24];
+    /* 0x194 */ GpAnimArg anim;      // message 0x3FF payload, sent by address
+    /* 0x1A8 */ s16       field_1A8; // non-zero: this state may install the animation
+    /* 0x1AA */ byte      pad_1AA[0x2];
+    /* 0x1AC */ s16       field_1AC; // step counter within the state
+    /* 0x1AE */ byte      pad_1AE[0x4];
+    /* 0x1B2 */ s16       field_1B2; // one-shot flag: the player animation is installed
+    /* 0x1B4 */ byte      pad_1B4[0xC];
+} Actor444000GrabWork;
+STATIC_ASSERT_SIZEOF(Actor444000GrabWork, 0x1C0);
+
+/// That enemy's task: the same `Task` layout, named for the slots the
+/// `D_actor_444000_80131EA8` states reach through it.
+typedef struct Actor444000Grab {
+    /* 0x00 */ byte                 pad_0[0x1C];
+    /* 0x1C */ Actor444000GrabWork* field_1C;
+    /* 0x20 */ byte                 pad_20[0xC];
+    /* 0x2C */ TmdObject*           extra;
+    /* 0x30 */ s32                  state;
+    /* 0x34 */ s32                  spawnArg1;
+} Actor444000Grab;
+
+/// The head of a `Gp_PlayerAnimBlkTbl` entry as this overlay reads it: an array
+/// of animation-set pointers, of which the grab state copies entry 9 onto its
+/// own `D_actor_444000_80161694` table. The same shape as
+/// `Actor403100AnimTable`, extended to reach that entry.
+typedef struct Actor444000AnimTable {
+    /* 0x00 */ GpAnimSet* sets[10];
+} Actor444000AnimTable;
+STATIC_ASSERT_SIZEOF(Actor444000AnimTable, 0x28);
+
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);

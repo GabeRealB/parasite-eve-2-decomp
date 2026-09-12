@@ -15,6 +15,12 @@
 extern s16 D_actor_444000_80144A68;
 extern s32 Gp_LcgState;
 
+extern s8         D_8007218A;
+extern u8         D_80073BA9;
+extern GpAnimSet* D_actor_444000_80161694[];
+extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
+extern u16        Gp_WeaponIdBase[];
+
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80134040);
@@ -41,7 +47,55 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80138490);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801389EC);
+/// Hold state of the enemy dispatched through `D_actor_444000_80131EA8`: once
+/// `field_1A8` says the take-over is armed and `field_1B2` says the player
+/// animation is already installed, rebuild the overlay's own animation-set
+/// table from the player's current weapon block and (re)send it as message
+/// 0x3FF, flagging the model object busy. Then count the step, and after nine
+/// of them cancel the animation with message 0x3F1 and step the task on.
+/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down, cancelling a
+/// still-installed animation on the way out.
+void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work;
+    Task*                player;
+    s32                  armed;
+
+    work   = task->field_1C;
+    player = Game_GetPtrSlot(3);
+    if (D_actor_444000_80144A68 == 1) {
+        if (work->field_1B2 == 1) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+            work->field_1B2 = 0;
+        }
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    if (work->field_1A8 != 0) {
+        armed           = work->field_1B2;
+        work->field_1AC = 0;
+        if (armed != 1) {
+            task->state++;
+            return;
+        }
+        D_actor_444000_80161694[2] =
+            ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[9];
+        work->anim.field_0 = D_actor_444000_80161694;
+        work->anim.field_4 = 2;
+        work->anim.field_8 = armed;
+        work->anim.field_C = 9;
+        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+        task->extra->field_C = 0x80;
+    }
+
+    if (work->field_1AC >= 9) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+        work->field_1B2 = 0;
+        task->state++;
+    }
+    work->field_1AC++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80138B94);
 
