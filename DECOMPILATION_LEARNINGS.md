@@ -62388,3 +62388,72 @@ local, 100.00% with `s32`, nothing else changed. The tell is that the same
 field read *only* for a comparison elsewhere in the function already came out
 as a plain `lh` — a single field appearing as both `lh` and `lhu` in one
 function points at the local's declared width, not at the field's.
+
+## Case bodies are emitted in source order, so the shared tail's position says what it is
+
+Two sources produce the same block *connections* for a switch whose unhandled
+values run a shared tail, and the structural diagnostic cannot tell them apart -
+`blocks=16/16` either way. What separates them is the order the blocks come out
+in, because `expand_end_case` emits each arm's body where it was written:
+
+```c
+switch (x) {                      /* case0, case1, case2, tail  */
+    case 0: obj->field_C = 0; break;
+    case 1: obj->field_C = 0;    return;
+    case 2: obj->field_C = 0x80; return;
+}
+tail();                           /* the implicit default lands here */
+```
+
+```c
+switch (x) {                      /* case1, case2, case0, tail  */
+    case 1: obj->field_C = 0;    return;
+    case 2: obj->field_C = 0x80; return;
+    case 0: obj->field_C = 0;
+    default: tail(); break;
+}
+```
+
+Both give case 0 a `j` to the tail and both give the unhandled values the same
+destination. So read the *addresses*: if the arm bodies appear in ascending case
+order with the tail last, the tail is the code after the switch and the lowest
+arm `break`s into it. If one arm's body sits after the others, it is the arm
+written last, adjacent to a real `default:`. `func_actor_444000_80143C64` went
+from 90.83% to 94.32% on that rewrite alone - m2c always prints the
+`case 0: … default:` fallthrough form, which is the second shape.
+
+This is the mirror of "`break` in the last switch case makes `default` fall into
+the code after it": there the tail had to move *into* the switch, here out of it.
+
+## An extra `move` after a field load means the test and the body read it twice
+
+```asm
+lw    v0, 0x1c(a1)
+beqz  v0, .Lskip
+ move a0, v0          /* an extra copy: two pseudos, not one */
+lh    v1, 0x94(a0)
+```
+
+A local cached before the test is one pseudo and loads straight into its home:
+
+```c
+work = arg0->field_1C;
+if (work != NULL) { … }          /* lw a0, 0x1c(a1) ; beqz a0 ; nop */
+```
+
+Re-reading the field inside the body is two, and cse2 rewrites the second load
+as a copy from the first - which is the `move` in the dump:
+
+```c
+if (arg0->field_1C != NULL) {
+    work = arg0->field_1C;       /* lw v0, 0x1c(a1) ; move a0, v0 */
+    …
+}
+```
+
+So a spurious-looking `move` off a load is a source-shape tell, not an
+allocation artifact to chase in `.lreg`. It is also not free elsewhere: that one
+extra insn was what let `reorg` fill an earlier `beqz`'s delay slot by stealing
+`li $v0, 2` from the switch tree's right subtree, so the same edit closed a
+`reorder` leftover three blocks away. `func_actor_444000_80143C64`: 94.32% to
+100%.

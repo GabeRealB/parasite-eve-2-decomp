@@ -20,6 +20,10 @@ extern GpEnemyTaskFuncTable3 D_actor_444000_80131E9C;
 /// neither 1 nor 2.
 extern GpEnemyTaskFuncTable5 D_actor_444000_80131F1C;
 
+/// The spinner enemy's four handler states, dispatched while the global game
+/// state is neither 1 nor 2.
+extern GpEnemyTaskFuncTable4 D_actor_444000_80131F30;
+
 extern u8 D_801153F4;
 
 extern s16 D_actor_444000_80144A68;
@@ -99,7 +103,40 @@ void func_actor_444000_80143BFC(GpEnemy* arg0, Task* arg1)
     ((TmdObject*)arg1->extra)->field_C = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143C64);
+/// Dispatcher of the spinner enemy `D_actor_444000_80131F30` drives: park the
+/// model object while the global game state is 1 or 2, otherwise note in the
+/// work block whether the state changed since the last step and run the
+/// handler for it.
+void func_actor_444000_80143C64(Actor444000Spinner* arg0)
+{
+    GpEnemyTaskFuncTable4   sp;
+    Actor444000SpinnerWork* work;
+
+    sp = D_actor_444000_80131F30;
+
+    switch (D_801153F4) {
+        case 0:
+            arg0->extra->field_C = 0;
+            break;
+        case 1:
+            arg0->extra->field_C = 0;
+            return;
+        case 2:
+            arg0->extra->field_C = 0x80;
+            return;
+    }
+
+    if (arg0->field_1C != NULL) {
+        work = arg0->field_1C;
+        if (work->field_94 != arg0->state) {
+            work->field_90 = 1;
+        } else {
+            work->field_90 = 0;
+        }
+        work->field_94 = arg0->state;
+    }
+    sp.funcs[arg0->state](arg0->spawnArg2, (Task*)arg0);
+}
 
 s32 func_actor_444000_80143D68(Actor444000* arg0)
 {

@@ -158,7 +158,9 @@ typedef struct Actor444000SpinnerWork {
     /* 0x00 */ byte   pad_0[0x50];
     /* 0x50 */ MATRIX colorMtx;
     /* 0x70 */ MATRIX lightMtx;
-    /* 0x90 */ byte   pad_90[0x6];
+    /* 0x90 */ s16    field_90; // set when the dispatcher sees the state change, cleared when it has not
+    /* 0x92 */ byte   pad_92[0x2];
+    /* 0x94 */ s16    field_94; // the state the dispatcher last ran, so it can spot the change
     /* 0x96 */ s16    field_96;
     /* 0x98 */ s16    field_98;
     /* 0x9A */ byte   pad_9A[0x2];
@@ -172,7 +174,7 @@ STATIC_ASSERT_SIZEOF(Actor444000SpinnerWork, 0xA0);
 typedef struct Actor444000Spinner {
     /* 0x00 */ byte                    pad_0[0x1C];
     /* 0x1C */ Actor444000SpinnerWork* field_1C;
-    /* 0x20 */ byte                    pad_20[0x4];
+    /* 0x20 */ GpEnemy*                spawnArg2;
     /* 0x24 */ void*                   field_24;
     /* 0x28 */ byte                    pad_28[0x4];
     /* 0x2C */ TmdObject*              extra;     // Task::extra
