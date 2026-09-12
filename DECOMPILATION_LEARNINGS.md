@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `ret = 0` inside the taken arm keeps `$v0` live so the next `beq` delay is nop
+
+A shared tail that returns 0 or 1 (`sub == mode` vs a later `ret = 1` after a
+call) wants `$v0` for `ret`. The 0 def has to be the first statement *inside*
+`if (mode == 1)`, not at function scope and not omitted:
+
+```
+lh    a1, mode
+li    v0, 1
+bne   a1, v0, epilogue
+ move  v0, zero          /* ret = 0, also the mode!=1 return */
+lh    v1, sub
+nop
+beq   v1, a1, zero_both
+ nop                     /* v0 live: cannot fill li v0, 2 */
+```
+
+`ret` is dead on the other arms of that if (they `return 1` as a constant), so
+it does not conflict with the `$v0` constants those arms use and can stay in
+`$v0`. That live `$v0` is why the `sub == mode` `beq` cannot steal `li $v0, 2`
+into its delay; the taken path still needs the leftover 0. Case 3 then writes
+`ret = 1` (`li $v0, 1`) and falls into the shared stores.
+
+`ret = 0` before the outer `if` is live through those `$v0` constants and
+lands in `$a2` (`move a2, zero` in the first delay, `li a2, 1; move v0, a2`
+after the call). Leaving `ret` uninitialized makes jump opt treat `ret = 1`
+as the only reaching def, so `sub == mode` lands on that `li` and the delay
+fills. Gotos keep the zero-both tail *before* the hit-flag check. Example:
+`func_actor_400500_80133358`. Inputs: `base_1.i`
+`55bac32e574291f44f0bd7261392f434ff6de88a394053dfa8328f0b0dd44d99`,
+`base_4.i`
+`2b32af2f96b9f17d60b06219f5a56052d6a6462e262accce2ac6d005adf99b95`,
+`base_5.i`
+`e75203767dacd28f5a0d8622a1be602686ea50bea5184651f94c1c79e2c482f7`.
+
+
+
 ## `(s8)GetObjPan()` ashl dest stays in `$v0`; `pan <<= 24; pan >>= 24` writes `$s0`
 
 `pan = (s8)Gp_GetObjPan(obj)` then `SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj))`
