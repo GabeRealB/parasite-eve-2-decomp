@@ -36,12 +36,14 @@ STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 /// `Gp_DispatchMsg` the leaf helpers send, and they null-check it first
 /// (`func_actor_444000_801321FC`). `field_2C` is the action index
 /// `func_actor_444000_80132054` switches on, with `field_2E` the sub-state
-/// counter reset alongside it.
+/// counter reset alongside it. `field_2A` is a one-shot flag guarding the sound
+/// cue `func_actor_444000_80132608` enqueues.
 typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ Task* field_20; // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-    /* 0x28 */ byte  pad_28[0x4];
+    /* 0x28 */ byte  pad_28[0x2];
+    /* 0x2A */ u16   field_2A; // one-shot flag: set once func_actor_444000_80132608 has played its cue
     /* 0x2C */ u16   field_2C; // action index, switched on by func_actor_444000_80132054
     /* 0x2E */ s16   field_2E; // cleared whenever field_2C is set
     /* 0x30 */ byte  pad_30[0x4];

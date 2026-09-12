@@ -6,6 +6,7 @@
 
 #include "gameplay/1BC.h"
 #include "main/task.h"
+#include "main/sound.h"
 
 /// The overlay's event/controller task, whose `idMap` holds an
 /// `Actor444000EventWork`.
@@ -17,7 +18,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132358);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132608);
+/// Play the event's sound cue once, latching a flag so a repeat call is a no-op.
+void func_actor_444000_80132608(void)
+{
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+
+    if (work->field_2A == 0) {
+        SndEvt_EnqueueType6(0x54280005, 0, 0);
+        work->field_2A = 1;
+    }
+}
 
 /// Forward a message to the slot-3 task the event work block carries.
 void func_actor_444000_8013265C(s32 arg0)
