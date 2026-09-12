@@ -425,6 +425,15 @@ typedef struct Actor444000EffScratch {
 } Actor444000EffScratch;
 STATIC_ASSERT_SIZEOF(Actor444000EffScratch, 0x10);
 
+/// 0x14-byte scratchpad frame `func_actor_444000_80132B14` carves off
+/// `G_SCRATCH_HEAD`: the `GpDeltaScratch` it hands `func_800E0C10` plus the
+/// "did the frame actually move" flag it returns.
+typedef struct Actor444000DeltaScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor444000DeltaScratch;
+STATIC_ASSERT_SIZEOF(Actor444000DeltaScratch, 0x14);
+
 s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
