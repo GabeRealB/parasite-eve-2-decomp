@@ -52,7 +52,9 @@ typedef struct Actor444000Work {
     /* 0x690 */ GpAnimCtx  anim5;
     /* 0x6A4 */ GpAnimSlot slots5[4];
     /* 0x744 */ byte       aux5[0x40];
-    /* 0x784 */ byte       pad_784[0x2C];
+    /* 0x784 */ byte       pad_784[0x20];
+    /* 0x7A4 */ s16        field_7A4;
+    /* 0x7A6 */ byte       pad_7A6[0xA];
     /* 0x7B0 */ s8         field_7B0;
     /* 0x7B1 */ byte       pad_7B1[0x2];
     /* 0x7B3 */ s8         field_7B3;

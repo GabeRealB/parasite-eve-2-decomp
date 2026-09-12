@@ -12,7 +12,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
 extern s16 D_actor_444000_80144A68;
+extern s16 D_actor_444000_80144A70;
 extern s32 Gp_LcgState;
 
 extern s8         D_8007218A;
@@ -269,7 +273,49 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80140E28);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8014105C);
+void func_actor_444000_8014105C(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    GpEnemy*         obj;
+    TmdObject*       tmd;
+    s32              state;
+    s32              id;
+    s32              pan;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        tmd               = (TmdObject*)arg0->extra;
+        obj               = arg0->field_20;
+        obj->node.field_4 = 8;
+        tmd->field_C      = 0;
+        state             = work->field_7B3;
+        work->field_EF4   = 0;
+        work->field_EF6   = 0;
+        work->field_EFA   = 1;
+        if (state != 0xD) {
+            work->field_7B0 = 1;
+            work->field_7B3 = 0xD;
+        } else {
+            work->field_7B0 = 2;
+            work->field_7B3 = state;
+        }
+        id  = (((u16)obj->field_8 >> 12) << 8) | 0x40200004;
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        SndEvt_EnqueueType7((((u16)obj->field_8 >> 12) << 8) | 0x4020000D, 1);
+        return;
+    }
+    SCRATCH_SP -= 0xC;
+    if (D_actor_444000_80144A70 >= 0x191) {
+        work->field_7A4         = 0;
+        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+    }
+    func_actor_444000_8013441C(arg0);
+    if (work->slots0[1].field_10 & 1) {
+        work->field_0 = 0xA;
+    }
+    SCRATCH_SP += 0xC;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801411C8);
 

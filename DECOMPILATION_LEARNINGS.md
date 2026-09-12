@@ -62457,3 +62457,32 @@ extra insn was what let `reorg` fill an earlier `beqz`'s delay slot by stealing
 `li $v0, 2` from the switch tree's right subtree, so the same edit closed a
 `reorder` leftover three blocks away. `func_actor_444000_80143C64`: 94.32% to
 100%.
+
+## An `s8` local that is both compared and stored back gives `lbu; sll 24; sra 24`
+
+Distinct from the `(s8)(u8)field` note above, which is about the *expression*:
+this one is about the *local's declared width*. When m2c hands you
+
+```c
+s8 state = work->field_7B3;      /* field_7B3 is s8 in the header */
+if (state != 0xD) { … } else { work->field_7B3 = state; }
+```
+
+the value has two uses of different modes - an SImode compare and a QImode
+store - so GCC 2.8.1 keeps the pseudo in QImode, loads it with `lbu` to
+preserve the raw byte for the store, and sign-extends a *second* pseudo with
+`sll 24; sra 24` for the compare. That is three instructions and an extra
+register, and the extra pressure pushes the surrounding constants onto
+different argument registers.
+
+Widening the local is the whole fix:
+
+```c
+s32 state = work->field_7B3;
+```
+
+Now the load is SImode, `lb` sign-extends it in one instruction, the compare
+reads that register directly, and `sb` of the same register stores the low byte
+back. `func_actor_444000_8014105C`: 87.99% to 100% together with `(s8)` casts
+on the two `Gp_GetObjPan`/`Gp_GetObjDepth` returns, which likewise move the
+`sll 24; sra 24` up to the call site instead of leaving it at the use.
