@@ -62820,3 +62820,45 @@ than the asm it was supposed to contain (and its `objdump -h` had no `.rodata`
 section at all). `rm -rf build/USA/src/<family>/<overlay>` after any manifest
 change that moves functions between units, before believing either a failure or
 a success.
+
+## A scratchpad-head dance needs `static __inline__`, or cse unifies its address
+
+`G_SCRATCH_HEAD` is the constant address `0x1F8003FC`, and `expand` never leaves
+a constant address in a MEM: `memory_address` in `explow.c` runs
+`force_reg (Pmode, x)` on any `CONSTANT_ADDRESS_P` address "by passing constant
+addresses thru registers we get a chance to cse them". So each of the four
+accesses in an allocate/restore pair
+
+```c
+sc = (Scratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Scratch));
+*(Scratch**)G_SCRATCH_HEAD = sc;
+/* ... */
+*(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Scratch);
+```
+
+starts as its own pseudo holding `0x1F8003FC`. Inside one basic block cse's
+`insert_regs` then calls `make_regs_eqv` on any pseudo whose value is already in
+the table as a REG, so all four collapse into one - and a pseudo with four uses
+spanning the calls in between wins a callee-saved register. The result is
+`lui`/`ori` once plus four `0(reg)` accesses, an extra saved register and a
+frame 8 bytes too large. The ROM instead has four *absolute* accesses, which gas
+expands as `lui $s2,0x1F80; lw $s2,0x3FC($s2)` for a load and
+`lui $at,0x1F80; sw $s0,0x3FC($at)` for a store - `$at` is the assembler's
+temporary and GCC never allocates it, so that store was written with a bare
+constant address. That only happens when each pseudo is used once, which lets
+`local-alloc`'s `update_equiv_regs` drop it (`REG_N_REFS == 2`) or reload
+substitute its `REG_EQUIV` constant.
+
+Writing the sequence in a `static __inline__` helper produces exactly that. It
+is also what every matched example in the tree does -
+`Actor400600_RebuildRotation` in `include/actors/actor_400600_anim.h`,
+`update_color` in `src/actors/actor_342400/actor_342400_5.c` - and it is not a
+stylistic accident: the inline body is expanded from RTL saved by
+`save_for_inline`, so its MEMs do not go back through `memory_address`.
+Rearranging statements around the accesses does not help; only the inline does.
+
+On `func_actor_444000_8013ACD0` this was the whole remaining gap, 93.4% to
+97.6%, with the last 2.4% being a `dst = &coord->coord` temp that gcc turned
+into a second walking pointer (`addiu $v1,$s2,4`) for the nine-element matrix
+copy. Spelling the stores `coord->coord.m[i][j] = ...` keeps one base register
+and the copy matches.

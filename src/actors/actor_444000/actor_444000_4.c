@@ -83,7 +83,113 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013A958);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013ACD0);
+/// Rebuilds the host's root coordinate around the yaw it is already facing:
+/// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
+/// the rotation from it, and `ScaleMatrix` widens it to 1.0 / 0.0 / 1.0 so the
+/// model flattens vertically. The working matrix lives in a frame carved off
+/// `G_SCRATCH_HEAD`, which is handed back before the coordinate is refreshed.
+static __inline__ void Actor444000_RebuildRotation(Actor444000* task)
+{
+    GsCOORDINATE2*         coord = ((TmdObject*)task->extra)->field_8;
+    Actor444000RotScratch* sc;
+    s16                    ang;
+
+    sc                                       = (Actor444000RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor444000RotScratch));
+    *(Actor444000RotScratch**)G_SCRATCH_HEAD = sc;
+
+    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle = ang;
+    Gfx_RotMatrixY(&sc->m, ang, 1);
+    sc->scale.vx = 0x1000;
+    sc->scale.vy = 0;
+    sc->scale.vz = 0x1000;
+    ScaleMatrix(&sc->m, &sc->scale);
+
+    coord->coord.m[0][0] = sc->m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    *(u8**)G_SCRATCH_HEAD                   = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+}
+
+/// The enemy task's 0x7DB message handler, listed in `D_actor_444000_80161818`.
+/// The three payload bytes are always recorded in the work block; only messages
+/// from sender 0x2804 act, and then on three of the selector's values. 0 and 1
+/// both announce the state change with the same pair of cues, 1 additionally
+/// re-arms the animation blocks and drops the model onto its start position,
+/// and 19 switches the host and its fourth escort to light mode 2 before
+/// raising eight floor vertices and flattening the model's rotation.
+s32 func_actor_444000_8013ACD0(Actor444000* task, s32 msgId, Actor444000Msg7DB* msg)
+{
+    Actor444000Work* work  = task->field_1C;
+    GpEnemy*         enemy = task->field_20;
+    SVECTOR*         verts;
+    s32              action;
+
+    work->field_EC4 = msg->b[0];
+    work->field_EC5 = msg->b[1];
+    work->field_EC6 = msg->b[2];
+
+    if (msg->h.id == 0x2804) {
+        action = msg->h.action;
+        switch (action) {
+            case 0:
+                work->field_0 = 0;
+                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000A, 1);
+                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000D, 1);
+                break;
+
+            case 1:
+                work->field_7B3 = 0xA;
+                work->field_7B0 = 2;
+                func_actor_444000_8013441C(task);
+                func_actor_444000_8013441C(task);
+                func_actor_444000_8013441C(task);
+                work->field_7B6 = 1;
+                func_actor_444000_8013441C(task);
+                work->field_7B6                                = 0x10;
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = -0xBB8;
+                ((TmdObject*)task->extra)->field_8->coord.t[1] = 0;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = -0x992;
+                ((TmdObject*)task->extra)->field_8->flg        = 0;
+                work->field_0                                  = 0x11;
+                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000A, 1);
+                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000D, 1);
+                break;
+
+            case 19:
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode((GpObj4C*)work->field_ECC[3], 2);
+                work->field_0   = action;
+                work->field_2   = -1;
+                work->field_F04 = 1;
+                SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x54280007, 1);
+
+                verts        = Gp_GridParams->field_8;
+                verts[24].vy = 0x1F4;
+                verts[25].vy = 0x1F4;
+                verts[26].vy = 0x320;
+                verts[27].vy = 0x320;
+                verts[28].vy = 0x1F4;
+                verts[29].vy = 0x1F4;
+                verts[30].vy = 0x320;
+                verts[31].vy = 0x320;
+
+                Actor444000_RebuildRotation(task);
+                break;
+        }
+    }
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013AFF8);
 

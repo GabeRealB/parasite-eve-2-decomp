@@ -31,7 +31,7 @@
 /// the odd member's.
 typedef struct Actor444000Work {
     /* 0x000 */ u16        field_0; // state index
-    /* 0x002 */ byte       pad_2[0x2];
+    /* 0x002 */ s16        field_2;
     /* 0x004 */ s16        field_4; // reset request: non-zero makes func_actor_444000_801435CC re-arm the block
     /* 0x006 */ s16        field_6; // sub-state counter, cleared by that reset and compared against 0xA
     /* 0x008 */ byte       pad_8[0x4];
@@ -73,7 +73,14 @@ typedef struct Actor444000Work {
     /* 0x7F3 */ s8         field_7F3;
     /* 0x7F4 */ byte       pad_7F4[0x6B8];
     /* 0xEAC */ s8         field_EAC;
-    /* 0xEAD */ byte       pad_EAD[0x1F];
+    /* 0xEAD */ byte       pad_EAD[0x17];
+    /// The three payload bytes of the last 0x7DB message
+    /// `func_actor_444000_8013ACD0` accepted, kept whether or not the id half
+    /// selected one of its cases.
+    /* 0xEC4 */ u8   field_EC4;
+    /* 0xEC5 */ u8   field_EC5;
+    /* 0xEC6 */ u8   field_EC6;
+    /* 0xEC7 */ byte pad_EC7[0x5];
     /// The seven escorts `func_actor_444000_8013AFF8` spawns with
     /// `Gp_SpawnEnemyFromTable`; the resets walk them to push the host's
     /// `TmdObject::field_C` onto each escort's own model object.
@@ -88,7 +95,9 @@ typedef struct Actor444000Work {
     /* 0xEFC */ byte     pad_EFC[0x2];
     /* 0xEFE */ s16      field_EFE;
     /* 0xF00 */ s16      field_F00; // pitch the head tracker walks toward its target, clamped to 0..0x500
-    /* 0xF02 */ byte     pad_F02[0x14];
+    /* 0xF02 */ byte     pad_F02[0x2];
+    /* 0xF04 */ s16      field_F04;
+    /* 0xF06 */ byte     pad_F06[0x10];
     /* 0xF16 */ s16      field_F16;
     /* 0xF18 */ byte     pad_F18[0x2];
     /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
@@ -135,6 +144,31 @@ typedef struct Actor444000Msg7DA {
     /* 0x2 */ s16 field_2;
 } Actor444000Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor444000Msg7DA, 0x4);
+
+/// The same four bytes seen from the receiving end, in
+/// `func_actor_444000_8013ACD0`: the handler copies the three payload bytes
+/// into `Actor444000Work` one at a time, but tests the sender id and the
+/// action selector as the two halfwords they are, so both views are named.
+typedef union Actor444000Msg7DB {
+    u8 b[4];
+    struct {
+        /* 0x0 */ u16 id;
+        /* 0x2 */ u16 action;
+    } h;
+} Actor444000Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor444000Msg7DB, 0x4);
+
+/// Scratchpad frame `func_actor_444000_8013ACD0` carves off `G_SCRATCH_HEAD` to
+/// rebuild the host's root coordinate: `Gfx_RotMatrixY` writes `m`, `scale`
+/// is the 1.0 / 0.0 / 1.0 vector `ScaleMatrix` applies to it, and `angle` is
+/// the `ratan2` yaw the rotation was built from.
+typedef struct Actor444000RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ byte   pad_32[0x2];
+} Actor444000RotScratch;
+STATIC_ASSERT_SIZEOF(Actor444000RotScratch, 0x34);
 
 /// The overlay's enemy task: the same layout as `Task`, named for the two
 /// slots this overlay reaches through it. `field_20` is the `GpEnemy` the
