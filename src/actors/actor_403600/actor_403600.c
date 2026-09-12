@@ -78,7 +78,22 @@ void func_actor_403600_80138C68(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138C9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138D9C);
+s32 func_actor_403600_80138D9C(s16* arg0)
+{
+    s32 i;
+
+    i = 0;
+loop:
+    i++;
+    if (*arg0 == 0) {
+        arg0++;
+        if (i < 0x20) {
+            goto loop;
+        }
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138DCC);
 
