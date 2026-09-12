@@ -909,7 +909,22 @@ void Actor03800_Fn034B0(Actor103800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn03594);
+void Actor03800_Fn03594(Actor103800* arg0)
+{
+    Actor103800Work* work;
+    GsCOORDINATE2*   coord;
+    s32              soundId;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    coord = work->field_344;
+    if (--work->field_36A <= 0) {
+        work->field_36A = 0xC;
+        soundId         = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40260001;
+        pan             = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(coord));
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn03628);
 
