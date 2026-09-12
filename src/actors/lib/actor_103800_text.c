@@ -169,7 +169,41 @@ done:
     SCRATCH_SP += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02848);
+void Actor03800_Fn02848(Actor103800* arg0)
+{
+    Actor103800Work* work;
+    GsCOORDINATE2*   coord;
+    s16              next;
+    s16              speed;
+    u16              value;
+    s32              scale;
+    Actor103800Work* work2;
+
+    work  = arg0->field_1C;
+    coord = work->field_344;
+    work2 = work;
+    if (work->field_35E != 0) {
+        next            = (u16)work->field_35C + (u16)work->field_35E;
+        work->field_35C = next;
+        if (next >= 0x33) {
+            work->field_35C = 0x32;
+        }
+    }
+    speed = work2->field_35C;
+    if (speed > 0) {
+        scale = speed * 0x190;
+        value = Actor03800_D05F40 + ((Actor03800_D05F40 * scale) / 10000);
+    } else {
+        value = Actor03800_D05F40;
+    }
+    work2->field_2A4   = (((s16)value | (Actor03800_D05F42 << 0xC)) & 0xFFFF) | 0x40000;
+    work->field_2EC    = (s16)coord->coord.t[0];
+    work->field_2EE    = (s16)coord->coord.t[1];
+    work->field_2F0    = (s16)coord->coord.t[2];
+    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_35C) >> 0xC;
+    coord->coord.t[1] += work->field_366;
+    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_35C) >> 0xC;
+}
 
 void Actor03800_Fn02998(Actor103800Ctx* arg0, Actor103800* arg1)
 {
