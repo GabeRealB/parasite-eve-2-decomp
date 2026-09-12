@@ -16,6 +16,10 @@ extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
 /// state is not 2.
 extern GpEnemyTaskFuncTable3 D_actor_444000_80131E9C;
 
+/// A five-entry handler table, dispatched only while the global game state is
+/// neither 1 nor 2.
+extern GpEnemyTaskFuncTable5 D_actor_444000_80131F1C;
+
 extern u8 D_801153F4;
 
 extern s16 D_actor_444000_80144A68;
@@ -59,7 +63,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143A6C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143B74);
+/// Same dispatch again through a five-entry handler table, skipped while the
+/// global game state is 1 or 2.
+void func_actor_444000_80143B74(Task* arg0)
+{
+    GpEnemyTaskFuncTable5 sp;
+
+    sp = D_actor_444000_80131F1C;
+    switch (D_801153F4) {
+        case 0:
+        default:
+            sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+            break;
+        case 1:
+        case 2:
+            break;
+    }
+}
 
 /// Teardown state of the enemy's handler table: hand the enemy back to
 /// `Gp_DestroyEnemy` once `D_actor_444000_80144A68` is set, otherwise step the
