@@ -2,6 +2,7 @@
 
 #include "actors/actor_403600.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 
@@ -298,7 +299,33 @@ void func_actor_403600_80141B24(Actor403600* arg0)
     work->field_708 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141B60);
+void func_actor_403600_80141B60(Actor403600* arg0)
+{
+    s16              nextCountdown;
+    u16              countdown;
+    u16              currentMp;
+    Actor403600Work* work;
+    WipSysConfig*    config;
+
+    work            = arg0->field_1C;
+    countdown       = (u16)work->field_792 - 1;
+    work->field_792 = countdown;
+    if ((countdown << 0x10) <= 0) {
+        config           = &Wip_SysConfig;
+        currentMp        = config->field_1c + 1;
+        config->field_1c = currentMp;
+        if ((s16)currentMp >= config->field_1e) {
+            config->field_1c = config->field_1e;
+        }
+        if (work->field_794 <= 0) {
+            work->field_792 = 1;
+            return;
+        }
+        nextCountdown   = (u16)work->field_794 - 1;
+        work->field_794 = nextCountdown;
+        work->field_792 = nextCountdown;
+    }
+}
 
 void func_actor_403600_80141BE0(Task* arg0)
 {

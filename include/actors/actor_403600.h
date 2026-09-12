@@ -67,7 +67,10 @@ typedef struct Actor403600Work {
     /* 0x788 */ byte                 pad_788[2];
     /* 0x78A */ u16                  field_78A;
     /* 0x78C */ s16                  field_78C;
-    /* 0x78E */ byte                 pad_78E[0x10];
+    /* 0x78E */ byte                 pad_78E[4];
+    /* 0x792 */ s16                  field_792;
+    /* 0x794 */ s16                  field_794;
+    /* 0x796 */ byte                 pad_796[8];
     /* 0x79E */ u16                  field_79E;
     /* 0x7A0 */ byte                 pad_7A0[2];
     /* 0x7A2 */ s16                  field_7A2;
