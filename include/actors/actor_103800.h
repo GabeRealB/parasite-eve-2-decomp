@@ -73,7 +73,9 @@ typedef struct Actor103800Ctx {
     /* 0x08 */ u16             field_8;
     /* 0x0A */ byte            pad_A[6];
     /* 0x10 */ Actor103800Node node;
-    /* 0x18 */ byte            pad_18[0x34];
+    /* 0x18 */ byte            pad_18[0x28];
+    /* 0x40 */ s16             field_40;
+    /* 0x42 */ byte            pad_42[0xA];
     /* 0x4C */ u8              field_4C;
     /* 0x4D */ byte            pad_4D[7];
     /* 0x54 */ s32             field_54;

@@ -36,7 +36,47 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn000B8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn003B8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn00974);
+void Actor03800_Fn00974(Actor103800* arg0)
+{
+    Actor103800Ctx*  ctx;
+    Actor103800Work* work;
+    s16              damage;
+    u16              remaining;
+    u8               flags;
+
+    ctx   = arg0->field_20;
+    flags = ctx->field_4C;
+    work  = arg0->field_1C;
+    if (flags & 2) {
+        if (work->field_350 == 0) {
+            ctx->field_4C   = flags & 0xFD;
+            work->field_352 = 6;
+            work->field_354 = 0;
+            work->field_356 = 0;
+            work->field_37E = 1;
+        } else if ((work->field_352 != 0xA) || (work->field_354 >= 4)) {
+            work->field_352 = 0xA;
+            work->field_354 = 0;
+        }
+    }
+    if (ctx->field_4C & 0xC) {
+        damage = Gp_TickObjFlag4((GpObj5C*)ctx);
+        if (damage != 0) {
+            func_800DA6E8(&ctx->node, (s32)damage, 0);
+            remaining     = ctx->field_40 - damage;
+            ctx->field_40 = remaining;
+            if ((s16)remaining <= 0) {
+                work->field_352 = 7;
+            } else {
+                work->field_352 = 5;
+            }
+            work->field_354 = 0;
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)ctx) != 0) {
+            ctx->field_4C &= 0xF3;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn00A98);
 
