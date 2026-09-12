@@ -63289,3 +63289,45 @@ if (coord != &Gfx_ViewCoord) {
     while (1) { ...; if (coord == view) break; }
 }
 ```
+
+## One callee-saved register too few: an inline-asm operand kept in its own alias
+
+`func_actor_444000_8013799C` sat at 95.5% with every block, predicate and call
+matching. The whole leftover was that the target saved seven callee-saved
+registers (`$s0`-`$s6`) while the candidate saved six, so every register above
+the missing one was named one lower and every branch displacement shifted.
+
+The extra register held a *second live pointer with the same value*. The
+function carves an `SVECTOR` off the scratchpad head and hands it to the GTE:
+
+```c
+head                       = *(u8**)G_SCRATCH_HEAD;
+dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
+*(SVECTOR**)G_SCRATCH_HEAD = dir;
+```
+
+`head` (`$s4`), `dir` (`$s1`) and a third pseudo (`$s3`) are all live across the
+body: `$s1` feeds `Gfx_MatrixCol2` / `VectorNormalSS` and the `->vy` / `->vz`
+reads, `$s4` is the base of the `->vx` read (`lh $v1, -0x8($s4)`), and `$s3` is
+used by nothing but the `gte_ldsv` / `gte_stsv` operands. Adding
+
+```c
+gteDir = dir;           /* `move s3,s1`, filled into the next delay slot */
+...
+gte_ldsv(gteDir);
+gte_stsv(gteDir);
+```
+
+took it to 100%.
+
+Two rules of thumb come out of it. First, **a plain count of `sw $sN,` in the
+prologue is a structural diagnostic the percentage hides**: an off-by-one there
+explains a large `regs` penalty plus a `branch` penalty on its own, and no
+amount of reordering statements will fix it. Second, a copy between two
+callee-saved registers only survives when *both* are live afterwards; if the
+source computes the value once and the second reference is dead by the copy,
+local-alloc ties the quantities and deletes it. So the source really did hold
+two names for the same address, and the block the copy sits in tells you where
+the second assignment was written - here in the block that carves the frame,
+not at the GTE call site, which rules out an inlined helper taking the pointer
+as a parameter.

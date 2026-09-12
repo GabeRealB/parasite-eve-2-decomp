@@ -14,9 +14,14 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+/// GPF with `sf = 1`, which `psyq/inline_c.h` spells without the COP2 prefix
+/// the retail build used. Same form as `src/pe/energyball/energyball.c`.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s16 D_actor_444000_80144A68;
 extern s16 D_actor_444000_80144A70;
@@ -24,6 +29,7 @@ extern s32 Gp_LcgState;
 
 extern s8         D_8007218A;
 extern u8         D_80073BA9;
+extern u8         D_801153F4;
 extern GpAnimSet* D_actor_444000_80161694[];
 extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
@@ -255,7 +261,114 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80137594);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_8013799C);
+/// Flight step of the seized player's model: carry it along the model's own
+/// forward axis until it lands. `field_1A8` (the dispatcher's state-changed
+/// flag) re-arms the step counter, the ground marker and the first display
+/// node on the frame the state starts.
+///
+/// While the game is running (`D_801153F4` clear) the model falls 0xA a step,
+/// column 2 of its coordinate is normalised into a scratchpad `SVECTOR` and
+/// scaled by 0x89/0x1000 through the GTE's GPF, and that is the per-step
+/// translation added to the coordinate; past step 0x29 the height is pinned to
+/// -0x3E8 instead. The marker grows 0x60 a step and is drawn under the work
+/// block's own coordinate, which is parented to `Gfx_ViewCoord` and tracks the
+/// model. After 0x35 steps the display node is handed back and the task steps
+/// on. Paused (`D_801153F4` set) only the coordinate is refreshed, and the
+/// marker is skipped while the host actor sits in state 6.
+///
+/// Bails out -- unlinking the display node and stepping the task on -- when the
+/// overlay is shutting down or the host actor has left the grab states.
+void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work;
+    Actor444000Work*     host;
+    GpEnemy*             owner;
+    u8*                  head;
+    SVECTOR*             dir;
+    /// Second live alias of `dir`: the GTE operand is kept in its own register
+    /// for the whole function, which is what gives this function its seventh
+    /// callee-saved slot.
+    SVECTOR* gteDir;
+
+    work  = task->field_1C;
+    owner = task->parent->spawnArg2;
+    host  = owner->task->idMap;
+
+    if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
+        (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12) {
+        task->state++;
+        Gp_UnlinkObj(&work->obj0);
+        return;
+    }
+
+    head                       = *(u8**)G_SCRATCH_HEAD;
+    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
+    *(SVECTOR**)G_SCRATCH_HEAD = dir;
+    gteDir                     = dir;
+
+    if (work->field_1A8 != 0) {
+        work->field_1AC    = 0;
+        work->field_1B0    = 0x400;
+        work->field_1A8    = 0;
+        work->rec0.field_4 = 0;
+        work->obj0.flags  |= 0x8000;
+    }
+
+    if (D_801153F4 == 0) {
+        work->field_1AC++;
+        task->extra->field_8->coord.t[1] += 0xA;
+
+        Gfx_MatrixCol2(&task->extra->field_8->coord, dir);
+        VectorNormalSS(dir, dir);
+        gte_lddp(0x89);
+        gte_ldsv(gteDir);
+        gte_gpf12_real();
+        gte_stsv(gteDir);
+
+        task->extra->field_8->coord.t[0] += dir->vx;
+        task->extra->field_8->coord.t[1] += dir->vy;
+        if (work->field_1AC >= 0x29) {
+            task->extra->field_8->coord.t[1] = -0x3E8;
+        }
+        task->extra->field_8->coord.t[2] += dir->vz;
+        task->extra->field_8->flg         = 0;
+
+        work->field_1B0 += 0x60;
+        Gp_ClearRec18Occupied(&work->rec0);
+
+        work->coord.sub = &Gfx_ViewCoord;
+        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        work->coord.coord.t[0] = task->extra->field_8->coord.t[0];
+        work->coord.coord.t[1] = 0;
+        work->coord.coord.t[2] = task->extra->field_8->coord.t[2];
+        work->coord.flg        = 0;
+        Gp_UpdateCoord(&work->coord);
+
+        Gp_DrawEffGroundQuad((VECTOR3*)work->coord.workm.t, ((s16)work->field_1B0 >> 3) + 0x100,
+                             Gp_State1C->field_8);
+
+        if (work->field_1AC >= 0x35) {
+            Gp_UnlinkObj(&work->obj0);
+            task->state++;
+            work->field_1A8 = 1;
+        }
+    } else {
+        work->coord.sub = &Gfx_ViewCoord;
+        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        work->coord.coord.t[0] = task->extra->field_8->coord.t[0];
+        work->coord.coord.t[1] = 0;
+        work->coord.coord.t[2] = task->extra->field_8->coord.t[2];
+        work->coord.flg        = 0;
+        Gp_UpdateCoord(&work->coord);
+
+        if (host->field_F08 != 6) {
+            Gp_DrawEffGroundQuad((VECTOR3*)work->coord.workm.t, ((s16)work->field_1B0 >> 3) + 0x100,
+                                 Gp_State1C->field_8);
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80137D4C);
 

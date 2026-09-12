@@ -112,7 +112,9 @@ typedef struct Actor444000Work {
     /* 0xF00 */ s16      field_F00; // pitch the head tracker walks toward its target, clamped to 0..0x500
     /* 0xF02 */ byte     pad_F02[0x2];
     /* 0xF04 */ s16      field_F04;
-    /* 0xF06 */ byte     pad_F06[0x10];
+    /* 0xF06 */ byte     pad_F06[0x2];
+    /* 0xF08 */ s16      field_F08;
+    /* 0xF0A */ byte     pad_F0A[0xC];
     /* 0xF16 */ s16      field_F16;
     /* 0xF18 */ byte     pad_F18[0x2];
     /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
@@ -321,7 +323,11 @@ typedef struct Actor444000GrabWork {
     /// Per-step world delta the hold states add to the model's coordinate,
     /// a fifteenth at a time; only x and z are read.
     /* 0x000 */ VECTOR3 vel;
-    /* 0x00C */ byte    pad_C[0xA4];
+    /* 0x00C */ byte    pad_C[0x54];
+    /// The work block's own coordinate, parented to `Gfx_ViewCoord` and kept
+    /// tracking the model's world position so the ground marker below it can
+    /// be drawn from `coord.workm.t`.
+    /* 0x060 */ GsCOORDINATE2 coord;
     /// The two `GpObj` display nodes the teardown path hands back to
     /// `Gp_UnlinkObj`; the hold state ORs `0x8000` into the first's `flags`
     /// and `0x4000` into the second's once the model has passed its apex.
@@ -339,17 +345,22 @@ typedef struct Actor444000GrabWork {
     /* 0x1A8 */ s16       field_1A8; // set when the dispatcher sees the state change; gates the take-over
     /* 0x1AA */ s16       field_1AA; // bounce height added back to the model's y each step, taken as a magnitude
     /* 0x1AC */ s16       field_1AC; // step counter within the state
-    /* 0x1AE */ byte      pad_1AE[0x4];
-    /* 0x1B2 */ s16       field_1B2; // one-shot flag: the player animation is installed
-    /* 0x1B4 */ s16       field_1B4; // the state the dispatcher last ran, so it can spot the change
-    /* 0x1B6 */ byte      pad_1B6[0xA];
+    /* 0x1AE */ byte      pad_1AE[0x2];
+    /// Radius of the ground marker, in eighths once shifted down; re-armed to
+    /// 0x400 when the state starts and grown by 0x60 a step.
+    /* 0x1B0 */ u16  field_1B0;
+    /* 0x1B2 */ s16  field_1B2; // one-shot flag: the player animation is installed
+    /* 0x1B4 */ s16  field_1B4; // the state the dispatcher last ran, so it can spot the change
+    /* 0x1B6 */ byte pad_1B6[0xA];
 } Actor444000GrabWork;
 STATIC_ASSERT_SIZEOF(Actor444000GrabWork, 0x1C0);
 
 /// That enemy's task: the same `Task` layout, named for the slots the
 /// `D_actor_444000_80131EA8` states reach through it.
 typedef struct Actor444000Grab {
-    /* 0x00 */ byte                 pad_0[0x1C];
+    /* 0x00 */ byte                 pad_0[0x8];
+    /* 0x08 */ Task*                parent;
+    /* 0x0C */ byte                 pad_C[0x10];
     /* 0x1C */ Actor444000GrabWork* field_1C;
     /* 0x20 */ GpEnemy*             spawnArg2;
     /* 0x24 */ byte                 pad_24[0x8];
