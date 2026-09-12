@@ -3,6 +3,38 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
+
+A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
+takes `&parent` and keeps `&Gfx_ViewCoord` in a saved register, wants those
+two defs *before* the copy:
+
+```
+move    s2, v0          /* view = &Gfx_ViewCoord (CSE of the early compare) */
+addiu   s1, sp, 0x30    /* parentp = &parent */
+lw      a2, 4(s0)       /* matrix = coord->coord */
+```
+
+`movstrsi` and the two pointer defs are independent, all priority 1. Sched1
+runs backward and picks the last original insn first, so C order
+`matrix = coord->coord;` then loop uses of `&parent` / `&Gfx_ViewCoord`
+hoists the copies *after* the block move (`reorder=2`). Write the names first:
+
+```c
+view    = &Gfx_ViewCoord;
+parentp = &parent;
+matrix  = coord->coord;
+```
+
+Keep the in-loop copy as `parent = coord->coord` (stack `sw a2, 0x30(sp)`).
+`*parentp = coord->coord` stores through `$s1` (`sw a2, 0(s1)`) and scores
+`regs` even though the schedule is right. Use `parentp` only for
+`MatrixNormal` / `gte_SetRotMatrix`. Example:
+`func_actor_400500_8013B720`. Inputs: `base_1.i`
+`f55fdcfdc394d92bc5954b6294f0552a7b511253caff6353cc040735f9c3fcb9`,
+`base_3.i`
+`8c8d1b7517d1949508867aea95dfa7c59eb6742571e6b1bed2e0ef539219b8bf`.
+
 ## `ret = 0` inside the taken arm keeps `$v0` live so the next `beq` delay is nop
 
 A shared tail that returns 0 or 1 (`sub == mode` vs a later `ret = 1` after a

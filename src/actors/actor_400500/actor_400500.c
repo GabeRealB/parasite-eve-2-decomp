@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psyq/inline_c.h"
 
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -1847,4 +1848,59 @@ void func_actor_400500_8013B5E0(Task* arg0)
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013B720);
+s32 func_actor_400500_8013B720(GsCOORDINATE2* arg0, MATRIX* arg1)
+{
+    MATRIX         matrix;
+    MATRIX         parent;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+    MATRIX*        parentp;
+
+    coord = arg0->sub;
+    if (coord == &Gfx_ViewCoord) {
+        return 0;
+    }
+    view    = &Gfx_ViewCoord;
+    parentp = &parent;
+    matrix  = coord->coord;
+    while (1) {
+        coord = coord->sub;
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == view) {
+            break;
+        }
+        parent = coord->coord;
+        MatrixNormal(parentp, parentp);
+        gte_SetRotMatrix(parentp);
+        MulRotMatrix(&matrix);
+        MatrixNormal(&matrix, &normal);
+        matrix = normal;
+    }
+    __asm__ volatile(
+        "lhu $12, 0(%0);"
+        "lhu $13, 6(%0);"
+        "lhu $14, 12(%0);"
+        "sh $12, 0(%1);"
+        "sh $13, 2(%1);"
+        "sh $14, 4(%1);"
+        "lhu $12, 2(%0);"
+        "lhu $13, 8(%0);"
+        "lhu $14, 14(%0);"
+        "sh $12, 6(%1);"
+        "sh $13, 8(%1);"
+        "sh $14, 10(%1);"
+        "lhu $12, 4(%0);"
+        "lhu $13, 10(%0);"
+        "lhu $14, 16(%0);"
+        "sh $12, 12(%1);"
+        "sh $13, 14(%1);"
+        "sh $14, 16(%1);"
+        : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+    gte_SetRotMatrix(&transposed);
+    MulRotMatrix(arg1);
+    return 1;
+}
