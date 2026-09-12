@@ -341,7 +341,103 @@ void func_actor_444000_8013D810(Actor444000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_8013D96C);
+/// Hands the scratchpad frame `Actor444000_FlattenRotation` borrowed back to
+/// `G_SCRATCH_HEAD`. Written as an inline like the rotation itself: only
+/// inline-expanded code keeps the absolute `lui $at` form of the scratch-head
+/// accesses, so a release written straight into the caller does not match.
+static __inline__ void Actor444000_ReleaseRotScratch(void)
+{
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+}
+
+/// Rebuilds one model's root coordinate around the yaw it already faces and
+/// flattens it vertically: `ratan2` of the rotation's Z basis gives the yaw,
+/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// 1.0 / `vy` / 1.0. The working matrix lives in a frame carved off
+/// `G_SCRATCH_HEAD`; the caller releases it with
+/// `Actor444000_ReleaseRotScratch` once it has cleared the coordinate again.
+static __inline__ void Actor444000_FlattenRotation(GsCOORDINATE2* coord, s32 vy)
+{
+    Actor444000RotScratch* sc;
+    s16                    ang;
+
+    sc                                       = (Actor444000RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor444000RotScratch));
+    *(Actor444000RotScratch**)G_SCRATCH_HEAD = sc;
+
+    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle = ang;
+    Gfx_RotMatrixY(&sc->m, ang, 1);
+    sc->scale.vx = 0x1000;
+    sc->scale.vy = vy;
+    sc->scale.vz = 0x1000;
+    ScaleMatrix(&sc->m, &sc->scale);
+
+    coord->coord.m[0][0] = sc->m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+}
+
+/// Re-arm handler run once the block asks for a reset: clear the host's model
+/// flag word onto itself and every escort, drop the two counters at 0xEF4, then
+/// step the animation on and flatten six of the models -- escorts 2, 4, 3, 0 and
+/// 1 plus the host itself -- onto the ground plane. Escort 3 keeps a little
+/// height (`vy` 0x400) where the rest are flattened outright. The last release
+/// clears escort 2's coordinate flag again rather than escort 1's, which looks
+/// like a copy-paste slip in the original but is what the ROM does.
+void func_actor_444000_8013D96C(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    s16              i;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        escorts                            = arg0->field_1C;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+    }
+
+    func_actor_444000_8013441C(arg0);
+
+    Actor444000_FlattenRotation(((TmdObject*)work->field_ECC[2]->task->extra)->field_8, 0);
+    ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->flg = 0;
+    Actor444000_ReleaseRotScratch();
+
+    Actor444000_FlattenRotation(((TmdObject*)arg0->extra)->field_8, 0);
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    Actor444000_ReleaseRotScratch();
+
+    Actor444000_FlattenRotation(((TmdObject*)work->field_ECC[4]->task->extra)->field_8, 0);
+    ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->flg = 0;
+    Actor444000_ReleaseRotScratch();
+
+    Actor444000_FlattenRotation(((TmdObject*)work->field_ECC[3]->task->extra)->field_8, 0x400);
+    ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->flg = 0;
+    Actor444000_ReleaseRotScratch();
+
+    Actor444000_FlattenRotation(((TmdObject*)work->field_ECC[0]->task->extra)->field_8, 0);
+    ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->flg = 0;
+    Actor444000_ReleaseRotScratch();
+
+    Actor444000_FlattenRotation(((TmdObject*)work->field_ECC[1]->task->extra)->field_8, 0);
+    ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->flg = 0;
+    Actor444000_ReleaseRotScratch();
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_8013E058);
 

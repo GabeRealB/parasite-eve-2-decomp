@@ -62899,6 +62899,32 @@ into a second walking pointer (`addiu $v1,$s2,4`) for the nine-element matrix
 copy. Spelling the stores `coord->coord.m[i][j] = ...` keeps one base register
 and the copy matches.
 
+**The release half needs its own inline when it lives in the caller.**
+`func_actor_444000_8013D96C` runs that dance six times over, and the natural
+split puts the allocate-rotate-copy body in one `static __inline__` and leaves
+`*(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Scratch);` in the
+caller, between the two coordinate flag clears. That costs more than the two
+`lui`s it looks like: the caller's pair goes through `memory_address` and comes
+out as `(mem (reg 145))`, the inlined push stays `(mem (const_int 528483324))`,
+and cse hashes those two MEMs differently - so it never learns that the load
+starting the next frame is reading back what the release just stored. The ROM
+reads the head *once* per frame and folds the push out of it
+
+```
+lw    $s0, 0x3FC($s0)      # head
+addiu $v0, $s0, 0x34
+sw    $v0, 0x3FC($at)      # release previous frame
+sw    $s0, 0x3FC($at)      # allocate this one: (head + 0x34) - 0x34 == $s0
+```
+
+while the split version reloads the head with a second `lui`, keeps that value
+live and so addresses the frame off it (`addiu $a1,$s2,-0x14`, `lhu $v0,-0x34($s2)`)
+instead of off the frame pointer itself (`addiu $a1,$s0,0x20`, `lhu $v0,0($s0)`),
+plus burns the extra callee-saved register on the hoisted address. Wrapping the
+one-line release in its own `static __inline__ void` fixes all of it at once -
+88.3% to 100%. The rule is not "inline the pair", it is that *every* access to
+the constant address must come from inlined RTL.
+
 ## `bltz` + `slti` instead of one `sltiu` means `switch`, not `if (x >= 0 && x < N)`
 
 GCC 2.8.1 folds a signed two-sided range test into a single unsigned compare.
