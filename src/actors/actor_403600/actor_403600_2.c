@@ -27,6 +27,7 @@ void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_801400BC(Actor403600* arg0);
 void func_actor_403600_80141F28(Actor403600* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+s32  func_actor_403600_8013DDF4(Actor403600* arg0, s32 arg1);
 
 void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1)
 {
@@ -209,7 +210,68 @@ void func_actor_403600_801417A8(Actor403600* arg0, s32 arg1)
     RotMatrix(&rotation, matrix);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141840);
+s32 func_actor_403600_80141840(Actor403600* arg0)
+{
+    s32              targetY;
+    s32              currentY;
+    s32              count;
+    s32              deltaX;
+    s32              deltaY;
+    s32              deltaZ;
+    register s32     left asm("v0");
+    register s32     right asm("v1");
+    s16              amount;
+    Actor403600Work* work;
+
+    count = 0;
+    left  = 1;
+    SOFT_BARRIER();
+    work            = arg0->field_1C;
+    work->field_746 = left;
+    func_actor_403600_8013DDF4(arg0, 0xA0);
+
+    left   = work->field_6F0.vx;
+    right  = work->field_4B8.coord.t[0];
+    amount = 0x12C;
+    deltaX = left - right;
+    SOFT_BARRIER();
+    if (deltaX < 0) {
+        deltaX = -deltaX;
+    }
+    work->field_73C = amount;
+    if (deltaX < 0x1F5) {
+        count                      = 1;
+        work->field_4B8.coord.t[0] = work->field_6B0.vx;
+    }
+
+    targetY  = work->field_6F0.vy;
+    currentY = work->field_4B8.coord.t[1];
+    deltaY   = targetY - currentY;
+    if (deltaY < 0) {
+        deltaY = -deltaY;
+    }
+    if (deltaY < 0x1F5) {
+        count                     += 1;
+        work->field_4B8.coord.t[1] = work->field_6B0.vy;
+    } else if (targetY < currentY) {
+        *(s16*)((u8*)work + 0x74A)  = -0x12C;
+        work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
+    } else {
+        work->field_74A = amount;
+    }
+
+    left   = work->field_6F0.vz;
+    right  = work->field_4B8.coord.t[2];
+    deltaZ = left - right;
+    if (deltaZ < 0) {
+        deltaZ = -deltaZ;
+    }
+    if (deltaZ < 0x1F5) {
+        work->field_4B8.coord.t[2] = work->field_6B0.vz;
+        count                     += 1;
+    }
+    return count & 0xFF;
+}
 
 void func_actor_403600_80141954(s32 arg0)
 {

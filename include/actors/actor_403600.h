@@ -27,7 +27,11 @@ typedef struct Actor403600Work {
     /* 0x5C0 */ GpObj                field_5C0;
     /* 0x5E0 */ byte                 pad_5E0[0x18];
     /* 0x5F8 */ GpRec18              field_5F8[4];
-    /* 0x658 */ byte                 pad_658[0xB0];
+    /* 0x658 */ byte                 pad_658[0x58];
+    /* 0x6B0 */ VECTOR               field_6B0;
+    /* 0x6C0 */ byte                 pad_6C0[0x30];
+    /* 0x6F0 */ VECTOR               field_6F0;
+    /* 0x700 */ byte                 pad_700[8];
     /* 0x708 */ s16                  field_708;
     /* 0x70A */ byte                 pad_70A[6];
     /* 0x710 */ Task*                field_710;
