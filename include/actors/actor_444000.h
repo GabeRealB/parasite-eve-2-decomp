@@ -148,7 +148,9 @@ typedef struct Actor444000Work {
     /* 0xF04 */ s16      field_F04;
     /* 0xF06 */ byte     pad_F06[0x2];
     /* 0xF08 */ s16      field_F08;
-    /* 0xF0A */ byte     pad_F0A[0xA];
+    /* 0xF0A */ byte     pad_F0A[0x6];
+    /* 0xF10 */ s16      field_F10; // stagger countdown: the tick spins here until it runs out
+    /* 0xF12 */ byte     pad_F12[0x2];
     /* 0xF14 */ s16      field_F14; // eighths of it is how many extra re-arm steps the reset runs
     /* 0xF16 */ s16      field_F16;
     /* 0xF18 */ byte     pad_F18[0x2];

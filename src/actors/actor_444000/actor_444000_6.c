@@ -32,6 +32,10 @@ extern s32 D_actor_444000_80144A84;
 extern s32 D_actor_444000_80144A8C;
 extern s32 Gp_LcgState;
 
+/// Camera-target matrix the scene walks the player along; the fight yaws the
+/// boss at its translation.
+extern MATRIX* D_80073B8C;
+
 /// World point the spinner chases: written by `func_actor_444000_8013E058`,
 /// read here as the target of the per-tick step.
 extern SVECTOR D_actor_444000_80161890;
@@ -1036,7 +1040,156 @@ void func_actor_444000_8014105C(Actor444000* arg0)
     SCRATCH_SP += 0xC;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_801411C8);
+/// Idle/approach tick of the arena fight: re-arms the block on request, keeps
+/// the boss yawed at `D_80073B8C` (the camera-target matrix the player walks
+/// along) and then picks the state to run next.
+///
+/// `field_7C4` is that yaw, relative to the host part's own facing and wrapped
+/// into +/-0x800. `field_F10` is a stagger countdown -- while it is positive the
+/// tick only spins it down, and the reset arms it to 0x28 if it is not already
+/// running.
+///
+/// The choice is a ladder: `field_F1C` picks state 3 outright, then each attack
+/// pattern in `field_F08` has a depth the player has to be past before the
+/// fight advances to state 9, the last two only while the boss still has HP in
+/// hand. Failing all of those, `field_F1A` picks 0xF and pattern 6 picks 7, and
+/// otherwise the distance from the player to a point just in front of the host
+/// picks between 3, 7 and 0xB on a coin flip off `Gp_LcgState`.
+///
+/// `coord` and `facing` are the same coordinate read twice on purpose: the
+/// stores into `vec` cut the first read's value, and the second read has to
+/// outlive the first `ratan2` call.
+void func_actor_444000_801411C8(Actor444000* arg0)
+{
+    Actor444000HitScratch* sc;
+    Actor444000Work*       work;
+    GpEnemy*               enemy;
+    Task*                  player;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         facing;
+    SVECTOR                vec;
+    SVECTOR*               d;
+    s16                    angle;
+
+    work   = arg0->field_1C;
+    player = Game_GetPtrSlot(3);
+    enemy  = arg0->field_20;
+
+    if (work->field_4 != 0) {
+        work->field_EF6 = 1;
+        work->field_EF4 = 1;
+        work->field_EFE = 0;
+        if (work->field_F10 == 0) {
+            work->field_F10 = 0x28;
+        }
+        work->field_7B3 = 1;
+        work->field_7B0 = 1;
+        work->field_EFA = 0;
+    }
+
+    d      = &vec;
+    coord  = ((TmdObject*)arg0->extra)->field_8;
+    d->vx  = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy  = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz  = D_80073B8C->t[2] - coord->coord.t[2];
+    facing = ((TmdObject*)arg0->extra)->field_8;
+    angle  = ratan2(d->vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = angle;
+
+    if (D_actor_444000_80144A70 >= 0x191) {
+        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+        work->field_7A4         = 0;
+    }
+    func_actor_444000_8013441C(arg0);
+
+    if (work->field_F10 > 0) {
+        work->field_F10 = work->field_F10 - 1;
+        return;
+    }
+    if (work->field_F1C > 0) {
+        work->field_0 = 3;
+        return;
+    }
+
+    if (work->field_F08 == 0) {
+        work->field_0 = 9;
+        return;
+    }
+    if (work->field_F08 == 1 && ((TmdObject*)player->extra)->field_8->coord.t[2] < -0x1D4C) {
+        work->field_0 = 9;
+        return;
+    }
+    if (work->field_F08 == 2) {
+        work->field_0 = 9;
+        return;
+    }
+    if (work->field_F08 == 3 && ((TmdObject*)player->extra)->field_8->coord.t[2] < -0x30D4) {
+        work->field_0 = 9;
+        return;
+    }
+    if (work->field_F08 == 4 && ((TmdObject*)player->extra)->field_8->coord.t[2] < -0x3DB8 &&
+        enemy->field_40 < 0x9C4) {
+        work->field_0 = 9;
+        return;
+    }
+    if (work->field_F08 == 5 && ((TmdObject*)player->extra)->field_8->coord.t[2] < -0x4268 &&
+        enemy->field_40 < 0x7D0) {
+        work->field_0 = 9;
+        return;
+    }
+
+    if ((s8)work->field_F1A > 0) {
+        work->field_0 = 0xF;
+        return;
+    }
+    if (work->field_F08 == 6) {
+        work->field_0 = 7;
+        return;
+    }
+
+    sc           = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
+    sc->delta.vx = ((TmdObject*)player->extra)->field_8->coord.t[0] -
+                   ((TmdObject*)arg0->extra)->field_8->coord.t[0] - 0x51F;
+    sc->delta.vy = ((TmdObject*)player->extra)->field_8->coord.t[1] -
+                   ((TmdObject*)arg0->extra)->field_8->coord.t[1] - 0xFA;
+    sc->delta.vz = ((TmdObject*)player->extra)->field_8->coord.t[2] -
+                   ((TmdObject*)arg0->extra)->field_8->coord.t[2] + 0x25F;
+    sc->dist = SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vy * sc->delta.vy +
+                           sc->delta.vz * sc->delta.vz);
+    if (sc->dist < 0x2329) {
+        if (sc->dist >= 0xED9) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (((u32)Gp_LcgState >> 16) & 1) {
+                work->field_0 = 7;
+            } else {
+                work->field_0 = 3;
+            }
+        } else {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (((u32)Gp_LcgState >> 16) & 1) {
+                work->field_0 = 3;
+            } else {
+                work->field_0 = 0xB;
+            }
+        }
+    } else {
+        work->field_0 = 3;
+    }
+    SCRATCH_SP += sizeof(Actor444000HitScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80141618);
 

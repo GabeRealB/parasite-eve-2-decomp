@@ -63952,3 +63952,79 @@ though the body writes `obj->field_8 = coord;`. Swapping the two parameters of
 `func_actor_444000_80139594`; the helper's other two call sites in the same TU
 still matched, because there the coordinate argument is a load rather than an
 address computation and nothing ties.
+
+## A state ladder wants separate `if` statements, not one `||` chain
+
+A dispatch ladder that tests the same field against several constants
+
+```c
+if (work->field_F08 == 0) { work->field_0 = 9; return; }
+if (work->field_F08 == 1 && z < -0x1D4C) { work->field_0 = 9; return; }
+if (work->field_F08 == 2) { work->field_0 = 9; return; }
+```
+
+reloads the field once per *join*, not once per test. cse runs over extended
+basic blocks, so consecutive tests with nothing between them share one load,
+while the test after a nested condition's merge point starts a fresh block and
+re-reads the field - GCC emits that load in the fall-through predecessor, i.e.
+just *above* the join label, which reads in the object dump like a pointless
+reload.
+
+Folding the same ladder into one `if (a || (b && c) || d || ...)` keeps the CFG
+identical but hands cse one expression tree, and every load after the first
+disappears: `func_actor_444000_801411C8` came out 2 instructions short with the
+`||` form and matched exactly with six separate `if` statements. The identical
+`work->field_0 = 9; return;` bodies are not a problem - jump.c cross-jumps them
+into the last copy, which is where the original has it, with the `li v0,9` left
+duplicated in the branch delay slots.
+
+Count the loads of the switched-on field in the target first: it tells you how
+many statements the ladder was written as.
+
+## A pointer that outlives a call has to be read in its own statement
+
+```
+lw   s0,8(v0)      /* the pointer, in a callee-saved register */
+jal  ratan2
+ ...
+lh   a0,0x10(s0)   /* used only after the call returns */
+```
+
+The load sits *before* the call although its uses are all after it. Nothing
+moved it there: sched1 does not cross a CALL_INSN, so the RTL already had it
+ahead of the call, which means the source computed it in a statement of its own
+before the expression containing the call. Written inline as part of the
+expression -
+
+```c
+angle = ratan2(d->vx, d->vz) - ratan2(-((TmdObject*)arg0->extra)->field_8->coord.m[2][0], ...);
+```
+
+- the chain is evaluated after the first call returns and lands in a
+caller-saved register (`lw v1,8(v1)` / `lh a0,0x10(v1)`). Hoisting it to
+`facing = ((TmdObject*)arg0->extra)->field_8;` above the assignment moves the
+load ahead of the call and forces the allocator to pick a callee-saved home.
+
+Re-reading a pointer the function already loaded earlier is normal here rather
+than redundant: an intervening store kills cse's memory equivalence (see "A
+store to a neighbouring field kills CSE's memory equivalence"), so the two reads
+are two pseudos and get different registers - `$a2` for the dead-before-the-call
+one, `$s0` for the surviving one.
+
+## `addiu aN, sp, off` for a stack local means the source used a pointer to it
+
+Stores into a local struct normally all go through `$sp`. A base register for it
+
+```
+addiu a3,sp,0x10
+sh    a0,0x10(sp)    /* first field, still sp-relative */
+sh    v0,2(a3)
+sh    a1,4(a3)
+```
+
+comes from an explicit pointer variable (`d = &vec;`), and the split is
+fold_rtx: the zero-offset access is a bare `(mem (reg d))`, whose address is
+replaced by the register's known value `(plus vsv 16)`, while `(mem (plus (reg
+d) 2))` keeps the register because cse will not substitute a more complex
+expression inside an address PLUS. So *one* sp-relative store followed by
+base-relative ones is the signature; all-sp-relative means a plain local.
