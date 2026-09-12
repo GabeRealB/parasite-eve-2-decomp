@@ -57,22 +57,25 @@ typedef struct Actor444000Work {
     /* 0x7A4 */ s16        field_7A4;
     /* 0x7A6 */ byte       pad_7A6[0xA];
     /* 0x7B0 */ s8         field_7B0;
-    /* 0x7B1 */ byte       pad_7B1[0x1];
-    /// Animation id currently playing; `func_actor_444000_80134040` latches
-    /// `field_7B3` here once it has reseeded every slot.
+    /* 0x7B1 */ s8         field_7B1; // set while the blended tick path runs
+                                      /// Animation id currently playing; `func_actor_444000_80134040` latches
+                                      /// `field_7B3` here once it has reseeded every slot.
     /* 0x7B2 */ s8   field_7B2;
     /* 0x7B3 */ s8   field_7B3;
-    /* 0x7B4 */ byte pad_7B4[0x2];
+    /* 0x7B4 */ u16  field_7B4; // frames since the block was re-armed
     /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ byte pad_7B8[0x4];
+    /* 0x7B8 */ byte pad_7B8[0x2];
+    /* 0x7BA */ s16  field_7BA;
     /* 0x7BC */ s16  field_7BC; // animation id the slot resets seed from
     /* 0x7BE */ s16  field_7BE; // GpAnimSlot::field_9 the resets seed with
     /* 0x7C0 */ s16  field_7C0;
     /* 0x7C2 */ byte pad_7C2[0x2];
     /* 0x7C4 */ s16  field_7C4;
     /* 0x7C6 */ byte pad_7C6[0x2];
-    /* 0x7C8 */ s16  field_7C8; // yaw the drive step walks toward its target, clamped to +/-0x200 per call
-    /* 0x7CA */ byte pad_7CA[0x29];
+    /* 0x7C8 */ s16  field_7C8;       // yaw the drive step walks toward its target, clamped to +/-0x200 per call
+    /* 0x7CA */ byte pad_7CA[0x6];
+    /* 0x7D0 */ byte field_7D0[0x20]; // zeroed whenever the block is re-armed
+    /* 0x7F0 */ byte pad_7F0[0x3];
     /* 0x7F3 */ s8   field_7F3;
     /* 0x7F4 */ byte pad_7F4[0x6B8];
     /* 0xEAC */ s8   field_EAC;
@@ -93,7 +96,7 @@ typedef struct Actor444000Work {
     /* 0xEF0 */ byte     pad_EF0[0x4];
     /* 0xEF4 */ s16      field_EF4;
     /* 0xEF6 */ s16      field_EF6;
-    /* 0xEF8 */ byte     pad_EF8[0x2];
+    /* 0xEF8 */ s16      field_EF8;
     /* 0xEFA */ s16      field_EFA;
     /* 0xEFC */ byte     pad_EFC[0x2];
     /* 0xEFE */ s16      field_EFE;

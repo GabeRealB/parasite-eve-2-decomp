@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_444000.h"
+#include "actors/actors_shared_80133de4.h"
+#include "actors/actors_shared_80133f64.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -27,6 +29,8 @@ extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_actor_444000_80133010(Actor444000* task);
+void func_actor_444000_80133C58(Actor444000* task, s16 arg1);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -109,7 +113,82 @@ void func_actor_444000_801341C4(Actor444000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_8013441C);
+/// Per-frame animation step. `field_7B0` 1 re-seeds the block through
+/// `func_actor_444000_80134040`, 2 resets every slot of the three even members
+/// from `field_7B3` outright; either way the block is armed (`field_7B0` 3, the
+/// frame counter and the 0x20-byte scratch at `field_7D0` cleared). Then the
+/// slots are advanced: plainly while `field_7B1` is clear, otherwise through the
+/// blended path, which clears `field_7B1` again once the first pair's slot 1
+/// reports done. The three trailing flags run the shared reaction helpers.
+void func_actor_444000_8013441C(Actor444000* arg0)
+{
+    Actor444000Work* work = arg0->field_1C;
+    Actor444000Work* w;
+    s32              i;
+
+    if (work->field_7B0 == 1) {
+        func_actor_444000_80134040(arg0);
+        work->field_7B0 = 3;
+        work->field_7B4 = 0;
+        Mem_Set(work->field_7D0, 0, 0x20);
+    } else if (work->field_7B0 == 2) {
+        w = arg0->field_1C;
+        for (i = 1; i < 8; i++) {
+            w->slots0[i].field_9 = w->field_7B6;
+            Gp_AnimResetSlot(&w->anim0, i, w->field_7B3);
+        }
+        for (i = 0; i < 4; i++) {
+            w->slots2[i].field_9 = w->field_7B6;
+            Gp_AnimResetSlot(&w->anim2, i, w->field_7B3);
+        }
+        for (i = 0; i < 4; i++) {
+            w->slots4[i].field_9 = w->field_7B6;
+            Gp_AnimResetSlot(&w->anim4, i, w->field_7B3);
+        }
+        w->field_7B2    = w->field_7B3;
+        work->field_7B0 = 3;
+        work->field_7B4 = 0;
+        Mem_Set(work->field_7D0, 0, 0x20);
+    }
+
+    if (work->field_7BA == 2) {
+        ActorsShared80133f64((Task*)arg0);
+        work->field_7BA = 3;
+    }
+
+    work->field_7B4++;
+
+    if (work->field_7B1 == 0) {
+        w = arg0->field_1C;
+        for (i = 1; i < 8; i++) {
+            w->slots0[i].field_9 = w->field_7B6;
+            Gp_AnimTickIndex(&w->anim0, i);
+        }
+        for (i = 0; i < 4; i++) {
+            w->slots2[i].field_9 = w->field_7B6;
+            Gp_AnimTickIndex(&w->anim2, i);
+        }
+        for (i = 0; i < 4; i++) {
+            w->slots4[i].field_9 = w->field_7B6;
+            Gp_AnimTickIndex(&w->anim4, i);
+        }
+    } else {
+        func_actor_444000_801341C4(arg0);
+        if (work->slots1[1].field_10 & 1) {
+            work->field_7B1 = 0;
+        }
+    }
+
+    if (work->field_EF4 != 0) {
+        ActorsShared80133de4((Task*)arg0, work->field_EFE);
+    }
+    if (work->field_EF6 != 0) {
+        func_actor_444000_80133C58(arg0, work->field_7C4);
+    }
+    if (work->field_EF8 != 0) {
+        func_actor_444000_80133010(arg0);
+    }
+}
 
 /// Spawn the hit effect for an attack that landed on `coord`: the effect kind
 /// is the attack's `Gp_GetIdParam1`, and its rotation comes from the attack's

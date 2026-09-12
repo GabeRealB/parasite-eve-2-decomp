@@ -63038,3 +63038,34 @@ this cost `func_actor_444000_80132CB8` about 8%:
 
 The tell for both is an `addiu` that the ROM has and the attempt does not,
 next to displacements that are "too folded".
+
+## sched1 sets the cross-jump boundary: call arguments duplicated, stores merged
+
+Two arms of an `if` that end in the same `x->a = 3; x->b = 0; Mem_Set(x->buf, 0,
+0x20);` do not have to cross-jump the *whole* tail. Cross-jumping (jump2) runs
+after sched1, and it stops at the first instruction that differs walking
+backwards, so anything sched1 has already interleaved into one arm splits the
+merge there. In `func_actor_444000_8013441C` the second arm ends with an
+unrelated `w->field_7B2 = w->field_7B3;`, which sched1 hoists between the
+`Mem_Set` argument moves to cover the `lbu` load delay:
+
+```
+addiu  a0,s3,0x7d0     addiu  a0,s3,0x7d0
+move   a1,zero         move   a1,zero
+li     a2,0x20         lbu    v0,0x7b3(s1)
+                       li     a2,0x20
+                       sb     v0,0x7b2(s1)
+--- merged tail from here down ---
+li     v0,3 / sb v0,0x7b0(s3) / jal Mem_Set / sh zero,0x7b4(s3)
+```
+
+The signature is a shared call whose *argument setup* is written out in each
+predecessor while the stores around it are merged. Writing the tail once and
+reaching it with `goto` cannot produce that: it puts the whole tail, arguments
+included, in the shared block, one instruction short with a load-delay `nop`
+where the target has `a2`. Duplicating the tail in both arms gives it exactly,
+so treat a partially-duplicated tail as evidence the source repeated it rather
+than as a scheduling problem to solve. This is the finer-grained case of
+"Duplicate the shared tail call instead of `goto`" and "Store order inside
+`if`/`else` arms decides how much tail cross-jumps": here the boundary is set
+not by source store order but by a scheduler hoist into the same block.
