@@ -8,30 +8,45 @@
 #include "psyq/inline_c.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 #define actor_403600_load_scratch_head(out) \
     __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0)" : "=r"(out))
+#define actor_403600_load_scratch_head_nop(out) \
+    __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0); nop" : "=r"(out))
 #define actor_403600_store_scratch_head(value) \
     __asm__ volatile("lui $1, 0x1F80; sw %0, 0x3FC($1)" : : "r"(value) : "$1", "memory")
 #define actor_403600_restore_scratch_head(value) \
     __asm__("addiu %0, %0, 24; lui $1, 0x1F80; sw %0, 0x3FC($1)" : "+r"(value) : : "$1")
+#define actor_403600_color_tail(z, a3, block, work, zero)                                   \
+    __asm__ volatile("lw %0, 1272(%3); addu %1, %4, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
+                     : "=r"(z), "=r"(a3), "+r"(block) : "r"(work), "r"(zero) : "$1")
+#define actor_403600_color_tail_in_place(work, a3, block, zero)                             \
+    __asm__ volatile("lw %0, 1272(%0); addu %1, %3, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
+                     : "+r"(work), "=r"(a3), "+r"(block) : "r"(zero) : "$1")
+#define actor_403600_rot_setup(object, rot, matrix, coord, actor, work, head)             \
+    __asm__ volatile("lw %0, 44(%4); addiu %1, %5, 1792; addiu %2, %6, -32; lw %3, 8(%0)" \
+                     : "=r"(object), "=r"(rot), "=r"(matrix), "=r"(coord)                 \
+                     : "r"(actor), "r"(work), "r"(head))
+#define actor_403600_coord_advance(head, work) \
+    __asm__ volatile("sw $zero, 1208(%1); addiu %0, %0, 32" : "+r"(head) : "r"(work))
 
-extern u8       D_80071075;
-extern u8       D_801153F4;
-extern MATRIX*  D_80073B8C;
-extern s32      D_8005C374;
-extern s32      D_8007107C;
-extern s16      D_80073BA0;
-extern u32      Gp_LcgState;
-extern u8       D_actor_403600_80150ED4;
-extern TaskDesc D_actor_403600_801421A0;
-extern s32      D_actor_403600_8016056C;
-extern s32      D_actor_403600_8016057C[];
+extern u8               D_80071075;
+extern u8               D_801153F4;
+extern MATRIX*          D_80073B8C;
+extern s32              D_8005C374;
+extern s32              D_8007107C;
+extern s16              D_80073BA0;
+extern u32              Gp_LcgState;
+extern u8               D_actor_403600_80150ED4;
+extern TaskDesc         D_actor_403600_801421A0;
+extern s32              D_actor_403600_8016056C;
+extern s32              D_actor_403600_8016057C[];
 extern Actor403600Point D_actor_403600_801605F4[];
-extern s32      D_actor_403600_80160698;
-extern s32      D_actor_403600_8016069C;
-extern s32      D_actor_403600_801606A0;
-extern Task*    D_actor_403600_801606A8;
-extern GpU16Pair D_actor_403600_80150EB0;
+extern s32              D_actor_403600_80160698;
+extern s32              D_actor_403600_8016069C;
+extern s32              D_actor_403600_801606A0;
+extern Task*            D_actor_403600_801606A8;
+extern GpU16Pair        D_actor_403600_80150EB0;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -50,6 +65,7 @@ void func_actor_403600_8014161C(Actor403600* arg0);
 void func_actor_403600_80141954(s32 arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_80141B24(Actor403600* arg0);
+void func_actor_403600_80141C3C(Actor403600* arg0);
 s32  func_actor_403600_801320F8(s32 arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801320F8);
@@ -1040,7 +1056,185 @@ void func_actor_403600_8013F608(Actor403600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013F7B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013FC2C);
+void func_actor_403600_8013FC2C(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    s16                       temp_a0;
+    s16                       temp_v0_3;
+    s16                       temp_v0_4;
+    s16                       temp_v0_5;
+    s32                       state;
+    s32                       var_s0;
+    u16                       temp_v0_6;
+    u16                       temp_v0_8;
+    u16                       temp_v0_9;
+    VECTOR*                   temp_a1_2;
+    MATRIX*                   temp_a1_5;
+    register MATRIX*          matrix_head asm("s1");
+    register MATRIX*          matrix_arg asm("a1");
+    register MATRIX*          gte_block asm("s2");
+    register SVECTOR*         rot_arg asm("a0");
+    register TmdObject*       coord_object asm("v0");
+    VECTOR*                   temp_a1_7;
+    register GsCOORDINATE2*   temp_s0 asm("s0");
+    u8*                       temp_s0_2;
+    Actor403600Work*          temp_s1;
+    Actor403600Work*          temp_s3;
+    Actor403600Work*          temp_s4;
+    TmdObject*                temp_s7;
+    u8*                       temp_v0;
+    u8*                       temp_v0_2;
+    u8*                       restore1;
+    u8*                       restore2;
+    u8*                       var_s2;
+    register GpEnemy*         color_actor1 asm("a0");
+    register s32              color_zero1 asm("a2");
+    register GpEnemy*         color_actor2 asm("a0");
+    register s32              color_zero2 asm("a2");
+    register Actor403600Work* color_work2 asm("v0");
+    register s32              color_z1 asm("v0");
+    register s32              color_arg3_1 asm("a3");
+    register s32              color_arg3_2 asm("a3");
+
+    temp_s7 = arg1->field_2C;
+    temp_s4 = arg1->field_1C;
+    state   = D_801153F4;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state < 2) {
+        goto default_body;
+    }
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+
+case1:
+    color_actor1 = (GpEnemy*)arg0;
+    actor_403600_load_scratch_head(temp_a1_2);
+    temp_a1_2[-1].vx = temp_s4->field_4B8.workm.t[0];
+    color_zero1      = 0;
+    temp_a1_2        = (VECTOR*)((u8*)temp_a1_2 - 0x10);
+    temp_a1_2->vy    = temp_s4->field_4B8.workm.t[1];
+    actor_403600_color_tail(color_z1, color_arg3_1, temp_a1_2, temp_s4, color_zero1);
+    temp_a1_2->vz = color_z1;
+    Gp_UpdateActorColor(color_actor1, temp_a1_2, color_zero1, color_arg3_1);
+    actor_403600_load_scratch_head_nop(restore1);
+    restore1 += 0x10;
+    actor_403600_store_scratch_head(restore1);
+    goto end;
+
+case2:
+    temp_s7->field_C = 0x80;
+    arg0->field_14   = 9;
+    goto end;
+
+default_body:
+    func_actor_403600_80141C3C(arg1);
+    func_actor_403600_8013DC7C(arg1);
+    func_actor_403600_8013D15C(arg1);
+    temp_s1 = arg1->field_1C;
+    temp_a0 = temp_s1->field_736;
+    if (D_actor_403600_8016057C[temp_a0] != 0) {
+        var_s0 = 1;
+        if (temp_a0 != temp_s1->field_738) {
+            temp_s1->field_738 = (s16)(u16)temp_s1->field_736;
+            temp_s1->field_73A = 0U;
+            do {
+                func_800B4114((GpAnimCtx*)temp_s1, var_s0, temp_s1->field_736, 0,
+                              (s32)temp_s1->field_756);
+                var_s0 += 1;
+            } while (var_s0 < 0x14);
+        } else {
+            TOUCH_REG(var_s0);
+            temp_s1->field_73A += var_s0;
+            var_s2              = (u8*)temp_s1 + 0x28;
+            do {
+                var_s2[0x1D] = (u8)temp_s1->field_778;
+                Gp_AnimTickIndex((GpAnimCtx*)temp_s1, var_s0);
+                var_s0 += 1;
+                var_s2 += 0x28;
+            } while (var_s0 < 0x14);
+        }
+    }
+    temp_s3 = arg1->field_1C;
+    actor_403600_load_scratch_head(matrix_head);
+    actor_403600_rot_setup(coord_object, rot_arg, matrix_arg, temp_s0, arg1, temp_s3, matrix_head);
+    actor_403600_store_scratch_head(matrix_arg);
+    gte_block = matrix_arg;
+    RotMatrix(rot_arg, matrix_arg);
+    temp_v0 = (u8*)temp_s0 + 0xA4;
+    gte_SetRotMatrix(temp_v0);
+    gte_ldclmv(gte_block);
+    gte_rtir_real();
+    gte_stclmv(temp_v0);
+    gte_ldclmv((u8*)matrix_head - 0x1E);
+    gte_rtir_real();
+    temp_v0_2 = (u8*)temp_s0 + 0xA6;
+    gte_stclmv(temp_v0_2);
+    matrix_head = (MATRIX*)((u8*)matrix_head - 0x1C);
+    gte_ldclmv(matrix_head);
+    gte_rtir_real();
+    temp_s0_2 = (u8*)temp_s0 + 0xA8;
+    gte_stclmv(temp_s0_2);
+    temp_v0_3 = temp_s3->field_700;
+    if (temp_v0_3 != 0) {
+        if (temp_v0_3 >= 0x20) {
+            temp_v0_4          = (u16)temp_s3->field_700 - 0x20;
+            temp_s3->field_700 = temp_v0_4;
+            if ((temp_v0_4 << 0x10) <= 0) {
+                temp_s3->field_700 = 0;
+            }
+        }
+        if (temp_s3->field_700 < 0x21) {
+            temp_v0_5          = (u16)temp_s3->field_700 + 0x20;
+            temp_s3->field_700 = temp_v0_5;
+            if ((temp_v0_5 << 0x10) >= 0) {
+                temp_s3->field_700 = 0;
+            }
+        }
+    }
+    actor_403600_load_scratch_head(temp_a1_5);
+    actor_403600_coord_advance(temp_a1_5, temp_s4);
+    actor_403600_store_scratch_head(temp_a1_5);
+    Gp_UpdateCoord(&temp_s4->field_4B8);
+    temp_v0_6          = temp_s4->field_74C + 1;
+    temp_s4->field_74C = temp_v0_6;
+    if ((s16)temp_v0_6 >= 0xA) {
+        color_actor2       = (GpEnemy*)arg0;
+        temp_s4->field_74C = 0U;
+        color_work2        = arg1->field_1C;
+        actor_403600_load_scratch_head(temp_a1_7);
+        temp_a1_7[-1].vx = color_work2->field_4B8.workm.t[0];
+        color_zero2      = 0;
+        temp_a1_7        = (VECTOR*)((u8*)temp_a1_7 - 0x10);
+        temp_a1_7->vy    = color_work2->field_4B8.workm.t[1];
+        actor_403600_color_tail_in_place(color_work2, color_arg3_2, temp_a1_7, color_zero2);
+        temp_a1_7->vz = (s32)color_work2;
+        Gp_UpdateActorColor(color_actor2, temp_a1_7, color_zero2, color_arg3_2);
+        actor_403600_load_scratch_head_nop(restore2);
+        restore2 += 0x10;
+        actor_403600_store_scratch_head(restore2);
+    }
+    temp_v0_8          = temp_s4->field_74E + 1;
+    temp_s4->field_74E = temp_v0_8;
+    if ((((s16)temp_v0_8 % 42) << 0x10) == 0) {
+        temp_v0_9          = temp_s4->field_750 + 1;
+        temp_s4->field_750 = temp_v0_9;
+        if ((s16)temp_v0_9 >= 0x64) {
+            temp_s4->field_750 = 0x64U;
+        }
+    }
+    if (((s16)temp_s4->field_74E >= temp_s4->field_754) || (temp_s4->field_742 != 0)) {
+        arg0->field_14    = 1;
+        temp_s7->field_2C = 0x12C;
+        arg1->field_2A    = 0x3C;
+        arg1->field_30    = (s32)(arg1->field_30 + 1);
+    }
+
+end:
+    return;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_801320A0);
 
