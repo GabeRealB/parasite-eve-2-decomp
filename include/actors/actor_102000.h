@@ -247,4 +247,9 @@ extern Actor02000CollisionFace* D_80115550;
 s32                             func_800DFCCC(Actor02000CollisionFace* node, SVECTOR* start, SVECTOR* end, VECTOR* direction);
 s32                             Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
 
+extern u16 Actor02000_D15CFC[2];
+extern s32 Actor02000_D15E30;
+s32        Gp_PackPair(void* pair, s32 index);
+void       Actor02000_Fn02294(Actor02000* actor);
+
 #endif
