@@ -2,6 +2,7 @@
 #define ACTOR_103800_H
 
 #include "common.h"
+#include "gameplay/1BC.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -19,22 +20,53 @@ typedef struct Actor103800Obj2C {
     /* 0x00 */ byte           pad_0[0x8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ u16            field_C;
+    /* 0x0E */ byte           pad_E[0xE];
+    /* 0x1C */ MATRIX*        field_1C;
+    /* 0x20 */ MATRIX*        field_20;
 } Actor103800Obj2C;
 
 typedef struct Actor103800Work {
-    /* 0x000 */ byte           pad_0[0x1A4];
-    /* 0x1A4 */ byte           field_1A4[0x1E];
+    /* 0x000 */ GpAnimCtx      anim;
+    /* 0x014 */ GpAnimSlot     slots[6];
+    /* 0x104 */ byte           field_104[0x60];
+    /* 0x164 */ MATRIX         field_164;
+    /* 0x184 */ MATRIX         field_184;
+    /* 0x1A4 */ byte           field_1A4[8];
+    /* 0x1AC */ void*          field_1AC;
+    /* 0x1B0 */ GpRec18*       field_1B0;
+    /* 0x1B4 */ u16            field_1B4;
+    /* 0x1B6 */ s16            field_1B6;
+    /* 0x1B8 */ u16            field_1B8;
+    /* 0x1BA */ byte           pad_1BA[2];
+    /* 0x1BC */ u32            field_1BC;
+    /* 0x1C0 */ u16            field_1C0;
     /* 0x1C2 */ u16            field_1C2;
-    /* 0x1C4 */ byte           pad_1C4[0x48];
-    /* 0x20C */ byte           field_20C[0x12];
+    /* 0x1C4 */ GpRec18        field_1C4[3];
+    /* 0x20C */ byte           field_20C[8];
+    /* 0x214 */ void*          field_214;
+    /* 0x218 */ GpRec18*       field_218;
+    /* 0x21C */ u16            field_21C;
     /* 0x21E */ s16            field_21E;
-    /* 0x220 */ byte           pad_220[8];
+    /* 0x220 */ u16            field_220;
+    /* 0x222 */ byte           pad_222[2];
+    /* 0x224 */ u32            field_224;
     /* 0x228 */ s16            field_228;
     /* 0x22A */ u16            field_22A;
-    /* 0x22C */ byte           pad_22C[0x60];
-    /* 0x28C */ byte           field_28C[0x1E];
+    /* 0x22C */ GpRec18        field_22C[4];
+    /* 0x28C */ byte           field_28C[8];
+    /* 0x294 */ void*          field_294;
+    /* 0x298 */ GpRec18*       field_298;
+    /* 0x29C */ u16            field_29C;
+    /* 0x29E */ s16            field_29E;
+    /* 0x2A0 */ u16            field_2A0;
+    /* 0x2A2 */ byte           pad_2A2[2];
+    /* 0x2A4 */ u32            field_2A4;
+    /* 0x2A8 */ u16            field_2A8;
     /* 0x2AA */ u16            field_2AA;
-    /* 0x2AC */ byte           pad_2AC[0x20];
+    /* 0x2AC */ GpRec18        field_2AC[1];
+    /* 0x2C4 */ GsCOORDINATE2* field_2C4;
+    /* 0x2C8 */ u16            field_2C8;
+    /* 0x2CA */ u16            field_2CA;
     /* 0x2CC */ MATRIX         field_2CC;
     /* 0x2EC */ byte           pad_2EC[0x58];
     /* 0x344 */ GsCOORDINATE2* field_344;
