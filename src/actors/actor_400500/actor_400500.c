@@ -505,7 +505,77 @@ void func_actor_400500_80136B94(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80136D00);
+void func_actor_400500_80136D00(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    s32              flag;
+    s32              flag2;
+    s32              heading;
+
+    work = (Actor400500Work*)arg0->idMap;
+    if (work->field_A4A != 0) {
+        work->field_A4A = 0;
+        func_actor_400500_8013DB64(arg0, 5);
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    if (flag == 0) {
+        work2 = (Actor400500Work*)arg0->idMap;
+        if (work2->field_A49 != 0) {
+            work2->field_A49 = 0;
+            if (work2->field_A1E & 1) {
+                flag2 = 0;
+            } else {
+                func_actor_400500_8013DB64(arg0, 4);
+                flag2 = 1;
+            }
+        } else {
+            flag2 = 0;
+        }
+        if ((flag2 == 0) && ((func_actor_400500_80132D74(arg0) << 0x10) == 0) &&
+            ((func_actor_400500_80133358(arg0) << 0x10) == 0) &&
+            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            if (((u32)(work->field_A1C - 2) < 2U) || ((s16)work->field_A1C == 6)) {
+                heading = (u16)work->field_94A;
+                if ((heading & 0xFFF) == 0) {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_9F8 = 0x18;
+                    work2->field_9FE = 2;
+                    work2->field_9FA = 2;
+                    work->field_A08  = 6;
+                    return;
+                }
+                if (((0 - heading) << 0x14) > 0) {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_A38 = 2;
+                } else {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_A38 = 1;
+                }
+            } else {
+                heading = (u16)work->field_94A;
+                if ((heading & 0xFFF) == 0xC00) {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_9F8 = 0x18;
+                    work2->field_9FE = 2;
+                    work2->field_9FA = 2;
+                    work->field_A08  = 3;
+                    return;
+                }
+                if (((0xC00 - heading) << 0x14) > 0) {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_A38 = 2;
+                } else {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_A38 = 1;
+                }
+            }
+            work2->field_A3A = 0;
+        }
+    }
+}
 
 void func_actor_400500_80136EB8(Task* arg0)
 {
