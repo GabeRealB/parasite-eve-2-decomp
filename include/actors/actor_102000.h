@@ -9,6 +9,10 @@
 
 extern u8 D_801153F2;
 
+typedef struct {
+    u32 sp;
+} Actor02000ScratchStack;
+
 typedef struct Actor02000AnimRec {
     /* 0x00 */ u16 field_0;
     /* 0x02 */ u8  field_2;
@@ -96,7 +100,9 @@ typedef struct Actor02000Work {
     /* 0x678 */ s32                 field_678;
     /* 0x67C */ s32                 field_67C;
     /* 0x680 */ s32                 field_680;
-    /* 0x684 */ byte                pad_684[0x10];
+    /* 0x684 */ byte                pad_684[4];
+    /* 0x688 */ SVECTOR             field_688;
+    /* 0x690 */ byte                pad_690[4];
     /* 0x694 */ s16                 field_694;
     /* 0x696 */ s16                 field_696;
     /* 0x698 */ s16                 field_698;

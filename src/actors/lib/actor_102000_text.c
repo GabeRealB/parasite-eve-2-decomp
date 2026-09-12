@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_102000.h"
+#include "psyq/inline_c.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/fs.h"
@@ -488,7 +489,69 @@ done:
     SCRATCH_SP += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn01698);
+void Actor02000_Fn01698(Actor02000* arg0)
+{
+    Actor02000Work* work;
+    GsCOORDINATE2*  coord;
+    MATRIX*         matrix;
+    s32             angleX;
+    s32             angleY;
+    s32             absX;
+    s32             nextX;
+    s32             absY;
+    s32             nextY;
+    s32             active;
+
+    matrix                                    = (MATRIX*)(((Actor02000ScratchStack*)0x1F8003FC)->sp - 0x20);
+    ((Actor02000ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+    active                                    = 0;
+    work                                      = arg0->field_1C;
+    coord                                     = arg0->field_2C->field_8;
+    RotMatrix(&work->field_688, matrix);
+    USE_REG(matrix);
+    gte_SetRotMatrix(&coord[3].coord);
+    gte_ldclmv(matrix);
+    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_stclmv(&coord[3].coord);
+    gte_ldclmv((char*)matrix + 2);
+    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_stclmv((char*)&coord[3].coord + 2);
+    gte_ldclmv((char*)matrix + 4);
+    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_stclmv((char*)&coord[3].coord + 4);
+    angleX = work->field_688.vx;
+    if (angleX != 0) {
+        absX = __builtin_abs(angleX);
+        if (absX < 0x21) {
+            work->field_688.vx = 0;
+        } else {
+            nextX = angleX - 0x20;
+            if (angleX <= 0) {
+                nextX = angleX + 0x20;
+            }
+            work->field_688.vx = nextX;
+            active             = 1;
+        }
+    }
+    angleY = work->field_688.vy;
+    if (angleY != 0) {
+        absY = __builtin_abs(angleY);
+        if (absY < 0x21) {
+            work->field_688.vy = 0;
+        } else {
+            nextY = angleY - 0x20;
+            if (angleY <= 0) {
+                nextY = angleY + 0x20;
+            }
+            work->field_688.vy = nextY;
+            active             = 1;
+        }
+    }
+    if (active == 0) {
+        work->field_6B4 = 0;
+    }
+    SCRATCH_SP += 0x20;
+}
 
 void Actor02000_Fn018A4(Actor02000* arg0)
 {
