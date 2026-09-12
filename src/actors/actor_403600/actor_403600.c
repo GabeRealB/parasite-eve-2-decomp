@@ -547,7 +547,62 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013F0C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013F608);
+void func_actor_403600_8013F608(Actor403600* arg0)
+{
+    Actor403600Work* work;
+    s16              temp_v0_3;
+    s16              temp_v1;
+    s32              temp_arg2;
+    s32              var_check;
+    s32              var_s1;
+    u16              temp_field;
+    u16              temp_v0;
+    u16              temp_v0_2;
+    u16              temp_v0_4;
+    u32              temp_t0;
+    u32              temp_v0_5;
+
+    work    = arg0->field_1C;
+    temp_v1 = work->field_76C;
+    if (temp_v1 == -1) {
+        temp_v0         = (u16)work->field_768 + 1;
+        work->field_768 = temp_v0;
+        if ((s16)temp_v0 >= 3) {
+            var_s1          = 1;
+            work->field_768 = 0;
+            do {
+                Gp_SpawnEff(0x60080, (*Gp_ActorSlots)->extra->field_8 + var_s1, 0x400, NULL);
+                var_s1 += 1;
+            } while (var_s1 < 0x13);
+        }
+    } else {
+        temp_v0_2       = (u16)work->field_768 + 1;
+        work->field_768 = temp_v0_2;
+        var_check       = (s16)temp_v0_2 < temp_v1;
+        SOFT_TOUCH_REG_USE(work, var_check);
+        temp_field = (u16)work->field_76C;
+        if (!var_check) {
+            temp_v0_3       = temp_field - 8;
+            work->field_76C = temp_v0_3;
+            if (temp_v0_3 < 3) {
+                work->field_76C = 2;
+            }
+            temp_v0_4       = (u16)work->field_76A + 1;
+            work->field_76A = temp_v0_4;
+            if ((s16)temp_v0_4 >= 0x400) {
+                work->field_76A = 0x400;
+            }
+            temp_v0_5   = (Gp_LcgState * 5) + 0x71357911;
+            temp_t0     = temp_v0_5 >> 0x10;
+            temp_arg2   = work->field_76A;
+            Gp_LcgState = temp_v0_5;
+            Gp_SpawnEff(0x60080,
+                        (u8*)(*Gp_ActorSlots)->extra->field_8 + (((temp_t0 % 19) & 0xFFFF) * 0x50),
+                        temp_arg2, NULL);
+            work->field_768 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013F7B8);
 
