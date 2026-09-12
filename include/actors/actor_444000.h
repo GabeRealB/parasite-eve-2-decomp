@@ -17,7 +17,7 @@
 /// byte at 0xEAC written by `func_actor_444000_80143490`. Fill in the padding
 /// as the remaining functions are matched.
 typedef struct Actor444000Work {
-    /* 0x000 */ s16  field_0; // state index
+    /* 0x000 */ u16  field_0; // state index
     /* 0x002 */ byte pad_2[0xEAA];
     /* 0xEAC */ s8   field_EAC;
     /* 0xEAD */ byte pad_EAD[0x77];
@@ -77,6 +77,8 @@ typedef struct Actor444000 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor444000Work* field_1C;
     /* 0x20 */ Actor444000Obj*  field_20;
+    /* 0x24 */ byte             pad_24[0x8];
+    /* 0x2C */ void*            extra; // Task::extra, a TmdObject
 } Actor444000;
 
 s32 func_actor_444000_80143D68(Actor444000* arg0);

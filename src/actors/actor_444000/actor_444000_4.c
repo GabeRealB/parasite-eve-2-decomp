@@ -1,8 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_444000.h"
+#include "actors/actors_shared_80135990.h"
 
 #include "gameplay/1BC.h"
+#include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -62,7 +64,25 @@ s32 func_actor_444000_80143D68(Actor444000* arg0)
     return arg0->field_20->field_40 > 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80143D7C);
+/// Seeds the enemy's `TmdObject` coordinate frame from `placement`: the three
+/// longs become the translation, the Euler angles are applied X/Y/Z unless the
+/// work block's state index is 0x12 or 0x13, and the coordinate is marked
+/// dirty. Same body as `ActorsShared80135990` with that state gate added.
+s32 func_actor_444000_80143D7C(Actor444000* arg0, s32 arg1, ActorShared80135990Placement* placement)
+{
+    Actor444000Work* work = arg0->field_1C;
+
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] = placement->pos.vz;
+    if ((u32)(work->field_0 - 0x12) >= 2U) {
+        Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->field_8->coord, placement->rot.vx, 1);
+        Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->field_8->coord, placement->rot.vy, 0);
+        Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->field_8->coord, placement->rot.vz, 0);
+    }
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80143E68);
 
