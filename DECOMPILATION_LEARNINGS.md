@@ -50257,6 +50257,42 @@ negu  v1, v1
 So when the target has an unexplained `nop` after an abs `bgez`, the source
 used `ABS()`, not an `if`.
 
+## `ABS()` also decides `$v0` vs `$v1`, because `abssi2` keeps the value block-local
+
+The delay slot is the visible half of that difference; the allocation is the
+other half, and it is what the score actually hangs on. `if (x < 0) x = -x;`
+splits the basic block, so `x` is born in one block and used in another and
+becomes a **global** allocno. `ABS(x)` is one `abssi2` insn, so the block is
+never split and `x` stays a **local** quantity that `local-alloc` assigns
+before `global-alloc` runs at all.
+
+In `func_actor_444000_801381B0` the sum `t[1] = drop + bounce` has to come out
+`addu v0,v1,v0` - the *second* operand sharing the destination register. With
+the `if` form both values were global allocnos and the result was the mirror
+image, `addu v0,v0,v1`, worth `regs=7`:
+
+* `global.c`'s `set_preference` is called as `set_preference (dest,
+  SET_SRC (setter))` and unwraps exactly one level (`src = XEXP (src, 0)`), so
+  for `(set (reg S) (plus (reg A) (reg B)))` the preference lands on **`A`, the
+  first operand**, and only if `S` already has a hard register - i.e. only if
+  `local-alloc` allocated it. `.greg` prints this as `;; 86 preferences: 2`.
+* `prune_preferences` then puts that register in `regs_someone_prefers[B]`, and
+  `find_reg`'s pass 0 skips it, so `B` takes `$v1` and `A` takes its preferred
+  `$v0`. Swapping the source operands only moves the preference; it cannot
+  produce "first operand in `$v1`, second in `$v0`".
+* With `ABS()`, `bounce` is local and `local-alloc` hands it `$v0` up front.
+  `global_conflicts` then sees hard `$v0` live across `drop`'s range, records
+  the conflict, and `prune_preferences` strips `drop`'s `$v0` preference for
+  good. `drop` gets `$v1` and the `addu` comes out in the ROM's order - which
+  in turn frees `$v0`, so `dbr` can put the other arm's `li v0,-0x32` in the
+  `blez` delay slot and `sched2` leaves `lui a2,0x8888` ahead of the abs.
+
+So a two-register inversion around an abs is not something to pin or to fix by
+reordering the `+`: check whether the ROM used `ABS()` first. The general rule
+is wider than abs - **any construct that avoids splitting the block turns a
+global allocno into a local one, and local ones are allocated first** - but abs
+is the case with a ready-made single-insn pattern.
+
 ## Don't hoist a repeated constant into a local: `subu` publishes it and later `>> 16` becomes `srlv`
 
 A switch whose arms all end with `field = BASE - rnd;` and share a two-insn

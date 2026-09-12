@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include <psyq/abs.h>
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -179,7 +180,95 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80137D4C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801381B0);
+/// Rebuilds the model's root coordinate around the yaw it already faces and
+/// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
+/// the yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
+/// applies 0.5 on all three axes. The working matrix lives in a frame carved
+/// off `G_SCRATCH_HEAD`, which is handed back once the rotation has been copied
+/// onto the coordinate. Written as an inline so the four scratch-head accesses
+/// stay absolute; see `Actor444000_RebuildRotation` in `actor_444000_4.c`.
+static __inline__ void Actor444000_ShrinkRotation(GsCOORDINATE2* coord)
+{
+    Actor444000RotScratch* sc;
+    s16                    ang;
+
+    sc                                       = (Actor444000RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor444000RotScratch));
+    *(Actor444000RotScratch**)G_SCRATCH_HEAD = sc;
+
+    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle = ang;
+    Gfx_RotMatrixY(&sc->m, ang, 1);
+    sc->scale.vx = 0x800;
+    sc->scale.vy = 0x800;
+    sc->scale.vz = 0x800;
+    ScaleMatrix(&sc->m, &sc->scale);
+
+    coord->coord.m[0][0] = sc->m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+}
+
+/// Death throes of the grabbing enemy: bounce the model on the floor until it
+/// settles. While the model is still below the floor plane (`coord.t[1] > 0`)
+/// it is snapped back to -0x32, the step counter is cleared, the impact cue is
+/// enqueued with the object's own pan and half its depth, and the task steps
+/// on. Otherwise the body keeps falling by `field_1AA`'s magnitude, drifts a
+/// fifteenth of `vel` in x and z, has its colour refreshed from the model's
+/// world position, damps the two shake terms and has its rotation rebuilt at
+/// half scale.
+void func_actor_444000_801381B0(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work = task->field_1C;
+    GsCOORDINATE2*       coord;
+    VECTOR               pos;
+    s32                  sfx;
+    s32                  pan;
+    s32                  drop;
+    s32                  bounce;
+
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    coord = task->extra->field_8;
+    drop  = coord->coord.t[1];
+    if (drop > 0) {
+        coord->coord.t[1] = -0x32;
+        work->field_1AC   = 0;
+        sfx               = ((enemy->field_8 >> 0xC) << 8) | 0x4020000C;
+        pan               = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+        SndEvt_EnqueueType6(sfx, pan, (s8)(Gp_GetObjDepth((GpObj38*)task->extra->field_8) / 2));
+        task->state++;
+        return;
+    }
+
+    bounce            = ABS(work->field_1AA);
+    coord->coord.t[1] = drop + bounce;
+
+    task->extra->field_8->coord.t[0] += work->vel.vx / 15;
+    task->extra->field_8->coord.t[2] += work->vel.vz / 15;
+    task->extra->field_8->flg         = 0;
+
+    pos.vx = task->extra->field_8->workm.t[0];
+    pos.vy = task->extra->field_8->workm.t[1];
+    pos.vz = task->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    work->field_168 >>= 1;
+    work->field_16C >>= 2;
+
+    Actor444000_ShrinkRotation(task->extra->field_8);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80138490);
 

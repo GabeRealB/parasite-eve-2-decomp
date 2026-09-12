@@ -306,13 +306,16 @@ typedef struct Actor444000Drop {
 /// limit, and `field_1A8` gates the take-over in `func_actor_444000_801389EC`.
 /// Fill in the padding as the remaining states are matched.
 typedef struct Actor444000GrabWork {
-    /* 0x000 */ byte      pad_0[0x168];
+    /// Per-step world delta the hold states add to the model's coordinate,
+    /// a fifteenth at a time; only x and z are read.
+    /* 0x000 */ VECTOR3   vel;
+    /* 0x00C */ byte      pad_C[0x15C];
     /* 0x168 */ s32       field_168;
     /* 0x16C */ s32       field_16C;
     /* 0x170 */ byte      pad_170[0x24];
     /* 0x194 */ GpAnimArg anim;      // message 0x3FF payload, sent by address
     /* 0x1A8 */ s16       field_1A8; // set when the dispatcher sees the state change; gates the take-over
-    /* 0x1AA */ byte      pad_1AA[0x2];
+    /* 0x1AA */ s16       field_1AA; // bounce height added back to the model's y each step, taken as a magnitude
     /* 0x1AC */ s16       field_1AC; // step counter within the state
     /* 0x1AE */ byte      pad_1AE[0x4];
     /* 0x1B2 */ s16       field_1B2; // one-shot flag: the player animation is installed
