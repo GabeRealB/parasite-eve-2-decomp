@@ -8,6 +8,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 void               Gp_ArmStateF0(s32 arg0);
 void               Actor02000_Fn00CD0(Actor02000* arg0);
@@ -823,7 +824,145 @@ draw:
     return;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn02D5C);
+void Actor02000_Fn02D5C(Actor02000* arg0)
+{
+    s16             yaw;
+    s16             yaw2;
+    s16             state;
+    s16             deltaYaw;
+    s16             deltaYaw2;
+    s16             speed;
+    s32             magnitude;
+    s32             magnitude2;
+    s16             wrapped;
+    s16             wrapped2;
+    s16             angle;
+    s32             dx;
+    s32             dz;
+    u16             flags;
+    u16             flags2;
+    u8*             head;
+    VECTOR*         delta;
+    Actor02000Work* work;
+    GsCOORDINATE2*  coord;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    delta                 = (VECTOR*)(head - 0x10);
+    *(u8**)G_SCRATCH_HEAD = (u8*)delta;
+    work                  = arg0->field_1C;
+    state                 = work->field_6A8;
+    coord                 = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            speed = 0;
+            if (work->field_698 >= Actor02000_D03784[work->field_694]) {
+                speed = 0x14;
+            }
+            work->field_69C = speed;
+            work->field_69E = 0x3C;
+            delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            delta->vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
+            yaw             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+            work->field_6A2 = yaw;
+            deltaYaw        = work->field_6A4 - yaw;
+            magnitude       = __builtin_abs(deltaYaw);
+            if (magnitude < 0x800) {
+                angle = magnitude;
+            } else {
+                if (deltaYaw > 0) {
+                    wrapped = 0x1000 - deltaYaw;
+                } else {
+                    wrapped = deltaYaw + 0x1000;
+                }
+                angle = wrapped;
+            }
+            if (angle >= 0x581) {
+                if (work->field_6DC == 0) {
+                    work->field_694 = 3;
+                    work->field_6A8 = 3;
+                } else {
+                    work->field_694 = 4;
+                    work->field_6A8 = 1;
+                    work->field_6DC = 0;
+                }
+            }
+            if (angle < 0x80) {
+                flags                 = work->field_47C.flags | 0xC000;
+                work->field_47C.flags = flags;
+                if (work->field_6B2 != 0) {
+                    work->field_47C.flags = (u16)(flags & 0x3FFF);
+                    work->field_6A8       = 1;
+                    work->field_6DC       = 0;
+                }
+            }
+            break;
+        case 1:
+            work->field_69C = 0;
+            work->field_69E = 0;
+            delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            dz              = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            delta->vz       = dz;
+            dx              = delta->vx;
+            if (SquareRoot0((dx * dx) + (dz * dz)) < 0x8CA) {
+                work->field_6A6 = 4;
+                work->field_6A8 = 0;
+                work->field_694 = 8;
+            } else {
+                work->field_6A6 = 3;
+                work->field_6A8 = 0;
+                work->field_694 = 5;
+                work->field_6AE = 0;
+            }
+            break;
+        case 2:
+            work->field_69C       = 0;
+            work->field_69E       = 0;
+            flags2                = work->field_47C.flags | 0xC000;
+            work->field_47C.flags = flags2;
+            if (work->field_6B2 != 0) {
+                work->field_47C.flags = (u16)(flags2 & 0x3FFF);
+                work->field_694       = 2;
+                work->field_6A8       = 0;
+            } else if (work->field_698 >= 0x60) {
+                delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+                delta->vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
+                yaw2            = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+                work->field_6A2 = yaw2;
+                deltaYaw2       = work->field_6A4 - yaw2;
+                magnitude2      = __builtin_abs(deltaYaw2);
+                if (magnitude2 < 0x800) {
+                    angle = magnitude2;
+                } else {
+                    if (deltaYaw2 > 0) {
+                        wrapped2 = 0x1000 - deltaYaw2;
+                    } else {
+                        wrapped2 = deltaYaw2 + 0x1000;
+                    }
+                    angle = wrapped2;
+                }
+                if (angle >= 0x581) {
+                    work->field_694 = 3;
+                    work->field_6A8 = 3;
+                } else {
+                    work->field_694 = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+        case 3:
+            work->field_69C = 0;
+            work->field_69E = 0x3B;
+            if (work->field_698 >= 0x23) {
+                work->field_694 = 2;
+                work->field_6A8 = 0;
+                work->field_6DC = 1;
+            }
+            break;
+    }
+    *(s32*)G_SCRATCH_HEAD += 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn0315C);
 
