@@ -583,7 +583,78 @@ s32 func_actor_400500_80133358(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80133460);
+s32 func_actor_400500_80133460(Task* arg0)
+{
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500HitView* hit;
+    s16                 mode;
+    s16                 sub;
+    s32                 flag;
+    s32                 cond;
+
+    work = (Actor400500Work*)arg0->idMap;
+    mode = work->field_A3C;
+    if (mode == 1) {
+        sub = work->field_A3E;
+        if (sub == mode) {
+            if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != mode)) {
+                flag            = 0x81;
+                work->field_A46 = flag;
+                work->field_A47 = 0;
+            }
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_9F8 = 0x1C;
+            work2->field_9FE = 0xB;
+            work2->field_9FA = 2;
+            work->field_A3E  = 0;
+        } else if (sub == 2) {
+            if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != mode)) {
+                flag            = 0x81;
+                work->field_A46 = flag;
+                work->field_A47 = 0;
+            }
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_9F8 = 0x10;
+            work2->field_9FE = 0xC;
+            work2->field_9FA = 2;
+            work->field_A3E  = 0;
+        } else if (sub == 4) {
+            if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != mode)) {
+                flag            = 0x81;
+                work->field_A46 = flag;
+                work->field_A47 = 0;
+            }
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_9F8 = 0x10;
+            work2->field_9FE = 0xC;
+            work2->field_9FA = 2;
+            work->field_A3E  = 0;
+        } else if (sub == 3) {
+            if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != mode)) {
+                flag            = 0x81;
+                work->field_A46 = flag;
+                work->field_A47 = 0;
+            }
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_9F8 = 0x10;
+            work2->field_9FE = 0xE;
+            work2->field_9FA = 2;
+            work->field_A3E  = 0;
+        }
+        hit = (Actor400500HitView*)arg0->idMap;
+        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work->field_A3C = 0;
+        }
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801335E8);
 
