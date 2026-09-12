@@ -47,6 +47,9 @@ usage() {
 while [[ $# -gt 0 ]]; do
     case $1 in
         --overlay) OVERLAY="$2"; shift 2 ;;
+        # A family's shared bodies are one sweepable unit named
+        # "<family>/lib": `--overlay actors --shared` is sugar for it.
+        --shared)  SHARED=true; shift ;;
         --session) SESSION="$2"; shift 2 ;;
         --release) RELEASE=true; shift ;;
         --cleanup) CLEANUP=true; shift ;;
@@ -72,8 +75,11 @@ fi
 # unlanded work, and re-applying it would land the same functions twice. Delete
 # the worktree once its functions are demonstrably on main.
 if [[ "$CLEANUP" == true ]]; then
+if [[ "${SHARED:-false}" == true && -n "$OVERLAY" && "$OVERLAY" != */lib ]]; then
+    OVERLAY="$OVERLAY/lib"
+fi
     [[ -n "$OVERLAY" ]] || { echo "--cleanup needs --overlay" >&2; exit 1; }
-    WT="$ROOT/../pe2-ov-$OVERLAY"
+    WT="$ROOT/../pe2-ov-${OVERLAY//\//-}"   # "actors/lib" -> pe2-ov-actors-lib
     BRANCH="overlay/$OVERLAY"
 
     if [[ ! -d "$WT" ]]; then
@@ -145,7 +151,7 @@ trap cleanup_lease ERR
 # taken once at the end to land. Agents that worked this way held the merge lock
 # for ~96 seconds to land 19 functions, against 40+ minutes of queueing for
 # those that worked in the trunk checkout directly.
-WT="$ROOT/../pe2-ov-$OVERLAY"
+WT="$ROOT/../pe2-ov-${OVERLAY//\//-}"   # "actors/lib" -> pe2-ov-actors-lib
 BRANCH="overlay/$OVERLAY"
 
 if [[ -d "$WT" ]]; then

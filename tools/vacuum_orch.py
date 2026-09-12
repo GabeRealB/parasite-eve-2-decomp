@@ -366,12 +366,20 @@ def cmd_finish(
 def overlay_of_asm(rel: str) -> Optional[str]:
     """asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<fn>.s -> <overlay>.
 
-    `lib` is not an overlay. A family's shared bodies live under
-    <family>/nonmatchings/lib/, they are linked into many overlays at once, and
-    `build-and-verify.sh --only lib` is not a valid scope - the landing tooling
-    had to learn the same thing. Leasing it as if it were one overlay would take
-    818 functions hostage across a whole family, so it is excluded here and left
-    to per-function claims.
+    A family's shared bodies live under <family>/nonmatchings/lib/ and are
+    linked into many overlays at once, so `lib` alone is not a location: four
+    families have one, and `build-and-verify.sh --only lib` is not a valid
+    scope. It is therefore named **family-qualified** - `actors/lib` - which
+    disambiguates everything downstream: `src/**/actors/lib` globs to exactly
+    one directory for the landing, and the brief already derives `--only
+    actors` as the build scope from the function's family.
+
+    Claiming it in bulk is safe, contrary to the earlier reading that it would
+    "take 818 functions hostage": an overlay sweep claims by this same
+    function, so lib functions are never in any overlay's claim set - the two
+    sets are disjoint. What must not happen is `rank_overlays` picking it on
+    its own, because a plain per-function vacuum *does* draw from lib; the
+    qualified name is filtered out there and has to be asked for by name.
     """
     parts = rel.split("/")
     if "nonmatchings" not in parts:
@@ -380,7 +388,10 @@ def overlay_of_asm(rel: str) -> Optional[str]:
     if i + 1 >= len(parts) - 1:
         return None
     name = parts[i + 1]
-    return None if name == "lib" else name
+    if name == "lib":
+        # asm/<ver>/<family>/nonmatchings/lib/... -> "<family>/lib"
+        return f"{parts[i - 1]}/lib" if i >= 1 else None
+    return name
 
 
 def overlay_functions(root: Path, overlay: str) -> list[str]:
@@ -416,7 +427,10 @@ def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
                 continue
             rel = str(p)
             ov = overlay_of_asm(rel)
-            if ov:
+            # A shared unit ("<family>/lib") is opt-in only: it must be asked
+            # for by name, never handed out by ranking, because a plain
+            # per-function vacuum also draws from it.
+            if ov and "/" not in ov:
                 counts[ov] = counts.get(ov, 0) + 1
     return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
 

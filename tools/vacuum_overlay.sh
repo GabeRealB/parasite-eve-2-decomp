@@ -49,6 +49,9 @@ usage() { sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 while [[ $# -gt 0 ]]; do
     case $1 in
         --overlay) OVERLAY="$2"; shift 2 ;;
+        # A family's shared bodies are one sweepable unit named
+        # "<family>/lib": `--overlay actors --shared` is sugar for it.
+        --shared)  SHARED=true; shift ;;
         --cli)     CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
         --claude)  CLI=claude; CLI_EXPLICIT=1; shift ;;
         --grok)    CLI=grok; CLI_EXPLICIT=1; shift ;;
@@ -84,6 +87,9 @@ log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE}, log $LOG_FILE"
 
 prep_args=(--session "$SESSION" --bootstrap 0)
+if [[ "${SHARED:-false}" == true && -n "$OVERLAY" && "$OVERLAY" != */lib ]]; then
+    OVERLAY="$OVERLAY/lib"
+fi
 [[ -n "$OVERLAY" ]] && prep_args+=(--overlay "$OVERLAY")
 if ! "$ROOT/tools/overlay_batch.sh" "${prep_args[@]}" >>"$LOG_FILE" 2>&1; then
     log "could not lease an overlay (see $LOG_FILE)"
