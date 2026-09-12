@@ -40,6 +40,7 @@ s32  func_actor_400500_80132D74(Task* arg0);
 s32  func_actor_400500_80133160(Task* arg0);
 s32  func_actor_400500_80133358(Task* arg0);
 s32  func_actor_400500_80133460(Task* arg0);
+void func_actor_400500_8013403C(Task* arg0);
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
 void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2);
@@ -884,7 +885,56 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013AF44);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013B228);
+void func_actor_400500_8013B228(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    GsCOORDINATE2*   coord;
+    s32              flag;
+    s32              a1a;
+    u16              a1c;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (work->field_A4A != 0) {
+        work->field_A4A = 0;
+        func_actor_400500_8013DB64(arg0, 5);
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
+        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        if (((u16)work->field_94A & 0xFFF) != 0x400) {
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_A06 = 9;
+            work2->field_A08 = 0;
+        } else {
+            a1a = work->field_A1A;
+            if (a1a != 1) {
+                if ((a1a == 2) && (coord->coord.t[0] >= 0x4075)) {
+                    a1c = work->field_A1C;
+                    if (((u32)(a1c - 2) < 2U) || ((s16)a1c == 6)) {
+                        work->field_A08 = 5;
+                    } else {
+                        work->field_A08 = a1a;
+                    }
+                } else {
+                    func_actor_400500_8013403C(arg0);
+                }
+            } else {
+                if (work->field_9E0 < -0xF9F) {
+                    work3            = (Actor400500Work*)arg0->idMap;
+                    work3->field_A06 = 9;
+                    work3->field_A08 = 0;
+                }
+                func_actor_400500_8013403C(arg0);
+            }
+        }
+        coord->coord.t[2] = -0x209E;
+    }
+}
 
 void func_actor_400500_8013B374(Task* arg0)
 {
