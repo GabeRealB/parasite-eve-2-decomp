@@ -166,4 +166,30 @@ s32 func_actor_444000_80143F38(Actor444000* arg0)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143F4C);
+/// Reset handler: when the work block is asking for a reset, stop the enemy's
+/// own model drawing and push that same flag word onto each of the seven
+/// escorts' models, then clear the two counters at 0xEF4. Otherwise just run
+/// the ordinary re-arm in `func_actor_444000_8013441C`.
+void func_actor_444000_80143F4C(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    s16              i;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        escorts                            = arg0->field_1C;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+    } else {
+        func_actor_444000_8013441C(arg0);
+    }
+}

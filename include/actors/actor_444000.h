@@ -60,25 +60,31 @@ typedef struct Actor444000Work {
     /* 0x7BC */ s16        field_7BC; // animation id the slot resets seed from
     /* 0x7BE */ s16        field_7BE; // GpAnimSlot::field_9 the resets seed with
     /* 0x7C0 */ s16        field_7C0;
-    /* 0x7C2 */ byte       pad_7C2[0x6EA];
+    /* 0x7C2 */ byte       pad_7C2[0x31];
+    /* 0x7F3 */ s8         field_7F3;
+    /* 0x7F4 */ byte       pad_7F4[0x6B8];
     /* 0xEAC */ s8         field_EAC;
-    /* 0xEAD */ byte       pad_EAD[0x3B];
-    /* 0xEE8 */ GpEnemy*   field_EE8; // nearby enemy, dropped once its HP runs out
-    /* 0xEEC */ GpEnemy*   field_EEC; // second such slot
-    /* 0xEF0 */ byte       pad_EF0[0x4];
-    /* 0xEF4 */ s16        field_EF4;
-    /* 0xEF6 */ s16        field_EF6;
-    /* 0xEF8 */ byte       pad_EF8[0x2];
-    /* 0xEFA */ s16        field_EFA;
-    /* 0xEFC */ byte       pad_EFC[0x2];
-    /* 0xEFE */ s16        field_EFE;
-    /* 0xF00 */ byte       pad_F00[0x16];
-    /* 0xF16 */ s16        field_F16;
-    /* 0xF18 */ byte       pad_F18[0x2];
-    /* 0xF1A */ u8         field_F1A; // free-running counter bumped on every heal tick
-    /* 0xF1B */ byte       pad_F1B[0x1];
-    /* 0xF1C */ s8         field_F1C; // countdown, decremented while positive
-    /* 0xF1D */ byte       pad_F1D[0x7];
+    /* 0xEAD */ byte       pad_EAD[0x1F];
+    /// The seven escorts `func_actor_444000_8013AFF8` spawns with
+    /// `Gp_SpawnEnemyFromTable`; the resets walk them to push the host's
+    /// `TmdObject::field_C` onto each escort's own model object.
+    /* 0xECC */ GpEnemy* field_ECC[7];
+    /* 0xEE8 */ GpEnemy* field_EE8; // nearby enemy, dropped once its HP runs out
+    /* 0xEEC */ GpEnemy* field_EEC; // second such slot
+    /* 0xEF0 */ byte     pad_EF0[0x4];
+    /* 0xEF4 */ s16      field_EF4;
+    /* 0xEF6 */ s16      field_EF6;
+    /* 0xEF8 */ byte     pad_EF8[0x2];
+    /* 0xEFA */ s16      field_EFA;
+    /* 0xEFC */ byte     pad_EFC[0x2];
+    /* 0xEFE */ s16      field_EFE;
+    /* 0xF00 */ byte     pad_F00[0x16];
+    /* 0xF16 */ s16      field_F16;
+    /* 0xF18 */ byte     pad_F18[0x2];
+    /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
+    /* 0xF1B */ byte     pad_F1B[0x1];
+    /* 0xF1C */ s8       field_F1C; // countdown, decremented while positive
+    /* 0xF1D */ byte     pad_F1D[0x7];
 } Actor444000Work;
 STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 
@@ -132,7 +138,9 @@ typedef struct Actor444000 {
     /* 0x2C */ void*            extra; // Task::extra, a TmdObject
 } Actor444000;
 
-s32 func_actor_444000_80143D68(Actor444000* arg0);
-s32 func_actor_444000_80143F38(Actor444000* arg0);
+void func_actor_444000_8013441C(Actor444000* arg0);
+s32  func_actor_444000_80143D68(Actor444000* arg0);
+s32  func_actor_444000_80143F38(Actor444000* arg0);
+void func_actor_444000_80143F4C(Actor444000* arg0);
 
 #endif
