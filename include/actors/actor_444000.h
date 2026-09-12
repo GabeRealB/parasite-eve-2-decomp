@@ -78,8 +78,17 @@ typedef struct Actor444000Work {
     /* 0x7F0 */ byte pad_7F0[0x3];
     /* 0x7F3 */ s8   field_7F3;
     /* 0x7F4 */ byte pad_7F4[0x6B8];
-    /* 0xEAC */ s8   field_EAC;
-    /* 0xEAD */ byte pad_EAD[0x17];
+    /// Screen-shake request written from outside the task by
+    /// `func_actor_444000_80143490`: 1, 2 and 3 pick a shake length, anything
+    /// else leaves the driver alone. `field_EAD` is the value the driver has
+    /// already armed, so a change is what starts a new shake; `field_EAE` is
+    /// the frames still to run and `field_EAF` the amplitude handed to
+    /// `Display_ClampField126`.
+    /* 0xEAC */ u8   field_EAC;
+    /* 0xEAD */ u8   field_EAD;
+    /* 0xEAE */ u8   field_EAE;
+    /* 0xEAF */ s8   field_EAF;
+    /* 0xEB0 */ byte pad_EB0[0x14];
     /// The three payload bytes of the last 0x7DB message
     /// `func_actor_444000_8013ACD0` accepted, kept whether or not the id half
     /// selected one of its cases.

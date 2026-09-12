@@ -63069,3 +63069,84 @@ than as a scheduling problem to solve. This is the finer-grained case of
 "Duplicate the shared tail call instead of `goto`" and "Store order inside
 `if`/`else` arms decides how much tail cross-jumps": here the boundary is set
 not by source store order but by a scheduler hoist into the same block.
+
+## A `switch` on 1/2/3 cannot emit an ordered low-bound test: find the fourth case
+
+`switch (x)` over three consecutive values gives a *balanced* decision tree, so
+the first comparison is against the middle value. `estimate_case_costs` only
+returns 1 when every case value indexes a non-negative `cost_table` slot, and
+`cost_table[1..3]` are `-1` (`iscntrl`), so `use_cost_table` is 0 and
+`balance_case_nodes` takes its `i == 3` branch, `npp = &(*npp)->right`:
+
+```
+li   v0,2 / beq a0,v0 -> case2      # root is 2
+slti v0,a0,3 / beqz  -> [3]
+li   v0,1 / beq a0,v0 -> case1
+```
+
+`func_actor_444000_8013A77C` instead tests 1 first and then an *ordered* bound:
+
+```
+beq  a0,a1 -> case1        # a1 == 1
+slti v0,a0,2 / bnez -> default
+beq  a0,v0 -> case2 ; beq a0,v0 -> case3 ; j default
+```
+
+That shape is the balanced split of **four** nodes (root 1, left `[0]`, right
+`[2,3]`): `emit_case_nodes` emits `beq 1`, then `bgt 1` to the right subtree,
+then the left subtree's `beq x,0`, then `j default`. Give `case 0:` the
+`default:` body and jump1 deletes the now-redundant `beq x,0` (conditional jump
+to the same place as the following unconditional one) and then inverts the
+jump-around-jump, leaving `slti`/`bnez` straight to the default:
+
+```c
+switch (work->field_EAC) {
+    case 1: ... break;
+    case 2: ... break;
+    case 3: ... break;
+    case 0:
+    default: return;
+}
+```
+
+An `if`/`else if` chain with an explicit `> 1` reproduces the same test order but
+not the layout: a chain interleaves each body after its test (`bne` around),
+while a switch emits every test first and branches *to* the bodies. Note also
+that a switch compares in the promoted index type, so it yields `slti`; the same
+`>` written on a `u8` field folds to the field's own unsigned type and yields
+`sltiu`, which is a quick way to tell the two apart in a diff.
+
+## An `int` temp stops CSE forwarding a byte store into the blocks below
+
+`work->field_EAE--` followed by `work->field_EAE & K` in several later blocks
+compiles to *no* load: cse1 records the store's value for that MEM, follows the
+dispatch branch into each case (`-fcse-follow-jumps`) and substitutes, so the
+`andi` reads the decrement's register. `func_actor_444000_8013A77C` reloads
+`lbu v0,0xEAE($s0)` at the head of all three cases, and the only difference is
+how the byte is read:
+
+```c
+/* forwarded: (set (reg:QI) (mem:QI)) - substituting gives a valid QI reg move */
+if ((work->field_EAE & 1) == 0) { ... }
+
+/* reloaded: (set (reg:SI) (zero_extend:SI (mem:QI))) - CSE cannot substitute there */
+phase = work->field_EAE;          /* phase is s32 */
+if ((phase & 1) == 0) { ... }
+```
+
+`field & const` lets expand skip the extension and load the byte into a QImode
+pseudo, and replacing that MEM with `(subreg:QI (reg:SI))` is a recognized move,
+so the load dies. Assigning to an `int` first forces the widening load, and the
+substitution CSE would have to make inside the `zero_extend` does not survive
+validation. Reach for this when a re-read of a field the function just wrote is
+the whole remaining diff; the knock-on effect is register allocation, because
+the stored value then dies at the store instead of staying live across the
+switch (here `$v1` became `$v0` and every address shifted).
+
+Two related shapes in the same function: the value handed to an `s8` parameter
+wants an `s32` local, so `amount = work->field_EAF` is `lb` straight into the
+argument register instead of a QImode move plus `sll`/`sra`; and a shared call
+after a switch is not the same as a call per case - see "sched1 sets the
+cross-jump boundary" - because cross-jumping stops just after the CALL_INSN when
+each case's argument insns hold different pseudos, which is what leaves three
+`lb a0,0xEAF; j <call>` tails feeding one `jal`.
