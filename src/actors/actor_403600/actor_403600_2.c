@@ -39,7 +39,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141954);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801419E8);
+void func_actor_403600_801419E8(Actor403600* arg0)
+{
+    TmdObject* obj;
+
+    obj                  = arg0->field_2C;
+    *(s8*)&obj->field_24 = -0xF;
+    obj->field_25        = 2;
+    if (obj->field_18 != NULL) {
+        Tmd_ProcessStream(obj);
+        Tmd_ProcessStream(obj);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141A34);
 
