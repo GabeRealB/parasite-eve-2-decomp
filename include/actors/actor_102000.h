@@ -7,6 +7,13 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+typedef struct Actor02000AnimRec {
+    /* 0x00 */ u16 field_0;
+    /* 0x02 */ u8  field_2;
+    /* 0x03 */ u8  field_3;
+} Actor02000AnimRec;
+STATIC_ASSERT_SIZEOF(Actor02000AnimRec, 4);
+
 /// 0x18-byte slot record; `Gp_InitRec18Table` zeroes `count` of them.
 typedef struct Actor02000Rec18 {
     /* 0x00 */ byte pad_0[0x18];
@@ -55,7 +62,7 @@ STATIC_ASSERT_SIZEOF(Actor02000ObjRec, 0x18);
 /// work block opens with the 0x14-byte animation context `func_800B3F84`
 /// fills in, so `Gp_AnimResetSlot` reaches these through it.
 typedef struct Actor02000AnimSlots {
-    /* 0x00 */ byte pad_0[0x2F8];
+    /* 0x00 */ byte slots[19][0x28];
 } Actor02000AnimSlots;
 STATIC_ASSERT_SIZEOF(Actor02000AnimSlots, 0x2F8);
 
@@ -90,7 +97,7 @@ typedef struct Actor02000Work {
     /* 0x69A */ byte                pad_69A[2];
     /* 0x69C */ s16                 field_69C;
     /* 0x69E */ s16                 field_69E;
-    /* 0x6A0 */ byte                pad_6A0[2];
+    /* 0x6A0 */ u16                 field_6A0;
     /* 0x6A2 */ s16                 field_6A2;
     /* 0x6A4 */ s16                 field_6A4;
     /* 0x6A6 */ s16                 field_6A6;

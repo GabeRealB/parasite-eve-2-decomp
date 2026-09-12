@@ -61656,3 +61656,9 @@ Path 1 keeps `move a0` / `j` / `li a1, 1`; the 2/3 diamond keeps `bnez` /
 `func_actor_400500_8013DB78` already shows the distance/angle test this
 function extends. `field_A32` is `s16` so the second group is `lh`; the first
 group's `>> 3` needs `(u16)` for `lhu` / `srl`.
+
+## Actor02000_Fn018A4: sharing a sound result prevents local load/result tying
+
+GCC 2.8.1 PSX: base_1 (99.789%, regs=4) used separate sound variables in two blocks. The permuter reused one variable; controlled base_2 removed the redundant copy and reproduced 100%. In base_1 `.lreg` the two results are block-local and table-load pseudos 117/144 receive s1. In base_2 result r81 spans blocks, dies twice, crosses four calls, and appears first in `.greg` global allocation order, assigned s1; table-load pseudos 116/143 now receive v1. Conversion scheduling stays exact. This is an eligibility change, not evidence of a priority inversion.
+
+Controlled input SHA256: 33d547923fe824112fe2747e445ef3c5b4bbf5967e6af9b4d4967ee2fb897c98; compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Retained evidence: tools/permuter_findings/Actor02000_Fn018A4/, session e532a05f57e94212a900e27a0a71c582, run 0e7a1a20636d4aec. The recorded base_2 prediction preceded its build; no pins or empty asm.

@@ -9,12 +9,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void Gp_ArmStateF0(s32 arg0);
-void Actor02000_Fn00CD0(Actor02000* arg0);
-s32  Gp_TickObjFlag2(void* arg0);
-s32  Gp_GetObjPan(void* arg0);
-s32  Gp_GetObjDepth(void* arg0);
-s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
+void               Gp_ArmStateF0(s32 arg0);
+void               Actor02000_Fn00CD0(Actor02000* arg0);
+s32                Gp_TickObjFlag2(void* arg0);
+s32                Gp_GetObjPan(void* arg0);
+s32                Gp_GetObjDepth(void* arg0);
+Actor02000AnimRec* Gp_AnimGetRec(Actor02000Work*, void*);
+s32                SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -321,7 +322,34 @@ done:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn01698);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn018A4);
+void Actor02000_Fn018A4(Actor02000* arg0)
+{
+    s32                snd;
+    s32                pan;
+    s32                pan2;
+    Actor02000Work*    work;
+    GsCOORDINATE2*     self;
+    Actor02000AnimRec* rec;
+
+    work = arg0->field_1C;
+    self = arg0->field_2C->field_8;
+    if (work->field_6D6 != 0) {
+        rec = Gp_AnimGetRec(work, &work->field_14.slots[1]);
+        if (rec != NULL) {
+            if (!(rec->field_3 & 0x20) && (work->field_6A0 & 0x20)) {
+                snd = Actor02000_D15DEC[work->field_6D6 * 2 - 1] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+            }
+            if (!(rec->field_3 & 0x10) && (work->field_6A0 & 0x10)) {
+                snd  = Actor02000_D15DEC[work->field_6D6 * 2] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan2 = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth(self));
+            }
+            work->field_6A0 = (u16)(rec->field_3 & 0x30);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn01A20);
 
