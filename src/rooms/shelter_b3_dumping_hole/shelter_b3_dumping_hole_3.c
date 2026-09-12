@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -164,7 +165,109 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DF90);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017E440);
+extern s16 D_shelter_b3_dumping_hole_80188184[];
+
+void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
+{
+    DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->idMap;
+    GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->field_8;
+    SVECTOR              vec;
+    s32                  sa1;
+    u32                  roll1;
+    u32                  roll2;
+    s32                  base18;
+    s16                  var0;
+    s16                  delta;
+
+    if (*(u16*)&D_shelter_b3_dumping_hole_8018F4A8->field_1C->field_48 == 1) {
+        Task_Kill(arg0);
+        return;
+    }
+
+    switch (arg0->state) {
+        case 0:
+            coord->sub = &Gfx_ViewCoord;
+            Gp_ComposeParentWorld((GsCOORDINATE2*)arg0->spawnArg2, &coord->coord, &vec);
+            coord->coord.t[0] = vec.vx;
+            coord->coord.t[1] = vec.vy;
+            coord->coord.t[2] = vec.vz;
+            arg0->idMap       = (TaskIdMap*)Mem_Malloc(0x24, 0);
+            if (arg0->idMap == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work = (DumpingHoleAnimWork*)arg0->idMap;
+            Mem_Set(work, 0, 0x24);
+            work->field_16 = -0xA;
+            work->field_14 = 0;
+            work->field_18 = 0;
+            work->field_8  = 0x1000;
+            work->field_14 = 0;
+            roll1          = Gp_LcgState * 5 + 0x71357911;
+            work->field_16 = 0xFFF1 - ((roll1 >> 16) & 7);
+            sa1            = arg0->spawnArg1;
+            Gp_LcgState    = roll1;
+            if (sa1 == 0) {
+                roll2       = roll1 * 5 + 0x71357911;
+                base18      = work->field_18;
+                Gp_LcgState = roll2;
+                if ((roll2 >> 16) & 1) {
+                    Gp_LcgState = roll2 * 5 + 0x71357911;
+                    var0        = base18 + ((Gp_LcgState >> 16) & 1);
+                } else {
+                    Gp_LcgState = roll2 * 5 + 0x71357911;
+                    var0        = base18 - ((Gp_LcgState >> 16) & 1);
+                }
+                work->field_18 = var0;
+            } else {
+                if (sa1 < 0) {
+                    Gp_LcgState = roll1 * 5 + 0x71357911;
+                    delta       = *(u16*)&work->field_18 + ((u16)arg0->spawnArg1 - ((Gp_LcgState >> 16) & 1));
+                } else {
+                    Gp_LcgState = roll1 * 5 + 0x71357911;
+                    delta       = *(u16*)&work->field_18 + ((u16)arg0->spawnArg1 + ((Gp_LcgState >> 16) & 1));
+                }
+                work->field_18 = delta;
+            }
+            work->field_1C = 0;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_20 = (Gp_LcgState >> 16) & 7;
+            arg0->state++;
+            return;
+        case 1:
+            if (work->field_20 == 0) {
+                arg0->state = 2;
+            } else {
+                work->field_20--;
+            }
+            return;
+        case 2: {
+            s32 t1e        = work->field_1E + 1;
+            work->field_1E = t1e;
+            if (D_shelter_b3_dumping_hole_80188184[work->field_1C] < (s16)t1e) {
+                *(u16*)&work->field_1C = *(u16*)&work->field_1C + 1;
+                work->field_1E         = 0;
+                if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0 == 0xFFFF) {
+                    Task_Kill(arg0);
+                    return;
+                }
+            }
+            coord->coord.t[1] += work->field_16;
+            coord->coord.t[2] += work->field_18;
+            func_shelter_b3_dumping_hole_8017DA00(
+                coord,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_8,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_A,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_2,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_6,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_4,
+                work->field_8, 0x43C0, 0);
+            coord->flg = 0;
+            return;
+        }
+    }
+}
 
 typedef struct {
     s32 field_0;
