@@ -12,6 +12,7 @@
 #include <psyq/inline_c.h>
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtir_real()  __asm__ volatile("nop; nop; .word 0x4A49E012")
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
         "lhu $12, %2(%0);"                                 \
@@ -114,7 +115,62 @@ void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1)
     *(VECTOR**)G_SCRATCH_HEAD = (VECTOR*)((u8*)*(VECTOR**)G_SCRATCH_HEAD + 0x10);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141338);
+void func_actor_403600_80141338(Actor403600* arg0)
+{
+    Actor403600Work*      work;
+    GsCOORDINATE2*        coord;
+    MATRIX*               block;
+    MATRIX*               head;
+    s16                   value;
+    s16                   decrement;
+    s16                   increment;
+    register Actor403600* actor asm("v1");
+    register MATRIX*      matrixArg asm("a1");
+
+    head = *(MATRIX**)G_SCRATCH_HEAD;
+    SOFT_BARRIER();
+    block                     = (MATRIX*)((u8*)head - 0x20);
+    *(MATRIX**)G_SCRATCH_HEAD = block;
+    matrixArg                 = block;
+    actor                     = arg0;
+    SOFT_USE_REG2(block, block);
+    work  = actor->field_1C;
+    coord = actor->field_2C->field_8;
+    RotMatrix((SVECTOR*)&work->field_700, matrixArg);
+
+    gte_SetRotMatrix((u8*)coord + 0xA4);
+    gte_ldclmv(block);
+    gte_rtir_real();
+    gte_stclmv((u8*)coord + 0xA4);
+
+    gte_ldclmv((u8*)block + 2);
+    gte_rtir_real();
+    gte_stclmv((u8*)coord + 0xA6);
+
+    gte_ldclmv((u8*)block + 4);
+    gte_rtir_real();
+    gte_stclmv((u8*)coord + 0xA8);
+
+    value = work->field_700;
+    if (value != 0) {
+        if (value >= 0x20) {
+            decrement       = (u16)work->field_700 - 0x20;
+            work->field_700 = decrement;
+            if ((decrement << 0x10) <= 0) {
+                work->field_700 = 0;
+            }
+        }
+        if (work->field_700 < 0x21) {
+            increment       = (u16)work->field_700 + 0x20;
+            work->field_700 = increment;
+            if ((increment << 0x10) >= 0) {
+                work->field_700 = 0;
+            }
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
 
 void func_actor_403600_801414FC(Actor403600* arg0)
 {
