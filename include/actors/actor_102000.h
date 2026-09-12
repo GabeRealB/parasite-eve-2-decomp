@@ -184,6 +184,12 @@ typedef struct Actor02000 {
     /* 0x30 */ s32             field_30;
 } Actor02000;
 
+typedef struct {
+    void (*funcs[3])(Actor02000Ctx*, Actor02000*);
+} Actor02000StateFuncTable3;
+
+extern Actor02000StateFuncTable3 Actor02000_D0006C;
+
 /// Location key `Actor02000_Fn0251C` copies out of the session block before
 /// looking up the spawned model's texture page and CLUT row (the gameplay
 /// `GpAreaKey`; `Gp_SyncAreaKeyIndex` fills in `field_5`).

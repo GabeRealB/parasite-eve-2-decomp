@@ -968,4 +968,10 @@ void Actor02000_Fn03690(void* arg0, Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn03728);
+void Actor02000_Fn03728(Actor02000* arg0)
+{
+    Actor02000StateFuncTable3 sp;
+
+    sp = Actor02000_D0006C;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
