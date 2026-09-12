@@ -1785,7 +1785,43 @@ void func_actor_400500_80138CE8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80138DC4);
+void func_actor_400500_80138DC4(Task* arg0)
+{
+    Actor400500HitView* hit;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500Work*    work3;
+    s32                 cond;
+    s32                 flag;
+    u32                 rnd;
+
+    hit = (Actor400500HitView*)arg0->idMap;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work = (Actor400500Work*)arg0->idMap;
+        if (((work->field_A46 >= 0) || ((u8)work->field_A46 & 0x7F)) && (work->field_A30 == 0)) {
+            flag            = 0x80;
+            work->field_A46 = flag;
+            work->field_A47 = 0;
+        }
+        ((Actor400500Work*)hit)->field_A32 = 0x3C;
+        rnd                                = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState                        = rnd;
+        if (!((rnd >> 0x10) & 3)) {
+            work2            = (Actor400500Work*)arg0->idMap;
+            work2->field_A06 = 0;
+            work2->field_A08 = 0;
+            return;
+        }
+        work3            = (Actor400500Work*)arg0->idMap;
+        work3->field_A06 = 8;
+        work3->field_A08 = 0;
+    }
+}
 
 extern TaskFuncTable4 D_actor_400500_80131F1C;
 
