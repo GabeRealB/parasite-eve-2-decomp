@@ -62044,3 +62044,31 @@ That emits `lw`, `sb`, `sh` in source order and the delay slot fills for free.
 Generally: when a load and an independent store must interleave and the
 scheduler refuses, the aliasing question is the obstacle, and hoisting the load
 into a named temp is the way to state the order the compiler will not infer.
+
+## Promoting a shared body mid-overlay renumbers units, and `bodies_of()` drops doc comments
+
+`overlay_dup_index.py promote` writes the `shared` span into the manifest, but a
+span in the *middle* of an overlay splits the unit that contained it and shifts
+every later unit up by one. splat then creates only the one new tail unit and
+leaves the existing `.c` files untouched, so `actor_444000_3.c` still holds what
+is now `actor_444000_4`'s address range. The build stays green — every body it
+holds is still an `INCLUDE_ASM` or a matching C definition somewhere — while the
+linker script and the sources disagree about which object owns what.
+
+Hand-shuffling the files is the tempting fix and it is wrong when the overlay has
+a single leading `.rodata` subsegment owned by the first code unit: the
+`INCLUDE_RODATA` lines move with the tail and land in an object the linker script
+places elsewhere. Delete every affected `.c` in both carriers, re-split, and let
+splat place the rodata itself.
+
+Snapshot the bodies first, but know what the snapshot loses. `bodies_of()` in
+`tools/land_overlay.py` matches from the function signature, so a `///` block
+above a definition is **not** captured and vanishes when the body is reinserted.
+Collect the preceding comment lines separately and re-attach them. The file
+header (includes, `extern`s, forward declarations) is not captured either;
+re-inject it and leave a blank line before the first definition, or
+clang-format folds the definition into the preceding `extern` group and pads its
+return type out to the alignment column.
+
+`tools/check_lost_matches.py` catches a dropped *body*; it does not catch either
+of these, because the code still compiles to the same bytes.

@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Per-actor work block for the enemy task `D_actor_444000_80161878` points
@@ -17,29 +18,58 @@
 /// `func_actor_444000_80143490` writes the byte at 0xEAC. The remaining named
 /// fields are the block `func_actor_444000_801435CC` re-arms when `field_4` is
 /// set. Fill in the padding as the remaining functions are matched.
+///
+/// 0xC..0x784 is six back-to-back animation blocks, each a `GpAnimCtx` followed
+/// by its own `GpAnimSlot[N]` and an N-entry 0x10-byte table -- the three
+/// argument groups `func_actor_444000_8013AFF8` hands to `func_800B3F84`, which
+/// is what anchors every offset here. They pair up (0/1, 2/3, 4/5) with eight
+/// slots in the first pair and four in the others;
+/// `func_actor_444000_80133F64` seeds the even member's slots while resetting
+/// the odd member's.
 typedef struct Actor444000Work {
-    /* 0x000 */ u16  field_0;  // state index
-    /* 0x002 */ byte pad_2[0x2];
-    /* 0x004 */ s16  field_4;  // reset request: non-zero makes func_actor_444000_801435CC re-arm the block
-    /* 0x006 */ s16  field_6;  // sub-state counter, cleared by that reset and compared against 0xA
-    /* 0x008 */ byte pad_8[0x50];
-    /* 0x058 */ u16  field_58; // flag word; bit 0 drives field_0 to state 9
-    /* 0x05A */ byte pad_5A[0x756];
-    /* 0x7B0 */ s8   field_7B0;
-    /* 0x7B1 */ byte pad_7B1[0x2];
-    /* 0x7B3 */ s8   field_7B3;
-    /* 0x7B4 */ byte pad_7B4[0x2];
-    /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ byte pad_7B8[0x6F4];
-    /* 0xEAC */ s8   field_EAC;
-    /* 0xEAD */ byte pad_EAD[0x47];
-    /* 0xEF4 */ s16  field_EF4;
-    /* 0xEF6 */ s16  field_EF6;
-    /* 0xEF8 */ byte pad_EF8[0x2];
-    /* 0xEFA */ s16  field_EFA;
-    /* 0xEFC */ byte pad_EFC[0x2];
-    /* 0xEFE */ s16  field_EFE;
-    /* 0xF00 */ byte pad_F00[0x24];
+    /* 0x000 */ u16        field_0; // state index
+    /* 0x002 */ byte       pad_2[0x2];
+    /* 0x004 */ s16        field_4; // reset request: non-zero makes func_actor_444000_801435CC re-arm the block
+    /* 0x006 */ s16        field_6; // sub-state counter, cleared by that reset and compared against 0xA
+    /* 0x008 */ byte       pad_8[0x4];
+    /* 0x00C */ GpAnimCtx  anim0;
+    /* 0x020 */ GpAnimSlot slots0[8];
+    /* 0x160 */ byte       aux0[0x80]; // GpAnimCtx::field_8, one 0x10-byte record per slot
+    /* 0x1E0 */ GpAnimCtx  anim1;
+    /* 0x1F4 */ GpAnimSlot slots1[8];
+    /* 0x334 */ byte       aux1[0x80];
+    /* 0x3B4 */ GpAnimCtx  anim2;
+    /* 0x3C8 */ GpAnimSlot slots2[4];
+    /* 0x468 */ byte       aux2[0x40];
+    /* 0x4A8 */ GpAnimCtx  anim3;
+    /* 0x4BC */ GpAnimSlot slots3[4];
+    /* 0x55C */ byte       aux3[0x40];
+    /* 0x59C */ GpAnimCtx  anim4;
+    /* 0x5B0 */ GpAnimSlot slots4[4];
+    /* 0x650 */ byte       aux4[0x40];
+    /* 0x690 */ GpAnimCtx  anim5;
+    /* 0x6A4 */ GpAnimSlot slots5[4];
+    /* 0x744 */ byte       aux5[0x40];
+    /* 0x784 */ byte       pad_784[0x2C];
+    /* 0x7B0 */ s8         field_7B0;
+    /* 0x7B1 */ byte       pad_7B1[0x2];
+    /* 0x7B3 */ s8         field_7B3;
+    /* 0x7B4 */ byte       pad_7B4[0x2];
+    /* 0x7B6 */ s16        field_7B6;
+    /* 0x7B8 */ byte       pad_7B8[0x4];
+    /* 0x7BC */ s16        field_7BC; // animation id the slot resets seed from
+    /* 0x7BE */ s16        field_7BE; // GpAnimSlot::field_9 the resets seed with
+    /* 0x7C0 */ s16        field_7C0;
+    /* 0x7C2 */ byte       pad_7C2[0x6EA];
+    /* 0xEAC */ s8         field_EAC;
+    /* 0xEAD */ byte       pad_EAD[0x47];
+    /* 0xEF4 */ s16        field_EF4;
+    /* 0xEF6 */ s16        field_EF6;
+    /* 0xEF8 */ byte       pad_EF8[0x2];
+    /* 0xEFA */ s16        field_EFA;
+    /* 0xEFC */ byte       pad_EFC[0x2];
+    /* 0xEFE */ s16        field_EFE;
+    /* 0xF00 */ byte       pad_F00[0x24];
 } Actor444000Work;
 STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 
