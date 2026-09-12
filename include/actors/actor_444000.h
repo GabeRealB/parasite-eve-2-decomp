@@ -11,16 +11,35 @@
 ///
 /// `func_actor_444000_8013AFF8` allocates it with `Mem_Calloc(0xF24, 0)` and
 /// stores the result in that slot, so the size below is the allocation rather
-/// than a guess. Only two fields are known so far: the leading state word,
-/// which `func_actor_444000_80143D7C` reads with `lhu` and range-checks and
-/// the 0x7D9 message handler `func_actor_444000_80143F38` clears, and the
-/// byte at 0xEAC written by `func_actor_444000_80143490`. Fill in the padding
-/// as the remaining functions are matched.
+/// than a guess. `field_0` is the leading state word, which
+/// `func_actor_444000_80143D7C` reads with `lhu` and range-checks and the
+/// 0x7D9 message handler `func_actor_444000_80143F38` clears;
+/// `func_actor_444000_80143490` writes the byte at 0xEAC. The remaining named
+/// fields are the block `func_actor_444000_801435CC` re-arms when `field_4` is
+/// set. Fill in the padding as the remaining functions are matched.
 typedef struct Actor444000Work {
-    /* 0x000 */ u16  field_0; // state index
-    /* 0x002 */ byte pad_2[0xEAA];
+    /* 0x000 */ u16  field_0;  // state index
+    /* 0x002 */ byte pad_2[0x2];
+    /* 0x004 */ s16  field_4;  // reset request: non-zero makes func_actor_444000_801435CC re-arm the block
+    /* 0x006 */ s16  field_6;  // sub-state counter, cleared by that reset and compared against 0xA
+    /* 0x008 */ byte pad_8[0x50];
+    /* 0x058 */ u16  field_58; // flag word; bit 0 drives field_0 to state 9
+    /* 0x05A */ byte pad_5A[0x756];
+    /* 0x7B0 */ s8   field_7B0;
+    /* 0x7B1 */ byte pad_7B1[0x2];
+    /* 0x7B3 */ s8   field_7B3;
+    /* 0x7B4 */ byte pad_7B4[0x2];
+    /* 0x7B6 */ s16  field_7B6;
+    /* 0x7B8 */ byte pad_7B8[0x6F4];
     /* 0xEAC */ s8   field_EAC;
-    /* 0xEAD */ byte pad_EAD[0x77];
+    /* 0xEAD */ byte pad_EAD[0x47];
+    /* 0xEF4 */ s16  field_EF4;
+    /* 0xEF6 */ s16  field_EF6;
+    /* 0xEF8 */ byte pad_EF8[0x2];
+    /* 0xEFA */ s16  field_EFA;
+    /* 0xEFC */ byte pad_EFC[0x2];
+    /* 0xEFE */ s16  field_EFE;
+    /* 0xF00 */ byte pad_F00[0x24];
 } Actor444000Work;
 STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 
@@ -52,11 +71,16 @@ typedef struct Actor444000EventWork {
 STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 
 /// Body/collision object the actor task carries at +0x20 (the `Task::spawnArg2`
-/// slot). Only the halfword at 0x40 is known so far: it is the remaining HP,
-/// tested for `> 0` by `func_actor_444000_80143D68` and topped back up by
-/// `func_actor_444000_80143E68`.
+/// slot). The halfword at 0x40 is the remaining HP, tested for `> 0` by
+/// `func_actor_444000_80143D68` and topped back up by
+/// `func_actor_444000_80143E68`; `field_8` and `field_14` are the two slots
+/// `func_actor_444000_801435CC` touches.
 typedef struct Actor444000Obj {
-    /* 0x00 */ byte pad_0[0x40];
+    /* 0x00 */ byte pad_0[0x8];
+    /* 0x08 */ u16  field_8; // high nibble selects the sound-event variant
+    /* 0x0A */ byte pad_A[0xA];
+    /* 0x14 */ s8   field_14;
+    /* 0x15 */ byte pad_15[0x2B];
     /* 0x40 */ s16  field_40; // remaining HP
 } Actor444000Obj;
 

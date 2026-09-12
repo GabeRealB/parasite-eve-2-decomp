@@ -61973,3 +61973,74 @@ element's sub-type for free. `GpObj` + a `GpRec18` table is a recurring shape in
 this family (`ActorShared8014ca28Work` is the same idea with per-node table
 lengths of 1/4/1/1), so a 0x38/0x50/0x98 stride around a `GpObj` is worth
 testing against it first.
+
+## The declared width of a `(s8)`-cast call result decides *where* the `sll`/`sra` lands
+
+`func_actor_444000_801435CC` reads a pan value from `Gp_GetObjPan` (which
+returns `s32`), narrows it to a byte and hands it to `SndEvt_EnqueueType6`.
+The target sign-extends immediately after the call, in the *next* call's delay
+slot:
+
+```
+jal     Gp_GetObjPan
+...
+sll     $s1, $v0, 24
+lw      $a0, 0x8($v1)
+jal     Gp_GetObjDepth
+ sra    $s1, $s1, 24
+```
+
+Writing the obvious `s8 pan; pan = (s8)Gp_GetObjPan(...);` does *not* produce
+that. GCC 2.8.1 keeps an `s8` local in QImode, so the assignment is a bare
+`move s1,v0` and the widening is deferred to the point of use — it reappears as
+`sll s1,s1,24 / sra a1,s1,24` sitting in the argument setup for the enqueue
+call, two instructions out of place and one `move` too many. Declaring the temp
+**`s32`** while keeping the cast on the value materialises the extension at the
+assignment, which is what the target shows:
+
+```c
+s32 pan;
+
+pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+```
+
+The third argument stays an inline `(s8)` cast, and *there* the extension does
+belong at the call site (`sll v0,v0,24 / sra a2,v0,24`). So the rule is
+positional, not stylistic: a named temp wants the wide type plus the cast, a
+directly-passed value wants the cast alone. This is the missing half of "Split
+a per-call-block temp so `local-alloc` takes `$s0`" above — that entry gets the
+register right, this one gets the instruction's position right.
+
+## Name the loaded pointer when a store has to fill its load delay slot
+
+The same function opens its guarded block with
+
+```
+lw      $v0, 0x2C($s3)
+sb      $zero, 0x14($a0)
+sh      $zero, 0xC($v0)
+```
+
+— the unrelated `sb` fills the load's delay slot. Neither source ordering of the
+two stores reproduces it. Writing `((TmdObject*)arg0->extra)->field_C = 0;`
+first gives `lw / nop / sh / li / sb`; writing `obj->field_14 = 0;` first gives
+`sb / lw / nop / sh`. The scheduler cannot fix either, because it will not move
+a store across a load or another store whose base pointers it cannot
+disambiguate, and `arg0->extra` and `arg0->field_20` are both anonymous
+pointers out of the same object.
+
+The fix is to make the RTL come out in the target's order to begin with, by
+giving the loaded pointer its own local so the load is a statement of its own
+ahead of both stores:
+
+```c
+tmd           = (TmdObject*)arg0->extra;
+obj->field_14 = 0;
+tmd->field_C  = 0;
+```
+
+That emits `lw`, `sb`, `sh` in source order and the delay slot fills for free.
+Generally: when a load and an independent store must interleave and the
+scheduler refuses, the aliasing question is the obstacle, and hoisting the load
+into a named temp is the way to state the order the compiler will not infer.
