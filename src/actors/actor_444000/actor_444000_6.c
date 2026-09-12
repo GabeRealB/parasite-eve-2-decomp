@@ -8,6 +8,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -69,6 +70,13 @@ extern s32 D_actor_444000_80144A7C;
 extern s32 D_actor_444000_80144A84;
 extern s32 D_actor_444000_80144A8C;
 extern s32 Gp_LcgState;
+
+/// The halfword at `D_actor_444000_80161888 + 2` under its own label: the
+/// escort-spawn tick reaches the action selector both ways, so both names are
+/// declared (see DECOMPILATION_LEARNINGS.md, "A second label on the same run").
+extern s16 D_actor_444000_8016188A;
+/// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
+extern TaskDesc D_80172604;
 
 /// Camera-target matrix the scene walks the player along; the fight yaws the
 /// boss at its translation.
@@ -2560,7 +2568,206 @@ void func_actor_444000_801411C8(Actor444000* arg0)
     SCRATCH_SP += sizeof(Actor444000HitScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80141618);
+/// Escort-spawn tick of the arena fight: re-arms the block on request and, on
+/// that first pass, tops the two escort slots (`field_EE8`) back up to two live
+/// enemies, seeding each one's model texture page from the current area record
+/// and stamping its slot index into `GpEnemy::field_8`. Every tick it then
+/// yaws the host at the player, and at sub-state 0x46 / 0x78 it sends escort 0
+/// or 1 a 0x7DB order whose action is picked from `field_F08` and a coin flip.
+void func_actor_444000_80141618(Actor444000* task)
+{
+    Actor444000SpawnScratch* sc;
+    Actor444000Work*         work;
+    GpEnemy*                 host;
+    GpEnemy*                 escort;
+    WipSysConfig*            cfg;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+    TmdObject*               model;
+    GpCdRec10*               entry;
+    GpAreaKey                key;
+    GpAreaKey*               sessionKey;
+    s32                      cueId;
+    s32                      cuePan;
+    s32                      blastId;
+    s32                      blastPan;
+    s32                      rnd;
+    s32                      state;
+    s16                      angle;
+    u32                      frame;
+
+    sc   = (Actor444000SpawnScratch*)(SCRATCH_SP -= sizeof(Actor444000SpawnScratch));
+    work = task->field_1C;
+    host = task->field_20;
+    if (work->field_4 != 0) {
+        work->field_EF4 = 0;
+        work->field_EF6 = 1;
+        state           = work->field_7B3;
+        work->field_7B6 = 0x10;
+        work->field_EFA = 0;
+        if (state != 0x13) {
+            work->field_7B3 = 0x13;
+            work->field_7B0 = 1;
+        } else {
+            work->field_7B0 = 2;
+            work->field_7B3 = state;
+        }
+        for (sc->i = 0; sc->i < 2; sc->i++) {
+            if (work->field_EE8[sc->i] == NULL && (u8)work->field_F1B < 8 && work->field_F08 < 6) {
+                work->field_EE8[sc->i] = Gp_SpawnEnemyFromTable(&D_80172604, 3, 2, NULL);
+                if (work->field_EE8[sc->i] != NULL) {
+                    work->field_F1B++;
+                    model       = (TmdObject*)work->field_EE8[sc->i]->task->extra;
+                    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+                    key.field_3 = sessionKey->field_3;
+                    key.field_2 = sessionKey->field_2;
+                    key.field_1 = sessionKey->field_1;
+                    key.field_0 = sessionKey->field_0;
+                    Gp_SyncAreaKeyIndex(&key);
+                    entry           = (GpCdRec10*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x20);
+                    model->field_24 = entry->field_D;
+                    model->field_25 = entry->field_E;
+                    if (model->field_18 != NULL) {
+                        Tmd_ProcessStream(model);
+                        Tmd_ProcessStream(model);
+                    }
+                    work->field_EE8[sc->i]->field_A = 0x900;
+                    escort                          = work->field_EE8[sc->i];
+                    escort->field_8                |= sc->i << 12;
+                    work->field_F1C++;
+                }
+            }
+        }
+        work->field_E96 = 0xC80;
+        SndEvt_EnqueueType7((((u16)host->field_8 >> 12) << 8) | 0x4020000D, 1);
+    }
+    if (D_actor_444000_80144A70 >= 0x191) {
+        D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+    }
+    func_actor_444000_8013441C(task);
+    if (work->field_7B3 == 0x13 && (frame = work->slots0[1].field_2 & 0x3FF) >= 4 && frame < 0xD) {
+        work->field_EFA = 1;
+    } else {
+        work->field_EFA = 0;
+    }
+    cfg          = &Wip_SysConfig;
+    coord        = ((TmdObject*)task->extra)->field_8;
+    sc->delta.vx = cfg->field_4->t[0] - coord->coord.t[0];
+    sc->delta.vy = cfg->field_4->t[1] - coord->coord.t[1];
+    sc->delta.vz = cfg->field_4->t[2] - coord->coord.t[2];
+    facing       = ((TmdObject*)task->extra)->field_8;
+    angle        = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = angle;
+    if ((work->slots0[1].field_10 & 1) && work->field_7B3 == 0x13) {
+        work->field_7B3 = 1;
+        work->field_7B0 = 1;
+        work->field_7B6 = 0x10;
+        func_actor_444000_8013441C(task);
+    }
+    if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && work->field_F1C == 0)) {
+        work->field_0 = 3;
+    }
+    if (work->field_6 == 6) {
+        cueId  = (((u16)host->field_8 >> 12) << 8) | 0x40200004;
+        cuePan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(cueId, cuePan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+    }
+    if (work->field_6 == 0x3B) {
+        blastId  = (((u16)host->field_8 >> 12) << 8) | 0x40200010;
+        blastPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(blastId, blastPan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8) / 2));
+        work->field_EAC = 3;
+        Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
+    }
+    if (work->field_6 != 0x46 && work->field_6 != 0x78) {
+        goto out;
+    }
+    if (work->field_6 == 0x46) {
+        sc->i = 0;
+    } else {
+        sc->i = 1;
+    }
+    if (work->field_EE8[sc->i] != NULL && work->field_F08 < 6) {
+        D_actor_444000_80161888.field_0 = 0;
+        D_actor_444000_80161888.field_1 = 0x2C;
+        switch (work->field_F08) {
+            case 0:
+            case 1:
+                if (sc->i == 0) {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_444000_8016188A = 3;
+                    } else {
+                        D_actor_444000_8016188A = 4;
+                    }
+                } else {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_444000_8016188A = 5;
+                    } else {
+                        D_actor_444000_8016188A = 6;
+                    }
+                }
+                break;
+            case 2:
+            case 3:
+                if (sc->i == 0) {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_444000_8016188A = 0xd;
+                    } else {
+                        D_actor_444000_8016188A = 8;
+                    }
+                } else {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_444000_8016188A = 7;
+                    } else {
+                        D_actor_444000_8016188A = 0xe;
+                    }
+                }
+                break;
+            case 4:
+            case 5:
+                if (sc->i == 0) {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if ((((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_444000_8016188A = 9;
+                    } else {
+                        D_actor_444000_8016188A = 0xf;
+                    }
+                } else {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_444000_8016188A = 9;
+                    } else {
+                        D_actor_444000_8016188A = 0xf;
+                    }
+                }
+                break;
+        }
+        D_actor_444000_80161888.field_2  = (u16)D_actor_444000_80161888.field_2 << 8;
+        rnd                              = (Gp_LcgState * 5) + 0x71357911;
+        D_actor_444000_80161888.field_2 |= ((((u32)rnd >> 16) % 3) * 0x10) | 1;
+        Gp_LcgState                      = rnd;
+        Gp_DispatchMsg(work->field_EE8[sc->i]->task, 0x7DB, (s32)&D_actor_444000_80161888, 0);
+    }
+out:
+    SCRATCH_SP += sizeof(Actor444000SpawnScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80141DFC);
 

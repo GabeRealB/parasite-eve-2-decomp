@@ -64359,3 +64359,114 @@ j     .L2
 Same instruction count either way, so the give-away in a target is the extra
 block plus the unfilled branch slot - `.diagnosis.json` reports one block too
 few before it reports anything about registers.
+
+## `jump.c`'s "if (foo) bar; else break;" swap rules out two obvious dispatches
+
+`func_actor_444000_80141618` picks an escort slot from a sub-state, and the
+target lays the two arms out with the dispatch first and the `0` arm *before*
+the `1` arm:
+
+```
+        beq   $v1, $v0, A        # field_6 == 0x46
+         addiu $v0, $zero, 0x78
+        bne   $v1, $v0, OUT      # field_6 != 0x78
+         lui  $v1, 0x1F80
+        j     B
+         addiu $v0, $zero, 1
+A:      j     C
+         sh   $zero, 0xA($s3)
+B:      sh    $v0, 0xA($s3)
+C:
+```
+
+Neither obvious source produces it. A two-case `switch` gives the right block
+order but the wrong second branch: `emit_case_nodes` reaches a single-valued
+leaf through `do_jump_if_equal`, which only ever emits `beq`, so the tail is
+`beq 0x78, B; j OUT`. An `if / else if / else goto` gives the right `bne ... ,
+OUT` (the pass-1 jump-around-jump inversion) but the wrong block order: the
+`0` arm ends up inline before the `0x78` test. Every goto spelling of the
+second shape - explicit `else`, a `goto` into the other arm, a trailing
+`goto` after the `if` - collapses to the same layout, because `jump_optimize`
+normalises it:
+
+```c
+/* Look for   if (foo) bar; else break;  */
+  insn = condjump label1; ...range1...; jump label2;
+  label1: ...range2...; jump somewhere unconditionally; label2:
+```
+
+`jump.c` inverts the condition and **swaps range1 and range2 in place**. Its
+guards are `LABEL_NUSES (label1) == 1`, `label1 == next_label (insn)`,
+`range1end` a simplejump to `label2`, and `range2end` a jump followed by a
+barrier - which the wanted layout satisfies, so it cannot survive. (The swap is
+also skipped on the first iteration of `jump_optimize`'s `while (changed)`
+loop, but the inner inversion sets `changed`, so a second iteration always
+runs.)
+
+The shape that does match is the short-circuit guard plus a separate test:
+
+```c
+    if (work->field_6 != 0x46 && work->field_6 != 0x78) {
+        goto out;
+    }
+    if (work->field_6 == 0x46) {
+        sc->i = 0;
+    } else {
+        sc->i = 1;
+    }
+```
+
+`do_jump` on `TRUTH_ANDIF_EXPR` with no `if_false_label` invents a
+drop-through label, giving `beq 0x46, DT` then `bne 0x78, OUT` - the exact
+pair, with the polarity that needed an inversion in the other shape. `DT`
+survives as a real label between the first branch and its target, so the swap's
+`label1 == next_label (insn)` guard fails and the layout sticks. `thread_jumps`
+then folds the third comparison away: on the edge from `beq 0x46` the following
+`bne 0x46` is known not taken, so the branch is redirected straight at the
+`sc->i = 0` block, and the fall-through edge (where the value is 0x78) is
+redirected at the `sc->i = 1` block. Three source comparisons, two in the
+object.
+
+When a branch polarity and a block order cannot be satisfied at once, look for
+a `&&` / `||` guard: its drop-through label is what keeps `jump.c` from
+rewriting the layout, and jump threading pays for the extra test.
+
+## Separate the constant from its store to move only the `li` in sched1
+
+Same function, last instruction pair. The target opens its block with
+`addiu $a0, $zero, 1` *before* the `lb` that feeds the block's branch, yet
+stores that `1` third:
+
+```
+        addiu $a0, $zero, 0x1
+        lb    $v1, 0x7B3($s2)
+        addiu $v0, $zero, 0x10
+        sh    $v0, 0x7B6($s2)
+        addiu $v0, $zero, 0x13
+        sh    $zero, 0xEF4($s2)
+        sh    $a0, 0xEF6($s2)
+```
+
+sched1 ranks the constant loads above the stores (they have a dependent) and
+breaks the remaining ties on `INSN_LUID`, i.e. source order. So the `1` has to
+be created by the first statement - but writing `work->field_EF6 = 1;` first
+drags `sh 0xEF6` ahead of `sh 0xEF4` with it, because the store inherits the
+same low luid. A local holding the constant does not help: CSE propagates it
+back into both uses and the `li` re-materialises at the store.
+
+The fix is to give the *preceding* store the lowest luid and let priority, not
+luid, win the first slot:
+
+```c
+    work->field_EF4 = 0;   /* sh $zero - priority 1, lowest luid */
+    work->field_EF6 = 1;   /* li 1 - priority 2, picked first anyway */
+    state           = work->field_7B3;
+    work->field_7B6 = 0x10;
+    work->field_EFA = 0;
+```
+
+The zero store has no dependent, so it loses the first cycle to the constant
+even with a lower luid, while the two `sh` instructions keep their source
+order. Ordering a run of field writes is a real degree of freedom when the
+stores are provably disjoint; read the emitted order as luid order *among equal
+priorities* rather than as the source order itself.

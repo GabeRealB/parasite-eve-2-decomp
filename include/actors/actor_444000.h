@@ -550,6 +550,17 @@ typedef struct Actor444000HitScratch {
 } Actor444000HitScratch;
 STATIC_ASSERT_SIZEOF(Actor444000HitScratch, 0x30);
 
+/// 0xC-byte scratchpad frame `func_actor_444000_80141618` carves off
+/// `G_SCRATCH_HEAD` for the escort-spawn tick: `delta` is the player-relative
+/// offset the tick yaws the host by, and `i` is the escort slot the loop and
+/// the 0x7DB message both index `Actor444000Work::field_EE8` with.
+typedef struct Actor444000SpawnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ byte    pad_8[0x2];
+    /* 0xA */ s16     i; // escort slot, 0 or 1
+} Actor444000SpawnScratch;
+STATIC_ASSERT_SIZEOF(Actor444000SpawnScratch, 0xC);
+
 /// 0x14-byte scratchpad frame `func_actor_444000_80132B14` carves off
 /// `G_SCRATCH_HEAD`: the `GpDeltaScratch` it hands `func_800E0C10` plus the
 /// "did the frame actually move" flag it returns.
