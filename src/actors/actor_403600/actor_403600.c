@@ -31,6 +31,7 @@ extern s32      D_actor_403600_80160698;
 extern s32      D_actor_403600_8016069C;
 extern s32      D_actor_403600_801606A0;
 extern Task*    D_actor_403600_801606A8;
+extern GpU16Pair D_actor_403600_80150EB0;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -1043,7 +1044,150 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_801320A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801400BC);
+void func_actor_403600_801400BC(Actor403600* arg0)
+{
+    u32              sp10;
+    s32              sp14;
+    s16              temp_v1;
+    s32              temp_s2;
+    s32              temp_v0;
+    s32              temp_v1_2;
+    s32              var_v0;
+    s32              var_v0_2;
+    s32              var_v0_3;
+    s32              temp_s0_2;
+    s32              temp_s0_4;
+    u32              temp_v0_2;
+    u32              temp_v0_3;
+    GsCOORDINATE2*   temp_s0;
+    GsCOORDINATE2*   temp_s0_3;
+    Actor403600Work* temp_s1;
+
+    temp_s1 = arg0->field_1C;
+    temp_v1 = temp_s1->field_73E;
+    switch (temp_v1) {
+        case 0:
+            temp_s1->field_736 = 1;
+            temp_s1->field_73C = 0U;
+            temp_s1->field_74A = 0;
+            if (temp_s1->field_73A >= 0x1E) {
+                temp_s1->field_73E = 1;
+                temp_s1->field_73A = 0;
+                return;
+            }
+        default:
+            return;
+        case 1:
+            func_actor_403600_8013DDF4(arg0, 0);
+            temp_s1->field_736 = 2;
+            temp_s1->field_73C = temp_s1->field_750;
+            temp_v1_2          = D_80073B8C->t[1];
+            temp_v0            = temp_s1->field_4B8.coord.t[1] + 0x3E8;
+            temp_s1->field_74A = (s16)((temp_v1_2 - temp_v0) / 25);
+            func_actor_403600_8013E470(&temp_s1->field_4B8, (s32*)&sp10, &sp14);
+            if (sp10 < 0x835U) {
+                var_v0 = sp14;
+                if (var_v0 < 0) {
+                    var_v0 = -var_v0;
+                }
+                if (var_v0 < 0x400) {
+                    temp_s1->field_756 = 0;
+                    temp_s1->field_73C = 0U;
+                    temp_s1->field_73A = 0;
+                    temp_s1->field_73E = 4;
+                    return;
+                }
+            }
+            break;
+        case 3:
+            temp_s1->field_588.field_18 = Gp_PackPair(&D_actor_403600_80150EB0, 0);
+            temp_s1->field_736          = 0xC;
+            temp_s1->field_73C          = 0U;
+            temp_s1->field_74A          = 0;
+            if (temp_s1->field_73A == 0xE) {
+                temp_s0   = &temp_s1->field_4B8;
+                temp_s2   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x5416000D;
+                temp_s0_2 = (s8)Gp_GetObjPan(temp_s0);
+                temp_v0_2 = Gp_GetObjDepth(temp_s0);
+                SndEvt_EnqueueType6(temp_s2, temp_s0_2,
+                                    (s32)(((temp_v0_2 >> 0x1F) + temp_v0_2) << 0x17) >> 0x18);
+            }
+            if (temp_s1->field_73A == 0x11) {
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags | 0x8000);
+            }
+            if (temp_s1->field_73A == 0x15) {
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags & 0x7FFF);
+            }
+            if (temp_s1->field_73A >= 0x1E) {
+                temp_s1->field_73C = 0U;
+                temp_s1->field_73A = 0;
+                func_actor_403600_8013E470(&temp_s1->field_4B8, (s32*)&sp10, &sp14);
+                if (sp10 < 0x7D1U) {
+                    var_v0_2 = sp14;
+                    if (var_v0_2 < 0) {
+                        var_v0_2 = -var_v0_2;
+                    }
+                    if (var_v0_2 < 0x400) {
+                        temp_s1->field_73E = 4;
+                        return;
+                    }
+                }
+                goto block_33;
+            }
+            break;
+        case 4:
+            temp_s1->field_588.field_18 = Gp_PackPair(&D_actor_403600_80150EB0, 1);
+            temp_s1->field_736          = 0xD;
+            temp_s1->field_73C          = 0U;
+            temp_s1->field_74A          = 0;
+            if (temp_s1->field_73A == 9) {
+                temp_s0_3 = &temp_s1->field_4B8;
+                temp_s2   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x5416000D;
+                temp_s0_4 = (s8)Gp_GetObjPan(temp_s0_3);
+                temp_v0_3 = Gp_GetObjDepth(temp_s0_3);
+                SndEvt_EnqueueType6(temp_s2, temp_s0_4,
+                                    (s32)(((temp_v0_3 >> 0x1F) + temp_v0_3) << 0x17) >> 0x18);
+            }
+            if (temp_s1->field_73A == 0xA) {
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags | 0x8000);
+            }
+            if (temp_s1->field_73A == 0xE) {
+                temp_s1->field_588.flags = (u16)(temp_s1->field_588.flags & 0x7FFF);
+            }
+            if (temp_s1->field_73A >= 0x23) {
+                temp_s1->field_756 = 8;
+                temp_s1->field_73C = 0U;
+                temp_s1->field_73A = 0;
+                func_actor_403600_8013E470(&temp_s1->field_4B8, (s32*)&sp10, &sp14);
+                if (sp10 < 0x7D1U) {
+                    var_v0_3 = sp14;
+                    if (var_v0_3 < 0) {
+                        var_v0_3 = -var_v0_3;
+                    }
+                    if (var_v0_3 < 0x400) {
+                        temp_s1->field_73E = 3;
+                        return;
+                    }
+                    goto block_33;
+                }
+                goto block_33;
+            }
+            break;
+        block_33:
+            temp_s1->field_73E = 0;
+            return;
+        case 5:
+            temp_s1->field_736 = 9;
+            temp_s1->field_73C = 0U;
+            temp_s1->field_74A = 0;
+            if (temp_s1->field_73A >= 0x46) {
+                temp_s1->field_73E = 1;
+                temp_s1->field_73A = 0;
+                temp_s1->field_756 = 8;
+            }
+            break;
+    }
+}
 
 void func_actor_403600_80140488(Actor403600Ctx* arg0, Actor403600* arg1)
 {
