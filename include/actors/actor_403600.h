@@ -25,7 +25,9 @@ typedef struct Actor403600Work {
     /* 0x588 */ GpObj                field_588;
     /* 0x5A8 */ byte                 pad_5A8[0x18];
     /* 0x5C0 */ GpObj                field_5C0;
-    /* 0x5E0 */ byte                 pad_5E0[0x128];
+    /* 0x5E0 */ byte                 pad_5E0[0x18];
+    /* 0x5F8 */ GpRec18              field_5F8[4];
+    /* 0x658 */ byte                 pad_658[0xB0];
     /* 0x708 */ s16                  field_708;
     /* 0x70A */ byte                 pad_70A[6];
     /* 0x710 */ Task*                field_710;
@@ -61,7 +63,8 @@ typedef struct Actor403600Work {
     /* 0x77C */ s16                  field_77C;
     /* 0x77E */ byte                 pad_77E[6];
     /* 0x784 */ s16                  field_784;
-    /* 0x786 */ byte                 pad_786[0x1C];
+    /* 0x786 */ s16                  field_786;
+    /* 0x788 */ byte                 pad_788[0x1A];
     /* 0x7A2 */ s16                  field_7A2;
     /* 0x7A4 */ s16                  field_7A4;
     /* 0x7A6 */ s16                  field_7A6;
@@ -100,6 +103,7 @@ typedef struct Actor403600Ctx {
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
 u8*  func_actor_403600_80138DCC(Actor403600* arg0);
+s32  func_actor_403600_8013D9A8(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
 
 #endif

@@ -289,7 +289,61 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013D15C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013D9A8);
+s32 func_actor_403600_8013D9A8(Actor403600* arg0)
+{
+    s32              i;
+    s32              mask;
+    s32              kind;
+    s32              callResult;
+    s32              three;
+    s32              x;
+    s32              y;
+    s32              z;
+    Actor403600Work* work;
+    u8*              entry;
+
+    i     = 0;
+    mask  = 0xFFFF0000;
+    kind  = 0x10;
+    work  = arg0->field_1C;
+    entry = (u8*)work;
+    do {
+        if ((((u32)(((volatile GpRec18*)(entry + 0x5F8))->field_4 & mask)) >> 16) == kind) {
+            if (work->field_786 == 0) {
+                work->field_786++;
+                callResult = func_800E1B24(((volatile GpRec18*)(entry + 0x5F8))->field_4);
+                three      = 3;
+                if (callResult == three) {
+                    return 2;
+                }
+                SOFT_USE_REG(three);
+            }
+        }
+        i++;
+        entry += sizeof(GpRec18);
+    } while (i < 4);
+
+    Gp_ClearRec18Occupied(work->field_5F8);
+    x = work->field_4B8.coord.t[0] + ((work->field_4B8.coord.m[0][2] * 0x177) >> 9);
+    y = work->field_4B8.coord.t[2] + ((work->field_4B8.coord.m[2][2] * 0x177) >> 9);
+    if (x < 0x101) {
+        return 1;
+    }
+    if ((x >= 0x3D00) || (y >= 0x3800)) {
+        return 1;
+    }
+    if (y < -0x7F) {
+        return 1;
+    }
+    z = work->field_4B8.coord.t[1];
+    if (z >= 0) {
+        return 1;
+    }
+    if (z < -0x176F) {
+        return 3;
+    }
+    return 0;
+}
 
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1)
 {
