@@ -64,7 +64,9 @@ typedef struct Actor444000Work {
     /* 0x7C0 */ s16        field_7C0;
     /* 0x7C2 */ byte       pad_7C2[0x2];
     /* 0x7C4 */ s16        field_7C4;
-    /* 0x7C6 */ byte       pad_7C6[0x2D];
+    /* 0x7C6 */ byte       pad_7C6[0x2];
+    /* 0x7C8 */ s16        field_7C8; // yaw the drive step walks toward its target, clamped to +/-0x200 per call
+    /* 0x7CA */ byte       pad_7CA[0x29];
     /* 0x7F3 */ s8         field_7F3;
     /* 0x7F4 */ byte       pad_7F4[0x6B8];
     /* 0xEAC */ s8         field_EAC;
@@ -289,6 +291,7 @@ typedef struct Actor444000AnimTable {
 } Actor444000AnimTable;
 STATIC_ASSERT_SIZEOF(Actor444000AnimTable, 0x28);
 
+void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw);
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);
