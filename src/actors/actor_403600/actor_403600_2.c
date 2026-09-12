@@ -116,7 +116,29 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141840);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141954);
+void func_actor_403600_80141954(s32 arg0)
+{
+    RECT rect;
+
+    rect.y = 0x80;
+    rect.h = 0x80;
+    rect.w = 0x80;
+    if (arg0 == 1) {
+        rect.x = 0x180;
+    } else {
+        rect.x = 0x1C0;
+    }
+    MoveImage(&rect, 0x180, 0x180);
+    rect.w = 0x100;
+    rect.h = 1;
+    rect.x = 0;
+    if (arg0 == 1) {
+        rect.y = 0xFD;
+    } else {
+        rect.y = 0xFE;
+    }
+    MoveImage(&rect, 0, 0xF9);
+}
 
 void func_actor_403600_801419E8(Actor403600* arg0)
 {
