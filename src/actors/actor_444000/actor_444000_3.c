@@ -29,5 +29,3 @@ s16 func_actor_444000_801434B4(void)
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801434C4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801435CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801436CC);
