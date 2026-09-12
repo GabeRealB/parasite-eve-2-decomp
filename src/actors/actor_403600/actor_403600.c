@@ -5,10 +5,16 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 
-extern u8 D_80071075;
-extern u8 D_801153F4;
+extern u8       D_80071075;
+extern u8       D_801153F4;
+extern s32      D_8005C374;
+extern s32      D_8007107C;
+extern TaskDesc D_actor_403600_801421A0;
+extern s32      D_actor_403600_8016069C;
+extern s32      D_actor_403600_801606A0;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
 void func_actor_403600_8013955C(Actor403600* arg0);
 void func_actor_403600_801396F8(Actor403600* arg0);
@@ -32,7 +38,44 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80132E40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80134288);
+void func_actor_403600_80134288(Task* arg0)
+{
+    Task*                     temp_v0_2;
+    TaskIdMap*                temp_a3;
+    register TaskIdMap*       temp_v0 asm("a3");
+    register Actor403600Work* var_a2 asm("a2");
+
+    var_a2 = (Actor403600Work*)arg0->parent->idMap;
+    if (arg0->state == 0) {
+        temp_v0 = Mem_Calloc(0x11C, false);
+        if (temp_v0 == NULL) {
+            Task_CallExit(arg0);
+            return;
+        }
+        Game_Session->field_80 = 0;
+        arg0->idMap            = temp_v0;
+        temp_v0_2              = Task_SpawnFromTable(&D_actor_403600_801421A0, 2, 0, 0);
+        if (temp_v0_2 != NULL) {
+            Task_Reparent(arg0, temp_v0_2);
+        }
+        var_a2                  = (Actor403600Work*)arg0->parent->idMap;
+        var_a2->field_710       = arg0;
+        D_actor_403600_801606A0 = 0;
+        arg0->state            += 1;
+        goto block_6;
+    }
+block_6:
+    temp_a3                 = arg0->idMap;
+    D_actor_403600_8016069C = D_8005C374 + (D_8007107C * 0xC000);
+    {
+        register s32 field_742 asm("v1");
+
+        field_742 = var_a2->field_742;
+        if ((field_742 != 1) && (var_a2->field_708 > 0)) {
+            func_actor_403600_80132A18(arg0, var_a2, temp_a3, temp_a3);
+        }
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
 
