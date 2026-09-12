@@ -61707,3 +61707,44 @@ Earliest meaningful divergence is .rtl UID 17, offset-32 load in entry. Incoming
 A separate controlled base_2 reversed independent 22A/2AA halfword updates. The second update's r89/r90 retained v0, and third update's r91/r92 retained v1, exchanging field values. Sched2 then placed the 22A store last, for the call delay slot, reaching exact match. Observed homes and scheduler output support this particular intervention; local quantity priority calculations were not traced and are not generalized.
 
 Evidence: tools/permuter_findings/Actor03800_Fn034B0/ (session 1f7d1f1cdcec496eb650b4ceb4787b28), retained PERMUTER_ANALYSIS.md and base_1/base_2 dumps. Baseline preprocessed SHA256 1a4327b257fa23d6dbca01be9f60681124f37a8df64c0e9d782da7b75b8e5518; paired improved input 746ae5b2bc93e1db3bead8ca0533d8e0bca43579d68a33135a4fd5c97d06098e; compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Full fingerprints and controlled predictions are retained in the session notes.
+
+## Actor03800 contact: preserve definition count while changing global pointer rank
+
+`Actor03800_Fn00A98` had only the scratch/coordinate saved-register pair
+reversed in base_24. Two read/write `SOFT_TOUCH_REG(scratch)` operations
+raised scratch from18 to22 references and placed it ahead of coordinate,
+but changed entry scheduling before allocation. `base_16.i.lreg` already
+has the changed order; this is not a sched2 effect of the new hard homes.
+Patched GCC2.8.1 `sched.c:birthing_insn_p` tests `REG_N_SETS == 1`.
+Read/write touches change that property even if they emit no instructions.
+
+The controlled base_25 prediction instead added four read-only references
+after the first collision-clear call. Scratch stays single-definition,
+gets22refs/294 versus coordinate22refs/296, and wins s3 while coordinate
+gets s4. Entry order stays exact. Consolidating into one
+`USE_REG4(scratch,scratch,scratch,scratch)` in base_26 preserves the result.
+Input-only asm is implicitly volatile; its placement is part of this result.
+This supports inspecting both global rank and sched1 definition count,
+not treating a reference-count change as an isolated allocator operation.
+
+A second controlled result (base_23 to base_24) passes saved `lastId` after
+`lastId = hitId`, instead of passing `hitId` directly. `.greg` contains the
+argument stack load dependent on the store; `.sched2` contains the equivalent
+v0-to-a0 copy after postreload CSE. It preserves the store-before-jal and
+call-delay move, preventing the earlier conditional-delay fill seen when
+passing the original local. This removed all branch/order/count penalties.
+
+The stock scorer stopped at99.976744% solely because it compares
+`Actor03800_Jt00014` with `.rodata` as two register penalties. Neither target
+nor scorer was changed. Scoped and unscoped rebuilds passed; both relocated
+actor overlays, including all430 function instructions and the ten-entry
+table, are byte-identical. The table required its own shared contact unit at
+rodata0x14 and text0xA98;21 existing C bodies were preserved.
+
+Evidence: `nonmatchings/Actor03800_Fn00A98-vacuum/LEARNINGS.md`, selected
+`.lreg/.greg/.sched/.sched2/.dbr` dumps, `LINKED_MATCH.json`, and verification
+logs. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+- base_16.c preprocessed SHA256: `589b6d4bf1c03d2cf9e2eeee21c74b8d73b27e0363702bef8c62c9b049b1b4d1`.
+- base_24.c preprocessed SHA256: `1af290502c9a825a6b49b9572342269704d5fde46178edc9c684818dd298646b`.
+- base_25.c preprocessed SHA256: `89737430e2e6d5e901a779b4b5d6ebd76a5a158d058935fe7564f0b9b5ceadeb`.
+- base_27.c preprocessed SHA256: `1291f2f06ac4cdde7f9e55a96ce21b2b96b427df0818c11d45d20a2343023035`.
