@@ -417,7 +417,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013E470);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013E66C);
+s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
+{
+    SVECTOR        local;
+    GsCOORDINATE2* coord;
+    s16            angle;
+    s16            result;
+    void*          vec;
+    void*          head;
+
+    head                      = *(void**)0x1F8003FC;
+    coord                     = (*Gp_ActorSlots)->extra->field_8;
+    *(void**)0x1F8003FC       = head - 0x7C;
+    *(s16*)((s8*)head - 0x40) = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
+    vec                       = head - 0x40;
+    *(s16*)((s8*)vec + 2)     = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
+    *(s16*)((s8*)vec + 4)     = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
+    TransposeMatrix(&coord->workm, head - 0x20);
+    local = *(SVECTOR*)vec;
+    gte_SetRotMatrix(head - 0x20);
+    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stsv(vec);
+    angle  = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    result = angle;
+    if (angle >= 0x801) {
+        result = angle - 0x1000;
+    } else if (angle < -0x800) {
+        result = angle + 0x1000;
+    }
+    *(void**)0x1F8003FC = *(void**)0x1F8003FC + 0x7C;
+    return result;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013E7D4);
 
