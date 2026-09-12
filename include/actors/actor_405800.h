@@ -99,7 +99,8 @@ typedef struct Actor405800Work {
     /* 0x872 */ s16        field_872; // animation id
     /* 0x874 */ byte       pad_874[0x8];
     /* 0x87C */ u16        field_87C; // down-counter
-    /* 0x87E */ byte       pad_87E[0x4];
+    /* 0x87E */ s16        field_87E;
+    /* 0x880 */ byte       pad_880[0x2];
     /* 0x882 */ s16        field_882; // randomised hold, 0x5A .. 0x99 frames
     /* 0x884 */ byte       pad_884[0x7];
     /* 0x88B */ s8         field_88B;
@@ -109,7 +110,10 @@ typedef struct Actor405800Work {
     /* 0x88F */ s8         field_88F;
     /* 0x890 */ u8         field_890; // nonzero: allow the state-0xD transition when root X > 10000
     /* 0x891 */ u8         field_891;
-    /* 0x892 */ byte       pad_892[0x6];
+    /* 0x892 */ byte       pad_892[0x3];
+    /* 0x895 */ u8         field_895;
+    /* 0x896 */ u8         field_896;
+    /* 0x897 */ byte       pad_897[0x1];
     /* 0x898 */ u8         field_898;
     /* 0x899 */ byte       pad_899[0x3];
 } Actor405800Work;

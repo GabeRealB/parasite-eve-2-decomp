@@ -14,6 +14,7 @@
 extern u8  D_actor_405800_801514D8[];
 extern s32 Gp_LcgState;
 
+void func_actor_405800_80135A3C(Task* arg0, s16 arg1);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80136E14(Task* arg0);
 void func_actor_405800_8013706C(Task* arg0, s16 arg1);
@@ -303,7 +304,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_801395E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_8013967C);
+void func_actor_405800_8013967C(Task* task)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+
+    work = (Actor405800Work*)task->idMap;
+    func_actor_405800_8013706C(task, 0);
+    work->field_88B = 0;
+    work2           = (Actor405800Work*)task->idMap;
+    if (((s8)work2->field_895 >= 0) || ((work2->field_895 & 0x7F) != 1)) {
+        work2->field_895 = 0x81;
+        work2->field_896 = 0;
+    }
+    func_actor_405800_80135A3C(task, work->field_87E);
+    work->field_848 = work->field_848 + 1;
+}
 
 void func_actor_405800_80139700(Task* task)
 {
