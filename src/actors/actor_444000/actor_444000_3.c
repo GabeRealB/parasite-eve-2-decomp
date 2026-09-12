@@ -27,7 +27,42 @@ extern u16        Gp_WeaponIdBase[];
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80134040);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Per-animation reset argument, a `[?][0x2D]` table of `field_7B3` indexed by
+/// the id that was playing before the switch.
+extern s8 D_actor_444000_80160C5C[][0x2D];
+
+/// Reseed every slot of the three even animation members from `field_7B3` when
+/// the id it names differs from the latched `field_7B2`, then latch it. Each
+/// slot also has its `field_9` seeded from `field_7B6`, and the reset argument
+/// comes from the `[field_7B2][field_7B3]` transition table.
+void func_actor_444000_80134040(Actor444000* arg0)
+{
+    Actor444000Work* work = arg0->field_1C;
+    s32              i;
+
+    if (work->field_7B2 != work->field_7B3) {
+        for (i = 1; i < 8; i++) {
+            work->slots0[i].field_9 = work->field_7B6;
+            func_800B4114(&work->anim0, i, work->field_7B3, 0,
+                          D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
+        }
+        for (i = 0; i < 4; i++) {
+            work->slots2[i].field_9 = work->field_7B6;
+            func_800B4114(&work->anim2, i, work->field_7B3, 0,
+                          D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
+        }
+        for (i = 0; i < 4; i++) {
+            work->slots4[i].field_9 = work->field_7B6;
+            func_800B4114(&work->anim4, i, work->field_7B3, 0,
+                          D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
+        }
+        work->field_7B2 = work->field_7B3;
+    }
+}
 
 /// Advance every animation slot of the three context pairs and write the blended
 /// pose out of each pair's even member. Both members of a pair are ticked with

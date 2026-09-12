@@ -57,23 +57,26 @@ typedef struct Actor444000Work {
     /* 0x7A4 */ s16        field_7A4;
     /* 0x7A6 */ byte       pad_7A6[0xA];
     /* 0x7B0 */ s8         field_7B0;
-    /* 0x7B1 */ byte       pad_7B1[0x2];
-    /* 0x7B3 */ s8         field_7B3;
-    /* 0x7B4 */ byte       pad_7B4[0x2];
-    /* 0x7B6 */ s16        field_7B6;
-    /* 0x7B8 */ byte       pad_7B8[0x4];
-    /* 0x7BC */ s16        field_7BC; // animation id the slot resets seed from
-    /* 0x7BE */ s16        field_7BE; // GpAnimSlot::field_9 the resets seed with
-    /* 0x7C0 */ s16        field_7C0;
-    /* 0x7C2 */ byte       pad_7C2[0x2];
-    /* 0x7C4 */ s16        field_7C4;
-    /* 0x7C6 */ byte       pad_7C6[0x2];
-    /* 0x7C8 */ s16        field_7C8; // yaw the drive step walks toward its target, clamped to +/-0x200 per call
-    /* 0x7CA */ byte       pad_7CA[0x29];
-    /* 0x7F3 */ s8         field_7F3;
-    /* 0x7F4 */ byte       pad_7F4[0x6B8];
-    /* 0xEAC */ s8         field_EAC;
-    /* 0xEAD */ byte       pad_EAD[0x17];
+    /* 0x7B1 */ byte       pad_7B1[0x1];
+    /// Animation id currently playing; `func_actor_444000_80134040` latches
+    /// `field_7B3` here once it has reseeded every slot.
+    /* 0x7B2 */ s8   field_7B2;
+    /* 0x7B3 */ s8   field_7B3;
+    /* 0x7B4 */ byte pad_7B4[0x2];
+    /* 0x7B6 */ s16  field_7B6;
+    /* 0x7B8 */ byte pad_7B8[0x4];
+    /* 0x7BC */ s16  field_7BC; // animation id the slot resets seed from
+    /* 0x7BE */ s16  field_7BE; // GpAnimSlot::field_9 the resets seed with
+    /* 0x7C0 */ s16  field_7C0;
+    /* 0x7C2 */ byte pad_7C2[0x2];
+    /* 0x7C4 */ s16  field_7C4;
+    /* 0x7C6 */ byte pad_7C6[0x2];
+    /* 0x7C8 */ s16  field_7C8; // yaw the drive step walks toward its target, clamped to +/-0x200 per call
+    /* 0x7CA */ byte pad_7CA[0x29];
+    /* 0x7F3 */ s8   field_7F3;
+    /* 0x7F4 */ byte pad_7F4[0x6B8];
+    /* 0xEAC */ s8   field_EAC;
+    /* 0xEAD */ byte pad_EAD[0x17];
     /// The three payload bytes of the last 0x7DB message
     /// `func_actor_444000_8013ACD0` accepted, kept whether or not the id half
     /// selected one of its cases.
