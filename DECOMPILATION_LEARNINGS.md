@@ -61880,3 +61880,55 @@ Related trap in the same function: m2c had rendered the index as
 `sra 0x8` once `field_8` is typed `SVECTOR*` - the byte offset gets scaled a
 second time by the 8-byte element. A `sra` amount that is off by exactly
 `log2(sizeof *ptr)` means m2c's raw byte offset was left in place.
+
+## A write-only stack local survives, and each of its stores re-loads the source pointer chain
+
+**Problem.** `func_actor_444000_80143798` ends with three `sw` into the frame
+(`sp+0x10/0x14/0x18`) whose values are never read, and every one of them
+re-walks the same pointer chain from scratch:
+
+```
+lw $v0, 0x2C($s0)   # task->extra
+lw $v0, 0x8($v0)    # ->field_8  (GsCOORDINATE2*)
+lw $v0, 0x38($v0)   # ->workm.t[0]
+sw $v0, 0x10($sp)
+lw $v0, 0x2C($s0)   # reloaded, twice more
+...
+```
+
+m2c drops the stores entirely — the local is dead — so the seed scored 42% with
+`delete=21` and no structural hint about what was missing.
+
+**Symptom.** A run of `sw` into an otherwise-unused part of the frame, with the
+loads feeding them repeating an address computation that has no intervening call
+or obvious clobber.
+
+**Fix.** Write the dead local out literally, one statement per component:
+
+```c
+VECTOR sp10;
+
+((TmdObject*)arg1->extra)->field_8->flg = 0;
+Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+sp10.vx = ((TmdObject*)arg1->extra)->field_8->workm.t[0];
+sp10.vy = ((TmdObject*)arg1->extra)->field_8->workm.t[1];
+sp10.vz = ((TmdObject*)arg1->extra)->field_8->workm.t[2];
+```
+
+100% first try. Two 2.8.1 behaviours combine here and are worth remembering
+separately:
+
+- **Dead-store elimination does not run on `MEM`.** `flow.c` removes dead
+  register assignments, not stores to a stack slot, so a local that is only ever
+  written still costs its stores and its frame space. Do not "simplify" such a
+  local away, and do not assume m2c's omission means the C had nothing there.
+- **A store to a local kills CSE's memory table.** 2.8.1's aliasing cannot prove
+  `sp10.vx` does not overlap `task->extra`, so each store invalidates the cached
+  `extra` / `field_8` loads and the next statement reloads both. That reload
+  pattern is therefore *evidence of the stores*, not of a `volatile` or of a
+  hidden call — writing the chain out per statement reproduces it exactly, and
+  hoisting it into a local pointer variable would not.
+
+Offsets 0x38/0x3C/0x40 of a `GsCOORDINATE2` are `workm.t[0..2]`, the world-space
+translation `Gp_UpdateCoord` has just recomputed; `flg = 0` at offset 0 is the
+customary "matrix is stale" clear that precedes it.
