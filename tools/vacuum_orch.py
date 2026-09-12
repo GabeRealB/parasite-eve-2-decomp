@@ -389,8 +389,16 @@ def overlay_of_asm(rel: str) -> Optional[str]:
         return None
     name = parts[i + 1]
     if name == "lib":
-        # asm/<ver>/<family>/nonmatchings/lib/... -> "<family>/lib"
-        return f"{parts[i - 1]}/lib" if i >= 1 else None
+        # lib is not one unit but a collection of them: actors/lib holds 14
+        # separate shared bodies, from a 191-function text handler down to a
+        # single function, each its own src/<family>/lib/<unit>.c. Leasing all
+        # of them together would be far too coarse, and the amortisation that
+        # justifies a whole-overlay sweep - work the state struct out once,
+        # spend it across the unit - stops at the unit boundary anyway.
+        # asm/<ver>/<family>/nonmatchings/lib/<unit>/<fn>.s -> "<family>/lib/<unit>"
+        if i >= 1 and i + 2 < len(parts) - 1:
+            return f"{parts[i - 1]}/lib/{parts[i + 2]}"
+        return None
     return name
 
 

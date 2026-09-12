@@ -260,7 +260,14 @@ def main() -> int:
                              + r.stderr[-2000:])
 
     # Which trunk file holds each function, and where its final body lives.
-    src_dirs = [p for p in ROOT.glob(f"src/**/{args.overlay}") if p.is_dir()]
+    # A shared unit is named "<family>/lib/<unit>", but <unit> is a *file*
+    # inside src/<family>/lib, not a directory of its own - so the directory to
+    # map bodies in is the lib itself. The family qualifier keeps that glob
+    # unique, which a bare "lib" would not be: four families have one.
+    overlay_dir = args.overlay
+    if "/lib/" in overlay_dir:
+        overlay_dir = overlay_dir.rsplit("/", 1)[0]
+    src_dirs = [p for p in ROOT.glob(f"src/**/{overlay_dir}") if p.is_dir()]
     if len(src_dirs) != 1:
         raise SystemExit(f"expected one src dir for {args.overlay}")
     rel = src_dirs[0].relative_to(ROOT)
