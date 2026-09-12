@@ -38,6 +38,15 @@ typedef struct Actor02100Fn014E4Scratch {
 } Actor02100Fn014E4Scratch;
 STATIC_ASSERT_SIZEOF(Actor02100Fn014E4Scratch, 0x18);
 
+typedef struct Actor02100Fn011C4Scratch {
+    /* 0x00 */ VECTOR  transformed;
+    /* 0x10 */ VECTOR  delta;
+    /* 0x20 */ VECTOR  lock;
+    /* 0x30 */ SVECTOR from;
+    /* 0x38 */ SVECTOR to;
+} Actor02100Fn011C4Scratch;
+STATIC_ASSERT_SIZEOF(Actor02100Fn011C4Scratch, 0x40);
+
 /// 0x20-byte scratch block taken from `G_SCRATCH_HEAD` by
 /// `Actor02100_Fn00DCC`: the world-space delta between the two coordinates,
 /// then the two endpoints as `SVECTOR`s for the line-of-sight test.
@@ -128,6 +137,7 @@ typedef struct {
 } Actor02100StateFuncTable3;
 
 extern s16                       Actor02100_D03E00[];
+extern s16                       Actor02100_D03E2C[];
 extern Actor02100StateFuncTable3 Actor02100_D00004;
 
 void Actor02100_Fn03168(Actor02100* arg0);

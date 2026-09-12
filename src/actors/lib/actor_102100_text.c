@@ -7,6 +7,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/task.h"
 
 #include <psyq/inline_c.h>
 
@@ -280,7 +281,81 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
     *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x20;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn011C4);
+void Actor02100_Fn011C4(Actor02100* arg0)
+{
+    Actor02100Fn011C4Scratch* scratch;
+    Task*                     list;
+    Actor02100*               head;
+    Actor02100*               current;
+    Actor02100Spawn*          enemy;
+    Actor02100Work*           work;
+    GsCOORDINATE2*            coord;
+    u8**                      scratchSlot;
+    u8*                       scratchHead;
+    s32                       index;
+    s32                       dist;
+
+    list  = (Task*)Game_GetPtrSlot(4);
+    coord = arg0->field_2C->field_8;
+    head  = (Actor02100*)list->firstChild;
+    work  = arg0->field_1C;
+    if (head != NULL) {
+        scratchSlot  = (u8**)G_SCRATCH_HEAD;
+        current      = head;
+        scratchHead  = *(u8**)G_SCRATCH_HEAD;
+        *scratchSlot = scratchHead - 0x40;
+        scratch      = (Actor02100Fn011C4Scratch*)*scratchSlot;
+        SOFT_TOUCH_REG(head);
+        do {
+            enemy = current->field_20;
+            index = *(u8*)enemy->field_3C;
+            if (index >= 0x50U) {
+                index = 0;
+            }
+            if (Actor02100_D03E2C[index] == 0 && enemy->field_40 > 0) {
+                Gp_GetLockPos((GpLockPos*)&enemy->field_10, (VECTOR3*)&scratch->lock);
+                scratch->delta.vx = scratch->lock.vx - coord->coord.t[0];
+                scratch->delta.vy = scratch->lock.vy - coord->coord.t[1];
+                scratch->delta.vz = scratch->lock.vz - coord->coord.t[2];
+                if ((scratch->delta.vx * coord->coord.m[0][2]) +
+                        (scratch->delta.vy * coord->coord.m[1][2]) +
+                        (scratch->delta.vz * coord->coord.m[2][2]) >
+                    0) {
+                    dist = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
+                                       (scratch->delta.vy * scratch->delta.vy) +
+                                       (scratch->delta.vz * scratch->delta.vz));
+                    if ((work->field_164 == 0 || (u32)dist < (u32)work->field_164) &&
+                        (u32)dist <
+                            (u32)Actor02100_D03E00[arg0->field_20->field_3C->field_F & 7]) {
+                        scratch->from.vx = (u16)scratch->lock.vx;
+                        scratch->from.vy = (u16)scratch->lock.vy;
+                        scratch->from.vz = (u16)scratch->lock.vz;
+                        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                        gte_ldv0(&scratch->from);
+                        __asm__ volatile("nop; nop; .word 0x4A486012");
+                        gte_stlvnl(&scratch->transformed);
+                        scratch->transformed.vx += Gfx_ViewCoord.workm.t[0];
+                        scratch->transformed.vy += Gfx_ViewCoord.workm.t[1];
+                        scratch->transformed.vz += Gfx_ViewCoord.workm.t[2];
+                        scratch->from.vx         = (u16)scratch->transformed.vx;
+                        scratch->from.vy         = (u16)scratch->transformed.vy;
+                        scratch->from.vz         = (u16)scratch->transformed.vz;
+                        scratch->to.vx           = (u16)coord->workm.t[0];
+                        scratch->to.vy           = (u16)coord->workm.t[1];
+                        scratch->to.vz           = (u16)coord->workm.t[2];
+                        if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
+                            work->field_140 = current;
+                            work->field_164 = dist;
+                            work->field_180 = 2;
+                        }
+                    }
+                }
+            }
+            current = (Actor02100*)((Task*)current)->nextSibling;
+        } while (current != head);
+        *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x40;
+    }
+}
 
 s32 Actor02100_Fn014E4(Actor02100* arg0)
 {
