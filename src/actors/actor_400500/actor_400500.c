@@ -32,6 +32,7 @@ extern u8 D_actor_400500_80143F40[];
 extern u8 D_actor_400500_80144624[];
 
 extern TaskDesc D_actor_400500_80153D48;
+extern u16      D_actor_400500_80153DB4[];
 extern u8       D_actor_400500_80153DD4[];
 
 void func_8009EA50(s32 arg0);
@@ -50,8 +51,11 @@ void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 s32  func_actor_400500_8013DB78(Task* arg0);
 void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2);
 void func_actor_400500_8013DC4C(Task* arg0);
+void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2);
 void func_actor_400500_8013DCD4(Task* arg0);
 s32  func_actor_400500_8013DD8C(Task* arg0, s16 arg1);
+s32  func_actor_400500_8013DDEC(Task* arg0);
+void func_actor_400500_8013DF50(Task* arg0);
 
 void func_actor_400500_80132000(Task* arg0)
 {
@@ -303,7 +307,64 @@ s32 func_actor_400500_80132D74(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132E94);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80133160);
+s32 func_actor_400500_80133160(Task* arg0)
+{
+    Actor400500Work* work;
+    s32              soundId;
+    s32              pan;
+    u16              heading;
+
+    work = (Actor400500Work*)arg0->idMap;
+    if (work->field_A38 == 1) {
+        if (work->field_A3A == 0) {
+            func_actor_400500_8013DCBC(arg0, 0x17, 0x10);
+            work->field_A04 = 0;
+            work->field_A3A = 1;
+        }
+        work->field_A04 = work->field_A04 + 1;
+        if ((work->field_A04 & 0xF) == 8) {
+            soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050001;
+            pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            pan   <<= 24;
+            pan   >>= 24;
+            SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+        heading         = (u16)work->field_94A - D_actor_400500_80153DB4[work->field_A04 & 0xF];
+        work->field_94A = heading;
+        if ((func_actor_400500_8013DDEC(arg0) << 0x10) != 0) {
+            work->field_A04 = 0;
+            work->field_A38 = 0;
+            work->field_94A = (u16)work->field_94A & 0xE00;
+        }
+        func_actor_400500_8013DF50(arg0);
+        return 1;
+    }
+    if (work->field_A38 == 2) {
+        if (work->field_A3A == 0) {
+            func_actor_400500_8013DCBC(arg0, 0x18, 0x10);
+            work->field_A04 = 0;
+            work->field_A3A = 1;
+        }
+        work->field_A04 = work->field_A04 + 1;
+        if ((work->field_A04 & 0xF) == 8) {
+            soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050002;
+            pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            pan   <<= 24;
+            pan   >>= 24;
+            SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+        heading         = (u16)work->field_94A + D_actor_400500_80153DB4[work->field_A04 & 0xF];
+        work->field_94A = heading;
+        if ((func_actor_400500_8013DDEC(arg0) << 0x10) != 0) {
+            work->field_A04 = 0;
+            work->field_A38 = 0;
+            work->field_94A = (u16)work->field_94A & 0xE00;
+        }
+        func_actor_400500_8013DF50(arg0);
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80133358);
 

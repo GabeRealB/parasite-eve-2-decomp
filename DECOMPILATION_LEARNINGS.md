@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `(s8)GetObjPan()` ashl dest stays in `$v0`; `pan <<= 24; pan >>= 24` writes `$s0`
+
+`pan = (s8)Gp_GetObjPan(obj)` then `SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj))`
+expands the assignment ashl into a temp tied to the call's `$v0`:
+
+```
+jal   Gp_GetObjPan
+or    s2, v0, a1
+sll   v0, v0, 24
+jal   Gp_GetObjDepth
+sra   s0, v0, 24
+```
+
+The target wants the named local as dest (`sll s0, v0, 24` / `sra s0, s0, 24`).
+`pan = GetObjPan(); pan = (s8)pan;` combines back to the same expand.
+Assigning the call first and shifting the local in place does not:
+
+```c
+pan = Gp_GetObjPan(obj);
+pan <<= 24;
+pan >>= 24;
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj));
+```
+
+Splitting `pan` / `pan2` per arm also gets the saved-reg ashl dest (the
+existing "Don't reuse a for-loop counter as the (s8) dest" entry) but
+here local-alloc then took `$s0`/`$s1` for those block-local values and
+bumped the whole-function `work` pointer to `$s2`. Keep one `pan` and
+spell the sign-extend on it. `func_actor_400500_80133160`. Inputs:
+`base_5.i`
+`afb429fd39d2ebced6e6d762ce780d5b6b01d676700f78f79836de7263ccab0e`,
+`base_6.i`
+`d44687bf3a01c6e5262263d24541f9f53e645d448e287a8694ba20eacbeee3cb`,
+`base_7.i`
+`62a5b0f4eec1b0cd97a563ca76e43923d58fee82dae0f6138d84461d6af29ee6`.
+
+
 ## Loop-only copy of a live-after pointer fills an early delay and adds a saved reg
 
 When a work pointer is used both inside a call-crossing loop and after it,
