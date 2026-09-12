@@ -9,13 +9,30 @@
 
 #include "actors/actor_405800.h"
 
+void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
+
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80132670);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801329C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80132E3C);
+void func_actor_405800_80132E3C(Task* arg0, s16 arg1, u8 arg2)
+{
+    func_actor_405800_801329C8(arg0, 3, 9, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 9, 0xA, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 0xA, 0xB, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 3, 6, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 6, 7, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 7, 8, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 1, 5, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 1, 0xC, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 0xC, 0xD, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 0xD, 0xE, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 1, 0xF, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 0xF, 0x10, 0x100, arg1, arg2);
+    func_actor_405800_801329C8(arg0, 0x10, 0x11, 0x100, arg1, arg2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80132FE0);
 
