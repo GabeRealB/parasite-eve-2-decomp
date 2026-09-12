@@ -283,7 +283,30 @@ void func_actor_405800_801398C0(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139928);
+void func_actor_405800_80139928(Task* task)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    GsCOORDINATE2*   coord;
+    u16              next;
+
+    work  = (Actor405800Work*)task->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    func_actor_405800_801379F8(task);
+    work2            = (Actor405800Work*)task->idMap;
+    work2->field_84A = 4;
+    work2->field_850 = 0x10;
+    work2->field_872 = 0x20;
+    work2->field_86E = 1;
+    work->field_84C  = 0x40;
+    work->field_84E  = 0;
+    work->field_842  = 0;
+    work->field_98   = coord->coord.t[0];
+    next             = work->field_848;
+    work->field_9C   = coord->coord.t[2];
+    work->field_88F  = 1;
+    work->field_848  = next + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_801399C4);
 

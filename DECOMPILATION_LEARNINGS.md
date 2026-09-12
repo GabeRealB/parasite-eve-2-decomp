@@ -64929,3 +64929,31 @@ base_7 SHA256:
 `6a84d0c3c7146fb7d067dc9a928078a02baed305eb5a1e061802cfb70ac4a570`.
 The router failed setup on a missing `m2c_macros.h` include; this was a manual
 controlled experiment, not a permuter discovery.
+## Split a RMW so its load sits between two other assignments
+
+**Symptom.** `func_actor_405800_80139928` (shape-sibling of matched
+`func_actor_400600_8013C124`) was 99.2% with only two independent `lhu`s swapped.
+Retail does `lhu field_848; lhu t[2]` after `sh field_98` plus a load-delay nop
+on `t[0]`. Writing `work->field_848 = work->field_848 + 1` last kept the nop
+(the increment chain was already scheduled in the backward pass) but ranked the
+`t[2]` load first of the post-store pair. Moving the increment before `field_9C`
+flipped that pair, yet birthed the `field_848` load at `LAUNCH_PRIORITY` while
+`sh field_98` was still pending, so it filled the `t[0]` delay and delayed the
+store (87%, same object as m2c). Putting `field_88F = 1` immediately after
+`field_98` filled the delay with `sb` (95.9%). `SOFT_BARRIER()` after the store
+added an insn.
+
+**Fix.** Load the counter into its own local between the `field_98` store and
+the `field_9C` assignment, then write `next + 1` after the flag:
+
+```c
+work->field_98  = coord->coord.t[0];
+next            = work->field_848;
+work->field_9C  = coord->coord.t[2];
+work->field_88F = 1;
+work->field_848 = next + 1;
+```
+
+The extra statement gives the counter load an LUID between the two coordinate
+accesses, so sched1 ranks it first of the post-store pair, while `sh field_98`
+still has no ready filler and keeps the nop. `func_actor_405800_80139928`.

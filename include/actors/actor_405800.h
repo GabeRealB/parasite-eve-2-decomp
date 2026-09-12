@@ -28,12 +28,14 @@ STATIC_ASSERT_SIZEOF(Actor405800ViewPos, 0x6);
 /// `field_846` / `field_848` are the state and sub-state indices the handler
 /// table walks and `field_842` is the per-state frame counter.
 typedef struct Actor405800Work {
-    /* 0x000 */ MATRIX  matrix_0; // copy of the root coordinate's local matrix
+    /* 0x000 */ MATRIX  matrix_0;  // copy of the root coordinate's local matrix
     /* 0x020 */ byte    pad_20[0x72];
-    /* 0x092 */ u16     field_92; // copied into field_86A on state entry
-    /* 0x094 */ byte    pad_94[0x6];
+    /* 0x092 */ u16     field_92;  // copied into field_86A on state entry
+    /* 0x094 */ byte    pad_94[0x4];
+    /* 0x098 */ u16     field_98;  // low half of the root coordinate's world X
     /* 0x09A */ s16     field_9A;
-    /* 0x09C */ byte    pad_9C[0xC];
+    /* 0x09C */ u16     field_9C;  // low half of the root coordinate's world Z
+    /* 0x09E */ byte    pad_9E[0xA];
     /* 0x0A8 */ SVECTOR field_A8;  // world point `ActorsShared80139c00` turns to face (it reads `vx` / `vz`)
     /* 0x0B0 */ byte    pad_B0[0x404];
     /* 0x4B4 */ GpObj   obj_4B4;   // collision node; unlinked on death
@@ -86,7 +88,8 @@ typedef struct Actor405800Work {
     /* 0x88C */ byte    pad_88C[0x1];
     /* 0x88D */ s8      field_88D;
     /* 0x88E */ s8      field_88E;
-    /* 0x88F */ byte    pad_88F[0xD];
+    /* 0x88F */ s8      field_88F;
+    /* 0x890 */ byte    pad_890[0xC];
 } Actor405800Work;
 STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
 
