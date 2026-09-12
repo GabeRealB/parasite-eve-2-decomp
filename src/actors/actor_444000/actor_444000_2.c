@@ -6,16 +6,11 @@
 #include "main/session.h"
 
 #include "gameplay/1BC.h"
-#include "main/mem.h"
 #include "main/task.h"
-
-#include "actors/actor_444000_rotation.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
-
-void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 extern s16 D_actor_444000_80144A72;
 extern s8  D_8007272D;
@@ -52,25 +47,3 @@ void func_actor_444000_801327E8(s16 action)
     work->field_2C = action;
     work->field_2E = 0;
 }
-
-/// Re-aim one of the actor's joints by `yaw` about Y, in world space: build the
-/// joint's absolute rotation from its parent chain, turn it, then express the
-/// result back in the parent's frame and write it into the joint. The working
-/// matrix is one 0x20-byte frame carved off the scratchpad head.
-void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw)
-{
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
-
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    Actor444000_AccumulateRotation(coord, rotation, &Gfx_ViewCoord);
-    func_8004BFF8(yaw, rotation);
-    out = Actor444000_LocalizeRotation(coord, rotation);
-    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->flg = 0;
-    Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_2", func_actor_444000_80132B14);

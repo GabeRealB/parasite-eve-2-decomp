@@ -3,8 +3,6 @@
 #include "actors/actor_421600.h"
 #include "main/task.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132004);
-
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132310);
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013285C);

@@ -1,5 +1,5 @@
-#ifndef ACTOR_444000_ROTATION_H
-#define ACTOR_444000_ROTATION_H
+#ifndef ACTORS_SHARED_80132808_H
+#define ACTORS_SHARED_80132808_H
 
 #include "common.h"
 
@@ -10,7 +10,7 @@
 /// rotation, then pre-multiply by each ancestor up to (but not including)
 /// `arg2`, renormalising after every step. Returns whether the walk stopped on
 /// `arg2` rather than running off the end of the chain.
-static __inline__ s32 Actor444000_AccumulateRotation(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+static __inline__ s32 ActorsShared80132808_Accumulate(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
 {
     MATRIX         matrix;
     GsCOORDINATE2* coord;
@@ -42,7 +42,7 @@ static __inline__ s32 Actor444000_AccumulateRotation(GsCOORDINATE2* arg0, MATRIX
 /// merge is what gives the store base its own pseudo, and keeping the helper
 /// to a *single* exit keeps `arg0`'s reference count low enough that
 /// global-alloc ranks it last and leaves it in `$s4`.
-static __inline__ GsCOORDINATE2* Actor444000_LocalizeRotation(GsCOORDINATE2* arg0, MATRIX* arg1)
+static __inline__ GsCOORDINATE2* ActorsShared80132808_Localize(GsCOORDINATE2* arg0, MATRIX* arg1)
 {
     MATRIX         matrix;
     MATRIX         normal;
@@ -96,11 +96,11 @@ static __inline__ GsCOORDINATE2* Actor444000_LocalizeRotation(GsCOORDINATE2* arg
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
-/// Re-aim one joint by `yaw` about Y in world space: build the joint's
-/// absolute rotation from its parent chain, turn it, then express the result
-/// back in the parent's frame and write the 3x3 into the joint. The working
-/// matrix is one 0x20-byte frame carved off the scratchpad head. Shared by
-/// fifteen actor overlays.
+/// Re-aim one joint by `yaw` about Y in world space: build the joint's absolute
+/// rotation from its parent chain, turn it, then express the result back in the
+/// parent's frame and write the 3x3 into the joint. The working matrix is one
+/// 0x20-byte frame carved off the scratchpad head. Shared by fifteen actor
+/// overlays.
 void ActorsShared80132808(GsCOORDINATE2* coord, s16 yaw);
 
 #endif

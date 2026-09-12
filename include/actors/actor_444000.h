@@ -405,7 +405,6 @@ typedef struct Actor444000EffScratch {
 } Actor444000EffScratch;
 STATIC_ASSERT_SIZEOF(Actor444000EffScratch, 0x10);
 
-void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw);
 s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
