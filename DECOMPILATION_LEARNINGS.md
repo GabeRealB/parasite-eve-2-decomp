@@ -64470,3 +64470,83 @@ even with a lower luid, while the two `sh` instructions keep their source
 order. Ordering a run of field writes is a real degree of freedom when the
 stores are provably disjoint; read the emitted order as luid order *among equal
 priorities* rather than as the source order itself.
+
+
+## GCC 2.8.1 reorders stores to disjoint fields of one struct, so asm store order is not source order
+
+`func_actor_444000_8013482C` sat at 99.955% with one register difference: the
+constant `1` wanted `$v1` and got `$v0`, which cost the `li` its place in the
+load-delay slot. The reset block writes four fields of the same work pointer:
+
+```c
+work->field_EF4 = 1;
+work->field_7B3 = 2;    /* target emits this store last, after field_7B0 */
+work->field_EF6 = 1;
+work->field_7B0 = 1;
+```
+
+The `.sched` dump shows `REG_DEP_OUTPUT` links between every pair of those
+stores, which looks like a total order — but `true_dependence` clears them for
+MEMs at distinct constant offsets off one base, so sched1 is free to put them
+back in address order. Moving `field_7B3` up leaves the emitted stores exactly
+where they were and only changes when the `2` constant is born, which is enough
+to push the `1` off `$v0`. So a store sequence in the target does **not** pin
+the source statement order, and reordering two field writes is a legitimate
+knob for a `regs`-only leftover — the permuter finds these quickly.
+
+## `if (Global != K)` before a pointer load: name the flag in a local to order the entry block
+
+Five arms of the same switch each begin with a freeze check and a coordinate
+the guarded call needs:
+
+```c
+{
+    s32            paused = D_80072729;                        /* lui/lbu first */
+    GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8; /* then lw/lw   */
+
+    if (paused != 1) {
+        Actor444000_StepForward(c);
+    }
+}
+```
+
+Both chains are independent and both have to be in the entry block (the
+coordinate is live into the branch delay slot), so only `INSN_LUID` decides
+which goes first — `rank_for_schedule` falls back to original order on a tie.
+Written as `c = ...; if (D_80072729 != 1)` the coordinate load leads, the
+`%hi` lands after it and the block needs a `nop`; naming the flag first gives
+the target's interleaved `lui / li 1 / lw / lbu / lw / beq`. Passing the
+coordinate as the call argument instead is worse still: the loads move into the
+guarded block, which no longer matches at all. This was worth 94.4% → 98.4% on
+`func_actor_444000_8013482C`.
+
+## Scratch frame: address the pre-decrement head to get `-0x24(head)` instead of `8(sc)`
+
+An overlay that carves a struct off `G_SCRATCH_HEAD` and then writes an
+identity rotation into the matrix inside it can emit either
+
+```
+sw  v1, -0x24(a0)      /* a0 = the head before the decrement */
+sw  zero, 0x4(v0)      /* v0 = a0 - 0x24, materialised once  */
+```
+
+or plain `8(sc)`, `0xc(sc)`, … off the frame pointer. CSE's `find_best_addr`
+only offers the head-rooted form when `head - sizeof(T)` survives as one tree:
+assigning it to a pointer first (`p = (T*)(head - sizeof(T)); p->m...`) lets
+`canon_reg` rewrite the address back onto the frame pointer's quantity. What
+reproduces the target is one head-rooted pointer to the *member*, with the
+stores through it:
+
+```c
+head        = (u8*)SCRATCH_SP;
+SCRATCH_SP -= sizeof(Actor444000RunScratch);
+sc          = (Actor444000RunScratch*)SCRATCH_SP;   /* separate pseudo: move s3,v1 */
+...
+mat = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
+mat->ident.m00_m01 = 0x1000;   /* CSE folds this one back to -0x24(a0) */
+mat->ident.m02_m10 = 0;        /* the rest keep the materialised base  */
+```
+
+Reading `sc` back out of `SCRATCH_SP` rather than computing it from `head` is
+what makes it its own pseudo, which is the `move` into the saved register the
+target has before the branch.

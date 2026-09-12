@@ -27,14 +27,19 @@
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s16 D_actor_444000_80144A68;
+extern s32 D_actor_444000_80144A74;
+extern s32 D_actor_444000_80144A7C;
 extern s32 D_actor_444000_80144A6C;
 extern s16 D_actor_444000_80144A70;
 extern s32 Gp_LcgState;
 
-extern MATRIX*    D_80073B8C;
-extern s8         D_8007218A;
-extern u8         D_80073BA9;
-extern u8         D_801153F4;
+extern MATRIX* D_80073B8C;
+extern s8      D_8007218A;
+extern u8      D_80073BA9;
+extern u8      D_801153F4;
+/// Global freeze flag: 1 while the game is halted, which stops the run below
+/// from advancing the model.
+extern u8         D_80072729;
 extern GpAnimSet* D_actor_444000_80161694[];
 
 /// Which of the three drop-point groups the falling enemies use this round,
@@ -272,7 +277,264 @@ void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id)
     SCRATCH_SP += sizeof(Actor444000EffScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_8013482C);
+/// Walk `coord` a fixed 0x32/0x1000 of its own forward axis (column 2 of its
+/// rotation, normalised and GPF-scaled) and flag it for rebuild. The direction
+/// vector lives in an `SVECTOR` carved off `G_SCRATCH_HEAD` and handed straight
+/// back; written as an inline so those scratch-head accesses stay absolute, the
+/// same reason as `Actor444000_ShrinkRotation` above.
+static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
+{
+    u8*      head;
+    SVECTOR* dir;
+
+    head                       = *(u8**)G_SCRATCH_HEAD;
+    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
+    *(SVECTOR**)G_SCRATCH_HEAD = dir;
+
+    Gfx_MatrixCol2(&coord->coord, dir);
+    VectorNormalSS(dir, dir);
+    gte_lddp(0x32);
+    gte_ldsv(dir);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    coord->coord.t[0] += dir->vx;
+    coord->coord.t[1] += dir->vy;
+    coord->coord.t[2] += dir->vz;
+    coord->flg         = 0;
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
+}
+
+/// The run-out / turn / run-back pass, stepped by `Actor444000Work::field_F08`.
+///
+/// A reset request re-arms the block: the model's flag word and the enemy's
+/// link state are cleared, both colour steps are switched on, animation 2 is
+/// requested and the scratch matrix is seeded with an identity rotation.
+///
+/// Every step publishes the yaw from the model's own facing to the player in
+/// `field_7C4`, wrapped into +/-0x800, and -- unless the game is frozen --
+/// walks the model forward along that facing. State 0 runs out to x 0x1770,
+/// state 1 turns the model 0xD a step until it has swung the full half turn
+/// (its rotation is rebuilt from the running `angle` rather than spun in
+/// place), and states 2 to 5 run it back through -0x1387, -0x251B and -0x32C7.
+/// Past -0x4203 the task hands over to state 0x10 and tells the player task
+/// (slot 7) message 0x13F4.
+void func_actor_444000_8013482C(Actor444000* task)
+{
+    Actor444000RunScratch* sc;
+    Actor444000RunMat*     mat;
+    TmdObject*             tmd;
+    Actor444000Work*       work;
+    GpEnemy*               enemy;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         model;
+    GsCOORDINATE2*         facing;
+    u8*                    head;
+    s16                    ang;
+    s32                    frame;
+
+    head        = (u8*)SCRATCH_SP;
+    SCRATCH_SP -= sizeof(Actor444000RunScratch);
+    sc          = (Actor444000RunScratch*)SCRATCH_SP;
+
+    work  = task->field_1C;
+    enemy = task->field_20;
+
+    if (work->field_4 != 0) {
+        tmd                 = (TmdObject*)task->extra;
+        enemy->node.field_4 = 0;
+        tmd->field_C        = 0;
+        work->field_EF4     = 1;
+        work->field_7B3     = 2;
+        work->field_EF6     = 1;
+        work->field_7B0     = 1;
+        work->field_EFA     = 0;
+        work->field_EFE     = 0;
+        mat                 = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
+        mat->ident.m00_m01  = 0x1000;
+        mat->ident.m02_m10  = 0;
+        mat->ident.m11_m12  = 0x1000;
+        mat->ident.m20_m21  = 0;
+        mat->ident.m22      = 0x1000;
+    }
+
+    func_actor_444000_8013441C(task);
+
+    frame = work->slots0[2].field_2 & 0x3FF;
+    if (frame == 0x12 && work->field_7D8 != frame) {
+        s32 id;
+        s32 pan;
+
+        work->field_EAC = 3;
+        Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
+        id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200001;
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8) / 2));
+    }
+
+    frame = work->slots0[2].field_2 & 0x3FF;
+    if (frame == 0x18 && work->field_7D8 != frame) {
+        s32 id;
+        s32 pan;
+
+        work->field_EAC = 3;
+        Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
+        id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200001;
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8) / 2));
+    }
+
+    work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
+
+    model      = ((TmdObject*)task->extra)->field_8;
+    sc->dir.vx = Wip_SysConfig.field_4->t[0] - model->coord.t[0];
+    sc->dir.vy = Wip_SysConfig.field_4->t[1] - model->coord.t[1];
+    sc->dir.vz = Wip_SysConfig.field_4->t[2] - model->coord.t[2];
+
+    facing = ((TmdObject*)task->extra)->field_8;
+    ang    = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+
+    if (ang < 0) {
+    wrapUp:
+        if (ang < -0x800) {
+            ang += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (ang > 0x800) {
+            ang -= 0x1000;
+            goto wrapDown;
+        }
+    }
+
+    work->field_7C4 = ang;
+
+    switch (work->field_F08) {
+        case 0: {
+            s32            paused = D_80072729;
+            GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8;
+
+            if (paused != 1) {
+                Actor444000_StepForward(c);
+            }
+        }
+            ((TmdObject*)task->extra)->field_8->flg = 0;
+            if (((TmdObject*)task->extra)->field_8->coord.t[0] >= 0x1770) {
+                work->field_0 = 0xA;
+                work->field_F08++;
+            }
+            break;
+
+        case 1:
+            coord = ((TmdObject*)task->extra)->field_8;
+            if (coord->coord.t[0] < 0x2134) {
+                if (D_80072729 != 1) {
+                    Actor444000_StepForward(coord);
+                }
+            } else {
+                sc->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
+                sc->m.mat = ((TmdObject*)task->extra)->field_8->coord;
+
+                Gfx_MatrixCol2(&sc->m.mat, &sc->dir);
+                VectorNormalSS(&sc->dir, &sc->dir);
+                gte_lddp(0xBEA);
+                gte_ldsv(&sc->dir);
+                gte_gpf12_real();
+                gte_stsv(&sc->dir);
+
+                sc->m.mat.t[0] += sc->dir.vx;
+                sc->m.mat.t[1] += sc->dir.vy;
+                sc->m.mat.t[2] += sc->dir.vz;
+
+                Gfx_RotMatrixY(&sc->m.mat, sc->angle, 1);
+                ((TmdObject*)task->extra)->field_8->coord = sc->m.mat;
+
+                Gfx_MatrixCol2(&sc->m.mat, &sc->dir);
+                VectorNormalSS(&sc->dir, &sc->dir);
+                gte_lddp(-0xBB8);
+                gte_ldsv(&sc->dir);
+                gte_gpf12_real();
+                gte_stsv(&sc->dir);
+
+                ((TmdObject*)task->extra)->field_8->coord.t[0] += sc->dir.vx;
+                ((TmdObject*)task->extra)->field_8->coord.t[1] += sc->dir.vy;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] += sc->dir.vz;
+                ((TmdObject*)task->extra)->field_8->flg         = 0;
+
+                if (0x800 - ABS(sc->angle) < 0xD) {
+                    sc->angle = 0x800;
+                    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, 0x800, 1);
+                    work->field_F08++;
+                }
+            }
+            break;
+
+        case 2: {
+            s32            paused = D_80072729;
+            GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8;
+
+            if (paused != 1) {
+                Actor444000_StepForward(c);
+            }
+        }
+            ((TmdObject*)task->extra)->field_8->flg = 0;
+            if (((TmdObject*)task->extra)->field_8->coord.t[2] < -0x1387) {
+                work->field_0 = 0xA;
+                work->field_F08++;
+            }
+            break;
+
+        case 3: {
+            s32            paused = D_80072729;
+            GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8;
+
+            if (paused != 1) {
+                Actor444000_StepForward(c);
+            }
+        }
+            ((TmdObject*)task->extra)->field_8->flg = 0;
+            if (((TmdObject*)task->extra)->field_8->coord.t[2] < -0x251B) {
+                work->field_0 = 0xA;
+                work->field_F08++;
+            }
+            break;
+
+        case 4: {
+            s32            paused = D_80072729;
+            GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8;
+
+            if (paused != 1) {
+                Actor444000_StepForward(c);
+            }
+        }
+            ((TmdObject*)task->extra)->field_8->flg = 0;
+            if (((TmdObject*)task->extra)->field_8->coord.t[2] < -0x32C7) {
+                work->field_0 = 0xA;
+                work->field_F08++;
+            }
+            break;
+
+        case 5: {
+            s32            paused = D_80072729;
+            GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8;
+
+            if (paused != 1) {
+                Actor444000_StepForward(c);
+            }
+        }
+            ((TmdObject*)task->extra)->field_8->flg = 0;
+            if (((TmdObject*)task->extra)->field_8->coord.t[2] < -0x4203) {
+                work->field_0 = 0x10;
+                work->field_F08++;
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+            }
+            break;
+    }
+
+    SCRATCH_SP += sizeof(Actor444000RunScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80135448);
 

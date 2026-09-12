@@ -297,6 +297,38 @@ typedef struct Actor444000RotScratch {
 } Actor444000RotScratch;
 STATIC_ASSERT_SIZEOF(Actor444000RotScratch, 0x34);
 
+/// Word-wise view of the `MATRIX` in `Actor444000RunScratch`, used only to
+/// splat an identity rotation: five aligned stores instead of nine halfword
+/// ones, each word holding two adjacent `m[][]` entries. Same shape as
+/// `ActorsShared8016bd98MatWords`.
+typedef struct Actor444000RunMatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor444000RunMatWords;
+
+typedef union Actor444000RunMat {
+    MATRIX                 mat;
+    Actor444000RunMatWords ident;
+} Actor444000RunMat;
+STATIC_ASSERT_SIZEOF(Actor444000RunMat, 0x20);
+
+/// Scratchpad frame `func_actor_444000_8013482C` carves off `G_SCRATCH_HEAD`
+/// for the run-out / turn / run-back pass. `dir` is first the offset from the
+/// model to the player, whose yaw against the model's own facing becomes
+/// `Actor444000Work::field_7C4`, and later the normalised, GPF-scaled step the
+/// turn adds to the coordinate; `m` is the working copy of the model's root
+/// coordinate and `angle` the yaw `Gfx_RotMatrixY` rebuilds it from.
+typedef struct Actor444000RunScratch {
+    /* 0x00 */ SVECTOR           dir;
+    /* 0x08 */ Actor444000RunMat m;
+    /* 0x28 */ s16               pad_28;
+    /* 0x2A */ s16               angle;
+} Actor444000RunScratch;
+STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
+
 /// The overlay's enemy task: the same layout as `Task`, named for the two
 /// slots this overlay reaches through it. `field_20` is the `GpEnemy` the
 /// dispatchers already hand their handlers as `Task::spawnArg2`. Not the event task
