@@ -5,13 +5,14 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "actors/actor_405800.h"
+#include "actors/actors_shared_80139948.h"
 #include "actors/actors_shared_8013a0b0.h"
 
 extern u8  D_actor_405800_801514D8[];
 extern s32 Gp_LcgState;
 
-void func_8009EA50(s16 arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80136E14(Task* arg0);
 void func_actor_405800_8013706C(Task* arg0, s16 arg1);
@@ -165,7 +166,30 @@ void func_actor_405800_80138CF0(Task* task)
     work->field_846 = work->field_846 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138D54);
+void func_actor_405800_80138D54(Task* task)
+{
+    Actor405800Work* work;
+    GsCOORDINATE2*   coord;
+
+    work               = (Actor405800Work*)task->idMap;
+    coord              = ((TmdObject*)task->extra)->field_8;
+    work->field_84C   += 2;
+    work->field_84E   += work->field_84C;
+    coord->coord.t[1] += work->field_84E;
+    if ((s16)work->field_92 < coord->coord.t[1]) {
+        coord->coord.t[1] = (s16)work->field_92;
+        func_actor_405800_8013A1E0(task, 0x13, 0x10);
+        work->field_84 += 0x800;
+        ActorsShared80139948(task);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        work->field_842 = 0;
+        work->field_890 = 0;
+        work->field_891 = 1;
+        work->field_846++;
+    }
+    func_actor_405800_8013A0F4(task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138E20);
 
