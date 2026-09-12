@@ -155,9 +155,9 @@ typedef struct Actor400500Work {
     /* 0xA24 */ s16                field_A24; // copied to TmdObject::field_2C
     /* 0xA26 */ u16                field_A26; // heading countdown, decremented by 0x80
     /* 0xA28 */ s16                field_A28;
-    /* 0xA2A */ byte               pad_A2A[0x2];
+    /* 0xA2A */ s16                field_A2A; // fade sub-state timer
     /* 0xA2C */ s16                field_A2C; // countdown written with message kind 1
-    /* 0xA2E */ byte               pad_A2E[2];
+    /* 0xA2E */ s16                field_A2E; // duration copied onto field_A30
     /* 0xA30 */ s16                field_A30; // blocks setting field_A46 to 0x80 while nonzero
     /* 0xA32 */ s16                field_A32; // heading; >>3 as u16, compared to 0 as s16
     /* 0xA34 */ s16                field_A34; // gates the field_A1A==3 sub-state write
