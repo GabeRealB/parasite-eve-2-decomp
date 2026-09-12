@@ -124,6 +124,23 @@ typedef struct Actor403600ProjectScratch {
 } Actor403600ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor403600ProjectScratch, 0x18);
 
+/// 0x24-byte scratch block used to hold seven planar distances while selecting
+/// the nearest point from D_actor_403600_801605F4.
+typedef struct Actor403600DistanceScratch {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ s32 z;
+    /* 0x08 */ s32 distances[7];
+} Actor403600DistanceScratch;
+STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
+
+typedef struct Actor403600Point {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 pad_2;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 pad_6;
+} Actor403600Point;
+STATIC_ASSERT_SIZEOF(Actor403600Point, 0x8);
+
 typedef struct Actor403600Ctx {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ u8   field_14;
@@ -136,6 +153,7 @@ extern s16     D_actor_403600_801606F2;
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
 void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
 u8*  func_actor_403600_80138DCC(Actor403600* arg0);
+void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1);
 s32  func_actor_403600_8013D9A8(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);

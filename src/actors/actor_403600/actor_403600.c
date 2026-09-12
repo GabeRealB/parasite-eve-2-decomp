@@ -17,6 +17,7 @@
 
 extern u8       D_80071075;
 extern u8       D_801153F4;
+extern MATRIX*  D_80073B8C;
 extern s32      D_8005C374;
 extern s32      D_8007107C;
 extern s16      D_80073BA0;
@@ -25,6 +26,7 @@ extern u8       D_actor_403600_80150ED4;
 extern TaskDesc D_actor_403600_801421A0;
 extern s32      D_actor_403600_8016056C;
 extern s32      D_actor_403600_8016057C[];
+extern Actor403600Point D_actor_403600_801605F4[];
 extern s32      D_actor_403600_80160698;
 extern s32      D_actor_403600_8016069C;
 extern s32      D_actor_403600_801606A0;
@@ -516,7 +518,120 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013C864);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013CCEC);
+void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1)
+{
+    s32                         temp_a0;
+    s32                         temp_v0;
+    s32                         temp_v0_10;
+    s32                         temp_v0_2;
+    s32                         temp_v0_3;
+    s32                         temp_v0_4;
+    s32                         temp_v0_5;
+    s32                         temp_v0_6;
+    s32                         temp_v0_7;
+    s32                         temp_v0_8;
+    s32                         temp_v0_9;
+    s32                         temp_v1;
+    s32                         temp_v1_2;
+    s32                         temp_v1_3;
+    s32                         temp_v1_4;
+    s32                         temp_v1_5;
+    s32                         temp_v1_6;
+    s32                         temp_v1_7;
+    s32                         temp_v1_8;
+    s32                         temp_v1_9;
+    s32                         var_a1;
+    s32                         var_a2;
+    s32                         var_v1;
+    Actor403600DistanceScratch* temp_s2;
+    Actor403600DistanceScratch* temp_s3;
+    Actor403600DistanceScratch* temp_s5;
+    Actor403600Work*            temp_s4;
+    Actor403600Point*           temp_v0_11;
+    Actor403600Point*           temp_v1_10;
+
+    temp_s2             = *(void**)0x1F8003FC;
+    temp_s3             = (Actor403600DistanceScratch*)((u8*)temp_s2 - 0x24);
+    *(void**)0x1F8003FC = temp_s3;
+    temp_s4             = arg0->field_1C;
+    temp_s5             = temp_s3;
+    if (arg1 == 0) {
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[0].x;
+        temp_v1               = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[0].z;
+        temp_s3->z            = temp_v1;
+        temp_v0               = temp_s3->x;
+        temp_s3->distances[0] = SquareRoot0((temp_v0 * temp_v0) + (temp_v1 * temp_v1));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[1].x;
+        temp_v1_2             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[1].z;
+        temp_s3->z            = temp_v1_2;
+        temp_v0_2             = temp_s3->x;
+        temp_s3->distances[1] = SquareRoot0((temp_v0_2 * temp_v0_2) + (temp_v1_2 * temp_v1_2));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[2].x;
+        temp_v1_3             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[2].z;
+        temp_s3->z            = temp_v1_3;
+        temp_v0_3             = temp_s3->x;
+        temp_s3->distances[2] = SquareRoot0((temp_v0_3 * temp_v0_3) + (temp_v1_3 * temp_v1_3));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[3].x;
+        temp_v1_4             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[3].z;
+        temp_s3->z            = temp_v1_4;
+        temp_v0_4             = temp_s3->x;
+        temp_s3->distances[3] = SquareRoot0((temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[4].x;
+        temp_v1_5             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[4].z;
+        temp_s3->z            = temp_v1_5;
+        temp_v0_5             = temp_s3->x;
+        temp_s3->distances[4] = SquareRoot0((temp_v0_5 * temp_v0_5) + (temp_v1_5 * temp_v1_5));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[5].x;
+        temp_v1_6             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[5].z;
+        temp_s3->z            = temp_v1_6;
+        temp_v0_6             = temp_s3->x;
+        temp_s3->distances[5] = SquareRoot0((temp_v0_6 * temp_v0_6) + (temp_v1_6 * temp_v1_6));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[6].x;
+        temp_v1_7             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[6].z;
+        temp_s3->z            = temp_v1_7;
+        temp_v0_7             = temp_s3->x;
+        temp_s3->distances[6] = SquareRoot0((temp_v0_7 * temp_v0_7) + (temp_v1_7 * temp_v1_7));
+        var_a2                = 0xFFFFFF;
+        var_v1                = 0;
+        var_a1                = 0;
+        do {
+            temp_a0 = temp_s5->distances[var_a1 & 0xFF];
+            if (temp_a0 < var_a2) {
+                var_v1 = var_a1;
+                var_a2 = temp_a0;
+            }
+            var_a1 += 1;
+        } while ((u32)(var_a1 & 0xFF) < 7U);
+    } else {
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[7].x;
+        temp_v1_8             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[7].z;
+        temp_s3->z            = temp_v1_8;
+        temp_v0_8             = temp_s3->x;
+        temp_s3->distances[0] = SquareRoot0((temp_v0_8 * temp_v0_8) + (temp_v1_8 * temp_v1_8));
+
+        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[8].x;
+        temp_v1_9             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[8].z;
+        temp_s3->z            = temp_v1_9;
+        temp_v0_9             = temp_s3->x;
+        temp_v0_10            = SquareRoot0((temp_v0_9 * temp_v0_9) + (temp_v1_9 * temp_v1_9));
+        temp_s3->distances[1] = temp_v0_10;
+        var_v1                = temp_v0_10 >= temp_s3->distances[0];
+    }
+    temp_v0_11 = D_actor_403600_801605F4;
+    temp_v1_10 = (var_v1 & 0xFF) + temp_v0_11;
+    do {
+        temp_s4->field_6F0.vx = temp_v1_10->x;
+    } while (0);
+    temp_s4->field_6F0.vy = D_80073B8C->t[1] - 0x258;
+    *(void**)0x1F8003FC   = (u8*)*(void**)0x1F8003FC + 0x24;
+    temp_s4->field_6F0.vz = temp_v1_10->z;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013D15C);
 
