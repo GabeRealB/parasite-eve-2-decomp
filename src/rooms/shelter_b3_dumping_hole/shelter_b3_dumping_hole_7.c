@@ -109,7 +109,7 @@ void func_shelter_b3_dumping_hole_80183D34(DumpingHoleState* arg0)
             Gp_DispatchMsg((Task*)t00, 0x7DB, (s32)&desc, 0);
         }
     }
-    ent->field_8   = 0;
+    ent->field_8    = 0;
     arg0->field_30 += 1;
 }
 
