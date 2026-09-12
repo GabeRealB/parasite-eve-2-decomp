@@ -23,6 +23,11 @@
 /// the retail build used. Same form as `src/pe/energyball/energyball.c`.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+/// `MVMVA` with `sf = 1` reading the rotation matrix and V0 -- the operation
+/// `gte_RotTrans` performs -- spelled with the COP2 prefix the retail build
+/// used, which `psyq/inline_c.h` omits.
+#define gte_rt_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+
 extern s16 D_actor_444000_80144A68;
 extern s16 D_actor_444000_80144A70;
 extern s32 Gp_LcgState;
@@ -456,8 +461,8 @@ void func_actor_444000_801381B0(GpEnemy* enemy, Actor444000Grab* task)
     pos.vz = task->extra->field_8->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    work->field_168 >>= 1;
-    work->field_16C >>= 2;
+    work->colorMtx.t[1] >>= 1;
+    work->colorMtx.t[2] >>= 2;
 
     Actor444000_ShrinkRotation(task->extra->field_8);
 }
@@ -514,7 +519,141 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
     work->field_1AC++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80138B94);
+/// World position of `coord` as seen from `Gfx_ViewCoord`: `out` starts as the
+/// point in `coord`'s own space and is walked up the coordinate hierarchy, one
+/// `gte_rt` per level, until the view coordinate is reached. A hierarchy that
+/// does not end at the view coordinate leaves `out` untouched.
+static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* out)
+{
+    SVECTOR acc;
+    VECTOR  v;
+    s32     flag;
+
+    acc.vx = out->vx;
+    acc.vy = out->vy;
+    acc.vz = out->vz;
+
+    for (;;) {
+        if (coord->sub == NULL) {
+            return;
+        }
+        if (coord != &Gfx_ViewCoord) {
+            gte_SetTransMatrix(&coord->coord);
+            gte_SetRotMatrix(&coord->coord);
+            gte_ldv0(&acc);
+            gte_rt_real();
+            gte_stlvnl(&v);
+            gte_stflg(&flag);
+            acc.vx = v.vx;
+            acc.vy = v.vy;
+            acc.vz = v.vz;
+            coord  = coord->sub;
+        } else {
+            out->vx = acc.vx;
+            out->vy = acc.vy;
+            out->vz = acc.vz;
+            return;
+        }
+    }
+}
+
+/// Link one of the work block's display nodes: it hangs off the model's own
+/// coordinate, carries `rec` as its collision-record table and sits at `pos`
+/// in that coordinate's space.
+static __inline__ void Actor444000_LinkWorkObj(GpObj* obj, GsCOORDINATE2* coord, GpRec18* rec,
+                                               SVECTOR* pos, s32 prio, s32 kind)
+{
+    obj->field_8  = coord;
+    obj->field_C  = rec;
+    obj->field_10 = pos->vx;
+    obj->field_12 = pos->vy;
+    obj->field_14 = pos->vz;
+    obj->field_1C = 0x100;
+    obj->flags    = 1;
+    Gp_LinkObj(prio, obj);
+    Gp_InitRec18Table(obj->field_C, kind, 0);
+}
+
+/// Spawn state of the enemy dispatched through `D_actor_444000_80131F0C`:
+/// allocate its work block, drop the model onto the floor of the view
+/// coordinate and hang the two display nodes off it.
+///
+/// The model is reparented to `Gfx_ViewCoord` and its translation replaced by
+/// the world position of part 3 of the owning enemy's model, so the body starts
+/// where that part is. `field_1AA` is a ninth of that height -- the bounce the
+/// descent state adds back -- and `vel` the horizontal gap to the player, which
+/// the later states spend a fifteenth at a time. The landing cue is enqueued at
+/// the model's own pan and depth with the owner's id in its high half, the
+/// model is spun to a random yaw, and the two nodes are linked with their
+/// collision-record tables before the task's colour and light matrices are
+/// pointed into the work block.
+void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work;
+    GpEnemy*             owner;
+    Task*                player;
+    SVECTOR              vec;
+    s32                  sfx;
+    s32                  pan;
+
+    owner  = task->parent->spawnArg2;
+    player = Game_GetPtrSlot(3);
+
+    if (D_actor_444000_80144A68 == 1 ||
+        (work = Mem_Calloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    task->extra->field_8->sub = &Gfx_ViewCoord;
+    task->extra->field_C      = 0;
+
+    vec.vx = vec.vy = vec.vz = 0;
+    Actor444000_LocalToView(&((TmdObject*)owner->task->extra)->field_8[3], &vec);
+
+    task->extra->field_8->coord.t[0] = vec.vx;
+    task->extra->field_8->coord.t[1] = vec.vy;
+    task->extra->field_8->coord.t[2] = vec.vz;
+    task->extra->field_8->flg        = 0;
+
+    work->field_1AA = task->extra->field_8->coord.t[1] / 9;
+    work->vel.vx =
+        ((TmdObject*)player->extra)->field_8->coord.t[0] - task->extra->field_8->coord.t[0];
+    work->vel.vy = 0;
+    work->vel.vz =
+        ((TmdObject*)player->extra)->field_8->coord.t[2] - task->extra->field_8->coord.t[2];
+    work->field_1AC = 0;
+    task->state++;
+
+    sfx = ((owner->field_8 >> 0xC) << 8) | 0x4020000B;
+    pan = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+    SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth((GpObj38*)task->extra->field_8));
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    Gfx_RotMatrixY(&task->extra->field_8->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+
+    vec.vx = vec.vy = vec.vz = 0;
+
+    Actor444000_LinkWorkObj(&work->obj0, task->extra->field_8, &work->rec0, &vec, 3, 1);
+
+    work->obj1.field_8  = task->extra->field_8;
+    work->obj1.field_C  = &work->rec1;
+    work->obj1.field_10 = 0;
+    work->obj1.field_12 = 0;
+    work->obj1.field_14 = 0;
+    work->obj1.field_18 = 0x3000A;
+    work->obj1.field_1C = 0x100;
+    work->obj1.flags    = 1;
+    Gp_LinkObj(2, &work->obj1);
+
+    work->obj0.flags |= 0x8000;
+    Gp_InitRec18Table(work->obj1.field_C, 3, 0);
+    work->obj1.flags   |= 0x4000;
+    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 5);
+
+    task->extra->field_1C = &work->lightMtx;
+    task->extra->field_20 = &work->colorMtx;
+}
 
 /// Descent state that follows the hold: once the model's y has passed its apex
 /// (gone negative) both display nodes get their draw flags raised and the

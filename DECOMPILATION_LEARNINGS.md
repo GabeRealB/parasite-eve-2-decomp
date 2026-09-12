@@ -63331,3 +63331,91 @@ two names for the same address, and the block the copy sits in tells you where
 the second assignment was written - here in the block that carves the frame,
 not at the GTE call site, which rules out an inlined helper taking the pointer
 as a parameter.
+
+## A top-tested `while` gets rotated; a `for (;;)` with `return`s does not
+
+`expand_end_loop` in `stmt.c` rolls a loop's exit test to the bottom, leaving a
+duplicate test there and a jump into the middle. It only does so when it finds a
+**conditional jump to the loop's own `end_label`** while scanning forward from
+the loop start, so what decides the shape is how the loop is left, not how it is
+written:
+
+- `while (p->next != NULL) { ... }` and `for (;;) { ...; if (c) break; }` both
+  emit that jump -- the loop is rotated.
+- `for (;;) { if (c) return; ... }` inside a function (in practice an
+  `__inline__` helper, so the `return` becomes a jump to the inlined body's
+  return label) emits no jump to `end_label`, so `last_test_insn` stays 0 and
+  the loop keeps its test at the top with a plain `j` back:
+
+```
+loop:  lw   v0, 0x4C(a1)
+       beqz v0, exit
+       beq  a1, t2, store
+       ...body...
+       j    loop
+store: ...
+exit:
+```
+
+A target with that exact shape -- one test at the top, an unconditional `j`
+back, no second test at the bottom -- is telling you the loop's exits are
+`return`s, not `break`s. In `func_actor_444000_80138B94` turning
+
+```c
+while (coord->sub != NULL) { if (coord != view) { ... } else { ...; break; } }
+```
+
+into
+
+```c
+for (;;) {
+    if (coord->sub == NULL) { return; }
+    if (coord != view) { ... } else { ...; return; }
+}
+```
+
+inside the inlined helper moved 90.2% to 96.4%; nothing else changed. Note that
+the `if`/`else` and the `if (...) { ...; break; }` forms compile *identically* -
+only the kind of exit matters. `goto` and an explicit top label resist the
+rotation the same way (see "Mid-loop unlink"), but `return` keeps the source
+readable.
+
+## `0(base)` direct but `+2` / `+4` through an address register means a pointer parameter
+
+A local struct is addressed `(plus vfp off)` at expand time and
+`instantiate_virtual_regs` folds that to one `sp`-relative displacement per
+field, so plain local access is `0x10(sp)` / `0x12(sp)` / `0x14(sp)`. Seeing
+instead
+
+```
+lhu  v0, 0x10(sp)      /* or, if CSE knows the value, no load at all */
+addiu v1, sp, 0x10
+lhu  v0, 2(v1)
+lhu  v0, 4(v1)
+```
+
+means the object was reached through a **pointer**: `memory_address` forces the
+inner sum of `(plus (plus sp 0x10) 2)` into a register for the non-zero offsets,
+while cse's `find_best_addr` rewrites the zero-offset `(mem (reg))` back to the
+`sp`-relative form. `move_by_pieces` does not explain it -- on MIPS it only
+copies an address to a register when it is `CONSTANT_P`, so a struct assignment
+between two locals stays `sp`-relative throughout.
+
+In practice that pattern is an `__inline__` helper taking the local's address:
+
+```c
+static __inline__ void helper(GpObj* obj, ..., SVECTOR* pos)
+{
+    obj->field_10 = pos->vx;   /* 0x10(sp), then 2(v1), 4(v1) */
+    ...
+}
+...
+vec.vx = vec.vy = vec.vz = 0;  /* written directly: sh zero, 0x10(sp) ... */
+helper(&work->obj0, ..., &vec);
+```
+
+The helper's other pointer parameter shows the same way: `&work->obj0` living in
+`$s0` across the calls, with the fields written as `8(s0)` / `0xC(s0)` rather
+than `0xB8(s3)` / `0xBC(s3)` off the work block. That extra pseudo is also what
+gives the function its seventh callee-saved register, so the prologue's
+`sw $sN` count is the cheap way to spot the missing helper.

@@ -335,12 +335,15 @@ typedef struct Actor444000GrabWork {
     /* 0x0D0 */ GpObj obj1;
     /// The two collision-record tables `Gp_ClearRec18Occupied` wipes each step;
     /// `rec1` is also the table `func_actor_444000_80132B14` collides against.
-    /* 0x0F0 */ GpRec18   rec0;
-    /* 0x108 */ GpRec18   rec1;
-    /* 0x120 */ byte      pad_120[0x48];
-    /* 0x168 */ s32       field_168;
-    /* 0x16C */ s32       field_16C;
-    /* 0x170 */ byte      pad_170[0x24];
+    /* 0x0F0 */ GpRec18 rec0;
+    /* 0x108 */ GpRec18 rec1;
+    /* 0x120 */ byte    pad_120[0x30];
+    /// The colour and light matrices the task hands to its `TmdObject`
+    /// (`field_20` and `field_1C`); `colorMtx.t[1]` / `t[2]` are the two shake
+    /// terms the bounce state damps each step.
+    /* 0x150 */ MATRIX    colorMtx;
+    /* 0x170 */ MATRIX    lightMtx;
+    /* 0x190 */ byte      pad_190[0x4];
     /* 0x194 */ GpAnimArg anim;      // message 0x3FF payload, sent by address
     /* 0x1A8 */ s16       field_1A8; // set when the dispatcher sees the state change; gates the take-over
     /* 0x1AA */ s16       field_1AA; // bounce height added back to the model's y each step, taken as a magnitude
