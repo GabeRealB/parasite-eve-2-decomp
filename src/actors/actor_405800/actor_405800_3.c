@@ -29,10 +29,12 @@ void func_actor_405800_80139E48(Task* arg0);
 void func_actor_405800_80139EAC(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 
-/* Three-entry tables for `func_actor_405800_80137F58` / `80137FCC`, and the
- * four-entry tables for `80137DE4` / `80138040`. A local initializer would
- * emit another compiler pool packed against `80137C04`'s leading table;
- * copying the splat-owned pools keeps them at 0xAC / 0xBC / 0xC8 / 0xD4. */
+/* Three-entry tables for `func_actor_405800_80137F58` / `80137FCC`, the
+ * five-entry table for `80137D60`, and the four-entry tables for `80137DE4` /
+ * `80138040`. A local initializer would emit another compiler pool packed
+ * against `80137C04`'s leading table; copying the splat-owned pools keeps
+ * them at 0x98 / 0xAC / 0xBC / 0xC8 / 0xD4. */
+extern const TaskFuncTable5 D_actor_405800_80131EB8;
 extern const TaskFuncTable4 D_actor_405800_80131ECC;
 extern const TaskFuncTable3 D_actor_405800_80131EDC;
 extern const TaskFuncTable3 D_actor_405800_80131EE8;
@@ -57,7 +59,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80137CEC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80137D60);
+INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800_80131EB8);
+
+void func_actor_405800_80137D60(Task* task)
+{
+    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    TaskFuncTable5   states = D_actor_405800_80131EB8;
+
+    func_actor_405800_80137948(task);
+    states.funcs[(s16)work->field_848](task);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800_80131ECC);
 
