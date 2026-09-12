@@ -21,10 +21,13 @@ extern s32      D_8007107C;
 extern s16      D_80073BA0;
 extern TaskDesc D_actor_403600_801421A0;
 extern s32      D_actor_403600_8016056C;
+extern s32      D_actor_403600_8016057C[];
 extern s32      D_actor_403600_8016069C;
 extern s32      D_actor_403600_801606A0;
+extern Task*    D_actor_403600_801606A8;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
 void func_actor_403600_8013955C(Actor403600* arg0);
@@ -432,7 +435,99 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801400BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80140488);
+void func_actor_403600_80140488(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    s32              state;
+    s32              i;
+    s16              countdown;
+    TmdObject*       object;
+    Actor403600Work* initialWork;
+    Actor403600Work* globalWork;
+    Actor403600Work* cleanupWork;
+    Actor403600Work* commonWork;
+    GpEnemy*         enemy;
+    u8*              anim;
+
+    object      = arg1->field_2C;
+    initialWork = arg1->field_1C;
+    globalWork  = ((Actor403600*)D_actor_403600_801606A8)->field_1C;
+    state       = D_801153F4;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state < 2) {
+        goto default_body;
+    }
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case1:
+    if (globalWork->field_742 != 1) {
+        return;
+    }
+    goto default_body;
+case2:
+    object->field_C |= 0x80;
+    arg0->field_14   = 1;
+    return;
+default_body:
+    if (initialWork->field_732 == 0) {
+        goto inner0;
+    }
+    if (initialWork->field_732 == 1) {
+        goto inner1;
+    }
+    goto common;
+inner0:
+    object->field_2C       += 3;
+    arg1->field_2C->field_C = 0;
+    countdown               = (u16)arg1->field_2A - 1;
+    arg1->field_2A          = countdown;
+    if ((countdown << 0x10) <= 0) {
+        initialWork->field_732 = 1;
+        initialWork->field_734 = 0;
+    }
+    goto common;
+inner1:
+    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x24);
+    globalWork->field_4B4        = NULL;
+    enemy                        = arg1->field_20;
+    cleanupWork                  = arg1->field_1C;
+    arg1->field_2C->field_8->sub = &Gfx_ViewCoord;
+    enemy->field_54              = 0;
+    Gp_UnlinkNode(&enemy->node);
+    Gp_UnlinkObj(&cleanupWork->field_508);
+    Gp_UnlinkObj(&cleanupWork->field_588);
+    if ((Task*)arg1 == D_actor_403600_801606A8) {
+        Gp_UnlinkObj(&cleanupWork->field_5C0);
+    }
+    Gp_EnemyTaskExit((Task*)arg1);
+    return;
+common:
+    commonWork = arg1->field_1C;
+    if (D_actor_403600_8016057C[(s16)commonWork->field_736] != 0) {
+        i = 1;
+        if ((s16)commonWork->field_736 != commonWork->field_738) {
+            commonWork->field_738 = commonWork->field_736;
+            commonWork->field_73A = 0;
+            do {
+                func_800B4114((GpAnimCtx*)commonWork, i, commonWork->field_736, 0, commonWork->field_756);
+                i++;
+            } while (i < 0x14);
+        } else {
+            TOUCH_REG(i);
+            commonWork->field_73A += i;
+            anim                   = &commonWork->pad_0[0x28];
+            do {
+                anim[0x1D] = (u8)commonWork->field_778;
+                Gp_AnimTickIndex((GpAnimCtx*)commonWork, i);
+                i++;
+                anim += sizeof(GpAnimSlot);
+            } while (i < 0x14);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801406A4);
 
