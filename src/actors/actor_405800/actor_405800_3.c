@@ -29,9 +29,10 @@ void func_actor_405800_80139E48(Task* arg0);
 void func_actor_405800_80139EAC(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 
-/* Three-entry table for `func_actor_405800_80137FCC`. A local initializer
- * would emit a second compiler pool packed against `80137C04`'s leading table;
- * copying the splat-owned pool keeps it at 0xC8. */
+/* Three-entry tables for `func_actor_405800_80137F58` / `80137FCC`. A local
+ * initializer would emit another compiler pool packed against `80137C04`'s
+ * leading table; copying the splat-owned pools keeps them at 0xBC / 0xC8. */
+extern const TaskFuncTable3 D_actor_405800_80131EDC;
 extern const TaskFuncTable3 D_actor_405800_80131EE8;
 
 /// Per-frame entry point for one of this actor's states: clears the animation
@@ -88,7 +89,16 @@ void func_actor_405800_80137EF0(Task* task)
     states[(s16)work->field_848](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80137F58);
+INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800_80131EDC);
+
+void func_actor_405800_80137F58(Task* task)
+{
+    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    TaskFuncTable3   states = D_actor_405800_80131EDC;
+
+    func_actor_405800_80137948(task);
+    states.funcs[(s16)work->field_848](task);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800_80131EE8);
 
