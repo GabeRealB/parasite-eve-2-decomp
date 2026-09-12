@@ -572,7 +572,94 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801361EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013662C);
+void func_actor_400500_8013662C(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    GsCOORDINATE2*   coord;
+    s32              flag;
+    s32              flag2;
+    s32              heading;
+    s32              a1a;
+    s32              val;
+    u32              rnd;
+    u16              a1c;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (work->field_A4A != 0) {
+        work->field_A4A = 0;
+        func_actor_400500_8013DB64(arg0, 5);
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    if (flag == 0) {
+        work2 = (Actor400500Work*)arg0->idMap;
+        if (work2->field_A49 != 0) {
+            work2->field_A49 = 0;
+            if (work2->field_A1E & 1) {
+                flag2 = 0;
+            } else {
+                func_actor_400500_8013DB64(arg0, 4);
+                flag2 = 1;
+            }
+        } else {
+            flag2 = 0;
+        }
+        if ((flag2 == 0) && ((func_actor_400500_80132D74(arg0) << 0x10) == 0) &&
+            ((func_actor_400500_80133358(arg0) << 0x10) == 0) &&
+            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            heading = (u16)work->field_94A;
+            if ((heading & 0xFFF) != 0x400) {
+                if (((0x400 - heading) << 0x14) > 0) {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_A38 = 2;
+                } else {
+                    work2            = (Actor400500Work*)arg0->idMap;
+                    work2->field_A38 = 1;
+                }
+                work2->field_A3A = 0;
+            } else {
+                a1a = work->field_A1A;
+                if (a1a != 1) {
+                    if ((a1a == 2) && (coord->coord.t[0] >= 0x4075)) {
+                        a1c = work->field_A1C;
+                        if (((u32)(a1c - 2) < 2U) || ((s16)a1c == 6)) {
+                            work->field_A08 = 5;
+                        } else {
+                            work->field_A08 = a1a;
+                        }
+                    } else {
+                        func_actor_400500_801335E8(arg0);
+                    }
+                } else {
+                    if (work->field_A34 == 0) {
+                        if (work->field_9E0 <= 0) {
+                            work->field_A08 = 2;
+                        }
+                    } else if (work->field_9E0 < -0xF9F) {
+                        rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
+                        Gp_LcgState = rnd;
+                        if (((rnd >> 0x10) & 0x1F) == 0) {
+                            if (!(work->field_A1E & 1)) {
+                                work2 = (Actor400500Work*)arg0->idMap;
+                                val   = 7;
+                            } else {
+                                work2 = (Actor400500Work*)arg0->idMap;
+                                val   = 8;
+                            }
+                            work2->field_A06 = val;
+                            work2->field_A08 = 0;
+                        }
+                    }
+                    func_actor_400500_801335E8(arg0);
+                }
+            }
+            coord->coord.t[2] = -0x209E;
+        }
+    }
+}
 
 void func_actor_400500_80136864(Task* arg0)
 {
