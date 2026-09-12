@@ -266,12 +266,13 @@ typedef struct Actor444000GrabWork {
     /* 0x16C */ s32       field_16C;
     /* 0x170 */ byte      pad_170[0x24];
     /* 0x194 */ GpAnimArg anim;      // message 0x3FF payload, sent by address
-    /* 0x1A8 */ s16       field_1A8; // non-zero: this state may install the animation
+    /* 0x1A8 */ s16       field_1A8; // set when the dispatcher sees the state change; gates the take-over
     /* 0x1AA */ byte      pad_1AA[0x2];
     /* 0x1AC */ s16       field_1AC; // step counter within the state
     /* 0x1AE */ byte      pad_1AE[0x4];
     /* 0x1B2 */ s16       field_1B2; // one-shot flag: the player animation is installed
-    /* 0x1B4 */ byte      pad_1B4[0xC];
+    /* 0x1B4 */ s16       field_1B4; // the state the dispatcher last ran, so it can spot the change
+    /* 0x1B6 */ byte      pad_1B6[0xA];
 } Actor444000GrabWork;
 STATIC_ASSERT_SIZEOF(Actor444000GrabWork, 0x1C0);
 
@@ -280,7 +281,8 @@ STATIC_ASSERT_SIZEOF(Actor444000GrabWork, 0x1C0);
 typedef struct Actor444000Grab {
     /* 0x00 */ byte                 pad_0[0x1C];
     /* 0x1C */ Actor444000GrabWork* field_1C;
-    /* 0x20 */ byte                 pad_20[0xC];
+    /* 0x20 */ GpEnemy*             spawnArg2;
+    /* 0x24 */ byte                 pad_24[0x8];
     /* 0x2C */ TmdObject*           extra;
     /* 0x30 */ s32                  state;
     /* 0x34 */ s32                  spawnArg1;

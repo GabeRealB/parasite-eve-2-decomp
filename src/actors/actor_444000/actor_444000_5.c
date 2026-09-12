@@ -16,6 +16,10 @@ extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
 /// state is not 2.
 extern GpEnemyTaskFuncTable3 D_actor_444000_80131E9C;
 
+/// The grab enemy's five handler states, dispatched only while the global game
+/// state is neither 1 nor 2.
+extern GpEnemyTaskFuncTable5 D_actor_444000_80131EA8;
+
 /// A four-entry handler table, dispatched only while the global game state is
 /// neither 1 nor 2.
 extern GpEnemyTaskFuncTable4 D_actor_444000_80131F0C;
@@ -67,7 +71,42 @@ void func_actor_444000_801438E4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80143960);
+/// Dispatcher of the grab enemy (`D_actor_444000_80131EA8`): park the model
+/// object while the global game state is 1 or 2, otherwise note in the work
+/// block whether the state changed since the last step and run the handler for
+/// it. The same shape as `func_actor_444000_80143A6C`, except that it guards
+/// the bookkeeping on the state being non-zero rather than on the work block
+/// existing, and clears the model object's flag word rather than leaving it 2.
+void func_actor_444000_80143960(Actor444000Grab* arg0)
+{
+    GpEnemyTaskFuncTable5 sp;
+    Actor444000GrabWork*  work;
+
+    sp   = D_actor_444000_80131EA8;
+    work = arg0->field_1C;
+
+    switch (D_801153F4) {
+        case 0:
+            arg0->extra->field_C = 0;
+            break;
+        case 1:
+            arg0->extra->field_C = 0;
+            return;
+        case 2:
+            arg0->extra->field_C = 0x80;
+            return;
+    }
+
+    if (arg0->state != 0) {
+        if (work->field_1B4 != arg0->state) {
+            work->field_1A8 = 1;
+        } else {
+            work->field_1A8 = 0;
+        }
+        work->field_1B4 = arg0->state;
+    }
+    sp.funcs[arg0->state](arg0->spawnArg2, (Task*)arg0);
+}
 
 /// Dispatcher of the `D_actor_444000_80131F0C` enemy: park the model object
 /// while the global game state is 1 or 2, otherwise note in the work block
