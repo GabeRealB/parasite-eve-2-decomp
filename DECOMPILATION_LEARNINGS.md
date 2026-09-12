@@ -62944,3 +62944,41 @@ Recovering the switch shape from those three signatures took
 `func_actor_444000_801321FC` from 72.48% (branch=4 regs=14 insert=4 delete=18) to
 an exact match in one attempt, with the register assignment falling out on its
 own once the block order was right.
+
+## Two branch sites reaching one block is often two `else if` arms, not one range
+
+An `if`/`else if` ladder whose arms have *identical bodies* does not compile to
+one block per arm: GCC 2.8.1's cross-jumping (`jump.c`, on at `-O2`) merges
+duplicate tails, so several arms collapse into a single block that two or more
+branches jump to. Reading the asm as "one comparison per branch target" then
+produces the wrong ladder.
+
+In `func_actor_444000_80142254` the first two tests both land on the same block:
+
+```
+blez  $v1, .L2B4         /* z > 0  -> clear and return */
+ slti $v0, $v1, -0x3E7
+.L2B4:
+bnez  $v0, .L2D4         /* z < -999  -> keep testing */
+ slti $v0, $v1, -0x1387
+.L2BC:                   /* the shared body */
+lw    $v0, 0x18($a0)
+...
+.L2D4:
+beqz  $v0, .L2BC         /* z >= -4999 -> same shared body */
+```
+
+Two `slti`s against different constants, one body. That is not `z > -5000` with
+a redundant test: it is `else if (z > -1000) { A } else if (z > -5000) { A }`,
+two source arms with the same clamp, merged after the fact. Writing them as one
+arm loses a `slti`/branch pair; writing both, verbatim duplicated, matches.
+
+The tell is a constant that is tested but whose "taken" edge goes nowhere new.
+Where the arms' *tails* differ the merge stops there instead, which is why the
+same function has two separate `0x2CEC` clamp blocks — one continues into a
+`0x445C` cap, the other into a `0x4074` cap — even though their first five
+instructions are identical.
+
+Corollary for the C: duplicated arms are what the original source looked like,
+so do not factor them. This function matched on the first attempt (81.27% m2c
+baseline to 100%) once the ladder had all nine arms written out.

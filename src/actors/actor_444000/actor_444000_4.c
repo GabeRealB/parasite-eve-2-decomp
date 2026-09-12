@@ -309,7 +309,85 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80141DFC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80142254);
+/// Keeps the player inside the arena: clamps the player model's root
+/// translation every tick. `t[1]` (height) is never allowed above 0, and `t[2]`
+/// (depth) is capped at 0 in front and -26000 at the back. The `t[2]` ladder
+/// then picks the `t[0]` (lateral) corridor for that depth band, so the walls
+/// narrow and widen as the player moves through the room.
+void func_actor_444000_80142254(void)
+{
+    Task* player;
+    s32   z;
+
+    player = Game_GetPtrSlot(3);
+
+    if (((TmdObject*)player->extra)->field_8->coord.t[1] > 0) {
+        ((TmdObject*)player->extra)->field_8->coord.t[1] = 0;
+    }
+
+    z = ((TmdObject*)player->extra)->field_8->coord.t[2];
+    if (z > 0) {
+        ((TmdObject*)player->extra)->field_8->coord.t[2] = 0;
+    } else if (z > -1000) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 0) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 0;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
+        }
+    } else if (z > -5000) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 0) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 0;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
+        }
+    } else if (z > -7000) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 9500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 9500;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
+        }
+    } else if (z > -13200) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
+        }
+    } else if (z > -14750) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 17500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 17500;
+        }
+    } else if (z > -21250) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
+        }
+    } else if (z > -22800) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 17500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 17500;
+        }
+    } else if (z > -26000) {
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] < 11500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 11500;
+        }
+        if (((TmdObject*)player->extra)->field_8->coord.t[0] > 16500) {
+            ((TmdObject*)player->extra)->field_8->coord.t[0] = 16500;
+        }
+    } else {
+        ((TmdObject*)player->extra)->field_8->coord.t[2] = -26000;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_801423C4);
 
