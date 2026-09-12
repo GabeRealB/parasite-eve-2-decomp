@@ -29,7 +29,49 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80134040);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_801341C4);
+/// Advance every animation slot of the three context pairs and write the blended
+/// pose out of each pair's even member. Both members of a pair are ticked with
+/// the same slot index; the odd member's `field_9` is seeded from `field_7BE`
+/// and the even member's from `field_7B6 - 3`. `field_7C0` is the copy weight,
+/// with `0x1000 - field_7C0` as its complement.
+void func_actor_444000_801341C4(Actor444000* arg0)
+{
+    GpAnimPose       pose0;
+    GpAnimPose       pose1;
+    Actor444000Work* work     = arg0->field_1C;
+    s32              blend    = work->field_7C0;
+    s32              invBlend = 0x1000 - blend;
+    s16              i;
+
+    for (i = 1; i < 8; i++) {
+        if (i < 11) {
+            work->slots1[i].field_9 = work->field_7BE;
+            work->slots0[i].field_9 = work->field_7B6 - 3;
+            func_800B3448(&work->anim0, i, (s32)&pose0, 0);
+            func_800B3448(&work->anim1, i, (s32)&pose1, 0);
+            Gp_AnimWritePoseCopy(&work->anim0, i, &pose0, &pose1, blend, invBlend);
+        } else {
+            work->slots0[i].field_9 = work->field_7B6 - 3;
+            Gp_AnimTickIndex(&work->anim0, i);
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        work->slots3[i].field_9 = work->field_7BE;
+        work->slots2[i].field_9 = work->field_7B6 - 3;
+        func_800B3448(&work->anim2, i, (s32)&pose0, 0);
+        func_800B3448(&work->anim3, i, (s32)&pose1, 0);
+        Gp_AnimWritePoseCopy(&work->anim2, i, &pose0, &pose1, blend, invBlend);
+    }
+
+    for (i = 0; i < 4; i++) {
+        work->slots5[i].field_9 = work->field_7BE;
+        work->slots4[i].field_9 = work->field_7B6 - 3;
+        func_800B3448(&work->anim4, i, (s32)&pose0, 0);
+        func_800B3448(&work->anim5, i, (s32)&pose1, 0);
+        Gp_AnimWritePoseCopy(&work->anim4, i, &pose0, &pose1, blend, invBlend);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_8013441C);
 
