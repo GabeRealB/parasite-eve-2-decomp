@@ -160,7 +160,39 @@ s32 func_shelter_b3_dumping_hole_80181D68(s32 arg0)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", RoomsShared801830f0Sub);
+extern s16 D_shelter_b3_dumping_hole_8018F4C0;
+extern s16 D_shelter_b3_dumping_hole_8018F4C2;
+extern s16 D_shelter_b3_dumping_hole_8018F4C4;
+extern s16 D_shelter_b3_dumping_hole_8018F4C8;
+extern s16 D_shelter_b3_dumping_hole_8018F4CA;
+extern u8  D_shelter_b3_dumping_hole_8018F4D0;
+
+s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0);
+s32 func_shelter_b3_dumping_hole_80182C24(s32 arg0);
+s16 func_shelter_b3_dumping_hole_801829B4(u16* arg0);
+s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0);
+
+s32 RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2)
+{
+    DumpingHoleSpawnElem* entry;
+
+    entry                              = ((DumpingHoleSpawnElem**)D_shelter_b3_dumping_hole_8018F4B4)[arg0];
+    D_shelter_b3_dumping_hole_8018F4BC = entry;
+    if (entry == NULL) {
+        return 1;
+    }
+    D_shelter_b3_dumping_hole_8018F4CA = arg1;
+    D_shelter_b3_dumping_hole_8018F4C6 = func_shelter_b3_dumping_hole_80182FD0(1);
+    D_shelter_b3_dumping_hole_8018F4C4 = arg2;
+    D_shelter_b3_dumping_hole_8018F4C0 = func_shelter_b3_dumping_hole_80182C24(
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8);
+    D_shelter_b3_dumping_hole_8018F4C2 = func_shelter_b3_dumping_hole_801829B4(
+        (u16*)D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8);
+    D_shelter_b3_dumping_hole_8018F4C8 = func_shelter_b3_dumping_hole_80182E50(
+        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8);
+    D_shelter_b3_dumping_hole_8018F4D0 = 0x1E;
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181F80);
 
