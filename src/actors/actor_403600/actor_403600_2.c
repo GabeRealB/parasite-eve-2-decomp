@@ -12,6 +12,7 @@
 /// and teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320A0;
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320EC;
+extern s32                   D_actor_403600_80160504[4];
 extern Task*                 D_actor_403600_801606A8;
 extern s32                   D_80070F70;
 
@@ -22,6 +23,8 @@ void func_actor_403600_801414FC(Actor403600* arg0);
 void func_actor_403600_8014161C(Actor403600* arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_801400BC(Actor403600* arg0);
+void func_actor_403600_80141F28(Actor403600* arg0);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801411D4);
 
@@ -280,7 +283,57 @@ void func_actor_403600_80141CD4(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141D30);
+void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
+{
+    GsCOORDINATE2*   workCoord;
+    GsCOORDINATE2*   coord;
+    Actor403600Work* work;
+    MATRIX*          matrix;
+    MATRIX*          matrix2;
+
+    coord = ((TmdObject*)arg1->extra)->field_8;
+    work  = Mem_Calloc(sizeof(*work), false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+
+    arg1->idMap                = (TaskIdMap*)work;
+    work->field_4B8.sub        = &Gfx_ViewCoord;
+    matrix                     = &work->field_4B8.coord;
+    *(s32*)&matrix->m[0][0]    = 0x1000;
+    *(s32*)&matrix->m[0][2]    = 0;
+    *(s32*)&matrix->m[1][1]    = 0x1000;
+    *(s32*)&matrix->m[2][0]    = 0;
+    matrix->m[2][2]            = 0x1000;
+    work->field_4B8.coord.t[0] = coord->coord.t[0];
+    work->field_4B8.coord.t[1] = coord->coord.t[1];
+    workCoord                  = &work->field_4B8;
+    work->field_4B8.coord.t[2] = coord->coord.t[2];
+    matrix2                    = &coord->coord;
+    coord->sub                 = workCoord;
+    *(s32*)&matrix2->m[0][0]   = 0x1000;
+    *(s32*)&matrix2->m[0][2]   = 0;
+    *(s32*)&matrix2->m[1][1]   = 0x1000;
+    *(s32*)&matrix2->m[2][0]   = 0;
+    matrix2->m[2][2]           = 0x1000;
+    coord->coord.t[1]          = 0x690;
+    coord->coord.t[0]          = 0;
+    coord->coord.t[2]          = 0x5DC;
+    work->field_4B8.flg        = 0;
+    Gp_UpdateCoord(workCoord);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    work->field_4B8.coord.t[0] = 0;
+    work->field_4B8.coord.t[1] = 0;
+    work->field_4B8.coord.t[2] = 0;
+    work->field_730            = 0;
+    arg1->field_24             = D_actor_403600_80160504;
+    arg1->exitCallback         = (TaskFunc)func_actor_403600_80141F28;
+    work->field_77A            = 0x2328;
+    work->field_744            = 0;
+    arg1->state               += 1;
+}
 
 void func_actor_403600_80141E78(Actor403600Ctx* arg0, Actor403600* arg1)
 {

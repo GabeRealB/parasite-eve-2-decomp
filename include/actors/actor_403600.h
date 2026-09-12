@@ -68,7 +68,9 @@ typedef struct Actor403600Work {
     /* 0x7A8 */ s16                  field_7A8;
     /* 0x7AA */ byte                 pad_7AA[2];
     /* 0x7AC */ s16                  field_7AC;
+    /* 0x7AE */ byte                 pad_7AE[0xA];
 } Actor403600Work;
+STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
 
 typedef struct Actor403600 {
     /* 0x00 */ byte             pad_0[0x1C];
