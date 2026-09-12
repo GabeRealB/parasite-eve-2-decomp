@@ -1575,7 +1575,50 @@ void func_actor_400500_8013905C(Task* arg0)
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801391B0);
+void func_actor_400500_801391B0(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* work4;
+    s32              flag;
+    u16              flags;
+    u8               unused[0x30];
+
+    work = (Actor400500Work*)arg0->idMap;
+    if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != 1)) {
+        flag            = 0x81;
+        work->field_A46 = flag;
+        work->field_A47 = 0;
+    }
+    ((TmdObject*)((Actor400500Work*)arg0->idMap)->field_9F0[1]->extra)->field_C = 0x80;
+    work->obj1.flags                                                           &= 0x7FFF;
+    work->obj2.flags                                                           &= 0x7FFF;
+    ((TmdObject*)((Actor400500Work*)arg0->idMap)->field_9F0[0]->extra)->field_C = 0x80;
+    work->obj3.flags                                                           &= 0x7FFF;
+    flags                                                                       = work->field_A1E;
+    work->obj4.flags                                                           &= 0x7FFF;
+    if (!(flags & 1)) {
+        work->field_A42  = 1;
+        work2            = (Actor400500Work*)arg0->idMap;
+        work2->field_9F8 = 0x10;
+        work2->field_9FE = 0xF;
+        work2->field_9FA = 2;
+        work->field_A08  = 3;
+    } else if (!(flags & 2)) {
+        work3            = (Actor400500Work*)arg0->idMap;
+        work3->field_9F8 = 0x10;
+        work3->field_9FE = 0xF;
+        work3->field_9FA = 2;
+        work->field_A08  = 1;
+    } else {
+        work4            = (Actor400500Work*)arg0->idMap;
+        work4->field_9F8 = 0x10;
+        work4->field_9FE = 0x11;
+        work4->field_9FA = 2;
+        work->field_A08  = 1;
+    }
+}
 
 void func_actor_400500_801392D8(Task* arg0)
 {
@@ -1964,7 +2007,50 @@ void func_actor_400500_8013A484(Task* arg0)
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013A5D8);
+void func_actor_400500_8013A5D8(Task* arg0)
+{
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* work4;
+    s32              flag;
+    u16              flags;
+    u8               unused[0x30];
+
+    work = (Actor400500Work*)arg0->idMap;
+    if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != 1)) {
+        flag            = 0x81;
+        work->field_A46 = flag;
+        work->field_A47 = 0;
+    }
+    ((TmdObject*)((Actor400500Work*)arg0->idMap)->field_9F0[1]->extra)->field_C = 0x80;
+    work->obj1.flags                                                           &= 0x7FFF;
+    work->obj2.flags                                                           &= 0x7FFF;
+    ((TmdObject*)((Actor400500Work*)arg0->idMap)->field_9F0[0]->extra)->field_C = 0x80;
+    work->obj3.flags                                                           &= 0x7FFF;
+    flags                                                                       = work->field_A1E;
+    work->obj4.flags                                                           &= 0x7FFF;
+    if (!(flags & 1)) {
+        work->field_A42  = 1;
+        work2            = (Actor400500Work*)arg0->idMap;
+        work2->field_9F8 = 0x10;
+        work2->field_9FE = 0xF;
+        work2->field_9FA = 2;
+        work->field_A08  = 3;
+    } else if (!(flags & 2)) {
+        work3            = (Actor400500Work*)arg0->idMap;
+        work3->field_9F8 = 0x10;
+        work3->field_9FE = 0xF;
+        work3->field_9FA = 2;
+        work->field_A08  = 1;
+    } else {
+        work4            = (Actor400500Work*)arg0->idMap;
+        work4->field_9F8 = 0x10;
+        work4->field_9FE = 0x11;
+        work4->field_9FA = 2;
+        work->field_A08  = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013A700);
 

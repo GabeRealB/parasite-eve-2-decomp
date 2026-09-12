@@ -3,6 +3,34 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
+
+`func_actor_400500_801391B0` reloads `arg0->idMap` in each of three animation
+leaves and writes `field_9F8` / `field_9FE` / `field_9FA` through that pointer.
+One `work2` used in all three leaves is a global allocno (`dies in 3 places`).
+`.greg` gave it `preferences: 4` (`$a0`) from the earlier `addiu a0, 0x80`
+TmdObject hide, so every tail was `lw a0, 0x1C(a2)` against the target's
+`lw v1, 0x1C(a2)` — 99.3%, `regs=10`, identical structure.
+
+It does not conflict with `$v1` (`;; 82 conflicts: 81 82 2 29`). Numeric order
+would have taken `$v1` without the copy preference. Three block-local pointers
+(`work2` / `work3` / `work4`) are local-alloc eligible; each block has `$v0`
+busy with the constant chain (`1`, `0x10`, `0xF`/`0x11`, `2`, `3`/`1`) so the
+lowest free register is `$v1`.
+
+Write the three leaves as complete duplicated stores, not a shared `animId` /
+`sub` join: m2c's merged tail lets CSE sink the identical `field_9F8 = 0x10`
+stores and speculate both anim ids. Cross-jumping then rebuilds the shared
+`field_9FE` phi and the final `field_A08` store from the duplicated C.
+
+The unused `0x30` leaf frame is an unreferenced `u8 unused[0x30]` (no stack
+accesses). `s32 flag = 0x81` is required so `field_A46` gets `addiu 0x81`
+rather than `li -0x7f`.
+
+Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
+`base_2.i` `c89ff53043af044bf5c881600217eb4a630b437486bd5ea021d530efdcbfeea3`,
+`base_3.i` `1b1ba6e3b905016c9873f1a99a4b1b56adbb8ee01239826ad6adbcd6bfad2e1a`.
+
 ## Split the A4A work pointer from the later anim `work2`; put `skip = 0` in the else
 
 A state dispatcher that copies a `TaskFuncTableN` onto the stack, then either
