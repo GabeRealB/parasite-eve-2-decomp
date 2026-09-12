@@ -23,7 +23,22 @@ void func_actor_403600_801400BC(Actor403600* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801411D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801412D0);
+void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    Actor403600Work* work;
+    VECTOR*          head;
+    VECTOR*          block;
+
+    work                      = arg1->field_1C;
+    head                      = *(VECTOR**)G_SCRATCH_HEAD;
+    head[-1].vx               = work->field_4B8.workm.t[0];
+    block                     = (VECTOR*)((u8*)head - 0x10);
+    block->vy                 = work->field_4B8.workm.t[1];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vz                 = work->field_4B8.workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg0, block, 0, 0);
+    *(VECTOR**)G_SCRATCH_HEAD = (VECTOR*)((u8*)*(VECTOR**)G_SCRATCH_HEAD + 0x10);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141338);
 
