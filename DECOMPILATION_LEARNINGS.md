@@ -5604,6 +5604,102 @@ switch (arg0->spawnArg1) {
         ...
 ```
 
+## `move a0,sN` duplicated in every case block means the call is inside each case
+
+A `switch` whose arms all end in the same call can be written two ways, and the
+object tells you which one the original used. Write the call **once after the
+switch** and the argument setup lands in the merged tail:
+
+```
+.Ltail:
+    sh   $v0, 0x4($s0)
+    jal  Gp_GetIdParam1
+     addu $a0, $s1, $zero      # one copy, in the delay slot
+```
+
+Write it **inside every arm** and the same object comes out with the argument
+setup copied into each arm instead:
+
+```
+.Lcase1:
+    addu $a0, $s1, $zero       # one copy per arm, at the top of the block
+    sh   $v0, 0x0($s0)
+    ...
+    j    .Ltail
+     addiu $v0, $zero, 0x2BC
+.Ltail:
+    jal  Gp_GetIdParam1
+     sh  $v0, 0x4($s0)
+```
+
+Both forms are the same source semantics, so the difference is not obvious from
+reading the asm as C. The mechanism is the order of two post-reload passes.
+sched1 hoists the cheap `a0 = pseudo` copy to the top of its block, above the
+`li` of the arm's own constant. `jump2` then cross-jumps, merging identical
+*suffixes* backwards from the end; the merge stops at the first differing insn,
+which is that per-arm `li`. Everything below it - the trailing store, the call,
+and the whole shared continuation - becomes one block, and the hoisted `a0`
+copy stays behind in each arm because it now sits above the stopping point.
+
+So `move a0,sN` at the **head** of every case block, with the shared tail
+starting at the last common store, is the signature of a call written per arm.
+`func_actor_444000_80134688` went 95.9% -> 99.9% on that change alone; nothing
+else in the function moved.
+
+## A jump table indexed without a subtraction means case 0 is in the source
+
+GCC's table dispatch checks `(unsigned)(index - minval) <= maxval - minval` and
+indexes the table by `index - minval`. When the asm shows the range check on the
+raw value and no subtraction before the `sll`:
+
+```
+sltiu $v0, $v1, 0xA
+beqz  $v0, .Ldefault
+ lui  $v0, %hi(jtbl_...)
+sll   $v1, $v1, 2
+```
+
+then `minval == 0` and the table has `maxval + 1 = 10` entries. That is a fact
+about the *source*, not about which arms do anything: `func_actor_444000_80134688`
+only behaves specially for 2, 4, 6 and 7, but its table spans 0..9, so the
+original enumerated the other six explicitly alongside `default:`:
+
+```c
+switch (Gp_GetIdParam0(id) & 0xFFFF) {
+    case 2: case 4: case 6: case 7:
+        ...
+        break;
+    case 0: case 1: case 3: case 5: case 8: case 9:
+    default:
+        ...
+        break;
+}
+```
+
+Writing only the four interesting cases gives `sltiu $v0, $v1, 6` against
+`$v1 - 2` and a six-entry table. Count the table entries and read the range
+check before deciding which arms to write.
+
+## A `jlabel` in the target `.s` leaves a relocation the scratch scorer counts
+
+A scratch env assembles `target.s` into `target.o`, and splat's `jlabel` macro
+declares each jump-table destination `.global`. The assembler therefore cannot
+resolve a branch to one of those labels locally and leaves an `R_MIPS_PC16`
+relocation with `0xFFFF` in the instruction word, while the compiler's own
+version of the same branch is resolved to a real displacement. The two objects
+then differ in exactly that one word: a function whose codegen is byte-perfect
+scores 99.99% with `branch=1`, and the diff shows
+
+```
+-beqz    v0,.Lactor_444000_8013471C+58
++beqz    v0,94
+```
+
+where `94` is the correct offset. Confirm by comparing the `.text` bytes and
+checking that the only difference is at the branch, then verify with the real
+build - `./tools/build-and-verify.sh` is the arbiter, and it linked and
+checksummed this one unchanged.
+
 ## Reading switch statements
 
 - **Jump table present** (`jtbl_*` in the `.rodata.s` file): read the table
