@@ -61823,3 +61823,60 @@ Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idM
 Finding the writers is one grep — `grep -rn 'D_<overlay>_<addr>' asm/… | grep 'sw '`
 returns the single publisher of each global, and the `Mem_Calloc` a few lines above
 it gives the size.
+
+## `addu dst, idx, base`: subscript the pointer, do not assign the sum to a local
+
+`func_actor_444000_80143374` writes the `vy` of eight `GpGridParams.field_8`
+corners starting at `arg1 * 4`. The target computes the address as
+
+```
+sll   a1, a1, 16
+sra   a1, a1, 11
+lw    v0, 0x8(v0)
+addu  a1, a1, v0     /* index first, and the dest is the index register */
+sh    v1, 0x2(a1)
+```
+
+The obvious C, `SVECTOR *verts = &Gp_GridParams->field_8[arg1 * 4];`, always
+emits `addu v0, v0, a1` instead - base first, dest tied to the base. No amount
+of reordering the source fixes it: `pointer_int_sum` (c-typeck.c) puts the
+pointer operand first unconditionally, so `i + ptr` and `ptr + i` build the same
+tree, and `fold` only moves *constants*.
+
+The operand order is decided in `expand_expr`'s `both_summands` block
+(expr.c, `case PLUS_EXPR`), which ends with
+
+```c
+  /* Put a constant term last and put a multiplication first.  */
+  if (CONSTANT_P (op0) || GET_CODE (op1) == MULT)
+    temp = op1, op1 = op0, op0 = temp;
+```
+
+`op1` is only ever a `MULT` **rtx** when the index was expanded with
+`EXPAND_SUM`, and `MULT_EXPR` returns an unexpanded `(mult reg const)` only in
+that modifier. Assigning the sum to a pointer variable expands it as a *value*,
+so the index is already forced into a pseudo, `op1` is a `REG`, and the swap
+never fires. Using the sum as a *memory address* expands it under `EXPAND_SUM`,
+the swap fires, and local-alloc then ties the destination to the index register.
+
+So write the subscript at each use site and let CSE share the address:
+
+```c
+SVECTOR* verts;
+
+verts = Gp_GridParams->field_8;
+verts[arg1 * 4].vy     = 500;
+verts[arg1 * 4 + 1].vy = 500;
+verts[arg1 * 4 + 2].vy = 800;
+```
+
+That took 92% -> 100% in one edit. Note this is the mirror of "`addu dst, base,
+idx` vs `addu dst, idx, base` for `base + (i*2)`" above: when the target wants
+*base* first, hoisting the address into a pointer local is the fix, and no
+register pin is needed in either direction.
+
+Related trap in the same function: m2c had rendered the index as
+`((arg1 << 0x10) >> 0xB) + field_8` with a `void*` base, which compiles to
+`sra 0x8` once `field_8` is typed `SVECTOR*` - the byte offset gets scaled a
+second time by the 8-byte element. A `sra` amount that is off by exactly
+`log2(sizeof *ptr)` means m2c's raw byte offset was left in place.
