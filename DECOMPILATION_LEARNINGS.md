@@ -3,6 +3,38 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Loop-only copy of a live-after pointer fills an early delay and adds a saved reg
+
+When a work pointer is used both inside a call-crossing loop and after it,
+one C name keeps a single saved register. A second name assigned at the
+start (`work2 = work`) is a copy, not a reload. If both names are live
+through the loop they conflict, so 2.8.1 does not coalesce them:
+
+```
+lw    s2, 0x1C(s4)
+li    v0, 1
+lh    v1, 0x9FA(s2)
+bne   v1, v0, not1
+move  s3, s2          /* delay: the copy */
+```
+
+`arg0` then needs the next saved register (`s4` instead of `s3`). The
+compare load still uses the original (`s2`); sched1 puts the copy in the
+first branch delay. A store in a later jump delay can use the copy
+(`sh v0, 0x9FA(s3)`) if that assignment is spelled through `work2`.
+
+Siblings that reload `work2 = (T*)arg0->idMap` after an earlier call emit
+a second `lw`, not `move`. `func_actor_400500_8013AA98` is the example
+(the 9FA dispatch plus AnimStride loop plus a hit-flag tail that still
+needs `work` and `arg0`). One name is 92% (`arg0` in `$s3`, delay
+`li v0, 2`); the copy is 99.94%; `work2->field_9FA = 3` in case 1 is
+100%. Inputs: `base_1.i`
+`215f581ad6af1e2ce9c49aa6593d38d678a15ceccd8ee16de7b0daca93c1f72e`,
+`base_2.i`
+`ef07a9bffdbfc4f19d92f11cb03fa9850dda6f931d7643742ae2724ff05816b0`,
+`base_3.i`
+`da6e72dbce060c025a395c964864c3c91f04de6b3002c08b0f89f234e62f6e5b`.
+
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `field_9` is `sb 0x1D`
 
 `Actor400500Work` opens with `GpAnimCtx` (0x14) then `GpAnimSlot slots[0x12]`
