@@ -5,6 +5,7 @@
 
 #include "gameplay/1BC.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Per-actor work block for the enemy task `D_actor_444000_80161878` points
 /// at, reached through the `Task::idMap` slot (0x1C) rather than being a
@@ -137,6 +138,42 @@ typedef struct Actor444000 {
     /* 0x24 */ byte             pad_24[0x8];
     /* 0x2C */ void*            extra; // Task::extra, a TmdObject
 } Actor444000;
+
+/// Work block of the overlay's *other* enemy, the one dispatched through
+/// `D_actor_444000_80131F30` rather than `D_actor_444000_80131E90`.
+/// `func_actor_444000_8013A1C4` allocates it with `Mem_Calloc(0xA0, 0)` and
+/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// than guessed. The two matrices are this instance's own light and colour
+/// matrices: the spawn state points the model object's `field_1C` / `field_20`
+/// at them so it lights independently of the shared defaults. `field_9C` is the
+/// spin countdown -- the spawn state seeds it from `Task::spawnArg1` and the
+/// tick `func_actor_444000_8013A3AC` decrements it, yawing the model by +0x40
+/// and -0x3C on alternate steps of its low two bits.
+typedef struct Actor444000SpinnerWork {
+    /* 0x00 */ byte   pad_0[0x50];
+    /* 0x50 */ MATRIX colorMtx;
+    /* 0x70 */ MATRIX lightMtx;
+    /* 0x90 */ byte   pad_90[0x6];
+    /* 0x96 */ s16    field_96;
+    /* 0x98 */ s16    field_98;
+    /* 0x9A */ byte   pad_9A[0x2];
+    /* 0x9C */ u8     spin; // countdown, also the phase the tick yaws on
+    /* 0x9D */ byte   pad_9D[0x3];
+} Actor444000SpinnerWork;
+STATIC_ASSERT_SIZEOF(Actor444000SpinnerWork, 0xA0);
+
+/// That enemy's task, the same `Task` layout as `Actor444000` above but with
+/// the smaller work block in the `idMap` slot.
+typedef struct Actor444000Spinner {
+    /* 0x00 */ byte                    pad_0[0x1C];
+    /* 0x1C */ Actor444000SpinnerWork* field_1C;
+    /* 0x20 */ byte                    pad_20[0x4];
+    /* 0x24 */ void*                   field_24;
+    /* 0x28 */ byte                    pad_28[0x4];
+    /* 0x2C */ TmdObject*              extra;     // Task::extra
+    /* 0x30 */ s32                     state;
+    /* 0x34 */ s32                     spawnArg1; // spin preset selector
+} Actor444000Spinner;
 
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
