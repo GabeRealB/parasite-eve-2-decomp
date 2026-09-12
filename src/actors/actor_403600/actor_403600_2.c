@@ -12,6 +12,7 @@
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320A0;
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320EC;
 extern Task*                 D_actor_403600_801606A8;
+extern s32                   D_80070F70;
 
 void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1);
 void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1);
@@ -42,7 +43,30 @@ void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141338);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801414FC);
+void func_actor_403600_801414FC(Actor403600* arg0)
+{
+    Actor403600Work* work;
+    s16              value;
+    s16              countdown;
+    s32              brightness;
+
+    work  = arg0->field_1C;
+    value = work->field_766;
+    if (value != 0) {
+        if (value < work->field_764) {
+            brightness = rsin(D_80070F70 << 9) << 0xD;
+        } else {
+            brightness = rsin(D_80070F70 << 9) << 0xC;
+        }
+        Display_ClampField126((s8)(brightness >> 0x18));
+        countdown       = (u16)work->field_764 - 1;
+        work->field_764 = countdown;
+        if ((countdown << 0x10) <= 0) {
+            work->field_766 = 0;
+            Display_ClampField126(0);
+        }
+    }
+}
 
 void func_actor_403600_80141598(Task* task)
 {
