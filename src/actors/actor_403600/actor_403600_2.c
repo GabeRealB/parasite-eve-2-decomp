@@ -5,6 +5,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 
+#include "main/gfx.h"
 #include "main/task.h"
 
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
@@ -112,7 +113,37 @@ void func_actor_403600_8014174C(Actor403600* arg0)
     work->field_7AC = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_801417A8);
+void func_actor_403600_801417A8(Actor403600* arg0, s32 arg1)
+{
+    SVECTOR          rotation;
+    MATRIX*          matrix;
+    Actor403600Work* work;
+    s16              angle;
+    s32              absAngle;
+    u16              wrapped;
+
+    work  = arg0->field_1C;
+    angle = work->field_75E + (arg1 & 0xFF);
+    SOFT_TOUCH_REG(angle);
+    SOFT_TOUCH_REG(angle);
+    absAngle = angle;
+    if (angle < 0) {
+        SOFT_TOUCH_REG(absAngle);
+        absAngle = -absAngle;
+    }
+    work->field_75E = angle;
+    if (absAngle >= 0x801) {
+        wrapped = angle - 0x1000;
+        if (angle <= 0) {
+            wrapped = 0x1000 - angle;
+        }
+        work->field_75E = wrapped;
+    }
+    matrix = &work->field_4B8.coord;
+    Gfx_MatrixToEuler(matrix, &rotation);
+    rotation.vz += work->field_75E;
+    RotMatrix(&rotation, matrix);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141840);
 
