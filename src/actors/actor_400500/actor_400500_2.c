@@ -420,7 +420,31 @@ void func_actor_400500_8013C218(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C348);
+void func_actor_400500_8013C348(Task* arg0)
+{
+    Actor400500HitView* hit;
+    Actor400500Work*    work2;
+    GpEnemy*            enemy;
+    s32                 cond;
+
+    hit   = (Actor400500HitView*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        if (enemy->field_40 > 0) {
+            work2                              = (Actor400500Work*)arg0->idMap;
+            work2->field_A06                   = 0xA;
+            work2->field_A08                   = 0;
+            ((Actor400500Work*)hit)->field_A1E = ((Actor400500Work*)hit)->field_A1E | 1;
+            return;
+        }
+        ((Actor400500Work*)hit)->field_A42 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500_2", func_actor_400500_8013C3C4);
 
