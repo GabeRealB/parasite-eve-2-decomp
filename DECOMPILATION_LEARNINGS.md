@@ -48319,6 +48319,21 @@ use, which puts the two `zero_extend`s in separate insns with one use each.
 Generally: when the ROM keeps a provably redundant mask or extension, the
 source held it in a variable that was read more than once.
 
+`func_actor_444000_8013A958` is the same rule reached from a different-looking
+source shape: the value is a `u16` field read back immediately after being
+stored. `tmd->field_C |= 4;` leaves the `ior:SI` result live, and the following
+read is CSE'd into a truncation of it rather than a fresh `lhu` -- so the
+choice of local type decides whether that truncation survives.
+
+```c
+u16 flags = tmd->field_C;   /* HImode: and-then-extend, combine folds to `andi v0,v1,4` */
+s32 flags = tmd->field_C;   /* zero_extend first: `andi a0,v0,0xffff` then `andi v0,a0,4` */
+```
+
+Both spellings test `flags & 4` and store `flags` into another `field_C`, so
+the wider local's extension has the two uses that stop combine. Take the same
+reading whenever a read-back of a just-stored halfword keeps a mask.
+
 ## A named temp for a repeated subexpression can cost the register allocation
 
 The same function draws three fans whose corner angles are `i + 0x800`,

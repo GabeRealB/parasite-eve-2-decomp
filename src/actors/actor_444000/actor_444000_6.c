@@ -314,7 +314,111 @@ void func_actor_444000_8013A77C(Actor444000* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013A958);
+/// Message 0x7D5 handler, the visibility control the event task drives the
+/// boss with: each sub-command sets the host model's flag word and pushes it
+/// onto all seven escorts' models, differing in what the flag word becomes and
+/// whether the model buffers are (re)allocated first.
+///
+/// 0 brings the group back with buffers and the 0x80 flag, 1 clears the flag
+/// before making sure the buffers exist, 2 raises bit 2 and reports it back
+/// through the flag word, and 3 clears the word, pushes the clear, then raises
+/// bit 2 on the host alone. The two that end with a cleared flag word also
+/// reset the work block's state index.
+s32 func_actor_444000_8013A958(Actor444000* task, s32 msgId, s32 arg2)
+{
+    TmdObject*       tmd;
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    Actor444000Work* buffers;
+    Actor444000Work* rebuilt;
+    TmdObject*       hostTmd;
+    TmdObject*       escortTmd;
+    s32              flags;
+    s16              i;
+    s16              j;
+
+    tmd  = (TmdObject*)task->extra;
+    work = task->field_1C;
+    switch (arg2) {
+        case 0:
+            buffers = task->field_1C;
+            if (tmd->field_18 == NULL) {
+                Tmd_AllocBuffers(tmd);
+            }
+            for (j = 0; j < 7; j++) {
+                if (buffers->field_ECC[j] != NULL) {
+                    escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                    if (escortTmd->field_18 == NULL) {
+                        Tmd_AllocBuffers(escortTmd);
+                    }
+                }
+            }
+            escorts                            = task->field_1C;
+            escorts->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0x80;
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            work->field_0 = 0;
+            break;
+        case 1:
+            escorts                            = task->field_1C;
+            escorts->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0;
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            hostTmd = (TmdObject*)task->extra;
+            rebuilt = task->field_1C;
+            if (hostTmd->field_18 == NULL) {
+                Tmd_AllocBuffers(hostTmd);
+            }
+            for (j = 0; j < 7; j++) {
+                if (rebuilt->field_ECC[j] != NULL) {
+                    escortTmd = (TmdObject*)rebuilt->field_ECC[j]->task->extra;
+                    if (escortTmd->field_18 == NULL) {
+                        Tmd_AllocBuffers(escortTmd);
+                    }
+                }
+            }
+            break;
+        case 2:
+            tmd->field_C |= 4;
+            flags         = tmd->field_C;
+            escorts       = task->field_1C;
+            if (flags & 4) {
+                escorts->field_7F3                 = 3;
+                ((TmdObject*)task->extra)->field_C = 0x80;
+            } else {
+                escorts->field_7F3                 = 0;
+                ((TmdObject*)task->extra)->field_C = flags;
+            }
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            work->field_0 = 0;
+            break;
+        case 3:
+            tmd->field_C                       = 0;
+            escorts                            = task->field_1C;
+            escorts->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0;
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            tmd->field_C |= 4;
+            break;
+    }
+    return 0;
+}
 
 /// Rebuilds the host's root coordinate around the yaw it is already facing:
 /// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
