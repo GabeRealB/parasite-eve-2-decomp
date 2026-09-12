@@ -63834,6 +63834,29 @@ same `goto`-instead-of-loop move for a different loop.c/stmt.c transformation -
 angle-wrapping `while` loops in the same function are top-tested with a `j`
 back, which is the unrolled form, so they are `goto` loops too.
 
+**Read the target before picking the form: the sibling wanted the opposite
+one.** `func_actor_444000_8013C4B0` runs that identical scan twice - group 1,
+then group 2 if group 1 caught nothing - and there both match arms *are* parked
+out of line, so both scans are ordinary `for (i = 0; i < 5; i++)` loops with a
+`goto` out of the match arm. The `goto` form scored 92.3% with the arms inline;
+switching the two scans to real loops took it to 98.5% in one edit. The tell in
+the object dump is the branch sense at the top of the loop: `bne v0,t1,<next
+iteration>` with the arm falling through is the `goto` form, `beq v0,t1,<far>`
+is the relocated one. With a real loop the invariants no longer have to be
+spelled out either - the wide constants and `&sc->pos` hoist into the preheader
+on their own.
+
+**Two copies of the same loop need two sets of locals.** A C variable is one
+pseudo for the whole function, so writing both scans against the same `recs` /
+`pos` / `i` gives each of them one hard register across both loops. The target
+allocated the second scan its own three (`$a3`/`$a2`/`$a0` against the first's
+`$t0`/`$a3`/`$a2`), which only happens with distinct pseudos. Declaring
+`recs2` / `pos2` / `i2` for the second scan was the last 0.15% - the same
+result an `__inline__` helper called twice would give, since inlining
+substitutes fresh pseudos per call site. Differing registers between two
+otherwise identical blocks is the general signal that the original had separate
+variables (or an inlined helper) rather than one reused name.
+
 ## `addu` operand order: a MEM address puts the multiply first
 
 `&recs[i]` and `recs[i].field` produce the *same* address arithmetic in a

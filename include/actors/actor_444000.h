@@ -109,7 +109,9 @@ typedef struct Actor444000Work {
     /* 0x7FC */ Actor444000HitGroup hits[9];
     /* 0xD54 */ byte                pad_D54[0x138];
     /* 0xE8C */ s16                 field_E8C; // Gp_GetIdParam2 of the hit group 0 took
-    /* 0xE8E */ byte                pad_E8E[0x1E];
+    /* 0xE8E */ byte                pad_E8E[0x4];
+    /* 0xE92 */ s16                 field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
+    /* 0xE94 */ byte                pad_E94[0x18];
     /// Screen-shake request written from outside the task by
     /// `func_actor_444000_80143490`: 1, 2 and 3 pick a shake length, anything
     /// else leaves the driver alone. `field_EAD` is the value the driver has
@@ -148,7 +150,8 @@ typedef struct Actor444000Work {
     /* 0xF04 */ s16      field_F04;
     /* 0xF06 */ byte     pad_F06[0x2];
     /* 0xF08 */ s16      field_F08;
-    /* 0xF0A */ byte     pad_F0A[0x6];
+    /* 0xF0A */ byte     pad_F0A[0x4];
+    /* 0xF0E */ s16      field_F0E; // damage pool the hit handler for groups 1 and 2 draws down
     /* 0xF10 */ s16      field_F10; // stagger countdown: the tick spins here until it runs out
     /* 0xF12 */ byte     pad_F12[0x2];
     /* 0xF14 */ s16      field_F14; // eighths of it is how many extra re-arm steps the reset runs
