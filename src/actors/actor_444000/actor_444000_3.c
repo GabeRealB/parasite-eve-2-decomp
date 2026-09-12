@@ -170,7 +170,44 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80139594);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_3", func_actor_444000_80139AF8);
+/// Ascent state that precedes the descent above: lift the model by 0x1F4 plus
+/// `field_1AE` a step until it passes -0x4E20, then clamp it there, snap its
+/// horizontal position back onto `work->target`, restart the step counter, pick
+/// a fresh 0..0x1F bias for the next leg, flag the list object and step the task
+/// on. Either way the work block's own coordinate is left tracking the model.
+/// Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
+void func_actor_444000_80139AF8(GpEnemy* enemy, Actor444000Drop* task)
+{
+    Actor444000DropWork* work;
+    s32                  y;
+
+    work = task->field_1C;
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_UnlinkObj(&work->obj);
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    y                                = task->extra->field_8->coord.t[1] - 0x1F4;
+    task->extra->field_8->coord.t[1] = y - work->field_1AE;
+    if (task->extra->field_8->coord.t[1] < -0x4E20) {
+        task->state++;
+        task->extra->field_8->coord.t[0] = work->target.vx;
+        task->extra->field_8->coord.t[2] = work->target.vz;
+        Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
+        task->extra->field_8->coord.t[1] = -0x4E20;
+        work->timer                      = 0;
+        work->field_1AE                  = ((u32)Gp_LcgState >> 16) & 0x1F;
+        work->obj.flags                 |= 0x8000;
+    }
+
+    task->extra->field_8->flg = 0;
+    work->coord.coord.t[0]    = task->extra->field_8->coord.t[0];
+    work->coord.coord.t[1]    = task->extra->field_8->coord.t[1];
+    work->coord.coord.t[2]    = task->extra->field_8->coord.t[2];
+    work->coord.flg           = 0;
+    Gp_UpdateCoord(&work->coord);
+}
 
 /// Descent state of the enemy dispatched through `D_actor_444000_80131F1C`:
 /// draw the growing shadow marker on the floor under the model, then after
