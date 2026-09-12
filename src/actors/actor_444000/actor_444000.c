@@ -9,6 +9,7 @@
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/sound.h"
+#include "main/mem.h"
 
 /// The overlay's event/controller task, whose `idMap` holds an
 /// `Actor444000EventWork`.
@@ -27,6 +28,27 @@ extern s8 D_8007216D;
 
 /// 0xFF-terminated area-record list this overlay applies on entry.
 extern GpAreaApplyRec D_8018FB6C[];
+
+/// Main-executable globals with no module header yet: `D_80071075` gates the
+/// event on the "everything is dead" state, and `D_8007272D` is the ending
+/// selector the death sequence latches.
+extern u8 D_80071075;
+extern s8 D_8007272D;
+
+/// Gameplay-resident globals the state-3 hand-off touches: `D_80187150` is the
+/// task table the successor is spawned from, `D_8018FBC8` the view id copied
+/// into `GameSession::field_120`, and `D_801855DE` a counter cleared with it.
+extern s16      D_801855DE;
+extern TaskDesc D_80187150;
+extern u16      D_8018FBC8;
+
+/// Spawn tables `func_800E8634` forwards to `Task_Spawn`, taken as raw
+/// addresses: the first pair is used by the `spawnArg1` fast path in state 0
+/// and the second by state 2.
+extern u8 D_actor_444000_80144634;
+extern u8 D_actor_444000_8014488C;
+extern u8 D_actor_444000_8014431C;
+extern u8 D_actor_444000_801444E4;
 
 /// Animation-set table this overlay hands the player task as message 0x3F4's
 /// `GpAnimArg::field_0`, the counterpart of `D_actor_403100_8015570C`. The first
@@ -107,7 +129,7 @@ void func_actor_444000_801321FC(s32 arg0)
     switch (arg0) {
         case 0:
             Game_Session->field_52 = 1;
-            D_8007216C             = work->field_28;
+            D_8007216C             = work->field_28.b;
             break;
         case 1:
         case 2:
@@ -129,7 +151,7 @@ void func_actor_444000_801321FC(s32 arg0)
             Game_Session->unknown_133[1] = Game_Session->field_5 - 1;
             Game_Session->unknown_133[0] = 1;
             Game_Session->field_76       = 1;
-            D_8007216C                   = work->field_28;
+            D_8007216C                   = work->field_28.b;
             Gp_ApplyAreaRecs(D_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
@@ -139,7 +161,105 @@ void func_actor_444000_801321FC(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000", func_actor_444000_80132358);
+/// Task body of the overlay's event/controller task, run once per frame while
+/// the session is not paused (`GameSession::field_65`), no cutscene is active
+/// (`Gp_StateC08.field_9`) and the battle state is not frozen
+/// (`Gp_StateF0.field_4`).
+///
+/// State 0 allocates the `Actor444000EventWork` block and publishes the task in
+/// `D_actor_444000_80161860`; a task spawned with `spawnArg1` set jumps
+/// straight to state 3, otherwise it advances one state at a time. State 1
+/// counts 0x2BD frames and then arms the death/ending sequence once. State 2
+/// counts 0x15 frames and hands off to the follow-up task table. State 3 waits
+/// for the room to settle, spawns the successor from `D_80187150` and kills
+/// this task.
+void func_actor_444000_80132358(Task* task)
+{
+    Actor444000EventWork* work = (Actor444000EventWork*)task->idMap;
+    Actor444000EventWork* alloc;
+    Actor444000EventWork* other;
+    s32                   state;
+    s16                   timer;
+
+    if (Game_Session->field_65 != 0) {
+        return;
+    }
+    if ((s8)Gp_StateC08.field_9 != 0) {
+        return;
+    }
+    if (Gp_StateF0.field_4 != 0) {
+        return;
+    }
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            if (Gp_StateC08.field_A == 1) {
+                return;
+            }
+            if (D_80071075 != 0) {
+                return;
+            }
+            alloc       = (Actor444000EventWork*)Mem_Calloc(sizeof(Actor444000EventWork), false);
+            task->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(task);
+            } else {
+                Mem_Set(alloc, 0, sizeof(Actor444000EventWork));
+                alloc->field_20         = Game_GetPtrSlot(3);
+                D_actor_444000_80161860 = task;
+            }
+            if (task->spawnArg1 != 0) {
+                work             = (Actor444000EventWork*)task->idMap;
+                work->field_28.h = Game_Session->field_4;
+                Gp_MsgPlayerWeapon(0);
+                func_800E8634((s32)&D_actor_444000_80144634, 0, (s32)&D_actor_444000_8014488C);
+                task->state = 3;
+            } else {
+                task->state += 1;
+            }
+            break;
+        case 1:
+            timer               = (u16)task->killCountdown + 1;
+            task->killCountdown = timer;
+            if (timer >= 0x2BD) {
+                Gp_MsgPlayerWeapon(0);
+                other = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+                if (other->field_30 == 0) {
+                    Gp_StateF0.field_6      = 0;
+                    Gp_StateF0.field_1      = 0xF;
+                    Gp_StateF0.field_0      = 0;
+                    Gp_StateF0.field_2      = 0;
+                    Gp_StateF0.field_3      = 0;
+                    Game_Session->field_69 |= 0x80;
+                    D_8007272D              = 0xD;
+                    other->field_30         = state;
+                }
+                task->killCountdown = 0;
+                task->state        += 1;
+            }
+            break;
+        case 2:
+            timer               = (u16)task->killCountdown + 1;
+            task->killCountdown = timer;
+            if (timer >= 0x15) {
+                work->field_28.h = Game_Session->field_4;
+                func_800E8634((s32)&D_actor_444000_8014431C, 0, (s32)&D_actor_444000_801444E4);
+                task->state += 1;
+            }
+            break;
+        case 3:
+            if (Game_Session->field_1 == 0) {
+                D_801855DE              = 0;
+                Game_Session->field_120 = D_8018FBC8;
+                Task_SpawnFromTable(&D_80187150, 0, 1, 0);
+                Task_Kill(task);
+                return;
+            }
+            break;
+    }
+    func_actor_444000_80132054(task);
+}
 
 /// Play the event's sound cue once, latching a flag so a repeat call is a no-op.
 void func_actor_444000_80132608(void)
