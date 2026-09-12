@@ -59963,3 +59963,59 @@ schedulable `SOFT_MOVE_ZERO(x)` — `__asm__("" : "=r"(x) : "0"(0))`, legal
 because the asm has an output and so is not implicitly volatile — matched.
 Reach for the SOFT form first whenever the forced constant sits in a block the
 scheduler still has to fill.
+
+## A `u8` zero local: folded comparisons plus a surviving dead `move`
+
+The sibling above needed `SOFT_MOVE_ZERO` because its window start was compared
+*as a register* (`bne $v0, $s2`). The neighbouring `func_actor_400600_80135DDC`
+shows the other outcome of the same source: `bnez $v0` / `bltz $v1` against a
+literal, with `move $s7, zero` still emitted, dead, and holding a call-saved
+register for the whole function. Declaring the local `u8 start0 = 0;` and
+comparing `work->field_748 == start0` / `>= start0` produces exactly that. Each
+use is a `(zero_extend (reg:QI))` that combine folds against `nonzero_bits` == 0
+*after* flow has already fixed the live range, so the range still spans the
+calls and global-alloc still gives it `$s7`, while nothing reads it any more.
+An `s32` local does not fold: it stays a register operand in both tests.
+
+Do not try to model the leftover move with an empty asm. `reorg.c` refuses to
+put an `asm` insn in a delay slot, so `SOFT_MOVE_ZERO` can reach the right
+block but never the delay slot; and with a tied `"0"(0)` input, reload splits it
+into a separate `(set reg 0)` that sched2 then hoists into the load-delay gap.
+
+## `reload_cse` rewrites a later `= 0` as a copy unless the destination is wider
+
+With `u8 start0 = 0;` live in `$s7`, the next block's `tmp0 = 0` came out as
+`move $a0, $s7` instead of the target's `move $a0, zero`. The rewrite happens
+between `.greg` and `.sched2`, in `reload_cse_regs`: `reload_cse_simplify_set`
+replaces a constant source with the first hard register recorded as holding it,
+and `reload_cse_regno_equal_p` accepts the recorded value when
+`mode == GET_MODE (x)` or `GET_MODE_SIZE (mode) < GET_MODE_SIZE (GET_MODE (x))`.
+A `u8` zero recorded in QImode therefore serves a QImode *or* an SImode-narrowed
+destination, but not a wider one: declaring that first temp `u32 tmp0;` (the
+division result's natural type) made the comparison fail and the `li` survive.
+`reg_values` is cleared at every `CODE_LABEL`, so only the arm closest to the
+zero needs the wider type; the later arms are already out of reach.
+
+## `expand_binop` swaps commutative operands when the target *is* `op1`
+
+`sound = id | sound;` emits `or $s0, $s0, $a1`, never the target's
+`or $s0, $a1, $s0`: `expand_binop` swaps a commutative pair when
+`target == op1` (pointer identity on the REG), so the accumulator comes first.
+Giving the `ior` a different destination keeps the order but costs the register:
+the shifted value becomes a short local (`$v0`) and `sound`, now born at the
+`or`, loses its allocation priority to `pan` and lands in `$s1`.
+
+Route the operand through a copy the compiler removes again:
+
+```c
+sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+sound >>= 0xC;
+sound <<= 8;
+voice   = sound;
+sound   = id | voice;
+```
+
+`voice` is not the target rtx, so no swap; CSE then propagates the copy away and
+the insn becomes `(ior id sound)` with `sound` as its own destination — one
+pseudo, the full live range and ref count of the chained form, and the target's
+operand order.
