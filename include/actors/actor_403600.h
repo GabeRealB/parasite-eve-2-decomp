@@ -34,7 +34,7 @@ typedef struct Actor403600Work {
     /* 0x73E */ s16           field_73E;
     /* 0x740 */ byte          pad_740[2];
     /* 0x742 */ s16           field_742;
-    /* 0x744 */ byte          pad_744[2];
+    /* 0x744 */ u16           field_744;
     /* 0x746 */ s16           field_746;
     /* 0x748 */ byte          pad_748[2];
     /* 0x74A */ s16           field_74A;
@@ -52,7 +52,8 @@ typedef struct Actor403600Work {
     /* 0x776 */ s16           field_776;
     /* 0x778 */ s16           field_778;
     /* 0x77A */ s16           field_77A;
-    /* 0x77C */ byte          pad_77C[8];
+    /* 0x77C */ s16           field_77C;
+    /* 0x77E */ byte          pad_77E[6];
     /* 0x784 */ s16           field_784;
     /* 0x786 */ byte          pad_786[0x1E];
     /* 0x7A4 */ s16           field_7A4;
@@ -67,6 +68,7 @@ typedef struct Actor403600 {
     /* 0x20 */ struct _GpEnemy* field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ s32              field_30;
 } Actor403600;
 
 typedef struct Actor403600Ctx {

@@ -242,7 +242,28 @@ void func_actor_403600_80141CD4(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141D30);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141E78);
+void func_actor_403600_80141E78(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    TmdObject*       obj;
+    TmdObject*       obj2;
+    Actor403600Work* work;
+    u16              value;
+
+    work            = arg1->field_1C;
+    value           = work->field_744 + 1;
+    work->field_744 = value;
+    if ((s16)value >= 2) {
+        Tmd_AllocBuffers(arg1->field_2C);
+        obj            = arg1->field_2C;
+        obj->field_C  &= 0xFFFB;
+        obj2           = arg1->field_2C;
+        obj2->field_C &= 0xFF7F;
+        arg1->field_30++;
+        work->field_73A = 0;
+        work->field_77C = 0;
+        work->field_744 = 0x1000;
+    }
+}
 
 void func_actor_403600_80141F28(Actor403600* arg0)
 {
