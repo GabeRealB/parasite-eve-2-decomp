@@ -97,8 +97,16 @@ typedef struct Actor02100Ctx {
 } Actor02100Ctx;
 STATIC_ASSERT_SIZEOF(Actor02100Ctx, 0x58);
 
-extern s16 Actor02100_D03E00[];
+typedef void (*Actor02100StateFunc)(Actor02100Ctx* arg0, Actor02100* arg1);
 
+typedef struct {
+    Actor02100StateFunc funcs[3];
+} Actor02100StateFuncTable3;
+
+extern s16                       Actor02100_D03E00[];
+extern Actor02100StateFuncTable3 Actor02100_D00004;
+
+void Actor02100_Fn03168(Actor02100* arg0);
 void Actor02100_Fn031C4(Actor02100Ctx* arg0, Actor02100* arg1);
 void Actor02100_Fn032E4(Actor02100* arg0);
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1);
