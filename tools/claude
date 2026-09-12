@@ -352,8 +352,11 @@ elif [[ "$BOOTSTRAP" == true ]]; then
     # rodata block is still unowned; otherwise it lives in the unit's
     # .rodata.s and m2c bails with "the corresponding jump table is not
     # provided", leaving a blank base.c that reads as a hard function.
+    # A shared unit's tables are not called jtbl_ at all. splat's name encodes a
+    # load address, which differs between the overlays sharing the body, so the
+    # promotion work renamed them <Actor>_Jt<offset>; match both spellings.
     JTBL_ASM=()
-    if grep -q 'jtbl_' "$ASM_PATH" 2>/dev/null; then
+    if grep -qE 'jtbl_|\w+_Jt[0-9A-F]+' "$ASM_PATH" 2>/dev/null; then
         # Search the overlay first: jtbl_ names are load addresses, so the same
         # name can exist in sibling overlays of a family.
         jtbl_scope="${ASM_PATH%%/nonmatchings/*}"
@@ -376,7 +379,7 @@ elif [[ "$BOOTSTRAP" == true ]]; then
             # Overlay tables are jtbl_<overlay>_<hex>, not bare hex: a hex-only
             # pattern stops inside the name ("d" of dryfield, "ac" of actor) and
             # finds nothing, which is every family except main and gameplay.
-        done < <(grep -oE 'jtbl_\w+' "$ASM_PATH" | sort -u)
+        done < <(grep -oE 'jtbl_\w+|\w+_Jt[0-9A-F]+' "$ASM_PATH" | sort -u)
     fi
 
     # Only narrow to the one function when extra inputs could widen the output.
@@ -390,15 +393,37 @@ elif [[ "$BOOTSTRAP" == true ]]; then
     # overlay, so they are referenced but never defined in the .s and m2c stops
     # at "Cannot find branch target". Reconstruct them into a copy for m2c
     # only; a file without such labels comes through byte-identical.
+    # A shared unit's branch targets are symbols the linker fills in per
+    # overlay, so they are referenced but never defined in the .s and m2c stops
+    # at "Cannot find branch target". Its jump tables are renamed for the same
+    # reason and m2c then does not recognise them as tables. Reconstruct both
+    # into copies for m2c only; a file without either comes through
+    # byte-identical. The table copies have to be rewritten in the same pass as
+    # the function, because their entries resolve to its labels.
     M2C_ASM="$ASM_PATH"
-    if grep -qE '\b\w+_L[0-9A-F]+\b' "$ASM_PATH" 2>/dev/null; then
-        # A temp file, not a relative path: this runs before the cd into the
+    M2C_TMPS=()
+    if grep -qE '\b\w+_(L|Jt)[0-9A-F]+\b' "$ASM_PATH" 2>/dev/null; then
+        # Temp files, not relative paths: this runs before the cd into the
         # scratch dir, so a bare name would litter the repo root.
         M2C_TMP=$(mktemp -t m2c_input.XXXXXX.s)
-        if python3 "$ROOT/tools/define_shared_labels.py" "$ASM_PATH" "$M2C_TMP"; then
+        M2C_TMPS=("$M2C_TMP")
+        SHARED_JTBL_ARGS=()
+        SHARED_JTBL_OUT=()
+        for jt in ${JTBL_ASM[@]+"${JTBL_ASM[@]}"}; do
+            jt_tmp=$(mktemp -t m2c_jtbl.XXXXXX.s)
+            M2C_TMPS+=("$jt_tmp")
+            SHARED_JTBL_ARGS+=(--jtbl "$jt" "$jt_tmp")
+            SHARED_JTBL_OUT+=("$jt_tmp")
+        done
+        if python3 "$ROOT/tools/define_shared_labels.py" "$ASM_PATH" "$M2C_TMP" \
+                ${SHARED_JTBL_ARGS[@]+"${SHARED_JTBL_ARGS[@]}"}; then
             M2C_ASM="$M2C_TMP"
+            if [[ ${#SHARED_JTBL_OUT[@]} -gt 0 ]]; then
+                JTBL_ASM=("${SHARED_JTBL_OUT[@]}")
+            fi
         else
-            rm -f "$M2C_TMP"
+            rm -f ${M2C_TMPS[@]+"${M2C_TMPS[@]}"}
+            M2C_TMPS=()
         fi
     fi
 
@@ -415,10 +440,13 @@ elif [[ "$BOOTSTRAP" == true ]]; then
         echo "Warning: m2c could not parse the context from $C_FILE; retrying without it."
         echo "         Types will be '?' - the context, not the function, is the problem."
         set +e
-        M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c -f "$FUNC_STEM" "$ASM_PATH" "${JTBL_ASM[@]}" 2>&1)
+        M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c -f "$FUNC_STEM" "$M2C_ASM" "${JTBL_ASM[@]}" 2>&1)
         M2C_EXIT_CODE=$?
         set -e
     fi
+
+    # The rewritten copies exist only for the two m2c calls above.
+    rm -f ${M2C_TMPS[@]+"${M2C_TMPS[@]}"}
 
     # `->unkNNN` is m2c's marker for a field it could not name, and it never
     # compiles: either the pointer is `void *` ("request for member in something
