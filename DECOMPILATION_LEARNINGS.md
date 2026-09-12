@@ -60901,6 +60901,746 @@ extension as its own early statement, so it emits right after the first init.
 (`if (count == arg2)`). GCC still hoists the single extension out of the loop,
 but now schedules it *among* the other loop-invariants (after `i=0` and the
 compare constant), matching retail. `func_shelter_b3_dumping_hole_80183198`.
+
+## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
+
+A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `Gpu_PrimCursor`
+load/store gives two block-0 local quantities with the same
+`refs=3 span=12 priority=2500` and no suggestions. The tracer reports
+`q1[%hi(Gpu_PrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
+tie goes to the quantity born first (the `lui` that fills the `ori` of
+`G_SCRATCH_HEAD`). Extra then takes `$a0` globally (`move a0, v0` /
+`slt ..., s0`). The target wants `addiu a0, a2, -N` / `move s8, a0` /
+`move a1, v0`.
+
+`USE_REG(allocated)` *after* the cursor store and *before* the copy into
+the long-lived scratch pointer adds a fourth ref at the existing death
+point, so the span stays ~12. Priority `4/12 = 3333` sits between the
+`G_SCRATCH_HEAD` address (still first, `$v1`) and the cursor `%hi`
+(`$a1`). Allocated wins `$a0`; extra is `$a1`; `slt` still needs a
+separate copy of `$s0` (next entry). Putting `USE_REG` earlier, or using
+`SOFT_TOUCH_REG` (`+r` new def), either takes `$v1` first or ties
+allocated onto the scratch pointer.
+
+```c
+allocated = head - 0x14;
+*(void**)G_SCRATCH_HEAD = allocated;
+Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+USE_REG(allocated);
+scratch = (Scratch*)allocated;
+```
+
+Example: `func_actor_400500_80134D6C`. Inputs: `base_5.i`
+`db660a885fa42f2836d4ae0d358a81cd47c68d7c44439164717fc319fe6fd5b6`, `base_11.i`
+`7611575ed383c7701264eaf1c6eec714a3015a0313f78ce776c7a01c0ba0e081`.
+
+## Mask first, then `z = otz; SOFT_TOUCH_REG(z)` for `move v1, s0` before `slt`
+
+The same function's depth test is `andi` / `move v1, s0` / `sra` / `slt
+v0, v0, v1`. A bare `if (val < otz)` uses `$s0` directly (copy-coalesced).
+`z = otz` at the start of the arm is coalesced too, or
+`SOFT_TOUCH_REG(z)` there copies into `$a0` too early and kicks
+`Display_State` into `$a3`. Split the mask from the shift, then copy:
+
+```c
+val = (extra->depth << Display_State.field_128) & 0x3FFF;
+z = otz;
+SOFT_TOUCH_REG(z);
+if ((val >> 4) < z) {
+```
+
+`$v1` is dead after `sllv`, so the copy lands there between `andi` and
+`sra`. Else `clip.y = Display_State.field_1f * 0x110` (not a standalone
+`D_80070F87`) keeps the inner-branch delay `lui` of `Display_State`; the
+linked `lbu` offset is the same byte as `%lo(D_80070F87)`.
+
+Example: `func_actor_400500_80134D6C`. Input: `base_15.i`
+`8261c716b435e040370e4845acbf72d746d43a564e61942b37da767915b56107`.
+
+## Reuse one `s32` for the constants in both arms of an if/else so the join store is `$v0`
+
+A lighting init that writes `0xFF` / `0` / `0` then `0x10` on one path and
+`0x1000` / `0xFF` / `0` then `0x2000` on the other, then stores the last
+value after the join, needs those numbers to be sequential assignments to
+**one** local. A dedicated `scale` phi is its own allocno (`$v1`): GCC
+hoists `li v1, 0x2000` into the `bne`-to-else delay slot and `li v1, 0x10`
+above `li v0, 0xFF`, then sinks the join store into the following `jal`
+delay (`99.2%`, `delete=1` from the missing `nop`).
+
+```c
+if (mode == 1 || mode == 3 || mode == 5 || mode == 6) {
+    val = 0xFF;
+    work->field_A20 = val;
+    val = 0x10;
+    work->field_A24 = 0;
+    work->field_A28 = 0;
+} else {
+    val = 0x1000;
+    work->field_A24 = val;
+    val = 0xFF;
+    work->field_A28 = val;
+    val = 0x2000;
+    work->field_A20 = 0;
+}
+work->field_A2C = val;
+SOFT_BARRIER();
+func_8009EA50(work->field_A20);
+```
+
+The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
+`val` is `0x10` / `0x2000` in `$v0`; the join `sh` is after the join. The
+barrier is the existing "store out of the next delay slot" rule: without it
+`dbr` still steals `sh A2C` into the `jal` slot.
+
+Example: `func_actor_400500_80135414`. Inputs: `base_2.i`
+`432c3463a92dbded850b096bf5f64ab24c3065db351eb175d46826f119b955f0`, `base_3.i`
+`876058f28b4d181b9d6f52e6e872d74235dea662415994a9a1a4bc13f3360bbb`.
+
+## Migrated `D_*` tables have no `D_*.s` after a re-split
+
+`migrate_rodata_to_functions` folds a function-pointer table into that
+function's `.s`. Matching the function drops `INCLUDE_ASM`, so those bytes
+leave the object. A hand-made `D_<sym>.s` plus `INCLUDE_RODATA` can pass a
+scoped build and then fail the unscoped one: `ninja_config.py` regenerates
+`asm/` and does not emit a separate file for a migrated symbol.
+
+Emit the words with file-scope `.section .rodata` / `dlabel` asm in the unit
+that owns the leading rodata, in address order between the neighbouring
+`INCLUDE_RODATA` lines. Do not `const TaskFuncTableN` in C — GCC collects that
+`.rodata` at the end of the object, behind later tables.
+
+Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
+`D_actor_400500_80131EFC`).
+
+## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
+
+A dispatcher that copies two `TaskFuncTable3`s then tests
+`enemy->field_40` needs `GpEnemy* enemy = arg0->spawnArg2` assigned *before*
+the copies. Inlining the field after the copies keeps `lw 0x20(s2)` late and
+adds a load-delay nop (`lh v0, 0x40(v0)`). The named pointer lives across the
+copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
+Keep `if (enemy->field_40 <= 0)` so the branch is `bgtz` (the sibling
+`8013899C` uses `> 0` / `blez` because it only copies one table).
+
+The anim tail is the same sibling `if / else if` on `field_9FA` (with
+`(s16)field_9FC` and `(u16)field_A00 + 1`) and the `Actor400500AnimStride`
+loop; m2c's `i = 1` before the `== 3` arm turns `addiu + 1` into `addu $s0`.
+
+Example: `func_actor_400500_801385D0`. Inputs: `base.i`
+`128fa46c44f1af8dc5f495aaf31694e6bf72940c4e69bcb9e7ed9ceafd4efabc`, `base_1.i`
+`38b568359da4147b672dbcd693bf72b3daf881696b7cfe5a355bfd618bfdde0c`.
+
+## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
+
+`func_actor_400500_801391B0` reloads `arg0->idMap` in each of three animation
+leaves and writes `field_9F8` / `field_9FE` / `field_9FA` through that pointer.
+One `work2` used in all three leaves is a global allocno (`dies in 3 places`).
+`.greg` gave it `preferences: 4` (`$a0`) from the earlier `addiu a0, 0x80`
+TmdObject hide, so every tail was `lw a0, 0x1C(a2)` against the target's
+`lw v1, 0x1C(a2)` — 99.3%, `regs=10`, identical structure.
+
+It does not conflict with `$v1` (`;; 82 conflicts: 81 82 2 29`). Numeric order
+would have taken `$v1` without the copy preference. Three block-local pointers
+(`work2` / `work3` / `work4`) are local-alloc eligible; each block has `$v0`
+busy with the constant chain (`1`, `0x10`, `0xF`/`0x11`, `2`, `3`/`1`) so the
+lowest free register is `$v1`.
+
+Write the three leaves as complete duplicated stores, not a shared `animId` /
+`sub` join: m2c's merged tail lets CSE sink the identical `field_9F8 = 0x10`
+stores and speculate both anim ids. Cross-jumping then rebuilds the shared
+`field_9FE` phi and the final `field_A08` store from the duplicated C.
+
+The unused `0x30` leaf frame is an unreferenced `u8 unused[0x30]` (no stack
+accesses). `s32 flag = 0x81` is required so `field_A46` gets `addiu 0x81`
+rather than `li -0x7f`.
+
+Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
+`base_2.i` `c89ff53043af044bf5c881600217eb4a630b437486bd5ea021d530efdcbfeea3`,
+`base_3.i` `1b1ba6e3b905016c9873f1a99a4b1b56adbb8ee01239826ad6adbcd6bfad2e1a`.
+
+## Split the A4A work pointer from the later anim `work2`; put `skip = 0` in the else
+
+A state dispatcher that copies a `TaskFuncTableN` onto the stack, then either
+calls a helper and returns or indexes the table, must not reuse one `work2`
+for both the short A4A check and the anim-tick loop after the join.
+
+Reusing it makes one pseudo live across the helper `jal`. GCC then keeps
+`&sp.funcs` in `$s2` (`addiu s2, sp, 0x10` in the `blez` delay slot) and
+indexes as `lw 0(s2+idx)` instead of rematerializing `addu v0, sp, v0` /
+`lw 0x10(v0)`. The skip flag also lands in `$v1` rather than sharing `$v0`
+with the `lb` of `field_A4A`.
+
+Use a separate pointer for the A4A reload, and birth `skip = 0` only on the
+false path so it fills the `beqz` delay as `move v0, zero`:
+
+```c
+workA = (Actor400500Work*)arg0->idMap;
+if (workA->field_A4A != 0) {
+    workA->field_A4A = 0;
+    func_actor_400500_8013DB64(arg0, 5);
+    skip = 1;
+} else {
+    skip = 0;
+}
+if (skip == 0) {
+    sp.funcs[(s16)work->field_A08](arg0);
+    goto common;
+}
+```
+
+`skip = 0` before the `if` keeps the flag live across the `lb` and forces
+`$v1`. Example: `func_actor_400500_8013899C`. Inputs: `base_1.i`
+`02b994e9dd32f1764760e620575baa1621fe224bfac3129eb3c4f2b1ecbb1e2e`,
+`base_2.i`
+`5719ab41d072287600b1201bcfdf318b9db76f72b2c7a6e0d105a4c4cb3115c1`.
+
+## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
+
+`func_8004BFF8` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
+Passing `-work->field_94A` (an `s16`) then emits
+
+```
+lhu    a0, 0x94A(s1)
+move   a1, s0
+negu   a0, a0
+sll    a0, a0, 16
+jal    func_8004BFF8
+sra    a0, a0, 16
+```
+
+The `sll`/`sra` is `PROMOTE_PROTOTYPES` re-extending the negated value as a
+`s16` argument. The target that already did `lh` wants the negate in the
+`jal` delay and no extend:
+
+```
+lh     a0, 0x94A(s1)
+move   a1, s0
+jal    func_8004BFF8
+negu   a0, a0
+```
+
+A memory barrier before the load does not drop the promote. Call through an
+`s32` function type so the argument stays SI:
+
+```c
+heading = work->field_94A;
+((void (*)(s32, MATRIX*))func_8004BFF8)(-heading, &src->mat);
+```
+
+Do not change the global prototype: other matched callers (`lhu` of a `u16`
+field into an `s32` local, then `-angle`) need the extend. The permuter
+found the same lever as `volatile int` on the preprocessed declaration.
+Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
+`e56d16995af549aebf636d661637b42f20726c97cb04970b24fdd722c84923dc`,
+`base_11.i`
+`b0a93e02146704145b19a5af8d6d670e0a3a88491dd968c3450b32ccb93c378b`.
+
+## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
+
+A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
+takes `&parent` and keeps `&Gfx_ViewCoord` in a saved register, wants those
+two defs *before* the copy:
+
+```
+move    s2, v0          /* view = &Gfx_ViewCoord (CSE of the early compare) */
+addiu   s1, sp, 0x30    /* parentp = &parent */
+lw      a2, 4(s0)       /* matrix = coord->coord */
+```
+
+`movstrsi` and the two pointer defs are independent, all priority 1. Sched1
+runs backward and picks the last original insn first, so C order
+`matrix = coord->coord;` then loop uses of `&parent` / `&Gfx_ViewCoord`
+hoists the copies *after* the block move (`reorder=2`). Write the names first:
+
+```c
+view    = &Gfx_ViewCoord;
+parentp = &parent;
+matrix  = coord->coord;
+```
+
+Keep the in-loop copy as `parent = coord->coord` (stack `sw a2, 0x30(sp)`).
+`*parentp = coord->coord` stores through `$s1` (`sw a2, 0(s1)`) and scores
+`regs` even though the schedule is right. Use `parentp` only for
+`MatrixNormal` / `gte_SetRotMatrix`. Example:
+`func_actor_400500_8013B720`. Inputs: `base_1.i`
+`f55fdcfdc394d92bc5954b6294f0552a7b511253caff6353cc040735f9c3fcb9`,
+`base_3.i`
+`8c8d1b7517d1949508867aea95dfa7c59eb6742571e6b1bed2e0ef539219b8bf`.
+
+## `ret = 0` inside the taken arm keeps `$v0` live so the next `beq` delay is nop
+
+A shared tail that returns 0 or 1 (`sub == mode` vs a later `ret = 1` after a
+call) wants `$v0` for `ret`. The 0 def has to be the first statement *inside*
+`if (mode == 1)`, not at function scope and not omitted:
+
+```
+lh    a1, mode
+li    v0, 1
+bne   a1, v0, epilogue
+ move  v0, zero          /* ret = 0, also the mode!=1 return */
+lh    v1, sub
+nop
+beq   v1, a1, zero_both
+ nop                     /* v0 live: cannot fill li v0, 2 */
+```
+
+`ret` is dead on the other arms of that if (they `return 1` as a constant), so
+it does not conflict with the `$v0` constants those arms use and can stay in
+`$v0`. That live `$v0` is why the `sub == mode` `beq` cannot steal `li $v0, 2`
+into its delay; the taken path still needs the leftover 0. Case 3 then writes
+`ret = 1` (`li $v0, 1`) and falls into the shared stores.
+
+`ret = 0` before the outer `if` is live through those `$v0` constants and
+lands in `$a2` (`move a2, zero` in the first delay, `li a2, 1; move v0, a2`
+after the call). Leaving `ret` uninitialized makes jump opt treat `ret = 1`
+as the only reaching def, so `sub == mode` lands on that `li` and the delay
+fills. Gotos keep the zero-both tail *before* the hit-flag check. Example:
+`func_actor_400500_80133358`. Inputs: `base_1.i`
+`55bac32e574291f44f0bd7261392f434ff6de88a394053dfa8328f0b0dd44d99`,
+`base_4.i`
+`2b32af2f96b9f17d60b06219f5a56052d6a6462e262accce2ac6d005adf99b95`,
+`base_5.i`
+`e75203767dacd28f5a0d8622a1be602686ea50bea5184651f94c1c79e2c482f7`.
+
+## `(s8)GetObjPan()` ashl dest stays in `$v0`; `pan <<= 24; pan >>= 24` writes `$s0`
+
+`pan = (s8)Gp_GetObjPan(obj)` then `SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj))`
+expands the assignment ashl into a temp tied to the call's `$v0`:
+
+```
+jal   Gp_GetObjPan
+or    s2, v0, a1
+sll   v0, v0, 24
+jal   Gp_GetObjDepth
+sra   s0, v0, 24
+```
+
+The target wants the named local as dest (`sll s0, v0, 24` / `sra s0, s0, 24`).
+`pan = GetObjPan(); pan = (s8)pan;` combines back to the same expand.
+Assigning the call first and shifting the local in place does not:
+
+```c
+pan = Gp_GetObjPan(obj);
+pan <<= 24;
+pan >>= 24;
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj));
+```
+
+Splitting `pan` / `pan2` per arm also gets the saved-reg ashl dest (the
+existing "Don't reuse a for-loop counter as the (s8) dest" entry) but
+here local-alloc then took `$s0`/`$s1` for those block-local values and
+bumped the whole-function `work` pointer to `$s2`. Keep one `pan` and
+spell the sign-extend on it. `func_actor_400500_80133160`. Inputs:
+`base_5.i`
+`afb429fd39d2ebced6e6d762ce780d5b6b01d676700f78f79836de7263ccab0e`,
+`base_6.i`
+`d44687bf3a01c6e5262263d24541f9f53e645d448e287a8694ba20eacbeee3cb`,
+`base_7.i`
+`62a5b0f4eec1b0cd97a563ca76e43923d58fee82dae0f6138d84461d6af29ee6`.
+
+## Loop-only copy of a live-after pointer fills an early delay and adds a saved reg
+
+When a work pointer is used both inside a call-crossing loop and after it,
+one C name keeps a single saved register. A second name assigned at the
+start (`work2 = work`) is a copy, not a reload. If both names are live
+through the loop they conflict, so 2.8.1 does not coalesce them:
+
+```
+lw    s2, 0x1C(s4)
+li    v0, 1
+lh    v1, 0x9FA(s2)
+bne   v1, v0, not1
+move  s3, s2          /* delay: the copy */
+```
+
+`arg0` then needs the next saved register (`s4` instead of `s3`). The
+compare load still uses the original (`s2`); sched1 puts the copy in the
+first branch delay. A store in a later jump delay can use the copy
+(`sh v0, 0x9FA(s3)`) if that assignment is spelled through `work2`.
+
+Siblings that reload `work2 = (T*)arg0->idMap` after an earlier call emit
+a second `lw`, not `move`. `func_actor_400500_8013AA98` is the example
+(the 9FA dispatch plus AnimStride loop plus a hit-flag tail that still
+needs `work` and `arg0`). One name is 92% (`arg0` in `$s3`, delay
+`li v0, 2`); the copy is 99.94%; `work2->field_9FA = 3` in case 1 is
+100%. Inputs: `base_1.i`
+`215f581ad6af1e2ce9c49aa6593d38d678a15ceccd8ee16de7b0daca93c1f72e`,
+`base_2.i`
+`ef07a9bffdbfc4f19d92f11cb03fa9850dda6f931d7643742ae2724ff05816b0`,
+`base_3.i`
+`da6e72dbce060c025a395c964864c3c91f04de6b3002c08b0f89f234e62f6e5b`.
+
+## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `field_9` is `sb 0x1D`
+
+`Actor400500Work` opens with `GpAnimCtx` (0x14) then `GpAnimSlot slots[0x12]`
+(0x28 each). `slots[i].field_9` is at `0x14 + i*0x28 + 9`. A `GpAnimSlot*`
+walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
+work base:
+
+```
+addiu s2, s1, 0x28
+sb    v0, 0x1D(s2)
+```
+
+because `0x14 + 9 = 0x1D`. Overlay the work as 0x28-byte records with a `u8`
+at 0x1D and start at index 1:
+
+```c
+typedef struct {
+    byte pad[0x1D];
+    u8   field_1D;
+    byte pad_1E[0xA];
+} Actor400500AnimStride;
+
+stride = (Actor400500AnimStride*)work + 1;
+stride->field_1D = (u8)work->field_9F8;
+stride++;
+```
+
+`func_actor_400500_8013A8E4` is the example. Computing
+`mapped = table[work->field_9FE]` *before* the `field_9F8` / `field_9FA`
+stores is what hoists the table `lui` into the prologue and keeps `lbu` in
+`$v1` across those stores (same function). Inputs: `base_1.i`
+`7e8d3dfb642f4b70105a041b51235e353d475f9c96a829b30a18bfe0fea6c10e`,
+`base_2.i` `06a7c6f4979d00ed8984830b2192c81affdbc7753268b98d3a1aac60a3461b22`.
+
+## Hoist a compare outside `do { } while (0)` to reweight `REG_N_REFS` by loop depth
+
+`REG_N_REFS` is weighted by loop depth (1 outside, 2 in one loop, 3 nested;
+CODEGEN_MODEL §10.1). `global_alloc` uses `floor_log2(n_refs) * n_refs /
+live_length`, so crossing 16 refs is a step change.
+
+A call-free first loop plus a call-crossing second loop, both using the same
+counter `i` and pointer `work`, can leave `work` in `$s0` and `i` in `$s1`
+when the target is the reverse: `work` has the extra compare loads, which
+push it over `floor_log2` 4 while `i` stays at 3 (18/31 vs 15/24 on
+`func_actor_400500_8013DCD4`).
+
+A `do { } while (0)` around the `if`/`else` raises every ref *inside* it by
+one depth. That is not enough if the compare stays inside — both `work` and
+`i` move up and `work` still wins (28/31 vs 22/26). Hoist the compare to a
+local *outside* the once-loop so those `work` refs stay weight 1. Loop-body
+refs of `i` go 15→22 and take `$s0` (22/24, pri 3.67 vs `work` 26/31, pri
+3.35). The emitted compare is still `lh`/`lh`/`bne`; the extra local and
+once-loop notes do not add instructions.
+
+The once-loop is doing loop-depth accounting here, not a sched1 barrier.
+A compare temp without the once-loop is combined away and does not change
+allocation. Inputs: `base_1.i`
+`be92135be8e30218837ed7e0c261f6b6f1eb0cbe19a3175a009369bd381e9d42`,
+`base_5.i` `d08384d08514d9bc7ca4a5e54c77e16792133d49505e94daa3db7dfe98601f6d`,
+`base_6.i` `76a841798330fe18ab10b003e7d8928217f63ab3281dbe3695735614264ab241`.
+
+## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
+
+A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does
+unsigned halfword math on the work block, wants
+
+```
+lw    v0, 0x2C(a0)     /* extra */
+lw    a1, 0x1C(a0)     /* work */
+lw    a2, 0x8(v0)      /* coord */
+lhu   v1, field_A10
+lhu   v0, field_A12
+```
+
+Independent `lhu`s on work are ready while extra is still live, so sched1
+parks them between the extra load and `coord = extra->field_8`. Extra's local
+quantity then overlaps the A12 temp in `$v0` and takes `$a0`. Incoming `$a0`
+is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
+function (regs + an extra `addu`).
+
+`func_actor_400500_8013D210` in the same TU keeps `$a0` without a barrier
+because it has no halfword math to interleave. `func_actor_400600_8013ADA4`
+uses coord for other `t[]` stores *before* the step/accum, which is a real
+dependence the scheduler cannot sink past the coord load.
+
+When the only uses of coord are the later Y add, a fence after the load is
+enough — empty asm emits no MIPS, extra dies in `$v0`, and the parameter
+copy is coalesced:
+
+```c
+work  = (Actor400500Work*)arg0->idMap;
+coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+SCHED_BARRIER();
+step  = (u16)work->field_A10 + 2;
+accum = (u16)work->field_A12 + step;
+```
+
+`func_actor_400500_8013BB18` is the example (scratch `base_4.c`).
+
+## Two call-diamonds need two flags; one `s32` lives in `$a0` and jump-threads
+
+A pair of `if (field) { field = 0; jal; flag = 1; } else { flag = 0; }` tests
+in sequence looks like one `s32 flag` reused after the first `bnez`. One
+variable is live at the second `jal`, so it takes `$a0` (`preferences` from
+the incoming argument, and `$a0` is the call setup). Then:
+
+- `beqz` cannot hold `move $v0, zero` — that would clobber `$a0` on the
+  fall-through into the `jal`.
+- The inner `flag = 0` arm is jump-threaded onto the later calls, dropping
+  the extra `move $v0, zero` block and the `j` / `li $v0, 1` after the
+  second `jal`.
+
+Give each diamond its own short-lived flag so both phis die into `$v0`:
+
+```c
+if (work->field_A4A != 0) {
+    work->field_A4A = 0;
+    func(arg0, 5);
+    flag = 1;
+} else {
+    flag = 0;
+}
+if (flag == 0) {
+    if (work2->field_A49 != 0) {
+        work2->field_A49 = 0;
+        if (work2->field_A1E & 1) {
+            flag2 = 0;
+        } else {
+            func(arg0, 4);
+            flag2 = 1;
+        }
+    } else {
+        flag2 = 0;
+    }
+    if (flag2 == 0 && ...) {
+```
+
+`func_actor_400500_80136864` (`base_1.c` 89.4% one flag in `$a0`, `base_2.c`
+99.7% two flags / leftover `$a0` on the shared `idMap` reload, `base_3.c`
+100%; preprocessed
+`c94bebb11bdc205b8397160000a8a22a0347e2613b0ad275a84bc36696387834`).
+The `$a0` leftover on a pointer reloaded in both arms is the existing
+`func_actor_400600_8013BA00` split: per-arm locals plus a duplicated tail
+store, merged by `jump2`.
+
+## `if (x != 0) return expr; return 0` inverts; write the zero check first
+
+A leaf that divides by a loaded field, with target:
+
+```
+lh    v1, field(v0)
+beqz  v1, ret0
+sll   v0, a1, 16    /* delay: first insn of expr */
+...
+jr    ra
+sra   v0, v0, 16
+jr    ra
+move  v0, zero
+```
+
+`if (scale != 0) { return expr; } return 0;` is inverted by jump/dbr into
+`bnez` plus an early `jr` / `move v0, zero` (86.5%, `branch=3 insert=1
+delete=1`). GCC inverts from the other polarity:
+
+```c
+if (scale == 0) {
+    return 0;
+}
+return (((arg1 << 0x10) >> 8) / scale << 0xC) >> 0x10;
+```
+
+`func_actor_400500_8013DD8C` (`base.c` 86.5%, `base_2.c` 100%; preprocessed
+`29af23378570f40437573e4b1dbc1cc56a3490080f64c3463381314ae1745bfb`).
+`s16` vs `s32` for `arg1` is the same object.
+
+## `s8 x = 0x81` is `li -127`; an `s32` temp keeps `li 0x81`
+
+Assigning `0x81` to an `s8` field folds to QImode `const_int -127` and emits
+`addiu $v0, $zero, -127` (`li -0x7f`) before `sb`. The same fold turns `0x80`
+into `const_int -128` (`li -0x80` / `addiu $v0, $zero, -128`). The target that
+loads 129 or 128 and lets `sb` truncate needs the constant born as a signed
+`s32`:
+
+```c
+s32 flag = 0x81;
+work->field_A46 = flag; /* addiu $v0, $zero, 0x81; sb */
+flag            = 0x80;
+work->field_A46 = flag; /* addiu $v0, $zero, 0x80; sb */
+```
+
+Do not change the field to `u8` to get this: the same address is also read
+with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
+on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
+`base_1.c` 100%; preprocessed
+`ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
+`func_actor_400500_8013C7A4` is the `0x80` case (`base.c` 99.83% `regs=1`,
+`base_1.c` 100%; preprocessed
+`4bbec492afc737aa8864eef960f3cafad76558c5fee7cb24902ee6154b96e0f8`).
+
+## An `s16` compared and stored into `u16` is `lh`+`lhu`; `s32` keeps one `lh`
+
+`work->field_A08 = work->field_A1A` with `field_A1A` `s16` and `field_A08`
+`u16` keeps both a sign-extended SI for the compares and a HI copy for the
+store. Reload emits `lh` (`extendhisi2`) and `lhu` (`movhi`) from the same
+address, then `sh` of the unsigned copy. An `s16` local is not enough: it
+still has HI mode for the store, so CSE/reload reconstruct the pair.
+
+Widen the value first so the compares and the truncated store share one SI:
+
+```c
+s32 a1a = work->field_A1A; /* lh $v1 */
+if (a1a != 1) {
+    if (a1a == 4) {
+        work->field_A08 = a1a; /* sh $v1 */
+    }
+}
+```
+
+`func_actor_400500_8013CBD8` (`base_1.c` 95.2%, `base_3.c` 100%;
+preprocessed `486d0cc84d065c614c955ae9a6c7ef05155c50dfc0be5e6338ffefc01778504b`).
+Sibling `func_actor_400500_8013CDA8` stores a fresh constant 7, so it never
+needs the loaded HI and one `lh` is enough.
+
+## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
+
+A bit test that then stores 7 or 8 wants `$v0` for both the `andi` and the
+stored value:
+
+```
+lhu    v0, flags
+andi   v0, v0, 1
+bnez   v0, eight
+li     v0, 8          /* delay: also runs on the 7 path, then overwritten */
+lw     v1, idMap
+j      store
+li     v0, 7
+eight:
+lw     v1, idMap
+nop
+store:
+sh     v0, A06(v1)
+```
+
+`val = 8; if (!(flags & 1)) { val = 7; ... } else { ... }` defines 8 *before*
+the `andi`. The temp is live across the bit test, conflicts with `$v0`, and
+lands in `$a0` (`li a0,8` / `sh a0`, `regs=3`). Assign both constants only in
+the arms so the temp is born after the `andi` dies; reorg still fills `li v0,8`
+into the `bnez` delay:
+
+```c
+if (!(work->field_A1E & 1)) {
+    work2 = (Actor400500Work*)arg0->idMap;
+    val   = 7;
+} else {
+    work2 = (Actor400500Work*)arg0->idMap;
+    val   = 8;
+}
+work2->field_A06 = val;
+```
+
+`if (flags & 1) { A06 = 8; } else { A06 = 7; }` inverts to `beqz` and stores in
+each arm. The shared `sh $v0` needs the temp. Example:
+`func_actor_400500_801369A4`. Inputs: `base_2.i`
+`d6fa594d680cbd4a4c1a1545385cbdcf58206e1d1a26e01c36f76f2a00d12bd8`,
+`base_3.i`
+`403131c1eb39b3e99712c3d36d375cab3aef9f9a5a796f6bf948e9f3aeae268a`.
+
+## `u16 x = -1` is `ori 0xFFFF`; an `s32` temp keeps `addiu -1`
+
+Assigning `-1` to a `u16` field converts the constant to 65535 and emits
+`ori $v0, $zero, 0xFFFF` then `sh`. The target that stores signed `-1` and
+lets `sh` truncate needs the constant born as a signed `s32`:
+
+```c
+s32 neg = -1;
+work->field_A04 = neg; /* addiu $v0, $zero, -1; sh */
+```
+
+`func_actor_400500_8013CA38` with `work->field_A04 = -1` was `ori`. The
+same store through an `s32` temp is exact. Do not change the field to `s16`
+to get this: other readers of `field_A04` use `lhu`.
+
+## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
+
+`work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
+`Gp_WorldToLocal` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
+nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
+as `sh $v1, 4($v0)`.
+
+Taking the address *before* the two jals into one pointer, then copying it
+to a second pointer after the calls, forces the address to be rematerialized
+there:
+
+```c
+pos2 = &work->field_9A0;
+Gp_UpdateCoord(&coords[0xE]);
+Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+pos    = pos2;
+pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
+pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
+```
+
+A single `pos = &work->field_9A0` after the calls still folds. `func_actor_400500_8013CA38`
+is the example (permuter `de95fd9fa49844d3`, confirmed by `base_6.c`).
+
+## Two dest pointers keep offset `addiu`s live across a following `jal`
+
+`GsCOORDINATE2 *parts` plus two indexes that are only consumed *after* a
+call look like they can share a register:
+
+```c
+part7  = &parts[7];
+parts  = &parts[10];          /* reuse the base pseudo */
+child  = Task_SpawnFromTable(...);
+coord->sub = parts;
+```
+
+sched1 sinks both addius past the `jal` (they do not feed the call), so the
+base crosses it instead. The delay slot becomes `move a3,a1`, `parts[10]`
+never gets its own callee-saved home, and every later `$s` assignment
+slides. `func_actor_400500_8013226C` scored 85.5% that way.
+
+Two destination pseudos assigned before the call keep both addius live
+across it. One fills the delay slot (`addiu s0,s0,0x320`) and the results
+land in `$s0` / `$s7`:
+
+```c
+part7  = &parts[7];
+part10 = &parts[10];
+child  = Task_SpawnFromTable(...);
+coord->sub = part10;
+```
+
+This is a sched1 live-range effect, not the "dies in 2 places" allocno
+reuse of a work pointer reloaded after a call.
+
+## `u16` to `s16` arg is `lhu`+`sll`/`sra` only if the load is not combined
+
+Passing a `u16` field to an `s16` parameter combines to a single `lh`. The
+target that reloads with `lhu` and sign-extends in the delay slots of a
+pointer chase needs an `s32` temporary:
+
+```c
+child = work->child;
+angle = work->heading; /* lhu, before any store through child */
+((TmdObject*)child->extra)->field_C = 0;
+func_8004BFF8(angle, &src->mat); /* sll/sra of the s32 */
+```
+
+`func_actor_400500_8013BEC4` with `func_8004BFF8(work->field_A26, …)` is `lh`
+at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
+that store a true alias dep of the reload: `lhu` cannot fill the child-load
+delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
+(92.8%). Moving the assignment before `field_C` (after the child load, so
+CSE cannot reuse the increment) is 100%. Compare `func_actor_400500_80138CE8`,
+which keeps the increment in `angle` and never reloads.
+
+## Reusing a pointer across a call keeps the pre-call home
+
+A work pointer loaded before `jalr` and assigned again after it is one pseudo
+that "dies in 2 places". That is not local-alloc eligible, so `global_alloc`
+gives both ranges the same home — the one the first range needed (`$v1`,
+because `$v0` held the table address and call target). The target reloads
+into `$v0` after the call.
+
+Use a distinct local for the post-call stores. `func_actor_400500_8013BA24`
+scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
+two `idMap` reloads after the dispatcher call is 100%. This is the same
+"dies in 2 places" rule as the switch-arm scratch pointers, but inside one
+block split by a call rather than two `case`s.
+
 ### An action phi sinks `move a0` into the jal delay and collapses the 2/3 diamond
 
 `func_actor_400500_80132D74` has three arms that call the same helper with
