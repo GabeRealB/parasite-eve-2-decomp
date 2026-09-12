@@ -9,6 +9,21 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// One of the nine back-to-back collision groups in `Actor444000Work` at
+/// 0x7FC. `coord` is the part's own coordinate -- what
+/// `func_actor_444000_80134688` spawns the hit effect on -- and `recs` is the
+/// `GpRec18` table the gameplay collision pass fills in for that part. The
+/// 0x98 stride is what the used offsets spell out: group 2's record table is
+/// `work + 0x944`, which is `0x7FC + 2 * 0x98 + 0x18`.
+typedef struct Actor444000HitGroup {
+    /* 0x00 */ GsCOORDINATE2* coord;
+    /* 0x04 */ byte           pad_4[0x12];
+    /* 0x16 */ u16            field_16;
+    /* 0x18 */ GpRec18        recs[5];
+    /* 0x90 */ byte           pad_90[0x8];
+} Actor444000HitGroup;
+STATIC_ASSERT_SIZEOF(Actor444000HitGroup, 0x98);
+
 /// Per-actor work block for the enemy task `D_actor_444000_80161878` points
 /// at, reached through the `Task::idMap` slot (0x1C) rather than being a
 /// `TaskIdMap` here.
@@ -82,7 +97,19 @@ typedef struct Actor444000Work {
     /* 0x7DC */ byte pad_7DC[0x14];
     /* 0x7F0 */ byte pad_7F0[0x3];
     /* 0x7F3 */ s8   field_7F3;
-    /* 0x7F4 */ byte pad_7F4[0x6B8];
+    /* 0x7F4 */ byte pad_7F4[0x8];
+    /// One collision group per body part the boss can be struck on: the
+    /// coordinate a landed hit spawns its effect at, followed by that part's
+    /// own `GpRec18` table. `func_actor_444000_8013AFF8` publishes
+    /// `hits[0].recs` as `GpEnemy::field_54`, and the hit handlers
+    /// (`func_actor_444000_8013C060` for group 0,
+    /// `func_actor_444000_8013C4B0` for groups 1 and 2, ...) each scan five
+    /// records of their own group. The count is what the used multiples of
+    /// 0x98 bound, not a figure read out of the game.
+    /* 0x7FC */ Actor444000HitGroup hits[9];
+    /* 0xD54 */ byte                pad_D54[0x138];
+    /* 0xE8C */ s16                 field_E8C; // Gp_GetIdParam2 of the hit group 0 took
+    /* 0xE8E */ byte                pad_E8E[0x1E];
     /// Screen-shake request written from outside the task by
     /// `func_actor_444000_80143490`: 1, 2 and 3 pick a shake length, anything
     /// else leaves the driver alone. `field_EAD` is the value the driver has
@@ -453,6 +480,27 @@ typedef struct Actor444000EffScratch {
 } Actor444000EffScratch;
 STATIC_ASSERT_SIZEOF(Actor444000EffScratch, 0x10);
 
+/// 0x30-byte scratchpad frame the per-group hit handlers
+/// (`func_actor_444000_8013C060` and its siblings) carve off `G_SCRATCH_HEAD`
+/// for the one hit they take this frame. `pos` is the contact point copied out
+/// of the `GpRec18`; `delta` is the player-relative offset whose length is
+/// `dist`, the range `Gp_ComputeDamage` scales `damage` by. `rot` doubles as
+/// `Gp_SpawnEff`'s rotation argument and, afterwards, as the workspace for the
+/// contact point relative to the part's world translation, which `angle`
+/// is the yaw of.
+typedef struct Actor444000HitScratch {
+    /* 0x00 */ VECTOR3 delta;
+    /* 0x0C */ byte    pad_C[0x4];
+    /* 0x10 */ SVECTOR rot;
+    /* 0x18 */ SVECTOR pos;
+    /* 0x20 */ s32     id;     // attack id of the hit that landed, 0 for none
+    /* 0x24 */ u32     damage; // HP taken off the enemy
+    /* 0x28 */ s32     dist;   // distance from the player, in world units
+    /* 0x2C */ s16     angle;  // yaw of the contact point, wrapped to +/-0x800
+    /* 0x2E */ byte    pad_2E[0x2];
+} Actor444000HitScratch;
+STATIC_ASSERT_SIZEOF(Actor444000HitScratch, 0x30);
+
 /// 0x14-byte scratchpad frame `func_actor_444000_80132B14` carves off
 /// `G_SCRATCH_HEAD`: the `GpDeltaScratch` it hands `func_800E0C10` plus the
 /// "did the frame actually move" flag it returns.
@@ -463,6 +511,7 @@ typedef struct Actor444000DeltaScratch {
 STATIC_ASSERT_SIZEOF(Actor444000DeltaScratch, 0x14);
 
 s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id);
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);

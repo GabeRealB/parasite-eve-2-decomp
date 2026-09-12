@@ -63728,3 +63728,110 @@ Two further points for a global rather than a stack coordinate:
 
 `func_actor_444000_80140BBC` is the worked example: 92.5% -> 96.8% -> 100% over
 those three changes.
+
+## loop.c relocates a loop block that ends in a jump out
+
+A table scan whose match arm leaves the loop (`if (hit) { ...; goto found; }`)
+can come out with that arm parked at the far end of the function and the test
+inverted, where the target falls straight into it:
+
+```
+  bne   v0,t1,.Lincrement     /* target: match falls through */
+   addiu v0,a3,1
+  <match arm>
+  j     .Ltail
+.Lincrement:
+
+  beq   v0,a2,.Lfar           /* ours: match arm moved past everything */
+   addiu v0,a0,1
+.Lincrement:
+```
+
+`find_and_verify_loops` (`loop.c`) does this deliberately: on an unconditional
+jump out of a loop whose *preceding* conditional jump targets the insn right
+after it, it inverts that conditional and `reorder_insns` the block next to a
+BARRIER near the jump's destination. The precondition is structural and
+essentially always holds for `if (c) { ...; goto out; }` inside a real loop -
+the if-end label is by construction immediately before whatever follows the
+`if`, so `next_real_insn (JUMP_LABEL (p)) == our_next` is true.
+
+The guard that does *not* hold is `this_loop_num != -1`: the transformation only
+looks at insns inside a loop loop.c recognises, and it recognises loops from
+`NOTE_INSN_LOOP_BEG` notes, which only `for` / `while` / `do` emit. Writing the
+scan with an explicit top label and `goto` keeps the arm inline.
+
+The cost is that nothing hoists the loop's invariants any more, so they have to
+be spelled out as locals assigned before the label - the wide constants
+(`0xFFFF0000`, `0x20000`, one `lui` each) and any address the body uses more
+than once:
+
+```c
+    pos  = &sc->pos;          /* addiu a2,v1,-0x18 in the prologue */
+    recs = work->hits[0].recs;
+    i    = 0;
+    mask = 0xFFFF0000;
+    kind = 0x20000;
+scan:
+    if (recs[i].field_4 == 0) {
+        goto missed;
+    }
+    if ((recs[i].field_4 & mask) == kind) {
+        ...
+        goto found;
+    }
+    i++;
+    if (i < 5) {
+        goto scan;
+    }
+missed:
+    id = 0;
+found:
+    sc->id = id;
+```
+
+Two details of that shape matter beyond the loop form:
+
+- The two-tail `id` is what puts the value in the same register as the record
+  pointer (`$a1` here). `id = 0` *before* the loop keeps it live across the
+  body and costs a separate register; assigning it on each exit path lets GCC
+  rematerialise the zero at the join, and the single `sc->id = id` shows up
+  twice in the output only because the delay slot of the `j` steals it.
+- Statement order in the preamble is what sched1 ties on. `recs` assigned
+  before `sc` reorders the whole prologue.
+
+`func_actor_444000_8013C060` is the worked example (85.7% -> 92.9% -> 97.3% ->
+99.2% -> 100%); the sibling scan in `func_actor_444000_8013C4B0` has the same
+shape. See also "Mid-loop unlink: `goto` resists loop rotation", which is the
+same `goto`-instead-of-loop move for a different loop.c/stmt.c transformation -
+`expand_end_loop` rolling the leading test to the bottom. Both apply here: the
+angle-wrapping `while` loops in the same function are top-tested with a `j`
+back, which is the unrolled form, so they are `goto` loops too.
+
+## `addu` operand order: a MEM address puts the multiply first
+
+`&recs[i]` and `recs[i].field` produce the *same* address arithmetic in a
+different operand order:
+
+```
+addu  a1,v0,t0      /* recs[i].field_4  - scaled index first */
+addu  a1,t0,v0      /* rec = &recs[i]   - base first */
+```
+
+`expand_expr`'s `both_summands` path ends with "Put a constant term last and put
+a multiplication first", which swaps the operands when one side is still a
+`MULT` rtx. That path is only reached when the `PLUS_EXPR` is expanded with
+`modifier == EXPAND_SUM` (or `EXPAND_INITIALIZER`) *and* `mode == ptr_mode` -
+that is, while building a memory reference's address. An ordinary assignment
+`rec = &recs[i]` is `EXPAND_NORMAL` and takes `goto binop` instead, so the tree
+order (pointer first) survives into the insn.
+
+So when the only difference left is the operand order of the address `addu`,
+index the record in place instead of taking its address into a local. C's
+pointer arithmetic cannot express the other order - `build_binary_op` routes
+both `p + i` and `i + p` through `pointer_int_sum (PLUS_EXPR, ptrop, intop)` -
+so casting to an integer is the only alternative, and it is not needed.
+
+This also explains why `&work->hits[0].recs[i]` written out in full does not
+hoist `work + 0x814`: `fold` reassociates `(work + 0x814) + i * 0x18` into
+`work + (i * 0x18 + 0x814)`, and the constant lands on the index
+(`addiu v0,v0,0x814` / `addu v1,s3,v0`) rather than on an invariant base.

@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
 
@@ -411,7 +412,136 @@ s32 func_actor_444000_8013ACD0(Actor444000* task, s32 msgId, Actor444000Msg7DB* 
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013AFF8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013C060);
+/// Applies the single hit collision group 0 took this frame: the first of the
+/// group's five `GpRec18` records holding a type-2 attack id wins, and its
+/// contact point drives the hit effect `func_actor_444000_80134688` spawns on
+/// the group's coordinate. Damage is `Gp_ComputeDamage` of the attack id scaled
+/// by the player's distance, quadrupled on a `Gp_RollEnemyChance` critical and
+/// doubled again before it is reported, and the leftover `field_4C` bits 0xC
+/// tick a second helping off through `Gp_TickObjFlag4`. The scratchpad frame
+/// also keeps the yaw from the part's facing to the contact point, wrapped into
+/// +/-0x800, which the drive step reads back at 0x2C.
+///
+/// The record scan is written with labels rather than a `for` loop on purpose:
+/// as a real loop, GCC's `find_and_verify_loops` moves the match arm out of
+/// line (see DECOMPILATION_LEARNINGS.md, "loop.c relocates a loop block that
+/// ends in a jump out"). `mask` / `kind` and the two hoisted pointers then have
+/// to be spelled out, since nothing lifts them out of a goto loop.
+void func_actor_444000_8013C060(Actor444000* task)
+{
+    Actor444000HitScratch* sc;
+    Actor444000Work*       work;
+    GpEnemy*               enemy;
+    GpRec18*               recs;
+    WipSysConfig*          cfg;
+    SVECTOR*               pos;
+    s32                    mask;
+    s32                    kind;
+    s32                    id;
+    s32                    dx2;
+    s32                    dy2;
+    s32                    dz2;
+    s16                    angle;
+    s16                    i;
+
+    cfg   = &Wip_SysConfig;
+    enemy = task->field_20;
+    work  = task->field_1C;
+    sc    = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
+    pos   = &sc->pos;
+    recs  = work->hits[0].recs;
+    i     = 0;
+    mask  = 0xFFFF0000;
+    kind  = 0x20000;
+scan:
+    if (recs[i].field_4 == 0) {
+        goto missed;
+    }
+    if ((recs[i].field_4 & mask) == kind) {
+        pos->vx = recs[i].field_8;
+        pos->vy = recs[i].field_A;
+        pos->vz = recs[i].field_C;
+        id      = recs[i].field_4;
+        goto found;
+    }
+    i++;
+    if (i < 5) {
+        goto scan;
+    }
+missed:
+    id = 0;
+found:
+    sc->id = id;
+
+    if (id != 0) {
+        func_actor_444000_80134688(work->hits[0].coord, id);
+        work->field_E8C = Gp_GetIdParam2(sc->id);
+        Gp_GetIdParam0(sc->id);
+
+        sc->delta.vx = cfg->field_4->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
+        dx2          = sc->delta.vx * sc->delta.vx;
+        sc->delta.vy = cfg->field_4->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1];
+        dy2          = sc->delta.vy * sc->delta.vy;
+        sc->delta.vz = cfg->field_4->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
+        dz2          = sc->delta.vz * sc->delta.vz;
+        sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
+        sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
+        if (Gp_RollEnemyChance(enemy, sc->id, 0) != 0) {
+            sc->damage *= 4;
+        }
+        if (sc->damage != 0) {
+            sc->rot.vy = 0x190;
+            sc->rot.vx = 0;
+            sc->rot.vz = 0x1F4;
+            Gp_SpawnEff(0x6009C, &((TmdObject*)enemy->task->extra)->field_8[3], 3, &sc->rot);
+        }
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+        sc->rot.vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
+        sc->rot.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        sc->rot.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        sc->rot.vx = sc->pos.vx - ((TmdObject*)task->extra)->field_8->workm.t[0];
+        sc->rot.vy = sc->pos.vy - ((TmdObject*)task->extra)->field_8->workm.t[1];
+        sc->rot.vz = sc->pos.vz - ((TmdObject*)task->extra)->field_8->workm.t[2];
+        angle      = ratan2(sc->rot.vx, sc->rot.vz) -
+                ratan2(-((TmdObject*)task->extra)->field_8->workm.m[2][0],
+                       ((TmdObject*)task->extra)->field_8->workm.m[2][2]);
+        sc->angle = angle;
+        if (angle < 0) {
+        wrapUp:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto wrapUp;
+            }
+        } else {
+        wrapDown:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto wrapDown;
+            }
+        }
+        sc->angle = angle;
+
+        if (work->field_7B3 != 4) {
+            work->field_7C8 = 0;
+            work->field_7C4 = 0;
+        }
+        sc->damage *= 2;
+        func_800E2C78((GpObj40*)enemy, sc->id, sc->damage, 0);
+        enemy->field_40 -= sc->damage;
+        func_800DA6E8(&enemy->node, sc->damage, 0);
+    }
+
+    if (enemy->field_4C & 0xC) {
+        sc->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+        enemy->field_40 -= sc->damage;
+    }
+
+    SCRATCH_SP += sizeof(Actor444000HitScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013C4B0);
 
