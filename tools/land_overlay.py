@@ -261,22 +261,8 @@ def main() -> int:
 
     # Which trunk file holds each function, and where its final body lives.
     src_dirs = [p for p in ROOT.glob(f"src/**/{args.overlay}") if p.is_dir()]
-    if len(src_dirs) > 1:
-        # `lib` is the case that needs this: every family has one, so the glob
-        # matches src/{pe,weapons,actors,rooms}/lib and the old code refused
-        # outright. Ask the worktree which of them actually holds the bodies
-        # being landed - that is unambiguous, and it needs no change to the
-        # overlay name the lease was taken under.
-        src_dirs = [d for d in src_dirs
-                    if any(re.search(rf'^[A-Za-z_][\w \t*]*\b{re.escape(fn)}\s*\(',
-                                     c.read_text(errors="replace"), re.M)
-                           for c in (wt / d.relative_to(ROOT)).glob("*.c")
-                           if (wt / d.relative_to(ROOT)).is_dir()
-                           for fn in funcs[:20])]
     if len(src_dirs) != 1:
-        raise SystemExit(
-            f"expected one src dir for {args.overlay}, found {len(src_dirs)}: "
-            + ", ".join(str(d) for d in src_dirs))
+        raise SystemExit(f"expected one src dir for {args.overlay}")
     rel = src_dirs[0].relative_to(ROOT)
 
     file_of, body_of = {}, {}
