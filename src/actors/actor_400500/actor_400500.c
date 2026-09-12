@@ -2381,7 +2381,62 @@ void func_actor_400500_8013ABE4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013AD60);
+extern TaskFuncTable11 D_actor_400500_80131FA4;
+
+INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", D_actor_400500_80131FA4);
+
+void func_actor_400500_8013AD60(Task* arg0)
+{
+    Actor400500Work*       work;
+    TaskFuncTable11        sp;
+    GpEnemy*               enemy;
+    Actor400500Work*       work2;
+    Actor400500AnimStride* stride;
+    s32                    i;
+    Actor400500Work*       work3;
+    s32                    flag;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    sp    = D_actor_400500_80131FA4;
+    if ((s16)work->field_A08 != 0) {
+        work2 = (Actor400500Work*)arg0->idMap;
+        if (work2->field_9FA == 1) {
+            if ((s16)work2->field_9FC != work2->field_9FE) {
+                work2->field_A00 = 0;
+            } else {
+                work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            work2->field_9FA = 3;
+        } else if (work2->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            work2->field_9FA = 3;
+            work2->field_A00 = 0;
+        } else if (work2->field_9FA == 3) {
+            work2->field_A00 = (u16)work2->field_A00 + 1;
+        }
+        i      = 1;
+        stride = (Actor400500AnimStride*)work2 + 1;
+        do {
+            stride->field_1D = (u8)work2->field_9F8;
+            Gp_AnimTickIndex(&work2->anim, i);
+            i++;
+            stride++;
+        } while (i < 0x12);
+    }
+    if (enemy->field_40 > 0) {
+        sp.funcs[(s16)work->field_A08](arg0);
+    } else {
+        work->field_A42 = 0;
+    }
+    work3 = (Actor400500Work*)arg0->idMap;
+    if (((work3->field_A46 >= 0) || ((u8)work3->field_A46 & 0x7F)) && (work3->field_A30 == 0)) {
+        flag             = 0x80;
+        work3->field_A46 = flag;
+        work3->field_A47 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013AF44);
 

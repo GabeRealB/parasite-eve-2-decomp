@@ -9,4 +9,5 @@ D_actor_400500_80131F2C = 0x80131F2C; // force_not_migration:True state table re
 D_actor_400500_80131F48 = 0x80131F48; // force_not_migration:True state table read from C
 D_actor_400500_80131F54 = 0x80131F54; // force_not_migration:True state table read from C
 D_actor_400500_80131F60 = 0x80131F60; // force_not_migration:True state table read from C
+D_actor_400500_80131FA4 = 0x80131FA4; // force_not_migration:True state table read from C
 D_actor_400500_80131FEC = 0x80131FEC; // force_not_migration:True state table read from C
