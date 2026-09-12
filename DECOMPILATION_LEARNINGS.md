@@ -38873,6 +38873,25 @@ pointer-based struct traffic. In the `actor_400600` typing pass it hit exactly
 the 2 of 30 functions that touched such a global, and both matched again once
 the global was declared as an aggregate.
 
+It is symmetric in direction, and the missing instruction is then a `nop` rather
+than a filled delay slot. `func_actor_444000_8013CA60` *reads* one such global
+right after a struct store:
+
+```c
+work->field_0   = 0xE;
+work->field_F0A = D_actor_444000_80144A3C;   /* extern s16: 99.594% */
+work->field_F0A = D_actor_444000_80144A3C[0]; /* extern s16[]: 100% */
+```
+
+With the scalar declaration GCC hoists the `lhu` above the `sh` to
+`work->field_0` and uses the store to fill the load delay, so the object comes
+out one instruction short of the target. With the aggregate the load cannot pass
+the store, and the load delay stays an explicit `nop` - which is what the
+original emits. An unsized `extern T X[]` is enough; no bound is needed, which
+also avoids the shape claim the bounded form makes. Here the disassembly
+independently supports the aggregate: the label covers six halfwords and the
+same six-halfword shape repeats at the next label.
+
 There is a third remedy, and it is the one to look for first: the "bare global"
 is often not a global at all, but a **field of a struct that main already
 declares**. Overlay sources import unfiled main addresses as
