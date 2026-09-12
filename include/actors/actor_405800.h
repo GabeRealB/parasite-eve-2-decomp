@@ -18,7 +18,9 @@
 /// `field_846` / `field_848` are the state and sub-state indices the handler
 /// table walks and `field_842` is the per-state frame counter.
 typedef struct Actor405800Work {
-    /* 0x000 */ byte    pad_0[0x9A];
+    /* 0x000 */ byte    pad_0[0x92];
+    /* 0x092 */ u16     field_92; // copied into field_86A on state entry
+    /* 0x094 */ byte    pad_94[0x6];
     /* 0x09A */ s16     field_9A;
     /* 0x09C */ byte    pad_9C[0xC];
     /* 0x0A8 */ SVECTOR field_A8;  // world point `ActorsShared80139c00` turns to face (it reads `vx` / `vz`)
@@ -47,14 +49,17 @@ typedef struct Actor405800Work {
     /* 0x846 */ u16     field_846; // state index
     /* 0x848 */ u16     field_848; // sub-state index
     /* 0x84A */ s16     field_84A;
-    /* 0x84C */ byte    pad_84C[0x4];
+    /* 0x84C */ s16     field_84C;
+    /* 0x84E */ s16     field_84E;
     /* 0x850 */ s16     field_850; // animation speed / step scale
     /* 0x852 */ byte    pad_852[0xA];
     /* 0x85C */ s16     field_85C; // countdown, ticked by func_actor_405800_8013795C
     /* 0x85E */ s16     field_85E; // countdown, ticked by func_actor_405800_8013795C
     /* 0x860 */ byte    pad_860[0x6];
     /* 0x866 */ s16     field_866;
-    /* 0x868 */ byte    pad_868[0x6];
+    /* 0x868 */ byte    pad_868[0x2];
+    /* 0x86A */ u16     field_86A; // seeded from field_92
+    /* 0x86C */ byte    pad_86C[0x2];
     /* 0x86E */ s16     field_86E; // animation request kind
     /* 0x870 */ byte    pad_870[0x2];
     /* 0x872 */ s16     field_872; // animation id
