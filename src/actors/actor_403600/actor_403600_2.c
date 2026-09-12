@@ -9,6 +9,32 @@
 #include "main/gfx.h"
 #include "main/task.h"
 
+#include <psyq/inline_c.h>
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, %2(%0);"                                 \
+        "lhu $13, %3(%0);"                                 \
+        "lhu $14, %4(%0);"                                 \
+        "sh $12, 0(%1);"                                   \
+        "sh $13, 2(%1);"                                   \
+        "sh $14, 4(%1)"                                    \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, 0(%0);"                                  \
+        "lhu $13, 2(%0);"                                  \
+        "lhu $14, 4(%0);"                                  \
+        "sh $12, %2(%1);"                                  \
+        "sh $13, %3(%1);"                                  \
+        "sh $14, %4(%1)"                                   \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_403600_801320A0;
@@ -513,4 +539,41 @@ void func_actor_403600_80141F28(Actor403600* arg0)
     Gp_EnemyTaskExit((Task*)arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600_2", func_actor_403600_80141F58);
+void func_actor_403600_80141F58(GpAnimMtxRec* arg0, s32 arg1)
+{
+    void**   scratch;
+    void*    head;
+    SVECTOR* vec;
+    MATRIX*  matrix;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    vec      = (SVECTOR*)((u8*)head - 8);
+    *scratch = vec;
+    matrix   = &arg0->mtx;
+
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
+    gte_lddp(arg1);
+    gte_ldsv(vec);
+    gte_gpf12_real();
+    gte_stsv(vec);
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
+
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
+    gte_lddp(arg1);
+    gte_ldsv(vec);
+    gte_gpf12_real();
+    gte_stsv(vec);
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
+
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
+    gte_lddp(arg1);
+    gte_ldsv(vec);
+    gte_gpf12_real();
+    gte_stsv(vec);
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
+
+    head          = *scratch;
+    arg0->field_0 = 0;
+    *scratch      = (u8*)head + 8;
+}
