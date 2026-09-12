@@ -118,11 +118,12 @@ typedef struct Actor400500Work {
     /* 0x9A0 */ Actor400500ViewPos field_9A0;
     /* 0x9A6 */ byte               pad_9A6[0x16];
     /* 0x9BC */ s16                field_9BC;
-    /* 0x9BE */ byte               pad_9BE[0x1E];
-    /* 0x9DC */ s16                field_9DC;
-    /* 0x9DE */ byte               pad_9DE[2];
+    /* 0x9BE */ byte               pad_9BE[2];
+    /* 0x9C0 */ VECTOR             field_9C0; // own position, copied from the model root coord.t
+    /* 0x9D0 */ SVECTOR            field_9D0;
+    /* 0x9D8 */ SVECTOR            field_9D8; // ApplyMatrixSV dest; vz is the former field_9DC
     /* 0x9E0 */ s16                field_9E0;
-    /* 0x9E2 */ byte               pad_9E2[2];
+    /* 0x9E2 */ s16                field_9E2;
     /* 0x9E4 */ s16                field_9E4;
     /* 0x9E6 */ byte               pad_9E6[0xA];
     /* 0x9F0 */ Task*              field_9F0[2]; // child tasks, killed on death
@@ -147,7 +148,7 @@ typedef struct Actor400500Work {
     /* 0xA1C */ u16                field_A1C; // mode; 2, 3 and 6 take the heading-0 path
     /* 0xA1E */ u16                field_A1E; // flags; bit 0x1 and bit 0x2 gate animations
     /* 0xA20 */ s16                field_A20;
-    /* 0xA22 */ byte               pad_A22[0x2];
+    /* 0xA22 */ u16                field_A22; // frame counter used when field_A1C == 5
     /* 0xA24 */ s16                field_A24; // copied to TmdObject::field_2C
     /* 0xA26 */ u16                field_A26; // heading countdown, decremented by 0x80
     /* 0xA28 */ s16                field_A28;

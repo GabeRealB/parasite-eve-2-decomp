@@ -1452,7 +1452,7 @@ s32 func_actor_400500_8013DB78(Task* arg0)
 {
     Actor400500Work* work = (Actor400500Work*)arg0->idMap;
 
-    if ((work->field_A16 < (0x640 - (work->field_9DC * 8))) && ((u32)(work->field_A36 - 0x300) >= 0xA01U)) {
+    if ((work->field_A16 < (0x640 - (work->field_9D8.vz * 8))) && ((u32)(work->field_A36 - 0x300) >= 0xA01U)) {
         work->field_A06 = 9;
         work->field_A08 = 0;
         return 1;

@@ -195,7 +195,75 @@ void func_actor_400500_8013226C(Task* arg0)
     ActorsShared80132c4c(&src->mat, &coord->coord);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132438);
+void func_actor_400500_80132438(Task* arg0)
+{
+    SVECTOR            dir;
+    SVECTOR*           dirp;
+    SVECTOR            delta;
+    Actor400500Matrix  rot;
+    Actor400500Matrix* src;
+    Actor400500Work*   work;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     other;
+    s16                dist;
+    s16                heading;
+    s16                vz;
+    s32                y;
+    s32                z;
+    s32                one;
+    u16                counter;
+
+    work  = (Actor400500Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (Gp_ActorSlots[0] != NULL) {
+        other              = Gp_ActorSlots[0]->extra->field_8;
+        work->field_9C0.vx = coord->coord.t[0];
+        work->field_9C0.vy = coord->coord.t[1];
+        work->field_9C0.vz = coord->coord.t[2];
+        if ((s16)work->field_A1C != 5) {
+            dir.vx = (u16)other->coord.t[0] - (u16)coord->coord.t[0];
+            dir.vy = (u16)other->coord.t[1] - (u16)coord->coord.t[1];
+            dir.vz = (u16)other->coord.t[2] - (u16)coord->coord.t[2];
+        } else {
+            work->field_A32 = 2;
+            counter         = work->field_A22 + 1;
+            work->field_A22 = counter;
+            if (!(counter & 0x100)) {
+                dir.vx = 0x2710 - (u16)coord->coord.t[0];
+            } else {
+                dir.vx = 0x3E8 - (u16)coord->coord.t[0];
+            }
+            y      = -0x3E8;
+            dir.vy = y - (u16)coord->coord.t[1];
+            z      = -0x20D0;
+            dir.vz = z - (u16)coord->coord.t[2];
+        }
+        dist = SquareRoot0((dir.vx * dir.vx) + (dir.vz * dir.vz));
+        do {
+            work->field_9E0 = (u16)dir.vx;
+            dirp            = &dir;
+            work->field_9E2 = (u16)dir.vy;
+        } while (0);
+        vz              = (u16)dir.vz;
+        work->field_A16 = dist;
+        work->field_9E4 = vz;
+        VectorNormalSS(dirp, dirp);
+        work->field_A36    = (ratan2(dir.vx, dir.vz) - (u16)work->field_94A) & 0xFFF;
+        delta.vx           = (u16)other->coord.t[0] - (u16)work->field_9D0.vx;
+        delta.vy           = (u16)other->coord.t[1] - (u16)work->field_9D0.vy;
+        one                = 0x1000;
+        delta.vz           = (u16)other->coord.t[2] - (u16)work->field_9D0.vz;
+        src                = &rot;
+        rot.ident.m00_m01  = one;
+        rot.ident.m02_m10  = 0;
+        src->ident.m11_m12 = one;
+        rot.ident.m20_m21  = 0;
+        src->ident.m22     = one;
+        heading            = work->field_94A;
+        ((void (*)(s32, MATRIX*))func_8004BFF8)(-heading, &src->mat);
+        ApplyMatrixSV(&src->mat, &delta, &work->field_9D8);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132628);
 
@@ -284,7 +352,7 @@ s32 func_actor_400500_80132D74(Task* arg0)
 
     work = (Actor400500Work*)arg0->idMap;
     if ((s16)work->field_A1C != 5) {
-        if ((work->field_A16 < (0x500 - (work->field_9DC * 8))) &&
+        if ((work->field_A16 < (0x500 - (work->field_9D8.vz * 8))) &&
             ((u32)(work->field_A36 - 0x2E0) >= 0xA41U)) {
             if ((((u16)work->field_A32 >> 3) == 0) && !(work->field_A1E & 1)) {
                 func_actor_400500_8013DB64(arg0, 1);
@@ -292,7 +360,7 @@ s32 func_actor_400500_80132D74(Task* arg0)
             }
             return 0;
         }
-        if ((work->field_A16 < (0x640 - (work->field_9DC * 8))) &&
+        if ((work->field_A16 < (0x640 - (work->field_9D8.vz * 8))) &&
             ((u32)(work->field_A36 - 0x300) >= 0xA01U) &&
             (work->field_A32 == 0)) {
             if (!(((Actor400500Work*)arg0->idMap)->field_A1E & 1)) {

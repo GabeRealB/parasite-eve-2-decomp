@@ -3,6 +3,47 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
+
+`func_8004BFF8` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
+Passing `-work->field_94A` (an `s16`) then emits
+
+```
+lhu    a0, 0x94A(s1)
+move   a1, s0
+negu   a0, a0
+sll    a0, a0, 16
+jal    func_8004BFF8
+sra    a0, a0, 16
+```
+
+The `sll`/`sra` is `PROMOTE_PROTOTYPES` re-extending the negated value as a
+`s16` argument. The target that already did `lh` wants the negate in the
+`jal` delay and no extend:
+
+```
+lh     a0, 0x94A(s1)
+move   a1, s0
+jal    func_8004BFF8
+negu   a0, a0
+```
+
+A memory barrier before the load does not drop the promote. Call through an
+`s32` function type so the argument stays SI:
+
+```c
+heading = work->field_94A;
+((void (*)(s32, MATRIX*))func_8004BFF8)(-heading, &src->mat);
+```
+
+Do not change the global prototype: other matched callers (`lhu` of a `u16`
+field into an `s32` local, then `-angle`) need the extend. The permuter
+found the same lever as `volatile int` on the preprocessed declaration.
+Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
+`e56d16995af549aebf636d661637b42f20726c97cb04970b24fdd722c84923dc`,
+`base_11.i`
+`b0a93e02146704145b19a5af8d6d670e0a3a88491dd968c3450b32ccb93c378b`.
+
 ## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
 
 A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
