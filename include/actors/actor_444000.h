@@ -134,7 +134,9 @@ typedef struct Actor444000Work {
     /* 0xECC */ GpEnemy* field_ECC[7];
     /* 0xEE8 */ GpEnemy* field_EE8; // nearby enemy, dropped once its HP runs out
     /* 0xEEC */ GpEnemy* field_EEC; // second such slot
-    /* 0xEF0 */ byte     pad_EF0[0x4];
+                                    /// The enemy `func_actor_444000_801404C0` drops into the arena every tenth
+                                    /// sub-state step once the fight passes 0x3D.
+    /* 0xEF0 */ GpEnemy* field_EF0;
     /* 0xEF4 */ s16      field_EF4;
     /* 0xEF6 */ s16      field_EF6;
     /* 0xEF8 */ s16      field_EF8;
@@ -153,7 +155,8 @@ typedef struct Actor444000Work {
     /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
     /* 0xF1B */ byte     pad_F1B[0x1];
     /* 0xF1C */ s8       field_F1C; // countdown, decremented while positive
-    /* 0xF1D */ byte     pad_F1D[0x7];
+    /* 0xF1D */ s8       field_F1D;
+    /* 0xF1E */ byte     pad_F1E[0x6];
 } Actor444000Work;
 STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_444000.h"
+#include "actors/actor_444000_view.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -38,6 +39,15 @@ extern SVECTOR D_actor_444000_80161890;
 /// Shared coordinate `func_actor_444000_80140BBC` rebuilds when the fight
 /// reaches sub-state 0x2D of state 9, parented to the host model's fifth part.
 extern Actor444000DropCoord D_actor_444000_801618B8;
+
+/// Which of the three shared debris coordinates below the next launch uses,
+/// cycled 0/1/2 by `func_actor_444000_801404C0`.
+extern s16 D_actor_444000_80161850;
+/// The three coordinates that debris effects are spawned on, each rebuilt in
+/// view space from the first escort's second part.
+extern GsCOORDINATE2 D_actor_444000_80161948[];
+/// Spawn table of the enemy the arena fight drops in every tenth step.
+extern TaskDesc D_actor_444000_801617DC;
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
 /// allocate its `Actor444000SpinnerWork`, parent the model object to the world
@@ -697,7 +707,135 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013FB74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_801404C0);
+/// Per-tick state of the arena fight once it is under way. A reset request
+/// re-arms the block on animation 0xB, clears the host model's flag word and
+/// pushes it onto each of the seven escorts' models, then plays the entry cue.
+///
+/// Sub-states 0x3B and 0x3C each fire a one-shot cue positioned at the first
+/// escort's second coordinate. From 0x3D on the fight also drops debris: every
+/// fifth step one of the three shared coordinates in
+/// `D_actor_444000_80161948` is rebuilt at that escort's second part -- its
+/// rotation accumulated up the parent chain, its origin carried into view
+/// space, then turned a quarter turn each way so `Gfx_MatrixCol2` yields the
+/// launch direction, which is normalised and scaled to 0x320 before being
+/// added to the origin -- and an effect is spawned on it. Every tenth step a
+/// fresh enemy is spawned from `D_actor_444000_801617DC` and remembered in
+/// `field_EF0`.
+///
+/// The tick then runs the ordinary re-arm and hands over to state 0xA once the
+/// second animation slot raises its flag.
+void func_actor_444000_801404C0(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    GpEnemy*         enemy;
+    GpEnemy*         spawned;
+    GsCOORDINATE2*   coord;
+    SVECTOR          pos;
+    SVECTOR*         posp;
+    s16              i;
+    s32              resetId;
+    s32              resetPan;
+    s32              cueId;
+    s32              cuePan;
+    s32              hitId;
+    s32              hitPan;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+
+    if (work->field_4 != 0) {
+        work->field_F1D    = 7;
+        work->field_7B3    = 0xB;
+        work->field_7B0    = 2;
+        escorts            = arg0->field_1C;
+        escorts->field_7F3 = 0;
+
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        work->field_EF4 = 1;
+        work->field_EF6 = 1;
+        work->field_EFA = 0;
+
+        resetId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200017;
+        resetPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(resetId, resetPan,
+                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+
+    if (work->field_6 == 0x3B) {
+        cueId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200016;
+        cuePan = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(cueId, cuePan,
+                            (s8)Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]));
+    }
+
+    if (work->field_6 == 0x3C) {
+        hitId  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020000D;
+        hitPan = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(hitId, hitPan,
+                            (s8)Gp_GetObjDepth((GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]));
+    }
+
+    if ((s16)(u16)work->field_6 >= 0x3D) {
+        if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
+            if (D_actor_444000_80161850 >= 2) {
+                D_actor_444000_80161850 = 0;
+            } else {
+                D_actor_444000_80161850 = (u16)D_actor_444000_80161850 + 1;
+            }
+
+            Actor444000_AccumulateRotation(&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1],
+                                           &D_actor_444000_80161948[D_actor_444000_80161850].coord);
+            D_actor_444000_80161948[D_actor_444000_80161850].sub = &Gfx_ViewCoord;
+
+            pos.vz = 0;
+            pos.vy = 0;
+            pos.vx = 0;
+            Actor444000_LocalToView(&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1], &pos);
+
+            D_actor_444000_80161948[D_actor_444000_80161850].coord.t[0] = pos.vx;
+            D_actor_444000_80161948[D_actor_444000_80161850].coord.t[1] = pos.vy;
+            D_actor_444000_80161948[D_actor_444000_80161850].coord.t[2] = pos.vz;
+            Gfx_RotMatrixY(&D_actor_444000_80161948[D_actor_444000_80161850].coord, 0x80, 0);
+            Gfx_RotMatrixX(&D_actor_444000_80161948[D_actor_444000_80161850].coord, -0x80, 0);
+            Gfx_MatrixCol2(&D_actor_444000_80161948[D_actor_444000_80161850].coord, &pos);
+
+            posp   = &pos;
+            pos.vy = 0;
+            VectorNormalSS(posp, posp);
+
+            gte_lddp(0x320);
+            gte_ldsv(posp);
+            gte_gpf12_real();
+            gte_stsv(posp);
+
+            coord              = &D_actor_444000_80161948[D_actor_444000_80161850];
+            coord->coord.t[0] += pos.vx;
+            coord->coord.t[1] += pos.vy;
+            coord->coord.t[2] += pos.vz;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            Gp_SpawnEff(0x60196, &D_actor_444000_80161948[D_actor_444000_80161850], 0x27A0D600, NULL);
+        }
+        if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
+            spawned          = Gp_SpawnEnemyFromTable(&D_actor_444000_801617DC, 2, 0, arg0->field_20);
+            spawned->field_A = 0x900;
+            work->field_EF0  = spawned;
+        }
+    }
+
+    func_actor_444000_8013441C(arg0);
+
+    if (work->slots0[1].field_10 & 1) {
+        work->field_0 = 0xA;
+        SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000D, 1);
+    }
+}
 
 /// Tick of the arena fight state that runs alongside `func_actor_444000_80140E28`:
 /// on a reset request it clears the host model's flag word, pushes it onto each

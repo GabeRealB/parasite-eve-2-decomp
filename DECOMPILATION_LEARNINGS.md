@@ -2361,6 +2361,33 @@ Give each `| packed` its own block-scope temp so it dies at the store:
 
 `Gp_InitPlayerWork` is the example.
 
+## Give each sibling `if` its own temp so the whole chain lands in one `$sN`
+
+Three independent `if` blocks each build a sound id and a pan, so one `id` /
+`pan` pair for all of them looks like the tidy choice. It is not: a variable
+written in more than one basic block is not local to any of them, so
+local-alloc skips it and global-alloc places it on its own. The shift chain
+feeding it stays a separate local quantity in `$v0`, and only the last
+instruction writes the saved register:
+
+```
+lhu v0,8(s5) / srl v0,v0,0xc / sll v0,v0,0x8 / or s1,v0,a1
+```
+
+The target keeps the whole chain in one register, because there the variable
+lives in a single block - calls do not end one - so local-alloc owns it,
+combines the chain into that quantity, and picks a call-saved register since it
+crosses `jal`:
+
+```
+lhu s1,8(s5) / srl s1,s1,0xc / sll s1,s1,0x8 / or s1,s1,v1
+```
+
+Fix: one temp per block, even when the blocks are textually identical.
+`func_actor_444000_801404C0` went 98.83% -> 99.98% on that change alone; note
+the register differs per block there (`$s0` in the first, `$s1` in the other
+two), which is itself the tell that each block is allocated on its own.
+
 ## Pin the next call's 0 to `$a0` so `move a0, zero` precedes independent setup
 
 After a call that clobbers `$a0`, the next `func(0, obj)` wants `move a0, zero`
