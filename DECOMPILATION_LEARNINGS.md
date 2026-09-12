@@ -64472,27 +64472,65 @@ stores are provably disjoint; read the emitted order as luid order *among equal
 priorities* rather than as the source order itself.
 
 
-## GCC 2.8.1 reorders stores to disjoint fields of one struct, so asm store order is not source order
+## Interleave a store that uses a different constant to force two constants into different registers
 
 `func_actor_444000_8013482C` sat at 99.955% with one register difference: the
-constant `1` wanted `$v1` and got `$v0`, which cost the `li` its place in the
-load-delay slot. The reset block writes four fields of the same work pointer:
+constant `1` wanted `$v1` and got `$v0`, which cost a later `li` its place in the
+load-delay slot. The reset block writes four fields of the same work pointer, and
+the target emits three `1` stores followed by the `2` store:
+
+```
+lw   v0,0x2c(s5)
+li   v1,1            /* the 1 is in $v1, and born in the delay slot   */
+sb   zero,0x14(s2)
+sh   zero,0xc(v0)
+li   v0,2            /* the 2 is in $v0, and born before the 1 stores */
+sh   v1,0xef4(s4)
+sh   v1,0xef6(s4)
+sb   v1,0x7b0(s4)
+li   v1,0x1000       /* 0x1000 has to wait for $v1 to be released     */
+sb   v0,0x7b3(s4)
+```
+
+Writing the four stores in the emitted order gives both constants `$v0` and
+hoists `li 0x1000` into the delay slot instead. What matches is moving the `2`
+store *between* the `1` stores:
 
 ```c
 work->field_EF4 = 1;
-work->field_7B3 = 2;    /* target emits this store last, after field_7B0 */
+work->field_7B3 = 2;    /* nested inside the const-1 live range */
 work->field_EF6 = 1;
 work->field_7B0 = 1;
 ```
 
-The `.sched` dump shows `REG_DEP_OUTPUT` links between every pair of those
-stores, which looks like a total order — but `true_dependence` clears them for
-MEMs at distinct constant offsets off one base, so sched1 is free to put them
-back in address order. Moving `field_7B3` up leaves the emitted stores exactly
-where they were and only changes when the `2` constant is born, which is enough
-to push the `1` off `$v0`. So a store sequence in the target does **not** pin
-the source statement order, and reordering two field writes is a legitimate
-knob for a `regs`-only leftover — the permuter finds these quickly.
+The mechanism is `lreg`, not scheduling. Each distinct constant gets its own
+pseudo; where the `2` store comes last, that pseudo is born only after the const-1
+pseudo dies, the two live ranges are **disjoint**, and local allocation hands both
+the same hard register (`;; Register 102 in 2.` and `;; Register 105 in 2.` in
+`.i.lreg`). Interleaving nests the short const-2 range inside the long const-1
+range; they can no longer share, so `lreg` gives the short inner quantity `$v0`
+and pushes the long outer one to `$v1` (`Register 102 in 3.`, `Register 103 in
+2.`). `$v1` is then held by the `1` until its last store retires it, which is what
+stops `li 0x1000` from being hoisted.
+
+The emitted store order is unchanged either way: `REG_DEP_OUTPUT` links appear
+between all four stores, but `true_dependence` clears them for MEMs at distinct
+constant offsets off one base, and **sched2** (not sched1 — `.i.sched` and
+`.i.lreg` still carry source order) sinks the `0x7b3` store back below the three
+`1` stores. So a store sequence in the target does not pin the source statement
+order, and reordering two field writes is a legitimate knob for a `regs`-only
+leftover.
+
+The condition is overlap, not "earlier is better", and this is worth knowing
+before trying the obvious variation: hoisting the `2` store to the *front* of the
+block makes the ranges disjoint again, restores the shared `$v0`, and scores
+99.445% (distance 430) — worse than the 99.955% seed. Placing it after either of
+the first two `1` stores is exact. Confirmed by counterfactual builds whose
+predictions were recorded first; see
+`nonmatchings/func_actor_444000_8013482C-vacuum/PERMUTER_ANALYSIS.md` and the
+four `.i.lreg` dumps under its `PERMUTER_EVIDENCE/90d04bd10f594d13/analysis/`.
+Target `397b6c8b…`, matching source `1f5d4ad4…`, seed `a607faa4…`.
+
 
 ## `if (Global != K)` before a pointer load: name the flag in a local to order the entry block
 

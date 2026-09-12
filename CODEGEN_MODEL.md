@@ -519,7 +519,7 @@ Real, in rough order of how often it is the answer:
 | whether it crosses a call, and `refs` vs `4 * calls` | pool selection, caller-save, spill | move the computation or the last read across the `jal`; one extra reference turns a spilled value into a caller-saved one |
 | one variable vs two | can change pseudo/quantity/allocno grouping; global shared allocnos sum refs and take maximum member length | split a reused local, or merge two into one to carry a preference between blocks (both in the corpus) |
 | passing straight through a hard register | suggestion (local) / copy preference (global) | return `x` or pass it as an argument unchanged and it keeps `$v0`/`$aN` if the register is free over its range |
-| statement order | through expansion, dependencies, operand tying, scheduling and liveness | works when the moved statement is a load or store sched1 keeps in place (probe 8); the corpus has cases where sched1 re-sorts everything back |
+| statement order | through expansion, dependencies, operand tying, scheduling and liveness | works when the moved statement is a load or store sched1 keeps in place (probe 8); the corpus has cases where sched1 re-sorts everything back. A re-sort does not make the lever useless: the move still changes *liveness* at `lreg`, which runs before sched2. Interleaving a store that uses a different constant nests one constant's live range inside another's, so they can no longer share a hard register, even though sched2 puts the stores back in address order (`func_actor_444000_8013482C`) |
 
 Folklore, tested:
 
