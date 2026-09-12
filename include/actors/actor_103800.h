@@ -89,6 +89,13 @@ typedef struct Actor103800 {
 } Actor103800;
 STATIC_ASSERT_SIZEOF(Actor103800, 0x30);
 
+extern void* D_80067704[1];
+extern u8    Actor03800_D0459C[];
+extern u8    Actor03800_D046A0[];
+extern u8    Actor03800_D047A4[];
+extern u8    Actor03800_D04868[];
+extern u8    Actor03800_D0492C[];
+
 extern s8  D_80115410;
 extern s16 Actor03800_D05F90[];
 

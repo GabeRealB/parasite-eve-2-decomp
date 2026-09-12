@@ -2,6 +2,10 @@
 
 #include "actors/actor_103800.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
+#include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
@@ -18,17 +22,8 @@ void Actor03800_Fn037E0(Actor103800* arg0);
 void Gp_ArmStateF0(s32 arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void Gp_UnlinkNode(void* node);
-void Gp_UnlinkObj(void* node);
-void Gp_SetLightMode(void* arg0, s32 arg1);
-void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
-void Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void Gp_DestroyEnemy(void* enemy, void* task);
-s32  Gp_GetObjPan(void* arg0);
-s32  Gp_GetObjDepth(void* arg0);
 s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void Gp_AnimTickIndex(void* arg0, s32 arg1);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -259,8 +254,8 @@ void Actor03800_Fn01948(Actor103800* arg0)
             work->field_35E = 0;
             work->field_360 = 0;
             snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260003;
-            pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+            pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
             break;
         case 1:
             work->field_356 -= 1;
@@ -582,7 +577,7 @@ case1:
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
     return;
 case2:
     obj->field_C = 0x80;
@@ -619,12 +614,12 @@ death:
     work->field_35A = 0x1000;
     work->field_2CC = coord->coord;
     arg0->field_54  = 0;
-    Gp_UnlinkNode(&arg0->node);
-    Gp_UnlinkObj(work->field_1A4);
-    Gp_UnlinkObj(work->field_20C);
-    Gp_UnlinkObj(work->field_28C);
-    Gp_SetLightMode(arg0, 1);
-    Gp_ReleaseStateF0Add(arg1, 0x26);
+    Gp_UnlinkNode((GpLinkNode*)&arg0->node);
+    Gp_UnlinkObj((GpObj*)work->field_1A4);
+    Gp_UnlinkObj((GpObj*)work->field_20C);
+    Gp_UnlinkObj((GpObj*)work->field_28C);
+    Gp_SetLightMode((GpObj4C*)arg0, 1);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x26);
     work->field_354 = 1;
     if (work->field_368 != 0) {
         obj->field_C    = 0x80;
@@ -644,7 +639,7 @@ death:
         TOUCH_REG(i);
         work2->field_34C += i;
         do {
-            Gp_AnimTickIndex(work2, i);
+            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
             i++;
         } while (i < 6);
     }
@@ -652,10 +647,10 @@ death:
     vec.vx = c->workm.t[0];
     vec.vy = c->workm.t[1];
     vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
     snd = ((arg0->field_8 >> 12) << 8) | 0x40260004;
-    pan = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
     return;
 dying:
     Actor03800_Fn037E0(arg1);
@@ -685,7 +680,7 @@ dying:
         TOUCH_REG(i);
         work2->field_34C += i;
         do {
-            Gp_AnimTickIndex(work2, i);
+            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
             i++;
         } while (i < 6);
     }
@@ -693,10 +688,10 @@ dying:
     vec.vx = c->workm.t[0];
     vec.vy = c->workm.t[1];
     vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
     return;
 destroy:
-    Gp_DestroyEnemy(arg0, arg1);
+    Gp_DestroyEnemy((GpEnemy*)arg0, (Task*)arg1);
     return;
 case3:
     if (work->field_368 == 0) {
@@ -723,7 +718,59 @@ timer:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn02E50);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn03008);
+void Actor03800_Fn03008(Actor103800* actor, u32 variant)
+{
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
+    u8         areaByte0;
+    GpAreaRec* rec;
+    GpCdRec10* entry;
+    GpEffWork* eff;
+    TmdObject* model;
+    s32        idx;
+    u32        raw;
+
+    switch (variant) {
+        case 0:
+            D_80067704[0] = Actor03800_D0459C;
+            break;
+        case 1:
+            D_80067704[0] = Actor03800_D046A0;
+            break;
+        case 2:
+            D_80067704[0] = Actor03800_D047A4;
+            break;
+        case 3:
+            D_80067704[0] = Actor03800_D04868;
+            break;
+        case 4:
+            D_80067704[0] = Actor03800_D0492C;
+            break;
+    }
+    eff = Gp_SpawnEff(0x40007, actor->field_2C->field_8 + 3, 0x100, NULL);
+    if (eff == NULL) {
+        return;
+    }
+    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+    raw         = actor->field_20->field_8;
+    model       = (TmdObject*)eff->field_0->extra;
+    key.field_3 = sessionKey->field_3;
+    key.field_2 = sessionKey->field_2;
+    key.field_1 = sessionKey->field_1;
+    areaByte0   = sessionKey->field_0;
+    idx         = raw >> 12;
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(&key);
+    rec = Gp_GetNestedAreaRec(&key);
+
+    entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+    model->field_24 = entry->field_D;
+    model->field_25 = entry->field_E;
+    if (model->field_18 != NULL) {
+        Tmd_ProcessStream(model);
+        Tmd_ProcessStream(model);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_text", Actor03800_Fn0315C);
 
@@ -921,8 +968,8 @@ void Actor03800_Fn03594(Actor103800* arg0)
     if (--work->field_36A <= 0) {
         work->field_36A = 0xC;
         soundId         = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40260001;
-        pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(coord));
+        pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
     }
 }
 
@@ -946,7 +993,7 @@ void Actor03800_Fn03628(Actor103800* arg0)
         TOUCH_REG(i);
         work2->field_34C += i;
         do {
-            Gp_AnimTickIndex(work2, i);
+            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
             i++;
         } while (i < 6);
     }
@@ -961,7 +1008,7 @@ void Actor03800_Fn036EC(Actor103800* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+    Gp_UpdateActorColor((GpEnemy*)arg0->field_20, &vec, 0, 0);
 }
 
 void Actor03800_Fn03744(Actor103800* arg0)
