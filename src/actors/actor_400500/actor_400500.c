@@ -924,7 +924,46 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80138EA0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013905C);
+extern TaskFuncTable7 D_actor_400500_80131F2C;
+
+INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", D_actor_400500_80131F2C);
+
+void func_actor_400500_8013905C(Task* arg0)
+{
+    Actor400500Work*       work;
+    TaskFuncTable7         sp;
+    Actor400500Work*       work2;
+    Actor400500AnimStride* stride;
+    s32                    i;
+
+    work = (Actor400500Work*)arg0->idMap;
+    sp   = D_actor_400500_80131F2C;
+    sp.funcs[(s16)work->field_A08](arg0);
+    work2 = (Actor400500Work*)arg0->idMap;
+    if (work2->field_9FA == 1) {
+        if ((s16)work2->field_9FC != work2->field_9FE) {
+            work2->field_A00 = 0;
+        } else {
+            work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work2->field_9FA = 3;
+    } else if (work2->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work2->field_9FA = 3;
+        work2->field_A00 = 0;
+    } else if (work2->field_9FA == 3) {
+        work2->field_A00 = (u16)work2->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work2 + 1;
+    do {
+        stride->field_1D = (u8)work2->field_9F8;
+        Gp_AnimTickIndex(&work2->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801391B0);
 
