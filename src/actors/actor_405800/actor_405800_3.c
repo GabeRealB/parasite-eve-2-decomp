@@ -15,6 +15,7 @@ void func_8009EA50(s16 arg0);
 
 /* Defined in another unit of this overlay, or still `INCLUDE_ASM`. */
 void func_actor_405800_80133DB0(Task* arg0);
+void func_actor_405800_80133F48(Task* arg0);
 void func_actor_405800_80134C00(Task* arg0);
 void func_actor_405800_801356A8(Task* arg0);
 void func_actor_405800_80135E28(Task* arg0);
@@ -26,6 +27,7 @@ void func_actor_405800_80139358(Task* arg0);
 void func_actor_405800_801393E8(Task* arg0);
 void func_actor_405800_801394E4(Task* arg0);
 void func_actor_405800_80139550(Task* arg0);
+void func_actor_405800_801395E8(Task* arg0);
 void func_actor_405800_80139844(Task* arg0);
 void func_actor_405800_80139E2C(Task* arg0);
 void func_actor_405800_80139E48(Task* arg0);
@@ -68,7 +70,15 @@ void func_actor_405800_80137C78(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80137CEC);
+void func_actor_405800_80137CEC(Task* task)
+{
+    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    TaskFunc         states[2] = { func_actor_405800_801395E8, func_actor_405800_80133F48 };
+
+    if ((s16)func_actor_405800_80136CE0(task) == 0) {
+        states[(s16)work->field_848](task);
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800_80131EB8);
 
