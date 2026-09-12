@@ -5700,6 +5700,55 @@ checking that the only difference is at the branch, then verify with the real
 build - `./tools/build-and-verify.sh` is the arbiter, and it linked and
 checksummed this one unchanged.
 
+## A dispatch rooted at the *lowest* case value needs a fourth, empty case node
+
+Companion to "`slti high+1` between the equality tests means three case nodes,
+not two": that entry covers a root in the middle of the list. The opposite
+reading applies when the root is the lowest value and the list is clearly longer
+than two.
+
+`balance_case_nodes` (`gcc/stmt.c`) picks the root mechanically. With
+`use_cost_table` off - and it is off for any case value in `1..0x1F`, because
+`estimate_case_costs` bails on control characters - three nodes split at the
+middle, and `i >= 4` nodes split at `(i + ranges + 1) / 2`, which for four nodes
+is the *second* node. Only a list of one or two leaves the lowest value at the
+root. So a chain like
+
+```
+beq   v1,s2,case1        # s2 == 1, the lowest case value
+slti  v0,v1,2
+bnez  v0,tail            # index <= 1 -> the code after the switch
+li    v0,2
+beq   v1,v0,case2
+li    v0,3
+beq   v1,v0,case3
+```
+
+is *not* `switch (v) { case 1: case 2: case 3: }` - that is three nodes, roots at
+`2`, and scored 82% with `branch=6` on `func_actor_444000_80132054`. It is four
+nodes `{0,1,2,3}` with the root at `1`. Adding
+
+```c
+case 0:
+    break;
+```
+
+took it to 99%. The left subtree is a lone node whose body is empty, so its
+`beq v1,0 -> case0` and the `j default` behind it target the same label,
+`jump.c` deletes the conditional, and the tree's `bgt v1,1 -> right subtree`
+inverts into the `ble v1,1 -> tail` that `slti 2` / `bnez` encodes.
+
+An empty leading `case` contributes no instructions of its own, so nothing but
+the dispatch shape reveals it: when the case *bodies* line up and only the
+dispatch is wrong, count the nodes the root implies and add the missing empty
+ones at the low end.
+
+It also moves allocation. Rooting the tree at `1` puts the `li 1` for that
+equality test at the top of the function, where it dominates every case body, so
+CSE reuses that pseudo for the literal `1`s inside them; it is then live across
+the calls and takes a callee-saved register. That is why the target saved three
+registers (`$s0`/`$s1`/`$s2`) where the three-case version saved two.
+
 ## Reading switch statements
 
 - **Jump table present** (`jtbl_*` in the `.rodata.s` file): read the table
