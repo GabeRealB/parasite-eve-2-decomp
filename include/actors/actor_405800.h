@@ -78,7 +78,9 @@ typedef struct Actor405800Work {
     /* 0x872 */ s16     field_872; // animation id
     /* 0x874 */ byte    pad_874[0x8];
     /* 0x87C */ u16     field_87C; // down-counter
-    /* 0x87E */ byte    pad_87E[0xD];
+    /* 0x87E */ byte    pad_87E[0x4];
+    /* 0x882 */ s16     field_882; // randomised hold, 0x5A .. 0x99 frames
+    /* 0x884 */ byte    pad_884[0x7];
     /* 0x88B */ s8      field_88B;
     /* 0x88C */ byte    pad_88C[0x1];
     /* 0x88D */ s8      field_88D;

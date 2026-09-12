@@ -7,7 +7,8 @@
 #include "actors/actor_405800.h"
 #include "actors/actors_shared_8013a0b0.h"
 
-extern u8 D_actor_405800_801514D8[];
+extern u8  D_actor_405800_801514D8[];
+extern s32 Gp_LcgState;
 
 void func_8009EA50(s16 arg0);
 s32  func_actor_405800_80136B94(Task* arg0);
@@ -307,7 +308,20 @@ void func_actor_405800_80139E2C(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139E48);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139EAC);
+void func_actor_405800_80139EAC(Task* arg0)
+{
+    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+    u32              rnd;
+
+    work->field_84A = 4;
+    work->field_850 = 0x10;
+    work->field_872 = 1;
+    work->field_86E = 1;
+    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState     = rnd;
+    work->field_882 = ((rnd >> 0x10) & 0x3F) + 0x5A;
+    work->field_848 = work->field_848 + 1;
+}
 
 void func_actor_405800_80139F0C(Task* task, u8 arg1)
 {
