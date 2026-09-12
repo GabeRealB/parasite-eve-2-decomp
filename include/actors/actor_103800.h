@@ -130,6 +130,12 @@ typedef struct Actor103800 {
 } Actor103800;
 STATIC_ASSERT_SIZEOF(Actor103800, 0x34);
 
+typedef struct Actor03800TurnScratch {
+    /* 0x00 */ SVECTOR rotation;
+    /* 0x08 */ MATRIX  matrix;
+} Actor03800TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor03800TurnScratch, 0x28);
+
 typedef struct Actor03800MoveScratch {
     VECTOR  delta;
     SVECTOR normal;
