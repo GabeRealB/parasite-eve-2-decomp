@@ -308,8 +308,18 @@ typedef struct Actor444000Drop {
 typedef struct Actor444000GrabWork {
     /// Per-step world delta the hold states add to the model's coordinate,
     /// a fifteenth at a time; only x and z are read.
-    /* 0x000 */ VECTOR3   vel;
-    /* 0x00C */ byte      pad_C[0x15C];
+    /* 0x000 */ VECTOR3 vel;
+    /* 0x00C */ byte    pad_C[0xA4];
+    /// The two `GpObj` display nodes the teardown path hands back to
+    /// `Gp_UnlinkObj`; the hold state ORs `0x8000` into the first's `flags`
+    /// and `0x4000` into the second's once the model has passed its apex.
+    /* 0x0B0 */ GpObj obj0;
+    /* 0x0D0 */ GpObj obj1;
+    /// The two collision-record tables `Gp_ClearRec18Occupied` wipes each step;
+    /// `rec1` is also the table `func_actor_444000_80132B14` collides against.
+    /* 0x0F0 */ GpRec18   rec0;
+    /* 0x108 */ GpRec18   rec1;
+    /* 0x120 */ byte      pad_120[0x48];
     /* 0x168 */ s32       field_168;
     /* 0x16C */ s32       field_16C;
     /* 0x170 */ byte      pad_170[0x24];
@@ -384,6 +394,7 @@ typedef struct Actor444000EffScratch {
 STATIC_ASSERT_SIZEOF(Actor444000EffScratch, 0x10);
 
 void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw);
+s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void func_actor_444000_8013441C(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);

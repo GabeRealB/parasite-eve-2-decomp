@@ -324,7 +324,69 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80138B94);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_4", func_actor_444000_80138FC4);
+/// Descent state that follows the hold: once the model's y has passed its apex
+/// (gone negative) both display nodes get their draw flags raised and the
+/// bounce height `field_1AA` is added back to y as a magnitude each step. When
+/// y reaches -0x31 or above it is clamped to -0x32, the step counter is reset,
+/// the landing sound is played at the model's own pan and depth, and the task
+/// steps on. Collision against `rec1` -- and, in room 0x0427 past x 0x4B65 --
+/// kills the horizontal velocity, whatever is left of it moves the model by a
+/// ninth per step, and the model's own `workm` translation is handed to
+/// `Gp_UpdateActorColor`.
+void func_actor_444000_80138FC4(GpEnemy* enemy, Actor444000Grab* task)
+{
+    Actor444000GrabWork* work = task->field_1C;
+    VECTOR               pos;
+    s32                  pan;
+
+    if (D_actor_444000_80144A68 == 1) {
+        Gp_UnlinkObj(&work->obj0);
+        Gp_UnlinkObj(&work->obj1);
+        Gp_DestroyEnemy(enemy, (Task*)task);
+        return;
+    }
+
+    if (work->field_1A8 != 0) {
+        Gp_SetLightMode((GpObj4C*)enemy, 0);
+        task->extra->field_C = 2;
+    }
+
+    if (task->extra->field_8->coord.t[1] < 0) {
+        work->obj0.flags                 |= 0x8000;
+        work->obj1.flags                 |= 0x4000;
+        task->extra->field_8->coord.t[1] += ABS(work->field_1AA);
+    }
+
+    if (task->extra->field_8->coord.t[1] >= -0x31) {
+        task->extra->field_8->coord.t[1] = -0x32;
+        work->field_1AC                  = 0;
+        pan                              = (s8)Gp_GetObjPan((GpObj38*)task->extra->field_8);
+        SndEvt_EnqueueType6(0x4020000C, pan, (s8)Gp_GetObjDepth((GpObj38*)task->extra->field_8));
+        task->state++;
+    }
+
+    if (func_actor_444000_80132B14(task->extra->field_8, &work->rec1, 3) != 0) {
+        work->vel.vz = 0;
+        work->vel.vx = 0;
+    }
+
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04270000 &&
+        task->extra->field_8->coord.t[0] >= 0x4B65) {
+        work->vel.vx = 0;
+    }
+
+    Gp_ClearRec18Occupied(&work->rec1);
+    Gp_ClearRec18Occupied(&work->rec0);
+
+    task->extra->field_8->coord.t[0] += work->vel.vx / 9;
+    task->extra->field_8->coord.t[2] += work->vel.vz / 9;
+    task->extra->field_8->flg         = 0;
+
+    pos.vx = task->extra->field_8->workm.t[0];
+    pos.vy = task->extra->field_8->workm.t[1];
+    pos.vz = task->extra->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000_4", D_actor_444000_80131E90);
 
