@@ -675,7 +675,28 @@ void Actor00700_Fn01AB8(Actor00700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01B50);
+void Actor00700_Fn01B50(Actor00700* arg0)
+{
+    Actor00700Work* work;
+    GsCOORDINATE2*  coord;
+    s32             snd;
+    s32             pan;
+    u16             timer;
+    u32             random;
+
+    work            = arg0->field_1C;
+    coord           = arg0->field_2C->field_8;
+    timer           = work->field_392 - 1;
+    work->field_392 = timer;
+    if ((s16)timer <= 0) {
+        random          = (Gp_LcgState * 5) + 0x71357911;
+        work->field_392 = (u16)(((random >> 0x10) & 0x7F) + 0x96);
+        Gp_LcgState     = (s32)random;
+        snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40070001;
+        pan             = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(snd, (s32)pan, (s8)Gp_GetObjDepth(coord));
+    }
+}
 
 void Actor00700_Fn01C10(Actor00700* arg0)
 {
