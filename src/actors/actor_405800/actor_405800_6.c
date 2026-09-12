@@ -55,7 +55,25 @@ void func_actor_405800_80138A18(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138A70);
+void func_actor_405800_80138A70(Task* task)
+{
+    Actor405800Work* work  = (Actor405800Work*)task->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
+
+    ((GpEnemy*)task->spawnArg2)->field_54 = 0;
+    Gp_UnlinkObj(&work->obj_594);
+    Gp_UnlinkObj(&work->obj_4B4);
+    Gp_UnlinkObj(&work->obj_6B4);
+    Gp_UnlinkObj(&work->obj_6D4);
+    Gp_UnlinkObj(&work->obj_674);
+    Gp_UnlinkObj(&work->obj_694);
+    Gp_UnlinkObj(&work->obj_724);
+    work->field_83E = 0x1000;
+    work->matrix_0  = coord->coord;
+    Gp_SetLightMode((GpObj4C*)task->spawnArg2, 1);
+    work->field_842 = 0;
+    work->field_846++;
+}
 
 void func_actor_405800_80138B50(Task* task)
 {

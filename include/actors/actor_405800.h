@@ -18,7 +18,8 @@
 /// `field_846` / `field_848` are the state and sub-state indices the handler
 /// table walks and `field_842` is the per-state frame counter.
 typedef struct Actor405800Work {
-    /* 0x000 */ byte    pad_0[0x92];
+    /* 0x000 */ MATRIX  matrix_0; // copy of the root coordinate's local matrix
+    /* 0x020 */ byte    pad_20[0x72];
     /* 0x092 */ u16     field_92; // copied into field_86A on state entry
     /* 0x094 */ byte    pad_94[0x6];
     /* 0x09A */ s16     field_9A;
@@ -43,7 +44,9 @@ typedef struct Actor405800Work {
     /* 0x834 */ s16     field_834;
     /* 0x836 */ s16     field_836;
     /* 0x838 */ s16     field_838;
-    /* 0x83A */ byte    pad_83A[0x8];
+    /* 0x83A */ byte    pad_83A[0x4];
+    /* 0x83E */ s16     field_83E; // reset to 0x1000 on death
+    /* 0x840 */ byte    pad_840[0x2];
     /* 0x842 */ u16     field_842; // per-state frame counter
     /* 0x844 */ byte    pad_844[0x2];
     /* 0x846 */ u16     field_846; // state index
