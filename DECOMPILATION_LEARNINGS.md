@@ -64852,3 +64852,15 @@ Controlled base_2 moved flg=0 after coord.t[2] assignment, improving 97.812% to 
 
 base_1.i: 4f5dc4438614656d665dc2cf26a057a95a800f591eb622581efc1a5052ad1eed
 base_2.i: 39176c30f42af258ae5536f26564ef7defc494ce284297ef9b2225b98994e255
+
+
+### A shared random-mask temporary changes allocation, late store order and cross-jump extent (Actor02500_Fn00B18)
+
+Observed with patched GCC 2.8.1 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Two switch arms assigned their masked RNG results to the same `s32` temporary before storing `temporary + 30` to a halfword timer. Inlining only the first arm's mask into its timer assignment changed scratch distance 203 to 0. The permuter also proposed splitting an unsigned shift by 16 into two shifts by 8; the controlled base_2 build proved that change unnecessary.
+
+In the original `.lreg`, the shared mask pseudo r91 spans blocks and has two deaths; `.greg` allocates it globally to v1. After inlining, r91 is confined to the second arm and no longer globally allocated. The first arm's shift reuses v0. That creates a hard-register anti-dependency on the RNG store: base_2 `.sched2`/`.jump2` UID 147 has `REG_DEP_ANTI 145`. The store must precede the in-place shift. With the separate v1 result, the store followed the mask and was merged into the common timer tail by jump2; with v0 reuse, only the timer addition/store merge. Other allocation and final instructions remain exact.
+
+This supports a narrow allocation → scheduling-dependency → cross-jump mechanism, not a general claim that inlining suppresses cross-jumping. Exact local quantity ranking was not traced. The source change preserves all values, masks and memory effects.
+
+Controlled input SHA256: `3003043ab848f442d8ed027768d275357c52c3eb152cae828a3031e9dfd17906` (base_2.i). Readable no-goto port base_3 also matches. Plans, paired inputs, dumps and conclusions are retained under `tools/permuter_findings/Actor02500_Fn00B18/sessions/9e1d01d4d85748159ef121f63a646d51/`, including `PERMUTER_ANALYSIS.md` and run `b22f48f5aa884c37` evidence.

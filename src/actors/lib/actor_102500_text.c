@@ -11,6 +11,8 @@
 
 extern s32 Gp_LcgState;
 extern s16 Actor02500_D05BD0[];
+extern s16 Actor02500_D05B48[];
+extern s16 Actor02500_D05B58[];
 
 void Gp_AnimTickIndex(Actor02500Work* arg0, s32 arg1);
 void func_800B4114(Actor02500Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -152,7 +154,88 @@ void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00494);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00B18);
+void Actor02500_Fn00B18(Actor02500* actor)
+{
+    Actor02500Work* work;
+    GsCOORDINATE2*  coord;
+    s16             timer;
+    s16             moveTimer;
+    s16             state;
+    s32             randomAngle;
+    s32             randomMoveTime;
+    s32             dx;
+    s32             randomIdleTime;
+    s32             dz;
+    s32             idleTime;
+    VECTOR*         vector;
+    VECTOR*         scratchEnd;
+
+    scratchEnd = (VECTOR*)SCRATCH_SP;
+    vector     = scratchEnd - 1;
+    SCRATCH_SP = (u32)vector;
+    work       = actor->field_1C;
+    state      = work->field_324;
+    coord      = actor->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_31C = 1;
+            work->field_326 = 0;
+            timer           = (u16)work->field_32E - 1;
+            work->field_32E = timer;
+            if (timer <= 0) {
+                work->field_336 = 0;
+                work->field_31C = 3;
+                work->field_324 = 1;
+                randomAngle     = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = randomAngle;
+                work->field_32A = ((u32)randomAngle >> 0x10) & 0xFFF;
+            }
+            break;
+        case 1:
+            work->field_326 = 0;
+            if (work->field_32C == (s16)work->field_32A) {
+                work->field_324 = 2;
+                randomMoveTime  = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = randomMoveTime;
+                work->field_32E = (((u32)randomMoveTime >> 0x10) & 0x7F) + 0x1E;
+            }
+            break;
+        case 2:
+            work->field_326   = (s16)Actor02500_D05B58[actor->field_20->field_3C->field_F];
+            scratchEnd[-1].vx = (s32)(work->field_314 - coord->coord.t[0]);
+            vector->vy        = 0;
+            dz                = work->field_318 - coord->coord.t[2];
+            vector->vz        = dz;
+            dx                = scratchEnd[-1].vx;
+            if ((SquareRoot0((dx * dx) + (dz * dz)) >= 0x7D0) && (work->field_336 == 0)) {
+                work->field_324 = 3;
+            } else {
+                if (work->field_340 != 1) {
+                    moveTimer       = (u16)work->field_32E - 1;
+                    work->field_32E = moveTimer;
+                    if (moveTimer > 0) {
+                        break;
+                    }
+                }
+                work->field_324 = 0;
+                randomIdleTime  = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = randomIdleTime;
+                idleTime        = ((u32)randomIdleTime >> 0x10) & 0x3F;
+                work->field_32E = idleTime + 0x1E;
+            }
+            break;
+        case 3:
+            scratchEnd[-1].vx = (s32)(work->field_314 - coord->coord.t[0]);
+            vector->vy        = 0;
+            vector->vz        = (s32)(work->field_318 - coord->coord.t[2]);
+            work->field_32A   = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vector->vz) & 0xFFF;
+            work->field_336   = 1;
+            work->field_324   = 1;
+            break;
+    }
+    work->field_328 = (s16)Actor02500_D05B48[actor->field_20->field_3C->field_F];
+    SCRATCH_SP     += 0x10;
+}
 
 void Actor02500_Fn00DD8(Actor02500* actor)
 {
