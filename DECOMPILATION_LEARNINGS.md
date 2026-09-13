@@ -72683,3 +72683,67 @@ base_3 input: 1dfa95e4f3ff6be0ad4d21ebdd4efde847aa6c9bac539ce996291cf99b29b2b9.
 GCC 2.8.1 can keep two SI conversions of one HI local when one use is before a loop and another is hoisted out of it. Here the preheader `complement = 0x1000 - weight` plus loop call argument `weight` produced local r88 in v1 and loop-hoisted r112 in s5; CSE2 changed the second extension into a surviving copy. Moving the pure complement expression into the call made both uses share the loop conversion. Loop UIDs183/184 hoisted r109, combine folded UID184 to signed lh, and global allocation assigned it s5 directly; complementary r113 stayed in s6. The separately predicted s32-local variant emitted the same object. Both controlled builds reduced distance 127 to 15 with other saved homes intact. This supports shared conversion for this function, not a universal hoisting rule.
 
 Evidence: tools/permuter_findings/Actor01900_Fn01950/, PERMUTER_ANALYSIS.md, controlled base_2 plan/build and dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. base_2 preprocessed SHA256 `3f853fd700369d5f147c82d429679540e0a52d7f345aef13f451c7c71cd3afbf`. Final typed single-index loop matched exactly; commutative address expansion was not separately isolated.
+
+## `build.sh` can print 100% for a candidate whose `.text` differs: compare `readelf -x .text`
+
+`func_actor_207200_8014D2DC` scored `100.000% (0 differences)` with an empty
+`base_N_diff` while one instruction was still wrong: the target's `case 0` block
+ends `j .Lactor_207200_8014D358` (the default body), the candidate's `j` went to
+the switch exit instead. The scorer compares object-dump text with local branch
+targets left unrelocated, so a `j` differing only in destination address compares
+equal. Use the score as a pointer, not as proof.
+
+`cmp base_N.o target.o` is no substitute: the scratch object carries
+`.debug_line` / `.debug_info` / `.debug_abbrev` / `.debug_aranges` / `.debug_str`
+that `target.o` does not, so `cmp` always stops at byte 34 — the ELF `e_shoff`
+word — whatever the code says. Compare the code itself:
+
+```
+readelf -x .text base_N.o | tail -n +3 | sed 's/^ *//' > /tmp/a
+readelf -x .text target.o | tail -n +3 | sed 's/^ *//' > /tmp/b
+diff /tmp/a /tmp/b          # empty == match
+```
+
+`.rel.text` should agree too on offset, type and symbol name; its `Info` field
+differs only through the symbol-table index shift the debug sections cause.
+
+Input SHA256 (`base_5.i`, the matching candidate):
+`e2e31e5d3df6aebe8de48231b9087ff08e58d9e5dfc584b472e0d82ae48bfe87`.
+
+## A `switch` whose case jumps into the default body: write the if/goto chain
+
+When the target's dispatch is GCC's switch binary tree (`slti`/`bgt` range test
+plus a balanced tree of `beq`s) *and* one case block jumps into the default's
+block, the matching source is the label chain the matched siblings use
+(`func_actor_102600_80135378` is the same `D_801153F4` dispatch):
+
+```c
+    state = D_801153F4;
+    one   = 1;
+    if (state == one) { goto case1; }
+    if (state >= 2)   { goto ge2; }
+    if (state == 0)   { goto case0; }
+    goto default_body;
+ge2:
+    if (state == 2) { goto case2; }
+    goto default_body;
+case0:
+    ...;
+    goto default_body;   /* the jump a `break` cannot express */
+case2:
+    ...;
+    return;
+default_body:
+    ...body...
+case1:
+    ...tail...           /* entered by fall-through and by the root test */
+}
+```
+
+`state >= 2` is the `slti`+`beqz` pair; `state == one` with the `one = 1` local
+is the `li a0,1` that the root test and `case2`'s node flag share; `case1` last
+with no `break` (the function ends) puts the exit label where the tail's
+fall-through needs it, and the default body falls into the tail rather than
+jumping to it. A `switch` statement with the same cases plus an explicit `goto`
+into the `default:` body compiles to the same bytes here, but the chain is the
+form the sibling files were matched with.

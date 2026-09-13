@@ -8,6 +8,7 @@
 #include "gameplay/3CD8.h"
 
 #include "actors/actor_207200.h"
+#include "actors/actors_shared_80134700.h"
 #include "actors/actors_shared_8013851c.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
@@ -71,7 +72,75 @@ void func_actor_207200_8014D280(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_3", func_actor_207200_8014D2DC);
+void func_actor_207200_8014BEF4(Task* arg0);
+void func_actor_207200_8014D41C(Task* arg0);
+void func_actor_207200_8014D49C(Task* arg0);
+void func_actor_207200_8014D5C4(Task* arg0);
+void func_actor_207200_8014D65C(Task* arg0);
+void func_actor_207200_8014D70C(void* arg0, Task* arg1);
+void func_actor_207200_8014D8DC(Task* arg0);
+void func_actor_207200_8014D97C(Task* arg0, GsCOORDINATE2* arg1);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+
+/// Global mode byte in the main executable shared by the enemy actors: 1 skips
+/// the actor's per-frame update, 2 switches its model to the hidden pose, and
+/// any other value runs the update normally.
+extern u8 D_801153F4;
+
+/// Per-frame tick of the actor's live state. `D_801153F4` gates it: mode 1
+/// skips the update and runs only the tail, mode 2 puts the model in its
+/// hidden pose (part flag 0x80, node flag 1) and returns without updating,
+/// mode 0 clears both flags before falling into the update, and any other mode
+/// updates directly. The update drives the model's two attach coordinates,
+/// clears the display flags of the first two parts and recomputes the second
+/// part's world matrix; the tail then colours the actor from that part and
+/// draws its ground shadow.
+void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1)
+{
+    s32 state;
+    s32 one;
+
+    state = D_801153F4;
+    one   = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    ((TmdObject*)arg1->extra)->field_C = 0;
+    arg0->node.field_4                 = 0;
+    goto default_body;
+case2:
+    ((TmdObject*)arg1->extra)->field_C = 0x80;
+    arg0->node.field_4                 = one;
+    return;
+default_body:
+    func_actor_207200_8014D41C(arg1);
+    func_actor_207200_8014D8DC(arg1);
+    func_actor_207200_8014BEF4(arg1);
+    func_actor_207200_8014D49C(arg1);
+    func_actor_207200_8014D5C4(arg1);
+    func_actor_207200_8014D65C(arg1);
+    func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->extra)->field_8[2]);
+    func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->extra)->field_8[3]);
+    ((TmdObject*)arg1->extra)->field_8[0].flg = 0;
+    ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->field_8[1]);
+case1:
+    func_actor_207200_8014D70C(arg0, arg1);
+    ActorsShared80134700(arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_3", func_actor_207200_8014D41C);
 
