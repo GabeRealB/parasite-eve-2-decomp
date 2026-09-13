@@ -67303,3 +67303,70 @@ copies live in one overlay, `overlay_dup_index.py find` will report them as
 siblings but there is nothing to promote: the shared-bodied path exists to link
 one object into *several* overlays, and both of these are already in
 `actor_206100`.
+
+## No copy in the epilogue means the return is two `return`s, not a variable
+
+`func_actor_206100_8014EE2C` returns its spawned enemy, or NULL:
+
+```
+    beqz  $s1, .L
+    addu  $v0, $zero, $zero     /* the NULL arm defines $v0 directly */
+    ...
+    addu  $v0, $s1, $zero       /* so does the success arm */
+.L:
+    jr    $ra
+    addiu $sp, $sp, 0x20
+```
+
+There is no copy before the `jr`, and that is the whole diagnosis. The m2c
+seed writes the natural single-exit form - `var_v0 = NULL; if (p != NULL)
+{ ...; var_v0 = p; } return var_v0;` - which scores 97.105% with `regs=2
+insert=1`: `.greg` homes the variable's allocno as `83 in 3` (`$v1`) with
+`83 conflicts: 80 82 83 2 29`, so it can never take `$v0`, and the return
+sequence then appends `addu $v0,$v1,$zero`.
+
+The same shape seen from the other side confirms it is the compiler's general
+behaviour and not this function's quirk: `func_mist_shooting_gallery_80184970`
+(a matched ROM function, `asm/USA/rooms/matchings/mist_shooting_gallery/`) ends
+`jr $ra` / `addu $v0,$v1,$zero` with its accumulator held in `$v1` the whole
+way.
+
+So check the ROM's epilogue before assuming a phi pseudo. Two `return`
+statements - not a shared variable - give two direct hard-register defs:
+
+```c
+    if (enemy != NULL) {
+        ...
+        return enemy;
+    }
+    return NULL;
+```
+
+## m2c's pointer-typed add scales the index by 4 and combine folds it into the shift
+
+`func_actor_206100_8014EE2C` computes `&D_actor_206100_80155134[(s16)arg0]` as
+`sll $v1,$s0,16` / `sra $v1,$v1,12`. m2c renders the same address as a pointer
+add onto an untyped symbol:
+
+```c
+M2C_FIELD(p, void **, 0x3C) = (void *)(((s32)(arg0 << 0x10) >> 0xC) + &D_x);
+```
+
+`&D_x` is `M2C_UNK *`, so the add is `pointer + index` with a 4-byte pointee:
+the RTL gets `ashift(...,12)` - what m2c wrote - carrying
+`REG_EQUAL (mult (reg:SI n) (const_int 4))`, and combine folds the ×4 into the
+shift, emitting `sra $v1,$v1,10`. The shift constant in the object is `10`
+while the C says `12`, with no `stack`/`branch` penalty to point at it.
+
+Either make the arithmetic integer, or index a typed array:
+
+```c
+(void *)((s32)&D_x + ((s32)(arg0 << 0x10) >> 0xC))   /* integer add: no scale */
+&D_x_typed[(s16)arg0]                                /* 0x10-byte records */
+```
+
+The second form is the one to keep. An `(s16)` index scaled by a 16-byte
+element size *is* `sll 16` / `sra 12`, so combine folding the scale into the
+shift is the target's own codegen here rather than an artefact; the two forms
+compiled to identical objects for this function (`base_2.c` and `base_3.c` in
+the scratch).

@@ -3,12 +3,21 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 
 /// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 extern GpAreaApplyRec D_8018590C;
+
+/// Placement records `func_actor_206100_8014EE2C` parks at `GpEnemy::field_3C`
+/// -- the same slot `Gp_SpawnArea` fills from a room's own place list, so this
+/// is a local six-entry copy of one: `field_0` is 4 on the five live entries
+/// and 0xFF on the sixth, the value `Gp_SpawnArea` stops its walk on.  The
+/// overlay indexes it with the variant it was spawned for rather than walking
+/// it, so the tail entry is reachable.
+extern GpAreaPlace D_actor_206100_80155134[];
 
 /// Per-actor state block for the `actor_206100` overlay's enemy.
 ///

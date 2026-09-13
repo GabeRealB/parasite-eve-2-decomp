@@ -85,6 +85,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014ED3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EE2C);
+extern TaskDesc D_80147E48;
+
+GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
+{
+    GpEnemy*   enemy;
+    TmdObject* obj;
+
+    enemy = Gp_SpawnEnemyFromTable(&D_80147E48, 0, 3, NULL);
+    if (enemy != NULL) {
+        enemy->field_8  = arg0 << 12;
+        enemy->field_3C = &D_actor_206100_80155134[(s16)arg0];
+        obj             = (TmdObject*)enemy->task->extra;
+        obj->field_24   = 0;
+        obj->field_25   = 2;
+        Tmd_ProcessStream(obj);
+        Tmd_ProcessStream(obj);
+        return enemy;
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EEC0);
