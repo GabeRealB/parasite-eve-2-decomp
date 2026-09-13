@@ -657,7 +657,52 @@ s32 Actor01600_Fn06C94(Actor01600* arg0, s32 arg1)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06D74);
+s32 Actor01600_Fn06D74(Actor01600* arg0, s32 arg1, s32 arg2)
+{
+    Actor01600Work* work;
+    s32             scaledState;
+    s32             handled;
+    s32             angle;
+    u32             state;
+
+    work = arg0->field_1C;
+    if (arg2 < 0x7D1) {
+        angle = (arg1 >= 0 ? arg1 : -arg1);
+        if (angle < 0x201) {
+            work->field_42A |= 0xC000;
+            Actor01600_Fn04EB0(arg0);
+            handled = 0;
+            if (work->field_4EA >= 2) {
+                work->field_506  = 0x19;
+                work->field_51A  = 0;
+                work->field_4FE  = 0;
+                work->field_4EA  = 0;
+                work->field_514  = 1;
+                work->field_2BA &= 0x3FFF;
+                handled          = 1;
+            }
+            if ((u8)handled) {
+                return 1;
+            } else {
+                scaledState     = Gp_LcgState * 5;
+                state           = scaledState + 0x71357911;
+                work->field_4FA = 0;
+                work->field_508 = 0;
+                work->field_52A = 0;
+                Gp_LcgState     = (s32)state;
+                if ((u32)(((state >> 16) % 100) & 0xFFFF) < 0x14U) {
+                    work->field_516 = 6;
+                    work->field_506 = 0x1A;
+                } else {
+                    work->field_516 = 5;
+                }
+            }
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
 
 /// Tears the actor down: flags its context node dead (`field_4` = 1), clears
 /// `field_54`, unlinks the node from its list and releases the four display

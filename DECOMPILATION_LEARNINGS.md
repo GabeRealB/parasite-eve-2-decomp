@@ -65133,3 +65133,12 @@ base_2.c preprocessed SHA256: daad989db6079dc54d1d51703e3c957aa4e78d16af44abc1b6
 base_3.c preprocessed SHA256: bf0383dfd910253bae5e7174b09d0f4e7c55fc62615c14cb490b932d4b7891f3.
 
 Evidence: tools/permuter_findings/Actor01600_Fn0131C/, run ba845fdbf0024d32, retained PERMUTER_ANALYSIS.md, prediction journal and base_3 RTL/allocation/delay dumps.
+
+
+## Actor01600_Fn06D74: define the narrow constant first to enable a later register copy
+
+A byte flag yielded 97.368%: `li v1,1` instead of `move v1,a0` for a halfword store. Its QI known constant could not supply an HI value in post-reload CSE. Merely widening the flag to HI failed (95.724%): early CSE reused the flag directly in the store, eliminating the separate v1 value and changing scheduling.
+
+The successful controlled prediction used an SI flag assigned **after** the halfword stores in C. In base_5 `.cse`, UID67 defines HI constant 1 and UID78 later defines SI constant 1. Both survive. Sched1 moves the independent SI definition first; `.greg` keeps a0=1 then HI v1=1. In `.sched2`, UID67 becomes `(set (reg:HI 3 v1) (reg:HI 4 a0))`. This achieves 100% without asm helpers or pins. `reload1.c:reload_cse_regno_equal_p` permits known constants in the same mode or truncation from a larger mode; `reload_cse_simplify_set` performs the substitution. Source definition order can prevent early constant reuse while scheduled order permits late reuse. Whether scheduling produces that order must be checked for each function.
+
+Evidence: `tools/permuter_findings/Actor01600_Fn06D74/` retained session notes, inputs, and `PERMUTER_EVIDENCE/manual-resolution/` dumps. base_5 preprocessed SHA256 `690942890b29b21da96b4dd7879f4c6e2973c5abcb214cc02989b6230b37d03e`; compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. The bounded permuter found no discovery; this gain came from the subsequent manual prediction.
