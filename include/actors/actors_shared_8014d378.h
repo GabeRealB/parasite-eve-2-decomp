@@ -13,7 +13,11 @@ typedef struct ActorShared8014d378Obj2C {
 } ActorShared8014d378Obj2C;
 
 typedef struct ActorShared8014d378Work {
-    /* 0x000 */ byte pad_0[0x3A6];
+    /* 0x000 */ byte pad_0[0x392];
+    /* 0x392 */ s16  field_392;
+    /* 0x394 */ s16  field_394;
+    /* 0x396 */ u16  field_396;
+    /* 0x398 */ byte pad_398[0xE];
     /* 0x3A6 */ s16  field_3A6;
     /* 0x3A8 */ byte pad_3A8[0x8];
     /* 0x3B0 */ s16  field_3B0;

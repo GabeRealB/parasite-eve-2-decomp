@@ -69742,3 +69742,31 @@ functions' `.s` into the header `.s` on the next split, which splat does itself.
 Verified on `actor_105100`: `func_actor_105100_80133134`'s 8-entry table sits at
 0x3C with `func_actor_105100_80134284`/`_80134B00`'s tables at 0x5C/0x7C, and the
 overlay checksums with the unit numbering unchanged.
+
+## A duplicated body's matched sibling is a whole answer — but `promote` may still refuse it
+
+`BRIEF.md`'s "similar matched bodies" list is shape-based and can point at bodies
+that are merely analogous. The exact check is the archived `.s` of a function
+already matched: `asm/<ver>/<family>/matchings/<lib unit>/<Fn>.s`. If that file's
+instructions match the target's one-for-one (only `%hi`/`%lo` of the overlay's own
+data symbols differ), the sibling's committed C body is an answer for this
+overlay — copy it, retype the work struct and the data symbol, and it goes in at
+100% on the first build. `overlay_dup_index.py find` is what tells you which
+overlays hold the body; `func_actor_202600_8014D7C4` was a byte-identical copy of
+matched `Actor05500_Fn039AC` (`asm/USA/actors/matchings/lib/actor_105500_text/`)
+and landed unmodified apart from its symbol names.
+
+That body still cannot be *shared*, and `overlay_dup_index.py promote` says so:
+`cannot be shared - the body references its own overlay's code or data`. The
+anim-switch idiom indexes a per-overlay table (`D_actor_202600_80152830` here;
+`Actor05500_D08A18` at `0x8013A838`/`0x80152838` in the 105500/205500 copies), so
+each overlay keeps its own compiled copy in its own unit — the same body at three
+different link offsets is three objects, not one.
+
+Do not read a `<Shared>_Fn<addr> = 0x…; // type:func absolute:True` line in the
+overlay's `configs/USA/sym/actors/<overlay>.txt` as evidence to the contrary.
+Those entries exist so the *shared lib TU* that calls the function (here
+`src/actors/lib/actors_shared_8014d378.c`, which calls
+`ActorsShared8014d378_Fn4D7C4`) can name the address; splat still labels the
+defining unit's own asm with its `func_<overlay>_<addr>` name, and the two resolve
+to the same address at link time.
