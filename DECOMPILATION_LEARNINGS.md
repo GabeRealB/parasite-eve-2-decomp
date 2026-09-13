@@ -65559,3 +65559,51 @@ via a conflict set is still decided in local-alloc.
 
 Inputs: `base_2.i` `3fb26df1182b80756fd7ce934400f2f9ee39cad6b96c2dcdf545fa3a803e326b`,
 `base_3.i` `e280c979a7c74bfd4892ca4d3631bc4cb4a0f5528e72130a44989d3ebbd3cec7`.
+
+## A promoted `pan` local takes the callee-saved home the sound id was holding
+
+`func_actor_510900_80138A9C` queues two step sounds from an animation record,
+each from the same three pieces: a sound id built from the actor's attach
+coordinate, a `Gp_GetObjPan` byte and a `Gp_GetObjDepth` byte.
+
+```c
+if (!(rec->field_3 & 0x20) && (work->field_59A & 0x20)) {
+    snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780001;
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+}
+```
+
+The m2c seed was already topologically exact but read 89.412% with
+`regs=20 insert=4 delete=4`, and its diff was nothing but a register swap: the
+sound id in `$s0` (with its load/shift chain in `$s0`) and the pan byte in
+`$s1`, where the target has the id in `$s1` (chain in `$v0`) and the pan in
+`$s0`. The seed declared the pan as `s8 temp_s0`, and a QImode temporary
+carries the *unextended* return and extends into `$a1` at the call - so the pan
+never needs a callee-saved register at all, leaving `$s0` free for the id.
+Naming the promotion in an `s32` local (`s32 pan = (s8)Gp_GetObjPan(coord);`,
+matching the sibling below) gives the pan the callee-saved home across the
+depth call, the id falls to `$s1`, the chain returns to `$v0`, and the function
+reaches 100% with every penalty zero.
+
+That is the eligibility effect recorded for Actor02000_Fn018A4 and
+Actor02500_Fn01144 seen from the other operand: there the *sound* result was
+widened into a block-spanning local so it could take `$s1`; here the *pan* is
+promoted to `s32` so it takes `$s0` and pushes the id up. Either way, a QImode
+temporary whose conversion happens at the call site is not a neutral choice -
+it leaves one more callee-saved register free for whatever competes with it.
+
+The shortcut that found it: `tools/overlay_dup_index.py similar <fn>` named
+`Actor02000_Fn018A4` at `calls` 1.00 / `cflow` 0.96, whose matched body
+(`src/actors/lib/actor_102000_text.c`) is this same statement sequence with
+`s32 snd/pan/pan2` locals and `(s8)` casts at the call. Porting that shape
+verbatim - declarations included - scored 100% on the first build, with no
+dumps needed. With a `calls` 1.00 sibling, porting its declaration block beats
+editing m2c's temporaries.
+
+Inputs: `base_1.i`
+`cd4547054887a6bfa739e6698be16b5c43552b611052c1c0250490954959a7a2`, `base_2.i`
+`2b6d0e5574a88569af58dea33b880ef352857586172dcb03975d302aa3d07410`, m2c seed
+`base.i` `1587e027d26c81fb5cfd4a605452e98300ec9d76f448bc81e611dabd518dbf53`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+No pins, no empty asm, no permuter run.

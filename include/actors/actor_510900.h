@@ -53,7 +53,10 @@ typedef struct Actor510900Work {
     /// `field_58A` and drops back to state 0 with a fresh `field_59C`.
     /* 0x590 */ s16  field_590;
     /* 0x592 */ s16  field_592;
-    /* 0x594 */ byte pad_594[0x8];
+    /* 0x594 */ byte pad_594[0x6];
+    /// The `GpAnimRec::field_3` bits 0x30 latched on the previous frame. The
+    /// step handler plays a sound on the frame one of them has just dropped.
+    /* 0x59A */ u16 field_59A;
     /// Rolled from `Gp_LcgState` when state 1 expires.
     /* 0x59C */ s16  field_59C;
     /* 0x59E */ byte pad_59E[4];
