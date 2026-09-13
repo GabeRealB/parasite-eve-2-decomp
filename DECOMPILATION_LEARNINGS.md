@@ -3371,6 +3371,39 @@ an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
 `Gp_BindActorD4` is the example (`GpActorD4.coord = *extra->field_8`).
 
+## A 0x20-byte MATRIX assign is two groups of four `lw`/`sw`
+
+The whole-MATRIX end of the same family. A 32-byte copy comes out as
+
+```
+lw  a3, 0x674(v1)   sw  a3, 0x4(s1)
+lw  t0, 0x678(v1)   sw  t0, 0x8(s1)
+lw  t1, 0x67C(v1)   sw  t1, 0xC(s1)
+lw  t2, 0x680(v1)   sw  t2, 0x10(s1)
+lw  a3, 0x684(v1)   sw  a3, 0x14(s1)
+...                 ...
+```
+
+two groups of four with the second group reusing the same four temporaries
+(which registers they are depends on what else the function is holding;
+`Actor02500_Fn02480` gets `t0`-`t3` where this one gets `a3`, `t0`-`t2`).
+m2c renders the same bytes as eight independent `M2C_FIELD(ptr, s32*, off)`
+stores, and that source does *not* reproduce it: with one temporary the loads
+and stores interleave and the scheduler fills the load delays with six `nop`s.
+Recognise the run as an assignment of a MATRIX-shaped lvalue and write it as
+one:
+
+```c
+coord->coord = work->field_674;   /* not eight field stores */
+```
+
+`ActorsShared80137ca4` is the example. Note the destination offset is the
+field, not pointer arithmetic: this project's `psyq/libgs.h` puts
+`GsCOORDINATE2::flg` first, so `coord` sits at **+0x04** and a matrix written
+at `ptr+4` after `lw $s1, 8($obj)` is `coord->coord`, with the
+`addiu $s1, $s1, 4` before the `MulMatrix` call materialising that same
+field address - not an array step.
+
 ## An 8-byte `SVECTOR` assign is a bare `lwl`/`lwr` pair from a rodata symbol
 
 The complement of the two entries above. A copy small enough that GCC
