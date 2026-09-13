@@ -14,7 +14,8 @@ typedef struct {
     u8  field_1;
     u8  _pad2[0x2];
     u8  field_4;
-    u8  _pad5[0x3];
+    u8  field_5;
+    u8  _pad6[0x2];
     s32 field_8;
 } DumpingHoleSpawnElem;
 
@@ -280,7 +281,23 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182F18);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182FD0);
+s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0)
+{
+    s32                   sentinel = -1;
+    s32                   base     = (s32)D_shelter_b3_dumping_hole_8018F4BC;
+    s32                   target   = D_shelter_b3_dumping_hole_8018F4CA;
+    DumpingHoleSpawnElem* e        = (DumpingHoleSpawnElem*)(arg0 * sizeof(DumpingHoleSpawnElem) + base);
+
+loop:
+    if (e->field_8 != sentinel) {
+        if (e->field_5 != target) {
+            e++;
+            arg0++;
+            goto loop;
+        }
+    }
+    return arg0;
+}
 
 void func_shelter_b3_dumping_hole_80183024(Task* arg0)
 {
