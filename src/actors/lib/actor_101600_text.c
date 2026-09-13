@@ -519,7 +519,24 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06974);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06A84);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06C1C);
+s32 Actor01600_Fn06C1C(Actor01600* arg0)
+{
+    Actor01600Work* work;
+
+    work            = arg0->field_1C;
+    work->field_42A = (u16)(work->field_42A | 0xC000);
+    Actor01600_Fn04EB0(arg0);
+    if (work->field_4EA >= 2) {
+        work->field_506 = 0x19;
+        work->field_51A = 0;
+        work->field_4FE = 0;
+        work->field_4EA = 0;
+        work->field_514 = 1;
+        work->field_2BA = (u16)(work->field_2BA & 0x3FFF);
+        return 1;
+    }
+    return 0;
+}
 
 /// Column 2 of the attachment matrix goes to `dir`; the trailing `SVECTOR`
 /// is never read but owns the second half of the stack local block.

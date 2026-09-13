@@ -37,7 +37,9 @@ typedef struct Actor01600Work {
     /* 0x2BC */ byte   pad_2BC[0x30];
     /* 0x2EC */ byte   field_2EC[0xE0];
     /* 0x3CC */ byte   field_3CC[0x40];
-    /* 0x40C */ byte   field_40C[0x90];
+    /* 0x40C */ byte   field_40C[0x1E];
+    /* 0x42A */ u16    field_42A;
+    /* 0x42C */ byte   pad_42C[0x70];
     /* 0x49C */ MATRIX field_49C;
     /* 0x4BC */ s32    field_4BC;
     /* 0x4C0 */ s32    field_4C0;
@@ -48,7 +50,9 @@ typedef struct Actor01600Work {
     /* 0x4D4 */ Task*  field_4D4;
     /* 0x4D8 */ byte   pad_4D8[8];
     /* 0x4E0 */ s32    field_4E0;
-    /* 0x4E4 */ byte   pad_4E4[0xC];
+    /* 0x4E4 */ byte   pad_4E4[6];
+    /* 0x4EA */ s16    field_4EA;
+    /* 0x4EC */ byte   pad_4EC[4];
     /* 0x4F0 */ s16    field_4F0;
     /* 0x4F2 */ byte   pad_4F2[0x8];
     /* 0x4FA */ s16    field_4FA;
@@ -63,10 +67,12 @@ typedef struct Actor01600Work {
     /* 0x50C */ byte   pad_50C[2];
     /* 0x50E */ s16    field_50E;
     /* 0x510 */ s16    field_510;
-    /* 0x512 */ byte   pad_512[4];
+    /* 0x512 */ byte   pad_512[2];
+    /* 0x514 */ s16    field_514;
     /* 0x516 */ s16    field_516;
     /* 0x518 */ s16    field_518;
-    /* 0x51A */ byte   pad_51A[4];
+    /* 0x51A */ s16    field_51A;
+    /* 0x51C */ byte   pad_51C[2];
     /* 0x51E */ s16    field_51E;
     /* 0x520 */ byte   pad_520[2];
     /* 0x522 */ s16    field_522;
@@ -138,5 +144,7 @@ extern s32 Actor01600_D12870;
 
 void Actor01600_Fn01420(Actor01600* arg0);
 void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1);
+
+u8 Actor01600_Fn04EB0(Actor01600* arg0);
 
 #endif // ACTOR_101600_H
