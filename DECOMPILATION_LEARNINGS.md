@@ -73764,3 +73764,60 @@ same field read into a `long` loads as a full word: the sibling 0x7D4 handler in
 this overlay, `func_actor_310100_80162EC8`, has `lw $v0,0x4($a2)` for exactly
 this `pos.vy`, into `coord->coord.t[1]`. One payload field, two widths of load,
 decided by the destination each time.
+
+## A load the target issues *before* a branch must be unconditional in the source
+
+**Problem.** `func_actor_310100_80162CDC` (message 0x7D7 handler) dereferences a
+pointer chain that the target computes in the entry block, ahead of the branch
+that guards its only use:
+
+```
+lw $v0,0x1C($s1)      # task->idMap
+lw $a0,0x4E4($v0)     # ->field_4E4
+lw $v1,0x1C($a0)      # ->idMap
+bne $s0,$v0,.L…
+li $v0,2
+j .L…
+sh $v0,0x4F0($v1)
+```
+
+The natural spelling — chase inside the arm that uses it — scores **71.303%**
+with 33 instructions against the target's 29:
+
+```c
+    work = (Actor310100Work*)task->idMap;
+    if (arg2 == 3) {
+        ((Actor310100Work*)work->field_4E4->idMap)->field_4F0 = 2;
+        return;
+    }
+    if (work->field_4E4 != NULL) { Task_Kill(work->field_4E4); }
+```
+
+Both `lw 0x4E4` and `lw 0x1C` land in the branch arm, and the else path issues a
+*second* `lw 0x4E4` for its NULL check. No pass can repair it. sched1 schedules
+one basic block at a time, so it cannot move a load out of the arm; and GCSE
+cannot make it redundant either, because the else path never computes the
+expression in the first place — there is no join where it is available.
+
+**Fix.** Put the chase in the source as an unconditional local, so both loads are
+in the entry block's RTL to begin with:
+
+```c
+    work    = (Actor310100Work*)task->idMap;
+    display = (Actor310100Work*)work->field_4E4->idMap;
+    if (arg2 == 3) {
+        display->field_4F0 = 2;
+        return;
+    }
+    if (work->field_4E4 != NULL) { Task_Kill(work->field_4E4); }
+```
+
+100.000%, 29 instructions, one `lw 0x4E4` that the later `beqz $a0` re-uses.
+Dereferencing a pointer the next statement NULL-checks reads wrong, but it is
+what the target does — and the single shared load is the evidence.
+
+**Read the compare's destination as an arity check.** The same seed's `base.c`
+carried m2c's two-parameter prototype (`(void *arg0, s32 arg2)`), which homes
+`arg2` to `$a1`; the target's `li $v0,3` / `bne $s0,$v0` against the seed's
+`li $v1,3` / `bne $s0,$v1` is the tell. The handler table at `0x801798B4` gives
+the real signature `(Task*, s32 msgId, s32 arg2)`.

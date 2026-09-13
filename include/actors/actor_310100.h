@@ -20,7 +20,9 @@ typedef ActorShared8013411cPlacement Actor310100Placement;
 typedef struct Actor310100Work {
     /* 0x000 */ byte  pad_0[0x4E4];
     /* 0x4E4 */ Task* field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ byte  pad_4E8[0x1E];
+    /* 0x4E8 */ byte  pad_4E8[0x8];
+    /* 0x4F0 */ s16   field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
+    /* 0x4F2 */ byte  pad_4F2[0x14];
     /* 0x506 */ u16   field_506; // passed down as the model task's spawnArg1
 } Actor310100Work;
 
@@ -30,6 +32,11 @@ typedef struct Actor310100Work {
 /// `spawnArg1` and this task as its parent (`spawnArg2`); it spawns the model
 /// task in turn, handing it `field_506` as its `spawnArg1`.
 void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, Actor310100Placement* placement);
+
+/// Message 0x7D7 handler: parks the display task's work block at state 2 and
+/// returns when handed mode 3, otherwise tears the display task down and spawns
+/// a fresh one from `D_actor_310100_801798F0`.
+void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2);
 
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and

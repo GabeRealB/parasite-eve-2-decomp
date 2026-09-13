@@ -7,6 +7,7 @@
 #include "main/tmd.h"
 
 extern TaskDesc D_actor_310100_801798E4;
+extern TaskDesc D_actor_310100_801798F0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161E24);
 
@@ -36,7 +37,25 @@ void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, Actor310100Plac
     Display_SpawnWithOt(&D_actor_310100_801798E4, 0, arg2, (s32)task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162CDC);
+/// Message 0x7D7 handler: parks the display task's work block at state 2 and
+/// returns when handed mode 3, otherwise tears the display task down and spawns
+/// a fresh one from `D_actor_310100_801798F0`.
+void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
+{
+    Actor310100Work* work;
+    Actor310100Work* display;
+
+    work    = (Actor310100Work*)task->idMap;
+    display = (Actor310100Work*)work->field_4E4->idMap;
+    if (arg2 == 3) {
+        display->field_4F0 = 2;
+        return;
+    }
+    if (work->field_4E4 != NULL) {
+        Task_Kill(work->field_4E4);
+    }
+    Display_SpawnWithOt(&D_actor_310100_801798F0, 0, arg2, (s32)task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162D50);
 
