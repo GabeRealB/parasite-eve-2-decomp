@@ -1,11 +1,13 @@
 #include "common.h"
 
 #include "actors/actor_101600.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
 
@@ -27,6 +29,7 @@ s32  Gp_TickObjFlag4(Actor01600Ctx* arg0);
 s32  Gp_ObjFlag4Expired(Actor01600Ctx* arg0);
 s32  Gp_GetObjPan(void* arg0);
 s32  Gp_GetObjDepth(void* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern u8 D_801153F4;
 
@@ -343,18 +346,68 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn03A60);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn03D48);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn03EEC);
+void Actor01600_Fn03EEC(Actor01600* arg0)
+{
+    VECTOR3                  pos;
+    Actor01600GroundScratch* head;
+    Actor01600GroundScratch* scratch;
+    Actor01600Work*          work;
+    GsCOORDINATE2*           coord;
+    s32                      worldZ;
+    s32                      height;
+    s32                      mode;
+    s32                      z;
+    Actor01600GroundScratch* allocated;
 
-void  Gp_UnlinkNode(void* node);
-void  Gp_UnlinkObj(void* node);
-void  Gp_EnemyTaskExit(Actor01600* arg0);
-void  Gp_SetLightMode(void* arg0, s32 arg1);
-void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
-void  Gp_PulseState1C(void);
-void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
-s32   Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (work->field_526 == 0) {
+        head                                   = *(Actor01600GroundScratch**)0x1F8003FC;
+        allocated                              = head - 1;
+        *(Actor01600GroundScratch**)0x1F8003FC = allocated;
+        mode                                   = *(s16*)((u8*)work + OFFSET_OF(Actor01600Work, field_528));
+        do {
+            scratch = allocated;
+            if (mode != 0) {
+                gte_SetRotMatrix(&coord->workm);
+                scratch->offset.vx = 0;
+                height             = work->field_520 - 0x80;
+                scratch->offset.vz = 0;
+                scratch->offset.vy = -height;
+                gte_ldv0(&scratch->offset);
+                __asm__ volatile("nop; nop; .word 0x4A486012");
+                gte_stlvnl(&scratch->pos);
+                head[-1].pos.vx = (s32)(head[-1].pos.vx + coord->workm.t[0]);
+                scratch->pos.vy = (s32)(scratch->pos.vy + coord->workm.t[1]);
+                SCHED_BARRIER();
+                z = scratch->pos.vz;
+                TOUCH_REG(z);
+                worldZ = z + coord->workm.t[2];
+            } else {
+                head[-1].pos.vx = (s32)coord->workm.t[0];
+                scratch->pos.vy = (s32)coord->workm.t[1];
+                worldZ          = coord->workm.t[2];
+            }
+            scratch->pos.vz = worldZ;
+        } while (0);
+        Gp_DrawEffGroundQuad(&scratch->pos, 0x1C0, 0);
+        *(Actor01600GroundScratch**)0x1F8003FC += 1;
+        return;
+    }
+    if (func_800EA1A8((VECTOR3*)coord[1].workm.t, &pos) != 0) {
+        Gp_DrawEffGroundQuad(&pos, 0x1C0, Gp_State1C->field_8);
+    }
+}
+
+void Gp_UnlinkNode(void* node);
+void Gp_UnlinkObj(void* node);
+void Gp_EnemyTaskExit(Actor01600* arg0);
+void Gp_SetLightMode(void* arg0, s32 arg1);
+void Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void Gp_PulseState1C(void);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+s32  Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
 
 void Actor01600_Fn03D48(Actor01600* arg0);
 void Actor01600_Fn06880(Actor01600* arg0);

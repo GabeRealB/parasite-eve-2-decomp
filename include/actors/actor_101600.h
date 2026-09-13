@@ -99,7 +99,7 @@ typedef struct Actor01600Work {
     /* 0x51A */ s16             field_51A;
     /* 0x51C */ byte            pad_51C[2];
     /* 0x51E */ s16             field_51E;
-    /* 0x520 */ byte            pad_520[2];
+    /* 0x520 */ s16             field_520;
     /* 0x522 */ s16             field_522;
     /* 0x524 */ byte            pad_524[2];
     /* 0x526 */ s16             field_526;
@@ -217,5 +217,13 @@ s32 Actor01600_Fn045A8(Actor01600* arg0, s32* distance);
 s32 Actor01600_Fn04C64(Actor01600* arg0, s32 distance, s32 angle);
 
 u8 Actor01600_Fn04EB0(Actor01600* arg0);
+
+/// Scratchpad storage for the actor's ground-quad position and rotated offset.
+typedef struct Actor01600GroundScratch {
+    /* 0x00 */ VECTOR3 pos;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ SVECTOR offset;
+} Actor01600GroundScratch;
+STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 
 #endif // ACTOR_101600_H

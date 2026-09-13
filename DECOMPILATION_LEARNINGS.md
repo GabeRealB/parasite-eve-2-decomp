@@ -65165,3 +65165,32 @@ Input SHA256: base_6 `3f68f5dabcc97dfa30e6e66efbfeeb4f74e0e160e85077b2b5db1c9357
 base_7 `2985b974131a42e931fbc8db03baa8cceab4718b24b9da1b91b75ac911c1b588`.
 Retained notes/dumps: `tools/permuter_findings/Actor01600_Fn0646C/`, session
 `9b0a89d1eb814282a3934dec1258159a`, search `ca5c0aa1f03c4bba`.
+
+## Actor01600 ground quad: loop boundaries preserve store/setup dependencies
+
+A controlled `Actor01600_Fn03EEC` experiment added only a single-iteration
+`do/while (0)` around the scratch calculation (`base_2` -> `base_3`). Distance
+fell 413 -> 193. In `base_3.i.sched`, final z store UID128 precedes argument
+copy UID141 through REG_DEP_ANTI; argument constants UID143/145 depend on that
+copy through REG_DEP_OUTPUT. The copy ultimately emits nothing because both
+sides occupy a0, but `.dbr` keeps the store ahead of argument setup instead of
+putting it in the jal delay slot. This is an observed boundary/dependency effect,
+not evidence that every single-iteration loop improves scheduling.
+
+The loop's start matters independently: moving it after scratch-head storage
+kept separate initial and body pointers but gave the initial pointer v0
+(`base_4`). Reading mode before loop entry (`base_5`) made that pointer overlap
+the mode; `.greg` places pointer r88 in v1, mode r87 in v0, body r82 in a0, and
+`.dbr` UID241 fills the mode branch delay with the pointer copy. Final z-store
+ordering survived, as predicted. No pins. Other z-arithmetic register differences
+required separate work; the final touched-z quantity mechanism remains untraced.
+
+Evidence: `tools/permuter_findings/Actor01600_Fn03EEC/` retained session
+`ae23862a361a4d4aa32c2c20c8af1929`, including plans, sources, dumps and paired
+router inputs. Patched bundled GCC 2.8.1, ordinary scratch flags.
+
+Preprocessed SHA256:
+
+- `base_2.i`: `480735953d5d37653e7e74f72f2d78549c7dc7599e4b84090b39d60ee7ecbe98`
+- `base_3.i`: `e697a67fbcadf5d098d6a439eab39e0da666abef5beb22bec773be651f66e504`
+- `base_5.i`: `d8e1f0aef29b25e0a9c775f01b3f82af721150710f0a18bb7cd9c3640e7e2c97`
