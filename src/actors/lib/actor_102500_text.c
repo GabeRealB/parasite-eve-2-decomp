@@ -7,6 +7,10 @@
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s32 Gp_LcgState;
+extern s16 Actor02500_D05BD0[];
+
+void Gp_AnimTickIndex(Actor02500Work* arg0, s32 arg1);
+void func_800B4114(Actor02500Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void* Mem_Calloc(s32 size, s32 arg1);
 void  Gp_DestroyEnemy(Actor02500Ctx* ctx, Actor02500* actor);
@@ -511,7 +515,34 @@ void Actor02500_Fn021F8(Actor02500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02288);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02318);
+void Actor02500_Fn02318(Actor02500* arg0)
+{
+    Actor02500Work* work;
+    s16             anim;
+    s32             value;
+    s32             i;
+    s32             j;
+
+    work = arg0->field_1C;
+    anim = work->field_31C;
+    if (anim != work->field_31E) {
+        value           = Actor02500_D05BD0[anim];
+        i               = 1;
+        work->field_31E = work->field_31C;
+        work->field_320 = 0;
+        do {
+            func_800B4114(work, i, work->field_31C, 0, value);
+            i++;
+        } while (i < 5);
+        return;
+    }
+    j = 1;
+    work->field_320++;
+    do {
+        Gp_AnimTickIndex(work, j);
+        j++;
+    } while (j < 5);
+}
 
 void Actor02500_Fn023D8(Actor02500* arg0)
 {
