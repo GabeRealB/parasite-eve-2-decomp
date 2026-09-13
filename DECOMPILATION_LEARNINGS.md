@@ -42576,6 +42576,18 @@ declared aggregate whether or not it survives optimisation, so
 Adding one moved that function from 96.7% to 96.8% with the whole prologue and
 epilogue matching.
 
+**Slots go up in declaration order from `0x10`.** The outgoing-argument area
+occupies `sp+0x0..0x0F` and the first declared local lands at `sp+0x10`; each
+later one follows at the next offset, and the local area is then rounded up to
+8 before the saved-register block. So when the target's *later* local sits
+higher than the frame needs — `func_actor_136100_80133690` passes a `GpRec14`
+at `sp+0x18` where the same record in `func_actor_136100_8013467C` is at
+`sp+0x10` — the missing 8 bytes are a local declared *before* it, not padding:
+an unused `SVECTOR unused;` ahead of the record reproduces `sw $v0,0x18($sp)`
+and the `0x48` frame exactly. Read the offsets rather than the frame size: two
+functions in the same TU can disagree about where one type lives.
+`func_actor_136100_801347B8` is the same trick without a second local.
+
 ## Chaining across two *different* destinations fixes the `lui` order too
 
 The `r = g = b` trick is usually described as a store-order fix, but it also
@@ -61027,6 +61039,19 @@ CSE forward the stored byte, giving `sll`/`sra` instead of the `lb` (85.7%).
 The source order is the other one, `field_43E = ...; field_43D = -1;`: the
 `43D` store kills the equivalence, and sched then swaps the two stores (same
 base, disjoint offsets), so the kill is invisible in the dump. 100%.
+
+**The same kill decides how many times the source re-derives a pointer.** When
+the value killed is a pointer that a *later* statement still needs, dropping the
+equivalence makes the source load it again while the first value stays live, and
+the register allocator gives the two loads different homes. In
+`func_actor_136100_80133690` three stores through `task->idMap` separate three
+uses of it, and the target carries `lw $s2,0x1C($s3)` (held across the whole
+animation loop for a later `sw/lw 0x4B4($s2)`), `lw $s1,0x1C($s3)` (the loop
+index base) and, after a `jal`, `lw $a3,0x1C($s3)`. Writing one `work` variable
+scores 90.7%: it reuses `$s2` for the third load. The fix is one source
+variable per load — three pointers, each declared where its use starts — not a
+pin. Ask how many distinct `lw` offsets of the same base the target has, and
+give the source that many names.
 
 ## A `regs=1` penalty can be a wrong immediate, not an allocation problem
 

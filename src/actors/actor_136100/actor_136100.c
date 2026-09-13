@@ -11,8 +11,11 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
+extern s8    D_8007218A;
+extern u8    D_80073BA9;
 extern s32   D_actor_136100_8013F1A0;
 extern s32   D_actor_136100_8013F2F4;
+extern s32   D_actor_136100_8013F31C;
 extern Task* D_actor_136100_8014078C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131EC4);
@@ -78,7 +81,59 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133558);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133690);
+/// Reset the cutscene actor's animation state and re-send the weapon record.
+///
+/// Clears the first two value/countdown pairs, re-arms all nineteen animation
+/// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
+/// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
+/// (`GpRec14`) built from the equip-slot addend (`D_80073BA9`), the pair
+/// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
+/// way past.
+///
+/// Three separate `task->idMap` loads are what the original reaches the block
+/// with -- the stores to `field_4C4` / `field_4CC` invalidate the first in cse,
+/// and the first is still live for the 0x3E9 send after the loop.  The dead
+/// `SVECTOR` is not read; it reserves the 8-byte local the frame has between
+/// the outgoing-arg area and `rec` (see `func_actor_136100_801347B8`).
+void func_actor_136100_80133690(void)
+{
+    Task*            task;
+    Actor136100Work* work;
+    Actor136100Work* animWork;
+    Actor136100Work* msgWork;
+    SVECTOR          unused;
+    GpRec14          rec;
+    s32              i;
+    s32              weaponId;
+    s32              id;
+
+    task            = D_actor_136100_8014078C;
+    work            = (Actor136100Work*)task->idMap;
+    work->field_4C4 = 0;
+    work->field_4CC = 0;
+
+    animWork            = (Actor136100Work*)task->idMap;
+    animWork->field_4E0 = 1;
+    i                   = 1;
+    do {
+        animWork->slots[(u16)i].field_9 = 0x10;
+        Gp_AnimResetSlot(&animWork->anim, (u16)i, 1);
+        i++;
+    } while ((u16)i < 0x14U);
+
+    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F31C, 0);
+
+    msgWork            = (Actor136100Work*)task->idMap;
+    weaponId           = D_80073BA9;
+    id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.field_0        = id;
+    msgWork->field_4DE = 1;
+    rec.field_4        = 1;
+    rec.field_8        = 0;
+    rec.field_C        = 0;
+    rec.field_10       = 0;
+    Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8013379C);
 
