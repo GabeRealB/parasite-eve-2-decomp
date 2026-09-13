@@ -6,6 +6,8 @@
 
 #include "gameplay/3CD8.h"
 
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
 
@@ -319,7 +321,26 @@ void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05304);
+s32 Actor00300_Fn05304(Actor100300* arg0, s32 arg1, Actor100300AnimArgs* args)
+{
+    Actor100300Work* work;
+    s32              i;
+    s32              frames;
+    s16              anim;
+
+    work            = arg0->field_1C;
+    anim            = args->field_4 + 0x13;
+    work->field_66E = anim;
+    work->field_670 = anim;
+    frames          = 0;
+    if (args->field_8 != 0) {
+        frames = args->field_C;
+    }
+    for (i = 1; i < 0x13; i++) {
+        func_800B4114((GpAnimCtx*)work, i, work->field_66E, 0, frames);
+    }
+    return 0;
+}
 
 s32 Actor00300_Fn05388(Actor100300* arg0, s32 arg1, ActorsShared80132074Args* args)
 {

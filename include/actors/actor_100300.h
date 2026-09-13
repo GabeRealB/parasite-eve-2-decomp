@@ -38,7 +38,10 @@ typedef struct Actor100300Work {
     /* 0x648 */ s32    field_648;
     /* 0x64C */ byte   pad_64C[0x18];
     /* 0x664 */ s16    field_664;
-    /* 0x666 */ byte   pad_666[0x10];
+    /* 0x666 */ byte   pad_666[0x8];
+    /* 0x66E */ s16    field_66E;
+    /* 0x670 */ s16    field_670;
+    /* 0x672 */ byte   pad_672[0x4];
     /* 0x676 */ s16    field_676;
     /* 0x678 */ u16    field_678;
     /* 0x67A */ byte   pad_67A[0x2];
@@ -62,6 +65,14 @@ typedef struct Actor100300Ctx {
     /* 0x00 */ byte pad_0[0x4C];
     /* 0x4C */ u8   field_4C;
 } Actor100300Ctx;
+
+typedef struct Actor100300AnimArgs {
+    /* 0x00 */ byte pad_0[4];
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[2];
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ s32  field_C;
+} Actor100300AnimArgs;
 
 typedef struct Actor100300DestroyArgs {
     /* 0x00 */ byte pad_0[2];
