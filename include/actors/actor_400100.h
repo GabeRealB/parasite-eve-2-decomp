@@ -6,6 +6,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/tmd.h"
+#include "main/task.h"
 #include "main/session.h"
 
 /// 0x98-byte object embedded four times in `Actor00100Work` at 0x908. The
@@ -80,6 +81,7 @@ void Actor00100_Fn04270(Actor00100* argx);
 void Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 void Actor00100_Fn02788(Actor00100* arg0);
 void Actor00100_Fn0B658(Actor00100* arg0);
+s32  Actor00100_Fn0B264(Task* task);
 s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
 
 #endif

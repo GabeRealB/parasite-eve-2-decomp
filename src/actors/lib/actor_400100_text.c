@@ -2,6 +2,7 @@
 
 #include "actors/actor_400100.h"
 #include "actors/actors_shared_80169f74.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -41,12 +42,9 @@ extern GsCOORDINATE2 Gfx_ViewCoord;
 extern s8            D_80114C12;
 extern u8            D_80071075;
 
-void Gp_UnlinkObj(Actor00100Obj* node);
-void Gp_SetLightMode(Actor00100Ctx* arg0, s32 arg1);
 struct _GpObj20E;
 void Gp_ReleaseStateF0Add(struct _GpObj20E* arg0, s32 arg1);
 s32  Gp_DispatchMsg(void* arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_DestroyEnemy(void* enemy, Task* task);
 
 void Actor00100_Fn04270(Actor00100* argx)
 {
@@ -86,10 +84,10 @@ void Actor00100_Fn04270(Actor00100* argx)
         work->field_6        = 0;
     }
     if (work->field_6 == 0x3C) {
-        Gp_UnlinkObj(&work->objs[0]);
-        Gp_UnlinkObj(&work->objs[1]);
-        Gp_UnlinkObj(&work->objs[3]);
-        Gp_UnlinkObj(&work->objs[2]);
+        Gp_UnlinkObj((GpObj*)&work->objs[0]);
+        Gp_UnlinkObj((GpObj*)&work->objs[1]);
+        Gp_UnlinkObj((GpObj*)&work->objs[3]);
+        Gp_UnlinkObj((GpObj*)&work->objs[2]);
         ctx->field_54 = 0;
     }
     if (work->field_6 >= 0x3D && work->field_C18 == 0 && D_80114C12 != 1 && D_80071075 == 0) {
@@ -104,12 +102,12 @@ void Actor00100_Fn04270(Actor00100* argx)
     state         = (s16)next;
     switch (state) {
         case 1:
-            Gp_SetLightMode(ctx, 0);
-            Gp_SetLightMode(ctx, 1);
+            Gp_SetLightMode((GpObj4C*)ctx, 0);
+            Gp_SetLightMode((GpObj4C*)ctx, 1);
             /* fallthrough */
         case 0xA:
             arg0->field_2C->field_C = 2;
-            Gp_SetLightMode(ctx, 2);
+            Gp_SetLightMode((GpObj4C*)ctx, 2);
             break;
         case 0xF:
             work->field_8A8.vx = 0;
@@ -335,7 +333,32 @@ s32 Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B264);
+s32 Actor00100_Fn0B264(Task* task)
+{
+    s32 ret;
+    u16 flags;
+    s32 mask2;
+    s32 mask80;
+
+    if (((GpEnemy*)task->spawnArg2)->field_40 > 0) {
+        return 1;
+    }
+
+    flags   = ((TmdObject*)task->extra)->field_C;
+    mask80  = flags;
+    mask80 &= 0x80;
+    mask2   = flags & 2;
+    if (mask80 != 0) {
+        return 0;
+    }
+
+    ret = 0;
+    if (mask2 == 0) {
+        ret = 1;
+        SOFT_BARRIER();
+    }
+    return ret;
+}
 
 s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
 {
