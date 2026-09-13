@@ -83,12 +83,20 @@ typedef struct Actor444000Work {
     /* 0x690 */ GpAnimCtx  anim5;
     /* 0x6A4 */ GpAnimSlot slots5[4];
     /* 0x744 */ byte       aux5[0x40];
-    /* 0x784 */ byte       pad_784[0x20];
-    /* 0x7A4 */ s16        field_7A4;
-    /* 0x7A6 */ byte       pad_7A6[0x2];
-    /// The masked `slots0[3].field_2` frame the escort-order tick
-    /// (`func_actor_444000_8013EC84`) last saw, so each of its one-shot cues
-    /// only fires on the step the animation first reaches that frame.
+    /// Per-part yaw the escort model is being driven to, one entry per part of
+    /// the fifth escort's model, and the angle each part is currently at.
+    /// `func_actor_444000_80133010` picks the targets from `field_7A4` and the
+    /// fight's progress counter, then walks every `field_794` toward its
+    /// `field_784` by at most `field_7A6` a call.
+    /* 0x784 */ s16  field_784[7];
+    /* 0x792 */ byte pad_792[0x2];
+    /* 0x794 */ s16  field_794[7];
+    /* 0x7A2 */ byte pad_7A2[0x2];
+    /* 0x7A4 */ s16  field_7A4; // escort pose index, switched on by func_actor_444000_80133010
+    /* 0x7A6 */ s16  field_7A6; // most a field_794 entry may move in one call
+                                /// The masked `slots0[3].field_2` frame the escort-order tick
+                                /// (`func_actor_444000_8013EC84`) last saw, so each of its one-shot cues
+                                /// only fires on the step the animation first reaches that frame.
     /* 0x7A8 */ s32 field_7A8;
     /// The masked `slots0[1]` / `slots0[2]` frame the arena tick
     /// (`func_actor_444000_8013FB74`) last saw, so its two one-shot cues only fire

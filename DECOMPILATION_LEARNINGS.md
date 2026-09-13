@@ -64730,3 +64730,60 @@ check whether the target re-reads the field it just wrote rather than trying to
 manufacture a copy with an extra local. `func_actor_444000_8013EC84` is the
 worked example: the yaw is stored to `sc->angle`, and both the magnitude test
 and the sign test read it back while the `+/-0x800` arithmetic uses the local.
+
+## One chained assignment shares a pointer chain; separate statements reload it
+
+A store *through* a multi-load pointer chain invalidates `cse`'s record of every
+load in that chain, so three consecutive statements spelling the same chain
+reload it three times. A single chained assignment does not: the whole
+right-hand side is one expression, expanded before any store retires, so the
+address is computed once and the stores run right to left.
+
+`actor_444000` has both shapes against the same chain one unit apart.
+`func_actor_444000_8013AFF8` writes three statements:
+
+```c
+((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[0] = 0;
+((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] = 0;
+((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[2] = 0x14;
+```
+
+and gets the four loads plus their load-delay `nop`s three times over, ascending
+through `0x18`, `0x1C`, `0x20`. `func_actor_444000_80133010` chains them:
+
+```c
+X->field_8[i].coord.t[0] = X->field_8[i].coord.t[1] = X->field_8[i].coord.t[2] = 0;
+```
+
+and gets one chain followed by `sw zero,0x20` / `0x1C` / `0x18` — descending,
+because the innermost assignment is the first one expanded.
+
+So read the store order: **descending offsets with one address computation is a
+chained assignment; ascending offsets with a repeated chain is separate
+statements.** Neither is a scheduling artifact and neither needs a local.
+
+A pointer local reproduces the single chain but not the instruction. `&x[i]`
+assigned to a pointer emits `addu dst, base, scaled_index`; reaching the same
+address as a member of a memory reference emits `addu dst, scaled_index, base`.
+That is a 2-register leftover in the one instruction the two forms share, and it
+reads like an allocation problem when it is a source-shape problem — prefer the
+chained member form and keep the local out.
+
+## A zero-extended compare on a signed narrow variable is a cast in the source
+
+An `s16` loop counter is sign-extended at each use: `sll 16` / `sra 16` feeding
+`slti`. When one comparison on that same variable instead reads
+`andi $v0, $s1, 0xFFFF` / `sltiu`, the source casts at that use - GCC 2.8.1 has
+no range analysis that could narrow a signed compare on its own, and the loop
+bound right next to it still compares signed. Write the cast:
+
+```c
+for (i = 0; i < 7; i++) {        /* sll/sra/slti 7 */
+    ...
+    if ((u16)i >= 2) { ... }     /* andi 0xFFFF / sltiu 2 */
+}
+```
+
+`func_actor_444000_80133010` is the worked example; the same overlay's
+`actor_444000_6.c` uses the idiom on struct fields too (`(u16)work->field_6`),
+so it is how this code was written rather than a one-off.

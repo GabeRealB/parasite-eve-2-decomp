@@ -302,5 +302,3 @@ void func_actor_444000_801326DC(void)
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131E20);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", jtbl_actor_444000_80131E24);
