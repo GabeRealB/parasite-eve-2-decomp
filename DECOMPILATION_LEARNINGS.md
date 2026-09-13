@@ -67789,3 +67789,29 @@ compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Traced input: `99270b4b2ce5b4cfb51e8f75b478f667dfd146625f9a3d2e5aeadd8fd3f38977`.
 Final header-integrated input: `1d82c001b0f8ed5369b10a074e15f0324a049a13a3ce3550d73337b10a646996`.
 This documents the observed case, not a general duplicate-operand threshold.
+
+## A message handler's payload is the *third* argument: m2c guesses one parameter
+
+m2c builds the parameter list from the first register the body reads, so a
+handler whose only access is `lhu $v0, 0x2($a2)` comes out as
+`s32 f(void* arg2)` and compiles to `lhu $v0, 0x2($a0)`. Everything else
+matches -- same instruction count, same block topology, same delay slots -- so
+the build reports a two-byte `stack` penalty that no dump explains, because
+there is no codegen difference at all. The argument index is the whole bug.
+
+The actors' message handlers are all `GpMsgHandler` (`include/gameplay/D4.h`),
+and `Gp_DispatchMsg` ends in `entry->handler(arg0, arg1, arg2, arg3)`:
+
+```c
+typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+```
+
+so a handler touching `$a2` or `$a3` has the payload in that slot. Write the
+full four-parameter signature with the payload typed by its own overlay
+(`ActorXXXXMsg* arg2`); the unused slots cost nothing. `func_actor_461800_80132F44`,
+in the same overlay, is the quick cross-check: it uses `$a0` as a `Task*`
+(`Task::idMap` at 0x1C, `Task::extra` at 0x2C) alongside `$a2` and `$a3`.
+
+Example: `func_actor_461800_80132F20`, 99.78% -> 100.00% on the first build.
+Preprocessed SHA256: `base_1.i`
+`8a2e792dab22f5f05d12956ad11345f8f24860a753fc3d4be26bacde5f5fee71`.
