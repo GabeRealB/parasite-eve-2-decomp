@@ -25,6 +25,17 @@ typedef union Actor206100Matrix {
 } Actor206100Matrix;
 STATIC_ASSERT_SIZEOF(Actor206100Matrix, 0x20);
 
+/// Status flags `func_actor_206100_8014F970` reads through two widths: bit 0
+/// as a halfword, then bits 0x102 as a word.  The same union
+/// `ActorsShared8013a0b0Flags` is -- two widths on one address means two views
+/// of the field in the original source, and declaring it a single `u16` makes
+/// the second test `lhu` too.
+typedef union Actor206100Flags {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+} Actor206100Flags;
+STATIC_ASSERT_SIZEOF(Actor206100Flags, 0x4);
+
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
 /// copies the table onto its stack and calls `funcs[(s16)field_522]`, the same
 /// local-jump-table shape `func_actor_341700_80168748` uses.  The entries are
@@ -80,10 +91,14 @@ STATIC_ASSERT_SIZEOF(Actor206100AnimStride, 0x28);
 ///
 /// `field_520` / `field_522` are the state and sub-state indices the handler
 /// table walks and `field_51E` is the per-state frame counter -- the same
-/// layout the other enemy overlays use.  `field_50C` .. `field_51A` are the
-/// animation request the actor hands to its player: `func_actor_206100_8014C274`
-/// writes `field_50C` as the request kind and then reads `field_50E` and
-/// `field_510` as the clip to play, with `field_51A` the step scale.
+/// layout the other enemy overlays use.  `field_50C`, `field_50E`, `field_510`
+/// and `field_51A` are the animation request the actor hands to its player:
+/// `func_actor_206100_8014C274` writes `field_50C` as the request kind and then
+/// reads `field_50E` and `field_510` as the clip to play, with `field_51A` the
+/// step scale.  `flags_514` sits between `field_510` and `field_51A` and is
+/// status, not part of the request: `func_actor_206100_8014F970` tests bit 0 of
+/// its halfword or bits 0x102 of its word to decide whether to advance the
+/// actor to state 2.
 /// `anim` is the animation context at offset 0 -- the block is handed to
 /// `Gp_AnimResetSlot` as its `GpAnimCtx` -- with the 0x28-byte animation
 /// slots at +0x14, the layout `Actor400500Work` uses.
@@ -116,22 +131,24 @@ typedef struct Actor206100Work {
     /// Effect argument: the root coordinate's second part with the overlay's
     /// effect id and part index, the same coordinate / id / 3 trio
     /// `Actor503500Work::field_6E4` holds.
-    /* 0x4C0 */ GpEffArg eff_4C0;
-    /* 0x4C8 */ byte     pad_4C8[0x44];
-    /* 0x50C */ s16      field_50C; // animation request kind
-    /* 0x50E */ u16      field_50E; // clip the request plays, latched from field_510
-    /* 0x510 */ s16      field_510; // animation clip id
-    /* 0x512 */ byte     pad_512[0x8];
-    /* 0x51A */ s16      field_51A; // animation step scale
-    /* 0x51C */ byte     pad_51C[0x2];
-    /* 0x51E */ u16      field_51E; // per-state frame counter
-    /* 0x520 */ s16      field_520; // state index
-    /* 0x522 */ u16      field_522; // sub-state index
-    /* 0x524 */ s16      field_524;
-    /* 0x526 */ u16      field_526;
-    /* 0x528 */ byte     pad_528[0xE];
-    /* 0x536 */ u16      field_536; // seeded from D_80181A48 when the block is built
-    /* 0x538 */ byte     pad_538[0x8];
+    /* 0x4C0 */ GpEffArg         eff_4C0;
+    /* 0x4C8 */ byte             pad_4C8[0x44];
+    /* 0x50C */ s16              field_50C; // animation request kind
+    /* 0x50E */ u16              field_50E; // clip the request plays, latched from field_510
+    /* 0x510 */ s16              field_510; // animation clip id
+    /* 0x512 */ byte             pad_512[0x2];
+    /* 0x514 */ Actor206100Flags flags_514;
+    /* 0x518 */ byte             pad_518[0x2];
+    /* 0x51A */ s16              field_51A; // animation step scale
+    /* 0x51C */ byte             pad_51C[0x2];
+    /* 0x51E */ u16              field_51E; // per-state frame counter
+    /* 0x520 */ s16              field_520; // state index
+    /* 0x522 */ u16              field_522; // sub-state index
+    /* 0x524 */ s16              field_524;
+    /* 0x526 */ u16              field_526;
+    /* 0x528 */ byte             pad_528[0xE];
+    /* 0x536 */ u16              field_536; // seeded from D_80181A48 when the block is built
+    /* 0x538 */ byte             pad_538[0x8];
     /// Yaw offset `func_actor_206100_8014EB60` folds into the part-5 rotation
     /// and the walk state `func_actor_206100_8014EC54` ramps to zero.
     /* 0x540 */ s16  field_540;
