@@ -75861,3 +75861,77 @@ Recognise it by the shape of the residue, not by the percentage: distance exactl
 change can remove the reloc, since the only way to emit that word without one is
 a 32-bit constant, which GCC would split into `lui`/`ori`, not `lui`/`addiu`.
 Install the body and run `./tools/build-and-verify.sh`.
+
+## A store->load alias edge is directional: put the load's statement first and it goes away
+
+`func_actor_102400_80134F60` sat at 92.222% (`reorder=3 delete=1`, one
+instruction short of the target) until two statements were swapped. Both
+versions write the same six assignments - only the middle two change places:
+
+```c
+    work->field_124 = coord->coord.t[2];
+    coord->coord.t[1] += 0x80;                                        /* A */
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_138) >> 12;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_138) >> 12;
+```
+
+With A first, `.sched` - sched1, pre-reload, so no register sharing can be
+blamed yet - shows the `lh 0x138(a0)` that feeds the `t[0]` multiply carrying
+
+    (insn_list 16 (insn_list 38 (nil)))
+
+where insn 38 is `sw <t[1]>, 28(a1)`: a store into a *different* object, off a
+*different* base register, which GCC 2.8.1 cannot prove the load misses. The
+field load is pinned below the whole t1 chain, and the target's order
+
+    lh v1,8(a1)      # m[0][2]
+    lh v0,0x138(a0)  # field_138
+    nop
+    mult v1,v0
+    lw v0,0x1c(a1)   # t[1] load - the t1 chain starts only here
+
+is unreachable. No register pin and no priority tweak can cross that edge,
+because the edge is not a priority question.
+
+It is directional - a load depends on the stores *before it in the RTL stream*,
+a store on the loads before it - so moving the t1 statement below the t0 one
+flips it. The `insn_list 38` entry disappears from `.sched` entirely, and with
+it the `.sched2` residue it had turned into (47 writing `$v0` after the t1
+chain's `addiu`/`sw` read it, `REG_DEP_ANTI` on both), the `lh/lh/mult` triple
+hoists above the t1 chain, and the function matches exactly: 36/36, zero
+penalties, unpinned.
+
+**How to spot it.** A `reorder`/`delete` residue whose missing instructions are
+a load and its single consumer, where `.sched` names a store into a *different
+struct off a different base register* in that load's `insn_list`. Read the
+direction before reaching for the alias workarounds elsewhere in this file: if
+the store comes *after* the load in the target's block order, the fix is the
+source order of the two statements that produce them, and the load becomes
+free. If the store precedes the load, no reordering helps - that is when taking
+the field's address into a local applies (see the `REG_DEP_ANTI`/`mem/s`
+entries above).
+
+The same statement order also decides which chain owns `$v0`, so expect the
+ready list to reshuffle well beyond the one edge - here the whole t0 operand
+set (43/47/49) moved as a group.
+
+## A promoted shared body's struct tag must not be the function's own name
+
+When `overlay_dup_index.py promote` hands you a body to move into
+`src/<family>/lib/<unit>.c` with a new header, the typedef name and the function
+name share the ordinary identifier namespace, so the obvious spelling does not
+compile:
+
+```c
+typedef struct ActorsShared80134f60 { ... } ActorsShared80134f60;
+void ActorsShared80134f60(ActorsShared80134f60* arg0);
+/* `ActorsShared80134f60' redeclared as different kind of symbol, then a
+   cascade of parse error / number of arguments doesn't match prototype */
+```
+
+The convention the existing shared headers already follow is to drop the plural
+`s` from the tag: `ActorShared80134cfc` for `ActorsShared80134cfc`,
+`ActorShared80134f60` for `ActorsShared80134f60`. This cannot show up in the
+scratch environment - a scratch body names its own local types - so it is the
+first thing to check when a promoted body builds in scratch but its host overlay
+fails in the project.
