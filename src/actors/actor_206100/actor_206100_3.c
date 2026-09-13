@@ -117,7 +117,27 @@ void func_actor_206100_8014F770(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014F7B4);
+void func_actor_206100_8014F7B4(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* next;
+    s32              soundId;
+    s32              pan;
+
+    work    = (Actor206100Work*)task->idMap;
+    soundId = ((((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x551E0005;
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan,
+                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+    next            = (Actor206100Work*)task->idMap;
+    next->field_524 = 0xA;
+    next->field_51A = 0x10;
+    next->field_510 = 1;
+    next->field_50C = 1;
+    work->field_526 = 0x1388;
+    work->field_51E = 0;
+    work->field_522 = work->field_522 + 1;
+}
 
 void func_actor_206100_8014F878(Task* task)
 {
