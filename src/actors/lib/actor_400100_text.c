@@ -43,6 +43,8 @@ extern u8            D_80071075;
 
 void Gp_UnlinkObj(Actor00100Obj* node);
 void Gp_SetLightMode(Actor00100Ctx* arg0, s32 arg1);
+struct _GpObj20E;
+void Gp_ReleaseStateF0Add(struct _GpObj20E* arg0, s32 arg1);
 s32  Gp_DispatchMsg(void* arg0, s32 arg1, s32 arg2, s32 arg3);
 void Gp_DestroyEnemy(void* enemy, Task* task);
 
@@ -428,6 +430,18 @@ void Actor00100_Fn0BC14(void)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0BC1C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0BCBC);
+void Actor00100_Fn0BCBC(s32 arg0, Task* task)
+{
+    Actor00100Work* work;
+
+    work = (Actor00100Work*)task->idMap;
+    if (work->field_C2A == 1) {
+        work->field_C2A = 0;
+        Gp_ReleaseStateF0Add((struct _GpObj20E*)task, 1);
+    }
+    if (work->field_C2A == 0) {
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0BD28);

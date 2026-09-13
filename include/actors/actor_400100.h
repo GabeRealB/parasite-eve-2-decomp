@@ -31,6 +31,8 @@ typedef struct Actor00100Work {
     /* 0x908 */ Actor00100Obj objs[4];
     /* 0xB68 */ byte          pad_B68[0xB0];
     /* 0xC18 */ s16           field_C18;
+    /* 0xC1A */ byte          pad_C1A[0x10];
+    /* 0xC2A */ s16           field_C2A;
 } Actor00100Work;
 
 typedef struct Actor00100Ctx {
