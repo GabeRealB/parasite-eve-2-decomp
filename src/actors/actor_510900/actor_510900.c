@@ -112,12 +112,12 @@ INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900", ActorsShared8013
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B0D8);
 
-void func_actor_510900_801350F8(void* enemy, Task* task);
-void func_actor_510900_8013B658(void* enemy, Task* task);
+void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1);
+void func_actor_510900_8013B658(Actor510900Ctx* arg0, Actor510900* arg1);
 
 void func_actor_510900_8013B3D0(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_510900_801350F8, func_actor_510900_8013B658 };
+    void (*fns[2])(Actor510900Ctx*, Actor510900*) = { func_actor_510900_801350F8, func_actor_510900_8013B658 };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -136,7 +136,14 @@ void func_actor_510900_8013B608(Actor510900* arg0)
     Gp_DestroyEnemy(arg0->field_20, (Task*)arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B658);
+void func_actor_510900_8013B658(Actor510900Ctx* arg0, Actor510900* arg1)
+{
+    if (Game_Session->field_1 != 0) {
+        func_actor_510900_801355B4(arg0, arg1);
+        return;
+    }
+    func_actor_510900_8013B6A0(arg0, arg1);
+}
 
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
 {

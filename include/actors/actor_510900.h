@@ -61,6 +61,7 @@ typedef struct Actor510900Ctx {
     /* 0x4C */ u8   field_4C;
 } Actor510900Ctx;
 
+void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B870(Actor510900* arg0);
