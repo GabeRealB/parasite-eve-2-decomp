@@ -69467,3 +69467,64 @@ Preprocessed SHA256:
 - `base.c` (89.824%): `fd036932b65b59ffc75e82d42f8c11205b9b95995fc489b7ee0c4e44a3f90dec`
 - `base_1.c` (100.000%): `68a26fa87590a7ede5c2d64f7a2441e3324225e078a13bc814ed8c1479c06d03`
 - `base_2.c` (90.118%, controlled isolation): `862b9d3b0d57696d4568d96268946b461bb1240129eea627a3e36487c4a9bcf3`
+
+## `reload_cse` rewrites a constant shift *operand*: `sll ...,1` where the target has `sllv ...,$sN`
+
+The actor family's anim-requeue body reads a `s16` id run at the state stored in
+the work struct, so the index scale is a constant 2. The target computes that
+with a *register* count:
+
+```
+lh    v0, 0x58E(s1)
+sllv  v0, v0, s0        ; $s0 holds 1 -- the i = 1 loop counter, not 2
+addu  v0, v0, v1        ; %hi/%lo of D_actor_105100_801414C8
+lh    s2, 0(v0)
+```
+
+Every `regs`-shaped reading of that is wrong: it is not an allocation
+difference and the C must not be bent to chase it. `reload_cse_regs` runs
+between `.sched` and `.sched2`, and its `reload_cse_regs_1` is a linear forward
+scan that records `(set reg K)` values in `reg_values` and clears the whole
+table **only at a `CODE_LABEL`** (`reload1.c:7902`). A constant materialized
+before a forward branch is therefore still "known" in the *fall-through* block,
+and `reload_cse_simplify_operands` rewrites a constant operand equal to it into
+that hard register. `ashlsi3`'s template prints `sll %0,%1,%2` regardless
+(`mips.md:4209`, no `sllv` branch at all), so a register count comes out of cc1
+as `sll $2,$2,$16` and the assembler encodes it as `sllv` -- same RTL, canonical
+mnemonic.
+
+Dump evidence, `func_actor_105100_80136408` (`base_1.c`, 100%):
+
+- `.lreg` / `.sched`: `(insn 44 (set (reg:SI 97) (ashift:SI (reg:SI 93) (const_int 1))) 205 {ashlsi3})`
+- `.sched2`: the same insn with `(reg:SI 16 s0)` as the count and nothing else changed
+- `.sched2`: `(insn 14 (set (reg/v:SI 16 s0) (const_int 1)))` earlier, with the
+  region's first `CODE_LABEL` beyond the shift -- no label between them.
+
+So the only thing the C has to do is make *some* register hold that constant
+before the branch, which here is the `i = 1` shared by both loops. That comes
+for free when the body is written the way its already-matched siblings in
+`src/actors/lib/` are written (`Actor00700_Fn01D80` in `actor_100700_text.c`,
+`Actor05500_Fn039AC` in `actor_105500_text.c`, `Actor02500_Fn02318` in
+`actor_102500_tail.c`); m2c's transcription instead scales a `s64` `M2C_UNK`
+pointer and emits `sll v0,v0,0x3`, which no register can satisfy.
+
+The other half of the same body is independent. `field_592 += i;` must stay
+`addu v0,v0,s0` and not fold to `addiu v0,v0,1`, which needs `TOUCH_REG(i)` in
+front of it -- the `"+r"` asm leaves `i`'s value unknown past it, so the
+constant 1 is no longer available. Controlled isolation: `base_2.c` is
+`base_1.c` with only the `TOUCH_REG(i);` line deleted -- 95.918% with
+`insert=1 delete=1`, `addiu v0,v0,1` -- and the `sllv` above it survives
+untouched, so the `reload_cse` substitution does not depend on the touch.
+
+This is a different face of the `reload_cse` entries above: those rewrite a
+constant *set* into a copy of a register (adding an instruction); this one
+rewrites an operand and changes which instruction is emitted.
+
+Matched as `func_actor_105100_80136408` (attempt 1). Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Preprocessed SHA256:
+
+- `base.c` (87.347%, m2c): `7d3c0245f8bbc959a73f577677f27f68822a515f199823b51eb4b0e9bf94bbcb`
+- `base_1.c` (100.000%): `f1fbc0db5abb03112d3a967a8dd47c6091a0e04739a2af0e1f29c35e4a7aaba8`
+- `base_2.c` (95.918%, controlled isolation -- `TOUCH_REG(i);` deleted): `340531b2118f9f6addd30e1f5937c860d198a6c4e81c3fbb7d4bcccae626271c`

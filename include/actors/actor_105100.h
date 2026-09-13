@@ -24,7 +24,10 @@ typedef struct Actor105100Work {
     /* 0x580 */ s32   field_580;
     /* 0x584 */ s32   field_584;
     /* 0x588 */ s32   field_588;
-    /* 0x58C */ byte  pad_58C[8];
+    /* 0x58C */ byte  pad_58C[2];
+    /* 0x58E */ u16   field_58E;
+    /* 0x590 */ s16   field_590;
+    /* 0x592 */ u16   field_592;
     /* 0x594 */ s16   field_594;
     /* 0x596 */ byte  pad_596[0xC];
     /* 0x5A2 */ s16   field_5A2;

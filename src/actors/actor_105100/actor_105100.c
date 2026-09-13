@@ -23,6 +23,8 @@ void func_actor_105100_80136408(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
 void func_actor_105100_80136574(Actor105100* arg0, s32* arg1, s16 arg2, s32 arg3);
 
+void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
 extern u8 D_801153F4;
 
 /// The run of HP caps at 0x8014139C; `func_actor_105100_80135FCC` reads the
@@ -32,6 +34,11 @@ extern u8 D_801153F4;
 /// varying address, this load a scalar MEM at a fixed one -- and sched2 then
 /// hoists this load above the store, ahead of the `sll`.
 extern u16 D_actor_105100_8014139C[1];
+
+/// The s16 animation-id run at 0x801414C8, one entry per work state at
+/// `Actor105100Work::field_58E`; `func_actor_105100_80136408` reads the entry
+/// the new state selects before it re-queues every slot.
+extern s16 D_actor_105100_801414C8[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80131EBC);
 
@@ -240,4 +247,28 @@ void func_actor_105100_801362A0(Actor105100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136318);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136408);
+void func_actor_105100_80136408(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    s32              i;
+    s32              val;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if ((s16)work->field_58E != work->field_590) {
+        work->field_590 = work->field_58E;
+        work->field_592 = 0;
+        val             = D_actor_105100_801414C8[(s16)work->field_58E];
+        do {
+            func_800B4114(work, i, (s16)work->field_58E, 0, val);
+            i++;
+        } while (i < 0x13);
+    } else {
+        TOUCH_REG(i);
+        work->field_592 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 0x13);
+    }
+}
