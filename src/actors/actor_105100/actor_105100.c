@@ -4,6 +4,7 @@
 
 #include "actors/actor_105100.h"
 #include "actors/actors_shared_80134ff0.h"
+#include "actors/actors_shared_80136574.h"
 #include "main/sound.h"
 
 #include "main/task.h"
@@ -21,7 +22,6 @@ void func_actor_105100_80134130(Actor105100* arg0);
 void func_actor_105100_80135E54(Actor105100* arg0);
 void func_actor_105100_80136408(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
-void func_actor_105100_80136574(Actor105100* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
 
 void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
@@ -107,7 +107,7 @@ default_body:
     }
     func_actor_105100_80136408(arg1);
     func_actor_105100_80134130(arg1);
-    func_actor_105100_80136574(arg1, &work->field_560, work->field_594, 1);
+    ActorsShared80136574((ActorShared80136574*)arg1, &work->field_560, work->field_594, 1);
     if (work->field_5A8 != 0) {
         func_8018294C(arg1);
     }

@@ -14,30 +14,6 @@ typedef struct Actor105100Obj2C {
     /* 0x0C */ s16            field_C;
 } Actor105100Obj2C;
 
-/// A `MATRIX` plus the word-wise view `func_actor_105100_80136574` uses to
-/// splat an identity rotation: five aligned stores instead of nine halfword
-/// ones, each word holding two adjacent `m[][]` entries.
-typedef union Actor105100MatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor105100MatWords;
-STATIC_ASSERT_SIZEOF(Actor105100MatWords, 0x20);
-
-/// 0x30-byte block borrowed from `G_SCRATCH_HEAD` by
-/// `func_actor_105100_80136574`: an identity `mat` scaled by `scale`, then
-/// multiplied into the coordinate the actor's `field_2C` points at.
-typedef struct Actor105100Scratch {
-    /* 0x00 */ Actor105100MatWords mat;
-    /* 0x20 */ VECTOR              scale;
-} Actor105100Scratch;
-STATIC_ASSERT_SIZEOF(Actor105100Scratch, 0x30);
-
 typedef struct Actor105100Work {
     /* 0x000 */ GpObj  obj0;
     /* 0x020 */ byte   pad_20[0x18];
