@@ -109,7 +109,8 @@ typedef struct Actor405800Work {
     /* 0x87E */ s16                 field_87E;
     /* 0x880 */ s16                 field_880;
     /* 0x882 */ s16                 field_882; // randomised hold, 0x5A .. 0x99 frames
-    /* 0x884 */ byte                pad_884[0x7];
+    /* 0x884 */ byte                pad_884[0x6];
+    /* 0x88A */ u8                  field_88A;
     /* 0x88B */ s8                  field_88B;
     /* 0x88C */ u8                  field_88C;
     /* 0x88D */ s8                  field_88D;

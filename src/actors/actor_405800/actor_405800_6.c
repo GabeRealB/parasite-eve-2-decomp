@@ -28,7 +28,25 @@ void func_actor_405800_8013A0F4(Task* arg0);
 void func_actor_405800_8013A1E0(Task* task, s16 arg1, s16 arg2);
 void func_actor_405800_8013A1F8(Task* task, s16 arg1, s16 arg2, s16 arg3);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80138854);
+void func_actor_405800_80138854(Task* arg0, s32 arg1, u16* arg2)
+{
+    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+
+    switch (arg2[1]) {
+        case 0:
+            work->field_88A = 1;
+            break;
+        case 1:
+            work->field_88A = 2;
+            break;
+        case 2:
+            work->field_88A = 3;
+            break;
+        case 3:
+            work->field_88A = 4;
+            break;
+    }
+}
 
 void func_actor_405800_801388C4(Task* task)
 {
