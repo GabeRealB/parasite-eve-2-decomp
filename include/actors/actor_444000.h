@@ -119,7 +119,7 @@ typedef struct Actor444000Work {
     /* 0x7D8 */ s32  field_7D8;
     /* 0x7DC */ byte pad_7DC[0x14];
     /* 0x7F0 */ byte pad_7F0[0x3];
-    /* 0x7F3 */ s8   field_7F3;
+    /* 0x7F3 */ u8   field_7F3;
     /// One collision group per body part the boss can be struck on: the
     /// coordinate a landed hit spawns its effect at, followed by that part's
     /// own `GpRec18` table. `func_actor_444000_8013AFF8` publishes
@@ -605,9 +605,13 @@ STATIC_ASSERT_SIZEOF(Actor444000DeltaScratch, 0x14);
 s32  func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id);
 void func_actor_444000_8013441C(Actor444000* arg0);
+void func_actor_444000_8013482C(Actor444000* task);
+void func_actor_444000_80135448(Actor444000* arg0);
 void func_actor_444000_801371E8(Task* task, s16 arg1, s16 index);
 void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task);
-void func_actor_444000_801423C4(GpEnemy* enemy, Task* task);
+void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task);
+void func_actor_444000_801434C4(Actor444000* arg0);
+void func_actor_444000_801435CC(Actor444000* arg0);
 s32  func_actor_444000_80143D68(Actor444000* arg0);
 s32  func_actor_444000_80143F38(Actor444000* arg0);
 void func_actor_444000_80143F4C(Actor444000* arg0);

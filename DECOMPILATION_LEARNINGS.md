@@ -64588,3 +64588,64 @@ mat->ident.m02_m10 = 0;        /* the rest keep the materialised base  */
 Reading `sc` back out of `SCRATCH_SP` rather than computing it from `head` is
 what makes it its own pseudo, which is the `move` into the saved register the
 target has before the branch.
+
+## A local array initialiser is a copy *loop*: anything before it must be a declaration initialiser
+
+`void (*handlers[0x15])(T*) = { ... };` inside a function compiles to a
+rodata-to-stack copy with a real backward branch, so it is a basic-block
+boundary. Any other value the target computes *before* that loop therefore
+cannot be written as a statement after the declarations - sched1 and sched2 only
+reorder within a block, so the statement's insns stay after the loop no matter
+how early the target wants them. In `func_actor_444000_801423C4` the target's
+pre-loop block is
+
+```
+lui   v0, %hi(Wip_SysConfig)
+addiu s6, v0, %lo(Wip_SysConfig)
+addiu v1, sp, 0x20              /* copy destination */
+lui   v0, %hi(D_actor_444000_80131FF4)
+...
+lw    s1, 0x1c(s3)              /* work = task->field_1C */
+```
+
+Writing `cfg` and `work` as assignments after the declarations put both *after*
+the copy loop (98.9%, one extra insn because `&Wip_SysConfig` then had to be
+re-materialised in `Gp_GetViewIndex`'s delay slot). Declaring them as C89
+initialisers ahead of the array is what produces the target block (99.8%):
+
+```c
+WipSysConfig*    cfg  = &Wip_SysConfig;
+Actor444000Work* work = task->field_1C;
+VECTOR           pos;
+void (*handlers[0x15])(Actor444000*) = { ... };
+```
+
+Stack slots are unaffected: `cfg` and `work` are registers, so `pos` still takes
+the first slot above the argument-save area and the array the next.
+
+## Two independent `%hi` groups in one block: statement order moves the `lui`, not the store
+
+GCC 2.8.1 schedules a block backwards and breaks ties in `rank_for_schedule`
+on `INSN_LUID`, i.e. on the order the insns already had. Two adjacent stores to
+*different* globals are independent, so their `lui`/`li` setup insns tie with
+each other and with the other group's, and the tie-break is pure source order -
+while the stores themselves are ordered by their own dependencies and do not
+move. So when the only leftover is a `lui` sitting one group too early,
+swapping the two source statements relocates exactly that pair.
+
+Target:
+
+```
+lui v1, %hi(D_actor_444000_80144A68)
+li  v0, 1
+lui s0, %hi(D_actor_444000_80161888)
+sb  zero, %lo(D_actor_444000_80161888)(s0)   /* field_0 = 0 still first */
+addiu s0, s0, %lo(D_actor_444000_80161888)
+sh  v0, %lo(D_actor_444000_80144A68)(v1)
+```
+
+`field_0 = 0;` before `D_80144A68 = 1;` emits `lui s0` first (one `reorder`
+penalty). Writing `D_80144A68 = 1;` first gives its `lui`/`li` the lower LUIDs
+and they lead the block - and the store order is unchanged, because `sb` still
+depends only on `lui s0`. Do not infer source order from store order here; it
+is the address-setup insns that follow the source.

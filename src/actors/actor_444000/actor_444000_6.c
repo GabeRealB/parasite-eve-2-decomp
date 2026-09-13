@@ -108,6 +108,16 @@ extern Actor444000Msg3F8 D_actor_444000_80161928;
 extern GpAnimBlk*        Gp_PlayerAnimBlkTbl[];
 extern u16               Gp_WeaponIdBase[];
 
+/// Non-zero while the controller task is suspended; the arena tick uses it to
+/// pick how much of the per-frame work still runs (see
+/// `func_actor_444000_801423C4`).
+extern u8 D_801153F4;
+
+/// Dispatch-table entries that still live in assembly further down this file.
+void func_actor_444000_8013E058(Actor444000* arg0);
+void func_actor_444000_8013EC84(Actor444000* arg0);
+void func_actor_444000_80141DFC(Actor444000* arg0);
+
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
 /// allocate its `Actor444000SpinnerWork`, parent the model object to the world
 /// coordinate, give it a random orientation off `Gp_LcgState`, point it at its
@@ -2851,7 +2861,343 @@ void func_actor_444000_80142254(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_801423C4);
+/// Per-frame body of the boss task: refreshes the host model's coordinate,
+/// times out the "model buffers freed" countdown, re-lights the host and its
+/// escorts, then runs the state handler `Actor444000Work::field_0` selects and
+/// republishes every collision group.
+///
+/// `D_801153F4` gates how much of that runs. While the controller task is
+/// suspended (1 or 2) the tick only pushes the host's `TmdObject::field_C`
+/// onto the escorts and clears the collision tables, and returns; only the
+/// running case (0) and anything else falls through to the state machine.
+/// Within the suspended cases the view index decides whether that flag word is
+/// 0x80 (hidden) or 0.
+///
+/// `field_7F3` is a countdown armed when the fight hides the models: while it
+/// runs the host is flagged hidden, and the step that takes it to zero also
+/// raises bit 2 and hands every model's buffers back with `Tmd_FreeBuffers`.
+///
+/// `field_EFA` selects which of the two bodies is the "live" one -- the host
+/// (`enemy`) or escort 3 (`field_ECC[3]`) -- and that choice drives the colour
+/// update, the link-node slots and which collision groups publish their
+/// `0x8000` bit this frame. States 0, 1, 5, 0xC, 0x12 and 0x13 are the inert
+/// ones: they park both bodies on slot 1 and clear every group.
+///
+/// `field_F12` is the death timer, only started once the host's HP is gone:
+/// step 0 tells the scene (message 0x7DA, action 0x2C) and latches
+/// `D_actor_444000_80144A68`, step 3 tells the player's task (0x13F4) and moves
+/// the fight to state 0x12 with the two death cues.
+///
+/// The dispatch table is a local, as in `func_actor_444000_80142F28`.
+void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
+{
+    WipSysConfig*    cfg  = &Wip_SysConfig;
+    Actor444000Work* work = task->field_1C;
+    VECTOR           pos;
+    void             (*handlers[0x15])(Actor444000*) = {
+        func_actor_444000_8013D810,
+        func_actor_444000_80143F4C,
+        NULL,
+        func_actor_444000_8013E058,
+        NULL,
+        func_actor_444000_80140BBC,
+        NULL,
+        func_actor_444000_801404C0,
+        func_actor_444000_8014105C,
+        func_actor_444000_8013482C,
+        func_actor_444000_801411C8,
+        func_actor_444000_8013FB74,
+        func_actor_444000_80140E28,
+        func_actor_444000_8013EC84,
+        func_actor_444000_80141618,
+        func_actor_444000_80141DFC,
+        func_actor_444000_801434C4,
+        func_actor_444000_801435CC,
+        func_actor_444000_80135448,
+        func_actor_444000_8013D96C,
+        NULL,
+    };
+    Actor444000Work* escorts;
+    Actor444000Work* flagged;
+    s32              view;
+    s16              i;
+    s16              j;
+
+    view                                      = Gp_GetViewIndex() & 0xFF;
+    ((TmdObject*)task->extra)->field_8[0].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[0]);
+
+    escorts = task->field_1C;
+    if (escorts->field_7F3 != 0) {
+        ((TmdObject*)task->extra)->field_C = 0x80;
+        if (--escorts->field_7F3 == 0) {
+            ((TmdObject*)task->extra)->field_C |= 4;
+            Tmd_FreeBuffers((TmdObject*)task->extra);
+            for (j = 0; j < 7; j++) {
+                if (escorts->field_ECC[j] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[j]->task->extra)->field_C |= 4;
+                    Tmd_FreeBuffers((TmdObject*)escorts->field_ECC[j]->task->extra);
+                }
+            }
+        }
+    }
+
+    func_actor_444000_80142254();
+
+    pos.vx = ((TmdObject*)task->extra)->field_8[3].workm.t[0];
+    pos.vy = ((TmdObject*)task->extra)->field_8[3].workm.t[1];
+    pos.vz = ((TmdObject*)task->extra)->field_8[3].workm.t[2];
+
+    if (work->field_EFA != work->field_EFC) {
+        Gp_UpdateActorColor(enemy, &pos, 0, 0);
+        Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
+        work->field_EFC = work->field_EFA;
+    }
+    Gp_UpdateActorColor(work->field_EFA != 0 ? enemy : work->field_ECC[3], &pos, 0, 0);
+
+    if ((s16)work->field_0 == 0xB) {
+        ((TmdObject*)work->field_ECC[4]->task->extra)->field_E = -1;
+    } else {
+        ((TmdObject*)work->field_ECC[4]->task->extra)->field_E = 0;
+    }
+
+    switch (D_801153F4) {
+        case 0:
+            if ((s16)work->field_0 != 0) {
+                if (view == 9) {
+                    flagged                            = task->field_1C;
+                    flagged->field_7F3                 = 0;
+                    ((TmdObject*)task->extra)->field_C = 0x80;
+                    for (i = 0; i < 7; i++) {
+                        if (flagged->field_ECC[i] != NULL) {
+                            ((TmdObject*)flagged->field_ECC[i]->task->extra)->field_C =
+                                ((TmdObject*)task->extra)->field_C;
+                        }
+                    }
+                } else {
+                    flagged                            = task->field_1C;
+                    flagged->field_7F3                 = 0;
+                    ((TmdObject*)task->extra)->field_C = 0;
+                    for (i = 0; i < 7; i++) {
+                        if (flagged->field_ECC[i] != NULL) {
+                            ((TmdObject*)flagged->field_ECC[i]->task->extra)->field_C =
+                                ((TmdObject*)task->extra)->field_C;
+                        }
+                    }
+                }
+            }
+            break;
+
+        case 1:
+            if ((s16)work->field_0 != 0) {
+                if (view == 9) {
+                    flagged                            = task->field_1C;
+                    flagged->field_7F3                 = 0;
+                    ((TmdObject*)task->extra)->field_C = 0x80;
+                    for (i = 0; i < 7; i++) {
+                        if (flagged->field_ECC[i] != NULL) {
+                            ((TmdObject*)flagged->field_ECC[i]->task->extra)->field_C =
+                                ((TmdObject*)task->extra)->field_C;
+                        }
+                    }
+                } else {
+                    flagged                            = task->field_1C;
+                    flagged->field_7F3                 = 0;
+                    ((TmdObject*)task->extra)->field_C = 0;
+                    for (i = 0; i < 7; i++) {
+                        if (flagged->field_ECC[i] != NULL) {
+                            ((TmdObject*)flagged->field_ECC[i]->task->extra)->field_C =
+                                ((TmdObject*)task->extra)->field_C;
+                        }
+                    }
+                }
+            }
+            Gp_ClearRec18Occupied(work->hits[0].recs);
+            Gp_ClearRec18Occupied(work->hits[1].recs);
+            Gp_ClearRec18Occupied(work->hits[2].recs);
+            Gp_ClearRec18Occupied(work->hits[3].recs);
+            Gp_ClearRec18Occupied(work->hits[4].recs);
+            Gp_ClearRec18Occupied(work->hits[5].recs);
+            Gp_ClearRec18Occupied(work->hits[6].recs);
+            Gp_ClearRec18Occupied(work->hits[7].recs);
+            Gp_ClearRec18Occupied(work->hits[8].recs);
+            Gp_ClearRec18Occupied(work->recs2);
+            return;
+
+        case 2:
+            flagged                            = task->field_1C;
+            flagged->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0x80;
+            for (i = 0; i < 7; i++) {
+                if (flagged->field_ECC[i] != NULL) {
+                    ((TmdObject*)flagged->field_ECC[i]->task->extra)->field_C =
+                        ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            Gp_ClearRec18Occupied(work->hits[0].recs);
+            Gp_ClearRec18Occupied(work->hits[1].recs);
+            Gp_ClearRec18Occupied(work->hits[2].recs);
+            Gp_ClearRec18Occupied(work->hits[3].recs);
+            Gp_ClearRec18Occupied(work->hits[4].recs);
+            Gp_ClearRec18Occupied(work->hits[5].recs);
+            Gp_ClearRec18Occupied(work->hits[6].recs);
+            Gp_ClearRec18Occupied(work->hits[7].recs);
+            Gp_ClearRec18Occupied(work->hits[8].recs);
+            Gp_ClearRec18Occupied(work->recs2);
+            return;
+    }
+
+    SCRATCH_SP -= 0x1C;
+
+    if (enemy->field_40 > 0) {
+        if (work->field_EC8 != 1 && cfg->field_18 > 0 && (s16)work->field_0 != 0xD) {
+            if (work->field_E92 > 0) {
+                work->field_E92--;
+            } else {
+                func_actor_444000_8013C4B0(task);
+            }
+            if (work->field_E8C > 0) {
+                work->field_E8C--;
+            } else {
+                func_actor_444000_8013C060(task);
+            }
+            if (work->field_E8E > 0) {
+                work->field_E8E--;
+            } else {
+                func_actor_444000_8013CA60(task);
+            }
+            if (work->field_E90 > 0) {
+                work->field_E90--;
+            } else {
+                func_actor_444000_8013D128(task);
+            }
+        }
+    }
+    if (enemy->field_40 <= 0) {
+        if (cfg->field_18 <= 0) {
+            enemy->field_40         = 1;
+            D_actor_444000_80144A68 = 0;
+        }
+        if (enemy->field_40 <= 0 && (s16)work->field_0 != 0) {
+            switch (work->field_F12) {
+                case 0:
+                    D_actor_444000_80144A68         = 1;
+                    D_actor_444000_80161888.field_0 = 0;
+                    D_actor_444000_80161888.field_1 = 0x2C;
+                    D_actor_444000_80161888.field_2 = 3;
+                    Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
+                    break;
+
+                case 3:
+                    if (cfg->field_18 > 0) {
+                        if (work->field_F08 == 6) {
+                            Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 2, 0);
+                        } else {
+                            Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 1, 0);
+                        }
+                        work->field_0 = 0x12;
+                        SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000A, 1);
+                        SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x4020000D, 1);
+                    }
+                    break;
+            }
+            if (work->field_F12 < 0x100) {
+                work->field_F12++;
+            }
+        }
+    }
+
+    if (work->field_2 != (s16)work->field_0) {
+        work->field_4 = 1;
+        work->field_6 = 0;
+    } else {
+        if (work->field_6 < 0x7FFF) {
+            work->field_6++;
+        }
+        work->field_4 = 0;
+    }
+    work->field_2 = work->field_0;
+    handlers[(s16)work->field_0](task);
+
+    if (work->field_0 < 2 || (s16)work->field_0 == 5 || (s16)work->field_0 == 0x12 ||
+        (s16)work->field_0 == 0x13 || (s16)work->field_0 == 0xC) {
+        enemy->node.field_4              = 1;
+        work->field_ECC[3]->node.field_4 = 1;
+        work->field_ECC[0]->node.field_4 = 1;
+        work->field_ECC[1]->node.field_4 = 1;
+    } else if (work->field_EFA != 0) {
+        if (Gp_NodeSlotMask(&work->field_ECC[3]->node) != 0) {
+            Gp_AssignNodeSlot0(&enemy->node);
+        }
+        enemy->node.field_4              = 8;
+        work->field_ECC[3]->node.field_4 = 5;
+        work->field_ECC[0]->node.field_4 = 5;
+        work->field_ECC[1]->node.field_4 = 5;
+    } else {
+        if (Gp_NodeSlotMask(&enemy->node) != 0) {
+            Gp_AssignNodeSlot0(&work->field_ECC[3]->node);
+        }
+        enemy->node.field_4              = 1;
+        work->field_ECC[3]->node.field_4 = 8;
+        work->field_ECC[0]->node.field_4 = 8;
+        work->field_ECC[1]->node.field_4 = 8;
+    }
+
+    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 0x12 && (s16)work->field_0 != 0x13 &&
+        (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC && work->field_EFA == 1) {
+        work->hits[0].obj.flags |= 0x8000;
+    } else {
+        work->hits[0].obj.flags &= 0x7FFF;
+    }
+
+    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 0x12 && (s16)work->field_0 != 0x13 &&
+        (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC && work->field_EFA != 1) {
+        work->hits[1].obj.flags |= 0x8000;
+        work->hits[2].obj.flags |= 0x8000;
+    } else {
+        work->hits[1].obj.flags &= 0x7FFF;
+        work->hits[2].obj.flags &= 0x7FFF;
+    }
+
+    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC &&
+        (s16)work->field_0 != 0x13 && (s16)work->field_0 != 0x12) {
+        work->hits[3].obj.flags |= 0x8000;
+        work->hits[4].obj.flags |= 0x8000;
+        work->hits[5].obj.flags |= 0x8000;
+    } else {
+        work->hits[3].obj.flags &= 0x7FFF;
+        work->hits[4].obj.flags &= 0x7FFF;
+        work->hits[5].obj.flags &= 0x7FFF;
+    }
+
+    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC &&
+        (s16)work->field_0 != 0x13 && (s16)work->field_0 != 0x12) {
+        work->hits[6].obj.flags |= 0x8000;
+        work->hits[7].obj.flags |= 0x8000;
+        work->hits[8].obj.flags |= 0x8000;
+    } else {
+        work->hits[6].obj.flags &= 0x7FFF;
+        work->hits[7].obj.flags &= 0x7FFF;
+        work->hits[8].obj.flags &= 0x7FFF;
+    }
+
+    Gp_ClearRec18Occupied(work->hits[0].recs);
+    Gp_ClearRec18Occupied(work->hits[1].recs);
+    Gp_ClearRec18Occupied(work->hits[2].recs);
+    Gp_ClearRec18Occupied(work->hits[3].recs);
+    Gp_ClearRec18Occupied(work->hits[4].recs);
+    Gp_ClearRec18Occupied(work->hits[5].recs);
+    Gp_ClearRec18Occupied(work->hits[6].recs);
+    Gp_ClearRec18Occupied(work->hits[7].recs);
+    Gp_ClearRec18Occupied(work->hits[8].recs);
+    Gp_ClearRec18Occupied(work->recs2);
+
+    if ((s16)work->field_0 != 5) {
+        func_actor_444000_8013A77C(task);
+    }
+
+    SCRATCH_SP += 0x1C;
+}
 
 /// Per-frame tail of the arena fight: keeps the camera pulled back far enough
 /// to hold both the boss and the player, then runs the state the task is in.
@@ -2882,7 +3228,7 @@ void func_actor_444000_80142F28(Actor444000* arg0)
 {
     void (*handlers[3])(GpEnemy*, Task*) = {
         (void (*)(GpEnemy*, Task*))func_actor_444000_8013AFF8,
-        func_actor_444000_801423C4,
+        (void (*)(GpEnemy*, Task*))func_actor_444000_801423C4,
         Gp_DestroyEnemy,
     };
     SVECTOR          result;
