@@ -1,33 +1,12 @@
 #include "common.h"
 
-#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
-#include "rooms/room_common.h"
 
 extern s8  D_8007216C;
 extern s16 D_80114D08;
-
-/// Work block this overlay parks in `Task::idMap`; `promptKind` is the display
-/// mode forwarded to `func_800D4E78`. `actor_143000` carries the same body, so
-/// this is the prefix both of them reach rather than a whole-block size.
-typedef struct Actor548100Work {
-    /* 0x00 */ byte pad_0[6];
-    /* 0x06 */ s8   promptKind;
-} Actor548100Work;
-
-void func_actor_548100_80134DBC(Task* task)
-{
-    RoomActionPrompt* prompt = &D_80114D28;
-    Actor548100Work*  work   = (Actor548100Work*)task->idMap;
-
-    prompt->mode     = 0;
-    prompt->targetId = 0;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
-}
 
 void func_actor_548100_80134E0C(Task* arg0)
 {

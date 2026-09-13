@@ -2,8 +2,6 @@
 
 #include "actors/actor_143000.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133698);
-
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_801336E8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133800);
