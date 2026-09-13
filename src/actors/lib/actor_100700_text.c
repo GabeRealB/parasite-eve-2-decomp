@@ -31,10 +31,6 @@ extern MATRIX* D_80073B8C;
 void Actor00700_Fn01B50(Actor00700* arg0);
 void Actor00700_Fn01EEC(Actor00700* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00060);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn00334);
-
 void Actor00700_Fn008B4(Actor00700* arg0)
 {
     Actor00700Work*  work;
@@ -1101,7 +1097,7 @@ void Actor00700_Fn03570(Actor00700* arg0)
     scratch->scale.vx          = 0x1000;
     scratch->scale.vy          = (s32)work->field_2E2;
     scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_22C;
+    coord->coord               = work->field_22C.matrix;
     scratch->mat.ident.m00_m01 = 0x1000;
     scratch->mat.ident.m02_m10 = 0;
     scratch->mat.ident.m11_m12 = 0x1000;
