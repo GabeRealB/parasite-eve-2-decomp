@@ -42,6 +42,8 @@ typedef struct Actor510900Work {
     /* 0x592 */ s16   field_592;
     /* 0x594 */ byte  pad_594[0x10];
     /* 0x5A4 */ s16   field_5A4;
+    /* 0x5A6 */ byte  pad_5A6[0x16];
+    /* 0x5BC */ s16   field_5BC;
 } Actor510900Work;
 
 typedef struct Actor510900 {
