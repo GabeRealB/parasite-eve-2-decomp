@@ -353,7 +353,24 @@ void Actor00100_Fn0B134(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B13C);
+s16 Actor00100_Fn0B13C(Actor00100* arg0)
+{
+    Actor00100RecordWork* work  = (Actor00100RecordWork*)arg0->field_1C;
+    s16                   found = 0;
+    s16                   i;
+    s32                   value;
+
+    for (i = 0; i < 5; i++) {
+        value = work->records[i].field_0;
+        if (value == 0) {
+            break;
+        }
+        if ((value & 0xFFFF0000) == 0x100000) {
+            found = 1;
+        }
+    }
+    return found;
+}
 
 s32 Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2)
 {

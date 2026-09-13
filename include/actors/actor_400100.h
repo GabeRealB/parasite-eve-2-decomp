@@ -58,6 +58,18 @@ typedef struct Actor00100Work {
     /* 0xC2A */ s16           field_C2A;
 } Actor00100Work;
 
+typedef struct Actor00100Record {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[0x14];
+} Actor00100Record;
+STATIC_ASSERT_SIZEOF(Actor00100Record, 0x18);
+
+/// Alternate view of the work block: this table overlaps the object storage.
+typedef struct Actor00100RecordWork {
+    /* 0x000 */ byte             pad_0[0xB0C];
+    /* 0xB0C */ Actor00100Record records[5];
+} Actor00100RecordWork;
+
 typedef struct Actor00100Ctx {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u16  field_8;
