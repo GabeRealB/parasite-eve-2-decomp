@@ -67815,3 +67815,45 @@ in the same overlay, is the quick cross-check: it uses `$a0` as a `Task*`
 Example: `func_actor_461800_80132F20`, 99.78% -> 100.00% on the first build.
 Preprocessed SHA256: `base_1.i`
 `8a2e792dab22f5f05d12956ad11345f8f24860a753fc3d4be26bacde5f5fee71`.
+
+## m2c's temp for a loop counter passed to a call sinks the `lw` below the copy
+
+A do-while that passes its counter to a call makes m2c hoist the increment
+above the call and keep the old value in a temp:
+
+```c
+var_s0 = 1;                    /* m2c */
+do {
+    temp_a1 = var_s0;
+    var_s0 += 1;
+    Gp_AnimTickIndex(&D->anim, temp_a1);
+} while (var_s0 < 0x14);
+```
+
+The temp is one extra allocno, and sched1 issues its copy *first*, so the
+loop body comes out `move a1,s0; lw a0; addiu s0,s0,1; jal; addiu a0,a0,0x40`
+(`reorder` = 1, plus `insert`/`delete`/`branch` = 1 from the branch delay
+slot). Because the copy now sits immediately after the backward branch, reorg
+fills that delay slot with a duplicated `move a1,s0`; the target's delay slot
+is `nop`. Source order is not what keeps the temp alive -- the increment just
+has to be written *after* the call, which is how the original was written:
+
+```c
+i = 1;
+do {
+    Gp_AnimTickIndex(&D->anim, i);
+    i++;
+} while (i < 0x14);
+```
+
+No temp, `lw a0` schedules first, and the delay slot is unfillable again. This
+is the same mechanism as "Roll the LCG through the global, not an m2c temp" --
+an m2c-introduced local is itself a scheduling decision -- but here the fix is
+statement order rather than re-reading a global. The idiom is common enough to
+recognise on sight: `src/actors/actor_143900/actor_143900_3.c`,
+`src/actors/actor_151000/actor_151000_3.c` and the inlined
+`actor_405800_anim.h` all carry the increment-after-the-call form.
+
+Example: `func_actor_461800_80132C28`, 86.26% -> 100.00% on the first build.
+Preprocessed SHA256: `base_1.i`
+`a822f08e0bcdf616b93b90f3b168aece5790fe9a259c7d825a3b70a738521105`.

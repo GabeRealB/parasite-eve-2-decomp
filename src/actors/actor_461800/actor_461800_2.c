@@ -6,7 +6,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132B74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132C28);
+/// Ticks animation slots 1..0x13 of the actor's animation context.
+void func_actor_461800_80132C28(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&D_actor_461800_80143894->anim, i);
+        i++;
+    } while (i < 0x14);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132C74);
 
