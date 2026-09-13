@@ -69121,3 +69121,44 @@ worktree's match commit: land the match, and let a later
 `bulk_m2c_promote.py --results …` run (from the main checkout, on `main`) pick
 the body up. `overlay_dup_index.py find` marks the duplicate, so nothing is lost
 by waiting.
+
+## func_actor_460200_801338C0: a separate allocation temporary keeps the call result in `$v0`
+
+The spawn routine scored 99.877% with `regs=2`: it emitted `addu s1,v0,$zero`
+then `sw $s1,0x1C(s4)` / `bnez $s1`, where the target stores and tests the raw
+call result (`sw $v0,0x1C(s4)` / `bnez $v0`).
+
+With `work = (Actor460200Work*)Mem_Calloc(0x4F8, 0); task->idMap =
+(TaskIdMap*)work; if (work == NULL) ...`, the pseudo the store and the NULL test
+read *is* `work`, which is live across four later calls. `global.c` therefore
+homes it in `$s1` and every use follows it; `cse` has no second value to fold
+the store onto. Assigning the call to a distinct variable first splits that:
+
+```c
+workMem = Mem_Calloc(0x4F8, 0);
+work    = (Actor460200Work*)workMem;
+if ((task->idMap = (TaskIdMap*)work) == NULL) { ... }
+```
+
+Post-`cse` RTL is `82 = v0` (call result), `84 = 82` (`work`), `mem 0x1c = 82`,
+`jump ne 82`: cse folds the assignment-expression pseudo back onto the
+*block-local* call-result pseudo, so the store and the test read 82. `.lreg`
+says "used 4 times across 4 insns in block 0" for 82 and shows 84 crossing two
+calls, so local-alloc homes 82 in `$v0` (its copy of `v0` is deleted) while the
+global allocator sends `work` to `$s1`, materialising the leftover copy as
+`addu $s1,$v0,$zero`.
+
+The intermediate's type is irrelevant - `Actor460200Work* alloc` matches
+identically - so this is a statement/quantity split, not a cast. Direction
+matters: `work = call; if ((task->idMap = (TaskIdMap*)work) == NULL) ...` keeps
+the store and test on `work` and fails the same way. The permuter found the
+split from a `base_5` seed; ported `base_9` and the typed control `base_10` both
+scored 100%. Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+`base_9.c` preprocessed SHA256: 54a176da3677e0ac5027d68e318edbb2d6a92edae2d7587e48161f2f2bb8d68f.
+
+`base_10.c` preprocessed SHA256: 2759df986d5f915cb2c790eb59549469b799aea9220dc8d11d98211617d437a4.
+
+Evidence: tools/permuter_findings/func_actor_460200_801338C0/sessions/7fee7c7e577c4ba2abd7620172d0e73a/277e68d1389c85d2d1f6
+(seed `base_5.c`, retained post-cse RTL, `.lreg` and `.greg` dumps).

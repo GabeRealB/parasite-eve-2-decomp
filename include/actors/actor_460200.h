@@ -17,19 +17,28 @@
 /// are the same two fields `ActorsShared80132514Work` names `field_4B8` /
 /// `field_4EC`, which is also where `func_actor_460200_80132A50` latches
 /// `animId` onto `field_4B6`.
+///
+/// `slots` is the twenty-element `GpAnimSlot` array at +0x54 those resets walk,
+/// and the `0x374` pose buffer the spawn routine hands `func_800B3F84` sits
+/// directly past it. `enemy` is the `GpEnemy` the spawn routine is passed in
+/// its first argument (`Task::spawnArg2`) and parks for the exit path.
 typedef struct Actor460200Work {
-    /* 0x000 */ byte      pad_0[0x40];
-    /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x460];
-    /* 0x4B4 */ s16       state;
-    /* 0x4B6 */ s16       field_4B6;
-    /* 0x4B8 */ u16       animId;
-    /* 0x4BA */ s16       field_4BA;
-    /* 0x4BC */ byte      pad_4BC[0x30];
-    /* 0x4EC */ u16       animArg;
-    /* 0x4EE */ s16       field_4EE;
-    /* 0x4F0 */ u16       field_4F0;
+    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x140];
+    /* 0x4B4 */ s16        state;
+    /* 0x4B6 */ s16        field_4B6;
+    /* 0x4B8 */ u16        animId;
+    /* 0x4BA */ s16        field_4BA;
+    /* 0x4BC */ byte       pad_4BC[0x30];
+    /* 0x4EC */ u16        animArg;
+    /* 0x4EE */ s16        field_4EE;
+    /* 0x4F0 */ u16        field_4F0;
+    /* 0x4F2 */ byte       pad_4F2[2];
+    /* 0x4F4 */ GpEnemy*   enemy;
 } Actor460200Work;
+STATIC_ASSERT_SIZEOF(Actor460200Work, 0x4F8);
 
 /// Work block of the actors whose spawn routine allocates it with
 /// `Mem_Calloc(0x4F8, 0)` and hangs it off `Task::idMap` (0x1C); the same

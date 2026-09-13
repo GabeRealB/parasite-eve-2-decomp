@@ -5,10 +5,15 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
+#include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
+extern s32 D_actor_460200_801514FC;
+extern s32 D_actor_460200_80151538;
+
 void func_actor_460200_801336B4(Task* task);
+void func_actor_460200_80133A88(Task* task);
 void func_actor_460200_80133AB0(Task* task);
 
 /// Per-frame handler of one of this actor's sub-model tasks: the same body as
@@ -38,7 +43,7 @@ void func_actor_460200_8013364C(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_801336B4);
 
-void func_actor_460200_801338C0(void* enemy, Task* task);
+void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
 void func_actor_460200_80133A04(void* enemy, Task* task);
 
 void func_actor_460200_8013386C(Task* task)
@@ -48,7 +53,51 @@ void func_actor_460200_8013386C(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_801338C0);
+/// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
+/// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
+/// matrix pair its sub-model reads through `TmdObject::field_1C`/`field_20`
+/// plus the animation state below), parks the enemy in `Actor460200Work::enemy`
+/// and starts state 2, the visibility opcode `func_actor_460200_801325FC` runs.
+void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
+{
+    Actor460200Work* work;
+    void*            workMem;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    MATRIX*          mtx;
+    VECTOR           vec;
+
+    obj     = task->extra;
+    coord   = obj->field_8;
+    workMem = Mem_Calloc(0x4F8, 0);
+    work    = (Actor460200Work*)workMem;
+    if ((task->idMap = (TaskIdMap*)work) == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback  = func_actor_460200_80133A88;
+    coord->sub          = &Gfx_ViewCoord;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    enemy->node.field_5 = 0;
+    enemy->node.field_4 = 1;
+    obj->field_C        = 0;
+    obj->field_E        = 1;
+    work->enemy         = enemy;
+    work->animId        = 2;
+    mtx                 = (MATRIX*)work;
+    obj->field_1C       = mtx;
+    obj->field_20       = mtx + 1;
+    vec.vx              = coord->workm.t[0];
+    vec.vy              = coord->workm.t[1] - 0x320;
+    vec.vz              = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, &D_actor_460200_80151538, obj, &work->slots[0x14], work->slots);
+    work->state    = 2;
+    task->field_24 = &D_actor_460200_801514FC;
+    func_actor_460200_801336B4(task);
+    task->state += 1;
+}
 
 void func_actor_460200_80133A04(void* arg0, Task* task)
 {
