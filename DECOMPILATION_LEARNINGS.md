@@ -65194,3 +65194,66 @@ Preprocessed SHA256:
 - `base_2.i`: `480735953d5d37653e7e74f72f2d78549c7dc7599e4b84090b39d60ee7ecbe98`
 - `base_3.i`: `e697a67fbcadf5d098d6a439eab39e0da666abef5beb22bec773be651f66e504`
 - `base_5.i`: `d8e1f0aef29b25e0a9c775f01b3f82af721150710f0a18bb7cd9c3640e7e2c97`
+## An actors script-opcode handler needs its unused middle parameter to test `$a2`
+
+**Symptom.** An 8-instruction handler is one register off: ours branches on
+`$a1`, the target on `$a2`. `regs=1`, 99.375%, and the delay slots, block
+topology and predicates all already match.
+
+**Cause.** m2c reconstructs the smallest signature the body uses, so a handler
+that never reads its own opcode id comes back as two parameters and the tested
+value is the *second* one. The real caller is `Gp_DispatchMsg` in gameplay,
+which walks the `GpMsgEntry` table at `Task::field_24` and calls
+
+```c
+typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+return entry->handler(arg0, arg1, arg2, arg3);
+```
+
+so slot 2 is the opcode id and slot 3 is the handler's own argument. Restoring
+the full three-parameter signature — middle one unused — moves the tested value
+into `$a2` and matches.
+
+```c
+s32 func_actor_510900_8013BE64(Actor510900* arg0, s32 msgId, s32 arg2)
+```
+
+The convention is visible in the matched siblings: `func_actor_444000_8013A958(
+Actor444000* task, s32 msgId, s32 arg2)` and the shared `ActorsShared80132074(
+Task* task, s32 arg1, ActorsShared80132074Args* args)`, which is the 0x7D4 entry
+of the same table our function is the 0x7D5 entry of. A handler that branches on
+an argument register one slot early is this, not an allocation problem — do not
+reach for a pin.
+
+Example: `func_actor_510900_8013BE64`. Inputs: `base_1.i`
+`c5309e47f02608dd5a8bd1c3ae77fdb0fdef5b0570025d587843f9540c182505`, `base_3.i`
+`4b5617da6f4c1cc82f16fe7c2f1020ab726d7d1cfd582ed9d6842d99940322b9`.
+
+## A promoted `shared` span does not renumber units — it moves which bytes a name covers
+
+`overlay_dup_index.py promote <fn>` writes the span into every sharer's manifest
+and the shared symbol into each `configs/USA/sym/<family>/<overlay>.txt`, and the
+body then lives once in `src/<family>/lib/<unit>.c`. What that does to the split
+is narrower than "every later unit shifts":
+
+* `emit_run` in `tools/gen_overlay_configs.py` increments the unit counter once
+  per **run**, and a shared cut is not a run — so inserting a span never changes
+  a unit *number*. The cut added to `actor_205200` renames nothing.
+* A span starting where a unit already started only shortens that unit at the
+  front, and its remaining functions keep their file, so **no body moves**.
+  `actor_510900`'s new span begins at 0xA044, exactly where the
+  `actors_shared_80132074` span ended, and `actor_510900_4.c` needed nothing but
+  the removal of the promoted body.
+* A span starting *inside* a unit splits it: the leading part keeps the name and
+  the trailing part becomes a new unit splat creates fresh, complete with its
+  `INCLUDE_ASM` lines. The pre-existing file is **not** rewritten, so its
+  now-stale `INCLUDE_ASM` lines for the functions that moved must be deleted by
+  hand. `actor_205200_3.c` is cut at 0x2B60: it keeps `8014C8D4` and the matched
+  `8014C924`, drops `8014C980` (which became the shared body) and `8014C9A0`,
+  and `actor_205200_4.c` came back holding the latter.
+
+The split only emits `.s` files for functions inside a unit's own range, so a
+stale line points at a `nonmatchings/<unit>/` folder that no longer contains it.
+
+Worked example: promoting `func_actor_510900_8013BE64` to
+`ActorsShared8013be64` for `actor_510900` + `actor_205200`.

@@ -14,7 +14,3 @@ void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1)
     Gp_UnlinkObj(&work->field_4E4);
     Gp_DestroyEnemy(arg0, arg1);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_3", func_actor_205200_8014C980);
-
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_3", func_actor_205200_8014C9A0);
