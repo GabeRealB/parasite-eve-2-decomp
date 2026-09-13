@@ -87,7 +87,7 @@ typedef struct Actor405800Work {
     /* 0x850 */ s16        field_850; // animation speed / step scale
     /* 0x852 */ s16        field_852; // compared against 2000 to pick state 8 vs 0xD
     /* 0x854 */ byte       pad_854[0x8];
-    /* 0x85C */ s16        field_85C; // countdown, ticked by func_actor_405800_8013795C
+    /* 0x85C */ s16        field_85C; // countdown seeded by func_actor_405800_80137994, ticked by func_actor_405800_8013795C
     /* 0x85E */ s16        field_85E; // countdown, ticked by func_actor_405800_8013795C
     /* 0x860 */ byte       pad_860[0x6];
     /* 0x866 */ s16        field_866;

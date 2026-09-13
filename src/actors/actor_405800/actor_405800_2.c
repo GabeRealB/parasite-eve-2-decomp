@@ -19,6 +19,8 @@
  * `SOFT_BARRIER()` was enough for a byte store but not for this pointer one. */
 extern void* D_800678F0[1];
 
+extern s32 Gp_LcgState;
+
 /* Model streams in this overlay's own data. */
 extern u8 D_actor_405800_8013FB18[];
 extern u8 D_actor_405800_8014086C[];
@@ -152,7 +154,22 @@ void func_actor_405800_8013795C(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80137994);
+void func_actor_405800_80137994(Task* arg0, s16 arg1)
+{
+    Actor405800Work* work;
+    u32              rnd1;
+    u32              rnd2;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if ((arg1 << 16) != 0) {
+        rnd1            = ((u32)Gp_LcgState * 5) + 0x71357911;
+        rnd2            = (rnd1 * 5) + 0x71357911;
+        Gp_LcgState     = rnd2;
+        work->field_85C = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
+        return;
+    }
+    work->field_85C = 0;
+}
 
 void func_actor_405800_801379F8(Task* task)
 {

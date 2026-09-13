@@ -18,7 +18,7 @@ void func_actor_405800_80135A3C(Task* arg0, s16 arg1);
 s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_80136E14(Task* arg0);
 void func_actor_405800_8013706C(Task* arg0, s16 arg1);
-void func_actor_405800_80137994(Task* arg0, s32 arg1);
+void func_actor_405800_80137994(Task* arg0, s16 arg1);
 void func_actor_405800_801379F8(Task* task);
 void func_actor_405800_80139FB0(Task* task, s16 arg1);
 void func_actor_405800_8013A0F4(Task* arg0);

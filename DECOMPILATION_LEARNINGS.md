@@ -58820,6 +58820,15 @@ came out as `$fp`/`$s7` the wrong way round. As `u8 shade` the temp read `4 acro
 `sb` only stores the low byte anyway. When a stack parameter is used only through
 a narrow store or compare, try declaring it at that width before moving statements.
 
+The same ranking shows up on `$a2`/`$a3` when those two allocnos are a parameter
+copy and a pointer loaded before a branch. `func_actor_405800_80137994` tests
+`(arg1 << 16) != 0`, then stores `arg1` plus two LCG draws into an `s16`
+countdown. As `s32 arg1` the live copy is `3 refs / 34` (17 doubled) and loses
+`$a2` to the work pointer (`3 / 22`). As `s16 arg1` it is `3 / 17` with no
+doubling and takes `$a2`; the object is otherwise identical. `TOUCH_REG(arg1)`
+on the `s32` form also matches, by making `REG_N_SETS != 1` so
+`update_equiv_regs` skips the doubling, but the width change is the C spelling.
+
 ## A struct load cannot cross a byte store, but stores into one prim reorder freely
 
 GCC 2.8.1's alias check proves two `MEM`s off the same base register with
