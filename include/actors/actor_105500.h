@@ -48,7 +48,8 @@ typedef struct Actor105500Work {
     /* 0x3B6 */ s16       field_3B6;
     /* 0x3B8 */ byte      pad_3B8[6];
     /* 0x3BE */ s16       field_3BE;
-    /* 0x3C0 */ byte      pad_3C0[8];
+    /* 0x3C0 */ s16       field_3C0;
+    /* 0x3C2 */ byte      pad_3C2[6];
     /* 0x3C8 */ s16       field_3C8;
     /* 0x3CA */ byte      pad_3CA[6];
     /* 0x3D0 */ s16       field_3D0;
@@ -100,6 +101,7 @@ void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);
 extern u8  D_801153F2[2];
 extern u32 Gp_LcgState;
 extern u16 Actor05500_D08980[];
+extern u16 Actor05500_D08990[];
 extern s16 Actor05500_D08A1E;
 
 extern GpU16Pair Actor05500_D08958;
