@@ -71055,3 +71055,12 @@ Next: full integration verification; no remaining codegen mismatch
 
 - `PERMUTER_ANALYSIS.md`
 - `PERMUTER_EVIDENCE/b6fc031220224c34/manifest.json`
+
+
+## Deferred negation preserves a negative SI constant for an unsigned halfword store
+
+Actor00100_Fn0B52C: `u16_field = -0x10U` expands to HI const_int 65520 and emits ori. Using `u32 magnitude = 0x10U; u16_field = -magnitude;` expands a neg:SI and CSE folds it to SI const_int -16, then stores its HI subreg, yielding addiu -16. The low 16 bits are identical. This can avoid changing a shared unsigned field type.
+
+The router paired distance 5 to 0; isolated ordinary-header base_1 reproduced zero with the temporary declared after existing locals. Planned prediction confirmed .rtl UID 127 neg:SI, .cse UID 127 const_int -16, UID 129 HI store. .greg kept work/context/actor in s0/s1/s2; final instruction order matched. Port base_2 with named context fields also matched. Scope is this constant and store width, not arbitrary negations.
+
+Input SHA256 base_1.i: a7baf44cc3a0b32050a5973494a5201aa2180b2dcee0a16efe760d0b69da7cf1; base_2.i: 62da07d6132ba8edae1aea10b46e0d7917cc9deb7e1ce6a905f69a00b34b0942. Retained evidence: tools/permuter_findings/Actor00100_Fn0B52C/ (session 9b01f0737a3145e7a632350d736ab879), including controlled inputs, dumps and PERMUTER_ANALYSIS.md.

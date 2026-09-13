@@ -26,7 +26,9 @@ typedef struct Actor00100Work {
     /* 0x002 */ byte          pad_2[2];
     /* 0x004 */ s16           field_4;
     /* 0x006 */ s16           field_6;
-    /* 0x008 */ byte          pad_8[0x60];
+    /* 0x008 */ byte          pad_8[0x52];
+    /* 0x05A */ u16           field_5A;
+    /* 0x05C */ byte          pad_5C[0xC];
     /* 0x068 */ u16           field_68;
     /* 0x06A */ byte          pad_6A[0x7BE];
     /* 0x828 */ u16           field_828;
@@ -54,7 +56,9 @@ typedef struct Actor00100Ctx {
     /* 0x08 */ u16  field_8;
     /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x3F];
+    /* 0x15 */ byte pad_15[0x37];
+    /* 0x4C */ u8   field_4C;
+    /* 0x4D */ byte pad_4D[7];
     /* 0x54 */ s32  field_54;
 } Actor00100Ctx;
 

@@ -431,7 +431,47 @@ void Actor00100_Fn0B3DC(Actor00100* arg0, s16 arg1, s16 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B4D8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B52C);
+void Actor00100_Fn0B52C(Actor00100* arg0)
+{
+    Actor00100Work* work;
+    Actor00100Ctx*  ctx;
+    TmdObject*      obj;
+    s32             value;
+    u32             magnitude;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj           = arg0->field_2C;
+        ctx->field_14 = 0;
+        obj->field_C  = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_82E      = 0x15;
+        work->field_828      = 2;
+        work->field_832      = 0x10;
+        work->objs[2].flags |= 0x4000;
+        do {
+            Actor00100_Fn02788(arg0);
+        } while ((work->field_5A & 0x3FF) != 0xC);
+        work->field_832 = 0x20;
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    value                        = (s16)work->field_832 / 2;
+    work->field_832              = (u16)value;
+    magnitude                    = 0x10U;
+    if (value == 1) {
+        work->field_832 = -magnitude;
+    }
+    if ((s16)work->field_832 == -1) {
+        work->field_832 = 0x10;
+    }
+    Actor00100_Fn02788(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)ctx) == 1) {
+        ctx->field_4C &= 0xFD;
+        work->field_0  = 0x24;
+    }
+}
 
 void Actor00100_Fn0B658(Actor00100* arg0)
 {
