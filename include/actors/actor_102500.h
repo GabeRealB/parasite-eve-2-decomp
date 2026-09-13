@@ -240,6 +240,7 @@ typedef struct {
     void (*funcs[3])(Actor02500Ctx*, Actor02500*);
 } Actor02500StateFuncTable3;
 
+extern Actor02500StateFuncTable3 Actor02500_D00004;
 extern Actor02500StateFuncTable3 Actor02500_D00050;
 
 #endif

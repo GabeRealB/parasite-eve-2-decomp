@@ -594,7 +594,13 @@ timer:
     work->field_324 = 2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01E04);
+void Actor02500_Fn01E04(Actor02500* arg0)
+{
+    Actor02500StateFuncTable3 sp;
+
+    sp = Actor02500_D00004;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor02500_Fn00494(Actor02500* arg0);
