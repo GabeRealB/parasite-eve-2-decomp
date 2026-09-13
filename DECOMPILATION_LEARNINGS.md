@@ -41823,6 +41823,18 @@ count the gap in m2c's `argN` names first — the matched siblings in the same T
 usually show the real arity (here `func_acropolis_patio_8017DCE4(s32, s32, s32)`
 and the four-argument message handlers).
 
+The drop need not be leading, so a gap can sit in the middle of an emitted
+signature. `func_actor_461800_80133970` reads `$a0` and `$a2` but never `$a1`
+and came back as
+
+```c
+s32 func_actor_461800_80133970(void *arg0, void *arg2) { ... }
+```
+
+whose *second* parameter is `$a2`, not `$a1` — the prologue diff was
+`move s1,a2` against our `move s1,a1`. Reading the two-argument signature as
+`($a0, $a1)` is the trap; the name is the only thing that says otherwise.
+
 ## m2c invents callee arguments from registers a previous inlined macro left live
 
 The mirror image of the "m2c drops leading params" entry above: when the

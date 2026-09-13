@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -70,6 +71,7 @@ typedef struct Actor461800Msg {
     /* 0x2 */ u16  field_2;
 } Actor461800Msg;
 
+s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 arg3);
 
 #endif
