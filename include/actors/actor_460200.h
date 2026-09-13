@@ -63,4 +63,6 @@ s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args);
 
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args);
 
+s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
+
 #endif
