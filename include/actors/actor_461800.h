@@ -25,10 +25,12 @@ typedef struct Actor461800Work {
     /* 0x000 */ byte       pad_0[0x40];
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pad_374[0x142];
+    /* 0x374 */ byte       pad_374[0x140];
+    /* 0x4B4 */ s16        field_4B4; // reset mode `func_actor_461800_80132D84` selects (1 or 2)
     /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ byte       pad_4BA[0x2C];
+    /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_461800_80132D84` before the reseed
+    /* 0x4BC */ byte       pad_4BC[0x2A];
     /* 0x4E6 */ s16        field_4E6; // yaw seeding the root coordinate
     /* 0x4E8 */ byte       pad_4E8[0x4];
     /* 0x4EC */ s16        field_4EC; // reset argument handed to `func_800B4114`
@@ -39,6 +41,14 @@ typedef struct Actor461800Work {
 STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
 
 extern Actor461800Work* D_actor_461800_80143894;
+
+/// The task the first variant's work block above belongs to, published by
+/// `func_actor_461800_80132390` alongside it.
+extern Task* D_actor_461800_80143898;
+
+/// Re-seeds the whole slot array from the work block's current animation id and
+/// reset mode; the tail of the overlay's per-frame update.
+void func_actor_461800_80132660(Task* task);
 
 /// Work block of the overlay's second actor variant. `func_actor_461800_8013307C`
 /// allocates it with `Mem_Calloc(0x4C0, 0)` and stores the pointer in
@@ -75,6 +85,17 @@ typedef struct Actor461800Msg {
     /* 0x2 */ u16  field_2;
 } Actor461800Msg;
 
+/// Animation preset `func_actor_461800_80132D84` applies to the work block:
+/// `field_4` is the animation id (only six of them exist), `field_8` picks the
+/// reset path -- 1 for the blended `func_800B4114` reseed, 2 for a plain one --
+/// and `field_C` becomes the reset argument forwarded to every slot.
+typedef struct Actor461800AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+} Actor461800AnimPreset;
+
 void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
 void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task);
 void func_actor_461800_8013307C(GpEnemy* enemy, Task* task);
@@ -82,6 +103,7 @@ void func_actor_461800_801335B0(GpEnemy* enemy, Task* task);
 
 s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
+s32 func_actor_461800_80132D84(Task* task, s32 arg1, Actor461800AnimPreset* preset, s32 arg3);
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 arg3);
 s32 func_actor_461800_801339EC(Task* task, s32 arg1, Actor461800Msg* msg, s32 arg3);
 

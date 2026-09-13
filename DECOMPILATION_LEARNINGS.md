@@ -68124,3 +68124,37 @@ copy is what lost the reduction. 74.556% -> 100.00% (`base.c` -> `base_1.c`).
 
 Preprocessed SHA256 of the matching input: `base_1.i`
 `2876ba8c27be0e6734754c23d76f42c35e25082295a1b78a4129e61b8c189560`.
+
+## An argument m2c dropped is still part of the match: the wrong `$a0` user delays a call's setup
+
+`func_actor_461800_80132D84` is a four-argument handler
+`(Task*, s32, Actor461800AnimPreset*, s32)` whose m2c seed read only the third
+one, so m2c emitted `s32 f(void* arg2)`. GCC then placed the pointer in `$a0`,
+and the function's tail calls `func_actor_461800_80132660(D_actor_461800_80143898)`
+— whose own first argument also wants `$a0`. The false write-after-read
+dependency that creates is not cosmetic: it reordered block 4 into
+
+```
+lui  $v0,%hi(D_actor_461800_80143894)
+lw   $v0,%lo(D_actor_461800_80143894)($v0)
+nop
+sh   $zero,0x4BA($v0)          # store scheduled before the call's setup
+lui  $v0,%hi(D_actor_461800_80143898)
+lw   $a0,%lo(D_actor_461800_80143898)($v0)
+jal  func_actor_461800_80132660
+nop                            # delay slot left empty
+```
+
+where the target hoists both `lui`s, then both loads, then puts the store in the
+`jal` delay slot. Cost across the six penalty axes was
+`stack=6 regs=4 reorder=1 insert=3 delete=1`, 38 instructions against 36.
+
+Restoring the real signature (`preset` in `$a2`, `$a0` free for the call) fixed
+every axis at once: 87.184% -> 100.00% (`base.c` -> `base_1.c`) on the first
+build, no other source change. So when m2c narrows a function to one argument,
+check the register it lands in against every callee's argument registers before
+touching the schedule by hand — the delay slot and the instruction count are
+downstream of the allocation, not of the statement order.
+
+Preprocessed SHA256 of the matching input: `base_1.i`
+`d178ab88190e43100d9959334743486228d26b6b66e7c95e2d0cf6896f8918a8`.

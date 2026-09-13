@@ -59,7 +59,27 @@ void func_actor_461800_80132D04(void)
     D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132D84);
+/// Applies an animation preset: the id is copied into the work block, the reset
+/// mode is picked by the preset's blend flag and the reset argument is either
+/// taken from the preset or left at 2, then the whole slot array is re-seeded.
+/// Only the six known animation ids are accepted; anything else leaves the work
+/// block untouched and reports the failure.
+s32 func_actor_461800_80132D84(Task* task, s32 arg1, Actor461800AnimPreset* preset, s32 arg3)
+{
+    if (preset->field_4 < 6) {
+        D_actor_461800_80143894->field_4B8 = preset->field_4;
+        if (preset->field_8 != 0) {
+            D_actor_461800_80143894->field_4B4 = 1;
+            D_actor_461800_80139F58            = preset->field_C;
+        } else {
+            D_actor_461800_80143894->field_4B4 = 2;
+        }
+        D_actor_461800_80143894->field_4BA = 0;
+        func_actor_461800_80132660(D_actor_461800_80143898);
+        return 0;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132E14);
 
