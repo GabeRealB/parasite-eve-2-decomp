@@ -15,34 +15,37 @@ typedef struct Actor105500Obj2C {
 } Actor105500Obj2C;
 
 typedef struct Actor105500Work {
-    /* 0x000 */ byte     pad_0[0x354];
-    /* 0x354 */ GpEffArg field_354;
-    /* 0x35C */ VECTOR3  field_35C;
-    /* 0x368 */ byte     pad_368[8];
-    /* 0x370 */ MATRIX   field_370;
-    /* 0x390 */ byte     pad_390[2];
-    /* 0x392 */ s16      field_392;
-    /* 0x394 */ s16      field_394;
-    /* 0x396 */ u16      field_396;
-    /* 0x398 */ s16      field_398;
-    /* 0x39A */ s16      field_39A;
-    /* 0x39C */ s16      field_39C;
-    /* 0x39E */ s16      field_39E;
-    /* 0x3A0 */ s16      field_3A0;
-    /* 0x3A2 */ byte     pad_3A2[4];
-    /* 0x3A6 */ s16      field_3A6;
-    /* 0x3A8 */ s16      field_3A8;
-    /* 0x3AA */ byte     pad_3AA[6];
-    /* 0x3B0 */ s16      field_3B0;
-    /* 0x3B2 */ s16      field_3B2;
-    /* 0x3B4 */ s16      field_3B4;
-    /* 0x3B6 */ s16      field_3B6;
-    /* 0x3B8 */ byte     pad_3B8[6];
-    /* 0x3BE */ s16      field_3BE;
-    /* 0x3C0 */ byte     pad_3C0[8];
-    /* 0x3C8 */ s16      field_3C8;
-    /* 0x3CA */ byte     pad_3CA[8];
-    /* 0x3D2 */ s16      field_3D2;
+    /* 0x000 */ byte      pad_0[0x354];
+    /* 0x354 */ GpEffArg  field_354;
+    /* 0x35C */ VECTOR3   field_35C;
+    /* 0x368 */ byte      pad_368[4];
+    /* 0x36C */ TaskDesc* field_36C;
+    /* 0x370 */ MATRIX    field_370;
+    /* 0x390 */ byte      pad_390[2];
+    /* 0x392 */ s16       field_392;
+    /* 0x394 */ s16       field_394;
+    /* 0x396 */ u16       field_396;
+    /* 0x398 */ s16       field_398;
+    /* 0x39A */ s16       field_39A;
+    /* 0x39C */ s16       field_39C;
+    /* 0x39E */ s16       field_39E;
+    /* 0x3A0 */ s16       field_3A0;
+    /* 0x3A2 */ byte      pad_3A2[4];
+    /* 0x3A6 */ s16       field_3A6;
+    /* 0x3A8 */ s16       field_3A8;
+    /* 0x3AA */ byte      pad_3AA[2];
+    /* 0x3AC */ u16       field_3AC;
+    /* 0x3AE */ byte      pad_3AE[2];
+    /* 0x3B0 */ s16       field_3B0;
+    /* 0x3B2 */ s16       field_3B2;
+    /* 0x3B4 */ s16       field_3B4;
+    /* 0x3B6 */ s16       field_3B6;
+    /* 0x3B8 */ byte      pad_3B8[6];
+    /* 0x3BE */ s16       field_3BE;
+    /* 0x3C0 */ byte      pad_3C0[8];
+    /* 0x3C8 */ s16       field_3C8;
+    /* 0x3CA */ byte      pad_3CA[8];
+    /* 0x3D2 */ s16       field_3D2;
 } Actor105500Work;
 
 typedef struct Actor105500 {
@@ -61,21 +64,29 @@ typedef struct Actor105500StateFuncTable3 {
 extern Actor105500StateFuncTable3 Actor05500_D0002C;
 extern Actor105500StateFuncTable3 Actor05500_D00038;
 
+typedef struct Actor105500Params {
+    /* 0x00 */ byte pad_0[0xF];
+    /* 0x0F */ u8   field_F;
+} Actor105500Params;
+
 typedef struct Actor105500Ctx {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[6];
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ s16  field_40;
-    /* 0x42 */ byte pad_42[0xA];
-    /* 0x4C */ u8   field_4C;
+    /* 0x00 */ byte               pad_0[8];
+    /* 0x08 */ u16                field_8;
+    /* 0x0A */ byte               pad_A[6];
+    /* 0x10 */ s32                field_10;
+    /* 0x14 */ u8                 field_14;
+    /* 0x15 */ byte               pad_15[0x27];
+    /* 0x3C */ Actor105500Params* field_3C;
+    /* 0x40 */ s16                field_40;
+    /* 0x42 */ byte               pad_42[0xA];
+    /* 0x4C */ u8                 field_4C;
 } Actor105500Ctx;
 
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);
 
 extern u32 Gp_LcgState;
+extern u16 Actor05500_D08980[];
+extern s16 Actor05500_D08A1E;
 
 extern GpU16Pair Actor05500_D08958;
 extern s16       Actor05500_D08A18[];
