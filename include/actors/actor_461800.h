@@ -27,7 +27,9 @@ typedef struct Actor461800Work {
     /* 0x054 */ byte      pad_54[0x462];
     /* 0x4B6 */ s16       field_4B6; // copy of `field_4B8`, kept for change detection
     /* 0x4B8 */ s16       field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ byte      pad_4BA[0x32];
+    /* 0x4BA */ byte      pad_4BA[0x2C];
+    /* 0x4E6 */ s16       field_4E6; // yaw seeding the root coordinate
+    /* 0x4E8 */ byte      pad_4E8[0x4];
     /* 0x4EC */ s16       field_4EC; // reset argument handed to `func_800B4114`
     /* 0x4EE */ byte      pad_4EE[0x2];
     /* 0x4F0 */ Task*     field_4F0; // first helper task the spawn starts
@@ -72,6 +74,7 @@ typedef struct Actor461800Msg {
 } Actor461800Msg;
 
 s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
+s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 arg3);
 
 #endif
