@@ -69965,3 +69965,60 @@ Promotion is still refused for this body (`cannot be shared - the body
 references its own overlay's code or data`): it indexes
 `D_actor_202600_80152798` / `…B8`, so it stays a per-overlay copy despite the
 `~` twins.
+
+## The scratch-arena push needs the sibling's `register … asm("v1")` or the copy coalesces away
+
+`func_actor_202600_8014B25C` is another `~` twin of a matched
+`src/actors/lib/actor_105500_text.c` body (`Actor05500_Fn0143C`, same `0x143C`
+offset). Transcribing it with the `Actor202600` types went 26.325% (m2c) →
+99.648% in one build, and the residual was a single instruction.
+
+Target:
+
+```
+lw    v1, 0(v0)
+addiu v1, v1, -0x8
+move  s4, v1
+sw    v1, 0(v0)
+```
+
+Unpinned C:
+
+```
+lw    v1, 0(v0)
+addiu s4, v1, -0x8
+sw    s4, 0(v0)
+```
+
+Both C names for the adjusted pointer (`allocated`, then `rotation = allocated`)
+are the same value, so local-alloc coalesces them into one pseudo and the
+`addiu` writes that pseudo directly. The target instead names `$v1` for the
+decrement and *copies* out of it, which is what the sibling source spells with a
+function-scope pin:
+
+```c
+scratchEnd                          = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+allocated                           = scratchEnd - 1;
+rotation                            = allocated;
+*(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = allocated;
+```
+
+with `register SVECTOR* allocated asm("v1");`. With the pin the decrement lands
+in `$v1` and `rotation = allocated` becomes the real `move s4, v1`. 100.000%,
+every penalty zero.
+
+The penalty mix before the pin is worth reading as a warning: `regs=2`,
+`delete=1`, `branch=21`. One missing instruction shifts every branch and jump
+target by 4, and the differ shows nothing but address arithmetic — the branch
+count is a symptom of the length, not of 21 bad predicates. Compare instruction
+*counts* first, then look for the one real difference.
+
+Scope: the whole family writes this arena, but most of its matched bodies have
+only one name for the adjusted pointer. Grep the sibling for the pin
+(`grep 'asm("v1")' src/actors/lib/*.c` returned exactly one hit) rather than
+adding one speculatively — here the source states the pin, and the dump confirms
+the coalescing.
+
+`promote` refuses this body for the same reason as its neighbours: it indexes
+`D_actor_202600_80152798` / `…838` / `…850`, so `actor_102600` and `actor_302600`
+keep their own copies.
