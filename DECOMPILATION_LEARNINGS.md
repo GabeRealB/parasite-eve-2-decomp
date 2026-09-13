@@ -65308,3 +65308,49 @@ differs — but that is a statement about linking, not about seeding.
 
 Inputs: `base_1.i`
 `57651b91cc07cc62b3951e2b0e1e040bd05cf5ba298b9e96a7ceb11cd1fb0475` (100%).
+
+## A shared span that splits a *mid-overlay* unit renumbers later units upward, and can collide with the manifest's rodata unit names
+
+`overlay_dup_index.py promote` splits a carrier's text unit in two when the
+shared span falls mid-unit, and the split is the easy-looking case right up
+until the re-split. `func_actor_105700_80136BC0` sits at `0x4DA0`, inside unit
+`actor_105700` which covers `0xB0..0x4EF4`, so six carriers each gained a span
+and every *later* code unit shifted **up** one index:
+
+```
+before: actor_105700 [0xB0..0x4EF4]  _2 [0x4F80..0x509C]  _3 [0x517C..0x51D8]
+                                     _4 [0x5270..0x52CC]  _5 [0x5310..0x54CC]
+after:  actor_105700 [0xB0..0x4DA0]  shared [0x4DA0..0x4E2C]  _2 [0x4E2C..0x4EF4]
+        _3 [0x4F80..0x509C]          _4 [0x517C..0x51D8]    _5 [0x5270..0x52CC]
+        _6 [0x5310..0x54CC]
+```
+
+splat never rewrites an existing unit `.c`, so each shifted file keeps its old
+content *and* the old unit string in its `INCLUDE_ASM` paths — the build then
+dies with `can't open asm/.../actor_105700/actor_105700/func_….s` for every
+function it names, and the newly written stubs (`_6`, and the `lib/` file) call
+`INCLUDE_ASM` for functions already matched as C one index down. The fix runs
+downward-shift rules in reverse: rewrite the unit string inside each `.c`, and
+move `_k.c` **up** to `_k+1.c` highest-first, then cut the old main unit's tail
+into the new smallest unit.
+
+**The part worth knowing before starting:** the generated config can name one
+unit path twice. This manifest names its rodata cuts explicitly —
+`rodata = [{ start = "0x8C", unit = "actor_105700_3" }, …]` — so the upward
+shift pushed the code span `0x4F80` onto the *same* path the 0x8C rodata cut
+already owns:
+
+```
+- [0x8C, .rodata, actor_105700/actor_105700_3]
+- [0x4F80, c,      actor_105700/actor_105700_3]
+```
+
+and `src/actors/actor_105700/actor_105700_3.c` holds the rodata cut's
+`INCLUDE_RODATA`, not code. So an upward shift on an overlay whose `.rodata`
+is cut into named units is not a pure move: the rodata units have to be renamed
+too, or the code units, and the rename reaches every `.c` that names them. With
+six carriers to redistribute at once that is a refactor, not the "move the body
+and rebuild" the tool prints — land the match locally first, then decide.
+
+Inputs: `base_1.i`
+`b64bc9544d0c3ae777ceb3ba8ee85d0561e7fc6d80ae85c0bb041e971061519d` (100%).
