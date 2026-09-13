@@ -68941,3 +68941,41 @@ statements are arranged.
 
 Read the direction off `.sched`: an insn whose `priority` equals a pending
 load's is inheriting it, and it is the *store*, not the load, that has to move.
+
+## One variable, in-place, so `v - 1` writes its own source register
+
+A decrement whose result must land in the register the field was loaded into
+(`lw $v0, 0x34($s0)` / `bgez $v0, ...` / `addiu $v0, $v0, -1`) does not
+follow from writing the decremented value as its own temp:
+
+```c
+temp_v0 = arg0->spawnArg1;   /* pseudo A: lw */
+var_v0  = temp_v0 - 1;       /* pseudo B: plus, its own register */
+if (temp_v0 < 0) { ... var_v0 = arg0->spawnArg1 - 1; }
+arg0->spawnArg1 = var_v0;
+```
+
+Pseudo A is still live at the branch (RTL order is load, add, then
+`bgez` — the add is emitted before the jump it ends up in the delay slot of),
+so A and B overlap and B takes `$v1`; `regs` only, everything else matching.
+local-alloc does not tie an arithmetic output to a dying input: in the reload
+block the same shape emits `lw $2` / `addu $3, $2, -1` with `REG_DEAD $2`.
+
+Move the arithmetic to the join and update **one** variable in place:
+
+```c
+var_v0 = arg0->spawnArg1;
+if (var_v0 < 0) {
+    Stage_SetEndingFlag();
+    Task_Kill(arg0);
+    var_v0 = arg0->spawnArg1;   /* still dead across the calls */
+}
+var_v0 = var_v0 - 1;
+arg0->spawnArg1 = var_v0;
+```
+
+One pseudo now carries every definition, so the add *is* the source's register
+(`addiu $v0, $v0, -1`), and `dbr_schedule` can thread it from the branch target
+into the `bgez` delay slot. The reload has to be an explicit re-read of the
+field, not a spill: `lw`/`addiu` here are `$v0` on both paths.
+`func_actor_460200_80132090` is the example (99.25% -> 100%, `regs` 3 -> 0).

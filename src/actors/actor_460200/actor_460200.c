@@ -4,6 +4,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/stage.h"
 #include "main/task.h"
 
 extern s8 D_8007272D;
@@ -21,7 +22,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80131FB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132090);
+void func_actor_460200_80132090(Task* arg0)
+{
+    s32 var_v0;
+
+    var_v0 = arg0->spawnArg1;
+    if (var_v0 < 0) {
+        Stage_SetEndingFlag();
+        Task_Kill(arg0);
+        var_v0 = arg0->spawnArg1;
+    }
+    var_v0          = var_v0 - 1;
+    arg0->spawnArg1 = var_v0;
+}
 
 void func_actor_460200_801320E0(s32 arg0)
 {
