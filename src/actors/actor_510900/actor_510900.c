@@ -2,6 +2,7 @@
 #include "main/task.h"
 
 #include "actors/actor_510900.h"
+#include "actors/actors_shared_8013bbe4.h"
 
 void Gp_UpdateCoord(Actor510900Coord* arg0);
 void func_actor_510900_80135744(Actor510900* arg0);
@@ -14,7 +15,6 @@ void func_actor_510900_80138D38(Actor510900* arg0);
 void func_actor_510900_80138F44(Actor510900* arg0);
 void func_actor_510900_8013B804(Actor510900* arg0);
 void func_actor_510900_8013BB20(Actor510900* arg0);
-void func_actor_510900_8013BBE4(Actor510900* arg0);
 void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1);
 void func_actor_510900_8013BC80(Actor510900* arg0);
 
@@ -172,7 +172,7 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         arg0->field_14   = 8;
         goto default_body;
     case1:
-        func_actor_510900_8013BBE4(arg1);
+        ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
@@ -194,10 +194,10 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         if (temp_s2->field_584 != 0) {
             func_actor_510900_80138D38(arg1);
         }
-        temp_s1->field_0                  = 0;
-        arg1->field_2C->field_8->field_50 = 0;
+        temp_s1->field_0.flg                  = 0;
+        arg1->field_2C->field_8->field_50.flg = 0;
         Gp_UpdateCoord(temp_s1);
-        func_actor_510900_8013BBE4(arg1);
+        ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         func_actor_510900_80138F44(arg1);
         func_actor_510900_8013BC80(arg1);

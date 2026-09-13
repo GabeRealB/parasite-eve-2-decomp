@@ -2,6 +2,7 @@
 
 #include "actors/actor_521100.h"
 #include "actors/actors_shared_80134934.h"
+#include "actors/actors_shared_8013bbe4.h"
 
 void      Gp_UpdateCoord(Actor521100Coord* arg0);
 void      func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
@@ -11,7 +12,6 @@ void      func_actor_521100_80134EDC(Actor521100* arg0);
 void      func_actor_521100_80135024(Actor521100* arg0);
 void      func_actor_521100_801358D4(Actor521100* arg0);
 void      func_actor_521100_80135964(Actor521100* arg0);
-void      func_actor_521100_80135A90(Actor521100* arg0);
 extern u8 D_801153F4;
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", ActorsShared80131e24Sub1);
@@ -76,5 +76,5 @@ default_body:
     Gp_UpdateCoord(temp_s2);
 case1:
     ActorsShared80134934((ActorShared80134934*)arg1);
-    func_actor_521100_80135A90(arg1);
+    ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
 }

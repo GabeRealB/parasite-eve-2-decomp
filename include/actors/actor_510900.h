@@ -7,12 +7,12 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
+/// The actor's pair of `GsCOORDINATE2`s, 0x50 apart. The frame handler clears
+/// both `flg` words before `Gp_UpdateCoord`; the ground-quad helper draws at
+/// `field_50`'s x/z and `field_0`'s y.
 typedef struct Actor510900Coord {
-    /* 0x00 */ s32     field_0;
-    /* 0x04 */ byte    pad_4[0x34];
-    /* 0x38 */ VECTOR3 field_38;
-    /* 0x44 */ byte    pad_44[0xC];
-    /* 0x50 */ s32     field_50;
+    /* 0x00 */ GsCOORDINATE2 field_0;
+    /* 0x50 */ GsCOORDINATE2 field_50;
 } Actor510900Coord;
 
 typedef struct Actor510900Obj2C {

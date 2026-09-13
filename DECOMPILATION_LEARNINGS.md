@@ -41950,6 +41950,34 @@ needs the local because its address costs a `lui`/`addiu` pair, while a struct
 interior costs nothing on top of a base register that is already there.
 `func_mist_shooting_gallery_80182B1C` is the worked example.
 
+## Whether to name an interior pointer depends on whether the target materialises it
+
+The entry above is one side of a decision, not the rule: the target's own
+addressing says which spelling the original used, and the tell is whether the
+interior address is computed at all.
+
+```
+addiu $a0, $v1, 0x50        # <- the tell: the interior address in its own register
+lw    $v0, 0x38($a0)        # sub->workm.t[0]
+lw    $v0, 0x3C($v1)        # coord->workm.t[1]
+lw    $v0, 0x40($a0)        # sub->workm.t[2]
+```
+
+That is a **pointer variable** — `sub = &...->field_50;` then `sub->workm.t[0]`
+— and it is what you must write, even though the folded form is shorter. GCC
+only folds an offset into a load's displacement when the RTL already carries the
+sum; a named pointer keeps `+0x50` in its own pseudo, and the loads stay
+`0x38(P)`/`0x40(P)`. Repeat the member expression instead
+(`coord[1].workm.t[0]`) and `combine` merges 0x50+0x38 into a single `0x88($v1)`
+— shorter, legal, since `lw`'s immediate is 16-bit, and unmatchable.
+
+So: `addiu rX, rBase, K` feeding small displacements means the source had its
+own pointer value; a bare large displacement with no `addiu` means it repeated
+the member expression. `func_actor_510900_8013BBE4` is the left form's worked
+example (0x50 = `sizeof(GsCOORDINATE2)`, the second of the pair), and it is the
+same function as the entry above in the opposite direction — there the base was
+already live *and* the target folded, here it is live and the target does not.
+
 ## Duplicate the stores in each if/else arm when the target keeps a `j` per arm
 
 An if/else-if chain that picks one of three constants and then stores it twice:
@@ -65229,16 +65257,25 @@ Example: `func_actor_510900_8013BE64`. Inputs: `base_1.i`
 `c5309e47f02608dd5a8bd1c3ae77fdb0fdef5b0570025d587843f9540c182505`, `base_3.i`
 `4b5617da6f4c1cc82f16fe7c2f1020ab726d7d1cfd582ed9d6842d99940322b9`.
 
-## A promoted `shared` span does not renumber units — it moves which bytes a name covers
+## A promoted `shared` span that lands on existing cuts renumbers nothing
 
 `overlay_dup_index.py promote <fn>` writes the span into every sharer's manifest
 and the shared symbol into each `configs/USA/sym/<family>/<overlay>.txt`, and the
 body then lives once in `src/<family>/lib/<unit>.c`. What that does to the split
-is narrower than "every later unit shifts":
+is narrower than "every later unit shifts" — **when the span's ends fall on cuts
+that are already there**:
 
 * `emit_run` in `tools/gen_overlay_configs.py` increments the unit counter once
-  per **run**, and a shared cut is not a run — so inserting a span never changes
-  a unit *number*. The cut added to `actor_205200` renames nothing.
+  per **run** (a maximal stretch of `.text` no `shared` span owns), so a span
+  that only *shortens* a run changes no unit *number*. The cut added to
+  `actor_205200` renames nothing.
+
+A span that does **not** land on existing cuts does renumber, and in either
+direction: splitting a run shifts every later unit **up**, swallowing a whole
+run shifts them **down**. Both are in the two sections above ("Which way a
+promotion renumbers an overlay depends on where the body sat", and the
+`actor_510900`/`actor_521100` case below). Do not generalize from this section's
+`actor_205200` example alone — it is the no-op case, not the common one.
 * A span starting where a unit already started only shortens that unit at the
   front, and its remaining functions keep their file, so **no body moves**.
   `actor_510900`'s new span begins at 0xA044, exactly where the
@@ -65257,6 +65294,39 @@ stale line points at a `nonmatchings/<unit>/` folder that no longer contains it.
 
 Worked example: promoting `func_actor_510900_8013BE64` to
 `ActorsShared8013be64` for `actor_510900` + `actor_205200`.
+
+## One promotion, two sharers, opposite renumbering — derive each from its own runs
+
+A promotion's direction is a property of the *sharer*, not of the body, because
+`emit_run` counts runs per overlay and each overlay's run structure is its own.
+So the overlays sharing one body can move in opposite directions, and both are
+correct. Promoting `func_actor_510900_8013BBE4` (0x9DC4, 0x54 bytes) to
+`ActorsShared8013bbe4` did exactly that:
+
+| sharer | span | the body's place | effect on later units |
+|---|---|---|---|
+| `actor_510900` | 0x9DC4–0x9E18 | mid-run; the run 0x9B68–0x9FE0 was unit `_3` | run splits: **+1** — `_4`→`_5`, `_5`→`_6`, and the tail becomes a fresh `_4` |
+| `actor_521100` | 0x3C70–0x3CC4 | a whole run; 0x3C70–0x3CC4 was unit `_4` on its own | run vanishes: **−1** — `_5`→`_4` … `_8`→`_7`, and `_4.c` is deleted |
+
+The tell for the second case is in the manifest: the new span's `start` equals
+one neighbour span's `end` **and** its `end` equals the next one's `start`, so
+the run it covers had no other content. For the first, the span's ends fall
+inside a run, so `units`/`shared` between them are what you count.
+
+Read the rotation off the overlay's own `configs/USA/generated/<ov>.yaml`
+before/after and match entries by **file offset** — a rotation read off one
+sharer says nothing about the other, even for the same body at the same byte
+length. The `rodata` unit keys follow the code the same way and need the same
+per-overlay call: `actor_521100`'s keys at 0x48 and 0x58 moved down (`_6`→`_5`,
+`_8`→`_7`), while `actor_510900`'s single key (unit `_2`, at 0xD0) sat below the
+span and did not move at all.
+
+The bodies-preserved check is the usual one, and a ±1 rotation is what makes it
+easy to get wrong by hand: compare the C definitions in each
+`src/<family>/<ov>/*.c` against a **pre-promotion snapshot of those files**, not
+against the unit names. After a rotation every filename holds a different unit,
+so any diff keyed on names or unit numbers reports the whole directory as
+changed and hides a dropped body inside the churn.
 
 ## A pointer-passed stack vector wants one aggregate, not m2c's three scalars
 
