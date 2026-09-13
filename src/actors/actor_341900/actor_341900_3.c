@@ -44,7 +44,15 @@ void func_actor_341900_80163438(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_3", func_actor_341900_80163488);
+void func_actor_341900_80163488(void)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+
+    if (work->field_8 != NULL) {
+        Task_Kill(work->field_8);
+        work->field_8 = NULL;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_3", func_actor_341900_801634D0);
 

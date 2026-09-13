@@ -19,7 +19,8 @@
 ///
 /// `field_0` is the `Game_GetPtrSlot(3)` task the overlay's messages are aimed
 /// at (0x3E8 and 0x3F3), and `field_8` / `field_C` are child tasks the senders
-/// null-check first (0x7D5 goes to `field_8`).
+/// null-check first (0x7D5 goes to `field_8`); `func_actor_341900_80163488`
+/// disposes of `field_8` by killing it and clearing the slot.
 ///
 /// `field_5C` and `field_64` are one-shot request states: a dispatcher switches
 /// on the state through a jump table and clears it back to 0 on the way out, so
