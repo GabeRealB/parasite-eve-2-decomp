@@ -69771,6 +69771,16 @@ Those entries exist so the *shared lib TU* that calls the function (here
 defining unit's own asm with its `func_<overlay>_<addr>` name, and the two resolve
 to the same address at link time.
 
+An overlay-local **call** refuses promotion for the same reason a per-overlay
+table does, and it is the commoner shape in these actor bodies: a third body in
+the same overlay, `func_actor_202600_8014C5A0`, is byte-identical to matched
+`Actor05500_Fn02780` and reads no overlay-local data at all, yet `promote`
+still refuses it — the one thing that differs between the copies is which
+overlay's `func_..._8014C774`-style draw helper it jals, and that callee is
+overlay-local too. Diffing the two `.s` files with the overlay names normalised
+(a `sed` on `actor_202600`/`actor_XXX`) is the fastest form of the exact check
+above, and what it leaves different is exactly what `promote` will point at.
+
 ## Inserting an s16 field mid-struct silently moves every following s16
 
 **Problem.** `Actor202600Work` carried `field_39E` at `0x39E`, then a single
