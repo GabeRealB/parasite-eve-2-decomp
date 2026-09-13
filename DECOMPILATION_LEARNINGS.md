@@ -55509,6 +55509,37 @@ into a `MATRIX` at offset 0 of the actor's work block; declaring that field as
 `MATRIX` instead of leaving it inside a `pad_0[...]` is what turns m2c's eight
 assignments into one.
 
+## A three-word table copy loads `$a1/$a2/$a3` — those are not call arguments
+
+The 12-byte case of the block move above starts one register earlier and lands
+its loads right on the argument registers, immediately before a `jalr`:
+
+```
+addiu t0,v0,%lo(D_..._80161E34)
+lw    a1,0(t0)          # block move, not args
+lw    a2,4(t0)
+lw    a3,8(t0)
+sw    a1,0x10(sp)
+sw    a2,0x14(sp)
+sw    a3,0x18(sp)
+...
+lhu   v0,0x954(s0)
+sll   v0,v0,2
+addu  v0,a0,v0          # a0 = &sp (the copied table)
+lw    v0,0(v0)
+jalr  v0
+move  a0,s1             # only $a0 is set: one argument
+```
+
+`$a1-$a3` are still live at the `jalr` because nothing killed them, so m2c
+renders the dispatcher as a four-argument call through a local copy of the
+table's first word (`M2C_UNK (*sp10)(void*, M2C_UNK, s32, s32)`, plus dead
+`sp14`/`sp18`) and scores 72% with `insert=3 delete=6`. The load count is the
+table's entry count, not the callee's arity: three loads mean `GpActorFuncTable3`
+and a one-argument `GpActorFunc`. `func_actor_800200_801652EC` is the worked
+example — `sp = D_actor_800200_80161E34; sp.funcs[actor->field_954](arg0);`
+matches at 100% first try.
+
 ## Name a two-step pointer chase used inside a store's RHS, or it schedules after the store
 
 `ActorsShared80135b64` (`func_actor_102300_80135B64`) is a 17-instruction leaf

@@ -8,6 +8,8 @@ extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
 
 extern GpActorFuncTable4 D_actor_800200_80161EB8;
 
+extern GpActorFuncTable3 D_actor_800200_80161E34;
+
 extern GpActorPathStep D_actor_800200_8016A128[];
 
 extern GpActorPathStep D_actor_800200_8016A040[];
@@ -58,7 +60,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165104);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801652EC);
+void func_actor_800200_801652EC(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable3 sp;
+
+    sp    = D_actor_800200_80161E34;
+    actor = arg0->actor;
+    if ((s8)actor->field_97A > 0) {
+        actor->field_97A--;
+    }
+    sp.funcs[actor->field_954](arg0);
+    func_actor_800200_80165104(arg0);
+    actor->field_986 = 0;
+}
 
 void func_actor_800200_80165380(GpActorWork* arg0)
 {
