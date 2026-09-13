@@ -16089,6 +16089,34 @@ coloured into `$s0` instead and produces `lhu v0, 0x22e(s0)`. Absolute
 `CdCmd_Queue.field_X` is still correct for stores that the target emits with
 `%hi(CdCmd_Queue+off)`.
 
+## An unused middle parameter is what puts the flag in `$a2` — arity decides argument registers
+
+The overlay script-opcode callbacks take `(Task* task, s32 arg1, s32 flags)`.
+The middle argument is never read in any of them: it is there because the flag
+has to arrive in `$a2`. m2c sees two live arguments and emits a two-parameter
+signature, which puts the flag in `$a1` instead and pushes the body's second
+temporary up to `$a2`. The symptom is a `regs`-only mismatch around 98% whose
+two objects are otherwise instruction-identical — every opcode, immediate and
+operand the same bar that one register pair, so `diff.py` shows one column.
+
+`func_actor_215100_8014CD4C` is `ActorsShared80132710`'s body (bit 0 of `flags`
+hides both models by zeroing `TmdObject::field_C`, its absence restores 0x80,
+bit 1 ORs in 0x4) over a work block whose paired task sits 0x38 higher:
+
+```c
+s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)  /* 100%    */
+s32 func_actor_215100_8014CD4C(Task* task, s32 flags)            /*  98.6%  */
+```
+
+`arg1` is dead either way; only the incoming argument register the flag lands in
+changes. So read the **neighbouring** function in the same TU before trusting
+m2c's arity — `func_actor_215100_8014CCE0` next door is
+`(Task*, s32, Actor215100AnimArgs*)` with its middle argument unused too, and
+that is the family's convention rather than a quirk of one body. Being a leaf
+with no calls and no data references makes the body promotable once matched;
+`overlay_dup_index.py promote` then shares it with `actor_160700`, which carries
+the same 25 instructions at `0x8013265C`.
+
 ## Split call results: dying temp vs join-live `ret`
 
 Two returns from the same callee where the first is only used in an immediate
