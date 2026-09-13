@@ -239,7 +239,50 @@ case1:
     func_actor_300700_8016534C(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164E38);
+/// Damage tick: folds the generic hit flags into the work state, applies the
+/// pending hit and drops the actor to its death state once the hit points run
+/// out.
+void func_actor_300700_80164E38(Actor300700* arg0, Actor300700Obj2C* arg1, s32 arg2)
+{
+    Actor300700Ctx*  ctx;
+    Actor300700Work* work;
+    s32              tick;
+    u16              health;
+    u8               flags;
+
+    ctx   = arg0->field_20;
+    flags = ctx->field_4C;
+    work  = arg0->field_1C;
+    if (flags & 1) {
+        ctx->field_4C   = flags & 0xFE;
+        work->field_37A = 2;
+        work->field_37C = 0;
+    }
+    if ((ctx->field_4C & 2) && ((u32)((u16)work->field_37A - 2) >= 2U)) {
+        work->field_37A = 3;
+        work->field_37C = 0;
+        work->field_398 = 1;
+    }
+    if (ctx->field_4C & 0xC) {
+        tick = Gp_TickObjFlag4((GpObj5C*)ctx);
+        if (tick != 0) {
+            func_800DA6E8(&ctx->field_10, tick, 0);
+            health        = ctx->field_40 - tick;
+            ctx->field_40 = health;
+            if ((health << 0x10) <= 0) {
+                work->field_37A = 5;
+                work->field_37C = 0;
+                arg0->field_30  = 2;
+            } else {
+                work->field_37A = 4;
+                work->field_37C = 0;
+            }
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)ctx) != 0) {
+            ctx->field_4C &= 0xF3;
+        }
+    }
+}
 
 void func_actor_300700_80164F68(Actor300700* arg0)
 {

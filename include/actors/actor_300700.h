@@ -35,14 +35,23 @@ typedef struct Actor300700Work {
     /* 0x390 */ s16    field_390;
     /* 0x392 */ u16    field_392;
     /* 0x394 */ s16    field_394;
+    /* 0x396 */ byte   pad_396[2];
+    /* 0x398 */ s16    field_398;
 } Actor300700Work;
 
+/// Damage record the actor pushes hits into. Same object family as
+/// `GpObj5C`: `field_4C` carries the generic hit-flag bits, `field_40` the
+/// remaining hit points and `field_10` the anchor `func_800DA6E8` binds a
+/// damage slot to.
 typedef struct Actor300700Ctx {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[0xA];
+    /* 0x0A */ byte pad_A[6];
+    /* 0x10 */ byte field_10[4];
     /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x37];
+    /* 0x15 */ byte pad_15[0x2B];
+    /* 0x40 */ u16  field_40;
+    /* 0x42 */ byte pad_42[0xA];
     /* 0x4C */ u8   field_4C;
 } Actor300700Ctx;
 
@@ -52,6 +61,7 @@ typedef struct Actor300700 {
     /* 0x20 */ Actor300700Ctx*   field_20;
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor300700Obj2C* field_2C;
+    /* 0x30 */ s32               field_30;
 } Actor300700;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
