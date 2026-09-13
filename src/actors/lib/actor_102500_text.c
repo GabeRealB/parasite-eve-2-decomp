@@ -19,6 +19,7 @@ void  Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
 void  Gp_LinkObj(s32 arg0, Actor02500Obj* arg1);
 void  Gp_InitRec18Table(Actor02500Rec18* arg0, s32 arg1, s32 arg2);
 s32   Gp_PackPair(void* arg0, s32 arg1);
+void  Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
 {
@@ -514,7 +515,17 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02318);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn023D8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02430);
+void Actor02500_Fn02430(Actor02500* arg0)
+{
+    VECTOR3        vec;
+    GsCOORDINATE2* coord;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x200, 0x80);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02480);
 
