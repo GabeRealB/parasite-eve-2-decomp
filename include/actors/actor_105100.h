@@ -20,7 +20,11 @@ typedef struct Actor105100Work {
     /* 0x038 */ GpObj obj38;
     /* 0x058 */ byte  pad_58[0x508];
     /* 0x560 */ s32   field_560;
-    /* 0x564 */ byte  pad_564[0x30];
+    /* 0x564 */ byte  pad_564[0x1C];
+    /* 0x580 */ s32   field_580;
+    /* 0x584 */ s32   field_584;
+    /* 0x588 */ s32   field_588;
+    /* 0x58C */ byte  pad_58C[8];
     /* 0x594 */ s16   field_594;
     /* 0x596 */ byte  pad_596[0xC];
     /* 0x5A2 */ s16   field_5A2;
