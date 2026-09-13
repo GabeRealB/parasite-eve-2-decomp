@@ -7,6 +7,7 @@
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
 void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
+void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
 s32  rand();
 
 void func_actor_800100_80163D54(GpActorWork* arg0)
@@ -292,7 +293,55 @@ void func_actor_800100_80165930(GpActorWork* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801659EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165C38);
+void func_actor_800100_80165C38(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* place;
+    u16            state;
+
+    place                            = (GsCOORDINATE2*)((u8*)*(void**)G_SCRATCH_HEAD - 0x50);
+    *(GsCOORDINATE2**)G_SCRATCH_HEAD = place;
+
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    state = actor->field_960;
+    coord = ((TmdObject*)actor->field_91C->extra)->field_8;
+
+    switch (state) {
+        case 0:
+            actor->field_954 = 0;
+            actor->field_958 = 0;
+            actor->field_95A = 0;
+            actor->field_95C = 0;
+            actor->field_960 = 1;
+            d4->field_CD    -= 1;
+            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
+            func_80106238(arg0, 0, 0);
+            actor->field_12A |= 0xC800;
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x40650001, 1);
+            Gp_SpawnEff(0x6002B, coord, 0x21, NULL);
+            break;
+
+        case 1:
+            actor->field_960  = 2;
+            actor->field_12A &= 0x3FFF;
+            if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+            }
+            /* fallthrough */
+
+        case 2:
+            if (func_80105894(arg0, 8, 0, 0) == 0) {
+                actor->field_940 = 0xA;
+                d4->field_CC    -= 1;
+                func_actor_800100_80166DD0(arg0);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 extern s8  D_8007272F;
 extern s16 D_actor_800100_80167218[];

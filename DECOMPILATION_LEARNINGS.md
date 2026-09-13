@@ -65441,3 +65441,37 @@ Inputs: `base_2.i`
 `4cc71342dcc30427e9b325d84df37f543ab2be1e1f9bf6a1793e7c9451855da9`,
 `base_3.i`
 `e6a78850e0446f9c067e5dd6d6cf4bc3d660c54f40c352f73bc56b6d66987fcc`.
+
+## A call block with no argument setup can mean the call passes *fewer* arguments
+
+`func_actor_800100_80165C38`'s case-1 block calls
+`func_actor_800100_80166B40` with `$a0`-`$a2` set and **no `$a3` at all**: the
+`1` the callee observes is the decision tree's own comparison operand, still
+live from `beq $v1, $a3`. A C call whose fourth argument is the literal `1`
+cannot produce that - `expand_call` emits its own
+`(set (reg:SI 7 a3) (const_int 1))` in the call block, so the source scores
+99.055% with an `insert` penalty of exactly one instruction. The set is already
+there before CSE (`base_2.i.jump`, uid 138) and CSE only attaches a
+`REG_EQUAL (const_int 1)` note to it (cse.c:7091); it does not fold it into the
+constant pseudo it created for the comparison (uid 200, `.lreg`), so no
+`-fcse-follow-jumps`/EBB explanation applies.
+
+The callee holds the answer, and it need not be matched to read it: it writes
+`$a3` before it ever reads it (`addu $a3, $s4, $zero`, in a `jal` delay slot at
+4E14), i.e. its fourth parameter is dead - and the original call passes **three**
+arguments. GCC emits argument setup only for the arguments the call expression
+actually has, so `$a3` keeps whatever the switch tree left in it:
+
+```c
+s32 func_actor_800100_80166B40(GpRec18* rec, GsCOORDINATE2* coord, GsCOORDINATE2* place);
+...
+if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0)   /* 99.055% -> 100% */
+```
+
+Symptom to look for: a one-instruction `insert` penalty on an argument register,
+a register written in one arm of a switch tree and read in another with no write
+between, and an argument register that appears in the callee only as a
+destination. Check the callee's `.s` before explaining the missing write as CSE
+or allocation behaviour - and remember the reverse reading too: a callee with a
+dead trailing parameter tells you nothing about how many arguments its callers
+pass, because the caller's source decides that.

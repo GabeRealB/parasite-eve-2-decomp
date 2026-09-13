@@ -38,6 +38,7 @@ void func_actor_800100_80166E94(GpActorWork* arg0, s32 arg1);
 void func_actor_800100_80166EE8(GpActorWork* arg0);
 void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1);
 void func_actor_800100_801668C0(GsCOORDINATE2* arg0);
+s32  func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2);
 s32  func_actor_800100_8016709C(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2);
 
 #endif
