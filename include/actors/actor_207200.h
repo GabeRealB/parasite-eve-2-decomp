@@ -6,11 +6,18 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-/// 0x38-byte `GpObj` list node; five of them live in `Actor207200Work` and are
-/// unlinked one by one when the actor tears down.
+#include "gameplay/3A34.h"
+#include "main/tmd.h"
+
+/// `GpObj` list node with 0x18 bytes of trailing state; five of them live in
+/// `Actor207200Work` and are unlinked one by one when the actor tears down.
+/// `obj.flags` is the display flag word the transform handler clears the top
+/// bit of; `field_20` is the sub-object the context points its `field_54` at.
 typedef struct Actor207200Obj {
-    /* 0x00 */ byte pad_0[0x38];
+    /* 0x00 */ GpObj obj;
+    /* 0x20 */ byte  field_20[0x18];
 } Actor207200Obj;
+STATIC_ASSERT_SIZEOF(Actor207200Obj, 0x38);
 
 typedef struct Actor207200Work {
     /* 0x000 */ byte           pad_0[0x1DC];
@@ -21,22 +28,43 @@ typedef struct Actor207200Work {
     /* 0x2FC */ byte           pad_2FC[0x78];
     /* 0x374 */ Actor207200Obj field_374;
     /* 0x3AC */ Actor207200Obj field_3AC;
+    /* 0x3E4 */ byte           pad_3E4[0x10];
+    /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
+    /* 0x3FC */ byte           pad_3FC[0x90];
+    /* 0x48C */ s16            field_48C;
+    /* 0x48E */ byte           pad_48E[0x16];
+    /* 0x4A4 */ s16            field_4A4;
+    /* 0x4A6 */ s16            field_4A6;
 } Actor207200Work;
 
 /// Owning context. The leading part holds the `Gp_UnlinkNode` list entry at
-/// +0x10, as for the gameplay `GpEnemy`.
+/// +0x10, as for the gameplay `GpEnemy`, so `field_40` is its HP and
+/// `field_54` a model pointer.
 typedef struct Actor207200Ctx {
-    /* 0x00 */ byte pad_0[0x10];
-    /* 0x10 */ byte node[0x44];
-    /* 0x54 */ s32  field_54;
+    /* 0x00 */ byte       pad_0[0x10];
+    /* 0x10 */ GpLinkNode node;
+    /* 0x18 */ byte       pad_18[0x28];
+    /* 0x40 */ s16        field_40;
+    /* 0x42 */ byte       pad_42[0x12];
+    /* 0x54 */ s32        field_54;
 } Actor207200Ctx;
 
 typedef struct Actor207200 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor207200Work* field_1C;
     /* 0x20 */ Actor207200Ctx*  field_20;
+    /* 0x24 */ byte             pad_24[6];
+    /* 0x2A */ s16              field_2A;
+    /* 0x2C */ void*            field_2C; // `Task::extra`: the actor's TmdObject
 } Actor207200;
 
+/// Effect-setup record handed to the spawned task through `D_80062730`.
+extern u8      D_actor_207200_801517F8[];
+extern SVECTOR D_actor_207200_80153F18;
+/// Spawned task's setup argument (`D_800626EC[5].setupArg`).
+extern s32 D_80062730;
+
 void func_actor_207200_8014DB4C(Actor207200* arg0);
+void func_actor_207200_8014CFEC(Actor207200* arg0);
 
 #endif

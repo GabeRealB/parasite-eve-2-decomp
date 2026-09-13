@@ -39960,6 +39960,53 @@ back to `M2C_FIELD` because the entry above advised the scalar form somewhere
 else. The three remedies listed there (barrier, aggregate declaration, naming
 the real struct field) all still apply once the direction is settled; they are
 about *what the global is*, this is about *which way the access has to move*.
+A fourth remedy acts on the *struct* side instead: drop `MEM_IN_STRUCT_P` from
+the reference that is crossing the store, by reading it through a
+differently-typed cast deref. It needs no barrier and changes no global's
+declaration, so try it first when the scalar cannot move and its relocation is
+a direct `%lo(sym)`.
+
+`func_actor_207200_8014CFEC` is the measurement. The target keeps
+
+```
+lw   v0,0x2c(s3)
+lw   a1,8(v0)
+```
+
+*after* the `sw` to the bare scalar `D_80062730`, and reaches that scalar
+through `%lo(D_80062730)` - so the aggregate and owning-struct forms are both
+excluded by the bytes (`D_80062730` is `D_800626EC[5].setupArg`, and the sibling
+`Actor01600_Fn0646C` in the same build compiles `D_800626EC[5].setupArg = x` to
+`lui $v0,%hi(D_800626EC); addiu $s1,$v0,%lo(D_800626EC); … sw $v0,0x44($s1)`).
+Writing the field as a typed member - `arg0->field_2C->field_8 + 3` - scores
+93.291%, with those loads floated above the `sw`; `SOFT_BARRIER()` after the
+store scores 96.582% and is *not* the fix here, because it also pins the
+`lui a0,0x8; ori a0,a0,0x5` argument constant that the target floats four slots
+above the store. Reading the pointer through a differently-typed cast deref
+instead - `(*(TmdObject**)&arg0->field_2C)->field_8` - scores 100%, and the only
+RTL change at the moved site is the flag:
+
+```
+base_6.c  (insn 17 (set (reg:SI 85) (mem/s:SI (plus:SI (reg/v:SI 80) (const_int 44))))
+base_8.c  (insn 17 (set (reg:SI 85) (mem:SI   (plus:SI (reg/v:SI 80) (const_int 44))))
+```
+
+Only 3 of 30 memory references had to change (`mem/s` count 0 on the all-`M2C_FIELD`
+seed, 21 on the typed one, 17 on the match); the other struct references in the
+body are harmless because nothing pulls them across the store.
+
+The folding rule is what makes this usable: `*(T*)&field` is **folded back to
+`field`**, keeping `MEM_IN_STRUCT_P`, when `T` is the field's own declared type -
+which is why the ubiquitous house idiom is codegen-neutral - and keeps the cast
+only when `T` differs. So the cast has to name a type the field is *not*: here
+the field is `void*` and the cast is `TmdObject**`.
+
+One correction for anyone reading the compiler source: in this patched tree the
+clause lives inline in the dependence functions, `sched.c:830/862/890`
+(`true_dependence` / `anti_dependence` / `output_dependence`), not in
+`fixed_scalar_and_varying_struct_p` in `alias.c` as stock 2.8.1 has it.
+`local-alloc.c` calls `true_dependence` too, so the flag reaches allocation and
+not only scheduling.
 
 ## Promoting a matched body into a family's shared library
 
