@@ -36,7 +36,9 @@ typedef struct Actor207200Work {
     /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
     /* 0x3FC */ byte           pad_3FC[0x90];
     /* 0x48C */ s16            field_48C;
-    /* 0x48E */ byte           pad_48E[0x16];
+    /* 0x48E */ u16            field_48E; // id the six helper slots last saw
+    /* 0x490 */ u16            field_490; // frames spent on the current id
+    /* 0x492 */ byte           pad_492[0x12];
     /* 0x4A4 */ s16            field_4A4;
     /* 0x4A6 */ s16            field_4A6;
 } Actor207200Work;

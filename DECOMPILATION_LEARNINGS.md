@@ -72819,3 +72819,32 @@ The split also relocates a leading `INCLUDE_RODATA` that
 `migrate_rodata_to_functions` put in the first code unit: a symbol at an offset
 below the first code subsegment still belongs to that first unit's name, so it
 stays in `<overlay>.c` rather than following the function it sat next to.
+
+## `TOUCH_REG` keeps a provably-constant counter out of a later `add`
+
+`func_actor_207200_8014D65C` is the sibling of `func_actor_207200_8014AF2C`
+(same body, 7 slots at `0x48C` instead of 3 at `0x28C`). Removing m2c's temp for
+the call argument — the fix recorded above — still left one mismatch: the else
+path's counter update came out `addiu $v0,$v0,1` where the target has
+`addu $v0,$v0,$s0`.
+
+The counter is `i`, initialised to 1 after the branch and only ever 1 on the
+path that reaches the update, so the value is provable and GCC folds it into
+the immediate. The matched sibling carries `TOUCH_REG(i)` immediately before the
+update, which is an opaque `"+r"` write: `i`'s value is no longer known and the
+add keeps the register.
+
+```c
+    TOUCH_REG(i);
+    work->field_490 = (u16)(work->field_490 + i);
+```
+
+Dropping just that line from the otherwise-identical candidate scores 95.45%
+(`insert=1 delete=1`, exactly the `addiu`), and restoring it scores 100% — so
+the touch is load-bearing, not decoration. This is the folding half of the
+sibling's shape; the loop-order half is the temp removal above. When a matched
+body exists at another offset, mirror its source verbatim before reconstructing
+from m2c, helpers included.
+
+Input SHA256 (`base_1.i`, the matching candidate):
+`210001ee53b1925d890608aaf6d8e022aa99cae787260620ac3dc75934311391`.
