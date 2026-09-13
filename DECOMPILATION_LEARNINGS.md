@@ -50976,6 +50976,26 @@ order when one of the stores is fed by a load. The target emits
 all three; the source has the `0x108` assignment *first* and the scheduler sinks
 its store past the two constant stores.
 
+**A shared constant materialises where its statement sits, not where the target
+emits it.** `func_actor_105100_801327B4` ends a run of three constant stores with
+
+```
+lui   v0, 0x2
+ori   v0, v0, 0x2800      /* field_594 = 0x2800 */
+li    s1, 1               /* the shared constant 1 */
+sh    v0, 0x594(s0)
+sh    s1, 0x5A8(s0)       /* field_5A8 = 1 */
+li    v0, 0xF
+sh    v0, 0x59E(s0)       /* field_59E = 0xF  */
+```
+
+Three fields are set to `1` here, so `1` is one pseudo used by three statements
+and CSE hoists its `li` to the first of them. Written in the order the target
+*stores* (`0x594`, `0x59E`, `0x5A8`, `0x59A`) the `li s1,1` lands against
+`0x59E`; written with the `field_5A8` statement moved directly after `field_594`
+it lands exactly where the target has it. So the source order is the place to
+fix a constant's `li`, even when the store it feeds is not the one that moved.
+
 ## A flag used twice becomes an extra `move`; re-test the expression instead
 
 `func_acropolis_bridge_80180FF0` guards a draw block on a screen-bounds test and
@@ -69651,6 +69671,31 @@ variable exists at all - that is what took `base_3.c` to 100%, with the cast
 expression above replacing the last field (`field_24`) that belonged to the
 other view. Related: "A pointer to a local and the local's own name are two
 frame-address pseudos", which is the same effect on a frame address.
+
+## Re-derive a pointer chain at the late uses instead of keeping the local
+
+When a function loads a pointer once and then uses it at several sites spread
+over its body, the source form that keeps a local (`coord = obj->field_8;`)
+holds the pseudo live across every call and store in between, so it needs a
+callee-saved register to survive them. The target may instead re-load the chain
+at each site — `lw v0, 0x2C(s4)` / `lw v1, 8(v0)` repeated — which is what GCC
+does on its own when the expression is written out at each use, because `cse`
+invalidates memory at a call and at an intervening store and so cannot keep the
+earlier load alive.
+
+`func_actor_105100_801327B4` had four late uses of `arg1->field_2C->field_8`
+against one early use. With the local, the function saved five registers and
+used a `0x38` frame (78.2%); writing the chain out at the four late sites died
+the pseudo at the early use, dropped the frame to `0x30` and freed `$s4`/`$s5`
+(94.0%). The early `coord->flg = 0` and the `MATRIX` copy keep the local — the
+target has the chain loaded there too, and only the *late* sites re-derive.
+
+This is the load-side mirror of "Shape a live range by *where* a local is
+introduced": the cheapest way to end a live range is often not to move its
+introduction but to delete the variable and let the loads repeat. It costs
+instructions, which is the right trade only because GCC's rematerialisation is
+what the original source did — check the target for the repeated `lw` before
+assuming a register-starved function wants a single load.
 
 Note the view struct carries *absolute* offsets (`pad_0[0x40]`, `field_40`), so
 the cast is at offset 0 and costs no `addiu`; a view based at 0x38 would need

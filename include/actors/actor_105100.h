@@ -8,11 +8,28 @@
 
 #include "gameplay/3A34.h"
 
+/// The model object in `Actor105100::field_2C` (`Task::extra`), seen through
+/// this overlay: `field_8` is the object's trailing `GsCOORDINATE2` array and
+/// `field_1C` / `field_20` the light and colour matrices the spawn hands the
+/// two `MATRIX`es inside the work block.
 typedef struct Actor105100Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0xE];
+    /* 0x1C */ MATRIX*        field_1C;
+    /* 0x20 */ MATRIX*        field_20;
 } Actor105100Obj2C;
+
+/// Animation view of the work block's prefix. `func_800B3F84` is handed the
+/// block as a `GpAnimCtx` and the nineteen `GpAnimSlot`s live at 0x14, over the
+/// bytes the list units see as `Actor105100Work::obj0` / `obj38`: the handler
+/// reaches slot 1 as `&work->obj38.prev`.
+typedef struct Actor105100Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+} Actor105100Anim;
+STATIC_ASSERT_SIZEOF(Actor105100Anim, 0x30C);
 
 /// The actor's animation work area. `field_58E` is the pose the animation
 /// tables are indexed by and `field_598` the step of the schedule that drives
@@ -21,44 +38,95 @@ typedef struct Actor105100Obj2C {
 /// signed compares against it in `func_actor_105100_801360AC` and
 /// `func_actor_105100_801361C4` cast at the use (`(s16)work->field_592`)
 /// instead of retyping the field.
+///
+/// The three 0x20-byte groups at 0x47C / 0x4E4 / 0x51C are `GpObj` list nodes
+/// and their members are spelled out flat here, at the offsets the `GpObj`
+/// layout gives them: `field_484` / `field_524` are `field_8` (the coordinate
+/// the node hangs off -- `&coord[3]` for the first, the model's own coordinate
+/// and the third-party model's for the others), `field_488` / `field_4F0` /
+/// `field_528` are the `field_C` collision table pointers, `field_48C` ..
+/// `field_498` and their siblings are `field_10` .. `field_1C`, and
+/// `field_49A` / `field_502` / `field_53A` are `flags`. They are not typed as
+/// `GpObj` because the matched handlers reach the flags directly -- the
+/// `0x8000` last-element bit is read and written as `field_502` -- and a
+/// `GpObj` member cannot overlap them.
 typedef struct Actor105100Work {
-    /* 0x000 */ GpObj      obj0;
-    /* 0x020 */ byte       pad_20[4];
-    /* 0x024 */ s32        field_24;
-    /* 0x028 */ byte       pad_28[0x10];
-    /* 0x038 */ GpObj      obj38;
-    /* 0x058 */ byte       pad_58[0x4AA];
-    /* 0x502 */ u16        field_502;
-    /* 0x504 */ byte       pad_504[0x58];
-    /* 0x55C */ GpEffWork* field_55C;
-    /* 0x560 */ MATRIX     field_560;
-    /* 0x580 */ s32        field_580;
-    /* 0x584 */ s32        field_584;
-    /* 0x588 */ s32        field_588;
-    /* 0x58C */ byte       pad_58C[2];
-    /* 0x58E */ u16        field_58E;
-    /* 0x590 */ s16        field_590;
-    /* 0x592 */ u16        field_592;
-    /* 0x594 */ s16        field_594;
-    /* 0x596 */ s16        field_596;
-    /* 0x598 */ s16        field_598;
-    /* 0x59A */ u16        field_59A;
-    /* 0x59C */ byte       pad_59C[6];
-    /* 0x5A2 */ s16        field_5A2;
-    /* 0x5A4 */ byte       pad_5A4[4];
-    /* 0x5A8 */ s16        field_5A8;
-    /* 0x5AA */ s16        field_5AA;
-    /* 0x5AC */ s16        field_5AC;
-    /* 0x5AE */ u16        field_5AE;
-    /* 0x5B0 */ byte       pad_5B0[4];
-    /* 0x5B4 */ s16        field_5B4;
-    /* 0x5B6 */ s16        field_5B6;
-    /* 0x5B8 */ u16        field_5B8;
-    /* 0x5BA */ byte       pad_5BA[2];
-    /* 0x5BC */ s16        field_5BC;
-    /* 0x5BE */ byte       pad_5BE[4];
-    /* 0x5C2 */ s16        field_5C2;
-    /* 0x5C4 */ byte       pad_5C4[4];
+    /* 0x000 */ GpObj          obj0;
+    /* 0x020 */ byte           pad_20[4];
+    /* 0x024 */ s32            field_24;
+    /* 0x028 */ byte           pad_28[0x10];
+    /* 0x038 */ GpObj          obj38;
+    /* 0x058 */ byte           pad_58[0x2B4];
+    /* 0x30C */ byte           field_30C[0x130];
+    /* 0x43C */ MATRIX         field_43C;
+    /* 0x45C */ MATRIX         field_45C;
+    /* 0x47C */ byte           field_47C[8];
+    /* 0x484 */ void*          field_484;
+    /* 0x488 */ GpRec18*       field_488;
+    /* 0x48C */ u16            field_48C;
+    /* 0x48E */ s16            field_48E;
+    /* 0x490 */ u16            field_490;
+    /* 0x492 */ byte           pad_492[2];
+    /* 0x494 */ u32            field_494;
+    /* 0x498 */ u16            field_498;
+    /* 0x49A */ u16            field_49A;
+    /* 0x49C */ GpRec18        field_49C[3];
+    /* 0x4E4 */ byte           field_4E4[8];
+    /* 0x4EC */ void*          field_4EC;
+    /* 0x4F0 */ GpRec18*       field_4F0;
+    /* 0x4F4 */ u16            field_4F4;
+    /* 0x4F6 */ s16            field_4F6;
+    /* 0x4F8 */ u16            field_4F8;
+    /* 0x4FA */ byte           pad_4FA[2];
+    /* 0x4FC */ u32            field_4FC;
+    /* 0x500 */ u16            field_500;
+    /* 0x502 */ u16            field_502;
+    /* 0x504 */ GpRec18        field_504[1];
+    /* 0x51C */ byte           field_51C[8];
+    /* 0x524 */ void*          field_524;
+    /* 0x528 */ GpRec18*       field_528;
+    /* 0x52C */ u16            field_52C;
+    /* 0x52E */ s16            field_52E;
+    /* 0x530 */ s16            field_530;
+    /* 0x532 */ byte           pad_532[2];
+    /* 0x534 */ u32            field_534;
+    /* 0x538 */ u16            field_538;
+    /* 0x53A */ u16            field_53A;
+    /* 0x53C */ GpRec18        field_53C[1];
+    /* 0x554 */ GsCOORDINATE2* field_554;
+    /* 0x558 */ u16            field_558;
+    /* 0x55A */ u16            field_55A;
+    /* 0x55C */ GpEffWork*     field_55C;
+    /* 0x560 */ MATRIX         field_560;
+    /* 0x580 */ s32            field_580;
+    /* 0x584 */ s32            field_584;
+    /* 0x588 */ s32            field_588;
+    /* 0x58C */ byte           pad_58C[2];
+    /* 0x58E */ u16            field_58E;
+    /* 0x590 */ s16            field_590;
+    /* 0x592 */ u16            field_592;
+    /* 0x594 */ s16            field_594;
+    /* 0x596 */ s16            field_596;
+    /* 0x598 */ s16            field_598;
+    /* 0x59A */ u16            field_59A;
+    /* 0x59C */ byte           pad_59C[2];
+    /* 0x59E */ u16            field_59E;
+    /* 0x5A0 */ byte           pad_5A0[2];
+    /* 0x5A2 */ s16            field_5A2;
+    /* 0x5A4 */ byte           pad_5A4[4];
+    /* 0x5A8 */ s16            field_5A8;
+    /* 0x5AA */ s16            field_5AA;
+    /* 0x5AC */ s16            field_5AC;
+    /* 0x5AE */ u16            field_5AE;
+    /* 0x5B0 */ byte           pad_5B0[4];
+    /* 0x5B4 */ s16            field_5B4;
+    /* 0x5B6 */ s16            field_5B6;
+    /* 0x5B8 */ u16            field_5B8;
+    /* 0x5BA */ byte           pad_5BA[2];
+    /* 0x5BC */ s16            field_5BC;
+    /* 0x5BE */ byte           pad_5BE[4];
+    /* 0x5C2 */ s16            field_5C2;
+    /* 0x5C4 */ byte           pad_5C4[4];
 } Actor105100Work;
 
 /// Second view of the work area's 0x38 record, held by the per-frame handler

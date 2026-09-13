@@ -49,11 +49,120 @@ extern u16 D_actor_105100_8014139C[1];
 /// the new state selects before it re-queues every slot.
 extern s16 D_actor_105100_801414C8[];
 
+/// The spawn's pair tables. `Gp_PackPair` packs the `GpU16Pair` at 0x80141380
+/// into the work's third list node (`Actor105100Work::field_4FC`), and the
+/// `GpPairSrcE` at 0x80141398 is the pair source the context points at with
+/// `Actor105100Ctx::field_50` -- its `field_4` seeds the enemy's HP.
+extern GpU16Pair  D_actor_105100_80141380;
+extern GpPairSrcE D_actor_105100_80141398;
+
+/// The animation data `func_800B3F84` builds the work block's clip context
+/// from; the spawn hands it over whole, so it is only ever a byte address here.
+extern u8 D_actor_105100_80141488[];
+
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80131EBC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80132414);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801327B4);
+/// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
+/// the task, points the model object at the block's two `MATRIX`es (0x45C the
+/// light matrix, 0x43C the colour one) and fills the context's coordinate,
+/// pair source and HP (`field_40`, seeded from the pair source's `field_4`).
+///
+/// The block's 0x14-prefix then becomes the `GpAnimCtx`: `func_800B3F84` loads
+/// the animation data into it over the nineteen `GpAnimSlot`s, and slots 1..18
+/// are reset. The three list nodes at 0x47C / 0x4E4 / 0x51C are linked into the
+/// global object lists with their collision tables (`Gp_InitRec18Table`), which
+/// also sets each node's 0x8000 "last element" flag -- then the second node's is
+/// cleared again. `&coord[3]` -- the actor's fourth coordinate -- is what the
+/// first node, `field_554` and the context's `field_18` all hang off.
+///
+/// A failed allocation tears the enemy down instead and leaves the task on this
+/// handler; otherwise the task moves to the tick handler (`state` 1).
+void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
+{
+    Actor105100Work*  work;
+    Actor105100Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    GpRec18*          records1;
+    GpRec18*          records2;
+    GpRec18*          records3;
+    s32               i;
+
+    obj   = arg1->field_2C;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x5C4, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->field_1C = work;
+    obj->field_C   = 0;
+    coord->flg     = 0;
+    obj->field_1C  = &work->field_45C;
+    obj->field_20  = &work->field_43C;
+    arg0->field_4  = &coord->coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode((GpLinkNode*)&arg0->node);
+    arg0->field_18  = &arg1->field_2C->field_8[3];
+    arg0->field_1C  = 0;
+    arg0->field_20  = 0x64;
+    arg0->field_24  = 0;
+    arg0->field_50  = &D_actor_105100_80141398;
+    arg0->field_54  = (s32)work->field_49C;
+    arg0->field_40  = D_actor_105100_80141398.field_4;
+    work->field_554 = &arg1->field_2C->field_8[3];
+    work->field_558 = 0x500;
+    work->field_55A = 3;
+    func_800B3F84((GpAnimCtx*)work, D_actor_105100_80141488, (GpAnimObj*)obj, work->field_30C,
+                  ((Actor105100Anim*)work)->slots);
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work->field_560 = coord->coord;
+    work->field_594 = 0x2800;
+    work->field_5A8 = 1;
+    work->field_59E = 0xF;
+    work->field_59A = 0x96;
+    work->field_484 = &arg1->field_2C->field_8[3];
+    records1        = work->field_49C;
+    work->field_488 = records1;
+    work->field_48C = 0;
+    work->field_48E = 0x1F4;
+    work->field_490 = 0;
+    work->field_494 = 0x30033;
+    work->field_498 = 0x320;
+    work->field_49A = 1U;
+    Gp_LinkObj(2, (GpObj*)work->field_47C);
+    Gp_InitRec18Table(records1, 3, 0);
+    work->field_49A = (u16)(work->field_49A | 0x8000);
+    work->field_524 = arg1->field_2C->field_8;
+    records2        = work->field_53C;
+    work->field_528 = records2;
+    work->field_52C = 0;
+    work->field_52E = 0;
+    work->field_530 = -0x12C;
+    work->field_534 = 0;
+    work->field_538 = 0x4B0;
+    work->field_53A = 1U;
+    Gp_LinkObj(2, (GpObj*)work->field_51C);
+    Gp_InitRec18Table(records2, 1, 0);
+    work->field_53A = (u16)(work->field_53A | 0x8000);
+    work->field_4EC = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    records3        = work->field_504;
+    work->field_4F0 = records3;
+    work->field_4F4 = 0;
+    work->field_4F6 = 0;
+    work->field_4F8 = 0;
+    work->field_4FC = Gp_PackPair(&D_actor_105100_80141380, 5);
+    work->field_500 = 0x1F4;
+    work->field_502 = 1U;
+    Gp_LinkObj(3, (GpObj*)work->field_4E4);
+    Gp_InitRec18Table(records3, 1, 0);
+    work->field_502 = work->field_502 & 0x7FFF;
+    arg1->state     = 1;
+}
 
 void func_actor_105100_80132AA0(Actor105100Ctx* arg0, Actor105100* arg1)
 {
