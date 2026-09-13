@@ -69098,3 +69098,26 @@ units, and only the *head* of it is that file.
 when the manifest carries hand-placed `rodata`/`units` cuts, which need
 re-deriving by hand). Worked example: `func_actor_460200_80133474`, where unit
 `actor_460200_2` split at the shared span and units `_3`/`_4` became `_4`/`_5`.
+
+## `bulk_m2c_promote.py` cannot run from an overlay worktree
+
+An agent matching in a `pe2-ov-<overlay>` worktree finds a duplicated body,
+runs `overlay_dup_index.py promote` as the brief instructs, and then cannot
+finish: `bulk_m2c_promote.py` — the tool that does the source half — begins with
+`refresh_to_trunk()` under the merge lock, so on a branch carrying its own
+commits it prints
+
+```
+could not fast-forward onto trunk: hint: Diverging branches can't be fast-forwarded
+```
+
+and exits 1. The config half it already wrote has to be reverted by hand
+(`git checkout -- configs/USA/overlays.toml configs/USA/sym/<family>/`), or the
+worktree is left with a span and a shared symbol naming a `src/<family>/lib/`
+unit that does not exist.
+
+Promotion is therefore a trunk-side pass, not something to fold into the
+worktree's match commit: land the match, and let a later
+`bulk_m2c_promote.py --results …` run (from the main checkout, on `main`) pick
+the body up. `overlay_dup_index.py find` marks the duplicate, so nothing is lost
+by waiting.
