@@ -71842,3 +71842,31 @@ tests read the same element. `func_actor_215100_8014C418` matched 100% on its
 first attempt from the sibling shape `Gp_FindCapEvt` (gameplay, the same
 21-instruction body modulo its globals); `regs=13 insert=6 delete=7` on the m2c
 seed was this artefact, not an allocation problem.
+
+## A missing frame is a shared-epilogue difference, not just a `stack` penalty
+
+`func_actor_215100_8014CEF8` is a leaf — no calls and no locals — yet the target
+opens `addiu sp,sp,-0x10` and ends `jr ra` / `addiu sp,sp,0x10`. Written
+naturally, the body scores 72.1% with `stack=2 branch=2 regs=1 insert=3
+delete=5`, and the diff is not two instructions: with no frame, GCC 2.8.1 gives
+*every* returning block its own `jr ra`, so case 0 and the switch default each
+end in one. The target has a single exit block, `j .L64` from both, with case 1
+falling into `L64: jr ra`.
+
+The frame is what buys the shared epilogue: once the function has a frame a bare
+`return` is no longer a single `jr ra` and the exits must jump to the one
+epilogue. The matched sibling `ActorsShared801328bc` carries the pad that
+creates it, and copying that line took the score to 100.00%:
+
+```c
+void func_actor_215100_8014CEF8(Task* task)
+{
+    char           pad[0x10];   /* unused; GCC 2.8.1 keeps it and it is the frame */
+    Task*          parent = task->parent;
+```
+
+So when a leaf target has a 16-byte frame nothing in the C asks for, look for an
+unused `char pad[0x10]` in a matched sibling before reaching for `stack` tuning —
+and read a missing prologue as a control-flow shape difference, since
+`insert`/`delete`/`branch` on such a seed are the duplicated `jr ra`s, not
+scheduling noise.
