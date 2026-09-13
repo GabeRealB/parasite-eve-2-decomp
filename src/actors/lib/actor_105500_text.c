@@ -220,4 +220,10 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03DD8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03E34);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03F88);
+void Actor05500_Fn03F88(Actor105500* arg0)
+{
+    Actor105500StateFuncTable3 sp;
+
+    sp = Actor05500_D00038;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}

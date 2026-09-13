@@ -27,7 +27,14 @@ typedef struct Actor105500 {
     /* 0x20 */ void*             field_20;
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor105500Obj2C* field_2C;
+    /* 0x30 */ s32               field_30;
 } Actor105500;
+
+typedef struct Actor105500StateFuncTable3 {
+    void (*funcs[3])(void*, Actor105500*);
+} Actor105500StateFuncTable3;
+
+extern Actor105500StateFuncTable3 Actor05500_D00038;
 
 typedef struct Actor105500Ctx {
     /* 0x00 */ byte pad_0[0x14];
