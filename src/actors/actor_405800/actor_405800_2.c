@@ -116,7 +116,46 @@ void func_actor_405800_80136E14(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_8013706C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_8013728C);
+s32 func_actor_405800_8013728C(Task* arg0)
+{
+    Actor405800Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          v;
+    s16              dist;
+    s32              i;
+
+    dist  = 0;
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    for (i = 0; i < 8; i++) {
+        if ((work->rec_75C[i].field_4 & 0xFFFF0000) != 0x100000) {
+            dist = 0;
+        } else {
+            if (work->field_892 == 0) {
+                dist = 1;
+            } else if (work->field_892 == 1) {
+                v.vx = work->rec_75C[i].field_8 - coord->workm.t[0];
+                v.vy = 0;
+                v.vz = work->rec_75C[i].field_C - coord->workm.t[2];
+                dist = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
+                if (dist == 0) {
+                    dist = 1;
+                }
+            } else if (work->field_892 == 2) {
+                v.vx = work->rec_75C[i].field_8 - coord->workm.t[0];
+                v.vy = work->rec_75C[i].field_A - coord->workm.t[1];
+                v.vz = 0;
+                dist = SquareRoot0(v.vx * v.vx + v.vy * v.vy);
+                if (dist == 0) {
+                    dist = 1;
+                }
+            }
+            break;
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec_75C);
+    return dist;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_801373E0);
 

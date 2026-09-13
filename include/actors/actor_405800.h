@@ -143,7 +143,7 @@ typedef struct Actor405800Work {
     /* 0x88F */ s8                  field_88F;
     /* 0x890 */ u8                  field_890; // nonzero: allow the state-0xD transition when root X > 10000
     /* 0x891 */ u8                  field_891;
-    /* 0x892 */ byte                pad_892;
+    /* 0x892 */ u8                  field_892; // distance mode: 0 none, 1 XZ, 2 XY
     /* 0x893 */ u8                  field_893;
     /* 0x894 */ byte                pad_894;
     /* 0x895 */ u8                  field_895;
