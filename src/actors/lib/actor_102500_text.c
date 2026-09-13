@@ -741,7 +741,32 @@ void Actor02500_Fn02008(Actor02500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn020D0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02178);
+void Actor02500_Fn02178(Actor02500* arg0)
+{
+    Actor02500Work* work;
+    s32             state;
+
+    work  = arg0->field_1C;
+    state = work->field_324;
+
+    switch (state) {
+        case 0:
+            work->field_31C = 7;
+            work->field_344 = 1;
+            work->field_326 = 0;
+            work->field_328 = 0;
+            work->field_32E = 0x3C;
+            work->field_324 = 1;
+            break;
+        case 1:
+            if (--work->field_32E <= 0) {
+                work->field_322 = state;
+                work->field_324 = 0;
+                work->field_344 = 0;
+            }
+            break;
+    }
+}
 
 s32 Gp_TickObjFlag2(Actor02500Ctx* arg0);
 
