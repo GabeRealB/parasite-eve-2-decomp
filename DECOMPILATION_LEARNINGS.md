@@ -52375,6 +52375,61 @@ is wider than abs - **any construct that avoids splitting the block turns a
 global allocno into a local one, and local ones are allocated first** - but abs
 is the case with a ready-made single-insn pattern.
 
+## A local temp in `$v0` poisons `$v0` for a global value born later in the same block
+
+Symptom: a returned value and a comparison flag come out swapped (target
+`value` in `$v0` / flag in `$v1`, build the mirror image), and the return grows
+an `addu $v0,$v1,$zero` that the target does not have - `regs=N insert=1` with
+every instruction otherwise identical, so asm-differ shows a clean positional
+shift rather than a structural difference.
+
+Cause: `global_conflicts` walks each block carrying `hard_regs_live`, and
+`mark_reg_store` renames the pseudo through `reg_renumber` *before* splitting
+the pseudo and hard-register paths, so a store into a pseudo that `local-alloc`
+has already coloured is processed as a store into that hard register:
+
+```c
+  regno = REGNO (reg);
+  if (reg_renumber[regno] >= 0)
+    regno = reg_renumber[regno];
+  ...
+  else if (! fixed_regs[regno])   /* $v0 is not fixed on MIPS */
+    { record_one_conflict (regno); SET_HARD_REG_BIT (hard_regs_live, regno); }
+```
+
+Only `mark_reg_death` (again via `reg_renumber`) clears such a bit. A chain of
+block-local load temps is coloured `$v0` - the lowest free register - so each
+store re-arms the bit, and a global value born after the chain inherits a
+conflict it cannot see the origin of:
+
+```
+(insn (set (reg:SI 88) (mem (reg:SI 87) 24)))   /* REG_DEAD 87 clears $v0; 88 -> $v0 re-sets it */
+(insn (set (reg/v:SI 81) (const_int 37)))       /* value born: conflict with $v0 recorded */
+```
+
+`.greg` prints this as `81 conflicts: 81 82 2 29`, and the value then loses to
+`$v0` in both `find_reg` passes even though the return copy
+`(set (reg/i:SI 2 v0) (reg/v:SI 81))` gives it a `$v0` preference.
+
+Fix: end the chain in the variable that is *compared*, so the last store writes
+the global pseudo instead of a local temp. The base register's `REG_DEAD` is
+processed before the store in the same insn, so it clears `$v0` and nothing
+re-arms it:
+
+```c
+    flag  = ((TmdObject*)task->extra)->field_8->coord.t[0];  /* the last load writes flag itself */
+    flag  = flag < 0x3A98;
+    value = 0x25;
+```
+
+versus the natural spelling `flag = <same chain> < 0x3A98;`, which leaves the
+last load in a local temp. The chain has to stay *inside* each arm: hoisting a
+named `coord = <chain>;` above the `if` is not equivalent - CSE folds the two
+arms onto one load before the branch and the whole allocation changes (66% in
+the worked example, versus 100% for the version above).
+
+Worked example: `func_actor_403200_801411A8`.
+
 ## Don't hoist a repeated constant into a local: `subu` publishes it and later `>> 16` becomes `srlv`
 
 A switch whose arms all end with `field = BASE - rnd;` and share a two-insn

@@ -5,6 +5,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern s16 D_actor_403200_80141C5A;
 
@@ -43,7 +44,32 @@ s16 func_actor_403200_80141180(Actor403200Obj* arg0, s16 arg1)
     return func_actor_403200_801344C4(arg0, arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_5", func_actor_403200_801411A8);
+/// Returns 0x25 for the current view, or 0x1E when the slot-3 model's X
+/// translation is at or above a threshold that depends on the view index:
+/// 0x3A98 for view 0x1E, 0x3E80 otherwise.
+s32 func_actor_403200_801411A8(void)
+{
+    Task* task;
+    s32   flag;
+    s32   value;
+    s32   view;
+
+    view = Gp_GetViewIndex() & 0xFF;
+    task = (Task*)Game_GetPtrSlot(3);
+    if (view == 0x1E) {
+        flag  = ((TmdObject*)task->extra)->field_8->coord.t[0];
+        flag  = flag < 0x3A98;
+        value = 0x25;
+    } else {
+        flag  = ((TmdObject*)task->extra)->field_8->coord.t[0];
+        flag  = flag < 0x3E80;
+        value = 0x25;
+    }
+    if (flag == 0) {
+        value = 0x1E;
+    }
+    return value;
+}
 
 void func_actor_403200_8014122C(void)
 {
