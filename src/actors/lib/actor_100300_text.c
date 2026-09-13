@@ -17,7 +17,9 @@ s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern u8        D_801153F4;
+extern s32       D_80115720;
 extern s32       D_80115728;
+extern s32       D_80115744;
 extern s32       D_8011573C;
 extern s32       Gp_LcgState;
 extern GpU16Pair Actor00300_D15FD8;
@@ -63,7 +65,121 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01F9C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn02620);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn028D0);
+void Actor00300_Fn028D0(Actor100300* arg0)
+{
+    SVECTOR           sp10;
+    SVECTOR           sp18;
+    SVECTOR           sp20;
+    Actor100300Work*  work;
+    GpEffWork*        effect;
+    GpEffWork*        burst;
+    GpEnemy*          enemy;
+    Actor100300Obj2C* obj;
+    GpEnemy*          currentEnemy;
+    GsCOORDINATE2*    coord;
+    s16               timer;
+    s16               state;
+    s32               random0;
+    s32               angle0;
+    s32               random1;
+    s32               angle1;
+    s32               sound;
+    s32               random2;
+    s32               pan0;
+    s32               pan1;
+    u32               effectRandom0;
+    u32               effectRandom1;
+
+    obj   = arg0->field_2C;
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    state = work->field_686;
+    coord = obj->field_8;
+    switch (state) {
+        case 0:
+            if (Gp_State1C->field_4 == 0) {
+                effectRandom0 = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState   = (s32)effectRandom0;
+                if (!((effectRandom0 >> 0x10) & 3)) {
+                    random0     = (effectRandom0 * 5) + 0x71357911;
+                    Gp_LcgState = random0;
+                    angle0      = ((u32)random0 >> 0x10) & 0xF80;
+                    memset(&sp20, 0, sizeof(sp20));
+                    sp20.vx = (s16)((u32)(rcos(angle0) * 5) >> 5);
+                    sp20.vz = (s16)((u32)(rsin(angle0) * 5) >> 5);
+                    sp18    = sp20;
+                    Gp_SpawnEff(D_80115728, coord, 0x20100200, &sp18);
+                }
+            }
+            work->field_67C = 0;
+            work->field_67A = 0;
+            if ((s16)work->field_672 >= 0x33) {
+                work->field_686 = 1;
+                work->field_66E = 5;
+                sp10.vy         = -0x5DC;
+                sp10.vx         = 0;
+                sp10.vz         = 0x320;
+                effect          = Gp_SpawnEff(D_80115744, coord, 0x10014, &sp10);
+                work->field_654 = effect;
+                if (effect != NULL) {
+                    Task_Reparent((Task*)arg0, effect->field_0);
+                    work->field_69C = 0x13;
+                }
+                work->field_658 = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030009;
+                pan0            = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(work->field_658, pan0, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                return;
+            }
+            return;
+        case 1:
+            if (work->field_69C > 0) {
+                timer           = (u16)work->field_69C - 1;
+                work->field_69C = timer;
+                if (timer <= 0) {
+                    work->field_654 = NULL;
+                }
+            }
+            if (Gp_State1C->field_4 == 0) {
+                effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState   = (s32)effectRandom1;
+                if (!((effectRandom1 >> 0x10) & 3)) {
+                    random1     = (effectRandom1 * 5) + 0x71357911;
+                    Gp_LcgState = random1;
+                    angle1      = ((u32)random1 >> 0x10) & 0xF80;
+                    memset(&sp20, 0, sizeof(sp20));
+                    sp20.vx = (s16)((u32)(rcos(angle1) * 5) >> 5);
+                    sp20.vz = (s16)((u32)(rsin(angle1) * 5) >> 5);
+                    sp18    = sp20;
+                    Gp_SpawnEff(D_80115728, coord, 0x20100200, &sp18);
+                }
+            }
+            if ((s16)work->field_672 >= 0x13) {
+                work->field_686        = 2;
+                work->field_654        = NULL;
+                work->field_66E        = 6;
+                currentEnemy           = arg0->field_20;
+                currentEnemy->field_40 = (u16)currentEnemy->field_40 + 0x64;
+                func_800DA6E8(&enemy->node, -0x64, 0);
+                burst = Gp_SpawnEff(D_80115720, coord, 0, NULL);
+                if (burst != NULL) {
+                    Task_Reparent((Task*)arg0, burst->field_0);
+                }
+                sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4003000B;
+                pan1  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(sound, pan1, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            break;
+        case 2:
+            if ((s16)work->field_672 >= 0xF) {
+                work->field_684 = 1;
+                work->field_686 = 0;
+                random2         = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random2;
+                work->field_688 = ((u32)random2 >> 0x10) & 0x1F;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn02CE8);
 
