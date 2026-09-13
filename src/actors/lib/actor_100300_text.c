@@ -59,7 +59,64 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn028D0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn02CE8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn030B8);
+void Actor00300_Fn030B8(Actor100300* arg0)
+{
+    SVECTOR          sp10;
+    SVECTOR          sp18;
+    Actor100300Work* work;
+    GsCOORDINATE2*   coord;
+    s16              timer;
+    s16              state;
+    s32              random;
+    s32              angle;
+    s32              sound;
+    s32              pan;
+    u32              effectRandom;
+    u32              nextRandom;
+
+    work  = arg0->field_1C;
+    state = work->field_686;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_686 = 1;
+            work->field_67C = 0;
+            work->field_67A = 0;
+            work->field_688 = 0;
+            work->field_66E = 3;
+            return;
+        case 1:
+            if (Gp_State1C->field_4 == 0) {
+                effectRandom = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState  = (s32)effectRandom;
+                if (!((effectRandom >> 0x10) & 3)) {
+                    random      = (effectRandom * 5) + 0x71357911;
+                    Gp_LcgState = random;
+                    angle       = ((u32)random >> 0x10) & 0xF80;
+                    memset(&sp18, 0, sizeof(sp18));
+                    sp18.vx = (u32)(rcos(angle) * 5) >> 5;
+                    sp18.vz = (u32)(rsin(angle) * 5) >> 5;
+                    sp10    = sp18;
+                    Gp_SpawnEff(D_80115728, coord, 0x20103200, &sp10);
+                }
+            }
+            timer           = (u16)work->field_688 + 1;
+            work->field_688 = timer;
+            if (timer >= 0x5B) {
+                work->field_684 = 1;
+                work->field_688 = 0;
+                work->field_686 = 0;
+                nextRandom      = (Gp_LcgState * 5) + 0x71357911;
+                work->field_666 = (u16)(work->field_666 + 5);
+                work->field_688 = (nextRandom >> 0x10) & 0x1F;
+                Gp_LcgState     = (s32)nextRandom;
+                sound           = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4003000B;
+                pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn032BC);
 
