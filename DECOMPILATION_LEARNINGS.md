@@ -69866,3 +69866,34 @@ unit name inside every `INCLUDE_ASM` string in those files, and rebuilding the
 first unit from the tail of the old `actor_<n>.c`. Spans that already cover the
 overlay's *entire* code (`actor_102500`, `actor_103800`) have no such hazard,
 because no non-shared unit remains to be cut.
+
+## "Same body, 3 copies" does not mean the body can be shared
+
+`overlay_dup_index.py find` reports how many overlays carry the same *text*; it
+says nothing about whether that text can be linked into all of them as one
+object. `promote` re-checks and refuses:
+
+```
+func_actor_202600_8014C184: cannot be shared - the body references its own
+overlay's code or data (USA/actors/actor_102600, USA/actors/actor_202600,
+USA/actors/actor_302600).
+```
+
+The test (`tools/overlay_dup_index.py`) flags any body whose refs contain a
+symbol named `func_<unit>_*`, `D_<unit>_*` or `jtbl_<unit>_*` for a carrier's
+own unit. Here the body reads its overlay's own animation table
+(`D_actor_202600_80152830`) and calls its overlay's own effect spawner
+(`func_actor_202600_8014DA6C`), so a single shared object would fail to link
+into the other two carriers - and it would fail at the link, long after the
+promotion had rewritten the manifest and the sym files.
+
+This is not a judgement on the copies' equality: `actor_102600`,
+`actor_202600` and `actor_302600` are load-address buckets of one actor, and
+this body sits at the *same* `0x4184` offset in all three, exactly like
+`func_actor_202600_8014A734` at `0x914` in the same three overlays - which
+promoted cleanly, because it referenced nothing overlay-local. The difference
+is entirely in the callees and data the body names, so run `promote` (or read
+the refs) before budgeting for a shared body; the `find` count alone cannot
+tell you.
+
+Example: `func_actor_202600_8014C184`, matched as a per-overlay body.

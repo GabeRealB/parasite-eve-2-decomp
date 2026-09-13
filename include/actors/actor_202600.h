@@ -11,6 +11,7 @@
 typedef struct Actor202600Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ s16            field_C;
 } Actor202600Obj2C;
 
 /// Per-spawn parameters; `field_F` selects the row of the overlay's
@@ -23,8 +24,12 @@ typedef struct Actor202600Params {
 typedef struct Actor202600Ctx {
     /* 0x00 */ byte               pad_0[8];
     /* 0x08 */ u16                field_8;
-    /* 0x0A */ byte               pad_A[0x32];
+    /* 0x0A */ byte               pad_A[6];
+    /* 0x10 */ s32                field_10;
+    /* 0x14 */ byte               pad_14[0x28];
     /* 0x3C */ Actor202600Params* field_3C;
+    /* 0x40 */ byte               pad_40[0x14];
+    /* 0x54 */ s32                field_54;
 } Actor202600Ctx;
 
 /// The work starts with a linked `GpObj` and its 0x18-byte collision record,
@@ -36,9 +41,18 @@ typedef struct Actor202600Work {
     /* 0x020 */ GpRec18   rec;
     /* 0x038 */ s16       field_38;
     /* 0x03A */ s16       field_3A;
-    /* 0x03C */ byte      pad_3C[0x330];
+    /* 0x03C */ byte      pad_3C[0x1D8];
+    /* 0x214 */ GpObj     field_214;
+    /* 0x234 */ byte      pad_234[0x60];
+    /* 0x294 */ GpObj     field_294;
+    /* 0x2B4 */ byte      pad_2B4[0x30];
+    /* 0x2E4 */ GpObj     field_2E4;
+    /* 0x304 */ byte      pad_304[0x18];
+    /* 0x31C */ GpObj     field_31C;
+    /* 0x33C */ byte      pad_33C[0x30];
     /* 0x36C */ TaskDesc* field_36C;
-    /* 0x370 */ byte      pad_370[0x22];
+    /* 0x370 */ MATRIX    field_370;
+    /* 0x390 */ byte      pad_390[2];
     /* 0x392 */ s16       field_392;
     /* 0x394 */ s16       field_394;
     /* 0x396 */ u16       field_396;
@@ -46,7 +60,7 @@ typedef struct Actor202600Work {
     /* 0x39A */ s16       field_39A;
     /* 0x39C */ s16       field_39C;
     /* 0x39E */ s16       field_39E;
-    /* 0x3A0 */ byte      pad_3A0[2];
+    /* 0x3A0 */ s16       field_3A0;
     /* 0x3A2 */ s16       field_3A2;
     /* 0x3A4 */ s16       field_3A4;
     /* 0x3A6 */ s16       field_3A6;
@@ -54,7 +68,9 @@ typedef struct Actor202600Work {
     /* 0x3AC */ u16       field_3AC;
     /* 0x3AE */ byte      pad_3AE[2];
     /* 0x3B0 */ s16       field_3B0;
-    /* 0x3B2 */ byte      pad_3B2[0xE];
+    /* 0x3B2 */ byte      pad_3B2[8];
+    /* 0x3BA */ s16       field_3BA;
+    /* 0x3BC */ byte      pad_3BC[4];
     /* 0x3C0 */ s16       field_3C0;
     /* 0x3C2 */ byte      pad_3C2[6];
     /* 0x3C8 */ s16       field_3C8;
