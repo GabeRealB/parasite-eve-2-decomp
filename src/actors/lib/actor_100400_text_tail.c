@@ -4,6 +4,8 @@
 #include "gameplay/1BC.h"
 #include "main/sound.h"
 
+extern u32 Gp_LcgState;
+
 void Actor00400_Fn0A2F4(Task* arg0)
 {
     Actor100400QuadWork* work;
@@ -82,7 +84,24 @@ void Actor00400_Fn0A4BC(Actor100400* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A510);
+void Actor00400_Fn0A510(Actor100400* arg0)
+{
+    Actor100400Work* state;
+    Actor100400Work* work;
+    u32              random;
+
+    work             = arg0->field_1C;
+    random           = Gp_LcgState * 5 + 0x71357911;
+    work->field_63E  = work->field_64E;
+    state            = arg0->field_1C;
+    state->field_63C = 8;
+    state->field_632 = ((random >> 16) & 3) + 3;
+    state->field_628 = 0x10;
+    state->field_624 = 1;
+    Gp_LcgState      = random;
+    work->field_636  = 0;
+    work->field_63A++;
+}
 
 void Actor00400_Fn0A57C(Actor100400* arg0)
 {
