@@ -34,6 +34,7 @@ typedef struct Actor105500StateFuncTable3 {
     void (*funcs[3])(void*, Actor105500*);
 } Actor105500StateFuncTable3;
 
+extern Actor105500StateFuncTable3 Actor05500_D0002C;
 extern Actor105500StateFuncTable3 Actor05500_D00038;
 
 typedef struct Actor105500Ctx {

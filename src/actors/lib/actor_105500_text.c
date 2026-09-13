@@ -216,7 +216,13 @@ void Actor05500_Fn03D40(Actor105500* actor)
     *scratch = (u8*)*scratch + 0x30;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03DD8);
+void Actor05500_Fn03DD8(Actor105500* arg0)
+{
+    Actor105500StateFuncTable3 sp;
+
+    sp = Actor05500_D0002C;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03E34);
 
