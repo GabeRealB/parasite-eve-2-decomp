@@ -8346,6 +8346,33 @@ entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
 on the stage pointer when the target loads `Game_Session` into `$v1` (with
 an argument live in `$s1`) rather than `$a0`.
 
+**The base must be an early integer local, not the cast inline, or the `%hi`
+schedules late.** `idx * sizeof(T) + (s32)PtrGlobal` inline flips the operand
+order but leaves the base `lui %hi(PtrGlobal)` scheduled *after* the index
+`sll`s (one-instruction reorder, ~99.5%). Hoist the pointer read into a plain
+`s32` local first so its `%hi/%lo` load leads the address math the way the
+subscript form does:
+
+```c
+/* 99.5% — addu order right, but lui %hi of base sits after the index slls */
+e = (T*)(arg0 * sizeof(T) + (s32)D_PtrGlobal);
+
+/* 100% — base %hi hoisted to the top like &D_PtrGlobal[arg0] would */
+s32 base = (s32)D_PtrGlobal;
+e = (T*)(arg0 * sizeof(T) + base);
+```
+
+`func_shelter_b3_dumping_hole_80182FD0` (a 12-byte-stride array search over
+`D_..8018F4BC[arg0]`) is the pure example: the clean `&D_..8018F4BC[arg0]`
+subscript gives base-first `addu` (99.52%, one word off); the early-`s32`-base
+integer form matches. The subscript form is base-first because GCC treats the
+array pointer as the addressing base regardless of `a[b]`/`b[a]` order or a
+`u8*`-cast offset; only the pure-integer add with the `mult` outranking a plain
+base REG (`commutative_operand_precedence`) puts the offset first. The idiom
+matches the `(GpEvt12*)(idx * sizeof(GpEvt12) + base)` and
+`(GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table)` forms already in
+`src/gameplay/3CD8.c`.
+
 ## Pre-increment store `*++p = f()` fills `jal` delay with the previous store
 
 When walking a buffer and writing values that each depend on a call (e.g.
