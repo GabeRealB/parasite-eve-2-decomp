@@ -571,7 +571,33 @@ tail:
     Actor02500_Fn02430(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01F8C);
+void Actor02500_Fn01F8C(Actor02500* actor)
+{
+    u8              flags;
+    u8              remainingFlags;
+    Actor02500Work* work;
+    Actor02500Ctx*  ctx;
+
+    ctx   = actor->field_20;
+    flags = ctx->field_4C;
+    work  = actor->field_1C;
+    if (flags & 2) {
+        ctx->field_4C   = (u8)(flags & 0xFD);
+        work->field_322 = 4;
+        work->field_324 = 0;
+    }
+    if (ctx->field_4C & 1) {
+        ctx->field_4C = (u8)(ctx->field_4C & 0xFE);
+        if (work->field_322 != 4) {
+            work->field_322 = 3;
+            work->field_324 = 0;
+        }
+    }
+    remainingFlags = ctx->field_4C;
+    if (remainingFlags & 0xC) {
+        ctx->field_4C = (u8)(remainingFlags & 0xF3);
+    }
+}
 
 void Actor02500_Fn00B18(Actor02500* arg0);
 void Actor02500_Fn00DD8(Actor02500* arg0);

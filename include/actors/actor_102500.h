@@ -203,6 +203,7 @@ extern void*          Actor02500_D05B30;
 void Actor02500_Fn00078(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01AC8(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01E60(Actor02500Ctx* arg0, Actor02500* arg1);
+void Actor02500_Fn01F8C(Actor02500* actor);
 
 /// Six-byte area lookup key; the first four bytes are copied from the session.
 typedef struct Actor02500AreaKey {
