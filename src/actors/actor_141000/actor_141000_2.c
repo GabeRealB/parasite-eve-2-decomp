@@ -6,6 +6,7 @@
 #include <psyq/libgs.h>
 
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -43,7 +44,17 @@ void func_actor_141000_801331AC(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80133204);
+/// Chains this actor's root coordinate under the spawner's, then hands the task
+/// to it. Same attach shape as `ActorsShared80132450`, but the parent's part is
+/// always its root coordinate and the actor is flagged for immediate unlink
+/// (`killCountdown`) instead of surviving to a later state.
+void func_actor_141000_80133204(Task* task)
+{
+    ((TmdObject*)task->extra)->field_8->sub = ((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8;
+    Task_Reparent((Task*)task->spawnArg2, task);
+    task->killCountdown = 0x7FF;
+    task->state        += 1;
+}
 
 void func_actor_141000_80133260(Actor141000* arg0)
 {

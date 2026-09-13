@@ -67241,3 +67241,43 @@ supposed to be settled. `func_actor_206100_8014FBE4` is the worked example
 for the one-argument `Gp_GetObjPan`, which materialised `0x40040006` twice -
 one `lui`/`ori` pair per copy. An `insert` penalty from a duplicated constant is
 worth checking against the callee's real prototype in `include/` first).
+
+## A field read twice (once into a chain, once as a call arg) must stay two reads
+
+`func_actor_141000_80133204` chains the actor's root coordinate under its
+spawner's and then reparents the task:
+
+```
+lw    v0, 0x20(s0)     /* task->spawnArg2 */
+lw    v1, 0x2C(s0)     /* task->extra */
+lw    v0, 0x2C(v0)     /* spawnArg2->extra */
+lw    v1, 0x8(v1)
+lw    v0, 0x8(v0)
+sw    v0, 0x4C(v1)     /* ->field_8->sub */
+lw    a0, 0x20(s0)     /* spawnArg2 again, for the call */
+jal   Task_Reparent
+```
+
+The sibling shared helper `ActorsShared80132450` names every one of these in a
+local first, so writing the same shape here is the natural move - and it costs
+the match (100% -> 93.913%, `regs=8 delete=1`). Hoisting `parent =
+(Task*)task->spawnArg2;` gives the pointer a home that spans the store, so it
+takes `$a0` (the call's own argument register) and the second `lw` is *deleted*
+as redundant; the coordinate pointer is then pushed to `$a1`, which the target
+keeps in `$v1`.
+
+A `delete` penalty whose missing instruction is a **reload of something read
+twice** reads as a source-shape difference, not a scheduling one: the fix is to
+write the read out again where it is used, keeping the expression inline.
+
+```c
+((TmdObject*)task->extra)->field_8->sub = ((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8;
+Task_Reparent((Task*)task->spawnArg2, task);
+```
+
+Note the locals were introduced only to please the struct-usage style; the
+`M2C_FIELD` seed that scored 100% already had the two separate reads, so when a
+seed matches, the first rewrite has to preserve its *read count*, not just its
+expressions. Example: `func_actor_141000_80133204` (scratch `base_2.c`; the
+hoisted `base_1.c` is the counter-example). Input `base_2.i`
+`9b927762e546b3b14d340f093c1ca426c5fa7d5c055dec676e9da171d90780a2`.
