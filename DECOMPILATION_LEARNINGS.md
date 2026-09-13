@@ -68082,3 +68082,45 @@ consumer of the load before touching the header.
 Example: `func_actor_461800_8013380C`. Preprocessed SHA256 of the matching
 input: `base_1.i`
 `83cd4d260eb186347389449c1f9b13a991348f901eda1d15cdc5d9b4a3a7a4da`.
+
+## m2c's split counter + offset accumulator suppresses loop strength reduction
+
+`func_actor_461800_80132C74`'s m2c seed carried both a counter (`var_s0`, copied
+to `var_a1` for the call) and a byte-offset accumulator (`var_s1`), and GCC
+2.8.1 re-derived the scaled index on every iteration instead of strength
+reducing it:
+
+```
+sll  $v0,$a1,0x2
+addu $v0,$v0,$a1
+sll  $v0,$v0,0x3        # i * 0x28
+addu $v1,$v1,$v0
+sb   $s2,0x5D($v1)
+```
+
+The target keeps a running byte offset in `$s1` instead
+(`addiu $s1,$zero,0x28` in the preheader, `addiu $s1,$s1,0x28` and
+`addu $v0,$v0,$s1` in the body). The plain single-index spelling — which the
+already-matched sibling `ActorsShared80132538` uses for the identical body —
+produces that shape directly:
+
+```c
+i = 1;
+do {
+    D_actor_461800_80143894->slots[i].field_9 = 1;
+    Gp_AnimResetSlot(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8);
+    i++;
+} while (i < 0x14);
+D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
+```
+
+Note the store displacement stays `0x5D` (slot base `0x54` + `field_9` `0x9`)
+while the register holds only `i * 0x28`: strength reduction folded the array
+base into the immediate, so the running value is the *offset*, not an absolute
+pointer. When a diff shows a per-iteration `sll`/`addu` multiply on one side and
+a single `addiu`-incremented callee-saved register on the other, do not reach
+for a walking pointer — the index form is what the target wants, and m2c's extra
+copy is what lost the reduction. 74.556% -> 100.00% (`base.c` -> `base_1.c`).
+
+Preprocessed SHA256 of the matching input: `base_1.i`
+`2876ba8c27be0e6734754c23d76f42c35e25082295a1b78a4129e61b8c189560`.

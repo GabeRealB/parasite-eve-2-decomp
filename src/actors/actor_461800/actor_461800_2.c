@@ -22,7 +22,20 @@ void func_actor_461800_80132C28(void)
     } while (i < 0x14);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132C74);
+/// Marks animation slots 1..0x13 reset-pending and reseeds each of them from
+/// the current animation id, then records that id as the one now playing.
+void func_actor_461800_80132C74(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        D_actor_461800_80143894->slots[i].field_9 = 1;
+        Gp_AnimResetSlot(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8);
+        i++;
+    } while (i < 0x14);
+    D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
+}
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
