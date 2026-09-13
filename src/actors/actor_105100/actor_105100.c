@@ -219,7 +219,48 @@ void func_actor_105100_80135FCC(Actor105100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801360AC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801361C4);
+/// First stage of the `field_598` schedule: arms the pose and the effect slot,
+/// and on the next stage waits out the `field_592` timer before handing the
+/// state back on, either aborting (0) or resuming (8) depending on `field_5C2`.
+void func_actor_105100_801361C4(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    GpEffWork*       eff;
+    s32              state;
+
+    work  = arg0->field_1C;
+    state = work->field_598;
+    switch (state) {
+        case 0:
+            work->field_58E = 6;
+            work->field_598 = 1;
+            work->field_5B4 = 0;
+            work->field_5AC = 0;
+            func_actor_105100_801362A0(arg0);
+            eff             = work->field_55C;
+            work->field_502 = work->field_502 & 0x7FFF;
+            if (eff != NULL) {
+                eff->field_0->state = 4;
+                work->field_55C     = NULL;
+            }
+            if (work->field_5B6 == 0) {
+                work->field_5AA = 0x1E;
+            }
+            break;
+        case 1:
+            if ((s16)work->field_592 >= 0x1D) {
+                if (work->field_5C2 == 0) {
+                    work->field_596 = 0;
+                    work->field_58E = state;
+                } else {
+                    work->field_596 = 5;
+                    work->field_58E = 8;
+                }
+                work->field_598 = 0;
+            }
+            break;
+    }
+}
 
 void func_actor_105100_801362A0(Actor105100* arg0)
 {

@@ -69576,3 +69576,40 @@ Preprocessed SHA256:
 - `base.c` (87.347%, m2c): `7d3c0245f8bbc959a73f577677f27f68822a515f199823b51eb4b0e9bf94bbcb`
 - `base_1.c` (100.000%): `f1fbc0db5abb03112d3a967a8dd47c6091a0e04739a2af0e1f29c35e4a7aaba8`
 - `base_2.c` (95.918%, controlled isolation -- `TOUCH_REG(i);` deleted): `340531b2118f9f6addd30e1f5937c860d198a6c4e81c3fbb7d4bcccae626271c`
+
+## A narrow `switch` discriminant that is also stored loads its halfword twice
+
+`switch (temp_v1)` on an `s16` `temp_v1`, with `field_58E = temp_v1;` in one
+arm, emits `lh v1,0x598(s0)` for the tree and a second `lhu a1,0x598(s0)` for
+the store, then `sh a1` -- the same address loaded twice. Expanding the switch
+widens the index for the compares (`stmt.c` converts it when `cmp_optab` has no
+HImode handler and `count < CASE_VALUES_THRESHOLD`, 4 on MIPS), while the store
+still needs the raw HImode pseudo, so the two loads coexist. This is the
+`lh`+`lhu` pair of the `s16`/`u16` entry above, reached through a `switch`
+rather than a compare; the fix is the same one:
+
+```c
+s32 state = work->field_598; /* lh $v1 */
+switch (state) {
+case 0: ...
+case 1:
+    work->field_58E = state; /* sh $v1 */
+}
+```
+
+`func_actor_105100_801361C4` (`base.c` 89.0%, `base_1.c` 100%). The same
+function reads `field_592` signed where the matched sibling
+`func_actor_105100_80136408` reads the same `u16` field unsigned for its `+=`,
+so the field must stay `u16`: a `(s16)` cast is a same-mode type no-op, and the
+promotion for `(s16)work->field_592 >= 0x1D` folds into a sign-extending `lh`
+plus `slti` exactly as a declared `s16` would. Cast at the use site rather than
+flipping a field another matched body depends on.
+
+Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Preprocessed SHA256:
+
+- `base.c` (89.0%, m2c): `cb3a0c05ea277fc5d3016d90e8285dcf0fd5b6cc67c2fd2b62ea0f3d462ba6a6`
+- `base_1.c` (100.000%): `d37273823c6906334d153ea160c718b8678fe7210331ae93931707ad88e93f9f`
+- `base_2.c` (100.000%, struct-typed, needs the `Actor105100Work` members `field_502`/`field_55C`/`field_596`/`field_598`/`field_5AA`/`field_5AC`/`field_5B4`/`field_5B6`/`field_5C2`): `0a16323da74cdf3ae1722254f7d40300cdf80a0fcfa800399620d93bd7ba8073`
