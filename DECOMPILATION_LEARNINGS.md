@@ -65462,3 +65462,59 @@ diff telling you the *source* order is wrong rather than the scheduler being
 clever: these stores are independent, so nothing else can explain a swap.
 
 Inputs: `base_1.c` … `base_4.c` (100%).
+
+## A duplicate body's local *types* are part of the match: `s16` locals can cost a second load
+
+`func_actor_105700_80136C4C` is one of six copies of `Actor02000_Fn033D4`
+(`actor_102000`, `src/actors/lib/actor_102000_text.c`), whose matched C declares
+`s32 state` / `s32 next` for the `work->field_6A8` / `field_6AA` halfwords.
+Porting its statements but narrowing the locals to the fields' own `s16` width
+compiles back to the m2c seed's assembly (89.90%), not to the target:
+
+```
+s32 locals (100%)         s16 locals (89.90%)
+lh   a0,0x6a8(v1)         li   a2,1
+li   a1,1                 lh   a0,0x6a8(v1)
+beq  a0,a1,…              lhu  a1,0x6a8(v1)
+                          beq  a0,a2,…
+```
+
+Each halfword read becomes a *pair*: the sign-extending `lh` feeds the `switch`
+comparison, the zero-extending `lhu` feeds the value a later arm stores back
+(case 2 stores `state` into `field_694` / `field_6A6`). With an `s32` local the
+value is one SImode pseudo and the single `lh` serves both uses; the extra
+`lhu` also occupies `$a1`, which pushes the constant `1` out to `$a2`.
+
+The lesson for a port: when a matched sibling exists, port its *declarations*
+along with its statements. Widening a local past its field width is not a
+mistake here — narrowing it is what costs the load. This is the mirror of
+"Named u16 local pins an `lhu` for a later mixed-width compare": the local's
+width has to be the one the target's register usage implies, which for a this
+family's state machine is `s32`.
+
+Inputs: `base_1.c` (100%), `base_2.c` (89.90%).
+
+## A body at the *tail* of a plain unit, abutting an existing shared span, is also free to promote
+
+The companion note on a mid-overlay shared span is about a promotion that opens
+a gap. `func_actor_105700_80136C4C` is the *last* function of unit
+`actor_105700` and ends at `0x4EF4`, exactly where the already-shared
+`actors_shared_8013587c` span begins, so the span
+`0x4E2C..0x4EF4` only moves that unit's end forward: the one plain-unit
+remainder is on the left, it keeps unit 1's name, and nothing after it moves.
+
+All six carriers are the same shape (slot-1/slot-2 pairs of three actors, each
+copy the last function of its `_1` unit), and diffing every generated config
+against a pre-promotion snapshot shows exactly one added line each:
+
+```
+>       - [0x4E2C, c, lib/actors_shared_80136c4c]
+```
+
+Nothing was renamed, no `rodata` cut was re-checked, and no `.c` file had to be
+rewritten or moved — only the one `INCLUDE_ASM` deleted from each carrier. So
+the tail-abutting case joins adjacent-to-existing and start-of-overlay as free;
+check the two sides of the span for a plain-unit remainder before assuming a
+promotion is expensive.
+
+Inputs: `func_actor_105700_80136C4C` promotion, six carriers, full build.

@@ -36,7 +36,8 @@ typedef struct Actor105700Work {
     /* 0x6A4 */ s16  field_6A4; ///< yaw the actor wants to face
     /* 0x6A6 */ s16  field_6A6; ///< parked animation for the state-F0 path
     /* 0x6A8 */ s16  field_6A8; ///< state-machine step
-    /* 0x6AA */ byte pad_6AA[4];
+    /* 0x6AA */ s16  field_6AA; ///< animation the state-0 branch picks
+    /* 0x6AC */ byte pad_6AC[2];
     /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
     /* 0x6B0 */ byte pad_6B0[2];
     /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path

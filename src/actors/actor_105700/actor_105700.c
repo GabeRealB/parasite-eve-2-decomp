@@ -485,5 +485,3 @@ void func_actor_105700_80136BC0(Actor105700* arg0)
             break;
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136C4C);
