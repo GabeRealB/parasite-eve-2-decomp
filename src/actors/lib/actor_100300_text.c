@@ -10,6 +10,7 @@ s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
+extern u8  D_801153F4;
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
 
@@ -129,7 +130,33 @@ void Actor00300_Fn04770(Actor100300* arg0)
     sp.funcs[arg0->field_30]((Actor100300Ctx*)arg0->field_20, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn047CC);
+void Actor00300_Fn047CC(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor100300Work* work;
+
+    work = arg1->field_1C;
+    switch (D_801153F4) {
+        case 0:
+            arg1->field_2C->field_C            = 0;
+            work->field_43C->field_2C->field_C = 0;
+            arg0->field_14                     = work->field_698 != 0;
+            break;
+        case 1:
+            Actor00300_Fn04FB0(arg1);
+            Actor00300_Fn05008(arg1);
+            return;
+        case 2:
+            arg1->field_2C->field_C            = 0x80;
+            work->field_43C->field_2C->field_C = 0x80;
+            arg0->field_14                     = 1;
+            return;
+    }
+    if (Game_Session->field_1 != 0) {
+        Actor00300_Fn048D4(arg0, arg1);
+        return;
+    }
+    Actor00300_Fn04958(arg0, arg1);
+}
 
 void Actor00300_Fn048D4(Actor100300Ctx* arg0, Actor100300* arg1)
 {
