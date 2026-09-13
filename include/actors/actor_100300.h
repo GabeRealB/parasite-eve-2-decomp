@@ -8,6 +8,10 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+typedef struct Actor100300ScratchStack {
+    u32 sp;
+} Actor100300ScratchStack;
+
 typedef struct Actor00300InitScratch {
     /* 0x00 */ SVECTOR offset;
     /* 0x08 */ VECTOR  result;
@@ -119,7 +123,7 @@ typedef struct Actor100300Work {
     /* 0x64C */ byte                pad_64C[0x8];
     /* 0x654 */ struct _GpEffWork*  field_654;
     /* 0x658 */ s32                 field_658;
-    /* 0x65C */ byte                pad_65C[0x8];
+    /* 0x65C */ SVECTOR             field_65C;
     /* 0x664 */ s16                 field_664;
     /* 0x666 */ u16                 field_666;
     /* 0x668 */ byte                pad_668[0x2];

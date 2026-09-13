@@ -677,7 +677,69 @@ done:
     (*(u32*)0x1F8003FC) += 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn0340C);
+void Actor00300_Fn0340C(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GsCOORDINATE2*   coord;
+    MATRIX*          matrix;
+    s32              angleX;
+    s32              angleY;
+    s32              absX;
+    s32              nextX;
+    s32              absY;
+    s32              nextY;
+    s32              active;
+
+    matrix                                     = (MATRIX*)(((Actor100300ScratchStack*)0x1F8003FC)->sp - 0x20);
+    ((Actor100300ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+    active                                     = 0;
+    work                                       = arg0->field_1C;
+    coord                                      = arg0->field_2C->field_8;
+    RotMatrix(&work->field_65C, matrix);
+    USE_REG(matrix);
+    gte_SetRotMatrix(&coord[3].coord);
+    gte_ldclmv(matrix);
+    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_stclmv(&coord[3].coord);
+    gte_ldclmv((char*)matrix + 2);
+    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_stclmv((char*)&coord[3].coord + 2);
+    gte_ldclmv((char*)matrix + 4);
+    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_stclmv((char*)&coord[3].coord + 4);
+    angleX = work->field_65C.vx;
+    if (angleX != 0) {
+        absX = __builtin_abs(angleX);
+        if (absX < 0x21) {
+            work->field_65C.vx = 0;
+        } else {
+            nextX = angleX - 0x20;
+            if (angleX <= 0) {
+                nextX = angleX + 0x20;
+            }
+            work->field_65C.vx = nextX;
+            active             = 1;
+        }
+    }
+    angleY = work->field_65C.vy;
+    if (angleY != 0) {
+        absY = __builtin_abs(angleY);
+        if (absY < 0x21) {
+            work->field_65C.vy = 0;
+        } else {
+            nextY = angleY - 0x20;
+            if (angleY <= 0) {
+                nextY = angleY + 0x20;
+            }
+            work->field_65C.vy = nextY;
+            active             = 1;
+        }
+    }
+    if (active == 0) {
+        work->field_664 = 0;
+    }
+    (*(u32*)0x1F8003FC) += 0x20;
+}
 
 extern u8    Actor00300_D0AA18[];
 extern u8    Actor00300_D0AECC[];
