@@ -513,7 +513,17 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02288);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02318);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn023D8);
+void Actor02500_Fn023D8(Actor02500* arg0)
+{
+    VECTOR         vec;
+    GsCOORDINATE2* coord;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+}
 
 void Actor02500_Fn02430(Actor02500* arg0)
 {
