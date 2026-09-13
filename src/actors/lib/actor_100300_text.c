@@ -10,14 +10,17 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
+#include <psyq/inline_c.h>
+
 s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern u8  D_801153F4;
-extern s32 D_80115728;
-extern s32 D_8011573C;
-extern s32 Gp_LcgState;
+extern u8        D_801153F4;
+extern s32       D_80115728;
+extern s32       D_8011573C;
+extern s32       Gp_LcgState;
+extern GpU16Pair Actor00300_D15FD8;
 
 void Actor00300_Fn00078(GsCOORDINATE2* arg0, s32 arg1);
 void Actor00300_Fn04528(Actor100300* arg0);
@@ -429,7 +432,84 @@ void Actor00300_Fn03F40(Actor100300Ctx* arg0, Actor100300* arg1)
     Actor00300_UpdateTransform(arg0, arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn040A4);
+void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
+{
+    Actor100300Work*       parentWork;
+    Task*                  parent;
+    Actor00300InitWork*    work;
+    Actor00300InitScratch* scratch;
+    void*                  head;
+    SVECTOR*               offset;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         parentCoord;
+    GsCOORDINATE2*         objCoord;
+    GsCOORDINATE2*         objCoord2;
+
+    head                = *(void**)0x1F8003FC;
+    scratch             = (Actor00300InitScratch*)((u8*)head - 0x18);
+    *(void**)0x1F8003FC = scratch;
+    offset              = &scratch->offset;
+    parent              = arg1->parent;
+    coord               = ((Actor100300Obj2C*)arg1->extra)->field_8;
+    parentCoord         = ((Actor100300Obj2C*)parent->extra)->field_8;
+    parentWork          = (Actor100300Work*)parent->idMap;
+    work                = Mem_Calloc(0x8C, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap        = (TaskIdMap*)work;
+    scratch->offset.vx = 0;
+    scratch->offset.vy = -0x5DC;
+    scratch->offset.vz = 0x320;
+    gte_SetRotMatrix(&parentCoord->coord);
+    gte_ldv0(offset);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stlvnl(&scratch->result);
+    coord->sub          = &Gfx_ViewCoord;
+    coord->coord        = parentCoord->coord;
+    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->result.vx;
+    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->result.vy;
+    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->result.vz;
+    coord->flg          = 0;
+    objCoord            = ((Actor100300Obj2C*)arg1->extra)->field_8;
+    work->obj0.field_C  = &work->rec20;
+    work->obj0.field_10 = 0;
+    work->obj0.field_12 = 0;
+    work->obj0.field_14 = 0;
+    work->obj0.field_8  = objCoord;
+    work->obj0.field_18 = Gp_PackPair(&Actor00300_D15FD8, parentWork->field_66A);
+    work->obj0.field_1C = 0x1C2;
+    work->obj0.flags    = 1;
+    Gp_LinkObj(3, &work->obj0);
+    Gp_InitRec18Table(&work->rec20, 1, 0);
+    work->pose.field_C   = -0x1A4;
+    work->pose.field_10  = 1;
+    work->pose.field_12  = 1;
+    work->pose.field_0   = 0;
+    work->pose.field_2   = 0;
+    work->pose.field_4   = 0;
+    work->pose.field_8   = 0;
+    work->pose.field_A   = 0;
+    work->pose.field_14  = &work->rec70;
+    work->obj0.flags    |= 0x8000;
+    objCoord2            = ((Actor100300Obj2C*)arg1->extra)->field_8;
+    work->obj38.field_C  = (GpRec18*)&work->pose;
+    work->obj38.field_10 = 0;
+    work->obj38.field_12 = 0;
+    work->obj38.field_14 = 0;
+    work->obj38.field_18 = 0;
+    work->obj38.field_1C = 0;
+    work->obj38.flags    = 3;
+    work->obj38.field_8  = objCoord2;
+    Gp_LinkObj(3, &work->obj38);
+    Gp_InitRec18Table(&work->rec70, 1, 0);
+    work->timer        = 0x1E;
+    work->obj38.flags |= 0x4400;
+    Task_DetachFromParent(arg1);
+    arg1->state        = 1;
+    *(u8**)0x1F8003FC += 0x18;
+}
 
 void Actor00300_Fn04370(Actor100300Ctx* arg0, Actor100300* arg1)
 {

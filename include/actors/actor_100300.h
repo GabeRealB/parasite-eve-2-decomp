@@ -3,9 +3,27 @@
 
 #include "common.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
+typedef struct Actor00300InitScratch {
+    /* 0x00 */ SVECTOR offset;
+    /* 0x08 */ VECTOR  result;
+} Actor00300InitScratch;
+STATIC_ASSERT_SIZEOF(Actor00300InitScratch, 0x18);
+
+typedef struct Actor00300InitWork {
+    /* 0x00 */ GpObj        obj0;
+    /* 0x20 */ GpRec18      rec20;
+    /* 0x38 */ GpObj        obj38;
+    /* 0x58 */ GpActorD4Rec pose;
+    /* 0x70 */ GpRec18      rec70;
+    /* 0x88 */ s16          timer;
+    /* 0x8A */ s16          pad8A;
+} Actor00300InitWork;
+STATIC_ASSERT_SIZEOF(Actor00300InitWork, 0x8C);
 
 typedef struct Actor100300RotScratch {
     /* 0x00 */ VECTOR  vec;
@@ -55,7 +73,9 @@ typedef struct Actor100300Work {
     /* 0x65C */ byte                pad_65C[0x8];
     /* 0x664 */ s16                 field_664;
     /* 0x666 */ u16                 field_666;
-    /* 0x668 */ byte                pad_668[0x6];
+    /* 0x668 */ byte                pad_668[0x2];
+    /* 0x66A */ s16                 field_66A;
+    /* 0x66C */ byte                pad_66C[0x2];
     /* 0x66E */ s16                 field_66E;
     /* 0x670 */ s16                 field_670;
     /* 0x672 */ u16                 field_672;
