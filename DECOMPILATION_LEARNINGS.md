@@ -74682,3 +74682,60 @@ decrement, so this is the field type talking, not the surrounding statements.
 Preprocessed SHA256:
 
 - `base_1.i`: `02f25a7c8b305f2963604e195d4738b2701a35bc4c92d27d3b76e40fb2daf59c`
+
+## Assign a re-read pointer before the stores that would kill its CSE, if the target copies it
+
+`func_actor_403200_80141B40` reads `arg0->idMap` twice — once for the work block
+the epilogue writes, once as the loop base — and the target keeps the second in
+its own register:
+
+```
+beqz  v0,.Lcall
+addu  t0,a2,zero     ; loop base = the work pointer, in the delay slot
+sb    zero,0x7f3(a2)
+lw    v0,0x2c(a3)
+addu  a1,zero,zero
+sh    zero,0xc(v0)
+```
+
+Writing the second read where the target's stores suggest it lands — after
+`work->field_7F3 = 0;` and the `extra->field_C` store — scores 92.72% and gives
+a third instruction, a real `lw t0,0x1c(a3)` plus the `nop` that load delay
+forces. Assigning it *before* both stores scores 100% and turns it into the
+copy:
+
+```c
+escorts = (Actor403200Work*)arg0->idMap;
+work->field_7F3 = 0;
+((TmdObject*)arg0->extra)->field_C = 0;
+```
+
+**Cause, from the dumps.** With the read after the byte store, `.greg` still
+holds it as a load, because a `mem/s:QI` store invalidates cse's equivalence for
+everything:
+
+```
+(insn 30 (set (reg/v:SI 8 t0)
+             (mem/s:SI (plus:SI (reg/v:SI 7 a3) (const_int 28)))))
+```
+
+Moved above the stores, a later dump has
+
+```
+(insn 22 (set (reg/v:SI 8 t0) (reg/v:SI 6 a2)) 172 {movsi_internal2})
+```
+
+— cse found `mem[$a3+0x1c] == reg 6` still valid and substituted the register,
+leaving a bare copy. Nothing propagates that copy away afterwards, so it keeps
+pseudo 8 distinct, the allocator gives it `$t0`, and the copy is what the
+scheduler drops into the branch delay slot. This is the source-order lever for
+the same visible shape the `reload_cse_regs` entry above describes: there the
+copy appears because a *neighbouring* store killed the equivalence and
+`reload_cse_regs` recovered it late; here the equivalence survives because the
+read is ordered before the stores, and cse makes the copy early. Both leave a
+distinct pseudo and a real `addu $t0,$a2,$zero`, and the fix for a missing copy
+is to move the read earlier, not to add a local.
+
+Preprocessed SHA256:
+
+- `base_2.i`: `0fa9f1d1b67a09ba85a3c0f16bd3acdb322f83a8ade08ff6490dc3ce390deca7`

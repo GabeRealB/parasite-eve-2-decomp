@@ -2,6 +2,8 @@
 #define ACTOR_403200_H
 
 #include "common.h"
+
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 typedef struct Actor403200Obj Actor403200Obj;
@@ -31,9 +33,21 @@ typedef struct Actor403200Work {
     /// (saturating at 0x7FFF). State handlers fire one-shot cues on the ticks
     /// it reaches a given value.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0xEAC - 0x8];
+    /* 0x008 */ byte pad_8[0x7EB];
+    /// Cleared by the state-change reset to mark the work block as re-armed.
+    /// Same slot and role as `Actor444000Work::field_7F3`.
+    /* 0x7F3 */ u8   field_7F3;
+    /* 0x7F4 */ byte pad_7F4[0x6B8];
     /* 0xEAC */ s8   field_EAC;
-    /* 0xEAD */ byte pad_EAD[0x69];
+    /* 0xEAD */ byte pad_EAD[0x1F];
+    /// The escorts the state-change reset walks to push the host's
+    /// `TmdObject::field_C` onto each escort's own model object; the same
+    /// seven-slot run as `Actor444000Work::field_ECC`.
+    /* 0xECC */ GpEnemy* field_ECC[7];
+    /* 0xEE8 */ byte     pad_EE8[0xC];
+    /* 0xEF4 */ s16      field_EF4;
+    /* 0xEF6 */ s16      field_EF6;
+    /* 0xEF8 */ byte     pad_EF8[0x1E];
     /// Re-armed to 2 by the upkeep handler `func_actor_403200_80141A94` once
     /// the `field_F1C` countdown has run out. Same slot and role as
     /// `Actor444000Work::field_F16`.

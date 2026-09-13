@@ -2,6 +2,7 @@
 #include "actors/actor_403200.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
+#include "main/tmd.h"
 extern s32 D_actor_403200_80141C54;
 
 extern s16 D_actor_403200_80141C5A;
@@ -46,4 +47,30 @@ s32 func_actor_403200_80141B30(void)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_7", func_actor_403200_80141B40);
+/// State-change reset: once the dispatcher has flagged the change in
+/// `field_4`, drop the re-arm marker and push the host model's `field_C` onto
+/// every live escort's own model object. Same body as
+/// `func_actor_444000_80143F4C`.
+void func_actor_403200_80141B40(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    s16              i;
+
+    work = (Actor403200Work*)arg0->idMap;
+    if (work->field_4 != 0) {
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        work->field_7F3                    = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+    } else {
+        func_actor_403200_80133DD8(arg0);
+    }
+}
