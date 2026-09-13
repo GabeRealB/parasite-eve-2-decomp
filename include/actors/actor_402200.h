@@ -53,16 +53,30 @@ typedef struct Actor402200Obj2C {
 /// runs up, plays the actor's cue at 0x14, and at 0x5F asks the scene for
 /// message 0x3ED - clearing the flag and sending 0x3F1 instead if the scene
 /// refuses it.
+/// `field_3C` is the animation slot the cue body `func_actor_402200_80135BE0`
+/// hands to `Gp_AnimGetRec`: the second of the 0x28-byte slots the actor work
+/// blocks lay out from 0x14, the same one the other actor overlays' cue bodies
+/// play from. `field_6CA` latches the record's two cue bits (`0x30`) for the
+/// next frame, and `field_712` is the running entry index into the overlay's
+/// cue-id table `D_actor_402200_80138420` - zero disarms the body, and while it
+/// is set the two adjacent words `[field_712 * 2 - 1]` and `[field_712 * 2]`
+/// are the cue ids it plays.
 typedef struct Actor402200Work {
-    /* 0x000 */ byte pad_0[0x6E2];
-    /* 0x6E2 */ s16  field_6E2;
-    /* 0x6E4 */ byte pad_6E4[6];
-    /* 0x6EA */ s16  field_6EA;
-    /* 0x6EC */ byte pad_6EC[8];
-    /* 0x6F4 */ s16  field_6F4;
-    /* 0x6F6 */ byte pad_6F6[0x22];
-    /* 0x718 */ s16  field_718;
-    /* 0x71A */ s16  field_71A;
+    /* 0x000 */ byte       pad_0[0x3C];
+    /* 0x03C */ GpAnimSlot field_3C;
+    /* 0x064 */ byte       pad_64[0x666];
+    /* 0x6CA */ u16        field_6CA;
+    /* 0x6CC */ byte       pad_6CC[0x16];
+    /* 0x6E2 */ s16        field_6E2;
+    /* 0x6E4 */ byte       pad_6E4[6];
+    /* 0x6EA */ s16        field_6EA;
+    /* 0x6EC */ byte       pad_6EC[8];
+    /* 0x6F4 */ s16        field_6F4;
+    /* 0x6F6 */ byte       pad_6F6[0x1C];
+    /* 0x712 */ s16        field_712;
+    /* 0x714 */ byte       pad_714[4];
+    /* 0x718 */ s16        field_718;
+    /* 0x71A */ s16        field_71A;
 } Actor402200Work;
 STATIC_ASSERT_SIZEOF(Actor402200Work, 0x71C);
 

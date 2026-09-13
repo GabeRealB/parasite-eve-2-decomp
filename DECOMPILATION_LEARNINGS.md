@@ -39592,6 +39592,32 @@ Two cases cannot be promoted mechanically at all:
   regenerates that per link address. The data symbol is defined in one overlay
   and nowhere else.
 
+## Byte-identical copies can bind different data — compare the datum, not the bytes
+
+`overlay_dup_index.py find func_actor_402200_80135BE0` reports `identical
+bytes: 1` against the `actor_403900` copy: same address (`0x80135BE0`), same
+0x17C bytes instruction for instruction, `%hi`/`%lo` of the indexed table
+included. Both overlays load at `0x80131E20`, and both symbol maps already carry
+the pre-registered alias `ActorsShared80137a20_Fn35BE0 = 0x80135BE0`, so every
+signal reads "promote me".
+
+It is not shareable, and `raw` equality is the reason it looks like it is. The
+`lui`/`addiu` name an *address*, and the address holds a different thing in each
+carrier: `0x80138420` is the cue table `D_actor_402200_80138420` in
+`actor_402200`, while `actor_403900`'s cue table starts at `0x80138424`, so the
+same address there is the last word of the preceding `D_actor_403900_801383DC`
+table - the two copies read that table one element apart. `promote` refusing on
+the `D_<unit>_` localref is correct here, and the workaround in "A shared body
+may reference overlay-local data" must *not* be applied: adding the datum to
+both symbol maps compiles, links and checksums, and leaves one source silently
+describing two different tables.
+
+The check promotion actually needs is on the data: for every overlay-local
+symbol the body references, compare what sits at that address in each carrier.
+Equal addresses are the family default - one load address for all its overlays -
+which is exactly what hides the mismatch in the disassembly. Failing it, match
+the copies per overlay.
+
 ## A promotion leaves a stale `.o` behind a renamed `INCLUDE_RODATA` table entry
 
 **Problem:** after `promote`, the scoped build fails with `actor_342400.i:(.rodata+0xd8):
