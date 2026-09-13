@@ -7865,6 +7865,24 @@ sp.funcs[((volatile Task*)task)->state](task);
 Do not flip the global to `volatile` just for this — other writers of the same
 byte already match with a plain store.
 
+**Source order around the copy is source order in the object.** The store above
+has to be written *after* the assignment; reading the target top-to-bottom
+("mark the node, then dispatch") is the trap. Written first it stays first — the
+copy is emitted where the assignment is and is never sunk to its first use — so
+the object comes out with `li`/`sb` above the multi-load and scores 96% with
+`reorder=2` and `regs=0`: every instruction present, only that pair moved.
+
+```c
+    sp                  = D_actor_206100_80149E94;  /* the 5-word copy stays here */
+    enemy->node.field_4 = 1;                        /* …so this must follow it */
+    sp.funcs[(s16)work->field_522](task);
+```
+
+`func_actor_206100_8014F524` is the example, and unlike the 3-word case above
+its store is *not* sunk into the `jalr` delay slot — the delay slot stays `nop`
+and `$a1` keeps the `idMap` temp through to the call — so no `volatile` is
+needed and the statement order alone is the fix.
+
 **When the table is the dispatcher's own rodata, use a local array initializer
 instead of an extern.** The `sp = SomeTable;` form above needs a named global,
 which then needs a symbol-map entry and an `INCLUDE_RODATA` to keep it out of
