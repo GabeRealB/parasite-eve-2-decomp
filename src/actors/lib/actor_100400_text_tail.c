@@ -271,4 +271,32 @@ void Actor00400_Fn0A9F4(Actor100400* arg0)
     work->field_63A++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0AA40);
+void Actor00400_Fn0AA40(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* state;
+    s32              cond;
+
+    work = arg0->field_1C;
+    work->field_636++;
+    state = arg0->field_1C;
+    if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        state            = arg0->field_1C;
+        state->field_63C = 8;
+        state->field_632 = 0x10;
+        state->field_628 = 0x11;
+        state->field_624 = 1;
+    }
+    if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20)) {
+        work->field_610  = 0;
+        work->field_665  = 0;
+        state            = arg0->field_1C;
+        state->field_638 = 2;
+        state->field_63A = 0;
+    }
+}
