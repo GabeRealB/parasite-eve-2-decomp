@@ -72277,3 +72277,43 @@ Inputs: `base_2.i`
 `38d75bc3801c89169d60fe61b2c4a9dc473552f6bdd811eb9b3a19510b76b1fc`,
 `base_3.i`
 `ed67d8729866d1b865a946512e4b3e586e9545d174ec30fb70cd85954f5248c5`.
+
+## A shared global in both ternary arms is loaded once only if you load it first
+
+`GpRec14`-style payload builders compute an id from one global and a mode byte
+from a second: `id = (D_8007218A == 1) ? D_80073BA9 + 1 : D_80073BA9 + 0x22;`.
+m2c renders each arm with its own copy of the global read, and GCC 2.8.1 keeps
+them: the object does a `lui`/`lbu` inside each arm and joins the two.
+
+Target does one `lbu` *before* the branch and reuses it in the delay slot:
+
+```
+lui    a0,%hi(D_80073BA9)
+lbu    a0,%lo(D_80073BA9)(a0)
+li     v1,1
+bne    v0,v1,.L
+ addu  v0,a0,v1        # arm 1 in the branch delay slot
+.L:
+addiu  v0,a0,0x22
+```
+
+The target shape comes from naming the global once in a local and forming the
+ternary over that local:
+
+```c
+weaponId = D_80073BA9;
+id       = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+```
+
+The duplicated-read form is not rescued by CSE, because the two arms are
+different basic blocks at the join — the load is only common if the source
+hoists it. Two builds apart: `47.679%` (regs=13 insert=6 delete=8) -> `100.000%`
+(all-zero). Same lesson as m2c's split scalars: the payload is the real struct
+(`GpRec14`), so the frame is `0x30` rather than the `0x20` the separate locals
+produce. `func_actor_136100_8013467C` is the worked example; the same ternary
+appears inlined in `func_acropolis_plaza_8017F48C` (state 0).
+
+Preprocessed SHA256:
+
+- `base.i` (m2c seed, 47.679%): `63f8ec9297c1a67f2e57aaf8aafba1f5f3400aca60b54b6451155c806f6a8e29`
+- `base_1.i` (match, 100.000%): `7079338fcdc8d1306476979757acc9936dc5b36ca4739546009cf55c960423d2`
