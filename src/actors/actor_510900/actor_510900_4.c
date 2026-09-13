@@ -2,7 +2,18 @@
 #include "main/task.h"
 #include "actors/actor_510900.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_4", func_actor_510900_8013BE64);
+s32 func_actor_510900_8013BE64(Actor510900* arg0, s32 msgId, s32 arg2)
+{
+    Actor510900Obj2C* obj;
+
+    obj = arg0->field_2C;
+    if (arg2 == 0) {
+        obj->field_C = 0x80;
+    } else {
+        obj->field_C = 0;
+    }
+    return 0;
+}
 
 s16 func_actor_510900_8013BE84(Actor510900* arg0)
 {

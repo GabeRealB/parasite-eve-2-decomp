@@ -16,7 +16,7 @@ typedef struct Actor510900Coord {
 typedef struct Actor510900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor510900Coord* field_8;
-    /* 0x0C */ s16               field_C;
+    /* 0x0C */ s16               field_C; // model flag word, as TmdObject::field_C
 } Actor510900Obj2C;
 
 typedef struct Actor510900Work {
@@ -60,6 +60,7 @@ typedef struct Actor510900Ctx {
 void func_actor_510900_8013B608(Actor510900* arg0);
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B870(Actor510900* arg0);
+s32  func_actor_510900_8013BE64(Actor510900* arg0, s32 msgId, s32 arg2);
 s16  func_actor_510900_8013BE84(Actor510900* arg0);
 void func_actor_510900_8013C380(Actor510900* arg0);
 void func_actor_510900_8013C430(Actor510900* arg0);
