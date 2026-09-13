@@ -546,7 +546,27 @@ void func_actor_405800_80139F0C(Task* task, u8 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139F3C);
+s32 func_actor_405800_80139F3C(Task* arg0)
+{
+    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+
+    if (work->field_858 == 1 && work->field_890 == 0) {
+        switch (work->field_85A) {
+            case 3:
+                work->field_846 = 5;
+                work->field_848 = 0;
+                work->field_85A = 0;
+                return 1;
+            case 5:
+                work->field_846 = 0xF;
+                work->field_848 = 0;
+                work->field_85A = 0;
+                return 1;
+        }
+    }
+    work->field_85A = 0;
+    return 0;
+}
 
 void func_actor_405800_80139FB0(Task* task, s16 arg1)
 {
