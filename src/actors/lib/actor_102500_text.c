@@ -823,7 +823,13 @@ void Actor02500_Fn02430(Actor02500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02480);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02574);
+void Actor02500_Fn02574(Actor02500* arg0)
+{
+    Actor02500StateFuncTable3 sp;
+
+    sp = Actor02500_D00050;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 void                 Task_DetachFromParent(Actor02500* task);
 extern GsCOORDINATE2 Gfx_ViewCoord;
