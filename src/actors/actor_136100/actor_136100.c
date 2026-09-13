@@ -1,9 +1,12 @@
 #include "common.h"
 
 #include "actors/actor_136100.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "psyq/libgpu.h"
@@ -18,7 +21,48 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_801320E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80132284);
+void func_actor_136100_80132284(Task* arg0)
+{
+    Actor136100Work* work;
+    VECTOR           vec;
+
+    if (arg0->state == 0) {
+        TmdObject*     tmd   = arg0->extra;
+        GsCOORDINATE2* coord = tmd->field_8;
+
+        work        = Mem_Malloc(0x4F0, 0);
+        arg0->idMap = (TaskIdMap*)work;
+        if (work == NULL) {
+            Task_Kill(arg0);
+        } else {
+            Mem_Set(work, 0, 0x4F0);
+            coord->sub                         = (GsCOORDINATE2*)arg0->spawnArg2;
+            ((TmdObject*)arg0->extra)->field_C = 0;
+            Tmd_AllocBuffers(tmd);
+            tmd->field_1C  = &work->field_474;
+            tmd->field_20  = &work->field_494;
+            arg0->field_24 = &D_actor_136100_8013F2F4;
+            Task_Reparent(D_actor_136100_8014078C, arg0);
+        }
+        arg0->state += 1;
+        if (arg0->spawnArg1 != 0) {
+            GsCOORDINATE2* reset = ((TmdObject*)arg0->extra)->field_8;
+
+            Gfx_RotMatrixX(&reset->coord, 0x400, 1);
+            reset->coord.t[1] = 0xC8;
+            reset->flg        = 0;
+        }
+    }
+    {
+        TmdObject* obj = arg0->extra;
+
+        Gp_UpdateCoord(obj->field_8);
+        vec.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
+        vec.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+        vec.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &vec, 0, 3);
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_136100/actor_136100", D_actor_136100_80131E20);
 
