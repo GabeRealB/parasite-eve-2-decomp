@@ -2,13 +2,28 @@
 
 #include "actors/actor_548100.h"
 
+#include "main/gameflag.h"
+
 extern u8 D_actor_548100_80135884;
 extern u8 D_actor_548100_80135885;
 extern u8 D_actor_548100_80135886;
 
 void func_actor_548100_80133684(Actor548100Edge* edge);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134778);
+s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+
+    if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->step - 1) < 4U) {
+        work->collectBitId = arg2;
+        if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(0xC3) != 0) {
+            return 2;
+        }
+        return 1;
+    }
+    work->collectBitId = 0;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_801347F8);
 
