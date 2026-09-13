@@ -9,14 +9,27 @@
 
 /// 0x6D8-byte work block hung off `Actor105700.field_1C`. It opens with the
 /// animation context and its nineteen 0x28-byte slots, exactly like the
-/// `Actor02000Work` block of `actor_102000`; only the sound-flags halfword
-/// at 0x6A0 and the animation index at 0x6D6 are modelled so far.
+/// `Actor02000Work` block of `actor_102000`; the animation/state halfwords
+/// around 0x694-0x6B2 keep that block's offsets and meaning.
 typedef struct Actor105700Work {
     /* 0x000 */ GpAnimCtx ctx;
     /* 0x014 */ byte      slots[19][0x28];
-    /* 0x30C */ byte      pad_30C[0x394];
-    /* 0x6A0 */ u16       field_6A0; ///< sound flags; bit 5/4 gate the two cues
-    /* 0x6A2 */ byte      pad_6A2[0x30];
+    /* 0x30C */ byte      pad_30C[0x388];
+    /// Animation index selected by the state machine; 4 is the "handover"
+    /// clip of `func_actor_105700_80136AE0`'s state 0.
+    /* 0x694 */ s16  field_694;
+    /* 0x696 */ byte pad_696[2];
+    /* 0x698 */ s16  field_698; ///< current frame of the playing clip
+    /* 0x69A */ byte pad_69A[6];
+    /* 0x6A0 */ u16  field_6A0; ///< sound flags; bit 5/4 gate the two cues
+    /* 0x6A2 */ byte pad_6A2[4];
+    /* 0x6A6 */ s16  field_6A6; ///< parked animation for the state-F0 path
+    /* 0x6A8 */ s16  field_6A8; ///< state-machine step
+    /* 0x6AA */ byte pad_6AA[4];
+    /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
+    /* 0x6B0 */ byte pad_6B0[2];
+    /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
+    /* 0x6B4 */ byte pad_6B4[0x1E];
     /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
     /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
     /* 0x6D2 */ s16  field_6D2;
