@@ -41309,6 +41309,47 @@ the `nop` and matched `func_dryfield_motel_balcony_80181628` exactly. The
 `default` arm emits nothing extra - it only changes what the delay-slot filler
 is allowed to reach.
 
+## The mirror case: a value-returning `switch` must *not* carry `default: return <value>;`
+
+Same decision, opposite answer, when the cases `break` and one trailing
+`return 0;` is shared by every path. An explicit `default: return 0;` gives the
+no-match path its own basic block, so the function ends in two `jr $ra` - one
+for that block and one for the epilogue - where the target has a single
+`jr $ra` reached by `j`:
+
+```
+beq   v1,v0,2c
+addu  v0,zero,zero     <- default's value, in the beq delay slot
+j     .LFA0            <- target: jumps *to the epilogue*
+nop
+```
+```
+beq   v1,v0,2c
+addu  v0,zero,zero     <- ours
+jr    ra               <- ours: a second return, delay slot `nop`
+nop
+```
+```
+30: addu v0,zero,zero  <- join, shared by the case paths
+34: .LFA0: jr ra
+```
+Dropping the `default` arm (`func_actor_141000_80133F6C`) matches exactly.
+`expand_end_case` still emits an unconditional jump for the no-match path, but
+to the break label, which it gives its own `code_label` directly in front of
+the switch-exit block - and that block starts with the trailing return's
+`set v0=0`, not with a `(return)`. So the jump survives both jump passes and
+`reorg` can later sink the join's `set v0=0` into the dispatch branch's delay
+slot and retarget the jump at the epilogue label. With an explicit `default:
+return`, the block's own `j return_label` is instead rewritten twice: `jump.c`'s
+use-before-jump optimization (`jump.c` 705) fires because
+`prev_nonnote_insn (JUMP_LABEL (insn))` is the *next* block's `barrier`, moving
+the `use v0` past that barrier and inventing a label for it; then, after reload,
+`next_active_insn` starts skipping `use` insns, so the second `jump_optimize`
+sees the epilogue's `(return)` behind that label and converts the jump into a
+`(return)` of its own. (The conversion cannot fire pre-reload: `redirect_jump`
+with a null label reaches `validate_change` -> `recog`, and the `return` insn
+requires `mips_can_use_return_insn`, which is 0 until `reload_completed`.)
+
 ## Cross-jumping merges two identical call tails; `SOFT_BARRIER()` keeps both
 
 Two arms of a switch that end in the same call and the same `goto` get merged

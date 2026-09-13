@@ -38,11 +38,21 @@ typedef struct Actor141000Work {
     /* 0x4A8 */ s32    field_4A8;
     /* 0x4AC */ byte   pad_4AC[0x16];
     /* 0x4C2 */ s16    field_4C2;
-    /* 0x4C4 */ byte   pad_4C4[0x5];
+    /* 0x4C4 */ byte   pad_4C4[0x4];
+    /* 0x4C8 */ s8     field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
     /* 0x4C9 */ s8     field_4C9;
     /* 0x4CA */ byte   pad_4CA[0x2];
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
+
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`, whose
+/// halfword at 0x2 chooses the variant this handler latches.
+typedef struct Actor141000Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor141000Msg;
+STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
 
 void func_actor_141000_801339DC(Task* arg0);
 void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 arg2);
