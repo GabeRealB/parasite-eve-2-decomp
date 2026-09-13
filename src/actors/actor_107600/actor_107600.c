@@ -5,6 +5,7 @@
 #include "main/task.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 
 #include "actors/actor_107600.h"
 
@@ -19,6 +20,10 @@ extern const TaskFuncTable4 D_actor_107600_80131E24;
 /* Second table out of the same leading-rodata block, run by
  * `func_actor_107600_801348A0`. */
 extern const TaskFuncTable4 D_actor_107600_80131E74;
+
+/* Table `func_actor_107600_80132DF0` spawns from, indexed with `arg1 + 1`; it
+ * is the trailing animation/data blob, not the leading rodata. */
+extern TaskDesc D_actor_107600_80134F94;
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
@@ -150,7 +155,37 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132D54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132DF0);
+/// Spawns the next instance of this actor's own `D_actor_107600_80134F94`
+/// table (`arg1 + 1` is the index) and adopts it as a child of `arg0`: the new
+/// task is reparented and its root coordinate's `sub` link is pointed at
+/// `arg0`'s own root coordinate, `Task::spawnArg1` is packed from the two
+/// arguments, and the spawned model takes `arg1`'s texture page - dropping the
+/// CLUT row to 0 once `arg1` reaches 10 - before the stream is processed twice
+/// (one half-buffer per call) and the enemy's light is set to 0x900.
+void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
+{
+    GpEnemy*    enemy;
+    GpCoordExt* coord;
+    TmdObject*  obj;
+
+    enemy = Gp_SpawnEnemyFromTable(&D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
+    if (enemy != NULL) {
+        Task_Reparent(arg0->task, enemy->task);
+        coord                  = (GpCoordExt*)((TmdObject*)enemy->task->extra)->field_8;
+        coord->sub             = ((TmdObject*)arg0->task->extra)->field_8;
+        enemy->task->spawnArg1 = arg1 | (arg2 << 16);
+        obj                    = (TmdObject*)enemy->task->extra;
+        obj->field_24          = 0;
+        if (arg1 < 10) {
+            obj->field_25 = 2;
+        } else {
+            obj->field_25 = 0;
+        }
+        Tmd_ProcessStream(obj);
+        Tmd_ProcessStream(obj);
+        enemy->field_A = 0x900;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132ED0);
 
