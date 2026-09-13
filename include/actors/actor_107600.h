@@ -14,9 +14,15 @@
 /// `func_actor_107600_80134B98` writes: the new state in `field_158` and its
 /// sub-state counter cleared. `field_13E` is a free-running counter that
 /// `func_actor_107600_80132CB8` bumps by one, and `field_144` is the phase the
-/// destroy callback `func_actor_107600_80132AC0` tests against 2.
+/// destroy callback `func_actor_107600_80132AC0` tests against 2. The three
+/// angles at +0x40 are what `func_actor_107600_80132B7C` rebuilds the model
+/// root's rotation from, the same trio `ActorsShared80139948` reads at +0x80.
 typedef struct Actor107600Work {
-    /* 0x000 */ byte  pad_0[0x60];
+    /* 0x000 */ byte  pad_0[0x40];
+    /* 0x040 */ u16   pitch; // fed to RotMatrixX
+    /* 0x042 */ u16   yaw;   // fed to func_8004BFF8
+    /* 0x044 */ u16   roll;  // fed to RotMatrixZ
+    /* 0x046 */ byte  pad_46[0x1A];
     /* 0x060 */ GpObj obj;
     /* 0x080 */ byte  pad_80[0xBE];
     /* 0x13E */ u16   field_13E;
@@ -34,9 +40,13 @@ typedef struct Actor107600 {
     /* 0x1C */ Actor107600Work* field_1C;
 } Actor107600;
 
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
 void func_actor_107600_801328CC(Task* arg0);
 void func_actor_107600_80132AC0(Task* arg0);
 void func_actor_107600_80132B0C(Task* arg0);
+void func_actor_107600_80132B7C(Task* arg0);
 void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80132CB8(Actor107600* arg0);
 void func_actor_107600_80134608(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);

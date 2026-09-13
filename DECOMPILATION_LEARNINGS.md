@@ -66794,3 +66794,40 @@ sequence*, not its header lines - those are flow.c's `REG_N_REFS` /
 Neither is fixed by the source: both change with the schedule, which is why the
 edit that wins is one that moves an unrelated insn's LUID.
 `func_actor_107600_801349E0` (74.48% -> 100%).
+
+## m2c scales pointer arithmetic by the type it guessed - check the immediate's units
+
+m2c prints a byte offset in `M2C_FIELD(p, T*, k)` but writes a pointer
+difference in the *element* units of whatever pointer type it guessed from the
+same expression. So the two disagree whenever the guess is wrong, and the
+object code carries the product:
+
+```c
+temp_s0 = *(MATRIX **)0x1F8003FC;   /* m2c guessed MATRIX*, a 0x20-byte struct */
+temp_s0_2 = temp_s0 - 0x20;         /* target: addiu $s0,$s0,-0x20  -> got -0x400 */
+```
+
+Symptom: one `addiu` immediate that is the field offset multiplied by the
+struct size (`-0x20` -> `-0x400`), or an argument whose byte offset is scaled up
+(`M2C_FIELD(..., s32 *, 8)` handed on as `p + 4` compiled to `+0x10`). Both
+survive every register/scheduling experiment because they are not allocation
+problems, and `diff.py` on the function still looks close - the baseline here
+scored 95.96% with `regs=6 reorder=3`, and every one of those was downstream of
+these two immediates.
+
+Fix by finding the type the *destination* names, not by adjusting the constant:
+the scratchpad head is a `u8*`, and the target of the matrix copy is a field of
+a known struct, so
+
+```c
+m = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+func_actor_107600_80132C4C(m, &coord->coord);
+```
+
+The tell that this is the bug and not a coincidence: the wrong immediate is
+exactly `offset * sizeof(guessed type)`, and the guessed type appears nowhere in
+the function's own code. Look for an already-matched sibling carrying the same
+callee sequence first - here `ActorsShared80139948` (shared lib) and the inlined
+`Actor400600_RebuildRotation` are the same body, and lifting their source shape
+reproduced the target instruction for instruction, mask-load order and
+delay-slot store included. `func_actor_107600_80132B7C` (95.96% -> 100%).

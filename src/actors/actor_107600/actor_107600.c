@@ -72,7 +72,33 @@ void func_actor_107600_80132B0C(Task* arg0)
     *scratch = (u8*)*scratch + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132B7C);
+/// Rebuilds the model root's rotation from the work block's three angles: wrap
+/// each to 12 bits, build the rotation in a scratch matrix carved off
+/// `G_SCRATCH_HEAD`, then copy its 3x3 into the part's `GsCOORDINATE2::coord`.
+/// The same body as `ActorsShared80139948`, with the copy left as a call to
+/// `func_actor_107600_80132C4C`.
+void func_actor_107600_80132B7C(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    MATRIX*          m;
+
+    work->pitch              &= 0xFFF;
+    work->yaw                &= 0xFFF;
+    work->roll               &= 0xFFF;
+    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    *(s32*)&m->m[0][0]        = 0x1000;
+    *(s32*)&m->m[0][2]        = 0;
+    *(s32*)&m->m[1][1]        = 0x1000;
+    *(s32*)&m->m[2][0]        = 0;
+    m->m[2][2]                = 0x1000;
+    *(MATRIX**)G_SCRATCH_HEAD = m;
+    RotMatrixZ((s16)work->roll, m);
+    RotMatrixX((s16)work->pitch, m);
+    func_8004BFF8((s16)work->yaw, m);
+    func_actor_107600_80132C4C(m, &coord->coord);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+}
 
 /// Copies the 3x3 rotation of the scratch matrix `func_actor_107600_80132B7C`
 /// just built into the part's `GsCOORDINATE2::coord`, leaving the translation
