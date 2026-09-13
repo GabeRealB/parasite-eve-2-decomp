@@ -17,6 +17,17 @@ typedef struct Actor100300ScratchStack {
     u32 sp;
 } Actor100300ScratchStack;
 
+typedef struct Actor00300GroundScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ DVECTOR sxy0;
+    /* 0x24 */ DVECTOR sxy1;
+    /* 0x28 */ DVECTOR sxy2;
+    /* 0x2C */ DVECTOR sxy3;
+} Actor00300GroundScratch;
+STATIC_ASSERT_SIZEOF(Actor00300GroundScratch, 0x30);
+
+extern MATRIX Gfx_ViewWorldMtx;
+
 typedef struct Actor00300InitScratch {
     /* 0x00 */ SVECTOR offset;
     /* 0x08 */ VECTOR  result;
