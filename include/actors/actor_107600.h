@@ -69,6 +69,7 @@ void func_actor_107600_80132B7C(Task* arg0);
 void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80132CB8(Actor107600* arg0);
 void func_actor_107600_80134608(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void func_actor_107600_801348A0(Task* arg0);
 void func_actor_107600_80134904(Task* arg0);
 void func_actor_107600_80134920(Task* arg0);
 void func_actor_107600_801349E0(Task* arg0);

@@ -16,6 +16,10 @@
  * function's .rodata instead of at D_actor_107600_80131E24. */
 extern const TaskFuncTable4 D_actor_107600_80131E24;
 
+/* Second table out of the same leading-rodata block, run by
+ * `func_actor_107600_801348A0`. */
+extern const TaskFuncTable4 D_actor_107600_80131E74;
+
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E20);
@@ -172,7 +176,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134608);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801348A0);
+void func_actor_107600_801348A0(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_actor_107600_80131E74;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_actor_107600_80134904(Task* arg0)
 {

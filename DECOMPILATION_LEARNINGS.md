@@ -41824,6 +41824,27 @@ almost always the enclosing function's own first parameter, so read the callee's
 `.s`: if it never writes `$a0` before the `jal`, `arg0` is being forwarded.
 Restoring it (`Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6)`) took 99.00% to 100.00%
 in one edit. Do not chase the shift with pins or the permuter.
+## The same rule at an indirect call, where there is no callee `.s` to check
+
+`func_actor_107600_801348A0` copies a four-entry `TaskFuncTable4` onto the stack
+and dispatches through it. The copy leaves the table base in `$a3` and two of
+its entries in `$a1`/`$a2`, so m2c emitted a seven-argument call through the
+stack slot — over a target whose `jalr $v0` sets up nothing at all. Those
+registers are the copy's leftovers, not arguments; only `$a0` (the task) is
+live, and the body is the state-dispatcher shape its matched sibling in the same
+TU already has:
+
+```c
+TaskFuncTable4 sp;
+
+sp = D_actor_107600_80131E74;
+sp.funcs[arg0->state](arg0);
+```
+
+Count the `$a1`-`$a3` writes the sequence actually performs before the `jalr`
+rather than the parameters m2c names: `insert` and `delete` equal to the
+fabricated argument count is the tell (7 and 7 for a 25-instruction function
+scoring 39.72%).
 
 ## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
 
