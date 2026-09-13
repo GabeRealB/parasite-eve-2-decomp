@@ -7,15 +7,19 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actor_405800.h"
 #include "actors/actors_shared_8013a0b0.h"
 
 extern s32 Gp_LcgState;
+extern u8  D_actor_405800_801513F8[];
 
 void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 /* Unprototyped so the first jal keeps a nop delay slot; a0 still holds the task. */
 s32  func_actor_405800_80136A1C();
+void func_actor_405800_80135A3C(Task* arg0, s16 arg1);
 s32  func_actor_405800_8013728C(Task* arg0);
 s32  func_actor_405800_801373E0(Task* arg0);
 void func_actor_405800_801379F8(Task* task);
@@ -214,7 +218,71 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133F48);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801340E0);
+void func_actor_405800_801340E0(Task* arg0)
+{
+    Actor405800Msg3FF msg;
+    Actor405800Msg3F8 query;
+    Actor405800Work*  work;
+    Actor405800Work*  work2;
+    Actor405800Work*  work3;
+    s32               base;
+    s32               sound;
+    s32               pan;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if (Gp_ActorSlots[0]->actor->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
+        func_actor_405800_801379F8(arg0);
+        work3            = (Actor405800Work*)arg0->idMap;
+        work3->field_846 = 2;
+        work3->field_848 = 0;
+        func_actor_405800_80135A3C(arg0, work->field_87E);
+        return;
+    }
+    query.field_14 = 0x18;
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&query, 0) != 0) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        if (work->field_890 == 0) {
+            work3            = (Actor405800Work*)arg0->idMap;
+            work3->field_846 = 2;
+            work3->field_848 = 0;
+            return;
+        }
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_846 = 0xD;
+        work2->field_848 = 0;
+        return;
+    }
+    work->field_86A = work->field_92;
+    func_actor_405800_801379F8(arg0);
+    work->field_890      = 0;
+    Gp_StateC08.field_6 |= 1;
+    work->field_88F      = 1;
+    work->field_9A       = work->field_92;
+    msg.field_0          = D_actor_405800_801513F8;
+    msg.field_8          = 0;
+    msg.field_C          = 0;
+    msg.field_10         = 0;
+    msg.field_4          = 4;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+    work->obj_4B4.flags &= 0x7FFF;
+    work->obj_594.flags &= 0xBFFF;
+    work2                = (Actor405800Work*)arg0->idMap;
+    work2->field_850     = 0x10;
+    work2->field_872     = 0x21;
+    work2->field_84A     = 4;
+    work2->field_86E     = 1;
+    work->field_842      = 0;
+    work->field_844      = 0;
+    base                 = 0x40050004;
+    if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+        base = 0x404A0004;
+    }
+    sound = base | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+    pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    work->field_884 = 0;
+    work->field_848++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134314);
 

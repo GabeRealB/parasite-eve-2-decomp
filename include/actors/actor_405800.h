@@ -30,6 +30,25 @@ typedef union Actor405800Flags83C {
 } Actor405800Flags83C;
 STATIC_ASSERT_SIZEOF(Actor405800Flags83C, 0x4);
 
+/// Payload `func_actor_405800_801340E0` sends the `Game_GetPtrSlot(3)` task as
+/// message 0x3FF, with `field_0` pointing at `D_actor_405800_801513F8`.
+typedef struct Actor405800Msg3FF {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} Actor405800Msg3FF;
+STATIC_ASSERT_SIZEOF(Actor405800Msg3FF, 0x14);
+
+/// Reply buffer `func_actor_405800_801340E0` passes with message 0x3F8; only
+/// `field_14` is seeded (to 0x18) before the query.
+typedef struct Actor405800Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor405800Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor405800Msg3F8, 0x18);
+
 /// Per-actor work block for the `actor_405800` overlay.
 ///
 /// `func_actor_405800_801334B8` allocates it with `Mem_Calloc(0x89C, 0)` and
@@ -82,7 +101,7 @@ typedef struct Actor405800Work {
     /* 0x83C */ Actor405800Flags83C flags_83C;
     /* 0x840 */ byte                pad_840[0x2];
     /* 0x842 */ u16                 field_842; // per-state frame counter
-    /* 0x844 */ byte                pad_844[0x2];
+    /* 0x844 */ s16                 field_844; // cleared with field_842 on state entry
     /* 0x846 */ u16                 field_846; // state index
     /* 0x848 */ u16                 field_848; // sub-state index
     /* 0x84A */ s16                 field_84A;
@@ -109,7 +128,8 @@ typedef struct Actor405800Work {
     /* 0x87E */ s16                 field_87E;
     /* 0x880 */ s16                 field_880;
     /* 0x882 */ s16                 field_882; // randomised hold, 0x5A .. 0x99 frames
-    /* 0x884 */ byte                pad_884[0x6];
+    /* 0x884 */ s16                 field_884; // cleared on the state-entry path
+    /* 0x886 */ byte                pad_886[0x4];
     /* 0x88A */ u8                  field_88A;
     /* 0x88B */ s8                  field_88B;
     /* 0x88C */ u8                  field_88C;
