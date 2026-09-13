@@ -68362,3 +68362,22 @@ Note the sibling source form is what makes the rest of the shape fall out:
 `for (; i < 7; i++)` for the call loop plus `TOUCH_REG(i); work->field_382 += i;`
 before the `do { Gp_AnimTickIndex(...); i++; } while (i < 7);` reproduces a
 byte-identical frame, delay slots and loop layout in one transplant.
+
+## The BRIEF's 1.00-similar sibling is the answer; `overlay_dup_index.py find` will not say so
+
+`func_actor_300700_80162130` (USA/actors/actor_300700) scores 1.00 in all three
+similarity classes against `Actor00700_Fn02290`, whose matched source lives in
+`src/actors/lib/actor_100700_text.c` and links into actor_100700 and actor_200700.
+Copying that body over, renaming the types/callees and adding the two things it
+needs (a `work->field_2E6` at 0x2E6 in this overlay's `Actor300700Work`, and an
+`extern s8 D_80115408`) scored 100.00 with every penalty zero on the first build.
+
+Do not wait for `overlay_dup_index.py find` to confirm it. That index decides
+equality on splat's disassembly *text*, so two overlays' copies of one body stop
+matching the moment the body calls an overlay-local function: the `jal` target
+symbol, not the body, differs. `find func_actor_300700_80162130` and
+`find Actor00700_Fn02290` each report a single copy — themselves — for two
+bodies that compile from the same C. When the BRIEF lists a sibling at `shape`,
+`fields` and `cflow` all 1.00, treat it as a source equality and port its
+matched body verbatim; the `promote`/shared-lib step is a separate question and
+is not implied by it.

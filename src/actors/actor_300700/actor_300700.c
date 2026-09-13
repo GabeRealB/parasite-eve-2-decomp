@@ -29,12 +29,79 @@ void func_actor_300700_8016534C(Actor300700* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
+void func_actor_300700_801622B4(Actor300700* arg0);
+void func_actor_300700_8016252C(Actor300700* arg0);
+void func_actor_300700_801626C0(Actor300700* arg0);
+void func_actor_300700_801628C8(Actor300700* arg0);
+void func_actor_300700_801633B8(Actor300700* arg0);
+
 extern u8  D_801153F4;
+extern s8  D_80115408;
 extern s32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80161E80);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80162130);
+void func_actor_300700_80162130(Actor300700Ctx* arg0, Actor300700* arg1)
+{
+    Actor300700Obj2C* obj;
+    Actor300700Work*  work;
+    GsCOORDINATE2*    coord;
+    s32               state;
+    s32               one;
+
+    work  = arg1->field_1C;
+    obj   = arg1->field_2C;
+    state = D_801153F4;
+    coord = obj->field_8;
+    one   = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    obj->field_C   = 0;
+    arg0->field_14 = 0;
+    goto default_body;
+case1:
+    func_actor_300700_801633B8(arg1);
+    return;
+case2:
+    obj->field_C   = 0x80;
+    arg0->field_14 = one;
+    return;
+default_body:
+    func_actor_300700_801622B4(arg1);
+    func_actor_300700_8016252C(arg1);
+    if (work->field_2E6 == 0 && D_80115408 != 0) {
+        work->field_2E6 = 1;
+        Gp_ArmStateF0(1);
+    }
+    func_actor_300700_801626C0(arg1);
+    func_actor_300700_801628C8(arg1);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    func_actor_300700_801633B8(arg1);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if (((u32)Gp_LcgState >> 16 & 0x7F) == 0) {
+        s32 temp;
+        s32 id;
+
+        id   = ((arg0->field_8 >> 12) << 8) | 0x40070008;
+        temp = (s8)Gp_GetObjPan(arg1->field_2C->field_8);
+        SndEvt_EnqueueType6(id, temp, (s8)Gp_GetObjDepth(arg1->field_2C->field_8));
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801622B4);
 
