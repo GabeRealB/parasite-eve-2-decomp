@@ -7,6 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "main/tmd.h"
+#include "main/task.h"
 
 /// Singly-linked node embedded in `Actor01600Ctx` at 0x10 and unlinked by
 /// `Gp_UnlinkNode`. Same layout as the gameplay `GpLinkNode`.
@@ -41,7 +42,9 @@ typedef struct Actor01600Work {
     /* 0x4C4 */ s32    field_4C4;
     /* 0x4C8 */ byte   pad_4C8[4];
     /* 0x4CC */ s16    field_4CC;
-    /* 0x4CE */ byte   pad_4CE[0x12];
+    /* 0x4CE */ byte   pad_4CE[6];
+    /* 0x4D4 */ Task*  field_4D4;
+    /* 0x4D8 */ byte   pad_4D8[8];
     /* 0x4E0 */ s32    field_4E0;
     /* 0x4E4 */ byte   pad_4E4[0xC];
     /* 0x4F0 */ s16    field_4F0;
@@ -65,11 +68,14 @@ typedef struct Actor01600Work {
     /* 0x51E */ s16    field_51E;
     /* 0x520 */ byte   pad_520[2];
     /* 0x522 */ s16    field_522;
-    /* 0x524 */ byte   pad_524[4];
+    /* 0x524 */ byte   pad_524[2];
+    /* 0x526 */ s16    field_526;
     /* 0x528 */ s16    field_528;
     /* 0x52A */ byte   pad_52A[6];
     /* 0x530 */ s16    field_530;
-    /* 0x532 */ byte   pad_532[6];
+    /* 0x532 */ byte   pad_532[2];
+    /* 0x534 */ s16    field_534;
+    /* 0x536 */ byte   pad_536[2];
     /* 0x538 */ s16    field_538;
     /* 0x53A */ byte   pad_53A[6];
     /* 0x540 */ s16    field_540;
@@ -124,6 +130,8 @@ extern Actor01600StateC08 Gp_StateC08;
 void Gp_DestroyEnemy(void* enemy, void* task);
 
 extern s32 Actor01600_D12874;
+extern s32 Actor01600_D127DC;
+extern s32 Actor01600_D12870;
 
 void Actor01600_Fn01420(Actor01600* arg0);
 void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1);

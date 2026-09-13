@@ -484,7 +484,22 @@ void Actor01600_Fn06EA4(Actor01600* arg0)
     Gp_EnemyTaskExit(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06F10);
+void Actor01600_Fn06F10(Actor01600* arg0)
+{
+    Actor01600Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_534 != 0) {
+        Gp_DispatchMsg(work->field_4D4, 0x3F1, NULL, 0);
+        Actor01600_D127DC = 0;
+        work->field_534   = 0;
+        Actor01600_D12870 = 0;
+        work->field_50E   = 0;
+        work->field_516   = 0;
+        work->field_50A   = 0;
+        work->field_526   = 0;
+    }
+}
 
 /// Walks the sibling ring of task slot 4's children and reports whether any of
 /// them has already been flagged `0x80` in its `field_2C` object. Returns 0xFF
