@@ -629,7 +629,29 @@ void Actor00100_Fn0B7DC(Actor00100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B8D8);
+void Actor00100_Fn0B8D8(Actor00100* arg0)
+{
+    Actor00100Work* work;
+    u16             timer;
+    u32             random;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        random        = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState   = random;
+        work->field_6 = work->field_C20 + ((random >> 0x10) & 0xF);
+    }
+    Actor00100_Fn02788(arg0);
+    timer         = work->field_6 - 1;
+    work->field_6 = timer;
+    if ((s16)timer < 0) {
+        if ((s16)arg0->field_20->field_40 > 0) {
+            work->field_0 = 0x24;
+        } else {
+            work->field_0 = 0x15;
+        }
+    }
+}
 
 void Actor00100_Fn0B98C(Actor00100* arg0)
 {

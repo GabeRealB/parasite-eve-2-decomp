@@ -58,7 +58,9 @@ typedef struct Actor00100Work {
     /* 0xBE4 */ u16           field_BE4;
     /* 0xBE6 */ byte          pad_BE6[0x32];
     /* 0xC18 */ s16           field_C18;
-    /* 0xC1A */ byte          pad_C1A[0x10];
+    /* 0xC1A */ byte          pad_C1A[6];
+    /* 0xC20 */ u16           field_C20;
+    /* 0xC22 */ byte          pad_C22[8];
     /* 0xC2A */ s16           field_C2A;
 } Actor00100Work;
 
@@ -106,6 +108,8 @@ typedef struct Actor00100MtxScratch {
     /* 0x32 */ s16    pad_32;
 } Actor00100MtxScratch;
 STATIC_ASSERT_SIZEOF(Actor00100MtxScratch, 0x34);
+
+extern u32 Gp_LcgState;
 
 void Actor00100_Fn04270(Actor00100* argx);
 void Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
