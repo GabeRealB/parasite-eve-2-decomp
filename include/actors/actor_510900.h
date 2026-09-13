@@ -8,9 +8,11 @@
 #include "main/task.h"
 
 typedef struct Actor510900Coord {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x4C];
-    /* 0x50 */ s32  field_50;
+    /* 0x00 */ s32     field_0;
+    /* 0x04 */ byte    pad_4[0x34];
+    /* 0x38 */ VECTOR3 field_38;
+    /* 0x44 */ byte    pad_44[0xC];
+    /* 0x50 */ s32     field_50;
 } Actor510900Coord;
 
 typedef struct Actor510900Obj2C {

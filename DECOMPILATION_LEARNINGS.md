@@ -65257,3 +65257,42 @@ stale line points at a `nonmatchings/<unit>/` folder that no longer contains it.
 
 Worked example: promoting `func_actor_510900_8013BE64` to
 `ActorsShared8013be64` for `actor_510900` + `actor_205200`.
+
+## A pointer-passed stack vector wants one aggregate, not m2c's three scalars
+
+m2c renders a three-word stack vector copy as three sibling scalars and passes
+the address of the first:
+
+```c
+s32 sp10; s32 sp14; s32 sp18;
+sp10 = M2C_FIELD(arg1, s32 *, 0x38);
+sp14 = M2C_FIELD(arg1, s32 *, 0x3C);
+sp18 = M2C_FIELD(arg1, s32 *, 0x40);
+Gp_UpdateActorColor(M2C_FIELD(arg0, GpEnemy **, 0x20), (VECTOR *) &sp10, 0, 0);
+```
+
+Only `sp10`'s address escapes, so `sp14`/`sp18` are never address-taken and GCC
+dead-store-eliminates both writes: the object comes out with one `sw`, a 0x20
+frame and `$ra` at `0x18` — 55.8%, `delete=6`. This is the same trap as "A stack
+byte-descriptor passed by pointer must be one function-scope array"; one
+addressable aggregate keeps every store:
+
+```c
+VECTOR pos;
+pos.vx = arg1->field_38.vx;
+pos.vy = arg1->field_38.vy;
+pos.vz = arg1->field_38.vz;
+Gp_UpdateActorColor(arg0->field_20, &pos, 0, 0);
+```
+
+Frame arithmetic reads straight off the target: 0x10 outgoing args + a 0x10 slot
+puts `$ra` at `sp+0x20` (`0x28` frame), and the three stores land at
+`sp+0x10/0x14/0x18`, so the fourth word is only padding.
+
+**The aggregate's size is not observable here.** `VECTOR`
+(`{long vx, vy; long vz, pad;}`, 16 bytes) and `VECTOR3` (`{long vx, vy, vz;}`,
+12 bytes, with a `(VECTOR *)` cast at the call) compile to byte-identical
+assembly — same 0x28 frame, same `$ra` at `0x20` — so the frame does not
+discriminate them and the callee's `VECTOR *` parameter does not force the
+local's type. Declare whichever the source reads better as. What matters is only
+that the three writes share one addressable object. `func_actor_510900_8013BC38`.
