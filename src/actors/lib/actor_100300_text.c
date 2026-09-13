@@ -6,6 +6,8 @@
 
 #include "gameplay/3CD8.h"
 
+s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
+
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern s32 D_80115728;
@@ -62,7 +64,32 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn0340C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03618);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03A1C);
+void Actor00300_Fn03A1C(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GpAnimRec*       rec;
+    GsCOORDINATE2*   coord;
+    s32              sound;
+    s32              pan;
+    s32              pan2;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
+    if (rec != NULL) {
+        if (!(rec->field_3 & 0x20) && (work->field_696 & 0x20)) {
+            sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030001;
+            pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        }
+        if (!(rec->field_3 & 0x10) && (work->field_696 & 0x10)) {
+            sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030002;
+            pan2  = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(sound, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        }
+        work->field_696 = (u16)(rec->field_3 & 0x30);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03B70);
 
