@@ -18,6 +18,10 @@ void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_8018294C(Actor105100* arg0);
 void func_actor_105100_80132C2C(Actor105100* arg0);
 void func_actor_105100_80133134(Actor105100* arg0);
+void func_actor_105100_8013329C(Actor105100* arg0, Actor105100Ctx* arg1);
+void func_actor_105100_8013345C(Actor105100* arg0, Actor105100Ctx* arg1);
+void func_actor_105100_801336B8(Actor105100* arg0, Actor105100Ctx* arg1);
+void func_actor_105100_80133A14(Actor105100* arg0, Actor105100Ctx* arg1);
 void func_actor_105100_80133CE4(Actor105100* arg0);
 void func_actor_105100_80134130(Actor105100* arg0);
 void func_actor_105100_80135674(Actor105100* arg0);
@@ -25,12 +29,21 @@ void func_actor_105100_801359B4(Actor105100* arg0);
 void func_actor_105100_80135B40(Actor105100* arg0);
 void func_actor_105100_80135E54(Actor105100* arg0);
 void func_actor_105100_80135F50(Actor105100* arg0);
+void func_actor_105100_80135FCC(Actor105100* arg0);
+void func_actor_105100_801360AC(Actor105100* arg0);
+void func_actor_105100_801361C4(Actor105100* arg0);
+void func_actor_105100_80136318(Actor105100* arg0);
 void func_actor_105100_80136408(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
 
 void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern u8 D_801153F4;
+
+/// Main-executable global with no module header yet: bit 2 asks the per-frame
+/// handler for the post-hit reaction, which is why `func_actor_105100_80133134`
+/// runs `func_actor_105100_80135FCC` off it on every frame it is set.
+extern u8 D_8011540D;
 
 /// Main-executable global with no module header yet: the remaining-enemy count
 /// `func_actor_105100_80136318` tests to decide whether the fight is over.
@@ -235,13 +248,71 @@ default_body:
     func_actor_105100_80136524(arg1);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_105100/actor_105100", D_actor_105100_80131E20);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_105100/actor_105100", D_actor_105100_80131E24);
-
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80132C2C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80133134);
+/// The enemy's step dispatcher, run every frame out of the `field_596` schedule
+/// the three handlers below this one step through. Bit 3 of `Gp_StateF0.field_1D`
+/// is a reset request: it is cleared here and the block is put back on step 6
+/// with the schedule and the animation re-arm both dropped.
+///
+/// Step 7 is terminal -- `func_actor_105100_80136318` retires the enemy and the
+/// task stops being dispatched -- so it falls straight through to the tail, as
+/// does a step outside 0..7. The tail runs the shared post-hit reaction
+/// (`D_8011540D` bit 2) and steps the `field_5AA` timer down while it is
+/// positive. Step 0 also raises bit 1 of `Gp_StateF0.field_1D` once the HP drops
+/// under the cap in `D_actor_105100_8014139C`.
+void func_actor_105100_80133134(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    Actor105100Ctx*  ctx;
+    s16              state;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (Gp_StateF0.field_1D & 8) {
+        Gp_StateF0.field_1D &= 0xF7;
+        work->field_596      = 6;
+        work->field_598      = 0;
+        work->field_5A8      = 0;
+    }
+    state = work->field_596;
+    switch (state) {
+        case 0:
+            if ((s16)ctx->field_40 < (s32)*D_actor_105100_8014139C) {
+                Gp_StateF0.field_1D |= 2;
+            }
+            func_actor_105100_8013329C(arg0, ctx);
+            break;
+        case 1:
+            func_actor_105100_8013345C(arg0, ctx);
+            break;
+        case 2:
+            func_actor_105100_801336B8(arg0, ctx);
+            break;
+        case 3:
+            func_actor_105100_80133A14(arg0, ctx);
+            break;
+        case 4:
+            func_actor_105100_80135F50(arg0);
+            break;
+        case 5:
+            func_actor_105100_801360AC(arg0);
+            break;
+        case 6:
+            func_actor_105100_801361C4(arg0);
+            break;
+        case 7:
+            func_actor_105100_80136318(arg0);
+        default:
+            break;
+    }
+    if (D_8011540D & 4) {
+        func_actor_105100_80135FCC(arg0);
+    }
+    if (work->field_5AA > 0) {
+        work->field_5AA = (u16)work->field_5AA - 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013329C);
 

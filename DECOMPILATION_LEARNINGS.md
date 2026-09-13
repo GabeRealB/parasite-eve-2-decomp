@@ -69700,3 +69700,45 @@ assuming a register-starved function wants a single load.
 Note the view struct carries *absolute* offsets (`pad_0[0x40]`, `field_40`), so
 the cast is at offset 0 and costs no `addiu`; a view based at 0x38 would need
 one.
+
+## A compiler-generated jump table in the *first* unit's leading rodata wants `rodata_head`, not a `units` cut
+
+The leading `.rodata` of an overlay is one subsegment owned by the first code
+unit, and it holds several functions' jump tables plus the package header. It is
+fine while those functions are `INCLUDE_ASM`, since each table then arrives as
+data inside its own function's `.s`. Decompiling one of them breaks the layout,
+because GCC emits the table into `.rodata` and aligns it with `.align 3`: if
+anything precedes it in the object, the assembler inserts a 4-byte pad and every
+following byte — the rest of the rodata *and all of `.text`*, which the linker
+script places straight after `.rodata` — shifts by 4.
+
+The documented fix (`rodata` cut paired with a `units` cut) works when the
+function is in a *later* unit. It is the wrong tool when the function is in the
+first one: cutting `.text` before it renumbers every later unit, so
+`actor_105100_2` becomes `actor_105100_3` and the existing `src/` files no longer
+match their subsegments — a rename-and-redistribute pass over files that hold
+matched bodies.
+
+`rodata_head` does the same job without touching `.text`. Setting it to the
+table's offset moves everything ahead of that offset (the id word, the dispatch
+pointers, any earlier `INCLUDE_ASM` jump tables) into a separate asm `rodata`
+subsegment, and the first code unit's `.rodata` then *starts* at the cut:
+
+```
+# 0x14 holds func_actor_105100_80132C2C's table, 0x3C is this function's
+actor_105100 = { rodata_head = "0x3C", rodata = [{ start = "0x90", unit = "actor_105100_2" }], ... }
+```
+
+yields `- [0x0, rodata, actor_105100_hdr]`, `- [0x3C, .rodata, actor_105100/actor_105100]`,
+`- [0x90, .rodata, actor_105100/actor_105100_2]` — no `.text` subsegment moves,
+so no unit is renumbered and no source file has to be rebuilt.
+
+Two consequences to apply by hand, because splat will not rewrite an existing
+`.c`: the `INCLUDE_RODATA` lines for the symbols now inside the header subsegment
+must be deleted from the unit's `.c` (otherwise their bytes are emitted twice),
+and the tables belonging to still-`INCLUDE_ASM` functions move out of those
+functions' `.s` into the header `.s` on the next split, which splat does itself.
+
+Verified on `actor_105100`: `func_actor_105100_80133134`'s 8-entry table sits at
+0x3C with `func_actor_105100_80134284`/`_80134B00`'s tables at 0x5C/0x7C, and the
+overlay checksums with the unit numbering unchanged.
