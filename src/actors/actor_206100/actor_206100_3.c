@@ -219,7 +219,47 @@ void func_actor_206100_8014F9C4(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FA08);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FAE4);
+/// Ring-spawn state: seeds `field_4F4` and `field_548` from the eight-point ring
+/// `D_actor_206100_80158B68`, copies the current vertex into the root part
+/// coordinate, advances the index modulo 8, and hands the actor the state-1
+/// animation request.  `coord` is the coordinate the effect argument at
+/// `eff_4C0` shares, so moving it moves the actor.
+///
+/// `enemy` is a local rather than the inline
+/// `((GpEnemy*)task->spawnArg2)->node.field_4 = 1;` because the fused form
+/// transposes the `spawnArg2` and `task->extra` loads; see
+/// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
+/// with its store, so give the pointer its own local".
+void func_actor_206100_8014FAE4(Task* task)
+{
+    GsCOORDINATE2*   coord;
+    Actor206100Work* work;
+    Actor206100Work* next;
+    Actor206100Work* last;
+    GpEnemy*         enemy;
+
+    work                = (Actor206100Work*)task->idMap;
+    enemy               = (GpEnemy*)task->spawnArg2;
+    coord               = ((TmdObject*)task->extra)->field_8;
+    enemy->node.field_4 = 1;
+    work->field_54D     = 1;
+    work->field_548     = 0;
+    work->field_4F4     = D_actor_206100_80158B68;
+    next                = (Actor206100Work*)task->idMap;
+    next->field_51A     = 0x10;
+    next->field_510     = 3;
+    next->field_50C     = 2;
+    work->field_43E     = 0x400;
+    coord->coord.t[0]   = work->field_4F4[work->field_548].field_0;
+    coord->coord.t[1]   = work->field_4F4[work->field_548].field_2;
+    coord->coord.t[2]   = work->field_4F4[work->field_548].field_4;
+    work->field_548     = (work->field_548 + 1) & 7;
+    Gp_SetLightMode((GpObj4C*)task->spawnArg2, 2);
+    work->field_51E = 0;
+    last            = (Actor206100Work*)task->idMap;
+    last->field_520 = 1;
+    last->field_522 = 0;
+}
 
 void func_actor_206100_8014FBE4(Task* task)
 {

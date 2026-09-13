@@ -78,6 +78,21 @@ typedef struct Actor206100AnimStride {
 } Actor206100AnimStride;
 STATIC_ASSERT_SIZEOF(Actor206100AnimStride, 0x28);
 
+/// One vertex of the 8-point ring `func_actor_206100_8014FAE4` steps the actor's
+/// root coordinate around: radius 7600 in the XZ plane, one 45-degree step per
+/// entry, at a constant 3000 height.  `field_6` is unread.
+typedef struct Actor206100RingPos {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} Actor206100RingPos;
+STATIC_ASSERT_SIZEOF(Actor206100RingPos, 0x8);
+
+/// Eight `Actor206100RingPos` entries, walked by the index at
+/// `Actor206100Work::field_548`.
+extern Actor206100RingPos D_actor_206100_80158B68[8];
+
 /// Per-actor state block for the `actor_206100` overlay's enemy.
 ///
 /// `func_actor_206100_8014C274` allocates it with `Mem_Calloc(0x558, 0)` and
@@ -131,30 +146,43 @@ typedef struct Actor206100Work {
     /// Effect argument: the root coordinate's second part with the overlay's
     /// effect id and part index, the same coordinate / id / 3 trio
     /// `Actor503500Work::field_6E4` holds.
-    /* 0x4C0 */ GpEffArg         eff_4C0;
-    /* 0x4C8 */ byte             pad_4C8[0x44];
-    /* 0x50C */ s16              field_50C; // animation request kind
-    /* 0x50E */ u16              field_50E; // clip the request plays, latched from field_510
-    /* 0x510 */ s16              field_510; // animation clip id
-    /* 0x512 */ byte             pad_512[0x2];
-    /* 0x514 */ Actor206100Flags flags_514;
-    /* 0x518 */ byte             pad_518[0x2];
-    /* 0x51A */ s16              field_51A; // animation step scale
-    /* 0x51C */ byte             pad_51C[0x2];
-    /* 0x51E */ u16              field_51E; // per-state frame counter
-    /* 0x520 */ s16              field_520; // state index
-    /* 0x522 */ u16              field_522; // sub-state index
-    /* 0x524 */ s16              field_524;
-    /* 0x526 */ u16              field_526;
-    /* 0x528 */ byte             pad_528[0xE];
-    /* 0x536 */ u16              field_536; // seeded from D_80181A48 when the block is built
-    /* 0x538 */ byte             pad_538[0x8];
+    /* 0x4C0 */ GpEffArg eff_4C0;
+    /* 0x4C8 */ byte     pad_4C8[0x2C];
+    /// Position ring `func_actor_206100_8014FAE4` seeds from
+    /// `D_actor_206100_80158B68` and then walks one entry per frame with
+    /// `field_548`.
+    /* 0x4F4 */ Actor206100RingPos* field_4F4;
+    /* 0x4F8 */ byte                pad_4F8[0x14];
+    /* 0x50C */ s16                 field_50C; // animation request kind
+    /* 0x50E */ u16                 field_50E; // clip the request plays, latched from field_510
+    /* 0x510 */ s16                 field_510; // animation clip id
+    /* 0x512 */ byte                pad_512[0x2];
+    /* 0x514 */ Actor206100Flags    flags_514;
+    /* 0x518 */ byte                pad_518[0x2];
+    /* 0x51A */ s16                 field_51A; // animation step scale
+    /* 0x51C */ byte                pad_51C[0x2];
+    /* 0x51E */ u16                 field_51E; // per-state frame counter
+    /* 0x520 */ s16                 field_520; // state index
+    /* 0x522 */ u16                 field_522; // sub-state index
+    /* 0x524 */ s16                 field_524;
+    /* 0x526 */ u16                 field_526;
+    /* 0x528 */ byte                pad_528[0xE];
+    /* 0x536 */ u16                 field_536; // seeded from D_80181A48 when the block is built
+    /* 0x538 */ byte                pad_538[0x8];
     /// Yaw offset `func_actor_206100_8014EB60` folds into the part-5 rotation
     /// and the walk state `func_actor_206100_8014EC54` ramps to zero.
     /* 0x540 */ s16  field_540;
     /* 0x542 */ byte pad_542[0x2];
     /* 0x544 */ s16  field_544; // id handed to func_actor_206100_8014EB48
-    /* 0x546 */ byte pad_546[0xE];
+    /* 0x546 */ byte pad_546[0x2];
+    /// Ring index `func_actor_206100_8014FAE4` resets to 0 and then advances
+    /// modulo 8 each time it consumes an entry.
+    /* 0x548 */ u8   field_548;
+    /* 0x549 */ byte pad_549[0x4];
+    /// Companion flag `func_actor_206100_8014FAE4` sets alongside the ring
+    /// reset.
+    /* 0x54D */ s8   field_54D;
+    /* 0x54E */ byte pad_54E[0x6];
     /* 0x554 */ s8   field_554;
     /* 0x555 */ byte pad_555[0x1];
     /* 0x556 */ s8   field_556;

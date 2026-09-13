@@ -58829,6 +58829,61 @@ target loads a call argument *before* a store the call statement follows, the
 argument was a local in the original source. `func_actor_101100_80138374` is
 the example.
 
+## A dereference-store's address load is ranked with its store, so give the pointer its own local
+
+`func_actor_206100_8014FAE4` loads three fields of `Task` and the target emits
+them in source order, the third being the pointer behind a store:
+
+```
+lw   s0, 0x1C(s1)     ; work  = task->idMap
+lw   v0, 0x2C(s1)     ; coord = ((TmdObject*)task->extra)->field_8
+lw   v1, 0x20(s1)     ; the GpEnemy* the sb below stores through
+lw   a0, 0x8(v0)
+li   v0, 1
+sb   v0, 0x14(v1)     ; enemy->node.field_4 = 1
+```
+
+Writing that third load as the fused dereference-store it looks like in the
+target —
+
+```c
+work                                      = (Actor206100Work*)task->idMap;
+coord                                     = ((TmdObject*)task->extra)->field_8;
+((GpEnemy*)task->spawnArg2)->node.field_4 = 1;
+```
+
+— scores 99.688% (distance 20, `regs=4`): the object comes out with `lw 0x2C`
+**before** `lw 0x1C`. Nothing between those two loads is a store, so this is not
+the "load cannot cross an earlier store" case above; they are two independent
+loads off one base pointer and sched1 ranks the pair the other way round.
+
+Giving the pointer its own local, on a line *above* the `coord` statement,
+restores the target order and scores 100.000% with every penalty zero:
+
+```c
+work                = (Actor206100Work*)task->idMap;
+enemy               = (GpEnemy*)task->spawnArg2;   /* lw 0x20, ranked alone */
+coord               = ((TmdObject*)task->extra)->field_8;
+enemy->node.field_4 = 1;
+```
+
+Moving the fused statement up does **not** substitute for the local: that emits
+`lw 0x20` / `li` / `sb` as one group in second place and pushes the `0x2C` load
+to fourth (91.077%, reproducing the earlier attempt byte for byte). So the split
+is the necessary part, not the position — same rule as the two sections above,
+reached from a case where no store separates the loads at all.
+
+The permuter found the same mutation (as `new_var2`) and also introduced a dead
+constant store (`new_var = 7` before the `t[1]` write, then `& new_var`).
+Renaming both is codegen-neutral, and dropping the dead store keeps 100.000%:
+neither the name nor the constant is load-bearing.
+
+`.sched` explains it only partly. At the point where all three loads are ready,
+`base_2.i.sched` ranks them `19 16 11` — exactly the emitted `0x2C, 0x1C, 0x20`
+order — and all three carry `LAUNCH_PRIORITY` (`7f000001`). Which comparator
+entry sends the fused form's load to the wrong end of that list was not traced.
+The source-level rule above is what reproduces the target.
+
 ## sched1 reorders whole word stores too, so a short RMW chain can be moved to a later statement
 
 `ActorsShared8013454c` reads a `GsCOORDINATE2`'s three translation words into a
