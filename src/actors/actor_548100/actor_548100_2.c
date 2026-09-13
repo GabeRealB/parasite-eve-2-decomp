@@ -4,6 +4,7 @@
 #include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 extern s8  D_8007216C;
 extern s16 D_80114D08;
@@ -52,7 +53,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134CB8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134D88);
+void func_actor_548100_80134D88(Task* arg0)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    prompt->targetId    = 0x80;
+    prompt->mode        = 1;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    arg0->state         = arg0->state + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134DBC);
 
