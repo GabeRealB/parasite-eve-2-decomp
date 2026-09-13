@@ -16,8 +16,8 @@
 ///
 /// Above `field_14` the slots are s16 pairs at an 8-byte stride:
 /// `func_actor_560800_801367E0` writes 0x28/0x2A, 0x30/0x32, 0x38/0x3A and
-/// 0x40/0x42 with the same (value, 0) shape this unit uses for 0x58/0x5A, and
-/// `func_actor_560800_80136818` sets 0x64.
+/// 0x40/0x42 with the same (value, 0) shape this unit uses for 0x58/0x5A and
+/// for 0x60/0x62, and `func_actor_560800_80136818` sets 0x64.
 ///
 /// The three pointer slots at 0x1C/0x20/0x24 are `Gp_DispatchMsg` targets, not
 /// flags: `func_actor_560800_80133540` sends the message its switch picks to
@@ -48,7 +48,9 @@ typedef struct Actor560800Work {
     /* 0x44 */ byte  pad_44[0x14];
     /* 0x58 */ s16   field_58;
     /* 0x5A */ s16   field_5A;
-    /* 0x5C */ byte  pad_5C[8];
+    /* 0x5C */ byte  pad_5C[4];
+    /* 0x60 */ s16   field_60;
+    /* 0x62 */ s16   field_62;
     /* 0x64 */ s16   field_64;
     /* 0x66 */ byte  pad_66[2];
 } Actor560800Work;
@@ -67,6 +69,11 @@ STATIC_ASSERT_SIZEOF(Actor560800Msg, 0x4);
 /// Controller task of this overlay, published by `func_actor_560800_80135BD8`
 /// and read by the sub-task handlers.
 extern Task* D_actor_560800_8017578C;
+
+/// Animation block `func_actor_560800_80136378` points the `field_0` of its
+/// `GpAnimArg` at when it sends message 0x3F4 - the same role
+/// `D_actor_400600_80151A48` plays in that overlay.
+extern u8 D_actor_560800_8016EA40[];
 
 /// Phase timestamps, one per phase id 1..3: `func_actor_560800_80136930`
 /// stamps `Display_State.field_0` (the frame counter) into the slot its argument

@@ -43,7 +43,29 @@ void func_actor_560800_80136358(s16 arg0)
     work->field_2A = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_80136378);
+/// Latches the animation id in the 0x60 slot and plays that animation on the
+/// task at `field_0`: message 0x3F4 with `field_8` 1, `field_C` 0xA and
+/// `field_10` 1. The zero-extended id goes into the message while the store
+/// keeps the raw halfword argument, so the two uses do not share a register.
+void func_actor_560800_80136378(s16 arg0)
+{
+    Actor560800Work* work;
+    GpAnimArg        msg;
+    u16              anim;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    if (work->field_0 != NULL) {
+        anim           = arg0;
+        msg.field_0    = D_actor_560800_8016EA40;
+        work->field_60 = arg0;
+        msg.field_4    = anim;
+        msg.field_8    = 1;
+        msg.field_C    = 0xA;
+        msg.field_10   = 1;
+        Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
+        work->field_62 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801363F8);
 

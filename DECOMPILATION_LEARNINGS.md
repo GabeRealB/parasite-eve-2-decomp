@@ -66214,3 +66214,52 @@ later copy does not sink an earlier split `la`": the declaration's scope picks t
 basic block, and that block's instruction count then decides its schedule. Read
 `regs=0` with `reorder`/`insert`/`delete` non-zero as a block-placement question
 before touching registers.
+
+## A missing `move` beside an `andi` is a second variable, not a second use of the parameter
+
+**Problem.** `func_actor_560800_80136378` sat at 96.688% with one instruction
+left (`regs=1 delete=1`): retail copies the argument before masking it —
+`move v1,a0` in the `beqz` delay slot, then `andi v0,v1,0xffff` — while ours ran
+`andi v0,a0,0xffff`, and the halfword store to `0x60($s0)` also read `$a0`.
+
+**Cause.** A `s16` parameter reaches the body as *one* promoted pseudo, whatever
+the expression at the use site. `base_1.i.lreg` shows its whole life:
+`(insn 4 (set (reg:SI 81) (reg:SI 4 a0)))`, then both uses as
+`(subreg:HI (reg:SI 81) 0)` — the `movhi_internal2` store and the
+`zero_extendhisi2`. The allocator gave 81 `$a0`, so insn 4 became a self-move and
+was deleted. No re-spelling of the use site (`arg0 & 0xFFFF`, `(u16)arg0`, a cast
+at the store) can split one pseudo over two registers.
+
+**Fix.** Give the second use its own variable, so the front end has something to
+copy into:
+
+```c
+    u16 anim;
+
+    if (work->field_0 != NULL) {
+        anim           = arg0;   /* the copy: then-block's first insn */
+        work->field_60 = arg0;   /* sh a0 — still the parameter's pseudo */
+        msg.field_4    = anim;   /* andi v0,v1,0xffff — on the copy */
+```
+
+100%, all penalties zero. The copy is the then-block's first instruction, so
+reorg drops it into the `beqz` delay slot, and the parameter's own copy vanished
+into `$a0`. Read a missing copy as evidence about the *source* (a distinct
+variable existed), not about allocation — that comes before `SOFT_TOUCH_REG`
+or a pin.
+
+## Message payloads want their real type, not one local per word
+
+**Problem.** m2c's seed for the same function declared the `Gp_DispatchMsg`
+payload as five stack locals (`sp10`, `sp14`, `sp18`, `sp1C`, `sp20`), assigned
+`sp10 = &D_...` and passed `&sp10`. It compiled to 24 instructions against 32,
+`delete=8` with `struct` matching: only `sp10`'s address escapes, so the other
+four assignments are dead stores and disappear — taking the `andi` and the three
+`li`s that fed them with them.
+
+**Fix.** Use the payload's real type: message `0x3F4` takes a `GpAnimArg`
+(0x14 bytes, `include/gameplay/3FB8.h`), so one `GpAnimArg msg` with a single
+`&msg` makes every field store observable and lands the frame at `0x30` as retail
+has it. Four other overlays send this message (`actor_400600`, `actor_405800`,
+`actor_403100`, …) and name its fields. Grep the message id in `src/` before
+inventing a local struct — an existing sender usually has the type already.
