@@ -2,7 +2,9 @@
 #define ACTOR_202600_H
 
 #include "common.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -12,12 +14,20 @@ typedef struct Actor202600Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0xE];
+    /* 0x1C */ MATRIX*        field_1C;
+    /* 0x20 */ MATRIX*        field_20;
 } Actor202600Obj2C;
 
-/// Per-spawn parameters; `field_F` selects the row of the overlay's
+/// Per-spawn parameters; `field_1` is the per-actor variant index and
+/// `field_2` the spawn mode (`func_actor_202600_8014CE1C` splits it into a
+/// tens digit and a units digit). `field_F` selects the row of the overlay's
 /// per-actor data table.
 typedef struct Actor202600Params {
-    /* 0x00 */ byte pad_0[0xF];
+    /* 0x00 */ byte pad_0[1];
+    /* 0x01 */ u8   field_1;
+    /* 0x02 */ u16  field_2;
+    /* 0x04 */ byte pad_4[0xB];
     /* 0x0F */ u8   field_F;
 } Actor202600Params;
 
@@ -42,15 +52,19 @@ typedef struct Actor202600Work {
     /* 0x020 */ GpRec18   rec;
     /* 0x038 */ s16       field_38;
     /* 0x03A */ s16       field_3A;
-    /* 0x03C */ byte      pad_3C[0x1D8];
+    /* 0x03C */ byte      pad_3C[0x118];
+    /* 0x154 */ byte      field_154[0x80];
+    /* 0x1D4 */ MATRIX    field_1D4;
+    /* 0x1F4 */ MATRIX    field_1F4;
     /* 0x214 */ GpObj     field_214;
-    /* 0x234 */ byte      pad_234[0x60];
+    /* 0x234 */ GpRec18   field_234[4];
     /* 0x294 */ GpObj     field_294;
-    /* 0x2B4 */ byte      pad_2B4[0x30];
+    /* 0x2B4 */ GpRec18   field_2B4[2];
     /* 0x2E4 */ GpObj     field_2E4;
-    /* 0x304 */ byte      pad_304[0x18];
+    /* 0x304 */ GpRec18   field_304[1];
     /* 0x31C */ GpObj     field_31C;
-    /* 0x33C */ byte      pad_33C[0x20];
+    /* 0x33C */ GpRec18   field_33C[1];
+    /* 0x354 */ GpEffArg  field_354;
     /* 0x35C */ VECTOR3   field_35C;
     /* 0x368 */ byte      pad_368[4];
     /* 0x36C */ TaskDesc* field_36C;
@@ -77,7 +91,8 @@ typedef struct Actor202600Work {
     /* 0x3BC */ s16       field_3BC;
     /* 0x3BE */ byte      pad_3BE[2];
     /* 0x3C0 */ s16       field_3C0;
-    /* 0x3C2 */ byte      pad_3C2[4];
+    /* 0x3C2 */ s16       field_3C2;
+    /* 0x3C4 */ s16       field_3C4;
     /* 0x3C6 */ s16       field_3C6;
     /* 0x3C8 */ s16       field_3C8;
     /* 0x3CA */ byte      pad_3CA[2];
@@ -85,6 +100,15 @@ typedef struct Actor202600Work {
     /* 0x3CE */ s16       field_3CE;
     /* 0x3D0 */ s16       field_3D0;
 } Actor202600Work;
+STATIC_ASSERT_SIZEOF(Actor202600Work, 0x3D4);
+
+/// Animation view of the work prefix: the 0x14-byte context `func_800B3F84`
+/// fills in, followed by the eight slots it is handed and `Gp_AnimResetSlot`
+/// walks.
+typedef struct Actor202600Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[8];
+} Actor202600Anim;
 
 typedef struct Actor202600 {
     /* 0x00 */ byte              pad_0[0x1C];
@@ -102,13 +126,20 @@ typedef struct Actor202600RotScratch {
 } Actor202600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor202600RotScratch, 0x18);
 
-extern u16       D_actor_202600_80152798[];
-extern u16       D_actor_202600_801527A8[];
-extern u16       D_actor_202600_801527B8[];
-extern s16       D_actor_202600_80152836;
-extern u8        D_801153F2[2];
-extern s8        D_80115412;
-extern MATRIX*   D_80073B8C[1];
-extern GpU16Pair ActorsShared80135c4cPair;
+extern GpPairSrcE D_actor_202600_80152788;
+extern SVECTOR    D_actor_202600_801527D0[];
+extern s16        D_actor_202600_801527F0[];
+extern SVECTOR    D_actor_202600_80152808[];
+extern s16        D_actor_202600_80152828[];
+extern TaskDesc   D_actor_202600_801528D4;
+extern u8         D_actor_202600_801528EC[];
+extern u16        D_actor_202600_80152798[];
+extern u16        D_actor_202600_801527A8[];
+extern u16        D_actor_202600_801527B8[];
+extern s16        D_actor_202600_80152836;
+extern u8         D_801153F2[2];
+extern s8         D_80115412;
+extern MATRIX*    D_80073B8C[1];
+extern GpU16Pair  ActorsShared80135c4cPair;
 
 #endif
