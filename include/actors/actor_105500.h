@@ -2,6 +2,7 @@
 #define ACTOR_105500_H
 
 #include "common.h"
+#include "gameplay/1BC.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -57,5 +58,8 @@ typedef struct Actor105500Ctx {
 } Actor105500Ctx;
 
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);
+
+extern GpU16Pair Actor05500_D08958;
+void             Actor05500_Fn03E34(GpEnemy* enemy, Task* task);
 
 #endif
