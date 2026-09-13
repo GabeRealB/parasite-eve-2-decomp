@@ -74,7 +74,7 @@ typedef struct Actor405800Work {
     /* 0x834 */ s16        field_834;
     /* 0x836 */ s16        field_836;
     /* 0x838 */ s16        field_838;
-    /* 0x83A */ byte                pad_83A[0x2];
+    /* 0x83A */ s16        field_83A; // nonzero: skip the field_895 / field_896 reset
     /* 0x83C */ Actor405800Flags83C flags_83C;
     /* 0x840 */ byte                pad_840[0x2];
     /* 0x842 */ u16        field_842; // per-state frame counter

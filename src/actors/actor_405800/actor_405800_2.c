@@ -162,7 +162,20 @@ void func_actor_405800_801379F8(Task* task)
     work->obj_724.flags = work->obj_724.flags & 0xBFFF;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80137A14);
+void func_actor_405800_80137A14(Task* task)
+{
+    Actor405800Work* work;
+    Actor405800Work* cur;
+
+    work = (Actor405800Work*)task->idMap;
+    if (((s8)work->field_895 >= 0 || (work->field_895 & 0x7F)) && work->field_83A == 0) {
+        work->field_895 = 0x80;
+        work->field_896 = 0;
+    }
+    cur            = (Actor405800Work*)task->idMap;
+    cur->field_846 = 1;
+    cur->field_848 = 0;
+}
 
 /// Per-frame entry point for one of this actor's states: clears the animation
 /// request flags, then runs the sub-state handler `field_848` selects unless
