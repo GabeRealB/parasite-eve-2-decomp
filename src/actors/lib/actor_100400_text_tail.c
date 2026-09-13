@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_100400.h"
+#include "gameplay/1BC.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A2F4);
 
@@ -8,7 +9,18 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A364
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A3D4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A414);
+void Actor00400_Fn0A414(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    u16              frame;
+
+    work            = arg0->field_1C;
+    frame           = (u16)work->field_636 + 1;
+    work->field_636 = frame;
+    if ((s16)frame >= 0x12D) {
+        Gp_DestroyEnemy((GpEnemy*)arg0->field_20, (Task*)arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A468);
 
