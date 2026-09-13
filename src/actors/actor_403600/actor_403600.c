@@ -8,12 +8,15 @@
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
-#define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
-#define gte_ncct_real()  __asm__ volatile("nop; nop; .word 0x4B18043F")
+#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_rtpt_real()   __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_nclip_real()  __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_avsz3_real()  __asm__ volatile("nop; nop; .word 0x4B58002D")
+#define gte_ncct_real()   __asm__ volatile("nop; nop; .word 0x4B18043F")
+#define gte_mvmva_10030() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_mvmva_10000() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_nccs_real()   __asm__ volatile("nop; nop; .word 0x4B08041B")
 #define actor_403600_load_scratch_head(out) \
     __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0)" : "=r"(out))
 #define actor_403600_load_scratch_head_nop(out) \
@@ -882,7 +885,122 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138004);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801386EC);
+u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    CVECTOR color;
+    SVECTOR local;
+    u8*     head;
+    u8*     scratch;
+    MATRIX* saved;
+    MATRIX* transposed;
+    MATRIX* active;
+    u8*     stream;
+    u8*     record;
+    u8*     coord;
+    s32     previous;
+    u16     colorOffset;
+    s32     count;
+    s32     loadedCount;
+
+    __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
+    if (D_actor_403600_801606A0 != NULL) {
+        previous = -1;
+        color    = D_actor_403600_80131E34;
+        if (arg0->field_1C == 0) {
+            return (u32*)stream;
+        }
+
+        head    = *(u8**)0x1F8003FC;
+        scratch = (*(u8**)0x1F8003FC = head - 0x7C);
+        gte_sttr(scratch);
+        saved = (MATRIX*)(head - 0x40);
+        TOUCH_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        SOFT_USE_REG(saved);
+        gte_ReadRotMatrix(saved);
+        transposed = (MATRIX*)(head - 0x20);
+        TransposeMatrix((MATRIX*)(D_actor_403600_801606A0 + 0x24), transposed);
+
+        coord = (u8*)D_actor_403600_801606A0;
+        SOFT_BARRIER();
+        *(s16*)(scratch + 0x10) = *(u16*)(head - 0x7C) - *(u16*)(coord + 0x38);
+        *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
+        *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
+
+        local = *(SVECTOR*)(head - 0x6C);
+        gte_SetRotMatrix(transposed);
+        gte_ldv0(&local);
+        gte_mvmva_10030();
+        gte_stsv(scratch + 0x10);
+
+        gte_SetRotMatrix(transposed);
+        gte_ldclmv(saved);
+        gte_rtir_real();
+        gte_stclmv(transposed);
+        gte_ldclmv(head - 0x3E);
+        gte_rtir_real();
+        gte_stclmv((u8*)transposed + 2);
+        gte_ldclmv(head - 0x3C);
+        gte_rtir_real();
+        gte_stclmv((u8*)transposed + 4);
+
+        *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
+        *(s32*)(scratch + 0x74) = *(s16*)(scratch + 0x12);
+        *(s32*)(scratch + 0x78) = *(s16*)(scratch + 0x14);
+        gte_ldrgb(&color);
+
+        if (arg0->field_1C-- > 0) {
+            active = transposed;
+            saved  = (MATRIX*)(head - 0x64);
+            do {
+                record = stream;
+                if (*(u16*)(stream + 0) != previous) {
+                    gte_SetTransMatrix(active);
+                    gte_SetRotMatrix(active);
+                    gte_ldv0((u8*)arg0->field_8 + (*(u16*)(stream + 0) & 0xFFF8));
+                    gte_mvmva_10000();
+                    gte_stsv(saved);
+                    if (*(s16*)(scratch + 0x1A) > 0) {
+                        *(s16*)(scratch + 0x1A) = 0;
+                    }
+                    gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                    gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                    gte_ldv0(saved);
+                    gte_rtps_real();
+                    gte_stsz(&arg0->field_28);
+                    gte_stflg(&arg0->field_24);
+                    if (arg0->field_24 & 0x80000000) {
+                        arg0->field_28 |= 0x80000000;
+                    }
+                    arg0->field_10[*(u16*)(stream + 0) >> 3] = arg0->field_28;
+                }
+                gte_stsxy(arg0->field_4 + *(u16*)(record + 4));
+                gte_ldv0((u8*)arg0->field_C + (*(u16*)(record + 2) & 0xFFF8));
+                gte_nccs_real();
+                colorOffset = *(u16*)(record + 6);
+                stream     += arg0->field_18 * 4;
+                gte_strgb(arg0->field_4 + colorOffset);
+                loadedCount = arg0->field_1C;
+                SOFT_USE_REG(loadedCount);
+                previous = *(u16*)(record + 0);
+                __asm__ volatile("move %0,%1" : "=r"(count) : "r"(loadedCount));
+                arg0->field_1C = loadedCount - 1;
+            } while (count > 0);
+        }
+
+        gte_SetTransVector(scratch);
+        gte_SetRotMatrix(scratch + 0x3C);
+        *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x7C;
+        return (u32*)stream;
+    }
+    return Tmd_StreamHandler_OpC8(arg0, arg1, (u32*)stream);
+}
 
 void func_actor_403600_80138C34(Task* arg0)
 {
