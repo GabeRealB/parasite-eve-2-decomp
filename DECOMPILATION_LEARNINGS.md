@@ -68382,6 +68382,27 @@ bodies that compile from the same C. When the BRIEF lists a sibling at `shape`,
 matched body verbatim; the `promote`/shared-lib step is a separate question and
 is not implied by it.
 
+## A matched-lib twin can differ *only* in local-label style, and the index still splits it
+
+`overlay_dup_index.py` canonicalises branch targets with `BRANCH = \.L\w+`, so
+the labels splat writes in a `func_<overlay>_*` file
+(`.Lactor_300700_801646C0`) collapse to `.L0`, `.L1`, … — but the labels in a
+matched `<family>/lib` file are `<Symbol>_L<addr>` (`Actor00700_L01210`), which
+that regex does not match and leaves verbatim. Two bodies that differ in nothing
+else therefore hash apart, and `find` reports one copy each.
+
+`func_actor_300700_801645F8` against `Actor00700_Fn01148`
+(`src/actors/lib/actor_100700_text.c`) is the case: 111 canonical lines each, 46
+differing lines, and every differing line a label — no operand, displacement or
+callee differs, and the `jal Gp_TickObjFlag2` words are identical. `similar`
+reported 1.00 in `shape`, `fields` and `cflow`; the body ported with its field
+offsets renumbered scored 100.00 with every penalty zero on the first build.
+
+So when the twin lives under `<family>/lib`, a `same body: 1 copies` answer is
+no evidence either way. Reproduce `scan_function`'s canonicalisation loop and
+`diff` the two streams — a difference count where every line names a label is
+the signature of this, not of a real divergence.
+
 ## A 0x2F4 actor spawn work is three `GpObj` nodes and their `GpRec18` tables
 
 Spawn handlers that `Mem_Calloc(0x2F4)` and fill render nodes link three

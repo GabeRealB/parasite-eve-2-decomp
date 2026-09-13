@@ -363,7 +363,70 @@ INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801643D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801645F8);
+/// Per-frame tick. State 0 arms the timer and latches `field_396`; state 1
+/// waits it out; state 2 counts `field_38C` down and moves to the teardown
+/// state 3, which waits for `Gp_TickObjFlag2` on the spawn block and then
+/// clears the hit flag and resets the state machine.
+void func_actor_300700_801645F8(Actor300700* arg0)
+{
+    Actor300700Ctx*  ctx;
+    Actor300700Work* work;
+    s16              state;
+    s32              rng;
+    s32              rng2;
+    u16              timer;
+
+    work  = arg0->field_1C;
+    state = work->field_37C;
+    switch (state) {
+        case 0:
+            work->field_384 = 0;
+            work->field_386 = 0;
+            if (work->field_396 == 0) {
+                work->field_37C = 1;
+                work->field_37E = 6;
+            } else {
+                work->field_37C = 2;
+                rng             = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_38C = ((u32)rng >> 0x10) & 0xF;
+            }
+            work->field_396 = 1;
+            work->field_380 = 1;
+            return;
+        case 1:
+            if ((s16)work->field_382 >= 0x1D) {
+                work->field_37C = 2;
+                rng2            = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = rng2;
+                work->field_38C = ((u32)rng2 >> 0x10) & 0xF;
+                return;
+            }
+            return;
+        case 2:
+            timer           = work->field_38C - 1;
+            work->field_38C = timer;
+            if ((timer << 0x10) <= 0) {
+                work->field_37E = 8;
+                work->field_37C = 3;
+                return;
+            }
+            break;
+        case 3:
+            if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
+                ctx             = arg0->field_20;
+                ctx->field_4C  &= 0xFD;
+                work->field_37A = 0;
+                work->field_37C = 0;
+                work->field_37E = 1;
+                work->field_38C = 0;
+                work->field_394 = 1;
+                work->field_396 = 0;
+                work->field_398 = 0;
+            }
+            break;
+    }
+}
 
 void func_actor_300700_80164794(Actor300700* arg0)
 {
