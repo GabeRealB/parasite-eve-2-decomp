@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 
 #include "actors/actors_shared_80135d50.h"
+#include "actors/actor_207200.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -97,7 +98,37 @@ INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014AE70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014AF2C);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Rebinds the work's animation id to its three helper slots. When the id has
+/// changed since the last frame the remembered id follows it, the frame
+/// counter restarts and every slot is pointed at the new id at weight 8;
+/// otherwise the counter ticks and the slots are simply advanced by one.
+void func_actor_207200_8014AF2C(Task* arg0)
+{
+    Actor207200Work* work;
+    s32              i;
+
+    work = arg0->idMap;
+    i    = 1;
+    if (work->field_28C != (s16)work->field_28E) {
+        work->field_28E = work->field_28C;
+        work->field_290 = 0;
+        do {
+            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+            i++;
+        } while (i < 3);
+        return;
+    }
+    TOUCH_REG(i);
+    work->field_290 = (u16)(work->field_290 + i);
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        i++;
+    } while (i < 3);
+}
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's

@@ -72747,3 +72747,53 @@ fall-through needs it, and the default body falls into the tail rather than
 jumping to it. A `switch` statement with the same cases plus an explicit `goto`
 into the `default:` body compiles to the same bytes here, but the chain is the
 form the sibling files were matched with.
+
+## A temp for a call argument erases the anti-dependency that orders it before the counter's increment
+
+`func_actor_207200_8014AF2C` walks a 1..3 counter through `func_800B4114` and
+`Gp_AnimTickIndex`. m2c emits the first loop with a temp for the argument, so
+the counter's increment can be hoisted between the argument setup and the call:
+
+```c
+    temp_a1 = var_s0;
+    var_s0 += 1;
+    func_800B4114(work, temp_a1, work->field_28C, 0, 8);
+```
+
+which scored 95% — the target's loop head is
+
+```
+    addu  $a0,$s1,$zero
+    addu  $a1,$s0,$zero
+    addiu $s0,$s0,1
+    lh    $a2,0x28C($s1)
+```
+
+and the candidate put `addu $a0` after the `addiu` instead. The `.sched` dump
+says why. With the temp, `$a1` is filled from its own pseudo, and the increment
+carries only the anti-dependency the temp introduced:
+
+```
+(insn 44 ... (set (reg/v:SI 83) (plus:SI (reg/v:SI 83) (const_int 1)))
+    ... (insn_list:REG_DEP_ANTI 41 (nil)))       ; 41 is the temp copy 82 = 83
+(insn 57 ... (set (reg:SI 5 a1) (reg/v:SI 82)) (insn_list 41 (nil)))
+```
+
+so the increment is unconstrained and the scheduler launches it early. Passing
+the counter straight to the call removes the pseudo:
+
+```c
+    do {
+        func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+        i++;
+    } while (i < 3);
+```
+
+and the increment is now anti-dependent on the `$a1` move itself
+(`(insn_list:REG_DEP_ANTI 51 (nil))`), which pins the argument copy ahead of it
+and reproduces the target order. m2c introduces this temp whenever the argument
+is updated after the call in the same loop body; delete it and let the
+dependency do the ordering.
+
+Input SHA256 (`base_4.i`, the matching candidate):
+`421b6ab1c8b62873d865951ed2f963daa909d454f88c656cd2da3e3bcb636f9d`.
