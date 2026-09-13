@@ -69269,3 +69269,59 @@ to pick from. Compiler SHA256:
 edf031662f8887b2de117fad7c58ed693802a69c5bf6495bf67d4f8d6463bc13.
 `base_7.c` (same body, host include set) preprocessed SHA256:
 4b158a0ae4afa9c1208e3c34441405db4e2498891ba8215f763e72f40096b77c.
+
+## The actor "ground quad" body: m2c's three stack scalars are one `VECTOR3` passed by address
+
+A recurring actor-overlay function copies a coordinate's translation into a
+scratch vector and hands it to `Gp_DrawEffGroundQuad`:
+
+```c
+void func_actor_XXXXXX_8013YYYY(ActorXXXXXX* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR3        vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x9C4, 0x80);
+}
+```
+
+m2c decompiles that to three named stack scalars plus a pointer to the first:
+
+```c
+s32 sp10; s32 sp14; s32 sp18;
+sp10 = M2C_FIELD(temp_v1, s32*, 0x38);
+sp14 = M2C_FIELD(temp_v1, s32*, 0x3C);
+sp18 = M2C_FIELD(temp_v1, s32*, 0x40);
+Gp_DrawEffGroundQuad(&sp10, 0x9C4, 0x80);
+```
+
+That baseline scores in the sixties with `delete=6`, because all three reads
+land in one pseudo and GCC 2.8.1 dead-store-eliminates two of the three stores -
+14 instructions against the target's 20. The target interleaves the pairs
+(`lw v0,0x38(v1)` / `sw v0,0x10(sp)`, then `0x3C`, then `0x40` with the last
+store in the `jal` delay slot) and never reuses one register for two fields.
+
+The fix is not an allocation experiment: the callee's first parameter is
+`VECTOR3*`, and every sibling TU that calls `Gp_DrawEffGroundQuad` declares it
+that way (`src/actors/lib/actor_100700_text.c`, `actor_102500_tail.c`,
+`actor_300700/actor_300700.c`). Declaring the `VECTOR3` local and passing `&vec`
+reproduces the target exactly on the first build, with the frame at 0x28 and
+`$ra` at `0x20(sp)`. When a baseline's `delete` penalty exceeds its `regs`
+penalty and the missing instructions are stores to consecutive stack slots, look
+for the callee's real prototype before touching the source order.
+
+Unlike the `addiu aN,sp,off` signature in the entry above, this needs *no*
+explicit local pointer: `&vec` is what produces the single `addiu a0,sp,0x10`.
+
+Matched as `func_actor_105100_80136524`; the same body already exists in
+`Actor00700_Fn01E9C`, `Actor02500_Fn02430` and `func_actor_300700_8016534C`,
+differing only in the actor type and the second constant.
+
+Preprocessed SHA256 (baseline m2c seed, then the matching source):
+
+- `base.i`: `57ddbddc9c18c27b6539bfdf933bcab28a6f24815e677a90f2c4ee3ae11a7f03`
+- `base_1.i`: `31ccbe4791ad171d4cd090f572b08aae40148f9741f6cdfdd8e0cef1ceee5267`
