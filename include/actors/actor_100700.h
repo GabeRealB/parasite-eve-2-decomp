@@ -53,7 +53,10 @@ typedef struct Actor00700Work {
     /* 0x2BC */ s32                      field_2BC;
     /* 0x2C0 */ s32                      field_2C0;
     /* 0x2C4 */ s32                      field_2C4;
-    /* 0x2C8 */ byte                     pad_2C8[0x1A];
+    /* 0x2C8 */ byte                     pad_2C8[0x12];
+    /* 0x2DA */ s16                      field_2DA;
+    /* 0x2DC */ s16                      field_2DC;
+    /* 0x2DE */ byte                     pad_2DE[4];
     /* 0x2E2 */ s16                      field_2E2;
     /* 0x2E4 */ byte                     pad_2E4[2];
     /* 0x2E6 */ s16                      field_2E6;
@@ -126,9 +129,10 @@ extern Actor00700StateFuncTable3 Actor00700_D00004;
 extern Actor00700StateFuncTable3 Actor00700_D00054;
 
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
-/// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`.
+/// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`; the vector holds
+/// the player displacement in `Actor00700_Fn02820`.
 typedef struct Actor00700RotScratch {
-    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR rot;
 } Actor00700RotScratch;
 STATIC_ASSERT_SIZEOF(Actor00700RotScratch, 0x18);
