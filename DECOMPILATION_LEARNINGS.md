@@ -39853,6 +39853,21 @@ If it is, keep m2c's duplicated assignment - including the `goto` into the
 `else` arm that produces it. This is the mirror image of the usual advice to
 tidy m2c gotos away: a goto that exists to shorten a live range is load-bearing.
 
+The aliasing hazard above needs one side of the pair to be a MEM at a **fixed**
+address - a bare `extern` scalar stored to directly. It does not fire when every
+access is in-struct at a varying (register) address, so a retype there is
+byte-neutral and the m2c seed's own score is the honest baseline. Both forms of
+
+```c
+if (M2C_FIELD(work, u16 *, 0x6C) == 0) { M2C_FIELD(work, u16 *, 0x6C) = 1; Gp_KillPlayerEffs(); }
+if (work->field_6C == 0)               { work->field_6C = 1;               Gp_KillPlayerEffs(); }
+```
+
+compile to the same object here, because the only global involved
+(`D_actor_341900_80164208`) is *loaded* and then dereferenced rather than being
+the destination of a store. `func_actor_341900_801633F8 1 attempt, base_1.c
+100.00%`, the seed having already reproduced the target.
+
 ## `Task::extra` is a `TmdObject`, and `GsCOORDINATE2::sub` is at 0x4C
 
 Two type facts worth not re-deriving. `GameActorExt` (`include/main/session.h`)

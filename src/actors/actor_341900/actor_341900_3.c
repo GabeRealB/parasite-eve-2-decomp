@@ -23,7 +23,15 @@ void func_actor_341900_801633C0(s32 arg0)
     Gp_DispatchMsg(work->field_0, 0x3F3, arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_3", func_actor_341900_801633F8);
+void func_actor_341900_801633F8(void)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+
+    if (work->field_6C == 0) {
+        work->field_6C = 1;
+        Gp_KillPlayerEffs();
+    }
+}
 
 void func_actor_341900_80163438(void)
 {
