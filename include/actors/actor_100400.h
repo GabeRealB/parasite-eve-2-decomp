@@ -11,7 +11,9 @@
 
 /// Object the actor pushes damage and hit flags into (`Actor00400_Fn01B90`).
 typedef struct Actor100400Obj {
-    /* 0x00 */ byte pad_0[0x10];
+    /* 0x00 */ byte pad_0[8];
+    /* 0x08 */ u16  field_8;
+    /* 0x0A */ byte pad_A[6];
     /* 0x10 */ byte field_10[0x30];
     /* 0x40 */ u16  field_40;
     /* 0x42 */ byte pad_42[0xA];

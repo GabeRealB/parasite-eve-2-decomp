@@ -2,6 +2,7 @@
 
 #include "actors/actor_100400.h"
 #include "gameplay/1BC.h"
+#include "main/sound.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A2F4);
 
@@ -78,7 +79,22 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A82C
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A880);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A940);
+void Actor00400_Fn0A940(Actor100400* arg0)
+{
+    s32              sound;
+    s32              pan;
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    work->field_63C = 4;
+    work->field_632 = 0x10;
+    work->field_628 = 0xD;
+    work->field_624 = 1;
+    sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+    pan             = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    work->field_63A++;
+}
 
 void Actor00400_Fn0A9F4(Actor100400* arg0)
 {
