@@ -31,6 +31,7 @@ extern s32      D_actor_215100_801543E4;
 /// Caption script currently being played back, and the entry it is up to.
 extern Actor215100Caption* D_actor_215100_8015E658;
 extern s16                 D_actor_215100_8015E662;
+extern s16                 D_actor_215100_8015E666;
 extern s32                 D_actor_215100_8015E670;
 void                       func_actor_215100_8014B0D4(void);
 void                       func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
@@ -190,7 +191,30 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C360);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C418);
+s32 func_actor_215100_8014C418(s32 arg0)
+{
+    s32                 flag;
+    s32                 id;
+    s32                 base;
+    Actor215100Caption* p;
+
+    flag = -1;
+    id   = D_actor_215100_8015E666;
+    base = (s32)D_actor_215100_8015E658;
+    p    = (Actor215100Caption*)(arg0 * sizeof(Actor215100Caption) + base);
+loop:
+    if (p->field_8 == flag) {
+        goto done;
+    }
+    if (p->field_5 == id) {
+        goto done;
+    }
+    p++;
+    arg0++;
+    goto loop;
+done:
+    return arg0;
+}
 
 void func_actor_215100_8014C46C(Task* task)
 {

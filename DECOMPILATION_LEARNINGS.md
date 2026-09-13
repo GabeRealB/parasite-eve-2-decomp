@@ -71820,3 +71820,25 @@ load-delay `nop`s) is the fingerprint.
 Inputs: `base_2.c` (`base_2.i`, 94.221%, 240 insns), `base_3.c` (`base_3.i`,
 100%, 244 insns) in
 `nonmatchings/func_actor_105700_80133878-vacuum/`.
+
+## m2c hoists a scan loop's pointer increment above the second test
+
+For a two-test scan `while (p->a != T && p->b != K) { p++; i++; }` whose
+increment the target puts in the delay slot of the *second* compare, m2c moves
+the increment above that field read:
+
+```c
+if (var_v1->field_8 != -1) {
+    var_v1 += 0xC;                                    /* moved up */
+    if (var_v1->field_5 != D_actor_215100_8015E666) {
+```
+
+The seed therefore compares the *next* element's `field_5` and returns the
+*previous* index — a different function, whose only visible symptom is 21
+instructions against the target's 20 with `Structure: match` and 34.95%. Read
+each field read's offset against the `.s`: `lbu $v0, 0x5($v1)` with the
+`addiu $v1, $v1, 0xC` sitting in that `beq`'s delay slot is the tell that both
+tests read the same element. `func_actor_215100_8014C418` matched 100% on its
+first attempt from the sibling shape `Gp_FindCapEvt` (gameplay, the same
+21-instruction body modulo its globals); `regs=13 insert=6 delete=7` on the m2c
+seed was this artefact, not an allocation problem.
