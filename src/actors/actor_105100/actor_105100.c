@@ -1,5 +1,6 @@
 #include "common.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 
 #include "actors/actor_105100.h"
 #include "actors/actors_shared_80134ff0.h"
@@ -23,6 +24,14 @@ void func_actor_105100_80136524(Actor105100* arg0);
 void func_actor_105100_80136574(Actor105100* arg0, s32* arg1, s16 arg2, s32 arg3);
 
 extern u8 D_801153F4;
+
+/// The run of HP caps at 0x8014139C; `func_actor_105100_80135FCC` reads the
+/// first entry. Declared as an aggregate on purpose: a bare `extern u16` makes
+/// `true_dependence` (`sched.c:846`) drop the dependence between the store to
+/// `Actor105100Ctx::field_40` and this load -- the store is in-struct with a
+/// varying address, this load a scalar MEM at a fixed one -- and sched2 then
+/// hoists this load above the store, ahead of the `sll`.
+extern u16 D_actor_105100_8014139C[1];
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80131EBC);
 
@@ -59,8 +68,8 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C   = 0;
-    arg0->field_14 = 8;
+    obj->field_C       = 0;
+    arg0->node.field_4 = 8;
     if (work->field_5BC != 0) {
         SndEvt_EnqueueType9(0x40000000);
         work->field_5BC = 0;
@@ -71,8 +80,8 @@ case1:
     func_actor_105100_80136524(arg1);
     goto join_12;
 case2:
-    obj->field_C   = 0x80;
-    arg0->field_14 = one;
+    obj->field_C       = 0x80;
+    arg0->node.field_4 = one;
 join_12:
     SOFT_USE_REG(work);
     if (work->field_5BC == 0) {
@@ -153,7 +162,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135F50);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135FCC);
+void func_actor_105100_80135FCC(Actor105100* arg0)
+{
+    Actor105100Ctx* enemy;
+    GsCOORDINATE2*  coord;
+    s32             snd;
+    s32             pan;
+    u16             hp;
+
+    enemy                = arg0->field_20;
+    coord                = arg0->field_2C->field_8;
+    Gp_StateF0.field_1D &= 0xFB;
+    hp                   = enemy->field_40 + 0x50;
+    enemy->field_40      = hp;
+    if (D_actor_105100_8014139C[0] < (s16)hp) {
+        enemy->field_40 = D_actor_105100_8014139C[0];
+    }
+    func_800DA6E8(&enemy->node, -0x50, 0);
+    Gp_SpawnEff(0x601AF, NULL, 0, NULL);
+    snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x4033000C;
+    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801360AC);
 

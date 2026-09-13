@@ -34,19 +34,51 @@ typedef struct Actor105100Work {
     /* 0x5BC */ s16   field_5BC;
 } Actor105100Work;
 
+/// List entry at +0x10 of `Actor105100Ctx`, linked by the state-0 setup.
+/// `field_4` is the flag byte previously named `field_14` (`sb` at 0x14).
+typedef struct Actor105100Node {
+    /* 0x0 */ struct Actor105100Node* next;
+    /* 0x4 */ u8                      field_4;
+    /* 0x5 */ byte                    pad_5[3];
+} Actor105100Node;
+STATIC_ASSERT_SIZEOF(Actor105100Node, 0x8);
+
+/// Task context (`Task::spawnArg2`), which is also `Actor105100::field_20`.
+/// `field_8` carries the actor id in bits 12+ (the sound event ids are
+/// `(field_8 >> 12) << 8 | 0x40330000`), `field_40` is HP and `field_4C` the
+/// state flags the per-frame handlers test. `field_40` is unsigned in this
+/// overlay's view: the heal in `func_actor_105100_80135FCC` and the damage in
+/// `func_actor_105100_80135E54` both load it unsigned.
+typedef struct Actor105100Ctx {
+    /* 0x00 */ byte            pad_0[4];
+    /* 0x04 */ MATRIX*         field_4;
+    /* 0x08 */ u16             field_8;
+    /* 0x0A */ byte            pad_A[6];
+    /* 0x10 */ Actor105100Node node;
+    /* 0x18 */ GsCOORDINATE2*  field_18;
+    /* 0x1C */ s32             field_1C;
+    /* 0x20 */ s32             field_20;
+    /* 0x24 */ s32             field_24;
+    /* 0x28 */ byte            pad_28[0x14];
+    /* 0x3C */ byte            pad_3C[4];
+    /* 0x40 */ u16             field_40;
+    /* 0x42 */ byte            pad_42[6];
+    /* 0x48 */ u8              field_48;
+    /* 0x49 */ byte            pad_49[3];
+    /* 0x4C */ u8              field_4C;
+    /* 0x4D */ byte            pad_4D[3];
+    /* 0x50 */ void*           field_50;
+    /* 0x54 */ s32             field_54;
+} Actor105100Ctx;
+STATIC_ASSERT_SIZEOF(Actor105100Ctx, 0x58);
+
 typedef struct Actor105100 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor105100Work*  field_1C;
-    /* 0x20 */ byte              pad_20[0xC];
+    /* 0x20 */ Actor105100Ctx*   field_20;
+    /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor105100Obj2C* field_2C;
 } Actor105100;
-
-typedef struct Actor105100Ctx {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x37];
-    /* 0x4C */ u8   field_4C;
-} Actor105100Ctx;
 
 void func_actor_105100_80132AA0(Actor105100Ctx* arg0, Actor105100* arg1);
 

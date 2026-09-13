@@ -69325,3 +69325,83 @@ Preprocessed SHA256 (baseline m2c seed, then the matching source):
 
 - `base.i`: `57ddbddc9c18c27b6539bfdf933bcab28a6f24815e677a90f2c4ee3ae11a7f03`
 - `base_1.i`: `31ccbe4791ad171d4cd090f572b08aae40148f9741f6cdfdd8e0cef1ceee5267`
+
+## A scalar global at a fixed address does not alias a struct field store
+
+`func_actor_105100_80135FCC` bumps a struct field and then clamps it against a
+global, and the target keeps the global's load *after* the store:
+
+```
+lhu   v0,0x40(a1)                              # hp = ctx->field_40
+lui   v1,%hi(D_actor_105100_8014139C)
+addiu v0,v0,0x50
+sh    v0,0x40(a1)                              # ctx->field_40 = hp
+sll   v0,v0,16
+lhu   v1,%lo(D_actor_105100_8014139C)(v1)      # the cap
+sra   v0,v0,16
+slt   v0,v1,v0
+```
+
+Ported to struct syntax the same body scores 97.857% with `reorder=2`: sched2
+hoists the cap's load above the store, ahead of the `sll`/`sra` pair. The RTL
+is otherwise identical to the m2c `M2C_FIELD` seed's (which matches), and
+`.sched2`'s final chain names the difference outright - the load's LOG_LINKS
+lose the store:
+
+```
+(insn 40 ... (insn_list 26 (insn_list 36 (insn_list 38 (nil)))))   # M2C_FIELD seed
+(insn 40 ... (insn_list 26 (insn_list 38 (nil))))                  # struct-typed
+```
+
+The missing link is `true_dependence`'s first `MEM_IN_STRUCT_P` clause
+(`sched.c:846`):
+
+```c
+      && ! (MEM_IN_STRUCT_P (mem) && rtx_addr_varies_p (mem)
+            && GET_MODE (mem) != QImode
+            && GET_CODE (XEXP (mem, 0)) != AND
+            && ! MEM_IN_STRUCT_P (x) && ! rtx_addr_varies_p (x))
+```
+
+The store is `(mem/s:HI (plus (reg a1) (const_int 64)))` - in a struct, at a
+varying address, HImode, base a `PLUS` - while the load is
+`(mem:HI (lo_sum (reg v1) (symbol_ref)))`, a scalar MEM whose address
+`rtx_addr_varies_p` calls constant (`rtlanal.c`: LO_SUM takes operand 1). Every
+conjunct holds, so the two are declared non-aliasing and the dependence is
+dropped. The `sb` into `Gp_StateF0.field_1D` a few insns earlier is QImode, so
+it survives the clause and is the only store the load still waits on - which is
+why the load lands *between* them rather than at the top of the block.
+
+Making either side an aggregate stops the clause; the load side is the one that
+costs nothing, because `expand_expr`'s INDIRECT_REF sets `MEM_IN_STRUCT_P` when
+the address is a `PLUS_EXPR` or the referenced type is an aggregate
+(`expr.c:5533`), and `D_x[0]` on a one-element array still reaches the same
+`%lo` address:
+
+```c
+extern u16 D_actor_105100_8014139C[1];   /* not: extern u16 ... */
+...
+if (D_actor_105100_8014139C[0] < (s16)hp) {
+    enemy->field_40 = D_actor_105100_8014139C[0];
+}
+```
+
+That restores both the store/load dependence and the store's anti-dependence,
+and the schedule matches on the next build. The run at 0x8014139C is in fact a
+table of six shorts (`0x0FA0, 0x03E8, 0x01F4, 0xC864, 0x6405, 0x0004`), so an
+aggregate is also what the data is.
+
+This is the same clause as the "Struct-typing a body changes GCC 2.8.1's
+aliasing" entry (`actor_400600`), read the other way round: there the *store*
+was the fixed scalar that got sunk past struct loads, here the *load* is the
+fixed scalar that gets hoisted over a struct store. Same heuristic, opposite
+direction, and the remedy has to be applied to whichever side the schedule
+needs it to stop classifying as the other's complement.
+
+Matched as `func_actor_105100_80135FCC`. The 92.857% m2c baseline was the
+documented `(s8)`-on-`Gp_GetObjPan`/`Gp_GetObjDepth` shape, not this.
+
+Preprocessed SHA256 (97.857% struct-typed port, then the matching source):
+
+- `base_2.i`: `8f21f757c2687738ab28aae8910793dc9169d4dbfe8a525636d94549734b29bc`
+- `base_3.i`: `9468535fb15afcecad4b6966ce494b2af2a924d17c49133c769e9a8d5127a9f4`
