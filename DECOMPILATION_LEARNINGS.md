@@ -47535,6 +47535,47 @@ struct member or an array in the original source. Here `D_80073BAA` is
 `Wip_SysConfig + 0x22`, and naming it that way is both the correct symbol and
 the thing that makes the block match.
 
+## The same alias rule run backwards: a pointer-reached load reorders a scalar store
+
+**Problem.** `func_actor_800200_80162088` matched at 99.13% with `reorder=2`:
+one store and its `lui`, `sw s2,%lo(D_80115764)(v0)`, were emitted 18 positions
+too early — immediately after the prologue instead of after `sh v0,0x938(s0)`,
+where the source and the target both put it. Every register was already
+correct.
+
+**Cause.** The store is a scalar global, the function's first statements load a
+struct member (`coord = extra->field_8;`), and that load carried `mem/s`. GCC
+2.8.1's scheduler drops the memory dependence between exactly that pair — see
+the rule quoted above `anti_dependence` in `sched.c` ("A MEM_IN_STRUCT
+reference at a non-QImode non-AND varying address can never conflict with a
+non-MEM_IN_STRUCT reference at a fixed address"). Reaching the same field
+through a pointer loses the flag:
+
+```c
+-    coord = extra->field_8;          /* mem/s: no dependence, store keeps priority 1 */
++    addr  = &extra->field_8;
++    coord = *addr;                   /* plain mem: REG_DEP_ANTI, store priority 2   */
+```
+
+CSE folds the address back into the load but does **not** restore `/s`, so the
+only thing that reaches `sched` differently is the flag. With it, the store is
+an ordinary priority-1 sink and launches last, so (emitted order being the
+reverse of sched1's launch order) it lands first; without it the scheduler adds
+`(insn_list:REG_DEP_ANTI <load>)` to the store's `LOG_LINKS`, its
+`INSN_PRIORITY` rises to 2, and it launches early enough to be emitted in
+source order. The temp costs no instruction: the fold removes it.
+
+**How to spot it.** Normalize both candidates' `.cse` dumps for register
+numbers and uid chains — if `mem/s:` vs `mem:` on one insn is the only
+structural difference, this is the decision. It shows directly in `.sched` as a
+`REG_DEP_ANTI` entry plus a priority of 2 instead of 1 on the store.
+
+**Reading it as evidence about the source.** The two forms are not
+interchangeable, so a lone scalar store that will not stay down was reached
+through a pointer in the original — here the field address was taken into a
+local. This is the mirror of the section above: there a missing `/s` let a load
+hoist, here it lets a store sink.
+
 ## Compute alias pointers before the early-return guards, not after
 
 **Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
