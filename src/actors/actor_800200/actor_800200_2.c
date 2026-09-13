@@ -115,7 +115,18 @@ void func_actor_800200_80165434(GpActorWork* arg0, s16 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_8016545C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801654EC);
+void func_actor_800200_801654EC(GpActorWork* arg0, s32 arg1)
+{
+    GameActor* actor = arg0->actor;
+
+    actor->field_954 = 0;
+    actor->field_956 = 9;
+    actor->field_958 = 0;
+    actor->field_95A = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165534);
 

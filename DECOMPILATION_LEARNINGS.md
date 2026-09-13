@@ -41647,6 +41647,33 @@ the name m2c chose. Matching is no defence: `M2C_FIELD` writes the offset
 literally, so both spellings assemble to the same bytes and the checksum cannot
 tell you a field is misnamed. The tell is the shape of the chain — an `extra`
 that leads to another `extra` two loads later is a `parent`.
+## m2c drops a pass-through `$a0` at the call site, not just in signatures
+
+The call-site mirror of the two entries above. When the callee's first parameter
+is the *caller's* own first parameter, `$a0` is never re-written before the
+`jal`, so m2c treats it as already-live and omits it from the argument list,
+shifting every remaining argument down one position. `func_actor_800200_801654EC`
+compiles to
+
+```
+addiu  $a1, $zero, 0x1
+addu   $a2, $zero, $zero
+addiu  $a3, $zero, 0x3
+jal    Gp_AnimPlayChildSlotsEx
+```
+
+with `$a0` untouched, and m2c emitted
+
+```c
+Gp_AnimPlayChildSlotsEx(1, 0, 3);   /* three arguments */
+```
+
+for the real four-argument `void Gp_AnimPlayChildSlotsEx(GpActorWork*, s32, s32, s32)`.
+The tell is a call whose emitted argument count is one short of the prototype's
+while `$a0` has no definition between the prologue and the `jal`. Restore the
+leading argument and it matches on the first build; the matched sibling in the
+same TU (`func_actor_800200_801653C0`, `Gp_AnimPlayChildSlotsEx(arg0, 7, 0, 3)`)
+shows the true arity.
 
 ## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
 
