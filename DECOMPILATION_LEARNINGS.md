@@ -69808,6 +69808,24 @@ overlay-local too. Diffing the two `.s` files with the overlay names normalised
 (a `sed` on `actor_202600`/`actor_XXX`) is the fastest form of the exact check
 above, and what it leaves different is exactly what `promote` will point at.
 
+A **1.00 in all four** `similar` classes (`shape`, `fields`, `calls`, `cflow`)
+has so far been that exact check already made: it is the scorer saying it found
+no instruction to disagree about. `func_actor_202600_8014B950` took the 1.00
+twin `Actor05500_Fn01B30` from `src/actors/lib/actor_105500_text.c`, copied the
+body, and scored 100.000% on the first build. The `.s` diff was still worth
+running to *see* what had to change before writing anything — here exactly three
+things: the work/ctx/obj types, six data symbols, and one struct field.
+
+That field is the part a copy can silently need. The sibling's ctx writes
+`field_14`, and `Actor202600Ctx` had no such member — only `pad_14[0x28]` at
+`0x14`. Splitting the padding into a named `u8 field_14` plus `pad_15[0x27]`
+keeps `field_3C` at `0x3C`, so every other function sharing that header compiles
+to the same offsets; a named field is the fix, not an offset cast at the one use
+site. The same applies to the casts on the *reads*: the sibling's `(s16)`
+`field_396` comparisons are what pick `lh` and its `(u16)` `field_C` is what
+picks `lhu`, so copy the cast text verbatim. Retyping a field to a more
+"natural" sign drops the match.
+
 ## Inserting an s16 field mid-struct silently moves every following s16
 
 **Problem.** `Actor202600Work` carried `field_39E` at `0x39E`, then a single
