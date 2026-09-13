@@ -8,6 +8,8 @@ extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
 
 extern GpActorFuncTable4 D_actor_800200_80161EB8;
 
+extern GpActorFuncTable12 D_actor_800200_80161E5C;
+
 extern GpActorFuncTable3 D_actor_800200_80161E34;
 
 extern GpActorPathStep D_actor_800200_8016A128[];
@@ -329,7 +331,35 @@ void func_actor_800200_80165ACC(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165B84);
+void func_actor_800200_80165B84(GpActorWork* arg0)
+{
+    GameActor*         actor;
+    GpActorD4*         d4;
+    GsCOORDINATE2*     coord;
+    GpActorFuncTable12 sp;
+    s32                pan;
+
+    sp    = D_actor_800200_80161E5C;
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    coord = arg0->extra->field_8;
+    if (d4->field_C4 > 0) {
+        d4->field_C4--;
+    }
+    sp.funcs[actor->field_956](arg0);
+    if ((s8)actor->field_97A == 0) {
+        func_80109BB4(arg0, actor->field_17C);
+        if ((u16)actor->field_96C != 0) {
+            func_8010B9A4(arg0);
+            pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0x4072000A, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        }
+    }
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165CB4);
 
