@@ -65212,3 +65212,56 @@ parameter was `s32`, not the narrow type the store suggests.
 `base_2.i`
 `409c1e57e3cdfe03c468e42706c33ab229fb844380bb6057c1d048763fc93454`
 (`s32 arg1`).
+
+## A matched function's `.s` stub carries its own `.rodata` table
+
+An unmatched function whose target reads a table from the unit's leading rodata
+gets that table **inside its own `.s`**, not in a standalone `nonmatchings/.../D_*.s`
+fragment:
+
+```
+.section .rodata
+dlabel D_actor_800100_80161E88
+    .word func_actor_800100_801658E8
+    ...
+.section .text
+glabel func_actor_800100_80165850
+```
+
+`INCLUDE_ASM` includes that whole file at the stub's position in the `.c`, so the
+words land in the C unit's `.rodata` in **source order** — the `.c`'s
+`INCLUDE_ASM`/`INCLUDE_RODATA` line order is what fixes the table's address.
+Replacing the `INCLUDE_ASM` with the C body therefore deletes those bytes, and
+nothing says so: the function itself scores 100.00% in the scratch, and the
+overlay links, just N bytes short with every later table and the whole `.text`
+shifted. `func_actor_800100_80165850` lost exactly its 16-byte 4-entry table and
+the ld error (`undefined reference to D_actor_800100_80161E88`) was the only
+signal.
+
+Emit the words from C **at the stub's old position**, so the `.rodata` stream
+order — and therefore the address — is unchanged. The `actors` family idiom,
+which also supplies the `nonmatching`/`dlabel`/`enddlabel` markers, is
+`src/actors/actor_400500/actor_400500.c`:
+
+```c
+extern GpActorFuncTable4 D_actor_800100_80161E88;
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_800100_80161E88\n"
+        "dlabel D_actor_800100_80161E88\n"
+        "    .word func_actor_800100_801658E8\n"
+        "    .word func_actor_800100_80165928\n"
+        "enddlabel D_actor_800100_80161E88\n"
+        ".section .text");
+#endif
+```
+
+A C `const` definition is the wrong tool here for the reason recorded above: GCC
+collects file-scope tables to the end of the TU, so the words would land after
+every later `INCLUDE_RODATA`/`INCLUDE_ASM` table instead of between them.
+
+Check which stubs carry `.rodata` before matching one out of a unit:
+`grep -l '\.word' asm/USA/<ver>/<family>/nonmatchings/<overlay>/<unit>/*.s`.
+The `.rodata` size of the built unit object (`objdump -h`) is the cheap
+cross-check: it should equal the original unit's rodata span exactly.

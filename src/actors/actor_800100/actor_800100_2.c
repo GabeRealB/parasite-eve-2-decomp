@@ -139,7 +139,33 @@ void func_actor_800100_80165818(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165850);
+extern GpActorFuncTable4 D_actor_800100_80161E88;
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_800100_80161E88\n"
+        "dlabel D_actor_800100_80161E88\n"
+        "    .word func_actor_800100_801658E8\n"
+        "    .word func_actor_800100_801658E8\n"
+        "    .word func_actor_800100_801658E8\n"
+        "    .word func_actor_800100_80165928\n"
+        "enddlabel D_actor_800100_80161E88\n"
+        ".section .text");
+#endif
+
+void func_actor_800100_80165850(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable4 sp;
+
+    sp    = D_actor_800100_80161E88;
+    actor = arg0->actor;
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    sp.funcs[(u16)actor->field_96C](arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
+}
 
 void func_actor_800100_801658E8(GpActorWork* arg0)
 {
