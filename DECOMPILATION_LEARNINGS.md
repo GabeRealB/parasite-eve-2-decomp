@@ -67716,3 +67716,14 @@ project's `MATRIX` is `short m[3][3]; long t[3];`, so both sides are nine
 puts `m[1][0]` at +8 and leaves gaps in the store run. Those copies also load
 `lhu`, not `lh`: the result is truncated by the store, so GCC picks the
 unsigned load — no `(u16)` cast in the source is needed to get it.
+## Global priority tie: widening a masked angle preserves its early variable pseudo (Actor00300_Fn04528)
+
+The valid 99.430% seed had only coord/want s1/s2 reversed. .lreg coord=6 refs/48 insns and want=3/12 are global, equal priority 0.25. A declared s16 want was folded into synthesized SI mask pseudo r117, later than coord r81. Declaring s32 want first preserved its early variable pseudo: .combine mask destination reg/v:SI 81; .greg allocated it before coord r82, producing 100% with unchanged instruction order and scratch s0. The mask bounds want to 0..4095, so widening preserves values.
+
+Controlled base_4 changed only declaration order in the widened source: coord became r81, want r82, counts/lifetimes stayed 6/48 and 3/12, and exactly the nine register mismatches returned. Patched global.c allocno_compare breaks equal priorities by allocno index. This is a global tie-break example, not a general declaration-order allocator rule.
+
+The router's retained apparent improvement was invalid: an uninitialized pointer load dropped one coord reference. It was rejected and not ported. Full observations and rejected output are preserved under tools/permuter_findings/Actor00300_Fn04528/; session PERMUTER_ANALYSIS.md identifies dumps and prediction records.
+
+base_3.i SHA256: `ba10e47470d9c97a8cf7a7cb179aeef409108283201cd3c724bf96628888d3fd`.
+
+base_4.i SHA256: `a2150256d46d3730dfc885a40c144961d0ffc4d5b4aa6d318262a58a61a73e64`.

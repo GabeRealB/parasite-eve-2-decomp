@@ -7,6 +7,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
@@ -159,7 +160,52 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn040A4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04370);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04528);
+void Actor00300_Fn04528(Actor100300* arg0)
+{
+    s32                    want;
+    GsCOORDINATE2*         coord;
+    Actor100300RotScratch* sc;
+    s16                    cur;
+    s32                    ang;
+    s32                    current;
+    s16                    diff;
+    s32                    adiff;
+    s16                    turn;
+    s16                    wrap;
+
+    coord      = arg0->field_2C->field_8;
+    sc         = (Actor100300RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc->vec.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+    sc->vec.vy = 0;
+    sc->vec.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
+    ang        = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    cur        = ang;
+    diff       = want - ang;
+    adiff      = diff >= 0 ? diff : -diff;
+    turn       = diff;
+    if (adiff < 0xD) {
+        cur = want;
+    } else {
+        if (adiff >= 0x801) {
+            wrap = diff - 0x1000;
+            if (diff <= 0) {
+                wrap = 0x1000 - diff;
+            }
+            turn = wrap;
+        }
+        current = cur;
+        cur     = current + 0xC;
+        if (turn <= 0) {
+            cur = current - 0xC;
+        }
+    }
+    sc->rot.vx = 0;
+    sc->rot.vy = cur;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    *(u32*)0x1F8003FC += 0x18;
+}
 
 void Actor00300_Fn04664(GsCOORDINATE2* arg0, s32 arg1)
 {

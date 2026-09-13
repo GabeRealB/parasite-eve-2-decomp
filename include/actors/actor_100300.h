@@ -7,6 +7,12 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+typedef struct Actor100300RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor100300RotScratch;
+STATIC_ASSERT_SIZEOF(Actor100300RotScratch, 0x18);
+
 typedef struct Actor100300Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
