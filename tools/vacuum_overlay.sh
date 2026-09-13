@@ -32,6 +32,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 OVERLAY=""
+PRE_CLAIMED=false
+SESSION_ARG=""
 CLI="${VACUUM_CLI:-claude}"
 CLI_EXPLICIT=0
 PROFILE="${VACUUM_PROFILE:-}"
@@ -49,6 +51,11 @@ usage() { sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 while [[ $# -gt 0 ]]; do
     case $1 in
         --overlay) OVERLAY="$2"; shift 2 ;;
+        # The list driver claimed and filtered this overlay already; adopt it.
+        --pre-claimed) PRE_CLAIMED=true; shift ;;
+        # Adopt the list driver's claim: same session name, and adopt-overlay
+        # below re-points it at this pid so the lease follows the worker.
+        --session)     SESSION_ARG="$2"; shift 2 ;;
         --cli)     CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
         --claude)  CLI=claude; CLI_EXPLICIT=1; shift ;;
         --grok)    CLI=grok; CLI_EXPLICIT=1; shift ;;
@@ -79,7 +86,7 @@ orch() { python3 "$ROOT/tools/vacuum_orch.py" --root "$ROOT" "$@"; }
 # A shared unit is named "<family>/lib/<unit>"; the slashes cannot go into a
 # filename, so every path derived from the overlay name is flattened.
 OVERLAY_SLUG="${OVERLAY:-auto}"; OVERLAY_SLUG="${OVERLAY_SLUG//\//-}"
-SESSION="ovb-${OVERLAY_SLUG}-$$"
+SESSION="${SESSION_ARG:-ovb-${OVERLAY_SLUG}-$$}"
 LOG_FILE="$(vacuum_log_dir)/vacuum-overlay-${OVERLAY_SLUG}-$$.log"
 : >"$LOG_FILE"
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
@@ -87,6 +94,7 @@ log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE}, log $LOG_FILE"
 
 prep_args=(--session "$SESSION" --bootstrap 0)
+[[ "$PRE_CLAIMED" == true ]] && prep_args+=(--pre-claimed)
 [[ -n "$OVERLAY" ]] && prep_args+=(--overlay "$OVERLAY")
 if ! "$ROOT/tools/overlay_batch.sh" "${prep_args[@]}" >>"$LOG_FILE" 2>&1; then
     log "could not lease an overlay (see $LOG_FILE)"

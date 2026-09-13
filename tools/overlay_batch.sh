@@ -52,6 +52,9 @@ while [[ $# -gt 0 ]]; do
         --cleanup) CLEANUP=true; shift ;;
         --bootstrap) WARM="$2"; shift 2 ;;
         --keep)    KEEP=true; shift ;;
+        # The caller already claimed this overlay under --session and has
+        # applied its own filters; adopt that claim instead of taking one.
+        --pre-claimed) PRE_CLAIMED=true; shift ;;
         -h|--help) usage ;;
         *) echo "unknown argument: $1" >&2; usage ;;
     esac
@@ -112,6 +115,7 @@ if [[ "$CLEANUP" == true ]]; then
     exit 0
 fi
 
+PRE_CLAIMED="${PRE_CLAIMED:-false}"
 SESSION="${SESSION:-overlay-batch-$$}"
 
 # --- lease -------------------------------------------------------------------
@@ -120,11 +124,29 @@ SESSION="${SESSION:-overlay-batch-$$}"
 claim_args=(claim-overlay --session "$SESSION" --pid $$ --cli agent)
 [[ -n "$OVERLAY" ]] && claim_args+=(--overlay "$OVERLAY")
 
+if [[ "$PRE_CLAIMED" == true ]]; then
+    # Read back what the caller claimed under this session. Claims are held by
+    # the caller's pid, which outlives this script, so nothing here may
+    # relinquish them on a path the caller does not know about.
+    [[ -n "$OVERLAY" ]] || { echo "--pre-claimed needs --overlay" >&2; exit 1; }
+    CLAIM_JSON="$(orch status | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+sess, ov = sys.argv[1], sys.argv[2]
+fns = [k for k, v in d.get("claims", {}).items()
+       if isinstance(v, dict) and v.get("session") == sess and v.get("overlay") == ov]
+print(json.dumps({"overlay": ov, "count": len(fns), "functions": sorted(fns)}))' "$SESSION" "$OVERLAY")"
+    if [[ "$(python3 -c 'import json,sys; print(json.load(sys.stdin)["count"])' <<<"$CLAIM_JSON")" == "0" ]]; then
+        echo "no claims for session $SESSION on $OVERLAY" >&2
+        exit 1
+    fi
+else
 CLAIM_JSON="$(orch "${claim_args[@]}")" || {
     echo "$CLAIM_JSON" >&2
     echo "could not lease an overlay (see error above)" >&2
     exit 1
 }
+fi
 
 read -r OVERLAY COUNT <<<"$(python3 -c '
 import json, sys
@@ -139,8 +161,43 @@ echo "leased $OVERLAY: $COUNT functions (session $SESSION)"
 
 # From here on a failure must not strand the lease: every function in the
 # overlay would stay unclaimable until the pid died.
-cleanup_lease() { orch relinquish-overlay --session "$SESSION" >/dev/null 2>&1 || true; }
+cleanup_lease() {
+    # A pre-claimed lease is the caller's to release: dropping it here would
+    # free the functions while the caller still believes it holds them.
+    [[ "$PRE_CLAIMED" == true ]] && return 0
+    orch relinquish-overlay --session "$SESSION" >/dev/null 2>&1 || true
+}
 trap cleanup_lease ERR
+
+# --- is any of this landable here? -------------------------------------------
+# Setting up costs a 235MB asm copy and four submodule clones, so ask before
+# paying: does this overlay's own src/ hold an INCLUDE_ASM slot for anything we
+# just claimed? A shared body is claimable here but lives in src/<family>/lib,
+# and the landing filter later refuses it - "not landing X here: body is not in
+# ...". Six overlays paid for a worktree today only to conclude "nothing
+# matched". Fail open: skip only on a positive finding of zero, never because
+# the source directory could not be resolved.
+if [[ "$OVERLAY" == */lib/* ]]; then
+    SRC_DIR="$ROOT/src/${OVERLAY%/*}"
+else
+    SRC_DIR=$(ls -d "$ROOT"/src/*/"$OVERLAY" 2>/dev/null | head -1)
+fi
+if [[ -n "$SRC_DIR" && -d "$SRC_DIR" ]]; then
+    landable=0
+    while read -r _f; do
+        [[ -n "$_f" ]] || continue
+        if grep -qlE "INCLUDE_ASM\([^)]*, *${_f}\)" "$SRC_DIR"/*.c 2>/dev/null; then
+            landable=$((landable + 1))
+        fi
+    done <<<"$FUNCS"
+    if [[ "$landable" -eq 0 ]]; then
+        echo "none of the $COUNT claimed function(s) has a slot in $SRC_DIR"
+        echo "their bodies are shared or promoted, so nothing could land here; skipping setup"
+        cleanup_lease
+        exit 1
+    fi
+    echo "$landable of $COUNT claimed function(s) are landable in $SRC_DIR"
+fi
 
 # --- isolated worktree -------------------------------------------------------
 # Verification in the trunk checkout is almost always blocked by another

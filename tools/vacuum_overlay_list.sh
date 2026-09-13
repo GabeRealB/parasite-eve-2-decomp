@@ -84,8 +84,36 @@ worker() {
         name=$(next_overlay)
         [[ -n "$name" ]] || break
         log "worker $id -> $name"
-        "$ROOT/tools/vacuum_overlay.sh" --overlay "$name" "${PASSTHRU[@]}" \
-            >>"$RUN/worker-$id.log" 2>&1
+        # Claim here, not in the worker. Claiming is cheap and filtering is
+        # cheaper still, so an overlay whose remaining functions are all shared
+        # bodies is dropped before anything pays for a 235MB worktree. The
+        # worker then adopts the claim rather than taking its own.
+        # Claim here, not in the worker: claiming is cheap and filtering
+        # cheaper still, so an overlay whose remaining functions are all shared
+        # bodies is dropped before anything pays for a 235MB worktree.
+        #
+        # Exit 1 is a decision about the overlay (skip it); anything else means
+        # the filter could not decide, and the sweep must fall back to letting
+        # the worker claim for itself. Treating a broken helper as "skip" would
+        # silently do nothing at all, overlay after overlay.
+        sess="ovb-${name//\//-}-$$-$id"
+        claim_args=()
+        if [[ -x "$ROOT/tools/claim_filter.py" ]]; then
+            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $$ 2>>"$RUN/worker-$id.log")
+            crc=$?
+            if [[ $crc -eq 1 ]]; then
+                skipped=$((skipped + 1))
+                log "worker $id: $name skipped (unclaimable, or nothing landable here)"
+                continue
+            elif [[ $crc -eq 0 ]]; then
+                claim_args=(--pre-claimed --session "$sess")
+                log "worker $id: $name claimed as $sess"
+            else
+                log "worker $id: claim filter unusable (rc=$crc); letting the worker claim $name"
+            fi
+        fi
+        "$ROOT/tools/vacuum_overlay.sh" --overlay "$name" ${claim_args[@]+"${claim_args[@]}"} \
+            "${PASSTHRU[@]}" >>"$RUN/worker-$id.log" 2>&1
         rc=$?
         if [[ $rc -eq 0 ]]; then
             done=$((done + 1))
