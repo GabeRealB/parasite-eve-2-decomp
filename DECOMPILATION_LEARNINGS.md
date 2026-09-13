@@ -39531,6 +39531,46 @@ this body, `Room_Script10` and `Room_Script11` in `src/rooms/lib/`, carry the
 same barrier with the comment "Without the barrier GCC fills Task_Kill's delay
 slot with the byte store". Read the matched bodies the brief lists as similar
 before attacking the schedule -- here they were the whole answer.
+## The same heuristic runs the other way: struct-typing a *store* frees a global's *load* to hoist
+
+The entry above is all about stopping movement, which reads as "the scalar form
+is the safe one". It is not: which form is right depends on where the target
+puts the global access, and when the target hoists a bare global's *load* above
+pointer-based struct *stores*, it is `M2C_FIELD` that prevents the match.
+
+`func_actor_402200_801347F4` case 0 writes two halfwords into the work block and
+then rolls the shared LCG. The target lifts the whole load above both stores:
+
+```
+lui     $a0, %hi(Gp_LcgState)
+lw      $v1, %lo(Gp_LcgState)($a0)
+li      $v0, 0xb
+sh      $v0, 0x6C0($s1)
+li      $v0, 1
+sh      $v0, 0x6CE($s1)
+```
+
+Written with `M2C_FIELD(work, s16*, 0x6C0) = 0xB;` and so on, the `lw` stays
+*below* the stores and the `ori` half of the LCG constant splits away from its
+`lui`; the same three statements as `work->field_6C0 = 0xB;` hoist it. The
+statements and their order are identical - only the types change, and the
+mechanism is the one named above: the struct store's `COMPONENT_REF` sets
+`MEM_IN_STRUCT_P`, `fixed_scalar_and_varying_struct_p` then declares the
+in-struct store and the fixed-address scalar load non-aliasing, and the
+scheduler is free to move the load up. With `M2C_FIELD` neither MEM is
+in-struct, the dependence stands, and the load cannot pass the stores.
+
+Measured on that one function: reverting *only* the state-0 stores to
+`M2C_FIELD`, leaving every other edit in place, takes 100.000% to 98.065% with
+`reorder=3` as the only non-zero penalty and 93/93 instructions - a schedule
+difference with no code difference behind it.
+
+So when a global access sits next to struct traffic, decide the direction from
+the target before choosing a form, and do not "fix" a matching struct-typed body
+back to `M2C_FIELD` because the entry above advised the scalar form somewhere
+else. The three remedies listed there (barrier, aggregate declaration, naming
+the real struct field) all still apply once the direction is settled; they are
+about *what the global is*, this is about *which way the access has to move*.
 
 ## Promoting a matched body into a family's shared library
 

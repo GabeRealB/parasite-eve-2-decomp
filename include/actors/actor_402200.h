@@ -64,7 +64,20 @@ typedef struct Actor402200Obj2C {
 typedef struct Actor402200Work {
     /* 0x000 */ byte       pad_0[0x3C];
     /* 0x03C */ GpAnimSlot field_3C;
-    /* 0x064 */ byte       pad_64[0x658];
+    /* 0x064 */ byte       pad_64[0x430];
+    /// Hit descriptor the flinch handler `func_actor_402200_80131F54` and the
+    /// hurt states `func_actor_402200_80133AEC` / `func_actor_402200_80134194`
+    /// store on the frame a hit lands: the damage amount `field_716` with the
+    /// tag bits 0x30000 OR'd in.
+    /* 0x494 */ s32  field_494;
+    /* 0x498 */ byte pad_498[2];
+    /// Hit-pending flags, raised together with `field_494`: bit 0x8000 is the
+    /// flag the hit handler clears when it consumes the descriptor. The shared
+    /// body `ActorsShared80137a20` tests the same bit through its own work
+    /// block, and `func_actor_402200_80131F54` clears `field_6C6` as it raises
+    /// it.
+    /* 0x49A */ u16  field_49A;
+    /* 0x49C */ byte pad_49C[0x220];
     /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
     /// overlay's cue word `D_actor_402200_80138468` with the `GpEnemy` work id's
     /// high nibble in bits 8-11, the same construction the cue body
@@ -81,8 +94,13 @@ typedef struct Actor402200Work {
     /* 0x6C2 */ s16 field_6C2;
     /// Frames the current animation has been ticking; the reseed clears it and
     /// the tick path walks it up by one a frame.
-    /* 0x6C4 */ s16  field_6C4;
-    /* 0x6C6 */ byte pad_6C6[2];
+    /* 0x6C4 */ s16 field_6C4;
+    /// Flinch countdown: `func_actor_402200_80131F54` arms it from
+    /// `Gp_GetIdParam2` when a hit lands and ticks it down a frame at a time,
+    /// raising `field_494`/`field_49A` on the frame it runs out. While it is
+    /// non-zero a hit is already being flinched, so the sequence bodies arm
+    /// the pair immediately only when it is zero.
+    /* 0x6C6 */ s16 field_6C6;
     /// Cleared on the frame the sequence body `func_actor_402200_8013539C`
     /// reseeds the animation.
     /* 0x6C8 */ s16 field_6C8;
@@ -93,13 +111,20 @@ typedef struct Actor402200Work {
     /// `field_6C0` and arms the cue, 1 waits for `field_6C4` to reach 0x37 and
     /// then drops the state back to 0 so the reseed runs again.
     /* 0x6CE */ s16  field_6CE;
-    /* 0x6D0 */ byte pad_6D0[0xA];
+    /* 0x6D0 */ byte pad_6D0[4];
+    /// Countdown `func_actor_402200_801347F4` rolls from the `Gp_LcgState` LCG
+    /// (0x4B..0x6A) when it reseeds the animation, and ticks down a frame at a
+    /// time until it runs out and the cue fires.
+    /* 0x6D4 */ u16  field_6D4;
+    /* 0x6D6 */ byte pad_6D6[4];
     /// Timer pair the reseed arms alongside `field_6DE`.
     /* 0x6DA */ s16 field_6DA;
     /* 0x6DC */ s16 field_6DC;
     /// Third timer the reseed arms; written last of the three.
-    /* 0x6DE */ s16  field_6DE;
-    /* 0x6E0 */ byte pad_6E0[2];
+    /* 0x6DE */ s16 field_6DE;
+    /// Fourth timer `func_actor_402200_801347F4` clears alongside the trio
+    /// above when its countdown runs out.
+    /* 0x6E0 */ s16  field_6E0;
     /* 0x6E2 */ s16  field_6E2;
     /* 0x6E4 */ byte pad_6E4[6];
     /* 0x6EA */ s16  field_6EA;
@@ -110,9 +135,12 @@ typedef struct Actor402200Work {
     /* 0x6F4 */ s16  field_6F4;
     /* 0x6F6 */ byte pad_6F6[0x1C];
     /* 0x712 */ s16  field_712;
-    /* 0x714 */ byte pad_714[4];
-    /* 0x718 */ s16  field_718;
-    /* 0x71A */ s16  field_71A;
+    /* 0x714 */ byte pad_714[2];
+    /// Damage amount the hit handlers OR into `field_494`; read as a signed
+    /// halfword on the frame the hit lands.
+    /* 0x716 */ s16 field_716;
+    /* 0x718 */ s16 field_718;
+    /* 0x71A */ s16 field_71A;
 } Actor402200Work;
 STATIC_ASSERT_SIZEOF(Actor402200Work, 0x71C);
 
@@ -147,5 +175,10 @@ STATIC_ASSERT_SIZEOF(Actor402200ProjectScratch, 0x18);
 /// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 D_actor_402200_801383AC[];
+
+/// The game's shared 32-bit LCG state: every draw is
+/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
+/// with the caller taking the bits it wants out of the high half.
+extern u32 Gp_LcgState;
 
 #endif
