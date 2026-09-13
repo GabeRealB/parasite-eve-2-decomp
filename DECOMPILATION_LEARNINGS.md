@@ -4722,6 +4722,17 @@ diffs against the relocatable `j` your build emits. A leftover
 mismatch. On the match, delete **all** of that function's `INCLUDE_ASM` lines
 — the label ones included.
 
+**Piping `build.sh` into `head` records a failure and can disqualify the seed.**
+`build.sh` journals its result from an `EXIT` trap, so a `./build.sh base_1.c |
+head -5` that closes the pipe early records `failure: 141` (SIGPIPE) as the
+candidate's last row. `tools/vacuum_permute.py` builds its candidate list from
+`match_log.txt` cross-checked against `attempts.jsonl` (last row per source
+wins) and drops a source whose last row is a failure, so the router reported
+`PERMUTER_SKIP=no unpinned seed reaches the primary score threshold` with a
+98.94% unpinned seed sitting right there. Re-run the build with the output
+redirected to a file — `./build.sh base_1.c > /tmp/b.log 2>&1` — and the fresh
+clean row makes the seed eligible again.
+
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
 A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /
