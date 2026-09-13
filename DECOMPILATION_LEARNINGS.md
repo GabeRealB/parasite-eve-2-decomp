@@ -16451,6 +16451,32 @@ the argument as a full word and the load stays `lhu`.
 Do not change a matched `s16` definition just to fix a caller — drop or avoid the
 early prototype instead. `SndLoad_ProcessSector` → `SndBank_FreeById` is the pure example.
 
+## A room's dispatch wrapper forwards the caller's `$a1`-`$a3`, so the callee must stay unprototyped
+
+`Gp_DispatchMsg` is declared `(Task*, s32, s32, s32)` in `include/gameplay/D4.h`,
+but the room wrappers that only re-dispatch a task call it with the task alone and
+depend on `$a1`-`$a3` still holding whatever the *caller* passed. With the 4-arg
+prototype in scope, GCC materialises the outgoing arguments from the wrapper's own
+parameters instead:
+
+```
+move v1,a0 ; move t0,a1 ; move a3,a2 ; lui v0,%hi(D_) ; move a1,v1 ;
+lw a0,%lo(D_)(v0) ; sw ra,0x10(sp) ; jal Gp_DispatchMsg ; move a2,t0   ← 14 insns
+```
+
+against a target of 10 that loads `$a0` and leaves `$a1`-`$a3` alone. The five
+extra moves are the whole difference; no amount of statement reordering removes
+them, because the prototype is what makes the other three arguments exist.
+
+With the callee declared unprototyped — `s32 Gp_DispatchMsg();`, and `D4.h` *not*
+included by that file — the call sets `$a0` and passes nothing else, which is the
+target exactly. `func_dryfield_water_tower_8017DD44` is the pure example;
+`src/rooms/neo_ark_woodland_path/neo_ark_woodland_path_2.c` already carried that
+declaration with an explanatory comment. Dropping the include is safe when the
+file's other `Gp_*` calls come from `gameplay/3CD8.h`, but the prototype's
+disappearance also reaches the 4-arg `Gp_DispatchMsg` calls in the same file, so
+re-verify the whole overlay rather than the one function.
+
 ## Non-volatile `lui` + volatile `lbu` for early Display_State prologue slot
 
 When the target interleaves `lui %hi(Display_State)` *between* `ori s0, scratch`

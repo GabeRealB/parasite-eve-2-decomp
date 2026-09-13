@@ -8,7 +8,10 @@
 #include "main/task.h"
 
 #include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
+
+/* The room calls the dispatcher with only the task, leaving a1-a3 holding
+   whatever the caller had, so the declaration must stay unprototyped. */
+s32 Gp_DispatchMsg();
 
 extern u8 D_8007216C;
 extern u8 D_801153F4;
@@ -82,7 +85,10 @@ s32 func_dryfield_water_tower_8017DD3C(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DD44);
+void func_dryfield_water_tower_8017DD44(void)
+{
+    Gp_DispatchMsg(D_dryfield_water_tower_801876A0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DD6C);
 
