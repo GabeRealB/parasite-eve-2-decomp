@@ -71,12 +71,13 @@ fi
 # file still reads as modified in the worktree. That is indistinguishable from
 # unlanded work, and re-applying it would land the same functions twice. Delete
 # the worktree once its functions are demonstrably on main.
+# build scope: a shared unit verifies against its whole family
+SCOPE="$OVERLAY"; [[ "$OVERLAY" == */lib/* ]] && SCOPE="${OVERLAY%%/*}"
+
 if [[ "$CLEANUP" == true ]]; then
     [[ -n "$OVERLAY" ]] || { echo "--cleanup needs --overlay" >&2; exit 1; }
     WT="$ROOT/../pe2-ov-${OVERLAY//\//-}"   # "actors/lib" -> pe2-ov-actors-lib
     BRANCH="overlay/$OVERLAY"
-# build scope: a shared unit verifies against its whole family
-SCOPE="$OVERLAY"; [[ "$OVERLAY" == */lib/* ]] && SCOPE="${OVERLAY%%/*}"
 
     if [[ ! -d "$WT" ]]; then
         echo "no worktree at $WT; nothing to clean"
