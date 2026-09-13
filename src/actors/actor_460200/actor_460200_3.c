@@ -10,8 +10,6 @@
 void func_actor_460200_801336B4(Task* task);
 void func_actor_460200_80133AB0(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_3", func_actor_460200_80133580);
-
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_3", func_actor_460200_8013364C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_3", func_actor_460200_801336B4);

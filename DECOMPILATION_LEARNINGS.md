@@ -68979,3 +68979,26 @@ One pseudo now carries every definition, so the add *is* the source's register
 into the `bgez` delay slot. The reload has to be an explicit re-read of the
 field, not a spill: `lw`/`addiu` here are `$v0` on both paths.
 `func_actor_460200_80132090` is the example (99.25% -> 100%, `regs` 3 -> 0).
+
+## m2c drops an unused *middle* parameter, so later arguments read the wrong register
+
+The mirror of the "m2c drops leading params" entry: when a function's second
+argument is never read, m2c omits it from the signature it emits and the
+surviving arguments shift down a register. Nothing about the instruction stream
+changes - the parameter is unused, so no instruction is added or removed - and
+the object dump differs only by register name in the loads that consume the
+*remaining* arguments:
+
+```
+-lw    s2,0(a2)          target: third argument, $a2
++lw    s2,0(a1)          m2c:    two-argument signature, $a1
+```
+
+This scores 99.96% with a `stack` penalty and looks like a register-allocation
+problem. It is not: the fix is to add the missing placeholder parameter, not to
+touch locals or pin anything. `func_actor_460200_80133580` (51 instructions,
+`./build.sh` distance 2 -> 0) is the worked example.
+
+Read the argument registers the body actually touches before trusting an m2c
+signature that came in at a very high score with no structural difference: a
+register-only diff on an argument load means the arity is wrong.
