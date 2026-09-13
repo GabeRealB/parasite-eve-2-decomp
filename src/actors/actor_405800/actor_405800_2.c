@@ -207,7 +207,7 @@ s32 func_actor_405800_80136CE0(Task* arg0)
         if (work->field_890 == 0) {
             switch (work->field_85A) {
                 case 1:
-                    work->field_85A  = 0;
+                    work->field_85A = 0;
                     return 0;
                 case 2:
                     work->field_85A  = 0;
@@ -239,7 +239,7 @@ s32 func_actor_405800_80136CE0(Task* arg0)
         } else {
             switch (work->field_85A) {
                 case 1:
-                    work->field_85A  = 0;
+                    work->field_85A = 0;
                     return 0;
                 case 2:
                     work2            = (Actor405800Work*)arg0->idMap;
