@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -48,7 +49,52 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0006C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn00754);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn00914);
+void Actor05500_Fn00914(Actor105500* arg0)
+{
+    Actor105500Work* work;
+    GsCOORDINATE2*   coord;
+    s16              angle;
+    s32              magnitude;
+    s16              wrapped;
+    s16              difference;
+    s32              distance;
+    s32              dx;
+    s32              dz;
+    VECTOR*          delta;
+    VECTOR*          scratchEnd;
+
+    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+    coord                              = arg0->field_2C->field_8;
+    delta                              = scratchEnd - 1;
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
+    work                               = arg0->field_1C;
+    work->field_3A2                    = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
+    scratchEnd[-1].vx                  = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+    delta->vy                          = 0;
+    dz                                 = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    delta->vz                          = dz;
+    dx                                 = scratchEnd[-1].vx;
+    distance                           = SquareRoot0((dx * dx) + (dz * dz));
+    angle                              = (u16)work->field_3A2 - (ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)delta->vz) & 0xFFF);
+    magnitude                          = __builtin_abs((s32)angle);
+    if (magnitude < 0x800) {
+        difference = magnitude;
+    } else {
+        if (angle > 0) {
+            wrapped = 0x1000 - angle;
+        } else {
+            wrapped = angle + 0x1000;
+        }
+        difference = wrapped;
+    }
+    if ((distance < 0x8FC) && (difference < 0x80)) {
+        work->field_39A = 5;
+        work->field_39C = 0;
+        work->field_392 = 4;
+        Gp_ArmStateF0(1);
+    }
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn00A94);
 

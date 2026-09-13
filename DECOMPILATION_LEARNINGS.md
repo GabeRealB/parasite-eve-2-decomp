@@ -64864,3 +64864,25 @@ In the original `.lreg`, the shared mask pseudo r91 spans blocks and has two dea
 This supports a narrow allocation → scheduling-dependency → cross-jump mechanism, not a general claim that inlining suppresses cross-jumping. Exact local quantity ranking was not traced. The source change preserves all values, masks and memory effects.
 
 Controlled input SHA256: `3003043ab848f442d8ed027768d275357c52c3eb152cae828a3031e9dfd17906` (base_2.i). Readable no-goto port base_3 also matches. Plans, paired inputs, dumps and conclusions are retained under `tools/permuter_findings/Actor02500_Fn00B18/sessions/9e1d01d4d85748159ef121f63a646d51/`, including `PERMUTER_ANALYSIS.md` and run `b22f48f5aa884c37` evidence.
+
+
+## Actor05500_Fn00914: explicit builtin absolute preserves the MIPS abs pattern
+
+A typed s16 angle with s32 magnitude, written as an if/negation or a ternary,
+produced explicit RTL branches and negation. The resulting promoted angle
+had 5 refs / 7 insns and was allocated globally before the magnitude (4 / 6),
+swapping a0/a1 from the target. Replacing just the expression with
+`__builtin_abs((s32)angle)` produced RTL `abs:SI` UID129 and reached 100%.
+The magnitude then had 3 refs / 4 insns versus the signed angle's 3 / 5;
+`.greg` placed magnitude in a0 before angle in a1. Patched GCC's
+`config/mips/mips.md` abssi2 emits the target's self-negation of the output.
+This was a planned successful experiment, with no pins or empty asm.
+Do not assume every ternary becomes abs:SI; inspect expansion.
+
+Inputs: base_3.i SHA256 084fa381646473ea427902c5a032d266da4f8b19c9e44968a69cc526d1736873;
+base_4.i SHA256 0889aaf4cbf31057c099c555046356610fa02734ce7474f3a848f1235b8905a6.
+Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Session evidence: nonmatchings/Actor05500_Fn00914-vacuum/LEARNINGS.md and
+base_3/base_4 RTL, lreg, greg dumps. The router had no discovery; this was
+a direct compiler experiment. The reason ternary expansion chooses branches
+here remains untraced.
