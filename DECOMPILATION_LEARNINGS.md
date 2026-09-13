@@ -67370,3 +67370,45 @@ element size *is* `sll 16` / `sra 12`, so combine folding the scale into the
 shift is the target's own codegen here rather than an artefact; the two forms
 compiled to identical objects for this function (`base_2.c` and `base_3.c` in
 the scratch).
+
+## Reordering two equal-priority stores in the C moves a pointer's local-alloc birth, and the register with it
+
+`func_actor_206100_8014EEC0` builds a child collision object and was stuck at
+98.94% on one hunk: the task pointer and the `&work->rec` pointer had `$s1` and
+`$s2` swapped, everything else identical (`reorder=0 insert=0 delete=0
+branch=0 stack=0`).
+
+`local-alloc`'s `QTY_CMP_PRI` scales as `1 / (death - birth)`, so for two
+quantities with the same reference count the *shorter* live range loses.
+Measured on this function, `&rec` (3 refs, span 18) scored 1666 against the
+task pointer's 1372 (7 refs, span 102) — an inversion of under 300, so the
+required relation `pri81 in (1282, 1372)` pinned `&rec`'s span at exactly 22.
+`death` is fixed (the last use is the `a0` move before the `Gp_InitRec18Table`
+call), so `birth` had to move two scheduled positions earlier.
+
+`birth` is `2 x` the add's position in the *sched1* order, and sched1 is a
+backward list scheduler whose ready list ranks by descending `INSN_PRIORITY`
+then descending LUID — ties prefer the instruction written **later** in the C.
+The add became ready only when its last successor, the `field_C = &rec` store,
+was placed; that store and the `li/sh` pair for the neighbouring `field_1C =
+0x140` were both priority 4, so the store won the tie on its larger LUID and
+the add landed one position after it. Writing the two statements the other way
+round in the C gave the `0x140` pair the larger LUID, the store was placed
+first, and the add reached position 22:
+
+```c
+work->obj.field_1C = 0x140;      /* base_1: 1666 -> $s1 (wrong) */
+work->obj.field_C  = rec;        /* add scheduled second, birth +2 */
+
+work->obj.field_C  = rec;        /* base_2: 1363 -> $s2 (match)  */
+work->obj.field_1C = 0x140;      /* add scheduled first, birth -2 */
+```
+
+1666 -> 1363 drops `&rec` below the task pointer's 1372 and the allocation
+falls out as `$s0/$s1/$s2/$s3` for the four locals. The emitted instruction
+order was unchanged: sched2 and dbr put the stores back, so this is a
+register-allocation lever reached through the source store order, not an
+instruction-order fix. `DECOMPILATION_LEARNINGS.md` [63] covers the same
+freedom for byte-store order; the point here is that the same swap also decides
+a *birth*, so it is worth trying before a pin when a register pair is swapped
+and `reorder` is 0.
