@@ -4,6 +4,8 @@
 
 extern void func_8010ABD4();
 
+extern GpActorFuncTable4 D_actor_800200_80161EB8;
+
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80162750);
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80162990);
@@ -262,7 +264,19 @@ void func_actor_800200_80165E50(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165E90);
+void func_actor_800200_80165E90(GpActorWork* arg0)
+{
+    GpActorFuncTable4 sp;
+    GameActor*        actor;
+
+    sp    = D_actor_800200_80161EB8;
+    actor = arg0->actor;
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    sp.funcs[(u16)actor->field_96C](arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
+}
 
 void func_actor_800200_80165F28(void)
 {

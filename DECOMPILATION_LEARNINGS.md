@@ -6241,6 +6241,39 @@ over introducing new `temp_s0`/`temp_s1` locals. Fresh locals often free the
 compiler to clobber `$s0` with the shift (`sll s0,s0,1`) and put the table
 base in `$a0` instead of `$a1`.
 
+## A pointer field read across calls: fold it or hoist it, decided by frame size
+
+When the target keeps a struct field's *pointer* in a callee-saved register
+across calls (`lw s1, 0x1C(s0)` ahead of the `jal`s, then `lhu v0, 0x96C(s1)`),
+folding that load into the expression that uses it lets GCC sink it past those
+calls instead. No callee-saved register is then needed and the frame comes out
+8 bytes too small.
+
+Symptom: every body instruction matches, but the frame is `-0x28` instead of
+`-0x30`, one `$sN` save/restore pair is missing, and the field's base appears
+as a fresh load between the last call and the use (`lw v0, 0x1C(s0)` where the
+target reads a preserved register).
+
+Fix: assign the field to an explicit local *before* the calls. The pseudo's
+live range then necessarily spans them, so global alloc must home it in `$sN`.
+`func_actor_800200_80165E90` dispatches through a copied `GpActorFuncTable4`;
+writing the index inline as `sp.funcs[(u16)arg0->actor->field_96C](arg0)`
+scores 76%, while hoisting the pointer matches at 100%:
+
+```c
+    GameActor* actor;
+
+    sp = D_actor_800200_80161EB8;
+    actor = arg0->actor;          /* must precede the two ticks */
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    sp.funcs[(u16)actor->field_96C](arg0);
+```
+
+This is the mirror of "skip the local pointer when all accesses are pre-call":
+the local is required exactly when the value must stay live across a `jal`, and
+which case you are in is visible in the frame size rather than in the body.
+
 ## `do {} while (0)` to interleave `lui` with an early load
 
 When unlinking from a doubly-linked list, the target often loads a local field
