@@ -9,6 +9,7 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_405800.h"
+#include "actors/actors_shared_8013a0b0.h"
 
 extern s32 Gp_LcgState;
 
@@ -227,7 +228,43 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801351BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135558);
+void func_actor_405800_80135558(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    u32              sound;
+    s32              pan;
+    u32              rnd;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if ((s16)work->field_842 == 0) {
+        work->field_88F = 0;
+        sound           = 0x40050006 | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan             = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan           >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->field_842++;
+    }
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        if (work->field_85A != 3) {
+            work2            = (Actor405800Work*)arg0->idMap;
+            work2->field_84A = 2;
+            work2->field_850 = 0x10;
+            work2->field_872 = 0x14;
+            work2->field_86E = 1;
+            work->field_848++;
+            return;
+        }
+        work->field_85A  = 0;
+        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState      = rnd;
+        work->field_87C  = ((rnd >> 0x10) & 0x7F) + 0x1E;
+        work3            = (Actor405800Work*)arg0->idMap;
+        work3->field_846 = 5;
+        work3->field_848 = 0;
+    }
+}
 
 void func_actor_405800_801356A8(Task* arg0)
 {
