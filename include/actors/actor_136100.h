@@ -30,7 +30,8 @@ typedef struct Actor136100Work {
     /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::field_1C
     /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::field_20
     /* 0x4B4 */ Task*      field_4B4; // Game_GetPtrSlot(3) task
-    /* 0x4B8 */ byte       pad_4B8[0xC];
+    /* 0x4B8 */ byte       pad_4B8[0x8];
+    /* 0x4C0 */ Task*      field_4C0; // second dispatch task (NULL-checked senders)
     /* 0x4C4 */ s16        field_4C4; // set by func_actor_136100_80134838
     /* 0x4C6 */ s16        field_4C6; // cleared alongside field_4C4
     /* 0x4C8 */ byte       pad_4C8[0x4];
