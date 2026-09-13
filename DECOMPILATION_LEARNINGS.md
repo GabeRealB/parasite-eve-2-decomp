@@ -72422,3 +72422,75 @@ Preprocessed SHA256:
 - `base_1.i` (do/while from 0, 77.355%): `9ed27569da9e945cc7a8f9cf1d60114a49db3a3aa2dafde405e591487366ef57`
 - `base_4.i` (guarded while, 80.222%): `bcdf39cd9dd1bcacd4d812dfb29dc7725d0baa306fc814c65ac85ec4e437cf49`
 - `base_5.i` (match, 100.000%): `76dc74ae14882eec31996c7b0e1971bc772bb59588a9081ce6b2e7b6444053ac`
+
+## A malloc result stored and then re-copied: two pseudos, one `$v0`
+
+`func_actor_136100_80133A88` sat at 96.487% with `blocks=7/7`,
+`predicates_match=True`, `insert=delete=branch=1` and `regs=16`, and every
+remaining difference was one thing: the target wanted `$s0` for the
+`Task::extra` model object and `$s1` for the malloc'd work block, ours had them
+swapped, and the prologue copy of the malloc result sat one block earlier.
+
+The tell is in the target, at the call:
+
+```
+    jal        Mem_Malloc
+     move      a1, zero
+    bnez       $v0, .Lactor_136100_80133AD4
+     sw        $v0, 0x1C($s3)      /* store uses $v0, in the delay slot */
+    ...
+  .Lactor_136100_80133AD4:
+    addu       $s1, $v0, $zero     /* the copy is here, past the branch */
+```
+
+The store and the null test both read `$v0`, the call's return register, and the
+copy into the callee-saved home happens only on the surviving path. That is what
+`cse` leaves behind when the malloc result first feeds a *short-lived* pseudo:
+`(set p (reg v0))` is recorded as a copy, so the store and the branch in that
+same block are rewritten to use `v0` directly, and the value is not live across
+the branch for `p` at all. The copy into the long-lived variable is then a
+separate `(set work (reg v0))` in the next block. Writing the whole thing with
+one variable instead (`work = Mem_Malloc(...)` used for the store, the test and
+everything after) keeps the copy in the first block, emits `sw $s0` / `bnez $s0`,
+and leaves the long-lived pseudo referencing the value in two more places.
+
+Those references are the whole register difference. `allocno_compare` in
+`global.c` ranks by `floor_log2(n_refs) * n_refs / live_length`, and dropping
+the store's and the branch's reference also shortens the range, because the
+pseudo is no longer live from the call:
+
+```
+one variable:   work 8 refs / 43 insns -> 3*8/43 = 0.5581   $s0
+                tmd  9 refs / 50 insns -> 3*9/50 = 0.5400   $s1
+two variables:  work 6 refs / 41 insns -> 2*6/41 = 0.2927   $s1
+                tmd  9 refs / 51 insns -> 3*9/51 = 0.5294   $s0
+```
+
+(measured from `.greg`; `n_refs` falls 8 -> 6, not 7, because both the store and
+the branch stop naming the pseudo, and it happens to cross the 8 -> 4
+power-of-two step in `floor_log2`, which halves the multiplier as well.) The
+matched sibling `func_actor_136100_80134588` in the same TU has exactly this
+shape (`alloc` short-lived, `fade` long-lived) and is the source pattern to copy:
+
+```c
+map = Mem_Malloc(0x4F0, 0);
+arg0->idMap = map;
+if (map == NULL) {
+    Task_Kill(arg0);
+    return;
+}
+work = (Actor136100Work*)map;
+```
+
+The lesson is that 96.487% can be a *shape* mismatch wearing a `regs` penalty:
+the wrong `$sN` is a symptom, and the delay-slot store is the evidence. When the
+target's delay slot holds `sw $v0, <field>` and the branch above it tests `$v0`,
+resist adding a pin — give the value a short-lived pseudo and the copy into the
+long-lived one moves past the branch by itself, taking the allocno ranking with
+it.
+
+Preprocessed SHA256:
+
+- `base.i` (m2c seed, 86.650%): `6d2ed1db791ca80a6f92ed86ba215baf045129cb51370c89e61525d887668dfd`
+- `base_1.i` (natural while loop + struct offsets, 96.487%): `b29bb08a8ed53880d546ae56baa8d899f55ee489faf0667d93643fc6f5e74e5b`
+- `base_2.i` (two pseudos, 100.000%): `2c8ad934c598986e06d37d1f70b7c8f7b569b6b5db9677e2e5263469632b70c3`
