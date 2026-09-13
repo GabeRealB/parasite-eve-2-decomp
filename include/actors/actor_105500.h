@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -14,28 +15,34 @@ typedef struct Actor105500Obj2C {
 } Actor105500Obj2C;
 
 typedef struct Actor105500Work {
-    /* 0x000 */ byte    pad_0[0x35C];
-    /* 0x35C */ VECTOR3 field_35C;
-    /* 0x368 */ byte    pad_368[8];
-    /* 0x370 */ MATRIX  field_370;
-    /* 0x390 */ byte    pad_390[2];
-    /* 0x392 */ s16     field_392;
-    /* 0x394 */ s16     field_394;
-    /* 0x396 */ u16     field_396;
-    /* 0x398 */ s16     field_398;
-    /* 0x39A */ s16     field_39A;
-    /* 0x39C */ s16     field_39C;
-    /* 0x39E */ s16     field_39E;
-    /* 0x3A0 */ s16     field_3A0;
-    /* 0x3A2 */ byte    pad_3A2[4];
-    /* 0x3A6 */ s16     field_3A6;
-    /* 0x3A8 */ s16     field_3A8;
-    /* 0x3AA */ byte    pad_3AA[6];
-    /* 0x3B0 */ s16     field_3B0;
-    /* 0x3B2 */ byte    pad_3B2[0x16];
-    /* 0x3C8 */ s16     field_3C8;
-    /* 0x3CA */ byte    pad_3CA[8];
-    /* 0x3D2 */ s16     field_3D2;
+    /* 0x000 */ byte     pad_0[0x354];
+    /* 0x354 */ GpEffArg field_354;
+    /* 0x35C */ VECTOR3  field_35C;
+    /* 0x368 */ byte     pad_368[8];
+    /* 0x370 */ MATRIX   field_370;
+    /* 0x390 */ byte     pad_390[2];
+    /* 0x392 */ s16      field_392;
+    /* 0x394 */ s16      field_394;
+    /* 0x396 */ u16      field_396;
+    /* 0x398 */ s16      field_398;
+    /* 0x39A */ s16      field_39A;
+    /* 0x39C */ s16      field_39C;
+    /* 0x39E */ s16      field_39E;
+    /* 0x3A0 */ s16      field_3A0;
+    /* 0x3A2 */ byte     pad_3A2[4];
+    /* 0x3A6 */ s16      field_3A6;
+    /* 0x3A8 */ s16      field_3A8;
+    /* 0x3AA */ byte     pad_3AA[6];
+    /* 0x3B0 */ s16      field_3B0;
+    /* 0x3B2 */ s16      field_3B2;
+    /* 0x3B4 */ s16      field_3B4;
+    /* 0x3B6 */ s16      field_3B6;
+    /* 0x3B8 */ byte     pad_3B8[6];
+    /* 0x3BE */ s16      field_3BE;
+    /* 0x3C0 */ byte     pad_3C0[8];
+    /* 0x3C8 */ s16      field_3C8;
+    /* 0x3CA */ byte     pad_3CA[8];
+    /* 0x3D2 */ s16      field_3D2;
 } Actor105500Work;
 
 typedef struct Actor105500 {

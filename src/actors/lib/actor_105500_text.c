@@ -62,7 +62,9 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0143C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn01B30);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn020D4);
+#define ActorsSharedFn020d4 Actor05500_Fn020D4
+#include "actors_shared_fn020d4.c"
+#undef ActorsSharedFn020d4
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02214);
 
