@@ -2,6 +2,7 @@
 #define ACTOR_202600_H
 
 #include "common.h"
+#include "gameplay/3A34.h"
 #include "main/task.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -26,8 +27,16 @@ typedef struct Actor202600Ctx {
     /* 0x3C */ Actor202600Params* field_3C;
 } Actor202600Ctx;
 
+/// The work starts with a linked `GpObj` and its 0x18-byte collision record,
+/// the same prefix `Actor105500Work` has: `func_actor_202600_8014C5A0` clears
+/// `obj.flags` bit 0x8000 and wipes `rec` before re-linking, then counts
+/// `field_38` frames of homing movement and decays `field_3A`.
 typedef struct Actor202600Work {
-    /* 0x000 */ byte      pad_0[0x36C];
+    /* 0x000 */ GpObj     obj;
+    /* 0x020 */ GpRec18   rec;
+    /* 0x038 */ s16       field_38;
+    /* 0x03A */ s16       field_3A;
+    /* 0x03C */ byte      pad_3C[0x330];
     /* 0x36C */ TaskDesc* field_36C;
     /* 0x370 */ byte      pad_370[0x22];
     /* 0x392 */ s16       field_392;
@@ -51,6 +60,7 @@ typedef struct Actor202600 {
     /* 0x20 */ Actor202600Ctx*   field_20;
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor202600Obj2C* field_2C;
+    /* 0x30 */ s32               field_30;
 } Actor202600;
 
 extern u32 Gp_LcgState;
