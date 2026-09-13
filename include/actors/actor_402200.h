@@ -64,19 +64,30 @@ typedef struct Actor402200Obj2C {
 typedef struct Actor402200Work {
     /* 0x000 */ byte       pad_0[0x3C];
     /* 0x03C */ GpAnimSlot field_3C;
-    /* 0x064 */ byte       pad_64[0x666];
-    /* 0x6CA */ u16        field_6CA;
-    /* 0x6CC */ byte       pad_6CC[0x16];
-    /* 0x6E2 */ s16        field_6E2;
-    /* 0x6E4 */ byte       pad_6E4[6];
-    /* 0x6EA */ s16        field_6EA;
-    /* 0x6EC */ byte       pad_6EC[8];
-    /* 0x6F4 */ s16        field_6F4;
-    /* 0x6F6 */ byte       pad_6F6[0x1C];
-    /* 0x712 */ s16        field_712;
-    /* 0x714 */ byte       pad_714[4];
-    /* 0x718 */ s16        field_718;
-    /* 0x71A */ s16        field_71A;
+    /* 0x064 */ byte       pad_64[0x65C];
+    /// Animation id the frame code reseeds slots 1..0x12 with; the reseed body
+    /// `func_actor_402200_80137EEC` also indexes the blend table
+    /// `D_actor_402200_801383AC` with it.
+    /* 0x6C0 */ s16 field_6C0;
+    /// Animation id the slots were last reseeded with, so the reseed runs once
+    /// per change rather than every frame.
+    /* 0x6C2 */ s16 field_6C2;
+    /// Frames the current animation has been ticking; the reseed clears it and
+    /// the tick path walks it up by one a frame.
+    /* 0x6C4 */ s16  field_6C4;
+    /* 0x6C6 */ byte pad_6C6[4];
+    /* 0x6CA */ u16  field_6CA;
+    /* 0x6CC */ byte pad_6CC[0x16];
+    /* 0x6E2 */ s16  field_6E2;
+    /* 0x6E4 */ byte pad_6E4[6];
+    /* 0x6EA */ s16  field_6EA;
+    /* 0x6EC */ byte pad_6EC[8];
+    /* 0x6F4 */ s16  field_6F4;
+    /* 0x6F6 */ byte pad_6F6[0x1C];
+    /* 0x712 */ s16  field_712;
+    /* 0x714 */ byte pad_714[4];
+    /* 0x718 */ s16  field_718;
+    /* 0x71A */ s16  field_71A;
 } Actor402200Work;
 STATIC_ASSERT_SIZEOF(Actor402200Work, 0x71C);
 
@@ -91,5 +102,9 @@ typedef struct Actor402200 {
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor402200Obj2C* field_2C;
 } Actor402200;
+
+/// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
+/// as its fifth argument when it reseeds animation slots 1..0x12.
+extern s16 D_actor_402200_801383AC[];
 
 #endif
