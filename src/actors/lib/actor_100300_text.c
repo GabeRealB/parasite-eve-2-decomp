@@ -328,7 +328,22 @@ void Actor00300_Fn04D28(Actor100300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04E30);
+void Actor00300_Fn04E30(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GsCOORDINATE2*   coord;
+
+    coord              = arg0->field_2C->field_8;
+    work               = arg0->field_1C;
+    work->field_5F8    = coord->coord.t[0];
+    work->field_5FC    = coord->coord.t[1];
+    work->field_600    = coord->coord.t[2];
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_67A) >> 12;
+    if (work->field_69A < 2) {
+        coord->coord.t[1] += 0x80;
+    }
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_67A) >> 12;
+}
 
 void Actor00300_Fn04ED4(Actor100300* arg0)
 {
