@@ -65280,3 +65280,31 @@ Inputs: `base.i`
 `82db22c660317c9d733b5b6f394e5d9411216a74a438e03d73c4c30cdfd39b93`
 (90.684%), `base_1.i`
 `0da8667c82c60ac278511800428fbc7324af5357c1ddd0a81bb536151e617dad` (100%).
+
+## A `~` dup cluster is still a verbatim source port: only the `jal` relocation differs
+
+`overlay_dup_index.py find` prints `=` for byte-identical copies and `~` for
+"same body at a different link offset", and only the `=` ones look reusable.
+That reading is wrong for the matched case. `func_actor_105700_80136AE0`
+(56 insns) lists five `~` carriers, and every instruction of each is identical
+to this one **word for word** apart from two things the linker owns: the
+branch-target label names (splat names them per overlay, `.Lactor_105600_…`
+against `.Lactor_105700_…`) and the one `jal`, which goes to the carrier's own
+copy of the shared callee (`func_actor_105600_80132B1C` against
+`func_actor_105700_80132B28`). Nothing in the body's *source* differs.
+
+So for a body the index reports as `~`, the sibling's `.s` is worth diffing
+against the target directly, and if only those two relocations move, the
+sibling's matched C is the seed — paste it, rename the callee, give the target
+overlay's work struct the field offsets the source reads (here the 0x694-0x6B2
+halfwords of `Actor02000Work`, which `Actor105700Work` had not modelled), and
+it is 100% on the first build with all penalties zero. Do this before writing
+anything from the m2c seed: for this family the cheapest seed is almost always
+another overlay's matched body, not the bootstrap output.
+
+`promote` still refuses the cluster ("references its own overlay's code or
+data"), correctly — one object cannot serve six links whose `jal` target
+differs — but that is a statement about linking, not about seeding.
+
+Inputs: `base_1.i`
+`57651b91cc07cc62b3951e2b0e1e040bd05cf5ba298b9e96a7ceb11cd1fb0475` (100%).
