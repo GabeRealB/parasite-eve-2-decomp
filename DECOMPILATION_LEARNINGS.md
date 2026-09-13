@@ -75987,3 +75987,50 @@ The same rewrite fixed that function's clamp shape. m2c's `goto` form of
 the stored value, giving `slt v0,v0,v1` and hoisting `li v1,0x1e` into an
 earlier branch's delay slot; the natural clamp gives `slti v0,v0,0x1e` with
 `li v0,0x1e` in the `beqz` delay slot.
+
+## A promotion must retire the `_Fn<vram>` placeholder an earlier promotion wrote
+
+Promoting a body whose address is already *called* from an earlier shared unit
+fails the config read, before anything compiles:
+
+```
+error reading configs/USA/sym/actors/actor_102400.txt, line 20:
+Duplicate symbol detected! ActorsShared80134eb8 clashes with
+ActorsShared80134c2c_Fn34EB8 defined at vram 0x80134EB8.
+```
+
+The older shared unit `ActorsShared80134c2c` calls this address, and it was
+promoted while the callee was still `INCLUDE_ASM`, so there was no symbol to
+call. A shared body is compiled once for every carrier, so the promotion named
+the callee per overlay with an absolute placeholder — `<caller>_Fn<vram>`,
+`// type:func absolute:True` in each carrier's symbol map, each pointing at that
+overlay's own slot. When the callee is itself decompiled and promoted, both
+names now name one address in one file, and splat refuses the map.
+
+Fix, in two places:
+
+```c
+/* src/<family>/lib/<caller>.c */
+- void ActorsShared80134c2c_Fn34EB8(ActorShared80134c2c* arg0);
+- ActorsShared80134c2c_Fn34EB8(arg1);
++ #include "actors/actors_shared_80134eb8.h"   /* with the other shared headers */
++ ActorsShared80134eb8((ActorShared80134eb8*)arg1);
+```
+
+and delete the `<caller>_Fn<vram> = 0x…;` line from **every** carrier's
+`configs/USA/sym/<family>/<overlay>.txt`. The cast is the convention: each
+shared body takes its own argument struct, so a caller passes its pointer
+through the same explicit cast the neighbouring shared calls already use.
+
+The rename is only sound when the caller's carrier set is a subset of the
+callee's — a carrier that keeps the call but has no span for the new unit would
+link against an undefined symbol. `overlay_dup_index.py promote` does not check
+this, and neither does it rewrite the placeholder, so it is worth confirming
+before rebuilding: grep the family's symbol maps for the new shared name and
+compare against the carriers of the caller's unit in `configs/USA/overlays.toml`.
+Here both units are carried by exactly `actor_102400` and `actor_202400`.
+
+Those placeholders are also the visible backlog of this shape: 681 distinct
+`_Fn<vram>` names sit in 42 symbol maps today, and each is a callee that a
+shared unit calls but nobody has decompiled. Promoting any one of them collides
+with the caller's placeholder.
