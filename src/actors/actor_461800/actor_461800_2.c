@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_461800.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132AD8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132B74);
@@ -16,7 +18,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132EA4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132F20);
+s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 arg3)
+{
+    if (arg2->field_2 == 0) {
+        D_actor_461800_80143894->field_4EC = 0x14;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132F44);
 
