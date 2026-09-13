@@ -27,7 +27,3 @@ void func_actor_204600_8014D9A0(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_204600/actor_204600_5", func_actor_204600_8014D9FC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_204600/actor_204600_5", func_actor_204600_8014DB0C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_204600/actor_204600_5", func_actor_204600_8014DB74);

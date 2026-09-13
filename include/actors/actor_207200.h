@@ -25,7 +25,10 @@ typedef struct Actor207200Work {
     /* 0x214 */ Actor207200Obj field_214;
     /* 0x24C */ byte           pad_24C[0x18];
     /* 0x264 */ MATRIX         field_264; // transform folded onto the model part
-    /* 0x284 */ byte           pad_284[8];
+    /* 0x284 */ byte           pad_284[2];
+    /* 0x286 */ s16            field_286; // state the enemy work is running
+    /* 0x288 */ byte           pad_288[2];
+    /* 0x28A */ s16            field_28A; // frames spent in the current state
     /* 0x28C */ s16            field_28C; // animation id the work is playing
     /* 0x28E */ u16            field_28E; // id the three helper slots last saw
     /* 0x290 */ u16            field_290; // frames spent on the current id

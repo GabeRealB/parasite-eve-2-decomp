@@ -6,13 +6,13 @@
 
 #include "gameplay/1BC.h"
 
-#include "actors/actor_207200.h"
+#include "actors/actor_104600.h"
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_207200_8014AFDC(void* arg0, Task* task)
+void func_actor_104600_80135CE0(void* arg0, Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;

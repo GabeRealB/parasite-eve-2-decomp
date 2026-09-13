@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 
 #include "actors/actors_shared_80135d50.h"
+#include "actors/actors_shared_8014ae08.h"
 #include "actors/actors_shared_8014af2c.h"
 #include "actors/actor_207200.h"
 
@@ -37,7 +38,6 @@ void func_actor_207200_8014AC9C(Task* arg0)
 }
 
 void func_actor_207200_8014A588(Task* arg0);
-void func_actor_207200_8014AE08(Task* arg0);
 void func_actor_207200_8014AE70(Task* arg0);
 void func_actor_207200_8014AFDC(void* arg0, Task* arg1);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
@@ -84,7 +84,7 @@ default_body:
     ((TmdObject*)arg1->extra)->field_8[0].coord.t[1] += 0x80;
     func_actor_207200_8014AE70(arg1);
     ActorsShared80135d50(arg1);
-    func_actor_207200_8014AE08(arg1);
+    ActorsShared8014ae08(arg1);
     func_actor_207200_8014A588(arg1);
     ActorsShared8014af2c(arg1);
     ((TmdObject*)arg1->extra)->field_8[0].flg = 0;
@@ -93,9 +93,5 @@ default_body:
 case1:
     func_actor_207200_8014AFDC(arg0, arg1);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014AE08);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014AE70);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_207200/actor_207200", D_actor_207200_80149E30);

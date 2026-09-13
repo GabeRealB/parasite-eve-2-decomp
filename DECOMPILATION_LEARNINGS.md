@@ -72845,6 +72845,18 @@ The split also relocates a leading `INCLUDE_RODATA` that
 below the first code subsegment still belongs to that first unit's name, so it
 stays in `<overlay>.c` rather than following the function it sat next to.
 
+The hand redistribution is smaller than it sounds. `emit_run` in
+`tools/gen_overlay_configs.py` numbers the unshared runs positionally, so a span
+inserted anywhere but at a unit boundary renames every later unit — but only two
+kinds of move are needed per carrier. The run *after* the span keeps its old
+index and gains the tail the span cut off, so that unit's `.c` is split at the
+span's end, and each later file is `git mv`'d up one number with its `INCLUDE_*`
+folder strings sed'd to match. Compare `configs/USA/generated/<overlay>.yaml`
+before and after (`git show HEAD:` the old one) to get the mapping; the old file
+`.c`'s content follows the *run*, not the number. Then delete
+`asm/<ver>/<family>/nonmatchings/<overlay>/` and rebuild, since splat creates
+missing unit `.s` files but never removes ones whose unit has moved.
+
 ## `TOUCH_REG` keeps a provably-constant counter out of a later `add`
 
 `func_actor_207200_8014D65C` is the sibling of `func_actor_207200_8014AF2C`
