@@ -61,6 +61,10 @@ typedef struct Actor107600 {
     /* 0x1C */ Actor107600Work* field_1C;
 } Actor107600;
 
+/// LCG shared by the actor overlays (`state = state * 5 + 0x71357911`); this
+/// overlay rolls its low 3 bits of the high half into `Actor107600Work.field_16A`.
+extern u32 Gp_LcgState;
+
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
@@ -78,6 +82,7 @@ void func_actor_107600_80134920(Task* arg0);
 void func_actor_107600_801349E0(Task* arg0);
 void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
+void func_actor_107600_80134C54(Task* arg0);
 void func_actor_107600_80134D10(Actor107600* arg0);
 void func_actor_107600_80134D30(Actor107600* arg0);
 void func_actor_107600_80134D50(Actor107600* arg0);

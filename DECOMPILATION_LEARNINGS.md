@@ -5679,6 +5679,19 @@ an else-if chain (`branch=2 insert=2 delete=4`) and 100% as the switch. This is
 the regular-index counterpart of the goto form above — reach for the goto shape
 only when the case labels are not a contiguous run from 0.
 
+The three-arm variant is the same lesson with a merged range node. For
+`switch (v) { case 0: case 1: A; break; case 2: B; break; }` on a signed `s16`,
+`balance_case_nodes` collapses `{0,1}` into one node, so the dispatch is a
+leading bound check plus two tests — `bltz v1,TAIL` / `slti v0,v1,2; bnez
+v0,CASE01` / `beq v1,v0(=2),CASE2` / `j TAIL` — with the bodies in source order
+after it and the case-2 body falling into the epilogue. m2c renders that source
+as a nested if/else and cannot be patched into the layout: the same C scored
+64.5% (`branch=2 regs=5 reorder=4 insert=6 delete=8`) with the case-2 body
+inlined between the tests, while the switch form (`func_actor_107600_80134C54`)
+took 100% on the first attempt. The leading `bltz` is not the tell — the m2c
+nest emits the same branch for its `if (v >= 0)` wrapper — the body placement
+is.
+
 ## Two literal `1`s across calls CSE into `$s0`
 
 `if (cmd == 1)` then later `if (GameFlag_GetNibble(...) != 1)` shares CONST_INT

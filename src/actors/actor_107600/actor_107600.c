@@ -283,7 +283,38 @@ void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134BAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134C54);
+/// Opens the spawn variant `work->field_162` selects. The rolling variants
+/// (0 and 1) start the state at 1, kick the +0x50 rotation trio off at 0x400,
+/// roll `Gp_LcgState` into `field_16A` beside the 10 percent scale pair
+/// `func_actor_107600_80134EF4` divides the model root's rotation by, rebuild
+/// that rotation through `func_actor_107600_80134A50`, and put the spawned
+/// object's light into mode 2 with its blend timer cleared. Variant 2 only
+/// starts the state at 8 and leaves the scale pair at 100 percent.
+void func_actor_107600_80134C54(Task* arg0)
+{
+    Actor107600Work* work = (Actor107600Work*)arg0->idMap;
+    GpObj4C*         obj  = arg0->spawnArg2;
+
+    switch (work->field_162) {
+        case 0:
+        case 1:
+            work->field_158 = 1;
+            work->field_50  = 0x400;
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_16A = (Gp_LcgState >> 16) & 7;
+            work->field_168 = 10;
+            work->field_169 = 10;
+            func_actor_107600_80134A50(arg0);
+            Gp_SetLightMode(obj, 2);
+            obj->field_4F = 0;
+            break;
+        case 2:
+            work->field_158 = 8;
+            work->field_168 = 100;
+            work->field_169 = 100;
+            break;
+    }
+}
 
 void func_actor_107600_80134D10(Actor107600* arg0)
 {
