@@ -6,6 +6,7 @@
 #include "main/task.h"
 
 extern s16      D_actor_136100_8013F17C;
+extern s32      D_actor_136100_8013F180[];
 extern TaskDesc ActorsShared80134898Desc;
 extern Task*    D_actor_136100_8014078C;
 extern s8       D_8007272D;
@@ -54,4 +55,20 @@ void func_actor_136100_801349B4(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100_3", func_actor_136100_80134A18);
+/// Reports the live entries of the actor's pointer table to the slot-3 task:
+/// counts the leading non-null words of `D_actor_136100_8013F180` and hands
+/// the table and that count to message 0x3F7.
+void func_actor_136100_80134A18(Task* arg0)
+{
+    Actor136100Work*  work = (Actor136100Work*)arg0->idMap;
+    Actor136100Msg3F7 msg;
+    s32               n;
+
+    n = 0;
+    while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
+        n += 1;
+    }
+    msg.table = &D_actor_136100_8013F180[0];
+    msg.count = n & 0xFFFF;
+    Gp_DispatchMsg(work->field_4B4, 0x3F7, (s32)&msg, 0);
+}

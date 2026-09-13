@@ -212,6 +212,14 @@ Generalising the cluster:
 - **`while (1)` with an internal break** is the shape for walks that re-enter at
   a null check — a linked-list traversal whose first test is the same as its
   last.
+- **A null-table scan whose counter starts at zero is a plain `while`**, and
+  the counter must be read *unincremented* at the exit. `dbr` steals the loop
+  body into the back edge's delay slot, where it also runs on the exit path,
+  and appends `addiu r,r,-1` to undo it — that lone decrement is the pass, not
+  the source. Writing the `do`/`while` form instead emits a second decrement.
+  The zero start also constant-folds the entry test, so an explicit
+  `if (T[0] != 0)` in front of the loop is over-built. Worked example:
+  `func_actor_136100_80134A18`.
 - **The induction variable competes for a register like anything else** (§1), so
   zeroing an index early or splitting one counter into two changes which
   register it gets. Several entries are register fixes wearing loop clothing.

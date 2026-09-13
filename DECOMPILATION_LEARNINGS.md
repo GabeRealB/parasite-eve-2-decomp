@@ -72317,3 +72317,71 @@ Preprocessed SHA256:
 
 - `base.i` (m2c seed, 47.679%): `63f8ec9297c1a67f2e57aaf8aafba1f5f3400aca60b54b6451155c806f6a8e29`
 - `base_1.i` (match, 100.000%): `7079338fcdc8d1306476979757acc9936dc5b36ca4739546009cf55c960423d2`
+
+## A lone `addiu r,r,-1` after a scan loop is the delay-slot writeback, not a source decrement
+
+`func_actor_136100_80134A18` walks the null-terminated pointer table at
+`D_actor_136100_8013F180`, counts its live entries, and sends the table and
+count as message `0x3F7`. The target's loop tail is:
+
+```
+    move   v1,zero           # n = 0
+    lw     v0,%lo(D)(a1)     # n == 0 folds to a direct read of D[0]
+    beqz   v0,.Lend
+     addiu v1,v1,1
+.Lloop:
+    andi   v0,v1,0xffff
+    sll/addu/lw v0,0(v0)
+    bnez   v0,.Lloop
+     addiu v1,v1,1           # the body, stolen into the back edge's delay slot
+    addiu  v1,v1,-1          # dbr writeback compensation
+.Lend:
+```
+
+The trailing `-1` is **not** in the source. The increment is the loop body, and
+when `dbr` moves it into the back edge's delay slot it also executes on the exit
+path, so the pass appends a writeback that undoes it; the loop's exit value is
+then the unincremented index. Writing that `-1` in C as well makes GCC emit
+*two* of them in a row on the exit path and the function lands 1 instruction
+long (32 vs 31, `insert=1`, everything else zero):
+
+```c
+n = 0;                                  /* do/while: two -1, 96.8% */
+if (D_actor_136100_8013F180 != 0) {
+    do { n += 1; } while (D_actor_136100_8013F180[n & 0xFFFF] != 0);
+    n = n - 1;
+}
+```
+
+The matching shape is a plain **`while`** whose counter starts at zero, with no
+guard statement in front of it:
+
+```c
+n = 0;
+while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
+    n += 1;
+}
+msg.count = n & 0xFFFF;                 /* one -1, 100% */
+```
+
+Two things fall out of that form. The `n == 0` entry test is constant-folded, so
+the first probe is a bare `lui`/`lw %lo(D)` rather than the indexed
+`andi`/`sll`/`addu` sequence, and the loop top is *not* peeled. Spelling the
+same loop as `if (D[0] != 0) { n = 1; while (...) n++; }` instead is over-built
+(80.2%, 36 instructions): the explicit `if` becomes a second test and jump
+optimization peels the first loop iteration out, so the `-1` has to be written
+in C and the entry read no longer folds.
+
+Diagnostic to remember: when the target ends a scan loop with a single
+`+1`/`-1` on the counter that the C does not obviously contain, check the `.dbr`
+dump for an insn with a uid above the surrounding ones — that is the writeback.
+`base_4.i` gives the shape for comparison. The same read applies in reverse to a
+`do`/`while` scan: there the exit value is the *incremented* counter, so a
+source-level decrement is real and the writeback sits beside it.
+
+Preprocessed SHA256:
+
+- `base.i` (m2c seed, 70.903%): `e3a8d6389e3ca40a266402edbf963f548c006a663674d38db3548d1096ee37e9`
+- `base_1.i` (do/while from 0, 77.355%): `9ed27569da9e945cc7a8f9cf1d60114a49db3a3aa2dafde405e591487366ef57`
+- `base_4.i` (guarded while, 80.222%): `bcdf39cd9dd1bcacd4d812dfb29dc7725d0baa306fc814c65ac85ec4e437cf49`
+- `base_5.i` (match, 100.000%): `76dc74ae14882eec31996c7b0e1971bc772bb59588a9081ce6b2e7b6444053ac`

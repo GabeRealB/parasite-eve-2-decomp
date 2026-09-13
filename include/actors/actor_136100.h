@@ -45,4 +45,14 @@ typedef struct Actor136100Work {
 } Actor136100Work;
 STATIC_ASSERT_SIZEOF(Actor136100Work, 0x4F0);
 
+/// Payload `func_actor_136100_80134A18` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x3F7: the null-terminated pointer table at
+/// `D_actor_136100_8013F180` (seven live entries followed by a null word) and
+/// the number of live entries the sender counted in it.
+typedef struct Actor136100Msg3F7 {
+    /* 0x0 */ s32* table;
+    /* 0x4 */ s32  count;
+} Actor136100Msg3F7;
+STATIC_ASSERT_SIZEOF(Actor136100Msg3F7, 0x8);
+
 #endif // ACTOR_136100_H
