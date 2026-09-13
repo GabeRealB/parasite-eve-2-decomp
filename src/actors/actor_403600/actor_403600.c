@@ -841,7 +841,126 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013685C);
+u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    CVECTOR       col;
+    s16           upper_y;
+    s16           lower_y;
+    POLY_GT4*     poly;
+    s32           upper_delta;
+    s32           upper_calc;
+    s32           lower_delta;
+    s32           light;
+    s32           upper_limit;
+    s32*          opz;
+    s32*          flg;
+    u32           mask;
+    u32           clip_mask;
+    u16*          rec;
+    u8*           verts;
+    u8*           norms;
+    DisplayState* ds;
+
+    poly  = (POLY_GT4*)arg0->field_0;
+    col   = D_actor_403600_80131E34;
+    light = arg0->field_80->field_2C;
+    gte_ldrgb(&col);
+    if (arg0->field_1C-- > 0) {
+        flg         = &arg0->field_24;
+        clip_mask   = 0x80000000;
+        opz         = &arg0->field_28;
+        upper_limit = 0x168 - light;
+        ds          = &Display_State;
+        mask        = 0xFFFFFF;
+        SOFT_TOUCH_REG(mask);
+        do {
+            rec   = (u16*)arg2;
+            verts = (u8*)arg0->field_8;
+            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
+                     verts + (rec[2] & 0xFFF8));
+            gte_rtpt_real();
+            gte_stflg(flg);
+            if (!(arg0->field_24 & clip_mask)) {
+                gte_nclip_real();
+                gte_stopz(opz);
+                gte_stsxy3_gt4(poly);
+                gte_ldv0((u8*)arg0->field_8 + (rec[3] & 0xFFF8));
+                gte_rtps_real();
+                gte_stflg(flg);
+                if (!(arg0->field_24 & clip_mask)) {
+                    if (arg0->field_28 > 0) {
+                        goto draw;
+                    }
+                    gte_nclip_real();
+                    gte_stopz(opz);
+                    if (arg0->field_28 < 0) {
+                    draw:
+                        gte_stsxy2(&poly->x3);
+                        gte_avsz4_real();
+                        upper_delta = 0;
+                        if (light != 0) {
+                            upper_y = poly->y0;
+                            if (upper_limit < upper_y) {
+                                upper_calc  = upper_y - 0x168;
+                                upper_delta = (upper_calc + light) * 2;
+                            }
+                        }
+                        if (upper_delta >= 0x81) {
+                            *(u32*)&poly->r0 = 0;
+                            *(u32*)&poly->r1 = 0;
+                            *(u32*)&poly->r2 = 0;
+                            *(u32*)&poly->r3 = 0;
+                        } else {
+                            col.r = -0x80 - upper_delta;
+                            col.g = -0x80 - upper_delta;
+                            col.b = -0x80 - upper_delta;
+                            gte_ldrgb(&col);
+                            norms = (u8*)arg0->field_C;
+                            gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
+                                     norms + (rec[6] & 0xFFF8));
+                            gte_ncct_real();
+                            gte_strgb3_gt4(poly);
+                            gte_ldv0((u8*)arg0->field_C + (rec[7] & 0xFFF8));
+                            gte_nccs_real();
+                            gte_strgb(&poly->r3);
+                        }
+                        if (light != 0) {
+                            lower_y = poly->y0;
+                            if (upper_limit < lower_y) {
+                                lower_delta  = lower_y;
+                                lower_delta -= 0x168;
+                                lower_delta += light;
+                                lower_delta *= 2;
+                                poly->y3    -= lower_delta;
+                                poly->y2    -= lower_delta;
+                                poly->y1    -= lower_delta;
+                                poly->y0    -= lower_delta;
+                            }
+                        }
+                        setlen(poly, 12);
+                        setcode(poly, 0x3E);
+                        gte_stotz(opz);
+                        poly->tag = (poly->tag & 0xFF000000) |
+                                    (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                                 0xFFC) +
+                                                (s32)arg0->field_14) &
+                                     mask);
+                        *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                   (s32)arg0->field_14) =
+                            (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                        (s32)arg0->field_14) &
+                             0xFF000000) |
+                            ((u32)poly & mask);
+                    }
+                }
+            }
+            poly++;
+            arg2 += arg0->field_18;
+        } while (arg0->field_1C-- > 0);
+    }
+    arg0->field_0 = (u8*)poly;
+    return arg2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80136C00);
 
