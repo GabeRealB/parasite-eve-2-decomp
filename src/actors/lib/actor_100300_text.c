@@ -5,6 +5,8 @@
 #include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "main/sound.h"
 
 s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
@@ -286,7 +288,45 @@ void Actor00300_Fn04C20(Actor100300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04D28);
+void Actor00300_Fn04D28(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GpEnemy*         enemy;
+    s32              state;
+    s32              value;
+    GpEffWork*       effect;
+
+    work  = arg0->field_1C;
+    state = work->field_686;
+    switch (state) {
+        case 0:
+            effect          = work->field_654;
+            work->field_67A = 0;
+            work->field_66E = 0xF;
+            if (effect != NULL) {
+                effect->field_0->state = 3;
+                work->field_654        = NULL;
+                work->field_69C        = 0;
+                SndEvt_EnqueueType7(work->field_658, 1);
+            }
+            if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
+                enemy            = arg0->field_20;
+                enemy->field_4C &= 0xFD;
+                work->field_66E  = 0x12;
+                work->field_686  = 1;
+            }
+            break;
+        case 1:
+            if ((s16)work->field_672 >= 0xB) {
+                work->field_684 = state;
+                work->field_686 = state;
+                value           = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = value;
+                work->field_688 = ((u32)value >> 16) & 0x1F;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04E30);
 

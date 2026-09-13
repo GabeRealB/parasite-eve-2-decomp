@@ -37,7 +37,10 @@ typedef struct Actor100300Work {
     /* 0x5D8 */ byte                pad_5D8[0x50];
     /* 0x628 */ MATRIX              field_628;
     /* 0x648 */ s32                 field_648;
-    /* 0x64C */ byte                pad_64C[0x18];
+    /* 0x64C */ byte                pad_64C[0x8];
+    /* 0x654 */ struct _GpEffWork*  field_654;
+    /* 0x658 */ s32                 field_658;
+    /* 0x65C */ byte                pad_65C[0x8];
     /* 0x664 */ s16                 field_664;
     /* 0x666 */ byte                pad_666[0x8];
     /* 0x66E */ s16                 field_66E;
@@ -46,17 +49,19 @@ typedef struct Actor100300Work {
     /* 0x674 */ byte                pad_674[0x2];
     /* 0x676 */ s16                 field_676;
     /* 0x678 */ u16                 field_678;
-    /* 0x67A */ byte                pad_67A[0x2];
+    /* 0x67A */ s16                 field_67A;
     /* 0x67C */ s16                 field_67C;
     /* 0x67E */ byte                pad_67E[0x6];
     /* 0x684 */ s16                 field_684;
     /* 0x686 */ s16                 field_686;
-    /* 0x688 */ byte                pad_688[0x8];
+    /* 0x688 */ s16                 field_688;
+    /* 0x68A */ byte                pad_68A[0x6];
     /* 0x690 */ s16                 field_690;
     /* 0x692 */ byte                pad_692[0x4];
     /* 0x696 */ u16                 field_696;
     /* 0x698 */ s16                 field_698;
-    /* 0x69A */ byte                pad_69A[0x4];
+    /* 0x69A */ byte                pad_69A[0x2];
+    /* 0x69C */ s16                 field_69C;
     /* 0x69E */ s16                 field_69E;
 } Actor100300Work;
 
