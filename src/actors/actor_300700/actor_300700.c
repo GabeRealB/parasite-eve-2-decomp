@@ -3,6 +3,7 @@
 #include "actors/actor_300700.h"
 
 #include "gameplay/1BC.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
@@ -21,7 +22,8 @@ void func_actor_300700_801652F4(Actor300700* arg0);
 void func_actor_300700_8016534C(Actor300700* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-extern u8 D_801153F4;
+extern u8  D_801153F4;
+extern s32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80161E80);
 
@@ -138,7 +140,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164F68);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80165000);
+/// Randomised footstep timer. Each tick decrements the counter and, when it
+/// runs out, reseeds it from the shared LCG and plays the step sound at the
+/// object's pan and depth.
+void func_actor_300700_80165000(Actor300700* arg0)
+{
+    Actor300700Work* work;
+    GsCOORDINATE2*   coord;
+    s32              snd;
+    s32              pan;
+    u16              timer;
+    u32              random;
+
+    work            = arg0->field_1C;
+    coord           = arg0->field_2C->field_8;
+    timer           = work->field_392 - 1;
+    work->field_392 = timer;
+    if ((s16)timer <= 0) {
+        random          = (Gp_LcgState * 5) + 0x71357911;
+        work->field_392 = (u16)(((random >> 0x10) & 0x7F) + 0x96);
+        Gp_LcgState     = (s32)random;
+        snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40070001;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(snd, (s32)pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801650C0);
 

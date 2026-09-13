@@ -68200,3 +68200,41 @@ downstream of the allocation, not of the statement order.
 
 Preprocessed SHA256 of the matching input: `base_1.i`
 `d178ab88190e43100d9959334743486228d26b6b66e7c95e2d0cf6896f8918a8`.
+
+## A call-result temp's declared width decides where the narrow conversion lands
+
+Declaring the temp `s8` lets GCC model the value as QImode and defer the
+conversion: the raw call result is copied into the temp's register, and the
+`sll 24` / `sra 24` pair is sunk to the argument setup, costing one extra `move`.
+Declaring the temp `s32` and putting the cast at the assignment materialises the
+pair at the assignment, and the use becomes a plain copy:
+
+```
+    s32 pan;                                  s8 pan;
+    pan = (s8)Gp_GetObjPan(coord);            pan = (s8)Gp_GetObjPan(coord);
+    ... jal Gp_GetObjDepth                    ... jal Gp_GetObjDepth
+    sll $s1, $v0, 24                          move $s1, $v0
+    jal Gp_GetObjDepth                        move $a0, $s0
+     sra $s1, $s1, 24   # in delay slot       sll $v0, $v0, 24
+    sll $v0, $v0, 24                          sll $s1, $s1, 24
+    move $a1, $s1                             sra $a1, $s1, 24
+```
+
+`func_actor_300700_80165000` scored 87.5% with the `s8` local (insert=3 delete=3,
+regs=0 - the single extra `move`) and 100% with `s32`. Both are the same value;
+only the dump distinguishes them, and the `s8` form is the one that looks
+natural to write.
+
+A matched sibling whose assembly is byte-identical settles this directly: copy
+its declaration types instead of re-deriving them. `Actor00700_Fn01B50` in
+`src/actors/lib/actor_100700_text.c` is this exact 48-instruction body at a
+different link offset, and its `s32 pan` / `s32 snd` / `u16 timer` / `u32 random`
+locals are the original.
+
+Worth knowing when looking for such a sibling: `overlay_dup_index.py find`
+groups by disassembly *text*, so this pair reports only 1 copy - the two differ
+solely in branch-label names (`.Lactor_300700_801650AC` vs `Actor00700_L01BFC`),
+which is enough to split the group. The same listing's `identical bytes:` count
+still shows 2, and the brief's `similar` tier ranks the sibling 1.00 on all four
+classes. Treat a byte-identical `~`-offset sibling as a copy even when `find`
+says otherwise.
