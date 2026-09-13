@@ -447,7 +447,26 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139B3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139BD8);
+void func_actor_405800_80139BD8(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    u32              rnd;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if ((func_actor_405800_80136B94(arg0) << 0x10) != 0) {
+        rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState     = rnd;
+        work->field_87C = ((rnd >> 0x10) & 0x7F) + 0x1E;
+    } else if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState      = rnd;
+        work->field_87C  = ((rnd >> 0x10) & 0x7F) + 0x1E;
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_846 = 0xA;
+        work2->field_848 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_80139C98);
 
