@@ -55859,6 +55859,29 @@ Carriers of one promotion differ here: `actor_120500`'s copy was the last code
 in the overlay, so its promotion needed nothing beyond deleting the
 `INCLUDE_ASM` line, while `actor_120300` and `actor_136100` both renumbered.
 
+## A renumbered carrier with no matched bodies in the way: delete the unit files, don't shift them
+
+Shifting the files down by hand exists to protect matched C bodies sitting in
+the renumbered unit files. When there are none — the usual state for a carrier
+whose matches live elsewhere, and always true when the promoted body is cut out
+of a unit that is pure `INCLUDE_ASM` — deleting the affected `<overlay>_N.c`
+files is both simpler and self-correcting: splat regenerates each at its new
+boundary and creates the `_N+1` tail unit, so no boundary has to be worked out
+in advance and a wrong guess cannot survive as a file whose `INCLUDE_ASM` paths
+name a unit that no longer holds those functions.
+
+Verify the deletion is safe first (`bodies_of()` in `tools/land_overlay.py`
+over every file about to go; move any body it reports into the shared unit or
+its new home), and expect the regenerated file to come back as `common.h` plus
+`INCLUDE_ASM` lines, without the overlay headers the old one included.
+
+`actor_402200` and `actor_403900` promoted the byte-identical
+`func_actor_402200_801381E0` / `func_actor_403900_801381E4` this way. Both
+carriers renumbered: `_2.c`'s nine entries came back as seven plus a fresh `_3`
+holding the tail function, the scoped `--only actors` build passed on the first
+run, and the only source the promotion deleted was the body it moved into
+`src/actors/lib/`.
+
 ## Case-local `next` beats `li 1` for `$v0`; a goto-shared one does not
 
 A task switch whose later case does
