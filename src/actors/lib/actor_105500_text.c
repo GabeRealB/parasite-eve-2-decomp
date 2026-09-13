@@ -893,7 +893,9 @@ void Actor05500_Fn02780(Actor105500Ctx* arg0, Actor105500* arg1)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02954);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02C94);
+#define ActorsSharedFn02c94 Actor05500_Fn02C94
+#include "actors_shared_fn02c94.c"
+#undef ActorsSharedFn02c94
 
 void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
 {

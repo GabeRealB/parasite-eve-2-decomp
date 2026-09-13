@@ -20,41 +20,4 @@ extern void* D_80067704[1];
 /* Model stream in this overlay's own data. */
 extern u8 D_actor_302600_80167D30[];
 
-void func_actor_302600_80165A6C(Actor302600* actor)
-{
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
-    u8         areaByte0;
-    GpAreaRec* rec;
-    GpCdRec10* entry;
-    GpEffWork* eff;
-    TmdObject* model;
-    s32        idx;
-    u32        raw;
-
-    D_80067704[0] = D_actor_302600_80167D30;
-    eff           = Gp_SpawnEff(0x40007, actor->field_2C->field_8 + 4, 0x100, NULL);
-    if (eff == NULL) {
-        return;
-    }
-    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
-    raw         = actor->field_20->field_8;
-    model       = (TmdObject*)eff->field_0->extra;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
-    idx         = raw >> 12;
-    key.field_0 = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
-    rec = Gp_GetNestedAreaRec(&key);
-    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
-       onto the table (`addu s0, s0, v0`). */
-    entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->field_24 = entry->field_D;
-    model->field_25 = entry->field_E;
-    if (model->field_18 != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
-    }
-}
+INCLUDE_ASM("actors/nonmatchings/actor_302600/actor_302600_6", func_actor_302600_801658E0);

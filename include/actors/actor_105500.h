@@ -162,4 +162,13 @@ extern TaskDesc   Actor05500_D08ABC;
 extern u8         Actor05500_D08AD4[];
 void              Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor);
 
+typedef struct Actor105500LineScratch {
+    s32     unused[4];
+    SVECTOR position;
+    s32     screen;
+    s32     depth;
+} Actor105500LineScratch;
+
+STATIC_ASSERT_SIZEOF(Actor105500LineScratch, 0x20);
+
 #endif

@@ -1,23 +1,3 @@
 #include "common.h"
 
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-
-#include "actors/actor_202600.h"
-
-/* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
- * stream the next `Gp_SpawnEff` uses for the effect's own `TmdObject`. Declared
- * as a one-element array so GCC 2.8.1 cannot treat the store as non-aliasing
- * with the struct traffic that follows and sink it past the loads. */
-extern void* D_80067704[1];
-
-/* Model stream in this overlay's own data. */
-extern u8 D_actor_202600_8014FD30[];
-
-INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600_5", func_actor_202600_8014D8E0);
+INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600_5", func_actor_202600_8014D7C4);

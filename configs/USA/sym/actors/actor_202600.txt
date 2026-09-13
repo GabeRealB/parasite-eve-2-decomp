@@ -22,3 +22,4 @@ Actor05500_Fn01A0C = 0x8014B82C; // shared body, see src/actors/lib/
 ActorsSharedFn03674 = 0x8014D48C; // shared body, see src/actors/lib/
 ActorsSharedFn020d4 = 0x8014BEF4; // shared body, see src/actors/lib/
 ActorsSharedFn02214 = 0x8014C034; // shared body, see src/actors/lib/
+ActorsSharedFn02c94 = 0x8014CAB4; // shared body, see src/actors/lib/
