@@ -32,18 +32,20 @@ void func_actor_405800_80139844(Task* arg0);
 void func_actor_405800_80139E2C(Task* arg0);
 void func_actor_405800_80139E48(Task* arg0);
 void func_actor_405800_80139EAC(Task* arg0);
+s32  func_actor_405800_80139F3C(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 
-/* Three-entry tables for `func_actor_405800_80137F58` / `80137FCC`, the
- * five-entry table for `80137D60`, and the four-entry tables for `80137DE4` /
- * `80138040`. A local initializer would emit another compiler pool packed
+/* Three-entry tables for `func_actor_405800_80137F58` / `80137FCC` / `801380C0`,
+ * the five-entry table for `80137D60`, and the four-entry tables for `80137DE4`
+ * / `80138040`. A local initializer would emit another compiler pool packed
  * against `80137C04`'s leading table; copying the splat-owned pools keeps
- * them at 0x98 / 0xAC / 0xBC / 0xC8 / 0xD4. */
+ * them at 0x98 / 0xAC / 0xBC / 0xC8 / 0xD4 / 0xE4. */
 extern const TaskFuncTable5 D_actor_405800_80131EB8;
 extern const TaskFuncTable4 D_actor_405800_80131ECC;
 extern const TaskFuncTable3 D_actor_405800_80131EDC;
 extern const TaskFuncTable3 D_actor_405800_80131EE8;
 extern const TaskFuncTable4 D_actor_405800_80131EF4;
+extern const TaskFuncTable3 D_actor_405800_80131F04;
 
 /// Per-frame entry point for one of this actor's states: clears the animation
 /// request flags, then runs the sub-state handler `field_848` selects. Three
@@ -166,7 +168,18 @@ void func_actor_405800_80138040(Task* task)
     states.funcs[(s16)work->field_848](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_801380C0);
+INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800_80131F04);
+
+void func_actor_405800_801380C0(Task* task)
+{
+    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    TaskFuncTable3   states = D_actor_405800_80131F04;
+
+    func_actor_405800_80137948(task);
+    if ((func_actor_405800_80139F3C(task) << 0x10) == 0) {
+        states.funcs[(s16)work->field_848](task);
+    }
+}
 
 void func_actor_405800_80138154(Task* task)
 {
