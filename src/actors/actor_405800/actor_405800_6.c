@@ -9,6 +9,7 @@
 #include "gameplay/gameplay.h"
 #include "actors/actor_405800.h"
 #include "actors/actors_shared_80139948.h"
+#include "actors/actors_shared_80139c00.h"
 #include "actors/actors_shared_8013a0b0.h"
 
 extern u8  D_actor_405800_801514D8[];
@@ -286,7 +287,34 @@ void func_actor_405800_80138FA8(Task* task)
     work->field_848 = work->field_848 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_8013902C);
+void func_actor_405800_8013902C(Task* task)
+{
+    Actor405800Work* work;
+    s16              min;
+    s16              step;
+    u32              rnd;
+
+    work = (Actor405800Work*)task->idMap;
+    min  = 0x10;
+    if (work->field_852 > 0xBB8 && work->field_893 == 0) {
+        rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState = rnd;
+        if ((rnd >> 0x10) & 1) {
+            min  = 0x18;
+            step = 0x24;
+        } else {
+            min  = 0x14;
+            step = 0x1E;
+        }
+        work->field_880 = step;
+        work->field_893 = 1;
+    }
+    if (work->field_87E < min) {
+        work->field_87E = min;
+    }
+    ActorsShared80139c00(task, &work->field_A8, work->field_880);
+    func_actor_405800_80135A3C(task, work->field_87E);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_801390FC);
 
