@@ -44,6 +44,7 @@ void Actor00300_Fn04E30(Actor100300* arg0);
 void Actor00300_Fn04ED4(Actor100300* arg0);
 void Actor00300_Fn04FB0(Actor100300* arg0);
 void Actor00300_Fn05008(Actor100300* arg0);
+void Actor00300_Fn0505C(Actor100300* arg0, MATRIX* arg1, s16 arg2);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
@@ -649,7 +650,111 @@ void Actor00300_Fn03A1C(Actor100300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03B70);
+void Actor00300_Fn03B70(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor100300Work*  work;
+    Actor100300Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    c;
+    VECTOR            vec;
+    s32               mode;
+    s32               sound;
+    s32               pan;
+    s16               phase;
+
+    obj   = arg1->field_2C;
+    work  = arg1->field_1C;
+    mode  = D_801153F4;
+    coord = obj->field_8;
+    if (mode == 1)
+        goto case1;
+    if (mode < 2)
+        goto common;
+    if (mode == 2)
+        goto case2;
+    goto common;
+case1:
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+    return;
+case2:
+    obj->field_C                       = 0x80;
+    work->field_43C->field_2C->field_C = 0x80;
+    return;
+common:
+    switch (work->field_686) {
+        case 0:
+            work->field_674 = 0x1000;
+            work->field_608 = coord->coord;
+            arg0->field_54  = NULL;
+            Gp_UnlinkNode(&arg0->next);
+            Gp_UnlinkObj(&work->obj480);
+            Gp_UnlinkObj(&work->obj538);
+            Gp_UnlinkObj(&work->obj4D0);
+            Gp_UnlinkObj(&work->obj5B8);
+            Gp_SetLightMode(arg0, 1);
+            Gp_ReleaseStateF0Add(arg1, 3);
+            work->field_688 = 0;
+            work->field_686 = 1;
+            if (work->field_682 != 0) {
+                obj->field_C    = 0x80;
+                work->field_686 = 3;
+            }
+            c      = arg1->field_2C->field_8;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+            if (work->field_654 != NULL) {
+                work->field_654->field_0->state = 3;
+                work->field_654                 = NULL;
+                work->field_69C                 = 0;
+                SndEvt_EnqueueType7(work->field_658, 1);
+            }
+            sound = (((u16)arg1->field_20->field_8 >> 12) << 8) | 0x40030008;
+            pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            return;
+        case 1:
+            if (work->field_674 >= 0x201)
+                work->field_674 -= 0x50;
+            Actor00300_Fn0505C(arg1, &work->field_608, work->field_674);
+            phase           = work->field_688 + 1;
+            work->field_688 = phase;
+            if (phase == 10)
+                obj->field_C |= 2;
+            if (work->field_688 == 15)
+                Gp_SpawnEff(0x600A5, &arg1->field_2C->field_8[3], 3, NULL);
+            if (work->field_688 >= 0x3C)
+                work->field_686 = 2;
+            c      = arg1->field_2C->field_8;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
+            return;
+        case 2:
+            Gp_DestroyEnemy(arg0, arg1);
+            return;
+        case 3:
+            if (work->field_682 != 0) {
+                if (work->field_682 >= 2) {
+                    work->field_682 = 0;
+                    Tmd_FreeBuffers((TmdObject*)obj);
+                    obj->field_C |= 4;
+                    Actor00300_Fn03618(arg1);
+                } else
+                    work->field_682++;
+            }
+            phase           = work->field_688 + 1;
+            work->field_688 = phase;
+            if (phase >= 0x3C)
+                work->field_686 = 2;
+            return;
+    }
+}
 
 static __inline__ void Actor00300_UpdateTransform(Actor100300Ctx* arg0, Actor100300* arg1)
 {
