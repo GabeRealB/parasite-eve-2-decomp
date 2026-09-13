@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor_560800.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -12,7 +13,17 @@
 extern s8       D_8007106B;
 extern TaskDesc ActorsShared80136280Desc;
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_3", func_actor_560800_80136930);
+void func_actor_560800_80136930(s32 arg0)
+{
+    if (arg0 == 1) {
+        D_actor_560800_8017579C = Display_State.field_0;
+    } else if (arg0 == 2) {
+        D_actor_560800_801757A0 = Display_State.field_0;
+    } else if (arg0 == 3) {
+        D_actor_560800_801757A4 = Display_State.field_0;
+    }
+    CdCmd_EnqueueOverlay81();
+}
 
 void func_actor_560800_801369A0(void)
 {

@@ -68,4 +68,12 @@ STATIC_ASSERT_SIZEOF(Actor560800Msg, 0x4);
 /// and read by the sub-task handlers.
 extern Task* D_actor_560800_8017578C;
 
+/// Phase timestamps, one per phase id 1..3: `func_actor_560800_80136930`
+/// stamps `Display_State.field_0` (the frame counter) into the slot its argument
+/// selects, and `func_actor_560800_80135AEC` reads it back per phase and stores
+/// the elapsed frames in the matching slot of `D_actor_560800_80175790`.
+extern s32 D_actor_560800_8017579C;
+extern s32 D_actor_560800_801757A0;
+extern s32 D_actor_560800_801757A4;
+
 #endif

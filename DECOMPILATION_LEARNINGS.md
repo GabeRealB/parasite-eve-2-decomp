@@ -66147,3 +66147,24 @@ all compiling to the same assembly
 permuter router found the both-stores form; the mirror-image entry above
 ("Hoist a compare outside `do { } while (0)`") is the same lever used to *stop*
 over-weighting a pseudo.
+
+## m2c's `switch` is not neutral: three dense cases compile as a bisection tree
+
+**Problem.** `func_actor_560800_80136930` dispatches on its argument with cases
+1, 2 and 3, each storing `Display_State.field_0` into its own global before a
+shared call. The m2c seed kept m2c's `switch` verbatim and scored 33.2%
+(`insert=13 delete=7`), 34 instructions against the target's 28.
+
+**Symptom.** The candidate had 10 blocks where the target has 7, and opened
+`li v0,2; beq a0,v0,...` followed by `slti v0,a0,3; beqz` — a binary search over
+the case range, testing the median first. The target is a flat chain of three
+`bne`s, one per arm, each arm ending in its own `j` to the join.
+
+**Fix.** Write an `if` / `else if` chain instead of the `switch`. It matched
+100% on the first build of that form.
+
+A dense, contiguous case set does not buy a jump table either — the bisection
+tree is simply what GCC 2.8.1 does with a small `switch`, and the flat compare
+chain is a shape only an if-ladder produces. So when a target's block count is
+one per arm plus a join and every non-final arm ends in its own `j`, suspect an
+if-ladder and rewrite before reshaping the switch any further.
