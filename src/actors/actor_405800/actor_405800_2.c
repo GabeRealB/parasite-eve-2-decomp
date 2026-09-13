@@ -8,6 +8,7 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_405800.h"
+#include "actors/actors_shared_8016a538.h"
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.
@@ -114,7 +115,73 @@ void func_actor_405800_80136E14(Task* task)
     Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[3], 0x200, NULL);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_8013706C);
+void func_actor_405800_8013706C(Task* arg0, s16 arg1)
+{
+    Actor405800Work*        work = (Actor405800Work*)arg0->idMap;
+    SVECTOR                 v;
+    SVECTOR                 out;
+    ActorsShared8016a538Mat rot;
+    s16                     n;
+
+    work->field_892 = arg1;
+    switch (arg1) {
+        case 0:
+            if (work->field_890 == 0) {
+                ActorsShared8016a538Mat* m = &rot;
+
+                v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+                v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->field_8->coord.t[1] - 0x384;
+                v.vz              = work->field_A8.vz - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+                rot.ident.m00_m01 = 0x1000;
+                rot.ident.m02_m10 = 0;
+                m->ident.m11_m12  = 0x1000;
+                rot.ident.m20_m21 = 0;
+                m->ident.m22      = 0x1000;
+                rot.mat.t[0]      = 0;
+                rot.mat.t[1]      = 0;
+                rot.mat.t[2]      = 0;
+                func_8004BFF8(-(s16)work->field_82, &m->mat);
+                ApplyMatrixSV(&m->mat, &v, &out);
+            } else {
+                ActorsShared8016a538Mat* m = &rot;
+
+                v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+                v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->field_8->coord.t[1] - 0x640;
+                v.vz              = work->field_A8.vz - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+                rot.ident.m00_m01 = 0x1000;
+                rot.ident.m02_m10 = 0;
+                m->ident.m11_m12  = 0x1000;
+                rot.ident.m20_m21 = 0;
+                m->ident.m22      = 0x1000;
+                rot.mat.t[0]      = 0;
+                rot.mat.t[1]      = 0;
+                rot.mat.t[2]      = 0;
+                func_8004BFF8(-(s16)work->field_82, &m->mat);
+                RotMatrixZ(-(s16)work->field_84, &m->mat);
+                ApplyMatrixSV(&m->mat, &v, &out);
+            }
+            work->rec_744.field_0  = out.vx;
+            work->rec_744.field_2  = out.vy;
+            n                      = out.vz;
+            work->rec_744.field_4  = n;
+            n                      = 0xA;
+            work->rec_744.field_10 = n;
+            work->rec_744.field_12 = n;
+            break;
+        case 1:
+            work->rec_744.field_0  = 0;
+            work->rec_744.field_2  = 0x190;
+            work->rec_744.field_4  = -0x1770;
+            work->rec_744.field_10 = 0x50;
+            work->rec_744.field_12 = 0x50;
+            break;
+    }
+    work->rec_744.field_8 = 0;
+    work->rec_744.field_A = 0;
+    work->rec_744.field_C = 0;
+    Gp_ClearRec18Occupied(work->rec_75C);
+    work->obj_724.flags |= 0x4000;
+}
 
 s32 func_actor_405800_8013728C(Task* arg0)
 {
