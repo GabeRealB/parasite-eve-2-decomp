@@ -68017,3 +68017,34 @@ register reuse.
 68.30%, a direct field switch with a repeated load 89.91%, and the `s32` temp
 100.00%. Preprocessed SHA256: `base_3.i`
 `7442db7dfc3fa7ff643d26c202bdd7b24dce6a2c8c6600d508553b9f605c856b`.
+
+## An address that is both a `D_` symbol and a struct field: the two spellings are *different code*, not just different labels
+
+`D_8007218B` is `Mc_SaveData.field_23` (`Mc_SaveData = 0x80072168`), so the
+guard in `func_actor_461800_8013229C` can be written either way, and a matched
+sibling in the same family (`func_shelter_r36_8017D738`) writes the field form.
+Both assemble to the same immediate, but they do not compile the same:
+
+```c
+if (Mc_SaveData.field_23 != 9)   /* 99.836%, regs=2 */
+    lui v0,%hi(Mc_SaveData) ; lb v1,%lo(Mc_SaveData+0x23)(v0)
+
+extern s8 D_8007218B;
+if (D_8007218B != 9)             /* 100.00% */
+    lui v0,%hi(D_8007218B) ; lb v1,%lo(D_8007218B)(v0)
+```
+
+Only the relocation expression differs here, and this is *not* the harness
+artifact of entry [25]: the field form lets the two references to `Mc_SaveData`
+in the same function share one address computation / one `%hi` group, while a
+separate symbol forces a fresh absolute load. The direction that wins is set by
+the target: this function's target names the raw symbol, whereas
+`shelter_r36`'s target instead holds `&Mc_SaveData` in `$s0` and reads
+`lb $v1, 0x23($s0)` -- the field spelling would be *wrong* there and the
+extern right here. Read the target's first two instructions before choosing,
+and keep the `D_` extern the sibling actor files already use
+(`mist_shooting_gallery`, `shelter_b2_elevator`, `shelter_r49`,
+`actor_143000`) when the target names it.
+
+Preprocessed SHA256 of the matching input: `base.i`
+`94fe79e37eea5f65017b5f33764e93885bacdd64a4c9e4c53b512920011f1b3e`.
