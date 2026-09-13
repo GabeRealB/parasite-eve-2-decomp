@@ -69002,3 +69002,29 @@ touch locals or pin anything. `func_actor_460200_80133580` (51 instructions,
 Read the argument registers the body actually touches before trusting an m2c
 signature that came in at a very high score with no structural difference: a
 register-only diff on an argument load means the arity is wrong.
+
+## A pointer read one call too late shrinks the frame and drops a saved register
+
+A `stack` symptom with no `stack` penalty: the candidate's frame is 0x38 against
+the target's 0x40 and it saves three `$s` registers instead of four, with every
+penalty attributed to `regs`. The extra slot is not a local - it is the fourth
+callee-saved register the target spills.
+
+```
+lw    s2,0x1c(s3)    target   work read before the calls, lives in $s2
+lw    s0,0x1c(s2)    base_1   same load, after them, reuses coord's dead $s0
+```
+
+`work = (Actor460200Work*)task->idMap;` written *after* the intervening calls
+gives its pseudo a live range that starts past them, so `coord` (dead by then)
+and `work` do not conflict and the allocator hands both `$s0`. Moving the
+assignment above `Gp_UpdateCoord(coord)` starts the range earlier, the conflict
+appears, `work` takes `$s2`, and `task` is pushed from `$s2` to `$s3` - adding
+the fourth save slot and the 8 bytes of frame.
+
+So a frame that is one word short, together with one fewer `$s` load/store pair,
+is a live-range symptom: look for a pointer whose *source* assignment sits below
+a call the target has it above. Scheduling does not do this for you - sched1
+will not cross a `CALL_INSN`, so the RTL order is the source order.
+`func_actor_460200_8013311C` is the worked example (base_1 90.29% -> base_2
+100%, `regs` 32 -> 0).

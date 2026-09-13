@@ -27,6 +27,8 @@ typedef struct Actor460200Work {
     /* 0x4BA */ s16       field_4BA;
     /* 0x4BC */ byte      pad_4BC[0x30];
     /* 0x4EC */ u16       animArg;
+    /* 0x4EE */ s16       field_4EE;
+    /* 0x4F0 */ u16       field_4F0;
 } Actor460200Work;
 
 /// Argument block of the script opcode `func_actor_460200_80132B2C`
