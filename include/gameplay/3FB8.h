@@ -107,7 +107,8 @@ typedef struct _GpActorD4 {
     /* 0xC6 */ byte         pad_C6[6];
     /* 0xCC */ u8           field_CC;
     /* 0xCD */ u8           field_CD;
-    /* 0xCE */ byte         pad_CE[2];
+    /* 0xCE */ s8           field_CE; // path-table step index; `lb`/`sb`
+    /* 0xCF */ byte         pad_CF;
     /* 0xD0 */ s8           field_D0;
     /* 0xD1 */ byte         pad_D1[3];
 } GpActorD4;

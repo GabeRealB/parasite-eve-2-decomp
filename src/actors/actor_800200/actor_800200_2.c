@@ -4,7 +4,11 @@
 
 extern void func_8010ABD4();
 
+extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
+
 extern GpActorFuncTable4 D_actor_800200_80161EB8;
+
+extern GpActorPathStep D_actor_800200_8016A128[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80162750);
 
@@ -245,7 +249,27 @@ void func_actor_800200_8016599C(GpActorWork* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_801659CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165ACC);
+void func_actor_800200_80165ACC(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+
+    actor = arg0->actor;
+    coord = arg0->extra->field_8;
+    d4    = actor->field_910;
+    if (actor->field_960 == 0) {
+        actor->field_20 = D_actor_800200_8016A128[d4->field_CE].field_0;
+        actor->field_24 = coord->coord.t[1];
+        actor->field_28 = D_actor_800200_8016A128[d4->field_CE].field_4;
+        if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
+            d4->field_D0 = 1;
+            func_actor_800200_80165534(arg0);
+            return;
+        }
+        func_actor_800200_80165408(arg0, 6);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165B84);
 

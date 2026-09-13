@@ -6762,6 +6762,38 @@ s32 arg0;
 Keep the header declaration unprototyped too (`extern s32 SndBank_RemapId();`).
 `SndVoice_HasActiveId` → `SndBank_RemapId` is the reference.
 
+## A staged `(void)` stub taking `arg0`: unprototype the header, not the definition
+
+The other half of the entry above, and the commoner case for actor/room
+stubs. Splat seeds the header with `void f(void);` for a function still under
+`INCLUDE_ASM`, so it has no parameters there even though the real one takes the
+`Task*`/work pointer. Matching it as `void f(GpActorWork* arg0) { ... }` then
+fails to compile — either `conflicting types for 'f'` (if the definition is a
+prototype) or `too few arguments` at every bare `f()` call site, which the
+already-matched callers rely on:
+
+```
+jal   func_actor_800200_80165ACC
+nop                                   ← target passes no $a0 at all
+```
+
+Drop the `void` from the header — `void f();` is an old-style declaration, not a
+prototype, so it neither checks the argument count nor creates one. The
+definition keeps its ordinary prototype and every bare call site compiles
+unchanged and emits exactly the `jal` + `nop` above.
+
+Do **not** "fix" this by giving the header the real prototype: that is the error,
+not the cure. Where it compiles at all it makes GCC materialise the outgoing
+`$a0` at each call site (`move a0,s0` and friends), which the target does not
+have — the same mechanism as the `Gp_DispatchMsg` entry. A K&R *definition*
+(entry above) works too but is only needed when the definition itself must not
+be a prototype; here the definition is fine and only the declaration matters.
+
+`include/actors/actor_800200.h` already carried this for
+`func_actor_800200_8016599C()`; `func_actor_800200_80165ACC` is the worked
+example (matched 100% on the first typed attempt, 80.283% as the m2c seed, whose
+`M2C_ERROR` for the unset `$a0` had cost the whole `$s1` frame).
+
 ## `switch` for equality chains that branch *to* case bodies
 
 When the target does positive equality tests that jump *to* handlers
