@@ -69613,3 +69613,14 @@ Preprocessed SHA256:
 - `base.c` (89.0%, m2c): `cb3a0c05ea277fc5d3016d90e8285dcf0fd5b6cc67c2fd2b62ea0f3d462ba6a6`
 - `base_1.c` (100.000%): `d37273823c6906334d153ea160c718b8678fe7210331ae93931707ad88e93f9f`
 - `base_2.c` (100.000%, struct-typed, needs the `Actor105100Work` members `field_502`/`field_55C`/`field_596`/`field_598`/`field_5AA`/`field_5AC`/`field_5B4`/`field_5B6`/`field_5C2`): `0a16323da74cdf3ae1722254f7d40300cdf80a0fcfa800399620d93bd7ba8073`
+
+Second instance, `func_actor_105100_80135F50` (`base.c` 92.833%, `base_1.c`
+100%): the m2c `s16 temp_a0` gives `lh a1` for the tree plus `lhu a0` for the
+`sh` in the arm, and the redundant reload even takes the load-delay slot the
+target spends on a `nop` (`insert`/`delete` 1 each, `regs` 3). Retyping the
+local to `s32` -- no other change -- collapses both uses onto one `lh $a0`, so
+the same fix applies whether the arm stores the discriminant to an `s16` or a
+`u16` field. Preprocessed SHA256: `base.c`
+`45aeb1d3a174d1b441bccaf035a47688e2f38ef4ce5e47738462acde78f1e574`,
+`base_1.c` `42c84b768e2649d7381b5ff4fc3eb317a829a321c0bc2a3d536df15eb532e5f3`,
+`base_2.c` `e711465be38f4dee81cf257e10d005959db3631b02a6bb2e81607437cb8bebfa`.

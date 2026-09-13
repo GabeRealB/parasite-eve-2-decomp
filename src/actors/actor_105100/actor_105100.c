@@ -20,6 +20,7 @@ void func_actor_105100_80133134(Actor105100* arg0);
 void func_actor_105100_80133CE4(Actor105100* arg0);
 void func_actor_105100_80134130(Actor105100* arg0);
 void func_actor_105100_80135E54(Actor105100* arg0);
+void func_actor_105100_80135F50(Actor105100* arg0);
 void func_actor_105100_80136408(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
 
@@ -192,7 +193,36 @@ void func_actor_105100_80135DF8(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135E54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135F50);
+/// Second step of the `field_598` schedule: arms pose 2 with the `field_59A`
+/// timer at 0x3C frames, then, when the timer runs out, hands the pose back to
+/// the schedule entry step and returns it to 0.
+void func_actor_105100_80135F50(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    s32              state;
+    u16              timer;
+
+    work  = arg0->field_1C;
+    state = work->field_598;
+    switch (state) {
+        case 0:
+            work->field_58E = 2;
+            work->field_59A = 0x3C;
+            work->field_598 = 1;
+            break;
+        case 1:
+            timer           = work->field_59A - 1;
+            work->field_59A = timer;
+            if ((timer << 16) <= 0) {
+                work->field_5A8 = state;
+                work->field_58E = state;
+                work->field_596 = 0;
+                work->field_598 = 0;
+                work->field_59A = 0;
+            }
+            break;
+    }
+}
 
 void func_actor_105100_80135FCC(Actor105100* arg0)
 {
