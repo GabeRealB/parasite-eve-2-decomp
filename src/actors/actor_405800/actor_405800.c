@@ -10,7 +10,12 @@
 
 #include "actors/actor_405800.h"
 
+extern s32 Gp_LcgState;
+
 void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
+/* Unprototyped so the first jal keeps a nop delay slot; a0 still holds the task. */
+s32 func_actor_405800_80136A1C();
+s32 func_actor_405800_801373E0(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -224,7 +229,33 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135558);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801356A8);
+void func_actor_405800_801356A8(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    u16              count;
+    u32              rnd;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if (((func_actor_405800_80136A1C() << 0x10) == 0) && ((func_actor_405800_801373E0(arg0) << 0x10) == 0)) {
+        count           = (u16)work->field_882 - 1;
+        work->field_882 = count;
+        if ((count << 0x10) == 0) {
+            rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+            work->field_838 = ((rnd >> 0x10) & 0x3F) + 0x1E;
+            work2           = (Actor405800Work*)arg0->idMap;
+            Gp_LcgState     = rnd;
+            if (((s8)work2->field_895 >= 0) || ((work2->field_895 & 0x7F) != 1)) {
+                work2->field_895 = 0x81;
+                work2->field_896 = 0;
+            }
+            work3            = (Actor405800Work*)arg0->idMap;
+            work3->field_846 = 2;
+            work3->field_848 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135780);
 
