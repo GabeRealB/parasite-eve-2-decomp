@@ -20,7 +20,18 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A4BC
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A510);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A57C);
+void Actor00400_Fn0A57C(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    work->field_63C = 2;
+    work->field_632 = 0x10;
+    work->field_628 = 0x12;
+    work->field_624 = 1;
+    work->field_636 = 0;
+    work->field_63A++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A5B8);
 
