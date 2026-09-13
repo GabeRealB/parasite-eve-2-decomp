@@ -24,7 +24,27 @@ void func_actor_461800_80132C28(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132C74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132D04);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
+/// Reset argument this overlay forwards to every reseeded slot.
+extern s16 D_actor_461800_80139F58;
+
+/// Reseeds animation slots 1..0x13 from the current animation id and records
+/// that id as the one now playing.
+void func_actor_461800_80132D04(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        func_800B4114(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8, 0,
+                      D_actor_461800_80139F58);
+        i++;
+    } while (i < 0x14);
+    D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132D84);
 

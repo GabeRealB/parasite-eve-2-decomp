@@ -67895,6 +67895,53 @@ Example: `func_actor_461800_80132C28`, 86.26% -> 100.00% on the first build.
 Preprocessed SHA256: `base_1.i`
 `a822f08e0bcdf616b93b90f3b168aece5790fe9a259c7d825a3b70a738521105`.
 
+## m2c's duplicate counter local puts the loop's preheader copy in the wrong band
+
+The same do-while shape as above, but the counter is forwarded as `arg1` rather
+than fed to an indexed call, makes m2c split the counter into a *second* local
+and initialise it before the loop:
+
+```c
+var_s0 = 1;                    /* m2c */
+var_a1 = 1;
+do {
+    var_s0 += 1;
+    func_800B4114(&D->anim, var_a1, D->field_4B8, 0, K);
+    var_a1 = var_s0;
+} while (var_s0 < 0x14);
+```
+
+The body is otherwise identical, and only one instruction moves: the preheader
+`move a1,s0` lands in the **first band** (a source-level statement, so ahead of
+the prologue's `sw s2`), where the target has it last, after `sw ra`. That is a
+single `reorder`, 98.125% -> 100.00%. The target's copy is not a source local at
+all: `loop.c` rotates the loop, moves `a1 = i` past `i++` and pulls the initial
+value into the preheader as a compiler-derived insn, which lands in the last
+band. So the rule from "Where a preheader `move` sits relative to the hoisted
+invariants" applies here too -- read the band, not the loop -- and m2c's
+duplicated local is what puts it in the wrong one. Write the counter as a
+single local used directly:
+
+```c
+i = 1;
+do {
+    func_800B4114(&D->anim, i, D->field_4B8, 0, K);
+    i++;
+} while (i < 0x14);
+```
+
+The already-matched sibling is the fastest way to this: the body here is
+byte-for-byte `func_actor_143900_801325A4` at a different link address, so
+copying that source and swapping the two symbols matched on the first build
+with no dump work. (That body carries yet another copy in its own overlay,
+`func_actor_143900_80133144`, over a third work block -- `overlay_dup_index.py
+promote` refuses all of them: every copy reads its own overlay's work-block
+pointer, so no single object can serve them.)
+
+Example: `func_actor_461800_80132D04`, 98.125% -> 100.00% on the first build.
+Preprocessed SHA256: `base_1.i`
+`968c287d6cb67665dbd05454dceceaf0ef78a7537981759051dd9984b93f85da`.
+
 ### A stack-built two-entry handler table: m2c writes it as `(sp + idx*4)`, and the local array initializer is the fix
 
 m2c cannot see a stack array. A dispatcher that builds its handler table on the
