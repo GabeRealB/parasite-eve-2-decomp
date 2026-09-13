@@ -32,7 +32,9 @@ typedef struct Actor105500Work {
     /* 0x3A8 */ s16     field_3A8;
     /* 0x3AA */ byte    pad_3AA[6];
     /* 0x3B0 */ s16     field_3B0;
-    /* 0x3B2 */ byte    pad_3B2[0x20];
+    /* 0x3B2 */ byte    pad_3B2[0x16];
+    /* 0x3C8 */ s16     field_3C8;
+    /* 0x3CA */ byte    pad_3CA[8];
     /* 0x3D2 */ s16     field_3D2;
 } Actor105500Work;
 
@@ -55,9 +57,12 @@ extern Actor105500StateFuncTable3 Actor05500_D00038;
 typedef struct Actor105500Ctx {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[0xA];
+    /* 0x0A */ byte pad_A[6];
+    /* 0x10 */ s32  field_10;
     /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x37];
+    /* 0x15 */ byte pad_15[0x2B];
+    /* 0x40 */ s16  field_40;
+    /* 0x42 */ byte pad_42[0xA];
     /* 0x4C */ u8   field_4C;
 } Actor105500Ctx;
 

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actors_shared_fn03674.h"
 
 #include "actors/actor_102600.h"
 #include "actors/actors_shared_80134ff0.h"
@@ -6,7 +7,6 @@
 #include "actors/actors_shared_80135730.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void func_actor_102600_8013548C(Actor102600* arg0, Actor102600Obj2C* arg1, s32 arg2);
 void func_actor_102600_80131E8C(Actor102600* arg0);
 void func_actor_102600_80133EF4(Actor102600* arg0);
 void func_actor_102600_80134034(Actor102600* arg0);
@@ -69,7 +69,7 @@ case2:
     return;
 default_body:
     if (arg0->field_4C != 0) {
-        func_actor_102600_8013548C(arg1, obj, one);
+        ActorsSharedFn03674((Actor105500*)arg1, (Actor105500Obj2C*)obj, one);
     }
     func_actor_102600_80131E8C(arg1);
     ActorsShared801355a4((ActorShared801355a4*)arg1);
@@ -87,5 +87,3 @@ case1:
     ActorsShared80134ff0((ActorShared80134ff0*)arg1);
     func_actor_102600_801358E0(arg1);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_102600/actor_102600_2", func_actor_102600_8013548C);

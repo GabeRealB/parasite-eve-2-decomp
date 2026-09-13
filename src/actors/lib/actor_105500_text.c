@@ -133,7 +133,9 @@ case1:
     Actor05500_Fn03AC8(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03674);
+#define ActorsSharedFn03674 Actor05500_Fn03674
+#include "actors_shared_fn03674.c"
+#undef ActorsSharedFn03674
 
 void Actor05500_Fn0378C(Actor105500* arg0)
 {

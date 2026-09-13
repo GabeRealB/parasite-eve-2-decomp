@@ -10,7 +10,7 @@ void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void ActorsShared8014d378_Fn49E8C(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4BEF4(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4C034(ActorShared8014d378* arg0);
-void ActorsShared8014d378_Fn4D48C(ActorShared8014d378* arg0);
+void ActorsSharedFn03674(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4D7C4(ActorShared8014d378* arg0);
 void ActorsShared8014d378_Fn4D8E0(ActorShared8014d378* arg0);
 
@@ -52,7 +52,7 @@ case2:
     return;
 default_body:
     if (arg0->field_4C != 0) {
-        ActorsShared8014d378_Fn4D48C(arg1);
+        ActorsSharedFn03674(arg1);
     }
     ActorsShared8014d378_Fn49E8C(arg1);
     ActorsShared801355a4((ActorShared801355a4*)arg1);
