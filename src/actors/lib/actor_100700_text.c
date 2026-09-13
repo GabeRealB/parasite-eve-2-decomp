@@ -1177,7 +1177,52 @@ void Actor00700_Fn02414(Actor00700* arg0)
     SCRATCH_SP += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn0268C);
+void Actor00700_Fn0268C(Actor00700* arg0)
+{
+    Actor00700Work* work;
+    GsCOORDINATE2*  coord;
+    GsCOORDINATE2*  coord2;
+    SVECTOR*        sc;
+    s32             direction;
+    s32             direction2;
+    s32             product;
+    sc   = (SVECTOR*)(SCRATCH_SP -= 8);
+    work = arg0->field_1C;
+    if (++work->field_2E0 >= 16) {
+        work->field_2E0 = 0;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_2D4 = !(((u32)Gp_LcgState >> 16) & 1);
+    }
+    switch (work->field_2D4) {
+        case 0:
+            work->field_2D8 += 0x100;
+            if (work->field_2D8 >= 0x200) {
+                work->field_2D8 = -0x100;
+                direction       = work->field_2D6;
+                work->field_2D6 = -direction;
+            }
+            break;
+        case 1:
+            work->field_2D8 = 0x100;
+            direction2      = work->field_2D6;
+            work->field_2D6 = -direction2;
+            break;
+    }
+    sc->vx = 0;
+    sc->vy = 0;
+    sc->vz = work->field_2D8 * work->field_2D6;
+    coord  = arg0->field_2C->field_8;
+    RotMatrix(sc, &coord[2].coord);
+    coord[2].flg = 0;
+    sc->vx       = 0;
+    sc->vy       = 0;
+    product      = work->field_2D8 * work->field_2D6;
+    sc->vz       = -product;
+    coord2       = arg0->field_2C->field_8;
+    RotMatrix(sc, &coord2[3].coord);
+    coord2[3].flg = 0;
+    SCRATCH_SP   += 8;
+}
 
 void Actor00700_Fn02820(Actor00700* arg0)
 {

@@ -61787,3 +61787,10 @@ Preprocessed SHA256:
 - base_1: `c222954dca1cce3ad18a89b7bc7ffa64bc902ee88b8bccccbdd652dca7687cad`
 - base_2: `3f17b1d740bbd9685df78d2dfd4724bc18bff190d96373809518b3a1267dfd54`
 - base_3: `fd2af23eb5f65aef9ac5737f4502f74601891e64fa27b715969597d3e041adee`
+
+
+## Actor00700_Fn0268C: splitting twice-dead coordinate and direction locals restores local allocation
+
+GCC 2.8.1 compiler hash `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. A reused coordinate pointer had two deaths in one block and crossed two calls (`base_1.i.lreg` r82); global allocation put it in s1 and work in s0. The permuter introduced a fresh temporary at the second coordinate load. Each range then died once and local allocation placed both in s0, leaving work in s1. A planned direct split (`base_2.c`) reproduced the paired distance improvement 150 → 35, preserving topology and instruction count. A second planned split of case-specific direction variables changed a twice-dead global v1 value to separate local v0 values, preserving coordinate homes and reaching distance zero. Normal overlay headers retained the exact match.
+
+This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establish a new ranking or hazard rule. Paired source review found no changed values or memory ordering. Input hashes: base_1 `54c13514bd884bbdad45f0b4578ca4e42cafecdc941fecd6bcac8c1a9e39d02d`; base_2 `9ff704a817a14c1b5542e5fe0aa1831132e64a713700ea3fe85f92bec8513627`; base_3 `0d022f0896c3b350e4878c4938ecab681826acd7f36489a1a8e923b7f3ad266b`. Full observations and dumps are retained under `tools/permuter_findings/Actor00700_Fn0268C/`, session `a2fc32754bd943b5b3f0dec2721f4b20`.
