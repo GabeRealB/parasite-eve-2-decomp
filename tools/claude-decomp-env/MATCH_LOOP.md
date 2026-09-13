@@ -9,10 +9,15 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
    sections, where a raw grep returns hundreds of context-free lines ("delay slot"
    appears in 286 sections but only 16 titles). `--show N` prints the top N in full.
    Never read `DECOMPILATION_LEARNINGS.md` end-to-end; it is 1.3 MB.
+5. Scratch tools you probably have not tried: `./insn.py` (one insn across all
+   passes), `./summarize_dumps.py <file.i>` (short dump summary, and a diff
+   against the previous `base_N`), `./map_asm_to_c.py <obj> <line>` (object line
+   back to C), `python3 tools/check_regalloc_model.py <scratch>/*.i.lreg`
+   (how much of the allocation CODEGEN_MODEL.md §10 explains).
    Read `CODEGEN_MODEL.md` first — it is the short general model the corpus
    entries are instances of, and it settles most mismatches on its own.
 
-`build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`). At ≥90% it runs `./dump.sh` and prints a **NEXT:** line naming dump files. The printed summary is not enough — **open those files** (`base_N.i.lreg`, …) before the next C edit. You can also run `./dump.sh base_N.c` by hand.
+`build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`), and those uids are stable across every RTL pass. `./insn.py <uid>` walks one instruction through the passes and prints only the passes that *changed* it - start from a mismatching output line with `./insn.py --asm-line N`, or follow a pseudo with `./insn.py --reg N`. Reading nine dumps with `sed -n 'X,Yp'` to reconstruct that by hand is the slow way round. At ≥90% it runs `./dump.sh` and prints a **NEXT:** line naming dump files. The printed summary is not enough — **open those files** (`base_N.i.lreg`, …) before the next C edit. You can also run `./dump.sh base_N.c` by hand.
 
 | leftover | file | what to do |
 |---|---|---|
