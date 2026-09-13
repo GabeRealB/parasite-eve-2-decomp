@@ -71064,3 +71064,33 @@ Actor00100_Fn0B52C: `u16_field = -0x10U` expands to HI const_int 65520 and emits
 The router paired distance 5 to 0; isolated ordinary-header base_1 reproduced zero with the temporary declared after existing locals. Planned prediction confirmed .rtl UID 127 neg:SI, .cse UID 127 const_int -16, UID 129 HI store. .greg kept work/context/actor in s0/s1/s2; final instruction order matched. Port base_2 with named context fields also matched. Scope is this constant and store width, not arbitrary negations.
 
 Input SHA256 base_1.i: a7baf44cc3a0b32050a5973494a5201aa2180b2dcee0a16efe760d0b69da7cf1; base_2.i: 62da07d6132ba8edae1aea10b46e0d7917cc9deb7e1ce6a905f69a00b34b0942. Retained evidence: tools/permuter_findings/Actor00100_Fn0B52C/ (session 9b01f0737a3145e7a632350d736ab879), including controlled inputs, dumps and PERMUTER_ANALYSIS.md.
+
+
+## Actor00100_Fn01D74: HI copy propagation can change the loop-test operand
+
+An almost exact HI loop used `index = next;` followed by the signed loop test.
+The shift still read `next` r84 in `.sched`, but read `index` r83 in `.lreg`.
+Patched GCC 2.8.1 `local-alloc.c:optimize_reg_copy_1`, called by
+`update_equiv_regs`, replaces later uses of a copied source with its destination
+when the source dies later in the block. This is a pre-allocation copy rewrite,
+not an incorrect hard-register priority.
+
+A controlled read/write `SOFT_TOUCH_REG(next)` after the copy stopped the scan
+at the source redefinition. In base_5 `.lreg`, UID230 copies r84 to r83, UID232
+redefines r84 through the helper, and UID236 still shifts r84. Saved homes stayed
+unchanged and scratch distance went from 5 to zero. Widening next to SI also
+kept the shift source, but CSE reused the signed call-index temporary for the
+increment, killing the original carrier across calls and removing a saved
+register. Unsigned widening restored the homes but emitted extra `andi`s.
+These failed predictions constrain this instance; the helper is not claimed
+to solve every copy mismatch.
+
+The preceding permuter gain (distance 15 to 5) was independently isolated:
+a named integer byte offset changed initial RTL from plus(offset, work) to
+plus(work, offset). The offset copy disappeared while operand order survived.
+An unrelated address-of-field mutation in the search output was unnecessary.
+
+Inputs: base_2.i SHA256 `f3ba9aea01f7d80e1a2f00280d0e173fbf5a285449dd37b7e5e3c5f95c01697f`; base_5.i SHA256 `34154496fd97cb73fb3c4dcc9547ec09acb49320f7459040da4600026596c052`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence and controlled plans: `tools/permuter_findings/Actor00100_Fn01D74/`,
+retained PERMUTER_ANALYSIS.md and conclusion dumps. No tracer used.

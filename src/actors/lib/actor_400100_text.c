@@ -12,22 +12,6 @@
 #include "main/task.h"
 #include <psyq/inline_c.h>
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn001FC);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn00508);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn00A54);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn00BF8);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn00E58);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn01388);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn01900);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn01D74);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn01EEC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn02788);
