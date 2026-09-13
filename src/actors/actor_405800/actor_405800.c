@@ -812,7 +812,67 @@ void func_actor_405800_80134C00(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134E80);
+void func_actor_405800_80134E80(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    GsCOORDINATE2*   coord;
+    s32              id;
+    s32              sound;
+    s32              pan;
+    s32              y;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_842++;
+    if ((s16)work->field_842 < 0x11) {
+        func_actor_405800_80136A1C();
+        return;
+    }
+    if ((s16)work->field_842 == 0x11) {
+        work->field_85A      = 0;
+        work->field_88F      = 1;
+        work->obj_594.flags &= ~0x4000;
+    }
+    if ((u32)(work->field_842 - 0x11) < 4U) {
+        work->field_866 = (u16)work->field_866 + (-work->field_866 >> 1);
+    }
+    if ((s16)work->field_842 == 0x15) {
+        work->field_86A = -0x9C4;
+    }
+    if ((s16)work->field_842 >= 0x15) {
+        work->field_866 = (u16)work->field_866 + ((0xFF - work->field_866) >> 1);
+    }
+    y                  = coord->coord.t[1] + 0x190;
+    coord->coord.t[1] += ((s16)work->field_9A - y) >> 3;
+    work->field_80    += (0x800 - (s16)work->field_80) >> 3;
+    if ((s16)work->field_9A >= coord->coord.t[1]) {
+        work->field_866 = 0xFF;
+        id              = 0x40050003;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0003;
+        }
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->obj_594.flags |= 0x4000;
+        coord->coord.t[1]    = (s16)work->field_9A;
+        work->field_80       = 0;
+        work->field_84       = 0x800;
+        work->field_82      += 0x800;
+        Actor405800_RebuildRotation(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_84A = 2;
+        work2->field_850 = 0x10;
+        work2->field_872 = 0x19;
+        work2->field_86E = 1;
+        work->field_88F  = 0;
+        work->field_890  = 1;
+        work->field_848++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801351BC);
 

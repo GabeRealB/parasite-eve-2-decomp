@@ -745,6 +745,28 @@ scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
 two `idMap` reloads after the dispatcher call is 100%. This is the same
 "dies in 2 places" rule as the switch-arm scratch pointers, but inside one
 block split by a call rather than two `case`s.
+## Negative halfword store: `u16` emits `ori 0xF63C`, `s16` emits `addiu -0x9C4`
+
+`func_actor_405800_80134E80` is the `actor_400600` hop with an extra
+`field_866` window and `field_86A = -0x9C4` on frame 0x15. With `field_86A`
+typed `u16`, the store was the only leftover (99.976%, `regs=1`):
+
+```
+ori    v0, 0xF63C     /* ours */
+addiu  v0, -0x9C4     /* target */
+```
+
+Unsigned HImode converts the CONST_INT to `0xF63C` before `li` selection, so
+MIPS picks `ori`. Signed HImode keeps `-0x9C4` and picks `addiu`. The `sh`
+payload is identical; only the materialisation differs.
+
+The field is a signed height (seeded from Y, later passed as `s16` into
+`func_actor_405800_80132E3C`). The already-matched caller already loaded it
+with `lh`, so changing `Actor405800Work::field_86A` from `u16` to `s16`
+matched this function without disturbing the copies from `field_92`. Do not
+cast at the store: `work->field_86A = (s16)-0x9C4` still converts through
+the unsigned dest.
+
 ## Leaf `idMap` reloads need a memory clobber, and `ret=1` must stay above it
 
 `func_actor_405800_801373E0` is a leaf that still reloads `arg0->idMap` on

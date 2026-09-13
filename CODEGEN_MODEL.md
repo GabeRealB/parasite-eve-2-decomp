@@ -126,6 +126,14 @@ A signed halfword that is both compared as SI and stored into a `u16` field
 is two loads (`lh` + `lhu`) unless the value is first widened to `s32`. The
 HI copy of an `s16` local still wants `movhi`/`lhu` for the store; the SI
 temp lets `sh` truncate the same register the compares used.
+Store signedness is the same decision in the other direction. A negative
+16-bit constant stored to `s16` stays `CONST_INT -0x9C4` and emits
+`addiu $v0, $zero, -0x9C4`; the same assignment to `u16` converts the
+constant to `0xF63C` and emits `ori`. Type the field from a store that
+cannot be recast, then confirm every other reader still matches.
+`func_actor_405800_80134E80` needed `s16 field_86A` because the hop writes
+`-0x9C4`, and the existing `lh` at `func_actor_405800_80138698` already
+agreed.
 
 ---
 

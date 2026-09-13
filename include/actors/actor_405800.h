@@ -149,7 +149,7 @@ typedef struct Actor405800Work {
     /* 0x860 */ byte                pad_860[0x6];
     /* 0x866 */ s16                 field_866;
     /* 0x868 */ byte                pad_868[0x2];
-    /* 0x86A */ u16                 field_86A; // seeded from field_92
+    /* 0x86A */ s16                 field_86A; // seeded from field_92; set to -0x9C4 during the hop
     /* 0x86C */ byte                pad_86C[0x2];
     /* 0x86E */ s16                 field_86E; // animation request kind
     /* 0x870 */ s16                 field_870; // animation id now playing
