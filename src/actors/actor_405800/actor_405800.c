@@ -486,7 +486,51 @@ void func_actor_405800_801348E4(Task* arg0)
     work->field_848++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134A64);
+void func_actor_405800_80134A64(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    GsCOORDINATE2*   coord;
+    s32              y;
+    s32              id;
+    s32              sound;
+    s32              pan;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_842++;
+    if ((s16)work->field_842 < 0x11) {
+        func_actor_405800_80136A1C(arg0);
+        return;
+    }
+    if ((s16)work->field_842 == 0x11) {
+        work->field_85A = 0;
+        work->field_88F = 1;
+    }
+    coord->coord.t[0] += ((s16)work->field_98 - coord->coord.t[0]) >> 4;
+    coord->coord.t[2] += ((s16)work->field_9C - coord->coord.t[2]) >> 4;
+    work->field_84C   += 6;
+    work->field_84E   += work->field_84C;
+    y                  = coord->coord.t[1] + work->field_84E;
+    coord->coord.t[1]  = y;
+    if (y >= (s16)work->field_92) {
+        coord->coord.t[1] = (s16)work->field_92;
+        id                = 0x40050003;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0003;
+        }
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_84A = 2;
+        work2->field_872 = 0x19;
+        work2->field_850 = 0x10;
+        work2->field_86E = 1;
+        work->field_88F  = 0;
+        work->field_848++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134C00);
 
