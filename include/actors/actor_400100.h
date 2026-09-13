@@ -6,14 +6,17 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/tmd.h"
+#include "main/session.h"
 
 /// 0x98-byte object embedded four times in `Actor00100Work` at 0x908. The
 /// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;
 /// `flags` is that node's flag halfword.
 typedef struct Actor00100Obj {
-    /* 0x00 */ byte pad_0[0x1E];
-    /* 0x1E */ u16  flags;
-    /* 0x20 */ byte pad_20[0x78];
+    /* 0x00 */ byte    pad_0[0x1C];
+    /* 0x1C */ u16     field_1C;
+    /* 0x1E */ u16     flags;
+    /* 0x20 */ GpRec18 field_20;
+    /* 0x38 */ byte    pad_38[0x60];
 } Actor00100Obj;
 STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
 
@@ -22,7 +25,17 @@ typedef struct Actor00100Work {
     /* 0x002 */ byte          pad_2[2];
     /* 0x004 */ s16           field_4;
     /* 0x006 */ s16           field_6;
-    /* 0x008 */ byte          pad_8[0x890];
+    /* 0x008 */ byte          pad_8[0x60];
+    /* 0x068 */ u16           field_68;
+    /* 0x06A */ byte          pad_6A[0x7BE];
+    /* 0x828 */ u16           field_828;
+    /* 0x82A */ u16           field_82A;
+    /* 0x82C */ byte          pad_82C[2];
+    /* 0x82E */ u16           field_82E;
+    /* 0x830 */ byte          pad_830[2];
+    /* 0x832 */ u16           field_832;
+    /* 0x834 */ u16           field_834;
+    /* 0x836 */ byte          pad_836[0x62];
     /* 0x898 */ SVECTOR       field_898;
     /* 0x8A0 */ byte          pad_8A0[8];
     /* 0x8A8 */ SVECTOR       field_8A8;
@@ -64,6 +77,9 @@ typedef struct Actor00100MtxScratch {
 STATIC_ASSERT_SIZEOF(Actor00100MtxScratch, 0x34);
 
 void Actor00100_Fn04270(Actor00100* argx);
+void Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
+void Actor00100_Fn02788(Actor00100* arg0);
+void Actor00100_Fn0B658(Actor00100* arg0);
 s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
 
 #endif

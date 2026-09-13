@@ -71020,3 +71020,38 @@ covers both "searched and found nothing" and "never searched", and only the
 report distinguishes them. Drop the include when no `M2C_` macro remains, or
 keep a portable copy as a separate highest-scoring seed so the router has
 something it can build.
+
+## A short destination can narrow a masked word load during initial RTL expansion
+
+Actor00100_Fn0B658: `if (work->flags32 & 0x100)` emits a word load, but
+`s16 flags = work->flags32 & 0x100; if (flags)` emits a halfword load.
+The isolated base_2 experiment retained the u32 member and changed only the
+final masked destination; it reproduced the permuter exact match (96.296% -> 100%).
+The masked value is always 0 or 256, so narrowing preserves its value.
+
+In base `.rtl`, UID 105 is MEM:SI at offset 104; base_2 UID 105 is already
+MEM:HI, followed by AND 256. `.greg` retains actor r80=s1 and work r82=s0;
+final ordering is unchanged. Thus the decisive boundary is initial expansion,
+not combine or allocation. The permuter initial-state temporary reuse and
+if(1) wrapper were unnecessary. A direct u16 member (base_1 and final base_3)
+also matches and is the clearer layout for this target. This observation is
+limited to this nonvolatile masked load; it is not a universal narrowing rule.
+
+Evidence and plan-before-build prediction: tools/permuter_findings/Actor00100_Fn0B658/
+retains PERMUTER_ANALYSIS.md, compiler fingerprints, inputs and dumps.
+## Preprocessed input SHA256
+- `base.i`: `1c1d8ab2a72730370f7c58efcc28fbc9113c772537ed5e1ebb92c3e060fabb9a`
+- `base_perm_b6fc031220224c34_parent.i`: `1c1d8ab2a72730370f7c58efcc28fbc9113c772537ed5e1ebb92c3e060fabb9a`
+- `base_perm_b6fc031220224c34.i`: `172560290458647c2e4c47f43f205bb7dacf6dbff499b5e53921eb347ca12fc4`
+- `base_1.i`: `9b3f057e0da5c59567631e4e811f0ccbd84ec39ad65ac35873c575852b4cce1f`
+- `base_2.i`: `f2a247ec8d845cc3615b60ab9fb78d4bdab19ca05cf99005f60693e3d39439a8`
+- `base_3.i`: `5ad2157ac27ccbd9cfe55dad6c3d8c471a67c80c5606fcf033adf092fc7f4558`
+
+## Conclusion: supported
+
+Isolated final s16 masked destination reproduces HI load during initial RTL and exact score; direct u16 field port also exact
+
+Next: full integration verification; no remaining codegen mismatch
+
+- `PERMUTER_ANALYSIS.md`
+- `PERMUTER_EVIDENCE/b6fc031220224c34/manifest.json`
