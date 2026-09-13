@@ -11,6 +11,10 @@
 /// retires the actor, plus the area-record list that handler applies.
 extern GpAreaApplyRec D_8018590C;
 
+/// The pair table the beam's collision object carries at `GpObj.field_18`
+/// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
+extern GpU16Pair D_actor_206100_80155194;
+
 /// Placement records `func_actor_206100_8014EE2C` parks at `GpEnemy::field_3C`
 /// -- the same slot `Gp_SpawnArea` fills from a room's own place list, so this
 /// is a local six-entry copy of one: `field_0` is 4 on the five live entries
@@ -68,5 +72,43 @@ typedef struct Actor206100Work {
     /* 0x557 */ byte  pad_557[0x1];
 } Actor206100Work;
 STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
+
+/// Work block of the beam task `func_actor_206100_8014C458` spawns off
+/// `D_actor_206100_80158B0C` when `Actor206100Work::field_555` is set: it
+/// `Mem_Calloc(0x68, 0)`s one and parks it in the child's `Task::idMap`, the
+/// same reuse `Actor206100Work` makes of the parent's slot.
+///
+/// `obj` is the kind-1 `GpObj` the spawn state `func_actor_206100_8014EEC0`
+/// links into the collision list and `func_actor_206100_8014FBE4` unlinks
+/// again on retirement, so the 0x8 before it is not the node's own header and
+/// stays zero.  `rec` is the two-entry `GpRec18` table `obj.field_C` points at.
+/// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
+/// stores from the actor's coordinate, `field_60` the pair index the setup
+/// hands to `func_actor_206100_8014A70C`, and `field_64` the scale word it
+/// biases by 0x10002000.  The tick handler `func_actor_206100_8014B8B4`
+/// advances `field_5A` and adds `field_58` into the coordinate's `t[1]`.
+typedef struct Actor206100ChildWork {
+    /* 0x00 */ byte    pad_0[0x8];
+    /* 0x08 */ GpObj   obj;
+    /* 0x28 */ GpRec18 rec[2];
+    /* 0x58 */ s16     field_58;
+    /* 0x5A */ s16     field_5A;
+    /* 0x5C */ s16     field_5C;
+    /* 0x5E */ byte    pad_5E[0x2];
+    /* 0x60 */ s32     field_60;
+    /* 0x64 */ s32     field_64;
+} Actor206100ChildWork;
+STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
+
+/// Builds the child beam's collision state: links its `GpObj` and initializes
+/// the coordinate the beam is drawn at. `task` is the child spawned by
+/// `func_actor_206100_8014C458`, so its `Task::idMap` is the
+/// `Actor206100ChildWork` above.
+void func_actor_206100_8014EEC0(Task* task);
+
+/// Moves the beam described by `coord` for one frame. `arg1` is
+/// `Actor206100ChildWork::field_60` (the `GpU16Pair` index) and `arg3` the
+/// biased `field_64` scale word.
+void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, s32 arg2, s32 arg3);
 
 #endif

@@ -106,4 +106,32 @@ GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
     return NULL;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EEC0);
+void func_actor_206100_8014EEC0(Task* task)
+{
+    Actor206100ChildWork* child;
+    GpRec18*              rec;
+    GsCOORDINATE2*        coord;
+
+    child               = (Actor206100ChildWork*)task->idMap;
+    coord               = ((TmdObject*)task->extra)->field_8;
+    task->killCountdown = 0;
+    child->field_64     = 0x100;
+    child->field_60     = 0;
+    coord->sub          = &Gfx_ViewCoord;
+    coord->flg          = 0;
+    child->obj.field_18 = Gp_PackPair(&D_actor_206100_80155194, 0);
+    child->obj.field_8  = ((TmdObject*)task->extra)->field_8;
+    rec                 = child->rec;
+    child->obj.field_C  = rec;
+    child->obj.field_10 = 0;
+    child->obj.field_12 = 0;
+    child->obj.field_14 = 0;
+    child->obj.field_1C = 0x140;
+    child->obj.flags    = 1;
+    Gp_LinkObj(3, &child->obj);
+    Gp_InitRec18Table(rec, 2, 0);
+    child->obj.flags |= 0xC000;
+    Gp_UpdateCoord(coord);
+    func_actor_206100_8014A70C(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
+    task->state++;
+}
