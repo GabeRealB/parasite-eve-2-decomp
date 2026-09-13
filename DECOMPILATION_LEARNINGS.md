@@ -39250,6 +39250,16 @@ Read a suspicious whole-immediate as `n * sizeof(base type)` before touching the
 C: `0x22E0 / 8 = 0x45C`. Function
 `func_actor_510900_8013C0E4 1 attempt, base_1.c 100.00%`.
 
+The handler next door, `func_actor_510900_8013BFE4`, is that body exactly - same
+work-block pair, same `field_C = 0x80`, same `task->state = 1` - except its
+`addiu` on `TmdObject::field_8` is `0x280`, i.e. `field_8[8]`, where the sibling
+has `field_8[3]` / `0xF0`. So a matched sibling one immediate away is a reason to
+recompute that immediate for *this* target (`0x280 / 0x50 = 8`), not to copy the
+sibling's index: pasting the sibling body scores 99.5% with a `regs` penalty of
+2 and a diff of two `addiu`s, which reads like an allocation problem and is not.
+The index is the actor's part number in the parent's coord array, so it differs
+per handler. `func_actor_510900_8013BFE4 1 attempt, base_1.c 100.00%`.
+
 ## Diff the whole object, not your functions: a retyped global rescales old code
 
 A typing pass on `actor_403100` gave the overlay's work-block global its real
