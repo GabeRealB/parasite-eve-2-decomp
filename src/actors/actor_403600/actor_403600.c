@@ -1640,7 +1640,176 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return Tmd_StreamHandler_Op38(arg0, arg1, stream);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138004);
+u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    CVECTOR          color;
+    SVECTOR          local;
+    u8*              head;
+    u8*              scratch;
+    register MATRIX* saved asm("s1");
+    register MATRIX* transposed asm("s0");
+    MATRIX*          active;
+    u32*             stream;
+    u16*             record;
+    u8*              verts;
+    u8*              norms;
+    u8*              coord;
+    u8*              local_stack;
+    u8*              local_addr;
+    register u8*     color_ds asm("s2");
+    POLY_GT4*        poly;
+    s32*             flg;
+    register s32*    opz asm("t3");
+    u32              clip_mask;
+    u32              mask;
+    u32              ds_high;
+    s32              i;
+    s32              offset;
+    register u8*     index asm("a0");
+    register u8*     clamp asm("a1");
+
+    __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
+    if (D_actor_403600_801606A0 != NULL) {
+        poly    = (POLY_GT4*)arg0->field_0;
+        color   = D_actor_403600_80131E34;
+        head    = *(u8**)0x1F8003FC;
+        scratch = (*(u8**)0x1F8003FC = head - 0x88);
+        gte_sttr(scratch);
+        saved = (MATRIX*)(head - 0x40);
+        gte_ReadRotMatrix(saved);
+        transposed = (MATRIX*)(head - 0x20);
+        TransposeMatrix((MATRIX*)(D_actor_403600_801606A0 + 0x24), transposed);
+
+        coord = (u8*)D_actor_403600_801606A0;
+        SOFT_BARRIER();
+        *(s16*)(scratch + 0x10) = *(u16*)(head - 0x88) - *(u16*)(coord + 0x38);
+        *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
+        *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
+
+        SOFT_BARRIER();
+        local_stack = (u8*)&local;
+        local_addr  = head - 0x78;
+        local       = *(SVECTOR*)local_addr;
+        gte_SetRotMatrix(transposed);
+        gte_ldv0(local_stack);
+        gte_mvmva_10030();
+        gte_stsv(local_addr);
+
+        gte_SetRotMatrix(transposed);
+        gte_ldclmv(saved);
+        gte_rtir_real();
+        gte_stclmv(transposed);
+        gte_ldclmv(head - 0x3E);
+        gte_rtir_real();
+        gte_stclmv((u8*)transposed + 2);
+        gte_ldclmv(head - 0x3C);
+        gte_rtir_real();
+        gte_stclmv((u8*)transposed + 4);
+
+        *(s32*)(scratch + 0x7C) = *(s16*)(scratch + 0x10);
+        *(s32*)(scratch + 0x80) = *(s16*)(scratch + 0x12);
+        *(s32*)(scratch + 0x84) = *(s16*)(scratch + 0x14);
+        color_ds                = (u8*)&color;
+        gte_ldrgb(color_ds);
+        if (arg0->field_1C-- > 0) {
+            active = transposed;
+            SOFT_USE_REG(head);
+            flg       = &arg0->field_24;
+            clip_mask = 0x80000000;
+            opz       = &arg0->field_28;
+            __asm__("lui %0,%%hi(Display_State)" : "=r"(ds_high));
+            __asm__("addiu %0,%1,%%lo(Display_State)" : "=&r"(color_ds) : "r"(ds_high));
+            mask = 0xFFFFFF;
+            SOFT_TOUCH_REG(mask);
+            saved = (MATRIX*)0xFF000000;
+            do {
+                record = (u16*)stream;
+                gte_SetTransMatrix(active);
+                gte_SetRotMatrix(active);
+                i                       = 0;
+                clamp                   = scratch;
+                *(s32*)(scratch + 0x38) = record[0] >> 3;
+                offset                  = 0x18;
+                *(s32*)(scratch + 0x3C) = record[1] >> 3;
+                *(s32*)(scratch + 0x40) = record[2] >> 3;
+                *(s32*)(scratch + 0x44) = record[3] >> 3;
+                __asm__("move %0,%1" : "=r"(index) : "r"(scratch));
+                do {
+                    verts = (u8*)arg0->field_8;
+                    gte_ldv0(verts + (*(s32*)(index + 0x38) << 3));
+                    gte_mvmva_10000();
+                    gte_stsv(scratch + offset);
+                    if (*(s16*)(clamp + 0x1A) > 0) {
+                        *(s16*)(clamp + 0x1A) = 0;
+                    }
+                    SOFT_TOUCH_REG(clamp);
+                    clamp  += 8;
+                    offset += 8;
+                    i++;
+                    index += 4;
+                } while (i < 4);
+
+                gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                index = scratch + 0x18;
+                gte_ldv3(index, scratch + 0x20, scratch + 0x28);
+                gte_rtpt_real();
+                gte_stflg(flg);
+                if (!(arg0->field_24 & clip_mask)) {
+                    gte_nclip_real();
+                    gte_stopz(opz);
+                    gte_stsxy3_gt4(poly);
+                    gte_ldv0(scratch + 0x30);
+                    gte_rtps_real();
+                    gte_stflg(flg);
+                    if (!(arg0->field_24 & clip_mask)) {
+                        if (arg0->field_28 > 0) {
+                            goto draw;
+                        }
+                        gte_nclip_real();
+                        gte_stopz(opz);
+                        if (arg0->field_28 < 0) {
+                        draw:
+                            gte_stsxy2(&poly->x3);
+                            gte_avsz4_real();
+                            norms = (u8*)arg0->field_C;
+                            gte_ldv3(norms + (record[4] & 0xFFF8),
+                                     norms + (record[5] & 0xFFF8),
+                                     norms + (record[6] & 0xFFF8));
+                            gte_ncct_real();
+                            gte_strgb3_gt4(poly);
+                            gte_ldv0((u8*)arg0->field_C + (record[7] & 0xFFF8));
+                            gte_nccs_real();
+                            gte_strgb(&poly->r3);
+                            setlen(poly, 12);
+                            setcode(poly, 0x3C);
+                            gte_stotz(opz);
+                            poly->tag = (poly->tag & (u32)saved) |
+                                        (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->field_128) >> 2) &
+                                                     0xFFC) +
+                                                    (s32)arg0->field_14) &
+                                         mask);
+                            *(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->field_128) >> 2) & 0xFFC) +
+                                       (s32)arg0->field_14) =
+                                (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->field_128) >> 2) & 0xFFC) +
+                                            (s32)arg0->field_14) &
+                                 (u32)saved) |
+                                ((u32)poly & mask);
+                        }
+                    }
+                }
+                poly++;
+                stream += arg0->field_18;
+            } while (arg0->field_1C-- > 0);
+        }
+        arg0->field_0 = (u8*)poly;
+        gte_SetTransVector(scratch);
+        gte_SetRotMatrix(scratch + 0x48);
+        *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x88;
+        return stream;
+    }
+    return Tmd_StreamHandler_Op78(arg0, arg1, stream);
+}
 
 u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
