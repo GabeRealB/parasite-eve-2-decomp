@@ -59378,6 +59378,16 @@ passes a stack block by address, is this. Count the target's stores into the
 frame against the locals in the C: if the C declares N scalars and the target
 writes N slots but the build writes one, the block needs to be one object.
 
+The same cause also has a **minimal, one-store form that does not move the
+frame**. `func_actor_560800_801362E0` fills only `msg.field_2` of a 4-byte
+payload, so m2c's `s16 sp12` is a local written and never read while the
+address it passes, `&sp10`, belongs to a *different* local. The score is
+`stack=0 branch=0 regs=0 reorder=0 insert=0 delete=1` at 93.33% - a single
+instruction short, the `sh` gone, `stack_accesses` 2 against the target's 3, and
+the frame identical. A clean frame with one missing store is still this cause
+and not a pass artifact: write `Actor560800Msg msg; msg.field_2 = arg0;` and the
+missing store returns with no other change.
+
 ## Comparing a `u8` global against a constant gives `sltiu`; an `s32` local gives `slti`
 
 `func_actor_503500_80145428` guards its body with `D_801153F4` (a `u8` global)

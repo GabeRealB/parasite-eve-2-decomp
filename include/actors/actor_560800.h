@@ -19,10 +19,10 @@
 /// 0x40/0x42 with the same (value, 0) shape this unit uses for 0x58/0x5A, and
 /// `func_actor_560800_80136818` sets 0x64.
 ///
-/// `field_24` is a `Gp_DispatchMsg` target, not a flag, and so are the 0x1C and
-/// 0x20 slots still inside `pad_18`: `func_actor_560800_80133540` sends the
-/// message its switch picks to 0x1C/0x20/0x24, and `func_actor_560800_8013631C`
-/// sends 0x7DB to `field_24`.
+/// The three pointer slots at 0x1C/0x20/0x24 are `Gp_DispatchMsg` targets, not
+/// flags: `func_actor_560800_80133540` sends the message its switch picks to
+/// one of them, `func_actor_560800_8013631C` sends 0x7DB to `field_24`, and
+/// `func_actor_560800_801362E0` sends 0x7DB to `field_20`.
 typedef struct Actor560800Work {
     /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3)
     /* 0x04 */ Task* field_4;
@@ -30,7 +30,9 @@ typedef struct Actor560800Work {
     /* 0x0C */ byte  pad_C[4];
     /* 0x10 */ Task* field_10;
     /* 0x14 */ Task* field_14;
-    /* 0x18 */ byte  pad_18[0xC];
+    /* 0x18 */ byte  pad_18[4];
+    /* 0x1C */ Task* field_1C;
+    /* 0x20 */ Task* field_20;
     /* 0x24 */ Task* field_24;
     /* 0x28 */ s16   field_28;
     /* 0x2A */ s16   field_2A;

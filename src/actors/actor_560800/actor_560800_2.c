@@ -12,7 +12,14 @@ void func_actor_560800_801362B0(s32 arg0)
     Task_SpawnFromTable(&ActorsShared80136280Desc, 3, arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801362E0);
+void func_actor_560800_801362E0(s16 arg0)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Msg   msg;
+
+    msg.field_2 = arg0;
+    Gp_DispatchMsg(work->field_20, 0x7DB, (s32)&msg, 0);
+}
 
 void func_actor_560800_8013631C(s16 arg0)
 {
