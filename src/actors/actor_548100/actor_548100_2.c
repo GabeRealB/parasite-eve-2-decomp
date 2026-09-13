@@ -9,6 +9,9 @@ extern u8 D_actor_548100_80135885;
 extern u8 D_actor_548100_80135886;
 
 void func_actor_548100_80133684(Actor548100Edge* edge);
+void func_actor_548100_80132A14(Task* arg0);
+void func_actor_548100_80132EA0(Task* arg0);
+void func_actor_548100_801330EC(void);
 
 s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
 {
@@ -25,7 +28,16 @@ s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_801347F8);
+void func_actor_548100_801347F8(Task* arg0)
+{
+    TaskFuncTable11 fns;
+
+    fns = D_actor_548100_80131E6C;
+    fns.funcs[arg0->state](arg0);
+    func_actor_548100_801330EC();
+    func_actor_548100_80132EA0(arg0);
+    func_actor_548100_80132A14(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_801348A4);
 

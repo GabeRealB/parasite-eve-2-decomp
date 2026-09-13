@@ -87,4 +87,13 @@ STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
 
 extern Actor548100Edge D_actor_548100_801351D0[];
 
+/// State table of the actor's `Task::callback`, `func_actor_548100_801347F8`:
+/// eleven `TaskFunc` entries, one per `Task::state`, which that body copies
+/// onto its stack before indexing. Entry 0 is the spawner
+/// `func_actor_548100_80132420`, 2 the spawner `func_actor_548100_80132550`,
+/// 4 the `step` switch `func_actor_548100_80132684` and 9 the ramp driver
+/// `func_actor_548100_80134FEC`; several of the rest are
+/// `ActorsShared` bodies shared with the sibling actors.
+extern TaskFuncTable11 D_actor_548100_80131E6C;
+
 #endif
