@@ -68872,3 +68872,72 @@ from 97.4% to 100% with all-zero penalties, including the preheader ordering
 (`li a2,2` / `li a1,1` before `addiu v1,a0,8`) that the m2c `do`/`while` seed had
 reversed. This is the `addiu` form of the `sra`-off-by-`log2(sizeof *ptr)` trap
 noted above: same untyped-offset cause, different opcode.
+
+## Write a struct store *before* the loads it shares a base with, or it inherits their priority
+
+**Problem.** `func_actor_548100_80132808` seeds a ramp: two halfword stores to
+`work->field_8` / `field_C`, then four byte reads of one global pointer that
+each feed a byte store. The target interleaves them — `lw %lo(D)(s2)`, the two
+`sh`, then `lbu` / `sb` pairs. Writing the stores last (the natural C order, the
+m2c order, and what the reads' values suggest) puts both `sh` *after* all six
+loads and byte stores; the block then differs in `regs`, plus 5 `insert` and 5
+`delete` downstream of it. No statement permutation inside the arms recovers it.
+
+**Cause.** Two sched.c rules, both about the *order the insns are analysed in*.
+
+1. `priority(insn) = max(1, max over LOG_LINKS x of priority(x) +
+   insn_cost(x, link, insn) - 1)`, with `insn_cost` 2 when the predecessor is a
+   load whose result is used (load-delay modelling) and 1 otherwise. A store
+   that is analysed while a read of the same base is still pending takes an
+   ANTI dependence on it and inherits its priority — here about 8, so it cannot
+   be scheduled early.
+2. `true_dependence` / `anti_dependence` in the psx patch carry an exemption
+   (clause 1 of the first, clause 2 of the second — the roles are swapped
+   because one is handed the store as `mem` and the other as `x`): when the
+   *store* is a non-QImode struct member at a varying address and the *other*
+   access is non-struct and non-varying, no edge is created. A symbol-based
+   `lw %lo(D)(s2)` is non-varying, so a preceding struct `sh` is exempt from
+   it. A register-based `lbu` is varying, and a QImode store can never satisfy
+   the clause at all, so an `lbu` **always** keeps a TRUE dependence on a
+   preceding store.
+
+Written first, the `sh` pair has no pending read to take an ANTI dependence from
+at all (priority 1), and the `lw` that follows is then exempt from those stores
+by `true_dependence` clause 1, so it is priority 1 too, while the `lbu`s keep
+their edge (priority 2 → their `sb` 3). The emitted order is exactly the
+target's, with the `sh` pair filling the first `lw`'s delay slot and the last
+`sb` sitting before the `j` so `.jump2` cannot merge it.
+
+**Fix.** Emit the struct stores first in each arm, even though the values they
+receive are computed above and the byte reads are "closer" to the loads:
+
+```c
+if (distB < distA) {
+    work->field_8  = distA;        /* these two first: */
+    work->field_C  = distB;        /* no pending read -> priority 1 */
+    work->farFrom  = route->leg[0].nodeA;
+    work->nearFrom = route->leg[1].nodeA;
+    work->farTo    = route->leg[0].nodeB;
+    work->nearTo   = route->leg[1].nodeB;
+} else { ... }
+```
+
+`base_3.c` 91.336% → `base_4.c` 100.000%, all six penalties zero, and the
+callee-saved homes (`$s0`/`$s1`/`$s2`) fell out with no pins.
+
+The order alone is not enough — the store must also be a struct member, which is
+the same `MEM_IN_STRUCT_P` rule as "A bare `extern u8 G;` load hoists above
+struct stores". All four combinations were built:
+
+| work stores written as | stores last | stores first |
+|---|---|---|
+| `M2C_FIELD(work, s16 *, 8)` | 90.121% | 94.187% |
+| `work->field_8` | 91.336% | **100.000%** |
+
+The same bytes through `M2C_FIELD` leave the flag clear, so the exemption's
+`! MEM_IN_STRUCT_P (x)` fails and each `sh` keeps the ANTI edge from the pending
+`lw` — 94.2% and a `regs=31` residue is the ceiling there, however the
+statements are arranged.
+
+Read the direction off `.sched`: an insn whose `priority` equals a pending
+load's is inheriting it, and it is the *store*, not the load, that has to move.

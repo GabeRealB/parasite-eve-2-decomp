@@ -1,8 +1,16 @@
 #include "common.h"
 
-#include "main/display.h"
-
 #include "actors/actor_548100.h"
+
+#include "gameplay/268.h"
+#include "gameplay/3CD8.h"
+#include "main/display.h"
+#include "main/gameflag.h"
+#include "main/sound.h"
+#include "main/task.h"
+
+void func_actor_548100_801330EC(void);
+s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E20);
 
@@ -20,7 +28,56 @@ INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132684);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132808);
+/// Player pressed the action button on this actor's map marker with the marker
+/// route done: record the route leg the ramp runs along and hand the actor on to
+/// state 9.
+void func_actor_548100_80132808(Task* arg0)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    s32              distA;
+    s32              distB;
+
+    if (Gp_CapBusy() == 0) {
+        if (Gp_GetCapEventKey() == 0xB) {
+            if (GameFlag_GetNibble(0x110) != 0) {
+                Gp_SetItemSeenBit(0x120, 1);
+                Gp_SetItemSeenBit(0x12C, 1);
+            }
+            SndEvt_EnqueueType6(0x54060009, 0, 0);
+            SndEvt_EnqueueType6(0x5406000A, 0, 0);
+            GameFlag_SetNibble(0xC3, 1);
+            arg0->state = 9;
+            func_actor_548100_801330EC();
+            work->field_10 = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].nodeA, D_actor_548100_80135B4C->leg[2].nodeB);
+            distA          = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[0].nodeA, D_actor_548100_80135B4C->leg[0].nodeB);
+            distB          = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[1].nodeA, D_actor_548100_80135B4C->leg[1].nodeB);
+            if (distB < distA) {
+                work->field_8  = distA;
+                work->field_C  = distB;
+                work->farFrom  = D_actor_548100_80135B4C->leg[0].nodeA;
+                work->nearFrom = D_actor_548100_80135B4C->leg[1].nodeA;
+                work->farTo    = D_actor_548100_80135B4C->leg[0].nodeB;
+                work->nearTo   = D_actor_548100_80135B4C->leg[1].nodeB;
+            } else {
+                work->field_8  = distB;
+                work->field_C  = distA;
+                work->farFrom  = D_actor_548100_80135B4C->leg[1].nodeA;
+                work->nearFrom = D_actor_548100_80135B4C->leg[0].nodeA;
+                work->farTo    = D_actor_548100_80135B4C->leg[1].nodeB;
+                work->nearTo   = D_actor_548100_80135B4C->leg[0].nodeB;
+            }
+            work->field_A  = 0;
+            work->field_E  = 0;
+            work->field_12 = 0;
+            return;
+        }
+        if (Gp_GetCapEventKey() == 0x15) {
+            SndEvt_EnqueueType6(0x54060009, 0, 0);
+            GameFlag_SetNibble(0xC3, 0);
+        }
+        arg0->state = 2;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132A14);
 

@@ -26,8 +26,12 @@
 /// period, `field_A` the elapsed counter it advances by 4 and clamps to
 /// `field_8`, `field_C` the value that period ramps to, `field_E` the
 /// interpolated result `field_C * field_A / field_8`, and `field_10` / `field_12`
-/// a second period/elapsed pair on the same shape. The names stop at the last
-/// field those bodies reach; the block is 0x18 bytes in full.
+/// a second period/elapsed pair on the same shape. `func_actor_548100_80132808`
+/// seeds that ramp from a route record (`Actor548100Route`): `field_8` becomes
+/// the farther of the record's first two legs' distances and `field_C` the
+/// nearer one, so the pair is also what names 0x14-0x17 -- `farFrom` / `farTo`
+/// the node ids of the leg `field_8` measures, `nearFrom` / `nearTo` those of
+/// `field_C`. The block is 0x18 bytes in full.
 typedef struct Actor548100Work {
     /* 0x00 */ byte pad_0[0x2];
     /* 0x02 */ s16  step;
@@ -40,9 +44,55 @@ typedef struct Actor548100Work {
     /* 0x0E */ s16  field_E;
     /* 0x10 */ s16  field_10;
     /* 0x12 */ s16  field_12;
-    /* 0x14 */ byte pad_14[0x4];
+    /* 0x14 */ u8   farFrom;
+    /* 0x15 */ u8   farTo;
+    /* 0x16 */ u8   nearFrom;
+    /* 0x17 */ u8   nearTo;
 } Actor548100Work;
 STATIC_ASSERT_SIZEOF(Actor548100Work, 0x18);
+
+/// One leg of an `Actor548100Route`: the two node ids `func_actor_548100_80134CB8`
+/// measures a route distance between, in the same node space as
+/// `Actor548100Edge`'s `nodeA` / `nodeB`.
+typedef struct Actor548100Leg {
+    /* 0x0 */ u8 nodeA;
+    /* 0x1 */ u8 nodeB;
+} Actor548100Leg;
+STATIC_ASSERT_SIZEOF(Actor548100Leg, 0x2);
+
+/// One record of the route-progress tables `D_actor_548100_801356D8` and
+/// `D_actor_548100_80135750` -- 10-byte records, terminated by one whose `bitA`
+/// is 0xFF, in the table `func_actor_548100_801330EC` selects by
+/// `GameFlag_GetNibble(0xBE)` and whose chosen record it parks in
+/// `D_actor_548100_80135B4C`. A leg's node ids are read as `u8` -- the `lbu` is
+/// what the target shows, `Actor548100Edge`'s record is keyed the same way --
+/// and a `nodeA` of 0 means the leg is unused.
+///
+/// `bitA` / `bitB` are 1-based ids, or 0: `func_actor_548100_801330EC` turns
+/// each into `1 << (id - 1)` and compares the pair against the four nibbles
+/// 0xBF-0xC2 -- the per-step flags this actor sets -- stepping a record at a
+/// time until they agree, so a record describes one player state (the two
+/// tables are that state's two routes).
+///
+/// `func_actor_548100_80132808` measures `leg[0]` and `leg[1]` with
+/// `func_actor_548100_80134CB8` and keeps the farther and the nearer of the two
+/// in the work ramp, and `leg[2]`'s distance as the second period; the record's
+/// `nodeA`s must be set for `func_actor_548100_80132A14` to walk each leg with
+/// `func_actor_548100_80134AE0`. Its `flag_8` / `flag_9` gate that same body's
+/// two `func_actor_548100_80133BBC` calls.
+typedef struct Actor548100Route {
+    /* 0x0 */ s8             bitA;
+    /* 0x1 */ s8             bitB;
+    /* 0x2 */ Actor548100Leg leg[3];
+    /* 0x8 */ u8             flag_8;
+    /* 0x9 */ u8             flag_9;
+} Actor548100Route;
+STATIC_ASSERT_SIZEOF(Actor548100Route, 0xA);
+
+/// The route record `func_actor_548100_801330EC` last resolved: where the
+/// player is along the route the stage is on. Zero until the first
+/// `func_actor_548100_801330EC` call.
+extern Actor548100Route* D_actor_548100_80135B4C;
 
 /// One record of the edge table `D_actor_548100_801351D0`: a directed link of
 /// the stage graph this actor patrols and draws. `nodeA` / `nodeB` are node ids
