@@ -1,11 +1,44 @@
 #include "common.h"
 #include "actors/actor_403200.h"
+#include "gameplay/1BC.h"
+#include "main/task.h"
 extern s32 D_actor_403200_80141C54;
 
 extern s16 D_actor_403200_80141C5A;
 
 extern Task* D_actor_403200_8015F8F0;
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_7", func_actor_403200_80141A94);
+
+/// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
+/// heal counter, files a negative "damage" with `func_800DA6E8` so the HUD
+/// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
+/// the countdown at 0xF1C down and, once it has run out, re-arms the enemy's
+/// `field_F16`. Same body as `func_actor_444000_80143E68` without its tracked
+/// escort slots.
+s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2)
+{
+    Actor403200Work* work  = (Actor403200Work*)arg0->idMap;
+    GpEnemy*         enemy = arg0->spawnArg2;
+
+    switch (arg2) {
+        case 0:
+            work->field_F1A++;
+            func_800DA6E8(&enemy->node, -0x64, 0);
+            if (enemy->field_40 > 0) {
+                enemy->field_40 += 0x64;
+            }
+            break;
+        case 1:
+            if (work->field_F1C > 0) {
+                work->field_F1C--;
+                if (work->field_F1C > 0) {
+                    break;
+                }
+            }
+            work->field_F16 = 2;
+            break;
+    }
+    return 1;
+}
 
 s32 func_actor_403200_80141B30(void)
 {

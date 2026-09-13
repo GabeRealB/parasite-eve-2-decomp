@@ -74641,3 +74641,44 @@ Preprocessed SHA256:
 
 - `base_1.i`: `7ee6d80151e9298b342d90ec7901aef411e3d819d603d5ef10a208ca23605832`
 - `base_2.i`: `c0cd0ef648cc301fc0fa1070517b6a39707f418b5a8be91b88e4724a73559d5e`
+
+## An `s8` field's signed compare loads `lb`, the `--` under it loads the same address again as `lbu`
+
+`func_actor_403200_80141A94`'s case 1 is
+
+```c
+if (work->field_F1C > 0) {
+    work->field_F1C--;
+    if (work->field_F1C > 0) {
+        break;
+    }
+}
+work->field_F16 = 2;
+```
+
+with `field_F1C` an `s8`. The target loads that one address twice, in two
+different modes:
+
+```
+lb    v0,0xf1c(a1)     ; the outer `> 0`
+lbu   v1,0xf1c(a1)     ; the decrement operand
+blez  v0,.Lset
+addiu v0,v1,-1
+sb    v0,0xf1c(a1)
+sll   v0,v0,0x18       ; the nested `> 0` reuses the stored value
+bgtz  v0,.Lexit
+```
+
+The second load is `lbu` because the subtraction's result is only needed modulo
+256 for the byte store, so GCC is free to zero-extend it; the nested compare then
+needs no third load, because CSE forwards the stored value and sign-extends it
+with `sll 24`. Do not tidy this into a single load, and do not introduce a local
+`s8 tmp`: one `lbu` for both loses the `lb` the outer compare wants, and a temp
+reloads. The matched sibling `func_actor_444000_80143E68` shows the same
+`lb`/`lbu` pair for the same source shape with only the compare and the
+decrement, so this is the field type talking, not the surrounding statements.
+(A dead leading parameter is a separate issue here, already covered above.)
+
+Preprocessed SHA256:
+
+- `base_1.i`: `02f25a7c8b305f2963604e195d4738b2701a35bc4c92d27d3b76e40fb2daf59c`

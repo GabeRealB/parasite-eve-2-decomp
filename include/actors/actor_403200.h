@@ -33,7 +33,20 @@ typedef struct Actor403200Work {
     /* 0x006 */ s16  field_6;
     /* 0x008 */ byte pad_8[0xEAC - 0x8];
     /* 0xEAC */ s8   field_EAC;
-    /* 0xEAD */ byte pad_EAD[0x77];
+    /* 0xEAD */ byte pad_EAD[0x69];
+    /// Re-armed to 2 by the upkeep handler `func_actor_403200_80141A94` once
+    /// the `field_F1C` countdown has run out. Same slot and role as
+    /// `Actor444000Work::field_F16`.
+    /* 0xF16 */ s16  field_F16;
+    /* 0xF18 */ byte pad_F18[0x2];
+    /// Free-running counter bumped on every heal tick by
+    /// `func_actor_403200_80141A94`.
+    /* 0xF1A */ u8   field_F1A;
+    /* 0xF1B */ byte pad_F1B[0x1];
+    /// Countdown, decremented while positive; when it reaches zero the handler
+    /// re-arms `field_F16`.
+    /* 0xF1C */ s8   field_F1C;
+    /* 0xF1D */ byte pad_F1D[0x7];
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
