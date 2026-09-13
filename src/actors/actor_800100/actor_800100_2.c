@@ -207,7 +207,38 @@ void func_actor_800100_80165928(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165930);
+extern s16               D_80072830;
+extern GpActorFuncTable7 D_actor_800100_80161E98;
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_800100_80161E98\n"
+        "dlabel D_actor_800100_80161E98\n"
+        "    .word 0x80108B80\n"
+        "    .word 0x80108BAC\n"
+        "    .word 0x80108BD8\n"
+        "    .word 0x80108BAC\n"
+        "    .word 0x80107E1C\n"
+        "    .word 0x80108BAC\n"
+        "    .word 0x80108D68\n"
+        "enddlabel D_actor_800100_80161E98\n"
+        ".section .text");
+#endif
+
+void func_actor_800100_80165930(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable7 sp;
+
+    sp    = D_actor_800100_80161E98;
+    actor = arg0->actor;
+    sp.funcs[(u16)actor->field_956](arg0);
+    Gp_TurnPlayer(arg0);
+    if (D_80072830 <= 0) {
+        func_8010BFCC(arg0);
+        Gp_StopPlayerAnim(arg0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801659EC);
 
