@@ -610,4 +610,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135E28);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801361F8);
+void func_actor_405800_801361F8(Task* arg0)
+{
+    Actor405800Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   player;
+    GameActor*       actor;
+    SVECTOR          v;
+    s16              py;
+
+    work              = (Actor405800Work*)arg0->idMap;
+    coord             = ((TmdObject*)arg0->extra)->field_8;
+    arg0              = (Task*)Gp_ActorSlots[0];
+    work->field_70.vx = coord->coord.t[0];
+    work->field_70.vy = coord->coord.t[1];
+    work->field_70.vz = coord->coord.t[2];
+    if (arg0 == NULL) {
+        return;
+    }
+    player = ((GpActorWork*)arg0)->extra->field_8;
+    actor  = ((GpActorWork*)arg0)->actor;
+    if (player->coord.t[0] < 0x3A98 || Gp_StateF0.field_0 == 0) {
+        work->field_A8.vx = (u16)player->coord.t[0];
+        work->field_A8.vy = (u16)player->coord.t[1];
+        work->field_A8.vz = (u16)player->coord.t[2];
+    } else {
+        work->field_A8.vx = 0x834;
+        py                = (u16)player->coord.t[1];
+        work->field_A8.vz = 0xD48;
+        work->field_85C   = 2;
+        work->field_A8.vy = py;
+    }
+    v.vx            = (u16)work->field_A8.vx - (u16)coord->coord.t[0];
+    v.vy            = (u16)work->field_A8.vy - (u16)coord->coord.t[1];
+    v.vz            = (u16)work->field_A8.vz - (u16)coord->coord.t[2];
+    work->field_852 = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
+    VectorNormalSS(&v, &v);
+    work->field_856 = (ratan2(v.vx, v.vz) - work->field_82) & 0xFFF;
+    work->field_854 = (ratan2(-v.vx, -v.vz) - actor->field_52) & 0xFFF;
+}
