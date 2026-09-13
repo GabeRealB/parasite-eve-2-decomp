@@ -28,7 +28,8 @@ typedef struct Actor202600Ctx {
     /* 0x10 */ s32                field_10;
     /* 0x14 */ byte               pad_14[0x28];
     /* 0x3C */ Actor202600Params* field_3C;
-    /* 0x40 */ byte               pad_40[0x14];
+    /* 0x40 */ s16                field_40;
+    /* 0x42 */ byte               pad_42[0x12];
     /* 0x54 */ s32                field_54;
 } Actor202600Ctx;
 
@@ -49,7 +50,9 @@ typedef struct Actor202600Work {
     /* 0x2E4 */ GpObj     field_2E4;
     /* 0x304 */ byte      pad_304[0x18];
     /* 0x31C */ GpObj     field_31C;
-    /* 0x33C */ byte      pad_33C[0x30];
+    /* 0x33C */ byte      pad_33C[0x20];
+    /* 0x35C */ VECTOR3   field_35C;
+    /* 0x368 */ byte      pad_368[4];
     /* 0x36C */ TaskDesc* field_36C;
     /* 0x370 */ MATRIX    field_370;
     /* 0x390 */ byte      pad_390[2];
@@ -64,17 +67,22 @@ typedef struct Actor202600Work {
     /* 0x3A2 */ s16       field_3A2;
     /* 0x3A4 */ s16       field_3A4;
     /* 0x3A6 */ s16       field_3A6;
-    /* 0x3A8 */ byte      pad_3A8[4];
+    /* 0x3A8 */ s16       field_3A8;
+    /* 0x3AA */ byte      pad_3AA[2];
     /* 0x3AC */ u16       field_3AC;
     /* 0x3AE */ byte      pad_3AE[2];
     /* 0x3B0 */ s16       field_3B0;
     /* 0x3B2 */ byte      pad_3B2[8];
     /* 0x3BA */ s16       field_3BA;
-    /* 0x3BC */ byte      pad_3BC[4];
+    /* 0x3BC */ s16       field_3BC;
+    /* 0x3BE */ byte      pad_3BE[2];
     /* 0x3C0 */ s16       field_3C0;
-    /* 0x3C2 */ byte      pad_3C2[6];
+    /* 0x3C2 */ byte      pad_3C2[4];
+    /* 0x3C6 */ s16       field_3C6;
     /* 0x3C8 */ s16       field_3C8;
-    /* 0x3CA */ byte      pad_3CA[6];
+    /* 0x3CA */ byte      pad_3CA[2];
+    /* 0x3CC */ s16       field_3CC;
+    /* 0x3CE */ s16       field_3CE;
     /* 0x3D0 */ s16       field_3D0;
 } Actor202600Work;
 
@@ -94,9 +102,13 @@ typedef struct Actor202600RotScratch {
 } Actor202600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor202600RotScratch, 0x18);
 
-extern u16 D_actor_202600_80152798[];
-extern u16 D_actor_202600_801527A8[];
-extern s16 D_actor_202600_80152836;
-extern u8  D_801153F2[2];
+extern u16       D_actor_202600_80152798[];
+extern u16       D_actor_202600_801527A8[];
+extern u16       D_actor_202600_801527B8[];
+extern s16       D_actor_202600_80152836;
+extern u8        D_801153F2[2];
+extern s8        D_80115412;
+extern MATRIX*   D_80073B8C[1];
+extern GpU16Pair ActorsShared80135c4cPair;
 
 #endif

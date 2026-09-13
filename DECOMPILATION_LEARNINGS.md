@@ -69897,3 +69897,53 @@ the refs) before budgeting for a shared body; the `find` count alone cannot
 tell you.
 
 Example: `func_actor_202600_8014C184`, matched as a per-overlay body.
+
+## A `~` sibling at a different link offset is still a whole answer; the last `regs` point is the sibling's own argument pin
+
+`overlay_dup_index.py find func_actor_202600_8014A8B4` reports `3 copies,
+identical bytes: 1`: this overlay's copy is `=`, while `func_actor_102600_801328B4`
+and `func_actor_302600_801628B4` are `~` - the same body at a different link
+offset. `~` is not a weaker tier for matching: the instructions are one-for-one,
+and the body is one-for-one with matched `Actor05500_Fn00A94`
+(`asm/USA/actors/matchings/lib/actor_105500_text/Actor05500_Fn00A94.s`) as well.
+What differs is only what the body *names*: its overlay's own tables
+(`D_actor_202600_80152798` / `…B8` here, `Actor05500_D08980` / `D08A18` there),
+the sound ids, and the callee spellings. Transcribing that matched C with the
+`Actor202600` types went 72.058% (m2c baseline) → 99.706% in one build, with the
+structure already matching and `regs=19` the only penalty left.
+
+The residual is a straight register swap, and the target says which way it goes:
+`addu $s5, $a0, $zero` at entry with `addiu $s4, $zero, 1` for the `field_3C6`
+test - the actor argument in `$s5`, the constant 1 in `$s4`. Unpinned,
+local-alloc gave the pointer the *other* register, and the `.lreg` header names
+the competing quantity and why it wins: the argument is
+`Register 80 used 13 times across 560 insns; crosses 17 calls; pointer`, so its
+`QTY_CMP_PRI` is diluted over a huge live range while a small constant pseudo's
+whole range is a few instructions.
+
+The move is not to invent an intervention but to read the pin off the matched
+sibling, which carries the original source's own shape:
+
+```c
+void func_actor_202600_8014A8B4(Actor202600* arg0)
+{
+    register Actor202600* actor asm("s5") = arg0;
+    ...
+    SOFT_TOUCH_REG(actor);
+    work  = actor->field_1C;      /* every use of arg0 rewritten to actor */
+    ...
+}
+```
+
+100.000%, `regs=0`, one build. `Actor05500_Fn00A94` uses exactly this
+(`register Actor105500* actor asm("s5") = arg0;` + `SOFT_TOUCH_REG(actor);`), so
+the pin is a property of the body, not a workaround for this overlay. Check the
+sibling for a pin before reaching for `TOUCH_REG`, a dummy `asm` output, or an
+address-taken local: a pin only earns its place once the unpinned attempt exists
+*and* a dump names the live range, and here the sibling supplies both the
+justification and the exact form.
+
+Promotion is still refused for this body (`cannot be shared - the body
+references its own overlay's code or data`): it indexes
+`D_actor_202600_80152798` / `…B8`, so it stays a per-overlay copy despite the
+`~` twins.

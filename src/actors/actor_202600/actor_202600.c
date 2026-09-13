@@ -105,7 +105,137 @@ void func_actor_202600_8014A734(Actor202600* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600", func_actor_202600_8014A8B4);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void ActorsSharedFn02c94(Actor202600* arg0);
+
+void func_actor_202600_8014A8B4(Actor202600* arg0)
+{
+    register Actor202600* actor asm("s5") = arg0;
+    Actor202600Work*      work;
+    GsCOORDINATE2*        coord;
+    s32                   state;
+    s32                   pan0;
+    s32                   pan1;
+    s32                   pan2;
+    s32                   sessionFlags;
+    s32                   dx;
+    s32                   dz;
+    s32                   value;
+    u32                   random;
+    s32                   index;
+    VECTOR*               delta;
+    VECTOR*               scratchEnd;
+
+    SOFT_TOUCH_REG(actor);
+    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+    delta                              = scratchEnd - 1;
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
+    work                               = actor->field_1C;
+    coord                              = actor->field_2C->field_8;
+    state                              = work->field_39C;
+    sessionFlags                       = *(s32*)&Game_Session->field_4;
+    value                              = 0;
+    switch (state) {
+        case 0:
+            if (work->field_3C6 == 0) {
+                scratchEnd[-1].vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+                delta->vy         = 0;
+                dz                = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                delta->vz         = dz;
+                dx                = scratchEnd[-1].vx;
+                if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
+                    value = 1;
+                }
+            }
+            if ((value != 0) || ((s8)Gp_StateF0.field_22 != 0) || (Gp_StateF0.field_8 != 0)) {
+                if (work->field_3C6 == 0) {
+                    D_80115412 = 1;
+                }
+                Gp_ArmStateF0(1);
+                work->field_39C          = 1;
+                work->field_392          = 7;
+                work->field_3A8          = D_actor_202600_801527B8[actor->field_20->field_3C->field_F];
+                work->field_2E4.field_8  = coord;
+                work->field_2E4.field_1C = 0x12C;
+                work->field_2E4.field_12 = -0x12C;
+                work->field_2E4.field_18 = Gp_PackPair(&ActorsShared80135c4cPair, 5);
+                work->field_2E4.flags   |= 0x8000;
+                if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
+                    value = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x55200006;
+                    pan0  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(value, (s32)pan0, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            } else if (work->field_3D0 != 0) {
+                if (work->field_3C6 == 0) {
+                    Gp_StateF0.field_22 = 1;
+                }
+                Gp_ArmStateF0(1);
+                work->field_39C          = 2;
+                work->field_392          = 9;
+                work->field_3A8          = D_actor_202600_801527B8[actor->field_20->field_3C->field_F];
+                work->field_3BC          = 0x2D;
+                work->field_2E4.field_1C = 0x12C;
+                work->field_2E4.field_8  = coord;
+                work->field_2E4.field_12 = -0x12C;
+                work->field_2E4.field_18 = Gp_PackPair(&ActorsShared80135c4cPair, 5);
+                work->field_2E4.flags   |= 0x8000;
+                if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
+                    value = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x55200006;
+                    pan1  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(value, (s32)pan1, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            }
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            work->field_370 = coord->workm;
+            break;
+        case 1:
+            work->field_3A0 = (u16)work->field_3A0 + ((u16)work->field_35C.vy - (u16)coord->coord.t[1]);
+            if (((D_80073B8C[0]->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
+                work->field_39C = 2;
+                work->field_392 = 9;
+                work->field_3BC = 0x2D;
+            }
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            work->field_370 = coord->workm;
+            break;
+        case 2:
+            work->field_3A8 = ((s16)work->field_396 >= 0xC) << 7;
+            if (work->field_3CC != 0) {
+                work->field_39C        = 3;
+                work->field_392        = 0xA;
+                work->field_3A8        = 0x80;
+                work->field_2E4.flags &= 0x7FFF;
+                value                  = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x401A0002;
+                pan2                   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(value, (s32)pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            break;
+        case 3:
+            if ((s16)work->field_396 >= 0x1E) {
+                Gp_ArmStateF0(1);
+                work->field_39A          = state;
+                work->field_39C          = 0;
+                work->field_392          = 1;
+                index                    = actor->field_20->field_3C->field_F;
+                work->field_39E          = D_actor_202600_80152798[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_2E4.field_8  = actor->field_2C->field_8 + 4;
+                work->field_2E4.field_1C = 0xC8;
+                work->field_2E4.field_12 = 0;
+                work->field_3C8          = 0;
+                Gp_LcgState              = random;
+                if (actor->field_20->field_40 <= 0) {
+                    work->field_39A = 9;
+                    work->field_39C = 0;
+                    actor->field_30 = 2;
+                }
+            }
+            break;
+    }
+    ActorsSharedFn02c94(actor);
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+}
 
 void func_actor_202600_8014ADC0(Actor202600* arg0)
 {
