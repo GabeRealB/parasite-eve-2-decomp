@@ -590,7 +590,44 @@ void Actor00100_Fn0B730(Actor00100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B7DC);
+void Actor00100_Fn0B7DC(Actor00100* arg0)
+{
+    Actor00100Ctx*  ctx;
+    Actor00100Work* work;
+    TmdObject*      obj;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                    = arg0->field_2C;
+        work->field_BE4        = 0;
+        obj->field_C           = 0;
+        work->objs[0].field_1C = 0x19C;
+        work->objs[2].flags   |= 0x4000;
+        ctx->field_14          = 0;
+        work->field_828        = 1;
+        work->field_82E        = 0xA;
+        work->field_844        = 0;
+        work->field_840        = 0;
+        work->field_83E        = 0;
+        work->field_832        = work->field_834;
+        if ((s16)ctx->field_40 <= 0) {
+            Gp_SetStateF0Byte3(1);
+        }
+    }
+    Actor00100_Fn02788(arg0);
+    if ((work->field_68 & 0x100) && ((s16)work->field_82E == 0xA)) {
+        if ((s16)ctx->field_40 > 0) {
+            if (ctx->field_4C & 2) {
+                work->field_0 = 4;
+            } else {
+                work->field_0 = 0x11;
+            }
+        } else {
+            work->field_0 = 0x15;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B8D8);
 
