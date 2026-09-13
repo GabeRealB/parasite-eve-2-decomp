@@ -25,6 +25,54 @@ typedef struct Actor00300InitWork {
 } Actor00300InitWork;
 STATIC_ASSERT_SIZEOF(Actor00300InitWork, 0x8C);
 
+typedef struct Actor00300MainWork {
+    /* 0x000 */ GpAnimCtx      anim;
+    /* 0x014 */ GpAnimSlot     field_14[19];
+    /* 0x30C */ u8             field_30C[0x130];
+    /* 0x43C */ Task*          field_43C;
+    /* 0x440 */ u8             field_440[32];
+    /* 0x460 */ u8             field_460[32];
+    /* 0x480 */ GpObj          obj480;
+    /* 0x4A0 */ GpActorD4Rec   pose4A0;
+    /* 0x4B8 */ GpRec18        rec4B8;
+    /* 0x4D0 */ GpObj          obj4D0;
+    /* 0x4F0 */ GpRec18        rec4F0[3];
+    /* 0x538 */ GpObj          obj538;
+    /* 0x558 */ GpRec18        rec558[4];
+    /* 0x5B8 */ GpObj          obj5B8;
+    /* 0x5D8 */ GpRec18        rec5D8;
+    /* 0x5F0 */ GsCOORDINATE2* field_5F0;
+    /* 0x5F4 */ s16            field_5F4;
+    /* 0x5F6 */ s16            field_5F6;
+    /* 0x5F8 */ u8             pad_5F8[0x10];
+    /* 0x608 */ MATRIX         matrix608;
+    /* 0x628 */ u8             pad_628[0x20];
+    /* 0x648 */ s32            field_648;
+    /* 0x64C */ u8             pad_64C[0x1A];
+    /* 0x666 */ s16            field_666;
+    /* 0x668 */ u8             pad_668[0x20];
+    /* 0x688 */ s16            field_688;
+    /* 0x68A */ u8             pad_68A[0x2];
+    /* 0x68C */ u16            field_68C;
+    /* 0x68E */ u8             pad_68E[0xA];
+    /* 0x698 */ s16            field_698;
+    /* 0x69A */ u8             pad_69A[0xA];
+} Actor00300MainWork;
+STATIC_ASSERT_SIZEOF(Actor00300MainWork, 0x6A4);
+typedef struct Actor00300SpawnArgs {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor00300SpawnArgs;
+STATIC_ASSERT_SIZEOF(Actor00300SpawnArgs, 4);
+typedef struct Actor00300AreaConfig {
+    /* 0x0 */ s16 id;
+    /* 0x2 */ s16 area;
+    /* 0x4 */ s16 room;
+    /* 0x6 */ u16 value;
+} Actor00300AreaConfig;
+STATIC_ASSERT_SIZEOF(Actor00300AreaConfig, 8);
+
 typedef struct Actor100300RotScratch {
     /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR rot;

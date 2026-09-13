@@ -51,7 +51,168 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00078);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn005D0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00970);
+extern GpPairSrcE           Actor00300_D15FE8;
+extern Actor00300AreaConfig Actor00300_D16020[];
+extern s32                  Actor00300_D16278[][2];
+extern TaskDesc             Actor00300_D162F0;
+extern u32                  Actor00300_D16314;
+extern u32                  Actor00300_D1633C;
+
+void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
+{
+    GpAreaKey           key;
+    GpEnemy*            child;
+    GpRec18*            rec4B8;
+    GpRec18*            rec4F0;
+    GpRec18*            rec558;
+    GpRec18*            rec5D8;
+    Actor00300MainWork* work;
+    TmdObject*          model;
+    s32                 areaIndex;
+    Task*               childTask;
+    s32                 slot;
+    u32                 index;
+    u32                 rawId;
+    u8                  areaByte0;
+    GpAreaKey*          sessionKey;
+    GpCdRec10*          entry;
+    Actor100300Obj2C*   obj;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      parts;
+
+    obj   = task->extra;
+    coord = obj->field_8;
+    work  = Mem_Calloc(sizeof(Actor00300MainWork), 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->idMap     = (TaskIdMap*)work;
+    work->field_648 = 0;
+    work->field_68C = 0U;
+    for (areaIndex = 0; Actor00300_D16020[areaIndex].id != 0; areaIndex++) {
+        if ((Game_Session->field_7 == Actor00300_D16020[areaIndex].area) &&
+            (Game_Session->field_6 == Actor00300_D16020[areaIndex].room)) {
+            work->field_648 =
+                Actor00300_D16278[Actor00300_D16020[areaIndex].id]
+                                 [((Actor00300SpawnArgs*)enemy->field_3C)->field_2];
+            work->field_68C = (u16)Actor00300_D16020[areaIndex].value;
+        }
+    }
+    work->field_698 = (s16)((Actor00300SpawnArgs*)enemy->field_3C)->field_1;
+    obj->field_C    = 0;
+    coord->flg      = 0;
+    obj->field_1C   = work->field_460;
+    obj->field_20   = work->field_440;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    Gp_LinkNode(&enemy->node);
+    slot               = 1;
+    parts              = ((Actor100300Obj2C*)task->extra)->field_8;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_50    = &Actor00300_D15FE8;
+    enemy->field_54    = (s32)(work->rec4F0);
+    enemy->field_18    = parts + 3;
+    enemy->field_40    = (s16)Actor00300_D15FE8.field_4;
+    work->field_5F0    = (void*)(((Actor100300Obj2C*)task->extra)->field_8 + 3);
+    work->field_5F4    = 0x300;
+    work->field_5F6    = 2;
+    func_800B3F84((GpAnimCtx*)work, &Actor00300_D1633C, (GpAnimObj*)obj,
+                  work->field_30C, work->field_14);
+    do {
+        Gp_AnimResetSlot((GpAnimCtx*)work, slot, 1);
+        slot += 1;
+    } while (slot < 0x13);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work->matrix608 = coord->coord;
+    work->field_688 = 0xA;
+    work->field_666 = 0x28;
+    child           = Gp_SpawnEnemyFromTable(&Actor00300_D162F0, 1, 0, enemy);
+    rawId           = (u16)enemy->field_8;
+    model           = child->task->extra;
+    sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+    key.field_3     = sessionKey->field_3;
+    key.field_2     = sessionKey->field_2;
+    key.field_1     = sessionKey->field_1;
+    areaByte0       = Game_Session->field_4;
+    index           = rawId >> 12;
+    key.field_0     = areaByte0;
+    Gp_SyncAreaKeyIndex(&key);
+    entry =
+        (GpCdRec10*)((index * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model->field_24 = entry->field_D;
+    model->field_25 = entry->field_E;
+    if (model->field_18 != NULL) {
+        Tmd_ProcessStream(model);
+        Tmd_ProcessStream(model);
+    }
+    childTask              = child->task;
+    work->pose4A0.field_4  = 0x2328;
+    work->pose4A0.field_10 = 0xFA0;
+    rec4B8                 = &work->rec4B8;
+    work->pose4A0.field_0  = 0;
+    work->pose4A0.field_2  = 0;
+    work->pose4A0.field_8  = 0;
+    work->pose4A0.field_A  = 0;
+    work->pose4A0.field_C  = 0;
+    work->pose4A0.field_12 = 0x3E8;
+    work->pose4A0.field_14 = rec4B8;
+    work->field_43C        = childTask;
+    work->obj480.field_8 =
+        (void*)(((Actor100300Obj2C*)task->extra)->field_8 + 2);
+    work->obj480.field_C  = &work->pose4A0;
+    work->obj480.field_10 = 0;
+    work->obj480.field_12 = 0;
+    work->obj480.field_14 = 0;
+    work->obj480.field_18 = 0;
+    work->obj480.field_1C = 0;
+    work->obj480.flags    = 3U;
+    Gp_LinkObj(3, &work->obj480);
+    Gp_InitRec18Table(rec4B8, 1, 0);
+    rec4F0             = work->rec4F0;
+    work->obj480.flags = (u16)(work->obj480.flags | 0xCC00);
+    work->obj4D0.field_8 =
+        (void*)(((Actor100300Obj2C*)task->extra)->field_8 + 3);
+    work->obj4D0.field_C  = rec4F0;
+    work->obj4D0.field_10 = 0;
+    work->obj4D0.field_12 = 0;
+    work->obj4D0.field_14 = 0;
+    work->obj4D0.field_18 = 0x30003;
+    work->obj4D0.field_1C = 0x15E;
+    work->obj4D0.flags    = 1U;
+    Gp_LinkObj(2, &work->obj4D0);
+    Gp_InitRec18Table(rec4F0, 3, 0);
+    work->obj4D0.flags    = (u16)(work->obj4D0.flags | 0x8000);
+    work->obj538.field_8  = (void*)((Actor100300Obj2C*)task->extra)->field_8;
+    rec558                = work->rec558;
+    work->obj538.field_18 = 0x30003;
+    work->obj538.field_C  = rec558;
+    work->obj538.field_10 = 0;
+    work->obj538.field_12 = -0x1F4;
+    work->obj538.field_14 = 0;
+    work->obj538.field_1C = 0x1F4;
+    work->obj538.flags    = 1U;
+    Gp_LinkObj(2, &work->obj538);
+    Gp_InitRec18Table(rec558, 4, 0);
+    work->obj538.flags    = (u16)(work->obj538.flags | 0x4200);
+    work->obj5B8.field_8  = ((Actor100300Obj2C*)child->task->extra)->field_8;
+    rec5D8                = &work->rec5D8;
+    work->obj5B8.field_C  = rec5D8;
+    work->obj5B8.field_10 = -0x1F4;
+    work->obj5B8.field_12 = 0x1F4;
+    work->obj5B8.field_14 = 0;
+    work->obj5B8.field_18 = Gp_PackPair(&Actor00300_D15FD8, 0);
+    work->obj5B8.field_1C = 0x2BC;
+    work->obj5B8.flags    = 1U;
+    Gp_LinkObj(3, &work->obj5B8);
+    Gp_InitRec18Table(rec5D8, 1, 0);
+    D_80062735         = 0xA;
+    work->obj5B8.flags = (u16)(work->obj5B8.flags & 0x7FFF);
+    task->field_24     = &Actor00300_D16314;
+    task->state        = 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00E54);
 
