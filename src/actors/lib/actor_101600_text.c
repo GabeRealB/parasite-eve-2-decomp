@@ -162,7 +162,250 @@ void Actor01600_Fn00A4C(Actor01600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00BAC);
+extern s32  Gp_LcgState;
+extern s32* Gp_GridParams;
+s16         Gp_GetIdParam2(s32);
+s32         Gp_GetIdParam0(s32);
+s32         Gp_GetIdParam1(s32);
+s32         func_800E0C10(void*, void*, s32, void*);
+u32         Gp_ComputeDamage(u32, u32, s32, s32);
+s32         Gp_RollEnemyChance(void*, s32, s32);
+void        func_800E2C78(void*, s32, s32, s32);
+void        Gp_SetObjFlag1(void*);
+void        Gp_SetObjFlag2(void*, s32, s32);
+void        Gp_SetObjFlag4(void*, s32, s32);
+void        Gp_ClearRec18Occupied(void*);
+s32         Gp_FindRec18(void*, s32);
+void        func_800FDB18(s32, void*, void*, void*);
+void        Actor01600_Fn0646C(Actor01600*);
+
+void Actor01600_Fn00BAC(Actor01600* actor)
+{
+    s32                    distance;
+    Actor01600PlayerSlot** slots;
+    void*                  world;
+    Actor01600Work*        work;
+    Actor01600Ctx*         ctx;
+    GsCOORDINATE2*         coord;
+    Actor01600Work*        rec;
+    Actor01600HitScratch*  scratch;
+    void*                  old;
+    GsCOORDINATE2*         other;
+    s32                    x, y, z;
+    s32                    damage;
+    s32                    amount;
+    s32                    product;
+    s32                    push;
+    s32                    clamped;
+    s32                    cx, cz;
+    s16                    count;
+    s32                    mode;
+    VECTOR *               v1, *v2;
+    work    = actor->field_1C;
+    old     = *(void**)0x1F8003FC;
+    scratch = (*(void**)0x1F8003FC = old - 0x4C);
+    ctx     = actor->field_20;
+    coord   = actor->field_2C->field_8;
+    mode    = func_800E0C10(&work->collision.field_2EC[0x20], old - 0x2C, 8, old - 4);
+    world   = (void*)coord + 0x50;
+    if (mode == 1)
+        goto mode1;
+    if (mode < 2)
+        goto mode_end;
+    if (mode == 2)
+        goto mode2;
+    goto mode_end;
+    {
+    mode1:
+        coord->coord.t[0] += scratch->delta.half.highx;
+        coord->coord.t[1] += scratch->delta.half.highy;
+        coord->coord.t[2] += scratch->delta.half.highz;
+        goto mode_end;
+    mode2:
+        coord->coord.t[0] = work->field_4BC;
+        coord->coord.t[1] = work->field_4C0;
+        coord->coord.t[2] = work->field_4C4;
+    }
+mode_end:
+    slots = Gp_ActorSlots;
+    if (work->field_51C != 0) {
+        if (--work->field_51C <= 0)
+            work->field_51C = 0;
+    }
+    rec = work;
+next_record: {
+    switch (rec->collision.named.hit.parts.kind) {
+        case 2:
+            if (work->field_51C == 0) {
+                other               = slots[rec->collision.named.hit.parts.byte0 >> 7]->field_2C->field_8;
+                x                   = other->coord.t[0] - coord->coord.t[0];
+                scratch->delta.v.vx = x;
+                y                   = other->coord.t[1] - coord->coord.t[1];
+                scratch->delta.v.vy = y;
+                z                   = other->coord.t[2] - coord->coord.t[2];
+                scratch->delta.v.vz = z;
+                damage              = Gp_ComputeDamage(rec->collision.named.hit.id, SquareRoot0(x * x + y * y + z * z), 0, 0);
+                if (Gp_RollEnemyChance(actor->field_20, rec->collision.named.hit.id, 0)) {
+                    damage *= 4;
+                    Gp_SpawnEff(0x6009C, (void*)actor->field_2C->field_8 + 0x50, 0, 0);
+                }
+                if (work->field_4FE == 1 && work->field_528 != 0 && work->field_51E < 0) {
+                    damage *= 2;
+                    Gp_SpawnEff(0x6009C, (void*)actor->field_2C->field_8 + 0x50, 3, 0);
+                }
+                func_800E2C78(ctx, rec->collision.named.hit.id, damage, 0);
+                Actor01600_Fn0131C(actor, damage);
+                count = Gp_GetIdParam2(rec->collision.named.hit.id);
+                if (count > 0)
+                    work->field_51C = count;
+                switch (Gp_GetIdParam0(rec->collision.named.hit.id) & 0xFFFF) {
+                    case 4:
+                    case 6:
+                        if ((s16)ctx->field_40 <= 0)
+                            goto dead;
+                        Gp_SetObjFlag1(actor->field_20);
+                        break;
+                    case 2:
+                    case 9:
+                        if (work->field_4FE != 3 && work->field_4FE != 5) {
+                            Gp_SetObjFlag2(actor->field_20, rec->collision.named.hit.id, 0);
+                            work->field_556 = 1;
+                        }
+                        break;
+                    case 8:
+                        if (work->field_4FE != 3 && work->field_4FE != 5) {
+                            Gp_SetObjFlag2(actor->field_20, rec->collision.named.hit.id, 0);
+                            work->field_556 = 0;
+                        }
+                        break;
+                    case 1:
+                    case 5:
+                        if (work->field_4FE != 3 && work->field_4FE != 5)
+                            Gp_SetObjFlag1(actor->field_20);
+                        break;
+                    case 0:
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4(actor->field_20, rec->collision.named.hit.id, 0);
+                        break;
+                }
+                if (damage >= 40 && work->field_556 == 0) {
+                    Gp_SetObjFlag1(ctx);
+                    if (work->field_4FE == 0 && work->field_528 != 0) {
+                        work->field_528 = 0;
+                        work->field_51E = 0;
+                        work->field_520 = 0;
+                    }
+                } else {
+                    work->field_522 = 1;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_4CC = (((u32)Gp_LcgState >> 11) & 0x60) + 0x100;
+                }
+                if (work->field_4FE != 0 && work->field_528 != 0) {
+                    work->field_3EA &= 0x7FFF;
+                    Gp_ClearRec18Occupied(work->pad_3EC);
+                    work->field_4FA  = 0;
+                    work->field_51E += 20;
+                    amount           = Actor01600_Fn045A8(actor, &distance);
+                    if (amount < 0)
+                        amount = -amount;
+                    if (amount < 0x400) {
+                        work->field_506 = 14;
+                        work->field_50E = -40;
+                    } else {
+                        work->field_506 = 11;
+                        work->field_50E = 40;
+                    }
+                    work->field_516 = 8;
+                }
+                func_800FDB18(Gp_GetIdParam1(rec->collision.named.hit.id) & 0xFFFF, world, 0, &work->pad_3EC[0x18]);
+            }
+            break;
+        case 3:
+            cx                  = coord->workm.t[0] - rec->collision.named.field_314;
+            scratch->delta.v.vy = 0;
+            scratch->delta.v.vx = cx;
+            cz                  = coord->workm.t[2] - rec->collision.named.field_318;
+            scratch->delta.v.vz = cz;
+            push                = rec->collision.named.field_30E - SquareRoot0(cx * cx + cz * cz);
+            clamped             = push;
+            if (push <= 0)
+                clamped = 0;
+            push = clamped;
+            SOFT_TOUCH_REG_USE(push, rec);
+            SOFT_TOUCH_REG_USE(push, rec);
+            SOFT_TOUCH_REG_USE(push, rec);
+            v1                  = &scratch->delta.v;
+            scratch->delta.v.vx = coord->workm.t[0] - rec->collision.named.field_314;
+            SOFT_TOUCH_REG_USE(push, clamped);
+            v2                  = &scratch->normal;
+            scratch->delta.v.vy = coord->workm.t[1] - rec->collision.named.field_316;
+            scratch->delta.v.vz = coord->workm.t[2] - rec->collision.named.field_318;
+            VectorNormal(v1, v2);
+            ApplyTransposeMatrixLV(*Gp_GridParams + 0x24, v2, v1);
+            if (work->field_506 == 23 || work->field_506 == 5 || work->field_506 == 6) {
+                coord->coord.t[0] += (push * scratch->delta.v.vx) >> 12;
+                product            = push * scratch->delta.v.vy;
+                if (product < 0)
+                    coord->coord.t[1] += product >> 12;
+                coord->coord.t[2] += (push * scratch->delta.v.vz) >> 12;
+            }
+            break;
+        case 0:
+        case 1:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+            break;
+    }
+}
+    rec = (void*)rec + 0x18;
+    if ((s32)rec < (s32)work + 0xC0)
+        goto next_record;
+    Gp_ClearRec18Occupied(&work->collision.field_2EC[0x20]);
+    if (work->field_516 && Gp_FindRec18(work->pad_3EC, 0)) {
+        work->collision.named.field_2FE = -400;
+        work->collision.named.field_308 = 400;
+        work->field_52A                 = 1;
+        work->field_3EA                &= 0x7FFF;
+        Gp_ClearRec18Occupied(work->pad_3EC);
+        if (work->field_50A < 15) {
+            work->field_516  = 8;
+            work->field_4FA  = 0;
+            work->field_51E += 20;
+            amount           = Actor01600_Fn045A8(actor, &distance);
+            if (amount < 0)
+                amount = -amount;
+            if (amount >= 0x400)
+                goto far_angle;
+            work->field_506 = 14;
+            work->field_50E = -40;
+            goto release;
+        dead:
+            work->field_540 = 0;
+            Actor01600_Fn0646C(actor);
+            work->field_540 = 2;
+            work->field_528 = 0;
+            return;
+        far_angle:
+            work->field_506 = 11;
+            work->field_50E = 40;
+        }
+    }
+release:
+    *(void**)0x1F8003FC += 0x4C;
+    return;
+}
 
 void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 
@@ -206,8 +449,6 @@ void Actor01600_Fn06F10(Actor01600* arg0);
 s32  Gp_TickObjFlag2(void* arg0);
 s32  Gp_GetObjPan(void* arg0);
 s32  Gp_GetObjDepth(void* arg0);
-
-extern s32 Gp_LcgState;
 
 /// Per-frame tick for the actor's cornered/pursuit cycle, dispatched on
 /// `field_4FE`. States 0 and 1 hand the frame to `Actor01600_Fn017BC` /

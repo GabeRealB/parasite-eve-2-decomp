@@ -297,7 +297,7 @@ void Actor01600_Fn06EA4(Actor01600* arg0)
     Gp_UnlinkNode(&ctx->node);
     Gp_UnlinkObj(work->field_40C);
     Gp_UnlinkObj(work->field_29C);
-    Gp_UnlinkObj(work->field_2EC);
+    Gp_UnlinkObj(work->collision.field_2EC);
     Gp_UnlinkObj(work->field_3CC);
     Gp_EnemyTaskExit(arg0);
 }
@@ -360,7 +360,7 @@ void Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1)
     if (!(arg1 & 0xFF)) {
         Gp_UnlinkObj(work->field_40C);
         Gp_UnlinkObj(work->field_29C);
-        Gp_UnlinkObj(work->field_2EC);
+        Gp_UnlinkObj(work->collision.field_2EC);
         Gp_UnlinkObj(work->field_3CC);
     }
     Gp_SetLightMode(ctx, 1);

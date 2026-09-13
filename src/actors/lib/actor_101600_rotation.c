@@ -345,7 +345,7 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(work->field_40C);
             Gp_UnlinkObj(work->field_29C);
-            Gp_UnlinkObj(work->field_2EC);
+            Gp_UnlinkObj(work->collision.field_2EC);
             Gp_UnlinkObj(work->field_3CC);
             state = &Gp_StateF0;
             task  = arg1;

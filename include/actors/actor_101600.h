@@ -68,6 +68,51 @@ STATIC_ASSERT_SIZEOF(Actor01600AnimCtx, 0x14);
 void Gp_AnimTickIndex(Actor01600AnimCtx* arg0, s32 arg1);
 void func_800B4114(Actor01600AnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
+/// Packed contact record fields over the existing 0x2EC collision block.
+typedef union Actor01600ContactId {
+    s32 id;
+    struct {
+        u8  byte0;
+        u8  byte1;
+        u16 kind;
+    } parts;
+} Actor01600ContactId;
+
+typedef union Actor01600Contacts {
+    byte field_2EC[0xE0];
+    struct {
+        /* 0x2EC */ byte                pad_2EC[0x12];
+        /* 0x2FE */ s16                 field_2FE;
+        /* 0x300 */ byte                pad_300[8];
+        /* 0x308 */ s16                 field_308;
+        /* 0x30A */ byte                pad_30A[4];
+        /* 0x30E */ s16                 field_30E;
+        /* 0x310 */ Actor01600ContactId hit;
+        /* 0x314 */ s16                 field_314;
+        /* 0x316 */ s16                 field_316;
+        /* 0x318 */ s16                 field_318;
+        /* 0x31A */ byte                pad_31A[0xB2];
+    } named;
+} Actor01600Contacts;
+STATIC_ASSERT_SIZEOF(Actor01600Contacts, 0xE0);
+
+typedef union Actor01600HitVector {
+    VECTOR v;
+    struct {
+        s16 lowx, highx, lowy, highy, lowz, highz;
+        s32 pad;
+    } half;
+} Actor01600HitVector;
+
+/// Collision displacement and normalized push vectors in the scratch arena.
+typedef struct Actor01600HitScratch {
+    /* 0x00 */ byte                pad[0x20];
+    /* 0x20 */ Actor01600HitVector delta;
+    /* 0x30 */ VECTOR              normal;
+    /* 0x40 */ byte                tail[0xC];
+} Actor01600HitScratch;
+STATIC_ASSERT_SIZEOF(Actor01600HitScratch, 0x4C);
+
 typedef struct Actor01600Work {
     /* 0x000 */ Actor01600AnimCtx  anim;
     /* 0x014 */ Actor01600AnimSlot slots[9];
@@ -75,7 +120,7 @@ typedef struct Actor01600Work {
     /* 0x29C */ byte               field_29C[0x1E];
     /* 0x2BA */ u16                field_2BA;
     /* 0x2BC */ byte               pad_2BC[0x30];
-    /* 0x2EC */ byte               field_2EC[0xE0];
+    /* 0x2EC */ Actor01600Contacts collision;
     /* 0x3CC */ byte               field_3CC[0x1E];
     /* 0x3EA */ u16                field_3EA;
     /* 0x3EC */ byte               pad_3EC[0x20];
@@ -120,7 +165,7 @@ typedef struct Actor01600Work {
     /* 0x516 */ s16                field_516;
     /* 0x518 */ s16                field_518;
     /* 0x51A */ s16                field_51A;
-    /* 0x51C */ byte               pad_51C[2];
+    /* 0x51C */ s16                field_51C;
     /* 0x51E */ s16                field_51E;
     /* 0x520 */ s16                field_520;
     /* 0x522 */ s16                field_522;
