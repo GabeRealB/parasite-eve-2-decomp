@@ -38,6 +38,7 @@ void func_actor_405800_801379F8(Task* task);
 void func_actor_405800_80137948(Task* task);
 void func_actor_405800_80137994(Task* arg0, s16 arg1);
 void func_actor_405800_80135780(Task* arg0);
+void func_actor_405800_8013340C(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -259,7 +260,90 @@ void func_actor_405800_80132FE0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8013315C);
+void func_actor_405800_8013315C(Task* arg0)
+{
+    GpEnemy*         enemy;
+    Actor405800Work* work;
+    TmdObject*       model;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor405800Work*)arg0->idMap;
+    model = (TmdObject*)arg0->extra;
+    if ((s8)work->field_895 < 0) {
+        if (!(work->field_895 & 1)) {
+            switch ((s8)work->field_896) {
+                case 0:
+                    work->field_832 = (u16)work->field_832 + ((s16)(0xFF - (u16)work->field_832) >> 2);
+                    if (work->field_832 >= 0xF8) {
+                        work->field_832 = 0xFF;
+                        work->field_830 = 0;
+                        work->field_896++;
+                    }
+                    goto block_32;
+                case 1:
+                    work->field_830++;
+                    if (work->field_836 < (s16)work->field_830) {
+                        goto block_28;
+                    }
+                    break;
+                case 2:
+                    work->field_834 = (u16)work->field_834 + ((s16)(-(u16)work->field_834) >> 2);
+                    work->field_866 = (u16)work->field_866 + (-work->field_866 >> 2);
+                    if (work->field_834 == 0) {
+                        enemy->node.field_4 = 1;
+                        if (work->field_897 == 0) {
+                            enemy->node.field_4 = 5;
+                        }
+                        work->field_866 = 0;
+                        work->field_895 = 0;
+                    }
+                    goto block_26;
+            }
+        } else {
+            switch ((s8)work->field_896) {
+                case 0:
+                    enemy->node.field_4 = 0;
+                    if (work->field_897 == 0) {
+                        enemy->node.field_4 = 4;
+                    }
+                    work->field_834 = (u16)work->field_834 + ((s16)(0x1000 - (u16)work->field_834) >> 2);
+                    work->field_866 = (u16)work->field_866 + ((0xFF - work->field_866) >> 2);
+                    if (work->field_834 >= 0xFF0) {
+                        work->field_866 = 0xFF;
+                        work->field_834 = 0x1000;
+                        work->field_830 = 0;
+                        work->field_896++;
+                    }
+                block_26:
+                    model->field_2C = work->field_834;
+                    break;
+                case 1:
+                    work->field_830++;
+                    if ((s16)work->field_830 >= 0x11) {
+                    block_28:
+                        work->field_896++;
+                    }
+                    break;
+                case 2:
+                    work->field_832 = (u16)work->field_832 + ((s16)(-(u16)work->field_832) >> 2);
+                    if (work->field_832 < 9) {
+                        work->field_832 = 0;
+                        work->field_895 = 0;
+                        func_actor_405800_8013340C(arg0);
+                        if (work->field_83A == 0) {
+                            work->field_83A = (u16)work->field_838;
+                        }
+                    }
+                block_32:
+                    func_8009EA50(work->field_832);
+                    break;
+            }
+        }
+    }
+    if (work->field_83A > 0) {
+        work->field_83A = (u16)work->field_83A - 1;
+    }
+}
 
 void func_actor_405800_8013340C(Task* arg0)
 {

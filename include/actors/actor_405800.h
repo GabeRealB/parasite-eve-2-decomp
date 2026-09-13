@@ -123,7 +123,8 @@ typedef struct Actor405800Work {
     /* 0x81C */ GpEffArg            eff_81C;    // fourth model part's coordinate
     /* 0x824 */ Task*               field_824;  // child task, killed on state exit
     /* 0x828 */ Task*               field_828;  // child task, killed on state exit
-    /* 0x82C */ byte                pad_82C[0x6];
+    /* 0x82C */ byte                pad_82C[4];
+    /* 0x830 */ u16                 field_830;  // phase timer; lhu-incremented, compared as s16
     /* 0x832 */ s16                 field_832;
     /* 0x834 */ s16                 field_834;
     /* 0x836 */ s16                 field_836;
@@ -175,7 +176,7 @@ typedef struct Actor405800Work {
     /* 0x894 */ byte                pad_894;
     /* 0x895 */ u8                  field_895;
     /* 0x896 */ u8                  field_896;
-    /* 0x897 */ byte                pad_897[0x1];
+    /* 0x897 */ u8                  field_897; // 0: node.field_4 uses 4/5 instead of 0/1
     /* 0x898 */ u8                  field_898;
     /* 0x899 */ byte                pad_899[0x3];
 } Actor405800Work;
