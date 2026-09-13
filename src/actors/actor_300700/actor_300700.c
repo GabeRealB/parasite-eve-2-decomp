@@ -282,7 +282,59 @@ void func_actor_300700_801622B4(Actor300700* arg0)
     *(void**)0x1F8003FC += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8016252C);
+/// Sweeps the actor's spare rotation on the scratchpad: every 16th frame rolls
+/// `Gp_LcgState` to pick a direction, then `field_2D8` ramps between `-0x100`
+/// and `0x100` and flips the `field_2D6` sign each time it wraps. The ramped
+/// value scaled by that sign is the pitch written into the scratch vector,
+/// which is handed to `RotMatrix` twice - once against `coord[2]`, once with
+/// the product negated against `coord[3]`.
+void func_actor_300700_8016252C(Actor300700* arg0)
+{
+    Actor300700Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coord2;
+    SVECTOR*         sc;
+    s32              direction;
+    s32              direction2;
+    s32              product;
+
+    sc   = (SVECTOR*)(SCRATCH_SP -= 8);
+    work = arg0->field_1C;
+    if (++work->field_2E0 >= 16) {
+        work->field_2E0 = 0;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_2D4 = !(((u32)Gp_LcgState >> 16) & 1);
+    }
+    switch (work->field_2D4) {
+        case 0:
+            work->field_2D8 += 0x100;
+            if (work->field_2D8 >= 0x200) {
+                work->field_2D8 = -0x100;
+                direction       = work->field_2D6;
+                work->field_2D6 = -direction;
+            }
+            break;
+        case 1:
+            work->field_2D8 = 0x100;
+            direction2      = work->field_2D6;
+            work->field_2D6 = -direction2;
+            break;
+    }
+    sc->vx = 0;
+    sc->vy = 0;
+    sc->vz = work->field_2D8 * work->field_2D6;
+    coord  = arg0->field_2C->field_8;
+    RotMatrix(sc, &coord[2].coord);
+    coord[2].flg = 0;
+    sc->vx       = 0;
+    sc->vy       = 0;
+    product      = work->field_2D8 * work->field_2D6;
+    sc->vz       = -product;
+    coord2       = arg0->field_2C->field_8;
+    RotMatrix(sc, &coord2[3].coord);
+    coord2[3].flg = 0;
+    SCRATCH_SP   += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801626C0);
 
