@@ -2,6 +2,7 @@
 #define ACTOR_300700_H
 
 #include "common.h"
+#include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -12,32 +13,51 @@ typedef struct Actor300700Obj2C {
     /* 0x0C */ s16            field_C;
 } Actor300700Obj2C;
 
+/// The first collision record of the work block, viewed both as a plain
+/// `GpRec18` and as the raw id pair the tick handler reads back out of it.
+typedef union Actor300700HitRecord {
+    GpRec18 rec;
+    struct {
+        u32       header;
+        GpFixed16 id;
+    } hit;
+} Actor300700HitRecord;
+
 typedef struct Actor300700Work {
-    /* 0x000 */ byte   pad_0[0x22C];
-    /* 0x22C */ MATRIX field_22C;
-    /* 0x24C */ byte   pad_24C[0x96];
-    /* 0x2E2 */ s16    field_2E2;
-    /* 0x2E4 */ byte   pad_2E4[2];
-    /* 0x2E6 */ s16    field_2E6;
-    /* 0x2E8 */ byte   pad_2E8[0x58];
-    /* 0x340 */ MATRIX field_340;
-    /* 0x360 */ byte   pad_360[0x1A];
-    /* 0x37A */ s16    field_37A;
-    /* 0x37C */ s16    field_37C;
-    /* 0x37E */ u16    field_37E;
-    /* 0x380 */ s16    field_380;
-    /* 0x382 */ u16    field_382;
-    /* 0x384 */ s16    field_384;
-    /* 0x386 */ s16    field_386;
-    /* 0x388 */ s16    field_388;
-    /* 0x38A */ u16    field_38A;
-    /* 0x38C */ u16    field_38C;
-    /* 0x38E */ byte   pad_38E[2];
-    /* 0x390 */ s16    field_390;
-    /* 0x392 */ u16    field_392;
-    /* 0x394 */ s16    field_394;
-    /* 0x396 */ s16    field_396;
-    /* 0x398 */ s16    field_398;
+    /* 0x000 */ byte                 pad_0[0x154];
+    /* 0x154 */ Actor300700HitRecord field_154;
+    /* 0x16C */ byte                 pad_16C[0x20];
+    /* 0x18C */ GpRec18              field_18C;
+    /* 0x1A4 */ byte                 pad_1A4[0x80];
+    /* 0x224 */ GpEffArg             field_224;
+    /* 0x22C */ MATRIX               field_22C;
+    /* 0x24C */ byte                 pad_24C[0x70];
+    /* 0x2BC */ s32                  field_2BC;
+    /* 0x2C0 */ s32                  field_2C0;
+    /* 0x2C4 */ s32                  field_2C4;
+    /* 0x2C8 */ byte                 pad_2C8[0x1A];
+    /* 0x2E2 */ s16                  field_2E2;
+    /* 0x2E4 */ byte                 pad_2E4[2];
+    /* 0x2E6 */ s16                  field_2E6;
+    /* 0x2E8 */ byte                 pad_2E8[0x58];
+    /* 0x340 */ MATRIX               field_340;
+    /* 0x360 */ byte                 pad_360[0x1A];
+    /* 0x37A */ s16                  field_37A;
+    /* 0x37C */ s16                  field_37C;
+    /* 0x37E */ u16                  field_37E;
+    /* 0x380 */ s16                  field_380;
+    /* 0x382 */ u16                  field_382;
+    /* 0x384 */ s16                  field_384;
+    /* 0x386 */ s16                  field_386;
+    /* 0x388 */ s16                  field_388;
+    /* 0x38A */ u16                  field_38A;
+    /* 0x38C */ u16                  field_38C;
+    /* 0x38E */ byte                 pad_38E[2];
+    /* 0x390 */ s16                  field_390;
+    /* 0x392 */ u16                  field_392;
+    /* 0x394 */ s16                  field_394;
+    /* 0x396 */ s16                  field_396;
+    /* 0x398 */ s16                  field_398;
 } Actor300700Work;
 
 /// Yaw scratch on the scratchpad: the `SVECTOR` handed to `RotMatrix` next to
