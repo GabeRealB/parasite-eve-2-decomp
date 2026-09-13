@@ -44,4 +44,47 @@ typedef struct Actor548100Work {
 } Actor548100Work;
 STATIC_ASSERT_SIZEOF(Actor548100Work, 0x18);
 
+/// One record of the edge table `D_actor_548100_801351D0`: a directed link of
+/// the stage graph this actor patrols and draws. `nodeA` / `nodeB` are node ids
+/// (0-99) indexing the 4-byte point table `D_actor_548100_801358E4`
+/// (`s16 x, y`); `func_actor_548100_80133684` reads both endpoints' points and
+/// draws the segment between them. A node pair also keys the edge-id matrix
+/// `D_actor_548100_80135B5C` as `prev * 100 + cur`, which is how the route walk
+/// in `func_actor_548100_80134AE0` and `func_actor_548100_80134CB8` gets from a
+/// step of the route string back to a record here: the bytes of
+/// `D_actor_548100_80135B24[id]` are successive node ids, 0xFF-terminated.
+///
+/// The record is 14 bytes -- the stride `func_actor_548100_80134AE0` computes
+/// as `id * 7 * 2` -- and only `nodeA`, `nodeB` and `field_2` are seeded in the
+/// ROM; the rest is runtime state. `state` is the 1-based progress step the
+/// drawing switch in `func_actor_548100_80133684` dispatches on (it subtracts 1
+/// and accepts 0-4 as a case index): `func_actor_548100_80134AE0` writes 2 or 3
+/// into it and `func_actor_548100_80134BF0` 0 or 1, the latter choosing between
+/// them by comparing `field_2` with 2 (records 0-3 carry 2, records 73-78
+/// carry 1). `flag_3` gates the direction branch of the drawing code, `dist` is
+/// a per-segment value summed along a route by `func_actor_548100_80134CB8`,
+/// and `field_C` a signed value that code scales by the segment's horizontal
+/// direction.
+///
+/// `func_actor_548100_80134BA8` walks the table from its head and stops at the
+/// first record whose `nodeA` is 0: an all-zero sentinel record, the 92nd, so 91
+/// real records. The table's extent is 0x508 bytes, ending exactly where
+/// `D_actor_548100_801356D8` begins -- only its leading 0x200 bytes are covered
+/// by this symbol, the splitter having put the stray `D_actor_548100_801353D0`
+/// label inside the array, mid-record.
+typedef struct Actor548100Edge {
+    /* 0x00 */ u8   nodeA;
+    /* 0x01 */ u8   nodeB;
+    /* 0x02 */ u8   field_2;
+    /* 0x03 */ u8   flag_3;
+    /* 0x04 */ byte pad_4[0x4];
+    /* 0x08 */ u8   state;
+    /* 0x09 */ byte pad_9[0x1];
+    /* 0x0A */ s16  dist;
+    /* 0x0C */ s16  field_C;
+} Actor548100Edge;
+STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
+
+extern Actor548100Edge D_actor_548100_801351D0[];
+
 #endif

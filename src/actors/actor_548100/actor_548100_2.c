@@ -1,8 +1,12 @@
 #include "common.h"
 
+#include "actors/actor_548100.h"
+
 extern u8 D_actor_548100_80135884;
 extern u8 D_actor_548100_80135885;
 extern u8 D_actor_548100_80135886;
+
+void func_actor_548100_80133684(Actor548100Edge* edge);
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134778);
 
@@ -39,7 +43,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134AE0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134BA8);
+void func_actor_548100_80134BA8(void)
+{
+    Actor548100Edge* edge;
+
+    for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+        func_actor_548100_80133684(edge);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134BF0);
 
