@@ -8,6 +8,7 @@
 #include "main/gameflag.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern s8 D_8007272D;
 
@@ -196,7 +197,38 @@ s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132B98);
+/// Script opcode: set the visibility flags of this actor's model and of the
+/// model owned by the enemy task it was paired with. `flags` bit 0 hides both
+/// models (`TmdObject::field_C` = 0) and its absence restores the default
+/// 0x80; bit 1 additionally ORs in 0x4, the same bit `Tmd_Create` sets for its
+/// own `flags & 1`. With no enemy paired (`Task::spawnArg1` == 0) the actor
+/// drives its own model twice.
+s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
+{
+    Actor460200PairedWork* work;
+    TmdObject*             self;
+    TmdObject*             other;
+
+    self = (TmdObject*)task->extra;
+    work = (Actor460200PairedWork*)task->idMap;
+    if (task->spawnArg1 != 0) {
+        other = (TmdObject*)work->field_4F0->extra;
+    } else {
+        other = self;
+    }
+    if (flags & 1) {
+        self->field_C  = 0;
+        other->field_C = 0;
+    } else {
+        self->field_C  = 0x80;
+        other->field_C = 0x80;
+    }
+    if (flags & 2) {
+        self->field_C  |= 4;
+        other->field_C |= 4;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132C14);
 

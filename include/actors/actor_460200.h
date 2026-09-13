@@ -31,6 +31,22 @@ typedef struct Actor460200Work {
     /* 0x4F0 */ u16       field_4F0;
 } Actor460200Work;
 
+/// Work block of the actors whose spawn routine allocates it with
+/// `Mem_Calloc(0x4F8, 0)` and hangs it off `Task::idMap` (0x1C); the same
+/// `Actor460200Work` prefix through `animArg`. Past that it diverges from the
+/// 0x4FC-sized carriers `Actor460200Work` describes, so only the one field
+/// this body reaches is described rather than a whole-block size that would
+/// be wrong for them.
+///
+/// `field_4F0` is the task of the enemy the actor was paired with when its
+/// `Task::spawnArg1` was set; the visibility opcode below drives that task's
+/// model alongside its own, and falls back to its own model when no enemy was
+/// spawned. It is the same field `ActorsShared80132eccWork` reaches.
+typedef struct Actor460200PairedWork {
+    /* 0x000 */ byte  pad_0[0x4F0];
+    /* 0x4F0 */ Task* field_4F0;
+} Actor460200PairedWork;
+
 /// Argument block of the script opcode `func_actor_460200_80132B2C`
 /// implements: which animation to play, and how. Same layout as the
 /// `Actor150400AnimArgs` that opcode's twin takes.
