@@ -78,7 +78,26 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801652B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165528);
+extern GpActorFuncTable3 D_actor_800100_80161E4C;
+
+void func_actor_800100_80165528(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable3 sp;
+
+    sp    = D_actor_800100_80161E4C;
+    actor = arg0->actor;
+    if (actor->field_940 > 0) {
+        actor->field_940--;
+    }
+    if ((s8)actor->field_97A > 0) {
+        actor->field_97A--;
+    }
+    actor->field_973 = 0;
+    actor->field_975 = 0;
+    sp.funcs[actor->field_954](arg0);
+    actor->field_986 = 0;
+}
 
 void func_actor_800100_801655C0(GpActorWork* arg0)
 {
