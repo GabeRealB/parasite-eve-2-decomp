@@ -39,12 +39,15 @@ typedef struct Actor00700Work {
     /* 0x1FC */ byte                field_1FC[0x18];
     /* 0x214 */ byte                field_214[0x10];
     /* 0x224 */ GpEffArg            field_224;
-    /* 0x22C */ byte                pad_22C[0x50];
+    /* 0x22C */ MATRIX              field_22C;
+    /* 0x24C */ byte                pad_24C[0x30];
     /* 0x27C */ byte                field_27C[0x40];
     /* 0x2BC */ s32                 field_2BC;
     /* 0x2C0 */ s32                 field_2C0;
     /* 0x2C4 */ s32                 field_2C4;
-    /* 0x2C8 */ byte                pad_2C8[0x1E];
+    /* 0x2C8 */ byte                pad_2C8[0x1A];
+    /* 0x2E2 */ s16                 field_2E2;
+    /* 0x2E4 */ byte                pad_2E4[2];
     /* 0x2E6 */ s16                 field_2E6;
     /* 0x2E8 */ byte                pad_2E8[0x14];
     /* 0x2FC */ byte                field_2FC[0x1E];
