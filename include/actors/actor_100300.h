@@ -49,7 +49,10 @@ typedef struct Actor100300Work {
     /* 0x67C */ s16                 field_67C;
     /* 0x67E */ byte                pad_67E[0x6];
     /* 0x684 */ s16                 field_684;
-    /* 0x686 */ byte                pad_686[0x10];
+    /* 0x686 */ s16                 field_686;
+    /* 0x688 */ byte                pad_688[0x8];
+    /* 0x690 */ s16                 field_690;
+    /* 0x692 */ byte                pad_692[0x4];
     /* 0x696 */ u16                 field_696;
     /* 0x698 */ s16                 field_698;
 } Actor100300Work;

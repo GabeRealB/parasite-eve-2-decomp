@@ -207,7 +207,37 @@ void Actor00300_Fn04958(Actor100300Ctx* arg0, Actor100300* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04A2C);
+void Actor00300_Fn04A2C(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GpEnemy*         enemy;
+    s16              damage;
+    u8               flags;
+
+    enemy = arg0->field_20;
+    flags = enemy->field_4C;
+    work  = arg0->field_1C;
+    if (flags & 1) {
+        enemy->field_4C = flags & 0xFE;
+    }
+    if ((enemy->field_4C & 2) && (work->field_684 != 5)) {
+        work->field_684 = 6;
+        work->field_686 = 0;
+    }
+    if (enemy->field_4C & 0xC) {
+        damage          = Gp_TickObjFlag4((GpObj5C*)enemy);
+        work->field_690 = damage;
+        if (damage != 0) {
+            func_800DA6E8(&enemy->node, (s32)damage, 0);
+            enemy->field_40 = (u16)enemy->field_40 - (u16)work->field_690;
+            work->field_684 = 5;
+            work->field_686 = 0;
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04B14);
 
