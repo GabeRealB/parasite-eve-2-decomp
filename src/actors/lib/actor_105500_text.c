@@ -4,10 +4,19 @@
 #include "actors/actors_shared_80135b58.h"
 
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
+
+extern void* D_80067704[1];
+extern u8    Actor05500_D05F18[];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-void    Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
 void Actor05500_Fn0006C(Actor105500* arg0);
 void Actor05500_Fn00754(Actor105500* arg0);
@@ -182,7 +191,42 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03AC8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03B60);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03C54);
+void Actor05500_Fn03C54(Actor105500* actor)
+{
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
+    u8         areaByte0;
+    GpAreaRec* rec;
+    GpCdRec10* entry;
+    GpEffWork* eff;
+    TmdObject* model;
+    s32        idx;
+    u32        raw;
+
+    D_80067704[0] = Actor05500_D05F18;
+    eff           = Gp_SpawnEff(0x40007, actor->field_2C->field_8 + 4, 0x100, NULL);
+    if (eff == NULL) {
+        return;
+    }
+    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+    raw         = ((Actor105500Ctx*)actor->field_20)->field_8;
+    model       = (TmdObject*)eff->field_0->extra;
+    key.field_3 = sessionKey->field_3;
+    key.field_2 = sessionKey->field_2;
+    key.field_1 = sessionKey->field_1;
+    areaByte0   = sessionKey->field_0;
+    idx         = raw >> 12;
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(&key);
+    rec             = Gp_GetNestedAreaRec(&key);
+    entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+    model->field_24 = entry->field_D;
+    model->field_25 = entry->field_E;
+    if (model->field_18 != NULL) {
+        Tmd_ProcessStream(model);
+        Tmd_ProcessStream(model);
+    }
+}
 
 /// Folds a uniform 1/16 scale into the model's third coordinate node, through a
 /// 0x30-byte block borrowed from the scratchpad and released again: an identity
