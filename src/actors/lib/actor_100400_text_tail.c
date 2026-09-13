@@ -2,10 +2,6 @@
 
 #include "actors/actor_100400.h"
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A190);
-
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A28C);
-
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A2F4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A364);

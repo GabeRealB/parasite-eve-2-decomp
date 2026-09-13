@@ -20,7 +20,9 @@ typedef struct Actor100400Obj {
 } Actor100400Obj;
 
 typedef struct Actor100400Work {
-    /* 0x000 */ byte     pad_0[0x39C];
+    /* 0x000 */ byte     pad_0[8];
+    /* 0x008 */ byte     field_8[0x20];
+    /* 0x028 */ byte     pad_28[0x374];
     /* 0x39C */ GpRec18  field_39C[6];
     /* 0x42C */ byte     pad_42C[0x20];
     /* 0x44C */ GpRec18  field_44C[6];
