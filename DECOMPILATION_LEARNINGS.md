@@ -65175,3 +65175,40 @@ epilogues merge.
 `base_2.i`
 `ede90cb5a0b414da4dcd699f736e4d4275e0f2167e70c681be0cc3a4b4f3217c` (nested
 `if`s, same object).
+
+## An `s16` parameter forces `sll`/`sra` before any later `+ K`
+
+m2c infers a parameter's type from how the body stores it, so a value written
+into a `u16`/`s16` field comes back as `s16 arg1`. A short parameter is then
+sign-extended wherever the arithmetic promotes it to int, which the target may
+not do:
+
+```
+sh     a1, 0x960(v0)
+sll    a1, a1, 16        <- extra, from `s16 arg1`
+sra    a1, a1, 16
+addiu  a1, a1, 0xE
+```
+
+`func_actor_800100_80166E94`'s target instead adds straight onto the incoming
+register, because the original parameter was word-typed:
+
+```
+sh     a1, 0x960(v0)
+addiu  a1, a1, 0xE
+```
+
+Retyping it `s32` removes both instructions and is a 100% match; the halfword
+store is unaffected, since storing an `s32` into a `u16` field truncates the
+same way. The tell is an `addiu`/`addu` on a register that still holds the raw
+incoming argument: no extension pair anywhere in front of it means the source
+parameter was `s32`, not the narrow type the store suggests.
+
+`func_actor_800100_80166E94` (91.30% → 100%, the only leftover being
+`insert=2`). Inputs: `base.i`
+`be29cf56717444d791255fd861fb768e3c3ef3df022527ac4e2a48cbe9b9ae88` (82.17%,
+`s16 arg1` plus a 3-argument call — the `jal` takes four), `base_1.i`
+`68d954dafdcf14cacfa503fe7eaaba14b466aa3326f02b3695044af598781c5d`,
+`base_2.i`
+`409c1e57e3cdfe03c468e42706c33ab229fb844380bb6057c1d048763fc93454`
+(`s32 arg1`).
