@@ -67206,3 +67206,38 @@ a byte-field value in an `s32` local": there an `s32` local stops combine from
 
 **Example:** `func_actor_107600_80132ED0` (99.294% -> 100%, `u8 variant` -> `u32
 variant`, everything else unchanged).
+## An `s8` local defers its sign extension to the use; a cast into `s32` pins it at the assignment
+
+**Symptom.** `Gp_GetObjPan` returns `s32`; the target truncates its result
+immediately - `sll $s1,$v0,24` / `sra $s1,$s1,24` land *before* the following
+`Gp_GetObjDepth` call, and the argument setup is a plain copy
+(`addu $a1,$s1,$zero`). With the m2c seed
+
+```c
+s8  temp_s1;
+...
+temp_s1 = Gp_GetObjPan(coord);          /* QImode temp */
+```
+
+the raw `$v0` is moved into `$s1` across the second call and the pair is folded
+into the argument instead: `move $s1,$v0` in the delay slot, then
+`sll $s1,$s1,24` / `sra $a1,$s1,24` after it. Same instructions, different
+home and different block - `regs` plus `reorder`.
+
+**Fix.** Widen the local and cast at the assignment, i.e. what the matched
+sibling `ActorsShared80168a28` already writes:
+
+```c
+s32 pan;
+pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+```
+
+A QImode object only has to be converted where it is *used*, so GCC delays the
+pair; assigning the `s8` *value* to an SImode object makes the conversion a
+real insn at the assignment, which is where a value that survives a call is
+supposed to be settled. `func_actor_206100_8014FBE4` is the worked example
+(88.413% -> 100%; the other half of that gap was m2c inventing a second argument
+for the one-argument `Gp_GetObjPan`, which materialised `0x40040006` twice -
+one `lui`/`ori` pair per copy. An `insert` penalty from a duplicated constant is
+worth checking against the callee's real prototype in `include/` first).

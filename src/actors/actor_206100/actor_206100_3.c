@@ -1,6 +1,10 @@
 #include "common.h"
 
+#include "main/gameflag.h"
+#include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "actors/actor_206100.h"
 
@@ -130,7 +134,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FAE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FBE4);
+void func_actor_206100_8014FBE4(Task* task)
+{
+    Actor206100Work* work;
+    GpEnemy*         enemy;
+    s32              soundId;
+    s32              pan;
+
+    work  = (Actor206100Work*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    SndEvt_EnqueueType7(0x551E0002, 1);
+    Gp_ApplyAreaRecs(&D_8018590C);
+    work->field_526 = work->field_536;
+    Gp_UnlinkNode(&enemy->node);
+    Gp_ReleaseStateF0Add((GpObj20E*)task, 0);
+    GameFlag_SetNibble(0xF3, 1);
+    enemy->field_54 = 0;
+    Gp_UnlinkObj(&work->obj_364);
+    Gp_UnlinkObj(&work->obj_414);
+    work->field_51E = 0;
+    work->field_520 = work->field_520 + 1;
+    soundId         = ((((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x40040006;
+    pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan,
+                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FCD4);
 
