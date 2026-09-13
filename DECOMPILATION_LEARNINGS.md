@@ -6492,6 +6492,38 @@ default_case:
 body brings back `slti` but also inserts extra `bltz`/duplicate labels — not a
 full match.
 
+A dummy case *does* match in full when its code lands on the switch exit.
+`func_actor_560800_801393EC` is the two-case version of this -- `case 1:
+field_C &= 0xFF7B;`, `case 2: field_C |= 0x84;`, both `return` -- and the
+target is the `slti`/`bnez` form:
+
+```
+li    v0, 1
+beq   a2, v0, case1
+slti  v0, a2, 2
+bnez  v0, exit        /* x < 2 -> exit */
+li    v0, 2
+beq   a2, v0, case2
+exit: jr ra
+```
+
+Two cases cannot produce it. For {1,2} `balance_case_nodes` (stmt.c) leaves the
+list a right-chain, and the root's right child is a single-valued leaf, so
+`emit_case_nodes` takes the `do_jump_if_equal` path and emits no bounds check at
+all. The third node has to sit *below* the root's value: {0,1,2} makes the root
+1 internal with children 0 and 2, and the "neither subtree is bounded" path
+emits `bgt` to a test label plus `emit_jump_if_reachable (default_label)`.
+Write that case with an empty arm -- `case 0: break;` -- and its
+`beqz a2, exit` shares a target with the reachable jump, so jump.c deletes the
+compare ("conditional jump going to the same place as an immediately following
+unconditional jump") and then inverts the `bgt` over the now-dead jump, leaving
+exactly the target. The empty arm's code never appears, so nothing in the
+assembly hints that a third case exists.
+
+`Room_Util19` (`src/rooms/lib/room_util19.c`, matched) is the same tree with a
+real `case 0`, and shows `slti v0,a2,2` with `beqz` instead of `bnez` -- same
+`bgt`, not yet inverted because its left subtree does not fall to the default.
+
 ## Local pointer CSE for a shared byte-store address
 
 When both arms of an `if`/`else` store to the same global `u8`, the target may
