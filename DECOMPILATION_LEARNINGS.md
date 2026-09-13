@@ -65329,6 +65329,54 @@ effect) are the inlined form; `func_actor_444000_8013799C` and
 needed the inlined one, which is also why its rotation reset is a helper rather
 than straight-line code: the four accesses must not share `$s3`.
 
+## The scratchpad *store's* value is a second computation, or the `move` is lost
+
+The section above is about the accesses sharing a register. The store into the
+carved block is the other half, and it goes the other way: a target that stores
+a *block-local* register and copies into the call-crossing one needs the stored
+expression written twice.
+
+`func_actor_105100_80136574` carves 0x30 bytes off `G_SCRATCH_HEAD`, and the
+obvious spelling scores 93.55%:
+
+```c
+head = *(void**)G_SCRATCH_HEAD;
+blk  = (T*)((u8*)head - 0x30);
+*(void**)G_SCRATCH_HEAD = blk;
+```
+
+Its `.lreg` block 0 has one pseudo for the subtraction — `reg 86 = reg 85 - 48`
+— and the store consumes it, so allocation writes the call-crossing `blk`
+straight into `$s0` with `addiu $s0, $v1, -0x30`. The target instead has
+
+```
+lw    v1, 0(v0)        ; head
+addiu v1, v1, -0x30
+sw    v1, 0(v0)        ; the store reads the block-local $v1 ...
+addu  s0, v1, zero     ; ... and blk arrives as a copy
+```
+
+which is two separate computations of `head - 0x30`:
+
+```c
+head = *(void**)G_SCRATCH_HEAD;
+*(void**)G_SCRATCH_HEAD = (u8*)head - 0x30;   /* its own (set ...) */
+blk  = (T*)((u8*)head - 0x30);
+```
+
+`cse_insn` will not substitute the second occurrence: it replaces an expression
+with a register only when the earlier occurrence is *in* one, and the store's
+`(plus (reg 85) (const_int -48))` never got one. Both `(set)` insns survive —
+`.lreg` shows `reg 90 = reg 85 - 48`, the store reading `reg 90`, then
+`reg 86 = reg 90` — so the store's value stays block-local while `blk` is
+allocated across the two calls, and `reload_cse_regs` keeps the copy.
+
+**Reading it.** An `addu $sN, $vN, $zero` feeding a value that the same block
+already computed into `$vN` is a duplicated C expression, not a spill. Split the
+one variable into the two expressions; do not fold them. Which register the `sw`
+reads tells the two cases apart — the section above wants the shared form, this
+one wants the duplicate, and they are the same source line written two ways.
+
 ## Duplicate the call in both arms to keep the `j` an argument-conditional wants
 
 A call whose only conditional part is one argument has two shapes. A ternary

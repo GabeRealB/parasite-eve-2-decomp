@@ -14,29 +14,52 @@ typedef struct Actor105100Obj2C {
     /* 0x0C */ s16            field_C;
 } Actor105100Obj2C;
 
+/// A `MATRIX` plus the word-wise view `func_actor_105100_80136574` uses to
+/// splat an identity rotation: five aligned stores instead of nine halfword
+/// ones, each word holding two adjacent `m[][]` entries.
+typedef union Actor105100MatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor105100MatWords;
+STATIC_ASSERT_SIZEOF(Actor105100MatWords, 0x20);
+
+/// 0x30-byte block borrowed from `G_SCRATCH_HEAD` by
+/// `func_actor_105100_80136574`: an identity `mat` scaled by `scale`, then
+/// multiplied into the coordinate the actor's `field_2C` points at.
+typedef struct Actor105100Scratch {
+    /* 0x00 */ Actor105100MatWords mat;
+    /* 0x20 */ VECTOR              scale;
+} Actor105100Scratch;
+STATIC_ASSERT_SIZEOF(Actor105100Scratch, 0x30);
+
 typedef struct Actor105100Work {
-    /* 0x000 */ GpObj obj0;
-    /* 0x020 */ byte  pad_20[0x18];
-    /* 0x038 */ GpObj obj38;
-    /* 0x058 */ byte  pad_58[0x508];
-    /* 0x560 */ s32   field_560;
-    /* 0x564 */ byte  pad_564[0x1C];
-    /* 0x580 */ s32   field_580;
-    /* 0x584 */ s32   field_584;
-    /* 0x588 */ s32   field_588;
-    /* 0x58C */ byte  pad_58C[2];
-    /* 0x58E */ u16   field_58E;
-    /* 0x590 */ s16   field_590;
-    /* 0x592 */ u16   field_592;
-    /* 0x594 */ s16   field_594;
-    /* 0x596 */ byte  pad_596[0xC];
-    /* 0x5A2 */ s16   field_5A2;
-    /* 0x5A4 */ byte  pad_5A4[4];
-    /* 0x5A8 */ s16   field_5A8;
-    /* 0x5AA */ byte  pad_5AA[0xE];
-    /* 0x5B8 */ u16   field_5B8;
-    /* 0x5BA */ byte  pad_5BA[2];
-    /* 0x5BC */ s16   field_5BC;
+    /* 0x000 */ GpObj  obj0;
+    /* 0x020 */ byte   pad_20[0x18];
+    /* 0x038 */ GpObj  obj38;
+    /* 0x058 */ byte   pad_58[0x508];
+    /* 0x560 */ MATRIX field_560;
+    /* 0x580 */ s32    field_580;
+    /* 0x584 */ s32    field_584;
+    /* 0x588 */ s32    field_588;
+    /* 0x58C */ byte   pad_58C[2];
+    /* 0x58E */ u16    field_58E;
+    /* 0x590 */ s16    field_590;
+    /* 0x592 */ u16    field_592;
+    /* 0x594 */ s16    field_594;
+    /* 0x596 */ byte   pad_596[0xC];
+    /* 0x5A2 */ s16    field_5A2;
+    /* 0x5A4 */ byte   pad_5A4[4];
+    /* 0x5A8 */ s16    field_5A8;
+    /* 0x5AA */ byte   pad_5AA[0xE];
+    /* 0x5B8 */ u16    field_5B8;
+    /* 0x5BA */ byte   pad_5BA[2];
+    /* 0x5BC */ s16    field_5BC;
 } Actor105100Work;
 
 /// List entry at +0x10 of `Actor105100Ctx`, linked by the state-0 setup.
