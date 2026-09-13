@@ -3,12 +3,16 @@
 #include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/stage.h"
 #include "main/task.h"
 
 extern s8 D_8007272D;
 
+extern s32 D_actor_460200_80135F14;
+extern s32 D_actor_460200_8013607C;
+extern s32 D_actor_460200_80136234;
 extern s32 D_actor_460200_80137AA0;
 extern s32 D_actor_460200_80137BA8;
 extern s32 D_actor_460200_80137CB0;
@@ -54,7 +58,24 @@ void func_actor_460200_80132204(s8 arg0)
     D_8007272D = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132210);
+void func_actor_460200_80132210(void)
+{
+    Task* slot;
+
+    slot = (Task*)Gp_LookupSlot4(0);
+    if (slot != NULL) {
+        Gp_DispatchMsg(slot, 0x7D4, (s32)&D_actor_460200_80136234, 0);
+        Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_460200_8013607C, 0);
+    }
+    if (Gp_LookupSlot4(1) != 0) {
+        Gp_MsgSlot4Chain(1, 2);
+    }
+    slot = (Task*)Gp_LookupSlot4(2);
+    if (slot != NULL) {
+        Gp_MsgSlot4Chain(2, 1);
+        Gp_DispatchMsg(slot, 0x7D3, (s32)&D_actor_460200_80135F14, 0);
+    }
+}
 
 void func_actor_460200_801322B8(void)
 {
