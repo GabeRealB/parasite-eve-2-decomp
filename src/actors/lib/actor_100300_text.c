@@ -27,6 +27,7 @@ void Actor00300_Fn04ED4(Actor100300* arg0);
 void Actor00300_Fn04FB0(Actor100300* arg0);
 void Actor00300_Fn05008(Actor100300* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00078);
 
@@ -182,7 +183,19 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04ED4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04FB0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05008);
+void Actor00300_Fn05008(Actor100300* arg0)
+{
+    VECTOR3        vec;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* part;
+
+    coord  = arg0->field_2C->field_8;
+    part   = coord + 3;
+    vec.vx = part->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x300, 0x80);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn0505C);
 
