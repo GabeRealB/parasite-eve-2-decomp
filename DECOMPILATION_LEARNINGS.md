@@ -65710,3 +65710,49 @@ restores m2c for the whole TU and leaves the overlay checksum unchanged — the
 parameter type is explicit in both spellings, so the compiled body is identical.
 Worth doing whenever a TU's seed is blank: it unblocks every remaining function
 in the file, not just the one being matched.
+
+### m2c's `&&` of two compares against one value folds to a single compare
+
+`func_actor_800200_80165E50` tests a state field against two constants and
+leaves the function from both tests:
+
+```
+lhu   v1,0x95E(v0)
+nop
+beqz  v1,end          # state == 0 -> nothing
+li    v0,1
+bne   v1,v0,end       # state != 1 -> nothing
+nop
+jal   Gp_ResetActorMove
+```
+
+m2c renders that branch pair as `if ((v != 0) && (v == 1))`, and GCC 2.8.1
+folds the whole *expression* down to `v == 1`: the seed scores 87.438% with
+`branch=1 delete=2`, 14 instructions against the target's 16 and one block
+fewer. The fold is at the front end, so the first RTL dump (`.rtl`) already
+has a single compare and no later pass has anything to show — an early-dump
+difference that is a real fold, not numbering noise.
+
+`fold_range_test` (fold-const.c:3172, called from `fold` at 4943 for
+TRUTH_ANDIF_EXPR) rewrites both sides when they compare *the same operand*
+(`operand_equal_p` on the two comparisons' common operand, fold-const.c:3192)
+and their ranges can be merged: "not in [0,0]" ∩ "in [1,1]" becomes
+`build_range_check` on [1,1]. Since the merge happens on the expression tree,
+no spelling of the `&&` keeps both branches; the tests have to be separate
+*statements*:
+
+```c
+u16 state = arg0->actor->field_95E;
+
+if (state != 0) {
+    if (state == 1) {
+        Gp_ResetActorMove(arg0, 0);
+    }
+}
+```
+
+Each `if` folds its own condition in isolation, so both compares survive and
+the match is exact. The sibling entry on `||` bounds folding into `sltiu` is
+this same pass; there the operand equality could be broken by naming the field
+in one arm, which is no help to an `&&` whose two sides are both constant
+compares of the one value.
