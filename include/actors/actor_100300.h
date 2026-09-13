@@ -17,6 +17,18 @@ typedef struct Actor100300ScratchStack {
     u32 sp;
 } Actor100300ScratchStack;
 
+typedef struct Actor00300Light {
+    /* 0x00 */ s32 mode;
+    /* 0x04 */ union {
+        GsCOORDINATE2 coord;
+        GpObj44       light;
+    } data;
+} Actor00300Light;
+STATIC_ASSERT_SIZEOF(Actor00300Light, 0x64);
+
+extern Actor00300Light D_80114FF8;
+extern s32             D_80070F70;
+
 typedef struct Actor00300GroundScratch {
     /* 0x00 */ SVECTOR vec[4];
     /* 0x20 */ DVECTOR sxy0;

@@ -18,7 +18,7 @@ extern s32 D_80115728;
 extern s32 D_8011573C;
 extern s32 Gp_LcgState;
 
-void Actor00300_Fn00078(GsCOORDINATE2* arg0, s32 arg1);
+void Actor00300_Fn00078(GsCOORDINATE2* arg0, s16 arg1);
 void Actor00300_Fn04528(Actor100300* arg0);
 void Actor00300_Fn00E54(Actor100300* arg0);
 void Actor00300_Fn01678(Actor100300* arg0);

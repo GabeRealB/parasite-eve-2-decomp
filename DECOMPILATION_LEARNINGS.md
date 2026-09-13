@@ -67762,3 +67762,30 @@ Final preprocessed input SHA256
 No permuter discovery contributed (router setup could not find m2c_macros.h).
 
 Paired preprocessed input hashes: base_2 `5febed1cddc85548f7bdc63e4dd00312d30c1994d44e041927732d831e30e9d4`; base_5 `8b8f9061cfd4e3c4e6331fc28cfa76bf96ec0a73b5c01da8a37ec00cfed497f1`; base_7 `6f640ad56fec71c9104a641ed35b99aa6f70132dce8de6aa9e7b6ca200362b60`; base_8 `9207d0f569f6b9d667d458e6173820a8fe24ede3c2d02e67f561284b02329c93`.
+
+## Narrow argument RTL and a scratch-pointer load-delay dependency (Actor00300_Fn00078)
+
+An `s32` argument repeatedly cast to `s16` is not allocation-equivalent to an
+`s16` parameter in GCC 2.8.1. Here the SI argument moved out of a1 because a
+block-local random quantity took that register. Declaring the parameter s16
+created an HI pseudo with hard-register preference 5; the argument stayed in
+a1 and its sign-extension still appeared at the first size calculation.
+The caller declarations must agree with the corrected narrow parameter.
+
+The final scratch-pointer copy also exposed a scheduler/allocation tradeoff.
+In base_21, local quantities [r100] and [r133] had refs=2/span=4 and took v0/v1.
+At sched2 cycle 21, copy UID754 won the original-order comparison against Y
+load UID116, but the load won potential hazard (6758400 versus 0). Backward
+scheduling placed the copy before the load; an empty helper consumed a cycle
+without emitting a load-delay filler. A real `move` with Y as an input
+dependency filled the delay, but that extra Y reference reversed allocation.
+One additional pointer input restored pointer v0/Y v1 and the exact object.
+The repeated operand in the landed move expresses this allocation constraint;
+it is not a hard-register pin. Changing statement order alone did not solve it.
+
+Evidence: scratch `LEARNINGS.md`, base_21 trace report and manifest, and paired
+base_23/base_25/base_26 builds. Tracing preserved identical assembly. Bundled
+compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Traced input: `99270b4b2ce5b4cfb51e8f75b478f667dfd146625f9a3d2e5aeadd8fd3f38977`.
+Final header-integrated input: `1d82c001b0f8ed5369b10a074e15f0324a049a13a3ce3550d73337b10a646996`.
+This documents the observed case, not a general duplicate-operand threshold.
