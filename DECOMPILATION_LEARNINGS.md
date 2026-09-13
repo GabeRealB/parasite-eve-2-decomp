@@ -56051,6 +56051,21 @@ go, and there is exactly one placement that works. Getting it wrong builds
 cleanly and fails the checksum at the overlay's first rodata byte, not at a
 function, so `diff.py` on every function will say everything matches.
 
+A promotion does the opposite damage to a `rodata` cut it crosses. The cut still
+names the unit the table used to belong to, but the span pushed the table's only
+reader past it, so the table is no longer migrated and becomes a standalone `.s`
+in the *old* unit — which the reader can never use, since a compiler-generated
+table has to start its own object's `.rodata`. `rodata_triage.py <overlay>`
+reports exactly this (`unit actor_141000_5: table owned by actor_141000_4`) and
+marks those functions BLOCKED. Point the cut's `unit` at the reader's unit
+instead. No `units` entry is needed — the `.text` cuts do not move — so this is
+not the destructive delete-and-re-split: splat migrates the table straight back
+into the reader's `.s`, and the `INCLUDE_RODATA` line disappears. Delete the
+stale `.s` the earlier split left behind; splat will not. A symbol that is plain
+data stays standalone either way, and its line belongs in the unit its cut
+names even when no code there mentions it — `actor_141000`'s
+`D_…80131E68` at `0x48` is owned by unit 3 and read only by unit 4.
+
 ## Two independent pointer locals: their assignment order decides whether `p + 4` fuses into `$a0`
 
 `ActorsShared80132920` loads two unrelated pointers out of its `Task*` and only

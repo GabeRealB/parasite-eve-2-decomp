@@ -24,24 +24,26 @@ typedef struct Actor141000Point {
 ///
 /// The size is the allocation, and the fields below are the ones the init
 /// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C9 are set to -1, and the
-/// three words at 0x4A0..0x4A8 are cleared.
+/// three words at 0x4A0..0x4A8 are cleared. `target` is the world position the
+/// actor turns to face, written by the state handler at 0x801336DC.
 typedef struct Actor141000Work {
-    /* 0x000 */ byte   pad_0[0x43D];
-    /* 0x43D */ s8     field_43D;
-    /* 0x43E */ s8     field_43E;
-    /* 0x43F */ byte   pad_43F[0x1];
-    /* 0x440 */ MATRIX light;
-    /* 0x460 */ MATRIX color;
-    /* 0x480 */ byte   pad_480[0x20];
-    /* 0x4A0 */ s32    field_4A0;
-    /* 0x4A4 */ s32    field_4A4;
-    /* 0x4A8 */ s32    field_4A8;
-    /* 0x4AC */ byte   pad_4AC[0x16];
-    /* 0x4C2 */ s16    field_4C2;
-    /* 0x4C4 */ byte   pad_4C4[0x4];
-    /* 0x4C8 */ s8     field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
-    /* 0x4C9 */ s8     field_4C9;
-    /* 0x4CA */ byte   pad_4CA[0x2];
+    /* 0x000 */ byte    pad_0[0x43D];
+    /* 0x43D */ s8      field_43D;
+    /* 0x43E */ s8      field_43E;
+    /* 0x43F */ byte    pad_43F[0x1];
+    /* 0x440 */ MATRIX  light;
+    /* 0x460 */ MATRIX  color;
+    /* 0x480 */ VECTOR3 target;
+    /* 0x48C */ byte    pad_48C[0x14];
+    /* 0x4A0 */ s32     field_4A0;
+    /* 0x4A4 */ s32     field_4A4;
+    /* 0x4A8 */ s32     field_4A8;
+    /* 0x4AC */ byte    pad_4AC[0x16];
+    /* 0x4C2 */ s16     field_4C2;
+    /* 0x4C4 */ byte    pad_4C4[0x4];
+    /* 0x4C8 */ s8      field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
+    /* 0x4C9 */ s8      field_4C9;
+    /* 0x4CA */ byte    pad_4CA[0x2];
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
 
