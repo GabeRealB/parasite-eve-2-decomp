@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_460200.h"
 #include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -69,6 +70,26 @@ void func_actor_460200_80133B88(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_3", func_actor_460200_80133C00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_3", func_actor_460200_80133C64);
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args)
+{
+    Actor460200Work* work;
+
+    work = (Actor460200Work*)task->idMap;
+    if (args->animId >= 0x12) {
+        return -1;
+    }
+
+    work->animId = args->animId;
+    if (args->withArg != 0) {
+        SOFT_BARRIER();
+        work->state   = 1;
+        work->animArg = args->animArg;
+    } else {
+        work->state = 2;
+    }
+    work->field_4BA = 0;
+    func_actor_460200_801336B4(task);
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_3", func_actor_460200_80133CD0);
