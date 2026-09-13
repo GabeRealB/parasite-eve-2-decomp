@@ -3,6 +3,7 @@
 #include "actors/actor_102500.h"
 #include "main/tmd.h"
 #include "main/session.h"
+#include "main/wipsys.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -152,7 +153,103 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00494);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00B18);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00DD8);
+void Actor02500_Fn00DD8(Actor02500* actor)
+{
+    Actor02500Work* work;
+    GsCOORDINATE2*  coord;
+    s16             timer;
+    s32             state;
+    s16             diff;
+    s32             frame;
+    s32             absDiff;
+    s16             angle;
+    s32             sound;
+    s32             dx;
+    s32             dz;
+    s32             homeDx;
+    s32             homeDz;
+    s32             pan;
+    VECTOR*         vector;
+    VECTOR*         scratchEnd;
+
+    scratchEnd = (VECTOR*)SCRATCH_SP;
+    vector     = scratchEnd - 1;
+    SCRATCH_SP = (u32)vector;
+    work       = actor->field_1C;
+    state      = work->field_324;
+    coord      = actor->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_31C = 4;
+            work->field_32E = 0xF0;
+            work->field_326 = 0;
+            work->field_324 = 1;
+            break;
+        case 1:
+            work->field_326   = (s16)Actor02500_D05B78[actor->field_20->field_3C->field_F];
+            scratchEnd[-1].vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vector->vy        = 0;
+            vector->vz        = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            work->field_32A   = ratan2((s16)scratchEnd[-1].vx, (s16)vector->vz) & 0xFFF;
+            dx                = scratchEnd[-1].vx;
+            dz                = vector->vz;
+            if (SquareRoot0((dx * dx) + (dz * dz)) < 0x3E8) {
+                diff            = work->field_32A - (u16)work->field_32C;
+                absDiff         = diff >= 0 ? diff : -diff;
+                work->field_326 = 0;
+                if (absDiff < 0x800) {
+                    angle = absDiff;
+                } else if (diff > 0) {
+                    angle = 0x1000 - diff;
+                } else {
+                    angle = diff + 0x1000;
+                }
+                if (angle < 0x30) {
+                    work->field_324 = 2;
+                    work->field_31C = 6;
+                }
+            } else {
+                timer           = (u16)work->field_32E - 1;
+                work->field_32E = timer;
+                if (timer <= 0) {
+                    scratchEnd[-1].vx = Wip_SysConfig.field_4->t[0] - work->field_314;
+                    vector->vy        = 0;
+                    homeDz            = Wip_SysConfig.field_4->t[2] - work->field_318;
+                    vector->vz        = homeDz;
+                    homeDx            = scratchEnd[-1].vx;
+                    if (SquareRoot0((homeDx * homeDx) + (homeDz * homeDz)) >= 0x7D1) {
+                        work->field_324 = 3;
+                    }
+                }
+            }
+            break;
+        case 2:
+            frame           = (s16)work->field_320;
+            work->field_326 = 0;
+            work->field_342 = 1;
+            if (frame == 41) {
+                work->field_2A4.flags |= 0x8000;
+            } else if (frame == 42) {
+                sound = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40190005;
+                pan   = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+            } else if (frame == 44) {
+                work->field_342        = 0;
+                work->field_2A4.flags &= 0x7FFF;
+            } else if (frame >= 76) {
+                work->field_324 = 1;
+                work->field_31C = 4;
+            }
+            break;
+        case 3:
+            work->field_322 = 0;
+            work->field_324 = state;
+            work->field_31C = state;
+            break;
+    }
+    work->field_328 = (s16)Actor02500_D05B68[actor->field_20->field_3C->field_F];
+    SCRATCH_SP     += 0x10;
+}
 
 void Actor02500_Fn01144(Actor02500* actor)
 {

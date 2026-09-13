@@ -92,7 +92,8 @@ typedef struct Actor02500Work {
     /* 0x33A */ s16                 field_33A;
     /* 0x33C */ s16                 field_33C;
     /* 0x33E */ s16                 field_33E;
-    /* 0x340 */ byte                pad_340[4];
+    /* 0x340 */ byte                pad_340[2];
+    /* 0x342 */ s16                 field_342;
     /* 0x344 */ s16                 field_344;
     /* 0x346 */ byte                pad_346[2];
 } Actor02500Work;
@@ -147,6 +148,8 @@ typedef struct Actor02500Desc {
 typedef struct Actor02500Kind {
     /* 0x0 */ byte pad_0[2];
     /* 0x2 */ u16  field_2;
+    /* 0x4 */ byte pad_4[0xB];
+    /* 0xF */ u8   field_F;
 } Actor02500Kind;
 
 typedef struct Actor02500Ctx {
@@ -195,6 +198,8 @@ s32  Gp_GetObjDepth(GsCOORDINATE2* coord);
 s32  Gp_GetObjPan(GsCOORDINATE2* coord);
 s32  SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
+extern s16            Actor02500_D05B68[];
+extern s16            Actor02500_D05B78[];
 extern s16            Actor02500_D05B88[];
 extern Actor02500Desc Actor02500_D05B38[];
 extern void*          Actor02500_D05BA0;
