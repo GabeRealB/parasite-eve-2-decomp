@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 /// One entry of the caption script the `actor_215100` overlay plays back.
 ///
 /// `func_actor_215100_8014B2B8` picks a script out of the table at
@@ -25,5 +27,37 @@ typedef struct Actor215100Caption {
     /* 0x8 */ s32  field_8; // line id; -1 terminates the script
 } Actor215100Caption;
 STATIC_ASSERT_SIZEOF(Actor215100Caption, 0xC);
+
+/// Work block this overlay hangs off its task's `Task::idMap` slot (0x1C),
+/// which is not a `TaskIdMap` here. Only the prefix the animation script opcode
+/// `func_actor_215100_8014CCE0` and `func_actor_215100_8014C874` reach is
+/// described.
+///
+/// `state` selects the start path `func_actor_215100_8014C874` takes: 1 runs
+/// the animated one and 2 the plain one, and the same layout appears in
+/// `Actor150400Work` thirty-six bytes lower (`state` at 0x47C there), so the two
+/// overlays carry separate structs.
+typedef struct Actor215100Work {
+    /* 0x000 */ byte pad_0[0x4B4];
+    /* 0x4B4 */ s16  state;
+    /* 0x4B6 */ byte pad_4B6[0x2];
+    /* 0x4B8 */ u16  animId;
+    /* 0x4BA */ s16  field_4BA;
+    /* 0x4BC */ byte pad_4BC[0x30];
+    /* 0x4EC */ u16  animArg;
+} Actor215100Work;
+
+/// Argument block of the script opcode `func_actor_215100_8014CCE0`
+/// implements: which animation to play, and how.
+typedef struct Actor215100AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+    /* 0x8 */ s32  withArg;
+    /* 0xC */ u16  animArg;
+} Actor215100AnimArgs;
+
+void func_actor_215100_8014C874(Task* task);
+
+s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args);
 
 #endif
