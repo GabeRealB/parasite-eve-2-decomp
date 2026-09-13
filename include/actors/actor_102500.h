@@ -85,7 +85,7 @@ typedef struct Actor02500Work {
     /* 0x32A */ u16                 field_32A;
     /* 0x32C */ s16                 field_32C;
     /* 0x32E */ s16                 field_32E;
-    /* 0x330 */ byte                pad_330[2];
+    /* 0x330 */ s16                 field_330;
     /* 0x332 */ s16                 field_332;
     /* 0x334 */ byte                pad_334[2];
     /* 0x336 */ s16                 field_336;
@@ -181,7 +181,7 @@ STATIC_ASSERT_SIZEOF(Actor02500Ctx, 0x58);
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
 /// `SVECTOR` at +0x10 is used by `Actor02500_Fn016FC`.
 typedef struct Actor02500RotScratch {
-    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x00 */ VECTOR  delta;
     /* 0x10 */ SVECTOR rot;
 } Actor02500RotScratch;
 STATIC_ASSERT_SIZEOF(Actor02500RotScratch, 0x18);
@@ -191,9 +191,22 @@ typedef struct Actor02500StateF0 {
     /* 0x04 */ u8   field_4;
     /* 0x05 */ u8   field_5;
     /* 0x06 */ u16  field_6;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte pad_C[0x15];
+    /* 0x21 */ s8   field_21;
 } Actor02500StateF0;
 
-extern Actor02500StateF0 Gp_StateF0;
+typedef struct Actor02500OffsetPair {
+    s16 x;
+    s16 z;
+} Actor02500OffsetPair;
+
+extern Actor02500OffsetPair Actor02500_D05BE8[];
+extern s8                   D_80115410[];
+extern Actor02500StateF0    Gp_StateF0;
+
+void Gp_ArmStateF0(s32 active);
+void Actor02500_Fn012F0(Actor02500* actor);
 
 void Gp_ClearRec18Occupied(Actor02500Rec18* rec);
 s32  Gp_CountRec18Hi(Actor02500Rec18* rec, s32 mask);
