@@ -200,7 +200,7 @@ s32 Actor01600_Fn06C1C(Actor01600* arg0)
 
 /// Column 2 of the attachment matrix goes to `dir`; the trailing `SVECTOR`
 /// is never read but owns the second half of the stack local block.
-s32 Actor01600_Fn06C94(Actor01600* arg0, s32 arg1)
+s32 Actor01600_Fn06C94(Actor01600* arg0, s32 arg1, s32 unusedDistance)
 {
     SVECTOR         dir;
     SVECTOR         unused;

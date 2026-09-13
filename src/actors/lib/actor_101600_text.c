@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
@@ -900,4 +901,821 @@ void Actor01600_Fn017BC(Actor01600* actor)
     *(void**)0x1F8003FC += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn020F8);
+s32 Gp_DispatchMsg(Task* task, s32 message, s32 payload, s32 flags);
+struct _GpObj50;
+s32        Gp_PackObjPair(struct _GpObj50* ctx, s32 arg1);
+extern s16 D_80072830;
+
+void Actor01600_Fn020F8(Actor01600* actor)
+{
+    WipSysConfig*   config = &Wip_SysConfig;
+    s32             neg_velocity;
+    s32             reset_y;
+    s32             reset_y2;
+    SVECTOR         offset;
+    s32             distance;
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+    GsCOORDINATE2*  effectCoord;
+    GsCOORDINATE2*  coord;
+    s16             targetKind;
+    s16             temp_v0_3;
+    s16             temp_v0_4;
+    s16             temp_v0_7;
+    s16             temp_v0_8;
+    s16             temp_v1;
+    s16             temp_v1_10;
+    s16             temp_v1_5;
+    s16             temp_v1_6;
+    s16             temp_v1_7;
+    s32             id;
+    s32             flags;
+    s32             angle;
+    s32             angle2;
+    s32             var_v1;
+    s32             pan10;
+    s32             pan11;
+    s32             pan12;
+    s32             pan13;
+    s32             pan14;
+    s32             pan_case3;
+    s32             pan15;
+    s32             pan16;
+    s32             pan17;
+    s32             pan18;
+    s32             pan19;
+    s32             pan20;
+    s32             pan21;
+    s32             pan23;
+    s32             pan24;
+    s32             pan_msg_zero;
+    s32             pan25;
+    s32             pan26;
+    s32             pan27;
+    s32             pan28;
+    s32             pan29;
+    s32             pan2;
+    s32             pan30;
+    s32             pan31;
+    s32             pan32;
+    s32             pan33;
+    s32             pan34;
+    s32             pan35;
+    s32             pan36;
+    s32             pan3;
+    s32             pan4;
+    s32             pan5;
+    s32             pan6;
+    s32             pan7;
+    s32             pan8;
+    s32             pan9;
+    u16             temp_v0_6;
+    u16             temp_v1_3;
+    u16             temp_v1_8;
+    GsCOORDINATE2*  attachedCoord;
+    GsCOORDINATE2*  attachedCoord2;
+    GsCOORDINATE2*  attachedOffset;
+    GsCOORDINATE2*  attachedOffset2;
+
+    ctx         = actor->field_20;
+    work        = actor->field_1C;
+    coord       = actor->field_2C->field_8;
+    flags       = Actor01600_Fn052C4(actor) & 0xFF;
+    effectCoord = &actor->field_2C->field_8[2];
+    memset(&offset, 0, 8);
+    offset.vy = 0x32;
+    temp_v1   = work->field_516;
+    switch (temp_v1) {
+        case 0:
+            work->field_4FA = 4;
+            work->field_506 = 5;
+            work->field_50E = 0;
+            work->field_538 = 0x10;
+            if ((u32)((u16)work->field_50A - 9) < 9U) {
+                work->field_50E = 0x3C;
+                Actor01600_Fn03A60(actor);
+                Actor01600_Fn06974(actor, 0x46);
+                if (work->field_4F2 == 0) {
+                    work->field_4F2 = 1;
+                }
+            }
+            if (work->field_50A >= 0x12) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                pan2 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan2, (s8)Gp_GetObjDepth(coord));
+                SOFT_USE_REG(work);
+                if (!(Actor01600_Fn06C1C(actor) & 0xFF)) {
+                    work->field_516 = 1;
+                    work->field_50A = 0;
+                    work->field_50E = 0;
+                    work->field_506 = 0x17;
+                    goto block_8;
+                }
+            } else {
+            block_8:
+                angle = Actor01600_Fn045A8(actor, &distance);
+                SOFT_USE_REG(angle);
+                if (!(Actor01600_Fn06C94(actor, angle, distance) & 0xFF)) {
+                    if (Actor01600_Fn04974(actor, angle, distance, flags) & 0xFF) {
+                        if (work->field_50A >= 0xA) {
+                            id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                            pan3 = (s8)Gp_GetObjPan(coord);
+                            SndEvt_EnqueueType6(id, (s32)pan3, (s8)Gp_GetObjDepth(coord));
+                            SOFT_USE_REG(work);
+                            id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                            pan4 = (s8)Gp_GetObjPan(coord);
+                            SndEvt_EnqueueType6(id, (s32)pan4, (s8)Gp_GetObjDepth(coord));
+                            SOFT_USE_REG(work);
+                            work->field_50A = 0;
+                            return;
+                        }
+                    } else if ((Actor01600_Fn06D74(actor, angle, distance) & 0xFF) && (work->field_50A >= 0xA)) {
+                        id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                        pan5 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan5, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                        pan6 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan6, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        work->field_50A = 0;
+                        return;
+                    }
+                } else {
+                    default:
+                        return;
+                }
+            }
+            break;
+        case 1:
+            work->field_4FA = 4;
+            work->field_538 = 0x10;
+            work->field_50E = 0x1E;
+            work->field_506 = 6;
+            if ((u32)((u16)work->field_50A - 8) < 8U) {
+                work->field_50E = 0x3C;
+                Actor01600_Fn03A60(actor);
+                Actor01600_Fn06974(actor, -0x5A);
+                if (work->field_4F2 == 0) {
+                    work->field_4F2 = 1;
+                }
+            }
+            if (work->field_50A == 0x12) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                pan7 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan7, (s8)Gp_GetObjDepth(coord));
+                SOFT_USE_REG(work);
+            }
+            if ((u32)((u16)work->field_50A - 0x1A) < 9U) {
+                work->field_50E = 0x3C;
+                Actor01600_Fn03A60(actor);
+                Actor01600_Fn06974(actor, 0x46);
+                if (work->field_4F2 == 0) {
+                    work->field_4F2 = 1;
+                }
+            }
+            if (work->field_50A >= 0x22) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                pan8 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan8, (s8)Gp_GetObjDepth(coord));
+                work->field_50A = 0;
+                if (Actor01600_Fn06C1C(actor) & 0xFF) {
+                    return;
+                }
+            }
+            angle2 = Actor01600_Fn045A8(actor, &distance);
+            SOFT_USE_REG(angle2);
+            if (!(Actor01600_Fn06C94(actor, angle2, distance) & 0xFF)) {
+                if (Actor01600_Fn04974(actor, angle2, distance, flags) & 0xFF) {
+                    if (work->field_50A >= 8) {
+                        id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                        pan9 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan9, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                        pan10 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan10, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        work->field_50A = 0;
+                        return;
+                    }
+                } else if ((Actor01600_Fn06D74(actor, angle2, distance) & 0xFF) && (work->field_50A >= 8)) {
+                    id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                    pan11 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, (s32)pan11, (s8)Gp_GetObjDepth(coord));
+                    SOFT_USE_REG(work);
+                    id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                    pan12 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, (s32)pan12, (s8)Gp_GetObjDepth(coord));
+                    SOFT_USE_REG(work);
+                    work->field_50A = 0;
+                    return;
+                }
+            }
+            break;
+        case 2:
+            work->field_506 = 7;
+            work->field_538 = 0x10;
+            work->field_4FA = 0;
+            work->field_50E = 0;
+            if (work->field_50A == 0xF) {
+                id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                pan13 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan13, (s8)Gp_GetObjDepth(coord));
+            }
+            if (work->field_50A == 0x11) {
+                var_v1 = 0x40100004;
+                id     = (((u16)actor->field_20->field_8 >> 0xC) << 8) | var_v1;
+                pan14  = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan14, (s8)Gp_GetObjDepth(coord));
+            }
+            if ((u32)((u16)work->field_50A - 4) < 0x11U) {
+                Actor01600_Fn03A60(actor);
+            }
+            if (work->field_50A >= 0x1C) {
+                work->field_508 = 0;
+                work->field_50A = 0;
+                if (work->field_510 == 7) {
+                    work->field_50A = 0;
+                    work->field_516 = 0;
+                    return;
+                }
+            }
+            break;
+        case 3:
+            work->field_506 = 8;
+            work->field_538 = 0x10;
+            work->field_4FA = 0;
+            work->field_50E = 0;
+            if (work->field_50A == 0xF) {
+                id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                pan15 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan15, (s8)Gp_GetObjDepth(coord));
+            }
+            if (work->field_50A == 0x12) {
+                var_v1    = 0x40100003;
+                id        = (((u16)actor->field_20->field_8 >> 0xC) << 8) | var_v1;
+                pan_case3 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan_case3, (s8)Gp_GetObjDepth(coord));
+            }
+            if ((u32)((u16)work->field_50A - 4) < 0x11U) {
+                Actor01600_Fn03A60(actor);
+            }
+            if (work->field_50A >= 0x1C) {
+                work->field_508 = 0;
+                work->field_50A = 0;
+                if (work->field_510 == 7) {
+                    work->field_50A = 0;
+                    work->field_516 = 0;
+                    return;
+                }
+            }
+            break;
+        case 4:
+            work->field_538 = 0x10;
+            work->field_506 = 9;
+            work->field_50E = 0;
+            work->field_4FA = 0;
+            if (work->field_50A == 1) {
+                id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4010000E;
+                pan16 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan16, (s8)Gp_GetObjDepth(coord));
+                SOFT_USE_REG(work);
+            }
+            if (work->field_50A >= 0x25) {
+                work->field_516 = 0;
+                work->field_50A = 0;
+                work->field_526 = 0;
+                return;
+            }
+            break;
+        case 5:
+            work->field_538 = 0x10;
+            work->field_50E = 0;
+            work->field_4FA = 0;
+            work->field_506 = 0x1A;
+            if (work->field_528 != 0) {
+                work->field_538 = 0x14;
+                if (work->field_51E < 0) {
+                    work->field_51E = (u16)work->field_51E + 0xF;
+                } else {
+                    work->field_51E = (u16)work->field_51E + 0x14;
+                }
+                temp_v0_3       = (u16)work->field_520 + (u16)work->field_51E;
+                work->field_520 = temp_v0_3;
+                if (temp_v0_3 >= 0) {
+                    work->field_528 = 0;
+                    work->field_51E = 0;
+                    work->field_520 = 0;
+                }
+            }
+            if (work->field_50A == 8) {
+                work->field_528 = 1;
+                work->field_530 = 0;
+                work->field_51E = -0x96;
+                work->field_520 = (u16)work->field_520 - 0x96;
+            }
+            if (work->field_50A == 0x1E) {
+                id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                pan17 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan17, (s8)Gp_GetObjDepth(coord));
+                SOFT_USE_REG(work);
+                id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                pan18 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan18, (s8)Gp_GetObjDepth(coord));
+                SOFT_USE_REG(work);
+                work->field_528 = 0;
+                work->field_51E = 0;
+                work->field_520 = 0;
+            }
+            temp_v1_3 = (u16)work->field_50A;
+            if ((u32)(temp_v1_3 - 8) < 0x17U) {
+                if (work->field_52A == 0) {
+                    if ((s16)temp_v1_3 < 0xC) {
+                        work->collision.named.field_2FE = -0x258;
+                        work->collision.named.field_308 = 0x258;
+                        work->field_50E                 = 0x12C;
+                    } else if ((s16)temp_v1_3 < 0x18) {
+                        work->collision.named.field_2FE = -0x190;
+                        work->collision.named.field_308 = 0x190;
+                        work->field_50E                 = 0x32;
+                    } else {
+                        work->field_50E = 0x19;
+                    }
+                }
+                Actor01600_Fn03A60(actor);
+            }
+            if ((work->field_50A == 9) && (work->field_53C == 0)) {
+                work->field_3EA |= 0x8000;
+            }
+            if (work->field_50A == 0x17) {
+                work->collision.named.field_30A = (u16)(work->collision.named.field_30A | 0x4000);
+                work->field_3EA                &= 0x7FFF;
+            }
+            if (work->field_50A >= 0x34) {
+                if (work->field_53C != 0) {
+                    work->field_516 = 4;
+                } else {
+                    work->field_516 = 0;
+                }
+                work->field_53C = 0;
+                work->field_50A = 0;
+                work->field_532 = 0;
+                return;
+            }
+            break;
+        case 6:
+            work->field_538 = 0x10;
+            work->field_4FA = 0;
+            if (work->field_528 != 0) {
+                work->field_538 = 0x14;
+                if (work->field_51E < 0) {
+                    work->field_51E = (u16)work->field_51E + 0xF;
+                } else {
+                    work->field_51E = (u16)work->field_51E + 0x14;
+                }
+                temp_v0_4       = (u16)work->field_520 + (u16)work->field_51E;
+                work->field_520 = temp_v0_4;
+                if (temp_v0_4 >= 0) {
+                    work->field_528 = 0;
+                    work->field_51E = 0;
+                    work->field_520 = 0;
+                }
+            }
+            temp_v1_5 = work->field_506;
+            switch (temp_v1_5) {
+                case 26:
+                    temp_v1_6 = work->field_50A;
+                    if (temp_v1_6 == 8) {
+                        work->field_530 = 0;
+                        work->field_528 = 1;
+                        if (work->field_544 == 0) {
+                            work->field_51E = -0x96;
+                        } else {
+                            work->field_51E = -0xC8;
+                        }
+                        work->field_520 = (u16)work->field_520 + (u16)work->field_51E;
+                    }
+                    work->field_50E = 0;
+                    if (work->field_50A >= 8) {
+                        if (work->field_544 == 0) {
+                            if (work->field_50A < 0xC) {
+                                work->collision.named.field_2FE = -0x258;
+                                work->collision.named.field_308 = 0x258;
+                                work->field_50E                 = 0x12C;
+                            } else {
+                                if (work->field_50A < 0x18) {
+                                    work->collision.named.field_2FE = -0x190;
+                                    work->collision.named.field_308 = 0x190;
+                                    work->field_50E                 = 0x32;
+                                } else {
+                                    work->field_50E = 0x19;
+                                }
+                            }
+                        } else {
+                            if (work->field_50A < 0xC) {
+                                work->field_50E = 0x1F4;
+                            } else if (work->field_50A < 0x18) {
+                                work->field_50E = 0x46;
+                            } else {
+                                work->field_50E = 0x32;
+                            }
+                        }
+                    }
+                    if ((work->field_50A == 9) && (work->field_53C == 0)) {
+                        work->field_3EA |= 0x8000;
+                    }
+                    if (work->field_50A == 0x17) {
+                        work->collision.named.field_30A = (u16)(work->collision.named.field_30A | 0x4000);
+                        work->field_3EA                &= 0x7FFF;
+                    }
+                    if (work->field_50A >= 0x19) {
+                        work->field_506 = 0x1B;
+                        work->field_50A = 0;
+                        work->field_544 = 0;
+                        work->field_53C = 0;
+                        return;
+                    }
+                    break;
+                case 27:
+                    work->field_50E = 0x3C;
+                    if (work->field_50A == 0xB) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100005;
+                        pan19 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan19, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A >= 0xD) {
+                        work->field_538 = 0x10;
+                        work->field_50E = 0;
+                    }
+                    if (work->field_50A >= 0x28) {
+                        work->field_506 = 0x15;
+                        work->field_50A = 0;
+                    }
+                    break;
+                case 21:
+                    if (work->field_50A == 0x1F) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                        pan20 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan20, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                        pan21 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan21, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A >= 0x2F) {
+                        work->field_516 = 0;
+                        work->field_50A = 0;
+                        work->field_532 = 0;
+                        return;
+                    }
+                    break;
+            }
+            break;
+        case 7:
+            work->field_526 = 1;
+            work->field_50E = 0;
+            work->field_4FA = 0;
+            work->field_538 = 0x10;
+            work->field_528 = 0;
+            work->field_51E = 0;
+            temp_v1_7       = (u16)work->field_506 - 9;
+            work->field_520 = 0;
+            switch (temp_v1_7) {
+                case 19:
+                    Actor01600_Fn03A60(actor);
+                    Actor01600_Fn06974(actor, 0xA);
+                    if (work->field_50A >= 0xD) {
+                        work->field_50E = 0x5A;
+                    }
+                    if (work->field_50A >= 0x12) {
+                        if (Actor01600_Fn047A0(actor) & 0xFF) {
+                            targetKind = work->field_53E;
+                            if (targetKind == 1) {
+                                if (D_80072830 > 0) {
+                                    if (Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair((struct _GpObj50*)ctx, 0), 0) == targetKind) {
+                                        work->field_506 = 9;
+                                        work->field_50E = 0;
+                                        work->field_50A = 0;
+                                        work->field_4E4 = (s32)coord->coord.t[1];
+                                        return;
+                                    }
+                                    goto block_136;
+                                }
+                                work->field_506 = 9;
+                                work->field_50E = 0;
+                                work->field_50A = 0;
+                                work->field_4E4 = (s32)coord->coord.t[1];
+                                return;
+                            }
+                            if (config->field_18 <= 0) {
+                                work->field_506 = 9;
+                                work->field_50E = 0;
+                                work->field_50A = 0;
+                                work->field_4E4 = (s32)coord->coord.t[1];
+                                return;
+                            }
+                        block_136:
+                            work->field_534 = 1;
+                            work->field_4FA = 0;
+                            work->field_506 = 0x1D;
+                            id              = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4010000D;
+                            pan23           = (s8)Gp_GetObjPan(coord);
+                            SndEvt_EnqueueType6(id, (s32)pan23, (s8)Gp_GetObjDepth(coord));
+                            SOFT_USE_REG(work);
+                            if (work->field_53E != 0) {
+                                Actor01600_D127D8.field_4 = 1;
+                                Gp_DispatchMsg(work->field_4D4, 0x3F4, (s32)&Actor01600_D127D8, 0);
+                                id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4065000A;
+                                pan24 = (s8)Gp_GetObjPan(coord);
+                                SndEvt_EnqueueType6(id, (s32)pan24, (s8)Gp_GetObjDepth(coord));
+                            } else {
+                                Actor01600_D127D8.field_4 = 2;
+                                Gp_DispatchMsg(work->field_4D4, 0x3FF, (s32)&Actor01600_D127D8, 0);
+                                id           = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 6;
+                                pan_msg_zero = (s8)Gp_GetObjPan(coord);
+                                SndEvt_EnqueueType6(id, (s32)pan_msg_zero, (s8)Gp_GetObjDepth(coord));
+                            }
+                            work->field_554 = 2;
+                            goto block_141;
+                        }
+                        work->field_4FA = 4;
+                        work->field_526 = 0;
+                        work->field_506 = 0x1B;
+                    block_141:
+                        work->field_50E = 0;
+                        work->field_50A = 0;
+                        work->field_54C = 0U;
+                        return;
+                    }
+                    break;
+                case 20:
+                    attachedCoord     = ((TmdObject*)work->field_4D4->extra)->field_8;
+                    attachedOffset    = &attachedCoord[17];
+                    coord->coord.t[0] = attachedCoord->coord.t[0] + attachedOffset->coord.t[0];
+                    coord->coord.t[2] = attachedCoord->coord.t[2] + attachedOffset->coord.t[2];
+                    temp_v0_6         = work->field_54C + 1;
+                    work->field_54C   = temp_v0_6;
+                    if ((s16)temp_v0_6 == 0x14) {
+                        work->field_54C = 0U;
+                        work->field_554 = (u16)work->field_554 + 1;
+                        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, effectCoord, &offset, &work->pad_3EC[0x18]);
+                        if (work->field_53E == 0) {
+                            Gp_SpawnPadLerp(0xA, 0x80U, 0x80U);
+                        }
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4010000D;
+                        pan25 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan25, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        if (work->field_53E == 0) {
+                            Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair((struct _GpObj50*)ctx, 0), 0);
+                        }
+                        if (config->field_18 <= 0) {
+                            if (work->field_53E == 0) {
+                                work->field_506           = 9;
+                                work->field_50E           = 0;
+                                work->field_50A           = 0;
+                                reset_y                   = coord->coord.t[1];
+                                work->field_534           = 0;
+                                work->field_4E4           = reset_y;
+                                Actor01600_D127D8.field_4 = 0;
+                                Actor01600_D127D8.field_8 = 0;
+                                Actor01600_D127D8.field_C = 0;
+                                Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+                                return;
+                            }
+                            goto block_156;
+                        }
+                        goto block_150;
+                    }
+                block_150:
+                    if (work->field_53E == 0) {
+                        if (work->field_50A >= 0x31) {
+                            if (work->field_554 >= 5) {
+                                Actor01600_D127D8.field_4 = 3;
+                                Actor01600_D127D8.field_8 = 1;
+                                Actor01600_D127D8.field_C = 1;
+                                Gp_DispatchMsg(work->field_4D4, 0x3FF, (s32)&Actor01600_D127D8, 0);
+                                work->field_508 = 0;
+                                work->field_50A = 0;
+                                work->field_506 = 0x1E;
+                            }
+                            if (work->field_50A >= 0x31) {
+                                work->field_50A = 0;
+                                return;
+                            }
+                        }
+                    } else {
+                    block_156:
+                        if (D_80072830 <= 0) {
+                            work->field_506           = 9;
+                            work->field_50E           = 0;
+                            work->field_50A           = 0;
+                            reset_y2                  = coord->coord.t[1];
+                            work->field_534           = 0;
+                            work->field_4E4           = reset_y2;
+                            Actor01600_D127D8.field_4 = 0;
+                            Actor01600_D127D8.field_8 = 0;
+                            Actor01600_D127D8.field_C = 0;
+                            Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+                            return;
+                        }
+                        if (work->field_50A >= 0x31) {
+                            work->field_50A = 0;
+                            work->field_506 = 0x1E;
+                            return;
+                        }
+                    }
+                    break;
+                case 21:
+                    if (work->field_50A >= 0x10) {
+                        work->field_50E = 0;
+                        temp_v1_8       = (u16)work->field_50A;
+                        if ((u32)(temp_v1_8 - 0x10) < 2U) {
+                            work->field_50E = -0x12C;
+                        } else if ((s16)temp_v1_8 < 0x1D) {
+                            work->field_50E = -0x64;
+                        } else if ((s16)temp_v1_8 < 0x24) {
+                            work->field_50E = -0x28;
+                        }
+                    } else {
+                        attachedCoord2    = ((TmdObject*)work->field_4D4->extra)->field_8;
+                        attachedOffset2   = &attachedCoord2[17];
+                        coord->coord.t[0] = attachedCoord2->coord.t[0] + attachedOffset2->coord.t[0];
+                        coord->coord.t[2] = attachedCoord2->coord.t[2] + attachedOffset2->coord.t[2];
+                    }
+                    if (work->field_50A >= 0x2D) {
+                        work->field_534           = 0;
+                        Actor01600_D127D8.field_4 = 0;
+                        Actor01600_D127D8.field_8 = 0;
+                        Actor01600_D127D8.field_C = 0;
+                        Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+                    }
+                    if (work->field_50A >= 0x38) {
+                        work->field_506   = 9;
+                        work->field_50E   = 0;
+                        Actor01600_D12870 = 0;
+                    }
+                    if (work->field_50A == 0x13) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4010000B;
+                        pan26 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan26, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        if (work->field_53E == 0) {
+                            Gp_SpawnPadLerp(0xA, 0xD0U, 0xD0U);
+                        }
+                    }
+                    if (work->field_50A == 0x1F) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4010000C;
+                        pan27 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan27, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                        pan28 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan28, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A == 0x21) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                        pan29 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan29, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        return;
+                    }
+                    break;
+                case 0:
+                    if (work->field_50A == 1) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4010000E;
+                        pan30 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan30, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A >= 0x25) {
+                        work->field_516 = 0;
+                        work->field_50A = 0;
+                        work->field_526 = 0;
+                        return;
+                    }
+                    break;
+                case 18:
+                    work->field_50E = 0x28;
+                    work->field_526 = 0;
+                    work->field_4FA = 4;
+                    if (work->field_50A >= 0xD) {
+                        work->field_50E = 0;
+                    }
+                    if (work->field_50A == 0xD) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100005;
+                        pan31 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan31, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A >= 0x30) {
+                        work->field_506 = 0x15;
+                        work->field_50E = 0;
+                        work->field_50A = 0;
+                    }
+                    break;
+                case 12:
+                    work->field_526 = 0;
+                    if (work->field_50A == 0x1F) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                        pan32 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan32, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                        pan33 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan33, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A >= 0x2F) {
+                        work->field_50E = 0;
+                        work->field_516 = 0;
+                        work->field_50A = 0;
+                        work->field_526 = 0;
+                        return;
+                    }
+                    break;
+            }
+            break;
+        case 8:
+            work->field_538 = 0x14;
+            work->field_4FA = 0;
+            switch (work->field_506) {
+                case 11:
+                case 14:
+                    temp_v0_7 = work->field_50A;
+                    if (temp_v0_7 <= 0) {
+                        work->collision.named.field_2FE = -0x258;
+                        work->collision.named.field_308 = 0x258;
+                        work->field_50E                 = 0x1F4;
+                    } else if (temp_v0_7 < 0x13) {
+                        work->collision.named.field_2FE = -0x190;
+                        work->collision.named.field_308 = 0x190;
+                        work->field_50E                 = 0x4B;
+                    } else {
+                        work->field_50E = 0;
+                    }
+                    if (work->field_506 == 0xE) {
+                        neg_velocity    = -work->field_50E;
+                        work->field_50E = neg_velocity;
+                    }
+                    if (work->field_528 != 0) {
+                        temp_v0_8 = (u16)work->field_51E + 0xF;
+                        SOFT_TOUCH_REG(temp_v0_8);
+                        temp_v1_10      = (u16)work->field_520 + temp_v0_8;
+                        work->field_520 = temp_v1_10;
+                        work->field_51E = temp_v0_8;
+                        if (temp_v1_10 >= 0) {
+                            id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100005;
+                            pan36 = (s8)Gp_GetObjPan(coord);
+                            SndEvt_EnqueueType6(id, (s32)pan36, (s8)Gp_GetObjDepth(coord));
+                            SOFT_USE_REG(work);
+                            work->field_528 = 0;
+                            work->field_520 = 0;
+                        }
+                    }
+                    if (work->field_50A >= 0x28) {
+                        if (work->field_506 == 0xE) {
+                            work->field_506 = 0x16;
+                        } else {
+                            work->field_506 = 0x15;
+                        }
+                        work->field_50A = 0;
+                        work->field_50E = 0;
+                        work->field_528 = 0;
+                        work->field_51E = 0;
+                        work->field_520 = 0;
+                        work->field_532 = 0;
+                        return;
+                    }
+                    break;
+                case 21:
+                case 22:
+                    work->field_538 = 0x10;
+                    work->field_50E = 0;
+                    if (work->field_50A == 0x19) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                        pan34 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan34, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A == 0x1B) {
+                        id    = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                        pan35 = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(id, (s32)pan35, (s8)Gp_GetObjDepth(coord));
+                        SOFT_USE_REG(work);
+                    }
+                    if (work->field_50A >= 0x2F) {
+                        work->field_516 = 0;
+                        work->field_50A = 0;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
+    }
+}
