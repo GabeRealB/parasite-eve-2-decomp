@@ -7,6 +7,9 @@
 extern u8 D_actor_548100_80135884;
 extern u8 D_actor_548100_80135885;
 extern u8 D_actor_548100_80135886;
+extern u8 D_actor_548100_80135887;
+extern u8 D_actor_548100_80135888;
+extern u8 D_actor_548100_80135889;
 extern u8 D_actor_548100_8013588A;
 extern u8 D_actor_548100_8013588B;
 extern u8 D_actor_548100_8013588C;
@@ -67,7 +70,28 @@ void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
     *arg3 = (s8)(var_v0_3 >> 5);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_801349E0);
+void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+{
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+
+    var_v0 = D_actor_548100_80135887 * arg0;
+    if (var_v0 < 0) {
+        var_v0 += 0x1F;
+    }
+    *arg1    = (s8)(var_v0 >> 5);
+    var_v0_2 = D_actor_548100_80135888 * arg0;
+    if (var_v0_2 < 0) {
+        var_v0_2 += 0x1F;
+    }
+    *arg2    = (s8)(var_v0_2 >> 5);
+    var_v0_3 = D_actor_548100_80135889 * arg0;
+    if (var_v0_3 < 0) {
+        var_v0_3 += 0x1F;
+    }
+    *arg3 = (s8)(var_v0_3 >> 5);
+}
 
 void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
 {
