@@ -13,13 +13,16 @@
 /// to `Gp_UnlinkObj`. The state pair at +0x158/+0x15A is what
 /// `func_actor_107600_80134B98` writes: the new state in `field_158` and its
 /// sub-state counter cleared. `field_13E` is a free-running counter that
-/// `func_actor_107600_80132CB8` bumps by one.
+/// `func_actor_107600_80132CB8` bumps by one, and `field_144` is the phase the
+/// destroy callback `func_actor_107600_80132AC0` tests against 2.
 typedef struct Actor107600Work {
     /* 0x000 */ byte  pad_0[0x60];
     /* 0x060 */ GpObj obj;
     /* 0x080 */ byte  pad_80[0xBE];
     /* 0x13E */ u16   field_13E;
-    /* 0x140 */ byte  pad_140[0x18];
+    /* 0x140 */ byte  pad_140[0x4];
+    /* 0x144 */ s16   field_144;
+    /* 0x146 */ byte  pad_146[0x12];
     /* 0x158 */ s16   field_158;
     /* 0x15A */ s16   field_15A;
     /* 0x15C */ byte  pad_15C[0xF];
@@ -32,6 +35,7 @@ typedef struct Actor107600 {
 } Actor107600;
 
 void func_actor_107600_801328CC(Task* arg0);
+void func_actor_107600_80132AC0(Task* arg0);
 void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80132CB8(Actor107600* arg0);
 void func_actor_107600_80134904(Task* arg0);

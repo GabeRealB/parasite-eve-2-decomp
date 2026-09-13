@@ -34,7 +34,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132A7C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132AC0);
+/// Enemy exit callback: releases the shared state slot unless the work block
+/// has already reached phase 2, then hands the enemy back for destruction.
+void func_actor_107600_80132AC0(Task* arg0)
+{
+    Actor107600Work* work = (Actor107600Work*)arg0->idMap;
+
+    if (work->field_144 != 2) {
+        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    }
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132B0C);
 
