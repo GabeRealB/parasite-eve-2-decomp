@@ -101,7 +101,75 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
     actor->field_30 = (s32)(actor->field_30 + 1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00480);
+void Actor01600_Fn00480(Actor01600* actor)
+{
+    Actor01600Work* work;
+    GpRec18*        table1;
+    GsCOORDINATE2*  coord;
+    s8*             table2;
+    s8*             table3;
+    s8*             table4;
+
+    work            = actor->field_1C;
+    coord           = actor->field_2C->field_8;
+    work->field_2C0 = 0xFA0;
+    work->field_2CC = 0x384;
+    table1          = &work->field_2D4;
+    work->field_2CE = 0x64;
+    work->field_2D0 = table1;
+    work->field_2A8 = work->pad_2BC;
+    work->field_2AC = 0;
+    work->field_2AE = -0x190;
+    work->field_2B0 = 0;
+    work->field_2B4 = 0;
+    work->field_2B8 = 0;
+    work->field_2BA = 3;
+    work->field_2A4 = coord;
+    Gp_LinkObj(3, (struct _GpObj*)work->field_29C);
+    Gp_InitRec18Table(table1, 1, 0);
+    table2                          = &work->collision.field_2EC[0x20];
+    work->collision.named.field_2F4 = coord;
+    work->collision.named.field_2F8 = table2;
+    work->collision.named.field_304 = 0x30010;
+    work->collision.named.field_308 = 0x190;
+    work->collision.named.field_2FC = 0;
+    work->collision.named.field_2FE = -0x190;
+    work->collision.named.field_300 = 0;
+    work->collision.named.field_30A = 1;
+    work->field_2BA                |= 0xC000;
+    Gp_LinkObj(2, (struct _GpObj*)work->collision.field_2EC);
+    Gp_InitRec18Table((GpRec18*)table2, 8, 0);
+    table3                           = (s8*)&work->field_444;
+    work->field_430                  = 0x1F4;
+    work->field_42C                  = 0x1F4;
+    work->field_43C                  = 1;
+    work->field_43E                  = 1;
+    work->field_440                  = table3;
+    work->field_414                  = coord;
+    work->field_418                  = (s8*)&work->field_42C;
+    work->field_41C                  = 0;
+    work->field_41E                  = -0x190;
+    work->field_420                  = 0;
+    work->field_424                  = 0;
+    work->field_428                  = 0;
+    work->field_42A                  = 3;
+    work->collision.named.field_30A |= 0xC200;
+    Gp_LinkObj(2, (struct _GpObj*)work->field_40C);
+    Gp_InitRec18Table((GpRec18*)table3, 1, 0);
+    table4           = work->pad_3EC;
+    work->field_3D4  = coord;
+    work->field_3D8  = table4;
+    work->field_3DC  = 0;
+    work->field_3DE  = -0x186;
+    work->field_3E0  = 0;
+    work->field_42A &= 0x3FFF;
+    work->field_3E4  = Gp_PackPair(&Actor01600_D09F04, 1);
+    work->field_3E8  = 0x12C;
+    work->field_3EA  = 1;
+    Gp_LinkObj(3, (struct _GpObj*)work->field_3CC);
+    Gp_InitRec18Table((GpRec18*)table4, 1, 0);
+    work->field_3EA &= 0x7FFF;
+}
 
 void Actor01600_Fn00480(Actor01600* arg0);
 void Actor01600_Fn00A4C(Actor01600* arg0);
