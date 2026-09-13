@@ -4,7 +4,19 @@
 #include "gameplay/1BC.h"
 #include "main/sound.h"
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A2F4);
+void Actor00400_Fn0A2F4(Task* arg0)
+{
+    Actor100400QuadWork* work;
+    Actor100400Obj*      object;
+
+    work   = (Actor100400QuadWork*)arg0->idMap;
+    object = work->field_0;
+    Actor00400_Fn03318(&work->vertices[0], &work->vertices[1],
+                       &work->vertices[2], &work->vertices[3], work->intensity);
+    if ((s16)object->field_40 <= 0) {
+        arg0->state++;
+    }
+}
 
 void Actor00400_Fn0A364(Task* arg0)
 {
