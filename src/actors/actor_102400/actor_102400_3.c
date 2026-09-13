@@ -16,5 +16,3 @@ void func_actor_102400_80135178(Task* arg0)
     sp = D_actor_102400_80131E5C;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_102400/actor_102400_3", func_actor_102400_801351D4);

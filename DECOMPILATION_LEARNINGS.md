@@ -40732,6 +40732,25 @@ sibling's index: pasting the sibling body scores 99.5% with a `regs` penalty of
 The index is the actor's part number in the parent's coord array, so it differs
 per handler. `func_actor_510900_8013BFE4 1 attempt, base_1.c 100.00%`.
 
+The same two-`addiu` signature appears with a different base type, so check what
+divides the wrong immediate rather than assuming the one above. `GpObj` is 0x20
+bytes, and `func_actor_102400_801351D4`'s m2c seed reaches a work block through
+`arg1->idMap` and then writes `temp_s0 + 0x20` / `+ 0x58` - pointer arithmetic on
+a `GpObj*` - which compiles to `addiu a0,s0,0x400` / `0xb00` for 99.73% with
+`regs=2` and *only* those two immediates differing from the target. `0x400 / 0x20`
+recovers 0x20, and the base here is the block's *first* `GpObj`, at offset 0, so
+three `GpObj` members at 0x00 / 0x20 / 0x58 with `u16 field_B0` and `s16 field_B2`
+behind 0x78 padding were the whole fix (100.00%, one attempt). The block's size
+came from `Mem_Calloc(0xB4, 0)` in a still-`INCLUDE_ASM` sibling rather than from
+the seed, which is the cheap way to bound a struct whose tail no matched body
+reaches yet.
+
+What makes this one worth recognising: the same seed's `M2C_FIELD(temp_s0, s16*,
+0xB2)` and `0xB0` accesses were already correct, so the function looked typed
+while two nearby `addiu`s were scaled. m2c only scales explicit pointer
+arithmetic, so a seed can mix right byte offsets from `M2C_FIELD` with wrong ones
+from `ptr + n`, and the diff shows only the latter.
+
 ## Diff the whole object, not your functions: a retyped global rescales old code
 
 A typing pass on `actor_403100` gave the overlay's work-block global its real
