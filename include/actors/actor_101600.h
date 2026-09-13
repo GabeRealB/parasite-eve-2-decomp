@@ -104,7 +104,7 @@ typedef struct Actor01600Work {
     /* 0x4F0 */ s16                field_4F0;
     /* 0x4F2 */ byte               pad_4F2[0x8];
     /* 0x4FA */ s16                field_4FA;
-    /* 0x4FC */ byte               pad_4FC[2];
+    /* 0x4FC */ s16                field_4FC;
     /* 0x4FE */ s16                field_4FE;
     /* 0x500 */ s16                field_500;
     /* 0x502 */ s16                field_502;
@@ -115,7 +115,7 @@ typedef struct Actor01600Work {
     /* 0x50C */ byte               pad_50C[2];
     /* 0x50E */ s16                field_50E;
     /* 0x510 */ s16                field_510;
-    /* 0x512 */ byte               pad_512[2];
+    /* 0x512 */ s16                field_512;
     /* 0x514 */ s16                field_514;
     /* 0x516 */ s16                field_516;
     /* 0x518 */ s16                field_518;
@@ -199,7 +199,17 @@ typedef struct Actor01600PlayerState {
 typedef struct Actor01600PlayerSlot {
     /* 0x00 */ byte                   pad_0[0x1C];
     /* 0x1C */ Actor01600PlayerState* actor;
+    /* 0x20 */ byte                   pad_20[0xC];
+    /* 0x2C */ TmdObject*             field_2C;
 } Actor01600PlayerSlot;
+
+typedef struct Actor01600RotScratch {
+    /* 0x00 */ VECTOR  position;
+    /* 0x10 */ SVECTOR rotation;
+} Actor01600RotScratch;
+STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
+
+s32 Actor01600_Fn052C4(Actor01600* arg0);
 
 /// Payload for message 0x3F8.
 typedef struct Actor01600Msg3F8 {
