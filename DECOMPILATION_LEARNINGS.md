@@ -65291,3 +65291,44 @@ Check which stubs carry `.rodata` before matching one out of a unit:
 `grep -l '\.word' asm/USA/<ver>/<family>/nonmatchings/<overlay>/<unit>/*.s`.
 The `.rodata` size of the built unit object (`objdump -h`) is the cheap
 cross-check: it should equal the original unit's rodata span exactly.
+
+## A live `$a0` shifts the block-move scratch registers
+
+`func_actor_800100_80166EE8` copies a `.rodata` callback table onto the stack and
+calls through it, exactly like its matched sibling `func_actor_800100_80165850`:
+
+```c
+GpActorFuncTable5 sp;
+
+sp = D_actor_800100_80161EC8;
+sp.funcs[D_8007272F](arg0);      /* arg0 is what moves the scratches */
+```
+
+Written argument-less (`sp.funcs[D_8007272F]()`, which is what you get when the
+callee type is unknown) the copy is otherwise identical and still scores 96.9%,
+with `regs=16` and every other penalty zero:
+
+```
+target:  addiu t0,v1,%lo(sym)          argument-less:  addiu a3,v1,%lo(sym)
+         lw a1,0(t0)  lw a2,4(t0)  lw a3,8(t0)          lw a0,0(a3)  lw a1,4(a3)  lw a2,8(a3)
+```
+
+The copy is one `movstrsi_internal`, and its four scratch clobbers become
+local-alloc quantities of priority 0 (`QTY_CMP_PRI` is
+`floor_log2(n_refs)*n_refs*size / (death-birth)`, and a scratch is born and dies
+in the same insn). They are therefore allocated *last*, each taking the
+lowest-numbered free register. In the argument-less version `$a0` is free, so the
+scratches take `a0,a1,a2` and the `lo_sum` base reloads into `$a3`; passing
+`arg0` keeps `$a0` live across the whole body, so the scratches start at `$a1`
+and the base takes `$t0`. Restoring the argument is a one-edit 100%.
+
+So a `regs`-only permutation inside an `lw`x3 / `sw`x3 stack copy is not a
+scratch-allocation puzzle to be pinned: read the target's `lw`/`sw` registers as
+"which of `$a0`-`$a3` were already taken" before anything else. Here the tell is
+that the target never touches `$a0` at all - the first free register is `$a1`,
+so something holds `$a0`, and for a void-typed body that something can only be a
+parameter the source passes on. `func_actor_800100_80166EE8` (96.92% -> 100%).
+Inputs: `base_1.i`
+`5a2ea948d4e18aa4267c66cc44f6ed16dc68593a2913069c81692ece45d77feb` (argument-less,
+`regs=16`), `base_2.i`
+`133ae4070b9b6009712d7f098c5a2147a1150f169bb6dd97f8c7cfaf2873d604` (`arg0`).

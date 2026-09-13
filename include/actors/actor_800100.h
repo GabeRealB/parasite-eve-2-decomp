@@ -21,5 +21,6 @@ void func_actor_800100_80166DD0(GpActorWork* arg0);
 void func_actor_800100_80166DF0(GpActorWork* arg0);
 void func_actor_800100_80166E14(GpActorWork* arg0);
 void func_actor_800100_80166E94(GpActorWork* arg0, s32 arg1);
+void func_actor_800100_80166EE8(GpActorWork* arg0);
 
 #endif

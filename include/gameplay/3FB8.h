@@ -40,6 +40,11 @@ typedef struct {
     GpActorFunc funcs[4];
 } GpActorFuncTable4;
 
+/// 5-entry callback table copied onto the stack by `func_actor_800100_80166EE8`.
+typedef struct {
+    GpActorFunc funcs[5];
+} GpActorFuncTable5;
+
 /// 12-entry callback table copied onto the stack by `Gp_TickPlayerMode2`.
 typedef struct {
     GpActorFunc funcs[12];

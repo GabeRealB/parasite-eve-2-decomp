@@ -285,7 +285,15 @@ void func_actor_800100_80166E94(GpActorWork* arg0, s32 arg1)
     Gp_AnimPlayChildSlotsEx(arg0, arg1 + 0xE, 0, 1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166EE8);
+extern GpActorFuncTable5 D_actor_800100_80161EC8;
+
+void func_actor_800100_80166EE8(GpActorWork* arg0)
+{
+    GpActorFuncTable5 sp;
+
+    sp = D_actor_800100_80161EC8;
+    sp.funcs[D_8007272F](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166F50);
 
