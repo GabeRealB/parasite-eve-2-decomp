@@ -29,35 +29,40 @@
 /// display node's `field_1C` from it and `func_actor_107600_80134C54`
 /// switches on it.
 typedef struct Actor107600Work {
-    /* 0x000 */ byte    pad_0[0x40];
-    /* 0x040 */ u16     pitch;    // fed to RotMatrixX
-    /* 0x042 */ u16     yaw;      // fed to func_8004BFF8
-    /* 0x044 */ u16     roll;     // fed to RotMatrixZ
-    /* 0x046 */ byte    pad_46[0xA];
-    /* 0x050 */ u16     field_50; // fed to Gfx_RotMatrixX
-    /* 0x052 */ u16     field_52; // fed to Gfx_RotMatrixY
-    /* 0x054 */ u16     field_54; // fed to Gfx_RotMatrixZ
-    /* 0x056 */ byte    pad_56[0xA];
-    /* 0x060 */ GpObj   obj;
-    /* 0x080 */ GpRec18 rec18[1]; // collision table; count 8 passed to Gp_InitRec18Table
-    /* 0x098 */ byte    pad_98[0xA6];
-    /* 0x13E */ u16     field_13E;
-    /* 0x140 */ byte    pad_140[0x4];
-    /* 0x144 */ s16     field_144;
-    /* 0x146 */ byte    pad_146[0x4];
-    /* 0x14A */ u8      field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
-    /* 0x14B */ byte    pad_14B[0x1];
-    /* 0x14C */ s32     field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
-    /* 0x150 */ byte    pad_150[0x8];
-    /* 0x158 */ s16     field_158;
-    /* 0x15A */ s16     field_15A;
-    /* 0x15C */ byte    pad_15C[0x6];
-    /* 0x162 */ s16     field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
-    /* 0x164 */ byte    pad_164[0x4];
-    /* 0x168 */ u8      field_168; // percent scale applied to coord.m[0][0]
-    /* 0x169 */ u8      field_169; // percent scale applied to coord.m[2][1]
-    /* 0x16A */ u8      field_16A; // rolled 0..7 alongside field_168
-    /* 0x16B */ u8      field_16B;
+    /// Colour / light matrix pair `func_actor_107600_80132ED0` hangs off the
+    /// display object's `TmdObject.field_20` / `field_1C` so the actor draws
+    /// with its own light instead of `Gp_BindDefaultMtx`'s.
+    /* 0x000 */ MATRIX         matrix_0;  // color matrix for the child models
+    /* 0x020 */ MATRIX         matrix_20; // light matrix for the child models
+    /* 0x040 */ u16            pitch;     // fed to RotMatrixX
+    /* 0x042 */ u16            yaw;       // fed to func_8004BFF8
+    /* 0x044 */ u16            roll;      // fed to RotMatrixZ
+    /* 0x046 */ byte           pad_46[0xA];
+    /* 0x050 */ u16            field_50;  // fed to Gfx_RotMatrixX
+    /* 0x052 */ u16            field_52;  // fed to Gfx_RotMatrixY
+    /* 0x054 */ u16            field_54;  // fed to Gfx_RotMatrixZ
+    /* 0x056 */ byte           pad_56[0xA];
+    /* 0x060 */ GpObj          obj;
+    /* 0x080 */ GpRec18        rec18[1]; // collision table; count 8 passed to Gp_InitRec18Table
+    /* 0x098 */ byte           pad_98[0xA6];
+    /* 0x13E */ u16            field_13E;
+    /* 0x140 */ GsCOORDINATE2* field_140; // model root, stored by the spawn state
+    /* 0x144 */ s16            field_144;
+    /* 0x146 */ s16            field_146; // written 2 beside field_144 by the spawn state
+    /* 0x148 */ byte           pad_148[0x2];
+    /* 0x14A */ u8             field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
+    /* 0x14B */ byte           pad_14B[0x1];
+    /* 0x14C */ s32            field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
+    /* 0x150 */ byte           pad_150[0x8];
+    /* 0x158 */ s16            field_158;
+    /* 0x15A */ s16            field_15A;
+    /* 0x15C */ byte           pad_15C[0x6];
+    /* 0x162 */ s16            field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
+    /* 0x164 */ byte           pad_164[0x4];
+    /* 0x168 */ u8             field_168; // percent scale applied to coord.m[0][0]
+    /* 0x169 */ u8             field_169; // percent scale applied to coord.m[2][1]
+    /* 0x16A */ u8             field_16A; // rolled 0..7 alongside field_168
+    /* 0x16B */ u8             field_16B;
 } Actor107600Work;
 
 typedef struct Actor107600 {
@@ -81,10 +86,12 @@ void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80132CB8(Actor107600* arg0);
 void func_actor_107600_80132CD4(Task* arg0);
 void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
+void func_actor_107600_80132ED0(Task* arg0);
 void func_actor_107600_80134608(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_107600_801348A0(Task* arg0);
 void func_actor_107600_80134904(Task* arg0);
 void func_actor_107600_80134920(Task* arg0);
+void func_actor_107600_80134958(Task* arg0);
 void func_actor_107600_801349E0(Task* arg0);
 void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);

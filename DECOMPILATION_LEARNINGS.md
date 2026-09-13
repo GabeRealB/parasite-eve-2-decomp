@@ -67122,3 +67122,87 @@ live across it; its tail there is `lw v1,0(s1)` / `nop` / `addiu v1,v1,0x10` /
 `sw v1,0(s1)`. `func_actor_107600_80134E5C`, with no live value at that point,
 reloads into `$v0` and fills the delay with an independent `lw`. Example:
 `func_actor_107600_80134D9C` (93.57% -> 100%).
+
+## Assembly is the launch order *reversed* - so a wrong group order is a source-order problem, not a comparator one
+
+**Symptom.** `func_actor_107600_80132ED0` sat at 99.294% (`reorder=1`) with a
+single swapped pair in the entry block: the target loads the spawn byte before
+the enemy pointer, the build emitted the enemy pointer first.
+
+```
+-  lw    s1,0x2c(s2)   # obj
+-  lbu   v0,0x34(s2)   # spawn byte      target
+-  lw    s0,0x20(s2)   # enemy
++  lw    s1,0x2c(s2)
++  lw    s0,0x20(s2)                    build
++  lbu   v0,0x34(s2)
+   lw    s3,8(s1)      # coord, both
+```
+
+**Cause.** sched1 is a backward scheduler, but it *emits* by splicing each
+newly scheduled insn in **before** the one scheduled previously -
+`sched.c:3915` does `NEXT_INSN (insn) = last; PREV_INSN (last) = insn;` with
+`last` starting at `next_tail` and then `last = NEXT_INSN (insn)` - so forward
+assembly is the launch order read backwards. Launch order is
+`rank_for_schedule`'s: `INSN_PRIORITY` descending, then dependence class against
+`last_scheduled_insn`, then `INSN_LUID` **descending**. Priority here is depth
+from the block head, so a chain of independent loads shares one priority and a
+larger LUID launches first and lands later. The composite rule for a group of
+equal priority and equal `potential_hazard`: **the emitted order is the RTL
+chain order**, i.e. the source statement order. The one exception is a load
+whose result feeds another insn of the group - `actual_hazard` queues it and it
+floats toward the end (here the `coord` load, which depends on `obj`).
+
+That makes the intervention source-level: move the read earlier so it gets a
+lower LUID. Reordering statements inside an equal-priority group *is* the lever;
+the comparator has none.
+
+**Fix.** Read the byte before the pointer it must precede:
+
+```c
+obj     = arg0->extra;
+variant = *(u8*)&arg0->spawnArg1;   /* lower LUID -> emitted before enemy */
+enemy   = arg0->spawnArg2;
+```
+
+**Example:** `func_actor_107600_80132ED0` - the same rule had already taken the
+`field_140`/`field_144` hunk from 93.176% to 99.294% by moving the
+`work->field_140` assignment above the two `field_144`/`field_146` stores.
+
+## Combine re-creates a merged load at the *consumer's* slot, not the load's
+
+**Symptom.** The obvious fix above does not work on its own. A local typed as
+the byte's own width keeps the value in QImode, so `expand` reads it early but
+the widening to SI is a *separate* insn sitting at the comparison, and the two
+never meet:
+
+```
+(insn 14 (set (reg/v:QI 86) (mem:QI (plus (reg/v:SI 80) (const_int 52)))))  ; early
+(insn 17 (set (reg/v:SI 82) (mem/s:SI ...)))                                ; enemy
+(insn 20 (set (reg/v:SI 84) (mem/s:SI ...)))                                ; coord
+(insn 22 (set (reg:SI 87) (zero_extend:SI (reg/v:QI 86))))                  ; at the compare
+```
+
+**Cause.** combine folds the QI load into its consumer with no adjacency
+requirement (it walks `LOG_LINKS`, not `NEXT_INSN`), and the merged
+`(zero_extend:SI (mem:QI ...))` is emitted where the **consumer** was. So a byte
+read early and compared late is scheduled at the comparison - after `enemy` and
+`coord` - and the source reordering appears to do nothing. The `.combine` dump
+is where this shows: the `reg/v:QI` pseudo disappears and the `lbu` reappears at
+the compare's uid.
+
+**Fix.** Put the conversion at the read, so load and extend are adjacent and the
+merge happens in place, early. Typing the temp wider does it:
+
+```c
+u32 variant;                        /* not u8 */
+variant = *(u8*)&arg0->spawnArg1;   /* load QI, zero_extend to SI, same statement */
+```
+
+Combine then merges the pair at uid ~15 - before `enemy` (17) - and block 0
+emits `obj`, `lbu`, `enemy`, `coord`. Related but opposite in direction to "Latch
+a byte-field value in an `s32` local": there an `s32` local stops combine from
+*narrowing* a `lw`; here it stops combine from *relocating* an `lbu`.
+
+**Example:** `func_actor_107600_80132ED0` (99.294% -> 100%, `u8 variant` -> `u32
+variant`, everything else unchanged).

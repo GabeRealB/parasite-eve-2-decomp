@@ -29,6 +29,13 @@ extern const TaskFuncTable3 D_actor_107600_80131E34;
  * is the trailing animation/data blob, not the leading rodata. */
 extern TaskDesc D_actor_107600_80134F94;
 
+/* The pair-source record the spawn state hangs off the enemy's `GpEnemy.field_50`
+ * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
+ * 16-entry HP table it indexes with the spawn variant. Both are trailing-blob
+ * data, after the collision tables. */
+extern GpPairSrcE D_actor_107600_80135720;
+extern u16        D_actor_107600_80135750[];
+
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E20);
@@ -205,7 +212,56 @@ void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132ED0);
+/// Spawn state: allocates the work block, hangs the two matrices off the
+/// display object's `field_1C` / `field_20`, puts the actor's own light on the
+/// enemy and links its node in. Both failure paths - the 0xFF "already dead"
+/// marker in byte 0 of `Task::spawnArg1` and a failed allocation - destroy the
+/// enemy and return before the exit callback is installed. The variant is the
+/// low nibble of `spawnArg1`'s high halfword: it selects the HP from the
+/// 16-entry table and its model root later, in `func_actor_107600_80134958`.
+void func_actor_107600_80132ED0(Task* arg0)
+{
+    Actor107600Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    u16              hp;
+    u32              variant;
+
+    obj     = arg0->extra;
+    variant = *(u8*)&arg0->spawnArg1;
+    enemy   = arg0->spawnArg2;
+    coord   = obj->field_8;
+    if (variant == 0xFF || (work = (Actor107600Work*)Mem_Calloc(0x16C, false), arg0->idMap = (TaskIdMap*)work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, arg0);
+        return;
+    }
+    arg0->exitCallback = func_actor_107600_80134920;
+    work->field_162    = ((u32)arg0->spawnArg1 >> 16) & 0xF;
+    obj->field_1C      = &work->matrix_20;
+    obj->field_20      = &work->matrix_0;
+    enemy->field_50    = &D_actor_107600_80135720;
+    enemy->field_54    = (s32)work->rec18;
+    work->field_140    = ((TmdObject*)arg0->extra)->field_8;
+    work->field_144    = 0x140;
+    work->field_146    = 2;
+    hp                 = D_actor_107600_80135750[arg0->spawnArg1 & 0xF];
+    enemy->field_42    = hp;
+    enemy->field_40    = hp;
+    func_actor_107600_80134958(arg0);
+    Gp_LinkNode(&enemy->node);
+    enemy->field_4      = &coord->workm;
+    enemy->field_1C.vy  = -0x244;
+    enemy->field_48     = 0;
+    enemy->field_1C.vx  = 0;
+    enemy->field_1C.vz  = 0;
+    enemy->field_18     = coord;
+    enemy->node.field_4 = 1;
+    func_actor_107600_80134E5C(coord);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    arg0->state += 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E74);
 
