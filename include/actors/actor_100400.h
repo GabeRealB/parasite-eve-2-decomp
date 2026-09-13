@@ -116,4 +116,16 @@ void Actor00400_Fn07518(Actor100400*);
 void Actor00400_Fn0A510(Actor100400*);
 void Actor00400_Fn0A57C(Actor100400*);
 
+/// Steps the actor's root coordinate `arg0->field_2C->field_8` along the
+/// heading `arg2` in the XZ plane and marks it dirty, by `arg1` units.
+///
+/// `coord.t[0]` gains `rsin(arg2) * arg1` and `coord.t[2]` `rcos(arg2) * arg1`;
+/// the `<< 4` on the trig result and the `>> 16` after the multiply are one
+/// `>> 12` split in two, the unit circle the family's rotation code uses.
+/// Clearing `flg` is what makes `GsGetLw` rebuild the matrix from `coord`.
+///
+/// Call sites pass `arg1` as a step distance (a constant such as 0x60) and
+/// `arg2` from the actor's heading (`Actor100400Work::field_556`).
+void Actor00400_Fn0762C(Actor100400* arg0, s16 arg1, s16 arg2);
+
 #endif

@@ -20358,6 +20358,55 @@ result = (arg1 * (arg0 << 1)) / arg2;
 `func_800EA318` is the example. `arg1 * (arg0 * 2)` swapped the operands
 and stuck at 99.7%.
 
+## …and the constant can migrate to the *other* operand: `(rsin(a) * 0x10) * n`
+
+The mirror case, where the constant leaves the trig result and lands on the
+argument. `func_actor_206100_8014EA8C` steps a coordinate along a heading:
+
+```c
+/* target: jal rsin; sll v0,v0,4; sll s1,s1,16; sra s1,s1,16; mult v0,s1 */
+coord->t[0] += ((rsin(arg2) << 4) * arg1) >> 16;
+```
+
+Writing the `* 16` as a multiply — `(rsin(arg2) * 0x10 * arg1) >> 16`, which is
+what m2c's seed emits — scores 95.6%. `fold`'s `associate` step splits the
+constant out of the inner multiply and rebuilds it on `arg1`, so the `<< 4`
+fuses with *arg1*'s sign-extend and neither the `sll v0,v0,4` after the call nor
+the plain `sra s1,s1,16` survives:
+
+```
+sll    s1,s1,0x10
+sra    s1,s1,0xc      ; 16 + 4 in one shift
+mult   v0,s1
+```
+
+`split_tree` splits only when the inner node's code equals the outer operator's
+and an `LSHIFT_EXPR` is not a `MULT_EXPR`, so the explicit shift is immune. An
+explicit `<< k` is the way to keep a power-of-two factor where you wrote it.
+
+## A field lhs whose rhs calls: walk the pointer chain again per statement
+
+Same function. Two statements add into the coordinate and a third clears `flg`,
+each reached through `task->extra->field_8`. The target loads that chain
+*after* each call — `lw v0,0x2c(s2); lw a1,8(v0)` between `jal rsin` and
+`jal rcos`, and again after it. Caching it,
+
+```c
+GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+coord->t[0] += ...; coord->t[2] += ...; coord->flg = 0;
+```
+
+scores 64.9%, worse than leaving m2c's `temp_a0` / `temp_a1` in place: the
+cached value is live across both calls, so `expand` computes it up front
+(`lw v0,0x2c(a0); lw s2,8(v0)` before `jal rsin`) and keeps it in a
+callee-saved register the target never allocates.
+
+`expr.c`'s `MODIFY_EXPR` case expands the rhs calls before the lhs address when
+the lhs is a `COMPONENT_REF` (`preexpand_calls`), and `sched.c`'s
+`flush_pending_lists` stops a memory read crossing a non-const call — so the
+chain written inline is read after the call that precedes it, which is what the
+target does. Do not hoist it into a local to help the allocator.
+
 ## 1-based record as `Task_Spawn` arg: offset-first, then `ptr - 1`
 
 When the target scales a 1-based `u8` index into `$a3`, adds the saved

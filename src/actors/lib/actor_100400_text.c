@@ -298,7 +298,15 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07400);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07518);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0762C);
+/* Steps the actor's root coordinate along its heading in the XZ plane and
+   marks it dirty. Same body as func_actor_206100_8014EA8C in
+   src/actors/actor_206100/actor_206100.c. */
+void Actor00400_Fn0762C(Actor100400* arg0, s16 arg1, s16 arg2)
+{
+    arg0->field_2C->field_8->coord.t[0] += ((rsin(arg2) << 4) * arg1) >> 16;
+    arg0->field_2C->field_8->coord.t[2] += ((rcos(arg2) << 4) * arg1) >> 16;
+    arg0->field_2C->field_8->flg         = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn076E8);
 

@@ -68,7 +68,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014E964);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EA8C);
+void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2)
+{
+    ((TmdObject*)task->extra)->field_8->coord.t[0] += ((rsin(arg2) << 4) * arg1) >> 16;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] += ((rcos(arg2) << 4) * arg1) >> 16;
+    ((TmdObject*)task->extra)->field_8->flg         = 0;
+}
 
 void func_actor_206100_8014EB48(Task* task, s16 arg1)
 {

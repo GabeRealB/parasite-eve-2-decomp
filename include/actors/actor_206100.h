@@ -111,4 +111,21 @@ void func_actor_206100_8014EEC0(Task* task);
 /// biased `field_64` scale word.
 void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, s32 arg2, s32 arg3);
 
+/// Steps the actor's model coordinate `arg1` along the heading `arg2`, in the
+/// XZ plane, and marks it dirty.
+///
+/// `task->extra` is the actor's `TmdObject`, so `field_8` is the root
+/// `GsCOORDINATE2` of its part array: `coord.t[0]` gains `rsin(arg2) * arg1`
+/// and `coord.t[2]` `rcos(arg2) * arg1`. The `<< 4` on the `rsin` / `rcos`
+/// result and the `>> 16` after the multiply are one `>> 12` split in two, the
+/// unit circle the rest of the overlay's rotation code uses. Clearing `flg` is
+/// what makes `GsGetLw` rebuild the matrix from `coord`, so the caller never
+/// writes `workm` itself. The `task->extra` chain is walked again for each of
+/// the three statements because `rsin` / `rcos` sit between them.
+///
+/// Every call site in this overlay takes `arg2` from the actor's heading and
+/// `arg1` from a step distance, either a constant (`0x30`, `0x40`) or an
+/// `s16` the caller narrows itself.
+void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2);
+
 #endif
