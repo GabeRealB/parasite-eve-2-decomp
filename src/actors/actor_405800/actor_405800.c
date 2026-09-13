@@ -15,8 +15,10 @@ extern s32 Gp_LcgState;
 
 void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 /* Unprototyped so the first jal keeps a nop delay slot; a0 still holds the task. */
-s32 func_actor_405800_80136A1C();
-s32 func_actor_405800_801373E0(Task* arg0);
+s32  func_actor_405800_80136A1C();
+s32  func_actor_405800_8013728C(Task* arg0);
+s32  func_actor_405800_801373E0(Task* arg0);
+void func_actor_405800_801379F8(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -218,7 +220,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8013471C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801348E4);
+void func_actor_405800_801348E4(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    GsCOORDINATE2*   coord;
+    s16              v;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    v     = func_actor_405800_8013728C(arg0);
+    if (v != 0) {
+        if (v < 0x4E9) {
+            func_actor_405800_801379F8(arg0);
+            work3            = (Actor405800Work*)arg0->idMap;
+            work3->field_846 = 2;
+            work3->field_848 = 0;
+            return;
+        }
+        work->field_98 = (u16)coord->coord.t[0] + ((rsin((s16)work->field_82 + 0x800) * (v - 0x100)) >> 12);
+        work->field_9C = (u16)coord->coord.t[2] + ((rcos((s16)work->field_82 + 0x800) * (v - 0x100)) >> 12);
+    } else {
+        work->field_98 = (u16)coord->coord.t[0] + ((rsin((s16)work->field_82 + 0x800) * 0x1770) >> 12);
+        work->field_9C = (u16)coord->coord.t[2] + ((rcos((s16)work->field_82 + 0x800) * 0x1770) >> 12);
+    }
+    func_actor_405800_801379F8(arg0);
+    work2            = (Actor405800Work*)arg0->idMap;
+    work2->field_84A = 4;
+    work2->field_850 = 0x10;
+    work2->field_872 = 0x15;
+    work2->field_86E = 1;
+    work->field_84C  = -0x2A;
+    work->field_84E  = 0;
+    work->field_842  = 0;
+    work->field_848++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134A64);
 
