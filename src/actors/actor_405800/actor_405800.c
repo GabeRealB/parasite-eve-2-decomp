@@ -12,9 +12,11 @@
 
 #include "actors/actor_405800.h"
 #include "actors/actors_shared_8013a0b0.h"
+#include "actors/actors_shared_8016a538.h"
 
-extern s32 Gp_LcgState;
-extern u8  D_actor_405800_801513F8[];
+extern s32      Gp_LcgState;
+extern u8       D_actor_405800_801513F8[];
+extern TaskDesc D_actor_405800_801514B4;
 
 void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 /* Unprototyped so the first jal keeps a nop delay slot; a0 still holds the task. */
@@ -604,7 +606,102 @@ void func_actor_405800_801356A8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135780);
+/// Spawn the two child models from `D_actor_405800_801514B4`, parent them to
+/// root parts 10 and 7 at +/-0x400 along X, turn each by -/+0x180 from an
+/// identity rotation, copy the parent's texture page and CLUT row, and point
+/// their light / color matrices at this actor's own.
+void func_actor_405800_80135780(Task* arg0)
+{
+    Actor405800Work*         work;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           root;
+    GsCOORDINATE2*           parent;
+    GsCOORDINATE2*           parent2;
+    Task*                    task;
+    TmdObject*               obj;
+    TmdObject*               dst;
+    TmdObject*               src;
+    MATRIX*                  mdst;
+    ActorsShared8016a538Mat* pm;
+    ActorsShared8016a538Mat* pm2;
+    ActorsShared8016a538Mat  m;
+
+    root              = ((TmdObject*)arg0->extra)->field_8;
+    work              = (Actor405800Work*)arg0->idMap;
+    parent            = &root[7];
+    parent2           = &root[10];
+    task              = Task_SpawnFromTable(&D_actor_405800_801514B4, 0, 0, 0);
+    work->field_824   = task;
+    obj               = (TmdObject*)task->extra;
+    coord             = obj->field_8;
+    obj->field_C      = 0x80;
+    coord->sub        = parent2;
+    coord->coord.t[0] = 0x400;
+    coord->coord.t[1] = 0;
+    coord->coord.t[2] = 0;
+    pm                = &m;
+    pm->ident.m00_m01 = 0x1000;
+    pm->ident.m02_m10 = 0;
+    pm->ident.m11_m12 = 0x1000;
+    pm->ident.m20_m21 = 0;
+    pm->ident.m22     = 0x1000;
+    func_8004BFF8(-0x180, &pm->mat);
+    mdst          = &coord->coord;
+    mdst->m[0][0] = pm->mat.m[0][0];
+    mdst->m[0][1] = pm->mat.m[0][1];
+    mdst->m[0][2] = pm->mat.m[0][2];
+    mdst->m[1][0] = pm->mat.m[1][0];
+    mdst->m[1][1] = pm->mat.m[1][1];
+    mdst->m[1][2] = pm->mat.m[1][2];
+    mdst->m[2][0] = pm->mat.m[2][0];
+    mdst->m[2][1] = pm->mat.m[2][1];
+    mdst->m[2][2] = pm->mat.m[2][2];
+    src           = (TmdObject*)arg0->extra;
+    dst           = (TmdObject*)task->extra;
+    dst->field_24 = src->field_24;
+    dst->field_25 = src->field_25;
+    if (dst->field_18 != NULL) {
+        Tmd_ProcessStream(dst);
+        Tmd_ProcessStream(dst);
+    }
+    obj->field_1C = &work->matrix_40;
+    obj->field_20 = &work->matrix_20;
+    task = work->field_828 = Task_SpawnFromTable(&D_actor_405800_801514B4, 1, 0, 0);
+    obj                    = (TmdObject*)task->extra;
+    coord                  = obj->field_8;
+    obj->field_C           = 0x80;
+    coord->sub             = parent;
+    coord->coord.t[0]      = -0x400;
+    coord->coord.t[1]      = 0;
+    coord->coord.t[2]      = 0;
+    src                    = (TmdObject*)arg0->extra;
+    dst                    = (TmdObject*)task->extra;
+    dst->field_24          = src->field_24;
+    dst->field_25          = src->field_25;
+    if (dst->field_18 != NULL) {
+        Tmd_ProcessStream(dst);
+        Tmd_ProcessStream(dst);
+    }
+    pm2                = &m;
+    pm2->ident.m00_m01 = 0x1000;
+    pm2->ident.m02_m10 = 0;
+    pm2->ident.m11_m12 = 0x1000;
+    pm2->ident.m20_m21 = 0;
+    pm2->ident.m22     = 0x1000;
+    func_8004BFF8(0x180, &pm2->mat);
+    mdst          = &coord->coord;
+    mdst->m[0][0] = pm2->mat.m[0][0];
+    mdst->m[0][1] = pm2->mat.m[0][1];
+    mdst->m[0][2] = pm2->mat.m[0][2];
+    mdst->m[1][0] = pm2->mat.m[1][0];
+    mdst->m[1][1] = pm2->mat.m[1][1];
+    mdst->m[1][2] = pm2->mat.m[1][2];
+    mdst->m[2][0] = pm2->mat.m[2][0];
+    mdst->m[2][1] = pm2->mat.m[2][1];
+    mdst->m[2][2] = pm2->mat.m[2][2];
+    obj->field_1C = &work->matrix_40;
+    obj->field_20 = &work->matrix_20;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135A3C);
 

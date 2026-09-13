@@ -62,7 +62,9 @@ STATIC_ASSERT_SIZEOF(Actor405800Msg3F8, 0x18);
 /// table walks and `field_842` is the per-state frame counter.
 typedef struct Actor405800Work {
     /* 0x000 */ MATRIX              matrix_0; // copy of the root coordinate's local matrix
-    /* 0x020 */ byte                pad_20[0x50];
+    /* 0x020 */ MATRIX              matrix_20; // color matrix for the child models
+    /* 0x040 */ MATRIX              matrix_40; // light matrix for the child models
+    /* 0x060 */ byte                pad_60[0x10];
     /* 0x070 */ VECTOR              field_70; // copy of the root coordinate's translation
     /* 0x080 */ byte                pad_80[2];
     /* 0x082 */ u16                 field_82; // yaw, see ActorsShared80139948
