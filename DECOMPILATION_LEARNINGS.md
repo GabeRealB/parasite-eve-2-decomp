@@ -65647,3 +65647,31 @@ Inputs: `base_1.i`
 `TOUCH_REG(i)` present), `base_3.i`
 `0c99610a344ed94d95f51807e7146d6afa45ff960ff7a2c344af445bc152aa63` (the same
 source with the helper deleted, 95.918%). No pins, no permuter run.
+## A K&R definition anywhere in the context blanks m2c for the whole TU
+
+`// file is blank because m2c failed to decompile function` does not always mean
+the function itself defeated m2c — it can mean the *context* failed to parse.
+`src/actors/actor_800200/actor_800200_2.c` carried one K&R-style definition:
+
+```c
+void func_actor_800200_8016599C(arg0)
+    GpActorWork* arg0;
+{
+```
+
+m2c aborts the entire context with `K&R-style function header is not supported`,
+so every function in that file bootstrapped to an empty `base.c`, and the blank
+seed reads like a difficulty verdict when it is a parse failure. Diagnose by
+re-running m2c yourself (the error is explicit):
+
+```sh
+python3 tools/m2ctx.py src/actors/actor_800200/actor_800200_2.c
+python3 tools/m2c/m2c.py --target mipsel-gcc-c -f func_actor_800200_80165380 \
+    --context ctx.c asm/USA/actors/nonmatchings/actor_800200/actor_800200_2/func_actor_800200_80165380.s
+```
+
+Rewriting the definition ANSI-style (`void func_actor_800200_8016599C(GpActorWork* arg0)`)
+restores m2c for the whole TU and leaves the overlay checksum unchanged — the
+parameter type is explicit in both spellings, so the compiled body is identical.
+Worth doing whenever a TU's seed is blank: it unblocks every remaining function
+in the file, not just the one being matched.
