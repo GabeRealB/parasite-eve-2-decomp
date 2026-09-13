@@ -72797,3 +72797,25 @@ dependency do the ordering.
 
 Input SHA256 (`base_4.i`, the matching candidate):
 `421b6ab1c8b62873d865951ed2f963daa909d454f88c656cd2da3e3bcb636f9d`.
+
+## A `shared` span's unit renumbering also moves the `rodata` cut's owner
+
+`overlay_dup_index.py promote` warns that adding a span shifts every later unit,
+and that the bodies must be moved by hand. It cannot move the manifest's
+`rodata` key, whose `unit` is hand-written state naming the translation unit that
+owns a compiler-generated jump table. Promoting a body before the jump table's
+unit renumbers that owner, and the link then fails with
+
+```
+undefined reference to `jtbl_actor_207200_80149E40'
+```
+
+from the renumbered unit, because splat emitted the table into the *old* name's
+object. Repoint the cut at the new name (`unit = "actor_207200_3"` →
+`"actor_207200_4"` here) alongside the renumbering; the `end` offsets are
+unaffected, since the span is a file offset and the cut itself does not move.
+
+The split also relocates a leading `INCLUDE_RODATA` that
+`migrate_rodata_to_functions` put in the first code unit: a symbol at an offset
+below the first code subsegment still belongs to that first unit's name, so it
+stays in `<overlay>.c` rather than following the function it sat next to.
