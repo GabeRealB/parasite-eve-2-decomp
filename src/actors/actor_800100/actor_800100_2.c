@@ -58,7 +58,26 @@ void func_actor_800100_80165630(GpActorWork* arg0)
     actor->field_975 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165664);
+void func_actor_800100_80165664(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpActorD4* d4;
+    u16        temp;
+
+    actor            = arg0->actor;
+    temp             = actor->field_956;
+    actor->field_956 = 0xA;
+    actor->field_95A = 1;
+    actor->field_97E = 1;
+    d4               = actor->field_910;
+    actor->field_954 = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_960 = temp;
+    d4->field_CA     = -1;
+    d4->field_C6     = 0;
+    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+}
 
 void func_actor_800100_801656C8(GpActorWork* arg0)
 {

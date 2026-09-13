@@ -41594,6 +41594,32 @@ signature for a function that is still `INCLUDE_ASM`, open the callee's `.s` and
 count the argument registers it actually reads — passing the phantom arguments
 costs two instructions the target does not have.
 
+## A uniform `$a0→$a1, $a1→$a2, $a2→$a3` shift at a `jal` is a dropped leading callee argument
+
+The caller-side mirror of "m2c's `argN` names carry the register slot": there the
+*function's own* parameters were undercounted, here it is the **callee's**. m2c
+does not know the callee's prototype — it is still `INCLUDE_ASM`, or lives in
+another overlay — so it types the call from the registers the body happens to
+set, and drops the leading argument when that register is already occupied.
+
+In `func_actor_800100_80165664` the target's `jal Gp_AnimPlayChildSlotsEx` never
+writes `$a0`, because `$a0` still holds the caller's own `arg0`; m2c emitted the
+call with three arguments and got a uniform shift on all of them:
+
+```
+-lhu    a1,0x956(v0)      # target: $a1 holds field_956, then arg 1
++lhu    a0,0x956(v0)      # ours
+-li     a1,1 / li a2,0 / li a3,6      # target
++li     a0,1 / li a1,0 / li a2,6      # ours
+```
+
+Score 99.00% with `regs=5` and no structural penalty — a purely positional
+off-by-one, never a lifetime or allocation problem. The missing argument is
+almost always the enclosing function's own first parameter, so read the callee's
+`.s`: if it never writes `$a0` before the `jal`, `arg0` is being forwarded.
+Restoring it (`Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6)`) took 99.00% to 100.00%
+in one edit. Do not chase the shift with pins or the permuter.
+
 ## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
 
 `include/psyq/libgpu.h` carries both spellings: lowercase `setSprt` / `setTile`

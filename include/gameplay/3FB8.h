@@ -104,7 +104,9 @@ typedef struct _GpActorD4 {
     /* 0xA0 */ GpRec18      field_A0;
     /* 0xB8 */ byte         pad_B8[0xC];
     /* 0xC4 */ s16          field_C4;
-    /* 0xC6 */ byte         pad_C6[6];
+    /* 0xC6 */ s16          field_C6;
+    /* 0xC8 */ byte         pad_C8[2];
+    /* 0xCA */ s16          field_CA;
     /* 0xCC */ u8           field_CC;
     /* 0xCD */ u8           field_CD;
     /* 0xCE */ byte         pad_CE[2];
@@ -967,6 +969,7 @@ void  Gp_InitPlayerWork(GpActorWork* arg0);
 void  Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  Gp_TeardownSlot0(GpActorWork* arg0);
 void  Gp_BindActorAnim(GpActorWork* arg0);
+void  Gp_AnimPlayChildSlotsEx(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
 /// slot of the `field_93A` load is `move a3, a1`.
