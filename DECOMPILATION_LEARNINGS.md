@@ -67472,3 +67472,41 @@ instruction-order fix. `DECOMPILATION_LEARNINGS.md` [63] covers the same
 freedom for byte-store order; the point here is that the same swap also decides
 a *birth*, so it is worth trying before a pin when a register pair is swapped
 and `reorder` is 0.
+
+## A lone `addiu` immediate in an otherwise-matching seed is m2c's pointer scaling
+
+`func_actor_206100_8014F284` came out of m2c at 99.81% with `regs=1` and every
+other penalty zero: 26 of 27 instructions identical, the one difference being
+`addiu $s2,$s1,0x320` against the target's `addiu $s2,$s1,0x28`. No shift, no
+mask, no extra instruction — the seed *is* the function, at the wrong address.
+
+The two halves of m2c's walking pointer are typed differently, so they scale
+differently. `temp_s1` is `GpAnimCtx *` (0x14 bytes) and the seed initialises
+through it — `var_s2 = temp_s1 + 0x28` is 0x28 × 20 = 0x320 — while the
+increment `var_s2 += 0x28` is on the `void *` local and stays byte-wise. The
+target walks one 0x28-byte record per step from `+0x28`, so the init has to be
+the unscaled one too. Give the walk the record type, the way the matched
+sibling `func_actor_400500_801348D8` does:
+
+```c
+stride = (Actor206100AnimStride*)work + 1;   /* addiu $s2,$s1,0x28 */
+do {
+    ...
+    stride->field_1D = (u8)work->field_51A;  /* lbu $v0,0x51A($s1) */
+    stride++;
+} while (i < 0xF);                           /* addiu $s2,$s2,0x28 */
+```
+
+The 0x28-byte sliding view is an idiom of this family (`Actor400500AnimStride`,
+`Actor206100AnimStride`): with `anim` 0x14 bytes, `stride[i].field_1D` lands on
+`slots[i].field_9`, so the view and a `slots[i].field_9` write touch the same
+byte — but only the view emits the target's `0x28` walk with a `0x1D` access,
+because the `slots[i]` form folds its element and field offsets into the
+immediates. Read the split as the source's own: when a loop walks a stride and
+accesses an offset inside the record, model the record.
+
+The `(u8)` cast is enough to get the byte load; the field does not have to be
+declared `u8`. `(u8)work->field_51A` over an `s16` field emits `lbu`, as the
+matched `(u8)work2->field_9F8` does in `func_actor_400500_801348D8`, so an
+`lh`/`andi` pair is not the risk it looks like and the field can keep the width
+the rest of the overlay stores it with.
