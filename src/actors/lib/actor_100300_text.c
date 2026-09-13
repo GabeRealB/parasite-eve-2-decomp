@@ -288,7 +288,24 @@ s32 Actor00300_Fn05388(Actor100300* arg0, s32 arg1, ActorsShared80132074Args* ar
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn053EC);
+s32 Actor00300_Fn053EC(Actor100300* arg0, s32 arg1, s32 arg2)
+{
+    Actor100300Obj2C* obj;
+    Actor100300Work*  work;
+
+    obj  = arg0->field_2C;
+    work = arg0->field_1C;
+    if (!(arg2 & 1)) {
+        obj->field_C = 0x80;
+    } else {
+        obj->field_C = 0;
+    }
+    if (arg2 & 2) {
+        obj->field_C |= 4;
+    }
+    work->field_678 = arg2;
+    return 0;
+}
 
 s32 Actor00300_Fn05434(Actor100300* arg0, s32 arg1, Actor100300DestroyArgs* args)
 {
