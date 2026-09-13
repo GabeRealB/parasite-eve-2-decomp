@@ -62,6 +62,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_801331E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80133554);
+/// Two-state dispatcher whose handler table is built on the stack, publishing
+/// the task's work block in `D_actor_461800_801438A0` on the way through so the
+/// rest of the overlay can reach it without the task.
+void func_actor_461800_80133554(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_461800_8013307C,
+        func_actor_461800_801335B0,
+    };
+
+    D_actor_461800_801438A0 = (Actor461800Work2*)task->idMap;
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_801335B0);

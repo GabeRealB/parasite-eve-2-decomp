@@ -67894,3 +67894,46 @@ recognise on sight: `src/actors/actor_143900/actor_143900_3.c`,
 Example: `func_actor_461800_80132C28`, 86.26% -> 100.00% on the first build.
 Preprocessed SHA256: `base_1.i`
 `a822f08e0bcdf616b93b90f3b168aece5790fe9a259c7d825a3b70a738521105`.
+
+### A stack-built two-entry handler table: m2c writes it as `(sp + idx*4)`, and the local array initializer is the fix
+
+m2c cannot see a stack array. A dispatcher that builds its handler table on the
+stack and indexes it comes out as an expression over an undeclared `sp`:
+
+```c
+M2C_FIELD((sp + (M2C_FIELD(arg0, s32 *, 0x30) * 4)),
+          M2C_UNK (**)(s32, void *, M2C_UNK *, M2C_UNK *), 0x10)(...);
+```
+
+That never compiles, so the seed gives no score at all -- but the shape of the
+expression is the report: the table is a local, its base is `sp + 0x10`, and the
+index is the task's state. The reconstruction is the ordinary local array:
+
+```c
+void (*fns[2])(GpEnemy*, Task*) = {
+    func_actor_461800_8013307C,
+    func_actor_461800_801335B0,
+};
+
+D_actor_461800_801438A0 = (Actor461800Work2*)task->idMap;
+fns[task->state](task->spawnArg2, task);
+```
+
+Note the form of the initializer is the *opposite* of the one "Local jump table
+via struct assignment of function pointers" describes. There the target
+multi-loads and multi-stores the whole table (`lw`/`sw` x3) and needs
+`TaskFuncTableN` struct assignment; here the target emits a separate
+`lui`/`addiu`/`sw` pair per entry, which is what the plain array initializer
+compiles to. Read the target's table setup before picking between them.
+
+Two-state dispatchers of this exact shape repeat across the actor family, and
+the family's `src/actors/lib/` unit is usually the body already matched -- here
+`ActorsShared80131f9c` and `func_actor_461800_801329B0` both score 1.00 on
+`shape` and `fields`, and the target is byte-identical to them bar the symbol
+names. Reading the sibling rather than the seed took it from a 55% baseline to
+100% in one build. When the dispatcher is *not* already in the lib unit, this is
+the shape to write.
+
+Example: `func_actor_461800_80133554`, 55.38% -> 100.00% on the second build.
+Preprocessed SHA256: `base_1.i`
+`05c1a5582cd216fdfec2c12058cd153e0ffdbc492b634922cf60e8b9625813d5`.
