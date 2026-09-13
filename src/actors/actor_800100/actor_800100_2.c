@@ -141,7 +141,20 @@ void func_actor_800100_80165818(GpActorWork* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165850);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801658E8);
+void func_actor_800100_801658E8(GpActorWork* arg0)
+{
+    GameActor* actor;
+    u16        value;
+
+    actor = arg0->actor;
+    value = actor->field_95E;
+    if (value == 0) {
+        return;
+    }
+    if (value == 1) {
+        func_8010C180(arg0);
+    }
+}
 
 void func_actor_800100_80165928(void)
 {

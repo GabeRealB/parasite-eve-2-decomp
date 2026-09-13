@@ -65120,3 +65120,58 @@ TaskFunc states[2] = { fn0, fn1 };
 keeps that `lui` after the work load. Topology, predicates and delay-slot
 words were already identical; only this spelling changed the schedule.
 `func_actor_405800_80137A60` (98.87% → 100%).
+
+## `x != 0 && x == 1` in one expression folds to `x == 1`, deleting a branch
+
+**Symptom.** A 16-instruction guard scores 87.44% with `delete=2` and one branch
+too few. The target tests the same halfword twice:
+
+```
+lhu   v1, 0x95E(v0)
+nop
+beqz  v1, L
+li    v0, 1
+bne   v1, v0, L
+nop
+jal   func_8010C180
+.L:
+```
+
+m2c's `if (x != 0 && x == 1)` emits only the `bne`. Both branches go to the same
+label, so this looks like `jump.c` dropping a redundant jump — it is not.
+
+**Cause.** It is a tree-level fold, and it is already gone in the earliest RTL
+dump. `.rtl` is written before the first `jump_optimize` (`toplev.c:3018` vs
+`:3181`), and `base.i.rtl` holds a single `if_then_else (ne ...)` insn, so no RTL
+pass ever saw the pair. `fold_range_test` (`fold-const.c:3172`) runs on the
+`TRUTH_ANDIF_EXPR`, and when `operand_equal_p` holds for both sides it hands them
+to `merge_ranges`: `x != 0` is the range `[1, MAX]`, `x == 1` the point `[1, 1]`,
+and the intersection `[1, 1]` comes back as the single test `x == 1`. This is the
+point-value case of the same fold as the `!=`-chain and `||`-band entries above.
+
+**Fix.** Keep the two comparisons in separate expressions, where `fold` cannot
+see them as a pair. Either the early-return form
+
+```c
+value = actor->field_95E;
+if (value == 0) {
+    return;
+}
+if (value == 1) {
+    func_8010C180(arg0);
+}
+```
+
+or nested `if`s. Both give byte-identical output: the two tests survive, and
+`jump.c` does *not* then remove the first one even though `x == 0` implies
+`x != 1` and both branch to the same label — a redundant-looking branch written
+as two statements is safe. The return form's first test branches to its own
+block, and the shared epilogue the target shows appears later, once the
+epilogues merge.
+
+`func_actor_800100_801658E8` (87.44% → 100%). Inputs: `base.i`
+`497a7018cba867ca8cf008b74d0ef2b3f38dc938b62255d209e0dd8bfa21ff40`,
+`base_1.i` `e199c8dc352ac3ca403e6daeb079435784d1cfe96873037806a25623683171bb`,
+`base_2.i`
+`ede90cb5a0b414da4dcd699f736e4d4275e0f2167e70c681be0cc3a4b4f3217c` (nested
+`if`s, same object).
