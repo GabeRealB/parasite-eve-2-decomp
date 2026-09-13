@@ -89,10 +89,12 @@ typedef struct Actor405800Work {
     /* 0x040 */ MATRIX              matrix_40; // light matrix for the child models
     /* 0x060 */ byte                pad_60[0x10];
     /* 0x070 */ VECTOR              field_70; // copy of the root coordinate's translation
-    /* 0x080 */ byte                pad_80[2];
-    /* 0x082 */ u16                 field_82; // yaw, see ActorsShared80139948
-    /* 0x084 */ u16                 field_84; // roll, see ActorsShared80139948
-    /* 0x086 */ byte                pad_86[0xC];
+    /* 0x080 */ u16                 field_80;  // pitch, see ActorsShared80139948
+    /* 0x082 */ u16                 field_82;  // yaw, see ActorsShared80139948
+    /* 0x084 */ u16                 field_84;  // roll, see ActorsShared80139948
+    /* 0x086 */ byte                pad_86[2];
+    /* 0x088 */ Actor405800ViewPos  field_88;
+    /* 0x08E */ byte                pad_8E[4];
     /* 0x092 */ u16                 field_92; // copied into field_86A on state entry
     /* 0x094 */ byte                pad_94[0x4];
     /* 0x098 */ u16                 field_98; // low half of the root coordinate's world X

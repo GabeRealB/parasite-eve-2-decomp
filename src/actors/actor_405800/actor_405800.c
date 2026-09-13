@@ -15,6 +15,8 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_405800.h"
+#include "actors/actor_405800_anim.h"
+#include "actors/actors_shared_80139dcc.h"
 #include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 
@@ -610,7 +612,32 @@ void func_actor_405800_80134A64(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134C00);
+void func_actor_405800_80134C00(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    GsCOORDINATE2*   coord;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        work->field_82   = (work->field_82 + 0x800) & 0xFFF;
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_850 = 0x10;
+        work2->field_872 = 2;
+        work2->field_86E = 2;
+        Actor405800_RebuildRotation(arg0);
+        Actor405800_TickAnim(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        work->field_891  = 0;
+        work3            = (Actor405800Work*)arg0->idMap;
+        work3->field_846 = 2;
+        work3->field_848 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80134E80);
 
