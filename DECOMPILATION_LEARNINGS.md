@@ -41153,6 +41153,21 @@ scratch `base_N.c` that only has `common.h` must include `libgte.h` first:
 
 Once the function is ported into the host `.c`, the sorted order is fine again.
 
+`libgpu.h` has to be in that block too, and a **shared** header is where leaving it
+out bites, because it is not a scratch file and nothing sorts it for you. Without
+it `libgs.h` gets past the `MATRIX` types and fails *inside its own* primitive
+definitions instead — `parse error before 'POLY_FT4'`, then `POLY_GT4`, `POLY_G4`,
+`POLY_F3`, `CLIP2`, `GsDRAWENV`, `GsDISPENV`, one per member of the `GsADIV_*`
+structs that embeds a GPU primitive. A `POLY_*` parse error is therefore not
+about the file being compiled; it means `<psyq/libgpu.h>` is missing above
+`<psyq/libgs.h>`:
+
+```c
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+```
+
 ## Alias a shared body's overlay-local data before `promote`, and re-check the body symbol
 
 `overlay_dup_index.py promote` refuses a body that references its own overlay's
@@ -70173,3 +70188,29 @@ of the pair's promotions. The span cut at 0x624C lands inside unit `_2`'s run, s
 `_3`→`_4` and a fresh `_3` took the tail, and the promoted body was the only C
 body in the file it left — moved out first, the two carrier unit files could then
 be deleted and regenerated as in the section above.
+
+## A duplicated argument load in front of a shared `jal` means the call is written out in each arm
+
+A two-arm switch whose arms both reach one `jal` can still show the *argument*
+load twice — once in each arm, ahead of the shared call. That shape only comes
+from the source calling the function in each arm and letting `jump2` cross-jump
+the identical tails back into one; writing the call once after the switch
+cannot produce it, because the argument setup is one instruction stream in one
+block and no pass moves a load across the `jal`.
+
+`func_actor_402200_80137FB0` is the worked example. With the dispatch and the
+statement order already right, the build sat at `regs=11` with `$s0`/`$s1`
+swapped; writing `Gp_SetObjTrans(...)` and the state clear out in *both* arms
+took it to 0 differences, and the two instructions the target has and the build
+did not (`lw a0,0x2c` in each arm) came with it. The register swap follows from
+the same change: `REG_N_REFS` is counted before cross-jumping, so the doubled
+load raises the argument pseudo's refs and moves it off `$s0` — the lever in
+"Duplicate the join store in every arm to win the lower callee-saved register",
+reached from the other direction. Read the target for the doubled load *first*:
+when it is there the topology fixes the registers too, and duplicating a store
+on top of it is redundant.
+
+The dispatch in that function is also a two-value instance of "Recovering a
+switch's `slti … → default` with one dummy case below the tree root": with real
+cases 1 and 2 the dummy is `case 0`, sharing the `default` body, and it is the
+arm's own state value rather than a pure dummy.
