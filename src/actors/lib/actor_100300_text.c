@@ -223,4 +223,21 @@ s32 Actor00300_Fn05388(Actor100300* arg0, s32 arg1, ActorsShared80132074Args* ar
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn053EC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05434);
+s32 Actor00300_Fn05434(Actor100300* arg0, s32 arg1, Actor100300DestroyArgs* args)
+{
+    Actor100300Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (args->field_2 != 0) {
+        enemy->field_54 = 0;
+        Gp_UnlinkNode(&enemy->node);
+        Gp_UnlinkObj(&work->obj480);
+        Gp_UnlinkObj(&work->obj538);
+        Gp_UnlinkObj(&work->obj4D0);
+        Gp_UnlinkObj(&work->obj5B8);
+        Gp_DestroyEnemy(enemy, (Task*)arg0);
+    }
+    return 0;
+}
