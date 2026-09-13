@@ -40,6 +40,16 @@ typedef struct {
     GpActorFunc funcs[4];
 } GpActorFuncTable4;
 
+/// 5-entry callback table copied onto the stack by `func_actor_800100_80166EE8`.
+typedef struct {
+    GpActorFunc funcs[5];
+} GpActorFuncTable5;
+
+/// 7-entry callback table copied onto the stack by `func_actor_800100_80165930`.
+typedef struct {
+    GpActorFunc funcs[7];
+} GpActorFuncTable7;
+
 /// 12-entry callback table copied onto the stack by `Gp_TickPlayerMode2`.
 typedef struct {
     GpActorFunc funcs[12];
@@ -109,7 +119,9 @@ typedef struct _GpActorD4 {
     /* 0xA0 */ GpRec18      field_A0;
     /* 0xB8 */ byte         pad_B8[0xC];
     /* 0xC4 */ s16          field_C4;
-    /* 0xC6 */ byte         pad_C6[6];
+    /* 0xC6 */ s16          field_C6;
+    /* 0xC8 */ byte         pad_C8[2];
+    /* 0xCA */ s16          field_CA;
     /* 0xCC */ u8           field_CC;
     /* 0xCD */ u8           field_CD;
     /* 0xCE */ s8           field_CE; // path-table step index; `lb`/`sb`
@@ -973,6 +985,7 @@ void  Gp_InitPlayerWork(GpActorWork* arg0);
 void  Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  Gp_TeardownSlot0(GpActorWork* arg0);
 void  Gp_BindActorAnim(GpActorWork* arg0);
+void  Gp_AnimPlayChildSlotsEx(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
 /// slot of the `field_93A` load is `move a3, a1`.

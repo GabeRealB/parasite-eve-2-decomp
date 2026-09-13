@@ -41799,6 +41799,31 @@ state-entry function whose whole body is a field block plus one
 `Gp_AnimPlayChildSlotsEx` should be checked for the missing `arg0` before
 anything else — the m2c seed's argument count is the first thing to count, not
 the register allocation it distorts.
+## A uniform `$a0→$a1, $a1→$a2, $a2→$a3` shift at a `jal` is a dropped leading callee argument
+
+The caller-side mirror of "m2c's `argN` names carry the register slot": there the
+*function's own* parameters were undercounted, here it is the **callee's**. m2c
+does not know the callee's prototype — it is still `INCLUDE_ASM`, or lives in
+another overlay — so it types the call from the registers the body happens to
+set, and drops the leading argument when that register is already occupied.
+
+In `func_actor_800100_80165664` the target's `jal Gp_AnimPlayChildSlotsEx` never
+writes `$a0`, because `$a0` still holds the caller's own `arg0`; m2c emitted the
+call with three arguments and got a uniform shift on all of them:
+
+```
+-lhu    a1,0x956(v0)      # target: $a1 holds field_956, then arg 1
++lhu    a0,0x956(v0)      # ours
+-li     a1,1 / li a2,0 / li a3,6      # target
++li     a0,1 / li a1,0 / li a2,6      # ours
+```
+
+Score 99.00% with `regs=5` and no structural penalty — a purely positional
+off-by-one, never a lifetime or allocation problem. The missing argument is
+almost always the enclosing function's own first parameter, so read the callee's
+`.s`: if it never writes `$a0` before the `jal`, `arg0` is being forwarded.
+Restoring it (`Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6)`) took 99.00% to 100.00%
+in one edit. Do not chase the shift with pins or the permuter.
 
 ## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
 
@@ -50459,6 +50484,15 @@ next to `lhu $v0, 0x12($s0)` in one `addu`: the operand that came from an `s32`
 local is the `lh`, the one read and stored back in place is the `lhu`. Reading
 both fields directly gives `lhu` twice and swaps the `addu` operands.
 `func_acropolis_bridge_80184908` is the example.
+
+The same pair turns up with no `s32` temp in sight when one field feeds a 32-bit
+expression and another is copied in place. `func_actor_800100_8016709C` reads
+`arg1->field_8` / `field_C` as `lh` operands of a `subu` and `field_8` /
+`field_A` / `field_C` again as `lhu` plain copies into `arg2`, all from a single
+`GpRec18`. The arithmetic promotion is the `s32` temp there, so the two
+signednesses do not mean two struct types — do not split the field into an
+`s16`/`u16` twin just because an m2c seed spells the store side
+`(u16)M2C_FIELD(...)`.
 
 ## CSE rewrites `a = -a` to read the copy's source; block it at the negate
 
@@ -66393,3 +66427,322 @@ load/store widths, and treat any order difference as downstream until the
 widths are right. Do not copy the neighbouring fade struct's field types
 either — `DumpingHoleFadeWork` in `shelter_b3_dumping_hole` is the same shape
 with `s16 r/g/b` and `lbu`/`sb`, because there the channels are byte-wide.
+## `x != 0 && x == 1` in one expression folds to `x == 1`, deleting a branch
+
+**Symptom.** A 16-instruction guard scores 87.44% with `delete=2` and one branch
+too few. The target tests the same halfword twice:
+
+```
+lhu   v1, 0x95E(v0)
+nop
+beqz  v1, L
+li    v0, 1
+bne   v1, v0, L
+nop
+jal   func_8010C180
+.L:
+```
+
+m2c's `if (x != 0 && x == 1)` emits only the `bne`. Both branches go to the same
+label, so this looks like `jump.c` dropping a redundant jump — it is not.
+
+**Cause.** It is a tree-level fold, and it is already gone in the earliest RTL
+dump. `.rtl` is written before the first `jump_optimize` (`toplev.c:3018` vs
+`:3181`), and `base.i.rtl` holds a single `if_then_else (ne ...)` insn, so no RTL
+pass ever saw the pair. `fold_range_test` (`fold-const.c:3172`) runs on the
+`TRUTH_ANDIF_EXPR`, and when `operand_equal_p` holds for both sides it hands them
+to `merge_ranges`: `x != 0` is the range `[1, MAX]`, `x == 1` the point `[1, 1]`,
+and the intersection `[1, 1]` comes back as the single test `x == 1`. This is the
+point-value case of the same fold as the `!=`-chain and `||`-band entries above.
+
+**Fix.** Keep the two comparisons in separate expressions, where `fold` cannot
+see them as a pair. Either the early-return form
+
+```c
+value = actor->field_95E;
+if (value == 0) {
+    return;
+}
+if (value == 1) {
+    func_8010C180(arg0);
+}
+```
+
+or nested `if`s. Both give byte-identical output: the two tests survive, and
+`jump.c` does *not* then remove the first one even though `x == 0` implies
+`x != 1` and both branch to the same label — a redundant-looking branch written
+as two statements is safe. The return form's first test branches to its own
+block, and the shared epilogue the target shows appears later, once the
+epilogues merge.
+
+`func_actor_800100_801658E8` (87.44% → 100%). Inputs: `base.i`
+`497a7018cba867ca8cf008b74d0ef2b3f38dc938b62255d209e0dd8bfa21ff40`,
+`base_1.i` `e199c8dc352ac3ca403e6daeb079435784d1cfe96873037806a25623683171bb`,
+`base_2.i`
+`ede90cb5a0b414da4dcd699f736e4d4275e0f2167e70c681be0cc3a4b4f3217c` (nested
+`if`s, same object).
+
+## An `s16` parameter forces `sll`/`sra` before any later `+ K`
+
+m2c infers a parameter's type from how the body stores it, so a value written
+into a `u16`/`s16` field comes back as `s16 arg1`. A short parameter is then
+sign-extended wherever the arithmetic promotes it to int, which the target may
+not do:
+
+```
+sh     a1, 0x960(v0)
+sll    a1, a1, 16        <- extra, from `s16 arg1`
+sra    a1, a1, 16
+addiu  a1, a1, 0xE
+```
+
+`func_actor_800100_80166E94`'s target instead adds straight onto the incoming
+register, because the original parameter was word-typed:
+
+```
+sh     a1, 0x960(v0)
+addiu  a1, a1, 0xE
+```
+
+Retyping it `s32` removes both instructions and is a 100% match; the halfword
+store is unaffected, since storing an `s32` into a `u16` field truncates the
+same way. The tell is an `addiu`/`addu` on a register that still holds the raw
+incoming argument: no extension pair anywhere in front of it means the source
+parameter was `s32`, not the narrow type the store suggests.
+
+`func_actor_800100_80166E94` (91.30% → 100%, the only leftover being
+`insert=2`). Inputs: `base.i`
+`be29cf56717444d791255fd861fb768e3c3ef3df022527ac4e2a48cbe9b9ae88` (82.17%,
+`s16 arg1` plus a 3-argument call — the `jal` takes four), `base_1.i`
+`68d954dafdcf14cacfa503fe7eaaba14b466aa3326f02b3695044af598781c5d`,
+`base_2.i`
+`409c1e57e3cdfe03c468e42706c33ab229fb844380bb6057c1d048763fc93454`
+(`s32 arg1`).
+
+## A matched function's `.s` stub carries its own `.rodata` table
+
+An unmatched function whose target reads a table from the unit's leading rodata
+gets that table **inside its own `.s`**, not in a standalone `nonmatchings/.../D_*.s`
+fragment:
+
+```
+.section .rodata
+dlabel D_actor_800100_80161E88
+    .word func_actor_800100_801658E8
+    ...
+.section .text
+glabel func_actor_800100_80165850
+```
+
+`INCLUDE_ASM` includes that whole file at the stub's position in the `.c`, so the
+words land in the C unit's `.rodata` in **source order** — the `.c`'s
+`INCLUDE_ASM`/`INCLUDE_RODATA` line order is what fixes the table's address.
+Replacing the `INCLUDE_ASM` with the C body therefore deletes those bytes, and
+nothing says so: the function itself scores 100.00% in the scratch, and the
+overlay links, just N bytes short with every later table and the whole `.text`
+shifted. `func_actor_800100_80165850` lost exactly its 16-byte 4-entry table and
+the ld error (`undefined reference to D_actor_800100_80161E88`) was the only
+signal.
+
+Emit the words from C **at the stub's old position**, so the `.rodata` stream
+order — and therefore the address — is unchanged. The `actors` family idiom,
+which also supplies the `nonmatching`/`dlabel`/`enddlabel` markers, is
+`src/actors/actor_400500/actor_400500.c`:
+
+```c
+extern GpActorFuncTable4 D_actor_800100_80161E88;
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_800100_80161E88\n"
+        "dlabel D_actor_800100_80161E88\n"
+        "    .word func_actor_800100_801658E8\n"
+        "    .word func_actor_800100_80165928\n"
+        "enddlabel D_actor_800100_80161E88\n"
+        ".section .text");
+#endif
+```
+
+A C `const` definition is the wrong tool here for the reason recorded above: GCC
+collects file-scope tables to the end of the TU, so the words would land after
+every later `INCLUDE_RODATA`/`INCLUDE_ASM` table instead of between them.
+
+Check which stubs carry `.rodata` before matching one out of a unit:
+`grep -l '\.word' asm/USA/<ver>/<family>/nonmatchings/<overlay>/<unit>/*.s`.
+The `.rodata` size of the built unit object (`objdump -h`) is the cheap
+cross-check: it should equal the original unit's rodata span exactly.
+
+## A live `$a0` shifts the block-move scratch registers
+
+`func_actor_800100_80166EE8` copies a `.rodata` callback table onto the stack and
+calls through it, exactly like its matched sibling `func_actor_800100_80165850`:
+
+```c
+GpActorFuncTable5 sp;
+
+sp = D_actor_800100_80161EC8;
+sp.funcs[D_8007272F](arg0);      /* arg0 is what moves the scratches */
+```
+
+Written argument-less (`sp.funcs[D_8007272F]()`, which is what you get when the
+callee type is unknown) the copy is otherwise identical and still scores 96.9%,
+with `regs=16` and every other penalty zero:
+
+```
+target:  addiu t0,v1,%lo(sym)          argument-less:  addiu a3,v1,%lo(sym)
+         lw a1,0(t0)  lw a2,4(t0)  lw a3,8(t0)          lw a0,0(a3)  lw a1,4(a3)  lw a2,8(a3)
+```
+
+The copy is one `movstrsi_internal`, and its four scratch clobbers become
+local-alloc quantities of priority 0 (`QTY_CMP_PRI` is
+`floor_log2(n_refs)*n_refs*size / (death-birth)`, and a scratch is born and dies
+in the same insn). They are therefore allocated *last*, each taking the
+lowest-numbered free register. In the argument-less version `$a0` is free, so the
+scratches take `a0,a1,a2` and the `lo_sum` base reloads into `$a3`; passing
+`arg0` keeps `$a0` live across the whole body, so the scratches start at `$a1`
+and the base takes `$t0`. Restoring the argument is a one-edit 100%.
+
+So a `regs`-only permutation inside an `lw`x3 / `sw`x3 stack copy is not a
+scratch-allocation puzzle to be pinned: read the target's `lw`/`sw` registers as
+"which of `$a0`-`$a3` were already taken" before anything else. Here the tell is
+that the target never touches `$a0` at all - the first free register is `$a1`,
+so something holds `$a0`, and for a void-typed body that something can only be a
+parameter the source passes on. `func_actor_800100_80166EE8` (96.92% -> 100%).
+Inputs: `base_1.i`
+`5a2ea948d4e18aa4267c66cc44f6ed16dc68593a2913069c81692ece45d77feb` (argument-less,
+`regs=16`), `base_2.i`
+`133ae4070b9b6009712d7f098c5a2147a1150f169bb6dd97f8c7cfaf2873d604` (`arg0`).
+
+## A pointer derived between the last pre-loop load and a block move takes its delay slot
+
+`func_actor_800100_80166514` copies a 0x50-byte `GsCOORDINATE2` into a stack local
+(`sp10 = *((TmdObject*)actor->field_91C->extra)->field_8;`), which is the
+`movstrsi` 5x16-byte loop of the entry above, and then uses a *second* pointer
+taken from the same actor (`obj = (GpObj*)actor->field_12C;`). Both the copy's
+destination `&sp10` and that pointer are register-only computations with no
+consumers until after the loop, so where each is *written in the source* decides
+which pre-loop slot it gets:
+
+```
+lw    v0,0x2c(v0)          # ->extra
+addiu v1,sp,0x10           # &sp10        - first load-delay slot
+lw    v0,8(v0)             # ->field_8
+addiu a0,s3,0x12c          # &obj         - second load-delay slot
+addiu a1,v0,0x50
+lw    a3,0(v0)             # block move starts
+```
+
+Written with the pointer derived at the top of the body it has no pre-loop home
+at all: it is emitted **after** the loop (`addiu v1,s3,0x12c`, `$v1` recycled from
+the copy's end pointer), and `$a1`/`$a0` swap roles throughout the tail - 96.09%,
+`regs=8 insert=2 delete=1`. Moving the derivation alone to sit between the `src`
+load and the copy is the 100%:
+
+```c
+src  = ((TmdObject*)actor->field_91C->extra)->field_8;
+obj  = (GpObj*)actor->field_12C;   /* here: last pre-loop def, second delay slot */
+sp10 = *src;
+obj->flags |= 0xC000;              /* stays after the copy */
+```
+
+The position is what matters, not the ordering, and it is not a general
+"declare things early" rule: moving the *flags* read-modify-write up with it
+(93.23%) keeps the `lhu`/`ori`/`sh` through `$a0` glued to the pointer's
+definition and the whole sequence - pointer, RMW and all - is emitted before the
+block move instead, taking `branch=1 reorder=3 insert=3` with the loop's `bne`
+displacement shifted. A register-only computation can be scheduled around a
+`movstrsi`; a memory operation sharing its statement cannot be separated from it,
+so it drags the move. `func_actor_800100_80166514` (96.09% -> 100%).
+Inputs: `base_2.i`
+`1ebffb390fe461e8a6845b71afdf03d6f8e7a66b6a40f5f7c1829e230c1bece6`,
+`base_3.i`
+`02ced327ae4a827a114d0e5f0dfd7ad0d120a0e20ca913aa21e2c08572faa1a3`,
+`base_4.i`
+`f4e66b8563a323465611991cf9914b2e0ae263c267998b3cea0f40a8c4e5341f`.
+
+## `do{}while(0)` flips an allocno tie: `REG_N_REFS` is weighted by loop depth
+
+Two call-crossing pointers can sit at an **exact** tie in `allocno_compare`, and
+then the tie-break (`return v1 - v2`, the lower allocno index) decides which one
+gets the lower callee-saved register. No rearrangement of the equal-priority
+statements moves it, because the priority inputs are counts, not orderings:
+
+```
+pri = floor_log2 (allocno_n_refs) * allocno_n_refs / allocno_live_length * 10000 * allocno_size
+```
+
+`func_actor_800100_80163D54` was 98.796% with `regs=26` and one difference: the
+argument (`$s3` in retail) and a cached `arg0->actor` (`$s2`) exchanged homes.
+`.greg` printed `;; 7 regs to allocate: 86 85 84 80 81 82 83`, and the priorities
+are `3*11/154 = 33/154` for the argument against `2*6/56 = 12/56` for the actor -
+both `0.2142857`, so the argument's lower pseudo number took `$s2` first.
+`allocno_live_length` is the max of `REG_LIVE_LENGTH` over the allocno's pseudos,
+and it is **not** the `.flow` line's "across N insns" figure (88 and 66 there);
+`tools/trace_gcc.py` prints the values `global_alloc` actually used.
+
+The lever is that flow.c does not count a reference as one:
+
+```c
+REG_N_REFS (regno) += loop_depth;     /* flow.c:1969, 2218, 2404, 2616 */
+```
+
+and `depth` starts at **1** at the top level (flow.c:402), incrementing on
+`NOTE_INSN_LOOP_BEG`. So a reference inside a loop counts *twice*, and wrapping a
+single reference in a constant-false `do{}while(0)`:
+
+```c
+count = (u16) actor->field_942 + 1;
+do { actor->field_942 = count; } while (0);   /* 98.796% -> 100% */
+```
+
+raises that allocno to 7 refs, `floor_log2(7)*7/56 = 2500 > 33/154`, which orders
+it before the tied one (`86 85 84 81 80 82 83`) and the two swap homes the way
+retail has them. The loop folds away, so the instruction stream is byte-identical
+- a pure allocation lever, and the reason the same construct works as a
+scheduling barrier elsewhere. `.flow` shows it directly: `Register 81 used 6
+times` becomes `7 times` at an unchanged `66 insns`, while `.greg` shows the
+reordered list and `80 in 19  81 in 18`. Prefer this over a register pin when a
+`.greg` tie is the whole difference; `$s0`-`$s4` are handed out in allocation
+order to the lowest free register, so flipping the order flips the homes.
+
+A permuter search found the transformation (130 -> 0 differences); the mechanism
+was then confirmed by a planned one-change variation of the seed (predicted refs
+7, predicted order, predicted dispositions - all three held).
+Inputs: `base_2.i`
+`4cc71342dcc30427e9b325d84df37f543ab2be1e1f9bf6a1793e7c9451855da9`,
+`base_3.i`
+`e6a78850e0446f9c067e5dd6d6cf4bc3d660c54f40c352f73bc56b6d66987fcc`.
+
+## A call block with no argument setup can mean the call passes *fewer* arguments
+
+`func_actor_800100_80165C38`'s case-1 block calls
+`func_actor_800100_80166B40` with `$a0`-`$a2` set and **no `$a3` at all**: the
+`1` the callee observes is the decision tree's own comparison operand, still
+live from `beq $v1, $a3`. A C call whose fourth argument is the literal `1`
+cannot produce that - `expand_call` emits its own
+`(set (reg:SI 7 a3) (const_int 1))` in the call block, so the source scores
+99.055% with an `insert` penalty of exactly one instruction. The set is already
+there before CSE (`base_2.i.jump`, uid 138) and CSE only attaches a
+`REG_EQUAL (const_int 1)` note to it (cse.c:7091); it does not fold it into the
+constant pseudo it created for the comparison (uid 200, `.lreg`), so no
+`-fcse-follow-jumps`/EBB explanation applies.
+
+The callee holds the answer, and it need not be matched to read it: it writes
+`$a3` before it ever reads it (`addu $a3, $s4, $zero`, in a `jal` delay slot at
+4E14), i.e. its fourth parameter is dead - and the original call passes **three**
+arguments. GCC emits argument setup only for the arguments the call expression
+actually has, so `$a3` keeps whatever the switch tree left in it:
+
+```c
+s32 func_actor_800100_80166B40(GpRec18* rec, GsCOORDINATE2* coord, GsCOORDINATE2* place);
+...
+if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0)   /* 99.055% -> 100% */
+```
+
+Symptom to look for: a one-instruction `insert` penalty on an argument register,
+a register written in one arm of a switch tree and read in another with no write
+between, and an argument register that appears in the callee only as a
+destination. Check the callee's `.s` before explaining the missing write as CSE
+or allocation behaviour - and remember the reverse reading too: a callee with a
+dead trailing parameter tells you nothing about how many arguments its callers
+pass, because the caller's source decides that.
