@@ -40,8 +40,10 @@ typedef struct Actor510900Work {
     /* 0x584 */ s16    field_584;
     /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
     /// stores `Actor510900AnimArgs::field_4 + 0x1B` here.
-    /* 0x586 */ s16  field_586;
-    /* 0x588 */ byte pad_588[2];
+    /* 0x586 */ s16 field_586;
+    /// Animation id the slots were last reseeded with; `func_actor_510900_8013BB20`
+    /// reseeds 1..0x12 whenever this differs from `field_586`.
+    /* 0x588 */ s16 field_588;
     /// Blend weight the 0x7D3 handler is handed, cleared once the reseed is done.
     /* 0x58A */ s16  field_58A;
     /* 0x58C */ byte pad_58C[2];
@@ -98,6 +100,10 @@ typedef struct Actor510900AnimArgs {
 /// Table the state 1 handler below picks `field_59C` from; a 4-bit
 /// `Gp_LcgState` draw indexes at least sixteen `u16` entries.
 extern u16 D_actor_510900_801679F0[];
+
+/// Per-animation-id value `func_actor_510900_8013BB20` hands `func_800B4114`
+/// as its fifth argument when it reseeds animation slots 1..0x12.
+extern s16 D_actor_510900_80167B38[];
 
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);

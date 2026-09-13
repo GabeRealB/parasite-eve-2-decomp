@@ -5,6 +5,10 @@
 /// Rolled per draw by the state 1 handler; gameplay/3A34.c owns the definition.
 extern s32 Gp_LcgState;
 
+/// 1BC.h keeps this out of scope on purpose: callers hand it a sign-extended
+/// animation id, which a `u16` prototype would zero-extend.
+void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 void func_actor_510900_8013B988(Actor510900* arg0)
 {
     Actor510900Work* work;
@@ -38,4 +42,27 @@ void func_actor_510900_8013B988(Actor510900* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013BA58);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013BB20);
+void func_actor_510900_8013BB20(Actor510900* arg0)
+{
+    Actor510900Work* work;
+    s32              i;
+    s32              value;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if (work->field_586 != work->field_588) {
+        work->field_588 = work->field_586;
+        work->field_58A = 0;
+        value           = D_actor_510900_80167B38[work->field_586];
+        for (; i < 0x13; i++) {
+            func_800B4114(work, i, work->field_586, 0, value);
+        }
+    } else {
+        TOUCH_REG(i);
+        work->field_58A += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 0x13);
+    }
+}

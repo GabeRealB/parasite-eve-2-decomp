@@ -65607,3 +65607,43 @@ Inputs: `base_1.i`
 `base.i` `1587e027d26c81fb5cfd4a605452e98300ec9d76f448bc81e611dabd518dbf53`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 No pins, no empty asm, no permuter run.
+
+## A table's element scale can come out as `sllv` by a live register, and post-reload CSE is what put it there
+
+A `s16 table[field]` lookup scales by 2, but the target can show the *register*
+form, `sllv $v0,$v0,$s0`, with `$s0` holding the loop counter `i` — which is 1
+at that point. Nothing in the source shifts by a variable, so do not go looking
+for one: `reload_cse_regs` (post-reload CSE, `reload1.c`) does it.
+
+`reload_cse_regs_1` keeps `reg_values[]`, the values each hard register is known
+to hold, recorded from `(set (reg) (const_int))` and cleared at every code
+label, call and store. `reload_cse_simplify_operands` then walks each insn's
+non-register operands and, if some register is known to hold that exact value
+(`reload_cse_regno_equal_p`), substitutes it — whenever the operand's constraint
+admits a register. `ashlsi3` is `(match_operand:SI 2 "arith_operand" "dI")`, and
+`"dI"` is *one* alternative accepting either a register or a constant (GCC
+splits alternatives on commas, not on letters), so there is nothing to veto the
+swap and no `alternative_nregs` comparison to lose.
+
+`func_actor_510900_8013BB20` shows both halves of this, and the dumps pin the
+pass: insn 44 in `.greg` is `(ashift:SI (reg:SI 2 v0) (const_int 1))`, and in
+`.sched2` it is `(ashift:SI (reg:SI 2 v0) (reg:SI 16 s0))`. `li s0,1` (from
+`i = 1`) is still in `reg_values` in that block because nothing between clears
+it; the function's *other* block begins at a code label, which is why the same
+construct there keeps its constant.
+
+That asymmetry is also why this function needs `TOUCH_REG(i)` on the addend and
+the table lookup does not. Writing `work->field_58A += i` alone scores 95.918%
+with the addend folded to `addiu v0,v0,1`: `i` is known to be 1 on that path, so
+constant propagation folds it before global alloc — `.greg` already reads
+`(plus:SI (subreg:SI (reg:HI 2 v0) 0) (const_int 1))`, versus `(reg/v:SI 16 s0)`
+with the helper. The empty asm is what keeps a register there; the shift needs
+no source-level help at all, which is why the promoted siblings
+(`src/actors/lib/actor_100700_text.c:869`, `actor_105500_text.c:1291`) carry the
+helper only on the accumulate.
+
+Inputs: `base_1.i`
+`ef6b45fcd8dcfa4c089e54e43ce1f275a0644dbd2765cc68d1f7f62d108a000a` (100%,
+`TOUCH_REG(i)` present), `base_3.i`
+`0c99610a344ed94d95f51807e7146d6afa45ff960ff7a2c344af445bc152aa63` (the same
+source with the helper deleted, 95.918%). No pins, no permuter run.
