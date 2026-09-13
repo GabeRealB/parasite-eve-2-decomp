@@ -157,7 +157,110 @@ s32 func_actor_405800_8013728C(Task* arg0)
     return dist;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_801373E0);
+s32 func_actor_405800_801373E0(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    Actor405800Work* work4;
+    Actor405800Work* work5;
+    Actor405800Work* work6;
+    Actor405800Work* work7;
+    Actor405800Work* work8;
+    GsCOORDINATE2*   coord;
+    u32              rnd;
+    u32              bits;
+    s16              ang;
+    s32              ret;
+
+    rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
+    bits        = rnd >> 0x10;
+    Gp_LcgState = rnd;
+    work        = (Actor405800Work*)arg0->idMap;
+    coord       = ((TmdObject*)arg0->extra)->field_8;
+    if (work->field_85C == 0) {
+        if (work->field_890 == 0) {
+            if ((bits & 0xF) == 0) {
+                if ((work->field_85E == 0) && (coord->coord.t[0] < 0x2710)) {
+                    work->field_846 = 0xC;
+                    work->field_848 = 0;
+                    return 1;
+                }
+                return 0;
+            }
+            if ((u32)((bits & 7) - 1) < 3U) {
+                if ((work->field_852 < 0x7D0) && ((u32)(work->field_856 - 0x200) >= 0xC01U) && ((u32)(work->field_854 - 0x601) < 0x3FFU)) {
+                    ret = 1;
+                    TOUCH_REG_MEM(ret);
+                    work2            = (Actor405800Work*)arg0->idMap;
+                    work2->field_846 = 8;
+                    work2->field_848 = 0;
+                    return ret;
+                }
+            } else if (work->field_852 < 0x640) {
+                ang = (s16)work->field_856;
+                if (ang < 0x400) {
+                    ret = 1;
+                    TOUCH_REG_MEM(ret);
+                    work3            = (Actor405800Work*)arg0->idMap;
+                    work3->field_846 = 6;
+                    work3->field_848 = 0;
+                    return ret;
+                }
+                if (ang >= 0xC01) {
+                    ret = 1;
+                    TOUCH_REG_MEM(ret);
+                    work4            = (Actor405800Work*)arg0->idMap;
+                    work4->field_846 = 7;
+                    work4->field_848 = 0;
+                    return ret;
+                }
+            }
+        } else if ((bits & 7) == 0) {
+            if (work->field_85E == 0) {
+                ret = 1;
+                TOUCH_REG_MEM(ret);
+                work5            = (Actor405800Work*)arg0->idMap;
+                work5->field_846 = 0x10;
+                work5->field_848 = 0;
+                return ret;
+            }
+            return 0;
+        } else if ((bits & 0xF) == 1) {
+            if (work->field_85E == 0) {
+                ret = 1;
+                TOUCH_REG_MEM(ret);
+                work6            = (Actor405800Work*)arg0->idMap;
+                work6->field_846 = 0xD;
+                work6->field_848 = 0;
+                return ret;
+            }
+            return 0;
+        } else if (work->field_852 < 0x640) {
+            ang = (s16)work->field_856;
+            if (ang >= 0xC01) {
+                ret = 1;
+                TOUCH_REG_MEM(ret);
+                work7            = (Actor405800Work*)arg0->idMap;
+                work7->field_846 = 6;
+                work7->field_848 = 0;
+                return ret;
+            }
+            if (ang < 0x400) {
+                ret = 1;
+                TOUCH_REG_MEM(ret);
+                work8            = (Actor405800Work*)arg0->idMap;
+                work8->field_846 = 7;
+                work8->field_848 = 0;
+                return ret;
+            }
+            return 0;
+        } else {
+            return 0;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_801375C4);
 

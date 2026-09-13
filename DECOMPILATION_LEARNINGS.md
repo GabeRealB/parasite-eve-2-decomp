@@ -745,6 +745,41 @@ scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
 two `idMap` reloads after the dispatcher call is 100%. This is the same
 "dies in 2 places" rule as the switch-arm scratch pointers, but inside one
 block split by a call rather than two `case`s.
+## Leaf `idMap` reloads need a memory clobber, and `ret=1` must stay above it
+
+`func_actor_405800_801373E0` is a leaf that still reloads `arg0->idMap` on
+every success path except the first (`lw a0, 0x1c(a3)` then `j` to the shared
+`sh field_846` / `sh field_848` tail). Nearby functions get that reload for
+free because a call invalidates memory. Here CSE proves the pointer equals the
+live `work` local and deletes the load. Then `arg0` dies in block 0, keeps
+`$a0`, and `work` is pushed to `$a1` — the shared tail uses `$a1`, so jump2
+does not re-materialise the load either (113 insns vs 121).
+
+A memory clobber before the reload restores both the `lw` and the incoming
+`move a3, a0` (`work` takes `$a0`, `arg0` is live across the later blocks).
+`SOFT_COMPILER_BARRIER()` (`::: "memory"` only) is not enough for the delay
+slots: `ret = 1` is register-only, so sched sinks it past the clobber, reorg
+hits the asm first (`stop_search_p`), and the fail-branch delay stays `nop`
+instead of `li v0, 1` (126 insns). Pin the return value through the clobber:
+
+```c
+ret = 1;
+TOUCH_REG_MEM(ret);   /* volatile +r and memory; li v0,1 stays first */
+work2 = (Actor405800Work*)arg0->idMap;
+work2->field_846 = 8;
+work2->field_848 = 0;
+return ret;
+```
+
+`dbr` then fills the incoming `beqz`/`bnez` with `li v0, 1` and the `j` with
+`li v1, state`. The first success path must keep storing through `work` with a
+plain `return 1` so it falls through into the tail instead of jumping.
+
+The two `return 0` sites are not the same block: `(bits & 0xF) == 0` failures
+are an inner `return 0` that sits between the first tail and the `(bits & 7)`
+arm; later `field_890 == 0` failures fall through to the outer `return 0`;
+`field_890 != 0` failures jump back to the inner one.
+
 ## Interleave two stores of the same constant around another to keep it live
 
 `func_actor_405800_801395E8` writes `8` to two fields and `0x10` to a third.
