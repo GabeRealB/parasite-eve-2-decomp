@@ -23,6 +23,8 @@ void func_actor_405800_80135A3C(Task* arg0, s16 arg1);
 s32  func_actor_405800_8013728C(Task* arg0);
 s32  func_actor_405800_801373E0(Task* arg0);
 void func_actor_405800_801379F8(Task* task);
+void func_actor_405800_80137948(Task* task);
+void func_actor_405800_80137994(Task* arg0, s16 arg1);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -250,7 +252,47 @@ void func_actor_405800_80133CD0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133DB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133F48);
+void func_actor_405800_80133F48(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    s32              id;
+    u32              sound;
+    s32              pan;
+
+    work = (Actor405800Work*)arg0->idMap;
+    work->field_842++;
+    if ((s16)work->field_842 == 0x16) {
+        id = 0x40050005;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0005;
+        }
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        pan   = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->obj_6B4.flags |= 0x8000;
+        work->obj_674.flags |= 0x8000;
+    }
+    if ((s16)work->field_842 == 0x1C) {
+        work->obj_6B4.flags &= 0x7FFF;
+        work->obj_674.flags &= 0x7FFF;
+    }
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        func_actor_405800_80137994(arg0, 0);
+        func_actor_405800_80137948(arg0);
+        if (work->field_890 == 0 && work->field_852 < 0x578 && (u16)(work->field_856 - 0x200) > 0xC00 && (u16)(work->field_854 - 0x200) > 0xC00) {
+            work2            = (Actor405800Work*)arg0->idMap;
+            work2->field_846 = 9;
+            work2->field_848 = 0;
+        } else {
+            work3            = (Actor405800Work*)arg0->idMap;
+            work3->field_846 = 2;
+            work3->field_848 = 0;
+        }
+    }
+}
 
 void func_actor_405800_801340E0(Task* arg0)
 {
