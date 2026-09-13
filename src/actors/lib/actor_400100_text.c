@@ -480,7 +480,19 @@ void Actor00100_Fn0B3DC(Actor00100* arg0, s16 arg1, s16 arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B4D8);
+void Actor00100_Fn0B4D8(Actor00100* arg0)
+{
+    TmdObject*      obj;
+    Actor00100Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                     = arg0->field_2C;
+        arg0->field_20->field_14 = 1;
+        obj->field_C            |= 0x80;
+        work->objs[2].flags     &= 0xBFFF;
+    }
+}
 
 void Actor00100_Fn0B52C(Actor00100* arg0)
 {
