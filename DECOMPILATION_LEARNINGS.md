@@ -65142,3 +65142,26 @@ A byte flag yielded 97.368%: `li v1,1` instead of `move v1,a0` for a halfword st
 The successful controlled prediction used an SI flag assigned **after** the halfword stores in C. In base_5 `.cse`, UID67 defines HI constant 1 and UID78 later defines SI constant 1. Both survive. Sched1 moves the independent SI definition first; `.greg` keeps a0=1 then HI v1=1. In `.sched2`, UID67 becomes `(set (reg:HI 3 v1) (reg:HI 4 a0))`. This achieves 100% without asm helpers or pins. `reload1.c:reload_cse_regno_equal_p` permits known constants in the same mode or truncation from a larger mode; `reload_cse_simplify_set` performs the substitution. Source definition order can prevent early constant reuse while scheduled order permits late reuse. Whether scheduling produces that order must be checked for each function.
 
 Evidence: `tools/permuter_findings/Actor01600_Fn06D74/` retained session notes, inputs, and `PERMUTER_EVIDENCE/manual-resolution/` dumps. base_5 preprocessed SHA256 `690942890b29b21da96b4dd7879f4c6e2973c5abcb214cc02989b6230b37d03e`; compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. The bounded permuter found no discovery; this gain came from the subsequent manual prediction.
+
+### Actor01600_Fn0646C: address-of-member indirection changes scheduler alias metadata
+
+A fixed scalar global store followed by `arg0->field_2C` has no store/load
+dependence under GCC 2.8.1's fixed-scalar/varying-structure exemption. The
+permuter introduced `TmdObject **p = &arg0->field_2C` and used `(*p)->field_8`
+in three switch arms. Expansion clears MEM_IN_STRUCT on the model-pointer
+load, restoring the dependence without changing its address. Paired score:
+90% to 100%. Normalization alone preserved 90%.
+
+Controlled base_6 removed an unrelated actor-pointer copy and retained 100%:
+`.sched` UID 203 is `mem:SI(actor+44)` dependent on scalar store UID 200.
+Controlled base_7 removed only the member-pointer indirection: the load is
+`mem/s:SI` without the store dependency and returns exactly to 90%. The model
+load/global-address homes change v0/v1 to v1/t0; saved s0/s1/s2 survive.
+The independently matched integration uses the real TaskDesc table member
+store instead, retaining MEM/s on both accesses. This is another instance of
+CODEGEN_MODEL.md §11, not a rule that all pointer temporaries affect codegen.
+
+Input SHA256: base_6 `3f68f5dabcc97dfa30e6e66efbfeeb4f74e0e160e85077b2b5db1c9357dc34aa`;
+base_7 `2985b974131a42e931fbc8db03baa8cceab4718b24b9da1b91b75ac911c1b588`.
+Retained notes/dumps: `tools/permuter_findings/Actor01600_Fn0646C/`, session
+`9b0a89d1eb814282a3934dec1258159a`, search `ca5c0aa1f03c4bba`.

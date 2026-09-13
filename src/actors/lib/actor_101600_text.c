@@ -614,7 +614,66 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn05B08);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn05F80);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn0646C);
+void Actor01600_Fn0646C(Actor01600* arg0)
+{
+    Actor01600** effect;
+    TmdObject*   obj;
+    TmdObject*   obj2;
+    s32          randomState;
+    s32          choice;
+
+    if (arg0->field_1C->field_540 != 0) {
+        D_800626EC[5].setupArg = (s32)&Actor01600_D0973C;
+        effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->field_8 + 1, 0, NULL);
+        if (effect != NULL) {
+            Actor01600_Fn070AC(*effect, arg0);
+        }
+        D_800626EC[5].setupArg = (s32)&Actor01600_D09EE0;
+        effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->field_8 + 2, 0, NULL);
+        if (effect != NULL) {
+            Actor01600_Fn070AC(*effect, arg0);
+        }
+        D_800626EC[5].setupArg = (s32)&Actor01600_D09EE0;
+        effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->field_8 + 3, 0, NULL);
+        if (effect != NULL) {
+            Actor01600_Fn070AC(*effect, arg0);
+        }
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x300, &Actor01600_D12868);
+        return;
+    }
+    randomState = (Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState = randomState;
+    choice      = ((u32)randomState >> 0x10) & 3;
+    switch (choice) {
+        case 0:
+        case 1:
+            D_800626EC[5].setupArg = (s32)&Actor01600_D0973C;
+            effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->field_8 + 1, 0, NULL);
+            if (effect != NULL) {
+                Actor01600_Fn070AC(*effect, arg0);
+            }
+            break;
+        case 2:
+            D_800626EC[5].setupArg = (s32)&Actor01600_D09EE0;
+            effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->field_8 + 2, 0, NULL);
+            if (effect != NULL) {
+                Actor01600_Fn070AC(*effect, arg0);
+            }
+            break;
+        case 3:
+            D_800626EC[5].setupArg = (s32)&Actor01600_D09CFC;
+            effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->field_8 + 6, 0, NULL);
+            if (effect != NULL) {
+                Actor01600_Fn070AC(*effect, arg0);
+            }
+            break;
+    }
+    Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x50, &Actor01600_D12868);
+    obj            = arg0->field_2C;
+    obj->field_C  |= 0x80;
+    obj2           = arg0->field_2C;
+    obj2->field_C |= 4;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn066E8);
 

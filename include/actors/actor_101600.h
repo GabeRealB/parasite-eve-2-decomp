@@ -162,6 +162,14 @@ extern s32 Actor01600_D12874;
 extern s32 Actor01600_D127DC;
 extern s32 Actor01600_D12870;
 
+extern TaskDesc D_800626EC[];
+extern u8       Actor01600_D0973C[];
+extern u8       Actor01600_D09CFC[];
+extern u8       Actor01600_D09EE0[];
+extern SVECTOR  Actor01600_D12868;
+
+void Actor01600_Fn070AC(Actor01600* arg0, Actor01600* arg1);
+
 void Actor01600_Fn01420(Actor01600* arg0);
 void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1);
 
