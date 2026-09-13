@@ -251,7 +251,28 @@ void Actor00300_Fn0521C(Actor100300* arg0)
     sp.funcs[arg0->field_30]((Actor100300Ctx*)arg0->field_20, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05278);
+void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
+{
+    Actor100300Work* work;
+    u16              timer;
+
+    work = (Actor100300Work*)arg1->idMap;
+    switch (work->field_8A) {
+        case 0:
+            Gp_UnlinkObj(&work->obj0);
+            Gp_UnlinkObj(&work->obj38);
+            work->field_88 = 0x3C;
+            work->field_8A = 1;
+            return;
+        case 1:
+            timer          = work->field_88 - 1;
+            work->field_88 = timer;
+            if ((s16)timer <= 0) {
+                Gp_DestroyEnemy(arg0, arg1);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05304);
 
