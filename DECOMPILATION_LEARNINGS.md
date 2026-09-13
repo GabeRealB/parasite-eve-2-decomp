@@ -68649,3 +68649,33 @@ you which of the two cases you are in.
 
 `func_actor_548100_80134DBC` / `func_actor_143000_80133698` → 100% with the
 carrier diffs at two and twenty-one lines.
+
+## A data symbol's `dlabel` extent is not the array's length
+
+**Symptom.** You type an overlay's table from the `dlabel`/`enddlabel` pair splat
+emitted, size the C array from that span, and the numbers do not add up: the
+stride the code uses does not divide the symbol's size.
+
+**Cause.** The symbol's extent comes from the splitter's chunk map, not from the
+code, and a strided table can be cut at a round-number boundary *mid-record*. In
+`actor_548100` the overlay's edge table is `0x801351D0`-`0x801353D0` (0x200
+bytes) while the code strides it by 14 — `sll $v0,$v1,1 / addu $v0,$v0,$v1 /
+sll $v0,$v0,3 / addu $v0,$v0,$v1 / sll $v0,$v0,2` is `id * 7 * 2` — so 0x200 is
+36.57 records. The table really runs to `0x801356D8` (0x508 bytes, 92 records),
+swallowing the stray `D_actor_548100_801353D0` label the splitter put inside it
+and ending exactly where the next symbol begins.
+
+**Fix.** Take both numbers from the code, never from the symbol: the stride from
+the multiply the code materialises (`id * 7 * 2` reads as three shifts and two
+adds), and the bound from whatever the loop tests — a record whose first byte is
+zero here, a `0xFF` byte in the sibling route strings at `D_actor_548100_80135B24`.
+Declare such a table unsized (`extern Actor548100Edge D_actor_548100_801351D0[]`),
+as the sibling overlay headers do; a size copied from the symbol is a latent
+mismatch, and the sentinel record is not part of the array's data anyway.
+
+The same table also shows why the record's *field* names want evidence from every
+reader: `func_actor_548100_80134AE0`, `..80134BF0`, `..80134CB8` and
+`func_actor_548100_80133684` between them touch offsets 0, 1, 2, 3, 8, 0xA and
+0xC, and only 0, 1 and 2 are seeded in the ROM — the rest is runtime state, which
+is what tells you a "field that is always zero" is written by code you have not
+read yet.
