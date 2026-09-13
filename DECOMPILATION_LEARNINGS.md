@@ -745,6 +745,29 @@ scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
 two `idMap` reloads after the dispatcher call is 100%. This is the same
 "dies in 2 places" rule as the switch-arm scratch pointers, but inside one
 block split by a call rather than two `case`s.
+## Interleave two stores of the same constant around another to keep it live
+
+`func_actor_405800_801395E8` writes `8` to two fields and `0x10` to a third.
+The target keeps `8` in `$v1` across both stores, overlapping `0x10` in `$v0`:
+
+```
+li    v1, 8
+li    v0, 0x10
+sh    v0, field_850
+li    v0, 1
+sh    v1, field_84A
+sh    v1, field_872
+```
+
+Writing the stores in that visible order (`850 = 0x10; 84A = 8; 872 = 8`) lets
+`0x10` die before `8` is born; both quantities home in `$v0` and `li v1, 8` never
+appears. Locals `s16 eight = 8; s16 sixteen = 0x10;` do not create the overlap
+either — CSE substitutes the literals at the store sites.
+
+Store `8`, then `0x10`, then `8` again. CSE keeps one `8` pseudo live across
+`0x10`. The shorter `0x10` span wins `$v0`; `8` takes `$v1`. sched1 still emits
+the target store order. The duplicate store has to straddle the other constant;
+sweeping a one-use store's position does not lengthen the two-use range.
 
 ## A permuter gain can come from moving an expression across a generated branch
 
