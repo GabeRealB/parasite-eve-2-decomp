@@ -48,21 +48,22 @@ extern Actor461800Work* D_actor_461800_80143894;
 /// this variant keeps its change-detection pair at 0x47E / 0x480 where
 /// `Actor461800Work` has 0x4B6 / 0x4B8.
 typedef struct Actor461800Work2 {
-    /* 0x000 */ byte      pad_0[0x40];
-    /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x428];
-    /* 0x47C */ s16       field_47C; // 1 or 2, picked by the message at 80133898
-    /* 0x47E */ s16       field_47E; // copy of `field_480`, kept for change detection
-    /* 0x480 */ s16       field_480; // animation id the slots are seeded with
-    /* 0x482 */ s16       field_482;
-    /* 0x484 */ byte      pad_484[0x2A];
-    /* 0x4AE */ s16       field_4AE;
-    /* 0x4B0 */ byte      pad_4B0[0x4];
-    /* 0x4B4 */ s16       field_4B4; // reset argument the message handler writes
-    /* 0x4B6 */ byte      pad_4B6[0x2];
-    /* 0x4B8 */ s32       field_4B8; // only ever cleared, before the seeding loop
-    /* 0x4BC */ u8        field_4BC;
-    /* 0x4BD */ byte      pad_4BD[0x3];
+    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x108];
+    /* 0x47C */ s16        field_47C; // 1 or 2, picked by the message at 80133898
+    /* 0x47E */ s16        field_47E; // copy of `field_480`, kept for change detection
+    /* 0x480 */ s16        field_480; // animation id the slots are seeded with
+    /* 0x482 */ s16        field_482;
+    /* 0x484 */ byte       pad_484[0x2A];
+    /* 0x4AE */ s16        field_4AE;
+    /* 0x4B0 */ byte       pad_4B0[0x4];
+    /* 0x4B4 */ s16        field_4B4; // reset argument the message handler writes
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ s32        field_4B8; // only ever cleared, before the seeding loop
+    /* 0x4BC */ u8         field_4BC;
+    /* 0x4BD */ byte       pad_4BD[0x3];
 } Actor461800Work2;
 STATIC_ASSERT_SIZEOF(Actor461800Work2, 0x4C0);
 

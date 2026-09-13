@@ -20,7 +20,22 @@ void func_actor_461800_80133724(void)
     } while (i < 0x13);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_3", func_actor_461800_80133770);
+/// Restarts animation slots 1..0x12 from `field_480`, flagging each slot's
+/// `field_9` before the reset so it replays from the top, and latches that id
+/// into `field_47E` as the one now playing.
+void func_actor_461800_80133770(void)
+{
+    s32 i;
+
+    D_actor_461800_801438A0->field_4B8 = 0;
+    i                                  = 1;
+    do {
+        D_actor_461800_801438A0->slots[i].field_9 = 1;
+        Gp_AnimResetSlot(&D_actor_461800_801438A0->anim, i, D_actor_461800_801438A0->field_480);
+        i++;
+    } while (i < 0x13);
+    D_actor_461800_801438A0->field_47E = D_actor_461800_801438A0->field_480;
+}
 
 /// Reseeds animation slots 1..0x12 from `field_480` and latches that id into
 /// `field_47E` as the one now playing.
