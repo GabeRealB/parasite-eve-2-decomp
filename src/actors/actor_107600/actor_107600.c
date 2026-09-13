@@ -8,6 +8,10 @@
 
 #include "actors/actor_107600.h"
 
+/* The controller task this actor is reparented to is the Mist shooting
+ * gallery's, so the counter at +0xE of its work block is that room's. */
+#include "rooms/mist_shooting_gallery.h"
+
 /* Leading-rodata state table. A local initializer would emit the pool at this
  * function's .rodata instead of at D_actor_107600_80131E24. */
 extern const TaskFuncTable4 D_actor_107600_80131E24;
@@ -34,7 +38,21 @@ void func_actor_107600_801328CC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132930);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132A7C);
+/// State 2 of the `D_actor_107600_80131E24` table: drops this instance from the
+/// spawning gallery's live-target count unless it was spawned already counted
+/// (phase 2, the `0x200D` cursor target), then advances to the exit state.
+void func_actor_107600_80132A7C(Task* arg0)
+{
+    Task*            parent;
+    Actor107600Work* work;
+
+    parent = arg0->parent;
+    work   = (Actor107600Work*)arg0->idMap;
+    if (work->field_144 != 2) {
+        ((MistShootingGalleryWork*)parent->idMap)->field_0E--;
+    }
+    arg0->state++;
+}
 
 /// Enemy exit callback: releases the shared state slot unless the work block
 /// has already reached phase 2, then hands the enemy back for destruction.

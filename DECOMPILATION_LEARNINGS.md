@@ -66881,3 +66881,81 @@ that only `sched.c`'s local `canon_rtx` knows is constant. Reach for a struct
 field before a `SOFT_BARRIER()` when a publish store will not sink past a load -
 the barrier claims the store may not move, which is the opposite of what this
 shape needs.
+
+## A load used only inside the `if` still belongs above it, and the hoist moves the arm block's allocation
+
+`func_actor_107600_80132A7C` (67.32% -> 100.00%, one edit) is a two-statement
+state handler; the whole difference is where `arg0->parent` is read. The target
+reads it in block A, before the compare, although `parent` is dereferenced only
+inside the arm, and it holds the constant in `$v1` and the compared halfword in
+`$v0`:
+
+```
+lw   v0,0x1c(a0)      # work = arg0->idMap
+li   v1,2
+lh   v0,0x144(v0)     # work->field_144
+lw   a1,8(a0)         # parent, dead in this block
+beq  v0,v1,...
+```
+
+The seed loaded `parent` inside the arm instead, and the compare came out the
+other way round (`lh v1,0x144(v0)` / `li v0,2`) - the `regs 4` plus the two
+`nop`s maspsx inserts after that load in the branch block. Naming it above the
+`if` fixes both at once:
+
+```c
+parent = arg0->parent;
+work   = (Actor107600Work*)arg0->idMap;
+if (work->field_144 != 2) {
+    ((MistShootingGalleryWork*)parent->idMap)->field_0E--;
+}
+arg0->state++;
+```
+
+The two `.lreg` dumps show what the extra independent insn did to block 0. Its
+end insn moves 18 -> 21, and every block-local quantity whose range it crosses
+gains length - `idMap` `2 refs / 4 insns` -> `2 / 6`, the constant `2 / 4` ->
+`2 / 8` (the halfword stays `2 / 3`, it dies at the compare), which is the
+"an insn inserted anywhere inside another value's range lengthens that range"
+rule of `CODEGEN_MODEL.md` §10. sched1 also reorders the block to the target's
+own order, issuing `li 2` ahead of the dependent `lh` (the `base_1` UIDs are
+non-monotonic where the seed's ascend).
+
+Which of the two hands the constant `$v1` was not isolated, and at source level
+they are not separable: the hoist is what hands sched1 the extra insn. The
+practical lesson is the reading, not the mechanism - an `lw aN,off(a0)` in the
+target's entry block whose value is only *used* in an arm is a source-level
+hoist, not a load the scheduler sank out of the arm, and it re-ranks that
+block's quantities as well.
+
+Example: `func_actor_107600_80132A7C`. Input: `base_1.i`
+`319fc7f543e86c771a88987b018926d2b3b57541b2a301754ab7ab55c44c783f`.
+
+## Typing `arg0->parent->idMap`: follow the spawner, not the offset
+
+`Task::idMap` is overloaded by every actor overlay, so an offset alone (`0xE`
+here) does not name a type, and any same-width struct scores 100% anyway. The
+parent is not arbitrary: `Gp_AllocEnemy(Task* task, GpEnemy* parent)`
+(`src/gameplay/1BC.c`) ends in `Task_Reparent(parent->task, task)`, so
+`arg0->parent` is the task of whatever spawned this actor, and its `idMap` is
+that spawner's work block.
+
+Find the spawner through the enemy table the actor is spawned from - `grep -F`
+the table symbol across `asm/USA/`:
+
+```
+grep -rnF 'D_80134F94' asm/USA/          # -> only mist_shooting_gallery
+```
+
+`func_mist_shooting_gallery_80184CD0` spawns it, calls
+`Task_Reparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
+`s0->idMap + 0xE` - and that room's `MistShootingGalleryWork::field_0E` is the
+`u8` there. The gallery's other spawn site (`0x200D`, the phase-2 cursor
+target) skips the increment, which is exactly the `!= 2` guard being matched
+here.
+
+Note the direction of the search: the actor's own overlay never mentions the
+spawner, so the answer comes from the *room* side. Room overlays import the
+table by absolute address, which is what makes the symbol greppable at all.
+
+Example: `func_actor_107600_80132A7C`.

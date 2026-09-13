@@ -50,6 +50,7 @@ typedef struct Actor107600 {
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 void func_actor_107600_801328CC(Task* arg0);
+void func_actor_107600_80132A7C(Task* arg0);
 void func_actor_107600_80132AC0(Task* arg0);
 void func_actor_107600_80132B0C(Task* arg0);
 void func_actor_107600_80132B7C(Task* arg0);
