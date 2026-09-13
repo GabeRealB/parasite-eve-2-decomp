@@ -68238,3 +68238,45 @@ which is enough to split the group. The same listing's `identical bytes:` count
 still shows 2, and the brief's `similar` tier ranks the sibling 1.00 on all four
 classes. Treat a byte-identical `~`-offset sibling as a copy even when `find`
 says otherwise.
+
+## m2c's `switch` on a narrow field loads the halfword twice
+
+`func_actor_300700_801650C0` is a two-case dispatch on `work->field_37C`, an
+`s16`. m2c renders that as `temp_v1 = M2C_FIELD(work, s16 *, 0x37C);` followed
+by `switch (temp_v1)`, and reuses `temp_v1` for the `sh` stores in the case
+body. Because the local is HImode, GCC 2.8.1 materialises the field twice:
+
+```
+lh  $6, 892($5)   # extendhisi2_internal  - the switch compare
+lhu $3, 892($5)   # movhi_internal2       - the HImode value the stores use
+```
+
+The `lhu` is not dead here (the case body stores it), but it is still one extra
+instruction versus the target, which reaches the same 16 bits through the single
+`lh` result. Dropping the `switch` for an `if`/`goto` chain that reads the field
+into an `s32` local removes it:
+
+```
+    state = work->field_37C;      /* s32 */
+    if (state == 0) goto case0;
+    if (state == 1) goto case1;
+    return;
+case0: ...
+case1:
+    if ((s16)work->field_382 < 0x18) return;
+    work->field_37E = state;      /* sh from the sign-extended value */
+    work->field_394 = state;
+```
+
+This is the same rule as "A call-result temp's declared width decides where the
+narrow conversion lands" with a load instead of a call: the declared width of the
+temporary, not the field, picks the conversion. It also fixes the `pan`
+conversion in the same function - the `s8 temp_s1_2` m2c chose is the `s8 pan`
+form that entry describes, and `s32 pan` with the cast at the assignment is the
+original.
+
+Practical note: this body's sibling is `Actor00700_Fn01C10` in
+`src/actors/lib/actor_100700_text.c`, whose *source* already had the goto form
+and the right local widths. Reading a 1.00-scoring `similar` sibling's C and
+copying its control flow and declaration types took the m2c seed from 83.7%
+(branch=1 regs=10 insert=4 delete=4) to 100% on the first rewrite.

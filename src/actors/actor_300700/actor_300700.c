@@ -192,7 +192,49 @@ void func_actor_300700_80165000(Actor300700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801650C0);
+/// State machine for the actor's contact sound: state 0 arms the timer and
+/// plays the hit sound once, state 1 clears the state pair once the
+/// countdown reaches 0x18.
+void func_actor_300700_801650C0(Actor300700* arg0)
+{
+    Actor300700Work*  work;
+    Actor300700Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    s32               state;
+    s32               snd;
+    s32               pan;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    state = work->field_37C;
+    coord = obj->field_8;
+    if (state == 0) {
+        goto case0;
+    }
+    if (state == 1) {
+        goto case1;
+    }
+    return;
+case0:
+    work->field_37E = 5;
+    work->field_380 = 1;
+    work->field_384 = 0;
+    work->field_386 = 0;
+    work->field_37C = 1;
+    snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40070002;
+    pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    return;
+case1:
+    if ((s16)work->field_382 < 0x18) {
+        return;
+    }
+    work->field_37A = 0;
+    work->field_37C = 0;
+    work->field_37E = state;
+    work->field_38C = 0;
+    work->field_394 = state;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801651A0);
 
