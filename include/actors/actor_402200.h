@@ -43,6 +43,11 @@ typedef struct Actor402200Obj2C {
 /// while the remaining-enemy count is positive, and the handler branches on
 /// 0 / 1 thereafter.
 ///
+/// `field_6EA` is a pending tint request: `func_actor_402200_80137FB0` reads it
+/// once a frame and, while it is 1 or 2, hands the display object the matching
+/// translate (0, 0, 0x400 or full 0xFFF) and clears it, so each request is
+/// consumed on the frame it is raised.
+///
 /// `field_718` arms a one-shot vocal cue and `field_71A` is its frame counter.
 /// While the flag is clear the body does nothing; once it is set the counter
 /// runs up, plays the actor's cue at 0x14, and at 0x5F asks the scene for
@@ -51,7 +56,9 @@ typedef struct Actor402200Obj2C {
 typedef struct Actor402200Work {
     /* 0x000 */ byte pad_0[0x6E2];
     /* 0x6E2 */ s16  field_6E2;
-    /* 0x6E4 */ byte pad_6E4[0x10];
+    /* 0x6E4 */ byte pad_6E4[6];
+    /* 0x6EA */ s16  field_6EA;
+    /* 0x6EC */ byte pad_6EC[8];
     /* 0x6F4 */ s16  field_6F4;
     /* 0x6F6 */ byte pad_6F6[0x22];
     /* 0x718 */ s16  field_718;
