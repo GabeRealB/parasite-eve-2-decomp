@@ -49,9 +49,26 @@ typedef struct Actor107600Work {
     /* 0x15A */ s16     field_15A;
     /* 0x15C */ byte    pad_15C[0x6];
     /* 0x162 */ s16     field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
-    /* 0x164 */ byte    pad_164[0x7];
+    /* 0x164 */ byte    pad_164[0x4];
+    /* 0x168 */ u8      field_168; // percent scale applied to the coord's +0x04
+    /* 0x169 */ u8      field_169; // percent scale applied to the coord's +0x12
+    /* 0x16A */ u8      field_16A; // rolled 0..7 alongside field_168
     /* 0x16B */ u8      field_16B;
 } Actor107600Work;
+
+/// The display node's coordinate (`TmdObject::field_8`) seen through the two
+/// halfwords `func_actor_107600_80134EF4` scales: the coordinate's
+/// `coord.m[0][0]` at +0x04 and `coord.m[2][1]` at +0x12. They are declared
+/// `u16` here because the code loads them with `lhu` and sign-extends by hand
+/// before the divide. `flg` and the remaining 3x3 live in `GsCOORDINATE2`.
+typedef struct Actor107600DisplayCoord {
+    /* 0x00 */ u32  flg;
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[0xC];
+    /* 0x12 */ u16  field_12;
+    /* 0x14 */ byte pad_14[0x3C];
+} Actor107600DisplayCoord;
+STATIC_ASSERT_SIZEOF(Actor107600DisplayCoord, 0x50);
 
 typedef struct Actor107600 {
     /* 0x00 */ byte             pad_0[0x1C];
@@ -80,5 +97,6 @@ void func_actor_107600_80134D30(Actor107600* arg0);
 void func_actor_107600_80134D50(Actor107600* arg0);
 void func_actor_107600_80134D70(Actor107600* arg0);
 void func_actor_107600_80134E5C(GsCOORDINATE2* arg0);
+void func_actor_107600_80134EF4(Task* arg0);
 
 #endif

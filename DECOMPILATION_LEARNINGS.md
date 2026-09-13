@@ -66999,3 +66999,48 @@ spawner, so the answer comes from the *room* side. Room overlays import the
 table by absolute address, which is what makes the symbol greppable at all.
 
 Example: `func_actor_107600_80132A7C`.
+
+## A `u16` field cast to `s16` must be cast *inside* the division, or the divide is `multu`
+
+A `u16` struct field loaded by `lhu`, sign-extended by hand, then divided by a
+constant, reads like a single cast wrapped around the whole expression:
+
+```c
+/* BAD - the division's operand is still `u16`, so GCC picks the unsigned form */
+coord->field_4 = (u16)((s16)(coord->field_4 / 100) * work->field_168);
+```
+
+That emits `multu` with the unsigned magic and **no** sign correction. The
+target has the signed shape:
+
+```
+lhu    v1,4(a1)
+sll    v1,v1,0x10
+sra    v0,v1,0x10
+mult   v0,a2          # a2 = 0x51EB851F
+sra    v1,v1,0x1f
+mfhi   v0
+sra    v0,v0,0x5
+subu   v0,v0,v1
+```
+
+The cast has to sit on the operand, so the *division itself* is signed:
+
+```c
+/* GOOD - `(s16)x` is the dividend, so `mult` + `sra 31` / `subu` come back */
+coord->field_4 = (u16)((s16)coord->field_4 / 100 * work->field_168);
+```
+
+The `(u16)` on the outside is then free: it only types the store (`sh` against
+the `lhu`), it does not re-decide the divide. Confirmed with three standalone
+`cc1` functions before touching the overlay - identical bodies differing only
+in the cast's position flip `multu`/`mult` on their own, so the placement is
+the whole mechanism.
+
+Read the load width first: `lhu` plus `sll 16` / `sra 16` says the original
+field is `u16` and the `(s16)` is hand-written, where a `short` field would
+have loaded with a single `lh` and needed no cast at all. When no existing type
+has `u16` at those two offsets, an overlay-local view struct (`Actor107600DisplayCoord`
+here, like `MistR18Coord`) is the project's convention.
+
+Example: `func_actor_107600_80134EF4`.

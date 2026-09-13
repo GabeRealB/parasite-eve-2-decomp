@@ -334,4 +334,11 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
     arg0->coord.t[2] = block->vz;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134EF4);
+void func_actor_107600_80134EF4(Task* arg0)
+{
+    Actor107600Work*         work  = (Actor107600Work*)arg0->idMap;
+    Actor107600DisplayCoord* coord = (Actor107600DisplayCoord*)((TmdObject*)arg0->extra)->field_8;
+
+    coord->field_4  = (u16)((s16)coord->field_4 / 100 * work->field_168);
+    coord->field_12 = (u16)((s16)coord->field_12 / 100 * work->field_169);
+}
