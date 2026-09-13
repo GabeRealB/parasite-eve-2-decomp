@@ -12306,6 +12306,33 @@ extra callee-saved for a separate SVECTOR pointer. Computing the out-arg as
 loaded head. Colors go in MATRIX **columns** (`m[0/1/2][id] = component << 4`);
 directions go in MATRIX **rows** (`m[id][0/1/2] = -dir`).
 
+## A 0x18 scratch block is not a `VECTOR*`
+
+The same `PSX_SCRATCH_ADDR(0x3FC)` arena also carries 0x18-byte blocks holding a
+`VECTOR` followed by an `SVECTOR`. `VECTOR` is 0x10 bytes (`long vx, vy, vz,
+pad`), so `VECTOR* scratchEnd; delta = scratchEnd - 1;` decrements by 0x10 and
+the target's `addiu $s4, $s5, -0x18` cannot come out. Reuse the source overlay's
+block struct instead of a bare `VECTOR*`:
+
+```c
+typedef struct Actor105500RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor105500RotScratch;
+STATIC_ASSERT_SIZEOF(Actor105500RotScratch, 0x18);
+
+scratchEnd = *(Actor105500RotScratch**)PSX_SCRATCH_ADDR(0x3FC);
+delta      = scratchEnd - 1;                  /* -0x18 */
+delta->vec.vz = ...;                          /* +0x08 */
+```
+
+Every actor family that writes this block already defines its own
+`Actor<nnnnn>RotScratch`; when porting a copy into another overlay, copy that
+typedef into the destination header rather than reusing `VECTOR*`. The two
+scratch shapes are distinguishable at a glance: an `sv`/`sh` at `delta + 0x08`
+means the 0x18 block, a `sw` there means a plain `VECTOR` with the block based
+at `-0x10`.
+
 ## `static __inline__` forces scratch-head rematerialisation (not s-reg CSE)
 
 `Gfx_SetFlatLight` takes `MATRIX* dirMtx/colorMtx` and keeps

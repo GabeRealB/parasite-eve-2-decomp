@@ -48,11 +48,17 @@ typedef struct Actor202600Work {
     /* 0x39E */ s16       field_39E;
     /* 0x3A0 */ byte      pad_3A0[2];
     /* 0x3A2 */ s16       field_3A2;
-    /* 0x3A4 */ byte      pad_3A4[2];
+    /* 0x3A4 */ s16       field_3A4;
     /* 0x3A6 */ s16       field_3A6;
     /* 0x3A8 */ byte      pad_3A8[4];
     /* 0x3AC */ u16       field_3AC;
-    /* 0x3AE */ byte      pad_3AE[0x22];
+    /* 0x3AE */ byte      pad_3AE[2];
+    /* 0x3B0 */ s16       field_3B0;
+    /* 0x3B2 */ byte      pad_3B2[0xE];
+    /* 0x3C0 */ s16       field_3C0;
+    /* 0x3C2 */ byte      pad_3C2[6];
+    /* 0x3C8 */ s16       field_3C8;
+    /* 0x3CA */ byte      pad_3CA[6];
     /* 0x3D0 */ s16       field_3D0;
 } Actor202600Work;
 
@@ -66,7 +72,14 @@ typedef struct Actor202600 {
 } Actor202600;
 
 extern u32 Gp_LcgState;
+typedef struct Actor202600RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor202600RotScratch;
+STATIC_ASSERT_SIZEOF(Actor202600RotScratch, 0x18);
+
 extern u16 D_actor_202600_80152798[];
+extern u16 D_actor_202600_801527A8[];
 extern s16 D_actor_202600_80152836;
 extern u8  D_801153F2[2];
 
