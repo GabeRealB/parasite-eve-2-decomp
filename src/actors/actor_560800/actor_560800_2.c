@@ -125,4 +125,35 @@ void func_actor_560800_80136818(void)
     } while (0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_80136878);
+/// Clears the four s16 pairs at 0x28/0x30/0x38/0x40, and the first time it runs
+/// (0x64 still zero) kills the player effects and drops the current HP by 50,
+/// then latches 0x64. Ends by pulsing gameplay state 0x1C, cancelling the
+/// pending CD command and blanking the display.
+void func_actor_560800_80136878(void)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    s16              hp;
+
+    work->field_28 = 0;
+    work->field_40 = 0;
+    work->field_30 = 0;
+    work->field_38 = 0;
+    if ((u16)work->field_64 == 0) {
+        WipSysConfig*    cfg   = &Wip_SysConfig;
+        Actor560800Work* work2 = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+
+        Gp_KillPlayerEffs();
+        if (cfg->field_18 < 0x33) {
+            hp = 1;
+        } else {
+            hp = (u16)cfg->field_18 - 0x32;
+        }
+        do {
+            cfg->field_18   = hp;
+            work2->field_64 = 1;
+        } while (0);
+    }
+    Gp_PulseState1C();
+    CdCmd_CancelReplaceAndActivate();
+    SetDispMask(0);
+}

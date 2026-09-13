@@ -66168,3 +66168,49 @@ tree is simply what GCC 2.8.1 does with a small `switch`, and the flat compare
 chain is a shape only an if-ladder produces. So when a target's block count is
 one per arm plus a join and every non-final arm ends in its own `j`, suspect an
 if-ladder and rewrite before reshaping the switch any further.
+
+## A `T* p = &global;` local's `%hi/%lo` pair is expanded at the declaration point
+
+**Problem.** `func_actor_560800_80136878` is the sibling of the function above —
+same overlay, same `$s0`/`$s1` pair, and the `do { } while (0)` wrapper already
+in the seed. Declaring the `WipSysConfig* cfg` local at the top of the function
+(as its four neighbours in the unit all do) scored 75.36% with `regs=0`: the
+register choice was already right and *every* remaining difference was schedule.
+
+```
+target                        base_1 (cfg declared at the top)
+lw    v0,0x1c(a0)             lw    v0,0x1c(a0)          # entry block
+nop                           lui   v1,%hi(Wip_SysConfig) # <-- declaration
+lhu   v1,0x64(v0)             sh    zero,0x28(v0)
+sh    zero,0x28(v0)           sh    zero,0x40(v0)
+sh    zero,0x40(v0)           sh    zero,0x30(v0)
+sh    zero,0x30(v0)           sh    zero,0x38(v0)
+bnez  v1,.L                   lhu   v0,0x64(v0)
+sh    zero,0x38(v0)           nop
+lui   v0,%hi(Wip_SysConfig)   bnez  v0,.L
+lw    s1,0x1c(a0)             addiu s0,v1,%lo(Wip_SysConfig)  # bnez delay
+jal   Gp_KillPlayerEffs       lw    s1,0x1c(a0)
+addiu s0,v0,%lo(...)          jal   Gp_KillPlayerEffs
+                              nop
+```
+
+**Cause.** The address is expanded where the declaration is, so a top-level
+`cfg` puts its `lui` in the entry block (the annotated dump attributes it to the
+declaration line, at `0x1c`, ahead of the `bnez` at `0x38`), while retail has it
+*after* the `bnez`. One extra instruction in that block was enough to change
+sched1's ready-list order: the `lhu` sank below the four stores and the `bnez`
+followed it down, so the delay slot that retail fills with the last store instead
+took the address `addiu`.
+
+**Fix.** Declare the pointer inside the branch that uses it:
+
+```c
+    if ((u16)work->field_64 == 0) {
+        WipSysConfig* cfg = &Wip_SysConfig;
+```
+
+100% on the next build with `regs=0` unchanged. Same lever as "Nested scopes so a
+later copy does not sink an earlier split `la`": the declaration's scope picks the
+basic block, and that block's instruction count then decides its schedule. Read
+`regs=0` with `reorder`/`insert`/`delete` non-zero as a block-placement question
+before touching registers.
