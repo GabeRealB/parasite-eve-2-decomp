@@ -7,10 +7,11 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-/// 0x6D8-byte work block hung off `Actor105700.field_1C`. It opens with the
-/// animation context and its nineteen 0x28-byte slots, exactly like the
-/// `Actor02000Work` block of `actor_102000`; the animation/state halfwords
-/// around 0x694-0x6B2 keep that block's offsets and meaning.
+/// 0x6E4-byte work block hung off `Actor105700.field_1C`, allocated by
+/// `func_actor_105700_80135AE4`. It opens with the animation context and its
+/// nineteen 0x28-byte slots, exactly like the `Actor02000Work` block of
+/// `actor_102000`; the animation/state halfwords around 0x694-0x6E0 keep that
+/// block's offsets and meaning.
 typedef struct Actor105700Work {
     /* 0x000 */ GpAnimCtx ctx;
     /* 0x014 */ byte      slots[19][0x28];
@@ -20,7 +21,9 @@ typedef struct Actor105700Work {
     /* 0x694 */ s16  field_694;
     /* 0x696 */ byte pad_696[2];
     /* 0x698 */ s16  field_698; ///< current frame of the playing clip
-    /* 0x69A */ byte pad_69A[6];
+    /* 0x69A */ byte pad_69A[2];
+    /* 0x69C */ s16  field_69C; ///< dwell counter, cleared on state 0 entry
+    /* 0x69E */ s16  field_69E; ///< dwell counter, cleared on state 0 entry
     /* 0x6A0 */ u16  field_6A0; ///< sound flags; bit 5/4 gate the two cues
     /* 0x6A2 */ byte pad_6A2[4];
     /* 0x6A6 */ s16  field_6A6; ///< parked animation for the state-F0 path
@@ -35,8 +38,13 @@ typedef struct Actor105700Work {
     /* 0x6D2 */ s16  field_6D2;
     /* 0x6D4 */ byte pad_6D4[2];
     /* 0x6D6 */ s16  field_6D6; ///< animation index, used as a table row
+    /* 0x6D8 */ byte pad_6D8[8];
+    /// State-1 branch selector: zero picks the short dwell and animation 2,
+    /// non-zero the long dwell and animation 0x14.
+    /* 0x6E0 */ s16  field_6E0;
+    /* 0x6E2 */ byte pad_6E2[2];
 } Actor105700Work;
-STATIC_ASSERT_SIZEOF(Actor105700Work, 0x6D8);
+STATIC_ASSERT_SIZEOF(Actor105700Work, 0x6E4);
 
 /// Spawn/context block behind `Actor105700.field_20`; `field_8` is the
 /// halfword the sound id takes its room/channel bits from.

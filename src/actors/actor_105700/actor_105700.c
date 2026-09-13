@@ -136,6 +136,40 @@ void func_actor_105700_80136AE0(Actor105700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136BC0);
+/// State advance for the "handover" clip, the same body as
+/// `Actor02000_Fn03348` of `actor_102000`. State 0 arms animation 0x11 and
+/// clears the pair of dwell counters; state 1 waits for `field_698` to reach
+/// 0x37 and then picks animation 2 with a 2-frame park in `field_6A6`, or
+/// animation 0x14 with a 10-frame park when `field_6E0` is set. Either path
+/// drops back to state 0.
+void func_actor_105700_80136BC0(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    s16              state;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            work->field_694 = 0x11;
+            work->field_6A8 = 1;
+            work->field_69C = 0;
+            work->field_69E = 0;
+            break;
+        case 1:
+            if (work->field_698 >= 0x37) {
+                if (work->field_6E0 == 0) {
+                    work->field_694 = 2;
+                    work->field_6A6 = 2;
+                    work->field_6A8 = 0;
+                } else {
+                    work->field_694 = 0x14;
+                    work->field_6A6 = 0xA;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136C4C);
