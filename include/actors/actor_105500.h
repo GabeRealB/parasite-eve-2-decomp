@@ -24,7 +24,8 @@ typedef struct Actor105500Work {
 typedef struct Actor105500 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor105500Work*  field_1C;
-    /* 0x20 */ byte              pad_20[0xC];
+    /* 0x20 */ void*             field_20;
+    /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor105500Obj2C* field_2C;
 } Actor105500;
 
