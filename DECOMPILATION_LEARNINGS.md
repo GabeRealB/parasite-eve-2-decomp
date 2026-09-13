@@ -73697,3 +73697,70 @@ reading and mention nothing stack-like: `.dbr` shows `insn 43` (`a0 = s0 + 4`)
 inside the call's `sequence`, and `.sched2` has `insn 47` (`a2 = 0`) already
 scheduled above `insn 34`, the store — the reorder is visible there, which is
 where to look for it.
+
+## `regs=2` alone, where the only diffs are two argument `move`s, is m2c dropping a *middle* parameter
+
+**Problem.** The archived seed of `func_actor_310100_80162C64`, the 0x7D5
+handler in the same overlay, scored 99.667% — `distance=10`,
+`stack=0 branch=0 regs=2 reorder=0 insert=0 delete=0` — and its entire diff was
+two instructions:
+
+```
+-move s3,a2   +move s3,a1
+-move s1,a3   +move s1,a2
+```
+
+Everything else matched, including both callee-saved homes. The function takes
+four arguments and uses the first, third and fourth; m2c emitted
+
+```c
+void func_actor_310100_80162C64(void *arg0, M2C_UNK arg2, void *arg3)
+```
+
+— it dropped the unused `arg1` and renumbered, so `arg2` landed in `$a1` and
+`arg3` in `$a2`. Putting the parameter back at its real slot, one token and no
+other change, is 100.000% with all six axes zero (`base.c` -> `base_1.c`).
+
+The arithmetic closes on the penalty axis alone: two `move`s between the same
+wrong register pair cost `2 x PENALTY_REGISTER(5) = distance 10`, and
+`1 - 10 / (30 x 100) = 99.667%`. So a `regs` residue that is *only* argument
+copies — with `insert`, `delete` and `reorder` all zero, every callee-saved
+register already in its target home, and no extra instruction anywhere — is a
+parameter-slot shift. The allocator is not the problem and no pin, local or
+statement reorder will move it; read m2c's `argN` names as *slots*, not as
+ordinals, and check the ones it skipped.
+
+This is the third face of the same root cause, and the quietest: "An argument
+m2c dropped is still part of the match" is the leading-parameter case, where the
+shift drags the delay slot and three other axes with it (`stack=6 regs=4
+reorder=1 insert=3 delete=1`).
+
+## Assigning a `long` field into a `u16` narrows the load at *expand* time, so an `lhu` proves nothing about the source field
+
+**Problem.** The target for `func_actor_310100_80162C64` has
+`lhu $v0,0x4($s1)` feeding `sh $v0,0x506($s0)`. Read as evidence about the
+payload struct, that says the field at `+4` is 16-bit — and it would be wrong.
+
+GCC 2.8.1 narrows the *load* to the destination's width while expanding the
+assignment, so copying the payload's `pos.vy` (a `long` in
+`ActorShared8013411cPlacement`) into a `u16` member is HImode in the very first
+dump, before any optimisation pass:
+
+```
+(insn 34 32 36 (set (reg:HI 86)
+        (mem/s:HI (plus:SI (reg/v:SI 83) (const_int 4)))) -1 (nil)
+```
+
+`base_3.c` writes it with no cast at all — `work->field_506 = placement->pos.vy;`
+— and scores 100.000%, instruction-for-instruction identical to
+`(u16)placement->pos.vy` (`base_2.c`) and to `M2C_FIELD(arg3, u16 *, 4)`
+(`base_1.c`). All three are the same 30 instructions.
+
+Two consequences. A `(u16)` cast added to "get the `lhu`" changes nothing: the
+destination's declared width is what selects the load, and `.rtl` shows it
+already settled at expansion. And the reverse inference is unfounded — typing
+the source field `s16` because the load is `lhu` would have been wrong here. The
+same field read into a `long` loads as a full word: the sibling 0x7D4 handler in
+this overlay, `func_actor_310100_80162EC8`, has `lw $v0,0x4($a2)` for exactly
+this `pos.vy`, into `coord->coord.t[1]`. One payload field, two widths of load,
+decided by the destination each time.

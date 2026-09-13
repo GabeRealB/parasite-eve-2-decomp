@@ -1,9 +1,12 @@
 #include "common.h"
 
 #include "actors/actor_310100.h"
+#include "main/display.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern TaskDesc D_actor_310100_801798E4;
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161E24);
 
@@ -21,7 +24,17 @@ INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_801629FC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162C64);
+void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, Actor310100Placement* placement)
+{
+    Actor310100Work* work;
+
+    work = (Actor310100Work*)task->idMap;
+    if (work->field_4E4 != NULL) {
+        Task_Kill(work->field_4E4);
+    }
+    work->field_506 = placement->pos.vy;
+    Display_SpawnWithOt(&D_actor_310100_801798E4, 0, arg2, (s32)task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162CDC);
 
