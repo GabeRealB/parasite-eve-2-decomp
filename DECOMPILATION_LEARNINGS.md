@@ -39293,6 +39293,46 @@ already carries `CdCmd_Queue`. Prefer this over the array bound and over the
 barrier whenever the address resolves, because it is the only one of the three
 that is also a true statement about the program.
 
+### The hoisted side is usually the load, and `result_ready_cost` is why
+
+The clause above also fires on a *load* whose address came from struct traffic,
+which then climbs over a scalar global store and lands in a later call's delay
+slot -- the delay slot fills and a `nop` goes missing, which reads as a
+`delete=1`/`reorder` pair rather than as an aliasing problem.
+`func_actor_548100_80134E0C` is the worked example, at 93.53% from m2c:
+
+```c
+Game_Session->field_66 = 0;      /* mem/s:QI (plus <reg> 102)  -- in struct, varying */
+D_8007216C             = 3;      /* mem:QI (lo_sum <reg> <sym>) -- scalar, fixed */
+Task_Kill((Task*)arg0->spawnArg2);   /* lw a0: mem/s, in struct, varying */
+```
+
+No dependence is recorded between the store and the load, and `sched1` then
+ranks them by `priority()`, which walks `LOG_LINKS` and not program order:
+
+    priority (insn) = max over deps x of (priority (x) + insn_cost (x) - 1)
+
+`insn_cost` is `result_ready_cost`, and `mips.md`'s memory unit gives a **load**
+a ready-delay of 2 on r3000 (3 elsewhere) while a store and every ALU op are 1.
+So the `lw v0, Game_Session` already in the block passes 2 to the byte store
+that depends on it, that store passes `2 + 1 - 1 = 2` to the `lw a0`, and the
+`lui`/`li` of the scalar global -- depending only on an earlier call, cost 1 --
+stay at 1. The load outranks them, is scheduled first, and `reorg` then has
+something to put in `Task_Kill`'s delay slot. With the priority difference
+explained, the barrier is no longer a shot in the dark:
+
+```c
+D_8007216C = 3;
+SOFT_BARRIER();                  /* 93.53% -> 100% */
+Task_Kill((Task*)arg0->spawnArg2);
+```
+
+Retail's own source evidently had *something* there: the two matched siblings of
+this body, `Room_Script10` and `Room_Script11` in `src/rooms/lib/`, carry the
+same barrier with the comment "Without the barrier GCC fills Task_Kill's delay
+slot with the byte store". Read the matched bodies the brief lists as similar
+before attacking the schedule -- here they were the whole answer.
+
 ## Promoting a matched body into a family's shared library
 
 Moving a repeated body into `src/<family>/lib/` is not just "delete the
