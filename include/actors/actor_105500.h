@@ -63,6 +63,8 @@ typedef struct Actor105500Ctx {
 
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);
 
+extern u32 Gp_LcgState;
+
 extern GpU16Pair Actor05500_D08958;
 extern s16       Actor05500_D08A18[];
 void             Actor05500_Fn03E34(GpEnemy* enemy, Task* task);

@@ -8,7 +8,7 @@ void ActorsShared801355a4_Fn328B4(void);
 void ActorsShared801355a4_Fn32DC0(void);
 void ActorsShared801355a4_Fn33108(void);
 void ActorsShared801355a4_Fn3325C(void);
-void ActorsShared801355a4_Fn3382C(void);
+void Actor05500_Fn01A0C(void);
 void ActorsShared801355a4_Fn3567C(void);
 void ActorsShared801355a4_Fn33950(void);
 
@@ -34,7 +34,7 @@ void ActorsShared801355a4(ActorShared801355a4* arg0)
             ActorsShared801355a4_Fn3325C();
             break;
         case 6:
-            ActorsShared801355a4_Fn3382C();
+            Actor05500_Fn01A0C();
             break;
         case 7:
             ActorsShared801355a4_Fn3567C();
