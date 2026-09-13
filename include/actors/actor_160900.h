@@ -22,6 +22,8 @@ typedef struct Actor160900Work {
 
 extern Task* D_actor_160900_8013FBB4;
 
+void func_actor_160900_801347B0(s16 arg0);
+
 void func_actor_160900_801347F0(void);
 
 #endif
