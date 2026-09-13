@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "main/display.h"
+
+#include "actors/actor_548100.h"
+
 INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", ActorsShared8013845cSub1);
@@ -40,4 +44,50 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80134400);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_8013461C);
+/// Link `rect` into the ordering table as a textured quad, taking the
+/// primitive off the `Gpu_PrimCursor` bump allocator. The same four numbers are
+/// the texture window and, shifted by the screen centre, the quad's screen
+/// rectangle -- `u`/`v` are the table's own values and `x`/`y` those values
+/// minus 160 and 120, so a record drawn from the origin-centred screen space
+/// `Actor548100TexRect` is authored in lands on the matching part of the
+/// texture page. Corner 0 and 2 share the left edge, 1 and 3 the right; the
+/// upper corners share the top, the lower pair the bottom.
+///
+/// `x1`/`x3` are read before `v0`/`v1` -- that order is what puts the four
+/// loads in the register file the target uses, and reordering them changes
+/// the code without changing the meaning.
+void func_actor_548100_8013461C(Actor548100TexRect* rect)
+{
+    POLY_FT4* prim;
+    s32       u0;
+    s32       v0;
+    s32       u1;
+    s32       v1;
+
+    u0             = rect->u0;
+    u1             = rect->u1;
+    v0             = rect->v0;
+    v1             = rect->v1;
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    SetPolyFT4(prim);
+    prim->x0    = u0 - 0xA0;
+    prim->y0    = v0 - 0x78;
+    prim->x1    = u1 - 0xA0;
+    prim->y1    = v0 - 0x78;
+    prim->x2    = u0 - 0xA0;
+    prim->y2    = v1 - 0x78;
+    prim->x3    = u1 - 0xA0;
+    prim->y3    = v1 - 0x78;
+    prim->u0    = u0;
+    prim->v0    = v0;
+    prim->u1    = u1;
+    prim->v1    = v0;
+    prim->u2    = u0;
+    prim->v2    = v1;
+    prim->u3    = u1;
+    prim->v3    = v1;
+    prim->tpage = 0x116;
+    setShadeTex(prim, 1);
+    addPrim(&Gpu_CurrentOt[0x3FE], prim);
+}

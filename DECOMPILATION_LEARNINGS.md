@@ -10675,6 +10675,19 @@ buf = sp10;
 `$s3` and the max-width accumulator into `$s4` without changing semantics.
 `Text_MeasureMultiLine` needs this together with the `s8`/`s32` constant trick above.
 
+The lever is the *defining statement's* position, not pointers specifically: a
+group of independent loads read into locals is the same knob. In
+`func_actor_548100_8013461C` four `s16` fields are read into four `s32` locals
+that all stay live across the one `jal`, so all four land in `$s1`-`$s4`;
+reading them `u0, v0, u1, v1` gives the target's `$s2, $s1, $s3, $s4`, and
+reading them `u0, u1, v0, v1` gives `$s2, $s4, $s1, $s3` -- the target. The
+loads and every store downstream are byte-identical either way, so this shows
+up as a pure `regs=` penalty with no `insert`/`delete` beside it.
+
+`.greg` names the mapping before you touch the `.s`: its summary lists allocnos
+in allocation order with their final home (`r82 used 4/24 -> $s2`), so you can
+read off which local to move rather than diffing registers.
+
 ## Force `Mem_Set` arg order: `move a1,zero` then `lui a2` then dest load
 
 When the target schedules a large-size `Mem_Set(ptr, 0, 0xNNNNN)` after a

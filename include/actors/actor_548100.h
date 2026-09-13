@@ -87,6 +87,29 @@ STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
 
 extern Actor548100Edge D_actor_548100_801351D0[];
 
+/// One cell of the sprite table `D_actor_548100_801357C0` (four records, the
+/// actor's four frames, each drawn only while its `GameFlag_GetNibble(i + 0xBF)`
+/// is set) plus the fifth record `D_actor_548100_801357E0` -- `{0, 0, 75, 239}`,
+/// the 76-column full-height panel `func_actor_548100_8013461C` links when flag
+/// 0xC3 is set. A record is an 8-byte `s16` quadruple, the stride the loop in
+/// `func_actor_548100_80132A14` walks as `s1 += 8` and the one that makes
+/// `D_actor_548100_801357E0` element 4 of the same table.
+///
+/// The same four numbers are both the quad's texture window and its screen
+/// rectangle: `func_actor_548100_8013461C` writes them straight into `u`/`v`
+/// and writes `u - 160` / `v - 120` into `x`/`y`. That difference is the screen
+/// centre, so the table is authored in 320x240 screen space with the origin at
+/// the middle, and the texture page is laid over the screen 1:1 -- the four
+/// frames tile the strip at x 76-103, y 33-83 and the fifth covers everything
+/// to its left.
+typedef struct Actor548100TexRect {
+    /* 0x0 */ s16 u0;
+    /* 0x2 */ s16 v0;
+    /* 0x4 */ s16 u1;
+    /* 0x6 */ s16 v1;
+} Actor548100TexRect;
+STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
+
 /// State table of the actor's `Task::callback`, `func_actor_548100_801347F8`:
 /// eleven `TaskFunc` entries, one per `Task::state`, which that body copies
 /// onto its stack before indexing. Entry 0 is the spawner
