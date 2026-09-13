@@ -13,7 +13,6 @@ void func_actor_510900_80137E20(void);
 void func_actor_510900_80137FBC(void);
 void func_actor_510900_80138250(void);
 void func_actor_510900_801384C4(void);
-void func_actor_510900_8013B988(void);
 void func_actor_510900_8013BA58(void);
 
 void func_actor_510900_8013B870(Actor510900* arg0)
@@ -44,7 +43,7 @@ void func_actor_510900_8013B870(Actor510900* arg0)
             func_actor_510900_80137868();
             return;
         case 7:
-            func_actor_510900_8013B988();
+            func_actor_510900_8013B988(arg0);
             return;
         case 8:
             func_actor_510900_8013BA58();

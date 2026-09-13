@@ -45,12 +45,24 @@ typedef struct Actor510900Work {
     /// Blend weight the 0x7D3 handler is handed, cleared once the reseed is done.
     /* 0x58A */ s16  field_58A;
     /* 0x58C */ byte pad_58C[2];
-    /* 0x58E */ s16  field_58E;
-    /* 0x590 */ byte pad_590[2];
+    /// Handler index `func_actor_510900_8013B870` dispatches on each frame:
+    /// case 7 enters state 0 below, so this is the currently running one.
+    /* 0x58E */ s16 field_58E;
+    /// Per-handler sub-state. State 0 waits for `field_20`'s spawn block flag
+    /// to fire and then hands state 1 the animation 0x14; state 1 waits out
+    /// `field_58A` and drops back to state 0 with a fresh `field_59C`.
+    /* 0x590 */ s16  field_590;
     /* 0x592 */ s16  field_592;
-    /* 0x594 */ byte pad_594[0x10];
+    /* 0x594 */ byte pad_594[0x8];
+    /// Rolled from `Gp_LcgState` when state 1 expires.
+    /* 0x59C */ s16  field_59C;
+    /* 0x59E */ byte pad_59E[4];
+    /// Cleared by state 0 on the frame it restarts.
+    /* 0x5A2 */ s16  field_5A2;
     /* 0x5A4 */ s16  field_5A4;
-    /* 0x5A6 */ byte pad_5A6[0x16];
+    /* 0x5A6 */ byte pad_5A6[0x12];
+    /* 0x5B8 */ s16  field_5B8;
+    /* 0x5BA */ byte pad_5BA[2];
     /* 0x5BC */ s16  field_5BC;
 } Actor510900Work;
 
@@ -80,10 +92,15 @@ typedef struct Actor510900AnimArgs {
     /* 0x08 */ s32  field_8;
 } Actor510900AnimArgs;
 
+/// Table the state 1 handler below picks `field_59C` from; a 4-bit
+/// `Gp_LcgState` draw indexes at least sixteen `u16` entries.
+extern u16 D_actor_510900_801679F0[];
+
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B870(Actor510900* arg0);
+void func_actor_510900_8013B988(Actor510900* arg0);
 s16  func_actor_510900_8013BE84(Actor510900* arg0);
 void func_actor_510900_8013C380(Actor510900* arg0);
 void func_actor_510900_8013C430(Actor510900* arg0);

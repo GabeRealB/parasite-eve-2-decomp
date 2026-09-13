@@ -65516,3 +65516,46 @@ mentions the loaded register (`gcc/config/mips/mips.c:4518`), so a surviving
 `nop` is a statement about what was scheduled after the load, not a missing
 instruction. A store written at the point the target stores it is usually the
 whole fix.
+
+## The array base expands before its index, and that birth position decides a local-alloc priority
+
+`QTY_CMP_PRI` divides by `death - birth`, and `birth` is the **position of the
+insn that defines the pseudo** in the block's order — so moving where a
+subexpression is expanded is a lever on priority that needs no `TOUCH_REG` and
+no extra reference. `expand_expr` on an `ARRAY_REF` expands the base before the
+index, so an assignment written *inside* the subscript emits the table's
+`%hi`/`lo_sum` ahead of the load chain it feeds, stretching that quantity's span
+and dropping its priority below a competitor's.
+
+`func_actor_510900_8013B988` was stuck at 87.02% with the same four registers
+wrong (`regs=15 insert=3 delete=3`, everything else 0). `tools/trace_gcc.py
+--regs` showed the two quantities that matter, all suggestions empty:
+
+| quantity | refs | span | priority | got |
+|---|---|---|---|---|
+| table address | 4 | 8 | 10000 | `$v1` |
+| rng chain | 7 | 18 | 7777 | `$a0` |
+
+The table address was allocated first and took `$v1`; the rng chain fell to
+`$a0`. Worse, the state value (a *global* allocno, `global a2 [82]`) was live
+over the constant's `$v1` range, so `global.c` marked `$v1` as a hard conflict
+and pushed state to `$a2`. Moving the rng assignment into the subscript — the
+idiom `src/actors/lib/actor_100700_text.c:94` already uses — is the whole fix:
+
+```c
+work->field_59C =
+    D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+Gp_LcgState = rng;
+```
+
+The address quantity goes 4 refs / span 8 / priority 10000 to span 18 /
+priority 4444, the rng chain (now refs 7 span 14 priority 10000) takes `$v1`,
+the address falls to `$a0`, the constant moves off `$v1` so state keeps it, and
+the constant lands in `$a2` — 100% with `regs=0`. Same reading as the `TOUCH_REG`
+entry above, from the other side: that one *raises* a priority by adding refs,
+this one *lowers* a competitor's by lengthening its span. Note the symptom also
+looks like a global-allocator problem — a register that only shows up as wrong
+via a conflict set is still decided in local-alloc.
+
+Inputs: `base_2.i` `3fb26df1182b80756fd7ce934400f2f9ee39cad6b96c2dcdf545fa3a803e326b`,
+`base_3.i` `e280c979a7c74bfd4892ca4d3631bc4cb4a0f5528e72130a44989d3ebbd3cec7`.
