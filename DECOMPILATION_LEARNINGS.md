@@ -7103,6 +7103,39 @@ produces `beqz` with the null epilogue at the end of the function — same
 semantics, wrong layout. `Snd_GetNote` only matches with the `!= NULL`
 shape.
 
+## Null-check polarity, the other direction: `== NULL` first for an *out-of-line* failure arm
+
+The counterpart of the entry above, and the same decision seen from the far
+side: when the target's small arm sits **after** the success path's jump and the
+test branches *to* it, the written test has to be the opposite polarity.
+
+```c
+p = table[arg0];
+D_x_E658 = p;
+if (p == NULL) {          /* beqz v0, .Lnull; the store is the delay slot */
+    return 1;
+}
+/* body: three calls, each reloading D_x_E662 and D_x_E658 after the jal */
+D_x_E66C = 0x1E;
+return 0;                 /* move v0,zero; j .Lepilogue; sb in the delay slot */
+/* .Lnull: li v0,1 */
+```
+
+Writing the body as the then-block instead — `if (p != NULL) { body; return 0; }
+return 1;` — leaves only the layout wrong: 95.294% with
+`reorder=2 insert=1 delete=1`, structure "match" but `predicates_match=False`.
+GCC inverts it to `bnez v0, body` and lays the failure arm out as the
+*fall-through*, so the two blocks swap and the tail store's operands move from
+`$v1`/`$a0` to `$v0`/`$v1` (`$v0` is free there, the result not yet live).
+`func_actor_215100_8014B2B8` is exact with the shape above — 100%, all
+penalties zero.
+
+So the polarity is not a property of the body but of where the target put the
+arm it branches to: `!= NULL` when `bnez` targets the body with the null return
+falling through (`Snd_GetNote`), `== NULL` when `beqz` targets the null arm with
+the body falling through. Read the branch's *destination* in the target before
+choosing.
+
 ## Sign-extend a call result into `s32`, not `s8`
 
 When the target does:

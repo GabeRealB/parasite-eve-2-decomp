@@ -30,18 +30,29 @@ extern s32      D_actor_215100_8014D03C;
 extern s32      D_actor_215100_80153ED4;
 extern s32      D_actor_215100_80153FDC;
 extern s32      D_actor_215100_801543E4;
-/// Caption script currently being played back, and the entry it is up to.
-extern Actor215100Caption* D_actor_215100_8015E658;
-extern s16                 D_actor_215100_8015E662;
-extern s16                 D_actor_215100_8015E666;
-extern s32                 D_actor_215100_8015E670;
-extern s16                 D_actor_215100_801544EC;
-extern s16                 D_actor_215100_801544EE;
-void                       func_actor_215100_8014B0D4(void);
-void                       func_actor_215100_8014B1B0(s32 arg0);
-void                       func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-void                       func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void                       func_actor_215100_8014BEE8(void);
+/// Caption script table, and the script currently being played back with the
+/// entry it is up to.
+extern Actor215100Caption** D_actor_215100_8015E650;
+extern Actor215100Caption*  D_actor_215100_8015E658;
+extern s16                  D_actor_215100_8015E65C;
+extern s16                  D_actor_215100_8015E65E;
+extern s16                  D_actor_215100_8015E660;
+extern s16                  D_actor_215100_8015E662;
+extern s16                  D_actor_215100_8015E664;
+extern s16                  D_actor_215100_8015E666;
+extern s8                   D_actor_215100_8015E66C;
+extern s32                  D_actor_215100_8015E670;
+extern s16                  D_actor_215100_801544EC;
+extern s16                  D_actor_215100_801544EE;
+void                        func_actor_215100_8014B0D4(void);
+void                        func_actor_215100_8014B1B0(s32 arg0);
+s32                         func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+s16                         func_actor_215100_8014BDFC(s32 arg0);
+s16                         func_actor_215100_8014C06C(s32 arg0);
+s16                         func_actor_215100_8014C298(s32 arg0);
+s32                         func_actor_215100_8014C418(s32 arg0);
+void                        func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void                        func_actor_215100_8014BEE8(void);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_215100/actor_215100", D_actor_215100_80149E20);
 
@@ -186,7 +197,30 @@ void func_actor_215100_8014B0D4(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B1B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B2B8);
+/// Starts playing the caption script `arg0` picks out of
+/// `D_actor_215100_8015E650`, keyed on `arg1`, and parks its per-line metrics in
+/// the globals `func_actor_215100_8014B0D4` reads. Returns 1 when there is no
+/// such script, 0 once it is playing; `arg2` is the line delay.
+s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
+{
+    Actor215100Caption* caption;
+    s16                 entry;
+
+    caption                 = D_actor_215100_8015E650[arg0];
+    D_actor_215100_8015E658 = caption;
+    if (caption == NULL) {
+        return 1;
+    }
+    D_actor_215100_8015E666 = arg1;
+    entry                   = func_actor_215100_8014C418(1);
+    D_actor_215100_8015E662 = entry;
+    D_actor_215100_8015E660 = arg2;
+    D_actor_215100_8015E65C = func_actor_215100_8014C06C(D_actor_215100_8015E658[entry].field_8);
+    D_actor_215100_8015E65E = func_actor_215100_8014BDFC(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
+    D_actor_215100_8015E664 = func_actor_215100_8014C298(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
+    D_actor_215100_8015E66C = 0x1E;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B3C8);
 
