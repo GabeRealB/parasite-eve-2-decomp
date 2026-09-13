@@ -122,7 +122,74 @@ void Actor00300_Fn030B8(Actor100300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn032BC);
+void Actor00300_Fn032BC(Actor100300* arg0)
+{
+    Actor100300Work*       work;
+    GsCOORDINATE2*         coord;
+    Actor100300RotScratch* sc;
+    s32                    ang;
+    u16                    want;
+    s16                    diff;
+    s32                    adiff;
+    s32                    step;
+    s32                    cur;
+    s32                    next;
+    s32                    wrapStep;
+
+    sc    = (Actor100300RotScratch*)((*(u32*)0x1F8003FC) -= 0x18);
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_680;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
+
+    work->field_67E = ang;
+    if (adiff < 0x800) {
+        step = work->field_67C;
+        if (step >= adiff) {
+            work->field_67E = want;
+        } else {
+            next = work->field_67E;
+            if (diff <= 0) {
+                next -= step;
+            } else {
+                next += step;
+            }
+            work->field_67E = next;
+        }
+    } else {
+        step = work->field_67C;
+        if (diff > 0) {
+            if (step >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (step >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_67E = work->field_680;
+        goto done;
+    turn:
+        wrapStep = work->field_67C;
+        cur      = work->field_67E;
+        if (diff > 0) {
+            work->field_67E = cur - wrapStep;
+        } else {
+            work->field_67E = cur + wrapStep;
+        }
+    }
+done:
+    sc->rot.vx = 0;
+    sc->rot.vy = work->field_67E;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    (*(u32*)0x1F8003FC) += 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn0340C);
 
