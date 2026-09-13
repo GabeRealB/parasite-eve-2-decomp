@@ -65194,3 +65194,46 @@ Preprocessed SHA256:
 - `base_2.i`: `480735953d5d37653e7e74f72f2d78549c7dc7599e4b84090b39d60ee7ecbe98`
 - `base_3.i`: `e697a67fbcadf5d098d6a439eab39e0da666abef5beb22bec773be651f66e504`
 - `base_5.i`: `d8e1f0aef29b25e0a9c775f01b3f82af721150710f0a18bb7cd9c3640e7e2c97`
+
+## An m2c seed scaled by 4 too much means the source is a 4-byte-element array, not a `s32*` field
+
+`func_actor_105700_801336FC` reads two sound ids out of a per-overlay table
+(`D_actor_105700_80149004`) at `base + field_6D6 * 8 - 4` and
+`base + field_6D6 * 8`. m2c typed the symbol as an `s32` object and wrote the
+index as a field of a pointer:
+
+```c
+temp_s1 = M2C_FIELD(((M2C_FIELD(temp_s2, s16 *, 0x6D6) * 8) + &D_actor_105700_80149004),
+                    s32 *, -4) | (...);
+```
+
+The `* 8` is a *byte* offset, but `&D_actor_...` is `s32 *`, so the scaling is
+applied twice: the object comes out `sll v1, v1, 0x5` with `addiu a1, a1, -4`
+where the target has `sll v1, v1, 0x3` with `lw v1, -0x4(v1)`. The seed was
+still 90.7% because only the address arithmetic differed.
+
+Declare the table as an array and index it with the element count, letting GCC
+fold the `-1` into the offset:
+
+```c
+extern s32 D_actor_105700_80149004[];
+snd = D_actor_105700_80149004[work->field_6D6 * 2 - 1] | (...);
+snd = D_actor_105700_80149004[work->field_6D6 * 2]     | (...);
+```
+
+Same shape here as `Actor02000_D15DEC[work->field_6D6 * 2 - 1]` in
+`src/actors/lib/actor_102000_text.c`, which is the idiom to copy whenever a
+copy of this body turns up in another actor overlay.
+
+The same seed also lost the animation slot argument: m2c emitted
+`Gp_AnimGetRec(work, work + 0x3C)` as `addiu a1, s2, 0x4B0` because its `void *`
+work had no `GpAnimCtx`. Giving the work block the real head -
+`GpAnimCtx ctx; byte slots[19][0x28];` - makes `&work->slots[1]` land at
+0x3C and removes the penalty outright. `overlay_dup_index.py promote` refuses
+this body for the other five overlays ("references its own overlay's code or
+data"), so each copy stays matched in its own unit.
+
+Inputs: `base.i`
+`82db22c660317c9d733b5b6f394e5d9411216a74a438e03d73c4c30cdfd39b93`
+(90.684%), `base_1.i`
+`0da8667c82c60ac278511800428fbc7324af5357c1ddd0a81bb536151e617dad` (100%).
