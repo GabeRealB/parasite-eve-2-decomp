@@ -66071,3 +66071,79 @@ emitted order matches retail: 96% → 100%. `func_actor_560800_801362E0` is the
 same body with 0x20 for the target slot and the same target order. This is the
 statement-order lever of §10.6 in its "load or store sched1 keeps in place"
 case, applied to the payload of a message send.
+
+## Wrap the store whose pointer must win a callee-saved pair in `do { } while (0)`
+
+**Symptom.** `func_actor_560800_80136818` matched all 24 instructions with the
+same topology, predicates and order but `regs=10` (97.92%): retail puts the
+`&Wip_SysConfig` address in `$s0` and the `idMap` work pointer in `$s1`, and
+the build had them the other way round (`.diff` shows only the two register
+names plus the prologue save order that follows them). `.lreg`/`.greg` name the
+two competitors and their rank:
+
+```
+Register 80 used 2 times across 12 insns; crosses 1 call; pointer.   (work)
+Register 84 used 3 times across 22 insns; crosses 1 call; pointer.   (cfg address)
+;; 4 regs to allocate: 87 86 80 84
+80 in 16  84 in 17
+```
+
+`pri = floor_log2 (n_refs) * n_refs / live_length * 10000 * size` (§10.5) gives
+`work` 2·2/12 → 6666 and the `lo_sum` address 3·3/22 → 5454, so `work` is
+allocated first and takes `$s0`. Note `cfg`'s live length is already doubled by
+`update_equiv_regs` (11 → 22), which is unavoidable for a `REG_EQUIV` symbol
+address.
+
+**Cause.** `REG_N_REFS` is counted at loop depth: `flow.c` seeds `depth = 1` and
+adds `REG_N_REFS (regno) += loop_depth` at every use and set, so a reference in
+a loop body counts **twice**. A `do { } while (0)` keeps its
+`NOTE_INSN_LOOP_BEG` / `LOOP_CONT` / `LOOP_END` notes after `jump.c` deletes the
+always-false backward branch (it becomes `NOTE_INSN_DELETED`), so statements
+inside it are at depth 2 while the emitted code is unchanged.
+
+Wrapping the two trailing stores in it gives (`.flow`/`.lreg`, same file):
+
+```
+Register 80 used 3 times across 12 insns;   (work, store now inside)
+Register 84 used 4 times across 22 insns;   (cfg address, store now inside)
+;; 4 regs to allocate: 86 87 84 80
+80 in 17  84 in 16
+```
+
+The step is asymmetric because of `floor_log2`: 3 → 4 refs takes the numerator
+from 3 to 8 (×2.67) while 2 → 3 takes it from 2 to 3 (×1.5). The address pseudo
+overtakes on `n_refs` alone — live lengths stay 12 and 22 — so this is a
+reference-weight lever, not a live-range or scheduling-barrier one. The other
+two pseudos in the block move the same way (the `hp` value 3 → 4, the `li`
+constant 2 → 4, its def *and* use both being inside).
+
+**Fix.** Put the store of the pointer that must win the lower register inside a
+`do { } while (0)`. Wrapping both trailing stores is one spelling; the minimal
+controlled form is to wrap only that one —
+
+```c
+do {
+    cfg->field_18 = hp;
+} while (0);
+
+work->field_64 = 1;
+```
+
+— which leaves `work` at 2 refs and gives the same flip (predicted from the
+depth-2 rule before the build). Same body, 100%:
+
+| seed | work n_refs/live | cfg n_refs/live | allocno order | `$s0` |
+|---|---|---|---|---|
+| no wrapper | 2 / 12 | 3 / 22 | 87 86 80 84 | work |
+| both stores wrapped | 3 / 12 | 4 / 22 | 86 87 84 80 | cfg |
+| only the cfg store | 2 / 12 | 4 / 22 | 86 87 84 80 | cfg |
+
+Inputs: parent `base_2.i`
+`0617a9dd644917dff6b21b5a117e5ab2ea6160e85edf139f182997283d1cf8e5` (97.92%),
+`base_4.i` `062e6c9d6f40fab8ddd65e23663b4692de837414df96ab87ff2bb1016f9b55cc`,
+`base_5.i` `99e1cfc36dae20839e3c2f2eba9bd48535fb89ad5704e15b5428ea6f5b2d5c49`,
+all compiling to the same assembly
+`433ecfc013a4375c9a2e14a55740f925216f059fcaaa664ffa80bf81764cdf56`. The
+permuter router found the both-stores form; the mirror-image entry above
+("Hoist a compare outside `do { } while (0)`") is the same lever used to *stop*
+over-weighting a pseudo.

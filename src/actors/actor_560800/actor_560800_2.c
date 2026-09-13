@@ -1,8 +1,10 @@
 #include "common.h"
 #include "actors/actor_560800.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/wipsys.h"
 
 #include "main/fs.h"
 #include "psyq/libgpu.h"
@@ -104,6 +106,23 @@ void func_actor_560800_801367E0(s16 arg0)
     work->field_42 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_80136818);
+void func_actor_560800_80136818(void)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    WipSysConfig*    cfg  = &Wip_SysConfig;
+    s16              hp;
+
+    Gp_KillPlayerEffs();
+
+    if (cfg->field_18 < 0x33) {
+        hp = 1;
+    } else {
+        hp = (u16)cfg->field_18 - 0x32;
+    }
+    do {
+        cfg->field_18  = hp;
+        work->field_64 = 1;
+    } while (0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_80136878);
