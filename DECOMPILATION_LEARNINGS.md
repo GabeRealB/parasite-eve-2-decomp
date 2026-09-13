@@ -65391,3 +65391,43 @@ it should be sized for six carriers at once rather than attempted per function.
 
 Inputs: `base_1.i`
 `f66f4b84caebc876e82a1dfd438496f522a8f9385d81e978a011a453e939239f` (100%).
+
+## A byte-identical body already matched one overlay over is invisible to `find` and `solved`
+
+`func_actor_105700_80133364` is byte-for-byte `Actor02000_Fn0150C` of
+`actor_102000`: `diff` on the two `.s` files reports only the `glabel` /
+`endlabel` names and the address columns, nothing else. Yet
+`overlay_dup_index.py find Actor02000_Fn0150C` answers "same body: 1 copies" —
+itself — and `find func_actor_105700_80133364` lists six copies that stop at
+`actor_202300` / `205600` / `205700`. The tool never groups the two, so the
+pre-existing match was absent from the copy list and `solved` did not park the
+function; the vacuum handed it out as unmatched work.
+
+The cause is `scan_function`'s canonical form. Branch targets go through
+`BRANCH = re.compile(r"\.L\w+")`, which rewrites only labels carrying the
+literal `.L` prefix — what splat writes for an `INCLUDE_ASM` copy
+(`.Lactor_105700_801333D0`, `.Lactor_105700_801334A0`). The `actor_102000`
+file's labels are `Actor02000_L01578` … `Actor02000_L01648`: no dot, so the
+regex never fires, the two canonical texts differ, and one body hashes into two
+groups even though both files sit under `matchings/`. The naming scheme is a
+property of the overlay's `.s`, not of match state, which is why this is not
+self-correcting once a body is matched.
+
+Practical consequence: the copy list under-reports precisely when the news is
+worth most — when the body is already decompiled somewhere. Trust the brief's
+**Similar matched bodies** list instead: `Actor02000_Fn0150C` scored 1.00 in all
+four classes (`shape`, `fields`, `calls`, `cflow`), and that agreement is the
+signal. Settle byte-identity with `diff` on the two `.s` files, where the only
+expected differences are the label names and the address columns. Here the port
+was then verbatim: only the scratch-pointer decrement had to become an lvalue
+assignment (`*(u8**)G_SCRATCH_HEAD -= 8`), which is what makes the target emit
+the `lw / addiu / sw` triple and read the decremented value back.
+
+The promotion this body wants was attempted and reverted, the fourth such
+deferral on this overlay (see the mid-overlay shared-span section above): the
+span lands at `0x1544` inside `actor_105700`, and the re-split shifts every
+later unit up one index, which the existing `.c` files name by their old unit
+string.
+
+Inputs: `base_1.i`
+`b5dc4f938a11f245aade7773018e41e6d23fac1fb030da3d2d21d1e6e8619760` (100%).

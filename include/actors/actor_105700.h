@@ -29,7 +29,10 @@ typedef struct Actor105700Work {
     /* 0x69C */ s16  field_69C; ///< dwell counter, cleared on state 0 entry
     /* 0x69E */ s16  field_69E; ///< dwell counter, cleared on state 0 entry
     /* 0x6A0 */ u16  field_6A0; ///< sound flags; bit 5/4 gate the two cues
-    /* 0x6A2 */ byte pad_6A2[4];
+                                /// Current yaw, walked toward `field_6A4` by
+                                /// `func_actor_105700_80133364`, using `field_69E` as the per-frame step.
+    /* 0x6A2 */ s16  field_6A2;
+    /* 0x6A4 */ s16  field_6A4; ///< yaw the actor wants to face
     /* 0x6A6 */ s16  field_6A6; ///< parked animation for the state-F0 path
     /* 0x6A8 */ s16  field_6A8; ///< state-machine step
     /* 0x6AA */ byte pad_6AA[4];

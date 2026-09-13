@@ -79,7 +79,94 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133138);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133364);
+/// Verbatim port of `Actor02000_Fn0150C` of `actor_102000` - the two bodies are
+/// byte-identical (see `overlay_dup_index.py find func_actor_105700_80133364`,
+/// which also lists five more actors carrying it). Takes the root coordinate's
+/// own heading through `ratan2` and steps the yaw `field_6A2` toward the parked
+/// `field_6A4` by the dwell counter `field_69E` per frame: within half a turn
+/// of the target it closes on it directly (or, for `field_694 == 3`, spins past
+/// it by the unsigned counter), past that it unwinds the long way, snapping
+/// straight onto the target once `field_69E` would overshoot. The resulting yaw
+/// rebuilds the coordinate's matrix.
+void func_actor_105700_80133364(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         rot;
+    s32              ang;
+    u16              want;
+    s16              diff;
+    s32              adiff;
+    s32              step;
+    s32              ustep;
+    s32              wstep;
+    s32              cur;
+    s32              next;
+    s32              wrapStep;
+
+    rot   = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_6A4;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
+
+    work->field_6A2 = ang;
+    if (adiff < 0x800) {
+        step  = work->field_69E;
+        ustep = (u16)work->field_69E;
+        if (step >= adiff) {
+            work->field_6A2 = want;
+        } else {
+            if (work->field_694 == 3) {
+                next = ang - ustep;
+            } else {
+                next = work->field_6A2;
+                if (diff <= 0) {
+                    next -= step;
+                } else {
+                    next += step;
+                }
+            }
+            work->field_6A2 = next;
+        }
+    } else {
+        wstep = work->field_69E;
+        if (diff > 0) {
+            if (wstep >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (wstep >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_6A2 = work->field_6A4;
+        goto done;
+    turn:
+        if (work->field_694 == 3) {
+            work->field_6A2 = (u16)work->field_6A2 - (u16)work->field_69E;
+        } else {
+            wrapStep = work->field_69E;
+            cur      = work->field_6A2;
+            if (diff > 0) {
+                work->field_6A2 = cur - wrapStep;
+            } else {
+                work->field_6A2 = cur + wrapStep;
+            }
+        }
+    }
+done:
+    rot->vx = 0;
+    rot->vy = work->field_6A2;
+    rot->vz = 0;
+    RotMatrix(rot, &coord->coord);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_801334F0);
 
