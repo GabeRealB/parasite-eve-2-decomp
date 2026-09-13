@@ -33,7 +33,12 @@ void func_actor_510900_8013BF90(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013BFE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013C034);
+void func_actor_510900_8013C034(void* enemy, Task* task)
+{
+    ((TmdObject*)task->extra)->field_C      = ((TmdObject*)task->parent->extra)->field_C;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+}
 
 void func_actor_510900_8013C0E4(void* enemy, Task* task);
 void func_actor_510900_8013C134(void* enemy, Task* task);
