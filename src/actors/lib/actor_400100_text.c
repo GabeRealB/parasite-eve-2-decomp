@@ -4,6 +4,8 @@
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3A34.h"
+#include "main/sound.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -280,7 +282,56 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn070DC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0747C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn07650);
+void Actor00100_Fn07650(Actor00100* arg0)
+{
+    Actor00100Ctx*  ctx;
+    Actor00100Work* work;
+    TmdObject*      obj;
+    s32             sound;
+    s32             sound2;
+    s32             pan;
+    s32             pan2;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj           = arg0->field_2C;
+        ctx->field_14 = 0;
+        obj->field_C  = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_82E        = 0xA;
+        work->field_828        = 1;
+        work->field_82A        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+        sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010009;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        ctx->field_40 = (u16)(ctx->field_40 - 0xF);
+        func_800DA6E8(ctx->field_10, 0xF, 0);
+        if ((s16)ctx->field_40 <= 0) {
+            ctx->field_40 = 1U;
+        } else {
+            sound2 = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010007;
+            pan2   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+            SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        }
+    }
+    Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5);
+    arg0->field_2C->field_8->flg = 0;
+    Actor00100_Fn02788(arg0);
+    if (work->field_68 & 0x100) {
+        if ((s16)ctx->field_40 <= 0) {
+            work->field_0 = 0x15;
+        } else if (ctx->field_4C & 2) {
+            work->field_0 = 4;
+        } else {
+            work->field_0 = 0x11;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0782C);
 

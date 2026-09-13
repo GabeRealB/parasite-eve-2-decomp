@@ -54,9 +54,12 @@ typedef struct Actor00100Work {
 typedef struct Actor00100Ctx {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[0xA];
+    /* 0x0A */ byte pad_A[6];
+    /* 0x10 */ byte field_10[4];
     /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x37];
+    /* 0x15 */ byte pad_15[0x2B];
+    /* 0x40 */ u16  field_40;
+    /* 0x42 */ byte pad_42[0xA];
     /* 0x4C */ u8   field_4C;
     /* 0x4D */ byte pad_4D[7];
     /* 0x54 */ s32  field_54;
