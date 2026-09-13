@@ -8,6 +8,7 @@
 extern s16      D_actor_136100_8013F17C;
 extern TaskDesc ActorsShared80134898Desc;
 extern Task*    D_actor_136100_8014078C;
+extern s8       D_8007272D;
 
 void func_actor_136100_801348C8(void)
 {
@@ -41,6 +42,16 @@ void func_actor_136100_80134964(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100_3", func_actor_136100_801349B4);
+void func_actor_136100_801349B4(s32 arg0)
+{
+    GameFlag_SetNibble(0x46, 0);
+    GameFlag_SetNibble(0x4C, 3);
+    if (arg0 == 0) {
+        GameFlag_SetNibble(0x4B, 6);
+    } else {
+        D_8007272D = 8;
+        GameFlag_SetNibble(0x4B, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100_3", func_actor_136100_80134A18);
