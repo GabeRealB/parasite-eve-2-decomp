@@ -18,9 +18,11 @@
 /// are handed the same task as their argument and index it identically.
 ///
 /// `field_0` is the `Game_GetPtrSlot(3)` task the overlay's messages are aimed
-/// at (0x3E8 and 0x3F3), and `field_8` / `field_C` are child tasks the senders
-/// null-check first (0x7D5 goes to `field_8`); `func_actor_341900_80163488`
-/// disposes of `field_8` by killing it and clearing the slot.
+/// at (0x3E8 and 0x3F3), and `field_8` / `field_C` / `field_10` are child tasks
+/// the senders null-check first (0x7D5 goes to `field_8`);
+/// `func_actor_341900_80163488` disposes of `field_8` by killing it and clearing
+/// the slot, and `func_actor_341900_801634D0` does the same for `field_C` and
+/// `field_10` in turn.
 ///
 /// `field_5C` and `field_64` are one-shot request states: a dispatcher switches
 /// on the state through a jump table and clears it back to 0 on the way out, so
@@ -37,7 +39,8 @@ typedef struct Actor341900Work {
     /* 0x04 */ byte  pad_4[0x4];
     /* 0x08 */ Task* field_8;
     /* 0x0C */ Task* field_C;
-    /* 0x10 */ byte  pad_10[0x4C];
+    /* 0x10 */ Task* field_10;
+    /* 0x14 */ byte  pad_14[0x48];
     /* 0x5C */ s16   field_5C;
     /* 0x5E */ s16   field_5E;
     /* 0x60 */ byte  pad_60[0x4];
