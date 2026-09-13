@@ -14,8 +14,13 @@ extern GpEnemyTaskFuncTable3 D_actor_300700_80161E30;
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_300700_801637E4(Actor300700* arg0);
 void func_actor_300700_80164794(Actor300700* arg0);
+void func_actor_300700_80163D64(Actor300700* arg0);
+void func_actor_300700_80164070(Actor300700* arg0);
+void func_actor_300700_801643D0(Actor300700* arg0);
+void func_actor_300700_801645F8(Actor300700* arg0);
 void func_actor_300700_80164E38(Actor300700* arg0, Actor300700Obj2C* arg1, s32 arg2);
 void func_actor_300700_80164F68(Actor300700* arg0);
+void func_actor_300700_801650C0(Actor300700* arg0);
 void func_actor_300700_801651A0(Actor300700* arg0);
 void func_actor_300700_80165230(Actor300700* arg0);
 void func_actor_300700_801652F4(Actor300700* arg0);
@@ -138,7 +143,28 @@ case1:
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164E38);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164F68);
+void func_actor_300700_80164F68(Actor300700* arg0)
+{
+    switch (arg0->field_1C->field_37A) {
+        case 0:
+            func_actor_300700_80163D64(arg0);
+            break;
+        case 1:
+            func_actor_300700_80164070(arg0);
+            break;
+        case 2:
+            func_actor_300700_801643D0(arg0);
+            break;
+        case 3:
+            func_actor_300700_801645F8(arg0);
+            break;
+        case 4:
+            func_actor_300700_801650C0(arg0);
+            break;
+        case 5:
+            break;
+    }
+}
 
 /// Randomised footstep timer. Each tick decrements the counter and, when it
 /// runs out, reseeds it from the shared LCG and plays the step sound at the

@@ -13,7 +13,9 @@ typedef struct Actor300700Obj2C {
 } Actor300700Obj2C;
 
 typedef struct Actor300700Work {
-    /* 0x000 */ byte pad_0[0x386];
+    /* 0x000 */ byte pad_0[0x37A];
+    /* 0x37A */ s16  field_37A;
+    /* 0x37C */ byte pad_37C[0xA];
     /* 0x386 */ s16  field_386;
     /* 0x388 */ byte pad_388[0xA];
     /* 0x392 */ u16  field_392;
