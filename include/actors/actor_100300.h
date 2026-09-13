@@ -8,6 +8,11 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+/* Byte access view; preserves struct-store ordering in GCC 2.8.1. */
+typedef struct Actor00300ByteView {
+    s8 value;
+} Actor00300ByteView;
+
 typedef struct Actor100300ScratchStack {
     u32 sp;
 } Actor100300ScratchStack;
@@ -155,6 +160,7 @@ typedef struct Actor100300Work {
     /* 0x69C */ s16                 field_69C;
     /* 0x69E */ s16                 field_69E;
     /* 0x6A0 */ s16                 field_6A0;
+    /* 0x6A2 */ s16                 field_6A2;
 } Actor100300Work;
 
 typedef struct Actor100300 {

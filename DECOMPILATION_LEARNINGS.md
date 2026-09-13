@@ -67727,3 +67727,38 @@ The router's retained apparent improvement was invalid: an uninitialized pointer
 base_3.i SHA256: `ba10e47470d9c97a8cf7a7cb179aeef409108283201cd3c724bf96628888d3fd`.
 
 base_4.i SHA256: `a2150256d46d3730dfc885a40c144961d0ffc4d5b4aa6d318262a58a61a73e64`.
+
+## Actor00300_Fn019C0: byte-member view preserves reset-store dependencies
+
+An unpinned candidate with matching topology/counts stopped at 99.483%
+(`regs=0 reorder=2`). Its three `work` halfword resets were `MEM/s:HI`, but
+`D_80115418 = 0` was fixed scalar `MEM:QI`. In `base_2.i.sched2`, UID 498
+(the byte store) depended only on its address UID 495. The backwards scheduler
+selected independent halfword stores 487/490/493 by potential hazard ahead of
+the constant-10 setup, moving them after the byte store in forward assembly.
+
+A one-byte member access view on the flag retained `MEM/s:QI` and added
+`REG_DEP_OUTPUT` dependencies from UID 498 to 487/490/493. Controlled candidate
+`base_5.c` reached 100% with unchanged registers and instruction counts.
+Scalar address/dereference and constant array-index casts (`base_3`, `base_4`)
+folded away and did not change assembly. This is the existing `sched.c`
+`output_dependence` struct-versus-fixed-scalar exemption (bundled source lines
+896–906), not a rule that source store order always controls scheduling.
+The view describes the access; it does not establish the global's original type.
+
+The normal-style port also needed separate SI absolute magnitudes per state.
+Sharing one magnitude gave it six references over eight insns and v1, the same
+home as the final HI angle. `jump2` then removed the identity-copy arm and
+reversed its branch. Splitting the magnitudes (`base_7` → `base_8`) gave each
+three references over four insns; raw delta r130/r190 ranked before magnitude
+r89/r90 in `.greg`, restoring a0 magnitude/v1 angle and the target branches.
+The final typed VECTOR implementation and byte view both retained 100%.
+
+Reproduction: `nonmatchings/Actor00300_Fn019C0-vacuum/LEARNINGS.md` and paired
+`.sched2`/`.greg`/`.jump2` dumps. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Final preprocessed input SHA256
+`0dc96f07fd71cd8d6993b37b3244f258a6abd99c28cec1f2f7f2f97f75d04cb6`.
+No permuter discovery contributed (router setup could not find m2c_macros.h).
+
+Paired preprocessed input hashes: base_2 `5febed1cddc85548f7bdc63e4dd00312d30c1994d44e041927732d831e30e9d4`; base_5 `8b8f9061cfd4e3c4e6331fc28cfa76bf96ec0a73b5c01da8a37ec00cfed497f1`; base_7 `6f640ad56fec71c9104a641ed35b99aa6f70132dce8de6aa9e7b6ca200362b60`; base_8 `9207d0f569f6b9d667d458e6173820a8fe24ede3c2d02e67f561284b02329c93`.

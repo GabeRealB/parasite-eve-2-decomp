@@ -307,7 +307,112 @@ void Actor00300_Fn01678(Actor100300* arg0)
     *(void**)0x1F8003FC = (void*)(*(void**)0x1F8003FC + 0x10);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn019C0);
+void Actor00300_Fn019C0(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR*          scratchEnd;
+    VECTOR*          vec;
+    s16              delta;
+    s16              angle;
+    s16              timer;
+    s16              wrapped;
+    s32              magnitude;
+    s32              moveMagnitude;
+    s32              distance;
+    s32              random;
+
+    scratchEnd            = *(VECTOR**)0x1F8003FC;
+    vec                   = scratchEnd - 1;
+    *(VECTOR**)0x1F8003FC = vec;
+    work                  = arg0->field_1C;
+    coord                 = arg0->field_2C->field_8;
+    switch (work->field_686) {
+        case 0:
+            work->field_67C = 0;
+            work->field_67A = 0;
+            work->field_66E = 1;
+            timer           = (u16)work->field_688 - 1;
+            work->field_688 = timer;
+            if (timer <= 0) {
+                scratchEnd[-1].vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+                vec->vy           = 0;
+                vec->vz           = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
+                angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
+                work->field_680   = angle;
+                delta             = (u16)angle - (u16)work->field_67E;
+                magnitude         = abs(delta);
+                if (magnitude < 0x800) {
+                    angle = magnitude;
+                } else {
+                    if (delta > 0) {
+                        wrapped = 0x1000 - delta;
+                    } else {
+                        wrapped = delta + 0x1000;
+                    }
+                    angle = wrapped;
+                }
+                if (distance >= 0xBB8 || angle >= 0x100) {
+                    work->field_686 = 1;
+                }
+                random          = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_688 = (((u32)random >> 16) & 31) + 30;
+            }
+            break;
+        case 1:
+            work->field_67C   = 0x3C;
+            work->field_67A   = 0x19;
+            work->field_66E   = 2;
+            scratchEnd[-1].vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec->vy           = 0;
+            vec->vz           = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
+            angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
+            work->field_680   = angle;
+            delta             = (u16)angle - (u16)work->field_67E;
+            moveMagnitude     = abs(delta);
+            if (moveMagnitude < 0x800) {
+                angle = moveMagnitude;
+            } else {
+                if (delta > 0) {
+                    wrapped = 0x1000 - delta;
+                } else {
+                    wrapped = delta + 0x1000;
+                }
+                angle = wrapped;
+            }
+            timer           = (u16)work->field_688 - 1;
+            work->field_688 = timer;
+            if (timer <= 0 || (distance < 0xBB8 && angle < 0x100)) {
+                work->field_686 = 0;
+                random          = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_688 = ((u32)random >> 16) & 31;
+            }
+            break;
+    }
+    if (work->field_6A0 == 0) {
+        work->field_684                           = 0;
+        work->field_686                           = 0;
+        work->field_690                           = 0;
+        ((Actor00300ByteView*)&D_80115418)->value = 0;
+        work->field_688                           = 10;
+    } else {
+        timer           = (u16)work->field_68A - 1;
+        work->field_68A = timer;
+        if (timer <= 0) {
+            random          = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState     = random;
+            work->field_68A = (((u32)random >> 16) & 63) + 60;
+            if (work->field_6A2 == 1) {
+                Actor00300_Fn01D60(arg0);
+            }
+        }
+    }
+    *(u32*)0x1F8003FC += 0x10;
+}
 
 void Actor00300_Fn01D60(Actor100300* arg0)
 {
