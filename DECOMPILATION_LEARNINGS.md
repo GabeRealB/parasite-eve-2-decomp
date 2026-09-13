@@ -68428,3 +68428,33 @@ rewriting the body with real struct field accesses fixes every offset in one
 edit — `base_1.c` went from 88.89% to 100.00% with zero penalties on the first
 build. Do not start allocation experiments on such a seed; the penalty line is
 downstream of the addressing, not independent of it.
+
+## A GpObj node's `flags |= mask` belongs at the head of the *next* node's block
+
+Actor spawns initialise a run of `GpObj` render nodes, each followed by
+`Gp_LinkObj` and `Gp_InitRec18Table`, and the target for
+`func_actor_300700_80163510` reads as if each node's flag edit were one
+statement *later* than its own data: `work->obj1.flags |= 0x8000;` is emitted at
+the top of the obj2 block — after `Gp_InitRec18Table(work->rec1, 1, 0)` and
+before obj2's first field store — not just before `Gp_LinkObj(2, &work->obj2)`.
+Writing the edit at the end of its own node, adjacent to the next link call, is
+the natural thing to do and it loses 8 points. The two placements isolate
+cleanly on the same body:
+
+| variant | `obj1.flags \|= 0x8000` | `field_37E`/`field_380` pair | score |
+|---|---|---|---|
+| both late | end of own block | after `obj1.flags = 1` | 91.82% (regs=16 insert=7 delete=7) |
+| flags late | end of own block | head of the obj1 block | 95.30% (regs=10 insert=4 delete=4) |
+| pair late | head of the obj2 block | after `obj1.flags = 1` | 97.38% (regs=3 reorder=1 insert=2 delete=2) |
+| both early | head of the obj2 block | head of the obj1 block | 100.00% |
+
+Both early placements put those stores in the ready list ahead of the next
+node's independent field stores. That is what decides the home of the reloaded
+`&((TmdObject*)arg1->extra)->field_8[4]` — `$a2` when the stores come late,
+`$v1` as in the target — and the placement of `li s1,1` / `sh s1,0x37E`. The two
+edits are worth ~4.7 and ~2.6 points and are not substitutes: each alone leaves
+register penalties behind.
+
+The sibling `func_actor_300700_80161E80` has the same node/link/record shape and
+the same idiom, so when a spawn like this is stuck in the nineties, try hoisting
+every flag edit out of its own node block before touching allocation.

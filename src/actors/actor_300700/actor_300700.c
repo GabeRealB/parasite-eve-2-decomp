@@ -2,6 +2,7 @@
 
 #include "actors/actor_300700.h"
 #include "actors/actor_300700_spawn.h"
+#include "actors/actor_300700_spawn2.h"
 #include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/1BC.h"
@@ -48,6 +49,11 @@ extern GpU16Pair  D_actor_300700_80165B64;
 extern GpPairSrcE D_actor_300700_80165B68;
 /// Pose source handed to `func_800B3F84` as its animation data record.
 extern u32 D_actor_300700_80165B94;
+
+/// The second variant's pair of the same kind, and its pose source.
+extern GpU16Pair  D_actor_300700_80169328;
+extern GpPairSrcE D_actor_300700_8016932C;
+extern u32        D_actor_300700_801693B8;
 
 void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
 {
@@ -250,7 +256,100 @@ void func_actor_300700_80163410(Actor300700* arg0)
     *(u8**)0x1F8003FC += 0x30;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80163510);
+/// Second variant's spawn: allocates its 0x39C-byte work block, binds the two
+/// pose matrices into the TMD object, then hangs the four render nodes on
+/// their global lists with the record tables `Gp_InitRec18Table` zeroes.
+void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
+{
+    Actor300700Spawn2Work* work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    s32                    i;
+
+    obj   = (TmdObject*)arg1->extra;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x39CU, false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap    = (TaskIdMap*)work;
+    obj->field_C   = 0;
+    coord->flg     = 0;
+    obj->field_1C  = &work->field_1BC;
+    obj->field_20  = &work->field_19C;
+    arg0->field_4  = &coord->coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->field_18     = &((TmdObject*)arg1->extra)->field_8[4];
+    arg0->node.field_4 = 0;
+    arg0->field_1C.vx  = 0;
+    arg0->field_1C.vy  = 0;
+    arg0->field_1C.vz  = 0;
+    arg0->field_50     = &D_actor_300700_8016932C;
+    arg0->field_54     = (s32)work->rec2;
+    arg0->field_40     = (u16)D_actor_300700_8016932C.field_4;
+    work->field_338    = 0x100;
+    work->field_33A    = 1;
+    work->field_334    = coord;
+    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, (GpAnimObj*)obj,
+                  work->field_12C, (GpAnimSlot*)work->field_14);
+    for (i = 1; i < 7; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+
+    work->field_37E     = 1;
+    work->field_380     = 1;
+    work->obj1.field_8  = coord;
+    work->obj1.field_C  = work->rec1;
+    work->obj1.field_10 = 0;
+    work->obj1.field_12 = 0;
+    work->obj1.field_14 = 0x2EE;
+    work->obj1.field_18 = 0;
+    work->obj1.field_1C = 0x12C;
+    work->obj1.flags    = 1;
+    Gp_LinkObj(3, &work->obj1);
+    Gp_InitRec18Table(work->rec1, 1, 0);
+    work->obj1.flags |= 0x8000;
+
+    work->obj2.field_8  = &((TmdObject*)arg1->extra)->field_8[4];
+    work->obj2.field_C  = work->rec2;
+    work->obj2.field_10 = 0;
+    work->obj2.field_12 = 0;
+    work->obj2.field_14 = 0;
+    work->obj2.field_18 = 0x30007;
+    work->obj2.field_1C = 0x96;
+    work->obj2.flags    = 1;
+    Gp_LinkObj(2, &work->obj2);
+    Gp_InitRec18Table(work->rec2, 3, 0);
+
+    work->obj3.field_8  = coord;
+    work->obj3.field_C  = work->rec3;
+    work->obj3.field_10 = 0;
+    work->obj3.field_12 = -0xFA;
+    work->obj3.field_14 = 0;
+    work->obj3.field_18 = 0x30007;
+    work->obj3.field_1C = 0xFA;
+    work->obj3.flags    = 1;
+    work->obj2.flags   |= 0x8000;
+    Gp_LinkObj(2, &work->obj3);
+    Gp_InitRec18Table(work->rec3, 4, 0);
+
+    work->obj4.field_8  = coord;
+    work->obj4.field_C  = work->rec4;
+    work->obj4.field_10 = 0;
+    work->obj4.field_12 = 0;
+    work->obj4.field_14 = 0x1F4;
+    work->obj3.flags   |= 0x4200;
+    work->obj4.field_18 = Gp_PackPair(&D_actor_300700_80169328, 0);
+    work->obj4.field_1C = 0xC8;
+    work->obj4.flags    = 1;
+    Gp_LinkObj(3, &work->obj4);
+    Gp_InitRec18Table(work->rec4, 1, 0);
+    work->obj4.flags &= 0x7FFF;
+    arg1->state       = 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E30);
 
