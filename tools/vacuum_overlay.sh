@@ -361,12 +361,23 @@ Then:
 
 Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
 
-    if command -v claude >/dev/null 2>&1; then
+    # This arm is written against claude's flags, so a land profile on another
+    # api cannot be honoured here; say so rather than silently ignoring it.
+    if [[ -n "${VACUUM_LAND_API:-}" && "$VACUUM_LAND_API" != "claude" ]]; then
+        log "warning: land profile uses api '$VACUUM_LAND_API', but the drift landing agent only speaks claude; using claude"
+    fi
+    land_cmd=(claude)
+    if [[ -n "${VACUUM_LAND_LAUNCH:-}" ]]; then
+        read -ra land_cmd <<<"$VACUUM_LAND_LAUNCH"
+    fi
+    if command -v "${land_cmd[0]}" >/dev/null 2>&1; then
         # Landing is mechanical next to matching, so it can run on a cheaper
-        # model; VACUUM_LAND_MODEL selects it, falling back to the session's.
+        # model; the land profile selects it, falling back to the session's.
+        # A launch wrapper names the model itself, so do not pass it twice.
         land_model="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}"
+        [[ -n "${VACUUM_LAND_LAUNCH:-}" ]] && land_model=""
         log "drift landing agent, model ${land_model:-default}"
-        claude -p ${land_model:+--model "$land_model"} \
+        "${land_cmd[@]}" -p ${land_model:+--model "$land_model"} \
             --verbose --output-format stream-json --dangerously-skip-permissions \
             "$port_prompt" >>"$LOG_FILE" 2>&1
         rc=$?
@@ -394,7 +405,7 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
         cleanup_worktree
         trap - EXIT; release_all; exit 0
     fi
-    log "no claude CLI available; leaving the worktree at $WT for a manual landing"
+    log "no ${land_cmd[0]:-claude} CLI available; leaving the worktree at $WT for a manual landing"
     exit 1
 fi
 

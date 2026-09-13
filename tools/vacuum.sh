@@ -242,14 +242,22 @@ fi
 case "$CLI" in
   claude|grok|codex) ;;
   *)
-    echo "Error: unsupported CLI '$CLI' (expected claude, grok or codex)"
+    echo "Error: unsupported api '$CLI' (expected claude, grok or codex)"
     usage
     exit 1
     ;;
 esac
 
-if [[ $DRY_RUN -eq 0 ]] && ! command -v "$CLI" &>/dev/null; then
-  echo "Error: '$CLI' not found in PATH"
+# The profile's `cli` column says how the api is launched. Empty means run its
+# own binary; otherwise the arm's command word is replaced by this wrapper,
+# which already names the model - so the arm must not pass --model as well.
+LAUNCH_CMD=("$CLI")
+if [[ -n "${VACUUM_LAUNCH:-}" ]]; then
+  read -ra LAUNCH_CMD <<<"$VACUUM_LAUNCH"
+fi
+
+if [[ $DRY_RUN -eq 0 ]] && ! command -v "${LAUNCH_CMD[0]}" &>/dev/null; then
+  echo "Error: '${LAUNCH_CMD[0]}' not found in PATH"
   exit 1
 fi
 
@@ -525,6 +533,10 @@ run_agent() {
   # real file, fix includes, rebuild, commit - and a call site can ask for a
   # cheaper model by setting AGENT_MODEL.
   local model="${AGENT_MODEL-${VACUUM_MODEL:-}}"
+  # A launch wrapper names the model itself (the profile's `cli` column carries
+  # {model}), so passing it again would hand the inner CLI a name it does not
+  # know - claude answers "unrecognized_model" and falls back.
+  [[ -n "${VACUUM_LAUNCH:-}" ]] && model=""
   # Same precedence as model: a per-call override, then the role default. A
   # legacy per-CLI variable still wins if someone set one explicitly.
   local effort="${AGENT_EFFORT-${VACUUM_MATCH_EFFORT:-}}"
@@ -558,13 +570,18 @@ run_agent() {
         # Plain `claude -p` only prints the final result, so an iteration looks
         # frozen in the log until it ends. Stream the events and format them the
         # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
+        # Through the launcher the model is named on the ollama side and the
+        # `claude` binary is invoked by it, so the arm's own --model would be
+        # a second, unrecognised name. Everything after `--` is this arm
+        # unchanged, which is the point: the streaming contract, the skip of
+        # the permission prompt and the formatter all keep working.
         if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-          claude -p ${model:+--model "$model"} ${effort:+--effort "$effort"} \
+          "${LAUNCH_CMD[@]}" -p ${model:+--model "$model"} ${effort:+--effort "$effort"} \
             --verbose --output-format stream-json \
             --dangerously-skip-permissions "$prompt" \
             | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
         else
-          claude -p ${model:+--model "$model"} ${effort:+--effort "$effort"} \
+          "${LAUNCH_CMD[@]}" -p ${model:+--model "$model"} ${effort:+--effort "$effort"} \
             --dangerously-skip-permissions "$prompt"
         fi
         ;;
@@ -576,7 +593,7 @@ run_agent() {
         if [[ -n "$grok_rules" ]]; then
           extra+=(--rules "$grok_rules")
         fi
-        grok --always-approve "${extra[@]}" -p "$prompt"
+        "${LAUNCH_CMD[@]}" --always-approve "${extra[@]}" -p "$prompt"
         ;;
       codex)
         # codex exec is the headless form. Three defaults have to be overridden
@@ -617,10 +634,10 @@ run_agent() {
           codex_args+=(-m "$model")
         fi
         if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-          codex exec --json "${codex_args[@]}" "$prompt" </dev/null \
+          "${LAUNCH_CMD[@]}" exec --json "${codex_args[@]}" "$prompt" </dev/null \
             | python3 "$ROOT/tools/codex_format.py" ${VACUUM_STREAM_QUIET:+--quiet-text}
         else
-          codex exec "${codex_args[@]}" "$prompt" </dev/null
+          "${LAUNCH_CMD[@]}" exec "${codex_args[@]}" "$prompt" </dev/null
         fi
         ;;
     esac
