@@ -65296,3 +65296,7 @@ assembly — same 0x28 frame, same `$ra` at `0x20` — so the frame does not
 discriminate them and the callee's `VECTOR *` parameter does not force the
 local's type. Declare whichever the source reads better as. What matters is only
 that the three writes share one addressable object. `func_actor_510900_8013BC38`.
+
+The next function in that TU, `func_actor_510900_8013C338`, is the same body with
+a different callee (`func_800D7A9C(obj, &pos, 0, 3)`) and shows the same numbers:
+63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.

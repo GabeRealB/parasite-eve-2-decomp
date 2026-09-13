@@ -14,7 +14,15 @@ void func_actor_510900_8013C1EC(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013C240);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013C338);
+void func_actor_510900_8013C338(Actor510900* arg0, Actor510900Coord* arg1)
+{
+    VECTOR pos;
+
+    pos.vx = arg1->field_38.vx;
+    pos.vy = arg1->field_38.vy;
+    pos.vz = arg1->field_38.vz;
+    func_800D7A9C((TmdObject*)arg0->field_2C, &pos, 0, 3);
+}
 
 void func_actor_510900_8013C380(Actor510900* arg0)
 {
