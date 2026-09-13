@@ -64845,3 +64845,10 @@ Controlled input SHA256: `2c0a928060d6cdc816bb092217a98e1460056d28e4eba296daec10
 Evidence: `tools/permuter_findings/Actor02500_Fn01144/`, session
 `bef67713ebe94c2eafc87e1a4f2dee96`, run `6d16af41db434cd7`;
 PERMUTER_ANALYSIS.md and retained base_1/base_2 .lreg/.greg dumps.
+
+## Actor02500_Fn025D0: coordinate flag clear after translation copy
+
+Controlled base_2 moved flg=0 after coord.t[2] assignment, improving 97.812% to 100%. sched2 clear UID81 gains REG_DEP_ANTI on Z load UID76, preventing the earlier clear placement observed in base_1. Saved register homes remain unchanged. This is an observed memory anti-dependency, not a universal statement-order scheduler rule. MATRIX assignment first restored the 32-byte block-copy instruction. Full evidence retained in tools/permuter_findings/Actor02500_Fn025D0/.
+
+base_1.i: 4f5dc4438614656d665dc2cf26a057a95a800f591eb622581efc1a5052ad1eed
+base_2.i: 39176c30f42af258ae5536f26564ef7defc494ce284297ef9b2225b98994e255

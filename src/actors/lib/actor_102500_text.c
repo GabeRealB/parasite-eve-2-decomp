@@ -825,7 +825,48 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02480);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02574);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn025D0);
+void                 Task_DetachFromParent(Actor02500* task);
+extern GsCOORDINATE2 Gfx_ViewCoord;
+
+void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
+{
+    Actor02500EffWork* work;
+    GsCOORDINATE2*     coord;
+    Actor02500Rec18*   rec;
+    GsCOORDINATE2*     parentCoord;
+    void*              effect;
+
+    coord       = task->field_2C->field_8;
+    parentCoord = task->parent->field_2C->field_8;
+    work        = Mem_Calloc(0x40, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(ctx, task);
+        return;
+    }
+    task->field_1C     = (Actor02500Work*)work;
+    coord->sub         = &Gfx_ViewCoord;
+    coord->coord       = parentCoord->coord;
+    coord->coord.t[0]  = parentCoord->coord.t[0];
+    coord->coord.t[1]  = parentCoord->coord.t[1];
+    coord->coord.t[2]  = parentCoord->coord.t[2];
+    coord->flg         = 0;
+    effect             = Gp_SpawnEff(0x80060046, coord, 0x10280, NULL);
+    work->obj.field_8  = coord;
+    rec                = work->rec18;
+    work->field_38     = effect;
+    work->obj.field_C  = rec;
+    work->obj.field_10 = 0;
+    work->obj.field_12 = 0;
+    work->obj.field_14 = 0;
+    work->obj.field_18 = Gp_PackPair(&Actor02500_D05B30, 1);
+    work->obj.field_1C = 0xC8;
+    work->obj.flags    = 1U;
+    Gp_LinkObj(3, &work->obj);
+    Gp_InitRec18Table(rec, 1, 0);
+    work->obj.flags = (u16)(work->obj.flags | 0x8000);
+    Task_DetachFromParent(task);
+    task->field_30 = 1;
+}
 
 void Actor02500_Fn02750(Actor02500Ctx* ctx, Actor02500* task)
 {

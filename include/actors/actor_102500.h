@@ -100,7 +100,9 @@ typedef struct Actor02500Work {
 STATIC_ASSERT_SIZEOF(Actor02500Work, 0x348);
 
 typedef struct Actor02500 {
-    /* 0x00 */ byte                  pad_0[0x1C];
+    /* 0x00 */ byte                  pad_0[8];
+    /* 0x08 */ struct Actor02500*    parent;
+    /* 0x0C */ byte                  pad_C[0x10];
     /* 0x1C */ Actor02500Work*       field_1C;
     /* 0x20 */ struct Actor02500Ctx* field_20;
     /* 0x24 */ byte                  pad_24[8];
