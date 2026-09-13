@@ -19,7 +19,25 @@ void func_actor_510900_8013BE98(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013BEEC);
+void func_actor_510900_8013BEEC(void* enemy, Task* task)
+{
+    TmdObject*       obj;
+    Actor510900Work* work;
+    GsCOORDINATE2*   coord;
+
+    obj            = (TmdObject*)task->extra;
+    work           = (Actor510900Work*)task->parent->idMap;
+    coord          = obj->field_8;
+    obj->field_25 += 2;
+    Tmd_ProcessStream(obj);
+    Tmd_ProcessStream(obj);
+    coord->sub    = &((TmdObject*)task->parent->extra)->field_8[12];
+    coord->flg    = 0;
+    obj->field_C  = 0x80;
+    obj->field_1C = &work->field_45C;
+    obj->field_20 = &work->field_43C;
+    task->state   = 1;
+}
 
 void func_actor_510900_8013BFE4(void* enemy, Task* task);
 void func_actor_510900_8013C034(void* enemy, Task* task);

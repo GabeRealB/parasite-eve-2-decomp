@@ -65424,3 +65424,49 @@ that the three writes share one addressable object. `func_actor_510900_8013BC38`
 The next function in that TU, `func_actor_510900_8013C338`, is the same body with
 a different callee (`func_800D7A9C(obj, &pos, 0, 3)`) and shows the same numbers:
 63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.
+
+## sched is bottom-up: a store waits on the loads written after it
+
+Read a `.sched` / `.sched2` trace **back to front**. The ready list starts with
+the block's *last* insn, `priority()` measures distance from the top of the
+block (`gcc/sched.c:1450`), and `schedule_insn` decrements `INSN_REF_COUNT` for
+every entry of `LOG_LINKS (insn)` — the insn's *predecessors* — so an insn fires
+only once every insn that depends on it is already scheduled
+(`gcc/sched.c:2614`). T-1 is therefore the last instruction of the block and
+T-n the first, and the printed "`launching 48 before 50`" means exactly what it
+says: 48 is placed ahead of 50 in the final code.
+
+That direction is what decides where an independent store lands. A store written
+*before* a group of loads acquires those loads as anti-dependents (a load cannot
+rise above a preceding store that may alias), so it stays off the ready list
+until the last of them is scheduled — and is emitted right after them. Written
+*after* them, it keeps only the epilogue's loads as dependents, becomes ready
+almost at once, and its low priority parks it behind the whole higher-priority
+chain until the first free cycle, which is usually the delay slot the target
+wants it in.
+
+`func_actor_510900_8013BEEC`:
+
+```c
+coord->flg = 0;
+coord->sub = &((TmdObject*)task->parent->extra)->field_8[12];
+```
+
+96.19% (`regs=0 reorder=1 insert=1`): `sw zero,0(s3)` is emitted ahead of the
+`task->parent->extra` load chain, and the third load keeps a `nop` in its delay
+slot. In the trace the store is picked at T-26, one cycle after insn 44 — the
+last of the three loads that depend on it. Swap the two statements and it is
+picked at T-20 instead (priority 3, chosen the moment the priority-6 chain
+drains), landing in that load's delay slot: 100%.
+
+```c
+coord->sub = &((TmdObject*)task->parent->extra)->field_8[12];
+coord->flg = 0;
+```
+
+The `nop` the target *does* have in a load-delay slot is the same fact read the
+other way: `final_prescan_insn` prints `#nop` only when the next instruction
+mentions the loaded register (`gcc/config/mips/mips.c:4518`), so a surviving
+`nop` is a statement about what was scheduled after the load, not a missing
+instruction. A store written at the point the target stores it is usually the
+whole fix.
