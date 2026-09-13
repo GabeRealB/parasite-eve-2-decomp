@@ -37,7 +37,9 @@ typedef struct Actor202600Work {
     /* 0x39A */ s16       field_39A;
     /* 0x39C */ s16       field_39C;
     /* 0x39E */ s16       field_39E;
-    /* 0x3A0 */ byte      pad_3A0[6];
+    /* 0x3A0 */ byte      pad_3A0[2];
+    /* 0x3A2 */ s16       field_3A2;
+    /* 0x3A4 */ byte      pad_3A4[2];
     /* 0x3A6 */ s16       field_3A6;
     /* 0x3A8 */ byte      pad_3A8[4];
     /* 0x3AC */ u16       field_3AC;

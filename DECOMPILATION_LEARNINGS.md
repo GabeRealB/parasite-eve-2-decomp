@@ -69770,3 +69770,62 @@ Those entries exist so the *shared lib TU* that calls the function (here
 `ActorsShared8014d378_Fn4D7C4`) can name the address; splat still labels the
 defining unit's own asm with its `func_<overlay>_<addr>` name, and the two resolve
 to the same address at link time.
+
+## Inserting an s16 field mid-struct silently moves every following s16
+
+**Problem.** `Actor202600Work` carried `field_39E` at `0x39E`, then a single
+`byte pad_3A0[6]` covering `0x3A0..0x3A6`, then `field_3A6`. A newly decompiled
+function needed the `u16` at `0x3A2`, so the pad was split the obvious way:
+
+```c
+/* 0x3A0 */ byte pad_3A0[2];
+/* 0x3A2 */ s16  field_3A2;   /* now at 0x3A2 ... */
+/* 0x3A6 */ s16  field_3A6;   /* ... but GCC puts this at 0x3A4 */
+```
+
+**Symptom.** The function itself matched at 100% in the scratch (it never reads
+`0x3A6`), the scoped build of its own overlay failed, and `diff.py` on every
+function in the file reported a match. The only evidence was the overlay
+checksum: `cmp -l` on the built image against the last good one showed three
+bytes, `sh $v0,0x3A6(s0)` having become `sh $v0,0x3A4(s0)` — inside
+`func_actor_202600_8014B108`, a matched neighbour whose C had not been touched.
+
+The pad had been doing the alignment, not just the spacing: an `s16` declared
+right after a 2-byte pad lands on the next 2-byte boundary, so `field_3A6`
+shifted down into the gap. A function-level diff cannot see this because the
+struct is shared across a whole overlay; only the unit checksum does.
+
+**Fix.** Keep an explicit pad of the exact remaining width, in offset order, when
+adding a field inside a byte-padded run:
+
+```c
+/* 0x3A2 */ s16  field_3A2;
+/* 0x3A4 */ byte pad_3A4[2];
+/* 0x3A6 */ s16  field_3A6;
+```
+
+The general rule: after any edit to a padded struct, re-check every following
+field's `/* 0xNN */` comment against where the compiler actually puts it — a
+`STATIC_ASSERT_SIZEOF` will not catch a reshuffle that keeps the total size.
+
+## A single-function `shared` span renumbers every later unit in its overlay
+
+`overlay_dup_index.py promote` on `func_actor_202600_8014A734` (3 copies, at the
+same `0x914` offset in `actor_102600` / `actor_202600` / `actor_302600`) added
+`shared = [{ start = "0x914", end = "0xA94", unit = "actors_shared_8014a734" }]`
+to all three manifest entries. Because the span sits *inside* the first code unit
+(`0x6C..0x1A0C`), the split no longer sees one contiguous run: it emits
+`actor_<n>` for `0x6C..0x914` and shifts every following unit down one index
+(`[0xA94, c, …actor_102600_2]`, `[0x1B30, c, …actor_102600_3]`, …). splat does not
+rewrite the existing `_2.c … _9.c`, so each is still linked at the address of the
+*previous* unit, the new `_10.c` is the only file splat creates, and the affected
+overlay loses `0x180` bytes. The promoted function is not the only casualty: any
+matched body in those files lands at the wrong address.
+
+The renumbering is not confined to the overlay being promoted — all three sharers
+get it, and each has its own unit files to shift. Before a mid-unit promotion,
+plan on renaming `_N.c` to `_{N+1}.c` across the whole overlay, rewriting the
+unit name inside every `INCLUDE_ASM` string in those files, and rebuilding the
+first unit from the tail of the old `actor_<n>.c`. Spans that already cover the
+overlay's *entire* code (`actor_102500`, `actor_103800`) have no such hazard,
+because no non-shared unit remains to be cut.
