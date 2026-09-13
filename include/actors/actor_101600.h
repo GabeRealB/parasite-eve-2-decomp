@@ -114,7 +114,7 @@ typedef struct Actor01600Work {
     /* 0x538 */ s16             field_538;
     /* 0x53A */ byte            pad_53A[2];
     /* 0x53C */ s16             field_53C;
-    /* 0x53E */ byte            pad_53E[2];
+    /* 0x53E */ s16             field_53E;
     /* 0x540 */ s16             field_540;
     /* 0x542 */ u16             field_542;
     /* 0x544 */ byte            pad_544[0xA];
@@ -166,6 +166,37 @@ extern Actor01600StateF0  Gp_StateF0;
 extern Actor01600StateC08 Gp_StateC08;
 
 void Gp_DestroyEnemy(void* enemy, void* task);
+
+/// Overlay-local view of the player state selected through Gp_ActorSlots.
+typedef struct Actor01600PlayerState {
+    /* 0x000 */ byte pad_0[0x954];
+    /* 0x954 */ u16  field_954;
+} Actor01600PlayerState;
+
+typedef struct Actor01600PlayerSlot {
+    /* 0x00 */ byte                   pad_0[0x1C];
+    /* 0x1C */ Actor01600PlayerState* actor;
+} Actor01600PlayerSlot;
+
+/// Payload for message 0x3F8.
+typedef struct Actor01600Msg3F8 {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte pad_8[0xC];
+    /* 0x14 */ s32  field_14;
+} Actor01600Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor01600Msg3F8, 0x18);
+
+/// Position and rotation payload for message 0x3E9.
+typedef struct Actor01600Msg3E9 {
+    /* 0x00 */ VECTOR  position;
+    /* 0x10 */ SVECTOR rotation;
+} Actor01600Msg3E9;
+STATIC_ASSERT_SIZEOF(Actor01600Msg3E9, 0x18);
+
+extern Actor01600PlayerSlot* Gp_ActorSlots[];
+extern Actor01600Msg3F8      Actor01600_D12878;
+extern Actor01600Msg3E9      Actor01600_D12890;
 
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D127DC;

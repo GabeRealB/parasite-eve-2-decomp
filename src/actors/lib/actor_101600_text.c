@@ -354,7 +354,7 @@ void  Gp_PulseState1C(void);
 void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
-void  Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
+s32   Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
 
 void Actor01600_Fn03D48(Actor01600* arg0);
 void Actor01600_Fn06880(Actor01600* arg0);
@@ -544,7 +544,68 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn045A8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn047A0);
+s32 Actor01600_Fn047A0(Actor01600* arg0)
+{
+    SVECTOR3        delta;
+    s32             distance;
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    Task*           task;
+    s16             angle;
+    s16             heading;
+    s32             difference;
+    GsCOORDINATE2*  other;
+
+    work  = arg0->field_1C;
+    task  = work->field_4D4;
+    other = ((TmdObject*)task->extra)->field_8;
+    coord = arg0->field_2C->field_8;
+    if (Gp_ActorSlots[work->field_53E]->actor->field_954 != 2) {
+        if (Actor01600_D12870 != 1) {
+            difference = Actor01600_Fn045A8(arg0, &distance);
+            if (difference < 0) {
+                difference = -difference;
+            }
+            if (difference < 0x401) {
+                if (distance < 0x3E8) {
+                    Actor01600_D12878.field_14 = 5;
+                    if (work->field_53E != 0) {
+                        Actor01600_D12878.field_4 = 1;
+                    } else {
+                        Actor01600_D12878.field_4 = 2;
+                    }
+                    if (Gp_DispatchMsg(task, 0x3F8, &Actor01600_D12878, 0) == 0) {
+                        other->flg = 0;
+                        delta.vx   = coord->coord.t[0] - other->coord.t[0];
+                        delta.vy   = 0;
+                        delta.vz   = coord->coord.t[2] - other->coord.t[2];
+                        angle      = ratan2(delta.vx, delta.vz);
+                        heading    = angle;
+                        if (angle >= 0x801) {
+                            heading = angle - 0x1000;
+                        } else if (angle < -0x800) {
+                            heading = angle + 0x1000;
+                        }
+                        Actor01600_D12890.rotation.vx = 0;
+                        Actor01600_D12890.rotation.vy = heading;
+                        Actor01600_D12890.rotation.vz = 0;
+                        Actor01600_D12890.position.vx = (s32)other->coord.t[0];
+                        Actor01600_D12890.position.vy = (s32)other->coord.t[1];
+                        Actor01600_D12890.position.vz = (s32)other->coord.t[2];
+                        Gp_DispatchMsg(task, 0x3E9, &Actor01600_D12890, 0);
+                        Actor01600_D12870 = 1;
+                        return 1;
+                    }
+                    return 0;
+                }
+                return 0;
+            }
+            return 0;
+        }
+        return 0;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn04974);
 
