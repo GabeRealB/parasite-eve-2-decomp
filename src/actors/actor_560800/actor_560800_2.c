@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_560800.h"
+#include "gameplay/D4.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -13,7 +14,14 @@ void func_actor_560800_801362B0(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801362E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_8013631C);
+void func_actor_560800_8013631C(s16 arg0)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Msg   msg;
+
+    msg.field_2 = arg0;
+    Gp_DispatchMsg(work->field_24, 0x7DB, (s32)&msg, 0);
+}
 
 void func_actor_560800_80136358(s16 arg0)
 {

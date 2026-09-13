@@ -18,6 +18,11 @@
 /// `func_actor_560800_801367E0` writes 0x28/0x2A, 0x30/0x32, 0x38/0x3A and
 /// 0x40/0x42 with the same (value, 0) shape this unit uses for 0x58/0x5A, and
 /// `func_actor_560800_80136818` sets 0x64.
+///
+/// `field_24` is a `Gp_DispatchMsg` target, not a flag, and so are the 0x1C and
+/// 0x20 slots still inside `pad_18`: `func_actor_560800_80133540` sends the
+/// message its switch picks to 0x1C/0x20/0x24, and `func_actor_560800_8013631C`
+/// sends 0x7DB to `field_24`.
 typedef struct Actor560800Work {
     /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3)
     /* 0x04 */ Task* field_4;
@@ -25,7 +30,8 @@ typedef struct Actor560800Work {
     /* 0x0C */ byte  pad_C[4];
     /* 0x10 */ Task* field_10;
     /* 0x14 */ Task* field_14;
-    /* 0x18 */ byte  pad_18[0x10];
+    /* 0x18 */ byte  pad_18[0xC];
+    /* 0x24 */ Task* field_24;
     /* 0x28 */ s16   field_28;
     /* 0x2A */ s16   field_2A;
     /* 0x2C */ byte  pad_2C[4];
@@ -45,6 +51,16 @@ typedef struct Actor560800Work {
     /* 0x66 */ byte  pad_66[2];
 } Actor560800Work;
 STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
+
+/// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
+/// message 0x7DB: the same 4-byte record the other actors send, whose halfword
+/// at 0x2 carries the value the receiver reads.
+typedef struct Actor560800Msg {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor560800Msg;
+STATIC_ASSERT_SIZEOF(Actor560800Msg, 0x4);
 
 /// Controller task of this overlay, published by `func_actor_560800_80135BD8`
 /// and read by the sub-task handlers.

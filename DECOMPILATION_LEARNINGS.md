@@ -66015,3 +66015,33 @@ cast does select the load, because the member's type is fixed by the struct and
 the cast is what sets the access mode. Verified against the bundled cc1 on
 minimal functions; `func_actor_800200_80165B84` is the worked example (both
 casts, exact on the first attempt after the m2c seed scored 60.9%).
+## A leading stack store is scheduled early: give the callee pointer its own statement
+
+**Symptom.** `func_actor_560800_8013631C` (a 0x7DB `Gp_DispatchMsg` send that
+builds a 4-byte payload on the stack) scored 96% with `reorder=1`: the
+`sh $a0,0x12($sp)` came straight after the prologue, while retail has it after
+the `lw 0x1C($v0)` that fetches the work block and the `addiu $a2,$sp,0x10`
+that takes the payload's address.
+
+**Cause.** Statement order sets the RTL stream, and the stream order is
+sched1's final tie-break (`CODEGEN_MODEL.md` §2). With the payload store as the
+first statement its `sh` is the *first* insn of the block — in `.sched` its uid
+leads the chain (13, before the `high`/`lo_sum` pair at 15/18) — and it is
+scheduled into the earliest slot. Writing the work-pointer load inline as the
+call's first argument does not change that: the store still expands first.
+
+**Fix.** Hoist the pointer load into a named local above the store:
+
+```c
+Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+Actor560800Msg   msg;
+
+msg.field_2 = arg0;
+Gp_DispatchMsg(work->field_24, 0x7DB, (s32)&msg, 0);
+```
+
+The `sh` now expands *after* the `lw 0x1C` (uid 19 vs 16 in `.sched`), and the
+emitted order matches retail: 96% → 100%. `func_actor_560800_801362E0` is the
+same body with 0x20 for the target slot and the same target order. This is the
+statement-order lever of §10.6 in its "load or store sched1 keeps in place"
+case, applied to the payload of a message send.
