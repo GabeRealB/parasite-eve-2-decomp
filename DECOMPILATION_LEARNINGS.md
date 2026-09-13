@@ -6524,6 +6524,16 @@ assembly hints that a third case exists.
 real `case 0`, and shows `slti v0,a2,2` with `beqz` instead of `bnez` -- same
 `bgt`, not yet inverted because its left subtree does not fall to the default.
 
+`func_actor_560800_801361A0` is byte-identical to `func_actor_560800_801393EC`
+and reproduces the step from the same source, so the two-case form is the whole
+gap: with m2c's dropped third parameter and no `case 0` it scores 86.4% and the
+`.diagnosis.json` shows 6 blocks against the target's 5, the missing block being
+the bounds check. Its `.jump` dump shows the entry's last step directly --
+`(lt reg82 (const_int 2))` feeding a `branch_zero` whose target is the label the
+trailing `j` also reaches, the empty arm's compare already gone. Inputs: `base.i`
+`a128b30ad94d18d35543ecb259602bd4c4fdc64898b9087f04a4e1e1cb44e13f` (86.4%),
+`base_1.i` `c7f75f9008bdf8e5f04e339feabfe198488bea04fa6720fba4b78c4a3c71ee18` (100%).
+
 ## Local pointer CSE for a shared byte-store address
 
 When both arms of an `if`/`else` store to the same global `u8`, the target may
