@@ -17,6 +17,7 @@ void            func_801811C0(s16 arg0);
 void            func_801848B4(void);
 void            func_80184954(void);
 extern TaskDesc D_80185384;
+extern TaskDesc D_801856B8;
 extern s8       D_8007216C;
 extern TaskDesc D_actor_215100_8014CF6C;
 extern TaskDesc D_actor_215100_8014E13C;
@@ -93,7 +94,13 @@ void func_actor_215100_8014AB6C(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014ABAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AD50);
+void func_actor_215100_8014AD50(Task* arg0)
+{
+    if (arg0->killCountdown % 48 == 0) {
+        Task_SpawnFromTable(&D_801856B8, 1, 0, 0);
+    }
+    arg0->killCountdown = arg0->killCountdown + 1;
+}
 
 void func_actor_215100_8014ADD8(void)
 {

@@ -40192,6 +40192,16 @@ m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
 to `s32` before storing it to a `u16` field" is the remedy when the field really
 is unsigned; while you are still choosing the type, prefer flipping the type.
 
+Adopting m2c's `u16` also silently picks the *arithmetic*: `M2C_FIELD(x, u16*,
+off) % 48` is an unsigned modulo, `multu 0xAAAAAAAB` / `srl 5`. A target with
+`mult 0x2AAAAAAB`, the `sra` sign correction and `sll 16` / `sra 16` on the
+dividend is a *signed* modulo of an `s16` - declare the field `s16` and write
+the plain `x->field % 48`. The read-modify-write beside it then needs no cast:
+GCC 2.8.1 emits the same `lhu` / `addiu` / `sh` for `x->field = x->field + 1` as
+for the `temp = (u16)x->field + 1;` idiom, so a `lhu` on the increment is not
+evidence of an unsigned field (checked both ways on `func_actor_215100_8014AD50`,
+identical objects).
+
 ## An overlay can allocate more than one `Task::idMap` work block
 
 `actor_341700` calls `Mem_Calloc` three times: `0x454` in
