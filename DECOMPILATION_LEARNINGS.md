@@ -69162,3 +69162,39 @@ scored 100%. Compiler SHA256:
 
 Evidence: tools/permuter_findings/func_actor_460200_801338C0/sessions/7fee7c7e577c4ba2abd7620172d0e73a/277e68d1389c85d2d1f6
 (seed `base_5.c`, retained post-cse RTL, `.lreg` and `.greg` dumps).
+
+## m2c's typed allocation temporary scales every work-block offset by the struct size
+
+`func_actor_460200_80132808` scored 89.878% from m2c's `base.c` with `regs=42`
+and a body that otherwise looked structurally right. The tell was in the
+immediates: the target wants
+
+```
+addiu    v0,s0,0x20        ; &work->anim,      work + 0x20
+sw       v0,0x4f4(s0)      ; work->enemy
+addiu    v0,s0,0x100       ; m2c's same &work->anim
+sw       v0,0x4f4(s0)
+```
+
+m2c typed the `Mem_Calloc` result as `TaskIdMap*` (its 8-byte return type for
+this callee) and then wrote `temp_v0 + 0x20`, `temp_v0 + 0x374`, `temp_v0 +
+0x54` for what are byte offsets into a 0x4F8 work block. `M2C_FIELD` keeps its
+offsets in bytes, so the *field* stores all matched; only the bare pointer
+arithmetic is scaled, and it is scaled silently - the C compiles and links, and
+the mismatch reads as a register-allocation problem.
+
+Retyping the function against the real structs removes it in one edit: this
+function is the twin of the already-matched `func_actor_460200_801338C0` in
+`actor_460200_4`, so `obj = task->extra; coord = obj->field_8; work =
+(Actor460200Work*)workMem;` with `Actor460200Work*`/`TmdObject*`/`GsCOORDINATE2*`
+locals scored 100.000% with every penalty zero. The remaining differences from
+the twin are only the exit callback, the animation bank in `func_800B3F84`, and
+the initial clip (`work->animId = 0xA` where the twin sets 2), and those
+constants also fix the store order: write `field_E` before `field_C`, and
+`animId` (0x4B8) before `enemy` (0x4F4).
+
+So: when an m2c baseline sits near 90% with a large `regs` penalty and the diff
+shows `addiu` immediates off by a struct-size multiple, do not chase the
+allocation - find the scaled pointer arithmetic and give it a real type.
+Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
