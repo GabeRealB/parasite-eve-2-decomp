@@ -17,7 +17,9 @@ typedef struct Actor300700Work {
     /* 0x22C */ MATRIX field_22C;
     /* 0x24C */ byte   pad_24C[0x96];
     /* 0x2E2 */ s16    field_2E2;
-    /* 0x2E4 */ byte   pad_2E4[0x96];
+    /* 0x2E4 */ byte   pad_2E4[0x5C];
+    /* 0x340 */ MATRIX field_340;
+    /* 0x360 */ byte   pad_360[0x1A];
     /* 0x37A */ s16    field_37A;
     /* 0x37C */ s16    field_37C;
     /* 0x37E */ u16    field_37E;
@@ -27,7 +29,8 @@ typedef struct Actor300700Work {
     /* 0x386 */ s16    field_386;
     /* 0x388 */ byte   pad_388[4];
     /* 0x38C */ u16    field_38C;
-    /* 0x38E */ byte   pad_38E[4];
+    /* 0x38E */ byte   pad_38E[2];
+    /* 0x390 */ s16    field_390;
     /* 0x392 */ u16    field_392;
     /* 0x394 */ s16    field_394;
 } Actor300700Work;
