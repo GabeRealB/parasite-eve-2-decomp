@@ -7,6 +7,9 @@
 extern u8 D_actor_548100_80135884;
 extern u8 D_actor_548100_80135885;
 extern u8 D_actor_548100_80135886;
+extern u8 D_actor_548100_8013588A;
+extern u8 D_actor_548100_8013588B;
+extern u8 D_actor_548100_8013588C;
 
 void func_actor_548100_80133684(Actor548100Edge* edge);
 void func_actor_548100_80132A14(Task* arg0);
@@ -66,7 +69,28 @@ void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_801349E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134A60);
+void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+{
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+
+    var_v0 = D_actor_548100_8013588A * arg0;
+    if (var_v0 < 0) {
+        var_v0 += 0x1F;
+    }
+    *arg1    = (s8)(var_v0 >> 5);
+    var_v0_2 = D_actor_548100_8013588B * arg0;
+    if (var_v0_2 < 0) {
+        var_v0_2 += 0x1F;
+    }
+    *arg2    = (s8)(var_v0_2 >> 5);
+    var_v0_3 = D_actor_548100_8013588C * arg0;
+    if (var_v0_3 < 0) {
+        var_v0_3 += 0x1F;
+    }
+    *arg3 = (s8)(var_v0_3 >> 5);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134AE0);
 
