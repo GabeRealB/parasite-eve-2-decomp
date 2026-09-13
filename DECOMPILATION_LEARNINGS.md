@@ -8021,6 +8021,46 @@ after it — but `func_actor_107600_80132CD4` copies three words, so the extern 
 `TaskFuncTable3` and the trailing zero belongs to nobody. Declaring it
 `TaskFuncTable4` because the symbol measures 16 bytes emits the four-word
 multi-load the sibling `func_actor_107600_801328CC` has and costs the match.
+**Past ~0x20 bytes the copy stops being a straight-line multi-load and becomes
+a loop, and m2c then renders it as a `do`/`while` plus a tail — which reads
+like hand-written control flow and is not.** An eleven-entry table (0x2C bytes)
+compiles to two 16-byte iterations plus a 3-word remainder:
+
+```
+addiu v1, sp, 0x10        ; dest
+addiu a0, v0, 0x20        ; end = src + 0x20
+.L: lw a1,0(v0); lw a2,4(v0); lw a3,8(v0); lw t0,0xC(v0)
+    sw a1,0(v1); sw a2,4(v1); sw a3,8(v1); sw t0,0xC(v1)
+    addiu v0, v0, 0x10
+    bne  v0, a0, .L
+     addiu v1, v1, 0x10
+    lw a1,0(v0); lw a2,4(v0); lw a3,8(v0)     ; the 0xC remainder
+    sw a1,0(v1); sw a2,4(v1); sw a3,8(v1)
+```
+
+The `%hi`/`%lo` pair is the source symbol, the precomputed `end` is
+`src + 0x20` — i.e. the loop runs a *fixed* two times — and the tail is the
+remainder, not a separate statement. Recognising that, the whole thing is one
+structure assignment:
+
+```c
+extern TaskFuncTable11 D_actor_548100_80131E6C;
+
+void func_actor_548100_801347F8(Task* arg0)
+{
+    TaskFuncTable11 fns;
+
+    fns = D_actor_548100_80131E6C;
+    fns.funcs[arg0->state](arg0);
+}
+```
+
+No loop, no `end` variable and no tail statement should be written out; the
+initializer/assignment form reproduces all three parts exactly. The eleven
+entries occupy states 0..10, and `arg0->state` is a `s32`, so the index is a
+bare `sll`/`addu` — a `s16` field instead gets an `lh` (compare
+`func_actor_403100_8013DD78`, the same 0x2C copy off a sibling overlay's table
+at the same link address, indexed by an `lh`).
 
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
