@@ -47,7 +47,30 @@ void func_actor_107600_80132AC0(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132B0C);
+/// Copies the world position of the model's first attach coordinate onto a
+/// 0x10-byte `VECTOR` carved off `G_SCRATCH_HEAD` and hands it to
+/// `Gp_UpdateActorColor` for the enemy in `Task::spawnArg2` with no blend
+/// parameters. Same shape as `func_actor_107600_801349E0`, a different callee.
+void func_actor_107600_80132B0C(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+    void*          obj;
+
+    obj       = arg0->spawnArg2;
+    coord     = ((TmdObject*)arg0->extra)->field_8;
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    Gp_UpdateActorColor(obj, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132B7C);
 

@@ -54010,6 +54010,19 @@ The prologue hunk is noise, not signal: the added term perturbs which of
 dozen lines move without meaning anything. Read the diff for *instructions that
 have no counterpart*, not for operand renames.
 
+The twin need not sit in the same unit, and the nearby-TU list need not name it.
+BRIEF.md's "Similar matched bodies" block ranks *already-matched* bodies by
+`shape` (opcode order, operands dropped); a `shape` score of 1.00 is an
+invitation to diff immediately, before writing anything. `func_actor_107600_80132B0C`
+came back from `overlay_dup_index.py find` as its own only copy, while the block
+listed `func_actor_107600_801349E0` at `shape` 1.00 and `fields` 1.00 — the two
+disassemblies are identical instruction for instruction except the `jal`
+target. The matched body ported verbatim with the callee substituted scored 100%
+on the first attempt against an m2c baseline of 68.4% (`regs=19 insert=4
+delete=3 reorder=2`), and all of m2c's damage was its two-temp
+`temp_a1 = temp_a1 - 0x10` form where the original keeps a `u8* head` and a
+`VECTOR* block` over the same carved scratch address.
+
 ## A named index temp can *win* the register allocation by shortening a live range
 
 `func_apobiosis_8012EF4C` reached 99.86% with `branch = insert = delete = 0` and
