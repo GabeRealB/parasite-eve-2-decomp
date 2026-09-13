@@ -119,7 +119,3 @@ s32 func_actor_460200_80133408(Task* task, s32 arg1, Actor460200AnimArgs* args)
     func_actor_460200_80132F0C(task);
     return 0;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80133474);
-
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_801334F0);

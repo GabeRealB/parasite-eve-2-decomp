@@ -69071,3 +69071,30 @@ So when an entry block is one load short and the penalties are all layout, check
 whether the missing load belongs to one arm - and once it is hoisted, check its
 order against the target's. `func_actor_460200_80132B98` is the worked example
 (86.31% -> 100% in three builds, `regs` 15 -> 3 -> 0).
+
+## `overlay_dup_index.py promote` writes the configs but renumbers the carrier's units
+
+Promoting a matched body to a family-shared unit inserts a span in the middle of
+the carrier unit that held it, and `gen_overlay_configs` numbers the runs either
+side of that span independently: the run *after* the span becomes a new unit and
+every later unit of the overlay shifts up by one. The `promote` subcommand only
+does the config half (span + shared symbol), so a scoped build right after it
+fails with a message that points nowhere useful:
+
+```
+Error: can't open asm/USA/actors/nonmatchings/actor_460200/actor_460200_3/func_….s
+ninja: cannot find build/USA/src/actors/actor_460200/actor_460200_2.c.o
+```
+
+The `.s` files moved, and the assembler cannot open them because the hand-written
+`src/` unit files still name the old directories. The source half is: rename the
+carrier's unit files upward (highest first, rewriting the `INCLUDE_ASM` path
+suffix in each), let splat author the newly vacated unit, and put any decompiled
+bodies the split hands back as `INCLUDE_ASM` stubs into their new file. Deleting
+just the promoted body's own line is not enough - the unit it sat in is now two
+units, and only the *head* of it is that file.
+
+`tools/bulk_m2c_promote.py` does exactly this (and refuses rather than guesses
+when the manifest carries hand-placed `rodata`/`units` cuts, which need
+re-deriving by hand). Worked example: `func_actor_460200_80133474`, where unit
+`actor_460200_2` split at the shared span and units `_3`/`_4` became `_4`/`_5`.
