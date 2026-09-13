@@ -344,7 +344,43 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn020F8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn03A60);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn03D48);
+void Actor01600_Fn03D48(Actor01600* arg0)
+{
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    s16             anim;
+    s32             i;
+
+    work = arg0->field_1C;
+
+    if (work->field_506 != 0xFF) {
+        if (work->field_506 != work->field_508) {
+            work->field_508 = (s16)(u16)work->field_506;
+            work->field_50A = 0;
+            for (i = 1; i < 9; i++) {
+                func_800B4114(&work->anim, i, work->field_506, 0, (s32)work->field_4FA);
+            }
+        } else {
+            work->field_50A = (u16)work->field_50A + 1;
+            for (i = 1; i < 9; i++) {
+                work->slots[i].field_9 = (u8)work->field_538;
+                Gp_AnimTickIndex(&work->anim, i);
+            }
+        }
+        anim = work->field_506;
+        if (anim == 28 || anim == 30 || anim == 9 || anim == 21 || anim == 22 || anim == 5 || anim == 6 || anim == 27) {
+            arg0->field_2C->field_8[1].coord.t[0] = 0;
+            arg0->field_2C->field_8[1].coord.t[2] = 0;
+            arg0->field_2C->field_8[1].coord.t[0] = 0;
+            arg0->field_2C->field_8[1].coord.t[2] = 0;
+            return;
+        } else if (anim == 29) {
+            arg0->field_2C->field_8[1].coord.t[0] = 0;
+            coord                                 = arg0->field_2C->field_8;
+            coord[1].coord.t[2]                   = (s32)(coord[1].coord.t[2] - 0x2BC);
+        }
+    }
+}
 
 void Actor01600_Fn03EEC(Actor01600* arg0)
 {
