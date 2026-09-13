@@ -90,4 +90,7 @@ typedef struct Actor100400 {
     /* 0x30 */ s32              field_30;
 } Actor100400;
 
+void Actor00400_Fn07400(Actor100400*);
+void Actor00400_Fn0A510(Actor100400*);
+
 #endif
