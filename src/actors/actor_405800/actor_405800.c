@@ -13,7 +13,96 @@ void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 ar
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80132670);
+void func_actor_405800_80132670(Task* arg0)
+{
+    Actor405800Work* work;
+
+    work                   = (Actor405800Work*)arg0->idMap;
+    work->obj_4B4.field_8  = &((TmdObject*)arg0->extra)->field_8[3];
+    work->obj_4B4.field_C  = work->rec_4D4;
+    work->obj_4B4.field_10 = 0;
+    work->obj_4B4.field_12 = 0;
+    work->obj_4B4.field_14 = 0x110;
+    work->obj_4B4.field_18 = 0x3003A;
+    work->obj_4B4.field_1C = 0x2F0;
+    work->obj_4B4.flags    = 1;
+    Gp_LinkObj(2, &work->obj_4B4);
+    Gp_InitRec18Table(work->rec_4D4, 8, 0);
+    work->obj_4B4.flags   |= 0x8000;
+    work->obj_594.field_8  = ((TmdObject*)arg0->extra)->field_8;
+    work->obj_594.field_C  = work->rec_5B4;
+    work->obj_594.field_10 = 0;
+    work->obj_594.field_12 = -0x220;
+    work->obj_594.field_14 = 0;
+    work->obj_594.field_18 = 0x3003A;
+    work->obj_594.field_1C = 0x460;
+    work->obj_594.flags    = 1;
+    Gp_LinkObj(2, &work->obj_594);
+    Gp_InitRec18Table(work->rec_5B4, 8, 0);
+    work->rec_744.field_4  = 0xBB8;
+    work->rec_744.field_10 = 0xA;
+    work->rec_744.field_12 = 0xA;
+    work->rec_744.field_0  = 0;
+    work->rec_744.field_C  = 0;
+    work->rec_744.field_8  = 0;
+    work->rec_744.field_14 = work->rec_75C;
+    work->obj_594.flags   |= 0x4000;
+    work->obj_724.field_8  = ((TmdObject*)arg0->extra)->field_8;
+    work->obj_724.field_C  = (GpRec18*)&work->rec_744;
+    work->obj_724.field_10 = 0;
+    work->obj_724.field_12 = -0x190;
+    work->obj_724.field_14 = 0;
+    work->obj_724.field_18 = 0x30005;
+    work->obj_724.field_1C = 0;
+    work->obj_724.flags    = 3;
+    Gp_LinkObj(2, &work->obj_724);
+    Gp_InitRec18Table(work->rec_75C, 8, 0);
+    work->obj_724.flags   &= 0x3FFF;
+    work->obj_6B4.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj_6B4.field_8  = &((TmdObject*)arg0->extra)->field_8[7];
+    work->obj_6B4.field_C  = work->rec_6F4;
+    work->obj_6B4.field_10 = -0x460;
+    work->obj_6B4.field_12 = 0;
+    work->obj_6B4.field_14 = 0;
+    work->obj_6B4.field_1C = 0x290;
+    work->obj_6B4.flags    = 1;
+    Gp_LinkObj(3, &work->obj_6B4);
+    Gp_InitRec18Table(work->rec_6F4, 1, 0);
+    work->obj_6B4.flags   &= 0x7FFF;
+    work->obj_674.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj_674.field_8  = &((TmdObject*)arg0->extra)->field_8[7];
+    work->obj_674.field_C  = work->rec_6F4;
+    work->obj_674.field_10 = -0x200;
+    work->obj_674.field_12 = 0;
+    work->obj_674.field_14 = 0;
+    work->obj_674.field_1C = 0x250;
+    work->obj_674.flags    = 1;
+    Gp_LinkObj(3, &work->obj_674);
+    Gp_InitRec18Table(work->rec_6F4, 1, 0);
+    work->obj_674.flags   &= 0x7FFF;
+    work->obj_6D4.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj_6D4.field_8  = &((TmdObject*)arg0->extra)->field_8[10];
+    work->obj_6D4.field_C  = work->rec_70C;
+    work->obj_6D4.field_10 = 0x460;
+    work->obj_6D4.field_12 = 0;
+    work->obj_6D4.field_14 = 0;
+    work->obj_6D4.field_1C = 0x290;
+    work->obj_6D4.flags    = 1;
+    Gp_LinkObj(3, &work->obj_6D4);
+    Gp_InitRec18Table(work->rec_70C, 1, 0);
+    work->obj_6D4.flags   &= 0x7FFF;
+    work->obj_694.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj_694.field_8  = &((TmdObject*)arg0->extra)->field_8[10];
+    work->obj_694.field_C  = work->rec_70C;
+    work->obj_694.field_10 = 0x200;
+    work->obj_694.field_12 = 0;
+    work->obj_694.field_14 = 0;
+    work->obj_694.field_1C = 0x250;
+    work->obj_694.flags    = 1;
+    Gp_LinkObj(3, &work->obj_694);
+    Gp_InitRec18Table(work->rec_70C, 1, 0);
+    work->obj_694.flags &= 0x7FFF;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801329C8);
 
