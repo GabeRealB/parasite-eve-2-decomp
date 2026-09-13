@@ -24,9 +24,11 @@ typedef struct Actor100300Obj2C {
 
 typedef struct Actor100300Work {
     /* 0x000 */ GpObj               obj0;
-    /* 0x020 */ byte                pad_20[0x18];
+    /* 0x020 */ u16                 field_20;
+    /* 0x022 */ byte                pad_22[0x16];
     /* 0x038 */ GpObj               obj38;
-    /* 0x058 */ byte                pad_58[0x30];
+    /* 0x058 */ byte                pad_58[0x18];
+    /* 0x070 */ GpRec18             field_70;
     /* 0x088 */ u16                 field_88;
     /* 0x08A */ s16                 field_8A;
     /* 0x08C */ byte                pad_8C[0x3B0];

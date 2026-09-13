@@ -15,8 +15,11 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern u8  D_801153F4;
 extern s32 D_80115728;
+extern s32 D_8011573C;
 extern s32 Gp_LcgState;
 
+void Actor00300_Fn00078(GsCOORDINATE2* arg0, s32 arg1);
+void Actor00300_Fn04528(Actor100300* arg0);
 void Actor00300_Fn00E54(Actor100300* arg0);
 void Actor00300_Fn01678(Actor100300* arg0);
 void Actor00300_Fn019C0(Actor100300* arg0);
@@ -158,7 +161,47 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03F40);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn040A4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04370);
+void Actor00300_Fn04370(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor100300Work* work;
+    GsCOORDINATE2*   coord;
+    s32              id;
+    s32              expired;
+    s16              timer;
+
+    coord   = arg1->field_2C->field_8;
+    work    = arg1->field_1C;
+    expired = 0;
+    switch (D_801153F4) {
+        case 1:
+            Actor00300_Fn00078(coord, 0x200);
+            return;
+        case 0:
+        default:
+            coord->flg         = 0;
+            coord->coord.t[0] += (coord->coord.m[0][2] * 0x19) >> 8;
+            coord->coord.t[2] += (coord->coord.m[2][2] * 0x19) >> 8;
+            Gp_UpdateCoord(coord);
+            Actor00300_Fn00078(coord, 0x200);
+            id = work->field_70.field_4;
+            if (id != 0 && Gp_RoomParamTables[Game_Session->field_7 - 1]
+                                             [Game_Session->field_6 - 1][func_800E1B24(id)]
+                                                 ->field_1 == 0) {
+                expired = 1;
+            }
+            Gp_ClearRec18Occupied(&work->field_70);
+            Actor00300_Fn04528(arg1);
+            timer          = work->field_88 - 1;
+            work->field_88 = timer;
+            if (timer <= 0 || (work->field_20 & 1) || expired != 0) {
+                Gp_SpawnEff(D_8011573C, coord, 0, NULL);
+                arg1->field_30 = 2;
+                work->field_8A = 0;
+            }
+        case 2:
+            return;
+    }
+}
 
 void Actor00300_Fn04528(Actor100300* arg0)
 {
