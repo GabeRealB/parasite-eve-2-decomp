@@ -574,7 +574,42 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02574);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn025D0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn02750);
+void Actor02500_Fn02750(Actor02500Ctx* ctx, Actor02500* task)
+{
+    s32                sound;
+    GsCOORDINATE2*     coord;
+    Actor02500Rec18*   rec;
+    s32                done;
+    s32                pan;
+    u16                timer;
+    Actor02500EffWork* work;
+
+    coord = task->field_2C->field_8;
+    work  = (Actor02500EffWork*)task->field_1C;
+    done  = 0;
+    if (Gp_StateF0.field_4 == 0) {
+        rec = work->rec18;
+        if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
+            done  = 1;
+            sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40190007;
+            pan   = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+        }
+        Gp_ClearRec18Occupied(rec);
+        timer          = work->field_3C + 1;
+        work->field_3C = timer;
+        if ((s16)timer >= 0xF1) {
+            done = 1;
+        }
+        if (Gp_StateF0.field_6 == 0) {
+            done = 1;
+        }
+        if (done != 0) {
+            work->field_3E = 0;
+            task->field_30 = 2;
+        }
+    }
+}
 
 void Actor02500_Fn02874(Actor02500Ctx* ctx, Actor02500* task)
 {

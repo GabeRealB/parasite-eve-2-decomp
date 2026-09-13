@@ -152,7 +152,8 @@ typedef struct Actor02500Kind {
 typedef struct Actor02500Ctx {
     /* 0x00 */ byte             pad_0[4];
     /* 0x04 */ MATRIX*          field_4;
-    /* 0x08 */ byte             pad_8[8];
+    /* 0x08 */ u16              field_8;
+    /* 0x0A */ byte             pad_A[6];
     /* 0x10 */ Actor02500Node   node;
     /* 0x18 */ GsCOORDINATE2*   field_18;
     /* 0x1C */ s32              field_1C;
@@ -178,6 +179,21 @@ typedef struct Actor02500RotScratch {
     /* 0x10 */ SVECTOR rot;
 } Actor02500RotScratch;
 STATIC_ASSERT_SIZEOF(Actor02500RotScratch, 0x18);
+
+typedef struct Actor02500StateF0 {
+    /* 0x00 */ byte pad_0[4];
+    /* 0x04 */ u8   field_4;
+    /* 0x05 */ u8   field_5;
+    /* 0x06 */ u16  field_6;
+} Actor02500StateF0;
+
+extern Actor02500StateF0 Gp_StateF0;
+
+void Gp_ClearRec18Occupied(Actor02500Rec18* rec);
+s32  Gp_CountRec18Hi(Actor02500Rec18* rec, s32 mask);
+s32  Gp_GetObjDepth(GsCOORDINATE2* coord);
+s32  Gp_GetObjPan(GsCOORDINATE2* coord);
+s32  SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
 extern s16            Actor02500_D05B88[];
 extern Actor02500Desc Actor02500_D05B38[];
