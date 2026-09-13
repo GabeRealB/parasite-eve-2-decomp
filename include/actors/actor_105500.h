@@ -20,7 +20,8 @@ typedef struct Actor105500Work {
     /* 0x370 */ MATRIX  field_370;
     /* 0x390 */ byte    pad_390[2];
     /* 0x392 */ s16     field_392;
-    /* 0x394 */ byte    pad_394[4];
+    /* 0x394 */ s16     field_394;
+    /* 0x396 */ u16     field_396;
     /* 0x398 */ s16     field_398;
     /* 0x39A */ s16     field_39A;
     /* 0x39C */ s16     field_39C;
@@ -63,6 +64,7 @@ typedef struct Actor105500Ctx {
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);
 
 extern GpU16Pair Actor05500_D08958;
+extern s16       Actor05500_D08A18[];
 void             Actor05500_Fn03E34(GpEnemy* enemy, Task* task);
 
 #endif

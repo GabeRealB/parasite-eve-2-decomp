@@ -39,6 +39,7 @@ void Actor05500_Fn039AC(Actor105500* arg0);
 void Actor05500_Fn03A70(Actor105500* arg0);
 void Actor05500_Fn03AC8(Actor105500* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern u8 D_801153F4;
 
@@ -192,7 +193,30 @@ void Actor05500_Fn03918(Actor105500* arg0)
     coord->coord.t[2] += (coord->coord.m[2][2] * work->field_398) >> 12;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn039AC);
+void Actor05500_Fn039AC(Actor105500* arg0)
+{
+    Actor105500Work* work;
+    s32              i;
+    s32              value;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if (work->field_392 != work->field_394) {
+        work->field_394 = work->field_392;
+        work->field_396 = 0;
+        value           = Actor05500_D08A18[work->field_392];
+        for (; i < 8; i++) {
+            func_800B4114(work, i, work->field_392, 0, value);
+        }
+    } else {
+        TOUCH_REG(i);
+        work->field_396 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 8);
+    }
+}
 
 void Actor05500_Fn03A70(Actor105500* arg0)
 {
