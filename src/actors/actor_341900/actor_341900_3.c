@@ -13,7 +13,12 @@ void func_actor_341900_80163388(s32 arg0)
     Gp_DispatchMsg(work->field_8, 0x7D5, arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_3", func_actor_341900_801633C0);
+void func_actor_341900_801633C0(s32 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+
+    Gp_DispatchMsg(work->field_0, 0x3F3, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_3", func_actor_341900_801633F8);
 
