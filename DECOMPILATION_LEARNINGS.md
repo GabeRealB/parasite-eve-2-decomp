@@ -1046,6 +1046,28 @@ if (arg0->spawnArg1 == 0) {
 
 A ternary argument and a `UiPanel *panel` hoist both kept the `$v0` form.
 `func_replay_bonus_801166AC` is the example.
+
+The same split applies when the shared tail argument is an integer. A
+`s16 next` set to 7 in the `== 4` arm and 9 in the else, then one call,
+makes `li a1, 7` the first insn `dbr` may steal into the `bne` delay
+(the preceding `sh` is not safe on the taken path, the `lhu` is a load).
+That leaves a load-use `nop` after `lhu` and parks `move a0, s1` in the
+`jal` delay. Two calls still cross-jump the `jal`; `li a1, 7` stays after
+the `lhu` and `move a0, s1` fills the `bne`:
+
+```c
+if (work->field_85A == 4) {
+    work->field_842 = 0;
+    model->field_C |= 0x80;
+    func(arg0, 7);
+} else if (work->field_890 == 0) {
+    work->field_846 = work->field_846 + 1;
+} else {
+    func(arg0, 9);
+}
+```
+
+`func_actor_405800_801388E4` is the example.
 ## Handwritten-GTE `mvmva`/`gpf` need the full COP2 word, not the psyq macro
 
 The psyq `gte_mvmva(sf,mx,v,cv,lm)` and `gte_gpf12()` macros emit the *short*
