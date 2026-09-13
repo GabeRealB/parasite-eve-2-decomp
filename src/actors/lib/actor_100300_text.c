@@ -547,7 +547,160 @@ void Actor00300_Fn028D0(Actor100300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn02CE8);
+void Actor00300_Fn02CE8(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GpEffWork*       effect;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s16              animation;
+    s16              deathEnd;
+    s16              heavyEnd;
+    s16              lightEnd;
+    s32              sound;
+    s32              random0;
+    s32              random1;
+    s32              soundBase;
+    s32              pan0, pan1, pan2, pan3, pan4;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    state = work->field_686;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            effect              = work->field_654;
+            work->field_67A     = 0;
+            work->field_67C     = 0;
+            work->obj5B8.flags &= 0x7FFF;
+            if (effect != NULL) {
+                effect->field_0->state = 3;
+                work->field_654        = NULL;
+                work->field_69C        = 0;
+                SndEvt_EnqueueType7(work->field_658, 1);
+            }
+            if (enemy->field_40 <= 0) {
+                if (work->field_692 == 0) {
+                    work->field_66E = 0xB;
+                    deathEnd        = 0x20;
+                } else {
+                    work->field_66E = 0xC;
+                    deathEnd        = 0x22;
+                }
+                work->field_688       = deathEnd;
+                work->field_69A       = 1;
+                enemy->field_4C       = 0;
+                work->obj4D0.field_14 = 0x190;
+                work->field_686       = 2;
+                work->obj4D0.flags   |= 0x4000;
+                work->obj538.flags   &= 0xBFFF;
+                return;
+            }
+            if ((work->field_690 >= 0x78) || (work->field_694 != 0)) {
+                if (work->field_692 == 0) {
+                    work->field_66E = 0xB;
+                    heavyEnd        = 0x20;
+                } else {
+                    work->field_66E = 0xC;
+                    heavyEnd        = 0x22;
+                }
+                work->field_688 = heavyEnd;
+                work->field_686 = 2;
+            } else {
+                if (work->field_692 == 0) {
+                    work->field_66E = 9;
+                    lightEnd        = 0x35;
+                } else {
+                    work->field_66E = 0xA;
+                    lightEnd        = 0x33;
+                }
+                work->field_688 = lightEnd;
+                work->field_686 = 1;
+                work->field_69E = 1;
+            }
+            soundBase = 0x40030007;
+            sound     = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | soundBase;
+            pan0      = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(sound, (s32)pan0, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            return;
+        case 1:
+            if ((s16)work->field_672 >= work->field_688) {
+                work->field_694 = 0;
+                work->field_684 = 1;
+                work->field_686 = 1;
+                work->field_6A0 = 0x1C2;
+                work->field_69E = 0;
+                random0         = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random0;
+                work->field_688 = ((u32)random0 >> 0x10) & 0x1F;
+            }
+            animation = work->field_66E;
+            if (animation == 9) {
+                if ((s16)work->field_672 == 0xA) {
+                    soundBase = 0x40030003;
+                    sound     = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | soundBase;
+                    pan1      = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            } else if (animation == 10) {
+                if ((s16)work->field_672 == 0xC) {
+                    soundBase = 0x40030003;
+                    sound     = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | soundBase;
+                    pan2      = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(sound, (s32)pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            }
+            break;
+        case 2:
+            if (work->field_69A == 1) {
+                work->field_69A = state;
+            }
+            if ((s16)work->field_672 >= work->field_688) {
+                if (enemy->field_40 <= 0) {
+                    work->field_684 = 8;
+                    work->field_686 = 0;
+                    arg0->field_30  = (s32)state;
+                } else {
+                    work->field_686 = 3;
+                    if (work->field_66E == 0xB) {
+                        work->field_66E = 0xD;
+                    } else {
+                        work->field_66E = 0xE;
+                    }
+                    work->field_69E = 1;
+                }
+            }
+            if (work->field_66E == 0xB) {
+                if ((s16)work->field_672 == 0xD) {
+                    soundBase = 0x40030004;
+                    sound     = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | soundBase;
+                    pan3      = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(sound, (s32)pan3, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            } else if (work->field_66E == 0xC) {
+                if ((s16)work->field_672 == 0x12) {
+                    soundBase = 0x40030004;
+                    sound     = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | soundBase;
+                    pan4      = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(sound, (s32)pan4, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            }
+            break;
+        case 3:
+            if ((s16)work->field_672 >= 0x2B) {
+                work->field_694 = 0;
+                work->field_684 = 1;
+                work->field_686 = 1;
+                work->field_6A0 = 0x1C2;
+                work->field_69E = 0;
+                random1         = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random1;
+                work->field_688 = ((u32)random1 >> 0x10) & 0x1F;
+            }
+            break;
+    }
+}
 
 void Actor00300_Fn030B8(Actor100300* arg0)
 {
