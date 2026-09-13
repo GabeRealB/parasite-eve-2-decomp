@@ -68558,3 +68558,59 @@ The scratchpad idiom comes across unchanged too (`#define SCRATCH_SP
 (*(u32*)0x1F8003FC)`, a 0x18 `RotScratch` holding a `VECTOR` then the
 `SVECTOR` handed to `RotMatrix`), and `ratan2` / `RotMatrix` need no declaration
 - the siblings call them implicitly.
+## `M2C_FIELD(&global, T*, off)` folds the offset into the symbol reloc
+
+**Symptom.** An m2c seed that reaches a *global* struct through `M2C_FIELD`
+sticks at 83-95% with `insert=1 delete=1` and some `regs`, and the object dump
+shows one `addiu` too many plus every displacement rebased off the first
+field's reloc:
+
+```
+target                              m2c seed
+lui   v0,%hi(D_80114D28)            lui   v0,%hi(D_80114D28)
+addiu v0,v0,%lo(D_80114D28)         li    v1,0x80
+li    v1,0x80                       sh    v1,%lo(D_80114D28+0xc)(v0)
+sh    v1,0xc(v0)                    addiu v0,v0,%lo(D_80114D28+0xc)
+li    v1,1                          li    v1,1
+sb    v1,0x10(v0)                   sb    v1,4(v0)
+sh    zero,8(v0)                    sh    zero,-0x4(v0)
+sh    zero,0xa(v0)                  sh    zero,-0x2(v0)
+```
+
+**Cause.** m2c writes the address-taken form, so the base is materialised *per
+field*: each store gets its own `%lo(sym+off)` reloc and an `addiu` to add it.
+The compiler never sees one base plus constant offsets, so CSE cannot fold the
+address the way the original source's member access let it.
+
+**Fix.** Hoist the pointer and use member access. Do not tune registers around
+the seed — the extra `addiu` is the whole miss:
+
+```c
+/* m2c */  M2C_FIELD(&D_80114D28, s16 *, 0xC) = 0x80;
+/* ours */ RoomActionPrompt* prompt = &D_80114D28;
+           prompt->targetId = 0x80;
+```
+
+83.077% (`regs=4 insert=1 delete=1`) → 100.000%, all penalties zero, in one
+edit. `func_actor_548100_80134D88`.
+
+This is the seed-side instance of "Hold a global's address in a local pointer":
+that entry is about keeping the `%hi` live *across calls*, this one is about the
+address-taken spelling baking the first field's offset into the reloc before any
+call is involved, so it applies to a three-field store sequence with no call at
+all. Both are the same edit; reach for it as soon as an m2c seed's dump shows
+`%lo(sym+off)` on an operand instead of a bare `%lo(sym)`.
+
+This is the m2c-side counterpart of the aliasing note under "Struct-typing a
+body changes GCC 2.8.1's aliasing": there the *types* changed which MEMs the
+dependence analysis sees, here the *spelling* changes whether the base address
+is materialised once or once per field. Both are worth fixing before any
+register work, and both are visible in the object dump rather than in a dump
+pass.
+
+What CSE does with the seed is pick the *first* field's address as the common
+base, which is why the seed's reloc reads `%lo(D_80114D28+0xc)` and the later
+displacements are `4`, `-0x4` and `-0x2` — offsets relative to `0xc`. A first
+field at offset 0 hides the whole thing, because then the seed's base *is* the
+symbol; the trap only shows on a global whose lowest-written field is not at
+offset 0.
