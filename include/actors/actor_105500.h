@@ -16,14 +16,17 @@ typedef struct Actor105500Obj2C {
 typedef struct Actor105500Work {
     /* 0x000 */ byte    pad_0[0x35C];
     /* 0x35C */ VECTOR3 field_35C;
-    /* 0x368 */ byte    pad_368[0x2A];
+    /* 0x368 */ byte    pad_368[8];
+    /* 0x370 */ MATRIX  field_370;
+    /* 0x390 */ byte    pad_390[2];
     /* 0x392 */ s16     field_392;
     /* 0x394 */ byte    pad_394[4];
     /* 0x398 */ s16     field_398;
     /* 0x39A */ s16     field_39A;
     /* 0x39C */ s16     field_39C;
     /* 0x39E */ s16     field_39E;
-    /* 0x3A0 */ byte    pad_3A0[6];
+    /* 0x3A0 */ s16     field_3A0;
+    /* 0x3A2 */ byte    pad_3A2[4];
     /* 0x3A6 */ s16     field_3A6;
     /* 0x3A8 */ s16     field_3A8;
     /* 0x3AA */ byte    pad_3AA[6];
