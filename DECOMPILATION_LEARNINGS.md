@@ -41675,6 +41675,14 @@ leading argument and it matches on the first build; the matched sibling in the
 same TU (`func_actor_800200_801653C0`, `Gp_AnimPlayChildSlotsEx(arg0, 7, 0, 3)`)
 shows the true arity.
 
+It is not a one-off in that TU: `func_actor_800200_80165534`, the very next
+`INCLUDE_ASM` after `func_actor_800200_801654EC`, carries the identical
+three-argument call for its own `0xE` mode and matched the same way. An actor
+state-entry function whose whole body is a field block plus one
+`Gp_AnimPlayChildSlotsEx` should be checked for the missing `arg0` before
+anything else — the m2c seed's argument count is the first thing to count, not
+the register allocation it distorts.
+
 ## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
 
 `include/psyq/libgpu.h` carries both spellings: lowercase `setSprt` / `setTile`
