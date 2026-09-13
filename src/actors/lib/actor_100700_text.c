@@ -901,7 +901,35 @@ void Actor00700_Fn01E9C(Actor00700* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x1C0, 0x80);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01EEC);
+void Actor00700_Fn01EEC(Actor00700* arg0)
+{
+    GsCOORDINATE2*              coord;
+    MATRIX*                     head;
+    ActorShared80135b58Scratch* scratch;
+    Actor00700Work*             work;
+
+    head                = *(MATRIX**)0x1F8003FC;
+    work                = arg0->field_1C;
+    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    *(void**)0x1F8003FC = scratch;
+    coord               = arg0->field_2C->field_8;
+    if (work->field_390 >= 0x201) {
+        work->field_390 = (u16)work->field_390 - 0x50;
+    }
+    scratch->scale.vx          = 0x1000;
+    scratch->scale.vy          = (s32)work->field_390;
+    scratch->scale.vz          = 0x1000;
+    coord->coord               = work->field_340;
+    scratch->mat.ident.m00_m01 = 0x1000;
+    scratch->mat.ident.m02_m10 = 0;
+    scratch->mat.ident.m11_m12 = 0x1000;
+    scratch->mat.ident.m20_m21 = 0;
+    scratch->mat.ident.m22     = 0x1000;
+    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->mat.mat);
+    coord->flg         = 0;
+    *(u8**)0x1F8003FC += 0x30;
+}
 
 void Gp_AnimResetSlot(void*, s32, s32);
 void Gp_IncStateF0Ref(s32);
