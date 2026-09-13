@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_100700.h"
+#include "actors/actor_100700_spawn.h"
+#include "main/tmd.h"
 #include "actors/actors_shared_80135b58.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -901,7 +903,102 @@ void Actor00700_Fn01E9C(Actor00700* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01EEC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01FE0);
+void Gp_AnimResetSlot(void*, s32, s32);
+void Gp_IncStateF0Ref(s32);
+void Gp_InitRec18Table(void*, s32, s32);
+void Gp_LinkNode(void*);
+void Gp_LinkObj(s32, void*);
+s32  Gp_PackPair(void*, s32);
+void func_800B3F84(void*, void*, TmdObject*, void*, void*);
+
+void Actor00700_Fn01FE0(Actor00700Ctx* ctx, Actor00700* actor)
+{
+    GsCOORDINATE2*       coord;
+    TmdObject*           obj;
+    s32                  i;
+    void*                rec1;
+    void*                rec2;
+    void*                rec3;
+    Actor00700SpawnWork* work;
+
+    obj   = (TmdObject*)actor->field_2C;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x2F4U, false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(ctx, actor);
+        return;
+    }
+    actor->field_1C = (Actor00700Work*)work;
+    obj->field_C    = 0;
+    coord->flg      = 0;
+    obj->field_24  += 1;
+    obj->field_25  += 1;
+    Tmd_ProcessStream(obj);
+    Tmd_ProcessStream(obj);
+    obj->field_1C = &work->field_114;
+    obj->field_20 = &work->field_F4;
+    ctx->field_4  = (void*)(&coord->coord);
+    ctx->field_48 = 0;
+    Gp_LinkNode(&ctx->node);
+    ctx->field_18     = coord;
+    ctx->node.field_4 = 0;
+    ctx->field_1C     = 0;
+    ctx->field_20     = 0;
+    ctx->field_24     = 0;
+    ctx->field_50     = &Actor00700_D07588;
+    ctx->field_54     = (s32)&work->field_154;
+    ctx->field_40     = (u16)Actor00700_D07588.field_4;
+    work->field_228   = 0x100;
+    work->field_22A   = 1;
+    work->field_224   = coord;
+    func_800B3F84(work, &Actor00700_D075B4, obj, &work->field_B4, &work->field_14);
+    for (i = 1; i < 4; i++) {
+        Gp_AnimResetSlot(work, i, 1);
+    }
+    Gp_IncStateF0Ref(0);
+    work->field_2D6 = 1;
+    work->field_2AC = (s32)coord->coord.t[0];
+    work->field_2B0 = (s32)coord->coord.t[1];
+    work->field_2B4 = (s32)coord->coord.t[2];
+    work->field_2DC = (u16)actor->field_20->field_3C->field_A;
+    rec1            = &work->field_154;
+    work->field_13C = coord;
+    work->field_140 = rec1;
+    work->field_144 = 0;
+    work->field_146 = 0;
+    work->field_148 = 0;
+    work->field_14C = 0x30008;
+    work->field_150 = 0xFA;
+    work->field_152 = 1U;
+    Gp_LinkObj(2, &work->field_134);
+    Gp_InitRec18Table(rec1, 1, 0);
+    rec2            = &work->field_18C;
+    work->field_174 = coord;
+    work->field_178 = rec2;
+    work->field_17C = 0;
+    work->field_17E = 0;
+    work->field_180 = 0;
+    work->field_184 = 0x30008;
+    work->field_188 = 0xFA;
+    work->field_18A = 1U;
+    work->field_152 = (u16)(work->field_152 | 0x8000);
+    Gp_LinkObj(2, &work->field_16C);
+    Gp_InitRec18Table(rec2, 4, 0);
+    rec3            = &work->field_20C;
+    work->field_1F4 = coord;
+    work->field_1F8 = rec3;
+    work->field_1FC = 0;
+    work->field_1FE = 0;
+    work->field_200 = 0;
+    work->field_18A = (u16)(work->field_18A | 0x4000);
+    work->field_204 = Gp_PackPair(&Actor00700_D07584, 0);
+    work->field_208 = 0x190;
+    work->field_20A = 1U;
+    Gp_LinkObj(3, &work->field_1EC);
+    Gp_InitRec18Table(rec3, 1, 0);
+    work->field_20A = (u16)(work->field_20A & 0x7FFF);
+    actor->field_30 = 1;
+}
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor00700_Fn02414(Actor00700* arg0);

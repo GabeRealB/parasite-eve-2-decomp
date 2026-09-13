@@ -16,7 +16,9 @@ typedef struct Actor00700Obj2C {
 /// Overlay-local view of the spawn parameter block. `field_F` indexes
 /// `Actor00700_D06E50` for the state-2 random roll in `Actor00700_Fn00BC0`.
 typedef struct Actor00700Params {
-    /* 0x0 */ byte pad_0[0xF];
+    /* 0x0 */ byte pad_0[0xA];
+    /* 0xA */ u16  field_A;
+    /* 0xC */ byte pad_C[3];
     /* 0xF */ u8   field_F;
 } Actor00700Params;
 
@@ -99,16 +101,24 @@ typedef struct Actor00700Node {
 } Actor00700Node;
 
 typedef struct Actor00700Ctx {
-    /* 0x00 */ byte              pad_0[0x8];
+    /* 0x00 */ byte              pad_0[4];
+    /* 0x04 */ MATRIX*           field_4;
     /* 0x08 */ u16               field_8;
     /* 0x0A */ byte              pad_A[6];
     /* 0x10 */ Actor00700Node    node;
-    /* 0x18 */ byte              pad_18[0x24];
+    /* 0x18 */ GsCOORDINATE2*    field_18;
+    /* 0x1C */ s32               field_1C;
+    /* 0x20 */ s32               field_20;
+    /* 0x24 */ s32               field_24;
+    /* 0x28 */ byte              pad_28[0x14];
     /* 0x3C */ Actor00700Params* field_3C;
     /* 0x40 */ s16               field_40;
-    /* 0x42 */ byte              pad_42[0xA];
+    /* 0x42 */ byte              pad_42[6];
+    /* 0x48 */ u8                field_48;
+    /* 0x49 */ byte              pad_49[3];
     /* 0x4C */ u8                field_4C;
-    /* 0x4D */ byte              pad_4D[7];
+    /* 0x4D */ byte              pad_4D[3];
+    /* 0x50 */ void*             field_50;
     /* 0x54 */ s32               field_54;
 } Actor00700Ctx;
 
