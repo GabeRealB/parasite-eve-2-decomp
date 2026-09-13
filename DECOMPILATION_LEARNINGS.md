@@ -62134,6 +62134,70 @@ call". The same function's `li s2,2` shows the mirror image. That constant is
 CSE'd across two calls, and sched2 hoists it into the delay slot of the call
 *before* its C assignment.
 
+## A `do { } while (0)` whose `break` is the branch makes `reorg` fill that branch's delay slot from the fall-through
+
+`func_actor_215100_8014AA54` sat at 98.5% with exactly one extra instruction:
+three `li v0,2` where the ROM has two. The branch that tests the "already
+committed" flag targets the shared `return 2` tail, and our build filled its
+delay slot from *that* thread — `reorg` copied `li v0,2` in and redirected the
+branch past it, leaving the original tail as a second copy. The ROM instead
+moves the fall-through's `lui %hi(D_actor_215100_8015E678)` into the slot and
+leaves the branch pointing at the shared tail.
+
+Which thread wins is decided by `prediction` in `fill_eager_delay_slots`
+(reorg.c ~3849): `prediction > 0` tries the target thread first, otherwise the
+fall-through goes first. `prediction` is `mostly_true_jump` (reorg.c ~1352),
+and for a NE branch whose destination is a `CODE_LABEL` every path through it
+returns ≥ 0 — *except* the early return at reorg.c ~1385:
+
+```c
+if (GET_CODE (PATTERN (jump_insn)) == SET
+    && GET_CODE (SET_SRC (PATTERN (jump_insn))) == IF_THEN_ELSE
+    && ((GET_CODE (XEXP (SET_SRC (PATTERN (jump_insn)), 1)) == LABEL_REF
+         && LABEL_OUTSIDE_LOOP_P (XEXP (SET_SRC (PATTERN (jump_insn)), 1)))
+        || (GET_CODE (XEXP (SET_SRC (PATTERN (jump_insn)), 2)) == LABEL_REF
+            && LABEL_OUTSIDE_LOOP_P (XEXP (SET_SRC (PATTERN (jump_insn)), 2)))))
+  return -1;
+```
+
+`LABEL_OUTSIDE_LOOP_P` is `RTX->in_struct` (rtl.h), set in exactly one place:
+`mark_loop_jump` (loop.c ~2593), reachable from `loop_optimize`'s per-insn walk
+(loop.c ~2359) for any insn whose `uid_loop_num` was assigned from a
+`NOTE_INSN_LOOP_BEG`/`LOOP_END` note (loop.c ~2295). It marks every `label_ref`
+whose target lies outside all recorded loops — **the notes alone are enough; no
+back edge is required.**
+
+That makes a `do { } while (0)` a prediction lever, not just a scheduling
+barrier. Write the early exit as a `break`:
+
+```c
+} else {
+    do {
+        if (Guard() == 0) { return 1; }
+        if (arg0->field_5 != 0) { break; }   /* this branch is the one */
+        ...                                   /* falling through to the tail */
+    } while (0);
+}
+return 2;
+```
+
+`expand_end_loop` (stmt.c ~2329) emits the notes plus an unreachable back edge;
+`jump_optimize` deletes the back edge but leaves the notes, so loop.c still
+records the loop. The `break`'s destination — the `return 2` tail, shared with
+the other arm — is outside it, so its `label_ref` is marked, `prediction`
+becomes `-1`, and the fall-through wins the slot.
+
+Two constraints on the wrap:
+
+* **The front end must not rotate the body.** `expand_end_loop`'s rotation
+  (stmt.c ~2362) scans from the first insn after the start label and bails at
+  the first `CALL_INSN`, so a `do { } while (0)` whose *first* statement is a
+  call keeps the layout exactly as written. If a conditional exit comes first,
+  the body rotates and the wrap is no longer free.
+* **Only the branch that must change belongs inside.** Every marked label_ref
+  predicts not-taken, so wrapping more than the one exit flips those branches
+  too.
+
 ## `lui %hi(table)` in the delay slot before `sll idx,2`: index the table inline, not through `p = &T[i]`
 
 `func_actor_342400_801626CC` bounds-checks an `s16` index, then reads two
