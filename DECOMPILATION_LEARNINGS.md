@@ -70570,3 +70570,61 @@ bytes do not move (the checksum proves it) and the two names become one.
 Watch for this before running promote, not after: the sym maps are written before
 the clash surfaces, at the next split, with every unit of both carriers already
 renumbered around the new span.
+
+## One actors overlay carries several work blocks at `0x1C`, all reached the same way
+
+An actors overlay publishes its controller task in a `D_actor_<name>_<addr>`
+global -- the `sw $s2, %lo(...)` sits in that task's own callback, right after
+it stores a `Mem_Malloc`/`Mem_Calloc` result into `0x1C($s2)`, i.e. its
+`Task::idMap` slot. Leaf functions then read
+`lw $v0,%lo(D_actor_...)(v0); lw $v0,0x1C($v0)` and touch offsets in that
+block, so the whole overlay's work state is one struct reached through
+`(ActorXWork*)D_actor_...->idMap` -- `Task::idMap` is a `TaskIdMap*` in the
+header but is repurposed here, and the cast is the documented convention
+(`actor_342000.h`, `actor_560800.h`).
+
+**The `0x1C($a0)` in the overlay's base unit is not necessarily that block.**
+`actor_341900` allocates three: `Mem_Malloc(0x44, 0)`, `Mem_Calloc(0x70, 0)` and
+`Mem_Malloc(0x258, 0)`, each stored into a *different* task's `0x1C`. Only the
+0x70 one is published in `D_actor_341900_80164208`. The base unit's dispatchers
+`func_actor_341900_801628B8` / `func_actor_80162AD4` look like ordinary
+`task->idMap` users, but both are called from the publishing function with `$s2`
+as the argument, so they index the same 0x70 block -- while
+`func_actor_341900_80162330`'s `0x1C($a0)` and `0x258` offsets are a second,
+larger block that happens to share field offsets `0x5C`/`0x64`/`0x66`.
+
+So identify the block by the **single writer of the published global**, not by
+any `0x1C(...)` load in the overlay, and take the struct size from the
+allocation at that writer -- not from a sibling overlay's header, and not from
+the largest offset a leaf touches. `grep -rln 'sw.*%lo(D_actor_<name>_)'`
+returns the one site; the size is the constant in the `Mem_Malloc`/`Mem_Calloc`
+immediately above the `sw` that stores it.
+
+Inside the block, a recurring shape worth naming on sight: a *one-shot request
+state* halfword plus a step counter beside it. A dispatcher switches on the
+state through a jump table, clears it back to 0 on the way out, and compares
+the counter against 0 and 1 before incrementing it; the tiny setters that
+request a state also reset the counter, so
+`sh $a0,X($v0); sh $zero,X+2($v0)` is "request state `arg0`, restart at step
+0". In `actor_341900` the pairs are `field_5C`/`field_5E` and
+`field_64`/`field_66`, each pair on an 8-byte stride.
+
+`func_actor_341900_80163584` is the smallest instance -- m2c's seed was already
+exact, and the only work was typing it:
+
+```c
+void func_actor_341900_80163584(s16 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+
+    work->field_64 = arg0;
+    work->field_66 = 0;
+}
+```
+
+Input `base_1.i`
+`e2cceeb4d1631983376113248cfd900459867cc5916d7e60e1f3d81ad15ba601`, 8/8
+instructions, every penalty zero. The typed form reproduces the m2c seed's
+assembly byte for byte, which is the check that the struct is right: an
+`M2C_FIELD` chain and a real struct access are the same code only if the
+offsets and widths agree.
