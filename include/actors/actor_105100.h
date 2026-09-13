@@ -96,12 +96,18 @@ typedef struct Actor105100Ctx {
 } Actor105100Ctx;
 STATIC_ASSERT_SIZEOF(Actor105100Ctx, 0x58);
 
+/// The enemy's task, the same `Task` layout as `actor_444000`'s: `field_20` is
+/// the `Task::spawnArg2` context the dispatchers hand their handlers, `field_2C`
+/// the `Task::extra` slot and `state` the `Task::state` dispatcher index.
+/// `func_actor_105100_80136318` is the one writer of `state` here, holding the
+/// task on handler 2 for as long as the fight lasts.
 typedef struct Actor105100 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor105100Work*  field_1C;
     /* 0x20 */ Actor105100Ctx*   field_20;
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor105100Obj2C* field_2C;
+    /* 0x30 */ s32               state;
 } Actor105100;
 
 void func_actor_105100_80132AA0(Actor105100Ctx* arg0, Actor105100* arg1);

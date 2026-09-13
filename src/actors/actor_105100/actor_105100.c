@@ -28,6 +28,10 @@ void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4
 
 extern u8 D_801153F4;
 
+/// Main-executable global with no module header yet: the remaining-enemy count
+/// `func_actor_105100_80136318` tests to decide whether the fight is over.
+extern s16 D_80073BA0;
+
 /// The run of HP caps at 0x8014139C; `func_actor_105100_80135FCC` reads the
 /// first entry. Declared as an aggregate on purpose: a bare `extern u16` makes
 /// `true_dependence` (`sched.c:846`) drop the dependence between the store to
@@ -367,7 +371,61 @@ void func_actor_105100_801362A0(Actor105100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80136318);
+/// Last-enemy handler. While the remaining-enemy count is still positive it
+/// retires the queued sound events, unlinks the running effect, drops the
+/// 0x8000 bit of `field_502` and pins the task to the tick handler (`state` 2);
+/// once the count is spent it puts the enemy's HP (`Actor105100Ctx::field_40`)
+/// at 1 and arms pose 6, leaving `state` alone.
+///
+/// The work block is read twice on purpose. The two loads do not CSE (the
+/// `field_5B4` / `field_5AC` stores sit between them), and the first pointer is
+/// still live at the tail for `field_502` and `field_55C`, so the second one
+/// needs a register of its own.
+void func_actor_105100_80136318(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    Actor105100Work* sndWork;
+    GpEffWork*       eff;
+    s32              snd;
+
+    work = arg0->field_1C;
+    if (D_80073BA0 <= 0) {
+        arg0->field_20->field_40 = 1;
+        work->field_596          = 6;
+        work->field_598          = 0;
+        return;
+    }
+
+    work->field_5B4 = 0;
+    work->field_5AC = 0;
+
+    sndWork = arg0->field_1C;
+
+    snd = sndWork->field_580;
+    if (snd != 0) {
+        SndEvt_EnqueueType7(snd, 1);
+        sndWork->field_580 = 0;
+    }
+    snd = sndWork->field_584;
+    if (snd != 0) {
+        SndEvt_EnqueueType7(snd, 1);
+        sndWork->field_584 = 0;
+    }
+    snd = sndWork->field_588;
+    if (snd != 0) {
+        SndEvt_EnqueueType7(snd, 1);
+        sndWork->field_588 = 0;
+    }
+
+    eff             = work->field_55C;
+    work->field_502 = work->field_502 & 0x7FFF;
+    if (eff != NULL) {
+        eff->field_0->state = 4;
+        work->field_55C     = NULL;
+    }
+
+    arg0->state = 2;
+}
 
 void func_actor_105100_80136408(Actor105100* arg0)
 {
