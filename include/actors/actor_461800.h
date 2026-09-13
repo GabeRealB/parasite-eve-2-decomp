@@ -73,6 +73,9 @@ typedef struct Actor461800Msg {
     /* 0x2 */ u16  field_2;
 } Actor461800Msg;
 
+void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
+void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task);
+
 s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 arg3);

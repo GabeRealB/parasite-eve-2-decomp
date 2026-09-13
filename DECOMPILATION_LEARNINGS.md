@@ -59141,6 +59141,31 @@ matched in `src/weapons/mm1/mm1_3.c` among others. The copies sit in different
 families at different link offsets, so `promote` has nothing to share and each
 one still has to be written out locally.
 
+A `~` copy can also sit *inside a single overlay*, in a different unit, and then
+it is the overlay's second actor variant rather than a cross-overlay duplicate.
+`func_actor_461800_801329B0` (`actor_461800.c`) and
+`func_actor_461800_80133554` (`actor_461800_2.c`) are the same body differing
+only in the two handler symbols and the global they publish
+(`D_actor_461800_80143894` / `D_actor_461800_801438A0`, the two work blocks).
+`find` prints both under one overlay name, so treat the second address as a
+function to write again with its own symbols, not as something `promote` can
+fold away.
+
+When the table is only two entries of *named* functions, GCC emits `lui`/`addiu`
++ `sw` per entry instead of copying a `.rodata` template, so there is no
+`rodata` cut to arrange and no anonymous blob to name - the plain local array
+
+```c
+void (*fns[2])(GpEnemy*, Task*) = { Second, Third };
+Wire = (Work*)task->idMap;
+fns[task->state](task->spawnArg2, task);
+```
+
+matches as written. Both handlers being `(GpEnemy*, Task*)` is what puts
+`spawnArg2` in `$a0` and the task in `$a1`; the publish store's position in the
+target (after the state load, before `spawnArg2`) follows from writing it
+between the initialiser and the call.
+
 ## A faked `%hi`/`%lo` pair matches the bytes but loses the relocation; move the read earlier instead
 
 **Problem:** a global is read a long way from where its address is formed, so the

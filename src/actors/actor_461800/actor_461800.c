@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_461800.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -42,6 +43,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132660);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_801329B0);
+/// Two-state dispatcher: publishes the task's work block in
+/// `D_actor_461800_80143894` on the way through, then calls the handler its
+/// state selects.
+void func_actor_461800_801329B0(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_461800_80132390,
+        func_actor_461800_80132A0C,
+    };
+
+    D_actor_461800_80143894 = (Actor461800Work*)task->idMap;
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132A0C);
