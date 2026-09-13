@@ -4,6 +4,7 @@
 #include "common.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/3A34.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -15,7 +16,11 @@ typedef struct Actor105500Obj2C {
 } Actor105500Obj2C;
 
 typedef struct Actor105500Work {
-    /* 0x000 */ byte      pad_0[0x354];
+    /* 0x000 */ GpObj     obj;
+    /* 0x020 */ GpRec18   rec;
+    /* 0x038 */ s16       field_38;
+    /* 0x03A */ s16       field_3A;
+    /* 0x03C */ byte      pad_3C[0x318];
     /* 0x354 */ GpEffArg  field_354;
     /* 0x35C */ VECTOR3   field_35C;
     /* 0x368 */ byte      pad_368[4];

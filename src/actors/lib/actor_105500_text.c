@@ -33,6 +33,7 @@ void Actor05500_Fn01A0C(Actor105500* arg0);
 void Actor05500_Fn01B30(Actor105500* arg0);
 void Actor05500_Fn020D4(Actor105500* arg0);
 void Actor05500_Fn02214(Actor105500* arg0);
+void Actor05500_Fn02954(Actor105500* arg0, s16 arg1);
 void Actor05500_Fn03674(Actor105500* arg0, Actor105500Obj2C* arg1, s32 arg2);
 void Actor05500_Fn0378C(Actor105500* arg0);
 void Actor05500_Fn03864(Actor105500* arg0);
@@ -147,7 +148,68 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn01B30);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02364);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02780);
+void Actor05500_Fn02780(Actor105500Ctx* arg0, Actor105500* arg1)
+{
+    Actor105500Work* work;
+    GsCOORDINATE2*   coord;
+    s16              age;
+    s16              speed;
+    s32              contact;
+    u16              flags;
+    u32              random;
+
+    coord = arg1->field_2C->field_8;
+    work  = arg1->field_1C;
+    switch ((s32)D_801153F4) {
+        case 1:
+            Actor05500_Fn02954(arg1, work->field_38);
+            return;
+        default:
+        default_case:
+            contact = work->rec.field_4;
+            if (contact != 0) {
+                if ((contact & 0xFFFF0000) != 0x100000) {
+                    work->obj.flags &= 0x7FFF;
+                    Gp_ClearRec18Occupied(&work->rec);
+                    goto block_7;
+                }
+                goto block_11;
+            }
+        block_7:
+            if (!((u16)work->field_38 & 3)) {
+                flags = work->obj.flags | 0xC000;
+            } else {
+                flags = work->obj.flags & 0x3FFF;
+            }
+            work->obj.flags    = flags;
+            coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_3A) >> 0xC;
+            coord->coord.t[1] += (s32)(coord->coord.m[1][2] * work->field_3A) >> 0xC;
+            coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_3A) >> 0xC;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            Actor05500_Fn02954(arg1, work->field_38);
+            age            = (u16)work->field_38 + 1;
+            work->field_38 = age;
+            if (age >= 0xF) {
+            block_11:
+                Gp_UnlinkObj(&work->obj);
+                arg1->field_30 = 2;
+                return;
+            }
+            random         = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState    = random;
+            speed          = (u16)work->field_3A - ((random >> 0x10) & 0x1F);
+            work->field_3A = speed;
+            if (speed < 0) {
+                work->field_3A = 0;
+            }
+            return;
+        case 0:
+            goto default_case;
+        case 2:
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02954);
 
