@@ -23,7 +23,13 @@ void func_actor_341900_80163534(void)
     Task_SpawnFromTable(&D_actor_341900_80164190, 1, 9, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_3", func_actor_341900_80163564);
+void func_actor_341900_80163564(s16 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+
+    work->field_5C = arg0;
+    work->field_5E = 0;
+}
 
 void func_actor_341900_80163584(s16 arg0)
 {

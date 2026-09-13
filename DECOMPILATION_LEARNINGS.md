@@ -70628,3 +70628,24 @@ instructions, every penalty zero. The typed form reproduces the m2c seed's
 assembly byte for byte, which is the check that the struct is right: an
 `M2C_FIELD` chain and a real struct access are the same code only if the
 offsets and widths agree.
+
+## `find` lists cross-family copies; only `siblings` names promotion candidates
+
+`overlay_dup_index.py find <fn>` prints every carrier of a body, across all
+families. That reads as a promotion opportunity and is not one: `promote` is
+family-scoped, because the shared unit lives in `src/<family>/lib/` and the span
+goes into that family's `overlays.toml` entries. A copy in another family is a
+separate promotion with its own carrier set, so a body with two actor copies and
+one room copy has exactly one candidate pair no matter what `find` printed.
+`siblings` is the command that answers this -- it filters to the body's own
+family, and its docstring says so.
+
+`func_actor_341900_80163564` is that shape, and it is still refused: both actor
+copies load their own overlay's `D_actor_<overlay>_80164208` -- the controller
+task the work block hangs off -- so the pair is one of the bodies section
+"Alias a shared body's overlay-local data before `promote`, and re-check the
+body symbol" covers. Read the refusal as the answer for this body class rather
+than as a missing step; the alias recipe is what would change it, and it costs a
+rename of that global in every matched `.c` and header that names it plus a
+re-split of both carriers -- for an eight-instruction body, not a trade worth
+making on its own.
