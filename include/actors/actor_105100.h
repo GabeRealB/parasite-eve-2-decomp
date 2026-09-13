@@ -14,6 +14,13 @@ typedef struct Actor105100Obj2C {
     /* 0x0C */ s16            field_C;
 } Actor105100Obj2C;
 
+/// The actor's animation work area. `field_58E` is the pose the animation
+/// tables are indexed by and `field_598` the step of the schedule that drives
+/// it. `field_592` is unsigned in this overlay's view -- the accumulation in
+/// `func_actor_105100_80136408` loads it `lhu` and adds with `addu` -- so the
+/// signed compares against it in `func_actor_105100_801360AC` and
+/// `func_actor_105100_801361C4` cast at the use (`(s16)work->field_592`)
+/// instead of retyping the field.
 typedef struct Actor105100Work {
     /* 0x000 */ GpObj      obj0;
     /* 0x020 */ byte       pad_20[0x18];

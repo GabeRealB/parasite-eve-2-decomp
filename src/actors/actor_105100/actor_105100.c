@@ -217,7 +217,58 @@ void func_actor_105100_80135FCC(Actor105100* arg0)
     SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801360AC);
+/// Opening stage of the `field_598` schedule: arms pose 8, releases the held
+/// effect slot and drops the `field_502` pose bit, then waits on
+/// `Gp_TickObjFlag2` before clearing the enemy's flag-2 bit. On the last stage
+/// it waits out the `field_592` timer and returns the schedule to step 0.
+void func_actor_105100_801360AC(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    Actor105100Ctx*  enemy;
+    GpEffWork*       eff;
+    s32              state;
+
+    work  = arg0->field_1C;
+    state = work->field_598;
+    enemy = arg0->field_20;
+    switch (state) {
+        case 0:
+            work->field_58E = 8;
+            work->field_598 = 1;
+            if (work->field_5B4 != 0) {
+                work->field_5B4 = 0;
+                work->field_5B6 = 1;
+                work->field_5AA = 0;
+            }
+            work->field_5AC = 0;
+            func_actor_105100_801362A0(arg0);
+            eff             = work->field_55C;
+            work->field_502 = work->field_502 & 0x7FFF;
+            if (eff != NULL) {
+                eff->field_0->state = 4;
+                work->field_55C     = NULL;
+            }
+            if (work->field_5B6 == 0) {
+                work->field_5AA = 0x1E;
+            }
+            break;
+        case 1:
+            if (Gp_TickObjFlag2((GpObj5D*)enemy) != 0) {
+                work->field_58E  = 9;
+                work->field_598  = 2;
+                work->field_5C2  = 0;
+                enemy->field_4C &= 0xFD;
+            }
+            break;
+        case 2:
+            if ((s16)work->field_592 >= 0xB) {
+                work->field_596 = 0;
+                work->field_598 = 0;
+                work->field_58E = 1;
+            }
+            break;
+    }
+}
 
 /// First stage of the `field_598` schedule: arms the pose and the effect slot,
 /// and on the next stage waits out the `field_592` timer before handing the
