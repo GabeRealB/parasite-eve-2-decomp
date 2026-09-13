@@ -24,7 +24,24 @@ s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacemen
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_4", func_actor_461800_801339EC);
+/// Message handler: the message id selects how the second work block is
+/// reseeded -- 0 arms the reset argument, 1 remembers the id in the byte the
+/// seeding loop reads. Anything else does nothing.
+s32 func_actor_461800_801339EC(Task* task, s32 arg1, Actor461800Msg* msg, s32 arg3)
+{
+    s32 id;
+
+    id = msg->field_2;
+    switch (id) {
+        case 0:
+            D_actor_461800_801438A0->field_4B4 = 0x14;
+            break;
+        case 1:
+            D_actor_461800_801438A0->field_4BC = id;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_4", func_actor_461800_80133A3C);
 

@@ -81,5 +81,6 @@ void func_actor_461800_801335B0(GpEnemy* enemy, Task* task);
 s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 arg3);
+s32 func_actor_461800_801339EC(Task* task, s32 arg1, Actor461800Msg* msg, s32 arg3);
 
 #endif

@@ -67937,3 +67937,36 @@ the shape to write.
 Example: `func_actor_461800_80133554`, 55.38% -> 100.00% on the second build.
 Preprocessed SHA256: `base_1.i`
 `05c1a5582cd216fdfec2c12058cd153e0ffdbc492b634922cf60e8b9625813d5`.
+
+## A `u16` temp for a switched halfword field costs an `andi`; an `s32` temp does not
+
+`switch (msg->field_2)` with `field_2` a `u16` needs no explicit conversion:
+GCC 2.8.1 folds the `zero_extendhisi2` of the load straight into the `lhu`, so
+the target's `lhu $v1, 0x2($a2)` / `beqz $v1` comes out right. Bind that load to
+a `u16` local first, though, and the same switch emits a second instruction:
+
+```c
+u16 v1 = msg->field_2;
+switch (v1) { ... }          /* lhu a0,2(a2); andi v1,a0,0xffff; beqz v1 */
+```
+
+The temp is a HImode pseudo, so reading it back is a `zero_extend:SI (reg:HI)`,
+and the load that produced it is no longer adjacent for `combine` to fold it
+away. Declaring the temp `s32` restores the single `lhu`:
+
+```c
+s32 id = msg->field_2;
+switch (id) { ... }          /* lhu v1,2(a2); beqz v1 */
+```
+
+The second half of the same trap is the store. The target reuses the register
+that already holds the halfword (`sb $v1, 0x4bc($v0)`), but writing the field
+expression twice -- `case 1: D->field_4BC = msg->field_2;` -- makes
+`convert_move` see a HImode *memory* operand and emit a fresh `lbu` instead.
+One `s32` temp used by both the switch and the byte store gives one load and the
+register reuse.
+
+`func_actor_461800_801339EC` is the worked example: m2c's `u16 temp_v1` scored
+68.30%, a direct field switch with a repeated load 89.91%, and the `s32` temp
+100.00%. Preprocessed SHA256: `base_3.i`
+`7442db7dfc3fa7ff643d26c202bdd7b24dce6a2c8c6600d508553b9f605c856b`.
