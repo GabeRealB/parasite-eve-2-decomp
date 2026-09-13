@@ -67241,3 +67241,17 @@ supposed to be settled. `func_actor_206100_8014FBE4` is the worked example
 for the one-argument `Gp_GetObjPan`, which materialised `0x40040006` twice -
 one `lui`/`ori` pair per copy. An `insert` penalty from a duplicated constant is
 worth checking against the callee's real prototype in `include/` first).
+
+**The tell is in the assembly, not in the seed's C.** m2c does not merely omit
+the narrowing cast - it prints a *no-op* `(s32)` over a callee that already
+returns `s32`, so the seed looks like it has the cast covered:
+
+```c
+SndEvt_EnqueueType6(temp_s0, (s32)temp_s1, (s32)Gp_GetObjDepth(coord));
+```
+
+Only the target's `sll $v0,$v0,24` / `sra $a2,$v0,24` on the call result says
+the source narrowed. So read a sign-extension pair on a call result feeding an
+argument as "this call is cast to `s8`" and fix the C to match, whichever
+argument it is - `func_actor_206100_8014F8BC` needed it on the nested
+`Gp_GetObjDepth` call as well as on `pan` (84.889% -> 100%, one rewrite).
