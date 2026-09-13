@@ -216,4 +216,12 @@ void func_actor_405800_80138224(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80138294);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_8013836C);
+s16 func_actor_405800_8013836C(Task* arg0, s16 arg1)
+{
+    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+
+    if (work->field_850 == 0) {
+        return 0;
+    }
+    return ((arg1 << 8) / work->field_850 << 12) >> 16;
+}
