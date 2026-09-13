@@ -41350,6 +41350,30 @@ sees the epilogue's `(return)` behind that label and converts the jump into a
 with a null label reaches `validate_change` -> `recog`, and the `return` insn
 requires `mips_can_use_return_insn`, which is 0 until `reload_completed`.)
 
+## Read the *tail* off a matched sibling by scanning `asm/` for the same shape
+
+When a function's body is already right and only the ending is wrong, the
+fastest way to the source shape is not more variants of the tail but a matched
+function with the same tail. Every instruction line in `asm/USA/**/matchings/`
+carries its address (`/* 2168 80133F88 E8CF0408 */  j …`), so a shape that
+involves *where a jump lands* is one pass over that text: record each `.L` label
+against the address of the next instruction, then ask whether any `j`'s target
+label is the address of the function's final `jr $ra`:
+
+```python
+insn = re.compile(r"^\s*/\*\s*([0-9A-Fa-f]+)\s+([0-9A-Fa-f]+)\s+([0-9A-Fa-f]{8})\s*\*/\s+(\S+)(.*)$")
+lab  = re.compile(r"^\s*\.L(\S+):")
+```
+
+(88 of 10999 matched functions have a `j` landing on the final `jr $ra`; the
+tail in question was shared with a sibling in the same family.) Grep alone will
+not do it - `--include='*.s'` plus `grep -A1 '^\.L'` misses the label because
+splat indents it and because the same label text appears in the `j` operand -
+and note the space in `/* 214C 80133F6C 01000524 */`, which a `\*/`-anchored
+pattern must allow for. Restrict to `matchings/` (a bare `"matchings" in path`
+also matches `nonmatchings/`), then read the sibling's body in `src/`: it is a
+matched body, so its shape is one GCC already reproduces exactly.
+
 ## Cross-jumping merges two identical call tails; `SOFT_BARRIER()` keeps both
 
 Two arms of a switch that end in the same call and the same `goto` get merged
