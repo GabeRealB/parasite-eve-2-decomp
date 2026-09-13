@@ -217,7 +217,95 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn00E54);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01678);
+extern s8 D_80115418;
+
+void Actor00300_Fn01678(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    GsCOORDINATE2*   coord;
+    s16              timer;
+    s16              nextPoint;
+    s32              state;
+    s16              nextState;
+    s32              dx;
+    s32              dz;
+    u16              angle0;
+    u16              angle1;
+    VECTOR*          vec;
+    VECTOR*          scratchEnd;
+
+    scratchEnd          = *(void**)0x1F8003FC;
+    vec                 = scratchEnd - 1;
+    *(void**)0x1F8003FC = vec;
+    work                = arg0->field_1C;
+    state               = work->field_686;
+    coord               = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_67C = 0;
+            work->field_67A = 0;
+            work->field_66E = 1;
+            timer           = (u16)work->field_688 - 1;
+            work->field_688 = timer;
+            if ((timer << 0x10) <= 0) {
+                scratchEnd[-1].vx = (s32)(((SVECTOR*)work->field_648)[work->field_68E].vx - coord->coord.t[0]);
+                vec->vy           = 0;
+                vec->vz           = (s32)(((SVECTOR*)work->field_648)[work->field_68E].vz - coord->coord.t[2]);
+                angle0            = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vec->vz) & 0xFFF;
+                nextState         = 1;
+                work->field_680   = angle0;
+                if (work->field_67E == angle0) {
+                    nextState = 2;
+                }
+                work->field_686 = nextState;
+                work->field_688 = 0;
+            }
+            break;
+        case 1:
+            work->field_67C   = 0x28;
+            work->field_66E   = 3;
+            work->field_67A   = 0;
+            scratchEnd[-1].vx = (s32)(((SVECTOR*)work->field_648)[work->field_68E].vx - coord->coord.t[0]);
+            vec->vy           = 0;
+            vec->vz           = (s32)(((SVECTOR*)work->field_648)[work->field_68E].vz - coord->coord.t[2]);
+            angle1            = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vec->vz) & 0xFFF;
+            work->field_680   = angle1;
+            if (work->field_67E == angle1) {
+                work->field_686 = 2;
+            }
+            break;
+        case 2:
+            work->field_67C   = 0x28;
+            work->field_67A   = 0x19;
+            work->field_66E   = state;
+            scratchEnd[-1].vx = (s32)(((SVECTOR*)work->field_648)[work->field_68E].vx - coord->coord.t[0]);
+            vec->vy           = 0;
+            vec->vz           = (s32)(((SVECTOR*)work->field_648)[work->field_68E].vz - coord->coord.t[2]);
+            work->field_680   = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vec->vz) & 0xFFF;
+            dx                = scratchEnd[-1].vx;
+            dz                = vec->vz;
+            if (SquareRoot0((dx * dx) + (dz * dz)) <= work->field_67A) {
+                coord->coord.t[0] = (s32)((SVECTOR*)work->field_648)[work->field_68E].vx;
+                coord->coord.t[2] = (s32)((SVECTOR*)work->field_648)[work->field_68E].vz;
+                work->field_67A   = 0;
+                nextPoint         = (u16)work->field_68E + 1;
+                work->field_68E   = nextPoint;
+                if (nextPoint >= work->field_68C) {
+                    work->field_68E = 0;
+                }
+                work->field_686 = 1;
+            }
+            break;
+    }
+    if ((work->field_6A0 != 0) || (D_80115418 != 0) || (work->field_690 != 0)) {
+        work->field_684 = 1;
+        work->field_686 = 0;
+        work->field_6A0 = 0x1C2;
+        Gp_ArmStateF0(1);
+        D_80115418 = 0;
+    }
+    *(void**)0x1F8003FC = (void*)(*(void**)0x1F8003FC + 0x10);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn019C0);
 
