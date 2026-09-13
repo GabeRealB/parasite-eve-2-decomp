@@ -121,7 +121,39 @@ void func_actor_206100_8014EB48(Task* task, s16 arg1)
     work->field_544 = arg1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EB60);
+void func_actor_206100_8014EB60(Task* task)
+{
+    Actor206100Work*  work;
+    GsCOORDINATE2*    coords;
+    SVECTOR           rot;
+    Actor206100Matrix matrix;
+    MATRIX*           dest;
+    MATRIX*           mtx;
+
+    work   = (Actor206100Work*)task->idMap;
+    coords = ((TmdObject*)task->extra)->field_8;
+    dest   = &coords[5].coord;
+    mtx    = &matrix.mat;
+
+    matrix.ident.m00_m01 = 0x1000;
+    matrix.ident.m02_m10 = 0;
+    *(s32*)&mtx->m[1][1] = 0x1000;
+    matrix.ident.m20_m21 = 0;
+    mtx->m[2][2]         = 0x1000;
+
+    Gp_MtxToEuler(dest, &rot);
+    rot.vx += work->field_540;
+    RotMatrix(&rot, &matrix.mat);
+    dest->m[0][0] = matrix.mat.m[0][0];
+    dest->m[0][1] = matrix.mat.m[0][1];
+    dest->m[0][2] = matrix.mat.m[0][2];
+    dest->m[1][0] = matrix.mat.m[1][0];
+    dest->m[1][1] = matrix.mat.m[1][1];
+    dest->m[1][2] = matrix.mat.m[1][2];
+    dest->m[2][0] = matrix.mat.m[2][0];
+    dest->m[2][1] = matrix.mat.m[2][1];
+    dest->m[2][2] = matrix.mat.m[2][2];
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EC54);
 

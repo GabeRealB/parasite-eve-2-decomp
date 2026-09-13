@@ -67637,3 +67637,27 @@ unreachable, a matched sibling is the cheapest proof it is not:
 `func_actor_206100_8014EEC0` compiles to `lw v0,44(s1)` / `addiu s2,s0,40` /
 `lw v1,8(v0)`, the target's exact shape, which ruled out "this compiler cannot
 produce it" and pointed at live ranges instead.
+
+## A bare `0x50*n + 4` offset on `field_8` is `coords[n].coord`
+
+`func_actor_206100_8014EB60` loads `((TmdObject*)task->extra)->field_8` into
+`$s2` and then does `addiu $s0, $s2, 0x194`. That is not a field of some
+larger object: `GsCOORDINATE2` leads with `flg` and puts `coord` at +4 inside
+the 0x50 element, so `0x194` is `5 * 0x50 + 4` and the pointer is
+`&coords[5].coord`. `func_actor_403100_8013D770` is the same function on part
+6 (`addiu $s0, $s2, 0x1E4`) and is the ready-made source for the whole body:
+identity-splat the local matrix, `Gp_MtxToEuler(dest, &rot)`, add the yaw
+offset, `RotMatrix`, then nine halfword copies back into `dest`.
+
+The m2c baseline scored 80.8% with `insert=1 delete=9` and *matching structure*
+because it modelled the identity splat as loose scalars (`sp18` / `sp1C` /
+`sp24` plus invented `unksp1A` … names), so the nine copy stores read the wrong
+slots. Structure match with insert/delete-only penalties on a rotation function
+is that signature. Write the block as the overlay's own word-view union — the
+`Actor206100Matrix` / `ActorsShared801639a8Mat` shape, five aligned stores for
+the identity — and copy with `dest->m[i][j] = matrix.mat.m[i][j];`. The
+project's `MATRIX` is `short m[3][3]; long t[3];`, so both sides are nine
+*consecutive* halfwords (`m[1][0]` at +6, `m[2][2]` at +0x10); a 4x4 reading
+puts `m[1][0]` at +8 and leaves gaps in the store run. Those copies also load
+`lhu`, not `lh`: the result is truncated by the store, so GCC picks the
+unsigned load — no `(u16)` cast in the source is needed to get it.

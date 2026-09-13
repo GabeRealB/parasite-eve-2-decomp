@@ -8,6 +8,23 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
+/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
+/// aligned stores instead of nine halfword ones, each word holding two adjacent
+/// `m[][]` entries.  The same shape `ActorsShared801639a8MatWords` has.
+typedef struct Actor206100MatrixWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor206100MatrixWords;
+
+typedef union Actor206100Matrix {
+    MATRIX                 mat;
+    Actor206100MatrixWords ident;
+} Actor206100Matrix;
+STATIC_ASSERT_SIZEOF(Actor206100Matrix, 0x20);
+
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
 /// copies the table onto its stack and calls `funcs[(s16)field_522]`, the same
 /// local-jump-table shape `func_actor_341700_80168748` uses.  The entries are
@@ -114,12 +131,16 @@ typedef struct Actor206100Work {
     /* 0x526 */ u16      field_526;
     /* 0x528 */ byte     pad_528[0xE];
     /* 0x536 */ u16      field_536; // seeded from D_80181A48 when the block is built
-    /* 0x538 */ byte     pad_538[0xC];
-    /* 0x544 */ s16      field_544; // id handed to func_actor_206100_8014EB48
-    /* 0x546 */ byte     pad_546[0xE];
-    /* 0x554 */ s8       field_554;
-    /* 0x555 */ byte     pad_555[0x1];
-    /* 0x556 */ s8       field_556;
+    /* 0x538 */ byte     pad_538[0x8];
+    /// Yaw offset `func_actor_206100_8014EB60` folds into the part-5 rotation
+    /// and the walk state `func_actor_206100_8014EC54` ramps to zero.
+    /* 0x540 */ s16  field_540;
+    /* 0x542 */ byte pad_542[0x2];
+    /* 0x544 */ s16  field_544; // id handed to func_actor_206100_8014EB48
+    /* 0x546 */ byte pad_546[0xE];
+    /* 0x554 */ s8   field_554;
+    /* 0x555 */ byte pad_555[0x1];
+    /* 0x556 */ s8   field_556;
     /// Animation step the spawn state leaves at 4 (`func_actor_206100_8014F284`
     /// copies it into every slot's `field_1D`).
     /* 0x557 */ s8 field_557;
