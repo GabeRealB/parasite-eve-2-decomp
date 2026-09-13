@@ -68614,3 +68614,38 @@ displacements are `4`, `-0x4` and `-0x2` — offsets relative to `0xc`. A first
 field at offset 0 hides the whole thing, because then the seed's base *is* the
 symbol; the trap only shows on a global whose lowest-written field is not at
 offset 0.
+
+## A shared span that lands on a unit boundary renumbers nothing
+
+**Symptom.** You want to promote a body that two overlays carry byte-identically,
+and `CLAUDE.md` warns that promotion is a delete-and-re-split step which shifts
+every later unit, loses matched bodies, and needs the pre-change source to
+rebuild from.
+
+**Cause.** That warning applies when the new `shared` span cuts *through* an
+existing unit: the unit's contents then belong in two different files, splat
+only creates the missing one, and every later unit takes a new number.
+
+**Fix.** Check whether both span endpoints coincide with an existing `c`
+subsegment boundary in `configs/USA/generated/<overlay>.yaml` before doing any of
+that. If they do, the promotion is not destructive at all: splat renames the
+subsegment that starts there and carves the shared unit out of it, `gen_overlay_
+configs.py` keeps the surrounding unit names, and the only source edits are
+removing the body from one carrier's `.c` and the `INCLUDE_ASM` line from the
+other's.
+
+```
+before:  - [0x1878, c, actor_143000/actor_143000_3]
+after:   - [0x1878, c, lib/actors_shared_80134dbc]
+         - [0x18C8, c, actor_143000/actor_143000_3]
+```
+
+This happens whenever the body *is* the first function of a unit, which is where
+a body promoted earlier in the same overlay leaves the next one — the previous
+promotion's span ends and the following unit starts on the same byte.
+`overlay_dup_index.py promote` writes the manifest and symbol maps either way;
+the `ninja_config.py` re-split, or just reading the generated yaml, is what tells
+you which of the two cases you are in.
+
+`func_actor_548100_80134DBC` / `func_actor_143000_80133698` → 100% with the
+carrier diffs at two and twenty-one lines.
