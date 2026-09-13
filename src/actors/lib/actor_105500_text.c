@@ -5,6 +5,7 @@
 #include "actors/actors_shared_80135c4c.h"
 
 #include "main/mem.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -623,7 +624,189 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02954);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02C94);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02FFC);
+void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
+{
+    SVECTOR            rot;
+    GpRec18*           rec0;
+    GpRec18*           rec1;
+    GpRec18*           rec2;
+    GpRec18*           rec3;
+    SVECTOR*           positions;
+    MATRIX*            matrix;
+    Actor105500Work*   work;
+    s32                variant;
+    s32                quotient;
+    s32                i;
+    s32                mode;
+    Actor105500Params* params;
+    GsCOORDINATE2*     coord;
+    Actor105500Obj2C*  obj;
+
+    obj   = actor->extra;
+    coord = obj->field_8;
+    work  = Mem_Calloc(sizeof(Actor105500Work), 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(ctx, actor);
+        return;
+    }
+    actor->idMap    = (void*)work;
+    obj->field_C    = 0;
+    coord->flg      = 0;
+    obj->field_1C   = &work->field_1F4;
+    obj->field_20   = &work->field_1D4;
+    matrix          = &coord->coord;
+    work->field_3C0 = 1;
+    work->field_36C = &Actor05500_D08ABC;
+    ctx->field_4    = matrix;
+    ctx->field_48   = 0;
+    Gp_LinkNode(&ctx->node);
+    ctx->field_18           = ((Actor105500Obj2C*)actor->extra)->field_8 + 1;
+    ctx->field_1C.vy        = -0x64;
+    ctx->field_54           = (s32)work->field_2B4;
+    ctx->field_1C.vx        = 0;
+    ctx->field_1C.vz        = 0;
+    ctx->field_50           = &Actor05500_D08970;
+    ctx->field_40           = (s16)Actor05500_D08970.field_4;
+    work->field_354.field_0 = coord;
+    work->field_354.field_4 = 0x100;
+    work->field_354.field_6 = 1;
+    work->field_3C4         = (s16)((Actor105500Params*)ctx->field_3C)->field_1;
+    params                  = ctx->field_3C;
+    mode                    = params->field_2;
+    if (mode < 10) {
+        switch (mode) {
+            case 0:
+                work->field_392 = 0xC;
+                work->field_39A = 0;
+                work->field_3A8 = 0x80;
+                work->field_3C6 = 0;
+                break;
+            case 1:
+                work->field_39A = mode;
+                work->field_392 = mode;
+                work->field_3A8 = 0x80;
+                work->field_3C6 = 0;
+                break;
+            case 2:
+                work->field_39A    = mode;
+                work->field_392    = 6;
+                work->field_3A8    = 0;
+                work->field_3C6    = 0;
+                work->field_3C8    = 1;
+                coord->coord.t[1] += 0x3E8;
+                break;
+            case 3:
+                work->field_39A    = 2;
+                work->field_392    = 6;
+                work->field_3A8    = 0;
+                work->field_3C6    = 1;
+                work->field_3C8    = 1;
+                coord->coord.t[1] += 0x3E8;
+                break;
+        }
+    } else {
+        work->field_3C4 = (s16)params->field_1;
+        quotient        = mode / 10;
+        variant         = mode - quotient * 10;
+        switch (variant) {
+            case 0:
+                if (GameFlag_GetNibble(0xCC) == 1) {
+                    work->field_392 = 0xC;
+                    work->field_39A = 0;
+                    work->field_3A8 = 0x80;
+                    rot.vx          = 0;
+                    rot.vy          = Actor05500_D089D8[work->field_3C4];
+                    rot.vz          = 0;
+                    RotMatrix(&rot, matrix);
+                    positions         = Actor05500_D089B8;
+                    coord->coord.t[0] = positions[work->field_3C4].vx;
+                    coord->coord.t[1] = positions[work->field_3C4].vy;
+                    coord->coord.t[2] = positions[work->field_3C4].vz;
+                } else {
+                    work->field_3C2 = 0;
+                    work->field_39A = 8;
+                    work->field_392 = 1;
+                    work->field_3A8 = 0;
+                }
+                break;
+            case 1:
+                if (GameFlag_GetNibble(0xCB) == 2) {
+                    work->field_392 = 0xC;
+                    work->field_39A = 0;
+                    work->field_3A8 = 0x80;
+                    rot.vx          = 0;
+                    rot.vy          = Actor05500_D08A10[work->field_3C4];
+                    rot.vz          = 0;
+                    RotMatrix(&rot, matrix);
+                    positions         = Actor05500_D089F0;
+                    coord->coord.t[0] = positions[work->field_3C4].vx;
+                    coord->coord.t[1] = positions[work->field_3C4].vy;
+                    coord->coord.t[2] = positions[work->field_3C4].vz;
+                    break;
+                }
+                work->field_39A    = 8;
+                work->field_3C2    = variant;
+                work->field_392    = 6;
+                work->field_3A8    = 0;
+                work->field_3C8    = variant;
+                coord->coord.t[1] += 0x3E8;
+        }
+    }
+    func_800B3F84((GpAnimCtx*)work, Actor05500_D08AD4, (GpAnimObj*)obj, work->field_154, ((Actor105500Anim*)work)->slots);
+    for (i = 1; i < 8; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    rec0                     = work->field_234;
+    work->field_214.field_8  = coord;
+    work->field_214.field_C  = rec0;
+    work->field_214.field_10 = 0;
+    work->field_214.field_12 = -0x12C;
+    work->field_214.field_14 = 0;
+    work->field_214.field_18 = 0x30037;
+    work->field_214.field_1C = 0x12C;
+    work->field_214.flags    = 1;
+    Gp_LinkObj(2, &work->field_214);
+    Gp_InitRec18Table(rec0, 4, 0);
+    work->field_214.flags   |= 0x4200;
+    work->field_294.field_8  = ((Actor105500Obj2C*)actor->extra)->field_8 + 1;
+    rec1                     = work->field_2B4;
+    work->field_294.field_C  = rec1;
+    work->field_294.field_10 = 0;
+    work->field_294.field_12 = -0x64;
+    work->field_294.field_14 = 0;
+    work->field_294.field_18 = 0x30037;
+    work->field_294.field_1C = 0x12C;
+    work->field_294.flags    = 1;
+    Gp_LinkObj(2, &work->field_294);
+    Gp_InitRec18Table(rec1, 2, 0);
+    work->field_294.flags   |= 0x8000;
+    work->field_2E4.field_8  = ((Actor105500Obj2C*)actor->extra)->field_8 + 4;
+    rec2                     = work->field_304;
+    work->field_2E4.field_C  = rec2;
+    work->field_2E4.field_10 = 0;
+    work->field_2E4.field_12 = 0;
+    work->field_2E4.field_14 = 0;
+    work->field_2E4.field_18 = 0;
+    work->field_2E4.field_1C = 0xC8;
+    work->field_2E4.flags    = 1;
+    Gp_LinkObj(3, &work->field_2E4);
+    Gp_InitRec18Table(rec2, 1, 0);
+    work->field_2E4.flags   &= 0x7FFF;
+    work->field_31C.field_8  = ((Actor105500Obj2C*)actor->extra)->field_8 + 4;
+    rec3                     = work->field_33C;
+    work->field_31C.field_C  = rec3;
+    work->field_31C.field_10 = 0;
+    work->field_31C.field_12 = 0;
+    work->field_31C.field_14 = 0;
+    work->field_31C.field_18 = 0x22424;
+    work->field_31C.field_1C = 0x1F4;
+    work->field_31C.flags    = 1;
+    Gp_LinkObj(1, &work->field_31C);
+    Gp_InitRec18Table(rec3, 1, 0);
+    work->field_31C.flags &= 0x7FFF;
+    actor->state           = 1;
+}
 
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1)
 {

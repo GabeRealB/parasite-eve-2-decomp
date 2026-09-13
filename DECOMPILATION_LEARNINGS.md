@@ -64886,3 +64886,46 @@ Session evidence: nonmatchings/Actor05500_Fn00914-vacuum/LEARNINGS.md and
 base_3/base_4 RTL, lreg, greg dumps. The router had no discovery; this was
 a direct compiler experiment. The reason ternary expansion chooses branches
 here remains untraced.
+
+
+## Actor05500_Fn02FFC: separate quotient lifetime from a call-crossing remainder
+
+A signed constant remainder can use its requested destination for the
+intermediate quotient too. With `remainder = mode % 10`, base_5's `.combine`
+UID 298 (quotient) and UID 306 (remainder) both write r89. Since the remainder
+crosses a call, r89 is global and ends in s0. This left only three register
+mismatches at 99.957%: the target quotient stays in v1.
+
+The controlled base_7 change was:
+
+```c
+quotient = mode / 10;
+remainder = mode - quotient * 10;
+```
+
+Its `.combine` UID 298 writes quotient r90 and UID 307 writes remainder r89.
+`.lreg` reports quotient r90 as block 14 local, three references over three
+instructions. `.greg` gives quotient r90=v1, remainder r89=s0, mode r92=a1.
+All 345 instructions then match, without pins or asm helpers; the normal C
+port base_8 also scores 100%.
+
+The tempting alternative `mode %= 10; remainder = mode` separates the quotient
+but CSE merges the mode and remainder into one call-crossing pseudo. In base_6
+that moves the input from a1 to s0 and increases register mismatches to 13.
+Check both the intermediate quotient and the input/result lifetime.
+
+Source support: patched GCC 2.8.1 `expmed.c:expand_divmod` rejects a supplied
+target when it overlaps the dividend (around 2759–2771), and can pass the
+selected quotient target into the reciprocal-division subtraction (around
+3090–3109). The explicit quotient is a useful intervention when dumps show
+this exact shared-destination pattern; it is not a universal register rule.
+
+Evidence: `nonmatchings/Actor05500_Fn02FFC-vacuum/base_{5,6,7,8}.c`, their
+`.combine`, `.lreg`, `.greg`, scores and experiment journal. Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed base_5 SHA256:
+`8e999ede4e7047b18bbc253d4302344fff7e28199ab78aac8f783729866b5906`;
+base_7 SHA256:
+`6a84d0c3c7146fb7d067dc9a928078a02baed305eb5a1e061802cfb70ac4a570`.
+The router failed setup on a missing `m2c_macros.h` include; this was a manual
+controlled experiment, not a permuter discovery.
