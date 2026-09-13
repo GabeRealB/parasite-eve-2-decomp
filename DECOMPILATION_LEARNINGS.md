@@ -69198,3 +69198,74 @@ shows `addiu` immediates off by a struct-size multiple, do not chase the
 allocation - find the scaled pointer arithmetic and give it a real type.
 Compiler SHA256:
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## `fold()` regroups `(VAR+CON)+ARG1` into `VAR+(ARG1+CON)` - write the constant against the *first* term
+
+`func_actor_460200_80132468` spawns an effect with a three-term sum,
+`A + 0x800231C0 + ((x >> 16 & 1) << 30)`, where `A` is `(rng >> 16) & 0x10FF`
+and `0x800231C0` is a symbol address. Writing it in that order produced the
+grouping `(A + C) + B`, so the target's `addu a2,t0,a2` came out as
+`addu a2,a2,t0` and sched1 ordered the two `addu`s and the `lui/ori` pair
+differently (`reorder` and `insert`, 95.644% to 100% on this one edit).
+
+Writing the same value as `(A + 0x800231C0) + B` makes `fold()` reassociate
+`(VAR+CON) + ARG1` into `VAR + (ARG1 + CON)` - `fold-const.c:4314-4327` - which
+is the target's tree. The source expression and the emitted one therefore
+*disagree*: the constant must be written against the term it will end up next
+to, not against the term it is added to in the C.
+
+That block is guarded by `if (!wins)` at `fold-const.c:4288`, and `wins` is 1
+only when every operand is `INTEGER_CST`, so the rewrite reaches exactly the
+mixed constant/relocatable sums the target already has. Where both groupings are
+reachable, the tell is an `addu` with its two register operands swapped - the
+tree's operand order is what the RTL shows, and no register pin changes it.
+Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+`base_5.c` (before) preprocessed SHA256:
+f1c63294ca102b8fc80aad099869ab1f0ed1aa47be35817756d347649542cfe2.
+`base_6.c` (after) preprocessed SHA256:
+edf031662f8887b2de117fad7c58ed693802a69c5bf6495bf67d4f8d6463bc13.
+
+## An unchained statement between two steps of an update keeps its place *and* its register class
+
+Same function, `base_5` to `base_6`. The target computes
+
+```
+lw      v1,Gp_LcgState
+...     v0 = v1*5 + 0x71357911
+srl     t0,v0,0x10
+andi    t0,t0,0x10FF          ; A = (rng >> 16) & 0x10FF
+sll     v1,v0,0x2             ; rng*5 starts here
+addu    v1,v1,v0
+addu    v1,v1,a2              ; rng2 = rng*5 + 0x71357911
+...
+addu    a2,t0,a2
+```
+
+with `A` in `$t0` - a register neither LCG step uses. Folding `A` into the
+`Gp_SpawnEff` argument expression moved its `srl`/`andi` down next to the call
+and homed it in `$v0`, aliasing the first LCG step. Naming it in its own
+statement before the second step fixes both at once:
+
+```c
+rng  = Gp_LcgState * 5 + 0x71357911;
+hi   = (rng >> 16) & 0x10FF;          /* want srl/andi right here, in $t0 */
+rng2 = rng * 5 + 0x71357911;
+Gp_LcgState = rng2;
+Gp_SpawnEff(0x60070, sub, hi + 0x800231C0 + (((rng2 >> 16) & 1) << 30), NULL);
+```
+
+This is the general shape from DECOMPILATION_LEARNINGS.md, "Accumulate a sum
+into its own variable or it coalesces with `$a0`", applied to a *position*
+rather than a coalesce: a subexpression consumed only once still wants a
+variable when its place in the middle of a longer computation is load-bearing.
+The RTL order follows statement order, and the pseudo's live range then runs
+from that statement to the call, so local-alloc has a different candidate set
+to pick from. Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+`base_6.c` preprocessed SHA256:
+edf031662f8887b2de117fad7c58ed693802a69c5bf6495bf67d4f8d6463bc13.
+`base_7.c` (same body, host include set) preprocessed SHA256:
+4b158a0ae4afa9c1208e3c34441405db4e2498891ba8215f763e72f40096b77c.

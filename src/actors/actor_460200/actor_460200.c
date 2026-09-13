@@ -5,15 +5,21 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "psyq/rand.h"
 
 extern s8 D_8007272D;
 
 extern s32 D_actor_460200_8013FC50;
 extern s32 D_actor_460200_8013FC8C;
+
+extern u8 D_actor_460200_8013FCCC[];
+
+extern s32 Gp_LcgState;
 
 extern s32 D_actor_460200_80135F14;
 extern s32 D_actor_460200_8013607C;
@@ -124,12 +130,63 @@ void func_actor_460200_80132390(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132468);
+/// Per-frame step of the actor's first state: rolls `idx` from the shared
+/// 12-entry byte table, parks the model's `idx`-th sub-coordinate (`sub`) for
+/// the effect spawn below, and pushes the enemy's own coordinate through
+/// `Gp_UpdateCoord` so `func_800D7A9C` can place the light probe at the model's
+/// updated world position (0x320 above the origin's Y).
+///
+/// The effect fires only while the paired work block is alive, the model is
+/// visible (`field_C` bit 7 clear) and the sub-model exists, and only on every
+/// other frame — `killCountdown` doubles as the parity counter and is bumped
+/// after the spawn, never on the odd frames the guards reject.
+///
+/// Both `Gp_SpawnEff` arguments come from one step of the global LCG
+/// (`Gp_LcgState`): the low half of the first state feeds `arg2`'s effect id
+/// and the top bit of the second its palette selector, and the second state is
+/// stored back.
+void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
+{
+    Actor460200Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   sub;
+    VECTOR           vec;
+    u8               idx;
+    s32              r;
+    u32              rng;
+    u32              rng2;
+    u32              hi;
+
+    obj   = task->extra;
+    coord = obj->field_8;
+    r     = rand();
+    idx   = D_actor_460200_8013FCCC[(r * 11) >> 15];
+    work  = (Actor460200Work*)task->idMap;
+    sub   = ((TmdObject*)task->extra)->field_8 + idx;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_460200_801325FC(task);
+    func_actor_460200_80132978(task);
+    if ((work->field_4EE != 0) && !(obj->field_C & 0x80) && (obj->field_18 != NULL)) {
+        if (task->killCountdown & 1) {
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            hi          = (rng >> 16) & 0x10FF;
+            rng2        = rng * 5 + 0x71357911;
+            Gp_LcgState = rng2;
+            Gp_SpawnEff(0x60070, sub, hi + 0x800231C0 + (((rng2 >> 16) & 1) << 30), NULL);
+        }
+        task->killCountdown = (u16)task->killCountdown + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801325FC);
 
 void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
-void func_actor_460200_80132468(void* enemy, Task* task);
+s32  func_actor_460200_80132978(Task* task);
 void func_actor_460200_80132950(Task* task);
 
 void func_actor_460200_801327B4(Task* task)
