@@ -641,7 +641,13 @@ destroy:
     return;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn01830);
+void Actor00700_Fn01830(Actor00700* arg0)
+{
+    Actor00700StateFuncTable3 sp;
+
+    sp = Actor00700_D00004;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor00700_Fn00334(Actor00700* arg0);

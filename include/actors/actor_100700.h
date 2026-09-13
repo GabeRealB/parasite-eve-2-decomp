@@ -104,6 +104,12 @@ typedef struct Actor00700 {
     /* 0x30 */ s32              field_30;
 } Actor00700;
 
+typedef struct Actor00700StateFuncTable3 {
+    void (*funcs[3])(Actor00700Ctx*, Actor00700*);
+} Actor00700StateFuncTable3;
+
+extern Actor00700StateFuncTable3 Actor00700_D00004;
+
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
 /// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`.
 typedef struct Actor00700RotScratch {
@@ -123,6 +129,7 @@ void Actor00700_Fn008B4(Actor00700* arg0);
 void Actor00700_Fn00BC0(Actor00700* arg0);
 void Actor00700_Fn012E4(Actor00700* arg0);
 void Actor00700_Fn01434(Actor00700Ctx* arg0, Actor00700* arg1);
+void Actor00700_Fn01830(Actor00700* arg0);
 void Actor00700_Fn0188C(Actor00700Ctx* arg0, Actor00700* arg1);
 void Actor00700_Fn01AB8(Actor00700* arg0);
 void Actor00700_Fn02290(Actor00700Ctx* arg0, Actor00700* arg1);
