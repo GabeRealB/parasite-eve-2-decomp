@@ -10,7 +10,96 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
+extern s32 Gp_LcgState;
+
+void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
+{
+    SVECTOR         sp18;
+    GsCOORDINATE2*  next_coord;
+    s32             i;
+    u32             random;
+    GsCOORDINATE2*  coord;
+    TmdObject*      obj;
+    Actor01600Work* work;
+    MATRIX*         matrix;
+
+    obj        = actor->field_2C;
+    coord      = obj->field_8;
+    work       = Mem_Calloc(0x558U, false);
+    next_coord = coord + 1;
+    if (work == NULL) {
+        Gp_DestroyEnemy(ctx, actor);
+        return;
+    }
+    actor->field_1C                       = work;
+    obj->field_C                          = 0;
+    coord->flg                            = 0;
+    obj->field_1C                         = &work->field_22C;
+    obj->field_20                         = &work->field_20C;
+    work->field_24C.sub                   = &Gfx_ViewCoord;
+    matrix                                = &work->field_24C.coord;
+    *(s32*)&work->field_24C.coord.m[0][0] = 0x1000;
+    *(s32*)&matrix->m[0][2]               = 0;
+    *(s32*)&matrix->m[1][1]               = 0x1000;
+    *(s32*)&matrix->m[2][0]               = 0;
+    matrix->m[2][2]                       = 0x1000;
+    work->field_24C.coord.t[0]            = (s32)coord->coord.t[0];
+    work->field_24C.coord.t[1]            = (s32)coord->coord.t[1];
+    work->field_24C.coord.t[2]            = (s32)coord->coord.t[2];
+    work->field_24C.flg                   = 0;
+    work->field_4F2                       = 0;
+    ctx->field_4                          = &coord->coord;
+    ctx->field_48                         = 0;
+    Gp_LinkNode(&ctx->node);
+    ctx->field_20     = -0x190;
+    ctx->node.field_4 = 0;
+    ctx->field_18     = coord;
+    ctx->field_1C     = 0;
+    ctx->field_24     = 0;
+    ctx->field_50     = &Actor01600_D09F0C;
+    ctx->field_54     = (s32)&work->collision.named.pad_30C;
+    ctx->field_40     = (u16)Actor01600_D09F0C.field_4;
+    work->field_408   = 0x280;
+    work->field_40A   = 2;
+    work->field_404   = next_coord;
+    func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
+    for (i = 1; i < 9; i++) {
+        Gp_AnimResetSlot(&work->anim, i, 1);
+    }
+    Gp_IncStateF0Ref(0);
+    work->field_506 = 1;
+    work->field_508 = 1;
+    work->field_542 = 0x14;
+    work->field_4EA = 0;
+    work->field_52A = 0;
+    work->field_52C = 0;
+    work->field_4FA = 0;
+    work->field_50C = 0;
+    work->field_526 = 0;
+    work->field_528 = 0;
+    work->field_51E = 0;
+    work->field_520 = 0;
+    work->field_510 = 0;
+    work->field_530 = 0;
+    work->field_532 = 0;
+    work->field_534 = 0;
+    work->field_53A = 0;
+    work->field_53C = 0;
+    work->field_540 = 0;
+    work->field_53E = 0;
+    work->field_524 = 0;
+    work->field_544 = 0;
+    work->field_538 = 0x10;
+    random          = (Gp_LcgState * 5) + 0x71357911;
+    work->field_536 = (s16)(((random >> 0x10) & 0x1F) + 1);
+    Gp_LcgState     = (s32)random;
+    Gfx_MatrixCol2(&actor->field_2C->field_8->coord, &sp18);
+    work->field_4FC = ratan2((s32)sp18.vx, (s32)sp18.vz);
+    Actor01600_Fn05400(actor);
+    actor->field_18 = &Actor01600_Fn06EA4;
+    actor->field_24 = &Actor01600_D127A4;
+    actor->field_30 = (s32)(actor->field_30 + 1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00480);
 

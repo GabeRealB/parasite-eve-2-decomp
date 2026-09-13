@@ -27,17 +27,30 @@ typedef struct Actor01600Params {
     /* 0x0A */ s16  field_A;
 } Actor01600Params;
 
+typedef struct Actor01600Desc {
+    /* 0x00 */ byte pad_0[4];
+    /* 0x04 */ u16  field_4;
+} Actor01600Desc;
+
 typedef struct Actor01600Ctx {
-    /* 0x00 */ byte              pad_0[0x8];
+    /* 0x00 */ byte              pad_0[4];
+    /* 0x04 */ MATRIX*           field_4;
     /* 0x08 */ u16               field_8;
     /* 0x0A */ byte              pad_A[0x6];
     /* 0x10 */ Actor01600Node    node;
-    /* 0x18 */ byte              pad_18[0x24];
+    /* 0x18 */ GsCOORDINATE2*    field_18;
+    /* 0x1C */ s32               field_1C;
+    /* 0x20 */ s32               field_20;
+    /* 0x24 */ s32               field_24;
+    /* 0x28 */ byte              pad_28[0x14];
     /* 0x3C */ Actor01600Params* field_3C;
     /* 0x40 */ u16               field_40;
-    /* 0x42 */ byte              pad_42[0xA];
+    /* 0x42 */ byte              pad_42[6];
+    /* 0x48 */ u8                field_48;
+    /* 0x49 */ byte              pad_49[3];
     /* 0x4C */ u8                field_4C;
-    /* 0x4D */ byte              pad_4D[7];
+    /* 0x4D */ byte              pad_4D[3];
+    /* 0x50 */ Actor01600Desc*   field_50;
     /* 0x54 */ s32               field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
@@ -118,7 +131,10 @@ STATIC_ASSERT_SIZEOF(Actor01600HitScratch, 0x4C);
 typedef struct Actor01600Work {
     /* 0x000 */ Actor01600AnimCtx  anim;
     /* 0x014 */ Actor01600AnimSlot slots[9];
-    /* 0x17C */ byte               pad_17C[0x120];
+    /* 0x17C */ byte               pad_17C[0x90];
+    /* 0x20C */ MATRIX             field_20C;
+    /* 0x22C */ MATRIX             field_22C;
+    /* 0x24C */ GsCOORDINATE2      field_24C;
     /* 0x29C */ byte               field_29C[0x1E];
     /* 0x2BA */ u16                field_2BA;
     /* 0x2BC */ byte               pad_2BC[4];
@@ -128,7 +144,10 @@ typedef struct Actor01600Work {
     /* 0x2EC */ Actor01600Contacts collision;
     /* 0x3CC */ byte               field_3CC[0x1E];
     /* 0x3EA */ u16                field_3EA;
-    /* 0x3EC */ byte               pad_3EC[0x20];
+    /* 0x3EC */ byte               pad_3EC[0x18];
+    /* 0x404 */ GsCOORDINATE2*     field_404;
+    /* 0x408 */ s16                field_408;
+    /* 0x40A */ s16                field_40A;
     /* 0x40C */ byte               field_40C[0x1E];
     /* 0x42A */ u16                field_42A;
     /* 0x42C */ byte               pad_42C[0x30];
@@ -175,11 +194,11 @@ typedef struct Actor01600Work {
     /* 0x51E */ s16                field_51E;
     /* 0x520 */ s16                field_520;
     /* 0x522 */ s16                field_522;
-    /* 0x524 */ byte               pad_524[2];
+    /* 0x524 */ s16                field_524;
     /* 0x526 */ s16                field_526;
     /* 0x528 */ s16                field_528;
     /* 0x52A */ s16                field_52A;
-    /* 0x52C */ byte               pad_52C[2];
+    /* 0x52C */ s16                field_52C;
     /* 0x52E */ s16                field_52E;
     /* 0x530 */ s16                field_530;
     /* 0x532 */ s16                field_532;
@@ -208,10 +227,12 @@ typedef struct Actor01600 {
     /* 0x00 */ byte               pad_0[0xC];
     /* 0x0C */ struct Actor01600* field_C;
     /* 0x10 */ struct Actor01600* field_10;
-    /* 0x14 */ byte               pad_14[8];
+    /* 0x14 */ byte               pad_14[4];
+    /* 0x18 */ void               (*field_18)(struct Actor01600*);
     /* 0x1C */ Actor01600Work*    field_1C;
     /* 0x20 */ Actor01600Ctx*     field_20;
-    /* 0x24 */ byte               pad_24[8];
+    /* 0x24 */ void*              field_24;
+    /* 0x28 */ byte               pad_28[4];
     /* 0x2C */ TmdObject*         field_2C;
     /* 0x30 */ s32                field_30;
 } Actor01600;
@@ -337,5 +358,14 @@ void Actor01600_Fn06974(Actor01600* actor, s32 angle);
 s32  Actor01600_Fn06C1C(Actor01600* actor);
 s32  Actor01600_Fn06C94(Actor01600* actor, s32 angle, s32 distance);
 s32  Actor01600_Fn06D74(Actor01600* actor, s32 angle, s32 distance);
+
+extern Actor01600Desc Actor01600_D09F0C;
+extern u8             Actor01600_D127EC[], Actor01600_D127A4[];
+void                  Actor01600_Fn05400(Actor01600* actor);
+void                  Actor01600_Fn06EA4(Actor01600* actor);
+void                  Gp_LinkNode(Actor01600Node* node);
+void                  func_800B3F84(Actor01600AnimCtx* anim, void* data, TmdObject* obj, void* poses, Actor01600AnimSlot* slots);
+void                  Gp_AnimResetSlot(Actor01600AnimCtx* anim, s32 slot, s32 active);
+void                  Gp_IncStateF0Ref(s32 arg0);
 
 #endif // ACTOR_101600_H
