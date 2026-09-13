@@ -460,7 +460,182 @@ void Actor00300_Fn01D60(Actor100300* arg0)
     *(u32*)0x1F8003FC += 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01F9C);
+void Actor00300_Fn01F9C(Actor100300* arg0)
+{
+    SVECTOR                sp10;
+    SVECTOR                sp18;
+    Actor100300Work*       work;
+    GpEffWork*             effect;
+    GsCOORDINATE2*         coord;
+    s16                    turnTimer;
+    s16                    effectTimer2;
+    s16                    effectTimer1;
+    s16                    state;
+    s16                    delta;
+    s32                    magnitude;
+    s16                    angle;
+    s16                    delay;
+    s32                    random2;
+    s32                    effectAngle2;
+    s32                    random1;
+    s32                    effectAngle1;
+    s32                    sound;
+    s32                    delayRandom0;
+    s32                    delayRandom3;
+    s32                    pan2;
+    s32                    pan1;
+    s32                    effectPan;
+    u16                    yaw;
+    u32                    effectRandom2;
+    u32                    effectRandom1;
+    Actor100300RotScratch* scratchEnd;
+    Actor100300RotScratch* scratch;
+
+    scratchEnd = *(Actor100300RotScratch**)0x1F8003FC;
+    scratch =
+        (Actor100300RotScratch*)(*(u32*)0x1F8003FC = (u32)scratchEnd - 0x18);
+    work  = arg0->field_1C;
+    state = work->field_686;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_67C = 0x3C;
+            work->field_67A = 0;
+            work->field_66E = 3;
+            scratchEnd[-1].vec.vx =
+                (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+            scratch->vec.vy = 0;
+            scratch->vec.vz = (s32)(Wip_SysConfig.field_4->t[2] - coord->coord.t[2]);
+            yaw             = ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
+                  0xFFF;
+            work->field_680 = yaw;
+            delta           = yaw - (u16)work->field_67E;
+            magnitude       = abs(delta);
+            angle           = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000)
+                                                 : magnitude;
+            if (angle < 0x100) {
+                work->field_686                           = 1;
+                work->field_66E                           = 4;
+                ((Actor00300ByteView*)&D_80115418)->value = 1;
+            } else {
+                turnTimer       = (u16)work->field_688 - 1;
+                work->field_688 = turnTimer;
+                if ((turnTimer << 0x10) <= 0) {
+                    work->field_684 = 1;
+                    work->field_686 = 0;
+                    delayRandom0    = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState     = delayRandom0;
+                    delay           = ((u32)delayRandom0 >> 0x10) & 0xF;
+                    work->field_688 = delay;
+                }
+            }
+            break;
+        case 1:
+            ((Actor00300ByteView*)&D_80115418)->value = 0;
+            work->field_67C                           = 0xF;
+            scratchEnd[-1].vec.vx =
+                (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+            scratch->vec.vy = 0;
+            scratch->vec.vz = (s32)(Wip_SysConfig.field_4->t[2] - coord->coord.t[2]);
+            work->field_680 =
+                ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
+                0xFFF;
+            if (Gp_State1C->field_4 == 0) {
+                effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState   = (s32)effectRandom1;
+                if (!((effectRandom1 >> 0x10) & 3)) {
+                    random1      = (effectRandom1 * 5) + 0x71357911;
+                    Gp_LcgState  = random1;
+                    effectAngle1 = ((u32)random1 >> 0x10) & 0xF80;
+                    memset(&sp18, 0, 8);
+                    sp18.vx = (s16)((u32)(rcos(effectAngle1) * 5) >> 5);
+                    sp18.vz = (s16)((u32)(rsin(effectAngle1) * 5) >> 5);
+                    sp10    = sp18;
+                    Gp_SpawnEff(D_80115728, coord, 0x20101200, &sp10);
+                }
+            }
+            if ((s16)work->field_672 == 0x33) {
+                sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030006;
+                pan1  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(sound, (s32)pan1,
+                                    (s32)(s8)Gp_GetObjDepth((GpObj38*)coord));
+                scratch->rot.vy = -0x5DC;
+                scratch->rot.vx = 0;
+                scratch->rot.vz = 0x320;
+                effect =
+                    Gp_SpawnEff(D_80115744, coord,
+                                Actor00300_D15FF8[work->field_66A] - 0x32, &scratch->rot);
+                work->field_654 = effect;
+                if (effect != NULL) {
+                    Task_Reparent((Task*)arg0, effect->field_0);
+                    work->field_69C = Actor00300_D15FF8[work->field_66A] - 0x32;
+                }
+                work->field_658 =
+                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030009;
+                effectPan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(work->field_658, (s32)effectPan,
+                                    (s32)(s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if ((s16)work->field_672 >= Actor00300_D15FF8[work->field_66A]) {
+                work->field_686 = 2;
+                work->field_66E = 5;
+                work->field_67C = 0;
+            }
+            if (work->field_69C > 0) {
+                effectTimer1    = (u16)work->field_69C - 1;
+                work->field_69C = effectTimer1;
+                if ((effectTimer1 << 0x10) <= 0) {
+                    work->field_654 = NULL;
+                }
+            }
+            break;
+        case 2:
+            if (work->field_69C > 0) {
+                effectTimer2    = (u16)work->field_69C - 1;
+                work->field_69C = effectTimer2;
+                if ((effectTimer2 << 0x10) <= 0) {
+                    work->field_654 = NULL;
+                }
+            }
+            if (((s16)work->field_672 < 0xE) && (Gp_State1C->field_4 == 0)) {
+                effectRandom2 = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState   = (s32)effectRandom2;
+                if (!((effectRandom2 >> 0x10) & 3)) {
+                    random2      = (effectRandom2 * 5) + 0x71357911;
+                    Gp_LcgState  = random2;
+                    effectAngle2 = ((u32)random2 >> 0x10) & 0xF80;
+                    memset(&sp18, 0, 8);
+                    sp18.vx = (s16)((u32)(rcos(effectAngle2) * 5) >> 5);
+                    sp18.vz = (s16)((u32)(rsin(effectAngle2) * 5) >> 5);
+                    sp10    = sp18;
+                    Gp_SpawnEff(D_80115728, coord, 0x20101200, &sp10);
+                }
+            }
+            if ((s16)work->field_672 == 0xE) {
+                Gp_SpawnEnemyFromTable(&Actor00300_D162F0, 2, 0, arg0->field_20);
+                sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030005;
+                pan2  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(sound, (s32)pan2,
+                                    (s32)(s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if ((s16)work->field_672 >= 0x13) {
+                work->field_686 = 3;
+                work->field_66E = 6;
+            }
+            break;
+        case 3:
+            if ((s16)work->field_672 >= 0x14) {
+                work->field_684 = 1;
+                work->field_686 = 0;
+                delayRandom3    = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = delayRandom3;
+                delay           = ((u32)delayRandom3 >> 0x10) & 0x1F;
+                work->field_688 = delay;
+            }
+            break;
+    }
+    *(u32*)0x1F8003FC += 0x18;
+}
 
 void Actor00300_Fn02620(Actor100300* arg0)
 {
