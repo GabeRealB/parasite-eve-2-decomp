@@ -85,7 +85,11 @@ typedef struct Actor444000Work {
     /* 0x744 */ byte       aux5[0x40];
     /* 0x784 */ byte       pad_784[0x20];
     /* 0x7A4 */ s16        field_7A4;
-    /* 0x7A6 */ byte       pad_7A6[0x6];
+    /* 0x7A6 */ byte       pad_7A6[0x2];
+    /// The masked `slots0[3].field_2` frame the escort-order tick
+    /// (`func_actor_444000_8013EC84`) last saw, so each of its one-shot cues
+    /// only fires on the step the animation first reaches that frame.
+    /* 0x7A8 */ s32 field_7A8;
     /// The masked `slots0[1]` / `slots0[2]` frame the arena tick
     /// (`func_actor_444000_8013FB74`) last saw, so its two one-shot cues only fire
     /// on the step the animation reaches their frame. Same role as `field_7D8`,
@@ -198,7 +202,7 @@ typedef struct Actor444000Work {
     /* 0xEFC */ s16      field_EFC; // the field_EFA the colour update last ran for
     /* 0xEFE */ s16      field_EFE;
     /* 0xF00 */ s16      field_F00; // pitch the head tracker walks toward its target, clamped to 0..0x500
-    /* 0xF02 */ byte     pad_F02[0x2];
+    /* 0xF02 */ s16      field_F02; // raised with the message 0x3FF the 0x17 sub-state sends the player
     /* 0xF04 */ s16      field_F04;
     /* 0xF06 */ s16      field_F06;
     /* 0xF08 */ s16      field_F08;
@@ -592,6 +596,32 @@ typedef struct Actor444000SpawnScratch {
     /* 0xA */ s16     i; // escort slot, 0 or 1
 } Actor444000SpawnScratch;
 STATIC_ASSERT_SIZEOF(Actor444000SpawnScratch, 0xC);
+
+/// 0x4C-byte scratchpad frame `func_actor_444000_8013EC84` carves off
+/// `G_SCRATCH_HEAD` for the escort-order tick. `delta` is the player-relative
+/// offset in the arena plane whose length is `dist` -- under 0xB54 the player is
+/// dragged back along `dir` to a fixed range -- and `pos` is the host's fifth
+/// part carried into view space, which the yaw `angle` and the final message
+/// 0x3E9 placement are both built from. `dir` doubles as `VectorNormalSS`'s
+/// workspace throughout.
+typedef struct Actor444000WarpScratch {
+    /* 0x00 */ SVECTOR dir;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ VECTOR  delta;
+    /* 0x20 */ MATRIX  m;
+    /* 0x40 */ s32     dist;  // length of `delta`, in world units
+    /* 0x44 */ byte    pad_44[0x6];
+    /* 0x4A */ s16     angle; // yaw handed to the placement, wrapped to +/-0x800
+} Actor444000WarpScratch;
+STATIC_ASSERT_SIZEOF(Actor444000WarpScratch, 0x4C);
+
+/// Position and Euler rotation payload the escort-order tick sends slot 3 as
+/// message 0x3E9; `D_actor_444000_80161908` is the overlay's only instance.
+typedef struct Actor444000MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor444000MsgPos;
+STATIC_ASSERT_SIZEOF(Actor444000MsgPos, 0x18);
 
 /// 0x14-byte scratchpad frame `func_actor_444000_80132B14` carves off
 /// `G_SCRATCH_HEAD`: the `GpDeltaScratch` it hands `func_800E0C10` plus the

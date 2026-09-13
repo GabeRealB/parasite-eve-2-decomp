@@ -103,6 +103,14 @@ extern TaskDesc D_actor_444000_801617DC;
 /// 0x3FF; entry 4 is rebuilt from the player's own weapon block before the
 /// second (`field_4 == 4`) send.
 extern GpAnimSet* D_actor_444000_80161670[];
+/// The companion table used instead when the player is more than a quarter turn
+/// off the host's facing, so the hold plays from the other side.
+extern GpAnimSet* D_actor_444000_80161680[];
+/// Set while the escort-order tick holds the player at a placement of its own;
+/// 1 marks the plain re-placement, 0 the full grab.
+extern s8 D_actor_444000_80161868;
+/// Shared message 0x3E9 placement payload the escort-order tick sends slot 3.
+extern Actor444000MsgPos D_actor_444000_80161908;
 /// Reply buffer the fight hands message 0x3F8 before asking for the hold.
 extern Actor444000Msg3F8 D_actor_444000_80161928;
 extern GpAnimBlk*        Gp_PlayerAnimBlkTbl[];
@@ -115,7 +123,6 @@ extern u8 D_801153F4;
 
 /// Dispatch-table entries that still live in assembly further down this file.
 void func_actor_444000_8013E058(Actor444000* arg0);
-void func_actor_444000_8013EC84(Actor444000* arg0);
 void func_actor_444000_80141DFC(Actor444000* arg0);
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
@@ -1820,7 +1827,303 @@ void func_actor_444000_8013D96C(Actor444000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013E058);
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013EC84);
+/// Escort-order tick of the arena fight: the state the boss runs while it has
+/// the player pinned in front of it.
+///
+/// A reset request raises the eight arena floor vertices `Gp_GridParams` keeps
+/// at 24..31, re-arms the block on animation 0xF, clears the host model's flag
+/// word and pushes it onto each of the seven escorts' models, makes sure the
+/// host and every escort has its model buffers allocated, and -- if the player
+/// has drifted inside 0xB54 -- drags them back out to that range along the
+/// line between the two. It then places the player with
+/// `Actor444000_PlacePlayerAhead`, hands the fight the battle flag, drops the
+/// host and three of its escorts out of the actor slots and orders escort 3
+/// through a 0x7DA message.
+///
+/// Every other tick runs the ordinary re-arm first. Animation 0xF hands over to
+/// 0xE once the second slot raises its flag, and each animation fires one-shot
+/// cues on the frames it reaches -- 0x19 under 0xF, 0x1D / 0x23 / 0x27 under
+/// 0xE, the last two also kicking the pad -- with `field_7A8` remembering the
+/// frame so none repeats while it is held. While message 0x3ED reports the
+/// player free they are put back on the host's own position, and sub-state 0x17
+/// re-places them and re-sends the 0x3FF animation.
+/// Places the player in front of the host and points the pair at each other:
+/// the host's fifth part is carried into view space, the yaw from there to the
+/// player picks which of the two message-0x3FF animation tables the tick will
+/// send (`..._80161680` past a quarter turn, `..._80161670` within it), and the
+/// opposite yaw is stowed in `field_7C4` for the drive step. The normalised
+/// direction scaled to 0x384 is where the player is asked to stand.
+static __inline__ void Actor444000_PlacePlayerAhead(Actor444000* task, Actor444000Work* work,
+                                                    Task* player, Actor444000WarpScratch* sc,
+                                                    WipSysConfig* cfg)
+{
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* facing;
+    s16            angle;
+    s32            yaw;
+
+    sc->pos.vz = 0;
+    sc->pos.vy = 0;
+    sc->pos.vx = 0;
+    Actor444000_LocalToView(&((TmdObject*)task->extra)->field_8[4], &sc->pos);
+
+    sc->dir.vx = sc->pos.vx - ((TmdObject*)player->extra)->field_8->coord.t[0];
+    sc->dir.vy = 0;
+    sc->dir.vz = sc->pos.vz - ((TmdObject*)player->extra)->field_8->coord.t[2];
+    facing     = ((TmdObject*)player->extra)->field_8;
+    angle      = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    yaw       = angle;
+    sc->angle = yaw;
+    if (abs(sc->angle) > 0x400) {
+        if (sc->angle > 0) {
+            sc->angle = yaw - 0x800;
+        } else {
+            sc->angle = yaw + 0x800;
+        }
+        work->anim.field_0 = D_actor_444000_80161680;
+    } else {
+        work->anim.field_0 = D_actor_444000_80161670;
+    }
+    coord      = ((TmdObject*)player->extra)->field_8;
+    sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+
+    sc->dir.vx = ((TmdObject*)player->extra)->field_8->coord.t[0] - sc->pos.vx;
+    sc->dir.vy = 0;
+    sc->dir.vz = ((TmdObject*)player->extra)->field_8->coord.t[2] - sc->pos.vz;
+    facing     = ((TmdObject*)task->extra)->field_8;
+    angle      = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp2:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp2;
+        }
+    } else {
+    wrapDown2:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown2;
+        }
+    }
+    work->field_7C4 = angle;
+
+    VectorNormalSS(&sc->dir, &sc->dir);
+    gte_lddp(0x384);
+    gte_ldsv(&sc->dir);
+    gte_gpf12_real();
+    gte_stsv(&sc->dir);
+
+    D_actor_444000_80161908.pos.vx = sc->pos.vx + sc->dir.vx;
+    D_actor_444000_80161908.pos.vy = ((TmdObject*)player->extra)->field_8->coord.t[1];
+    D_actor_444000_80161908.pos.vz = sc->pos.vz + sc->dir.vz;
+    D_actor_444000_80161908.rot.vx = 0;
+    D_actor_444000_80161908.rot.vy = sc->angle;
+    D_actor_444000_80161908.rot.vz = 0;
+    if (cfg->field_18 > 0) {
+        Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_444000_80161908, 0);
+    }
+}
+
+void func_actor_444000_8013EC84(Actor444000* arg0)
+{
+    Actor444000WarpScratch* sc;
+    Actor444000Work*        work;
+    Actor444000Work*        escorts;
+    Actor444000Work*        buffers;
+    GpEnemy*                enemy;
+    Task*                   player;
+    WipSysConfig*           cfg;
+    Task*                   target;
+    TmdObject*              tmd;
+    TmdObject*              escortTmd;
+    SVECTOR*                verts;
+    s16                     i;
+    s16                     j;
+    s32                     frame;
+    s32                     cueId;
+    s32                     cuePan;
+    s32                     hitId;
+    s32                     hitPan;
+    s32                     endId;
+    s32                     endPan;
+
+    work   = arg0->field_1C;
+    enemy  = arg0->field_20;
+    player = Game_GetPtrSlot(3);
+    cfg    = &Wip_SysConfig;
+
+    if (work->field_4 != 0) {
+        sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
+
+        verts        = Gp_GridParams->field_8;
+        verts[24].vy = 0x1F4;
+        verts[25].vy = 0x1F4;
+        verts[26].vy = 0x320;
+        verts[27].vy = 0x320;
+        verts[28].vy = 0x1F4;
+        verts[29].vy = 0x1F4;
+        verts[30].vy = 0x320;
+        verts[31].vy = 0x320;
+
+        work->field_7B3    = 0xF;
+        work->field_7B0    = 2;
+        escorts            = arg0->field_1C;
+        escorts->field_7F3 = 0;
+
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+
+        tmd     = (TmdObject*)arg0->extra;
+        buffers = arg0->field_1C;
+        if (tmd->field_18 == NULL) {
+            Tmd_AllocBuffers(tmd);
+        }
+        for (j = 0; j < 7; j++) {
+            if (buffers->field_ECC[j] != NULL) {
+                escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                if (escortTmd->field_18 == NULL) {
+                    Tmd_AllocBuffers(escortTmd);
+                }
+            }
+        }
+
+        work->field_EFE = 0;
+        work->field_EF4 = 0;
+        work->field_EF6 = 1;
+        work->field_EFA = 0;
+
+        sc->delta.vx = ((TmdObject*)player->extra)->field_8->coord.t[0] -
+                       ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+        sc->delta.vz = ((TmdObject*)player->extra)->field_8->coord.t[2] -
+                       ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+        sc->dist = SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vz * sc->delta.vz);
+        if (sc->dist < 0xB54) {
+            sc->dir.vy = 0;
+            sc->dir.vx = sc->delta.vx;
+            sc->dir.vz = sc->delta.vz;
+            VectorNormalSS(&sc->dir, &sc->dir);
+            gte_lddp(0xCE4);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            ((TmdObject*)player->extra)->field_8->coord.t[0] =
+                ((TmdObject*)arg0->extra)->field_8->coord.t[0] + sc->dir.vx;
+            ((TmdObject*)player->extra)->field_8->coord.t[2] =
+                ((TmdObject*)arg0->extra)->field_8->coord.t[2] + sc->dir.vz;
+            ((TmdObject*)player->extra)->field_8->flg = 0;
+            Gp_UpdateCoord(((TmdObject*)player->extra)->field_8);
+        }
+
+        Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
+
+        D_actor_444000_80161868 = 0;
+        Gp_StateC08.field_6    |= 1;
+        Gp_PulseState1C();
+        Gp_ClearNodeSlots(&enemy->node);
+        Gp_ClearNodeSlots(&work->field_ECC[3]->node);
+        Gp_ClearNodeSlots(&work->field_ECC[0]->node);
+        Gp_ClearNodeSlots(&work->field_ECC[1]->node);
+        SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000A, 1);
+
+        D_actor_444000_80161888.field_0 = 0;
+        D_actor_444000_80161888.field_1 = 0x2C;
+        D_actor_444000_80161888.field_2 = 3;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
+    } else {
+        sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
+        func_actor_444000_8013441C(arg0);
+
+        if ((work->slots0[1].field_10 & 1) && work->field_7B3 == 0xF) {
+            work->field_7B0 = 2;
+            work->field_7B3 = 0xE;
+        }
+
+        if (work->field_7B3 == 0xF) {
+            if (cfg->field_18 > 0) {
+                target = Game_GetPtrSlot(3);
+                Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+                if (cfg->field_18 <= 0) {
+                    ((GameActor*)player->idMap)->field_956 = 0xA;
+                    Game_Session->field_12D                = 0x1E;
+                    Game_Session->field_12E                = 0x36;
+                    Game_Session->field_12F                = 0x5A;
+                }
+            }
+            frame = work->slots0[3].field_2 & 0x3FF;
+            if (frame == 0x19 && work->field_7A8 != frame) {
+                cueId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200011;
+                cuePan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                SndEvt_EnqueueType6(cueId, cuePan,
+                                    (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+            }
+            work->field_7A8 = work->slots0[3].field_2 & 0x3FF;
+        }
+
+        if (work->field_7B3 == 0xE) {
+            frame = work->slots0[3].field_2 & 0x3FF;
+            if (frame == 0x1D && work->field_7A8 != frame) {
+                Gp_SpawnPadLerp(4, 0xFF, 8);
+            }
+            frame = work->slots0[3].field_2 & 0x3FF;
+            if (frame == 0x23 && work->field_7A8 != frame) {
+                hitId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200012;
+                hitPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                SndEvt_EnqueueType6(hitId, hitPan,
+                                    (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                Gp_SpawnPadLerp(4, 0xFF, 8);
+            }
+            frame = work->slots0[3].field_2 & 0x3FF;
+            if (frame == 0x27 && work->field_7A8 != frame) {
+                endId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200012;
+                endPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                SndEvt_EnqueueType6(endId, endPan,
+                                    (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                Gp_SpawnPadLerp(4, 0xFF, 8);
+            }
+            work->field_7A8 = work->slots0[3].field_2 & 0x3FF;
+        }
+
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            D_actor_444000_80161908.pos.vx = ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+            D_actor_444000_80161908.pos.vy = ((TmdObject*)arg0->extra)->field_8->coord.t[1];
+            D_actor_444000_80161908.pos.vz = ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+            D_actor_444000_80161908.rot.vx = 0;
+            D_actor_444000_80161908.rot.vy = 0;
+            D_actor_444000_80161908.rot.vz = 0;
+            Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_444000_80161908, 0);
+            D_actor_444000_80161868 = 1;
+        }
+
+        if (work->field_6 == 0x17) {
+            SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000A, 1);
+            Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
+            work->anim.field_4 = 1;
+            work->anim.field_8 = 0;
+            work->anim.field_C = 0;
+            work->field_F02    = 1;
+            Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
+        }
+    }
+
+    SCRATCH_SP += sizeof(Actor444000WarpScratch);
+}
 
 /// Tick of the arena fight that runs the boss' two swipes and keeps the player
 /// pinned in the scripted animation.

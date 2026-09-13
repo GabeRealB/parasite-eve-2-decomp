@@ -64649,3 +64649,38 @@ penalty). Writing `D_80144A68 = 1;` first gives its `lui`/`li` the lower LUIDs
 and they lead the block - and the store order is unchanged, because `sb` still
 depends only on `lui s0`. Do not infer source order from store order here; it
 is the address-setup insns that follow the source.
+
+## Re-reading a just-stored field is a `move`, not a reload: the extra copy before `abs`
+
+When a value is stored into a narrow struct field and then tested, reusing the
+local and re-reading the field give *different* code, and the difference is one
+instruction. `cse` records the stored register as the memory's value, so the
+subsequent load never becomes an `lh` - it is rewritten into a plain register
+copy, and that copy is a distinct pseudo from the local, which later passes keep
+because the two are no longer in one quantity.
+
+That extra copy is what feeds `abs`. `expand_abs` (GCC 2.8.1 `optabs.c`) emits
+`move T, op0` and the compare is then CSE'd back onto `op0`, so the operand
+register is visible in the output:
+
+```
+sra   v1, v0, 0x10      /* yaw = angle            */
+addu  a0, v1, zero      /* the re-read of sc->angle */
+bgez  a0, 1f            /* compare folded onto op0  */
+ addu v0, a0, zero      /* expand_abs's own move    */
+negu  v0, v0
+1:
+slti  v0, v0, 0x401
+```
+
+`if (abs(yaw) > 0x400)` produces only the inner two of those (`bgez v1` /
+`move v0,v1`); `if (abs(sc->angle) > 0x400)` produces all four. Writing
+`mag = yaw;` and testing `mag` does *not* reproduce it - `cse` merges the two
+pseudos into one quantity and `flow` deletes the copy. Only the memory round
+trip keeps them apart.
+
+So when a leftover is a single `move` in front of an `abs` or a comparison,
+check whether the target re-reads the field it just wrote rather than trying to
+manufacture a copy with an extra local. `func_actor_444000_8013EC84` is the
+worked example: the yaw is stored to `sc->angle`, and both the magnitude test
+and the sign test read it back while the `+/-0x800` arithmetic uses the local.
