@@ -5,6 +5,7 @@
 #
 # Usage:
 #   tools/vacuum_overlay_list.sh --list FILE [--profile NAME] [--jobs N]
+#                                [--stagger SECONDS]
 #                                [--cli claude|grok|codex] [--times N] [--keep]
 #
 # Why a list rather than the built-in order: vacuum_orch.rank_overlays sorts by
@@ -37,6 +38,7 @@ usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 while [[ $# -gt 0 ]]; do
     case $1 in
         --list)    LIST="$2"; shift 2 ;;
+        --stagger) STAGGER="$2"; shift 2 ;;
         --jobs)    JOBS="$2"; shift 2 ;;
         --profile) PROFILE_ARG="$2"; PASSTHRU+=(--profile "$2"); shift 2 ;;
         --cli|--times) PASSTHRU+=("$1" "$2"); shift 2 ;;
@@ -52,6 +54,7 @@ done
 LOG_DIR="$(vacuum_log_dir)"
 RUN="$LOG_DIR/overlay-list-$$"
 mkdir -p "$RUN"
+STAGGER="${STAGGER:-30}"   # seconds between worker starts; 0 disables
 CURSOR="$RUN/queue"
 grep -vE '^\s*#|^\s*$' "$LIST" | awk '{print $1}' >"$CURSOR"
 TOTAL=$(wc -l <"$CURSOR")
@@ -80,14 +83,19 @@ next_overlay() {
 
 worker() {
     local id=$1 name rc done=0 skipped=0 stranded=0
+    # Stagger the first claim. A worker's first act is a 235MB asm copy and
+    # four submodule clones; N of those at once is an I/O storm - eight of them
+    # drove load to 88 and took available memory from 17G to 3G, all of it page
+    # cache the kernel then had to reclaim. Subsequent claims desynchronise on
+    # their own, so only the opening needs spreading.
+    if [[ $id -gt 1 && ${STAGGER:-0} -gt 0 ]]; then
+        log "worker $id: waiting $(( (id - 1) * STAGGER ))s before its first claim"
+        sleep $(( (id - 1) * STAGGER ))
+    fi
     while [[ $STOP -eq 0 ]]; do
         name=$(next_overlay)
         [[ -n "$name" ]] || break
         log "worker $id -> $name"
-        # Claim here, not in the worker. Claiming is cheap and filtering is
-        # cheaper still, so an overlay whose remaining functions are all shared
-        # bodies is dropped before anything pays for a 235MB worktree. The
-        # worker then adopts the claim rather than taking its own.
         # Claim here, not in the worker: claiming is cheap and filtering
         # cheaper still, so an overlay whose remaining functions are all shared
         # bodies is dropped before anything pays for a 235MB worktree.
