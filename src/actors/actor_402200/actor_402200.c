@@ -12,6 +12,10 @@
 /// for the 0x10 one.
 extern s32 D_actor_402200_80138420[];
 
+/// Cue word `func_actor_402200_8013539C` queues, a separate `D_` symbol in the
+/// overlay's data 0x48 past the table above.
+extern s32 D_actor_402200_80138468;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200", D_actor_402200_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_80131F54);
@@ -36,7 +40,51 @@ INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_80134968);
 
-INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_8013539C);
+/// Runs the actor's animation-reseed sequence. State 0 puts the slot set on
+/// animation 8, clears `field_6C8` and drops the state to 1; unless the mode at
+/// `field_6EC` is already 1 it also arms the `field_6DA`/`field_6DC`/`field_6DE`
+/// timers and queues the actor's cue, panned and depth-attenuated from the
+/// display object. State 1 waits for the animation to reach 0x37 frames and
+/// then puts the state back to 0, flipping the mode to 2 and raising
+/// `field_6CC` if it was 1.
+void func_actor_402200_8013539C(Actor402200* arg0)
+{
+    Actor402200Work*  work;
+    Actor402200Coord* coord;
+    s32               state;
+    s32               pan;
+
+    work  = arg0->field_1C;
+    state = work->field_6CE;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_6C0 = 8;
+            work->field_6CE = 1;
+            work->field_6C8 = 0;
+            if (work->field_6EC != 1) {
+                work->field_6DA = 3;
+                work->field_6DC = 0x1E;
+                work->field_6DE = 0xF;
+                work->field_6BC = D_actor_402200_80138468 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                break;
+            }
+            break;
+        case 1:
+            if (work->field_6C4 >= 0x37) {
+                if (work->field_6EC == state) {
+                    work->field_6CC = 4;
+                    work->field_6EC = 2;
+                } else {
+                    work->field_6CC = 0;
+                }
+                work->field_6CE = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_801354B0);
 

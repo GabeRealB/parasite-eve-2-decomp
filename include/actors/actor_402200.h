@@ -64,7 +64,14 @@ typedef struct Actor402200Obj2C {
 typedef struct Actor402200Work {
     /* 0x000 */ byte       pad_0[0x3C];
     /* 0x03C */ GpAnimSlot field_3C;
-    /* 0x064 */ byte       pad_64[0x65C];
+    /* 0x064 */ byte       pad_64[0x658];
+    /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
+    /// overlay's cue word `D_actor_402200_80138468` with the `GpEnemy` work id's
+    /// high nibble in bits 8-11, the same construction the cue body
+    /// `func_actor_402200_80135BE0` uses on `D_actor_402200_80138420`. Stored
+    /// back to the block and re-read from there as the first argument of
+    /// `SndEvt_EnqueueType6`.
+    /* 0x6BC */ s32 field_6BC;
     /// Animation id the frame code reseeds slots 1..0x12 with; the reseed body
     /// `func_actor_402200_80137EEC` also indexes the blend table
     /// `D_actor_402200_801383AC` with it.
@@ -75,13 +82,31 @@ typedef struct Actor402200Work {
     /// Frames the current animation has been ticking; the reseed clears it and
     /// the tick path walks it up by one a frame.
     /* 0x6C4 */ s16  field_6C4;
-    /* 0x6C6 */ byte pad_6C6[4];
-    /* 0x6CA */ u16  field_6CA;
-    /* 0x6CC */ byte pad_6CC[0x16];
+    /* 0x6C6 */ byte pad_6C6[2];
+    /// Cleared on the frame the sequence body `func_actor_402200_8013539C`
+    /// reseeds the animation.
+    /* 0x6C8 */ s16 field_6C8;
+    /* 0x6CA */ u16 field_6CA;
+    /// Set to 4 when the sequence restarts in mode 2, cleared otherwise.
+    /* 0x6CC */ s16 field_6CC;
+    /// State `func_actor_402200_8013539C` advances: 0 reseeds the animation at
+    /// `field_6C0` and arms the cue, 1 waits for `field_6C4` to reach 0x37 and
+    /// then drops the state back to 0 so the reseed runs again.
+    /* 0x6CE */ s16  field_6CE;
+    /* 0x6D0 */ byte pad_6D0[0xA];
+    /// Timer pair the reseed arms alongside `field_6DE`.
+    /* 0x6DA */ s16 field_6DA;
+    /* 0x6DC */ s16 field_6DC;
+    /// Third timer the reseed arms; written last of the three.
+    /* 0x6DE */ s16  field_6DE;
+    /* 0x6E0 */ byte pad_6E0[2];
     /* 0x6E2 */ s16  field_6E2;
     /* 0x6E4 */ byte pad_6E4[6];
     /* 0x6EA */ s16  field_6EA;
-    /* 0x6EC */ byte pad_6EC[8];
+    /// Sequence mode `func_actor_402200_8013539C` tests: the reseed arms the
+    /// cue unless it is already 1, and a restart that finds it 1 flips it to 2.
+    /* 0x6EC */ s16  field_6EC;
+    /* 0x6EE */ byte pad_6EE[6];
     /* 0x6F4 */ s16  field_6F4;
     /* 0x6F6 */ byte pad_6F6[0x1C];
     /* 0x712 */ s16  field_712;
