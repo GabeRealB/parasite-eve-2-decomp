@@ -70696,3 +70696,67 @@ than as a missing step; the alias recipe is what would change it, and it costs a
 rename of that global in every matched `.c` and header that names it plus a
 re-split of both carriers -- for an eight-instruction body, not a trade worth
 making on its own.
+
+## A ternary over a global needs its load bound to a local — and that is what frees the register and the delay slot
+
+**Problem.** `func_actor_341900_801635A4` sends an animation id that is
+`D_80073BA9 + 1` when `D_8007218A == 1` and `D_80073BA9 + 0x22` otherwise. The
+"default before the `if`" form matched retail's structure exactly -- 3/3 blocks,
+37/37 instructions, predicates and calls equal -- and still scored 82.703% with
+`regs=8`:
+
+```c
+anim = D_80073BA9 + 0x22;
+if (D_8007218A == 1) {
+    anim = D_80073BA9 + 1;
+}
+```
+
+Retail ends with the condition and the result in the *same* register (`lb $v0,
+%lo(D_8007218A)($v1)` / `bne $v0,$a0` / `addu $v0,$v1,$a0`), where the candidate
+needed four: `$a3` for the result, `$v1` for the condition, `$a1` for the global.
+
+**Cause.** `.greg`'s conflict table says why. A default computed before the
+branch is born in block 0 and stays live across the condition load, so
+`global_conflicts` marks it against `$v0` along with everything else the
+condition holds; the allocator hands it `$a3`. Defining the value only inside
+the arms is what removes that conflict -- it is born after the branch, so `$v0`
+is free for both it and the condition. This is the `if`/else-versus-ternary
+choice again, and here the ternary wins.
+
+**But the ternary must not name the global twice.** Written directly,
+
+```c
+anim = (D_8007218A == 1) ? D_80073BA9 + 1 : D_80073BA9 + 0x22;   /* 72.000% */
+```
+
+each arm reloads it: two `lbu`s, 40 instructions, `blocks=4` and a `j` + `nop`
+the target does not have. Binding the global to a local first is the fix:
+
+```c
+weaponId = D_80073BA9;
+anim = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+```
+
+One `lbu`, one `addiu` per arm, and with it the remaining distance closes:
+100%, every penalty zero, input `base_4.i`
+`995e8488f2791503e0eee182712f9c72a463e3405469ad96671bd8384e195abe`.
+
+**The delay slot is the same fix.** The shared-variable ternary still emits the
+four-block form with a `j` over the else arm, which is what the matched sibling
+`func_acropolis_plaza_8017E9A8` has -- same payload shape, same
+`weaponId`/`id` pair, and retail keeps its `j` there. Retail's
+`func_actor_341900_801635A4` instead has the else arm in the `bne` delay slot and
+no `j` at all. That collapse is reorg's: `mostly_true_jump` reads the `ne`
+condition as "taken", so `fill_eager_delay_slots` tries the target thread first
+and `fill_slots_from_thread` takes the else arm's single `addiu` for the delay
+slot; the branch then targets the join, and `relax_delay_slots` deletes the then
+arm's jump-to-next and its `nop`. The `72.000%` variant could not collapse
+because its arms were two instructions each (a reload plus the `addiu`), and
+reorg only ever takes insns from the *front* of the thread.
+
+So one source property -- a single definition shared by both arms, computing
+from a value loaded once before the branch -- decides the allocation, the
+instruction count and the block count together. Read `regs` together with
+`insert`/`delete` on a conditional like this as one problem, not three; check
+the arms for a duplicated reload before reaching for anything else.
