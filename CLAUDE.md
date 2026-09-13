@@ -239,7 +239,7 @@ overlay.
   **unscoped** before committing: a scoped pass says nothing about the
   overlays it skipped, which is exactly what a struct change breaks.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
-- `./tools/claude [--bootstrap-only] [--cli grok|claude] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
+- `./tools/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
 - `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
 - `python3 tools/score_functions.py <directory>` find the easiest function to decompile in a given directory (and its subdirectories).
 - `python3 tools/fit_difficulty_model.py [--write]` refit that scorer on the

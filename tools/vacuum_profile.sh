@@ -134,6 +134,23 @@ apply_profile() {
   export VACUUM_PROFILES_FILE="$PROFILES_FILE"
 }
 
+# How to start an agent, honouring a profile's launch wrapper.
+#
+# Sets AGENT_CMD (the command word or words) and AGENT_MODEL (empty when the
+# wrapper already named the model, so a caller does not pass --model twice).
+# Callers keep their own flags: the three spawn sites differ in real ways -
+# headless versus interactive, timeouts, per-function logs - and only the
+# launch decision has to be consistent between them.
+agent_launch() {          # $1 = api, $2 = model
+  if [[ -n "${VACUUM_LAUNCH:-}" ]]; then
+    read -ra AGENT_CMD <<<"$VACUUM_LAUNCH"
+    AGENT_MODEL=""
+  else
+    AGENT_CMD=("$1")
+    AGENT_MODEL="$2"
+  fi
+}
+
 # Every lane writes here. local/ is gitignored, so logs never reach a commit,
 # and keeping them out of tools/ stops a stale log from being mistaken for a
 # tracked file.

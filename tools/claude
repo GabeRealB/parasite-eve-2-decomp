@@ -18,10 +18,9 @@ BOOTSTRAP=true
 BOOTSTRAP_ONLY=false
 ID=""
 ARG=""
-CLI="claude"
 
 usage() {
-    echo "Usage: $0 [--bootstrap] [--bootstrap-only] [--cli claude|grok|codex|glaude] [--id ID] <function_name_or_path_or_scratch_id>"
+    echo "Usage: $0 [--bootstrap] [--bootstrap-only] [--id ID] <function_name_or_path_or_scratch_id>"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -38,31 +37,6 @@ while [[ $# -gt 0 ]]; do
         --no-bootstrap)
             BOOTSTRAP=false
             shift
-            ;;
-        --glaude)
-            CLI="glaude"
-            shift
-            ;;
-        --grok)
-            CLI="grok"
-            shift
-            ;;
-        --codex)
-            CLI="codex"
-            shift
-            ;;
-        --claude)
-            CLI="claude"
-            shift
-            ;;
-        --cli)
-            if [[ $# -lt 2 ]]; then
-                echo "Error: --cli requires a value"
-                usage
-                exit 1
-            fi
-            CLI="$2"
-            shift 2
             ;;
         --id)
             if [[ $# -lt 2 ]]; then
@@ -217,27 +191,6 @@ if [[ -n "$ID" ]]; then
         echo "SCRATCH_DIR=$TARGET_DIR"
         if [[ "$BOOTSTRAP_ONLY" == true ]]; then
             echo "Bootstrap-only mode: directory ready at $TARGET_DIR"
-        elif command -v "$CLI" &>/dev/null; then
-            cd "$TARGET_DIR"
-            if [[ "$CLI" == grok ]]; then
-                grok --always-approve --effort "${VACUUM_MATCH_EFFORT:-xhigh}" \
-                    --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
-                    "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
-            elif [[ "$CLI" == codex ]]; then
-                # cwd is the scratch dir here, so codex loads the AGENTS.md written
-                # beside CLAUDE.md above and needs no --rules equivalent. Sandbox,
-                # approval and effort defaults still have to be overridden, and stdin
-                # closed so codex does not fold a pipe into the prompt.
-                codex exec --skip-git-repo-check -s danger-full-access \
-                    -c approval_policy='"never"' \
-                    -c shell_environment_policy.inherit='"all"' \
-                    -c model_reasoning_effort="\"${VACUUM_MATCH_EFFORT:-xhigh}\"" \
-                    "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md." </dev/null
-            else
-                effort_flag=()
-        [[ "$CLI" == claude && -n "${VACUUM_MATCH_EFFORT:-}" ]] && effort_flag=(--effort "$VACUUM_MATCH_EFFORT")
-        $CLI "${effort_flag[@]}" --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
-            fi
         else
             echo "Please navigate to: $TARGET_DIR"
         fi
@@ -566,27 +519,6 @@ echo "SCRATCH_DIR=$created_dir"
 
 if [[ "$BOOTSTRAP_ONLY" == true ]]; then
     echo "Bootstrap-only mode: environment ready at $created_dir"
-elif command -v "$CLI" &>/dev/null; then
-    cd "$created_dir"
-    if [[ "$CLI" == grok ]]; then
-        grok --always-approve --effort "${VACUUM_MATCH_EFFORT:-xhigh}" \
-            --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
-            "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
-    elif [[ "$CLI" == codex ]]; then
-        # cwd is the scratch dir here, so codex loads the AGENTS.md written
-        # beside CLAUDE.md above and needs no --rules equivalent. Sandbox,
-        # approval and effort defaults still have to be overridden, and stdin
-        # closed so codex does not fold a pipe into the prompt.
-        codex exec --skip-git-repo-check -s danger-full-access \
-            -c approval_policy='"never"' \
-            -c shell_environment_policy.inherit='"all"' \
-            -c model_reasoning_effort="\"${VACUUM_MATCH_EFFORT:-xhigh}\"" \
-            "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md." </dev/null
-    else
-        effort_flag=()
-        [[ "$CLI" == claude && -n "${VACUUM_MATCH_EFFORT:-}" ]] && effort_flag=(--effort "$VACUUM_MATCH_EFFORT")
-        $CLI "${effort_flag[@]}" --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
-    fi
 else
     echo "Success! Please navigate to the created directory and start your decompilation work:"
     echo ""

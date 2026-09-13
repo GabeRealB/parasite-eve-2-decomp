@@ -248,13 +248,11 @@ case "$CLI" in
     ;;
 esac
 
-# The profile's `cli` column says how the api is launched. Empty means run its
-# own binary; otherwise the arm's command word is replaced by this wrapper,
-# which already names the model - so the arm must not pass --model as well.
-LAUNCH_CMD=("$CLI")
-if [[ -n "${VACUUM_LAUNCH:-}" ]]; then
-  read -ra LAUNCH_CMD <<<"$VACUUM_LAUNCH"
-fi
+# The profile's `cli` column says how the api is launched; agent_launch turns
+# it into a command, shared with the other spawn sites so the decision is made
+# in one place.
+agent_launch "$CLI" ""
+LAUNCH_CMD=("${AGENT_CMD[@]}")
 
 if [[ $DRY_RUN -eq 0 ]] && ! command -v "${LAUNCH_CMD[0]}" &>/dev/null; then
   echo "Error: '${LAUNCH_CMD[0]}' not found in PATH"
@@ -1597,7 +1595,7 @@ vacuum_orch_loop() {
       ORCH_BASE=$(cat "$wt/.vacuum-base" 2>/dev/null || git -C "$ROOT" rev-parse HEAD)
 
       rm -rf "$wt/nonmatchings/${func}" "$wt/nonmatchings/${func}-"*
-      bootstrap_out=$(cd "$wt" && ./tools/claude --bootstrap-only --cli "$CLI" --id vacuum "$func" 2>&1)
+      bootstrap_out=$(cd "$wt" && ./tools/claude --bootstrap-only --id vacuum "$func" 2>&1)
       bootstrap_status=$?
       echo "$bootstrap_out" | tee -a "$LOG_FILE" >/dev/null
       scratch=$(echo "$bootstrap_out" | awk -F= '/^SCRATCH_DIR=/{print $2}' | tail -1)
@@ -1922,7 +1920,7 @@ while true; do
   echo -e "\n[$(date '+%H:%M:%S')] [$(agent_tag)] $(progress_tag "$count")Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
 
   rm -rf "nonmatchings/${simplest_func}" "nonmatchings/${simplest_func}-"*
-  bootstrap_out=$(./tools/claude --bootstrap-only --cli "$CLI" --id vacuum "$simplest_func" 2>&1 | tee -a "$LOG_FILE")
+  bootstrap_out=$(./tools/claude --bootstrap-only --id vacuum "$simplest_func" 2>&1 | tee -a "$LOG_FILE")
   bootstrap_status=${PIPESTATUS[0]}
   scratch=$(echo "$bootstrap_out" | awk -F= '/^SCRATCH_DIR=/{print $2}' | tail -1)
 
