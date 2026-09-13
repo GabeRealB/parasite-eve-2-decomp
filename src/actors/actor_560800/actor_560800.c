@@ -194,6 +194,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80136094);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801361A0);
+void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* extra;
+
+    extra = (TmdObject*)task->extra;
+    switch (arg2) {
+        case 0:
+            break;
+        case 1:
+            extra->field_C = extra->field_C & 0xFF7B;
+            return;
+        case 2:
+            extra->field_C = extra->field_C | 0x84;
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801361F4);
