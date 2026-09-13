@@ -1,5 +1,10 @@
 #include "common.h"
 
+#include "actors/actor_310100.h"
+#include "main/gfx.h"
+#include "main/task.h"
+#include "main/tmd.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161E24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161F80);
@@ -22,7 +27,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162D50);
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162EC8);
+/// Message 0x7D4 handler: drops the payload's translation into the display
+/// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
+/// marks it dirty.
+void func_actor_310100_80162EC8(Task* task, s32 msgId, Actor310100Placement* placement)
+{
+    Actor310100Work* work;
+    GsCOORDINATE2*   coord;
+
+    work              = (Actor310100Work*)task->idMap;
+    coord             = ((TmdObject*)work->field_4E4->extra)->field_8;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(&coord->coord, placement->rot.vy, 0);
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162F34);
 

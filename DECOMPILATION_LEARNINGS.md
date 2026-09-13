@@ -73636,3 +73636,64 @@ Inputs: base_1.i `f71b89bd03c7af91edc35e6c0838a946ca1822faf94d6930a1e64fc4be6b1a
 base_2.i `05cee88f6a66bcc1997128422ea5c1e137aeaceac7a94bc53e896e307b678adb`.
 Evidence: scratch `nonmatchings/func_actor_113100_80132BDC-vacuum/`, base_1/2
 `.rtl` identical to target; no pins, no permuter, no tracer.
+## A `stack` penalty with `regs=0` is `a0`–`a3` read as hex: check the parameter slots, not the frame
+
+**Problem.** The m2c seed of `func_actor_310100_80162EC8` scored 95.407% with
+`stack=4 branch=0 regs=0 reorder=2 insert=0 delete=0`. Against the brief's table
+that mix reads as "extra locals / frame" plus a scheduler problem, and `regs=0`
+looks like the allocation is already right — but the seed's whole diff was
+argument naming:
+
+```
+-lw    v0,0(a2)        +lw    v0,0(a1)
+-lw    v0,4(a2)        +lw    v0,4(a1)
+-lw    v0,8(a2)        +lw    v0,8(a1)
+-lh    a1,0x12(a2)     +lh    a1,0x12(a1)
+-addiu a0,s0,4         +move  a2,zero
+ jal    Gfx_RotMatrixY
+-move   a2,zero        +addiu a0,s0,4
+```
+
+`dist.py`'s stack pattern is
+
+```python
+re_sprel = r"(?:\d+\(|\$sp\s*,\s*)(-?(?:0x)?[0-9a-fA-F]+)\(?(?:\$sp)?\)?"
+```
+
+and the capture group is `[0-9a-fA-F]+`, which `a0`, `a1`, `a2`, `a3` all
+satisfy. `0(a2)` captures `"a2"` (162) against `0(a1)`'s `"a1"` (161), so each
+swapped pair is charged `abs(162 - 161)` = 1 **stack** penalty. That a match
+also sets `ignore_last_field` is what hides it: the last field — the one that
+differs — is dropped before the field loop, so the same lines are never counted
+as `regs`. `regs=0` here is structural, not evidence that allocation matched.
+The four `(aN)` lines are the entire `stack=4`.
+
+Genuine stack references never match: objdump writes `0x14(sp)` and
+`addu sp,sp,-0x18`, where `\d+\(` needs digits immediately before the `(` —
+`14(` is fine but the capture then runs into `sp` and fails. Verified by
+running the pattern over the seed's own object dump: it matches the four `(a1)`
+operands and nothing else in the function. **So on this project a `stack`
+penalty alongside `regs=0` means an argument register is in the wrong slot**
+(count the gap in m2c's `argN` names — see "m2c's `argN` names carry the
+register slot even when it drops leading params" — before splitting locals).
+Arithmetic closes the score exactly: `2 x PENALTY_REORDERING(60) + 4 = 124 =
+distance`, and `1 - 124 / (27 x 100) = 95.407%`.
+
+The reorder is the same bug's second face, and it explains the delay slot. m2c
+emitted the payload as the *second* parameter, so it lived in `$a1`; the yaw
+load `lh $a1, 0x12($a1)` then had no dependence on the call's `$a2` setup, so
+sched2 was free to schedule `move $6, $0` above the last translation store. The
+slot before the `jal` was therefore `addiu $4, $16, 4`, and `.dbr` fills the
+delay slot from exactly there. Restoring the third parameter puts the payload
+in `$a2`, forcing the `lh` before the zeroing, so the zeroing becomes the last
+insn before the call and `dbr` takes it:
+
+```c
+void func_actor_310100_80162EC8(Task* task, s32 msgId, Actor310100Placement* placement)
+```
+
+`base_1.c` 100.000%, every penalty zero, no pins. The dumps agree with that
+reading and mention nothing stack-like: `.dbr` shows `insn 43` (`a0 = s0 + 4`)
+inside the call's `sequence`, and `.sched2` has `insn 47` (`a2 = 0`) already
+scheduled above `insn 34`, the store — the reorder is visible there, which is
+where to look for it.
