@@ -65120,3 +65120,16 @@ TaskFunc states[2] = { fn0, fn1 };
 keeps that `lui` after the work load. Topology, predicates and delay-slot
 words were already identical; only this spelling changed the schedule.
 `func_actor_405800_80137A60` (98.87% → 100%).
+
+
+## Actor01600_Fn0131C: splitting a shared pan temporary restores local allocation (GCC 2.8.1)
+
+A duplicated pair of sound-call tails scored 98% with regs=2/reorder=2. Both branches assigned the signed-byte pan to one s32 local; `.lreg` listed this pseudo r84 across blocks and `.greg` allocated it globally to s0, while the preceding shift temporary remained v0. Inlining only the first branch pan call split the result into block-local pseudos. `.lreg` then assigned both shift chains to s0, and `.greg` retained the id in s1 and coordinate in s2. `.dbr` put the arithmetic shift into the depth call delay slot. A preplanned controlled build (base_3) reproduced 100% without the permuter's unrelated pointer-alias mutation; the typed header port (base_4) also matched.
+
+This supports checking block-local eligibility before global priority tuning for reused call-result temporaries. Exact local quantity rankings and scheduler hazard comparisons were not traced. Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+base_2.c preprocessed SHA256: daad989db6079dc54d1d51703e3c957aa4e78d16af44abc1b6b0849c12ac1887.
+
+base_3.c preprocessed SHA256: bf0383dfd910253bae5e7174b09d0f4e7c55fc62615c14cb490b932d4b7891f3.
+
+Evidence: tools/permuter_findings/Actor01600_Fn0131C/, run ba845fdbf0024d32, retained PERMUTER_ANALYSIS.md, prediction journal and base_3 RTL/allocation/delay dumps.

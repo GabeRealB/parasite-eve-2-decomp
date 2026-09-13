@@ -23,7 +23,9 @@ typedef struct Actor01600Ctx {
     /* 0x08 */ u16            field_8;
     /* 0x0A */ byte           pad_A[0x6];
     /* 0x10 */ Actor01600Node node;
-    /* 0x18 */ byte           pad_18[0x34];
+    /* 0x18 */ byte           pad_18[0x28];
+    /* 0x40 */ u16            field_40;
+    /* 0x42 */ byte           pad_42[0xA];
     /* 0x4C */ u8             field_4C;
     /* 0x4D */ byte           pad_4D[7];
     /* 0x54 */ s32            field_54;
@@ -36,7 +38,9 @@ typedef struct Actor01600Work {
     /* 0x2BA */ u16    field_2BA;
     /* 0x2BC */ byte   pad_2BC[0x30];
     /* 0x2EC */ byte   field_2EC[0xE0];
-    /* 0x3CC */ byte   field_3CC[0x40];
+    /* 0x3CC */ byte   field_3CC[0x1E];
+    /* 0x3EA */ u16    field_3EA;
+    /* 0x3EC */ byte   pad_3EC[0x20];
     /* 0x40C */ byte   field_40C[0x1E];
     /* 0x42A */ u16    field_42A;
     /* 0x42C */ byte   pad_42C[0x70];
@@ -83,7 +87,7 @@ typedef struct Actor01600Work {
     /* 0x530 */ s16    field_530;
     /* 0x532 */ s16    field_532;
     /* 0x534 */ s16    field_534;
-    /* 0x536 */ byte   pad_536[2];
+    /* 0x536 */ s16    field_536;
     /* 0x538 */ s16    field_538;
     /* 0x53A */ byte   pad_53A[6];
     /* 0x540 */ s16    field_540;
