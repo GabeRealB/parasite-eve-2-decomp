@@ -39228,6 +39228,28 @@ node, `0x18`/`0x1C`/`0x20` are `coord.t[0..2]` (`coord` starts at 4 and
 `MATRIX::t` at 0x14), `0x24` is `&workm`, and `sw $zero, 0($node)` is
 `node->flg = 0`.
 
+## m2c sizes `Task::idMap` as 8 bytes, so a work-block offset comes out 8x
+
+An enemy actor handler took the spawner's work block the way the family does -
+`temp_a0 = task->parent->idMap;` - and stored `temp_a0 + 0x45C` / `+ 0x43C`. Both
+immediates came out 8x too large (`0x22E0`, `0x21E0`), because `task.h` types
+that field `TaskIdMap*` (8 bytes) and m2c scales the offset by the element size
+it chose. The byte offsets are the right ones; only the type m2c gave the base is
+wrong, and editing the constants to match the target is the one fix that cannot
+work - the original adds a byte offset to a pointer.
+
+`Actor510900Work` already had `pad_314[0x168]` spanning 0x314..0x47C, so the fix
+splits the padding - `pad_314[0x128]`, `MATRIX field_43C`, `MATRIX field_45C` -
+and the body becomes `obj->field_1C = &work->field_45C;`. Every later field keeps
+its offset and the two `addiu`s become the target's. This is the same pair the
+sibling types carry (`ActorsShared80135b64Work`, `Actor02000Work`): the colour
+matrix at 0x43C is handed to `TmdObject::field_20`, the light matrix at 0x45C to
+`field_1C`.
+
+Read a suspicious whole-immediate as `n * sizeof(base type)` before touching the
+C: `0x22E0 / 8 = 0x45C`. Function
+`func_actor_510900_8013C0E4 1 attempt, base_1.c 100.00%`.
+
 ## Diff the whole object, not your functions: a retyped global rescales old code
 
 A typing pass on `actor_403100` gave the overlay's work-block global its real
