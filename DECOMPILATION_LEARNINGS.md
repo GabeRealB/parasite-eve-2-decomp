@@ -7914,6 +7914,15 @@ in place with `lui`/`addiu` and never reach `.rodata` at all
 (`func_actor_400600_80139218`), so only tables of three or more constrain
 placement.
 
+**Size the table from the copy count, not from the splat symbol's extent.** A
+`dlabel` runs to the next label, so it swallows any alignment word between the
+table and what follows. `D_actor_107600_80131E34` is `.size` 16 — three function
+pointers plus the `0x00000000` word that pads the `jtbl_actor_107600_80131E44`
+after it — but `func_actor_107600_80132CD4` copies three words, so the extern is
+`TaskFuncTable3` and the trailing zero belongs to nobody. Declaring it
+`TaskFuncTable4` because the symbol measures 16 bytes emits the four-word
+multi-load the sibling `func_actor_107600_801328CC` has and costs the match.
+
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
 A byte-copy loop that increments both a counter and a destination pointer can

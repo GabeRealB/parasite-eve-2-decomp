@@ -44,7 +44,9 @@ typedef struct Actor107600Work {
     /* 0x13E */ u16     field_13E;
     /* 0x140 */ byte    pad_140[0x4];
     /* 0x144 */ s16     field_144;
-    /* 0x146 */ byte    pad_146[0x12];
+    /* 0x146 */ byte    pad_146[0x4];
+    /* 0x14A */ u8      field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
+    /* 0x14B */ byte    pad_14B[0xD];
     /* 0x158 */ s16     field_158;
     /* 0x15A */ s16     field_15A;
     /* 0x15C */ byte    pad_15C[0x6];
@@ -75,6 +77,7 @@ void func_actor_107600_80132B0C(Task* arg0);
 void func_actor_107600_80132B7C(Task* arg0);
 void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80132CB8(Actor107600* arg0);
+void func_actor_107600_80132CD4(Task* arg0);
 void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
 void func_actor_107600_80134608(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_107600_801348A0(Task* arg0);

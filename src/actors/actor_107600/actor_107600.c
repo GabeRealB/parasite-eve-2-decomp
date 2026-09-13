@@ -21,6 +21,10 @@ extern const TaskFuncTable4 D_actor_107600_80131E24;
  * `func_actor_107600_801348A0`. */
 extern const TaskFuncTable4 D_actor_107600_80131E74;
 
+/* Third table out of that block, run by `func_actor_107600_80132CD4` and
+ * holding one entry per `Actor107600Work.field_144` phase. */
+extern const TaskFuncTable3 D_actor_107600_80131E34;
+
 /* Table `func_actor_107600_80132DF0` spawns from, indexed with `arg1 + 1`; it
  * is the trailing animation/data blob, not the leading rodata. */
 extern TaskDesc D_actor_107600_80134F94;
@@ -151,7 +155,21 @@ void func_actor_107600_80132CB8(Actor107600* arg0)
     work->field_13E++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132CD4);
+/// Runs the `D_actor_107600_80131E34` entry for the work block's `field_144`
+/// phase through the same stack-copied table idiom as
+/// `func_actor_107600_801328CC`, then advances the model's yaw by 0x20 once the
+/// spawn flag at `field_14A` says this instance is rotating.
+void func_actor_107600_80132CD4(Task* arg0)
+{
+    TaskFuncTable3   sp;
+    Actor107600Work* work = (Actor107600Work*)arg0->idMap;
+
+    sp = D_actor_107600_80131E34;
+    sp.funcs[work->field_144](arg0);
+    if (work->field_14A != 0) {
+        work->yaw += 0x20;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132D54);
 
