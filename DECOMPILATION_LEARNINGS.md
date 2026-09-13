@@ -76034,3 +76034,52 @@ Those placeholders are also the visible backlog of this shape: 681 distinct
 `_Fn<vram>` names sit in 42 symbol maps today, and each is a callee that a
 shared unit calls but nobody has decompiled. Promoting any one of them collides
 with the caller's placeholder.
+
+## The `+ K` belongs in the division statement when `dbr` must steal it for a call
+
+`func_actor_102400_801341D4` divides a ramp by 5888 and adds 0x32 to the
+quotient before using it as the multiplier of the next call's argument. The
+target ends the `--expand-div` expansion with the quotient's sign fixup, and the
+`addiu` that adds the constant is in the `jal` delay slot:
+
+```
+mfhi   v1
+addu   s0, v1, v0
+sra    s0, s0, 12
+sra    v0, v0, 31
+subu   s0, s0, v0        <- last insn of the expansion
+jal    Gp_GetObjDepth
+ addiu s0, s0, 0x32      <- stolen into the delay slot
+addiu  s1, zero, 0x7F
+subu   v0, s1, v0
+sll    s0, s0, 16        <- the (s16) cast, after the call
+sra    s0, s0, 16
+mult   v0, s0
+```
+
+`dbr` fills a call's delay slot from the insn *immediately before* the `jal`, so
+the only thing that decides this is which insn the statement split leaves last.
+Keeping the constant at the use leaves the division's `subu` there, and `dbr`
+steals that instead:
+
+```c
+volume = (ramp * 0x32) / 5888;      /* 98.5%, reorder=2: subu stolen, addiu late */
+depth  = 0x7F - (((0x7F - Gp_GetObjDepth(object)) * (s16)(volume + 0x32)) / 100);
+```
+
+Moving `+ 0x32` into the division's own statement makes the `add` the pre-call
+insn, and the cast has to stay at the use so the `sll`/`sra` pair lands after
+the call (100%, every penalty 0):
+
+```c
+volume = (ramp * 0x32) / 5888 + 0x32;
+depth  = 0x7F - (((0x7F - Gp_GetObjDepth(object)) * (s16)volume) / 100);
+```
+
+Both halves are load-bearing. Folding the `(s16)` into the division statement
+as well puts the sign extension before the call too, and there is then no insn
+left for `dbr` to steal but the ones the target emits early. The general shape:
+when a call's delay slot holds a constant add or a pointer bump on a value the
+preceding statement computed, that add has to be *the last expansion of that
+statement*, so write it where the target's `addiu` sits, not where the value is
+consumed.
