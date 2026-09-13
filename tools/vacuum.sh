@@ -81,6 +81,8 @@ Options:
                     merge lock. Do not run a non-orchestrator vacuum on this
                     tree at the same time.
   --difficult       Only pick functions listed in tools/difficult_functions.
+  --functions FILE  Only pick functions named in FILE (one per line). Works on
+                    a copy, so FILE itself is never modified.
                     VACUUM_MODEL=<model> switches the agent model. This is an
                     escalation for functions that have already failed, not a
                     default: a stronger model costs more per run, and ordinary
@@ -205,6 +207,29 @@ while [[ $# -gt 0 ]]; do
       ONLY_DIFFICULT=1
       shift
       ;;
+    --functions)
+      # Sweep exactly the names in FILE. Mechanically this is the --difficult
+      # path - "only pick names listed in this file" - pointed at another list,
+      # which is why no new filter is needed in score_functions.py.
+      #
+      # The copy matters: a match calls forget_difficult_entry, which rewrites
+      # the list. Consuming a private work queue is fine; editing a file the
+      # caller handed us is not.
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --functions requires a file of function names"
+        exit 1
+      fi
+      if [[ ! -f "$2" ]]; then
+        echo "Error: --functions file not found: $2"
+        exit 1
+      fi
+      ONLY_DIFFICULT=1
+      FUNCTIONS_FILE="$2"
+      DIFFICULT_FUNCTIONS=$(mktemp -t vacuum_functions.XXXXXX)
+      cp "$2" "$DIFFICULT_FUNCTIONS"
+      export VACUUM_DIFFICULT_FILE="$DIFFICULT_FUNCTIONS"
+      shift 2
+      ;;
     --overlay)
       if [[ $# -lt 2 ]]; then
         echo "Error: --overlay requires a value (e.g. gameplay, USA/main)"
@@ -273,7 +298,12 @@ vacuum_filter_desc() {
     parts+=("overlay=$OVERLAY")
   fi
   if [[ $ONLY_DIFFICULT -eq 1 ]]; then
-    parts+=("difficult only")
+    # Same filter, two intents: retrying give-ups, or sweeping a supplied list.
+    if [[ -n "${FUNCTIONS_FILE:-}" ]]; then
+      parts+=("functions from $FUNCTIONS_FILE ($(grep -c . "$DIFFICULT_FUNCTIONS" 2>/dev/null || echo 0) left)")
+    else
+      parts+=("difficult only")
+    fi
   fi
   if [[ ${#parts[@]} -eq 0 ]]; then
     return 0
