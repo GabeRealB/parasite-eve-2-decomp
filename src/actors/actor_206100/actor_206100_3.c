@@ -14,7 +14,20 @@ void func_actor_206100_8014F970(Task* task);
 void func_actor_206100_8014F9C4(Task* task);
 void func_actor_206100_8014FA08(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014F524);
+/// Runs the actor's sub-state handler for the current `field_522`, after
+/// marking the enemy's list node so the exit path tears the actor down.
+void func_actor_206100_8014F524(Task* task)
+{
+    Actor206100Work* work;
+    GpEnemy*         enemy;
+    TaskFuncTable5   sp;
+
+    work                = (Actor206100Work*)task->idMap;
+    enemy               = (GpEnemy*)task->spawnArg2;
+    sp                  = D_actor_206100_80149E94;
+    enemy->node.field_4 = 1;
+    sp.funcs[(s16)work->field_522](task);
+}
 
 void func_actor_206100_8014F59C(void)
 {

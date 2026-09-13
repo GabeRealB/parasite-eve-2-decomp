@@ -7,6 +7,13 @@
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 
+/// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
+/// copies the table onto its stack and calls `funcs[(s16)field_522]`, the same
+/// local-jump-table shape `func_actor_341700_80168748` uses.  The entries are
+/// the handlers themselves, so this is the only writer of the sub-state index
+/// that does not live in this overlay's own `_3` unit.
+extern TaskFuncTable5 D_actor_206100_80149E94;
+
 /// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 extern GpAreaApplyRec D_8018590C;
