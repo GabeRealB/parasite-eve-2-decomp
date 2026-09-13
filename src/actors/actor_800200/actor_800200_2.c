@@ -136,7 +136,28 @@ void func_actor_800200_80165434(GpActorWork* arg0, s16 arg1)
     actor->field_940 = arg1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_8016545C);
+void func_actor_800200_8016545C(GpActorWork* arg0, s8 arg1)
+{
+    GameActor* actor = arg0->actor;
+    GameActor* actor2;
+    u16        flag;
+
+    actor->field_910->field_CC = arg1;
+    if (Gp_StateF0.field_0 == 1) {
+        actor->field_90C = Gp_FindLockNode(arg0);
+    } else {
+        actor->field_90C = 0;
+    }
+    flag              = actor->field_90C != 0;
+    actor2            = arg0->actor;
+    actor2->field_954 = 0;
+    actor2->field_956 = 4;
+    actor2->field_958 = 0;
+    actor2->field_95A = 0;
+    actor2->field_95C = 0;
+    actor2->field_95E = 0;
+    actor2->field_940 = flag;
+}
 
 void func_actor_800200_801654EC(GpActorWork* arg0, s32 arg1)
 {

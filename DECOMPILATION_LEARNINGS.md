@@ -65862,3 +65862,44 @@ the match is exact. The sibling entry on `||` bounds folding into `sltiu` is
 this same pass; there the operand equality could be broken by naming the field
 in one arm, which is no help to an `&&` whose two sides are both constant
 compares of the one value.
+
+### Reassigning a local reuses its pseudo, so a repeated load needs a second variable
+
+`func_actor_800200_8016545C` reads `arg0->actor` twice - once before the call to
+`Gp_FindLockNode` and once after it, which cse cannot merge across the call -
+and the target keeps the two in different registers (`$s0` for the first,
+`$v0` for everything after the call). Writing it the obvious way does not:
+
+```c
+GameActor* actor = arg0->actor;   /* -> $s0 */
+actor->field_910->field_CC = arg1;
+if (Gp_StateF0.field_0 == 1) { actor->field_90C = Gp_FindLockNode(arg0); }
+...
+actor = arg0->actor;              /* still the same pseudo: one quantity */
+actor->field_954 = 0;
+```
+
+RTL keeps a `reg/v` per user variable and just writes it again -
+`(set (reg/v:SI 83) (mem/s:SI (plus:SI (reg/v:SI 80) (const_int 28))))` in the
+`.lreg` block 3 - so both loads are one quantity: `Register 83 used 13 times
+across 23 insns; dies in 2 places`, allocated globally to `$s0`, and the whole
+second half stores through `$s0` where the target has `$v0`. A second variable
+gives the load its own pseudo, local to the merge block (`Register 84 used 8
+times across 11 insns in block 3`), and the rest of the allocation falls out:
+`$v0` the second pointer, `$v1` the `4`, `$a0` the `0x90C` load with its `sltu`.
+
+The tell is the header line's `used N times` for the pointer quantity: one
+pseudo spanning both halves of the function means the two loads were merged by
+the front end (a variable reassignment), not by cse.
+
+The same function shows the ordering half of the pair. In the m2c seed the
+`0x90C` read sits inside the final statement, so its load carries the six
+preceding stores as LOG_LINKS (`(insn_list 53 (insn_list 58 ...))` on the load)
+and sched1 keeps it after them, priority 2 against the stores' 2; the `sltu`
+then lands in `$v1` late, sharing it with the `4` whose live range has already
+ended. Hoisting the read into a `u16 flag` *before* the stores inverts that
+edge - the stores now carry `REG_DEP_ANTI` on the read - which both lets the
+load schedule first and makes the `4` and the `sltu` live at the same time, so
+they take different registers (`$v1`, `$a0`). Seed with the read late and the
+variable reused: 77.4%; hoist the read: 98.1% (`insert`/`delete`/`reorder` all
+0, `regs` 14); split the variable as well: exact.
