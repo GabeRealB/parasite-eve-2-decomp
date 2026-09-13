@@ -67853,6 +67853,48 @@ Example: `func_actor_461800_80132F20`, 99.78% -> 100.00% on the first build.
 Preprocessed SHA256: `base_1.i`
 `8a2e792dab22f5f05d12956ad11345f8f24860a753fc3d4be26bacde5f5fee71`.
 
+## The `stack` penalty that is really an argument register: `re_sprel` reads `N(aR)` as a displacement
+
+The entry above calls the false `stack` penalty unexplained. It is explained,
+and the arithmetic identifies it: `dist.py` locates stack accesses with
+
+```python
+re_sprel = r"(?:\d+\(|\$sp\s*,\s*)(-?(?:0x)?[0-9a-fA-F]+)\(?(?:\$sp)?\)?"
+```
+
+The first alternative is `\d+\(` followed by a hex capture -- which also matches
+MIPS *register* operands, because `a`-`f` are hex digits. So `lw $v0, 0x4($a2)`
+against a candidate's `lw $v0, 0x4($a0)` captures `a0` (160) and `a2` (162) and
+charges `abs(162 - 160) = 2` **per instruction**, while `ignore_last_field = True`
+suppresses the real register difference so it is not charged as `regs` at all.
+
+That also predicts which lines are *not* misread: `lhu $v1, 0xc($a0)` has no
+digit immediately before the `(`, so `\d+\(` fails, the line falls through to
+the field comparison and is charged `regs` instead. `func_actor_461800_80133898`
+is the worked example -- an m2c seed whose only defect was the payload in `$a0`
+rather than `$a2` reported `stack=6 regs=1`:
+
+| differing line | captured | penalty |
+|---|---|---|
+| `lw $v0, 0x4($a0)` -> `($a2)` | `a0` / `a2` | stack 2 |
+| `lhu $v0, 0x4($a0)` -> `($a2)` | `a0` / `a2` | stack 2 |
+| `lw $v0, 0x8($a0)` -> `($a2)` | `a0` / `a2` | stack 2 |
+| `lhu $v1, 0xC($a0)` -> `($a2)` | no match | regs 1 |
+
+`2+2+2 = stack 6` and `regs 1` reproduce `distance 11` exactly
+(`PENALTY_STACKDIFF` 1, `PENALTY_REGALLOC` 5). The frame instructions were
+byte-identical to the target's -- nothing to split and nothing to shrink.
+
+Do not chase a `stack` penalty when the prologue/epilogue already match: diff
+the normalized dumps first, and if the only differences are `$aN` operands,
+the defect is the parameter list, not the frame. `func_actor_461800_80132D84`
+had hit the same thing one function earlier, and `regs` differing by one line
+while `stack` differs by an even number is the signature.
+
+Example: `func_actor_461800_80133898`, 99.69% -> 100.00%, signature fix only.
+Preprocessed SHA256: `base_2.i`
+`5ecd7db6599cec8dfb2f479c482aecd86b9d44d973b0b928dec5512c8d593748`.
+
 ## m2c's temp for a loop counter passed to a call sinks the `lw` below the copy
 
 A do-while that passes its counter to a call makes m2c hoist the increment

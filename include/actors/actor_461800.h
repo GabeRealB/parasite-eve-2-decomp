@@ -85,10 +85,13 @@ typedef struct Actor461800Msg {
     /* 0x2 */ u16  field_2;
 } Actor461800Msg;
 
-/// Animation preset `func_actor_461800_80132D84` applies to the work block:
-/// `field_4` is the animation id (only six of them exist), `field_8` picks the
-/// reset path -- 1 for the blended `func_800B4114` reseed, 2 for a plain one --
-/// and `field_C` becomes the reset argument forwarded to every slot.
+/// Animation preset the overlay's "play animation" message handlers apply to
+/// their work block: `field_4` is the animation id, `field_8` picks the reset
+/// path -- 1 for the blended `func_800B4114` reseed, 2 for a plain one -- and
+/// `field_C` becomes the reset argument the reseed forwards. The id range each
+/// handler accepts is that variant's own: `func_actor_461800_80132D84` takes
+/// the first variant's six ids, `func_actor_461800_80133898` the second
+/// variant's 0x23.
 typedef struct Actor461800AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
