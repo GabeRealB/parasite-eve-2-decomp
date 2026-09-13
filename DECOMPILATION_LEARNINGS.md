@@ -68458,3 +68458,25 @@ register penalties behind.
 The sibling `func_actor_300700_80161E80` has the same node/link/record shape and
 the same idiom, so when a spawn like this is stuck in the nineties, try hoisting
 every flag edit out of its own node block before touching allocation.
+
+## `similar` at 1.00 across all four classes plus an equal instruction count means byte-identical
+
+`overlay_dup_index.py find` reports no copies for
+`func_actor_300700_80164794`, yet its instruction words are identical to the
+already-matched `Actor00700_Fn012E4` in `USA/actors/lib` - the indexer treats
+`actors/lib` as its own container and does not cross-match it against
+per-overlay functions, so `find` is not the authority on whether a port exists.
+`similar` is: shape, fields, calls and cflow all at 1.00 *and* the same
+instruction count (84 here) meant the two differed only in branch-target label
+names. Confirming it takes one line - normalize each disassembly to the text
+after `*/` and diff; the only hunks are the `Actor00700_L01350`-style labels.
+
+The port is then mechanical: copy the sibling's C, rename the field accesses to
+the local struct, and it matches on the first build (100.000%, all penalties
+zero). Watch the fields the local header still carries as padding - the sibling
+reads `work->field_388` / `work->field_38A`, which `Actor300700Work` had as
+`pad_388[4]`; splitting a pad into named fields is layout-preserving and safe.
+The scratchpad idiom comes across unchanged too (`#define SCRATCH_SP
+(*(u32*)0x1F8003FC)`, a 0x18 `RotScratch` holding a `VECTOR` then the
+`SVECTOR` handed to `RotMatrix`), and `ratan2` / `RotMatrix` need no declaration
+- the siblings call them implicitly.

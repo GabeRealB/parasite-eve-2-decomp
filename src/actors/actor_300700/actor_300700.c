@@ -11,6 +11,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_300700_80161E24;
@@ -363,7 +365,74 @@ INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801645F8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164794);
+void func_actor_300700_80164794(Actor300700* arg0)
+{
+    Actor300700Work*       work;
+    GsCOORDINATE2*         coord;
+    Actor300700RotScratch* sc;
+    s32                    ang;
+    u16                    want;
+    s16                    diff;
+    s32                    adiff;
+    s32                    step;
+    s32                    cur;
+    s32                    next;
+    s32                    wrapStep;
+
+    sc    = (Actor300700RotScratch*)(SCRATCH_SP -= 0x18);
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_38A;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
+
+    work->field_388 = ang;
+    if (adiff < 0x800) {
+        step = work->field_386;
+        if (step >= adiff) {
+            work->field_388 = want;
+        } else {
+            next = work->field_388;
+            if (diff <= 0) {
+                next -= step;
+            } else {
+                next += step;
+            }
+            work->field_388 = next;
+        }
+    } else {
+        step = work->field_386;
+        if (diff > 0) {
+            if (step >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (step >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_388 = work->field_38A;
+        goto done;
+    turn:
+        wrapStep = work->field_386;
+        cur      = work->field_388;
+        if (diff > 0) {
+            work->field_388 = cur - wrapStep;
+        } else {
+            work->field_388 = cur + wrapStep;
+        }
+    }
+done:
+    sc->rot.vx = 0;
+    sc->rot.vy = work->field_388;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    SCRATCH_SP += 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801648E4);
 

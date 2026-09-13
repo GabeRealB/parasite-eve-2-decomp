@@ -29,7 +29,8 @@ typedef struct Actor300700Work {
     /* 0x382 */ u16    field_382;
     /* 0x384 */ s16    field_384;
     /* 0x386 */ s16    field_386;
-    /* 0x388 */ byte   pad_388[4];
+    /* 0x388 */ s16    field_388;
+    /* 0x38A */ u16    field_38A;
     /* 0x38C */ u16    field_38C;
     /* 0x38E */ byte   pad_38E[2];
     /* 0x390 */ s16    field_390;
@@ -38,6 +39,14 @@ typedef struct Actor300700Work {
     /* 0x396 */ byte   pad_396[2];
     /* 0x398 */ s16    field_398;
 } Actor300700Work;
+
+/// Yaw scratch on the scratchpad: the `SVECTOR` handed to `RotMatrix` next to
+/// the `VECTOR` slot keeping the block at the size both allocations expect.
+typedef struct Actor300700RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor300700RotScratch;
+STATIC_ASSERT_SIZEOF(Actor300700RotScratch, 0x18);
 
 /// Spawn parameter block reached through `Actor300700Ctx.field_3C`; `field_A`
 /// is the halfword `func_actor_300700_80161E80` copies into
