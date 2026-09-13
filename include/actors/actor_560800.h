@@ -58,6 +58,23 @@ typedef struct Actor560800Work {
 } Actor560800Work;
 STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 
+/// 8-byte fade block `func_actor_560800_80135FA0` allocates with
+/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
+/// block in this overlay, distinct from `Actor560800Work` and owned by the
+/// fade-in task that function reparents to the controller.
+///
+/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
+/// raises all three by `spawnArg1` each frame (so `spawnArg1` is the fade rate,
+/// not a colour) and kills itself and clears the display mask once the red
+/// channel passes 0x100. `field_0` is never touched.
+typedef struct Actor560800FadeWork {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  r;
+    /* 0x4 */ u16  g;
+    /* 0x6 */ u16  b;
+} Actor560800FadeWork;
+STATIC_ASSERT_SIZEOF(Actor560800FadeWork, 0x8);
+
 /// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
 /// message 0x7DB: the same 4-byte record the other actors send, whose halfword
 /// at 0x2 carries the value the receiver reads.

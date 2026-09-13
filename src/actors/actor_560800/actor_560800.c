@@ -12,6 +12,8 @@
 
 #include "main/fs.h"
 
+#include "main/gameflow.h"
+
 #include "main/mem.h"
 
 #include "main/pad.h"
@@ -190,7 +192,39 @@ void func_actor_560800_80135F50(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135FA0);
+void func_actor_560800_80135FA0(Task* arg0)
+{
+    Actor560800FadeWork* work;
+    Actor560800FadeWork* alloc;
+
+    work = (Actor560800FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor560800FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work    = alloc;
+            work->b = 0;
+            work->g = 0;
+            work->r = 0;
+            Task_Reparent(D_actor_560800_8017578C, arg0);
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            work->r += (u16)arg0->spawnArg1;
+            work->g += (u16)arg0->spawnArg1;
+            work->b += (u16)arg0->spawnArg1;
+            if ((s16)work->r >= 0x100) {
+                SetDispMask(0);
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80136094);
 

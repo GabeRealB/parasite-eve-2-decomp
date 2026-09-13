@@ -66336,3 +66336,60 @@ room overlays, `3CD8_75C8`) already passes:
 100%, all penalties zero. Read a `delete` count that equals an `opcode_delta`
 deficit of narrow stores as this artefact before suspecting the allocator or the
 scheduler; grep an existing caller for the argument's type.
+
+## A m2c byte-typed field is a `reorder`/`insert`/`delete` mix, not a scheduler problem
+
+**Problem.** The m2c seed of `func_actor_560800_80135FA0` opened at 74.098%
+with `stack=0 branch=0 regs=0 reorder=3 insert=7 delete=7`, while
+`.diagnosis.json` reported `topology: match` — 9/9 blocks, 61/61 instructions,
+predicates and calls identical. So the control flow was already right and the
+penalty mix had to be operands. It was two symptoms:
+
+```
+-lw    a0,%lo(D_actor_560800_8017578C)(v0)     # retail: load issued early,
+-move  a1,s1                                   # then sh,sh / jal / sh(delay)
+ sh    zero,6(s0)
+ sh    zero,4(s0)
+-jal    Task_Reparent
+ sh    zero,2(s0)
++lw    a0,%lo(...)(v0)                         # seed: load left next to the jal,
++jal    Task_Reparent                          # a1 setup in the delay slot
++move  a1,s1
+...
+-lhu   v0,2(s0)                                # retail: halfword RMW
++lbu   v0,2(s0)                                # seed: byte RMW
+-sb    v0,2(s0),  lh v1,2(s0), slti v1,v1,0x100
++sb    v0,2(s0), lbu v1,2(s0), slti v1,v1,0x100
+```
+
+**Cause.** m2c read the 8-byte work block through a byte pointer
+(`M2C_FIELD(var_s0, u8 *, 2)`), so every channel increment was a byte
+load/store pair. The block's channels are 16-bit, and the store widths are the
+*only* place that shows: the same field is read `lhu` in the RMW and `lh` in the
+signed compare, which is the `u16`-field-with-a-`(s16)`-cast shape of the entry
+above, not two fields. `Task::spawnArg1` is an `s32` (0x34), so the increment
+operand also needs the `(u16)` cast the sibling fade task in
+`shelter_b3_dumping_hole` uses.
+
+**Fix.**
+
+```c
+typedef struct Actor560800FadeWork {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  r;
+    /* 0x4 */ u16  g;
+    /* 0x6 */ u16  b;
+} Actor560800FadeWork;
+
+work->r += (u16)arg0->spawnArg1;
+if ((s16)work->r >= 0x100) { ... }
+```
+
+100%, every penalty zero, on the next build — the `reorder` went with the
+widths, so the `Task_Reparent` argument load was never a scheduler question.
+Read a penalty mix of `reorder`/`insert`/`delete` at zero `regs` and zero
+`stack`, with `topology: match`, as an operand-width error first: diff for the
+load/store widths, and treat any order difference as downstream until the
+widths are right. Do not copy the neighbouring fade struct's field types
+either — `DumpingHoleFadeWork` in `shelter_b3_dumping_hole` is the same shape
+with `s16 r/g/b` and `lbu`/`sb`, because there the channels are byte-wide.
