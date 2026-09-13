@@ -36,5 +36,6 @@ void func_actor_800200_801658E0();
 void func_actor_800200_8016599C();
 void func_actor_800200_801659CC(void);
 void func_actor_800200_80165ACC();
+s32  func_actor_800200_801660E8(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2);
 
 #endif

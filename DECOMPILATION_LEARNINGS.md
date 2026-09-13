@@ -598,6 +598,16 @@ preprocessed `486d0cc84d065c614c955ae9a6c7ef05155c50dfc0be5e6338ffefc01778504b`)
 Sibling `func_actor_400500_8013CDA8` stores a fresh constant 7, so it never
 needs the loaded HI and one `lh` is enough.
 
+When the halfword is loaded *only* to be stored back - no compare and no
+arithmetic on it - there is no pair to reconstruct: the sole load is the
+`movhi` `lhu`, with no `lh` anywhere. Do not "fix" that by making the field
+`u16` or by casting the value; a plain `s16` field read straight into another
+field is enough, because the sign extension is never requested.
+`func_actor_800200_801660E8` is the minimal case: `arg2->field_0 = arg1->field_8`
+emits `lhu $2,8($16)  # movhi_internal2/3` for the store, while the same
+`field_8` and `field_C` feeding a subtraction emit
+`lh $3,8($16)  # extendhisi2_internal/1`.
+
 ## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
 
 A bit test that then stores 7 or 8 wants `$v0` for both the `andi` and the
