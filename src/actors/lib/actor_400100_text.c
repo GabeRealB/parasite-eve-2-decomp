@@ -631,7 +631,31 @@ void Actor00100_Fn0BC14(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0BC1C);
+void Actor00100_Fn0BC1C(Actor00100* arg0)
+{
+    GsCOORDINATE2*  coord;
+    s32             y;
+    s32             distance;
+    register s32    slotY asm("v0");
+    Actor00100Work* work;
+    Task*           task;
+
+    work = arg0->field_1C;
+    task = Game_GetPtrSlot(3);
+    if ((task != NULL) && (work->field_8E8 == 7)) {
+        coord    = ((TmdObject*)task->extra)->field_8;
+        slotY    = coord->coord.t[1];
+        y        = arg0->field_2C->field_8->coord.t[1];
+        distance = slotY - y;
+        if (distance < 0) {
+            distance = -distance;
+        }
+        if (distance >= 0x321) {
+            coord->coord.t[1]                       = y;
+            ((TmdObject*)task->extra)->field_8->flg = 0;
+        }
+    }
+}
 
 void Actor00100_Fn0BCBC(s32 arg0, Task* task)
 {
