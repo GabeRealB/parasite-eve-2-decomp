@@ -48,7 +48,54 @@ extern u8 D_801153F4;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0006C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn00754);
+void Actor05500_Fn00754(Actor105500* arg0)
+{
+    Actor105500Work* work;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s32              dx;
+    s32              dz;
+    u32              random;
+    s32              index;
+    VECTOR*          delta;
+    VECTOR*          scratchEnd;
+
+    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+    delta                              = scratchEnd - 1;
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
+    work                               = arg0->field_1C;
+    state                              = work->field_39C;
+    coord                              = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            scratchEnd[-1].vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+            delta->vy         = 0;
+            dz                = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            delta->vz         = dz;
+            dx                = scratchEnd[-1].vx;
+            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (D_801153F2[1] == 2)) {
+                work->field_39C = 1;
+                work->field_392 = 0xD;
+                Gp_ArmStateF0(1);
+            }
+            break;
+        case 1:
+            if ((u32)(work->field_396 - 0xB) < 0x32U) {
+                coord->coord.t[2] += 4;
+            }
+            if ((s16)work->field_396 >= 0x4B) {
+                work->field_39A = 3;
+                work->field_39C = 0;
+                work->field_392 = state;
+                index           = ((Actor105500Ctx*)arg0->field_20)->field_3C->field_F;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_39E = Actor05500_D08980[index] + ((random >> 0x10) & 0xF);
+            }
+            break;
+    }
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+}
 
 void Actor05500_Fn00914(Actor105500* arg0)
 {
