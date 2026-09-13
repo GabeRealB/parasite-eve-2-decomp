@@ -1,11 +1,14 @@
 #include "common.h"
 
 #include "actors/actor_300700.h"
+#include "actors/actor_300700_spawn.h"
 #include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/1BC.h"
+#include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
@@ -39,7 +42,96 @@ extern u8  D_801153F4;
 extern s8  D_80115408;
 extern s32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80161E80);
+/// Spawn pair record packed by `Gp_PackPair`, and the wider view of the same
+/// object whose `field_4` seeds the enemy's `field_40`.
+extern GpU16Pair  D_actor_300700_80165B64;
+extern GpPairSrcE D_actor_300700_80165B68;
+/// Pose source handed to `func_800B3F84` as its animation data record.
+extern u32 D_actor_300700_80165B94;
+
+void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
+{
+    Actor300700SpawnWork* work;
+    GsCOORDINATE2*        coord;
+    TmdObject*            obj;
+    s32                   i;
+
+    obj   = (TmdObject*)arg1->extra;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x2F4U, false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap    = (TaskIdMap*)work;
+    obj->field_C   = 0;
+    coord->flg     = 0;
+    obj->field_24 += 1;
+    obj->field_25 += 1;
+    Tmd_ProcessStream(obj);
+    Tmd_ProcessStream(obj);
+    obj->field_1C  = &work->field_114;
+    obj->field_20  = &work->field_F4;
+    arg0->field_4  = &coord->coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->field_18     = coord;
+    arg0->node.field_4 = 0;
+    arg0->field_1C.vx  = 0;
+    arg0->field_1C.vy  = 0;
+    arg0->field_1C.vz  = 0;
+    arg0->field_50     = &D_actor_300700_80165B68;
+    arg0->field_54     = (s32)&work->rec154;
+    arg0->field_40     = (u16)D_actor_300700_80165B68.field_4;
+    work->field_228    = 0x100;
+    work->field_22A    = 1;
+    work->field_224    = coord;
+    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, (GpAnimObj*)obj,
+                  work->field_B4, (GpAnimSlot*)work->field_14);
+    for (i = 1; i < 4; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work->field_2D6       = 1;
+    work->field_2AC       = (s32)coord->coord.t[0];
+    work->field_2B0       = (s32)coord->coord.t[1];
+    work->field_2B4       = (s32)coord->coord.t[2];
+    work->field_2DC       = (u16)((Actor300700Ctx*)arg1->spawnArg2)->field_3C->field_A;
+    work->obj134.field_8  = coord;
+    work->obj134.field_C  = &work->rec154;
+    work->obj134.field_10 = 0;
+    work->obj134.field_12 = 0;
+    work->obj134.field_14 = 0;
+    work->obj134.field_18 = 0x30008;
+    work->obj134.field_1C = 0xFA;
+    work->obj134.flags    = 1;
+    Gp_LinkObj(2, &work->obj134);
+    Gp_InitRec18Table(&work->rec154, 1, 0);
+    work->obj16C.field_8  = coord;
+    work->obj16C.field_C  = &work->rec18C[0];
+    work->obj16C.field_10 = 0;
+    work->obj16C.field_12 = 0;
+    work->obj16C.field_14 = 0;
+    work->obj16C.field_18 = 0x30008;
+    work->obj16C.field_1C = 0xFA;
+    work->obj16C.flags    = 1;
+    work->obj134.flags    = (u16)(work->obj134.flags | 0x8000);
+    Gp_LinkObj(2, &work->obj16C);
+    Gp_InitRec18Table(&work->rec18C[0], 4, 0);
+    work->obj1EC.field_8  = coord;
+    work->obj1EC.field_C  = &work->rec20C;
+    work->obj1EC.field_10 = 0;
+    work->obj1EC.field_12 = 0;
+    work->obj1EC.field_14 = 0;
+    work->obj16C.flags    = (u16)(work->obj16C.flags | 0x4000);
+    work->obj1EC.field_18 = Gp_PackPair(&D_actor_300700_80165B64, 0);
+    work->obj1EC.field_1C = 0x190;
+    work->obj1EC.flags    = 1U;
+    Gp_LinkObj(3, &work->obj1EC);
+    Gp_InitRec18Table(&work->rec20C, 1, 0);
+    work->obj1EC.flags = (u16)(work->obj1EC.flags & 0x7FFF);
+    arg1->state        = 1;
+}
 
 void func_actor_300700_80162130(Actor300700Ctx* arg0, Actor300700* arg1)
 {

@@ -39,20 +39,29 @@ typedef struct Actor300700Work {
     /* 0x398 */ s16    field_398;
 } Actor300700Work;
 
+/// Spawn parameter block reached through `Actor300700Ctx.field_3C`; `field_A`
+/// is the halfword `func_actor_300700_80161E80` copies into
+/// `Actor300700SpawnWork.field_2DC`.
+typedef struct Actor300700Params {
+    /* 0x0 */ byte pad_0[0xA];
+    /* 0xA */ u16  field_A;
+} Actor300700Params;
+
 /// Damage record the actor pushes hits into. Same object family as
 /// `GpObj5C`: `field_4C` carries the generic hit-flag bits, `field_40` the
 /// remaining hit points and `field_10` the anchor `func_800DA6E8` binds a
 /// damage slot to.
 typedef struct Actor300700Ctx {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[6];
-    /* 0x10 */ byte field_10[4];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ u16  field_40;
-    /* 0x42 */ byte pad_42[0xA];
-    /* 0x4C */ u8   field_4C;
+    /* 0x00 */ byte               pad_0[8];
+    /* 0x08 */ u16                field_8;
+    /* 0x0A */ byte               pad_A[6];
+    /* 0x10 */ byte               field_10[4];
+    /* 0x14 */ u8                 field_14;
+    /* 0x15 */ byte               pad_15[0x27];
+    /* 0x3C */ Actor300700Params* field_3C;
+    /* 0x40 */ u16                field_40;
+    /* 0x42 */ byte               pad_42[0xA];
+    /* 0x4C */ u8                 field_4C;
 } Actor300700Ctx;
 
 typedef struct Actor300700 {

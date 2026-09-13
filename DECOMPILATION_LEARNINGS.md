@@ -68381,3 +68381,50 @@ bodies that compile from the same C. When the BRIEF lists a sibling at `shape`,
 `fields` and `cflow` all 1.00, treat it as a source equality and port its
 matched body verbatim; the `promote`/shared-lib step is a separate question and
 is not implied by it.
+
+## A 0x2F4 actor spawn work is three `GpObj` nodes and their `GpRec18` tables
+
+Spawn handlers that `Mem_Calloc(0x2F4)` and fill render nodes link three
+`GpObj`s at 0x134 / 0x16C / 0x1EC, each with a `GpRec18` table directly behind
+it (0x154, `rec18C[4]` at 0x18C, 0x20C). `Actor00700SpawnWork` models these as
+raw byte runs plus offset-named halfwords (`field_134[8]`, `field_13C`,
+`field_144`, `field_14C`, `field_150`, `field_152`), which works but hides that
+every one of those offsets *is* a `GpObj` field:
+
+| raw offset | `GpObj` field |
+|---|---|
+| base + 0x08 | `field_8` |
+| base + 0x0C | `field_C` (the `GpRec18*`) |
+| base + 0x10 / 0x12 / 0x14 | `field_10` / `field_12` / `field_14` |
+| base + 0x18 | `field_18` |
+| base + 0x1C | `field_1C` |
+| base + 0x1E | `flags` |
+
+`GpObj` is 0x20, so `obj134` at 0x134 ends exactly at `rec154` at 0x154, and the
+whole thing satisfies `STATIC_ASSERT_SIZEOF(..., 0x2F4)` unchanged. Declaring
+the three nodes as `GpObj` removes every cast in the body — `Gp_LinkObj(2,
+&work->obj134)` and `Gp_InitRec18Table(&work->rec154, 1, 0)` take the real
+types — and the flag edits read as the sibling's
+`work->obj134.flags |= 0x8000` / `obj16C.flags |= 0x4000` / `obj1EC.flags &=
+0x7FFF` (0x18A and 0x20A are the same `flags` word of the 0x16C and 0x1EC
+nodes).
+
+Example: `func_actor_300700_80161E80`. Inputs: `base.i`
+`4f9439236bb12cef8b6f29f0b28effbbb9bec5b26f38800204e327922fb41a3d`, `base_1.i`
+`d1e85d8e42444766e9b3424b9b41a6d1d1f5f901edbef39909af4edd867bd398`.
+
+## An m2c seed whose `addiu` offsets are exact multiples is mistyped, not misallocated
+
+`base.c` for `func_actor_300700_80161E80` scored 88.89% with `regs=22 reorder=5
+insert=7 delete=8`, and the whole gap was one thing: m2c emits `ptr + N` on a
+*typed* pointer, so the offset scales by `sizeof(*ptr)`. `temp_v0 + 0x114` on a
+`TaskIdMap*` assembles to `addiu v0,s4,0x8a0` where the target has `addiu
+v0,s4,0x114`; `temp_s5 + 4` on a `GsCOORDINATE2*` gives `addiu v0,s5,0x140`
+against `0x4`. Six such offsets accounted for the insert/delete counts.
+
+The tell is arithmetic: divide the seed's offset by the target's and see if the
+quotient is a struct size (0x114 × 8 = 0x8a0, 4 × 0x50 = 0x140). When it is,
+rewriting the body with real struct field accesses fixes every offset in one
+edit — `base_1.c` went from 88.89% to 100.00% with zero penalties on the first
+build. Do not start allocation experiments on such a seed; the penalty line is
+downstream of the addressing, not independent of it.
