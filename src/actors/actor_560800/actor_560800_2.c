@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor_560800.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -35,7 +36,13 @@ void func_actor_560800_80136678(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801366B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801367C0);
+void func_actor_560800_801367C0(s16 arg0)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+
+    work->field_58 = arg0;
+    work->field_5A = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801367E0);
 
