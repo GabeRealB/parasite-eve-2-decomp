@@ -121,6 +121,8 @@ STATIC_ASSERT_SIZEOF(Actor01600StateC08, 0x18);
 extern Actor01600StateF0  Gp_StateF0;
 extern Actor01600StateC08 Gp_StateC08;
 
+void Gp_DestroyEnemy(void* enemy, void* task);
+
 extern s32 Actor01600_D12874;
 
 void Actor01600_Fn01420(Actor01600* arg0);

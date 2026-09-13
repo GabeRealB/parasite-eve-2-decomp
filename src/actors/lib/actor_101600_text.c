@@ -509,7 +509,32 @@ u8 Actor01600_Fn06F78(Actor01600* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn06FDC);
+void Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1)
+{
+    Actor01600Work* work;
+    Actor01600Ctx*  ctx;
+    TmdObject*      obj;
+    TmdObject*      obj2;
+
+    obj           = arg0->field_2C;
+    ctx           = arg0->field_20;
+    work          = arg0->field_1C;
+    obj->field_C  = (u16)(obj->field_C | 0x80);
+    obj2          = arg0->field_2C;
+    obj2->field_C = (u16)(obj2->field_C | 4);
+    ctx->field_54 = 0;
+    Gp_UnlinkNode(&ctx->node);
+    if (!(arg1 & 0xFF)) {
+        Gp_UnlinkObj(work->field_40C);
+        Gp_UnlinkObj(work->field_29C);
+        Gp_UnlinkObj(work->field_2EC);
+        Gp_UnlinkObj(work->field_3CC);
+    }
+    Gp_SetLightMode(ctx, 1);
+    Gp_ReleaseStateF0Add(arg0, 0x10);
+    Gp_DestroyEnemy(ctx, arg0);
+    Actor01600_D12874 -= 1;
+}
 
 /// Copies the source actor's texture page and CLUT row (`field_24` /
 /// `field_25`) onto this actor's model object, then re-runs the model stream
