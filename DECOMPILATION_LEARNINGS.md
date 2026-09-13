@@ -70102,3 +70102,41 @@ Inputs: `base_17.i`
 `51811e974e1daf0cdfd3a128ee84298807222d6b801abe917682ca884470caea`,
 `base_19.i`
 `960f581b3f8ef823f410d997ba0192bcf3e18457991e2220a79ac6c666e2aadb`.
+
+## A promoted body that a shared unit calls through a per-overlay alias collides with its own alias
+
+`overlay_dup_index.py promote` writes the shared symbol into every carrier's sym
+file. When the body is also a *callee of another shared unit*, that file already
+names the same vram with a per-overlay alias, and splat refuses the second name:
+
+```
+error reading configs/USA/sym/actors/actor_402200.txt, line 28:
+Duplicate symbol detected! ActorsShared8013806c clashes with ActorsShared80137a20_Fn38070 defined at vram 0x8013806C.
+  If this is intended, specify either a segment or a rom address for this symbol
+```
+
+`util/symbols.py` rejects two symbols sharing a vram *and* a rom/segment, so the
+escape it offers means annotating one of them to look distinct — the wrong
+repair, since the two names really are one address.
+
+The alias exists only because each carrier supplied its own copy: the shared unit
+forward-declares `ActorsShared80137a20_Fn38070(ActorShared80137a20*)` and every
+carrier's sym file points that name at its own body. Once the body is shared the
+alias is redundant, so retire it rather than keeping both names — drop the alias
+line from the sym files and have the shared caller call the shared symbol,
+casting its context to the callee's view the way it already does for the shared
+siblings it calls (`ActorsShared80137b78((ActorShared80137b78*)arg1)`). The call
+is `jal` either way, so the caller's object is unchanged.
+
+Check the *caller's* carrier count before editing it: the change is this narrow
+only when the shared caller is shared by the same overlays. `actors_shared_80137a20`
+has exactly two carriers, so `actor_402200` and `actor_403900` were the whole
+audience; a caller shared by thirty overlays would leave the other twenty-eight
+referencing a symbol nothing defines. (`overlay_dup_index.py shared` or a scan of
+the manifest's `shared` spans answers it.)
+
+Worked example: `func_actor_402200_8013806C` → `ActorsShared8013806c`, the second
+of the pair's promotions. The span cut at 0x624C lands inside unit `_2`'s run, so
+`_3`→`_4` and a fresh `_3` took the tail, and the promoted body was the only C
+body in the file it left — moved out first, the two carrier unit files could then
+be deleted and regenerated as in the section above.

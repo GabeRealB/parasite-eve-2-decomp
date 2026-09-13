@@ -2,6 +2,7 @@
 
 #include "actors/actors_shared_80137a20.h"
 #include "actors/actors_shared_80137b78.h"
+#include "actors/actors_shared_8013806c.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_8009EA50(s32 arg0); /* defined (s32) in src/gameplay/gameplay.c */
@@ -12,7 +13,6 @@ void ActorsShared80137a20_Fn35BE0(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn37E4C(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn37EF0(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn37FB4(ActorShared80137a20* arg0);
-void ActorsShared80137a20_Fn38070(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn3820C(GsCOORDINATE2* arg0, s32 arg1);
 
 extern u8 D_801153F4;
@@ -53,7 +53,7 @@ case0:
     goto default_body;
 case1:
     ActorsShared80137a20_Fn37FB4(arg1);
-    ActorsShared80137a20_Fn38070(arg1);
+    ActorsShared8013806c((ActorShared8013806c*)arg1);
     return;
 case2:
     temp_a1->field_C = 0x80;
@@ -70,7 +70,7 @@ default_body:
         arg1->field_2C->field_8->field_F0.flg = 0;
         Gp_UpdateCoord(&temp_s2->field_0);
         ActorsShared80137a20_Fn37FB4(arg1);
-        ActorsShared80137a20_Fn38070(arg1);
+        ActorsShared8013806c((ActorShared8013806c*)arg1);
         ActorsShared80137a20_Fn3820C(&arg1->field_2C->field_8->field_F0, 0xC);
         ActorsShared80137a20_Fn34968(arg1);
         func_8009EA50(temp_s1->field_6D8);
