@@ -21,9 +21,12 @@
 #include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 
-extern s32      Gp_LcgState;
-extern u8       D_actor_405800_801513F8[];
-extern TaskDesc D_actor_405800_801514B4;
+extern s32        Gp_LcgState;
+extern u8         D_actor_405800_801513F8[];
+extern TaskDesc   D_actor_405800_801514B4;
+extern GpPairSrcE D_actor_405800_801418FC;
+extern u8         D_actor_405800_80151410[];
+extern u8         D_actor_405800_8015149C[];
 
 void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 /* Unprototyped so the first jal keeps a nop delay slot; a0 still holds the task. */
@@ -34,6 +37,7 @@ s32  func_actor_405800_801373E0(Task* arg0);
 void func_actor_405800_801379F8(Task* task);
 void func_actor_405800_80137948(Task* task);
 void func_actor_405800_80137994(Task* arg0, s16 arg1);
+void func_actor_405800_80135780(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -294,7 +298,97 @@ void func_actor_405800_8013340C(Task* arg0)
     work->field_838 = 0x100;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801334B8);
+void func_actor_405800_801334B8(Task* arg0)
+{
+    TmdObject*       model;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    Actor405800Work* work;
+    Actor405800Work* w2;
+    Actor405800Work* w3;
+    Actor405800Work* w4;
+    TmdObject*       extra;
+    u32              rnd;
+
+    model = (TmdObject*)arg0->extra;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    coord = model->field_8;
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x04080000) {
+        Gp_DestroyEnemy(enemy, arg0);
+        return;
+    }
+    arg0->idMap = Mem_Calloc(0x89CU, false);
+    work        = (Actor405800Work*)arg0->idMap;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, arg0);
+        return;
+    }
+    D_80062735         = 2;
+    model->field_1C    = &work->matrix_40;
+    model->field_20    = &work->matrix_20;
+    model->field_C     = 0;
+    arg0->field_24     = D_actor_405800_8015149C;
+    enemy->field_4     = &coord->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &((TmdObject*)arg0->extra)->field_8[3];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4   = 5;
+    enemy->field_50       = &D_actor_405800_801418FC;
+    enemy->field_54       = (s32)work->rec_4D4;
+    work->eff_81C.field_0 = &((TmdObject*)arg0->extra)->field_8[3];
+    work->eff_81C.field_4 = 0x100;
+    work->eff_81C.field_6 = 2;
+    enemy->field_40 = enemy->field_42 = D_actor_405800_801418FC.field_4;
+    func_800B3F84(&work->anim, D_actor_405800_80151410, (GpAnimObj*)model, work->pad_394, work->slots);
+
+    w2            = (Actor405800Work*)arg0->idMap;
+    w2->field_850 = 0x10;
+    w2->field_872 = 1;
+    w2->field_86E = 2;
+
+    Actor405800_TickAnim(arg0);
+
+    coord->sub = &Gfx_ViewCoord;
+    func_actor_405800_80132670(arg0);
+    func_actor_405800_80135780(arg0);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    w3            = (Actor405800Work*)arg0->idMap;
+    w3->field_846 = 0;
+    w3->field_848 = 0;
+    if (Game_Session->field_8 == 1) {
+        coord->coord.t[0] = 0x14B4;
+        coord->coord.t[2] = 0xD7A;
+        coord->coord.t[1] = 0;
+        work->field_82    = 0x400;
+    } else {
+        coord->coord.t[0] = 0x514;
+        coord->coord.t[1] = 0;
+        coord->coord.t[2] = 0x251C;
+        work->field_82    = 0;
+    }
+    work->field_90  = coord->coord.t[0];
+    work->field_92  = coord->coord.t[1];
+    work->field_94  = coord->coord.t[2];
+    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState     = rnd;
+    work->field_840 = rnd >> 0x10;
+    work->field_86A = work->field_92;
+    w4              = (Actor405800Work*)arg0->idMap;
+    extra           = (TmdObject*)arg0->extra;
+    w4->field_832   = 0xFF;
+    w4->field_834   = 0;
+    w4->field_866   = 0;
+    w4->field_836   = 0x10;
+    func_8009EA50(w4->field_832);
+    extra->field_2C = w4->field_834;
+    w3              = (Actor405800Work*)arg0->idMap;
+    arg0->state     = 1;
+    w3->field_846   = 0;
+    w3->field_848   = 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E20);
 

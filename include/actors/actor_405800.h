@@ -84,19 +84,21 @@ STATIC_ASSERT_SIZEOF(Actor405800BeamScratch, 0x8C);
 /// `field_846` / `field_848` are the state and sub-state indices the handler
 /// table walks and `field_842` is the per-state frame counter.
 typedef struct Actor405800Work {
-    /* 0x000 */ MATRIX              matrix_0; // copy of the root coordinate's local matrix
+    /* 0x000 */ MATRIX              matrix_0;  // copy of the root coordinate's local matrix
     /* 0x020 */ MATRIX              matrix_20; // color matrix for the child models
     /* 0x040 */ MATRIX              matrix_40; // light matrix for the child models
     /* 0x060 */ byte                pad_60[0x10];
-    /* 0x070 */ VECTOR              field_70; // copy of the root coordinate's translation
+    /* 0x070 */ VECTOR              field_70;  // copy of the root coordinate's translation
     /* 0x080 */ u16                 field_80;  // pitch, see ActorsShared80139948
     /* 0x082 */ u16                 field_82;  // yaw, see ActorsShared80139948
     /* 0x084 */ u16                 field_84;  // roll, see ActorsShared80139948
     /* 0x086 */ byte                pad_86[2];
     /* 0x088 */ Actor405800ViewPos  field_88;
-    /* 0x08E */ byte                pad_8E[4];
+    /* 0x08E */ byte                pad_8E[2];
+    /* 0x090 */ u16                 field_90; // spawn position X (low half)
     /* 0x092 */ u16                 field_92; // copied into field_86A on state entry
-    /* 0x094 */ byte                pad_94[0x4];
+    /* 0x094 */ u16                 field_94; // spawn position Z (low half)
+    /* 0x096 */ byte                pad_96[2];
     /* 0x098 */ u16                 field_98; // low half of the root coordinate's world X
     /* 0x09A */ s16                 field_9A;
     /* 0x09C */ u16                 field_9C; // low half of the root coordinate's world Z
@@ -118,7 +120,7 @@ typedef struct Actor405800Work {
     /* 0x724 */ GpObj               obj_724;    // collision node; flags bit 0x4000 cleared by func_actor_405800_801379F8
     /* 0x744 */ GpActorD4Rec        rec_744;    // obj_724 payload (flags kind 3)
     /* 0x75C */ GpRec18             rec_75C[8]; // occupancy table behind rec_744
-    /* 0x81C */ byte                pad_81C[8];
+    /* 0x81C */ GpEffArg            eff_81C;    // fourth model part's coordinate
     /* 0x824 */ Task*               field_824;  // child task, killed on state exit
     /* 0x828 */ Task*               field_828;  // child task, killed on state exit
     /* 0x82C */ byte                pad_82C[0x6];
@@ -128,7 +130,7 @@ typedef struct Actor405800Work {
     /* 0x838 */ s16                 field_838;
     /* 0x83A */ s16                 field_83A; // nonzero: skip the field_895 / field_896 reset
     /* 0x83C */ Actor405800Flags83C flags_83C;
-    /* 0x840 */ byte                pad_840[0x2];
+    /* 0x840 */ u16                 field_840; // LCG draw at spawn
     /* 0x842 */ u16                 field_842; // per-state frame counter
     /* 0x844 */ s16                 field_844; // cleared with field_842 on state entry
     /* 0x846 */ u16                 field_846; // state index
