@@ -444,7 +444,54 @@ void func_actor_405800_80139358(Task* arg0)
     work->field_848 = work->field_848 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_6", func_actor_405800_801393E8);
+void func_actor_405800_801393E8(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    Actor405800Work* work4;
+    Actor405800Work* work5;
+    u16              count;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if (work->field_898 == 2) {
+        if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (work->field_891 == 0) {
+                work2            = (Actor405800Work*)arg0->idMap;
+                work2->field_84A = 8;
+                work2->field_850 = 0x10;
+                work2->field_872 = 0x10;
+                work2->field_86E = 1;
+            } else {
+                work3            = (Actor405800Work*)arg0->idMap;
+                work3->field_84A = 8;
+                work3->field_850 = 0x10;
+                work3->field_872 = 0x12;
+                work3->field_86E = 1;
+            }
+            work->field_848 = work->field_848 + 1;
+        }
+    } else {
+        count           = work->field_842 + 1;
+        work->field_842 = count;
+        if ((s16)count >= 0x15) {
+            if (work->field_891 == 0) {
+                work4            = (Actor405800Work*)arg0->idMap;
+                work4->field_84A = 8;
+                work4->field_850 = 0x10;
+                work4->field_872 = 0x10;
+                work4->field_86E = 1;
+            } else {
+                work5            = (Actor405800Work*)arg0->idMap;
+                work5->field_84A = 8;
+                work5->field_850 = 0x10;
+                work5->field_872 = 0x12;
+                work5->field_86E = 1;
+            }
+            work->field_848 = work->field_848 + 1;
+        }
+    }
+}
 
 void func_actor_405800_801394E4(Task* arg0)
 {
