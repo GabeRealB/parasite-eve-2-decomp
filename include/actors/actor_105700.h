@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -77,6 +78,55 @@ typedef struct Actor105700 {
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor105700Obj*  field_2C;
 } Actor105700;
+
+/// 0x14-byte placement descriptor in the overlay's `.data`, handed to
+/// `Gp_PackPair` as the source of the body objects' `GpObj.field_18`.
+/// `field_E` is the variant flag `func_actor_105700_80134FDC` latches into its
+/// work block: it is 1 (the table's own value is 2) when the actor is placed
+/// normally, and anything else puts the body in the other pose.
+typedef struct Actor105700PlaceSrc {
+    /* 0x00 */ GpU16Pair pair;
+    /* 0x04 */ u16       field_4;
+    /* 0x06 */ u16       field_6;
+    /* 0x08 */ u16       field_8;
+    /* 0x0A */ u16       field_A;
+    /* 0x0C */ u16       field_C;
+    /* 0x0E */ u16       field_E;
+    /* 0x10 */ u16       field_10;
+    /* 0x12 */ u16       field_12;
+} Actor105700PlaceSrc;
+STATIC_ASSERT_SIZEOF(Actor105700PlaceSrc, 0x14);
+
+/// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
+/// `func_actor_105700_80134FDC`. `rot` first holds the local offset the root
+/// coordinate is translated by (through `gte_rtv0` into `pos`), then the
+/// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
+/// transforms that overwrite the root coordinate's matrix.
+typedef struct Actor105700PlaceScratch {
+    /* 0x00 */ SVECTOR rot;
+    /* 0x08 */ VECTOR  pos;
+    /* 0x18 */ MATRIX  mtx;
+} Actor105700PlaceScratch;
+STATIC_ASSERT_SIZEOF(Actor105700PlaceScratch, 0x38);
+
+/// 0xF0-byte body block `func_actor_105700_80134FDC` parks at `Task::idMap`.
+/// The two leading matrices are the light/colour pair published on the model
+/// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
+/// (shared by the first two) and, through the `GpActorD4Rec` between them,
+/// `recD0`. `field_EE` mirrors the placement table's variant flag.
+typedef struct Actor105700FxWork {
+    /* 0x00 */ MATRIX       colorMtx;
+    /* 0x20 */ MATRIX       lightMtx;
+    /* 0x40 */ GpObj        obj40;
+    /* 0x60 */ GpRec18      rec60[1];
+    /* 0x78 */ GpObj        obj78;
+    /* 0x98 */ GpObj        obj98;
+    /* 0xB8 */ GpActorD4Rec d4rec;
+    /* 0xD0 */ GpRec18      recD0[1];
+    /* 0xE8 */ byte         pad_E8[6];
+    /* 0xEE */ s16          field_EE;
+} Actor105700FxWork;
+STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);
 
 void func_actor_105700_801336FC(Actor105700* arg0);
 

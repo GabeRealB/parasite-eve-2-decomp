@@ -65431,3 +65431,34 @@ string.
 
 Inputs: `base_1.i`
 `b5dc4f938a11f245aade7773018e41e6d23fac1fb030da3d2d21d1e6e8619760` (100%).
+
+## A work block's embedded sub-record is written in the ROM's emission order, not the parent's field order
+
+`func_actor_105700_80134FDC` (USA/actors/actor_105700) fills a 0xF0-byte body
+block whose `obj98` `GpObj` at 0x98 points at a `GpActorD4Rec` at 0xB8. The ROM
+emits `obj98.field_C`, then the whole `d4rec` run (`field_0` … `field_14`),
+then `obj98.field_8` / `_10` / `_12` / `_14` / `_18` / `_1C` / `flags` — the
+parent's fields are split *around* the sub-record, not grouped.
+
+Writing the parent's block first and the sub-record after it scores 97.04%
+(`reorder=10`); moving `obj98.field_C` ahead of the `d4rec` run scores 99.56%
+(`reorder=2`). Consecutive plain halfword stores to disjoint offsets come out
+in source order — the scheduler has nothing to gain from moving them — so the
+only lever is where each store sits, and the matching form is exactly the ROM
+order:
+
+```c
+work->d4rec.field_0  = 0;
+/* … field_2 / field_4 / field_8 / field_A / field_C / field_10 / field_12 */
+work->d4rec.field_14 = work->recD0;
+work->obj98.field_C  = (GpRec18*)&work->d4rec;
+work->obj98.field_8  = coord;
+/* … field_10 / _12 / _14 / _18 / _1C */
+work->obj98.flags    = 3;
+```
+
+Unlike the byte-store and RMW entries above, the reorder penalty here is the
+diff telling you the *source* order is wrong rather than the scheduler being
+clever: these stores are independent, so nothing else can explain a swap.
+
+Inputs: `base_1.c` … `base_4.c` (100%).
