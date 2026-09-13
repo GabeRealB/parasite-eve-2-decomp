@@ -39,6 +39,7 @@ void func_actor_405800_80137948(Task* task);
 void func_actor_405800_80137994(Task* arg0, s16 arg1);
 void func_actor_405800_80135780(Task* arg0);
 void func_actor_405800_8013340C(Task* arg0);
+void func_actor_405800_80138514(Task* arg0, s16 arg1, Actor405800ViewPos* arg2);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -958,7 +959,53 @@ void func_actor_405800_80134E80(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_801351BC);
+void func_actor_405800_801351BC(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    GsCOORDINATE2*   coord;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_842++;
+    if ((s16)work->field_842 < 8) {
+        work->field_866 = (u16)work->field_866 + (-work->field_866 >> 1);
+        ActorsShared80139dcc(arg0, 3, (ActorsShared80139dccPos*)&work->field_88);
+        return;
+    }
+    work->field_866   = (u16)work->field_866 + ((0xFF - work->field_866) >> 1);
+    work->field_86A   = work->field_92;
+    work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
+    work->field_88.z += ((s16)work->field_9C - work->field_88.z) >> 2;
+    func_actor_405800_80138514(arg0, 3, &work->field_88);
+    work->field_84C   += 2;
+    work->field_84E   += work->field_84C;
+    coord->coord.t[1] += work->field_84E;
+    if ((work->field_80 & 0xFFF) != 0x800) {
+        work->field_80 -= 0x80;
+    }
+    if ((s16)work->field_92 < coord->coord.t[1]) {
+        work->field_890   = 0;
+        work->field_866   = 0xFF;
+        coord->coord.t[0] = (s16)work->field_98;
+        coord->coord.t[1] = (s16)work->field_92;
+        coord->coord.t[2] = (s16)work->field_9C;
+        work->field_80    = 0;
+        work->field_84    = 0;
+        work->field_82   += 0x800;
+        Actor405800_RebuildRotation(arg0);
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_84A = 2;
+        work2->field_850 = 0x10;
+        work2->field_872 = 0x19;
+        work2->field_86E = 1;
+        Actor405800_TickAnim(arg0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        work->field_842 = 0;
+        work->field_848++;
+    }
+}
 
 void func_actor_405800_80135558(Task* arg0)
 {
