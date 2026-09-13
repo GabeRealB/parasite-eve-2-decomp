@@ -2,6 +2,8 @@
 
 #include "actors/actor_105700.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "main/mem.h"
 #include "main/task.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
@@ -89,7 +91,43 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136534);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_801369D4);
+/// Segment/quad collision test against every face in the `D_80115550` list.
+/// Carves a 0x10-byte direction vector off the scratch head, normalises it
+/// from `arg0` to `arg1`, then returns the first `func_800DFCCC` result of 1
+/// (0 when no face reports one). The same body as `func_800E0308` of
+/// `gameplay` and five other actor overlays - see
+/// `overlay_dup_index.py find func_actor_105700_801369D4`.
+s32 func_actor_105700_801369D4(SVECTOR* arg0, SVECTOR* arg1)
+{
+    void**   scratch;
+    u8*      head;
+    VECTOR*  vec;
+    GpObj3A* node;
+    s32      ret;
+
+    ret                          = 0;
+    scratch                      = (void**)G_SCRATCH_HEAD;
+    node                         = D_80115550;
+    head                         = *scratch;
+    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+    head                         = head - 0x10;
+    TOUCH_REG_USE(head, node);
+    vec      = (VECTOR*)head;
+    vec->vy  = arg1->vy - arg0->vy;
+    *scratch = vec;
+    vec->vz  = arg1->vz - arg0->vz;
+    VectorNormal(vec, vec);
+    for (; node != NULL; node = node->next) {
+        if (node->field_3A & 0x40) {
+            ret = func_800DFCCC(node, arg0, arg1, vec);
+            if (ret == 1) {
+                break;
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
 
 extern s8 D_80115419;
 

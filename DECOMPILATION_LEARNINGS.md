@@ -65352,5 +65352,24 @@ too, or the code units, and the rename reaches every `.c` that names them. With
 six carriers to redistribute at once that is a refactor, not the "move the body
 and rebuild" the tool prints — land the match locally first, then decide.
 
+**Second sighting** (`func_actor_105700_801369D4`, `0x4BB4`, the same unit), and
+one tool detail worth knowing before starting. `promote <fn>` with no `--unit`
+does not reach the renumbering at all when the cluster's `actors/lib` copy is
+still `INCLUDE_ASM`: `promote` takes its "already shared" branch, looks for the
+body's *definition* in `src/<family>/lib/*.c` with `\b<Sym>\s*\(`, cannot match
+an `INCLUDE_ASM("…", <Sym>);` line, and aborts
+
+```
+<fn>: already shared as <Sym>, but no file in src/actors/lib defines it
+```
+
+so a body whose only lib copy is a stub looks unpromotable even when it is
+perfectly promotable. `--unit <name>` skips that branch and the plumbing
+(6 spans + 6 sym aliases) runs — but lands in exactly the renumbering above, and
+`0x4F80` again collides with the `0x8C` rodata cut's `actor_105700_3`. That
+carrier's `_2.c` also holds the matched bodies `func_actor_105700_80136E58` and
+`80136E60`, which the shift silently re-homes from `0x4F80..0x509C` to
+`0x4CC0..0x4EF4`. Land the match locally; promote in a pass of its own.
+
 Inputs: `base_1.i`
 `b64bc9544d0c3ae777ceb3ba8ee85d0561e7fc6d80ae85c0bb041e971061519d` (100%).
