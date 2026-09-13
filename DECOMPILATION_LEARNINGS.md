@@ -3369,6 +3369,35 @@ string literals.
 
 `func_acropolis_east_elevator_hall_8017F5B4` is the example.
 
+## A `MATRIX` struct assignment is a rotating 4-register block move, not 8 scalar copies
+
+A 0x20-byte `MATRIX` copy that the target does as two groups of four
+`lw t0..t3` followed by four `sw t0..t3` is a whole-struct assignment
+(`dst->mat = src->field;`). m2c does not produce this shape: it flattens the
+copy into per-field scalar reads, which come out as eight `lw v0` / `nop` /
+`sw v0` pairs. The four-register rotation needs the aggregate to reach
+`movstrsi` intact.
+
+```c
+coord->coord = work->field_340;   /* lw t0..t3 / sw t0..t3, twice */
+```
+
+The same m2c flattening also mis-scales any pointer arithmetic on the
+scratch head: it types `*(MATRIX**)0x1F8003FC` as `MATRIX*` and emits
+`head - 0x30` as `addiu s1, a2, -0x600` (sizeof `MATRIX` is 0x20), silently
+moving the whole scratch block. Write the byte offset explicitly:
+
+```c
+scratch = (MyScratch*)((u8*)head - 0x30);
+```
+
+`func_actor_300700_8016539C` is the example: m2c's flattened form scored
+49.7% (`regs=41 insert=20 delete=12`), and reusing the matched sibling
+`Actor00700_Fn01EEC`'s body with this overlay's structs matched on the first
+attempt. Its `Actor300700Work` gained `field_340` (`MATRIX`) and
+`field_390` (`s16`) to mirror `Actor00700Work`. Input: `base_1.i`
+`330f0f46d5c6192f548d44cf0ffc43ad49629cd5fe6c2403b904b0c49013329c`.
+
 ## Hoist the pointer chase out of a call when a block copy sits before it
 
 `func_acropolis_sanctuary_8017F918` is the minimal case: one 8-byte `SVECTOR`
