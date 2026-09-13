@@ -334,11 +334,17 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
     arg0->coord.t[2] = block->vz;
 }
 
+/// Scales the model root's rotation by the two percent factors
+/// `func_actor_107600_80134C54` rolls into the work block: the diagonal
+/// `coord.m[0][0]` and `coord.m[2][1]` halves, each read as a raw 16-bit value
+/// and re-signed before the divide so the scale stays signed.
 void func_actor_107600_80134EF4(Task* arg0)
 {
-    Actor107600Work*         work  = (Actor107600Work*)arg0->idMap;
-    Actor107600DisplayCoord* coord = (Actor107600DisplayCoord*)((TmdObject*)arg0->extra)->field_8;
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    u16              x     = coord->coord.m[0][0];
+    u16              y     = coord->coord.m[2][1];
 
-    coord->field_4  = (u16)((s16)coord->field_4 / 100 * work->field_168);
-    coord->field_12 = (u16)((s16)coord->field_12 / 100 * work->field_169);
+    coord->coord.m[0][0] = (s16)x / 100 * work->field_168;
+    coord->coord.m[2][1] = (s16)y / 100 * work->field_169;
 }

@@ -67037,10 +67037,27 @@ the `lhu`), it does not re-decide the divide. Confirmed with three standalone
 in the cast's position flip `multu`/`mult` on their own, so the placement is
 the whole mechanism.
 
-Read the load width first: `lhu` plus `sll 16` / `sra 16` says the original
-field is `u16` and the `(s16)` is hand-written, where a `short` field would
-have loaded with a single `lh` and needed no cast at all. When no existing type
-has `u16` at those two offsets, an overlay-local view struct (`Actor107600DisplayCoord`
-here, like `MistR18Coord`) is the project's convention.
+**The `lhu` is not evidence that the field is `u16`.** The load width and the
+`(s16)` are two separate facts, and the first one misleads here: `lhu` is also
+what GCC emits when the value is *truncated to 16 bits*, and a `short` field
+read into a `u16` temp truncates. The tell is the `sll 16` / `sra 16` pair
+after it - that is a sign extension being materialised by hand, which only
+happens when the value feeding the divide is 16 bits wide, whatever the field
+was declared as. In this overlay the field is `MATRIX.m[0][0]`, declared
+`short` (`include/psyq/libgte.h`), and the truncating read is a `u16` temp:
+
+```c
+/* Same object, no invented type: the `u16` temp truncates the load */
+u16 x = coord->coord.m[0][0];
+coord->coord.m[0][0] = (s16)x / 100 * work->field_168;
+```
+
+Both forms score 100% and compile to byte-identical objects, so read the
+`lhu`/`sll`/`sra` triple as one unit rather than inferring an unsigned field
+from the load alone - and when the field does sit in an existing type at the
+right offset, prefer the type over a view struct (`Actor107600DisplayCoord`
+was written first and thrown away). A `lhu` on its own, with no extension
+after it, says even less: `dst->m[0][0] = src->m[0][0]` through `MATRIX*`
+emits `lhu`/`sh` because the sign extension is dead in a pure copy.
 
 Example: `func_actor_107600_80134EF4`.
