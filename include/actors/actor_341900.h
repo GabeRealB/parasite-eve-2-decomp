@@ -44,7 +44,7 @@ typedef struct Actor341900Work {
     /* 0x66 */ s16   field_66;
     /* 0x68 */ s16   field_68;
     /* 0x6A */ byte  pad_6A[0x2];
-    /* 0x6C */ s16   field_6C;
+    /* 0x6C */ u16   field_6C;
     /* 0x6E */ byte  pad_6E[0x2];
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);

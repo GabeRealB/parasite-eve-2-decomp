@@ -649,6 +649,38 @@ emits `lhu $2,8($16)  # movhi_internal2/3` for the store, while the same
 `field_8` and `field_C` feeding a subtraction emit
 `lh $3,8($16)  # extendhisi2_internal/1`.
 
+## A bare `!= 0` test on a halfword field still follows the declared signedness
+
+Sign extension cannot change whether a value equals zero, so `x != 0` looks
+like it should not care whether the field is `s16` or `u16`. GCC 2.8.1 cares:
+it emits the load the *mode* asks for and does not notice that EQ/NE makes the
+extension dead.
+
+```c
+/* field_6C declared s16 */
+if (work->field_6C != 0) { ... }   /* lh  $v0, 0x6C($s0) */
+
+/* field_6C declared u16 */
+if (work->field_6C != 0) { ... }   /* lhu $v0, 0x6C($s0) */
+```
+
+So when the target shows `lhu` on a flag that is only tested, the field is
+`u16` and the header is wrong, not the C. The symptom is small and easy to
+misread as a scheduling wobble: one instruction swapped, `insert=1 delete=1`,
+90% with the structure otherwise identical.
+
+`func_actor_341900_80163438` is the minimal case - an `s16 field_6C` carried
+over from the m2c seed scored 90% against a target `lhu`, and changing the
+header field to `u16` was the whole match (`base_1.c`, preprocessed
+`230a21f0c6eceb3884c5cae489c6f82bb37265f524f2ede856da3308422464be`; the 90%
+`s16` input is `80023e4e86a4b1e23b2336d7a676b75a6b7db12ab87aaa77455e89394f797ff2`).
+The sibling `func_actor_341900_801633F8` reads the same field with `lhu` and
+`bnez`, which corroborates `u16` rather than being a second coincidence.
+
+This is the load-width question in isolation. Where the same value is *also*
+stored back or fed to arithmetic, the signed and unsigned copies are both live
+and the pair is a different problem - see the `lh`+`lhu` section above.
+
 ## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
 
 A bit test that then stores 7 or 8 wants `$v0` for both the `andi` and the
