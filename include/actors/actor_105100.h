@@ -23,7 +23,9 @@ typedef struct Actor105100Obj2C {
 /// instead of retyping the field.
 typedef struct Actor105100Work {
     /* 0x000 */ GpObj      obj0;
-    /* 0x020 */ byte       pad_20[0x18];
+    /* 0x020 */ byte       pad_20[4];
+    /* 0x024 */ s32        field_24;
+    /* 0x028 */ byte       pad_28[0x10];
     /* 0x038 */ GpObj      obj38;
     /* 0x058 */ byte       pad_58[0x4AA];
     /* 0x502 */ u16        field_502;
@@ -47,7 +49,8 @@ typedef struct Actor105100Work {
     /* 0x5A8 */ s16        field_5A8;
     /* 0x5AA */ s16        field_5AA;
     /* 0x5AC */ s16        field_5AC;
-    /* 0x5AE */ byte       pad_5AE[6];
+    /* 0x5AE */ u16        field_5AE;
+    /* 0x5B0 */ byte       pad_5B0[4];
     /* 0x5B4 */ s16        field_5B4;
     /* 0x5B6 */ s16        field_5B6;
     /* 0x5B8 */ u16        field_5B8;
@@ -57,6 +60,21 @@ typedef struct Actor105100Work {
     /* 0x5C2 */ s16        field_5C2;
     /* 0x5C4 */ byte       pad_5C4[4];
 } Actor105100Work;
+
+/// Second view of the work area's 0x38 record, held by the per-frame handler
+/// `func_actor_105100_801354E8`: `field_40` is the reaction it dispatches on,
+/// `field_48` the countdown that reaction runs for and `field_4E` the pose the
+/// schedule is stepped through. Those bytes are `obj38`, a `GpObj`, to the
+/// list units, so the handler casts the work pointer to this view rather than
+/// reaching them through `Actor105100Work`.
+typedef struct Actor105100Rec {
+    /* 0x00 */ byte pad_0[0x40];
+    /* 0x40 */ s16  field_40;
+    /* 0x42 */ byte pad_42[6];
+    /* 0x48 */ s16  field_48;
+    /* 0x4A */ byte pad_4A[4];
+    /* 0x4E */ u16  field_4E;
+} Actor105100Rec;
 
 /// List entry at +0x10 of `Actor105100Ctx`, linked by the state-0 setup.
 /// `field_4` is the flag byte previously named `field_14` (`sb` at 0x14).
@@ -102,7 +120,9 @@ STATIC_ASSERT_SIZEOF(Actor105100Ctx, 0x58);
 /// `func_actor_105100_80136318` is the one writer of `state` here, holding the
 /// task on handler 2 for as long as the fight lasts.
 typedef struct Actor105100 {
-    /* 0x00 */ byte              pad_0[0x1C];
+    /* 0x00 */ byte              pad_0[8];
+    /* 0x08 */ Task*             parent;
+    /* 0x0C */ byte              pad_C[0x10];
     /* 0x1C */ Actor105100Work*  field_1C;
     /* 0x20 */ Actor105100Ctx*   field_20;
     /* 0x24 */ byte              pad_24[8];

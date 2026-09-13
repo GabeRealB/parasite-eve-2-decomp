@@ -13,12 +13,16 @@
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_105100_80131E24;
 
+void func_8017FC40(GsCOORDINATE2* arg0, s32 arg1, u16 arg2);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_8018294C(Actor105100* arg0);
 void func_actor_105100_80132C2C(Actor105100* arg0);
 void func_actor_105100_80133134(Actor105100* arg0);
 void func_actor_105100_80133CE4(Actor105100* arg0);
 void func_actor_105100_80134130(Actor105100* arg0);
+void func_actor_105100_80135674(Actor105100* arg0);
+void func_actor_105100_801359B4(Actor105100* arg0);
+void func_actor_105100_80135B40(Actor105100* arg0);
 void func_actor_105100_80135E54(Actor105100* arg0);
 void func_actor_105100_80135F50(Actor105100* arg0);
 void func_actor_105100_80136408(Actor105100* arg0);
@@ -177,7 +181,83 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135278);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801354E8);
+/// The per-frame handler the `state == 1` dispatch runs: it hands the reaction
+/// `field_40` selects to one of the `80135674` / `801359B4` / `80135B40`
+/// sub-handlers, retimes the pose every 6/0xB/0x10 frames of the countdown in
+/// `field_48`, and ends the fight (`state = 2`) once that countdown, the work's
+/// `field_24` and the parent's `field_5AC` all say so.
+void func_actor_105100_801354E8(Actor105100Ctx* arg0, Actor105100* arg1)
+{
+    Actor105100Rec*  rec;
+    Actor105100Work* parentWork;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s32              one;
+    s16              timer;
+    u16              count;
+
+    rec        = (Actor105100Rec*)arg1->field_1C;
+    parentWork = ((Actor105100*)arg1->parent)->field_1C;
+    state      = D_801153F4;
+    coord      = arg1->field_2C->field_8;
+    one        = 1;
+
+    if (state == one) {
+        func_8017FC40(coord, 0x80, rec->field_4E);
+        return;
+    }
+    if (state < 2) {
+        goto default_body;
+    }
+    if (state == 2) {
+        goto done;
+    }
+default_body:
+    if (rec->field_40 == one) {
+        goto rec1;
+    }
+    if (rec->field_40 >= 2) {
+        goto ge2;
+    }
+    if (rec->field_40 == 0) {
+        goto rec0;
+    }
+    goto join;
+ge2:
+    if (rec->field_40 == 2) {
+        goto rec2;
+    }
+    goto join;
+rec0:
+    func_actor_105100_80135674(arg1);
+    goto join;
+rec1:
+    func_actor_105100_801359B4(arg1);
+    goto join;
+rec2:
+    func_actor_105100_80135B40(arg1);
+join:
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    timer = rec->field_48;
+    if (timer < 6) {
+        rec->field_4E = 0;
+    } else if (timer < 0xB) {
+        rec->field_4E = 1;
+    } else if (timer < 0x10) {
+        rec->field_4E = 2;
+    }
+    func_8017FC40(coord, 0x80, rec->field_4E);
+    count         = (u16)rec->field_48 - 1;
+    rec->field_48 = count;
+    if ((count << 16) <= 0 || ((Actor105100Work*)rec)->field_24 != 0 ||
+        parentWork->field_5AC == 0) {
+        parentWork->field_5AE = parentWork->field_5AE - 1;
+        arg1->state           = 2;
+    }
+done:
+    return;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135674);
 

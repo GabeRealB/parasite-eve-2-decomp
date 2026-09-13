@@ -69624,3 +69624,34 @@ the same fix applies whether the arm stores the discriminant to an `s16` or a
 `45aeb1d3a174d1b441bccaf035a47688e2f38ef4ce5e47738462acde78f1e574`,
 `base_1.c` `42c84b768e2649d7381b5ff4fc3eb317a829a321c0bc2a3d536df15eb532e5f3`,
 `base_2.c` `e711465be38f4dee81cf257e10d005959db3631b02a6bb2e81607437cb8bebfa`.
+
+## A second pointer variable to the same object is a second pseudo
+
+A handler that reads one object through two views - `work` for some fields and
+`rec` for others - costs a saved register even when both variables hold the same
+address, because GCC allocates a pseudo per *variable*, not per value, and does
+not coalesce two pseudos with overlapping live ranges. In
+`func_actor_105100_801354E8` the two-pointer form compiled to `move s0,s3` plus
+a fifth saved register (`$s4`, with `ra` pushed to `0x24(sp)`); the target keeps
+one pointer in `$s0` and saves four.
+
+Give the function a single pointer and reach the other view's fields through a
+cast *expression*, which is a no-op conversion at RTL and folds onto the same
+register:
+
+```c
+rec = (Actor105100Rec*)arg1->field_1C;   /* the view the handler dispatches on */
+...
+if ((count << 16) <= 0 || ((Actor105100Work*)rec)->field_24 != 0 || ...) {
+```
+
+The cleaner alternative, when the function needs most of the other view anyway,
+is a view struct declaring every offset the function touches, so only one
+variable exists at all - that is what took `base_3.c` to 100%, with the cast
+expression above replacing the last field (`field_24`) that belonged to the
+other view. Related: "A pointer to a local and the local's own name are two
+frame-address pseudos", which is the same effect on a frame address.
+
+Note the view struct carries *absolute* offsets (`pad_0[0x40]`, `field_40`), so
+the cast is at offset 0 and costs no `addiu`; a view based at 0x38 would need
+one.
