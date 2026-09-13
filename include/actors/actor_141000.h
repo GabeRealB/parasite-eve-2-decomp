@@ -4,6 +4,8 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "main/task.h"
 
@@ -28,7 +30,8 @@ typedef struct Actor141000Point {
 /// actor turns to face, written by the state handler at 0x801336DC.
 typedef struct Actor141000Work {
     /* 0x000 */ byte    pad_0[0x8];
-    /* 0x008 */ byte    pad_8[0x4];
+    /* 0x008 */ byte    pad_8[0x2];
+    /* 0x00A */ u16     field_A; // Z scale the state-0 ramp at 0x80132E24 climbs by 0x100 a frame and clamps at 0x1000
     /* 0x00C */ u16     field_C; // state index; `func_actor_141000_80132D3C` dispatches through it as `(s16)`
     /* 0x00E */ u16     field_E; // per-state frame counter
     /* 0x010 */ byte    pad_10[0x42D];
@@ -60,6 +63,8 @@ typedef struct Actor141000Msg {
 } Actor141000Msg;
 STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
 
+void func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1);
+void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1);
 void func_actor_141000_801339DC(Task* arg0);
 void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 arg2);
 void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3);

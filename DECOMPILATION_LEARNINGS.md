@@ -67396,3 +67396,37 @@ Worked example: `Actor141000Work::field_C` is the state index
 `field_E` the per-state frame counter, in
 `func_actor_141000_80132EB0`. Input `base_1.i`
 `279709c8584b488114b24c88d0c6f01e665d0269628f0f0da14500e489a27dca`.
+
+## A hoisted read also moves *which* value lives across the calls
+
+Same rule as the `delete` case above, observed a different way: putting a read
+in a local makes the **pointee** the value that must survive the calls, so it
+takes the callee-saved register and its load is scheduled to the top of the
+function. Keeping the read inline leaves the **base pointer** live instead.
+
+`func_actor_141000_80132E24` calls two helpers with
+`((TmdObject*)arg0->extra)->field_8`. Written with `tmd = (TmdObject*)arg0->extra;`
+first, the object opens
+
+```
+subu sp,sp,32
+sw   ra,24(sp)
+sw   s1,20(sp)          /* $17 */
+sw   s0,16(sp)
+lw   s0,28(a0)          /* idMap */
+lhu  v0,10(s0)
+lw   s1,44(a0)          /* extra - hoisted above the branch */
+```
+
+The target instead copies `arg0` itself into `$s1` (`addu s1,a0,zero`) and
+reloads `44(a0)` after the branch and again before each `jal`. Inlining the
+expression at both call sites - no `tmd` local - reproduces it, and that is what
+the 100% `M2C_FIELD` seed already did.
+
+A scratch score is evidence only about the C you actually scored. The port to
+the host file is a new candidate: score it in the scratch first rather than
+assuming the seed's 100% carries over to a struct-style rewrite of it.
+
+Example: `func_actor_141000_80132E24` (scratch `base_1.c`; the `tmd`-local shape
+is the counter-example that failed the overlay checksum). Input `base_1.i`
+`6eebf6fc90486fed6cad608d91068483eab7f8a516ed9387d802fa52140a4597`.
