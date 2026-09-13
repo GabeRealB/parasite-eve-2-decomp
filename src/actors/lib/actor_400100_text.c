@@ -438,7 +438,30 @@ void Actor00100_Fn0B658(Actor00100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B730);
+void Actor00100_Fn0B730(Actor00100* arg0)
+{
+    Actor00100Work* work;
+    TmdObject*      obj;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                      = arg0->field_2C;
+        arg0->field_20->field_14 = 0;
+        obj->field_C             = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 0xC;
+        work->field_82A        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+    }
+    Actor00100_Fn02788(arg0);
+    if (work->field_68 & 0x100) {
+        work->field_0 = 0x26;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0B7DC);
 
