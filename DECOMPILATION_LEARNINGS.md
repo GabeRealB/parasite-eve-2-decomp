@@ -69028,3 +69028,46 @@ a call the target has it above. Scheduling does not do this for you - sched1
 will not cross a `CALL_INSN`, so the RTL order is the source order.
 `func_actor_460200_8013311C` is the worked example (base_1 90.29% -> base_2
 100%, `regs` 32 -> 0).
+
+## A load used in one arm of an `if` is sunk into it; read it into a variable first
+
+A 31-instruction body can land at 86% with the *same* instruction count and
+`branch`/`reorder`/`insert`/`delete` penalties that look like a layout problem.
+The real difference is one block's membership:
+
+```
+lw    a1,0x2c(a0)     target: entry block   |  base_1: 0x1c loaded *inside* the arm
+lw    v0,0x34(a0)     entry                 |  beqz v0,28
+lw    v1,0x1c(a0)     entry                 |  move v1,a1        <- delay slot
+beqz  v0,28                                 |  lw v0,0x1c(a0)
+andi  v0,a2,0x1       <- delay slot         |  ...
+```
+
+With the pointer read folded into the taken arm (`((Work*)task->idMap)->f->extra`),
+CSE places the `lw 0x1c` inside that arm. `dbr_schedule` is then free to fill the
+`beqz` delay slot from the *branch target* (the else arm's `move` is dead on the
+fall-through path, so it is a legal fill), and the join moves with it. Giving the
+read its own statement above the `if` keeps it in the entry block and the delay
+slot refills from there:
+
+```c
+self = (TmdObject*)task->extra;
+work = (Actor460200PairedWork*)task->idMap;   /* stays in the entry block */
+if (task->spawnArg1 != 0) {
+    other = (TmdObject*)work->field_4F0->extra;
+} else {
+    other = self;
+}
+```
+
+The **statement order of the two independent reads decides their emission
+order**: their scheduler priorities tie, and `rank_for_schedule` then falls back
+to `INSN_LUID` - the order the front end created them. Emitting `work` first picks
+`lw a1,0x1c(a0)` first and needs a fourth hard register (`a1`,`v1`,`v0`,`a0`);
+emitting `self` first gives `lw a1,0x2c(a0)` first and reuses the dead `work`
+register for `other`, which is what the target does.
+
+So when an entry block is one load short and the penalties are all layout, check
+whether the missing load belongs to one arm - and once it is hoisted, check its
+order against the target's. `func_actor_460200_80132B98` is the worked example
+(86.31% -> 100% in three builds, `regs` 15 -> 3 -> 0).
