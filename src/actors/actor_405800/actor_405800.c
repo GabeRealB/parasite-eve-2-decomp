@@ -2,6 +2,7 @@
 
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/sound.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -174,7 +175,32 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", ActorsShared8013
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133800);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133CD0);
+void func_actor_405800_80133CD0(Task* arg0)
+{
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    u32              sound;
+    s32              pan;
+
+    if (((Actor405800Work*)arg0->idMap)->field_852 < 0x1450) {
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        sound  |= 0x40050004;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work = (Actor405800Work*)arg0->idMap;
+        if (((s8)work->field_895 >= 0) || ((work->field_895 & 0x7F) != 1)) {
+            work->field_895 = 0x81;
+            work->field_896 = 0;
+        }
+        Gp_ArmStateF0(1);
+        work2            = (Actor405800Work*)arg0->idMap;
+        work2->field_846 = 0xC;
+        work2->field_848 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133DB0);
 
