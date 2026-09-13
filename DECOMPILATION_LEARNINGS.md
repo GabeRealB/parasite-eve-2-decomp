@@ -104,6 +104,43 @@ reports the candidate as a skip rather than a failure to compile — a whole
 search can come back `PERMUTER_MISS` with the real cause three lines up in
 `PERMUTER.txt`. Retype the seed to real struct fields (usually wanted anyway,
 see the aliasing entry) before asking the router to search it.
+## A temp local for a value re-read across stores collapses the reloads
+
+`func_actor_136100_80134588` steps three `s16` channels by the task's
+`spawnArg1`:
+
+```c
+fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
+fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
+fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
+```
+
+The target loads `lhu $v1, 0x34($s1)` once per statement — three times over.
+Hoisting the read into a local:
+
+```c
+step = (u16)arg0->spawnArg1;
+fade->r = (s16)((u16)fade->r + step);
+fade->g = (s16)((u16)fade->g + step);
+fade->b = (s16)((u16)fade->b + step);
+```
+
+scores 86.8%: one `lhu a0, 0x34(s1)` up front, then `addu v0,v0,a0` /
+`addu v1,v1,a0` reusing it, so the two later reloads are gone and the
+`lui`/`lhu` pair for the neighbouring global moves too.
+
+**Cause.** `fade` and `arg0` are different pointers, so CSE cannot prove the
+stores to `0x2(s0)` / `0x4(s0)` disjoint from a load at `0x34(s1)`; the load
+has to come back into each statement. A local turns the value into a register
+quantity, which nothing has to reload. The repeated reloads in the target are
+the source saying it read the field three separate times.
+
+**Reading it.** When the target reloads the same field at the same offset once
+per statement and your object has one load plus reuse, inline the memory
+expression at each use site rather than reaching for a pin or a
+`SOFT_USE_REG`. This is the same CSE invalidation as "A store to a neighbouring
+field kills CSE's memory equivalence", seen from the other side: there a store
+had to sit *between* two reads, here the reads must not be merged into one.
 
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 

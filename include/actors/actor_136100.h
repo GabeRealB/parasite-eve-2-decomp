@@ -55,4 +55,25 @@ typedef struct Actor136100Msg3F7 {
 } Actor136100Msg3F7;
 STATIC_ASSERT_SIZEOF(Actor136100Msg3F7, 0x8);
 
+/// Work block for the overlay's display-fade task
+/// (`func_actor_136100_80134588`).
+///
+/// The task allocates it with `Mem_Malloc(8, 0)` on its first tick and parks it
+/// in `Task::idMap`, then advances all three channels by the task's
+/// `spawnArg1` every frame and hands `r` and `g` to `Fade_DrawOverlay`.  It is
+/// the same 8-byte shape the room overlays use (see `DumpingHoleFadeWork` in
+/// `shelter_b3_dumping_hole`), and `r` is what the task's own
+/// `>= 0x100` end-of-fade test reads.
+typedef struct Actor136100FadeWork {
+    /* 0x0 */ u8  pad_0[0x2];
+    /* 0x2 */ s16 r;
+    /* 0x4 */ s16 g;
+    /* 0x6 */ s16 b; // advanced but never read back
+} Actor136100FadeWork;
+STATIC_ASSERT_SIZEOF(Actor136100FadeWork, 0x8);
+
+/// Set by `func_actor_136100_801348F8` when the cutscene wants the display
+/// back on; while it is non-zero the fade task kills itself instead of fading.
+extern u16 D_actor_136100_8013F17C;
+
 #endif // ACTOR_136100_H

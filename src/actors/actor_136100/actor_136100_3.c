@@ -5,7 +5,6 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-extern s16      D_actor_136100_8013F17C;
 extern s32      D_actor_136100_8013F180[];
 extern TaskDesc ActorsShared80134898Desc;
 extern Task*    D_actor_136100_8014078C;
