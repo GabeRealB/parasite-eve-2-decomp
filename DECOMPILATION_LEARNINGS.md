@@ -68835,3 +68835,40 @@ if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
 one as "Two identical calls, not a pointer temp" above; what makes this case
 worth recognising is that the m2c `goto` shape hides it — the tell is a `li`
 of an argument constant *inside* a block that a `j` targets.
+
+## m2c's untyped pointer increment is scaled a second time by the struct size
+
+**Problem.** A loop over an array of 14-byte records emitted
+`addiu $a0,$a0,0xc4` where the target has `addiu $a0,$a0,0xe`, with every other
+instruction — including all branch offsets and the instruction count — already
+identical (97.4%, `regs=2 reorder=2`).
+
+**Cause.** m2c wrote the step as a byte offset on a *typed* pointer:
+
+```c
+Actor548100Edge *var_a0;      /* sizeof == 0xE */
+...
+var_a0 += 0xE;                /* 0xE * 0xE == 0xC4 */
+```
+
+`0xC4` is `sizeof(struct) **2`, and that square is the tell: the immediate is
+wrong by exactly a factor of the element size, not by a constant.
+
+**Fix.** Drop the m2c byte-offset form and let the type do the arithmetic — the
+same shape the already-matched sibling in the TU uses:
+
+```c
+for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+    if (edge->field_2 == 2) {
+        edge->state = 0;
+    } else {
+        edge->state = 1;
+    }
+}
+```
+
+That single change to a natural typed loop took `func_actor_548100_80134BF0`
+from 97.4% to 100% with all-zero penalties, including the preheader ordering
+(`li a2,2` / `li a1,1` before `addiu v1,a0,8`) that the m2c `do`/`while` seed had
+reversed. This is the `addiu` form of the `sra`-off-by-`log2(sizeof *ptr)` trap
+noted above: same untyped-offset cause, different opcode.

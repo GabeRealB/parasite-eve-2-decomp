@@ -79,6 +79,27 @@ void func_actor_548100_80134BA8(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134BF0);
+void func_actor_548100_80134BF0(void)
+{
+    Actor548100Edge* edge;
+
+    if (GameFlag_GetNibble(0xBE) == 2) {
+        for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+            if (edge->field_2 == 2) {
+                edge->state = 0;
+            } else {
+                edge->state = 1;
+            }
+        }
+    } else {
+        for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+            if (edge->field_2 == 1) {
+                edge->state = 0;
+            } else {
+                edge->state = 1;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134CB8);
