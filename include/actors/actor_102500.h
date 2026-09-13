@@ -204,4 +204,28 @@ void Actor02500_Fn00078(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01AC8(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01E60(Actor02500Ctx* arg0, Actor02500* arg1);
 
+/// Six-byte area lookup key; the first four bytes are copied from the session.
+typedef struct Actor02500AreaKey {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+    /* 0x4 */ u8 field_4;
+    /* 0x5 */ u8 field_5;
+} Actor02500AreaKey;
+
+/// Per-room texture-page and CLUT record returned by the area lookup.
+typedef struct Actor02500AreaRec {
+    /* 0x00 */ u8 pad_0[0xD];
+    /* 0x0D */ u8 field_D;
+    /* 0x0E */ u8 field_E;
+    /* 0x0F */ u8 pad_F;
+} Actor02500AreaRec;
+STATIC_ASSERT_SIZEOF(Actor02500AreaRec, 0x10);
+
+typedef struct Actor02500AreaTable {
+    /* 0x0 */ Actor02500AreaRec* field_0;
+    /* 0x4 */ void*              field_4;
+} Actor02500AreaTable;
+
 #endif
