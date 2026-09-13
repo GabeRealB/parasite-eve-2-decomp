@@ -3,6 +3,47 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Share one `return K` between the paths (`||`) so reorg threads `li v0,K` into both branch delays
+
+A function that returns 2 when either of two probes is nonzero and 1
+otherwise reads naturally as two separate early returns. The target for
+that shape is not what the separate form compiles to: the first site
+becomes `beqz v0, L; nop; j RET; li v0,2`, and the second is caught by
+jump.c's "simplify `if (...) { x = a; goto l; } x = b;`" rule, which
+hoists the constant *before* the branch and so must preserve the probe
+result in a copy — `move v1,v0; bnez v1, RET; li v0,2`. The target has
+neither the copy nor the `j`/`nop` tail: both sites are `bnez v0, RET`
+with `li v0,2` in the delay slot.
+
+One `||` chain ending in a single `return 2` starts from a shared block —
+`if (p1 != 0) goto Lret2; ...; if (p2 != 0) goto Lret2; goto Lret1;` with
+one `Lret2: v0 = 2; goto RET`. jump.c inverts the second branch into
+`if (p2 == 0) goto Lret1` and deletes the goto, leaving `Lret2` with two
+predecessors, and reorg's `fill_slots_from_thread` then threads that block
+into each branch's delay slot. `.dbr` shows the same insn 66 in both
+branches, retargeted to the epilogue:
+
+```
+(insn 130 116 57 (sequence[ (jump_insn 51 ... (label_ref 95))
+                            (insn/s 66 (set (reg/i:SI 2 v0) (const_int 2))) ]))
+(insn 132 118 63 (sequence[ (jump_insn 59 ... (label_ref 95))
+                            (insn/s 66 (set (reg/i:SI 2 v0) (const_int 2))) ]))
+```
+
+```c
+if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(0xC3) != 0) {
+    return 2;
+}
+return 1;
+```
+
+Example: `func_actor_548100_80134778` — two separate `if (...) return 2;`
+statements scored 85.5%, the `||` form 100% with a zero penalty mix.
+Inputs: `base_2.i`
+`c10cb4f9d64d0c0ee1022b7511b3332347ce2956074845a27e47f4fffa5d9223` (separate
+`if`s), `base_3.i`
+`3ec22f1ae461cf5c970d7cd174c50b54bcd2cf3016ff258810f9f07df03770c9` (`||`).
+
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 
 A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `Gpu_PrimCursor`
