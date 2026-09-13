@@ -17,12 +17,18 @@
 /// destroy callback `func_actor_107600_80132AC0` tests against 2. The three
 /// angles at +0x40 are what `func_actor_107600_80132B7C` rebuilds the model
 /// root's rotation from, the same trio `ActorsShared80139948` reads at +0x80.
+/// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
+/// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
 typedef struct Actor107600Work {
     /* 0x000 */ byte  pad_0[0x40];
-    /* 0x040 */ u16   pitch; // fed to RotMatrixX
-    /* 0x042 */ u16   yaw;   // fed to func_8004BFF8
-    /* 0x044 */ u16   roll;  // fed to RotMatrixZ
-    /* 0x046 */ byte  pad_46[0x1A];
+    /* 0x040 */ u16   pitch;    // fed to RotMatrixX
+    /* 0x042 */ u16   yaw;      // fed to func_8004BFF8
+    /* 0x044 */ u16   roll;     // fed to RotMatrixZ
+    /* 0x046 */ byte  pad_46[0xA];
+    /* 0x050 */ u16   field_50; // fed to Gfx_RotMatrixX
+    /* 0x052 */ u16   field_52; // fed to Gfx_RotMatrixY
+    /* 0x054 */ u16   field_54; // fed to Gfx_RotMatrixZ
+    /* 0x056 */ byte  pad_56[0xA];
     /* 0x060 */ GpObj obj;
     /* 0x080 */ byte  pad_80[0xBE];
     /* 0x13E */ u16   field_13E;
@@ -53,6 +59,7 @@ void func_actor_107600_80134608(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_107600_80134904(Task* arg0);
 void func_actor_107600_80134920(Task* arg0);
 void func_actor_107600_801349E0(Task* arg0);
+void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
 void func_actor_107600_80134D10(Actor107600* arg0);
 void func_actor_107600_80134D30(Actor107600* arg0);

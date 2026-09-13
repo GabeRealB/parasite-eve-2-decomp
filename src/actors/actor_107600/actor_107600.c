@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/mem.h"
+#include "main/gfx.h"
 #include "main/task.h"
 
 #include "gameplay/1BC.h"
@@ -194,7 +195,33 @@ void func_actor_107600_801349E0(Task* arg0)
     *scratch = (u8*)*scratch + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134A50);
+/// Builds a second rotation from the work block's angle trio at +0x50: wrap
+/// each to 12 bits, lay an unscaled `MATRIX` down at the scratchpad head, apply
+/// `Gfx_RotMatrixZ`/`X`/`Y` to it in that order, copy its 3x3 into the model's
+/// `GsCOORDINATE2::coord` through `func_actor_107600_80134B2C`, and hand the
+/// scratch block back.
+void func_actor_107600_80134A50(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    MATRIX*          m;
+
+    work->field_50           &= 0xFFF;
+    work->field_52           &= 0xFFF;
+    work->field_54           &= 0xFFF;
+    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    *(s32*)&m->m[0][0]        = 0x1000;
+    *(s32*)&m->m[0][2]        = 0;
+    *(s32*)&m->m[1][1]        = 0x1000;
+    *(s32*)&m->m[2][0]        = 0;
+    m->m[2][2]                = 0x1000;
+    *(MATRIX**)G_SCRATCH_HEAD = m;
+    Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
+    Gfx_RotMatrixX(m, (s16)work->field_50, 0);
+    Gfx_RotMatrixY(m, (s16)work->field_52, 0);
+    func_actor_107600_80134B2C(m, &coord->coord);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134B2C);
 

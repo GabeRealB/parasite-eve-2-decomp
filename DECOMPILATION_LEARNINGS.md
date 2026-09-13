@@ -66831,3 +66831,53 @@ callee sequence first - here `ActorsShared80139948` (shared lib) and the inlined
 `Actor400600_RebuildRotation` are the same body, and lifting their source shape
 reproduced the target instruction for instruction, mask-load order and
 delay-slot store included. `func_actor_107600_80132B7C` (95.96% -> 100%).
+
+## The *load*'s `MEM_IN_STRUCT_P` decides whether a constant-address store sinks past it
+
+A scratchpad publish store `*(MATRIX**)G_SCRATCH_HEAD = m;` is
+`(set (mem:SI (reg p)) ...)` where `p` is a pseudo set once from
+`(const_int 0x1F8003FC)` and carrying a `REG_EQUAL` note. Two pieces of
+`sched.c` turn that into a *fixed* address: `init_dependency_caches`
+(`sched.c:435`) fills `reg_known_value[p]` from the note, and `sched.c`'s own
+`canon_rtx` (`sched.c:373`) resolves the pseudo through it. So
+`rtx_addr_varies_p` returns 0 for the store's canonicalized MEM, and the second
+suppression clause of `true_dependence` becomes the deciding one:
+
+```c
+	      && ! (MEM_IN_STRUCT_P (x) && rtx_addr_varies_p (x)
+		    && GET_MODE (x) != QImode
+		    && GET_CODE (XEXP (x, 0)) != AND
+		    && ! MEM_IN_STRUCT_P (mem) && ! rtx_addr_varies_p (mem))
+```
+
+`x` is the later load. Written as a struct field (`work->field_54`,
+`(mem/s:HI (plus (reg) (const_int 84)))`) it is in-struct *and* varying, so the
+clause fires and no dependence is recorded. Written m2c-style
+(`M2C_FIELD(work, u16 *, 0x54)`, `(mem:HI ...)`) it is not in-struct, the clause
+cannot fire, and a TRUE dependence pins the load after the store.
+
+`func_actor_107600_80134A50` (96.73% -> 100.00%) is the worked example, and the
+two dumps are the whole difference:
+
+```c
+/* m2c form: base_1.i.dbr load 77 ends (insn_list 68 (nil))        */
+/*   -> the store stays first, and the jal Gfx_RotMatrixZ delay     */
+/*      slot gets the arg setup addu $a0,$s0,$zero                  */
+/* struct form: the load has no dep; the store carries              */
+/*   (insn_list:REG_DEP_ANTI 75 ...) instead, so it sinks below the */
+/*   load and dbr's backward scan takes it: sw $s0,0x0($s2)         */
+```
+
+The register the address ends up in is a trap: after reload it is the hard
+register `$s2`, which *does* vary, so re-deriving the dependence from the
+post-reload dump contradicts the result. The decision belongs to the first
+scheduling pass, and `.dbr` carries its `LOG_LINKS` through - read the load's
+and the store's lists, not the address form.
+
+This is the same clause family as `fixed_scalar_and_varying_struct_p` in the
+`actor_400600` note, with one difference worth keeping straight: there the
+"fixed" side was a bare `extern` global; here it is a constant-valued pseudo
+that only `sched.c`'s local `canon_rtx` knows is constant. Reach for a struct
+field before a `SOFT_BARRIER()` when a publish store will not sink past a load -
+the barrier claims the store may not move, which is the opposite of what this
+shape needs.
