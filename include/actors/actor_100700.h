@@ -11,6 +11,9 @@ typedef struct Actor00700Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0x16];
+    /* 0x24 */ s8             field_24;
+    /* 0x25 */ s8             field_25;
 } Actor00700Obj2C;
 
 /// Overlay-local view of the spawn parameter block. `field_F` indexes
@@ -36,6 +39,10 @@ typedef union Actor00700ContactStorage {
         byte    pad_0[8];
         GpRec18 recs[3];
     } contacts;
+    struct {
+        /* 0x00 */ byte   pad_0[0x20];
+        /* 0x20 */ MATRIX rotation;
+    } quad;
 } Actor00700ContactStorage;
 STATIC_ASSERT_SIZEOF(Actor00700ContactStorage, 0x50);
 
@@ -150,6 +157,24 @@ typedef struct Actor00700RotScratch {
     /* 0x10 */ SVECTOR rot;
 } Actor00700RotScratch;
 STATIC_ASSERT_SIZEOF(Actor00700RotScratch, 0x18);
+
+/// Four rotated corners and the projected center/depth on the scratchpad.
+typedef struct Actor00700QuadScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     sxy;
+    /* 0x24 */ s32     otz;
+} Actor00700QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor00700QuadScratch, 0x28);
+
+typedef struct Actor00700TexEntry {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 pad_1;
+    /* 0x2 */ u8 v;
+    /* 0x3 */ u8 pad_3;
+} Actor00700TexEntry;
+STATIC_ASSERT_SIZEOF(Actor00700TexEntry, 4);
+
+extern Actor00700TexEntry Actor00700_D075BC[];
 
 extern s16 Actor00700_D06DF0[];
 extern u16 Actor00700_D06E00[];

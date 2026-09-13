@@ -7,6 +7,8 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+#include "main/display.h"
+#include "psyq/inline_c.h"
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -1311,7 +1313,92 @@ void Actor00700_Fn02820(Actor00700* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02A28);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn0305C);
+void Actor00700_Fn0305C(Actor00700* arg0)
+{
+    Actor00700QuadScratch* sc;
+    Actor00700Work*        work;
+    Actor00700Obj2C*       obj;
+    GsCOORDINATE2*         coord;
+    s32                    size, x, y;
+    s16                    i;
+    SVECTOR*               v;
+    POLY_FT4*              prim;
+    Actor00700TexEntry*    uv;
+    obj         = arg0->field_2C;
+    sc          = (Actor00700QuadScratch*)(SCRATCH_SP -= 0x28);
+    coord       = obj->field_8;
+    work        = arg0->field_1C;
+    sc->v[0].vx = coord->workm.t[0];
+    sc->v[0].vy = coord->workm.t[1];
+    sc->v[0].vz = coord->workm.t[2];
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_ldv0(&sc->v[0]);
+    __asm__ volatile("nop; nop; .word 0x4A180001");
+    gte_stsxy(&sc->sxy);
+    gte_stszotz(&sc->otz);
+    if (sc->otz < 20) {
+        SCRATCH_SP += 0x28;
+        return;
+    }
+    if (work->field_2E0 == 1) {
+        sc->v[0].vx = 0;
+        sc->v[0].vy = 0;
+        sc->v[0].vz = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
+        RotMatrix(&sc->v[0], &work->field_22C.quad.rotation);
+    }
+    size        = 0x7800 / sc->otz;
+    x           = sc->sxy & 0xFFFF;
+    y           = sc->sxy >> 16;
+    sc->v[0].vx = -size;
+    sc->v[0].vy = -size;
+    sc->v[0].vz = 0;
+    sc->v[1].vx = size;
+    sc->v[1].vy = -size;
+    sc->v[1].vz = 0;
+    sc->v[2].vx = -size;
+    sc->v[2].vy = size;
+    sc->v[2].vz = 0;
+    sc->v[3].vx = size;
+    sc->v[3].vy = size;
+    sc->v[3].vz = 0;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(&work->field_22C.quad.rotation);
+        v = &sc->v[i];
+        gte_ldv0(v);
+        __asm__ volatile("nop; nop; .word 0x4A486012");
+        gte_stsv(v);
+        v->vx += x;
+        v->vy += y;
+    }
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2E);
+    setRGB0(prim, 0x80, 0x80, 0x80);
+    setShadeTex(prim, 1);
+    prim->tpage = (((obj->field_24 * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
+    prim->clut  = (obj->field_25 << 6) + 0x3D40;
+    uv          = &Actor00700_D075BC[(s16)(work->field_2E0 / 3)];
+    prim->u0    = uv->u;
+    prim->v0    = uv->v;
+    prim->u1    = uv->u + 31;
+    prim->v1    = uv->v;
+    prim->u2    = uv->u;
+    prim->v2    = uv->v + 31;
+    prim->u3    = uv->u + 31;
+    prim->v3    = uv->v + 31;
+    prim->x0    = sc->v[0].vx;
+    prim->y0    = sc->v[0].vy;
+    prim->x1    = sc->v[1].vx;
+    prim->y1    = sc->v[1].vy;
+    prim->x2    = sc->v[2].vx;
+    prim->y2    = sc->v[2].vy;
+    prim->x3    = sc->v[3].vx;
+    prim->y3    = sc->v[3].vy;
+    addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), prim);
+    SCRATCH_SP += 0x28;
+}
 
 void Actor00700_Fn034BC(Actor00700* arg0)
 {
