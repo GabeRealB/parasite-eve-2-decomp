@@ -44,7 +44,19 @@ void func_actor_310100_80162EC8(Task* task, s32 msgId, Actor310100Placement* pla
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162F34);
+/// Teardown handler: kills the display task hanging off the work block and
+/// parks this task in state 3.
+void func_actor_310100_80162F34(Task* task)
+{
+    Actor310100Work* work;
+
+    work = (Actor310100Work*)task->idMap;
+    if (work->field_4E4 != NULL) {
+        Task_Kill(work->field_4E4);
+        work->field_4E4 = NULL;
+    }
+    task->state = 3;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162F88);
 

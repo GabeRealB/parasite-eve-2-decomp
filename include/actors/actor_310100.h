@@ -27,4 +27,8 @@ typedef struct Actor310100Work {
 /// marks it dirty.
 void func_actor_310100_80162EC8(Task* task, s32 msgId, Actor310100Placement* placement);
 
+/// Teardown handler: kills the display task hanging off the work block and
+/// parks this task in state 3.
+void func_actor_310100_80162F34(Task* task);
+
 #endif
