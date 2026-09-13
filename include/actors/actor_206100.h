@@ -57,7 +57,9 @@ STATIC_ASSERT_SIZEOF(Actor206100AnimStride, 0x28);
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
 /// handler `func_actor_206100_8014FBE4` unlinks, alongside the enemy's own
-/// `GpLinkNode`.
+/// `GpLinkNode`.  Both nodes point their `field_C` at the same six-entry
+/// `GpRec18` table `func_actor_206100_8014F18C` zeroes in `pad_384`, which is
+/// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
     /* 0x000 */ GpAnimCtx anim;
     /* 0x014 */ byte      pad_014[0x350];
@@ -114,6 +116,15 @@ typedef struct Actor206100ChildWork {
     /* 0x64 */ s32     field_64;
 } Actor206100ChildWork;
 STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
+
+/// Builds the enemy's two collision objects.  Each is bound to a part
+/// coordinate of the actor's `TmdObject` -- `obj_364` to `field_8[1]` with
+/// `field_1C` 0x400, `obj_414` to `field_8[4]` with 0x200 -- and both point
+/// their `field_C` at the shared `GpRec18` pair table zeroed at `pad_384`,
+/// which is why there is a single `Gp_InitRec18Table` for the pair.  Each
+/// block ends by clearing `flags` bit 0x8000 after its `Gp_LinkObj`, the same
+/// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
+void func_actor_206100_8014F18C(Task* task);
 
 /// Builds the child beam's collision state: links its `GpObj` and initializes
 /// the coordinate the beam is drawn at. `task` is the child spawned by

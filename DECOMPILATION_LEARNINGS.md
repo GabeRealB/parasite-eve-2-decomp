@@ -67510,3 +67510,55 @@ declared `u8`. `(u8)work->field_51A` over an `s16` field emits `lbu`, as the
 matched `(u8)work2->field_9F8` does in `func_actor_400500_801348D8`, so an
 `lh`/`andi` pair is not the risk it looks like and the field can keep the width
 the rest of the overlay stores it with.
+
+## An assignment whose store sits in a `jal` delay slot was not written there: put it where its *load* is
+
+`func_actor_206100_8014F18C` initializes two `GpObj` collision records and m2c
+recovered the statement order from the final asm, so each record's
+`field_8 = &((TmdObject*)task->extra)->field_8[n]` was written last, right
+before `Gp_LinkObj(2, &work->obj_n)`. The seed scored 74.44% with
+`regs=17 reorder=5 insert=6 delete=6` and *identical* opcode counts
+(62/62 instructions, same histogram, `topology: match`) — with equal counts the
+`insert`/`delete` are positional drift, not extra work.
+
+The drift is entirely in the load chain. In the seed the `lw task->extra`,
+`lw ->field_8` and `addiu +0x50` sit immediately before the `jal` and the store
+lands in its delay slot. In the target the two loads and the `addiu` are at the
+*top* of the block, right after `lw s0, 0x1c(s2)`, and the store is still in
+the delay slot.
+
+A store in a delay slot carries no information about where the assignment was
+written: `dbr` puts it there either way. The **load** feeding it does. Writing
+the statement first in the source — the position the loads occupy in the
+target — hoists the chain and moves the value's live range across both calls,
+which is also what changes its home (`$v0` -> `$v1`, so it stops sharing `$v0`
+with the `0x400` constant):
+
+```c
+work->obj_364.field_8  = &((TmdObject*)task->extra)->field_8[1];  /* base_1: 87.88% */
+work->obj_364.field_C  = (GpRec18*)work->pad_384;
+...
+work->obj_364.flags    = 1;
+Gp_LinkObj(2, &work->obj_364);
+```
+
+So when the target hoists a load but leaves its store in the delay slot, the
+seed's statement order is wrong by exactly that distance, and `insert`/`delete`
+with matching opcode counts is the signature to look for. The same shape is in
+the committed `func_actor_403100_80132320` (`src/actors/actor_403100/`), whose
+C reads `field_8` first and whose asm hoists its `lw $a2, 0x8($v1)` the same way.
+
+Reordering alone is not enough: going with the reordering, a local
+`GpObj* obj = &work->obj_364;` used for the field stores cost an extra address
+register (`$s5`), a `move a1, s5`, a 0x30 frame and four extra instructions
+(87.88% with `regs=68 insert=4`, 66/62 instructions). Naming
+`work->obj_364.field_X` directly keeps the base at the work block and folds
+0x364 into each displacement. This is the mirror of "A struct member array that
+is also a call argument is a pointer local": that entry adds a pointer local the
+target had, this one removes a pointer local the target did not — the base has
+to be the object the target's displacements are measured from.
+`func_actor_403100_80132320` spells its global out in full for the same reason.
+
+The frame size is a cheap tell for which of the two you have: 0x28 with `s0`
+as the work base is the folded form, 0x30 with an `s5` is a base the source
+never had.
