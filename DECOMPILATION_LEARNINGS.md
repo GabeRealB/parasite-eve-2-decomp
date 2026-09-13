@@ -50211,6 +50211,15 @@ local is the `lh`, the one read and stored back in place is the `lhu`. Reading
 both fields directly gives `lhu` twice and swaps the `addu` operands.
 `func_acropolis_bridge_80184908` is the example.
 
+The same pair turns up with no `s32` temp in sight when one field feeds a 32-bit
+expression and another is copied in place. `func_actor_800100_8016709C` reads
+`arg1->field_8` / `field_C` as `lh` operands of a `subu` and `field_8` /
+`field_A` / `field_C` again as `lhu` plain copies into `arg2`, all from a single
+`GpRec18`. The arithmetic promotion is the `s32` temp there, so the two
+signednesses do not mean two struct types — do not split the field into an
+`s16`/`u16` twin just because an m2c seed spells the store side
+`(u16)M2C_FIELD(...)`.
+
 ## CSE rewrites `a = -a` to read the copy's source; block it at the negate
 
 The abs idiom that keeps the raw value live,
