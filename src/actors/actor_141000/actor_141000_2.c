@@ -14,7 +14,20 @@ extern TaskFuncTable3 D_actor_141000_80131E24;
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132E24);
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132EB0);
+/// State 1 of the handler table at 0x80131E3C: holds for 0x1F frames, then
+/// advances the state index `field_C` the dispatcher at 0x80132D3C walks.
+void func_actor_141000_80132EB0(Task* arg0)
+{
+    Actor141000Work* work;
+    u16              ticks;
+
+    work          = (Actor141000Work*)arg0->idMap;
+    ticks         = work->field_E + 1;
+    work->field_E = ticks;
+    if ((s16)ticks >= 0x1F) {
+        work->field_C = work->field_C + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132EF4);
 

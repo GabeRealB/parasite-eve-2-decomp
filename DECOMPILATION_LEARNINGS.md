@@ -67361,3 +67361,38 @@ seed matches, the first rewrite has to preserve its *read count*, not just its
 expressions. Example: `func_actor_141000_80133204` (scratch `base_2.c`; the
 hoisted `base_1.c` is the counter-example). Input `base_2.i`
 `9b927762e546b3b14d340f093c1ca426c5fa7d5c055dec676e9da171d90780a2`.
+
+## A state index loaded `lh` at its dispatch table is still a `u16` field
+
+The handler-table dispatcher reads the index with `lh`:
+
+```
+lh    v0, 0xC(v1)
+sll   v0, v0, 2
+addu  v0, sp, v0
+lw    v0, 0x10(v0)
+jalr  v0
+```
+
+and the handler that advances the same field reads it with `lhu`:
+
+```
+lhu   v0, 0xC(v1)
+addiu v0, v0, 1
+sh    v0, 0xC(v1)
+```
+
+Declaring the field `s16` so the dispatcher's `lh` needs no cast also gives the
+increment an `lh`, and the match is gone. The field is `u16`; the dispatcher's
+signed load comes from an explicit `(s16)` at the index, which is how the
+already-matched siblings of this shape write it -
+`states[(s16)work->field_A06](arg0)` (`actor_400500_4.c:23`,
+`actor_400600_6.c:58`) over a `u16 field_A06`. Two loads of one field at
+different signedness are one *cast*, not a type conflict, and the `u16`
+increment is the half that must survive: `addiu` + `sh` compiled from it.
+
+Worked example: `Actor141000Work::field_C` is the state index
+`func_actor_141000_80132D3C` (still `INCLUDE_ASM`) dispatches through, and
+`field_E` the per-state frame counter, in
+`func_actor_141000_80132EB0`. Input `base_1.i`
+`279709c8584b488114b24c88d0c6f01e665d0269628f0f0da14500e489a27dca`.

@@ -27,7 +27,11 @@ typedef struct Actor141000Point {
 /// three words at 0x4A0..0x4A8 are cleared. `target` is the world position the
 /// actor turns to face, written by the state handler at 0x801336DC.
 typedef struct Actor141000Work {
-    /* 0x000 */ byte    pad_0[0x43D];
+    /* 0x000 */ byte    pad_0[0x8];
+    /* 0x008 */ byte    pad_8[0x4];
+    /* 0x00C */ u16     field_C; // state index; `func_actor_141000_80132D3C` dispatches through it as `(s16)`
+    /* 0x00E */ u16     field_E; // per-state frame counter
+    /* 0x010 */ byte    pad_10[0x42D];
     /* 0x43D */ s8      field_43D;
     /* 0x43E */ s8      field_43E;
     /* 0x43F */ byte    pad_43F[0x1];
