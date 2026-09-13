@@ -50,17 +50,24 @@ typedef struct Actor00100Work {
     /* 0x8A0 */ byte          pad_8A0[8];
     /* 0x8A8 */ SVECTOR       field_8A8;
     /* 0x8B0 */ SVECTOR       field_8B0;
-    /* 0x8B8 */ byte          pad_8B8[0x30];
+    /* 0x8B8 */ byte          pad_8B8[0x20];
+    /* 0x8D8 */ s32           field_8D8;
+    /* 0x8DC */ s32           field_8DC;
+    /* 0x8E0 */ s32           field_8E0;
+    /* 0x8E4 */ byte          pad_8E4[4];
     /* 0x8E8 */ s16           field_8E8;
-    /* 0x8EA */ byte          pad_8EA[0x1E];
+    /* 0x8EA */ byte          field_8EA;
+    /* 0x8EB */ byte          pad_8EB[0x1D];
     /* 0x908 */ Actor00100Obj objs[4];
     /* 0xB68 */ byte          pad_B68[0x7C];
     /* 0xBE4 */ u16           field_BE4;
     /* 0xBE6 */ byte          pad_BE6[0x32];
     /* 0xC18 */ s16           field_C18;
-    /* 0xC1A */ byte          pad_C1A[6];
+    /* 0xC1A */ s16           field_C1A;
+    /* 0xC1C */ byte          pad_C1C[4];
     /* 0xC20 */ u16           field_C20;
-    /* 0xC22 */ byte          pad_C22[8];
+    /* 0xC22 */ byte          pad_C22[6];
+    /* 0xC28 */ s16           field_C28;
     /* 0xC2A */ s16           field_C2A;
 } Actor00100Work;
 

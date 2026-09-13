@@ -257,7 +257,82 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0503C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn061FC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn06398);
+void Actor00100_Fn06398(Actor00100* arg0)
+{
+    Actor00100Ctx*  ctx;
+    Actor00100Work* work;
+    SVECTOR*        vec;
+    SVECTOR*        head;
+    TmdObject*      obj;
+    s32             x;
+    s32             z;
+    SVECTOR*        gteVec;
+    s32             sound;
+    s32             pan;
+    s32             eventPan;
+    u16             tick;
+    Task*           player;
+
+    work                       = arg0->field_1C;
+    player                     = Game_GetPtrSlot(3);
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 2;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    ctx                        = arg0->field_20;
+    gteVec                     = vec;
+    if (work->field_4 != 0) {
+        TOUCH_REG(gteVec);
+        obj             = arg0->field_2C;
+        ctx->field_14   = 0;
+        work->field_BE4 = 0;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_82E        = 5;
+        work->field_828        = 1;
+        work->field_82A        = 0;
+        work->field_83E        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, vec);
+        work->field_C28 = 0;
+        work->field_6   = 0;
+        VectorNormalSS(vec, vec);
+        if (work->field_C1A >= 0xFA1) {
+            work->field_C1A = 0xFA0;
+        }
+        gte_lddp(0x85);
+        gte_ldsv(gteVec);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(gteVec);
+        x               = head[-2].vx;
+        work->field_8DC = 0;
+        work->field_8D8 = x;
+        z               = vec->vz;
+        work->field_8E8 = 7;
+        work->field_8EA = 1;
+        work->field_8E0 = z;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        Gp_SpawnPadLerp(8, 0xFFU, 8U);
+    }
+    tick          = work->field_6 + 1;
+    work->field_6 = tick;
+    if (((s16)tick == 0xF) && (work->field_8E8 == 7)) {
+        sound    = (((u16)ctx->field_8 >> 0xC) << 8) | 0x4001000A;
+        eventPan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        if (Gp_State1C->field_A == 2) {
+            Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->field_8 + 1, 0x80003A00, NULL);
+        }
+    }
+    Actor00100_Fn02788(arg0);
+    if (work->field_68 & 0x100) {
+        work->field_0 = 0x1F;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn06654);
 

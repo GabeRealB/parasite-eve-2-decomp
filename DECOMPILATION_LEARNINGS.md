@@ -71132,3 +71132,12 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Preprocessed SHA256, base_1: `cab5f7bb187952fa6075febfe468ee1ec700ed3e13607486b77e0631363d8d2d`; base_2: `05ce57114c0f8e48c13a1680dfa908a033282cc8b05eb1ebc91469d2e43b4fa2`.
 
 Evidence: `tools/permuter_findings/Actor00100_Fn070DC/`, session `b3b97fe6865642ac9d991ae200474e68`; `PERMUTER_ANALYSIS.md`, controlled base_2 plan/build and `.rtl/.combine/.sched/.greg/.dbr` dumps.
+
+
+## Actor00100_Fn06398: preload scratch components before work flag stores
+
+A permuter z temporary raised distance691 to326; controlled base_4 reproduced it using normal macros. The z halfword read moved before the work flag halfword/byte stores. In base_3 sched2 z UID176 depended on those stores; base_4 z UID166 precedes stores UID171/176, which instead carry REG_DEP_ANTI166. z retained v1 and saved pointer homes survived. Preloading x before zero-y likewise let the zero store fill x load latency, yielding 100% in base_7.
+
+Separately, a soft pointer helper inside the successor sank past calls and swapped s0/s1. A volatile helper there preserved the lifetime while letting dbr pull the preceding pointer copy into the entry branch delay. An entry-block asm prevents that search (reorg.c stop_search_p). This is a demonstrated placement/lifetime interaction, not a rule that volatile helpers always improve scheduling.
+
+Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Inputs base_3.i 4b50f3f299c2bd79084853a841bde75073483997086f6f4c04d99a9da06d0b76; base_4.i b4122c5f15b0e85e46c504c29a9dc71623c3908a58af8f15fa752188c936281c. Retained plans, dumps and notes: tools/permuter_findings/Actor00100_Fn06398/. Primary discovery supported; alternate seeds not investigated.
