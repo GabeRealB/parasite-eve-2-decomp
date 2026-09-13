@@ -10,6 +10,7 @@
 typedef struct Actor100300Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ s16            field_C;
 } Actor100300Obj2C;
 
 typedef struct Actor100300Work {
@@ -27,7 +28,8 @@ typedef struct Actor100300Work {
     /* 0x664 */ s16   field_664;
     /* 0x666 */ byte  pad_666[0x10];
     /* 0x676 */ s16   field_676;
-    /* 0x678 */ byte  pad_678[0x4];
+    /* 0x678 */ u16   field_678;
+    /* 0x67A */ byte  pad_67A[0x2];
     /* 0x67C */ s16   field_67C;
     /* 0x67E */ byte  pad_67E[0x6];
     /* 0x684 */ s16   field_684;

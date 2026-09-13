@@ -95,7 +95,25 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04770);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn047CC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn048D4);
+void Actor00300_Fn048D4(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor100300Obj2C* obj;
+    Actor100300Work*  work;
+    s16               flags;
+
+    work = arg1->field_1C;
+    obj  = arg1->field_2C;
+    if (Game_Session->field_1 != 0) {
+        flags        = ((work->field_678 & 1) == 0) << 7;
+        obj->field_C = flags;
+        if (work->field_678 & 2) {
+            obj->field_C = flags | 4;
+        }
+    }
+    Actor00300_Fn04ED4(arg1);
+    Actor00300_Fn04FB0(arg1);
+    Actor00300_Fn05008(arg1);
+}
 
 void Actor00300_Fn04958(Actor100300Ctx* arg0, Actor100300* arg1)
 {
