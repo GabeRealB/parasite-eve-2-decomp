@@ -30,7 +30,8 @@ typedef struct Actor105500Work {
     /* 0x39C */ s16       field_39C;
     /* 0x39E */ s16       field_39E;
     /* 0x3A0 */ s16       field_3A0;
-    /* 0x3A2 */ byte      pad_3A2[4];
+    /* 0x3A2 */ s16       field_3A2;
+    /* 0x3A4 */ s16       field_3A4;
     /* 0x3A6 */ s16       field_3A6;
     /* 0x3A8 */ s16       field_3A8;
     /* 0x3AA */ byte      pad_3AA[2];
@@ -56,6 +57,12 @@ typedef struct Actor105500 {
     /* 0x2C */ Actor105500Obj2C* field_2C;
     /* 0x30 */ s32               field_30;
 } Actor105500;
+
+typedef struct Actor105500RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor105500RotScratch;
+STATIC_ASSERT_SIZEOF(Actor105500RotScratch, 0x18);
 
 typedef struct Actor105500StateFuncTable3 {
     void (*funcs[3])(void*, Actor105500*);

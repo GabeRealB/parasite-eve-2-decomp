@@ -9,13 +9,11 @@
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_102600_80131E8C(Actor102600* arg0);
 void ActorsSharedFn020d4(Actor102600* arg0);
-void func_actor_102600_80134034(Actor102600* arg0);
+void ActorsSharedFn02214(Actor102600* arg0);
 void func_actor_102600_801357C4(Actor102600* arg0);
 void func_actor_102600_801358E0(Actor102600* arg0);
 
 extern u8 D_801153F4;
-
-INCLUDE_ASM("actors/nonmatchings/actor_102600/actor_102600_3", func_actor_102600_80134034);
 
 INCLUDE_ASM("actors/nonmatchings/actor_102600/actor_102600_3", func_actor_102600_80134184);
 
@@ -73,7 +71,7 @@ default_body:
         ActorsSharedFn020d4(arg1);
     }
     if (work->field_3A6 != 0) {
-        func_actor_102600_80134034(arg1);
+        ActorsSharedFn02214(arg1);
     }
     ActorsShared80135730((ActorShared80135730*)arg1);
     func_actor_102600_801357C4(arg1);
