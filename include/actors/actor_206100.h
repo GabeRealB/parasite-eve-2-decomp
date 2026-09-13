@@ -5,6 +5,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
@@ -21,6 +22,14 @@ extern GpAreaApplyRec D_8018590C;
 /// The pair table the beam's collision object carries at `GpObj.field_18`
 /// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
 extern GpU16Pair D_actor_206100_80155194;
+
+/// Pair source `func_actor_206100_8014AF74` parks in `GpEnemy::field_50`, whose
+/// `field_0` is `D_actor_206100_80155194` above and whose `field_4` is the
+/// actor's max HP (2000), seeded into `field_40` / `field_42` at spawn.
+extern GpPairSrcE D_actor_206100_80155198;
+
+/// Animation bank handed to `func_800B3F84` by `func_actor_206100_8014AF74`.
+extern GpAnimSet* D_actor_206100_80158B24[];
 
 /// Placement records `func_actor_206100_8014EE2C` parks at `GpEnemy::field_3C`
 /// -- the same slot `Gp_SpawnArea` fills from a room's own place list, so this
@@ -68,32 +77,52 @@ STATIC_ASSERT_SIZEOF(Actor206100AnimStride, 0x28);
 /// `GpRec18` table `func_actor_206100_8014F18C` zeroes in `pad_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
-    /* 0x000 */ GpAnimCtx anim;
-    /* 0x014 */ byte      pad_014[0x350];
-    /* 0x364 */ GpObj     obj_364;
-    /* 0x384 */ byte      pad_384[0x90];
-    /* 0x414 */ GpObj     obj_414;
-    /* 0x434 */ byte      pad_434[0xD8];
-    /* 0x50C */ s16       field_50C; // animation request kind
-    /* 0x50E */ u16       field_50E; // clip the request plays, latched from field_510
-    /* 0x510 */ s16       field_510; // animation clip id
-    /* 0x512 */ byte      pad_512[0x8];
-    /* 0x51A */ s16       field_51A; // animation step scale
-    /* 0x51C */ byte      pad_51C[0x2];
-    /* 0x51E */ u16       field_51E; // per-state frame counter
-    /* 0x520 */ s16       field_520; // state index
-    /* 0x522 */ u16       field_522; // sub-state index
-    /* 0x524 */ s16       field_524;
-    /* 0x526 */ u16       field_526;
-    /* 0x528 */ byte      pad_528[0xE];
-    /* 0x536 */ u16       field_536; // seeded from D_80181A48 when the block is built
-    /* 0x538 */ byte      pad_538[0xC];
-    /* 0x544 */ s16       field_544; // id handed to func_actor_206100_8014EB48
-    /* 0x546 */ byte      pad_546[0xE];
-    /* 0x554 */ s8        field_554;
-    /* 0x555 */ byte      pad_555[0x1];
-    /* 0x556 */ s8        field_556;
-    /* 0x557 */ byte      pad_557[0x1];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0xF];
+    /// `func_800B3F84`'s arg3 buffer, the 0x90-byte scratch every animation
+    /// context carries alongside its slot array.
+    /* 0x26C */ byte  animAux[0x90];
+    /* 0x2FC */ byte  pad_2FC[0x68];
+    /* 0x364 */ GpObj obj_364;
+    /* 0x384 */ byte  pad_384[0x90];
+    /* 0x414 */ GpObj obj_414;
+    /* 0x434 */ byte  pad_434[0xA];
+    /// Yaw `func_actor_206100_8014AF74` reads back out of the root
+    /// coordinate's third row at spawn.
+    /* 0x43E */ s16  field_43E;
+    /* 0x440 */ byte pad_440[0x20];
+    /// The light / colour matrix pair the two `TmdObject` slots point at,
+    /// the same `field_1C` / `field_20` hand-off `actor_503500` makes.
+    /* 0x460 */ MATRIX colorMtx;
+    /* 0x480 */ MATRIX lightMtx;
+    /* 0x4A0 */ byte   pad_4A0[0x20];
+    /// Effect argument: the root coordinate's second part with the overlay's
+    /// effect id and part index, the same coordinate / id / 3 trio
+    /// `Actor503500Work::field_6E4` holds.
+    /* 0x4C0 */ GpEffArg eff_4C0;
+    /* 0x4C8 */ byte     pad_4C8[0x44];
+    /* 0x50C */ s16      field_50C; // animation request kind
+    /* 0x50E */ u16      field_50E; // clip the request plays, latched from field_510
+    /* 0x510 */ s16      field_510; // animation clip id
+    /* 0x512 */ byte     pad_512[0x8];
+    /* 0x51A */ s16      field_51A; // animation step scale
+    /* 0x51C */ byte     pad_51C[0x2];
+    /* 0x51E */ u16      field_51E; // per-state frame counter
+    /* 0x520 */ s16      field_520; // state index
+    /* 0x522 */ u16      field_522; // sub-state index
+    /* 0x524 */ s16      field_524;
+    /* 0x526 */ u16      field_526;
+    /* 0x528 */ byte     pad_528[0xE];
+    /* 0x536 */ u16      field_536; // seeded from D_80181A48 when the block is built
+    /* 0x538 */ byte     pad_538[0xC];
+    /* 0x544 */ s16      field_544; // id handed to func_actor_206100_8014EB48
+    /* 0x546 */ byte     pad_546[0xE];
+    /* 0x554 */ s8       field_554;
+    /* 0x555 */ byte     pad_555[0x1];
+    /* 0x556 */ s8       field_556;
+    /// Animation step the spawn state leaves at 4 (`func_actor_206100_8014F284`
+    /// copies it into every slot's `field_1D`).
+    /* 0x557 */ s8 field_557;
 } Actor206100Work;
 STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 
@@ -123,6 +152,26 @@ typedef struct Actor206100ChildWork {
     /* 0x64 */ s32     field_64;
 } Actor206100ChildWork;
 STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
+
+/// Spawn-state body: hands the freshly spawned enemy its model, its part
+/// coordinate and its state, then starts the animation.
+///
+/// `task->spawnArg2` is the `GpEnemy` `func_actor_206100_8014EC14` spawned, so
+/// this is the writer of nearly every field that spawn leaves unset.  The
+/// `TmdObject` at `task->extra` gets the two `MATRIX` slots the overlay's
+/// light / colour hand-off uses (`field_1C` the 0x480 `lightMtx`, `field_20`
+/// the 0x460 `colorMtx`) and `field_E` 0xA -- the same "render state" byte
+/// `Tmd_ProcessStream` reads back.  `coord` is the model's root coordinate,
+/// which the effect argument at `eff_4C0` reuses for part 1 (`field_8[1]`),
+/// so `enemy->field_4` and the effect share one coordinate.
+///
+/// `hp` is read once into a local because `D_actor_206100_80155198.field_4` is
+/// the pair's max HP and both `field_40` and `field_42` take it -- reading the
+/// global twice instead costs a register and shifts the whole function's
+/// allocation (see `DECOMPILATION_LEARNINGS.md`, "A repeated global load ...").
+/// The two `task->extra` walks after `Gp_LinkNode` are separate reloads in the
+/// original, which is why `tmd` is not reused for `field_8[4]`.
+void func_actor_206100_8014AF74(Task* task);
 
 /// Builds the enemy's two collision objects.  Each is bound to a part
 /// coordinate of the actor's `TmdObject` -- `obj_364` to `field_8[1]` with

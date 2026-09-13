@@ -12,7 +12,44 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014AB3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014AF74);
+void func_actor_206100_8014AF74(Task* task)
+{
+    Actor206100Work* work;
+    TmdObject*       tmd;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    u16              hp;
+
+    tmd                   = task->extra;
+    work                  = (Actor206100Work*)task->idMap;
+    enemy                 = (GpEnemy*)task->spawnArg2;
+    tmd->field_E          = 0xA;
+    tmd->field_1C         = &work->lightMtx;
+    tmd->field_C          = 0;
+    tmd->field_20         = &work->colorMtx;
+    coord                 = tmd->field_8;
+    work->eff_4C0.field_0 = &((TmdObject*)task->extra)->field_8[1];
+    work->eff_4C0.field_4 = 0x580;
+    work->eff_4C0.field_6 = 3;
+    enemy->field_4        = &coord->coord;
+    enemy->field_48       = 0;
+    enemy->field_1C.vx    = 0;
+    enemy->field_1C.vy    = 0;
+    enemy->field_1C.vz    = 0;
+    enemy->field_18       = &((TmdObject*)task->extra)->field_8[4];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_54     = (s32)(GpRec18*)work->pad_384;
+    enemy->field_50     = &D_actor_206100_80155198;
+    hp                  = D_actor_206100_80155198.field_4;
+    enemy->field_42     = hp;
+    enemy->field_40     = hp;
+    coord->sub          = &Gfx_ViewCoord;
+    func_800B3F84(&work->anim, D_actor_206100_80158B24, (GpAnimObj*)tmd, work->animAux, work->slots);
+    func_actor_206100_8014F18C(task);
+    work->field_43E = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    work->field_557 = 4;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014B0AC);
 

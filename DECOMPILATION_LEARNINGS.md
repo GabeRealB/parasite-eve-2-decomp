@@ -67580,3 +67580,60 @@ to be the object the target's displacements are measured from.
 The frame size is a cheap tell for which of the two you have: 0x28 with `s0`
 as the work base is the folded form, 0x30 with an `s5` is a base the source
 never had.
+
+## Move the statement that carries a reload chain, not the independent load beside it
+
+`func_actor_206100_8014AF74` sat at 91.81% on three hunks that all read as
+scheduling. Its eff_4C0 block is a pointer chain followed by two stores, and
+the pointer chain is a *second* walk of `task->extra`:
+
+```c
+coord                 = tmd->field_8;
+work->eff_4C0.field_4 = 0x580;
+work->eff_4C0.field_6 = 3;
+work->eff_4C0.field_0 = &((TmdObject*)task->extra)->field_8[1];
+```
+
+That last statement is `lw $2,44($19)` / `lw $2,8($2)` / `addiu $2,$2,80` /
+`sw $2,1216($17)`. The target puts its value in `$v1` while `$v0` holds the
+reloaded `task`; the seed put both in `$v0`. With `$v0` doubly booked, sched2
+hoists the independent `lw $20,8($18)` (`coord = tmd->field_8`) to the top of
+the function, the two loads end up adjacent, and maspsx fills both delay slots
+with `#nop`. The target has neither nop, because it keeps `lw s4,8(s2)`
+*between* the two loads.
+
+Writing the block pointer-first fixes all three hunks at once (100.000%,
+`regs=3 -> 0`, `reorder=4 -> 0`, `insert=3 -> 0`):
+
+```c
+coord                 = tmd->field_8;
+work->eff_4C0.field_0 = &((TmdObject*)task->extra)->field_8[1];  /* to the head */
+work->eff_4C0.field_4 = 0x580;
+work->eff_4C0.field_6 = 3;
+```
+
+`.lreg` is the read-out and it costs nothing to read: `;; Register 90 in 2.` /
+`;; Register 91 in 2.` (the chain's two temporaries, both `$v0`) becomes
+`;; Register 90 in 3.` / `;; Register 91 in 3.`. `local-alloc`'s
+`QTY_CMP_PRI(q) = floor_log2(n_refs) * n_refs * size / (death - birth) * 10000`
+scales as `1/span`, and `qty_compare_1` breaks ties by quantity number, so the
+statement order decides which of two touching quantities is placed first — and
+therefore whether the other one finds `$v0` still marked live at its birth
+(`find_free_reg` ORs `regs_live_at` over `[birth, death)`). Once `$v1` is taken
+the scheduler has a register to keep the coord load where the target has it.
+
+This is the lever of "Reordering two equal-priority stores in the C moves a
+pointer's local-alloc birth, and the register with it" — same overlay,
+`func_actor_206100_8014EEC0` — reached from the other direction: there two
+*stores* swapped and moved one birth, here a whole multi-instruction statement
+moves to the head of its block.
+
+The free probe loop found it: four variants written by string substitution on
+the current best, each compiled with `./dump.sh` (which does not consume
+`build.sh`'s attempt budget) and read for `;; Register N in M.` in `.lreg` plus
+the emitted region in the `.s`. One of the four flipped the register; the other
+three changed nothing. When the residual is a register choice that looks
+unreachable, a matched sibling is the cheapest proof it is not:
+`func_actor_206100_8014EEC0` compiles to `lw v0,44(s1)` / `addiu s2,s0,40` /
+`lw v1,8(v0)`, the target's exact shape, which ruled out "this compiler cannot
+produce it" and pointed at live ranges instead.
