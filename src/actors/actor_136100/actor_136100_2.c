@@ -5,7 +5,20 @@
 
 extern Task* D_actor_136100_8014078C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100_2", func_actor_136100_801347B8);
+void func_actor_136100_801347B8(void)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    SVECTOR          unused;
+    s32              i;
+
+    work->field_4E0 = 1;
+    i               = 1;
+    do {
+        work->slots[(u16)i].field_9 = 0x10;
+        Gp_AnimResetSlot(&work->anim, (u16)i, 1);
+        i++;
+    } while ((u16)i < 0x14U);
+}
 
 void func_actor_136100_80134838(s16 arg0)
 {
