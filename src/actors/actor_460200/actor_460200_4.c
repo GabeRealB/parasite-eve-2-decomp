@@ -11,7 +11,30 @@
 void func_actor_460200_801336B4(Task* task);
 void func_actor_460200_80133AB0(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_8013364C);
+/// Per-frame handler of one of this actor's sub-model tasks: the same body as
+/// `ActorsShared801328bc`, reached with the sub-model's own `TmdObject` in
+/// `Task::extra` and the actor holding it as `Task::parent`.
+void func_actor_460200_8013364C(Task* task)
+{
+    Task*          parent = task->parent;
+    TmdObject*     obj    = task->extra;
+    GsCOORDINATE2* coord  = obj->field_8;
+    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->field_8[7];
+    MATRIX*        work   = (MATRIX*)parent->idMap;
+
+    switch (task->state) {
+        case 0:
+            coord->flg    = 0;
+            obj->field_1C = work;
+            obj->field_20 = work + 1;
+            coord->sub    = sub;
+            task->state++;
+            break;
+        case 1:
+            coord->flg = 0;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_801336B4);
 
