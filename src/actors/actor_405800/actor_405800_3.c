@@ -214,7 +214,34 @@ void func_actor_405800_80138224(Task* task)
     work->field_870 = work->field_872;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_3", func_actor_405800_80138294);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void func_actor_405800_80138294(Task* arg0)
+{
+    Actor405800Work* work;
+    s32              i;
+
+    work = (Actor405800Work*)arg0->idMap;
+    if (work->field_870 == work->field_872) {
+        i = 1;
+        do {
+            work->slots[i].field_9 = work->field_850;
+            func_800B4114(&work->anim, i, work->field_872, 0, work->field_84A);
+            i++;
+        } while (i < 0x12);
+    } else {
+        i = 1;
+        do {
+            work->slots[i].field_9 = work->field_850;
+            func_800B4114(&work->anim, i, work->field_872, 0, work->field_84A);
+            i++;
+        } while (i < 0x12);
+        work->field_84A = 0;
+    }
+    work->field_870 = work->field_872;
+}
 
 s16 func_actor_405800_8013836C(Task* arg0, s16 arg1)
 {
