@@ -12,6 +12,8 @@ extern GpActorFuncTable12 D_actor_800200_80161E5C;
 
 extern GpActorFuncTable3 D_actor_800200_80161E34;
 
+extern GpActorFuncTable9 D_actor_800200_80161EC8;
+
 extern GpActorPathStep D_actor_800200_8016A128[];
 
 extern GpActorPathStep D_actor_800200_8016A040[];
@@ -399,7 +401,18 @@ void func_actor_800200_80165F48(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165F50);
+void func_actor_800200_80165F50(GpActorWork* arg0)
+{
+    GpActorFuncTable9 sp;
+    GameActor*        actor;
+    GsCOORDINATE2*    coord;
+
+    sp    = D_actor_800200_80161EC8;
+    actor = arg0->actor;
+    coord = arg0->extra->field_8;
+    sp.funcs[actor->field_956](arg0);
+    RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165FF0);
 

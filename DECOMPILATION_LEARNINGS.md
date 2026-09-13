@@ -55509,6 +55509,45 @@ into a `MATRIX` at offset 0 of the actor's work block; declaring that field as
 `MATRIX` instead of leaving it inside a `pad_0[...]` is what turns m2c's eight
 assignments into one.
 
+## Above 32 bytes that same struct assignment becomes a 16-byte loop plus one leftover store
+
+The other half of the `expand_block_move` split, and worth recognizing because
+the loop bound *names the size*: the size is rounded down to a multiple of
+`MAX_MOVE_BYTES` (16), `final_src` is that rounded size added to the source,
+the 16-byte `movstrsi_internal` runs in a loop advancing both pointers by 16,
+and the remainder is emitted afterwards as a separate small move:
+
+```
+addiu v1,sp,0x10        # dest
+addiu a1,v0,0x20        # final_src = src + 32  -> size is 32 + leftover
+.L:
+lw    a2,0(v0)          # four loads ...
+lw    a3,4(v0)
+lw    t0,8(v0)
+lw    t1,0xc(v0)
+sw    a2,0(v1)          # ... four stores
+sw    a3,4(v1)
+sw    t0,8(v1)
+sw    t1,0xc(v1)
+addiu v0,v0,0x10        # stride 0x10: byte pointers, not s32*
+bne   v0,a1,.L
+addiu v1,v1,0x10
+lw    a2,0(v0)          # the leftover 4 bytes, a plain load/store
+nop
+sw    a2,0(v1)
+```
+
+So a `+0x20` bound with a one-word tail is a 0x24-byte copy, and the count is
+read off the code rather than guessed. m2c renders this as a `s32*` walk with
+`+= 0x10`, which advances 0x40 a step and skips 0x30 bytes between groups; the
+loop then copies from the wrong addresses and nothing downstream can match.
+`func_actor_800200_80165F50` is the worked example - the 0x24 bytes are a
+9-entry `GpActorFuncTable9`, and `sp = D_actor_800200_80161EC8;` with
+`sp.funcs[actor->field_956](arg0)` and a `RotMatrix((SVECTOR*)&actor->field_50,
+&coord->coord)` matches at 100% on the first rewrite, against 67% for m2c's
+element-wise `M2C_FIELD` version. Sizes at or below 32 bytes never reach this
+loop (see the section above); they are batched into one or two groups of four.
+
 ## A three-word table copy loads `$a1/$a2/$a3` — those are not call arguments
 
 The 12-byte case of the block move above starts one register earlier and lands
