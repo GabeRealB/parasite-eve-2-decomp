@@ -595,18 +595,23 @@ typedef struct {
 extern FsStrInfo    D_8006AC30;
 extern u8*          D_8006C4D4;
 extern FsFolderSlot D_8006C338[50];
-extern u8*          Fs_ChunkReadPtr;
-extern u8           D5B498_8006C233;
-extern u8           D5B498_8006C234;
-extern u8           D5B498_8006D4E0[0x10];
-extern u16          D5B498_8006D748;
-extern void*        D5B498_8006D850;
-extern u16          D5B498_8006D858;
-extern u16          D5B498_8006D85A;
-extern u_long       D5B498_8006D870[0x460];
-extern u16          D5B498_8006EA1A;
-extern u16          D5B498_8006EBB0;
-extern s16          D5B498_8006EBF0;
+/// `D_8006C338[35].field_4` (0x8006C338 + 0x11C): the image chunk the actor
+/// overlays hand to `Fs_LoadImageChunk`. Splat splits each overlay against its
+/// own symbol table, so this address gets a name of its own there — the actor
+/// sources must reference `D_8006C454`, not the slot it sits in.
+extern FsImageChunk* D_8006C454;
+extern u8*           Fs_ChunkReadPtr;
+extern u8            D5B498_8006C233;
+extern u8            D5B498_8006C234;
+extern u8            D5B498_8006D4E0[0x10];
+extern u16           D5B498_8006D748;
+extern void*         D5B498_8006D850;
+extern u16           D5B498_8006D858;
+extern u16           D5B498_8006D85A;
+extern u_long        D5B498_8006D870[0x460];
+extern u16           D5B498_8006EA1A;
+extern u16           D5B498_8006EBB0;
+extern s16           D5B498_8006EBF0;
 
 // Args used by Fs_OnCdError
 #define FS_ERROR_SOFT 0x0

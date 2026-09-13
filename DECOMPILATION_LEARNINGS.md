@@ -59352,8 +59352,8 @@ Gp_UpdateActorColor(arg0->field_20, (VECTOR*)&sp10, 0, 0);
 
 **Symptom:** `stack=0 branch=0 regs=7 reorder=0 insert=0 delete=14`, 52%. The
 object dump keeps only the *first* load/store chain. Only `sp10` has its
-address taken, so flow sees `sp14` and `sp18` as locals that are written and
-never read, deletes both stores, and the loads feeding them go with them. The
+address taken, so `sp14` and `sp18` get no stack slot at all: no store is ever
+generated for them, and the loads feeding them die as dead code. The
 frame shrinks with them (0x20 instead of 0x28), so a `delete` penalty arrives
 alongside a wrong frame size even though nothing about the frame was the cause.
 
@@ -59387,6 +59387,22 @@ instruction short, the `sh` gone, `stack_accesses` 2 against the target's 3, and
 the frame identical. A clean frame with one missing store is still this cause
 and not a pass artifact: write `Actor560800Msg msg; msg.field_2 = arg0;` and the
 missing store returns with no other change.
+
+**Which dump shows it.** `.rtl` — the first one — not `.flow`. Expansion itself
+gives a stack slot only to a local whose address is taken; the other scalars
+become plain pseudos, so their stores are never generated and no later pass
+deletes them:
+
+```
+(insn 9 7 21 (set (reg:HI 85) (const_int 960)) -1 (nil))          <- address escaped: real store
+(insn 21 9 10 (set (mem:HI (addressof:SI (reg:HI 84) 80)) (reg:HI 85))
+(insn 12 10 13 (set (reg/v:HI 82) (const_int 64)) -1 (nil))       <- plain pseudo: no store
+```
+
+`func_actor_560800_80136548` is the same shape with a `RECT` for `MoveImage`
+(`delete=5`, 80.577%): three of the four `sh` stores never exist, and the one
+belonging to the escaped local lands in the `jal`'s delay slot. `RECT rect;`
+with its four field stores takes it to 100.000%.
 
 ## Comparing a `u8` global against a constant gives `sltiu`; an `s32` local gives `slti`
 
