@@ -22,28 +22,30 @@ typedef struct Actor510900Obj2C {
 } Actor510900Obj2C;
 
 typedef struct Actor510900Work {
-    /* 0x000 */ GpObj obj0;
-    /* 0x020 */ byte  pad_20[0x18];
-    /* 0x038 */ GpObj obj38;
-    /* 0x058 */ byte  pad_58[0x264];
-    /* 0x2BC */ GpObj obj2BC;
-    /* 0x2DC */ byte  pad_2DC[0x18];
-    /* 0x2F4 */ GpObj obj2F4;
-    /* 0x314 */ byte  pad_314[0x168];
-    /* 0x47C */ GpObj obj47C;
-    /* 0x49C */ byte  pad_49C[0x48];
-    /* 0x4E4 */ GpObj obj4E4;
-    /* 0x504 */ GpObj obj504;
-    /* 0x524 */ byte  pad_524[0x60];
-    /* 0x584 */ s16   field_584;
-    /* 0x586 */ byte  pad_586[8];
-    /* 0x58E */ s16   field_58E;
-    /* 0x590 */ byte  pad_590[2];
-    /* 0x592 */ s16   field_592;
-    /* 0x594 */ byte  pad_594[0x10];
-    /* 0x5A4 */ s16   field_5A4;
-    /* 0x5A6 */ byte  pad_5A6[0x16];
-    /* 0x5BC */ s16   field_5BC;
+    /* 0x000 */ GpObj  obj0;
+    /* 0x020 */ byte   pad_20[0x18];
+    /* 0x038 */ GpObj  obj38;
+    /* 0x058 */ byte   pad_58[0x264];
+    /* 0x2BC */ GpObj  obj2BC;
+    /* 0x2DC */ byte   pad_2DC[0x18];
+    /* 0x2F4 */ GpObj  obj2F4;
+    /* 0x314 */ byte   pad_314[0x128];
+    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
+    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x47C */ GpObj  obj47C;
+    /* 0x49C */ byte   pad_49C[0x48];
+    /* 0x4E4 */ GpObj  obj4E4;
+    /* 0x504 */ GpObj  obj504;
+    /* 0x524 */ byte   pad_524[0x60];
+    /* 0x584 */ s16    field_584;
+    /* 0x586 */ byte   pad_586[8];
+    /* 0x58E */ s16    field_58E;
+    /* 0x590 */ byte   pad_590[2];
+    /* 0x592 */ s16    field_592;
+    /* 0x594 */ byte   pad_594[0x10];
+    /* 0x5A4 */ s16    field_5A4;
+    /* 0x5A6 */ byte   pad_5A6[0x16];
+    /* 0x5BC */ s16    field_5BC;
 } Actor510900Work;
 
 typedef struct Actor510900 {

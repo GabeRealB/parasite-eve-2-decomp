@@ -50,7 +50,19 @@ void func_actor_510900_8013C090(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013C0E4);
+void func_actor_510900_8013C0E4(void* enemy, Task* task)
+{
+    TmdObject*       obj;
+    Actor510900Work* work;
+
+    obj               = (TmdObject*)task->extra;
+    work              = (Actor510900Work*)task->parent->idMap;
+    obj->field_C      = 0x80;
+    obj->field_8->sub = &((TmdObject*)task->parent->extra)->field_8[3];
+    obj->field_1C     = &work->field_45C;
+    obj->field_20     = &work->field_43C;
+    task->state       = 1;
+}
 
 void func_actor_510900_8013C134(void* enemy, Task* task)
 {
