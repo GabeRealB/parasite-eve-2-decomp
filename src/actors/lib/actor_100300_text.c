@@ -157,7 +157,63 @@ void Actor00300_Fn03A1C(Actor100300* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03B70);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn03F40);
+static __inline__ void Actor00300_UpdateTransform(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor100300Obj2C*           obj;
+    Actor100300Obj2C*           original;
+    GsCOORDINATE2*              saved;
+    Actor100300Work*            work;
+    s32                         disabled;
+    s16                         flags;
+    s16                         scale;
+    MATRIX*                     head;
+    ActorShared80135b58Scratch* scratch;
+    GsCOORDINATE2*              coord;
+
+    original = arg1->field_2C;
+    disabled = D_801153F4;
+    USE_REG2(original, original);
+    __asm__ volatile("" : "=r"(obj) : "0"(original));
+    saved = obj->field_8;
+    work  = arg1->field_8->field_1C;
+    if (disabled == 0) {
+        if (Game_Session->field_1 != 0) {
+            flags        = ((work->field_678 & 1) == 0) << 7;
+            obj->field_C = flags;
+            if (work->field_678 & 2) {
+                obj->field_C = flags | 4;
+            }
+        }
+        scale = work->field_676;
+        if (scale <= 0) {
+            obj->field_C = 0x80;
+            return;
+        }
+        head                       = *(MATRIX**)0x1F8003FC;
+        scratch                    = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+        coord                      = arg1->field_2C->field_8;
+        *(void**)0x1F8003FC        = scratch;
+        scratch->scale.vx          = 0x1000;
+        scratch->scale.vy          = scale;
+        scratch->scale.vz          = 0x1000;
+        coord->coord               = work->field_628;
+        scratch->mat.ident.m00_m01 = 0x1000;
+        scratch->mat.ident.m02_m10 = 0;
+        scratch->mat.ident.m11_m12 = 0x1000;
+        scratch->mat.ident.m20_m21 = 0;
+        scratch->mat.ident.m22     = 0x1000;
+        ScaleMatrix(&scratch->mat.mat, &scratch->scale);
+        MulMatrix(&coord->coord, &scratch->mat.mat);
+        coord->flg         = 0;
+        saved->flg         = 0;
+        *(u8**)0x1F8003FC += 0x30;
+    }
+}
+
+void Actor00300_Fn03F40(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor00300_UpdateTransform(arg0, arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn040A4);
 
