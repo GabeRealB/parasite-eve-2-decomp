@@ -67177,6 +67177,53 @@ into `$a0`. Read a missing copy as evidence about the *source* (a distinct
 variable existed), not about allocation — that comes before `SOFT_TOUCH_REG`
 or a pin.
 
+## A local reused in a later block keeps its first register; a second declaration gets the call's `$a0`
+
+**Problem.** `func_actor_341900_80162200` sat at 93.618% with the tail's three
+loads of `arg0->extra` correct but the register wrong: retail loads it into
+`$a0` and that one value serves both the first `pos.v` statement and the
+`func_800D7A9C` argument, while ours loaded into `$s1` and copied at the call
+(`move a0,s1`), with a stray `nop` and `li a3` out of place
+(`regs=5 insert=2 delete=2`).
+
+**Cause.** The source had one `extra` variable, assigned in the init block and
+reassigned in the tail. `.lreg` shows a single promoted pseudo for both
+assignments — `reg/v:SI 81`, "used 8 times across 36 insns; dies in 2 places" —
+so it crosses the init block's calls and `.greg` gives it a callee-saved home
+(`81 in 17`, `$s1`). The call then needs an explicit copy out of `$s1`, and no
+re-spelling of the use sites can split one pseudo over two registers.
+
+**Fix.** Give the later block's value its own declaration, so the live range is
+block-local and local-alloc's copy suggestion can put it in the argument
+register:
+
+```c
+    TmdObject* extra;   /* init block */
+    TmdObject* mdl;     /* tail */
+
+    mdl    = (TmdObject*)arg0->extra;   /* lw a0,0x2c(s2) */
+    pos.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    func_800D7A9C(mdl, &pos, 0, 3);     /* a0 already holds it: no copy */
+```
+
+100%, all penalties zero.
+
+The *load count* falls out of where that assignment sits, and is worth reading
+before the registers. Assigned immediately before the first use of the same
+expression, the two memory reads are adjacent with no store between them, so
+CSE merges them: three loads of `0x2c($s2)`, the first shared by the first
+statement and the call. Writing the call argument as its own expression instead
+(`func_800D7A9C((TmdObject*)arg0->extra, &pos, 0, 3)`) puts the preceding
+`pos.vz` store in between, which invalidates the CSE entry for `arg0->extra`,
+and the tail emits four loads — the shape that was stuck at 93.1%.
+
+This is "A missing `move` beside an `andi` is a second variable" one step
+further out: the same reading applies to a local reused in a later block, not
+only to a parameter, and here the missing instruction is a `move` out of a
+callee-saved register.
+
 ## Message payloads want their real type, not one local per word
 
 **Problem.** m2c's seed for the same function declared the `Gp_DispatchMsg`

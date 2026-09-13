@@ -62,6 +62,20 @@ typedef struct Actor341900MsgPos {
 } Actor341900MsgPos;
 STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 
+/// Work block allocated by `func_actor_341900_80162200` (`Mem_Malloc(0x44, 0)`)
+/// and parked in that task's `Task::idMap` slot, which is not a `TaskIdMap`
+/// here. The two matrices are the light/colour pair the function republishes
+/// onto `TmdObject::field_1C` / `field_20` -- the pair `Gp_BindDefaultMtx`
+/// otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2` -- and `field_40` is
+/// the `Task::spawnArg2` spawner, which the same function reparents to the
+/// actor. `Actor503500ColorMtx` opens with this same 0x40 bytes and runs longer.
+typedef struct Actor341900ColorMtx {
+    /* 0x00 */ MATRIX light;
+    /* 0x20 */ MATRIX color;
+    /* 0x40 */ Task*  field_40;
+} Actor341900ColorMtx;
+STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
+
 /// Controller task of this overlay, published by `func_actor_341900_80162EFC`
 /// and read by the sequence helpers that hang their work off its `Task::idMap`.
 extern Task* D_actor_341900_80164208;
