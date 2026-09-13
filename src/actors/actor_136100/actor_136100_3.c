@@ -20,7 +20,15 @@ void func_actor_136100_801348F8(void)
     SetDispMask(1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100_3", func_actor_136100_80134924);
+void func_actor_136100_80134924(void)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+
+    if (work->field_4EC == 0) {
+        work->field_4EC = 1;
+        Gp_KillPlayerEffs();
+    }
+}
 
 void func_actor_136100_80134964(void)
 {
