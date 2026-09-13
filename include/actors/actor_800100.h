@@ -30,6 +30,7 @@ void func_actor_800100_80165748(GpActorWork* arg0);
 void func_actor_800100_801657D8(GpActorWork* arg0);
 void func_actor_800100_80165930(GpActorWork* arg0);
 void func_actor_800100_801659EC(GpActorWork* arg0);
+void func_actor_800100_80165DE8(GpActorWork* arg0);
 void func_actor_800100_80166DD0(GpActorWork* arg0);
 void func_actor_800100_80166DF0(GpActorWork* arg0);
 void func_actor_800100_80166E14(GpActorWork* arg0);

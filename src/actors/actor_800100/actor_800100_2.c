@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_800100.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 
@@ -244,7 +245,49 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165C38);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165DE8);
+extern s8  D_8007272F;
+extern s16 D_actor_800100_80167218[];
+
+void func_actor_800100_80165DE8(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    u16            state;
+    GsCOORDINATE2* coord;
+
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    state = actor->field_960;
+    coord = ((TmdObject*)actor->field_91C->extra)->field_8;
+
+    switch (state) {
+        case 0:
+            actor->field_954 = 0;
+            actor->field_958 = 0;
+            actor->field_95A = 0;
+            actor->field_95C = 0;
+            /* fallthrough */
+        case 1:
+            actor->field_960 = 2;
+            d4->field_CD    -= 1;
+            Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
+            Gp_PlayObjSfx((GpObj38*)coord, 0x40660001, 1);
+            if (coord != NULL) {
+                actor->field_940 = 0x28;
+                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[D_8007272F] | 0x10000, NULL);
+                func_80104490(arg0, 1, 2, 0x110C0A);
+                return;
+            }
+            return;
+        case 2:
+            if (func_80105894(arg0, 8, 0, 0) == 0) {
+                actor->field_940 = 0x12;
+                d4->field_CC    -= 1;
+                func_actor_800100_80166DD0(arg0);
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100_2", D_actor_800100_80161EC8);
 
@@ -321,9 +364,6 @@ void func_actor_800100_80166DF0(GpActorWork* arg0)
     actor->field_95E = 0;
     actor->field_97E = 1;
 }
-
-extern s8  D_8007272F;
-extern s16 D_actor_800100_80167218[];
 
 void func_actor_800100_80166E14(GpActorWork* arg0)
 {
