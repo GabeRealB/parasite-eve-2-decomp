@@ -71880,3 +71880,34 @@ unused `char pad[0x10]` in a matched sibling before reaching for `stack` tuning 
 and read a missing prologue as a control-flow shape difference, since
 `insert`/`delete`/`branch` on such a seed are the duplicated `jr ra`s, not
 scheduling noise.
+
+## A second zero-init copies the first variable's register, so `move a3,t0` is not `i = count`
+
+`func_actor_215100_8014C5E0` opens with two instructions that look like a
+cross-assignment:
+
+```
+addu   $t0, $zero, $zero
+addu   $a3, $t0, $zero
+```
+
+It is the plain `count = 0;` of a `for`-loop preamble — `s32 count; s32 i;` then
+`count = 0;` and `i = 0` in the `for`. GCC 2.8.1 materialises the second zero as
+a *copy from the register already known to hold 0* rather than a second
+`addu $a3, $zero, $zero`, so the copy says nothing about the source. The matched
+sibling `func_replay_bonus_80118F00` (aya) really does write `i = count;` and
+compiles to a byte-identical preamble, which is what makes this a trap: the
+`~`-related shape search will offer both, and the wrong reading costs a
+rebuild.
+
+The same function settles a second guess in the same direction. A literal
+compared inside the loop is hoisted into a register *before* the loop —
+`addiu $t1, $zero, 0x3` with `bne $v0, $t1` — so the sibling's `type = 3;` local
+is not needed to explain a hoisted constant; `field_0 == 3` written inline
+produces it. `func_shelter_b3_dumping_hole_80183198` (rooms) has that inline
+form and is instruction-for-instruction identical to this target.
+
+Both are copies of one `FsFolderSlot` scan: walk `D_8006C338[0..0x32]`, take the
+`arg2`-th entry whose `field_0 == 3`, call the overlay's relocation helper on its
+`field_4`. `overlay_dup_index find` shows the four carriers, and `promote`
+refuses them — the body names its own overlay's globals and callee.

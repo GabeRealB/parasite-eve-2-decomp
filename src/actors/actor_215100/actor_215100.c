@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -34,7 +35,10 @@ extern Actor215100Caption* D_actor_215100_8015E658;
 extern s16                 D_actor_215100_8015E662;
 extern s16                 D_actor_215100_8015E666;
 extern s32                 D_actor_215100_8015E670;
+extern s16                 D_actor_215100_801544EC;
+extern s16                 D_actor_215100_801544EE;
 void                       func_actor_215100_8014B0D4(void);
+void                       func_actor_215100_8014B1B0(s32 arg0);
 void                       func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
 void                       func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void                       func_actor_215100_8014BEE8(void);
@@ -269,7 +273,24 @@ void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2)
     Display_InitModeObj(&D_actor_215100_80154508, arg2, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C5E0);
+void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
+{
+    s32 count;
+    s32 i;
+
+    count                   = 0;
+    D_actor_215100_801544EC = arg0;
+    D_actor_215100_801544EE = arg1;
+    for (i = 0; i < 0x32; i++) {
+        if (D_8006C338[i].field_0 == 3) {
+            if (count == arg2) {
+                func_actor_215100_8014B1B0(D_8006C338[i].field_4);
+                break;
+            }
+            count++;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", ActorsShared80131e24Sub0);
 
