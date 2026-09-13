@@ -68760,3 +68760,65 @@ reader: `func_actor_548100_80134AE0`, `..80134BF0`, `..80134CB8` and
 0xC, and only 0, 1 and 2 are seeded in the ROM — the rest is runtime state, which
 is what tells you a "field that is always zero" is written by code you have not
 read yet.
+
+## m2c's shared-`goto` call is the anti-pattern when only a constant argument differs
+
+**Symptom.** m2c joins two arms that both call the same function by hoisting the
+call out of the arms, giving it a variable argument and a `goto` into the other
+arm's block. The join block then owns the whole argument setup:
+
+```
+.L90:
+    li    a0,6
+    jal   Gp_StartCapSlot
+    move  a1,zero
+```
+
+where the ROM keeps the setup in each predecessor and shares only the `jal`,
+with each predecessor's `li a2,K` left behind and both constants parked in the
+delay slots of the branches that precede them:
+
+```
+    bnez  v0,.L30          beqz  v0,.L34EE4
+    addiu a0,zero,6        addiu a0,zero,6
+    ...                    addu  a1,zero,zero
+.L30:                      j     .L34F38
+    addu  a1,zero,zero     addiu a2,zero,1
+    addiu a2,zero,4
+.L34F38:
+    jal   Gp_StartCapSlot
+    nop
+    addiu v0,zero,2
+```
+
+**Cause.** `jump.c`'s cross-jumping (`find_cross_jump`) compares the insns before
+a jump with the insns before that jump's target label and merges the longest
+common run, minimum two insns. It stops at the first difference — here the
+`a2 = K` — so everything from the `jal` down is shared and the identical
+`a0`/`a1` setup on both sides of the difference stays in the predecessors. A
+single call sitting in the join block has no second copy to match against, so no
+merge happens and the setup stays where m2c put it. `reorg` then fills each
+preceding delay slot from the branch's target (the first `li a0,6` is the
+`bnez`'s target's first insn) or its fall-through (the second is the `beqz`'s),
+which is only possible while those constants live in the arms.
+
+**Fix.** Write the call once per arm with its literal argument and delete the
+shared variable and the `goto`:
+
+```c
+if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
+    if (GameFlag_GetNibble(0xC3) != 0) {
+        Gp_StartCapSlot(6, 0, 1);
+    } else {
+        ...
+    }
+} else {
+    Gp_StartCapSlot(6, 0, 4);
+}
+```
+
+`func_actor_548100_80134E94` went 86.885% → 100% on that single edit
+(`branch=2 regs=4 reorder=1 insert=1 delete=5` → all zero). The rule is the same
+one as "Two identical calls, not a pointer temp" above; what makes this case
+worth recognising is that the m2c `goto` shape hides it — the tell is a `li`
+of an argument constant *inside* a block that a `j` targets.

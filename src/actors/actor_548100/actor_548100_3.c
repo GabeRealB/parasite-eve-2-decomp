@@ -29,7 +29,29 @@ void func_actor_548100_80134E0C(Task* arg0)
     Task_RequestKill(arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_3", func_actor_548100_80134E94);
+void func_actor_548100_80134E94(Task* arg0)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    s32              value;
+
+    if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
+        if (GameFlag_GetNibble(0xC3) != 0) {
+            Gp_StartCapSlot(6, 0, 1);
+        } else {
+            value = 2;
+            if (work->collectBitId == 0x120) {
+                value = 1;
+            }
+            SndEvt_EnqueueType6(0x5406000B, 0, 0);
+            GameFlag_SetNibble(work->step + 0xBE, value);
+            Gp_ClearCollectedBit(work->collectBitId);
+        }
+    } else {
+        Gp_StartCapSlot(6, 0, 4);
+    }
+    work->collectBitId = 0;
+    arg0->state        = 2;
+}
 
 void func_actor_548100_80134F64(Task* arg0)
 {
