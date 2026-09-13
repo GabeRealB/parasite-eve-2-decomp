@@ -109,6 +109,18 @@ typedef struct Actor00100MtxScratch {
 } Actor00100MtxScratch;
 STATIC_ASSERT_SIZEOF(Actor00100MtxScratch, 0x34);
 
+typedef struct Actor00100AngleScratch {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 z;
+    /* 0x06 */ s16 pad_6;
+    /* 0x08 */ s16 yaw;
+    /* 0x0A */ s16 targetYaw;
+    /* 0x0C */ s16 delta;
+    /* 0x0E */ s16 pad_E;
+} Actor00100AngleScratch;
+STATIC_ASSERT_SIZEOF(Actor00100AngleScratch, 0x10);
+
 extern u32 Gp_LcgState;
 
 void Actor00100_Fn04270(Actor00100* argx);

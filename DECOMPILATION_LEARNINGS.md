@@ -71094,3 +71094,41 @@ Inputs: base_2.i SHA256 `f3ba9aea01f7d80e1a2f00280d0e173fbf5a285449dd37b7e5e3c5f
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Evidence and controlled plans: `tools/permuter_findings/Actor00100_Fn01D74/`,
 retained PERMUTER_ANALYSIS.md and conclusion dumps. No tracer used.
+
+
+## Nested scratch-head assignment retains a scheduling-relevant pointer copy (Actor00100_Fn070DC)
+
+A controlled normal-header build reproduced the permuter's gain from 96.177%
+to 98.974% with only this transformation:
+
+```c
+/* before */
+scratch = head - 1;
+*(Scratch**)G_SCRATCH_HEAD = scratch;
+/* after */
+scratch = (*(Scratch**)G_SCRATCH_HEAD = head - 1);
+```
+
+The nested form expands arithmetic into a temporary, stores it, then copies
+it into the whole-function scratch pointer. That copy survives CSE/combine.
+In base_2, the temporary r107 gets v1, the global pointer r104 gets s1, and
+the scratch-head address r105 gets v0. Sched1 block0 chooses copy UID27 at
+T-2, flag-load UID32 at T-3, store UID25 at T-4; final forward order is
+store, flag load, copy, with dbr moving the copy into the branch delay.
+The original separate form computes into s1 directly and puts the store in
+the branch delay instead. This is an observed expansion/dependency change,
+not a rule that nested assignments always enforce order.
+
+Prediction was recorded before base_2: reproduce temporary/store/copy, entry
+order, and distance 238 with no other change. All three held. Normalized
+parent also reproduced original distance 887, excluding normalization as
+the gain. Final independent delta-promotion and abs edits reached 100%,
+then the typed-header port preserved it. Those later edits were combined
+and are not evidence for a new general allocation rule. No pins or asm
+helpers were added.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Preprocessed SHA256, base_1: `cab5f7bb187952fa6075febfe468ee1ec700ed3e13607486b77e0631363d8d2d`; base_2: `05ce57114c0f8e48c13a1680dfa908a033282cc8b05eb1ebc91469d2e43b4fa2`.
+
+Evidence: `tools/permuter_findings/Actor00100_Fn070DC/`, session `b3b97fe6865642ac9d991ae200474e68`; `PERMUTER_ANALYSIS.md`, controlled base_2 plan/build and `.rtl/.combine/.sched/.greg/.dbr` dumps.
