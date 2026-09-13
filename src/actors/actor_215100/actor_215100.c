@@ -44,6 +44,9 @@ extern s8                   D_actor_215100_8015E66C;
 extern s32                  D_actor_215100_8015E670;
 extern s16                  D_actor_215100_801544EC;
 extern s16                  D_actor_215100_801544EE;
+extern Actor215100CharRec   D_actor_215100_8015E678;
+extern u8                   D_801153F4;
+extern u8                   D_80115690;
 void                        func_actor_215100_8014B0D4(void);
 void                        func_actor_215100_8014B1B0(s32 arg0);
 s32                         func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
@@ -96,7 +99,43 @@ void func_actor_215100_8014A9A0(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AA54);
+/// Hands the actor off to its caption script, or starts one, depending on
+/// whether the script for the current story flag has already run.
+///
+/// The `else` arm is a `do { } while (0)` whose `break` is the "already
+/// committed" exit. It is not vestigial: the loop notes it emits make `reorg`
+/// mark that branch's label as leaving a loop, so the delay-slot pass predicts
+/// it not-taken and fills its slot from the fall-through rather than from the
+/// shared `return 2` tail. Without the loop the branch reaches the same label
+/// by a copied `li v0,2`, one instruction longer.
+s32 func_actor_215100_8014AA54(Actor215100CharRec* arg0)
+{
+    if (D_actor_215100_8014D038 != 0) {
+        if (arg0->field_5 != 0) {
+            return 2;
+        }
+        D_actor_215100_8015E678 = *arg0;
+        Gp_MsgPlayerWeapon(0);
+        D_801153F4 = 1;
+        Gp_RunCapCmd(0x14, 0);
+        D_80115690 = 1;
+        Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 1, 0);
+    } else {
+        do {
+            if (GameFlag_GetNibble(0xED) == 0) {
+                return 1;
+            }
+            if (arg0->field_5 != 0) {
+                break;
+            }
+            D_actor_215100_8015E678 = *arg0;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd1(0x17);
+            Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 2, 0);
+        } while (0);
+    }
+    return 2;
+}
 
 void func_actor_215100_8014AB6C(void)
 {

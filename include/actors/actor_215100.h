@@ -56,6 +56,26 @@ typedef struct Actor215100AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor215100AnimArgs;
 
+/// Eight-byte character appearance record `func_actor_215100_8014AA54` parks in
+/// `D_actor_215100_8015E678` before it starts the actor's caption script.
+///
+/// That function copies its argument here whole and then only reads `field_5`:
+/// non-zero means the character has already been committed, so it returns 2 and
+/// leaves the record alone. The bytes are otherwise opaque to decompiled code
+/// except through `func_actor_215100_8014A5C0`, which copies `field_0`,
+/// `field_2` and `field_3` out one at a time into the task it spawns.
+typedef struct Actor215100CharRec {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+    /* 0x4 */ u8 field_4;
+    /* 0x5 */ u8 field_5; // non-zero: the character is already committed
+    /* 0x6 */ u8 field_6;
+    /* 0x7 */ u8 field_7;
+} Actor215100CharRec;
+STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
+
 void func_actor_215100_8014C874(Task* task);
 
 s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args);
