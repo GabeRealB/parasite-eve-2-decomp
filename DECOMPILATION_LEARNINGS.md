@@ -67293,3 +67293,13 @@ actors family already had the same body matched twice more
 (`func_actor_341700_80168124`, `func_actor_341700_8016859C`) - check those
 siblings first, since the `(s16)` cast on the index belongs to the load
 (`lh`), not to the source field's declared type.
+
+A near-copy in the *same* unit is the cheapest case: `func_actor_206100_8014F5B4`
+sits six instructions' worth of constants away from `8014F608` above (same
+frame, same `jalr`, only the two table entries differ) and matched 100% on its
+first build by pasting that body and swapping the pointers - no m2c baseline
+worth scoring, since `sp` makes the seed uncompilable either way. When the two
+copies live in one overlay, `overlay_dup_index.py find` will report them as
+siblings but there is nothing to promote: the shared-bodied path exists to link
+one object into *several* overlays, and both of these are already in
+`actor_206100`.

@@ -9,6 +9,8 @@
 #include "actors/actor_206100.h"
 
 void func_actor_206100_8014DEAC(Task* task);
+void func_actor_206100_8014F8BC(Task* task);
+void func_actor_206100_8014F970(Task* task);
 void func_actor_206100_8014F9C4(Task* task);
 void func_actor_206100_8014FA08(Task* task);
 
@@ -26,7 +28,16 @@ void func_actor_206100_8014F5AC(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014F5B4);
+void func_actor_206100_8014F5B4(Task* task)
+{
+    Actor206100Work* work                = (Actor206100Work*)task->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_206100_8014F8BC,
+        func_actor_206100_8014F970,
+    };
+
+    states[(s16)work->field_522](task);
+}
 
 void func_actor_206100_8014F608(Task* task)
 {
