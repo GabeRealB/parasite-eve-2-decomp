@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_100400.h"
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A190);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A28C);
@@ -22,7 +24,17 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A57C
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A5B8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A680);
+void Actor00400_Fn0A680(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    work->field_63C = 6;
+    work->field_632 = 0x10;
+    work->field_628 = 6;
+    work->field_624 = 1;
+    work->field_63A++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A6B0);
 
