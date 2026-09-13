@@ -49,6 +49,19 @@ typedef struct Actor405800Msg3F8 {
 } Actor405800Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor405800Msg3F8, 0x18);
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_405800_80133800`
+/// to project the third model part's origin. `vec` is the zero vector fed to
+/// RTPS through that part's `workm`; `sxy` is `gte_stsxy`, `p` is `gte_stdp`,
+/// `flag` is `gte_stflg`, and `otz` is `gte_stszotz`.
+typedef struct Actor405800PerspScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     sxy;
+    /* 0x0C */ s32     p;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s32     otz;
+} Actor405800PerspScratch;
+STATIC_ASSERT_SIZEOF(Actor405800PerspScratch, 0x18);
+
 /// 0x8C-byte scratchpad frame `func_actor_405800_801329C8` carves off
 /// `G_SCRATCH_HEAD` to draw a textured quad between two model parts. Same
 /// layout as `ActorsShared80163354Scratch` without the trailing half offsets,

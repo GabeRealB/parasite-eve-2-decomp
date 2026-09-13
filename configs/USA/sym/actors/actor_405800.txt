@@ -1,4 +1,5 @@
 // Overlay-local symbols for actor_405800.
+D_actor_405800_80131E64 = 0x80131E64; // force_not_migration:True actor state table, read from C
 D_actor_405800_80131EB8 = 0x80131EB8; // force_not_migration:True actor state table, read from C
 D_actor_405800_80131ECC = 0x80131ECC; // force_not_migration:True actor state table, read from C
 D_actor_405800_80131EDC = 0x80131EDC; // force_not_migration:True actor state table, read from C

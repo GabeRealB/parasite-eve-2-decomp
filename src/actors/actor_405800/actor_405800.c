@@ -21,12 +21,16 @@
 #include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 
-extern s32        Gp_LcgState;
-extern u8         D_actor_405800_801513F8[];
-extern TaskDesc   D_actor_405800_801514B4;
-extern GpPairSrcE D_actor_405800_801418FC;
-extern u8         D_actor_405800_80151410[];
-extern u8         D_actor_405800_8015149C[];
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+extern s32                   Gp_LcgState;
+extern u8                    D_801153F4;
+extern u8                    D_actor_405800_801513F8[];
+extern TaskDesc              D_actor_405800_801514B4;
+extern GpPairSrcE            D_actor_405800_801418FC;
+extern u8                    D_actor_405800_80151410[];
+extern u8                    D_actor_405800_8015149C[];
+extern const TaskFuncTable18 D_actor_405800_80131E64;
 
 void func_actor_405800_801329C8(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, u8 arg5);
 /* Unprototyped so the first jal keeps a nop delay slot; a0 still holds the task. */
@@ -40,6 +44,11 @@ void func_actor_405800_80137994(Task* arg0, s16 arg1);
 void func_actor_405800_80135780(Task* arg0);
 void func_actor_405800_8013340C(Task* arg0);
 void func_actor_405800_80138514(Task* arg0, s16 arg1, Actor405800ViewPos* arg2);
+void func_actor_405800_80131FC8(s32 arg0);
+void func_actor_405800_801361F8(Task* arg0);
+void func_actor_405800_80136388(Task* arg0);
+void func_actor_405800_801375C4(Task* arg0);
+void func_actor_405800_8013795C(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
@@ -481,7 +490,87 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", ActorsShared801328ccTable);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80133800);
+INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E64);
+
+static __inline__ void Actor405800_ProjectPart(GsCOORDINATE2* part)
+{
+    void**                   scratch;
+    u8*                      head;
+    Actor405800PerspScratch* block;
+    SVECTOR*                 vec;
+    MATRIX*                  wm;
+
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    block         = (Actor405800PerspScratch*)(head - 0x18);
+    *scratch      = block;
+    block->vec.vx = 0;
+    block->vec.vy = 0;
+    block->vec.vz = 0;
+    Gp_UpdateCoord(part);
+    vec = &block->vec;
+    wm  = &part->workm;
+    gte_SetRotMatrix(wm);
+    gte_SetTransMatrix(wm);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((Actor405800PerspScratch*)(head - 0x18))->sxy);
+    gte_stdp(&((Actor405800PerspScratch*)(head - 0x18))->p);
+    gte_stflg(&((Actor405800PerspScratch*)(head - 0x18))->flag);
+    gte_stszotz(&((Actor405800PerspScratch*)(head - 0x18))->otz);
+    if (block->flag < 0) {
+        block->otz = 0;
+    }
+    block->otz = (block->otz >> 4) + 0x1E;
+    func_actor_405800_80131FC8(block->otz);
+}
+
+void func_actor_405800_80133800(Task* arg0)
+{
+    TmdObject*       model = (TmdObject*)arg0->extra;
+    Actor405800Work* work  = (Actor405800Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = model->field_8;
+    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;
+    GsCOORDINATE2*   part  = &coord[2];
+    GsCOORDINATE2*   root  = coord;
+    TaskFuncTable18  fns   = D_actor_405800_80131E64;
+    Actor405800Work* w;
+    u8*              head;
+
+    switch (D_801153F4) {
+        case 2:
+            model->field_C |= 0x80;
+            break;
+        case 0:
+            work->field_840++;
+            func_actor_405800_801361F8(arg0);
+            fns.funcs[(s16)work->field_846](arg0);
+            func_actor_405800_8013795C(arg0);
+            func_actor_405800_801375C4(arg0);
+            func_actor_405800_8013315C(arg0);
+            Actor405800_TickAnim(arg0);
+            work->flags_83C.half = work->slots[1].field_10;
+            root->flg            = 0;
+            Actor405800_RebuildRotation(arg0);
+            func_actor_405800_80136388(arg0);
+            if (enemy->field_40 <= 0 && (u8)work->field_88F == 0) {
+                w            = (Actor405800Work*)arg0->idMap;
+                arg0->state  = 2;
+                w->field_846 = 0;
+                w->field_848 = 0;
+            }
+        case 1:
+            Actor405800_UpdateColor(arg0);
+            func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
+            Actor405800_ProjectPart(part);
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+            head                  = *(u8**)(head + 0x3FC);
+            head                 += 0x18;
+            *(u8**)G_SCRATCH_HEAD = head;
+            model->field_C       &= 0xFF7F;
+            break;
+    }
+}
 
 void func_actor_405800_80133CD0(Task* arg0)
 {
