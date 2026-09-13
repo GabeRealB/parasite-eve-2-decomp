@@ -20,7 +20,15 @@ typedef struct Actor105500Work {
     /* 0x020 */ GpRec18   rec;
     /* 0x038 */ s16       field_38;
     /* 0x03A */ s16       field_3A;
-    /* 0x03C */ byte      pad_3C[0x318];
+    /* 0x03C */ byte      pad_3C[0x1D8];
+    /* 0x214 */ GpObj     field_214;
+    /* 0x234 */ byte      pad_234[0x60];
+    /* 0x294 */ GpObj     field_294;
+    /* 0x2B4 */ byte      pad_2B4[0x30];
+    /* 0x2E4 */ GpObj     field_2E4;
+    /* 0x304 */ byte      pad_304[0x18];
+    /* 0x31C */ GpObj     field_31C;
+    /* 0x33C */ byte      pad_33C[0x18];
     /* 0x354 */ GpEffArg  field_354;
     /* 0x35C */ VECTOR3   field_35C;
     /* 0x368 */ byte      pad_368[4];
@@ -46,7 +54,9 @@ typedef struct Actor105500Work {
     /* 0x3B2 */ s16       field_3B2;
     /* 0x3B4 */ s16       field_3B4;
     /* 0x3B6 */ s16       field_3B6;
-    /* 0x3B8 */ byte      pad_3B8[6];
+    /* 0x3B8 */ byte      pad_3B8[2];
+    /* 0x3BA */ s16       field_3BA;
+    /* 0x3BC */ byte      pad_3BC[2];
     /* 0x3BE */ s16       field_3BE;
     /* 0x3C0 */ s16       field_3C0;
     /* 0x3C2 */ byte      pad_3C2[6];
@@ -94,6 +104,8 @@ typedef struct Actor105500Ctx {
     /* 0x40 */ s16                field_40;
     /* 0x42 */ byte               pad_42[0xA];
     /* 0x4C */ u8                 field_4C;
+    /* 0x4D */ byte               pad_4D[7];
+    /* 0x54 */ s32                field_54;
 } Actor105500Ctx;
 
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);

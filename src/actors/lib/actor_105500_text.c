@@ -41,6 +41,9 @@ void Actor05500_Fn03918(Actor105500* arg0);
 void Actor05500_Fn039AC(Actor105500* arg0);
 void Actor05500_Fn03A70(Actor105500* arg0);
 void Actor05500_Fn03AC8(Actor105500* arg0);
+void Actor05500_Fn03B60(Actor105500* arg0);
+void Actor05500_Fn03C54(Actor105500* arg0);
+void Actor05500_Fn03D40(Actor105500* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
@@ -279,7 +282,152 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn01B30);
 #include "actors_shared_fn02214.c"
 #undef ActorsSharedFn02214
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn02364);
+void Actor05500_Fn02364(Actor105500Ctx* arg0, Actor105500* arg1)
+{
+    VECTOR            vec;
+    Actor105500Work*  work;
+    Actor105500Work*  initialWork;
+    Actor105500Work*  dyingWork;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    colorCoord;
+    Actor105500Obj2C* obj;
+    s16               initialAnim;
+    s16               dyingAnim;
+    s16               releasePhase;
+    s16               state;
+    s32               releaseId;
+    s32               initialIndex;
+    s32               dyingIndex;
+    u16               age;
+    u16               destroyAge;
+
+    obj   = arg1->field_2C;
+    work  = arg1->field_1C;
+    coord = obj->field_8;
+    switch ((s32)D_801153F4) {
+        case 1:
+            vec.vx = coord->workm.t[0];
+            vec.vy = coord->workm.t[1];
+            vec.vz = coord->workm.t[2];
+            Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
+            return;
+        case 2:
+            obj->field_C = 0x80;
+            return;
+        case 0:
+        default:
+            state = work->field_39C;
+            switch (state) {
+                case 0:
+                    work->field_3A0 = 0x1000;
+                    work->field_370 = coord->coord;
+                    arg0->field_54  = 0;
+                    Gp_UnlinkNode((GpLinkNode*)&arg0->field_10);
+                    Gp_UnlinkObj(&work->field_214);
+                    Gp_UnlinkObj(&work->field_294);
+                    Gp_UnlinkObj(&work->field_2E4);
+                    Gp_UnlinkObj(&work->field_31C);
+                    releaseId = 0x37;
+                    if (work->field_3C0 == 0) {
+                        releaseId = 0x1A;
+                    }
+                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, releaseId);
+                    Gp_SetStateF0Byte3(2);
+                    work->field_39E = 0U;
+                    work->field_39C = 1;
+                    Gp_SetLightMode((GpObj4C*)arg0, 1);
+                    if (work->field_3BA != 0) {
+                        obj->field_C = 0x80;
+                    }
+                    work->field_392 = 0xB;
+                    initialWork     = arg1->field_1C;
+                    initialIndex    = 1;
+                    if (initialWork->field_392 != initialWork->field_394) {
+                        initialWork->field_394 = (s16)(u16)initialWork->field_392;
+                        initialWork->field_396 = 0U;
+                        initialAnim            = Actor05500_D08A18[initialWork->field_392];
+                        do {
+                            func_800B4114(initialWork, initialIndex, (s32)initialWork->field_392, 0, (s32)initialAnim);
+                            initialIndex += 1;
+                        } while (initialIndex < 8);
+                    } else {
+                        TOUCH_REG(initialIndex);
+                        initialWork->field_396 += initialIndex;
+                        do {
+                            Gp_AnimTickIndex((GpAnimCtx*)initialWork, initialIndex);
+                            initialIndex += 1;
+                        } while (initialIndex < 8);
+                    }
+                    colorCoord = arg1->field_2C->field_8;
+                    vec.vx     = colorCoord->workm.t[0];
+                    vec.vy     = colorCoord->workm.t[1];
+                    vec.vz     = colorCoord->workm.t[2];
+                    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
+                    return;
+                case 1:
+                    releasePhase = work->field_3BA;
+                    if (releasePhase != 0) {
+                        if (releasePhase >= 2) {
+                            work->field_3BA = 0;
+                            Tmd_FreeBuffers((TmdObject*)obj);
+                            obj->field_C |= 4;
+                            Actor05500_Fn03C54(arg1);
+                            Actor05500_Fn03D40(arg1);
+                        } else {
+                            work->field_3BA = (s16)((u16)work->field_3BA + 1);
+                        }
+                    }
+                    Actor05500_Fn03B60(arg1);
+                    age             = work->field_39E + 1;
+                    work->field_39E = age;
+                    if ((s16)age == 0xA) {
+                        obj->field_C = 2;
+                    }
+                    if ((s16)work->field_39E == 0xF) {
+                        Gp_SpawnEff(0x600A5, coord, 2, NULL);
+                    }
+                    if ((s16)work->field_39E >= 0x3C) {
+                        work->field_39C = 2;
+                        work->field_39E = 0U;
+                        obj->field_C    = 0x80;
+                    }
+                    dyingWork  = arg1->field_1C;
+                    dyingIndex = 1;
+                    if (dyingWork->field_392 != dyingWork->field_394) {
+                        dyingWork->field_394 = (s16)(u16)dyingWork->field_392;
+                        dyingWork->field_396 = 0U;
+                        dyingAnim            = Actor05500_D08A18[dyingWork->field_392];
+                        do {
+                            func_800B4114(dyingWork, dyingIndex, (s32)dyingWork->field_392, 0, (s32)dyingAnim);
+                            dyingIndex += 1;
+                        } while (dyingIndex < 8);
+                    } else {
+                        TOUCH_REG(dyingIndex);
+                        dyingWork->field_396 += dyingIndex;
+                        do {
+                            Gp_AnimTickIndex((GpAnimCtx*)dyingWork, dyingIndex);
+                            dyingIndex += 1;
+                        } while (dyingIndex < 8);
+                    }
+
+                    colorCoord = arg1->field_2C->field_8;
+                    vec.vx     = colorCoord->workm.t[0];
+                    vec.vy     = colorCoord->workm.t[1];
+                    vec.vz     = colorCoord->workm.t[2];
+                    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
+                    return;
+
+                case 2:
+                    destroyAge      = work->field_39E + 1;
+                    work->field_39E = destroyAge;
+                    if ((s16)destroyAge >= 0x3C) {
+                        Gp_DestroyEnemy((GpEnemy*)arg0, (Task*)arg1);
+                    }
+                    return;
+            }
+            break;
+    }
+}
 
 void Actor05500_Fn02780(Actor105500Ctx* arg0, Actor105500* arg1)
 {
