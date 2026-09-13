@@ -39,14 +39,16 @@ typedef struct Actor207200Work {
 
 /// Owning context. The leading part holds the `Gp_UnlinkNode` list entry at
 /// +0x10, as for the gameplay `GpEnemy`, so `field_40` is its HP and
-/// `field_54` a model pointer.
+/// `field_54` a model pointer. `field_18` is the model part the context is
+/// driven from, re-picked every frame by `func_actor_207200_8014D8DC`.
 typedef struct Actor207200Ctx {
-    /* 0x00 */ byte       pad_0[0x10];
-    /* 0x10 */ GpLinkNode node;
-    /* 0x18 */ byte       pad_18[0x28];
-    /* 0x40 */ s16        field_40;
-    /* 0x42 */ byte       pad_42[0x12];
-    /* 0x54 */ s32        field_54;
+    /* 0x00 */ byte           pad_0[0x10];
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ byte           pad_1C[0x24];
+    /* 0x40 */ s16            field_40;
+    /* 0x42 */ byte           pad_42[0x12];
+    /* 0x54 */ s32            field_54;
 } Actor207200Ctx;
 
 typedef struct Actor207200 {
@@ -66,5 +68,8 @@ extern s32 D_80062730;
 
 void func_actor_207200_8014DB4C(Actor207200* arg0);
 void func_actor_207200_8014CFEC(Actor207200* arg0);
+/// Angle from `coord` to the player, plus the horizontal distance between them
+/// written through `dist`; the result is a 4096-unit circle angle.
+s32 func_actor_207200_8014CE20(GsCOORDINATE2* coord, s32* dist);
 
 #endif
