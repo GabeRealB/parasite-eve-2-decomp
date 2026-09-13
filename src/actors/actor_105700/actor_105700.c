@@ -5,6 +5,7 @@
 #include "gameplay/3A34.h"
 #include "main/mem.h"
 #include "main/task.h"
+#include "main/wipsys.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -20,7 +21,57 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80132944);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80132B28);
+/// Proximity cue; the same body as `Actor02000_Fn00CD0` of `actor_102000`
+/// (see `overlay_dup_index.py find func_actor_105700_80132B28`). Carves a
+/// 0x10-byte direction vector off the scratch head, aims it from the player
+/// at the actor's root coordinate, and takes its length through
+/// `SquareRoot0`: under 0x5DC one of `D_801153F2`'s bit groups raises
+/// `field_6B2`; past it the other two (the second only within 0xBB8) put the
+/// actor into animation 4 and state 1.
+void func_actor_105700_80132B28(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    GsCOORDINATE2*   self;
+    s32              dx;
+    s32              distance;
+    s32              dz;
+    s32              trigger;
+    VECTOR*          head;
+    VECTOR*          delta;
+
+    self                      = arg0->field_2C->field_8;
+    work                      = arg0->field_1C;
+    head                      = *(VECTOR**)G_SCRATCH_HEAD;
+    delta                     = head - 1;
+    head[-1].vx               = (s32)(Wip_SysConfig.field_4->t[0] - self->coord.t[0]);
+    delta->vy                 = 0;
+    dz                        = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+    delta->vz                 = dz;
+    dx                        = head[-1].vx;
+    trigger                   = 0;
+    *(VECTOR**)G_SCRATCH_HEAD = delta;
+    distance                  = SquareRoot0((dx * dx) + (dz * dz));
+    if (distance < 0x5DC) {
+        if (D_801153F2 & 0x17) {
+            work->field_6B2 = 1;
+        }
+    } else {
+        if (D_801153F2 & 5) {
+            trigger = 1;
+        }
+        if ((D_801153F2 & 0x12) && (distance < 0xBB8)) {
+            trigger = 1;
+        }
+        if (trigger != 0) {
+            work->field_694 = 4;
+            work->field_69C = 0;
+            work->field_69E = 0;
+            work->field_6AE = 0;
+            work->field_6A8 = 1;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80132C64);
 
@@ -46,7 +97,7 @@ void func_actor_105700_801336FC(Actor105700* arg0)
     GpAnimRec*       rec;
 
     work = arg0->field_1C;
-    self = arg0->field_2C->field_8;
+    self = (GpObj38*)arg0->field_2C->field_8;
     if (work->field_6D6 != 0) {
         rec = Gp_AnimGetRec(&work->ctx, (GpAnimSlot*)&work->slots[1]);
         if (rec != NULL) {
@@ -130,8 +181,6 @@ s32 func_actor_105700_801369D4(SVECTOR* arg0, SVECTOR* arg1)
 }
 
 extern s8 D_80115419;
-
-void func_actor_105700_80132B28(Actor105700* arg0);
 
 /// Per-frame tick, the same body as `Actor02000_Fn03268` of `actor_102000`.
 /// State 0 counts `field_6AE` up to 0x5B frames and then hands over to state

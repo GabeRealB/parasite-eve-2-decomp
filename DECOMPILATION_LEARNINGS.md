@@ -65373,3 +65373,21 @@ carrier's `_2.c` also holds the matched bodies `func_actor_105700_80136E58` and
 
 Inputs: `base_1.i`
 `b64bc9544d0c3ae777ceb3ba8ee85d0561e7fc6d80ae85c0bb041e971061519d` (100%).
+
+**Third sighting** (`func_actor_105700_80132B28`, `0xD08`, the same unit — and
+again the same six carriers). The renumbering this time ran `[0xB0, c,
+actor_105700/actor_105700]`, `[0xD08, c, lib/actors_shared_80132b28]`, `[0xE44,
+c, …/actor_105700_2]` … `…_6`, and the build died naming
+`func_actor_105700_80132C64.s` and fifteen more of the main unit's functions,
+plus one in `actor_105700_2` — every one of them a path that had moved one unit
+up while the `.c` naming it had not. Note what the tool *does* say here: it
+prints `6 of 6 copies share src/actors/lib/actors_shared_80132b28.c` and exits
+0, so the promote looks like it worked; only the re-split exposes it. Reverted
+the promote (manifest, six sym files, six carriers' `INCLUDE_ASM` lines, and
+the six splat-created unit stubs it had added) and landed the body in the
+overlay's own `.c`, which verified scoped and unscoped. Three functions from
+this one overlay now carry a deferred promotion, so the pass that finally does
+it should be sized for six carriers at once rather than attempted per function.
+
+Inputs: `base_1.i`
+`f66f4b84caebc876e82a1dfd438496f522a8f9385d81e978a011a453e939239f` (100%).

@@ -7,6 +7,10 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include <psyq/libgs.h>
+
+extern u8 D_801153F2;
+
 /// 0x6E4-byte work block hung off `Actor105700.field_1C`, allocated by
 /// `func_actor_105700_80135AE4`. It opens with the animation context and its
 /// nineteen 0x28-byte slots, exactly like the `Actor02000Work` block of
@@ -53,13 +57,14 @@ typedef struct Actor105700Ctx {
     /* 0x08 */ u16  field_8;
 } Actor105700Ctx;
 
-/// Model object behind `Actor105700.field_2C`; `field_8` is the trailing
-/// per-part coordinate array the pan/depth helpers read. `field_C` is the
-/// halfword `func_actor_105700_80137130` mirrors from the owner's object.
+/// Model object behind `Actor105700.field_2C`; `field_8` is the root
+/// `GsCOORDINATE2` the pan/depth helpers read (as `GpObj38`, whose `field_24`
+/// is that coordinate's `workm`). `field_C` is the halfword
+/// `func_actor_105700_80137130` mirrors from the owner's object.
 typedef struct Actor105700Obj {
-    /* 0x00 */ byte     pad_0[8];
-    /* 0x08 */ GpObj38* field_8;
-    /* 0x0C */ u16      field_C;
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ u16            field_C;
 } Actor105700Obj;
 
 typedef struct Actor105700 {
