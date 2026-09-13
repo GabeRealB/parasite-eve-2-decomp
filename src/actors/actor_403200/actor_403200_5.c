@@ -25,7 +25,18 @@ s16 func_actor_403200_80141114(void)
     return D_actor_403200_80141C5A;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_5", func_actor_403200_80141124);
+s32 func_actor_403200_80141124(Actor403200Obj* arg0, s16 arg1)
+{
+    switch (arg1) {
+        case 0:
+            return 0x13;
+        case 1:
+            return 7;
+        case 2:
+            return 0x25;
+    }
+    return 1;
+}
 
 s16 func_actor_403200_80141180(Actor403200Obj* arg0, s16 arg1)
 {

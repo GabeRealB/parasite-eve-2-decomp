@@ -74549,3 +74549,40 @@ Gp_LinkObj(2, obj);
 `base_2.c` 95.707% → `base_3.c` 100.000% on the fifth build, all six penalties
 zero, with no pins. Input `base_3.i`
 `43cdd05339d043262e6be676e37f75c5cbd84afdb163c762a2bd8212aa8c6c8e`.
+
+## m2c nested-ifs lose a switch's shared-epilogue default
+
+`func_actor_403200_80141124` takes `(Actor403200Obj*, s16)` and returns `0x13`,
+`7`, `0x25` for `arg1` 0/1/2 and `1` otherwise. m2c linearises this into nested
+`if`s and scores 35.9%: its "otherwise" paths emit `li v0,1` followed by a direct
+`jr ra`, and the argument arrives in `$a0`. The target instead routes both
+default paths through the function's shared epilogue:
+
+```
+li v0,1
+j .Lend
+nop
+...
+.Lend:
+jr ra
+nop
+```
+
+while the three `case` arms each get their own `jr ra; li v0,const`. Writing the
+source as a real `switch` with a post-switch `return 1;` recovers that shape
+exactly (98.2%), and the only remaining difference is the argument register:
+the target sign-extends `$a1`, so the real signature has an unused leading
+`Actor403200Obj*` — the dispatch table at `D_actor_403200_8015E6E8` lists it
+beside `func_actor_403200_80141180(Actor403200Obj*, s16)`, which confirms it.
+Adding the unused parameter gives 100%.
+
+So when a small integer switch's arms all `return` and the fall-through return is
+spelled after the switch, do not trust m2c's nested-`if` rewrite: the shared
+`j`-to-epilogue is a structural signal that the original was a `switch`, and a
+wrong argument register can be a missing unused parameter rather than an
+allocation difference.
+
+Preprocessed SHA256:
+
+- `base_1.i`: `7ee6d80151e9298b342d90ec7901aef411e3d819d603d5ef10a208ca23605832`
+- `base_2.i`: `c0cd0ef648cc301fc0fa1070517b6a39707f418b5a8be91b88e4724a73559d5e`
