@@ -39790,6 +39790,27 @@ symbol the body references, compare what sits at that address in each carrier.
 Equal addresses are the family default - one load address for all its overlays -
 which is exactly what hides the mismatch in the disassembly. Failing it, match
 the copies per overlay.
+**Which functions a renumbering stranded is answered by `matchings/`, not by
+reading the addresses.** splat writes a function's `.s` under
+`nonmatchings/<overlay>/<unit>/` when the unit that now owns its address range
+has an `INCLUDE_ASM` naming it *at that unit's path*, and under
+`matchings/<overlay>/<unit>/` when the unit has neither that nor a real C
+definition. So after a promotion re-split, `find asm/USA/<family>/matchings/
+<overlay> -name 'func_*.s'` lists exactly the functions whose `INCLUDE_ASM`
+path is stale — the ones step 4 of the list above has to repoint — while the
+split's normal output for a matched body looks identical and is ignored. It is
+also the fastest way to see the shape of the renumbering: the unit component in
+each `matchings/` path is the unit the function has *moved to*.
+
+The build's first complaint is the same information from the other end, and
+naming it that way saves a round trip:
+`Error: can't open asm/USA/<family>/nonmatchings/<overlay>/<unit>/func_….s`
+means that `.c` still asks for the old unit's directory. `actor_341900` is the
+worked example — the body promoted out of it was `0x1328..0x1404`, so
+`func_actor_341900_80163224` (at `0x1404`) and, past two more shared cuts,
+`func_actor_341900_8016332C` and the ten bodies in the old `actor_341900_3`
+all shifted one unit forward, in a carrier (`actor_342000`) that needed the
+same redistribution for the same promoted span.
 
 ## A promotion leaves a stale `.o` behind a renamed `INCLUDE_RODATA` table entry
 

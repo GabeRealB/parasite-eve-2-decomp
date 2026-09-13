@@ -22,19 +22,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162F28);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8016382C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80163EAC);
-
-void func_actor_342000_80163F88(Task* task)
-{
-    Actor342000Work* work;
-    GsCOORDINATE2*   coord;
-
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    work  = (Actor342000Work*)task->idMap;
-
-    coord->sub = work->field_2A4;
-    Task_Kill(task);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80163FB8);
