@@ -1,16 +1,24 @@
 #include "common.h"
 
 #include "actors/actor_141000.h"
+#include "actors/actors_shared_801327b4.h"
 
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
+#include "gameplay/D4.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_141000_80131E24;
+
+/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
+extern GpMsgEntry D_actor_141000_8013D788[];
 
 /// State 0 of the handler table at 0x80131E3C: ramps the actor's Z scale by
 /// 1/16 a frame and, on reaching 1.0, clamps it there and advances the state
@@ -106,4 +114,33 @@ INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801338C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_8013392C);
+/// Spawn state of the enemy actor: allocates the 0x4CC-byte work block that
+/// every later handler reads through `Task::idMap`, seeds the three -1 bytes
+/// and three cleared words the work's own init expects, republishes the light
+/// and colour matrices onto the display object, then installs the message
+/// table and the shared exit handler. An allocation failure ends the task
+/// instead of leaving a half-built actor behind.
+void func_actor_141000_8013392C(Task* arg0)
+{
+    Actor141000Work* work;
+
+    work = Mem_Calloc(sizeof(Actor141000Work), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4C9 = -1;
+    work->field_4A0 = 0;
+    work->field_4A4 = 0;
+    work->field_4A8 = 0;
+
+    func_actor_141000_801339DC(arg0);
+
+    arg0->field_24     = D_actor_141000_8013D788;
+    arg0->exitCallback = ActorsShared801327b4;
+    arg0->state++;
+}
