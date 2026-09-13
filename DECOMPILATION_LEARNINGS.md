@@ -66263,3 +66263,34 @@ four assignments are dead stores and disappear — taking the `andi` and the thr
 has it. Four other overlays send this message (`actor_400600`, `actor_405800`,
 `actor_403100`, …) and name its fields. Grep the message id in `src/` before
 inventing a local struct — an existing sender usually has the type already.
+
+## A `delete` equal to a narrow-store deficit is m2c's per-word local, not codegen
+
+**Problem.** `func_actor_560800_80135BD8` opened at 97.842% with `regs=1
+delete=2`, and `.diagnosis.json` narrowed it to `opcode_delta: {"41:0": -2}` —
+the candidate emitted one `sh` where retail has three, all storing the same
+constant to `0x10($sp)`, `0x12($sp)` and `0x14($sp)` before a
+`Gp_SetOverrideVec(&vec)` call.
+
+**Cause.** The same mechanism as the `GpAnimArg` payload above: m2c declared the
+argument as three scalars, `s16 sp10; s16 sp12; s16 sp14;`, and only `&sp10`
+escapes, so `sp12`/`sp14` are write-only. `.rtl` shows them as bare
+`(set (reg/v:HI 82) (const_int 1440))` with no store at all, and the two stores
+are already gone before `cse` — the front end's own dead-store removal.
+
+**Fix.** One object of the callee's real type — libgte's `SVECTOR`, which
+`Gp_SetOverrideVec(SVECTOR*)` takes and which every other caller in `src/` (the
+room overlays, `3CD8_75C8`) already passes:
+
+```c
+    SVECTOR vec;
+
+    vec.vx = 0x5A0;
+    vec.vy = 0x5A0;
+    vec.vz = 0x5A0;
+    Gp_SetOverrideVec(&vec);
+```
+
+100%, all penalties zero. Read a `delete` count that equals an `opcode_delta`
+deficit of narrow stores as this artefact before suspecting the allocator or the
+scheduler; grep an existing caller for the argument's type.

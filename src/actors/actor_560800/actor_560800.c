@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "actors/actor_560800.h"
+
+#include "gameplay/3A34.h"
+
 #include "gameplay/3CD8.h"
 
 #include "gameplay/gameplay.h"
@@ -19,7 +23,9 @@
 #include "main/task.h"
 
 extern s8       D_8007106B;
+extern TaskDesc ActorsShared80136280Desc;
 extern TaskDesc D_actor_560800_8016EA28;
+extern TaskDesc D_actor_560800_8017575C;
 
 void func_actor_560800_801321A0(Task* arg0)
 {
@@ -141,7 +147,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135AEC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135BD8);
+void func_actor_560800_80135BD8(Task* arg0)
+{
+    Actor560800Work* work;
+    Task*            sub5;
+    Task*            sub6;
+    SVECTOR          vec;
+
+    work        = (Actor560800Work*)Mem_Malloc(0x68, 0);
+    arg0->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    Mem_Set(work, 0, 0x68);
+    work->field_0           = Game_GetPtrSlot(3);
+    D_actor_560800_8017578C = arg0;
+    work->field_4           = Task_SpawnFromTable(&ActorsShared80136280Desc, 4, 0, 0);
+    sub5                    = Task_SpawnFromTable(&ActorsShared80136280Desc, 5, 0, 0);
+    work->field_8           = sub5;
+    work->field_10          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 1, (s32)sub5);
+    work->field_14          = Task_SpawnFromTable(&ActorsShared80136280Desc, 8, 0, (s32)work->field_8);
+    work->field_18          = Task_SpawnFromTable(&ActorsShared80136280Desc, 9, 2, (s32)work->field_8);
+    sub6                    = Task_SpawnFromTable(&ActorsShared80136280Desc, 6, 0, 0);
+    work->field_C           = sub6;
+    work->field_1C          = Task_SpawnFromTable(&ActorsShared80136280Desc, 0xA, 3, (s32)sub6);
+    work->field_20          = Task_SpawnFromTable(&D_actor_560800_8017575C, 0, 0, (s32)arg0);
+    work->field_24          = Task_SpawnFromTable(&D_actor_560800_8017575C, 2, 0, (s32)arg0);
+    vec.vx                  = 0x5A0;
+    vec.vy                  = 0x5A0;
+    vec.vz                  = 0x5A0;
+    Gp_SetOverrideVec(&vec);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135D54);
 

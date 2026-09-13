@@ -12,7 +12,9 @@
 /// `func_actor_560800_80135BD8` allocates it with `Mem_Malloc(0x68, 0)`, so the
 /// size below is the allocation and not a guess, and fills the first slots with
 /// the sub-tasks from `Game_GetPtrSlot(3)` and `ActorsShared80136280Desc`
-/// (`field_4` is filled later by `func_actor_560800_801366B0`).
+/// (`field_4` is filled later by `func_actor_560800_801366B0`). Slots 0x0-0x24
+/// are ten task pointers: `field_8` is handed to `field_10`/`field_14`/`field_18`
+/// as their spawn argument and `field_C` to `field_1C`.
 ///
 /// Above `field_14` the slots are s16 pairs at an 8-byte stride:
 /// `func_actor_560800_801367E0` writes 0x28/0x2A, 0x30/0x32, 0x38/0x3A and
@@ -27,10 +29,10 @@ typedef struct Actor560800Work {
     /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3)
     /* 0x04 */ Task* field_4;
     /* 0x08 */ Task* field_8;
-    /* 0x0C */ byte  pad_C[4];
+    /* 0x0C */ Task* field_C;
     /* 0x10 */ Task* field_10;
     /* 0x14 */ Task* field_14;
-    /* 0x18 */ byte  pad_18[4];
+    /* 0x18 */ Task* field_18;
     /* 0x1C */ Task* field_1C;
     /* 0x20 */ Task* field_20;
     /* 0x24 */ Task* field_24;
