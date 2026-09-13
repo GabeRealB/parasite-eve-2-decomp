@@ -11,7 +11,103 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00480);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00674);
+void Actor01600_Fn00A4C(Actor01600* arg0);
+void Actor01600_Fn00BAC(Actor01600* arg0);
+void Actor01600_Fn03D48(Actor01600* arg0);
+void Actor01600_Fn03EEC(Actor01600* arg0);
+void Actor01600_Fn04AD8(Actor01600* arg0);
+s32  Actor01600_Fn05558(Actor01600* arg0);
+void Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1);
+void Actor01600_Fn06A84(Actor01600* arg0);
+void Actor01600_Fn06F10(Actor01600* arg0);
+void Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1);
+s32  Gp_GetObjPan(void* arg0);
+s32  Gp_GetObjDepth(void* arg0);
+
+extern u8 D_801153F4;
+
+void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
+{
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    TmdObject*      obj;
+    s32             id;
+    s32             map;
+    u16             count;
+
+    work  = arg1->field_1C;
+    coord = arg1->field_2C->field_8;
+    if (!(Actor01600_Fn05558(arg1) & 0xFF)) {
+        switch (D_801153F4) {
+            case 0:
+                arg1->field_2C->field_C = 0;
+                arg0->node.field_4      = 0;
+                break;
+            case 1:
+                Actor01600_Fn06810(arg0, arg1);
+                goto update;
+            case 2:
+                obj                = arg1->field_2C;
+                obj->field_C      |= 0x80;
+                arg0->node.field_4 = 1;
+                return;
+            default:
+                break;
+        }
+        Actor01600_Fn04AD8(arg1);
+        if (arg0->field_4C != 0) {
+            Actor01600_Fn00A4C(arg1);
+        }
+        Actor01600_Fn00BAC(arg1);
+        if (work->field_528 == 0) {
+            if (work->field_500 != 0) {
+                arg1->field_30 = 2;
+            }
+        }
+        map = *(u32*)&Game_Session->field_4 & 0xFFFF0000;
+        if (map != 0x3260000 && map != 0x4070000 && map != 0x4010000) {
+            if (coord->coord.t[1] >= 0x65) {
+                coord->coord.t[1] = -0xA;
+            }
+        }
+        if (((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x031D0000) && (coord->coord.t[1] >= -0x3E7)) {
+            id = (((u16)arg1->field_20->field_8 >> 0xC) << 8) | 0x40100005;
+            SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+            id = (((u16)arg1->field_20->field_8 >> 0xC) << 8) | 0x4010000A;
+            SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+            Actor01600_Fn06F10(arg1);
+            Actor01600_Fn06FDC(arg1, 0);
+        }
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04010000) {
+            if (coord->coord.t[1] > 0) {
+                work->field_532 = 1;
+            }
+            if (coord->coord.t[1] >= 0x3E9) {
+                id = (((u16)arg1->field_20->field_8 >> 0xC) << 8) | 0x40100005;
+                SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+                id = (((u16)arg1->field_20->field_8 >> 0xC) << 8) | 0x4010000A;
+                SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+                Actor01600_Fn06F10(arg1);
+                Actor01600_Fn06FDC(arg1, 0);
+            }
+        }
+        Actor01600_Fn01420(arg1);
+        Actor01600_Fn03D48(arg1);
+        Actor01600_Fn06A84(arg1);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        count           = work->field_550 + 1;
+        work->field_550 = count;
+        if (((s16)count >= 5) || (Game_Session->field_52 == 1)) {
+            work->field_550 = 0;
+            Actor01600_Fn06810(arg0, arg1);
+        }
+        if (work->field_532 == 0) {
+        update:
+            Actor01600_Fn03EEC(arg1);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00A4C);
 

@@ -23,7 +23,9 @@ typedef struct Actor01600Ctx {
     /* 0x08 */ u16            field_8;
     /* 0x0A */ byte           pad_A[0x6];
     /* 0x10 */ Actor01600Node node;
-    /* 0x18 */ byte           pad_18[0x3C];
+    /* 0x18 */ byte           pad_18[0x34];
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[7];
     /* 0x54 */ s32            field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
@@ -52,7 +54,7 @@ typedef struct Actor01600Work {
     /* 0x4FA */ s16    field_4FA;
     /* 0x4FC */ byte   pad_4FC[2];
     /* 0x4FE */ s16    field_4FE;
-    /* 0x500 */ byte   pad_500[2];
+    /* 0x500 */ s16    field_500;
     /* 0x502 */ s16    field_502;
     /* 0x504 */ s16    field_504;
     /* 0x506 */ s16    field_506;
@@ -73,7 +75,7 @@ typedef struct Actor01600Work {
     /* 0x528 */ s16    field_528;
     /* 0x52A */ byte   pad_52A[6];
     /* 0x530 */ s16    field_530;
-    /* 0x532 */ byte   pad_532[2];
+    /* 0x532 */ s16    field_532;
     /* 0x534 */ s16    field_534;
     /* 0x536 */ byte   pad_536[2];
     /* 0x538 */ s16    field_538;
@@ -98,8 +100,9 @@ typedef struct Actor01600 {
     /* 0x20 */ Actor01600Ctx*     field_20;
     /* 0x24 */ byte               pad_24[8];
     /* 0x2C */ TmdObject*         field_2C;
+    /* 0x30 */ s32                field_30;
 } Actor01600;
-STATIC_ASSERT_SIZEOF(Actor01600, 0x30);
+STATIC_ASSERT_SIZEOF(Actor01600, 0x34);
 
 /// Overlay-local view of the gameplay `Gp_StateF0` block (`GpStateF0` in
 /// `include/gameplay/3A34.h`). Only the two bytes this overlay touches are
