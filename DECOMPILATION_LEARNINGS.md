@@ -75935,3 +75935,55 @@ The convention the existing shared headers already follow is to drop the plural
 scratch environment - a scratch body names its own local types - so it is the
 first thing to check when a promoted body builds in scratch but its host overlay
 fails in the project.
+
+## An array element that owns a register must be named as a pointer local
+
+When the target forms a pointer to one element of a struct array and then
+addresses several of its fields through it:
+
+```
+addiu  a0, v1, 0xa0      /* &coord[2] */
+sw     zero, 0x18(a0)
+sw     v0, 0x1c(a0)
+lw     v0, 0x20(a0)
+...
+sw     zero, 0(a0)
+```
+
+writing the element as a subscript — `coord[2].coord.t[0] = 0;` — gives the
+algebraically equal but differently allocated base-plus-displacement form. The
+front end never creates a pseudo for `coord[2]`, so CSE folds the two constants
+into one address and every access comes out `0xb8(v1)`, `0xbc(v1)`, `0xc0(v1)`,
+`0xa0(v1)`. The target's `addiu` disappears and the register that held the
+element pointer is freed for something else, which moves the whole function's
+allocation.
+
+Name the element instead, so each one gets its own quantity:
+
+```c
+/* 89.9% — no addiu; accesses fold to base + displacement */
+coord[2].coord.t[0] = 0;
+coord[2].coord.t[1] = -0x5F;
+...
+coord[3].flg = 0;
+
+/* 100% — addiu a0,<base>,0xa0 and addiu v1,<base>,0xf0 survive */
+c2 = coord + 2;
+c3 = coord + 3;
+c2->coord.t[0] = 0;
+c2->coord.t[1] = -0x5F;
+...
+c3->flg = 0;
+```
+
+`func_actor_102400_80134EB8` is the pure example: a `GsCOORDINATE2` array whose
+entries 2 and 3 walk their local Z (`coord.t[2]` at +0x18, +0x1C, +0x20 behind
+`flg` at +0x0). This is the same trade as "Array index vs intermediate pointer
+for `addu` operand order", read the other way: the subscript form is right when
+the target folds, and the named pointer is right when it does not.
+
+The same rewrite fixed that function's clamp shape. m2c's `goto` form of
+`if (x < 0x1E) x = 0x1E;` keeps 0x1E live in a register as both the bound and
+the stored value, giving `slt v0,v0,v1` and hoisting `li v1,0x1e` into an
+earlier branch's delay slot; the natural clamp gives `slti v0,v0,0x1e` with
+`li v0,0x1e` in the `beqz` delay slot.
