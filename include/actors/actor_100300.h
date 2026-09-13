@@ -191,6 +191,8 @@ extern Actor100300StateFuncTable3 Actor00300_D00004;
 extern Actor100300StateFuncTable3 Actor00300_D0003C;
 extern Actor100300StateFuncTable3 Actor00300_D00048;
 extern s16                        Actor00300_D16394[];
+extern u16                        Actor00300_D15FEC;
+extern s16                        Actor00300_D16000[];
 
 void Actor00300_Fn048D4(Actor100300Ctx* arg0, Actor100300* arg1);
 void Actor00300_Fn04958(Actor100300Ctx* arg0, Actor100300* arg1);

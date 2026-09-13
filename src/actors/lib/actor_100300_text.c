@@ -221,7 +221,51 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01678);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn019C0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01D60);
+void Actor00300_Fn01D60(Actor100300* arg0)
+{
+    Actor100300Work*       work;
+    GsCOORDINATE2*         coord;
+    Actor100300RotScratch* sc;
+    s32                    random;
+
+    sc    = (Actor100300RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (arg0->field_20->field_40 * 100 / (s32)Actor00300_D15FEC < 50 &&
+        (s16)work->field_666 >= 20) {
+        work->field_666 -= 20;
+        work->field_66E  = 4;
+        work->field_684  = 4;
+        work->field_686  = 0;
+    } else if ((s16)work->field_666 >= 5) {
+        work->field_666 -= 5;
+        work->field_66A  = Actor00300_D16000[((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 15];
+        if (work->field_66A == 0) {
+            work->field_684 = 1;
+            work->field_686 = 0;
+            work->field_688 = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 31);
+        } else {
+            work->field_684 = 2;
+            work->field_686 = 0;
+            work->field_688 = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 31) + 60;
+        }
+    } else {
+        sc->vec.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+        sc->vec.vy = 0;
+        sc->vec.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+        if (SquareRoot0(sc->vec.vx * sc->vec.vx + sc->vec.vz * sc->vec.vz) < 3000) {
+            work->field_684 = 3;
+            work->field_686 = 0;
+            random          = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState     = random;
+            work->field_688 = (((u32)random >> 16) & 31) + 60;
+        } else {
+            work->field_684 = 7;
+            work->field_686 = 0;
+        }
+    }
+    *(u32*)0x1F8003FC += 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn01F9C);
 
