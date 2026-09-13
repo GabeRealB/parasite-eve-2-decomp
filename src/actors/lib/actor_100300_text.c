@@ -265,7 +265,28 @@ void Actor00300_Fn05138(Actor100300* arg0)
     sp.funcs[arg0->field_30]((Actor100300Ctx*)arg0->field_20, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn05194);
+void Actor00300_Fn05194(Actor100300Ctx* arg0, Actor100300* arg1)
+{
+    Actor100300*      parent;
+    Actor100300Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    parentCoord;
+    Actor100300Work*  work;
+
+    parent          = arg1->field_8;
+    obj             = arg1->field_2C;
+    parentCoord     = parent->field_2C->field_8;
+    coord           = obj->field_8;
+    work            = parent->field_1C;
+    obj->field_C    = 0;
+    coord->flg      = 0;
+    coord->sub      = parentCoord + 7;
+    obj->field_1C   = work->field_460;
+    obj->field_20   = work->field_440;
+    work->field_628 = coord->coord;
+    work->field_676 = 0;
+    arg1->field_30  = 1;
+}
 
 void Actor00300_Fn0521C(Actor100300* arg0)
 {
