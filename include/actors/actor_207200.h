@@ -23,11 +23,15 @@ typedef struct Actor207200Work {
     /* 0x000 */ byte           pad_0[0x1DC];
     /* 0x1DC */ Actor207200Obj field_1DC;
     /* 0x214 */ Actor207200Obj field_214;
-    /* 0x24C */ byte           pad_24C[0x40];
+    /* 0x24C */ byte           pad_24C[0x18];
+    /* 0x264 */ MATRIX         field_264; // transform folded onto the model part
+    /* 0x284 */ byte           pad_284[8];
     /* 0x28C */ s16            field_28C; // animation id the work is playing
     /* 0x28E */ u16            field_28E; // id the three helper slots last saw
     /* 0x290 */ u16            field_290; // frames spent on the current id
-    /* 0x292 */ byte           pad_292[0x32];
+    /* 0x292 */ byte           pad_292[0xE];
+    /* 0x2A0 */ s16            field_2A0; // angle the transform is scaled by
+    /* 0x2A2 */ byte           pad_2A2[0x22];
     /* 0x2C4 */ Actor207200Obj field_2C4;
     /* 0x2FC */ byte           pad_2FC[0x78];
     /* 0x374 */ Actor207200Obj field_374;
