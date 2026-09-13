@@ -7,6 +7,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
+
 /// The actor's per-part attach coordinates, 0x50 apart, hanging off the
 /// display object's 0x08 slot (`TmdObject::field_8`, the trailing per-part
 /// `GsCOORDINATE2` array). This overlay's code reaches the root and the fourth
@@ -40,22 +42,32 @@ typedef struct Actor402200Obj2C {
 /// the frame handler clears it on entry, `ActorsShared801381e0` raises it to 1
 /// while the remaining-enemy count is positive, and the handler branches on
 /// 0 / 1 thereafter.
+///
+/// `field_718` arms a one-shot vocal cue and `field_71A` is its frame counter.
+/// While the flag is clear the body does nothing; once it is set the counter
+/// runs up, plays the actor's cue at 0x14, and at 0x5F asks the scene for
+/// message 0x3ED - clearing the flag and sending 0x3F1 instead if the scene
+/// refuses it.
 typedef struct Actor402200Work {
     /* 0x000 */ byte pad_0[0x6E2];
     /* 0x6E2 */ s16  field_6E2;
     /* 0x6E4 */ byte pad_6E4[0x10];
     /* 0x6F4 */ s16  field_6F4;
-    /* 0x6F6 */ byte pad_6F6[0x26];
+    /* 0x6F6 */ byte pad_6F6[0x22];
+    /* 0x718 */ s16  field_718;
+    /* 0x71A */ s16  field_71A;
 } Actor402200Work;
 STATIC_ASSERT_SIZEOF(Actor402200Work, 0x71C);
 
 /// Actor context handed to this overlay's callbacks: `field_1C` is the work
-/// block above and `field_2C` the display object. Same shape as the other
-/// actor overlays' contexts.
+/// block above, `field_20` the `GpEnemy` the spawner left in the task's
+/// `Task::spawnArg2` slot, and `field_2C` the display object. Same shape as the
+/// other actor overlays' contexts.
 typedef struct Actor402200 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor402200Work*  field_1C;
-    /* 0x20 */ byte              pad_20[0xC];
+    /* 0x20 */ GpEnemy*          field_20;
+    /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor402200Obj2C* field_2C;
 } Actor402200;
 
