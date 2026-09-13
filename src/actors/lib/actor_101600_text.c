@@ -11,6 +11,7 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn001F4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00480);
 
+void Actor01600_Fn00480(Actor01600* arg0);
 void Actor01600_Fn00A4C(Actor01600* arg0);
 void Actor01600_Fn00BAC(Actor01600* arg0);
 void Actor01600_Fn03D48(Actor01600* arg0);
@@ -509,7 +510,56 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn04EB0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn052C4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn05400);
+void Actor01600_Fn05400(Actor01600* arg0)
+{
+    TmdObject*      obj;
+    TmdObject*      obj2;
+    TmdObject*      obj3;
+    TmdObject*      obj4;
+    s32             kind;
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+
+    ctx  = arg0->field_20;
+    kind = ctx->field_3C->field_2;
+    work = arg0->field_1C;
+    switch (kind) {
+        case 0:
+            Actor01600_Fn00480(arg0);
+            Tmd_AllocBuffers(arg0->field_2C);
+            obj             = arg0->field_2C;
+            obj->field_C   &= 0xFFFB;
+            obj2            = arg0->field_2C;
+            obj2->field_C  &= 0xFF7F;
+            work->field_52E = 1;
+            return;
+        case 3:
+            work->field_53C    = 1;
+            ctx->node.field_4  = 1;
+            work->field_52E    = 0;
+            work->field_530    = 1;
+            work->field_4D8    = 0;
+            work->field_4DA    = (u16)ctx->field_3C->field_A;
+            work->field_4DC    = 0;
+            Actor01600_D12874 += 1;
+            return;
+        case 1:
+            work->field_536 = kind;
+
+        default:
+            obj3               = arg0->field_2C;
+            obj3->field_C     |= 0x80;
+            obj4               = arg0->field_2C;
+            obj4->field_C     |= 4;
+            work->field_53C    = 1;
+            ctx->node.field_4  = 1;
+            work->field_532    = 1;
+            work->field_52E    = 0;
+            work->field_530    = 1;
+            Actor01600_D12874 += 1;
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn05558);
 

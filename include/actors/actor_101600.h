@@ -18,17 +18,26 @@ typedef struct Actor01600Node {
 } Actor01600Node;
 STATIC_ASSERT_SIZEOF(Actor01600Node, 0x8);
 
+/// Fields read from this actor's spawn parameter record.
+typedef struct Actor01600Params {
+    /* 0x00 */ byte pad_0[2];
+    /* 0x02 */ u16  field_2;
+    /* 0x04 */ byte pad_4[6];
+    /* 0x0A */ s16  field_A;
+} Actor01600Params;
+
 typedef struct Actor01600Ctx {
-    /* 0x00 */ byte           pad_0[0x8];
-    /* 0x08 */ u16            field_8;
-    /* 0x0A */ byte           pad_A[0x6];
-    /* 0x10 */ Actor01600Node node;
-    /* 0x18 */ byte           pad_18[0x28];
-    /* 0x40 */ u16            field_40;
-    /* 0x42 */ byte           pad_42[0xA];
-    /* 0x4C */ u8             field_4C;
-    /* 0x4D */ byte           pad_4D[7];
-    /* 0x54 */ s32            field_54;
+    /* 0x00 */ byte              pad_0[0x8];
+    /* 0x08 */ u16               field_8;
+    /* 0x0A */ byte              pad_A[0x6];
+    /* 0x10 */ Actor01600Node    node;
+    /* 0x18 */ byte              pad_18[0x24];
+    /* 0x3C */ Actor01600Params* field_3C;
+    /* 0x40 */ u16               field_40;
+    /* 0x42 */ byte              pad_42[0xA];
+    /* 0x4C */ u8                field_4C;
+    /* 0x4D */ byte              pad_4D[7];
+    /* 0x54 */ s32               field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
 
@@ -52,7 +61,10 @@ typedef struct Actor01600Work {
     /* 0x4CC */ s16    field_4CC;
     /* 0x4CE */ byte   pad_4CE[6];
     /* 0x4D4 */ Task*  field_4D4;
-    /* 0x4D8 */ byte   pad_4D8[8];
+    /* 0x4D8 */ s16    field_4D8;
+    /* 0x4DA */ s16    field_4DA;
+    /* 0x4DC */ s16    field_4DC;
+    /* 0x4DE */ byte   pad_4DE[2];
     /* 0x4E0 */ s32    field_4E0;
     /* 0x4E4 */ byte   pad_4E4[6];
     /* 0x4EA */ s16    field_4EA;
@@ -83,13 +95,16 @@ typedef struct Actor01600Work {
     /* 0x524 */ byte   pad_524[2];
     /* 0x526 */ s16    field_526;
     /* 0x528 */ s16    field_528;
-    /* 0x52A */ byte   pad_52A[6];
+    /* 0x52A */ byte   pad_52A[4];
+    /* 0x52E */ s16    field_52E;
     /* 0x530 */ s16    field_530;
     /* 0x532 */ s16    field_532;
     /* 0x534 */ s16    field_534;
     /* 0x536 */ s16    field_536;
     /* 0x538 */ s16    field_538;
-    /* 0x53A */ byte   pad_53A[6];
+    /* 0x53A */ byte   pad_53A[2];
+    /* 0x53C */ s16    field_53C;
+    /* 0x53E */ byte   pad_53E[2];
     /* 0x540 */ s16    field_540;
     /* 0x542 */ u16    field_542;
     /* 0x544 */ byte   pad_544[0xA];
