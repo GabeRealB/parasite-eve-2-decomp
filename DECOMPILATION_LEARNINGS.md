@@ -65388,3 +65388,56 @@ Inputs: `base_2.i`
 `02ced327ae4a827a114d0e5f0dfd7ad0d120a0e20ca913aa21e2c08572faa1a3`,
 `base_4.i`
 `f4e66b8563a323465611991cf9914b2e0ae263c267998b3cea0f40a8c4e5341f`.
+
+## `do{}while(0)` flips an allocno tie: `REG_N_REFS` is weighted by loop depth
+
+Two call-crossing pointers can sit at an **exact** tie in `allocno_compare`, and
+then the tie-break (`return v1 - v2`, the lower allocno index) decides which one
+gets the lower callee-saved register. No rearrangement of the equal-priority
+statements moves it, because the priority inputs are counts, not orderings:
+
+```
+pri = floor_log2 (allocno_n_refs) * allocno_n_refs / allocno_live_length * 10000 * allocno_size
+```
+
+`func_actor_800100_80163D54` was 98.796% with `regs=26` and one difference: the
+argument (`$s3` in retail) and a cached `arg0->actor` (`$s2`) exchanged homes.
+`.greg` printed `;; 7 regs to allocate: 86 85 84 80 81 82 83`, and the priorities
+are `3*11/154 = 33/154` for the argument against `2*6/56 = 12/56` for the actor -
+both `0.2142857`, so the argument's lower pseudo number took `$s2` first.
+`allocno_live_length` is the max of `REG_LIVE_LENGTH` over the allocno's pseudos,
+and it is **not** the `.flow` line's "across N insns" figure (88 and 66 there);
+`tools/trace_gcc.py` prints the values `global_alloc` actually used.
+
+The lever is that flow.c does not count a reference as one:
+
+```c
+REG_N_REFS (regno) += loop_depth;     /* flow.c:1969, 2218, 2404, 2616 */
+```
+
+and `depth` starts at **1** at the top level (flow.c:402), incrementing on
+`NOTE_INSN_LOOP_BEG`. So a reference inside a loop counts *twice*, and wrapping a
+single reference in a constant-false `do{}while(0)`:
+
+```c
+count = (u16) actor->field_942 + 1;
+do { actor->field_942 = count; } while (0);   /* 98.796% -> 100% */
+```
+
+raises that allocno to 7 refs, `floor_log2(7)*7/56 = 2500 > 33/154`, which orders
+it before the tied one (`86 85 84 81 80 82 83`) and the two swap homes the way
+retail has them. The loop folds away, so the instruction stream is byte-identical
+- a pure allocation lever, and the reason the same construct works as a
+scheduling barrier elsewhere. `.flow` shows it directly: `Register 81 used 6
+times` becomes `7 times` at an unchanged `66 insns`, while `.greg` shows the
+reordered list and `80 in 19  81 in 18`. Prefer this over a register pin when a
+`.greg` tie is the whole difference; `$s0`-`$s4` are handed out in allocation
+order to the lowest free register, so flipping the order flips the homes.
+
+A permuter search found the transformation (130 -> 0 differences); the mechanism
+was then confirmed by a planned one-change variation of the seed (predicted refs
+7, predicted order, predicted dispositions - all three held).
+Inputs: `base_2.i`
+`4cc71342dcc30427e9b325d84df37f543ab2be1e1f9bf6a1793e7c9451855da9`,
+`base_3.i`
+`e6a78850e0446f9c067e5dd6d6cf4bc3d660c54f40c352f73bc56b6d66987fcc`.

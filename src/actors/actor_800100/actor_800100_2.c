@@ -4,7 +4,56 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80163D54);
+s32  func_8010BC70(GsCOORDINATE2* arg0);
+s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
+void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
+s32  rand();
+
+void func_actor_800100_80163D54(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    s32            flag;
+    s32            dist;
+    s32            val;
+    s16            count;
+
+    actor  = arg0->actor;
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    flag   = (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x042A0000;
+    if (arg0->actor->field_910->field_C4 <= 0) {
+        func_8010BF7C(arg0, 0xA, 0x1F);
+        dist = func_8010BC70(coord);
+        if ((dist >= 0x600 && (rand() & 0xFF) >= 0xF1) || (dist >= 0x400 && flag != 0)) {
+            func_actor_800100_801656C8(arg0);
+        } else {
+            count = (u16)actor->field_942 + 1;
+            do {
+                actor->field_942 = count;
+            } while (0);
+            if (count >= ((rand() & 3) + 3)) {
+                if (actor->field_95E == 0) {
+                    actor->field_95E = 1;
+                    Gp_AnimPlayChildSlotsEx(arg0, 0x17, 0, 5);
+                } else if ((rand() & 0xFF) >= 0xD0) {
+                    func_actor_800100_80165720(arg0);
+                }
+            } else {
+                val = func_8010BCF4((Task*)arg0, (VECTOR3*)target->coord.t);
+                if (val < 0) {
+                    val = -val;
+                }
+                if (val >= 0x200) {
+                    actor->field_90C = NULL;
+                    func_actor_800100_801656F4(arg0);
+                }
+            }
+        }
+    }
+    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100_2", D_actor_800100_80161E4C);
 
