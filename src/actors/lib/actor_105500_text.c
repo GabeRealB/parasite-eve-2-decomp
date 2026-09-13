@@ -171,7 +171,22 @@ void Actor05500_Fn0378C(Actor105500* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03864);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03918);
+void Actor05500_Fn03918(Actor105500* arg0)
+{
+    GsCOORDINATE2*   coord;
+    Actor105500Work* work;
+
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+
+    work->field_35C.vx = coord->coord.t[0];
+    work->field_35C.vy = coord->coord.t[1];
+    work->field_35C.vz = coord->coord.t[2];
+
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_398) >> 12;
+    coord->coord.t[1] += work->field_3A8;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_398) >> 12;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn039AC);
 
