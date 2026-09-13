@@ -136,7 +136,41 @@ void func_actor_405800_80132E3C(Task* arg0, s16 arg1, u8 arg2)
     func_actor_405800_801329C8(arg0, 0x10, 0x11, 0x100, arg1, arg2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80132FE0);
+void func_actor_405800_80132FE0(Task* arg0)
+{
+    Actor405800Work* work;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    SVECTOR          rot;
+
+    work            = (Actor405800Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    coord           = model->field_8;
+    work->field_832 = (u16)work->field_832 + ((s16)(0xFF - (u16)work->field_832) >> 4);
+    work->field_834 = (u16)work->field_834 + ((s16)(-(u16)work->field_834) >> 4);
+    work->field_866 = (u16)work->field_866 + (-work->field_866 >> 2);
+    model->field_2C = work->field_834;
+    func_8009EA50(work->field_832);
+    work->flags_83C.h.field_83E -= 0x30;
+    scale.vx                     = 0x1000;
+    scale.vy                     = work->flags_83C.h.field_83E;
+    scale.vz                     = 0x1000;
+    coord->coord                 = work->matrix_0;
+    ScaleMatrix(&coord->coord, &scale);
+    coord->flg = 0;
+    work->field_842++;
+    if ((s16)work->field_842 == 8) {
+        rot.vx = 0;
+        rot.vy = 0;
+        rot.vz = 0;
+        Gp_SpawnEff(0x600A5, coord, 3, &rot);
+    }
+    if ((s16)work->field_842 >= 0x41) {
+        model->field_C |= 0x80;
+        work->field_846++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_8013315C);
 
