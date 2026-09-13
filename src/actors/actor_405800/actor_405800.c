@@ -1261,7 +1261,93 @@ void func_actor_405800_80135780(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135A3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135E28);
+/// Animation state 4: drives the two sound/tracking windows the same way
+/// `func_actor_400600_80135DDC` does, one frame-count pair per sound event.
+void func_actor_405800_80135E28(Task* arg0)
+{
+    Actor405800Work* work;
+    GsCOORDINATE2*   coord;
+    u8               start0;
+    u32              tmp0;
+    u8               tmp1;
+    u8               tmp2;
+    u8               end0;
+    u8               start1;
+    u8               end1;
+    s32              id;
+    u32              sound;
+    u32              voice;
+    s32              pan;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (work->field_872 != 4) {
+        work->field_850 = 0x10;
+        work->field_84A = 4;
+        work->field_872 = 4;
+        work->field_86E = 1;
+        Actor405800_TickAnim(arg0);
+    }
+    start0 = 0;
+    if (((Actor405800Work*)arg0->idMap)->field_850 == 0) {
+        tmp0 = 0;
+    } else {
+        tmp0 = (u32)(0xD00 / ((Actor405800Work*)arg0->idMap)->field_850) >> 4;
+    }
+    end0 = tmp0;
+    if (((Actor405800Work*)arg0->idMap)->field_850 == 0) {
+        tmp1 = 0;
+    } else {
+        tmp1 = (u32)(0xE00 / ((Actor405800Work*)arg0->idMap)->field_850) >> 4;
+    }
+    start1 = tmp1;
+    if (((Actor405800Work*)arg0->idMap)->field_850 == 0) {
+        tmp2 = 0;
+    } else {
+        tmp2 = (u32)(0x1B00 / ((Actor405800Work*)arg0->idMap)->field_850) >> 4;
+    }
+    end1 = tmp2;
+    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+        work->field_874 = 0;
+    }
+    if (work->field_874 == start0) {
+        ActorsShared80139dcc(arg0, 8, (ActorsShared80139dccPos*)&work->field_88);
+        id = 0x40050001;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0001;
+        }
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        voice   = sound;
+        sound   = id | voice;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_874 == start1) {
+        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        id = 0x40050002;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0002;
+        }
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        voice   = sound;
+        sound   = id | voice;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_874 >= start0 && work->field_874 <= end0) {
+        func_actor_405800_80138514(arg0, 8, &work->field_88);
+    }
+    if (work->field_874 >= start1 && work->field_874 <= end1) {
+        func_actor_405800_80138514(arg0, 0xB, &work->field_88);
+    }
+    coord->flg = 0;
+}
 
 void func_actor_405800_801361F8(Task* arg0)
 {
