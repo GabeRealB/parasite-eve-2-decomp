@@ -61,7 +61,7 @@ typedef struct Actor105500Work {
     /* 0x3A4 */ s16       field_3A4;
     /* 0x3A6 */ s16       field_3A6;
     /* 0x3A8 */ s16       field_3A8;
-    /* 0x3AA */ byte      pad_3AA[2];
+    /* 0x3AA */ s16       field_3AA;
     /* 0x3AC */ u16       field_3AC;
     /* 0x3AE */ byte      pad_3AE[2];
     /* 0x3B0 */ s16       field_3B0;
@@ -77,7 +77,7 @@ typedef struct Actor105500Work {
     /* 0x3C4 */ s16       field_3C4;
     /* 0x3C6 */ s16       field_3C6;
     /* 0x3C8 */ s16       field_3C8;
-    /* 0x3CA */ byte      pad_3CA[2];
+    /* 0x3CA */ s16       field_3CA;
     /* 0x3CC */ s16       field_3CC;
     /* 0x3CE */ s16       field_3CE;
     /* 0x3D0 */ s16       field_3D0;
@@ -142,6 +142,7 @@ extern s16     Actor05500_D089E0[];
 extern s16     Actor05500_D089E8[];
 extern s16     Actor05500_D08A20;
 extern s16     Actor05500_D08A38[][2];
+extern s16     Actor05500_D08A5C[][2];
 extern s8      D_8011540E;
 extern MATRIX* D_80073B8C[1];
 extern s8      D_80115412;

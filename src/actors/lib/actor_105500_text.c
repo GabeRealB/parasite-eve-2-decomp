@@ -396,7 +396,141 @@ void Actor05500_Fn012E8(Actor105500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0143C);
+void Actor05500_Fn0143C(Actor105500* arg0)
+{
+    Actor105500Work*  work;
+    GsCOORDINATE2*    coord;
+    SVECTOR*          scratchEnd;
+    register SVECTOR* allocated asm("v1");
+    SVECTOR*          rotation;
+    s16(*motion0)[2];
+    s16(*motion1)[2];
+    s16 state;
+    s32 sound;
+    s32 index;
+    s32 pan;
+    s32 pan1;
+    u32 random;
+
+    scratchEnd                          = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+    allocated                           = scratchEnd - 1;
+    rotation                            = allocated;
+    *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = allocated;
+    work                                = arg0->field_1C;
+    state                               = work->field_39C;
+    coord                               = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_3C8 = 0;
+            work->field_3CA = 0;
+            work->field_398 = 0;
+            work->field_3A6 = 0;
+            if ((u32)(work->field_396 - 0x1B) < 0xDU) {
+                work->field_3C8        = 1;
+                work->field_3CA        = 1;
+                work->field_2E4.flags |= 0xC000;
+                if (work->field_3B0 == 0) {
+                    index = (s16)work->field_396 < 0x22;
+                } else {
+                    index = 3;
+                    if ((s16)work->field_396 < 0x22) {
+                        index = 4;
+                    }
+                }
+                work->field_2E4.field_18 = Gp_PackPair(&Actor05500_D08958, index);
+                if (((s16)work->field_396 < 0x23) && ((work->field_3D0 != 0) || (work->field_3CE != 0))) {
+                    work->field_39C        = 1;
+                    work->field_3CA        = 0;
+                    work->field_392        = 5;
+                    work->field_2E4.flags &= 0x3FFF;
+                    break;
+                }
+            } else {
+                work->field_2E4.flags &= 0x3FFF;
+            }
+            index   = 0;
+            motion0 = Actor05500_D08A38;
+            for (; index < 9; index++, motion0++) {
+                if ((s16)work->field_396 <= (motion0[0][0] + Actor05500_D08A20)) {
+                    coord->coord.t[0] += (s32)(motion0[0][1] * rsin((s32)work->field_3A2)) >> 0xC;
+                    coord->coord.t[2] += (s32)(motion0[0][1] * rcos((s32)work->field_3A2)) >> 0xC;
+                    break;
+                }
+            }
+            if ((s16)work->field_396 == 0x28) {
+                sound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
+                pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(sound, (s32)pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_3C8 = 0;
+                if (((Actor105500Ctx*)arg0->field_20)->field_40 <= 0) {
+                    work->field_39A = 9;
+                    work->field_39C = 0;
+                    arg0->field_30  = 2;
+                }
+            }
+            if ((s16)work->field_396 >= (Actor05500_D08A20 + 0x46)) {
+                work->field_39A = 3;
+                work->field_39C = 0;
+                work->field_392 = 1;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + ((random >> 0x10) & 0xF);
+                Gp_LcgState     = random;
+            }
+            break;
+        case 1:
+            index           = 0;
+            motion1         = Actor05500_D08A5C;
+            work->field_398 = 0;
+            work->field_3A6 = 0;
+            for (; index < 9; index++, motion1++) {
+                if ((s16)work->field_396 <= motion1[0][0]) {
+                    coord->coord.t[0] += (s32)(motion1[0][1] * rsin((s32)work->field_3A2)) >> 0xC;
+                    coord->coord.t[2] += (s32)(motion1[0][1] * rcos((s32)work->field_3A2)) >> 0xC;
+                    break;
+                }
+            }
+            if ((u32)(work->field_396 - 0x1F) < 0xFU) {
+                coord->coord.t[0] += (s32)(rcos((s32)work->field_3A2) * 0xB) >> 0xC;
+                coord->coord.t[2] += (s32)(rsin((s32)work->field_3A2) * 0xB) >> 0xC;
+            }
+            if ((s16)work->field_396 == 0x10) {
+                sound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
+                pan1  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(sound, (s32)pan1, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_3C8 = 2;
+                if (((Actor105500Ctx*)arg0->field_20)->field_40 <= 0) {
+                    work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
+                    rotation->vx    = 0;
+                    rotation->vy    = (u16)work->field_3A2 + 0x800;
+                    rotation->vz    = 0;
+                    RotMatrix(rotation, &coord->coord);
+                    work->field_39A = 9;
+                    work->field_39C = 0;
+                    arg0->field_30  = 2;
+                }
+            }
+            if ((s16)work->field_396 >= 0x46) {
+                work->field_39A = 3;
+                work->field_39C = 0;
+                work->field_392 = 1;
+                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_3AA = 1;
+                if (work->field_3C8 == 2) {
+                    work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
+                    rotation->vx    = 0;
+                    rotation->vy    = (u16)work->field_3A2 + 0x800;
+                    rotation->vz    = 0;
+                    RotMatrix(rotation, &coord->coord);
+                    work->field_3C8 = 0;
+                }
+                for (index = 1; index < 8; index++) {
+                    func_800B4114(work, index, (s32)work->field_392, 0, 0);
+                }
+            }
+            break;
+    }
+    *(s32*)PSX_SCRATCH_ADDR(0x3FC) += 8;
+}
 
 #include "actors_shared_fn01a0c.c"
 
