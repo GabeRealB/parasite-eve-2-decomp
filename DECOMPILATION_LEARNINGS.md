@@ -67255,3 +67255,41 @@ the source narrowed. So read a sign-extension pair on a call result feeding an
 argument as "this call is cast to `s8`" and fix the C to match, whichever
 argument it is - `func_actor_206100_8014F8BC` needed it on the nested
 `Gp_GetObjDepth` call as well as on `pan` (84.889% -> 100%, one rewrite).
+
+## m2c reads a stack-resident function-pointer table as stack-passed arguments
+
+A local `void (*states[2])(Task*)` indexed by a struct field compiles to a table
+built on the frame (`sw` to `0x10($sp)` / `0x14($sp)`) and then a `jalr` through
+the selected slot; GCC never passes those two stores as outgoing arguments. m2c
+cannot tell the two apart and renders the whole thing as one indirect call whose
+argument list is the table:
+
+```c
+M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x522) * 4)),
+          M2C_UNK (**)(void (*)(Task *), M2C_UNK *), 0x10)
+    (func_actor_206100_8014F9C4, &func_actor_206100_8014FA08);
+```
+
+Besides the bogus two-argument signature, `sp` is not even a C identifier, so
+the seed does not compile. The tells are a `jalr` with no `move $a0,...` in
+front of it (the caller's own `arg0` is already in `$a0`) and `$a1` never
+written anywhere in the function. Write the array instead:
+
+```c
+void func_actor_206100_8014F608(Task* task)
+{
+    Actor206100Work* work                = (Actor206100Work*)task->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_206100_8014F9C4,
+        func_actor_206100_8014FA08,
+    };
+
+    states[(s16)work->field_522](task);
+}
+```
+
+`func_actor_206100_8014F608` went 50.238% -> 100% on this one rewrite, and the
+actors family already had the same body matched twice more
+(`func_actor_341700_80168124`, `func_actor_341700_8016859C`) - check those
+siblings first, since the `(s16)` cast on the index belongs to the load
+(`lh`), not to the source field's declared type.
