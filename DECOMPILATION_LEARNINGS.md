@@ -65903,3 +65903,35 @@ load schedule first and makes the `4` and the `sltu` live at the same time, so
 they take different registers (`$v1`, `$a0`). Seed with the read late and the
 variable reused: 77.4%; hoist the read: 98.1% (`insert`/`delete`/`reorder` all
 0, `regs` 14); split the variable as well: exact.
+
+## An `s16` field's `> 0` guard plus `--` loads the address twice: `lh`, then `lhu`
+
+```
+lh    $v0, 0xC4($a0)
+lhu   $v1, 0xC4($a0)
+blez  $v0, .L
+addiu $v0, $v1, -1
+sh    $v0, 0xC4($a0)
+```
+
+Two loads of one address is the *natural* codegen for `if (x > 0) x--;` on an
+`s16` struct member: the compare needs a sign-extended SI (`extendhisi2`), the
+HI-mode decrement reloads zero-extended (`movhi`). Do not "fix" the pair with a
+cast on either read - the plain form is what emits both, and either cast drops
+one of them.
+
+The load width of a member is chosen by the C expression, so when the struct's
+declared signedness disagrees with the target's opcode, cast the *member
+access*:
+
+```c
+if ((u16)d4->field_96C != 0)   /* lhu; plain `!= 0` on the s16 member is lh */
+if ((s8)actor->field_97A == 0) /* lb;  plain `== 0` on the u8 member is lbu  */
+```
+
+This contradicts the `s8`-globals entry above only in scope: a global's
+declared type decides its load and a use-site cast is too late, but a member
+cast does select the load, because the member's type is fixed by the struct and
+the cast is what sets the access mode. Verified against the bundled cc1 on
+minimal functions; `func_actor_800200_80165B84` is the worked example (both
+casts, exact on the first attempt after the m2c seed scored 60.9%).
