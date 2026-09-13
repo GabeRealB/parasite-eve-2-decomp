@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+#include <psyq/libgte.h>
+
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
 ///
@@ -52,6 +54,13 @@ typedef struct Actor341900Work {
     /* 0x6E */ byte  pad_6E[0x2];
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
+
+/// Position and Euler rotation payload sent to slot 3 as message 0x3E9.
+typedef struct Actor341900MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor341900MsgPos;
+STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 
 /// Controller task of this overlay, published by `func_actor_341900_80162EFC`
 /// and read by the sequence helpers that hang their work off its `Task::idMap`.
