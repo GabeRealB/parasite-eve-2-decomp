@@ -15,7 +15,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_8013631C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_80136358);
+void func_actor_560800_80136358(s16 arg0)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+
+    work->field_28 = arg0;
+    work->field_2A = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_80136378);
 
