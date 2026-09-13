@@ -91,7 +91,13 @@ void Actor00300_Fn04664(GsCOORDINATE2* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04770);
+void Actor00300_Fn04770(Actor100300* arg0)
+{
+    Actor100300StateFuncTable3 sp;
+
+    sp = Actor00300_D00004;
+    sp.funcs[arg0->field_30]((Actor100300Ctx*)arg0->field_20, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn047CC);
 

@@ -41,6 +41,7 @@ typedef struct Actor100300 {
     /* 0x20 */ GpEnemy*          field_20;
     /* 0x24 */ byte              pad_24[0x8];
     /* 0x2C */ Actor100300Obj2C* field_2C;
+    /* 0x30 */ s32               field_30;
 } Actor100300;
 
 typedef struct Actor100300Ctx {
@@ -52,6 +53,12 @@ typedef struct Actor100300DestroyArgs {
     /* 0x00 */ byte pad_0[2];
     /* 0x02 */ u16  field_2;
 } Actor100300DestroyArgs;
+
+typedef struct Actor100300StateFuncTable3 {
+    void (*funcs[3])(Actor100300Ctx*, Actor100300*);
+} Actor100300StateFuncTable3;
+
+extern Actor100300StateFuncTable3 Actor00300_D00004;
 
 void Actor00300_Fn04958(Actor100300Ctx* arg0, Actor100300* arg1);
 
