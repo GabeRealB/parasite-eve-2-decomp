@@ -6,7 +6,20 @@
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A2F4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A364);
+void Actor00400_Fn0A364(Task* arg0)
+{
+    Actor100400QuadWork* work;
+    u8                   intensity;
+
+    work = (Actor100400QuadWork*)arg0->idMap;
+    Actor00400_Fn03318(&work->vertices[0], &work->vertices[1],
+                       &work->vertices[2], &work->vertices[3], work->intensity);
+    intensity       = work->intensity - 1;
+    work->intensity = intensity;
+    if (intensity == 0) {
+        Task_Kill(arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text_tail", Actor00400_Fn0A3D4);
 

@@ -21,6 +21,14 @@ typedef struct Actor100400Obj {
     /* 0x4D */ byte pad_4D[0x13];
 } Actor100400Obj;
 
+typedef struct Actor100400QuadWork {
+    /* 0x00 */ Actor100400Obj* field_0;
+    /* 0x04 */ SVECTOR         vertices[4];
+    /* 0x24 */ u8              intensity;
+} Actor100400QuadWork;
+
+void Actor00400_Fn03318(SVECTOR*, SVECTOR*, SVECTOR*, SVECTOR*, s32);
+
 typedef struct Actor100400Work {
     /* 0x000 */ byte     pad_0[8];
     /* 0x008 */ byte     field_8[0x20];
