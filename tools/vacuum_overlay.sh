@@ -393,28 +393,32 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
         # nothing actually wrong. The queue verifies trunk after every room
         # anyway, so the second check bought nothing and cost a false alarm.
         if [[ $rc -ne 0 ]]; then
-            log "landing agent failed; worktree kept at $WT"
-            exit 1
+            log "LANDING FAILED: $OVERLAY - landing agent failed; ${#MATCHED[@]} match(es) kept on $BRANCH_NAME (worktree $WT)"
+            exit 3
         fi
         if git -C "$WT" log --oneline "$BASE..HEAD" --format=%s \
              | grep -qvxFf <(git -C "$ROOT" log --oneline "$BASE..HEAD" --format=%s); then
-            log "agent reported success but some commits are missing on trunk; worktree kept at $WT"
-            exit 1
+            log "LANDING FAILED: $OVERLAY - agent reported success but commits are missing on trunk; worktree $WT"
+            exit 3
         fi
         log "agent landing complete; every branch commit is on trunk"
         cleanup_worktree
         trap - EXIT; release_all; exit 0
     fi
-    log "no ${land_cmd[0]:-claude} CLI available; leaving the worktree at $WT for a manual landing"
-    exit 1
+    log "LANDING FAILED: $OVERLAY - no ${land_cmd[0]:-claude} CLI for the landing agent; worktree $WT"
+    exit 3
 fi
 
 log "acquiring merge lock"
 if ! orch merge-acquire --session "$SESSION" --pid $$ --wait "${VACUUM_MERGE_WAIT:-3600}" \
      >>"$LOG_FILE" 2>&1; then
-    log "could not take the merge lock; worktree kept at $WT"
+    # Matches are already verified and committed on the branch by this point,
+    # so a lock timeout strands them exactly as a failed landing does. Exit 1
+    # here told the driver "no work left" and it moved on without a word -
+    # which is how actors/lib/actor_101600_text's 19 matches went unnoticed.
+    log "LANDING FAILED: $OVERLAY - could not take the merge lock; matches kept on $BRANCH_NAME (worktree $WT)"
     trap - EXIT
-    exit 1
+    exit 3
 fi
 release_all() {
     orch merge-release --session "$SESSION" >/dev/null 2>&1 || true

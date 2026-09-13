@@ -102,6 +102,18 @@ worker() {
             skipped=$((skipped + 1))
             log "worker $id: $name returned $rc (leased elsewhere, or no work left)"
         fi
+        # Belt and braces, independent of the exit code: if the branch survived
+        # with commits ahead of main, matches are stranded whatever rc said. An
+        # exit code can only report a path the script actually took - a crash, a
+        # kill, or a path that still exits 1 reports nothing at all, and that is
+        # how 19 verified matches sat unnoticed behind a plain "returned 1".
+        b="overlay/$name"
+        if git -C "$ROOT" rev-parse --verify -q "$b" >/dev/null 2>&1; then
+            ahead=$(git -C "$ROOT" log --oneline "main..$b" 2>/dev/null | grep -c ' matched ')
+            if [[ "${ahead:-0}" -gt 0 ]]; then
+                log "worker $id: STRANDED - $b still holds $ahead verified match(es) after rc=$rc"
+            fi
+        fi
     done
     log "worker $id finished: $done swept, $skipped skipped, $stranded stranded"
 }
