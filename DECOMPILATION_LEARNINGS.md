@@ -68309,3 +68309,27 @@ Practical note: this body's sibling is `Actor00700_Fn01C10` in
 and the right local widths. Reading a 1.00-scoring `similar` sibling's C and
 copying its control flow and declaration types took the m2c seed from 83.7%
 (branch=1 regs=10 insert=4 delete=4) to 100% on the first rewrite.
+
+## A one-overlay checksum failure during a concurrent sweep is probably shared `assets/`
+
+In the per-overlay worktree layout, `assets/` and `venv/` are **symlinks into
+the main checkout** (`pe2-ov-actor_<id>/assets -> /home/gabriel/parasite-eve-2-decomp/assets`),
+so every worktree reads one shared extracted-content tree. A lane running
+`ninja_config.py` in *another* worktree rewrites files under it while your
+build is reading them.
+
+Symptom: an unscoped `./tools/build-and-verify.sh` stops with
+
+```
+build/USA/out/actor_104400: FAILED
+sha256sum: WARNING: 1 computed checksum did NOT match
+```
+
+for an overlay the change never touched, while `--only actor_104400` on that
+same unit passes and the next unscoped run passes too. Observed here with two
+other worktrees in `ninja_config.py` at the same moment.
+
+Rebuild just the failing unit (`./tools/build-and-verify.sh --only <unit>`),
+then re-run the bare build. Do not treat it as a codegen difference and do not
+commit through the failure - the check is right to stop. If it reproduces on a
+quiet tree, it is real.
