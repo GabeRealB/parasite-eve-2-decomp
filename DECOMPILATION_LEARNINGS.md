@@ -68403,6 +68403,23 @@ no evidence either way. Reproduce `scan_function`'s canonicalisation loop and
 `diff` the two streams — a difference count where every line names a label is
 the signature of this, not of a real divergence.
 
+That label difference is a property of the *file*, not of the code: the twin's
+`goto`-and-label dispatch is not load-bearing. `func_actor_300700_801643D0`
+against `Actor00700_Fn00F20` was ported twice, once with the lib body's
+`goto case0/case1/case2/pop` skeleton and once as a plain
+`switch (state) { case 0: … return; … }`, and both compiled to byte-identical
+assembly (`build.sh` reported "repeated assembly" for the second). So port the
+twin's *field offsets and statement order*, which do matter, and keep this
+repo's house style for the dispatch rather than transcribing its labels.
+
+The one thing that must come from the twin is its aggregate locals. The lib
+body builds a `VECTOR` field by field; m2c instead emitted three scalar `s32`
+stack locals and cast the first one's address, so flow deleted the two
+un-addressed stores and their loads. See "m2c's scalar stack locals for an
+address-taken struct lose their dead stores" above — the symptom there is a
+shorter object, and the frame shrink is *not* reported as a `stack` penalty, so
+a clean `stack=0` does not rule it out.
+
 ## A 0x2F4 actor spawn work is three `GpObj` nodes and their `GpRec18` tables
 
 Spawn handlers that `Mem_Calloc(0x2F4)` and fill render nodes link three

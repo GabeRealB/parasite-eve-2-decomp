@@ -490,7 +490,83 @@ INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164070);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801643D0);
+/// `D_80073B8C` is the camera-target matrix the vector below is measured from.
+extern MATRIX* D_80073B8C;
+
+/// Three-state launcher. State 0 arms the timer from `Gp_LcgState` and stores
+/// the direction from the camera target to `field_2C->field_8` into
+/// `field_370` with `VectorNormalS`; state 1 pushes the coordinate along that
+/// normal while `field_382` is below `0xF`, runs the `field_38C` countdown and
+/// hands over to the teardown state 3 (or 2) when it expires; state 2 clears
+/// the state machine once `field_382` reaches `0x20`.
+void func_actor_300700_801643D0(Actor300700* arg0)
+{
+    VECTOR            vec;
+    Actor300700Work*  work;
+    Actor300700Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    s32               state;
+    s32               one;
+    s32               rng;
+    s32               posX;
+
+    one   = 1;
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    state = work->field_37C;
+    coord = obj->field_8;
+    switch (state) {
+        case 0:
+            work->field_37E = 0xA;
+            work->field_380 = one;
+            work->field_384 = 0;
+            work->field_386 = 0;
+            work->field_396 = one;
+            work->field_37C = one;
+            rng             = Gp_LcgState * 5 + 0x71357911;
+            work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
+            Gp_LcgState     = rng;
+            posX            = coord->coord.t[0];
+            vec.vx          = D_80073B8C->t[0] - posX;
+            vec.vy          = D_80073B8C->t[1] - coord->coord.t[1];
+            vec.vz          = D_80073B8C->t[2] - coord->coord.t[2];
+            VectorNormalS(&vec, &work->field_370);
+            return;
+        case 1:
+            if ((s16)work->field_382 < 0xF) {
+                coord->coord.t[0] += -(work->field_370.vx * 50) >> 12;
+                coord->coord.t[2] += -(work->field_370.vz * 50) >> 12;
+            }
+            if ((u32)(work->field_382 - 6) < 9) {
+                work->field_386 = 0x93;
+                work->field_38A = (work->field_38A + 0x5C7) & 0xFFF;
+            } else {
+                work->field_386 = 0;
+            }
+            work->field_38C = work->field_38C - 1;
+            if ((s16)work->field_38C <= 0) {
+                if ((arg0->field_20->field_4C & 2) != 0) {
+                    work->field_37E = 8;
+                    work->field_37A = 3;
+                    work->field_37C = 3;
+                    return;
+                }
+                work->field_37E = 9;
+                work->field_37C = 2;
+            }
+            return;
+        case 2:
+            if ((s16)work->field_382 >= 0x20) {
+                work->field_37A = 0;
+                work->field_37C = 0;
+                work->field_37E = one;
+                work->field_38C = 0;
+                work->field_394 = one;
+                work->field_396 = 0;
+            }
+            break;
+    }
+}
 
 /// Per-frame tick. State 0 arms the timer and latches `field_396`; state 1
 /// waits it out; state 2 counts `field_38C` down and moves to the teardown
