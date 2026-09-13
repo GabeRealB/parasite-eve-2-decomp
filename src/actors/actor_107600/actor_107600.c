@@ -187,7 +187,27 @@ void func_actor_107600_80134920(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134958);
+/// Links this actor's display node the way `func_8010C980` does for the
+/// gameplay objects: the node's collision table is the `GpRec18` run at
+/// `work->rec18` (count 8), and its `field_1C` payload is the spawn variant's
+/// height, 0x220 for the `field_162 == 1` variant and 0x190 otherwise.
+void func_actor_107600_80134958(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GpRec18*         rec   = work->rec18;
+
+    work->obj.field_8  = coord;
+    work->obj.field_C  = rec;
+    work->obj.field_10 = 0;
+    work->obj.field_12 = -0x250;
+    work->obj.field_14 = 0;
+    work->obj.field_18 = 0x3004C;
+    work->obj.field_1C = (work->field_162 == 1) ? 0x220 : 0x190;
+    work->obj.flags    = 1;
+    Gp_LinkObj(2, &work->obj);
+    Gp_InitRec18Table(rec, 8, 0);
+}
 
 /// Copies the world position of the model's first attach coordinate onto a
 /// 0x10-byte `VECTOR` carved off `G_SCRATCH_HEAD` and hands it to

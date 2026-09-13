@@ -19,26 +19,38 @@
 /// root's rotation from, the same trio `ActorsShared80139948` reads at +0x80.
 /// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
 /// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
+///
+/// `rec18` is the collision table `obj.field_C` points at and
+/// `func_actor_107600_80134958` hands to `Gp_InitRec18Table` with count 8, so
+/// it really runs to +0x140 and `field_13E` sits inside its last record.
+/// `field_162` is the spawn variant `func_actor_107600_80132ED0` takes from
+/// the low nibble of the task's own `Task::spawnArg1` high halfword
+/// (`lhu 0x36` then `andi 0xF`): `func_actor_107600_80134958` picks the
+/// display node's `field_1C` from it and `func_actor_107600_80134C54`
+/// switches on it.
 typedef struct Actor107600Work {
-    /* 0x000 */ byte  pad_0[0x40];
-    /* 0x040 */ u16   pitch;    // fed to RotMatrixX
-    /* 0x042 */ u16   yaw;      // fed to func_8004BFF8
-    /* 0x044 */ u16   roll;     // fed to RotMatrixZ
-    /* 0x046 */ byte  pad_46[0xA];
-    /* 0x050 */ u16   field_50; // fed to Gfx_RotMatrixX
-    /* 0x052 */ u16   field_52; // fed to Gfx_RotMatrixY
-    /* 0x054 */ u16   field_54; // fed to Gfx_RotMatrixZ
-    /* 0x056 */ byte  pad_56[0xA];
-    /* 0x060 */ GpObj obj;
-    /* 0x080 */ byte  pad_80[0xBE];
-    /* 0x13E */ u16   field_13E;
-    /* 0x140 */ byte  pad_140[0x4];
-    /* 0x144 */ s16   field_144;
-    /* 0x146 */ byte  pad_146[0x12];
-    /* 0x158 */ s16   field_158;
-    /* 0x15A */ s16   field_15A;
-    /* 0x15C */ byte  pad_15C[0xF];
-    /* 0x16B */ u8    field_16B;
+    /* 0x000 */ byte    pad_0[0x40];
+    /* 0x040 */ u16     pitch;    // fed to RotMatrixX
+    /* 0x042 */ u16     yaw;      // fed to func_8004BFF8
+    /* 0x044 */ u16     roll;     // fed to RotMatrixZ
+    /* 0x046 */ byte    pad_46[0xA];
+    /* 0x050 */ u16     field_50; // fed to Gfx_RotMatrixX
+    /* 0x052 */ u16     field_52; // fed to Gfx_RotMatrixY
+    /* 0x054 */ u16     field_54; // fed to Gfx_RotMatrixZ
+    /* 0x056 */ byte    pad_56[0xA];
+    /* 0x060 */ GpObj   obj;
+    /* 0x080 */ GpRec18 rec18[1]; // collision table; count 8 passed to Gp_InitRec18Table
+    /* 0x098 */ byte    pad_98[0xA6];
+    /* 0x13E */ u16     field_13E;
+    /* 0x140 */ byte    pad_140[0x4];
+    /* 0x144 */ s16     field_144;
+    /* 0x146 */ byte    pad_146[0x12];
+    /* 0x158 */ s16     field_158;
+    /* 0x15A */ s16     field_15A;
+    /* 0x15C */ byte    pad_15C[0x6];
+    /* 0x162 */ s16     field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
+    /* 0x164 */ byte    pad_164[0x7];
+    /* 0x16B */ u8      field_16B;
 } Actor107600Work;
 
 typedef struct Actor107600 {
