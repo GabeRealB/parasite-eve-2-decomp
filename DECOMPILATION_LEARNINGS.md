@@ -64787,3 +64787,44 @@ for (i = 0; i < 7; i++) {        /* sll/sra/slti 7 */
 `func_actor_444000_80133010` is the worked example; the same overlay's
 `actor_444000_6.c` uses the idiom on struct fields too (`(u16)work->field_6`),
 so it is how this code was written rather than a one-off.
+
+## A narrow inline parameter moves the sign extension past the inline's own calls
+
+An `s16` parameter of a `static __inline__` helper is not cosmetic: the
+conversion happens at the parameter's *uses* inside the body, not at the call
+site. So where an `s32` parameter puts the caller's `sll 16` / `sra 16` right
+before the argument setup, an `s16` parameter puts it immediately before the
+store that widens it - which, if the body calls something first, is on the far
+side of that call. That in turn changes which instruction the delay-slot filler
+finds last in the pre-call block.
+
+`func_actor_444000_80135448` squashes seven coordinates through one helper whose
+body is `ratan2` / `Gfx_RotMatrixY` / `ScaleMatrix` around a scratchpad frame.
+The target fills each `jal ratan2` delay slot with the *subtraction* that
+finishes the scale, and does the `sll`/`sra` pair after `Gfx_RotMatrixY`, next
+to `sw $s0, 0x24($s1)`:
+
+```
+    sra   $s0, $t2, 4
+    subu  $s0, $s0, $v1
+    jal   ratan2
+     subu $s0, $s3, $s0      # 0x1000 - (step << 12) / 40
+    ...
+    jal   Gfx_RotMatrixY
+    ...
+    sll   $s0, $s0, 16
+    sra   $s0, $s0, 16
+    sw    $s3, 0x20($s1)
+    sw    $s0, 0x24($s1)     # sc->scale.vy = y
+```
+
+With `s32 y` the whole `(s16)(0x1000 - ...)` is a caller expression, the `sra`
+fills the delay slot instead, and all seven expansions differ - 99.211% with
+`reorder=206`. Declaring the parameter `s16` and dropping the cast from the
+argument reached 99.875% with `reorder=1`.
+
+The corollary is that two helpers differing only in a parameter's width are two
+different helpers. `actor_444000_5.c` keeps both: `Actor444000_ScaleRotation`
+takes `s32 y`, because `func_actor_444000_80138490` passes it an `s32` local and
+has no sign extension at the store, while `Actor444000_SquashRotation` takes
+`s16 y`. Folding them together breaks whichever caller wants the other form.

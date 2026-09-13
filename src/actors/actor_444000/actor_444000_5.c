@@ -536,7 +536,469 @@ void func_actor_444000_8013482C(Actor444000* task)
     SCRATCH_SP += sizeof(Actor444000RunScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_80135448);
+/// Rebuild `coord`'s rotation around the yaw it already faces, left at full
+/// width but scaled by `y` vertically -- the squash the death sequence retracts
+/// each body with. The same shape as `Actor444000_ScaleRotation` below, except
+/// the vertical scale arrives as an `s16`, which is what puts its sign
+/// extension at the `scale.vy` store rather than at the call site. The working
+/// matrix lives in a frame carved off `G_SCRATCH_HEAD`, handed back once the
+/// rotation has been copied onto the coordinate.
+static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
+{
+    Actor444000RotScratch* sc;
+    s16                    ang;
+
+    sc                                       = (Actor444000RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor444000RotScratch));
+    *(Actor444000RotScratch**)G_SCRATCH_HEAD = sc;
+
+    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle = ang;
+    Gfx_RotMatrixY(&sc->m, ang, 1);
+    sc->scale.vx = 0x1000;
+    sc->scale.vy = y;
+    sc->scale.vz = 0x1000;
+    ScaleMatrix(&sc->m, &sc->scale);
+
+    coord->coord.m[0][0] = sc->m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
+}
+
+/// State 0x12, the death sequence: the boss collapses, each of its escort
+/// bodies is cut loose from the model hierarchy and then squashed flat in its
+/// own window of the sub-state counter.
+///
+/// A reset request re-arms the block on animation 0x12, clears the enemy's link
+/// state, the model's flag word and the four counters, marks the session
+/// (`Game_Session::field_9` 3) and plays the death cue at half depth.
+///
+/// The rest of the tick splits on bit 0x100 of the second animation slot --
+/// whether the collapse animation is still running or has finished.
+///
+/// While it runs, `D_actor_444000_80144A70` is walked down 0xC8 a step until it
+/// is under 0x191, four one-shot cues fire on frames 0x33, 0x3D, 0x4E and 0x71
+/// of the fourth slot, and sub-states 0x14, 0x82, 0x14A and 0x1DC each hand one
+/// body over: 0x14 switches the host and escort 3 to light mode 1, while the
+/// other three reparent escort 2, 4 and 3's model to `Gfx_ViewCoord`. That
+/// reparenting is why both halves of the part's placement have to be resolved
+/// by hand -- `Actor444000_AccumulateRotation` for the rotation it had up the
+/// chain and `Actor444000_LocalToView` for its origin -- the same pair
+/// `func_actor_444000_80137594` uses. Past each of those sub-states the body
+/// sinks toward the host's own height 0x1E a step, clamped there, and squashes
+/// from 0x1000 to nothing over 0x28 steps, throwing effect 0x60196 at one of
+/// three offsets every fifth step and raising flag 0x80 on the last one.
+///
+/// Once the animation has finished, escort 0, escort 1 and the host model are
+/// squashed over their own windows (0..0x28, 0x14..0x3C and 0xD..0x85), the
+/// host throws one of five effects around itself every third step of its
+/// window, escort 3 halves its height over the 0x5A steps from 0xA1 -- the step
+/// that ends it also raises the arena floor's last eight grid corners -- and
+/// step 0xA0 enqueues the collapse cue.
+void func_actor_444000_80135448(Actor444000* task)
+{
+    Actor444000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    MATRIX           mat;
+    SVECTOR          pos;
+    SVECTOR*         verts;
+    s32              frame;
+    s32              step;
+
+    work  = task->field_1C;
+    enemy = task->field_20;
+
+    if (work->field_4 != 0) {
+        s32 id;
+        s32 pan;
+
+        tmd                 = (TmdObject*)task->extra;
+        enemy->node.field_4 = 0;
+        tmd->field_C        = 0;
+        work->field_7B3     = 0x12;
+        work->field_EF4     = 0;
+        work->field_EF6     = 0;
+        work->field_EFA     = 0;
+        work->field_7B0     = 1;
+        work->field_EFE     = 0;
+
+        func_actor_444000_8013441C(task);
+
+        Game_Session->field_9 = 3;
+        id                    = (((u16)enemy->field_8 >> 12) << 8) | 0x54280007;
+        pan                   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8) / 2));
+        return;
+    }
+
+    if (work->slots0[1].field_10 & 1) {
+        work->field_6 = 0;
+        func_actor_444000_8013441C(task);
+    }
+
+    if (!(work->slots0[1].field_10 & 0x100)) {
+        if (D_actor_444000_80144A70 >= 0x191) {
+            D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
+        }
+
+        func_actor_444000_8013441C(task);
+
+        frame = work->slots0[3].field_2 & 0x3FF;
+        if (frame == 0x33 && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200013;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+        }
+
+        frame = work->slots0[3].field_2 & 0x3FF;
+        if (frame == 0x3D && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200003;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+        }
+
+        frame = work->slots0[3].field_2 & 0x3FF;
+        if (frame == 0x4E && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200014;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+        }
+
+        frame = work->slots0[3].field_2 & 0x3FF;
+        if (frame == 0x71 && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200015;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+        }
+
+        work->field_7A8 = work->slots0[3].field_2 & 0x3FF;
+
+        switch (work->field_6) {
+            case 0x14:
+                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode((GpObj4C*)work->field_ECC[3], 1);
+                break;
+
+            case 0x82:
+                Actor444000_AccumulateRotation(&((TmdObject*)task->extra)->field_8[4], &mat);
+
+                pos.vz = 0;
+                pos.vy = 0;
+                pos.vx = 0;
+                Actor444000_LocalToView(&((TmdObject*)task->extra)->field_8[4], &pos);
+
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->sub        = &Gfx_ViewCoord;
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord      = mat;
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[0] = pos.vx;
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[1] = pos.vy;
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[2] = pos.vz;
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->flg        = 0;
+                break;
+
+            case 0x1DC:
+                Actor444000_AccumulateRotation(&((TmdObject*)task->extra)->field_8[3], &mat);
+
+                pos.vz = 0;
+                pos.vy = 0;
+                pos.vx = 0;
+                Actor444000_LocalToView(&((TmdObject*)task->extra)->field_8[3], &pos);
+
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->sub        = &Gfx_ViewCoord;
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord      = mat;
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[0] = pos.vx;
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[1] = pos.vy;
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[2] = pos.vz;
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->flg        = 0;
+                break;
+
+            case 0x14A:
+                Actor444000_AccumulateRotation(&((TmdObject*)task->extra)->field_8[4], &mat);
+
+                pos.vz = 0;
+                pos.vy = 0;
+                pos.vx = 0;
+                Actor444000_LocalToView(&((TmdObject*)task->extra)->field_8[4], &pos);
+
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->sub        = &Gfx_ViewCoord;
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord      = mat;
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[0] = pos.vx;
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] = pos.vy;
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[2] = pos.vz;
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->flg        = 0;
+                work->field_EF8                                                    = 0;
+                break;
+        }
+
+        if (work->field_6 >= 0x83) {
+            if (((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[1] <
+                ((TmdObject*)task->extra)->field_8->coord.t[1]) {
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[1] +=
+                    (work->field_6 - 0x82) * 0x1E;
+            } else if (((TmdObject*)task->extra)->field_8->coord.t[1] <
+                       ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[1]) {
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_8->coord.t[1] =
+                    ((TmdObject*)task->extra)->field_8->coord.t[1];
+                Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[2]->task->extra)->field_8, 0x13401800,
+                            NULL);
+            }
+
+            step = work->field_6 - 0x82;
+            if (step < 0x28) {
+                Actor444000_SquashRotation(((TmdObject*)work->field_ECC[2]->task->extra)->field_8,
+                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_C = 2;
+
+                if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
+                    switch ((s16)((s16)((s16)(u16)work->field_6 / 5) % 3)) {
+                        case 0:
+                            pos.vz = 0;
+                            pos.vy = 0;
+                            pos.vx = 0;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[2]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                        case 1:
+                            pos.vx = 0x320;
+                            pos.vy = 0;
+                            pos.vz = -0x320;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[2]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                        case 2:
+                            pos.vx = -0x320;
+                            pos.vy = 0;
+                            pos.vz = 0x320;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[2]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                    }
+                }
+            } else if (step == 0x28) {
+                ((TmdObject*)work->field_ECC[2]->task->extra)->field_C = 0x80;
+                Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[2]->task->extra)->field_8, 0x13401800,
+                            NULL);
+            }
+        }
+
+        if (work->field_6 >= 0x14B) {
+            if (((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] <
+                ((TmdObject*)task->extra)->field_8->coord.t[1]) {
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] +=
+                    (work->field_6 - 0x14A) * 0x1E;
+            } else if (((TmdObject*)task->extra)->field_8->coord.t[1] <
+                       ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1]) {
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] =
+                    ((TmdObject*)task->extra)->field_8->coord.t[1];
+                Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[4]->task->extra)->field_8, 0x13401800,
+                            NULL);
+            }
+
+            step = work->field_6 - 0x14A;
+            if (step < 0x28) {
+                Actor444000_SquashRotation(((TmdObject*)work->field_ECC[4]->task->extra)->field_8,
+                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_C = 2;
+
+                if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
+                    switch ((s16)((s16)((s16)(u16)work->field_6 / 5) % 3)) {
+                        case 0:
+                            pos.vz = 0;
+                            pos.vy = 0;
+                            pos.vx = 0;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[4]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                        case 1:
+                            pos.vx = 0x320;
+                            pos.vy = 0;
+                            pos.vz = -0x320;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[4]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                        case 2:
+                            pos.vx = -0x320;
+                            pos.vy = 0;
+                            pos.vz = 0x320;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[4]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                    }
+                }
+            } else if (step == 0x28) {
+                ((TmdObject*)work->field_ECC[4]->task->extra)->field_C = 0x80;
+                Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[4]->task->extra)->field_8, 0x13401800,
+                            NULL);
+            }
+        }
+
+        if (work->field_6 >= 0x1DD) {
+            if (((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[1] <
+                ((TmdObject*)task->extra)->field_8->coord.t[1]) {
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[1] +=
+                    (work->field_6 - 0x1DC) * 0x1E;
+            } else if (((TmdObject*)task->extra)->field_8->coord.t[1] <
+                       ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[1]) {
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_8->coord.t[1] =
+                    ((TmdObject*)task->extra)->field_8->coord.t[1];
+            }
+
+            step = work->field_6 - 0x1DC;
+            if (step < 0x28) {
+                Actor444000_SquashRotation(((TmdObject*)work->field_ECC[3]->task->extra)->field_8,
+                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_C = 2;
+
+                if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
+                    switch ((s16)((s16)((s16)(u16)work->field_6 / 5) % 3)) {
+                        case 0:
+                            pos.vz = 0;
+                            pos.vy = 0;
+                            pos.vx = 0;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[3]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                        case 1:
+                            pos.vx = 0x320;
+                            pos.vy = 0;
+                            pos.vz = -0x320;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[3]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                        case 2:
+                            pos.vx = -0x320;
+                            pos.vy = 0;
+                            pos.vz = 0x320;
+                            Gp_SpawnEff(0x60196, ((TmdObject*)work->field_ECC[3]->task->extra)->field_8,
+                                        0x13401800, &pos);
+                            break;
+                    }
+                }
+            } else if (step == 0x28) {
+                ((TmdObject*)work->field_ECC[3]->task->extra)->field_C = 0x80;
+            }
+        }
+    } else {
+        switch (work->field_6) {
+            case 0x28:
+                break;
+            case 0x78:
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                break;
+        }
+
+        if (work->field_6 > 0) {
+            if (work->field_6 < 0x28) {
+                Actor444000_SquashRotation(((TmdObject*)work->field_ECC[0]->task->extra)->field_8,
+                                           (s16)(0x1000 - ((work->field_6 * 0x1000) / 40)));
+                ((TmdObject*)work->field_ECC[0]->task->extra)->field_C = 2;
+            } else if (work->field_6 == 0x28) {
+                ((TmdObject*)work->field_ECC[0]->task->extra)->field_C = 0x80;
+            }
+        }
+
+        if (work->field_6 >= 0x15) {
+            step = work->field_6 - 0x14;
+            if (step < 0x28) {
+                Actor444000_SquashRotation(((TmdObject*)work->field_ECC[1]->task->extra)->field_8,
+                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                ((TmdObject*)work->field_ECC[1]->task->extra)->field_C = 2;
+            } else if (step == 0x28) {
+                ((TmdObject*)work->field_ECC[1]->task->extra)->field_C = 0x80;
+            }
+        }
+
+        if (work->field_6 >= 0xE) {
+            step = work->field_6 - 0xD;
+            if (step < 0x78) {
+                Actor444000_SquashRotation(((TmdObject*)task->extra)->field_8,
+                                           (s16)(0x1000 - ((step * 0x1000) / 120)));
+                ((TmdObject*)task->extra)->field_C = 2;
+            } else if (step == 0x78) {
+                ((TmdObject*)task->extra)->field_C = 0x80;
+            }
+        }
+
+        if ((s16)((s16)(u16)work->field_6 % 3) == 0 && (s16)(u16)work->field_6 - 0xD < 0x78) {
+            switch ((s16)((s16)((s16)(u16)work->field_6 / 3) % 5)) {
+                case 0:
+                    pos.vz = 0;
+                    pos.vy = 0;
+                    pos.vx = 0;
+                    Gp_SpawnEff(0x60196, ((TmdObject*)task->extra)->field_8, 0x14101900, &pos);
+                    break;
+                case 1:
+                    pos.vx = 0x960;
+                    pos.vy = 0;
+                    pos.vz = -0x960;
+                    Gp_SpawnEff(0x60196, ((TmdObject*)task->extra)->field_8, 0x13201800, &pos);
+                    break;
+                case 2:
+                    pos.vx = -0x9C4;
+                    pos.vy = 0;
+                    pos.vz = 0x9C4;
+                    Gp_SpawnEff(0x60196, ((TmdObject*)task->extra)->field_8, 0x131C1800, &pos);
+                    break;
+                case 3:
+                    pos.vx = -0x6A4;
+                    pos.vy = 0;
+                    pos.vz = 0x640;
+                    Gp_SpawnEff(0x60196, ((TmdObject*)task->extra)->field_8, 0x14101800, &pos);
+                    break;
+                case 4:
+                    pos.vx = 0x6A4;
+                    pos.vy = 0;
+                    pos.vz = -0x640;
+                    Gp_SpawnEff(0x60196, ((TmdObject*)task->extra)->field_8, 0x14301800, &pos);
+                    break;
+            }
+        }
+
+        if (work->field_6 >= 0xA1) {
+            step = work->field_6 - 0xA0;
+            if (step < 0x5A) {
+                Actor444000_SquashRotation(((TmdObject*)work->field_ECC[3]->task->extra)->field_8,
+                                           (s16)(0x800 - ((step * 0x800) / 90)));
+            } else if (step == 0x5A) {
+                ((TmdObject*)task->extra)->field_C = 0x80;
+
+                verts        = Gp_GridParams->field_8;
+                verts[24].vy = 0x1F4;
+                verts[25].vy = 0x1F4;
+                verts[26].vy = 0x320;
+                verts[27].vy = 0x320;
+                verts[28].vy = 0x1F4;
+                verts[29].vy = 0x1F4;
+                verts[30].vy = 0x320;
+                verts[31].vy = 0x320;
+            }
+        }
+
+        if (work->field_6 == 0xA0) {
+            SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x54280007, 1);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_801371E8);
 
