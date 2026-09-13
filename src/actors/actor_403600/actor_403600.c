@@ -37,6 +37,70 @@
                      : "r"(actor), "r"(work), "r"(head))
 #define actor_403600_coord_advance(head, work) \
     __asm__ volatile("sw $zero, 1208(%1); addiu %0, %0, 32" : "+r"(head) : "r"(work))
+#define actor_403600_ldsxy3_fifo_gt3(p)                    \
+    __asm__ volatile("lw $21, 1(%0); nop; mtc2 $21, $15;"  \
+                     "lw $21, 13(%0); nop; mtc2 $21, $15;" \
+                     "lw $21, 25(%0); nop; mtc2 $21, $15"  \
+                     : : "r"(p) : "$21")
+#define actor_403600_ldsz1(v) __asm__ volatile("mtc2 %0, $17" : : "r"(v))
+#define actor_403600_ldsz2(v) __asm__ volatile("mtc2 %0, $18" : : "r"(v))
+#define actor_403600_ldsz3(v) __asm__ volatile("mtc2 %0, $19" : : "r"(v))
+#define actor_403600_fade_rgb(p, scale, first) \
+    __asm__ volatile(                          \
+        "mult %0, %1\n\t"                      \
+        "mflo %0\n\t"                          \
+        "lbu $2, -2(%2)\n\t"                   \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "mflo $7\n\t"                          \
+        "lbu $2, -1(%2)\n\t"                   \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "mflo $8\n\t"                          \
+        "lbu $2, 9(%2)\n\t"                    \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "mflo $9\n\t"                          \
+        "lbu $2, 10(%2)\n\t"                   \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "mflo $10\n\t"                         \
+        "lbu $2, 11(%2)\n\t"                   \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "mflo $11\n\t"                         \
+        "lbu $2, 21(%2)\n\t"                   \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "mflo $12\n\t"                         \
+        "lbu $2, 22(%2)\n\t"                   \
+        "nop\n\t"                              \
+        "mult $2, %1\n\t"                      \
+        "sra %0, %0, 7\n\t"                    \
+        "sb %0, -3(%2)\n\t"                    \
+        "sra %0, $7, 7\n\t"                    \
+        "sb %0, -2(%2)\n\t"                    \
+        "mflo $13\n\t"                         \
+        "lbu $2, 23(%2)\n\t"                   \
+        "sra %0, $8, 7\n\t"                    \
+        "mult $2, %1\n\t"                      \
+        "sb %0, -1(%2)\n\t"                    \
+        "sra %0, $9, 7\n\t"                    \
+        "sb %0, 9(%2)\n\t"                     \
+        "sra %0, $10, 7\n\t"                   \
+        "sb %0, 10(%2)\n\t"                    \
+        "sra %0, $11, 7\n\t"                   \
+        "sb %0, 11(%2)\n\t"                    \
+        "sra %0, $12, 7\n\t"                   \
+        "sb %0, 21(%2)\n\t"                    \
+        "sra %0, $13, 7\n\t"                   \
+        "sb %0, 22(%2)\n\t"                    \
+        "mflo $7\n\t"                          \
+        "sra %0, $7, 7\n\t"                    \
+        "sb %0, 23(%2)"                        \
+        : "+r"(first)                          \
+        : "r"(scale), "r"(p)                   \
+        : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "hi", "lo", "memory")
 
 extern u8               D_80071075;
 extern s8               D_8007216C;
@@ -671,7 +735,110 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80136500);
+u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    POLY_GT3*     poly;
+    s32*          opz;
+    DisplayState* ds;
+    u32           mask;
+    u32           mask_hi;
+    u32           clip_mask;
+    u16*          rec;
+    s32           light;
+    s32           upper_limit;
+    s32           upper_delta;
+    s32           upper_calc;
+    s32           lower_delta;
+    s32           sz;
+    s32           idx;
+    s32           first;
+    u8*           sz_table;
+    s16           upper_y;
+    s16           lower_y;
+
+    poly  = (POLY_GT3*)arg0->field_4;
+    light = arg0->field_80->field_2C;
+    if (arg0->field_1C-- > 0) {
+        opz         = &arg0->field_28;
+        clip_mask   = 0x80000000;
+        upper_limit = 0x168 - light;
+        ds          = &Display_State;
+        mask        = 0xFFFFFF;
+        mask_hi     = 0xFF000000;
+        do {
+            rec = (u16*)arg2;
+            actor_403600_ldsxy3_fifo_gt3((u8*)poly + 7);
+            gte_nclip_real();
+            gte_stopz(opz);
+            if (arg0->field_28 > 0) {
+                sz_table = (u8*)arg0->field_10;
+                idx      = rec[0] & 0xFFFC;
+                sz       = *(s32*)(idx + (s32)sz_table);
+                if (!(sz & clip_mask)) {
+                    actor_403600_ldsz1(sz);
+                    idx = rec[1] & 0xFFFC;
+                    sz  = *(s32*)(idx + (s32)sz_table);
+                    if (!(sz & clip_mask)) {
+                        actor_403600_ldsz2(sz);
+                        idx = rec[2] & 0xFFFC;
+                        sz  = *(s32*)(idx + (s32)sz_table);
+                        if (!(sz & clip_mask)) {
+                            actor_403600_ldsz3(sz);
+                            gte_avsz3_real();
+                            upper_delta = 0;
+                            if (light != 0) {
+                                upper_y = poly->y0;
+                                if (upper_limit < upper_y) {
+                                    upper_calc = upper_y - 0x168;
+                                    SOFT_TOUCH_REG(upper_calc);
+                                    upper_delta = (upper_calc + light) * 2;
+                                }
+                                if (upper_delta >= 0x81) {
+                                    *(u32*)&poly->r0 = 0;
+                                    *(u32*)&poly->r1 = 0;
+                                    *(u32*)&poly->r2 = 0;
+                                } else {
+                                    first       = (u8)poly->r0;
+                                    upper_delta = 0x80 - upper_delta;
+                                    actor_403600_fade_rgb((u8*)poly + 7, upper_delta, first);
+                                }
+                            }
+                            if (light != 0) {
+                                lower_y = poly->y0;
+                                if (upper_limit < lower_y) {
+                                    lower_delta  = lower_y;
+                                    lower_delta -= 0x168;
+                                    lower_delta += light;
+                                    lower_delta *= 2;
+                                    poly->y1    -= lower_delta;
+                                    poly->y2    -= lower_delta;
+                                    poly->y0    -= lower_delta;
+                                }
+                            }
+                            setlen(poly, 9);
+                            setcode(poly, 0x36);
+                            gte_stotz(opz);
+                            poly->tag = (poly->tag & mask_hi) |
+                                        (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                                    (s32)arg0->field_14) &
+                                         mask);
+                            *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                       (s32)arg0->field_14) =
+                                (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                            (s32)arg0->field_14) &
+                                 mask_hi) |
+                                ((u32)poly & mask);
+                        }
+                    }
+                }
+            }
+            poly++;
+            arg2 += arg0->field_18;
+        } while (arg0->field_1C-- > 0);
+    }
+    arg0->field_4 = (u8*)poly;
+    return arg2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013685C);
 
