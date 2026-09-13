@@ -8,6 +8,7 @@
 
 #include "main/tmd.h"
 #include "main/task.h"
+#include "main/session.h"
 
 /// Singly-linked node embedded in `Actor01600Ctx` at 0x10 and unlinked by
 /// `Gp_UnlinkNode`. Same layout as the gameplay `GpLinkNode`.
@@ -119,7 +120,10 @@ typedef struct Actor01600Work {
     /* 0x17C */ byte               pad_17C[0x120];
     /* 0x29C */ byte               field_29C[0x1E];
     /* 0x2BA */ u16                field_2BA;
-    /* 0x2BC */ byte               pad_2BC[0x30];
+    /* 0x2BC */ byte               pad_2BC[4];
+    /* 0x2C0 */ s16                field_2C0;
+    /* 0x2C2 */ byte               pad_2C2[0x12];
+    /* 0x2D4 */ GpRec18            field_2D4;
     /* 0x2EC */ Actor01600Contacts collision;
     /* 0x3CC */ byte               field_3CC[0x1E];
     /* 0x3EA */ u16                field_3EA;
@@ -157,7 +161,7 @@ typedef struct Actor01600Work {
     /* 0x506 */ s16                field_506;
     /* 0x508 */ s16                field_508;
     /* 0x50A */ s16                field_50A;
-    /* 0x50C */ byte               pad_50C[2];
+    /* 0x50C */ s16                field_50C;
     /* 0x50E */ s16                field_50E;
     /* 0x510 */ s16                field_510;
     /* 0x512 */ s16                field_512;
@@ -180,12 +184,14 @@ typedef struct Actor01600Work {
     /* 0x534 */ s16                field_534;
     /* 0x536 */ s16                field_536;
     /* 0x538 */ s16                field_538;
-    /* 0x53A */ byte               pad_53A[2];
+    /* 0x53A */ s16                field_53A;
     /* 0x53C */ s16                field_53C;
     /* 0x53E */ s16                field_53E;
     /* 0x540 */ s16                field_540;
     /* 0x542 */ u16                field_542;
-    /* 0x544 */ byte               pad_544[0xA];
+    /* 0x544 */ byte               pad_544[4];
+    /* 0x548 */ u16                field_548;
+    /* 0x54A */ byte               pad_54A[4];
     /* 0x54E */ s16                field_54E;
     /* 0x550 */ s16                field_550;
     /* 0x552 */ byte               pad_552[2];
@@ -208,10 +214,13 @@ typedef struct Actor01600 {
 STATIC_ASSERT_SIZEOF(Actor01600, 0x34);
 
 /// Overlay-local view of the gameplay `Gp_StateF0` block (`GpStateF0` in
-/// `include/gameplay/3A34.h`). Only the two bytes this overlay touches are
-/// named; `field_1C` is read with `lb`, so it is signed here.
+/// `include/gameplay/3A34.h`). Flags are accessed as a word and individual
+/// bytes; `field_1C` is read with `lb`, so it is signed here.
 typedef struct Actor01600StateF0 {
-    /* 0x00 */ byte pad_0[4];
+    /* 0x00 */ union {
+        u32 word;
+        u8  bytes[4];
+    } flags;
     /* 0x04 */ u8   field_4;
     /* 0x05 */ byte pad_5[0x17];
     /* 0x1C */ s8   field_1C;
@@ -303,5 +312,9 @@ typedef struct Actor01600GroundScratch {
     /* 0x10 */ SVECTOR offset;
 } Actor01600GroundScratch;
 STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
+
+void Actor01600_Fn03A60(Actor01600* actor);
+void Gp_ArmStateF0(s32 active);
+s32  Gp_CountRec18Hi(GpRec18* rec, s32 mask);
 
 #endif // ACTOR_101600_H

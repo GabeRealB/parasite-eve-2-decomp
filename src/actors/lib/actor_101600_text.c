@@ -579,6 +579,325 @@ tail:
     work->field_542 = 0x14;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn017BC);
+void Actor01600_Fn017BC(Actor01600* actor)
+{
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    TmdObject*      model;
+    s16             frameOffset;
+    s16             count;
+    s16             tick;
+    s16             state;
+    s16             height;
+    s16             repeatHeight;
+    s16             frame;
+    s32             contact;
+    s32             id;
+    void*           old;
+    s32             pan8;
+    s32             distance;
+    GpRec18*        rec;
+    s32             pan1;
+    s32             pan2;
+    s32             pan3;
+    s32             pan4;
+    s32             pan5;
+    s32             pan6;
+    s32             pan7;
+    u16             flags;
+    u16             attackFrame;
+
+    work                = actor->field_1C;
+    old                 = *(void**)0x1F8003FC;
+    rec                 = &work->field_2D4;
+    *(void**)0x1F8003FC = old - 8;
+    model               = actor->field_2C;
+    coord               = model->field_8;
+    ctx                 = actor->field_20;
+    if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
+        work->field_51A = 1;
+    }
+    if (work->field_51A != 0) {
+        work->field_4FE  = 1;
+        work->field_516  = 0;
+        work->field_510  = 0;
+        work->field_4FA  = 0;
+        work->field_528  = 0;
+        work->field_51E  = 0;
+        work->field_520  = 0;
+        work->field_50A  = 0;
+        work->field_4EA  = 0;
+        work->field_2BA &= 0x3FFF;
+        work->field_42A &= 0x3FFF;
+        Gp_ArmStateF0(1);
+    }
+    Gp_ClearRec18Occupied(rec);
+    if (work->field_53A == 1) {
+        count           = (u16)work->field_536 - 1;
+        work->field_536 = count;
+        if (count == 0) {
+            work->field_50A = 0;
+            work->field_506 = 2;
+            work->field_53A = 0;
+        }
+    }
+    tick            = (u16)work->field_504 + 1;
+    work->field_504 = tick;
+    if (tick >= 0x1F) {
+        work->field_504 = 0;
+    }
+    state = (u16)work->field_506 - 1;
+    switch (state) {
+        case 0:
+            work->field_2C0 = 0x3E8;
+            work->field_50E = 0;
+            work->field_538 = 0x10;
+            if (work->field_50A >= 0x3E) {
+                work->field_50A = 0;
+            }
+            if (ctx->field_3C->field_2 == 0) {
+                if (((u8)Gp_StateF0.flags.bytes[2] & 1) || (Gp_StateF0.flags.word & 0xFF140000)) {
+                    work->field_53A = 1;
+                }
+            }
+            break;
+        case 1:
+            work->field_2C0 = 0xFA0;
+            work->field_50E = 0;
+            work->field_538 = 0x10;
+            work->field_4FA = 0;
+            if (work->field_50A >= 0x36) {
+                work->field_506  = 0x19;
+                work->field_50A  = 0;
+                work->field_4EA  = 0;
+                work->field_514  = 1;
+                work->field_42A |= 0xC000;
+            }
+            break;
+        case 24:
+            work->field_50E = 0;
+            work->field_538 = 0x10;
+            work->field_4FA = 0;
+            contact         = Actor01600_Fn04EB0(actor) & 0xFF;
+            if (contact != 0) {
+                flags           = work->field_42A & 0x3FFF;
+                work->field_42A = flags;
+                if (contact != 0xFF) {
+                    distance        = work->field_4E0;
+                    work->field_548 = 0U;
+                    distance        = abs(distance);
+                    work->field_50A = 0;
+                    if ((distance >= 0x201) || ((contact & 0xF) == 2)) {
+                        work->field_510 = 5;
+                        if ((contact & 0xF0) == 0x80) {
+                            work->field_506 = 7;
+                        } else {
+                            work->field_506 = 8;
+                        }
+                    } else {
+                        work->field_510 = 0;
+                        work->field_506 = 4;
+                    }
+                } else {
+                    work->field_42A = flags | 0xC000;
+                    work->field_4EA = 0;
+                }
+            }
+            if (work->field_50A >= 0x57) {
+                work->field_50A = 0;
+                work->field_508 = 0;
+                work->field_506 = 0x19;
+            }
+            break;
+        case 2:
+            work->field_4FA = 0;
+            work->field_538 = 0x10;
+            work->field_50E = 0;
+            if (work->field_50A >= 0x3D) {
+                work->field_50A = 0;
+                work->field_506 = 3;
+            }
+            break;
+        case 3:
+            work->field_538 = 0x10;
+            work->field_4FA = 4;
+            if (work->field_528 != 0) {
+                if (work->field_50A >= 0xC) {
+                    work->field_51E = (u16)work->field_51E + 0xF;
+                } else {
+                    work->field_51E = (u16)work->field_51E + 0xA;
+                }
+                height          = (u16)work->field_520 + (u16)work->field_51E;
+                work->field_520 = height;
+                if (height >= 0) {
+                    work->field_528 = 0;
+                    work->field_51E = 0;
+                    work->field_520 = 0;
+                }
+            }
+            if (work->field_50A == 6) {
+                work->field_528 = 1;
+                work->field_51E = -0x50;
+                work->field_520 = (u16)work->field_520 - 0x50;
+            }
+            attackFrame = (u16)work->field_50A;
+            if ((u32)(attackFrame - 5) < 0x10U) {
+                if ((s16)attackFrame >= 0xC) {
+                    work->field_50E = 0x5A;
+                } else {
+                    work->field_50E = 0x3C;
+                }
+                Actor01600_Fn03A60(actor);
+            } else {
+                work->field_50E = 0;
+            }
+            if (work->field_50A == 0x14) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                pan1 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan1, (s8)Gp_GetObjDepth(coord));
+            }
+            if (work->field_50A >= 0x15) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                pan2 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan2, (s8)Gp_GetObjDepth(coord));
+                work->field_506 = 0x17;
+                work->field_528 = 0;
+                work->field_51E = 0;
+                work->field_520 = 0;
+                work->field_50C = 0;
+                work->field_50A = 0;
+                work->field_548 = (u16)(work->field_548 + 1);
+                work->field_2BA = (work->field_2BA | 0x8000) & 0xBFFF;
+            }
+            break;
+        case 22:
+            work->field_538 = 0x10;
+            if (work->field_528 != 0) {
+                if (work->field_50A >= (work->field_50C + 0xC)) {
+                    work->field_51E = (u16)work->field_51E + 0xF;
+                } else {
+                    work->field_51E = (u16)work->field_51E + 0xA;
+                }
+                repeatHeight    = (u16)work->field_520 + (u16)work->field_51E;
+                work->field_520 = repeatHeight;
+                if (repeatHeight >= 0) {
+                    work->field_528 = 0;
+                    work->field_51E = 0;
+                    work->field_520 = 0;
+                }
+            }
+            if (work->field_50A == (work->field_50C + 6)) {
+                work->field_528 = 1;
+                work->field_51E = -0x50;
+                work->field_520 = (u16)work->field_520 - 0x50;
+            }
+            frameOffset = work->field_50C;
+            frame       = work->field_50A;
+            if ((frame >= (frameOffset + 6)) && ((frameOffset + 0x15) >= frame)) {
+                if ((frameOffset + 0xA) >= frame) {
+                    work->field_50E = 0x5A;
+                } else {
+                    work->field_50E = 0x3C;
+                }
+                Actor01600_Fn03A60(actor);
+            } else {
+                work->field_50E = 0;
+            }
+            if (work->field_50A == (work->field_50C + 0x14)) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100002;
+                pan3 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan3, (s8)Gp_GetObjDepth(coord));
+            }
+            if (work->field_50A >= (work->field_50C + 0x17)) {
+                id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100001;
+                pan4 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(id, (s32)pan4, (s8)Gp_GetObjDepth(coord));
+                work->field_548 = (u16)(work->field_548 + 1);
+                work->field_4FA = 0;
+                work->field_528 = 0;
+                work->field_51E = 0;
+                work->field_520 = 0;
+                work->field_514 = 0;
+                work->field_50A = 0;
+                work->field_50C = -3;
+                if ((s16)work->field_548 >= 3) {
+                    work->field_506 = 0x18;
+                } else {
+                    work->field_506 = 0x17;
+                }
+                work->field_2BA = (work->field_2BA | 0x8000) & 0xBFFF;
+            }
+            break;
+        case 23:
+            work->field_538 = 0x10;
+            work->field_4FA = 4;
+            work->field_50E = 0;
+            if (work->field_50A >= 0xA) {
+                work->field_506  = 0x19;
+                work->field_514  = 1;
+                work->field_51A  = 0;
+                work->field_4EA  = 0;
+                work->field_42A |= 0xC000;
+                work->field_2BA  = (work->field_2BA | 0x8000) & 0xBFFF;
+            }
+            break;
+        case 6:
+        case 7:
+            work->field_538 = 0x10;
+            work->field_4FA = 0;
+            if (work->field_506 == 7) {
+                if (work->field_50A == 0xF) {
+                    id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                    pan5 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, (s32)pan5, (s8)Gp_GetObjDepth(coord));
+                }
+                if (work->field_50A == 0x11) {
+                    id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                    pan8 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, (s32)pan8, (s8)Gp_GetObjDepth(coord));
+                }
+            } else {
+                if (work->field_50A == 0xF) {
+                    id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100004;
+                    pan6 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, (s32)pan6, (s8)Gp_GetObjDepth(coord));
+                }
+                if (work->field_50A == 0x12) {
+                    id   = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40100003;
+                    pan7 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, (s32)pan7, (s8)Gp_GetObjDepth(coord));
+                }
+            }
+            work->field_50E = 0;
+            if ((u32)((u16)work->field_50A - 4) < 0x11U) {
+                Actor01600_Fn03A60(actor);
+            }
+            if (work->field_50A >= 0x1C) {
+                work->field_508  = 0;
+                work->field_50A  = 0;
+                work->field_2BA |= 0x8000;
+                if (work->field_510 == 7) {
+                    work->field_514 = 0;
+                    work->field_50A = 0;
+                    work->field_506 = 4;
+                }
+            }
+            break;
+        case 9:
+            work->field_4FA = 0;
+            work->field_538 = 0x10;
+            work->field_50E = 0;
+            if (work->field_50A >= 0x28) {
+                work->field_51A = 1;
+                work->field_50A = 0;
+                work->field_506 = 4;
+            }
+            break;
+        default:
+            break;
+    }
+    *(void**)0x1F8003FC += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn020F8);
