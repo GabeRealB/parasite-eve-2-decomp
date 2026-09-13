@@ -308,6 +308,30 @@ void func_actor_107600_80134D70(Actor107600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134E5C);
+/// Rotates a fixed 0x10-byte offset by the coordinate's own `coord` matrix and
+/// leaves the result in that matrix's translation row. The offset is carved off
+/// `G_SCRATCH_HEAD` the way `func_actor_107600_80132B0C` carves its VECTOR, but
+/// is filled with (0, -0x180, 0) and rotated in place by `ApplyMatrixLV`, which
+/// also folds in the matrix's existing translation. `func_actor_107600_80132ED0`
+/// calls this on the coordinate it then hands to `Gp_UpdateCoord`.
+void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
+{
+    void**  scratch;
+    u8*     head;
+    VECTOR* block;
+
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    *scratch  = block;
+    block->vx = 0;
+    block->vy = -0x180;
+    block->vz = 0;
+    ApplyMatrixLV(&arg0->coord, block, block);
+    arg0->coord.t[0] = block->vx;
+    arg0->coord.t[1] = block->vy;
+    *scratch         = (u8*)*scratch + 0x10;
+    arg0->coord.t[2] = block->vz;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134EF4);

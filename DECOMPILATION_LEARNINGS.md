@@ -59446,6 +59446,25 @@ small multiple of the right one, the multiplier is the element size of a
 mistyped pointer, and the callee's *caller/initialiser* usually names the real
 field.
 
+**Exception - do not retype when the pointer is a scratchpad carve.**
+`func_actor_107600_80134E5C` had the same signature (`regs=2`, the two
+immediates off by exactly 16) but the `VECTOR*` was correct and retyping it
+would have broken the carve. m2c had written the carve as
+`temp_s0 = temp_s1 - 0x10` against a `VECTOR*` head, so C scaled a byte offset
+by `sizeof(VECTOR)`: `addiu s0,s1,-0x100` where the target has `-0x10`, and
+`+0x100` for `*(VECTOR**)G_SCRATCH_HEAD += 0x10`. The fix is to state the
+carve in element units (`temp_s1 - 1`) or, as every sibling here writes it,
+against a `u8*` head:
+
+```c
+head  = *scratch;
+block = (VECTOR*)(head - 0x10);
+```
+
+The ratio alone cannot tell the two cases apart — ask whether the mistyped
+pointer is a *scratch allocator cursor*, where a byte offset is the whole
+point, or a struct field, where it is not. Only the latter wants a retype.
+
 ## m2c's scalar stack locals for an address-taken struct lose their dead stores
 
 **Problem:** `func_actor_503500_801421A8` builds a `VECTOR` on the stack and
