@@ -1,5 +1,7 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 
 s16 func_actor_510900_8013BE84(Actor510900* arg0)
@@ -45,4 +47,9 @@ void func_actor_510900_8013C090(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013C0E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_5", func_actor_510900_8013C134);
+void func_actor_510900_8013C134(void* enemy, Task* task)
+{
+    ((TmdObject*)task->extra)->field_C      = ((TmdObject*)task->parent->extra)->field_C;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+}

@@ -41594,6 +41594,28 @@ signature for a function that is still `INCLUDE_ASM`, open the callee's `.s` and
 count the argument registers it actually reads — passing the phantom arguments
 costs two instructions the target does not have.
 
+## m2c's synthesized `Task*` field names can be swapped relative to `task.h`
+
+The scratch prelude carries no `Task`, so m2c invents field names for the pointer
+argument from its own heuristics, and they need not agree with
+`include/main/task.h`. `func_actor_510900_8013C134` came back reading
+`task->extra` at 0x8 and `task->parent` at 0x2C — the project's `Task` with the
+two names exchanged (`parent` is 0x8, `extra` is 0x2C). The chain is right and
+the offsets are right; only the names lie:
+
+```c
+/* m2c output - offsets correct, names swapped */
+*M2C_FIELD(task->extra, s32 **, 8) = 0;
+/* correct - task->extra is 0x2C, task->parent is 0x8 */
+((TmdObject*)task->extra)->field_8->flg = 0;
+```
+
+Resolve every `Task*` field by the offset in the `.s` before porting, never by
+the name m2c chose. Matching is no defence: `M2C_FIELD` writes the offset
+literally, so both spellings assemble to the same bytes and the checksum cannot
+tell you a field is misnamed. The tell is the shape of the chain — an `extra`
+that leads to another `extra` two loads later is a `parent`.
+
 ## Inline `setSprt` macro vs. the `SetSprt` library call, and the folded code byte
 
 `include/psyq/libgpu.h` carries both spellings: lowercase `setSprt` / `setTile`
