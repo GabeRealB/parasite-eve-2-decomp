@@ -109,6 +109,7 @@ typedef struct Actor00700StateFuncTable3 {
 } Actor00700StateFuncTable3;
 
 extern Actor00700StateFuncTable3 Actor00700_D00004;
+extern Actor00700StateFuncTable3 Actor00700_D00054;
 
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
 /// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`.

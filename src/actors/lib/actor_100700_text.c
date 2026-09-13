@@ -1062,7 +1062,13 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02A28);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn0305C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn034BC);
+void Actor00700_Fn034BC(Actor00700* arg0)
+{
+    Actor00700StateFuncTable3 sp;
+
+    sp = Actor00700_D00054;
+    sp.funcs[arg0->field_30](arg0->field_20, arg0);
+}
 
 void Actor00700_Fn03518(Actor00700* arg0)
 {
