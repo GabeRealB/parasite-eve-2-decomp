@@ -68048,3 +68048,37 @@ and keep the `D_` extern the sibling actor files already use
 
 Preprocessed SHA256 of the matching input: `base.i`
 `94fe79e37eea5f65017b5f33764e93885bacdd64a4c9e4c53b512920011f1b3e`.
+
+## An `s16` -> `s16` copy loads `lhu`, not `lh`: do not retype the field to `u16`
+
+`func_actor_461800_8013380C` ends with `field_47E = field_480;` where **both**
+fields are declared `s16` in `include/actors/actor_461800.h`, and GCC 2.8.1
+emits the load unsigned:
+
+```
+lh  $a2, 0x480($a0)   # field_480 feeding the call's s32 arg2
+...
+lhu $v0, 0x480($v1)   # the same field, feeding the s16 store to 0x47E
+sh  $v0, 0x47E($v1)
+```
+
+Both loads are of the *same* field at the *same* width in the *same*
+translation unit (`base_1.i` line 4850 declares `s16 field_480;`), so this is
+not a `STORE_FLAG_VALUE`/`-funsigned-char` effect and not a different struct.
+The only difference between the two uses is what consumes the value: the loop
+load's result is sign-extended into a call argument, the tail load's result is
+truncated straight back to 16 bits by the `sh`. So the sign extension is dead
+in the second case, and the compiler is free to pick the zero-extending
+pattern. The mechanism is not traced further; the observation is reproducible
+from the input below.
+
+The trap: a target that shows `lhu` on a field your headers declare `s16` is
+**not** evidence that the field is `u16`. Retyping it to `u16` is unnecessary
+here — and in the sibling overlay `actor_151000.h` the matching body does
+declare the pair `u16` (`field_47E` / `field_480`), so the two spellings both
+reach the same bytes and the header type is not what decides. Check the
+consumer of the load before touching the header.
+
+Example: `func_actor_461800_8013380C`. Preprocessed SHA256 of the matching
+input: `base_1.i`
+`83cd4d260eb186347389449c1f9b13a991348f901eda1d15cdc5d9b4a3a7a4da`.
