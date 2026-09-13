@@ -54576,6 +54576,18 @@ stores. `func_acropolis_patio_8017D5EC` went from 90.96%
 `&sp<N>` in an m2c seed whose neighbouring slots are written but never read as
 "this was one struct".
 
+A second instance isolates the first bullet, so the `delete` count alone is
+enough to recognise it. `func_actor_102400_80135048` passes `&sp10` to a
+*single* call, and the other two penalties are absent: the address stays
+`addiu a0,sp,0x10` and no `$sN` is saved. The target is 20 instructions and the
+three-scalar seed compiles to 14 — `lw` 4 vs 6, `sw` 2 vs 4, `nop` 1 vs 3 — for
+67.75% with `delete=6 regs=9`, where the two missing load-delay `nop`s make it
+read as a scheduling or address-formation problem rather than two deleted
+stores. One `VECTOR3` local assigned field-by-field was 100%. Inputs: `base.i`
+`ac23dc983e0cca95c118eb36ea6d00edb2d57f0d117a639bf35edd5701d5e21f` (67.75%),
+`base_1.i` `48ff40de0626745ace82764068d47881335ceb3e0f274498102828753ef0e9a1`
+(100%).
+
 ## Let a nested loop write `&arr[i]`, not a walking pointer, when the outer loop head recomputes the address
 
 m2c turns every array walk into a walking pointer (`var_s1 += 8`), and for a

@@ -3,6 +3,7 @@
 #include "actors/actors_shared_80134c2c.h"
 #include "actors/actors_shared_80134cfc.h"
 #include "actors/actors_shared_80134ff0.h"
+#include "actors/actors_shared_80135048.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void ActorsShared80134c2c_Fn32A28(ActorShared80134c2c* arg0, ActorShared80134c2cObj2C* arg1, s32 arg2);
@@ -10,7 +11,6 @@ void ActorsShared80134c2c_Fn33EAC(ActorShared80134c2c* arg0);
 void ActorsShared80134c2c_Fn34084(ActorShared80134c2c* arg0);
 void ActorsShared80134c2c_Fn34EB8(ActorShared80134c2c* arg0);
 void ActorsShared80134c2c_Fn34F60(ActorShared80134c2c* arg0);
-void ActorsShared80134c2c_Fn35048(ActorShared80134c2c* arg0);
 
 extern u8 D_801153F4;
 
@@ -59,5 +59,5 @@ default_body:
     Gp_UpdateCoord(temp_s1);
 case1:
     ActorsShared80134ff0((ActorShared80134ff0*)arg1);
-    ActorsShared80134c2c_Fn35048(arg1);
+    ActorsShared80135048((ActorShared80135048*)arg1);
 }
