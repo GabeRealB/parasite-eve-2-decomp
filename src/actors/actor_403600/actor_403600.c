@@ -55,9 +55,11 @@ extern s32              D_actor_403600_801606A0;
 extern GpU16Pair        D_actor_403600_801606A4;
 extern Task*            D_actor_403600_801606A8;
 extern GpU16Pair        D_actor_403600_80150EB0;
+extern const SVECTOR    D_actor_403600_80131E2C;
 extern CVECTOR          D_actor_403600_80131E34;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
@@ -258,7 +260,314 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801353D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80135C28);
+const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
+
+void func_actor_403600_80135C28(Task* arg0)
+{
+    SVECTOR                 sp10;
+    s16*                    temp_a0_2;
+    s16*                    temp_a0_6;
+    Actor403600EffectState* temp_s0;
+    s16*                    temp_v0_11;
+    s16*                    temp_v0_13;
+    Actor403600EffectState* temp_v0_2;
+    s16*                    temp_v0_4;
+    s16*                    temp_v0_7;
+    s16*                    temp_v1_5;
+    s16*                    temp_v1_8;
+    s16*                    var_a0_2;
+    GsCOORDINATE2*          temp_s4;
+    s32                     temp_a0_3;
+    s32                     temp_a0_4;
+    s32                     temp_a0_7;
+    s32                     temp_v0_10;
+    s32                     temp_v0_12;
+    s32                     temp_v0_3;
+    s32                     temp_v0_5;
+    s32                     temp_v0_6;
+    s32                     temp_v0_8;
+    s32                     temp_v0_9;
+    s32                     temp_v1_10;
+    s32                     temp_v1_11;
+    s32                     temp_v1_12;
+    s32                     temp_v1_2;
+    s32                     temp_v1_3;
+    s32                     temp_v1_4;
+    s32                     temp_v1_6;
+    s32                     temp_v1_7;
+    s32                     temp_v1_9;
+    s32                     var_a1;
+    s32                     var_a1_2;
+    s32                     var_v0;
+    s32                     var_v0_2;
+    s32                     var_v0_3;
+    s32                     var_v0_4;
+    s32                     var_v0_5;
+    s32                     var_v0_6;
+    s32                     var_v0_7;
+    s32                     var_v1;
+    Actor403600*            temp_a0;
+    TmdObject*              temp_a0_5;
+    TmdObject*              temp_a1;
+    Task*                   temp_s2;
+    TmdObject*              temp_v0;
+    Actor403600Work*        temp_v1;
+
+    temp_a0 = arg0->spawnArg2;
+    temp_v1 = temp_a0->field_1C;
+    temp_s4 = ((TmdObject*)arg0->extra)->field_8;
+    temp_s2 = temp_v1->field_710;
+    if (temp_v1->field_742 == 1) {
+        temp_v0                 = temp_a0->field_2C;
+        D_actor_403600_801606A0 = NULL;
+        temp_v0->field_C        = (u16)(temp_v0->field_C & 0xFF7F);
+        Task_CallExit(arg0);
+        return;
+    }
+    if (arg0->state == 0) {
+        temp_v0_2 = Mem_Calloc(0xE8, 0);
+        if (temp_v0_2 != NULL) {
+            arg0->idMap         = (TaskIdMap*)temp_v0_2;
+            temp_v0_2->field_E0 = 0;
+            sp10                = D_actor_403600_80131E2C;
+            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_s2->parent->extra)->field_8[1], &sp10);
+            temp_a0_2                      = &temp_v0_2->field_90.coord.m[0][0];
+            *(s32*)&temp_a0_2[0]           = 0x1000;
+            *(s32*)&temp_a0_2[2]           = 0;
+            *(s32*)&temp_a0_2[4]           = 0x1000;
+            *(s32*)&temp_a0_2[6]           = 0;
+            temp_a0_2[8]                   = 0x1000;
+            temp_v0_2->field_90.coord.t[0] = 0;
+            temp_v0_2->field_90.coord.t[1] = 0;
+            temp_v0_2->field_90.coord.t[2] = 0;
+            temp_v0_2->field_90.flg        = 0;
+            temp_v0_2->field_90.sub        = temp_s4;
+            temp_v1_2                      = arg0->spawnArg1;
+            arg0->killCountdown            = 0x10;
+            switch (temp_v1_2) {
+                case 1:
+                    temp_v0_2->field_8E = (s16)temp_v1_2;
+                    var_a1_2            = 0;
+                    do {
+                        temp_a0_4           = temp_v0_2->field_80;
+                        temp_v1_6           = temp_a0_4 + 0x1F;
+                        var_v0_3            = temp_v1_6;
+                        temp_v0_2->field_80 = temp_v1_6;
+                        if (temp_v1_6 < 0) {
+                            var_v0_3 = temp_a0_4 + 0x3E;
+                        }
+                        temp_v0_6 = temp_v1_6 - ((var_v0_3 >> 5) << 5);
+                        __asm__("move %0,%1" : "=r"(temp_a0_4) : "r"(temp_v0_6));
+                        temp_v0_2->field_80 = temp_v0_6;
+                        temp_v0_7           = &temp_v0_2->field_0[temp_a0_4];
+                        temp_v0_7[0]        = 0;
+                        temp_v0_7[0x20]     = 0U;
+                        if (temp_v0_2->field_8E != 0) {
+                            if (temp_v0_2->field_8C == 0) {
+                                temp_v0_2->field_84 = 0;
+                            }
+                            temp_v1_7 = temp_v0_2->field_88;
+                            if (temp_v1_7 < 0x1000) {
+                                temp_v0_2->field_88 = (s32)(temp_v1_7 + 0x200);
+                            }
+                        } else {
+                            temp_v0_8 = temp_v0_2->field_88;
+                            if (temp_v0_8 > 0) {
+                                temp_v0_2->field_88 = (s32)(temp_v0_8 - 0x80);
+                            }
+                        }
+                        temp_v0_2->field_8C = (s16)(u16)temp_v0_2->field_8E;
+                        if (temp_v0_2->field_88 != 0) {
+                            temp_v1_8       = &temp_v0_2->field_0[temp_a0_4];
+                            temp_v1_8[0]    = (s16)(u16)temp_v0_2->field_84;
+                            temp_v1_8[0x20] = (u16)temp_v0_2->field_88;
+                            if (temp_v0_2->field_E0 == 0) {
+                                var_v0_4 = temp_v0_2->field_84 + 0x180;
+                            } else {
+                                var_v0_4 = temp_v0_2->field_84 + 0x100;
+                            }
+                            temp_v0_2->field_84 = var_v0_4;
+                        }
+                        var_a1_2 += 1;
+                    } while (var_a1_2 < 0x10);
+                    temp_v0_2->field_E4 = 8;
+                    break;
+                case 2:
+                    arg0->killCountdown = 0x2E;
+                    temp_v0_2->field_E4 = 0x1F;
+                    Gfx_RotMatrixZ(temp_a0_2, 0x800, 0);
+                    temp_s4->flg = 0;
+                    break;
+                default:
+                    temp_v0_2->field_8E = 1;
+                    var_a1              = 0;
+                    do {
+                        temp_a0_3           = temp_v0_2->field_80;
+                        temp_v1_3           = temp_a0_3 + 0x1F;
+                        var_v0              = temp_v1_3;
+                        temp_v0_2->field_80 = temp_v1_3;
+                        if (temp_v1_3 < 0) {
+                            var_v0 = temp_a0_3 + 0x3E;
+                        }
+                        temp_v0_3 = temp_v1_3 - ((var_v0 >> 5) << 5);
+                        __asm__("move %0,%1" : "=r"(temp_a0_3) : "r"(temp_v0_3));
+                        temp_v0_2->field_80 = temp_v0_3;
+                        temp_v0_4           = &temp_v0_2->field_0[temp_a0_3];
+                        temp_v0_4[0]        = 0;
+                        temp_v0_4[0x20]     = 0U;
+                        if (temp_v0_2->field_8E != 0) {
+                            if (temp_v0_2->field_8C == 0) {
+                                temp_v0_2->field_84 = 0;
+                            }
+                            temp_v1_4 = temp_v0_2->field_88;
+                            if (temp_v1_4 < 0x1000) {
+                                temp_v0_2->field_88 = (s32)(temp_v1_4 + 0x200);
+                            }
+                        } else {
+                            temp_v0_5 = temp_v0_2->field_88;
+                            if (temp_v0_5 > 0) {
+                                temp_v0_2->field_88 = (s32)(temp_v0_5 - 0x80);
+                            }
+                        }
+                        temp_v0_2->field_8C = (s16)(u16)temp_v0_2->field_8E;
+                        if (temp_v0_2->field_88 != 0) {
+                            temp_v1_5       = &temp_v0_2->field_0[temp_a0_3];
+                            temp_v1_5[0]    = (s16)(u16)temp_v0_2->field_84;
+                            temp_v1_5[0x20] = (u16)temp_v0_2->field_88;
+                            if (temp_v0_2->field_E0 == 0) {
+                                var_v0_2 = temp_v0_2->field_84 + 0x180;
+                            } else {
+                                var_v0_2 = temp_v0_2->field_84 + 0x100;
+                            }
+                            temp_v0_2->field_84 = var_v0_2;
+                        }
+                        var_a1 += 1;
+                    } while (var_a1 < 0x10);
+                    break;
+            }
+            arg0->state = (s32)(arg0->state + 1);
+        } else {
+            Task_CallExit(arg0);
+            return;
+        }
+    }
+    temp_s0 = (Actor403600EffectState*)arg0->idMap;
+    if (D_801153F4 == 0) {
+        temp_v1_9 = arg0->spawnArg1;
+        switch (temp_v1_9) { /* switch 1; irregular */
+            case 1:          /* switch 1 */
+                temp_v0_9         = temp_s0->field_E4 - 1;
+                temp_s0->field_E4 = temp_v0_9;
+                if (temp_v0_9 == 0) {
+                    temp_a0_5               = ((Actor403600*)arg0->spawnArg2)->field_2C;
+                    D_actor_403600_801606A0 = NULL;
+                    temp_a0_5->field_C      = (u16)(temp_a0_5->field_C | 0x80);
+                    goto block_57;
+                } else if (temp_v0_9 > 0) {
+                    D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                    Gp_UpdateCoord(&temp_s0->field_90);
+                    goto block_57;
+                }
+                goto block_57;
+            case 2: /* switch 1 */
+                temp_v1_10        = temp_s0->field_E4 - 1;
+                temp_s0->field_E4 = temp_v1_10;
+                if (temp_v1_10 != 0) {
+                    goto block_52;
+                }
+                temp_a1                 = ((Actor403600*)arg0->spawnArg2)->field_2C;
+                temp_a0_6               = (s16*)&temp_s0->field_90;
+                D_actor_403600_801606A0 = temp_a0_6;
+                temp_a1->field_C        = (u16)(temp_a1->field_C & 0xFF7F);
+                Gp_UpdateCoord((GsCOORDINATE2*)temp_a0_6);
+                goto block_57;
+            block_52:
+                if (temp_v1_10 < -7) {
+                    goto block_55;
+                }
+                D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                Gp_UpdateCoord(&temp_s0->field_90);
+                goto block_57;
+            block_55:
+                if (temp_v1_10 == -8) {
+                    D_actor_403600_801606A0 = NULL;
+                }
+            block_57:
+                break;
+        }
+        if (arg0->killCountdown > 0) {
+            temp_s0->field_8E = 1;
+        } else {
+            temp_s0->field_8E = 0;
+        }
+        arg0->killCountdown = (s16)((u16)arg0->killCountdown - 1);
+        temp_a0_7           = temp_s0->field_80;
+        temp_v1_11          = temp_a0_7 + 0x1F;
+        var_v0_5            = temp_v1_11;
+        temp_s0->field_80   = temp_v1_11;
+        if (temp_v1_11 < 0) {
+            var_v0_5 = temp_a0_7 + 0x3E;
+        }
+        temp_v0_10 = temp_v1_11 - ((var_v0_5 >> 5) << 5);
+        __asm__("move %0,%1" : "=r"(temp_a0_7) : "r"(temp_v0_10));
+        temp_s0->field_80 = temp_v0_10;
+        temp_v0_11        = &temp_s0->field_0[temp_a0_7];
+        temp_v0_11[0]     = 0;
+        temp_v0_11[0x20]  = 0U;
+        if (temp_s0->field_8E != 0) {
+            if (temp_s0->field_8C == 0) {
+                temp_s0->field_84 = 0;
+            }
+            temp_v1_12 = temp_s0->field_88;
+            if (temp_v1_12 < 0x1000) {
+                temp_s0->field_88 = (s32)(temp_v1_12 + 0x200);
+            }
+        } else {
+            temp_v0_12 = temp_s0->field_88;
+            if (temp_v0_12 > 0) {
+                temp_s0->field_88 = (s32)(temp_v0_12 - 0x80);
+            }
+        }
+        temp_s0->field_8C = (s16)(u16)temp_s0->field_8E;
+        if (temp_s0->field_88 != 0) {
+            temp_v0_13       = &temp_s0->field_0[temp_a0_7];
+            temp_v0_13[0]    = (s16)(u16)temp_s0->field_84;
+            temp_v0_13[0x20] = (u16)temp_s0->field_88;
+            if (temp_s0->field_E0 != 0) {
+                goto block_73;
+            }
+            var_v0_6 = temp_s0->field_84 + 0x180;
+            goto block_74;
+        block_72:
+            var_v0_7 = 0;
+            goto block_78;
+        block_73:
+            var_v0_6 = temp_s0->field_84 + 0x100;
+        block_74:
+            temp_s0->field_84 = var_v0_6;
+        }
+    }
+    func_actor_403600_801353D0(temp_s0, temp_s4);
+    var_v1 = 0;
+    if (arg0->killCountdown <= 0) {
+        var_a0_2 = temp_s0->field_0;
+    loop_78:
+        var_v1 += 1;
+        if (*var_a0_2 != 0) {
+            goto block_72;
+        }
+        var_a0_2 += 1;
+        if (var_v1 >= 0x20) {
+            var_v0_7 = 1;
+        } else {
+            goto loop_78;
+        }
+    block_78:
+        if (var_v0_7 != 0) {
+            Task_CallExit(arg0);
+        }
+    }
+}
 
 u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {

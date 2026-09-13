@@ -109,6 +109,20 @@ typedef struct Actor403600MotionState {
 } Actor403600MotionState;
 STATIC_ASSERT_SIZEOF(Actor403600MotionState, 0xE4);
 
+typedef struct Actor403600EffectState {
+    /* 0x00 */ s16           field_0[0x20];
+    /* 0x40 */ s16           field_40[0x20];
+    /* 0x80 */ s32           field_80;
+    /* 0x84 */ s32           field_84;
+    /* 0x88 */ s32           field_88;
+    /* 0x8C */ s16           field_8C;
+    /* 0x8E */ s16           field_8E;
+    /* 0x90 */ GsCOORDINATE2 field_90;
+    /* 0xE0 */ s32           field_E0;
+    /* 0xE4 */ s32           field_E4;
+} Actor403600EffectState;
+STATIC_ASSERT_SIZEOF(Actor403600EffectState, 0xE8);
+
 typedef struct Actor403600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor403600Work* field_1C;
