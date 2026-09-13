@@ -55067,6 +55067,31 @@ on the first attempt against an m2c baseline of 68.4% (`regs=19 insert=4
 delete=3 reorder=2`), and all of m2c's damage was its two-temp
 `temp_a1 = temp_a1 - 0x10` form where the original keeps a `u8* head` and a
 `VECTOR* block` over the same carved scratch address.
+## `overlay_dup_index.py similar` finds the displacement-only twin that `find` cannot
+
+`overlay_dup_index.py find` decides equality on splat's disassembly *text*, so a
+copy whose only difference is struct-field displacements — `0x3A0($a2)` against
+`0x49C($a2)` — is not a copy as far as it is concerned. `func_actor_207200_8014D7E8`
+never appeared next to its twin there.
+
+The `similar` subcommand is the fuzzy tier beside it: it ranks *already-matched*
+bodies in four classes — `shape` (opcode order, operands dropped), `fields`,
+`calls`, `cflow` — and BRIEF.md embeds the top few, starring any candidate that
+scores in more than one class. For `func_actor_207200_8014D7E8` the whole body
+came back at 1.00 in `shape`, `calls` *and* `cflow` at once. Diffing the two
+disassemblies confirmed they are instruction-for-instruction identical with
+every displacement changed: the same `ActorsShared80135b58` shape compiled
+against a different work struct. Copying `Actor05500_Fn03B60`'s matched C
+verbatim and renaming two work fields (`field_370`→`field_464`,
+`field_3A0`→`field_49C`) scored 100% on the first build — no term to add, unlike
+the near-twin case above where a stripped diff shows one instruction with no
+counterpart.
+
+So try `find` first, `similar` second, and only write C from the asm when both
+come back empty. A 1.00 `shape` score that also matches in `calls` means
+transcription will be exact, and the whole of the work is the struct layout: the
+two fields had to be cut out of the overlay's own padding runs, which is what
+the match then verifies.
 
 ## A named index temp can *win* the register allocation by shortening a live range
 
