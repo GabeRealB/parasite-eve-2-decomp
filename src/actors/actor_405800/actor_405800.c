@@ -38,6 +38,7 @@ s32  func_actor_405800_80136A1C();
 void func_actor_405800_80135A3C(Task* arg0, s16 arg1);
 s32  func_actor_405800_8013728C(Task* arg0);
 s32  func_actor_405800_801373E0(Task* arg0);
+s32  func_actor_405800_80137908(Task* arg0);
 void func_actor_405800_801379F8(Task* task);
 void func_actor_405800_80137948(Task* task);
 void func_actor_405800_80137994(Task* arg0, s16 arg1);
@@ -1259,7 +1260,101 @@ void func_actor_405800_80135780(Task* arg0)
     obj->field_20 = &work->matrix_20;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80135A3C);
+/// Animation state 2: the landing slam. Same two sound/tracking windows as
+/// `func_actor_400600_80135998`, one frame-count pair per sound event.
+void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
+{
+    Actor405800Work* work;
+    GsCOORDINATE2*   coord;
+    /* The first window starts at frame 0. `start0` is still its own `u8`: the
+     * width is what folds both of its tests against a literal zero, and the
+     * wider first temp below is what keeps the zero arm a fresh constant
+     * instead of a copy of it. */
+    u8  start0;
+    u32 tmp0;
+    u8  tmp1;
+    u8  tmp2;
+    u8  end0;
+    u8  start1;
+    u8  end1;
+    s32 id;
+    u32 sound;
+    u32 voice;
+    s32 pan;
+
+    work  = (Actor405800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (work->field_872 != 2) {
+        work->field_850 = 0x10;
+        work->field_872 = 2;
+        work->field_86E = 2;
+        Actor405800_TickAnim(arg0);
+    }
+    start0 = 0;
+    if (((Actor405800Work*)arg0->idMap)->field_850 == 0) {
+        tmp0 = 0;
+    } else {
+        tmp0 = (u32)(0xB00 / ((Actor405800Work*)arg0->idMap)->field_850) >> 4;
+    }
+    end0 = tmp0;
+    if (((Actor405800Work*)arg0->idMap)->field_850 == 0) {
+        tmp1 = 0;
+    } else {
+        tmp1 = (u32)(0xC00 / ((Actor405800Work*)arg0->idMap)->field_850) >> 4;
+    }
+    start1 = tmp1;
+    if (((Actor405800Work*)arg0->idMap)->field_850 == 0) {
+        tmp2 = 0;
+    } else {
+        tmp2 = (u32)(0x1500 / ((Actor405800Work*)arg0->idMap)->field_850) >> 4;
+    }
+    end1 = tmp2;
+    if ((func_actor_405800_80137908(arg0) << 0x10) != 0) {
+        work->field_874 = 0;
+        work->field_850 = arg1;
+    }
+    if (work->field_874 == start0) {
+        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        id = 0x40050001;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0001;
+        }
+        /* `voice` is a plain copy that the compiler propagates away; writing
+         * `sound = id | sound` instead swaps the operands of the `or`. */
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        voice   = sound;
+        sound   = id | voice;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_874 == start1) {
+        ActorsShared80139dcc(arg0, 8, (ActorsShared80139dccPos*)&work->field_88);
+        id = 0x40050002;
+        if ((arg0->spawnArg1 & 0xF0) == 0x10) {
+            id = 0x404A0002;
+        }
+        sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        sound >>= 0xC;
+        sound <<= 8;
+        voice   = sound;
+        sound   = id | voice;
+        pan     = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan   >>= 24;
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_874 >= start0 && work->field_874 <= end0) {
+        func_actor_405800_80138514(arg0, 0xB, &work->field_88);
+        work->field_860 = 8;
+    }
+    if (work->field_874 >= start1 && work->field_874 <= end1) {
+        func_actor_405800_80138514(arg0, 8, &work->field_88);
+        work->field_860 = 0xB;
+    }
+    coord->flg = 0;
+}
 
 /// Animation state 4: drives the two sound/tracking windows the same way
 /// `func_actor_400600_80135DDC` does, one frame-count pair per sound event.

@@ -160,7 +160,8 @@ typedef struct Actor405800Work {
     /* 0x85A */ s16                 field_85A; // pending transition: 3 -> state 5, 5 -> state 0xF
     /* 0x85C */ s16                 field_85C; // countdown seeded by func_actor_405800_80137994, ticked by func_actor_405800_8013795C
     /* 0x85E */ s16                 field_85E; // countdown, ticked by func_actor_405800_8013795C
-    /* 0x860 */ byte                pad_860[0x6];
+    /* 0x860 */ s16                 field_860; // model slot id handed to func_actor_405800_80138514
+    /* 0x862 */ byte                pad_862[0x4];
     /* 0x866 */ s16                 field_866;
     /* 0x868 */ byte                pad_868[0x2];
     /* 0x86A */ s16                 field_86A; // seeded from field_92; set to -0x9C4 during the hop
