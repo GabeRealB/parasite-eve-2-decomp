@@ -290,7 +290,37 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04D28);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04E30);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100300_text", Actor00300_Fn04ED4);
+void Actor00300_Fn04ED4(Actor100300* arg0)
+{
+    Actor100300Work* work;
+    s32              i;
+    s32              val;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if (work->field_66E != work->field_670) {
+        TOUCH_REG(i);
+        work->field_670 = work->field_66E;
+        work->field_672 = 0;
+        if (work->field_69E == 0) {
+            val = Actor00300_D16394[work->field_66E];
+        } else {
+            val = 8;
+            i   = 1;
+        }
+        do {
+            func_800B4114((GpAnimCtx*)work, i, work->field_66E, 0, val);
+            i++;
+        } while (i < 0x13);
+    } else {
+        TOUCH_REG(i);
+        work->field_672 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 0x13);
+    }
+}
 
 void Actor00300_Fn04FB0(Actor100300* arg0)
 {

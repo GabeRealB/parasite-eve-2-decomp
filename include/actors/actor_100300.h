@@ -42,7 +42,8 @@ typedef struct Actor100300Work {
     /* 0x666 */ byte                pad_666[0x8];
     /* 0x66E */ s16                 field_66E;
     /* 0x670 */ s16                 field_670;
-    /* 0x672 */ byte                pad_672[0x4];
+    /* 0x672 */ u16                 field_672;
+    /* 0x674 */ byte                pad_674[0x2];
     /* 0x676 */ s16                 field_676;
     /* 0x678 */ u16                 field_678;
     /* 0x67A */ byte                pad_67A[0x2];
@@ -55,6 +56,8 @@ typedef struct Actor100300Work {
     /* 0x692 */ byte                pad_692[0x4];
     /* 0x696 */ u16                 field_696;
     /* 0x698 */ s16                 field_698;
+    /* 0x69A */ byte                pad_69A[0x4];
+    /* 0x69E */ s16                 field_69E;
 } Actor100300Work;
 
 typedef struct Actor100300 {
@@ -95,6 +98,7 @@ typedef struct Actor100300StateFuncTable3 {
 extern Actor100300StateFuncTable3 Actor00300_D00004;
 extern Actor100300StateFuncTable3 Actor00300_D0003C;
 extern Actor100300StateFuncTable3 Actor00300_D00048;
+extern s16                        Actor00300_D16394[];
 
 void Actor00300_Fn048D4(Actor100300Ctx* arg0, Actor100300* arg1);
 void Actor00300_Fn04958(Actor100300Ctx* arg0, Actor100300* arg1);
