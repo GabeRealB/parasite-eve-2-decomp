@@ -171,4 +171,27 @@ typedef struct Actor105500LineScratch {
 
 STATIC_ASSERT_SIZEOF(Actor105500LineScratch, 0x20);
 
+typedef struct Actor105500QuadScratch {
+    SVECTOR p[4];
+    s32     screen;
+    s32     depth;
+} Actor105500QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor105500QuadScratch, 0x28);
+
+typedef struct Actor105500TextureObj {
+    byte pad_0[0x24];
+    s8   field_24;
+    u8   field_25;
+} Actor105500TextureObj;
+
+typedef struct Actor105500Uv {
+    u8 u;
+    u8 pad_1;
+    u8 v;
+    u8 pad_3;
+} Actor105500Uv;
+
+extern Actor105500Uv Actor05500_D08A80[];
+extern s16           Actor05500_D08AA0[];
+
 #endif
