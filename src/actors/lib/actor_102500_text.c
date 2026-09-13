@@ -740,7 +740,41 @@ void Actor02500_Fn02008(Actor02500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn020D0);
+void Actor02500_Fn020D0(Actor02500* arg0)
+{
+    Actor02500Work* work;
+    s32             state;
+
+    work  = arg0->field_1C;
+    state = work->field_324;
+    switch (state) {
+        case 0:
+            work->field_31C = 7;
+            work->field_326 = 0;
+            work->field_328 = 0;
+            work->field_324 = 1;
+            return;
+        case 1:
+            if ((s16)work->field_320 >= 0x20) {
+                if (work->field_33E == state) {
+                    work->field_322 = 4;
+                    work->field_324 = 0;
+                    return;
+                }
+                if (work->field_344 == state) {
+                    work->field_322 = 3;
+                    work->field_324 = state;
+                    work->field_32E = 0x3C;
+                    return;
+                }
+                work->field_322 = state;
+                work->field_324 = 0;
+            } else {
+                return;
+            }
+            break;
+    }
+}
 
 void Actor02500_Fn02178(Actor02500* arg0)
 {
