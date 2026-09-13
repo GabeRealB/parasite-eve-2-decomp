@@ -24,4 +24,22 @@ s32 func_actor_510900_8013BD5C(Actor510900* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_4", func_actor_510900_8013BD84);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, Actor510900AnimArgs* arg2)
+{
+    Actor510900Work* work;
+    s32              blend;
+    s32              i;
+
+    blend           = (arg2->field_8 != 0) * 8;
+    work            = arg0->field_1C;
+    work->field_586 = arg2->field_4 + 0x1B;
+    for (i = 1; i < 0x13; i++) {
+        func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
+    }
+    work->field_58A = 0;
+    return 0;
+}

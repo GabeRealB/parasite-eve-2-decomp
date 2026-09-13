@@ -38,14 +38,20 @@ typedef struct Actor510900Work {
     /* 0x504 */ GpObj  obj504;
     /* 0x524 */ byte   pad_524[0x60];
     /* 0x584 */ s16    field_584;
-    /* 0x586 */ byte   pad_586[8];
-    /* 0x58E */ s16    field_58E;
-    /* 0x590 */ byte   pad_590[2];
-    /* 0x592 */ s16    field_592;
-    /* 0x594 */ byte   pad_594[0x10];
-    /* 0x5A4 */ s16    field_5A4;
-    /* 0x5A6 */ byte   pad_5A6[0x16];
-    /* 0x5BC */ s16    field_5BC;
+    /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
+    /// stores `Actor510900AnimArgs::field_4 + 0x1B` here.
+    /* 0x586 */ s16  field_586;
+    /* 0x588 */ byte pad_588[2];
+    /// Blend weight the 0x7D3 handler is handed, cleared once the reseed is done.
+    /* 0x58A */ s16  field_58A;
+    /* 0x58C */ byte pad_58C[2];
+    /* 0x58E */ s16  field_58E;
+    /* 0x590 */ byte pad_590[2];
+    /* 0x592 */ s16  field_592;
+    /* 0x594 */ byte pad_594[0x10];
+    /* 0x5A4 */ s16  field_5A4;
+    /* 0x5A6 */ byte pad_5A6[0x16];
+    /* 0x5BC */ s16  field_5BC;
 } Actor510900Work;
 
 typedef struct Actor510900 {
@@ -62,6 +68,17 @@ typedef struct Actor510900Ctx {
     /* 0x15 */ byte pad_15[0x37];
     /* 0x4C */ u8   field_4C;
 } Actor510900Ctx;
+
+/// 0x7D3 argument block. `field_4` is the animation the actor switches to,
+/// biased by 0x1B into the id the handler stores in `Actor510900Work::field_586`
+/// and reseeds animation slots 1..0x12 with; a non-zero `field_8` starts every
+/// reseeded slot at blend 0x80 instead of snapping to the new pose.
+typedef struct Actor510900AnimArgs {
+    /* 0x00 */ byte pad_0[4];
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[2];
+    /* 0x08 */ s32  field_8;
+} Actor510900AnimArgs;
 
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);

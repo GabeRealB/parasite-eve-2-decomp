@@ -65311,6 +65311,52 @@ Example: `func_actor_510900_8013BE64`. Inputs: `base_1.i`
 `c5309e47f02608dd5a8bd1c3ae77fdb0fdef5b0570025d587843f9540c182505`, `base_3.i`
 `4b5617da6f4c1cc82f16fe7c2f1020ab726d7d1cfd582ed9d6842d99940322b9`.
 
+**Same cause, much noisier symptom.** The rule is not limited to a *tested*
+argument. When the handler's own slot is a **pointer it dereferences**, the
+missing middle parameter costs far more than one register: m2c's two-parameter
+version lands the pointer in `$a1`, every field load and store hanging off it
+comes out on the wrong register, `global.c` re-allocates around the whole
+function, and the report reads `regs=11 stack=2 reorder=1 insert=2 delete=1` at
+86.97% *with a matching block topology* — nothing like the one-register case
+above, and easy to misread as an allocation problem. Part of that insert/delete
+is a second m2c artefact: it rebuilds the loop's call argument as its own
+variable, which costs a `$v1` copy before the loop and again in the branch delay
+slot.
+
+```c
+/* m2c: $v1 carries the argument, `move a1,v1` inside the body */
+    var_s0 = 1;
+    var_a1 = 1;
+    do {
+        var_s0 += 1;
+        func_800B4114(temp_s1, var_a1, ...);
+        var_a1 = var_s0;
+    } while (var_s0 < 0x13);
+```
+
+Writing the handler the way the family does — three parameters, loop variable
+passed straight to the call — collapses both into `move a1,s0` and matches
+exactly:
+
+```c
+s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, Actor510900AnimArgs* arg2)
+{
+    blend           = (arg2->field_8 != 0) * 8;
+    work            = arg0->field_1C;
+    work->field_586 = arg2->field_4 + 0x1B;
+    for (i = 1; i < 0x13; i++) {
+        func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
+    }
+```
+
+Recognise the family from the call rather than from the score: all of these
+handlers are the `(task, opcodeId, args)` shape and several end in the same
+slots-reseed loop `for (i = 1; i < 0x13; i++) func_800B4114(ctx, i, animId, 0,
+blend)`. Example: `func_actor_510900_8013BD84`, the 0x7D3 entry of the
+`D_actor_510900_80167A6C` table the section above is about. Matched first try;
+input `base_1.i`
+`e79c7d071e85b9876a009ba260d18c10616e87483c0ed056511d3b42c1f06a8c`.
+
 ## A promoted `shared` span that lands on existing cuts renumbers nothing
 
 `overlay_dup_index.py promote <fn>` writes the span into every sharer's manifest
