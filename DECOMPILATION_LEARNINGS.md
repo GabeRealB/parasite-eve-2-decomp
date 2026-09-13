@@ -68333,3 +68333,32 @@ Rebuild just the failing unit (`./tools/build-and-verify.sh --only <unit>`),
 then re-run the bare build. Do not treat it as a codegen difference and do not
 commit through the failure - the check is right to stop. If it reproduces on a
 quiet tree, it is real.
+
+## `sllv` on a plain `s16[]` index is reload CSE pulling in a live `1`
+
+`D[(s16)work->field_37E]` on an `s16[]` expands to
+`(ashift:SI x (const_int 1))`, and mips.md's `ashlsi3` prints `sll %0,%1,%2`
+for a constant *or* a register count - so the assembler picks `sll` vs
+`sllv` from the RTL operand, not from the C. What puts a register there is
+`reload_cse_simplify_operands`, which after reload swaps any operand for a
+live hard register holding an equal value, including the CONST_INT 1.
+
+So a target `sllv $v0,$v0,$s0` next to an array load is not a variable
+shift in the source; it means a `1` was live in a register at that load.
+Three near-identical actors bodies settle it:
+
+| body | table load vs `i = 1` | emitted |
+|---|---|---|
+| `Actor02500_Fn02318` | load first, then `i = 1` | `sll $v0,$a0,1` |
+| `Actor05500_Fn039AC` | `i = 1` in the `beq` delay slot, load later | `sllv $v0,$v0,$s0` |
+| `func_actor_300700_80165230` | same | `sllv $v0,$v0,$s0` |
+
+The `.greg` dump still shows `(ashift x (const_int 1))`; the `.sched2` dump
+already shows `(reg:SI 16 s0)`. Write the hoist the other way round (`i = 1;`
+before the `if`, its constant landing in the `beq` delay slot) and the same
+plain `s16[]` index yields the `sllv`.
+
+Note the sibling source form is what makes the rest of the shape fall out:
+`for (; i < 7; i++)` for the call loop plus `TOUCH_REG(i); work->field_382 += i;`
+before the `do { Gp_AnimTickIndex(...); i++; } while (i < 7);` reproduces a
+byte-identical frame, delay slots and loop layout in one transplant.

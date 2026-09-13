@@ -52,6 +52,9 @@ typedef struct Actor300700 {
     /* 0x2C */ Actor300700Obj2C* field_2C;
 } Actor300700;
 
+/// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
+extern s16 D_actor_300700_801693E4[];
+
 void func_actor_300700_80164D3C(Actor300700Ctx* arg0, Actor300700* arg1);
 
 #endif

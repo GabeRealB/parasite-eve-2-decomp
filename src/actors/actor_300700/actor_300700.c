@@ -27,6 +27,7 @@ void func_actor_300700_80165230(Actor300700* arg0);
 void func_actor_300700_801652F4(Actor300700* arg0);
 void func_actor_300700_8016534C(Actor300700* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern u8  D_801153F4;
 extern s32 Gp_LcgState;
@@ -268,7 +269,30 @@ case1:
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801651A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80165230);
+void func_actor_300700_80165230(Actor300700* arg0)
+{
+    Actor300700Work* work;
+    s32              i;
+    s32              value;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if ((s16)work->field_37E != work->field_380) {
+        work->field_380 = work->field_37E;
+        work->field_382 = 0;
+        value           = D_actor_300700_801693E4[(s16)work->field_37E];
+        for (; i < 7; i++) {
+            func_800B4114(work, i, (s16)work->field_37E, 0, value);
+        }
+    } else {
+        TOUCH_REG(i);
+        work->field_382 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 7);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801652F4);
 
