@@ -1,5 +1,7 @@
 #include "common.h"
 #include "actors/actor_800100.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80163D54);
 
@@ -219,7 +221,45 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166190);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166514);
+void func_actor_800100_80166514(GpActorWork* arg0)
+{
+    void**                   scratch;
+    void*                    head;
+    GameActor*               actor;
+    GsCOORDINATE2            sp10;
+    GsCOORDINATE2*           src;
+    GpObj*                   obj;
+    Actor800100PlaceScratch* blk;
+    s16                      angle;
+
+    actor       = arg0->actor;
+    src         = ((TmdObject*)actor->field_91C->extra)->field_8;
+    obj         = (GpObj*)actor->field_12C;
+    sp10        = *src;
+    obj->flags |= 0xC000;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (Actor800100PlaceScratch*)((u8*)head - 0x5C);
+    *scratch = blk;
+
+    Gp_FindRec18(((GpActorD4Rec*)obj->field_C)->field_14, 0);
+    Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
+    blk->rot.vx = 0;
+    blk->rot.vy = 0x120;
+    blk->rot.vz = 0x20;
+    Gp_PlaceCoordOffset(&sp10, &blk->coord, (SVECTOR*)((u8*)head - 0xC));
+    angle      = func_actor_800100_8016709C(&blk->coord, (GpRec18*)actor->pad_3BC, NULL);
+    blk->angle = angle;
+    func_actor_800100_8016666C(&blk->coord, angle);
+    blk->rot.vx = 0;
+    blk->rot.vz = 0;
+    blk->rot.vy = blk->angle + 0x38;
+    Gp_PlaceCoordOffset(&blk->coord, &blk->coord, (SVECTOR*)((u8*)head - 0xC));
+    func_actor_800100_801668C0(&blk->coord);
+    Gp_ClearRec18Occupied((GpRec18*)actor->pad_3BC);
+    *scratch = (u8*)*scratch + 0x5C;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_8016666C);
 

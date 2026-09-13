@@ -65341,3 +65341,50 @@ Inputs: `base_1.i`
 `5a2ea948d4e18aa4267c66cc44f6ed16dc68593a2913069c81692ece45d77feb` (argument-less,
 `regs=16`), `base_2.i`
 `133ae4070b9b6009712d7f098c5a2147a1150f169bb6dd97f8c7cfaf2873d604` (`arg0`).
+
+## A pointer derived between the last pre-loop load and a block move takes its delay slot
+
+`func_actor_800100_80166514` copies a 0x50-byte `GsCOORDINATE2` into a stack local
+(`sp10 = *((TmdObject*)actor->field_91C->extra)->field_8;`), which is the
+`movstrsi` 5x16-byte loop of the entry above, and then uses a *second* pointer
+taken from the same actor (`obj = (GpObj*)actor->field_12C;`). Both the copy's
+destination `&sp10` and that pointer are register-only computations with no
+consumers until after the loop, so where each is *written in the source* decides
+which pre-loop slot it gets:
+
+```
+lw    v0,0x2c(v0)          # ->extra
+addiu v1,sp,0x10           # &sp10        - first load-delay slot
+lw    v0,8(v0)             # ->field_8
+addiu a0,s3,0x12c          # &obj         - second load-delay slot
+addiu a1,v0,0x50
+lw    a3,0(v0)             # block move starts
+```
+
+Written with the pointer derived at the top of the body it has no pre-loop home
+at all: it is emitted **after** the loop (`addiu v1,s3,0x12c`, `$v1` recycled from
+the copy's end pointer), and `$a1`/`$a0` swap roles throughout the tail - 96.09%,
+`regs=8 insert=2 delete=1`. Moving the derivation alone to sit between the `src`
+load and the copy is the 100%:
+
+```c
+src  = ((TmdObject*)actor->field_91C->extra)->field_8;
+obj  = (GpObj*)actor->field_12C;   /* here: last pre-loop def, second delay slot */
+sp10 = *src;
+obj->flags |= 0xC000;              /* stays after the copy */
+```
+
+The position is what matters, not the ordering, and it is not a general
+"declare things early" rule: moving the *flags* read-modify-write up with it
+(93.23%) keeps the `lhu`/`ori`/`sh` through `$a0` glued to the pointer's
+definition and the whole sequence - pointer, RMW and all - is emitted before the
+block move instead, taking `branch=1 reorder=3 insert=3` with the loop's `bne`
+displacement shifted. A register-only computation can be scheduled around a
+`movstrsi`; a memory operation sharing its statement cannot be separated from it,
+so it drags the move. `func_actor_800100_80166514` (96.09% -> 100%).
+Inputs: `base_2.i`
+`1ebffb390fe461e8a6845b71afdf03d6f8e7a66b6a40f5f7c1829e230c1bece6`,
+`base_3.i`
+`02ced327ae4a827a114d0e5f0dfd7ad0d120a0e20ca913aa21e2c08572faa1a3`,
+`base_4.i`
+`f4e66b8563a323465611991cf9914b2e0ae263c267998b3cea0f40a8c4e5341f`.
