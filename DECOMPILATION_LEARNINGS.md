@@ -342,6 +342,49 @@ spell the sign-extend on it. `func_actor_400500_80133160`. Inputs:
 `62a5b0f4eec1b0cd97a563ca76e43923d58fee82dae0f6138d84461d6af29ee6`.
 
 
+## A narrowing cast into a *wider* local materialises the sign-extend at the assignment
+
+Saving a call's result in a local declared at the narrow width defers the
+conversion to the use:
+
+```c
+s8  pan;                      /* or: s32 pan = Gp_GetObjPan(o);       */
+pan = Gp_GetObjPan(o);
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(o));
+```
+
+expands to an SI copy of `$v0` plus a `QI` subreg, and the sign-extend is
+sunk into the call's argument setup:
+
+```
+jal   Gp_GetObjPan
+move  s0, v0            /* insn 115: reg102 = v0 */
+...                     /* depth call crosses here */
+move  a0, s1
+sll   s0, s0, 24        /* extension emitted at the call */
+sra   a1, s0, 24
+```
+
+The target instead extends once, right after the call, into the register the
+argument then copies from (`move a1, s0`). Give the local the *wider* type and
+narrow with an explicit cast at the assignment; the mismatched widths force
+GCC to build a full SI value there rather than carry a subreg:
+
+```c
+s32 pan;
+pan = (s8)Gp_GetObjPan(o);
+```
+
+Both halves are required. `s8 pan; pan = (s8)Gp_GetObjPan(o);` folds back to
+the same expand, and `s32 pan; pan = Gp_GetObjPan(o);` leaves the value
+unconverted until the call. `func_actor_105700_80137130`; the sibling
+`func_actor_105700_801336FC`'s `s32 pan = (s8)Gp_GetObjPan(...)` uses the same
+shape. Inputs: `base_1.i`
+`b67a102c674f3ae75a567e03685c78e88948e5f9c0bcda742300469bd25e965f`,
+`base_2.i`
+`47502f6350366a23989bbf0916e1e2cdcce62bafa1a5a1c60042d302c2a190e7`.
+
+
 ## Loop-only copy of a live-after pointer fills an early delay and adds a saved reg
 
 When a work pointer is used both inside a call-crossing loop and after it,

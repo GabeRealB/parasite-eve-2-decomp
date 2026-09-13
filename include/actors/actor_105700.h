@@ -16,8 +16,12 @@ typedef struct Actor105700Work {
     /* 0x014 */ byte      slots[19][0x28];
     /* 0x30C */ byte      pad_30C[0x394];
     /* 0x6A0 */ u16       field_6A0; ///< sound flags; bit 5/4 gate the two cues
-    /* 0x6A2 */ byte      pad_6A2[0x34];
-    /* 0x6D6 */ s16       field_6D6; ///< animation index, used as a table row
+    /* 0x6A2 */ byte      pad_6A2[0x30];
+    /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
+    /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
+    /* 0x6D2 */ s16  field_6D2;
+    /* 0x6D4 */ byte pad_6D4[2];
+    /* 0x6D6 */ s16  field_6D6; ///< animation index, used as a table row
 } Actor105700Work;
 STATIC_ASSERT_SIZEOF(Actor105700Work, 0x6D8);
 
@@ -29,10 +33,12 @@ typedef struct Actor105700Ctx {
 } Actor105700Ctx;
 
 /// Model object behind `Actor105700.field_2C`; `field_8` is the trailing
-/// per-part coordinate array the pan/depth helpers read.
+/// per-part coordinate array the pan/depth helpers read. `field_C` is the
+/// halfword `func_actor_105700_80137130` mirrors from the owner's object.
 typedef struct Actor105700Obj {
     /* 0x00 */ byte     pad_0[8];
     /* 0x08 */ GpObj38* field_8;
+    /* 0x0C */ u16      field_C;
 } Actor105700Obj;
 
 typedef struct Actor105700 {
