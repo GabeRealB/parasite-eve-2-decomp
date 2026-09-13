@@ -9,7 +9,54 @@ INCLUDE_RODATA("actors/nonmatchings/actor_202600/actor_202600", D_actor_202600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600", func_actor_202600_80149E8C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600", func_actor_202600_8014A574);
+void func_actor_202600_8014A574(Actor202600* arg0)
+{
+    Actor202600Work* work;
+    GsCOORDINATE2*   coord;
+    s32              state;
+    s32              dx;
+    s32              dz;
+    u32              random;
+    s32              index;
+    VECTOR*          delta;
+    VECTOR*          scratchEnd;
+
+    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+    delta                              = scratchEnd - 1;
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
+    work                               = arg0->field_1C;
+    state                              = work->field_39C;
+    coord                              = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            scratchEnd[-1].vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+            delta->vy         = 0;
+            dz                = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            delta->vz         = dz;
+            dx                = scratchEnd[-1].vx;
+            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x9C4) || (work->field_3D0 != 0) || (D_801153F2[1] == 2)) {
+                work->field_39C = 1;
+                work->field_392 = 0xD;
+                Gp_ArmStateF0(1);
+            }
+            break;
+        case 1:
+            if ((u32)(work->field_396 - 0xB) < 0x32U) {
+                coord->coord.t[2] += 4;
+            }
+            if ((s16)work->field_396 >= 0x4B) {
+                work->field_39A = 3;
+                work->field_39C = 0;
+                work->field_392 = state;
+                index           = arg0->field_20->field_3C->field_F;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_39E = D_actor_202600_80152798[index] + ((random >> 0x10) & 0xF);
+            }
+            break;
+    }
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+}
 
 void func_actor_202600_8014A734(Actor202600* arg0)
 {

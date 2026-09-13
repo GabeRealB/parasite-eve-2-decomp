@@ -52,6 +52,8 @@ typedef struct Actor202600Work {
     /* 0x3A6 */ s16       field_3A6;
     /* 0x3A8 */ byte      pad_3A8[4];
     /* 0x3AC */ u16       field_3AC;
+    /* 0x3AE */ byte      pad_3AE[0x22];
+    /* 0x3D0 */ s16       field_3D0;
 } Actor202600Work;
 
 typedef struct Actor202600 {
@@ -66,5 +68,6 @@ typedef struct Actor202600 {
 extern u32 Gp_LcgState;
 extern u16 D_actor_202600_80152798[];
 extern s16 D_actor_202600_80152836;
+extern u8  D_801153F2[2];
 
 #endif
