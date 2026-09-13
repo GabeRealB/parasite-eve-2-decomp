@@ -13,6 +13,7 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00480);
 
 void Actor01600_Fn00480(Actor01600* arg0);
 void Actor01600_Fn00A4C(Actor01600* arg0);
+void Actor01600_Fn0131C(Actor01600* arg0, s32 damage);
 void Actor01600_Fn00BAC(Actor01600* arg0);
 void Actor01600_Fn03D48(Actor01600* arg0);
 void Actor01600_Fn03EEC(Actor01600* arg0);
@@ -22,6 +23,8 @@ void Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1);
 void Actor01600_Fn06A84(Actor01600* arg0);
 void Actor01600_Fn06F10(Actor01600* arg0);
 void Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1);
+s32  Gp_TickObjFlag4(Actor01600Ctx* arg0);
+s32  Gp_ObjFlag4Expired(Actor01600Ctx* arg0);
 s32  Gp_GetObjPan(void* arg0);
 s32  Gp_GetObjDepth(void* arg0);
 
@@ -110,7 +113,51 @@ void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00A4C);
+void Actor01600_Fn00A4C(Actor01600* arg0)
+{
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+    s16             state;
+    s32             damage;
+    u8              flags2;
+    u8              flags1;
+
+    ctx    = arg0->field_20;
+    flags1 = ctx->field_4C;
+    work   = arg0->field_1C;
+    if ((flags1 & 1) && (work->field_528 == 0)) {
+        ctx->field_4C   = flags1 & 0xFE;
+        work->field_4FE = 2;
+        work->field_538 = 0x14;
+        work->field_504 = 0;
+        work->field_506 = 0xE;
+    }
+    flags2 = ctx->field_4C;
+    if ((flags2 & 2) && (work->field_4FE != 2) && (work->field_528 == 0)) {
+        ctx->field_4C   = flags2 & 0xFD;
+        work->field_4FE = 3;
+        if (work->field_556 != 0) {
+            work->field_506 = 0xE;
+            work->field_4FE = 5;
+        }
+        work->field_504 = 0;
+    }
+    if ((ctx->field_4C & 0xC) && (work->field_528 == 0)) {
+        Actor01600_Fn06F10(arg0);
+        damage = Gp_TickObjFlag4(ctx);
+        if (damage != 0) {
+            state = work->field_4FE;
+            if ((state != 2) && (state != 5)) {
+                work->field_4FE = 0;
+                work->field_506 = 0xA;
+            }
+            Actor01600_Fn0131C(arg0, damage);
+        }
+        if (Gp_ObjFlag4Expired(ctx) != 0) {
+            ctx->field_4C &= 0xF3;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_text", Actor01600_Fn00BAC);
 
