@@ -67083,3 +67083,42 @@ after it, says even less: `dst->m[0][0] = src->m[0][0]` through `MATRIX*`
 emits `lhu`/`sh` because the sign extension is dead in a pure copy.
 
 Example: `func_actor_107600_80134EF4`.
+
+## A live call result pushes the scratch-head reload from `$v0` into `$v1` - and that is what costs the `nop`
+
+**Symptom.** `func_actor_107600_80134D9C` carves a `VECTOR` off `G_SCRATCH_HEAD`,
+calls `func_80103D8C` for an XZ distance, then releases the block with
+`*scratch = (u8*)*scratch + 0x10;`. It scored 93.57% with `regs=3 insert=2
+delete=1`: the reload came out in `$v0`, which forced it *after* the store of
+the call's result, so the load-delay slot had nothing to fill it and a `nop`
+appeared. The target has the reload in `$v1` with that store sitting in the
+delay slot.
+
+**Cause.** `find_free_reg` (`local-alloc.c:2176`) refuses every register in
+`regs_live_at[born..dead)`, and a call's result is a hard `$v0` live from the
+call to its store. So the reload can only take `$v0` when the result has already
+been stored by the time the load is *born*. Leave the result live and the reload
+falls to `$v1`; with `$v1` the result store is independent of the load, so dbr
+moves it into the load-delay slot. The store's position in the target's
+assembly is the delay-slot filler, not the source order.
+
+**Fix.** Hold the call's result in a local and store it *after* the release:
+
+```c
+dist = func_80103D8C(block->vx, block->vz);
+*scratch = (u8*)*scratch + 0x10;
+work->field_14C = dist;
+```
+
+Written the other way round - `work->field_14C = func_80103D8C(...);` before the
+release - the reload is born after the store, takes `$v0`, and the `nop` comes
+back however the rest of the C is arranged.
+
+**Settle this from a matched sibling's own object, with no build.** A matched
+function's object *is* the original, so `build/USA/src/<overlay>/<unit>.c.o`
+answers a codegen question directly. `func_8010BC70` (`src/gameplay/3FB8.c`) is
+the same shape but `return ret;` after the release, so its result is unavoidably
+live across it; its tail there is `lw v1,0(s1)` / `nop` / `addiu v1,v1,0x10` /
+`sw v1,0(s1)`. `func_actor_107600_80134E5C`, with no live value at that point,
+reloads into `$v0` and fills the delay with an independent `lw`. Example:
+`func_actor_107600_80134D9C` (93.57% -> 100%).

@@ -390,7 +390,41 @@ void func_actor_107600_80134D70(Actor107600* arg0)
     func_actor_107600_80134B98(arg0, 7);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134D9C);
+/// Measures the XZ offset from this model's own attach coordinate to the one on
+/// the `Gp_ActorSlots[0]` actor's model, in a 0x10-byte `VECTOR` carved off
+/// `G_SCRATCH_HEAD` the way `func_actor_107600_80134E5C` carves its block, and
+/// leaves the distance in `Actor107600Work.field_14C`. With no slot-0 actor the
+/// carve is undone and nothing is measured. The distance is only stored once the
+/// scratch block has been handed back, which is the order the original compiled
+/// in - moving the store up costs a nop after the reload.
+void func_actor_107600_80134D9C(Task* arg0)
+{
+    Actor107600Work* work;
+    GsCOORDINATE2*   self;
+    GsCOORDINATE2*   target;
+    void**           scratch;
+    u8*              head;
+    VECTOR*          block;
+    s32              dist;
+
+    work     = (Actor107600Work*)arg0->idMap;
+    self     = ((TmdObject*)arg0->extra)->field_8;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (VECTOR*)(head - 0x10);
+    *scratch = block;
+    if (Gp_ActorSlots[0] == NULL) {
+        *scratch = head;
+        return;
+    }
+    target          = ((TmdObject*)Gp_ActorSlots[0]->extra)->field_8;
+    block->vx       = target->coord.t[0] - self->coord.t[0];
+    block->vy       = target->coord.t[1] - self->coord.t[1];
+    block->vz       = target->coord.t[2] - self->coord.t[2];
+    dist            = func_80103D8C(block->vx, block->vz);
+    *scratch        = (u8*)*scratch + 0x10;
+    work->field_14C = dist;
+}
 
 /// Rotates a fixed 0x10-byte offset by the coordinate's own `coord` matrix and
 /// leaves the result in that matrix's translation row. The offset is carved off

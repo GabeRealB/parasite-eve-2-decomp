@@ -46,7 +46,9 @@ typedef struct Actor107600Work {
     /* 0x144 */ s16     field_144;
     /* 0x146 */ byte    pad_146[0x4];
     /* 0x14A */ u8      field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
-    /* 0x14B */ byte    pad_14B[0xD];
+    /* 0x14B */ byte    pad_14B[0x1];
+    /* 0x14C */ s32     field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
+    /* 0x150 */ byte    pad_150[0x8];
     /* 0x158 */ s16     field_158;
     /* 0x15A */ s16     field_15A;
     /* 0x15C */ byte    pad_15C[0x6];
@@ -91,6 +93,7 @@ void func_actor_107600_80134D10(Actor107600* arg0);
 void func_actor_107600_80134D30(Actor107600* arg0);
 void func_actor_107600_80134D50(Actor107600* arg0);
 void func_actor_107600_80134D70(Actor107600* arg0);
+void func_actor_107600_80134D9C(Task* arg0);
 void func_actor_107600_80134E5C(GsCOORDINATE2* arg0);
 void func_actor_107600_80134EF4(Task* arg0);
 
