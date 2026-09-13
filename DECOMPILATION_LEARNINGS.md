@@ -40310,6 +40310,37 @@ step does not do for you.
   An explicit `INCLUDE_RODATA` line in the old unit's `.c` has to move with the
   cut for the same reason.
 
+## A mid-run shared span renumbers every later unit, `INCLUDE_ASM` paths included
+
+The section above assumes the span lands at the *end* of a unit's run, as an
+`actor_141000` span did: the unit is truncated, one new tail unit appears, and
+the files that already exist keep their names. A span in the **middle** of a run
+is a cascade instead. In `actor_402200` the span took 0x6028..0x60CC out of a run
+that started at 0x5F58, so every run after it moved up one number:
+
+| run | was | became |
+|---|---|---|
+| 0x5F58..0x6028 | `actor_402200_2` | `actor_402200_2` (truncated) |
+| 0x60CC..0x6190 | — | `actor_402200_3` (new) |
+| 0x62B8..0x63C0 | `actor_402200_3` | `actor_402200_4` |
+| 0x63E8..0x6520 | `actor_402200_4` | `actor_402200_5` |
+
+Two consequences beyond the ones above.
+
+* The unit `.c` names are bound to address ranges, so the *files* are wrong even
+  where the bodies are right: `git mv` each one down the cascade and give the new
+  head unit a `.c` holding its own bodies. `INCLUDE_ASM`'s first argument is the
+  unit directory, so every moved line needs its path string rewritten too
+  (`/actor_402200_3` → `/actor_402200_4`) — a stale one still assembles, from a
+  directory splat no longer writes.
+* The authoritative new mapping is what the split leaves in `asm/`:
+  `ls asm/USA/<family>/nonmatchings/<overlay>/` lists a directory only for units
+  that still hold an unmatched function, so a unit whose functions are all
+  matched is invisible there. Use the addresses, not the directory list alone.
+
+`actor_402200` and `actor_403900` were promoted in the same commit, so the
+cascade was run twice; the twin's span is at 0x602C and shifts the same units.
+
 ## Name a load in a local to hoist it above a run of constant stores
 
 A block that zeroes several fields and then stores a value loaded from a

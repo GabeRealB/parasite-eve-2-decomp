@@ -2,6 +2,7 @@
 
 #include "actors/actors_shared_80137a20.h"
 #include "actors/actors_shared_80137b78.h"
+#include "actors/actors_shared_80137e48.h"
 #include "actors/actors_shared_80137fb0.h"
 #include "actors/actors_shared_8013806c.h"
 
@@ -11,7 +12,6 @@ void func_8009EA50(s32 arg0); /* defined (s32) in src/gameplay/gameplay.c */
 void ActorsShared80137a20_Fn31F54(ActorShared80137a20* arg0, ActorShared80137a20Obj2C* arg1, s32 arg2);
 void ActorsShared80137a20_Fn34968(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn35BE0(ActorShared80137a20* arg0);
-void ActorsShared80137a20_Fn37E4C(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn37EF0(ActorShared80137a20* arg0);
 void ActorsShared80137a20_Fn3820C(GsCOORDINATE2* arg0, s32 arg1);
 
@@ -63,7 +63,7 @@ default_body:
     if (temp_s1->field_6B4 != 0) {
         ActorsShared80137a20_Fn31F54(arg1, temp_a1, one);
         ActorsShared80137b78((ActorShared80137b78*)arg1);
-        ActorsShared80137a20_Fn37E4C(arg1);
+        ActorsShared80137e48((ActorShared80137e48*)arg1);
         ActorsShared80137a20_Fn37EF0(arg1);
         ActorsShared80137a20_Fn35BE0(arg1);
         temp_s2->field_0.flg                  = 0;
