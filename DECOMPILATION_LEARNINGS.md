@@ -42520,6 +42520,52 @@ global scalar store and a following struct load are in the wrong order, and try
 it on the `Gpu_PrimCursor` hoist in `func_800D15D0` — there the fixed-address
 scalar is on the *load* side, but the same exemption is what moves it.
 
+## The same array trick stops `dbr` stealing a store into a branch delay slot
+
+A third face of the fixed-address-scalar exemption, and the one that is hardest
+to read off the diff: it can cost you a *delay slot*. `func_actor_444000_8013E058`
+ends with three stores into a scratchpad frame followed by a compare against a
+global mode byte:
+
+```c
+sc->push.vx = sc->dir.vx;
+sc->push.vy = 0;
+sc->push.vz = sc->dir.vz;
+if (D_8007218B != 2 && D_8007218B != 0xA && actor->field_954 != 2) {
+    func_80105B74(&sc->push);
+}
+```
+
+With `extern s8 D_8007218B;` the `lb` has a fixed (`LO_SUM`) address, so
+`true_dependence` exempts it from the varying-address struct stores and it gains
+no memory dependence on them. `sw zero,4(s2)` is then the only store in the
+block whose sole dependent is the branch: `sched2` gives it priority 1, and
+because `schedule_select` prefers the insn with "a greater potential hazard" it
+fills the last slot before the branch with it (`;; insn 1400 has a greater
+potential hazard` in the `.sched2` trace). `dbr`'s backward scan starts at that
+store, finds `needed.memory` still clear, and steals it:
+
+```
+sw    v1,0(s2)
+sw    v0,8(s2)
+lui   v0,%hi(D_8007218B)
+lb    v1,%lo(D_8007218B)(v0)
+li    a0,2
+beq   v1,a0,exit
+ sw   zero,4(s2)      <- stolen; retail keeps it in place
+```
+
+`extern s8 D_8007218B[];` plus `D_8007218B[0]` sets `MEM_IN_STRUCT_P` on the
+load, the exemption stops applying, the `lb` picks up a data dependence on all
+three stores, and `sw zero,4(s2)` is no longer ready until the `lb` is
+scheduled — so it stays between its siblings and `li a0,2` fills the delay slot
+instead. That one declaration took the function from 99.73% to 100%.
+
+The tell is a `reorder`-free diff with exactly one `insert`/`delete` pair where
+a store has migrated into a delay slot. Check `needed.memory`: if there is a
+load between the store and the branch in retail's output and not in yours, the
+missing dependence is upstream in `sched2`, not in `dbr`.
+
 ## Declare a case's scratch pointers inside the case, not at function scope
 
 Two `switch` arms that each build the same primitive (`TILE* tile; DR_TPAGE*

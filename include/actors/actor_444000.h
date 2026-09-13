@@ -615,6 +615,27 @@ typedef struct Actor444000WarpScratch {
 } Actor444000WarpScratch;
 STATIC_ASSERT_SIZEOF(Actor444000WarpScratch, 0x4C);
 
+/// 0x4C-byte scratchpad frame `func_actor_444000_8013E058` carves off
+/// `SCRATCH_SP` for the drag tick. `dir` starts as the player-relative offset in
+/// the arena plane, is carried into view space, renormalised and then scaled by
+/// the per-frame pull the animation frame selects; `push` is the same vector as
+/// the 32-bit triple `func_80105B74` copies onto the player actor, `dist` is the
+/// offset's length and `pull` / `period` are the frame-derived strength and the
+/// script-spawn interval the current phase uses.
+typedef struct Actor444000DragScratch {
+    /* 0x00 */ VECTOR3 push;
+    /* 0x0C */ byte    pad_C[0x4];
+    /* 0x10 */ SVECTOR dir;
+    /* 0x18 */ byte    pad_18[0x20];
+    /* 0x38 */ s32     dist;   // length of `dir` before it is normalised
+    /* 0x3C */ byte    pad_3C[0x8];
+    /* 0x44 */ s16     pull;   // phase offset folded into the gpf scale
+    /* 0x46 */ s16     i;      // escort slot being cleared, 0 or 1
+    /* 0x48 */ s16     period; // frames between script spawns
+    /* 0x4A */ byte    pad_4A[0x2];
+} Actor444000DragScratch;
+STATIC_ASSERT_SIZEOF(Actor444000DragScratch, 0x4C);
+
 /// Position and Euler rotation payload the escort-order tick sends slot 3 as
 /// message 0x3E9; `D_actor_444000_80161908` is the overlay's only instance.
 typedef struct Actor444000MsgPos {

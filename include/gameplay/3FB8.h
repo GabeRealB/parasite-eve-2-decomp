@@ -1051,6 +1051,7 @@ s32   func_8010C058(void);
 void  func_8010C180(GpActorWork* arg0);
 void  func_801061F0(void);
 void  func_80105B0C(GpActorWork* arg0);
+void  func_80105B74(VECTOR3* arg0);
 void  Gp_TickPlayerActor(GpActorWork* arg0);
 void  func_8010AC54(GpActorWork* arg0);
 void  func_80109A1C(GpActorWork* arg0);

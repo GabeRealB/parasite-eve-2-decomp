@@ -8,11 +8,13 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -121,8 +123,15 @@ extern u16               Gp_WeaponIdBase[];
 /// `func_actor_444000_801423C4`).
 extern u8 D_801153F4;
 
-/// Dispatch-table entries that still live in assembly further down this file.
-void func_actor_444000_8013E058(Actor444000* arg0);
+/// Global game-mode byte; sits inside a small flag block, so it is declared as
+/// an array -- the load has to keep aliasing the scratch stores beside it (see
+/// DECOMPILATION_LEARNINGS.md, "Declare a fixed-address global as an array").
+extern s8 D_8007218B[];
+/// Script pair the drag tick spawns every `period` frames.
+extern s32 D_actor_444000_80144A94;
+extern s32 D_actor_444000_80144AA0;
+
+/// Dispatch-table entry that still lives in assembly further down this file.
 void func_actor_444000_80141DFC(Actor444000* arg0);
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
@@ -1825,7 +1834,288 @@ void func_actor_444000_8013D96C(Actor444000* arg0)
     Actor444000_ReleaseRotScratch();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_8013E058);
+/// Drag tick of the arena fight: the state the boss runs while it is hauling the
+/// player in along the line between them.
+///
+/// A reset request (`field_4`) re-arms the block on animation 3, clears the host
+/// model's flag word and pushes it onto each of the seven escorts' models, makes
+/// sure the host and every escort has its model buffers allocated, re-seeds the
+/// spinner target `D_actor_444000_80161890` from the fourth part of slot 4's
+/// model and announces sub-state 2 through message 0x7DA.
+///
+/// Every tick then pins the player down to the arena floor, runs the ordinary
+/// re-arm and stows the yaw from the host to the player -- relative to the
+/// host's own facing, wrapped to +/-0x800 -- in `field_7C4`. The host's fifth
+/// part is carried into view space, the player-relative offset from there gives
+/// the direction and distance the pull works along, and the animation frame
+/// picks how hard: `pull` is the phase's base strength and the frame divides
+/// `-(pull + 0x19)` by 1, 2, 3, 4, 6 or 2/3 before `gte_gpf12` scales the
+/// normalised direction by it. Frames outside 9..20 drop the pull and clear
+/// `field_EFA`. `func_80105B74` hands the result to the player actor unless the
+/// game is in mode 2 or 0xA or the player is already in mode 2.
+///
+/// Alongside that: a script fires every `period` frames while the frame sits in
+/// 0xA..0x12, two cues play on frames 0x3C and 0xE8, the fight asks slot 3 for
+/// the hold (message 0x3F8) once the player is inside 0x4B0 on frames 0xB..0xF
+/// and phase 6 onward clamps the player back behind -0x52D0. Once `slots0[1]`
+/// raises its flag the fight announces sub-state 3, moves to state 0xA and drops
+/// its two spawned escorts.
+void func_actor_444000_8013E058(Actor444000* task)
+{
+    Actor444000Work*        work  = task->field_1C;
+    GpEnemy*                enemy = task->field_20;
+    GpActorWork*            slot3;
+    GameActor*              actor;
+    Actor444000DragScratch* sc;
+    Actor444000Work*        escorts;
+    Actor444000Work*        buffers;
+    WipSysConfig*           cfg;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          facing;
+    GsCOORDINATE2*          yawCoord;
+    GsCOORDINATE2*          clamp;
+    SVECTOR*                posp;
+    SVECTOR*                dirp;
+    TmdObject*              tmd;
+    TmdObject*              escortTmd;
+    s16                     angle;
+    s16                     i;
+    s16                     j;
+    s16                     dz;
+
+    slot3 = (GpActorWork*)Game_GetPtrSlot(3);
+    sc    = (Actor444000DragScratch*)(SCRATCH_SP -= sizeof(Actor444000DragScratch));
+    actor = slot3->actor;
+
+    if (work->field_4 != 0) {
+        work->field_7B3                    = 3;
+        work->field_7B0                    = 2;
+        escorts                            = task->field_1C;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)task->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+            }
+        }
+        tmd     = (TmdObject*)task->extra;
+        buffers = task->field_1C;
+        if (tmd->field_18 == NULL) {
+            Tmd_AllocBuffers(tmd);
+        }
+        for (j = 0; j < 7; j++) {
+            if (buffers->field_ECC[j] != NULL) {
+                escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                if (escortTmd->field_18 == NULL) {
+                    Tmd_AllocBuffers(escortTmd);
+                }
+            }
+        }
+        work->field_EFE = 0;
+        work->field_EF4 = 1;
+        work->field_EF6 = 1;
+        work->field_EFA = 0;
+        posp            = &D_actor_444000_80161890;
+        posp->vz        = 0;
+        posp->vy        = 0;
+        posp->vx        = 0;
+        Actor444000_LocalToView(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8[3], posp);
+        D_actor_444000_80161888.field_0 = 0;
+        D_actor_444000_80161888.field_1 = 0x2C;
+        D_actor_444000_80161888.field_2 = 2;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
+    }
+
+    coord = slot3->extra->field_8;
+    if (coord->coord.t[1] > 0) {
+        coord->coord.t[1]          = 0;
+        slot3->extra->field_8->flg = 0;
+    }
+    func_actor_444000_8013441C(task);
+
+    cfg        = &Wip_SysConfig;
+    facing     = ((TmdObject*)task->extra)->field_8;
+    dirp       = &sc->dir;
+    sc->dir.vx = *(u16*)&cfg->field_4->t[0] - *(u16*)&facing->coord.t[0];
+    dirp->vy   = *(u16*)&cfg->field_4->t[1] - *(u16*)&facing->coord.t[1];
+    dz         = *(u16*)&cfg->field_4->t[2] - *(u16*)&facing->coord.t[2];
+    dirp->vz   = dz;
+    yawCoord   = ((TmdObject*)task->extra)->field_8;
+    angle      = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = angle;
+
+    sc->dir.vz = 0;
+    sc->dir.vy = 0;
+    sc->dir.vx = 0;
+    Actor444000_LocalToView(&((TmdObject*)task->extra)->field_8[4], &sc->dir);
+
+    sc->dir.vx = *(u16*)&slot3->extra->field_8->coord.t[0] - (u16)sc->dir.vx;
+    sc->dir.vy = *(u16*)&slot3->extra->field_8->coord.t[1] - (u16)sc->dir.vy;
+    sc->dir.vz = *(u16*)&slot3->extra->field_8->coord.t[2] - (u16)sc->dir.vz;
+    sc->dist   = sc->dir.vx * sc->dir.vx;
+    sc->dist  += sc->dir.vz * sc->dir.vz;
+    sc->dist   = SquareRoot0(sc->dist);
+    VectorNormalSS(&sc->dir, &sc->dir);
+
+    switch (work->field_F08) {
+        case 0:
+            sc->period = 0x19;
+            break;
+        case 1:
+            sc->period = 0x11;
+            break;
+        case 2:
+        default:
+            sc->period = 0xE;
+            break;
+    }
+    if (((u32)((work->slots0[1].field_2 & 0x3FF) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
+        Gp_SpawnScript18((s32)&D_actor_444000_80144A94, (s32)&D_actor_444000_80144AA0);
+    }
+
+    switch (work->field_F08) {
+        case 0:
+        case 6:
+            sc->pull = 0;
+            break;
+        case 1:
+            sc->pull = 5;
+            break;
+        case 2:
+            sc->pull = 0xA;
+            break;
+        case 3:
+        case 4:
+        case 5:
+        default:
+            sc->pull = 0xF;
+            break;
+    }
+
+    if (work->field_6 == 0x3C) {
+        s32 id;
+        s32 pan;
+
+        id  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020000A;
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+    }
+    if (work->field_6 == 0xE8) {
+        SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000A, 1);
+    }
+
+    work->field_EFA = 1;
+    switch (work->slots0[1].field_2 & 0x3FF) {
+        case 9:
+            gte_lddp(-(sc->pull + 0x19) / 4);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x180;
+            break;
+        case 10:
+            gte_lddp(-(sc->pull + 0x19) / 2);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            break;
+        case 11:
+        case 13:
+        case 15:
+            gte_lddp(-(sc->pull + 0x19));
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x2B2;
+            break;
+        case 12:
+        case 14:
+            gte_lddp(-((sc->pull + 0x19) * 3) / 2);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x500;
+            break;
+        case 16:
+            gte_lddp(-(sc->pull + 0x19) / 3);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x100;
+            break;
+        case 17:
+        case 18:
+            gte_lddp(-(sc->pull + 0x19) / 3);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x400;
+            break;
+        case 19:
+        case 20:
+            sc->dir.vz = 0;
+            sc->dir.vx = 0;
+            gte_lddp(-(sc->pull + 0x19) / 6);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0;
+            break;
+        default:
+            work->field_EFA = 0;
+            sc->dir.vz      = 0;
+            sc->dir.vx      = 0;
+            break;
+    }
+
+    if (((u32)((work->slots0[1].field_2 & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->field_F08 < 6)) {
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161928, 0) == 0) {
+            work->field_0   = 0xD;
+            work->field_EC8 = 1;
+        }
+    }
+    if (work->field_F08 >= 6) {
+        clamp = slot3->extra->field_8;
+        if (clamp->coord.t[2] > -0x52D0) {
+            clamp->coord.t[2] = -0x52D0;
+        }
+    }
+
+    if (sc->dir.vx != 0 || sc->dir.vz != 0) {
+        sc->push.vx = sc->dir.vx;
+        sc->push.vy = 0;
+        sc->push.vz = sc->dir.vz;
+        if (D_8007218B[0] != 2 && D_8007218B[0] != 0xA && actor->field_954 != 2) {
+            func_80105B74(&sc->push);
+        }
+    }
+
+    if (work->slots0[1].field_10 & 1) {
+        D_actor_444000_80161888.field_0 = 0;
+        D_actor_444000_80161888.field_1 = 0x2C;
+        D_actor_444000_80161888.field_2 = 3;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
+        work->field_0 = 0xA;
+        for (sc->i = 0; sc->i < 2; sc->i++) {
+            work->field_EE8[sc->i] = NULL;
+        }
+    }
+    work->field_F1C = 0;
+    SCRATCH_SP     += sizeof(Actor444000DragScratch);
+}
 
 /// Escort-order tick of the arena fight: the state the boss runs while it has
 /// the player pinned in front of it.
