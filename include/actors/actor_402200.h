@@ -128,6 +128,22 @@ typedef struct Actor402200 {
     /* 0x2C */ Actor402200Obj2C* field_2C;
 } Actor402200;
 
+/// 0x18-byte block `func_actor_402200_80138208` takes from `G_SCRATCH_HEAD`
+/// while projecting the actor's origin through its attach coordinate and
+/// working out the ordering-table depth. `vec` is the zeroed origin the GTE
+/// reads; the rest are the projection's results, and their order is the one
+/// `rtps` writes them in: screen xy, depth cue, `FLAG`, and the average
+/// screen z `otz`. Same block the other actor overlays spell
+/// `<overlay>ProjectScratch`.
+typedef struct Actor402200ProjectScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     sxy;
+    /* 0x0C */ s32     dp;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s32     otz;
+} Actor402200ProjectScratch;
+STATIC_ASSERT_SIZEOF(Actor402200ProjectScratch, 0x18);
+
 /// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 D_actor_402200_801383AC[];

@@ -6755,6 +6755,38 @@ shifted OT slot (~85%); write both `addPrim` halves as the full
 `((((u32)otz << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14`
 expression, same as `Gp_LinkSprtCmd`.
 
+## Decode the COP2 register file before reading an unmatched GTE body as C
+
+m2c renders every COP2 transfer as `M2C_ERROR(unknown instruction: ctc2 $t4, $0)`
+and guesses the register file wrong, so an unmatched GTE body reads as nonsense
+until you decode the mnemonics: `ctc2`/`cfc2` move to the **control** registers,
+`mtc2`/`mfc2`/`lwc2`/`swc2` to the **data** ones, and the same number means a
+different thing in each file. The ones that identify a body:
+
+| in the target | macro |
+|---|---|
+| `ctc2 r,$0..$4` then `ctc2 r,$5..$7` | `gte_SetRotMatrix` + `gte_SetTransMatrix` |
+| `ctc2 r,$8..$12` / `$16..$20` | `gte_SetLightMatrix` / `gte_SetColorMatrix` |
+| `lwc2 $0,0(p)` + `lwc2 $1,4(p)` | `gte_ldv0` |
+| `swc2 $14,0(p)` / `swc2 $8,0(p)` / `swc2 $7,0(p)` | `gte_stsxy` / `gte_stdp` / `gte_stotz` |
+| `cfc2 r,$31; nop; sw` | `gte_stflg` — FLAG is *control* 31 |
+| `mfc2 r,$19; nop; sra r,2; sw` | `gte_stszotz` — SZ3 is *data* 19, quartered |
+| `mfc2 r,$9/$10/$11` | `gte_stsv` (IR1..IR3) |
+
+A `ctc2` run therefore describes a *matrix*, not vertices: in
+`func_actor_402200_80138208` the eight words at `arg0+0x24` looked like a
+vertex array until the `ctc2` targets were read as control 0-7, which makes
+them `&coord->workm` (workm is at 0x24 of `GsCOORDINATE2`) with `arg0` handed
+straight to `Gp_UpdateCoord`. That one reading turned the body into the
+`actor_403600` project-origin twin (`func_actor_403600_80138DCC`) and matched
+it first try.
+
+The load/`ctc2` *interleaving* is the macro's own and not a scheduling result:
+`gte_SetTransMatrix` is written `lw r,20(p); lw r,24(p); ctc2 r,$5; lw r,28(p);
+ctc2 r,$6; ctc2 r,$7`, and a target showing exactly that has not been
+rescheduled — only the independent `addiu`s around it moved. Do not reach for
+`gte_ldtr`/per-row helpers to "explain" the order.
+
 ## Large sparse switches: case order and shared handlers
 
 GCC 2.8.1 emits switch case *bodies* in an order tied to the binary-search
