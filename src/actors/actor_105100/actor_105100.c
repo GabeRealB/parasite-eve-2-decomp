@@ -128,7 +128,32 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80133CE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80134130);
+void func_actor_105100_80134130(Actor105100* arg0)
+{
+    s32              snd;
+    s32              pan;
+    s32              pan2;
+    Actor105100Work* work;
+    GsCOORDINATE2*   self;
+    GpAnimRec*       rec;
+
+    work = arg0->field_1C;
+    self = arg0->field_2C->field_8;
+    rec  = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
+    if (rec != NULL) {
+        if (!(rec->field_3 & 0x20) && (work->field_5B8 & 0x20)) {
+            snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x40330001;
+            pan = (s8)Gp_GetObjPan((GpObj38*)self);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)self));
+        }
+        if (!(rec->field_3 & 0x10) && (work->field_5B8 & 0x10)) {
+            snd  = ((arg0->field_20->field_8 >> 12) << 8) | 0x40330002;
+            pan2 = (s8)Gp_GetObjPan((GpObj38*)self);
+            SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)self));
+        }
+        work->field_5B8 = (u16)(rec->field_3 & 0x30);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80134284);
 

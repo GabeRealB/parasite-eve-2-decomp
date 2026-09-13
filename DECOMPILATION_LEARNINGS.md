@@ -69405,3 +69405,65 @@ Preprocessed SHA256 (97.857% struct-typed port, then the matching source):
 
 - `base_2.i`: `8f21f757c2687738ab28aae8910793dc9169d4dbfe8a525636d94549734b29bc`
 - `base_3.i`: `9468535fb15afcecad4b6966ce494b2af2a924d17c49133c769e9a8d5127a9f4`
+
+
+## m2c's `s8 tmp = Call(); ... (s32)tmp` is not `s32 tmp = (s8)Call()`
+
+`func_actor_105100_80134130` is the enemy sound-event body shared with
+`Actor02000_Fn018A4`, and m2c's seed for it scored 89.824%. The seed narrows the
+pan *after* the call, into a byte temporary, and widens it at the use:
+
+```c
+s8 temp_s0 = Gp_GetObjPan(self);
+SndEvt_EnqueueType6(temp_s1, (s32)temp_s0, (s32)Gp_GetObjDepth(self));
+```
+
+That is two pseudos: a QImode one holding the raw call result, and a
+`sign_extend` of it at the argument. The allocator therefore has to give the
+*raw* `$v0` a home across the depth call, and the extension lands in the
+argument register:
+
+```
+jal   Gp_GetObjDepth
+ move $s1, $v0          # raw pan parked in a callee-saved home
+sll   $s1, $s1, 0x18
+sra   $a1, $s1, 0x18    # extension straight into the argument
+```
+
+Spelling the narrowing on the call itself — one SImode pseudo whose definition
+is the `sign_extend` — extends `$v0` directly into the local's home and copies
+that to the argument, which is what the ROM does:
+
+```c
+s32 pan = (s8)Gp_GetObjPan(self);
+SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+```
+
+```
+sll   $s0, $v0, 0x18
+jal   Gp_GetObjDepth
+ sra  $s0, $s0, 0x18
+move  $a1, $s0
+```
+
+100.000% on the first build, with `snd` in `$s1` and the extended pan in `$s0`.
+The controlled isolation (base_2, the same file with only `pan`/`pan2` reverted
+to `s8` and the cast moved to the use) reproduced the seed's parking and fell
+back to 90.118% with `regs`/`insert`/`delete` — so the RTL shape of the call
+result, not the surrounding temporaries, is the difference.
+
+This is a shape rule, not a preference for `(s8)` on calls: the
+`(s8)GetObjPan()` entry above is the same expression form allocating the other
+way in `func_actor_400500_80133160`, where `sll $v0` / `sra $s0` came out of it
+and the in-place `pan <<= 24; pan >>= 24` was the fix. Read the local's
+`.lreg`/`.greg` home and the destination of the `sll`/`sra` pair before choosing
+between the two spellings.
+
+Matched as `func_actor_105100_80134130`. Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Preprocessed SHA256:
+
+- `base.c` (89.824%): `fd036932b65b59ffc75e82d42f8c11205b9b95995fc489b7ee0c4e44a3f90dec`
+- `base_1.c` (100.000%): `68a26fa87590a7ede5c2d64f7a2441e3324225e078a13bc814ed8c1479c06d03`
+- `base_2.c` (90.118%, controlled isolation): `862b9d3b0d57696d4568d96268946b461bb1240129eea627a3e36487c4a9bcf3`
