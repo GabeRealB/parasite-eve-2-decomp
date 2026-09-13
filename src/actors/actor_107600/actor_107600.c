@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/mem.h"
 #include "main/task.h"
 
 #include "gameplay/1BC.h"
@@ -120,7 +121,29 @@ void func_actor_107600_80134920(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134958);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801349E0);
+/// Copies the world position of the model's first attach coordinate onto a
+/// 0x10-byte `VECTOR` carved off `G_SCRATCH_HEAD` and hands it to
+/// `func_actor_107600_80134608` with no blend parameters.
+void func_actor_107600_801349E0(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+    void*          obj;
+
+    obj       = arg0->spawnArg2;
+    coord     = ((TmdObject*)arg0->extra)->field_8;
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    func_actor_107600_80134608(obj, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134A50);
 

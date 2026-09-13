@@ -66746,3 +66746,38 @@ destination. Check the callee's `.s` before explaining the missing write as CSE
 or allocation behaviour - and remember the reverse reading too: a callee with a
 dead trailing parameter tells you nothing about how many arguments its callers
 pass, because the caller's source decides that.
+## A load-delay filler decides a `QTY_CMP_PRI` race, swapping `$v0` and `$v1`
+
+**Symptom.** `func_actor_107600_801349E0` had the right instructions in the
+right order but two registers mirrored: the coordinate pointer in `$v1` and the
+three `workm.t[]` temps in `$v0`, where the target has the pointer in `$v0` and
+the temps in `$v1`. The `lui`/`ori` scratch-address pair also sat after
+`sw $ra` instead of before it. Penalties `regs=12 reorder=3 insert=3 delete=2`.
+
+**Cause.** §10's ratio, so it is the temps' *span* that decides, not their
+reference count. When sched1 finds nothing ready after `lw t0,0x38(coord)` the
+assembler inserts a `nop`, the store follows immediately, and the temp's span is
+`death - birth = 3`; against the pointer's 4 refs over span 15 that is 26667 vs
+21333, so the temp takes `$v0` first and the pointer falls to `$v1`.
+
+Hoisting the callee's first argument into a local assigned *first*
+
+```c
+obj       = arg0->spawnArg2;   /* was: f(arg0->spawnArg2, block, 0, 0); */
+coord     = ((TmdObject*)arg0->extra)->field_8;
+```
+
+gives that load the block's lowest LUID, and sched1 then has the independent
+`move $a2,$zero` ready when the t0 load issues, so it fills the delay slot
+instead. The temp's store slides one slot later - span 5, priority 16000 - and
+the pointer, now born one slot later as well, comes out at 18824. Both dropped;
+only their order flipped. The same statement order restores the `lui`/`ori`
+placement, because the scratch constant's `high` insn now has a later LUID than
+the argument load.
+
+Read the two candidates' `refs` and `death - birth` off the `.lreg` *insn
+sequence*, not its header lines - those are flow.c's `REG_N_REFS` /
+`REG_LIVE_LENGTH` (§10.1), and `REG_LIVE_LENGTH` is not the local-alloc span.
+Neither is fixed by the source: both change with the schedule, which is why the
+edit that wins is one that moves an unrelated insn's LUID.
+`func_actor_107600_801349E0` (74.48% -> 100%).
