@@ -153,7 +153,43 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00B18);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00DD8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn01144);
+void Actor02500_Fn01144(Actor02500* actor)
+{
+    Actor02500Work* work;
+    GsCOORDINATE2*  coord;
+    s32             sound;
+    s32             pan;
+    s32             pan9;
+    s32             pan18;
+    u32             random;
+
+    work  = actor->field_1C;
+    coord = actor->field_2C->field_8;
+    work->field_338--;
+    if (work->field_338 <= 0) {
+        random          = Gp_LcgState * 5 + 0x71357911;
+        work->field_338 = ((random >> 16) & 0x7F) + 0x1E;
+        Gp_LcgState     = random;
+        sound           = ((actor->field_20->field_8 >> 12) << 8) | 0x40190008;
+        pan             = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+    }
+    if (work->field_326 != 0) {
+        work->field_33A++;
+        if (work->field_33A == 9) {
+            sound = ((actor->field_20->field_8 >> 12) << 8) | 0x40190001;
+            pan9  = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(sound, pan9, (s8)Gp_GetObjDepth(coord));
+        } else if (work->field_33A == 18) {
+            sound = ((actor->field_20->field_8 >> 12) << 8) | 0x40190002;
+            pan18 = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(sound, pan18, (s8)Gp_GetObjDepth(coord));
+            work->field_33A = 0;
+        }
+    } else {
+        work->field_33A = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn012F0);
 

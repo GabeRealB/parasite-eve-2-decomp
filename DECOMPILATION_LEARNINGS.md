@@ -64828,3 +64828,20 @@ different helpers. `actor_444000_5.c` keeps both: `Actor444000_ScaleRotation`
 takes `s32 y`, because `func_actor_444000_80138490` passes it an `s32` local and
 has no sign extension at the store, while `Actor444000_SquashRotation` takes
 `s16 y`. Folding them together breaks whichever caller wants the other form.
+
+### Actor02500_Fn01144: shared sound ID separates three local load chains
+
+Corroborates Actor02000_Fn018A4. Three separate sound locals gave 98.318%
+(regs=36 only); the router shared first/third and verified 99.439%. Controlled
+base_2 shared all three without the redundant copy and reached 100%. In
+base_1 .lreg the sound results are block-local, with their load/shift chains
+in s0 and pans in s1. In base_2 sound r84 has six refs/21 insns, three deaths
+and six crossed calls; .greg allocates it globally to s1, conflicting with
+the local pans in s0. Load chains now use v0. Scheduling and pointer homes
+remain exact. This supports local/global eligibility, not a local priority
+ratio explanation. Clean real-header base_3 also matches; no pins/helpers.
+
+Controlled input SHA256: `2c0a928060d6cdc816bb092217a98e1460056d28e4eba296daec1079a6b13bbb`. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence: `tools/permuter_findings/Actor02500_Fn01144/`, session
+`bef67713ebe94c2eafc87e1a4f2dee96`, run `6d16af41db434cd7`;
+PERMUTER_ANALYSIS.md and retained base_1/base_2 .lreg/.greg dumps.

@@ -89,7 +89,7 @@ typedef struct Actor02500Work {
     /* 0x332 */ s16                 field_332;
     /* 0x334 */ byte                pad_334[4];
     /* 0x338 */ s16                 field_338;
-    /* 0x33A */ byte                pad_33A[2];
+    /* 0x33A */ s16                 field_33A;
     /* 0x33C */ s16                 field_33C;
     /* 0x33E */ s16                 field_33E;
     /* 0x340 */ byte                pad_340[4];
