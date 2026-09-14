@@ -1517,6 +1517,56 @@ later pair. `ActorsShared80168d3c` (`func_actor_341700_80168D3C`) is the
 example. This is the inverse of splitting a reused local: merge the two
 constants onto one name so they cannot live in two registers at once.
 
+## A switch case whose value equals the case's own constant drops the `li`; assign it inside the arm
+
+`func_actor_403200_801341E8` switches on `arg1` and case 0 returns `0x21` or
+`0x20` depending on the view index, which is itself tested against `0x21`. The
+target opens the case with
+
+```
+li     v0, 0x21        /* both the compare constant and the else arm's value */
+bne    s0, v0, else
+slti   v1, t0, 0x1770  /* delay: else arm's flag */
+...
+else:
+bnez   v1, done
+li     v0, 0x21        /* re-materialized, not a nop */
+j      done
+li     v0, 0x20
+```
+
+Writing `value = 0x21;` *before* the `if (view == 0x21)` lets the pseudo
+coalesce with the constant materialized for the switch compare, so the else
+arm's delay slot is `nop` (97.98%, `insert=1 delete=1`, structure already
+matching). The fix is to move that assignment into the else arm, after the
+branch, so it is a distinct birth and GCC re-emits `li v0, 0x21` there (100%):
+
+```c
+if (view == 0x21) {
+    value = 0x20;
+    flag  = dist < 0x189D;
+    if (flag) {
+        value = 0x21;
+    }
+    return value;
+}
+value = 0x21;
+flag  = dist < 0x1770;
+if (!flag) {
+    value = 0x20;
+}
+return value;
+```
+
+Note the two arms keep different value polarity — the taken arm assigns the
+`0x20` first and overrides with `0x21`, the fall-through arm assigns `0x21`
+first and overrides with `0x20` — so the shared tail that `base_1.c` produced
+(a single `if (!flag) value = 0x20;`) is wrong even though it is equivalent.
+Inputs: `base_3.i`
+`7d2460daa9e4db1b9e7891074b94ffc2118c502067888b04fb42404faa1a8656`,
+`base_4.i`
+`c8a2e091e94cf80ef2f5d765971da535260790e4144f39e9b2acccfb2f42b129`.
+
 ## Two literal stores cross-jump to `j` / `li v0, N` / shared `sb`; a phi cannot
 
 A replay-rank byte that the target writes as
