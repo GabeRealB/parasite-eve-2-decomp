@@ -16311,6 +16311,48 @@ keeps the control flow but reloads `%hi` into `$v0`/`$v1` after the call
 instead of pinning it in `$s0` from the zeroing store. `CdCmd_SetupMdecBuffers` /
 `D_8006AC00` is the pure example.
 
+## An argument setup written twice around one shared `jal` means two call sites
+
+The mirror of the entry above, and the diagnostic that finds it. When the
+object establishes the *same* call arguments in two places but reaches a single
+`jal`:
+
+```
+        addu  a1, zero, zero           <- arm A sets the args...
+        lui   v0, %hi(D)
+        lhu   a0, %lo(D)(v0)
+        addu  a2, a1, zero
+        addiu a0, a0, 2
+        sll   a0, a0, 16
+        j     .LFE8
+         sra  a0, a0, 16
+.LFE0:
+        addu  a1, zero, zero           <- ...and arm B sets them again
+        addu  a2, a1, zero
+.LFE8:
+        jal   Gp_StartCapSlot
+```
+
+the source had **two** `Gp_StartCapSlot(...)` statements, one per arm. Do not
+write a single call after the join and reach for a pin when the duplicated pair
+survives: a shared call site puts the setup in the join block, so it appears
+once.
+
+Cross-jumping is what merges the calls, and its comparison runs *after* sched2
+(the last `jump_optimize` is the only one passed `cross_jump=1`). It walks
+backwards from the two returns comparing insns one for one, so it merges only
+the longest *adjacent* common suffix. Here sched2 had hoisted arm A's `a1`/`a2`
+setup up next to the value computation, leaving the suffix `jal; lw ra; jr ra;
+addiu sp` - four insns, well over the two-insn minimum - and the merge stopped
+there. That is why the duplicated pair is a stable feature of the object and
+not a scheduling accident to be argued away: the two arms' argument setups are
+no longer adjacent to their `jal` when the comparison happens.
+
+`func_actor_450800_80131F98` is the worked example; the value in arm A is the
+low half of an `s32` global the sibling function reads whole, so the `lhu` is a
+`(u16)` cast rather than a different symbol. Matching it: 43.96% as one call
+site with the value parked in `$s0`, 100% with two.
+
 ## Preload switch-case locals to control delay-slot fill and `lui` order
 
 When a case compares two globals then branches on a field of the second, and the

@@ -63,7 +63,30 @@ void func_actor_450800_80131F70(u32 arg0)
     func_80182D14(arg0 >> 16, arg0 & 0xFFFF);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80131F98);
+/// Two call sites, not one: `Gp_StartCapSlot` is written out in both arms of
+/// the outer test. The tail-call cross-jump in `jump.c` merges them only from
+/// the `jal` onward, because sched2 hoists the `a1`/`a2` setup away from the
+/// call in the first arm before that pass runs - which is why the object sets
+/// `$a1`/`$a2` twice and shares one `jal`.
+///
+/// The global is an `s32` (see `func_actor_450800_80131E34`, which increments
+/// it whole), but this arm only wants its low half, which is the `lhu`.
+void func_actor_450800_80131F98(s32 arg0)
+{
+    s16 var_a0;
+
+    if (arg0 == 1) {
+        var_a0 = (u16)D_actor_450800_8013930C + 2;
+        Gp_StartCapSlot(var_a0, 0, 0);
+    } else {
+        if (GameFlag_GetNibble(0xC8) == 2) {
+            var_a0 = 8;
+        } else {
+            var_a0 = 9;
+        }
+        Gp_StartCapSlot(var_a0, 0, 0);
+    }
+}
 
 void func_actor_450800_80132000(void)
 {
