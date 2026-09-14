@@ -70422,3 +70422,82 @@ form and `(reg:SI 87)` in the second. In the second the load is a movable insn �
 is `(set (reg:SI 87) (mem/s:SI (plus:SI (reg/v:SI 81) (const_int 1716))))`, 1716 =
 0x6B4. Read those `moved to` lines before reaching for a barrier: this fix is a
 change of *block*, not of slot, which `SCHED_BARRIER` cannot express.
+
+## A halfword field read into an `s16` local loads twice; read it into an `s32` and combine folds it to one
+
+`func_actor_402200_80137D78` reads a `s16` work-block field, compares it with 1,
+and stores it back with `sh`. m2c spells that as an `s16` temp, and the result is
+one load too many:
+
+```
+lh    v0,0x6f0(v1)      ; the compare's operand
+lhu   a0,0x6f0(v1)      ; the store's, loaded a second time
+bne   v0,a2,…
+…
+sh    a0,0x6ce(v1)
+```
+
+95.9%, `regs` 2 `insert` 1 `delete` 1 — the whole distance. The RTL is already
+what it should be, which is the trap: `base.i.rtl` shows a single `(reg/v:HI 81)`
+set from the `mem:HI` and used both by insn 36's store and, through
+`ashift`/`ashiftrt` (insns 23/24), by the compare. One source value, one pseudo.
+
+The split happens in combine. `sign_extend:SI(reg:HI)` folds to a `mem:HI` load
+of its own (`LOAD_EXTEND_OP` is `SIGN_EXTEND` for HImode on this port), so the
+compare stops reading the pseudo and the register now has a *single* remaining
+use. Reload then rematerializes that use from `reg_equiv_mem`, and because
+nothing needs the sign any more it picks the zero-extending `lhu`.
+
+Declare the temp `s32` instead — as the sibling state machines in
+`src/actors/lib/actor_102000_text.c` do (`Actor02000_Fn03528` reads a `s16` field
+into an `s32 next`) — and the RTL is `(set (reg:SI) (sign_extend:SI (mem:HI)))`
+from the start. Combine folds it into one sign-extending `lh`, the store truncates
+that same SImode value, and there is nothing left to rematerialize:
+
+```c
+s16 state;
+s32 next;
+…
+case 0:
+    next = work->field_6F0;
+    if (next == 1) { work->field_6C0 = 0xE; work->field_6CE = next; }
+    else           { work->field_6C0 = 0x12; work->field_6CE = 2; }
+```
+
+100%, every penalty zero, one edit. When a matched sibling reads a halfword field
+into an `s32` local, that is not sloppiness to be tidied — it is the shape that
+keeps the load single. `lhu` where the target has `lh` is the signature, and the
+`insert`/`delete` pair that comes with it is the second load, not a branch.
+
+## A promoted body that another shared unit already calls keeps a provisional name in the sym map
+
+`overlay_dup_index.py promote` writes its own canonical symbol
+(`ActorsShared80137d78`) into each carrier's sym map, and splat refuses two names
+at one vram: *"Duplicate symbol detected! ActorsShared80137d78 clashes with
+ActorsShared80137b78_Fn37D7C defined at vram 0x80137D78"*. The provisional name is
+not stale garbage to be deleted on sight — it is in use.
+
+A shared dispatcher calls its per-state bodies, and those bodies are
+overlay-local, so they are named `<Dispatcher>_Fn<VRAM>` and marked
+`absolute:True` (the definition in the carrier is a different symbol entirely, so
+a relocated reference would not resolve). Here `ActorsShared80137b78`'s case 10,
+its `field_6CC` state, is the very body being promoted.
+
+Promoting it means the call can become an ordinary symbol reference: the shared
+unit is linked into both carriers, so the name resolves per link. Include the
+promoted body's header in the dispatcher, drop the `_Fn` declaration, and cast
+the context at the one call site — the shape `actor_105100` already uses for
+`ActorsShared80134ff0((ActorShared80134ff0*)arg1)`:
+
+```c
+case 10:
+    ActorsShared80137d78((ActorShared80137d78*)arg0);
+    break;
+```
+
+Then delete the `_Fn<VRAM>` line from each carrier's sym map. The dispatcher's
+bytes do not move (the checksum proves it) and the two names become one.
+
+Watch for this before running promote, not after: the sym maps are written before
+the clash surfaces, at the next split, with every unit of both carriers already
+renumbered around the new span.

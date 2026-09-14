@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actors_shared_80137b78.h"
+#include "actors/actors_shared_80137d78.h"
 
 void ActorsShared80137b78_Fn32688(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn329A4(ActorShared80137b78* arg0);
@@ -13,7 +14,6 @@ void ActorsShared80137b78_Fn354B0(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn35630(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn3592C(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn35A24(ActorShared80137b78* arg0);
-void ActorsShared80137b78_Fn37D7C(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn380DC(ActorShared80137b78* arg0);
 
 void ActorsShared80137b78(ActorShared80137b78* arg0)
@@ -55,7 +55,7 @@ void ActorsShared80137b78(ActorShared80137b78* arg0)
             ActorsShared80137b78_Fn35A24(arg0);
             break;
         case 10:
-            ActorsShared80137b78_Fn37D7C(arg0);
+            ActorsShared80137d78((ActorShared80137d78*)arg0);
             break;
         case 11:
             ActorsShared80137b78_Fn32688(arg0);

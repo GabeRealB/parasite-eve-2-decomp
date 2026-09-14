@@ -1,42 +1,55 @@
 #include "common.h"
 
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
+#include "main/mem.h"
 
-#include "gameplay/3A34.h"
-#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actor_402200.h"
 
-/// Base id of the actor's vocal cues: the `GpEnemy` work id's high nibble
-/// selects one of the four adjacent words here, picked up as bits 8-11 of the
-/// cue id.
-extern s32 D_actor_402200_80138474;
+#include "psyq/inline_c.h"
 
-void func_actor_402200_801380D8(Actor402200* arg0)
+/// `rtps`: project V0 through the loaded rotation and translation matrices.
+/// The `inline_c.h` macro of that name assembles to a different word, so the
+/// opcode is written out with its two delay slots kept explicit.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+void func_actor_402200_80136D9C(s32 arg0);
+
+/// Depth-sorts the actor against the camera: the origin is zeroed into a
+/// 0x18-byte `G_SCRATCH_HEAD` block, `Gp_UpdateCoord` folds the attach
+/// coordinate's matrix chain into `arg0`, that world matrix is loaded into the
+/// GTE, and `rtps` projects the origin through it. The block's `otz` is the
+/// projection's average screen z, which `arg1`'s screen depth biases after the
+/// perspective divide (`>> 4`); the ordering-table body gets the result. A
+/// negative `FLAG` means the point fell behind the eye, and its depth is
+/// dropped to zero.
+void func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1)
 {
-    Actor402200Work* work;
-    s16              timer;
-    s32              sound;
-    s32              pan;
-    Task*            slot;
-    GpObj38*         coord;
+    u8*                        head;
+    Actor402200ProjectScratch* block;
+    SVECTOR*                   vec;
 
-    work  = arg0->field_1C;
-    coord = (GpObj38*)arg0->field_2C->field_8;
-    slot  = Game_GetPtrSlot(3);
-    if (work->field_718 != 0) {
-        if (work->field_71A == 0x14) {
-            sound = D_actor_402200_80138474 | ((arg0->field_20->field_8 >> 12) << 8);
-            pan   = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
-        }
-        timer           = (u16)work->field_71A + 1;
-        work->field_71A = timer;
-        if ((timer >= 0x5F) && (Gp_DispatchMsg(slot, 0x3ED, 0, 0) == 0)) {
-            Gp_DispatchMsg(slot, 0x3F1, 0, 0);
-            work->field_718 = 0;
-        }
+    head                                         = *(u8**)G_SCRATCH_HEAD;
+    block                                        = (Actor402200ProjectScratch*)(head - sizeof(Actor402200ProjectScratch));
+    *(Actor402200ProjectScratch**)G_SCRATCH_HEAD = block;
+    block->vec.vx                                = 0;
+    block->vec.vy                                = 0;
+    block->vec.vz                                = 0;
+    Gp_UpdateCoord(arg0);
+    vec = &block->vec;
+    SOFT_TOUCH_REG(vec);
+    gte_SetRotMatrix(&arg0->workm);
+    gte_SetTransMatrix(&arg0->workm);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy);
+    gte_stdp(&block->dp);
+    gte_stflg(&block->flag);
+    gte_stszotz(&block->otz);
+    if (block->flag < 0) {
+        block->otz = 0;
     }
+    block->otz = (block->otz >> 4) + arg1;
+    func_actor_402200_80136D9C(block->otz);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
