@@ -66693,6 +66693,15 @@ mentions the loaded register (`gcc/config/mips/mips.c:4518`), so a surviving
 instruction. A store written at the point the target stores it is usually the
 whole fix.
 
+Confirmed on `func_actor_341900_801625B4`, where the block has three loads in a
+row rather than one. m2c's order put `coord->flg = 0;` between the `t[1]` and
+`t[2]` field stores, and the zero store came out two instructions early
+(`reorder=2`, every other penalty zero: `lh 2(v0)` / `sw zero,0(a0)` /
+`sw v0,0x1c(a0)` against the target's delay slot below `lh 4(v0)`). The store
+belongs after the **last** load it must follow, not merely after the one whose
+delay slot it fills -- moved to the end of the block it is picked only once the
+`t[2]` load has been scheduled, and lands in that load's slot. 98.59% -> 100%.
+
 ## The array base expands before its index, and that birth position decides a local-alloc priority
 
 `QTY_CMP_PRI` divides by `death - birth`, and `birth` is the **position of the
@@ -70828,3 +70837,52 @@ from a value loaded once before the branch -- decides the allocation, the
 instruction count and the block count together. Read `regs` together with
 `insert`/`delete` on a conditional like this as one problem, not three; check
 the arms for a duplicated reload before reaching for anything else.
+
+## A value used after a call needs a second definition *after* it to stay off the `s` registers
+
+`func_actor_341900_801625B4` reads `arg0->idMap` once at the top and uses it
+again after calling `func_actor_341900_80162330`. Written with a single
+definition the local is live across the call, so `global.c` hands it a
+call-saved register and the prologue pays for it:
+
+```
+addiu sp,sp,-0x30
+sw    ra,0x28(sp)
+sw    s1,0x24(sp)      <- the save the target does not have
+lw    s1,0x1c(s0)
+```
+
+The target has frame `0x28`, no `s1` at all, and holds the pointer in `a2`:
+
+```
+addiu sp,sp,-0x28
+sw    ra,0x24(sp)
+lw    a2,0x1c(s0)
+```
+
+Give the same local a second definition from the same expression after the
+call:
+
+```c
+Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->idMap;
+
+if (arg0->state == 0) {
+    func_actor_341900_80162330(arg0);
+    work = (Actor341900TaskWork*)arg0->idMap;   /* kills the first value */
+    ...
+}
+/* tail use of `work` */
+```
+
+The second definition is not redundant: it kills the first value on every path
+that goes through the call, so the first pseudo is **not** live across that
+call on any path, and the allocator is free to colour it call-clobbered. The
+load is then re-issued into `a2` after the call, which is exactly the target's
+duplicate `lw a2,0x1c(s0)`. 77.8% -> 98.6% on this function, and the `stack`
+penalty went to zero with the frame.
+
+Read an extra `s`-register save in the prologue as this, not as a spill: check
+whether the surviving value's only definition precedes the call and whether the
+original re-read it afterwards. A callee that can reallocate the block the
+pointer came from makes that re-read the natural source form, and it is what
+the register choice falls out of.

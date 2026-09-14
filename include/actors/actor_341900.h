@@ -80,4 +80,34 @@ STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
 /// and read by the sequence helpers that hang their work off its `Task::idMap`.
 extern Task* D_actor_341900_80164208;
 
+/// 8-byte record of `D_actor_341900_80163A98`, indexed by `Task::spawnArg1`.
+/// `func_actor_341900_801625B4` copies the first three halves onto part 0's
+/// `GsCOORDINATE2::coord.t` and hangs that part off entry `field_6` of the
+/// spawner model's own coordinate array, so a record is a spawn offset plus the
+/// bone the actor is attached to. The first three records are all zero and only
+/// `field_6` is under 9 in the rest, which is what sizes a model's part array.
+typedef struct Actor341900SpawnPos {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} Actor341900SpawnPos;
+STATIC_ASSERT_SIZEOF(Actor341900SpawnPos, 0x8);
+
+extern Actor341900SpawnPos D_actor_341900_80163A98[6];
+
+/// Work block `func_actor_341900_80162330` allocates with `Mem_Malloc(0x258, 0)`
+/// and parks in its own task's `Task::idMap` slot, which is a `TaskIdMap*` only
+/// by type. `field_248` is the task that spawned this actor, copied there from
+/// `Task::spawnArg2`; `func_actor_341900_801625B4` walks it to the spawner's
+/// model to inherit its spawn position and its colour flag.
+typedef struct Actor341900TaskWork {
+    /* 0x000 */ byte  pad_0[0x248];
+    /* 0x248 */ Task* field_248;
+    /* 0x24C */ byte  pad_24C[0xC];
+} Actor341900TaskWork;
+STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
+
+void func_actor_341900_80162330(Task* arg0);
+
 #endif
