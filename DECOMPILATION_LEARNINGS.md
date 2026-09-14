@@ -41039,6 +41039,27 @@ before deciding a field's type: a mixed pair is normal C, not a struct
 mistake, and picking `s16` to satisfy the `slti` breaks the range check
 instead.
 
+## The same mixed pair across *two* functions: fix the comparison, not the field
+
+The per-use rule above does not stop at a function boundary. In
+`actor_207200_4`, `Actor207200Work.field_490` is loaded `lhu` in
+`func_actor_207200_8014D65C` (whose expression truncates to `u16`) and `lh` +
+`slti 0x69` in `func_actor_207200_8014D49C`. The `lhu` pins the declared type
+as `u16`, and the second function still gets its `lh` from the cast at the
+comparison site:
+
+```c
+if ((s16)work->field_490 >= 0x69) { ... }      /* lh + slti */
+```
+
+Both spellings are worth checking when you are tempted to retype the field:
+declaring `field_490` as `s16` instead — and leaving `8014D65C`'s
+`(u16)(field_490 + i)` untouched — produced *byte-identical* assembly here,
+because that consumer only keeps the low half either way. So a single
+comparison site's `lh` is not evidence for the field's signedness; the
+consumers that truncate are what pin it, and the cast is the change that
+leaves them alone.
+
 ## Struct-typing can *shorten* a body: the hoisted load that eats a load-delay `nop`
 
 The aliasing entries above are about stores swapping places. The same change of

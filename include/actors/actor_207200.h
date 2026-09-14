@@ -50,7 +50,7 @@ typedef struct Actor207200Work {
     /* 0x484 */ byte           pad_484[2];
     /* 0x486 */ s16            field_486; // state the six helper slots are running
     /* 0x488 */ s16            field_488; // frames spent in `field_486`
-    /* 0x48A */ byte           pad_48A[2];
+    /* 0x48A */ u16            field_48A; // frames the current helper stage has run
     /* 0x48C */ s16            field_48C;
     /* 0x48E */ u16            field_48E; // id the six helper slots last saw
     /* 0x490 */ u16            field_490; // frames spent on the current id

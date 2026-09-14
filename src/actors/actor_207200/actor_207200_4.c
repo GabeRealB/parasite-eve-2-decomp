@@ -125,6 +125,8 @@ void func_actor_207200_8014D280(Task* arg0)
 }
 
 void func_actor_207200_8014BEF4(Task* arg0);
+void func_actor_207200_8014B628(Task* arg0);
+void func_actor_207200_8014B87C(Task* arg0);
 void func_actor_207200_8014D41C(Task* arg0);
 void func_actor_207200_8014D49C(Task* arg0);
 void func_actor_207200_8014D5C4(Task* arg0);
@@ -196,7 +198,58 @@ case1:
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014D41C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014D49C);
+/// Per-frame tick of the actor's six helper slots, driven by
+/// `work->field_486`. The kill countdown on the task is decremented first and
+/// clamped at zero. State 0 and state 1 hand the actor to the two helper
+/// setup/tick bodies; state 3 runs the slot animation, counting
+/// `work->field_48A` up to 0x3D frames before re-arming the slots with id 1 at
+/// weight 9, and drops back to state 0 once `Gp_TickObjFlag2` reports that the
+/// spawn argument is done; state 4 waits out `work->field_490` frames and then
+/// either returns to state 1 when the actor is idle (`work->field_4A6 != 0`)
+/// or clears both state words and marks `work->field_4A2`.
+void func_actor_207200_8014D49C(Task* arg0)
+{
+    Actor207200Work* work;
+    s16              countdown;
+
+    work                = arg0->idMap;
+    countdown           = (u16)arg0->killCountdown - 1;
+    arg0->killCountdown = countdown;
+    if (countdown < 0) {
+        arg0->killCountdown = 0;
+    }
+    switch (work->field_486) {
+        case 0:
+            func_actor_207200_8014B628(arg0);
+            break;
+        case 1:
+            func_actor_207200_8014B87C(arg0);
+            break;
+        case 3:
+            work->field_48A = work->field_48A + 1;
+            if ((s16)work->field_48A >= 0x3D) {
+                work->field_48E = 1;
+                work->field_48C = 9;
+                work->field_490 = 0;
+                work->field_48A = 0;
+            }
+            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+                work->field_486 = 0;
+            }
+            break;
+        case 4:
+            if ((s16)work->field_490 >= 0x69) {
+                if (work->field_4A6 != 0) {
+                    work->field_486 = 0;
+                    work->field_48C = 1;
+                    break;
+                }
+                work->field_486 = 0;
+                work->field_4A2 = 1;
+            }
+            break;
+    }
+}
 
 /// Walks the model's root part forward. While the actor is not idle
 /// (`work->field_4A6 == 0`) the part's current translation is remembered in the
