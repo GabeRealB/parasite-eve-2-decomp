@@ -296,7 +296,13 @@ done
 log "matched ${#ALL_MATCHED[@]} function(s), ${#MATCHED[@]} landable in $OVERLAY"
 printf '  %s\n' "${MATCHED[@]}" | tee -a "$LOG_FILE"
 
-if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#MATCHED[@]} -eq 0 ]]; then
+# Only "nothing matched at all" is a no-op. A batch whose every body was
+# promoted to src/<family>/lib has MATCHED empty but ALL_MATCHED full, and this
+# branch used to discard it: worktree deleted, branch deleted, verified work
+# gone. Thirteen matches went that way in one day. Those commits land perfectly
+# well through the replay below - cherry-picking needs no per-function mapping -
+# so fall through instead of dropping them.
+if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#ALL_MATCHED[@]} -eq 0 ]]; then
     if [[ "$DRY_RUN" == true || "$NO_LAND" == true ]]; then
         log "not landing (dry-run or --no-land); worktree kept at $WT"
         trap - EXIT
@@ -560,6 +566,17 @@ if [[ ${#EXTRAS[@]} -gt 0 ]]; then
     land_args+=(--extra "$(IFS=,; echo "${EXTRAS[*]}")")
 fi
 
+# An all-promoted batch has no per-function mapping to make, so the file
+# rewrite has nothing to work with; replay is the only route. Say so plainly
+# rather than letting land_overlay.py fail on an empty function list.
+if [[ ${#MATCHED[@]} -eq 0 && "$CAN_REPLAY" != true ]]; then
+    log "every match was promoted out of $OVERLAY and trunk has moved; \
+replay is the only way to land them"
+    log "LANDING FAILED: $OVERLAY - ${#ALL_MATCHED[@]} promoted match(es) are \
+stranded on $BRANCH_NAME (worktree $WT)"
+    rm -f "$funcs_file"; exit 3
+fi
+
 if [[ "$CAN_REPLAY" != true ]] \
    && ! python3 "$ROOT/tools/land_overlay.py" "${land_args[@]}" >>"$LOG_FILE" 2>&1; then
     # Last resort: replay the branch's own commits. Cherry-picking needs no
@@ -597,7 +614,11 @@ log "trunk verified"
 # --- bookkeeping --------------------------------------------------------------
 DIFFICULT=$(awk '{print $1}' "$ROOT/tools/difficult_functions" 2>/dev/null \
             | grep -F "_${OVERLAY##*/}_" || true)
-matched_csv=$(IFS=,; echo "${MATCHED[*]}")
+# Every function in ALL_MATCHED was matched and reached trunk - the promoted
+# ones through EXTRAS and the replay rather than the per-function mapping.
+# Reporting only MATCHED told the orchestrator a promoted body was never
+# attempted, which is how it came to be offered again on a later sweep.
+matched_csv=$(IFS=,; echo "${ALL_MATCHED[*]}")
 diff_csv=$(tr '\n' ',' <<<"$DIFFICULT" | sed 's/,$//')
 unattempted=$(comm -23 <(sort <<<"$CLAIMED") \
                        <(printf '%s\n%s\n' "$matched_csv" "$diff_csv" | tr ',' '\n' | sort -u) \
@@ -608,7 +629,8 @@ orch finish-overlay --session "$SESSION" \
     ${diff_csv:+--difficult "$diff_csv"} \
     ${unattempted:+--unattempted "$unattempted"} >>"$LOG_FILE" 2>&1 || true
 
-log "landed ${#MATCHED[@]}; difficult $(grep -c . <<<"$DIFFICULT" || echo 0); unattempted $(tr ',' '\n' <<<"$unattempted" | grep -c . || echo 0)"
+_promoted=$(( ${#ALL_MATCHED[@]} - ${#MATCHED[@]} ))
+log "landed ${#ALL_MATCHED[@]}$( ((_promoted > 0)) && echo " (${_promoted} promoted out of $OVERLAY)"); difficult $(grep -c . <<<"$DIFFICULT" || echo 0); unattempted $(tr ',' '\n' <<<"$unattempted" | grep -c . || echo 0)"
 
 cleanup_worktree
 
