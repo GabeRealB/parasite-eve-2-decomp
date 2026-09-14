@@ -47182,6 +47182,35 @@ because everything the node generates is deleted. Pick one that fits the
 message ids the sibling handlers in the overlay use, and do not read the
 constant back out of the assembly — it is not there.
 
+**The hidden case's *arm* can survive after its test is gone.** The same tree
+over `Actor310100Work::field_4F0` in `func_actor_310100_8016309C` — root 1, left
+0, right 2 — whose default arm is a `return` rather than a `break`:
+
+```
+li    v0, 1
+beq   v1, v0, case1     # root
+slti  v0, v1, 2         # the root's high bound, one past *its* value
+beqz  v0, epilogue      # index > 1 -> default
+beqz  v1, case0         # left child
+j     epilogue          # right child: its test is gone, its arm is not
+```
+
+Node 2's `beq v1, 2, epilogue` is deleted though its target is *not* its own
+fall-through — the next code is the switch's successor — because the
+instruction after it is `j epilogue`, the same target, and `jump.c` rewrites
+that pair. The arm still has to be emitted, because `default:` is the function's
+epilogue and not the switch's end. So "leaves no trace at all" holds only when
+the hidden arm is the switch's end label too; otherwise expect a bare `j` to the
+arm, and still no `li` of the hidden value.
+
+Choose that value from the overlay's own evidence rather than guessing: here
+`func_actor_310100_80162CDC` parks `field_4F0` at 2 and the sibling handler
+`func_actor_310100_801632B0` groups `case 0: case 1:`, so the state the hidden
+arm returns on is the 2 the overlay already names — and the `slti` bound
+coinciding with it is a coincidence of that choice, not a reading of it. Written
+as the two-node `case 0: break; case 1: call(); break; default: return;` instead
+of the three-node `case 2: default: return;`, the same body scores 90%.
+
 ## Two bounds on one variable fold into a `sltiu` range test unless they are separate `if` statements
 
 `func_acropolis_roof_garden_80180160` hides an item mesh unless the room is
