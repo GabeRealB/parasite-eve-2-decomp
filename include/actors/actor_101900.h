@@ -110,8 +110,11 @@ typedef struct Actor01900Msg7D3 {
 } Actor01900Msg7D3;
 
 extern Actor01900HeightClamp Actor01900_D172CC[];
+extern char                  Actor01900_D10B68;
+extern void*                 D_80114B78[1];
 
 void Actor01900_Fn01C94(Actor01900* arg0);
+void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
 void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta);
 s32  Actor01900_Fn0A31C(Actor01900* arg0, s32 arg1, Actor01900Msg7D3* arg2);

@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Duplicate the call for delay-slot `lui`; share the volatile-touch body
+
+Two switch arms that share a `jal` with a unique `addiu a1` in the jump delay
+(and the call's `lui` in the branch-to-last-case delay) need the call
+duplicated so each arm mentions the constant. Cross-jump keeps the later copy.
+
+The post-call body may still need the Actor02000 `&local` sequence
+(`SOFT_BARRIER` / `TOUCH_REG(ptr)` / last store / call / second call on
+`&local`) so CSE does not park `&key` in a callee-saved register. Do **not**
+duplicate that sequence with the call. Volatile `TOUCH_REG` in both copies
+makes the tails incomparable, so jump.c emits two full copies (extra block,
+~20 extra insns). Put the barrier in a shared label after both calls:
+`goto body` from the earlier case, fallthrough from the last.
+
+```c
+case 3:
+    D_80114B78[0] = &Actor01900_D10B68;
+    vec.vz = 0x64;
+    vec.vy = 0;
+    vec.vx = 0;
+    eff = Gp_SpawnEff(0xA0005, obj->field_8 + 9, 0x200, &vec);
+    goto body;
+case 4:
+    D_80114B78[0] = &Actor01900_D10B68;
+    vec.vy = 0;
+    vec.vx = 0;
+    eff = Gp_SpawnEff(0xA0005, obj->field_8 + 12, 0x200, &vec);
+body:
+    if (eff != NULL) {
+        /* SOFT_BARRIER; keyPtr = &key; TOUCH_REG(keyPtr); ... */
+    }
+    break;
+```
+
+A `coord` local assigned in each arm and one shared `Gp_SpawnEff(0xA0005,
+coord, ...)` moves the `lui`/`ori`/`li a2`/`addiu a3` to the merge point,
+so the case-4 delay holds `%hi(D_80114B78)` instead of `lui a0, 0xA`.
+
+Example: `Actor01900_Fn08724`.
+
 ## Share one `return K` between the paths (`||`) so reorg threads `li v0,K` into both branch delays
 
 A function that returns 2 when either of two probes is nonzero and 1

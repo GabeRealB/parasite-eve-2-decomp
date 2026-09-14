@@ -3,6 +3,9 @@
 #include "actors/actor_101900.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "main/gfx.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn00260);
@@ -152,7 +155,87 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn080A8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn083E8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn08724);
+void Actor01900_Fn08724(Actor01900* arg0)
+{
+    SVECTOR         vec;
+    GpAreaKey       key;
+    GpAreaKey*      sessionKey;
+    GpAreaKey*      keyPtr;
+    u8              areaByte0;
+    GpAreaRec*      rec;
+    GpCdRec10*      entry;
+    GpEffWork*      eff;
+    TmdObject*      model;
+    s32             idx;
+    u32             raw;
+    u16             next;
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0x80;
+        work->field_8C8.field_1C = 0x180;
+        work->field_A08.flags    = (u16)(work->field_A08.flags & 0xBFFF);
+        enemy->node.field_4      = 1;
+        work->field_8AE          = 0;
+        work->field_6            = 0U;
+        vec.vx                   = 0x64;
+        vec.vz                   = 0;
+        vec.vy                   = 0;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &vec);
+        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0x13);
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    switch ((s16)next) {
+        case 3:
+            D_80114B78[0] = &Actor01900_D10B68;
+            vec.vz        = 0x64;
+            vec.vy        = 0;
+            vec.vx        = 0;
+            eff           = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &vec);
+            goto body;
+        case 4:
+            D_80114B78[0] = &Actor01900_D10B68;
+            vec.vy        = 0;
+            vec.vx        = 0;
+            eff           = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 12, 0x200, &vec);
+        body:
+            if (eff != NULL) {
+                sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+                raw         = enemy->field_8;
+                model       = (TmdObject*)eff->field_0->extra;
+                key.field_3 = sessionKey->field_3;
+                key.field_2 = sessionKey->field_2;
+                key.field_1 = sessionKey->field_1;
+                areaByte0   = Game_Session->field_4;
+                idx         = raw >> 12;
+                /* Both calls take `&key`. CSE of that address across the first
+                   jal costs a callee-saved register; the ROM rematerializes
+                   `addiu a0, sp, key` for each call. Same shape as
+                   Actor02000_Fn0251C. */
+                SOFT_BARRIER();
+                keyPtr = &key;
+                TOUCH_REG(keyPtr);
+                key.field_0 = areaByte0;
+                Gp_SyncAreaKeyIndex(keyPtr);
+                rec             = Gp_GetNestedAreaRec(&key);
+                entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+                model->field_24 = entry->field_D;
+                model->field_25 = entry->field_E;
+                if (model->field_18 != NULL) {
+                    Tmd_ProcessStream(model);
+                    Tmd_ProcessStream(model);
+                }
+            }
+            break;
+    }
+    if ((s16)work->field_6 >= 0x3D) {
+        work->field_0 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0892C);
 
